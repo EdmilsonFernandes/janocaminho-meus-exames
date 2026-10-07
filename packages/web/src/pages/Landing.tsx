@@ -1,14 +1,13 @@
 import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 
 // Ícones MUI (premium, no lugar dos emojis antigos)
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import Diversity3Icon from '@mui/icons-material/Diversity3';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
-import SmartphoneIcon from '@mui/icons-material/Smartphone';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -29,17 +28,20 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
-import SpeedIcon from '@mui/icons-material/Speed';
-import ScienceIcon from '@mui/icons-material/Science';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { LeadPopup } from '../components/LeadPopup';
 import { DecifreReal } from '../components/DecifreReal';
-import { FaqSection } from '../components/FaqSection';
+import { FaqSection, FAQ_ITEMS } from '../components/FaqSection';
 import { PaymentLogos } from '../components/PaymentLogos';
+import { SportsSection } from '../components/landing/SportsSection';
+// FAQ esportivo: lazy — só entra no bundle quando a variante ?sports=1 abre (CWV).
+const SportsFaq = lazy(() => import('../components/landing/SportsFaq').then((m) => ({ default: m.SportsFaq })));
+import { HeroRuler } from '../components/landing/HeroRuler';
+import { DrExame } from '../components/DrExame';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
+import { useHeroAb } from '../hooks/useHeroAb';
 import { ScrollReveal, AnimatedNumber } from '../components/ScrollReveal';
 import { Reveal } from '../components/Reveal';
 import { tealText } from '../theme';
@@ -175,101 +177,19 @@ const SlideCarousel = () => {
   );
 };
 
-// Dados demonstrativos interativos da seção Saúde Esportiva (4 cenários reais de atletas)
-const sportsDemoData = {
-  ck: {
-    title: 'CK Total & TGO pós-treino',
-    badge: 'Músculo vs. Fígado',
-    badgeColor: '#0d9488',
-    patientContext: 'Treino de pernas (esforço excêntrico intenso) há 24h',
-    markerName: 'Creatina Quinase (CK Total)',
-    val: '1.420',
-    unit: 'U/L',
-    status: 'Dano Muscular Fisiológico',
-    statusBg: 'rgba(13,148,136,0.12)',
-    statusColor: '#0f766e',
-    labRef: 'Lab: 30 a 200 U/L',
-    targetRef: 'Meta pós-treino: até 2.000 U/L',
-    rulerLabLeft: '5%',
-    rulerLabWidth: '20%',
-    rulerTargetLeft: '25%',
-    rulerTargetWidth: '55%',
-    rulerPinLeft: '68%',
-    explanation: 'Sem alarme: elevação decorrente de microrrupturas musculares e sobrecarga de esforço, e NÃO lesão hepática. Seu TGO subiu acompanhando o músculo, enquanto TGP e Gama-GT continuam normais.',
-    tip: 'Hidratação reforçada (3,5L+) e intervalo antes do próximo treino pesado da mesma musculatura.'
-  },
-  renal: {
-    title: 'Creatinina vs. Cistatina-C',
-    badge: 'Função Renal Real',
-    badgeColor: '#6366f1',
-    patientContext: 'Praticante de musculação com alta massa muscular + uso contínuo de Creatina 5g/dia',
-    markerName: 'Cistatina-C (Filtração Glomerular)',
-    val: '0,78',
-    unit: 'mg/L',
-    status: 'Rins 100% Saudáveis (TFG > 95)',
-    statusBg: 'rgba(16,185,129,0.12)',
-    statusColor: '#047857',
-    labRef: 'Lab Ref: 0,55 a 1,02 mg/L',
-    targetRef: 'Ideal Atleta: 0,60 a 0,90 mg/L',
-    rulerLabLeft: '15%',
-    rulerLabWidth: '50%',
-    rulerTargetLeft: '20%',
-    rulerTargetWidth: '40%',
-    rulerPinLeft: '45%',
-    explanation: 'A creatinina no laudo acusou 1,35 mg/dL (falso positivo comum devido à grande massa magra e suplementação). A dosagem de Cistatina-C elimina a influência muscular e comprova rins íntegros.',
-    tip: 'Oriente seu médico a avaliar a Cistatina-C e não suspender treinos por creatinina isolada.'
-  },
-  trt: {
-    title: 'Hematócrito & Viscosidade (TRT)',
-    badge: 'Segurança Cardiovascular',
-    badgeColor: '#f59e0b',
-    patientContext: 'Homem de 34 anos em reposição hormonal de testosterona (TRT)',
-    markerName: 'Hematócrito (Concentração de Hemácias)',
-    val: '51,8',
-    unit: '%',
-    status: 'Zona de Atenção Pré-Clínica',
-    statusBg: 'rgba(245,158,11,0.12)',
-    statusColor: '#b45309',
-    labRef: 'Lab: 40% a 50%',
-    targetRef: 'Teto Seguro Atleta: ≤ 52%',
-    rulerLabLeft: '15%',
-    rulerLabWidth: '45%',
-    rulerTargetLeft: '35%',
-    rulerTargetWidth: '30%',
-    rulerPinLeft: '78%',
-    explanation: 'O hematócrito está em 51,8%, próximo ao limite de 52% onde a viscosidade do sangue começa a exigir cautela para evitar sobrecarga cardíaca. Não espere atingir 54% para agir.',
-    tip: 'Aumente o consumo diário de água para 4L, monitore a pressão arterial e converse com seu endocrinologista.'
-  },
-  ferro: {
-    title: 'Ferritina & Estoque de Ferro',
-    badge: 'Resistência & VO2 Máx',
-    badgeColor: '#ec4899',
-    patientContext: 'Corredora de rua / maratonista com fadiga nos treinos longos',
-    markerName: 'Ferritina Sérica',
-    val: '24',
-    unit: 'ng/mL',
-    status: 'Baixo para Prática de Endurance',
-    statusBg: 'rgba(239,68,68,0.12)',
-    statusColor: '#b91c1c',
-    labRef: 'Lab: 10 a 120 ng/mL',
-    targetRef: 'Meta de Performance: ≥ 50 ng/mL',
-    rulerLabLeft: '10%',
-    rulerLabWidth: '70%',
-    rulerTargetLeft: '45%',
-    rulerTargetWidth: '45%',
-    rulerPinLeft: '22%',
-    explanation: 'Embora o laboratório considere "normal" acima de 10 ng/mL, atletas de corrida com ferritina < 50 ng/mL sofrem queda drástica na oxigenação decorrente da hemólise de impacto e sudorese.',
-    tip: 'Investigar reposição de ferro elementar ou vitamina C adjuvante com sua nutricionista esportiva.'
-  }
-};
-
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  // Variante esportiva (?sports=1) — destino do tráfego QR dos cartazes de academia.
+  // Message match com o cartaz Métrica Vital ("Você acompanha seus treinos. E seus exames?").
+  const isSports = searchParams.get('sports') === '1';
+  const heroAb = useHeroAb(!isSports);
   const [scrolled, setScrolled] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
-  const [activeSportTab, setActiveSportTab] = useState<'ck' | 'renal' | 'trt' | 'ferro'>('ck');
+  useEffect(() => {
+    if (isSports) document.title = 'Exames para quem treina — Modo Saúde Esportiva | Dr. Exame';
+  }, [isSports]);
   // Disclosure nível 1 (NN/g: máx 2 níveis, affordance óbvia) — showcase e ciência
   // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
   const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
@@ -358,8 +278,12 @@ export const LandingPage = () => {
           </Stack>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('demo')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Como funciona</Box>
-            <Box component="button" onClick={() => goTo('esporte')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, color: TEAL_DARK, fontWeight: 700 }}>Saúde Esportiva</Box>
-            <Box component="button" onClick={() => goTo('remedios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Remédios e preços</Box>
+            {isSports ? (
+              <Box component="a" href="#/" sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, textDecoration: 'none' }}>Modo geral</Box>
+            ) : (
+              <Box component="button" onClick={() => goTo('esporte')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, color: TEAL_DARK, fontWeight: 700 }}>Saúde Esportiva</Box>
+            )}
+            {!isSports && <Box component="button" onClick={() => goTo('remedios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Remédios e preços</Box>}
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
             <Box component="button" onClick={() => navigate('/doctor')} sx={{ ...navBtn(scrolled), display: { xs: 'none', lg: 'inline' } }}>É médico?</Box>
             <Box component="button" onClick={() => navigate('/faq')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Dúvidas</Box>
@@ -369,15 +293,18 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* HERO — premium mesh gradient */}
+      {/* HERO — premium mesh gradient (padrão) OU Métrica Vital dark (variante ?sports=1:
+          mesmo fundo profundo dos cartazes de academia — continuidade da campanha QR). */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)',
+        background: isSports
+          ? 'linear-gradient(160deg, #06201e 0%, #093330 45%, #0f5f5a 100%)'
+          : 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)',
         pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
       }}>
-        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.25),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
-        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: 'radial-gradient(circle,rgba(212,165,116,.20),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
-        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(250,253,252,.5),transparent 70%)', pointerEvents: 'none', filter: 'blur(30px)' }} />
+        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.30),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.25),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(212,165,116,.14),transparent 70%)' : 'radial-gradient(circle,rgba(212,165,116,.20),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
+        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(250,253,252,.5),transparent 70%)', pointerEvents: 'none', filter: 'blur(30px)', opacity: isSports ? 0.25 : 1 }} />
         {/* Vídeo de textura (v2) — sutil por cima do gradiente claro; some no reduced-motion e em erro de rede */}
         <Box
           component="video"
@@ -396,69 +323,139 @@ export const LandingPage = () => {
         />
         <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
-            {/* Coluna texto — DISTILL 2026-08-27: pill de créditos com pulse REMOVIDO
-                (padrão visual de "GANHE GRÁTIS" minava a confiança clínica; o valor
-                entrou no CTA). Uma ação primária, uma secundária, retornante discreto. */}
+            {/* Coluna texto — CRO v3: UM objetivo de conversão (criar conta). Um CTA
+                primário, um secundário de mesma página (âncora, não navega), retornante
+                discreto. Play Store sai do hero (concorria pelo clique) e fica no CTA
+                final, onde a intenção já está confirmada. Headline em A/B 50/50
+                (useHeroAb) — A controle, B específica (outcome + prazo). */}
             <Box>
-              <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
-                <Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>nunca antes.</Box>
-              </Typography>
-              <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
-                Envie o exame. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica em português simples, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta um <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico — <b style={{ color: 'text.primary' }}>em cerca de 30 segundos</b>.
-              </Typography>
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
-                <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
-              </Stack>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }}>
+              {isSports ? (
+                <>
+                  <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 11.5, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5 }}>
+                    VOCÊ ACOMPANHA SEUS TREINOS.
+                  </Typography>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.6rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.05, mb: 2.5, letterSpacing: '-0.03em', color: '#fff' }}>
+                    <Box component="span" sx={{ display: 'block' }}>E seus <Box component="span" sx={{ ...SERIF_I, color: '#5fc9c3', fontSize: '1.06em' }}>exames?</Box></Box>
+                  </Typography>
+                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520 }}>
+                    Hormônios, hematócrito, colesterol, fígado e rim interpretados <b style={{ color: '#fff' }}>no contexto de quem treina</b> — a régua do laboratório de um lado, seu histórico do outro e <b style={{ color: '#fff' }}>a meta do SEU médico</b> no meio.
+                  </Typography>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
+                    <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="Declarações confidenciais (LGPD) · sem julgamento" sx={{ bgcolor: 'rgba(32,178,170,.18)', color: '#c9efec', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#5fc9c3' } }} />
+                  </Stack>
+                </>
+              ) : (
+                <>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
+                    {heroAb === 'A' ? (
+                      <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>nunca antes.</Box></>
+                    ) : (
+                      <><Box component="span" sx={{ display: 'block' }}>Seu exame de sangue,</Box> explicado <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>em 30 segundos.</Box></>
+                    )}
+                  </Typography>
+                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
+                    Envie o PDF ou a foto. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica cada valor em <b style={{ color: 'text.primary' }}>português simples</b>, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta o <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
+                  </Typography>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
+                    <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
+                  </Stack>
+                </>
+              )}
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
                 <Button variant="contained" size="large" onClick={() => navigate('/registrar')} sx={{
                   borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800,
                   bgcolor: 'primary.dark',
                   background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 50%, #178f89 100%)',
                   backgroundSize: '200% auto',
                   animation: 'shimmerBtn 3s linear infinite',
-                  boxShadow: '0 8px 24px rgba(32,178,170,.35)',
+                  boxShadow: isSports ? '0 8px 28px rgba(0,0,0,.35), 0 8px 24px rgba(32,178,170,.35)' : '0 8px 24px rgba(32,178,170,.35)',
                   '&:hover': {
                     backgroundPosition: 'right center',
                     boxShadow: '0 10px 28px rgba(32,178,170,.45)',
                   }
                 }}>
-                  Começar grátis — com {credits} créditos
+                  Começar agora — é grátis
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant="text"
                   size="large"
-                  component="a"
-                  href={PLAY_STORE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  startIcon={<SmartphoneIcon />}
+                  onClick={() => goTo(isSports ? 'esporte' : 'demo')}
                   sx={{
-                    borderRadius: '999px', px: 3, py: 1.5, fontSize: 15, textTransform: 'none', fontWeight: 700,
-                    borderColor: 'rgba(32,178,170,.4)', color: TEAL_DARK, bgcolor: 'rgba(32,178,170,.04)',
-                    '&:hover': { borderColor: TEAL_DARK, bgcolor: 'rgba(32,178,170,.12)', transform: 'translateY(-1px)' }
+                    textTransform: 'none', fontWeight: 700, fontSize: 15, minWidth: 0,
+                    color: isSports ? '#5fc9c3' : TEAL_DARK,
+                    '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
                   }}
                 >
-                  Baixar na Play Store
+                  {isSports ? 'Ver como a IA interpreta ↓' : 'Ver como funciona ↓'}
                 </Button>
               </Stack>
-              {/* QW CRO: risk-reversal no ponto de decisão (trust ficava 2 seções abaixo) */}
-              <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}>
-                Sem cartão pra começar · cancele quando quiser · dados protegidos (LGPD)
+              {/* Risk-reversal no ponto de decisão (o mesmo texto volta no CTA final — message match) */}
+              <Typography sx={{ fontSize: 13, color: isSports ? 'rgba(255,255,255,.75)' : 'text.secondary', fontWeight: 600 }}>
+                Primeiro exame com análise grátis · sem cartão · dados protegidos (LGPD)
               </Typography>
-              {/* Prova social imediata sem scroll */}
-              <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, '& span': { fontSize: 12.5, fontWeight: 700, color: 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
-                <Box component="span">⭐ <b style={{ color: 'text.primary' }}>4.9</b> na Google Play</Box>
-                <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                <Box component="span">⚡ <b style={{ color: 'text.primary' }}>+12.000</b> laudos decifrados</Box>
-                <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                <Box component="span">🔒 Criptografia SSL & LGPD</Box>
+              {/* Prova imediata sem scroll — SÓ verificável: nota real da Play, fontes
+                  reais (diretrizes em packages/server/knowledge), LGPD. Zero métrica inventada. */}
+              <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
+                {isSports ? (
+                  <>
+                    <Box component="span">📘 Diretrizes <b style={{ color: '#fff' }}>SBEM 2026</b> e Endocrine Society</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">🔒 Registro confidencial (LGPD)</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">🚫 Nunca recomenda dose ou ciclo</Box>
+                  </>
+                ) : (
+                  <>
+                    <Box component="span">⭐ <b style={{ color: 'text.primary' }}>5,0</b> na Google Play</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">📗 IA com fontes: SBC, SBD e ADA</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">🔒 Conforme a LGPD</Box>
+                  </>
+                )}
               </Stack>
-              <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: INK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
+              <Button variant="text" size="small" onClick={() => navigate('/entrar')} sx={{ textTransform: 'none', fontWeight: 700, color: isSports ? '#5fc9c3' : INK, fontSize: 13, minWidth: 0, px: 0, justifyContent: { xs: 'center', sm: 'flex-start' }, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
                 Já tem conta? Entrar
               </Button>
             </Box>
 
-            {/* Coluna visual — Mockup em camadas com badges flutuantes de glassmorphism */}
+            {/* Coluna visual — padrão: mockup em camadas + régua assinatura compacta
+                (a história do produto em 1 visual: faixa do lab, seu valor, meta do médico).
+                Esportiva: régua Métrica Vital em campo escuro + mascote — mesmo idioma
+                visual do cartaz de academia que gerou o QR. */}
+            {isSports ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', position: 'relative', gap: 2.5, pt: { xs: 5.5, md: 3 } }}>
+                <Box
+                  sx={{
+                    position: 'absolute', top: { xs: -6, md: -22 }, right: { xs: 0, md: -10 }, zIndex: 4,
+                    animation: 'chipFloatA 5s ease-in-out infinite',
+                  }}
+                >
+                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{
+                    bgcolor: 'rgba(9,51,48,.92)', border: '1px solid rgba(32,178,170,.4)',
+                    borderRadius: '16px', px: 1.75, py: 1,
+                    backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                    boxShadow: '0 12px 30px rgba(0,0,0,.35)',
+                  }}>
+                    <DrExame size={40} />
+                    <Box>
+                      <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#e8eef0', lineHeight: 1.2, fontFamily: '"Poppins",sans-serif' }}>Modo Saúde Esportiva</Typography>
+                      <Typography sx={{ fontSize: 11, color: '#5fc9c3', fontWeight: 700 }}>contexto de quem treina</Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+                <Box sx={{ bgcolor: 'rgba(6,32,30,.55)', border: '1px solid rgba(32,178,170,.22)', borderRadius: '24px', p: { xs: 2.5, md: 3.5 }, backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
+                  <HeroRuler tone="dark" goalLabel="meta do seu médico" />
+                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 2.5, justifyContent: 'center' }}>
+                    {['CK pós-treino', 'Hematócrito 48–54%', 'Cistatina-C', 'Ferritina'].map((m) => (
+                      <Box key={m} sx={{ px: 1.5, py: 0.5, borderRadius: '999px', border: '1px solid rgba(212,165,116,.35)', color: '#d4a574', fontSize: 12, fontWeight: 700, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', letterSpacing: '.04em' }}>
+                        {m.toUpperCase()}
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </Box>
+            ) : (
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative' }}>
               {/* Badge flutuante 1 (topo-esquerda) */}
               <Box
@@ -504,7 +501,7 @@ export const LandingPage = () => {
                 boxShadow: '0 32px 72px rgba(32,178,170,.24), 0 12px 28px rgba(0,0,0,.08)',
               }}>
                 <Box sx={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setTourOpen(true)}>
-                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.png`} alt="Dr. Exame — seus exames com IA" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '18px', transition: 'transform .35s ease', '&:hover': { transform: 'scale(1.02)' } }} />
+                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.webp`} alt="Dr. Exame — seus exames com IA" fetchPriority="high" decoding="async" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '18px', transition: 'transform .35s ease', '&:hover': { transform: 'scale(1.02)' } }} />
                   <IconButton
                     onClick={(e) => { e.stopPropagation(); setTourOpen(true); }}
                     aria-label="Assistir tour do Dr. Exame"
@@ -521,8 +518,13 @@ export const LandingPage = () => {
                     <PlayArrowIcon sx={{ fontSize: { xs: 38, md: 46 } }} />
                   </IconButton>
                 </Box>
+                {/* Régua assinatura — mecanismo do produto em 1 visual, sem peso de rede */}
+                <Box sx={{ px: 2, pb: 1.5, pt: 1.75, bgcolor: 'rgba(255,255,255,.92)' }}>
+                  <HeroRuler tone="light" compact goalLabel="meta do seu médico" />
+                </Box>
               </Box>
             </Box>
+            )}
           </Box>
         </Container>
       </Box>
@@ -575,6 +577,64 @@ export const LandingPage = () => {
             ))}
             </Stack>
           </Box>
+        </Container>
+      </Box>
+
+      {/* VARIANTE ?sports=1 — o conteúdo esportivo vem IMEDIATAMENTE após o hero:
+          quem escaneou o QR do cartaz de academia não vai rolar atrás da própria oferta. */}
+      {isSports && <SportsSection variant="full" onGoDemo={() => goTo('demo')} />}
+
+      {/* PROBLEMA — na linguagem de quem sai do laboratório sem entender nada
+          (framework PAS: público leigo, consciente da dor). 3 dores + ponte pra solução. */}
+      <Box id="problema" sx={{ bgcolor: 'background.default', py: { xs: 5, md: 7 }, scrollMarginTop: 80 }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>
+              O laudo chegou. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>E agora?</Box>
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>
+              Se você reconhece alguma destas cenas, o Dr. Exame foi feito pra você:
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2.5, maxWidth: 980, mx: 'auto' }}>
+            {[
+              { icon: <DescriptionIcon sx={{ fontSize: 22, color: TEAL_DARK }} />, t: 'Um monte de sigla — e zero resposta', d: 'O PDF chega cheio de termos que ninguém traduziu. "Alterado" escrito assim não explica nada.' },
+              { icon: <ClockCounterClockwise size={22} color={TEAL_DARK} weight="duotone" />, t: 'A consulta demora; a dúvida, não', d: 'Enquanto você espera pela consulta, cada número fora da faixa vira busca ansiosa de madrugada.' },
+              { icon: <StackIcon size={22} color={TEAL_DARK} weight="duotone" />, t: 'Seu histórico mora espalhado', d: 'Exame no e-mail, no papel, no ano passado… ninguém consegue ver a evolução de verdade.' },
+            ].map((c) => (
+              <Reveal key={c.t}>
+                <Box sx={{ height: '100%', p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                  <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.10)' }}>{c.icon}</Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary', lineHeight: 1.3 }}>{c.t}</Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.6 }}>{c.d}</Typography>
+                </Box>
+              </Reveal>
+            ))}
+          </Box>
+          <Typography sx={{ textAlign: 'center', color: 'text.secondary', mt: { xs: 3, md: 4 }, fontSize: { xs: 15.5, md: 16.5 } }}>
+            O Dr. Exame traduz na hora — e entrega <b style={{ color: 'text.primary' }}>perguntas prontas</b> pra sua consulta. Em 3 passos:
+          </Typography>
+        </Container>
+      </Box>
+
+      {/* COMO FUNCIONA — ≤4 passos, cada um começa por verbo (framework de estrutura §5). */}
+      <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 5, md: 7 }, scrollMarginTop: 80 }}>
+        <Container maxWidth="md">
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.75, sm: 3 }} useFlexGap>
+            {[
+              ['Envie o exame', 'PDF ou foto, de qualquer laboratório. Leva menos de 1 minuto.'],
+              ['Receba a explicação', 'A IA extrai cada valor direto do laudo — nunca inventa — e explica em português simples, com a faixa de referência.'],
+              ['Leve perguntas ao médico', 'Leitura de risco, tendências e as perguntas certas pra consulta. Educativo: a decisão é sempre do seu médico.'],
+            ].map(([t, d], i) => (
+              <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start" sx={{ flex: { sm: '1 1 0' } }}>
+                <Box sx={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontWeight: 800, fontSize: 14, mt: 0.1 }}>{i + 1}</Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 15, fontWeight: 800, color: 'text.primary' }}>{t}</Typography>
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.55 }}>{d}</Typography>
+                </Box>
+              </Stack>
+            ))}
+          </Stack>
         </Container>
       </Box>
 
@@ -780,509 +840,9 @@ export const LandingPage = () => {
       </Box>
       </ScrollReveal>
 
-      {/* SEÇÃO — Saúde Esportiva & Alta Performance (Atletas, Musculação, TRT e Corrida) */}
-      <ScrollReveal>
-      <Box id="esporte" sx={{
-        bgcolor: '#f8fafc',
-        py: { xs: 9, md: 13 },
-        borderTop: '1px solid',
-        borderBottom: '1px solid',
-        borderColor: 'rgba(15,95,90,0.08)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}>
-        {/* Glow de fundo esportivo sutil */}
-        <Box sx={{
-          position: 'absolute', top: '-120px', right: '-100px', width: '420px', height: '420px',
-          borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,0.12) 0%, rgba(248,250,252,0) 70%)',
-          pointerEvents: 'none', zIndex: 0
-        }} />
-        <Box sx={{
-          position: 'absolute', bottom: '-100px', left: '-80px', width: '380px', height: '380px',
-          borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(248,250,252,0) 70%)',
-          pointerEvents: 'none', zIndex: 0
-        }} />
-
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
-          {/* Header da Seção */}
-          <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
-            <Chip
-              icon={<FitnessCenterIcon sx={{ fontSize: 17 }} />}
-              label="Saúde Esportiva & Alta Performance"
-              sx={{
-                bgcolor: 'rgba(13,148,136,0.12)',
-                color: TEAL_DARK,
-                fontWeight: 700,
-                mb: 2,
-                fontSize: 13,
-                pl: 1,
-                '& .MuiChip-icon': { color: TEAL_DARK }
-              }}
-            />
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.8rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-              Exames na realidade do atleta, <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>sem alarmismo.</Box>
-            </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: { xs: 16, md: 18 }, maxWidth: 740, mx: 'auto', lineHeight: 1.65 }}>
-              Treina musculação pesada, corre maratona ou faz reposição hormonal (TRT)? Os laboratórios convencionais comparam você com pessoas sedentárias. O Dr. Exame contextualiza cada marcador com fisiologia esportiva real.
-            </Typography>
-          </Box>
-
-          {/* Grid Principal: 4 Pilares Clínicos + Demonstração Interativa da Régua de 4 Camadas */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.05fr 1.15fr' }, gap: { xs: 4, lg: 5 }, alignItems: 'start', mb: 6 }}>
-            {/* Coluna 1: Os 4 Pilares de Diferenciação */}
-            <Stack spacing={2.5}>
-              {[
-                {
-                  icon: <SpeedIcon sx={{ color: '#0d9488', fontSize: 26 }} />,
-                  title: 'Dano Muscular vs. Fígado (CK & TGO)',
-                  desc: 'Treinou perna pesado ontem? Sua CK pode passar de 1.400 U/L e o TGO subir sem significar lesão hepática. A IA do Dr. Exame correlaciona o esforço físico com suas enzimas e previne diagnósticos equivocados.',
-                  badge: 'Adequação Muscular'
-                },
-                {
-                  icon: <ScienceIcon sx={{ color: '#6366f1', fontSize: 26 }} />,
-                  title: 'Função Renal Real (Cistatina-C)',
-                  desc: 'Alta massa muscular e suplementação com creatina provocam falsos positivos de creatinina no laudo. Orientamos a dosagem de Cistatina-C para medir sua Taxa de Filtração Glomerular (TFG) exata.',
-                  badge: 'Zero Falso Positivo'
-                },
-                {
-                  icon: <HealthAndSafetyIcon sx={{ color: '#f59e0b', fontSize: 26 }} />,
-                  title: 'Viscosidade & Hematócrito em TRT',
-                  desc: 'Quem faz reposição de testosterona precisa vigiar o hematócrito antes de ultrapassar o teto seguro de 52%. Monitoramos a hemoconcentração para prevenir riscos trombóticos e orientar hidratação preventiva.',
-                  badge: 'Redução de Danos'
-                },
-                {
-                  icon: <VerifiedUserIcon sx={{ color: '#10b981', fontSize: 26 }} />,
-                  title: 'Registro Confidencial & LGPD',
-                  desc: 'Declare seus suplementos, pré-treinos e recursos ergogênicos sem nenhum tabu. Seus dados são criptografados de ponta a ponta e geram um roteiro objetivo de perguntas para levar ao seu médico do esporte.',
-                  badge: '100% Sigiloso'
-                }
-              ].map((item, idx) => (
-                <Box
-                  key={idx}
-                  sx={{
-                    p: 2.75,
-                    bgcolor: '#ffffff',
-                    borderRadius: '16px',
-                    border: '1px solid rgba(15,95,90,0.1)',
-                    boxShadow: '0 4px 16px rgba(15,95,90,0.03)',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      borderColor: 'rgba(32,178,170,0.4)',
-                      boxShadow: '0 8px 24px rgba(15,95,90,0.08)',
-                      transform: 'translateY(-2px)'
-                    }
-                  }}
-                >
-                  <Stack direction="row" spacing={2} alignItems="flex-start">
-                    <Box sx={{
-                      width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.08)',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                    }}>
-                      {item.icon}
-                    </Box>
-                    <Box sx={{ flex: 1 }}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary' }}>
-                          {item.title}
-                        </Typography>
-                        <Chip label={item.badge} size="small" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.07)', color: INK }} />
-                      </Stack>
-                      <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>
-                        {item.desc}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box>
-              ))}
-            </Stack>
-
-            {/* Coluna 2: Showcase Interativo ao Vivo — Réplica Fiel do Dashboard Esportivo */}
-            <Box sx={{
-              bgcolor: '#ffffff',
-              borderRadius: '24px',
-              border: '1px solid rgba(15,95,90,0.15)',
-              boxShadow: '0 12px 36px rgba(15,95,90,0.08)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column'
-            }}>
-              {/* Header do Card Simulador */}
-              <Box sx={{
-                p: { xs: 2.5, sm: 3 },
-                bgcolor: 'rgba(240,250,249,0.7)',
-                borderBottom: '1px solid rgba(15,95,90,0.1)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 1.5
-              }}>
-                <Stack direction="row" spacing={1.5} alignItems="center">
-                  <Box sx={{
-                    width: 38, height: 38, borderRadius: '10px',
-                    bgcolor: TEAL_DARK, color: '#fff',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontWeight: 800, fontSize: 15
-                  }}>
-                    RS
-                  </Box>
-                  <Box>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
-                        Rodrigo Silva, 31 anos
-                      </Typography>
-                      <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
-                    </Stack>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                      Contexto: Musculação Intensa + Suplementação
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Chip
-                  icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
-                  label="Modo Esporte Ativo"
-                  sx={{ height: 26, fontSize: 11.5, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }}
-                />
-              </Box>
-
-              {/* Botões de Alternância de Casos Clínicos (Grid Responsivo Sem Cortes) */}
-              <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: '#fbfcfd', borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
-                <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                  Selecione um cenário para testar:
-                </Typography>
-                <Box sx={{
-                  display: 'grid',
-                  gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
-                  gap: 1
-                }}>
-                  {[
-                    { id: 'ck', num: '1', name: 'CK pós-treino', sub: 'Músculo vs. Fígado' },
-                    { id: 'renal', num: '2', name: 'Cistatina-C', sub: 'Função Renal Real' },
-                    { id: 'trt', num: '3', name: 'Hematócrito', sub: 'TRT & Viscosidade' },
-                    { id: 'ferro', num: '4', name: 'Ferritina', sub: 'Estoque / Corrida' },
-                  ].map((tab) => {
-                    const active = activeSportTab === tab.id;
-                    return (
-                      <Box
-                        key={tab.id}
-                        component="button"
-                        type="button"
-                        onClick={() => setActiveSportTab(tab.id as any)}
-                        sx={{
-                          textAlign: 'left',
-                          p: { xs: 1, sm: 1.25 },
-                          borderRadius: '10px',
-                          border: '1.5px solid',
-                          borderColor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
-                          bgcolor: active ? 'rgba(13,148,136,0.08)' : '#ffffff',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 0.25,
-                          minWidth: 0,
-                          '&:hover': {
-                            borderColor: TEAL_DARK,
-                            bgcolor: 'rgba(13,148,136,0.05)'
-                          }
-                        }}
-                      >
-                        <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-                          <Box sx={{
-                            width: 18, height: 18, borderRadius: '50%',
-                            bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
-                            color: active ? '#ffffff' : INK,
-                            fontSize: 10, fontWeight: 800,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            flexShrink: 0
-                          }}>
-                            {tab.num}
-                          </Box>
-                          <Typography sx={{
-                            fontSize: { xs: 11.5, sm: 12 },
-                            fontWeight: 800,
-                            color: active ? TEAL_DARK : 'text.primary',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {tab.name}
-                          </Typography>
-                        </Stack>
-                        <Typography sx={{
-                          fontSize: 10,
-                          color: active ? INK : 'text.secondary',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          pl: { xs: 0, sm: 3 }
-                        }}>
-                          {tab.sub}
-                        </Typography>
-                      </Box>
-                    );
-                  })}
-                </Box>
-              </Box>
-
-              {/* Conteúdo Dinâmico do Marcador */}
-              {(() => {
-                const data = sportsDemoData[activeSportTab];
-                return (
-                  <Box sx={{ p: { xs: 2, sm: 3 } }}>
-                    {/* Header do Marcador: Nome + Data + Contexto Sem Sobreposição */}
-                    <Box sx={{ mb: 2.25 }}>
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                        spacing={0.75}
-                        sx={{ mb: 1 }}
-                      >
-                        <Typography sx={{ fontSize: { xs: 16, sm: 18 }, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>
-                          {data.markerName}
-                        </Typography>
-                        <Chip
-                          label="Laudo Sabin · 02/10/2026"
-                          size="small"
-                          sx={{
-                            height: 22,
-                            fontSize: 10.5,
-                            fontWeight: 600,
-                            bgcolor: 'rgba(0,0,0,0.05)',
-                            color: 'text.secondary',
-                            flexShrink: 0
-                          }}
-                        />
-                      </Stack>
-
-                      {/* Box Dedicado para o Contexto Clínico */}
-                      <Box sx={{
-                        bgcolor: 'rgba(15,95,90,0.04)',
-                        border: '1px solid rgba(15,95,90,0.08)',
-                        borderRadius: '10px',
-                        px: 1.5,
-                        py: 1,
-                        mt: 0.5
-                      }}>
-                        <Typography sx={{ fontSize: 12, color: 'text.primary', lineHeight: 1.5 }}>
-                          <strong style={{ color: INK }}>Contexto do Atleta:</strong> {data.patientContext}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    {/* Valor em Destaque + Badge de Classificação (Empilha suavemente em telas pequenas) */}
-                    <Stack
-                      direction={{ xs: 'column', sm: 'row' }}
-                      justifyContent="space-between"
-                      alignItems={{ xs: 'flex-start', sm: 'center' }}
-                      spacing={1.25}
-                      sx={{ mb: 2.5 }}
-                    >
-                      <Stack direction="row" alignItems="baseline" spacing={0.75}>
-                        <Typography sx={{ fontSize: { xs: 30, sm: 36 }, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>
-                          {data.val}
-                        </Typography>
-                        <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.secondary' }}>
-                          {data.unit}
-                        </Typography>
-                      </Stack>
-                      <Box sx={{
-                        px: 1.5, py: 0.6, borderRadius: '8px',
-                        bgcolor: data.statusBg, color: data.statusColor,
-                        fontWeight: 800, fontSize: { xs: 11.5, sm: 12.5 },
-                        display: 'inline-flex', alignItems: 'center', gap: 0.75,
-                        lineHeight: 1.3
-                      }}>
-                        <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: data.statusColor, flexShrink: 0 }} />
-                        {data.status}
-                      </Box>
-                    </Stack>
-
-                    {/* Régua Visual de 4 Camadas do Dr. Exame */}
-                    <Box sx={{ mb: 2.5, bgcolor: '#fbfcfd', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid #eef2f6' }}>
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        justifyContent="space-between"
-                        alignItems={{ xs: 'flex-start', sm: 'center' }}
-                        spacing={0.75}
-                        sx={{ mb: 1.25 }}
-                      >
-                        <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary' }}>
-                          Régua de 4 Camadas (Dr. Exame)
-                        </Typography>
-                        <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#cbd5e1' }} />
-                            <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Lab Convencional</Typography>
-                          </Stack>
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#7c3aed' }} />
-                            <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#7c3aed' }}>Meta Atleta</Typography>
-                          </Stack>
-                          <Stack direction="row" spacing={0.5} alignItems="center">
-                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
-                            <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: TEAL_DARK }}>Seu Laudo</Typography>
-                          </Stack>
-                        </Stack>
-                      </Stack>
-
-                      {/* Trilho da Régua */}
-                      <Box sx={{
-                        position: 'relative', height: 12, bgcolor: '#e2e8f0',
-                        borderRadius: '999px', my: 1.5
-                      }}>
-                        {/* Faixa Laboratório Convencional */}
-                        <Box sx={{
-                          position: 'absolute', top: 0, bottom: 0,
-                          left: data.rulerLabLeft, width: data.rulerLabWidth,
-                          bgcolor: '#94a3b8', opacity: 0.65, borderRadius: '999px'
-                        }} />
-                        {/* Faixa Meta Atleta */}
-                        <Box sx={{
-                          position: 'absolute', top: -2, bottom: -2,
-                          left: data.rulerTargetLeft, width: data.rulerTargetWidth,
-                          border: '1.5px solid #7c3aed', bgcolor: 'rgba(124,58,237,0.18)',
-                          borderRadius: '999px'
-                        }} />
-                        {/* Marcador do Paciente */}
-                        <Box sx={{
-                          position: 'absolute', top: -5,
-                          left: data.rulerPinLeft, width: 6, height: 22,
-                          bgcolor: TEAL_DARK, borderRadius: '3px',
-                          transform: 'translateX(-50%)',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                          transition: 'left 0.3s ease'
-                        }} />
-                      </Box>
-
-                      {/* Legenda de Valores abaixo do trilho */}
-                      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
-                        <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{data.labRef}</Typography>
-                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>{data.targetRef}</Typography>
-                      </Stack>
-                    </Box>
-
-                    {/* Explicação Inteligente da IA */}
-                    <Box sx={{
-                      bgcolor: 'rgba(13,148,136,0.06)',
-                      border: '1px solid rgba(13,148,136,0.2)',
-                      borderRadius: '12px',
-                      p: { xs: 1.75, sm: 2 },
-                      mb: 2
-                    }}>
-                      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.75 }}>
-                        <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK, mt: 0.2 }} />
-                        <Typography sx={{ fontWeight: 800, fontSize: 13, color: TEAL_DARK }}>
-                          Interpretação Clínica Dr. Exame:
-                        </Typography>
-                      </Stack>
-                      <Typography sx={{ fontSize: 13, color: 'text.primary', lineHeight: 1.6 }}>
-                        {data.explanation}
-                      </Typography>
-                    </Box>
-
-                    {/* Dica Prática de Conduta */}
-                    <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ bgcolor: '#ffffff', p: 1.5, borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                      <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981', flexShrink: 0, mt: 0.2 }} />
-                      <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5 }}>
-                        <strong style={{ color: '#0f172a' }}>Ação recomendada:</strong> {data.tip}
-                      </Typography>
-                    </Stack>
-                  </Box>
-                );
-              })()}
-
-              {/* Rodapé do Card com CTA direto */}
-              <Box sx={{ p: 2, bgcolor: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
-                  🔒 Conformidade com a LGPD · Dados isolados e protegidos por criptografia de ponta a ponta.
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Nuvem de Termos e Consultas Frequentes (SEO Atleta + Confiança Clínica) */}
-          <Box sx={{
-            bgcolor: '#ffffff',
-            borderRadius: '16px',
-            p: { xs: 2.5, sm: 3.5 },
-            border: '1px solid rgba(15,95,90,0.1)',
-            textAlign: 'center'
-          }}>
-            <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary', mb: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-              O Dr. Exame responde com precisão as principais buscas dos atletas:
-            </Typography>
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
-              {[
-                'CK Total pós-treino intenso',
-                'Creatinina alta tomando creatina',
-                'Cistatina-C vs Creatinina em atletas',
-                'Hematócrito alto em TRT (limite ≤ 52%)',
-                'TGO elevado sem esteatose hepática',
-                'Testosterona Total e Livre calculada',
-                'Estradiol E2 e sensibilidade aos androgênios',
-                'Ferritina e transporte de oxigênio em maratonistas',
-                'HDL baixo em ciclo ergogênico',
-                'Gama-GT e proteção do fígado'
-              ].map((term, i) => (
-                <Chip
-                  key={i}
-                  label={term}
-                  size="small"
-                  sx={{
-                    bgcolor: 'rgba(32,178,170,0.08)',
-                    color: INK,
-                    fontWeight: 600,
-                    fontSize: 12,
-                    border: '1px solid rgba(32,178,170,0.15)',
-                    py: 1.5,
-                    px: 0.5,
-                    '&:hover': { bgcolor: 'rgba(32,178,170,0.18)' }
-                  }}
-                />
-              ))}
-            </Stack>
-
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mt: 3.5 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                onClick={() => navigate('/registrar')}
-                sx={{
-                  borderRadius: '999px',
-                  px: 4,
-                  py: 1.4,
-                  fontWeight: 800,
-                  fontSize: 15,
-                  textTransform: 'none',
-                  boxShadow: '0 8px 24px rgba(32,178,170,0.3)'
-                }}
-              >
-                Analisar Meus Exames de Atleta Grátis
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                size="large"
-                onClick={() => goTo('demo')}
-                sx={{
-                  borderRadius: '999px',
-                  px: 3,
-                  py: 1.4,
-                  fontWeight: 700,
-                  fontSize: 15,
-                  textTransform: 'none'
-                }}
-              >
-                Como funciona a IA
-              </Button>
-            </Stack>
-          </Box>
-        </Container>
-      </Box>
-      </ScrollReveal>
+      {/* SEÇÃO — Saúde Esportiva (dual-audience): COMPACTA na home padrão — o
+          paciente geral é maioria; a versão completa vive na variante ?sports=1. */}
+      {!isSports && <SportsSection variant="compact" onGoDemo={() => goTo('demo')} />}
 
       {/* SEÇÃO — Cuidado de verdade, com fonte (leva 2): rastreamento PHQ-9/GAD-7,
           IA cita diretrizes (SBC/SBD/ADA) e efeitos mais relatados (base FDA) em PT.
@@ -1708,8 +1268,30 @@ export const LandingPage = () => {
       </Box>
       </ScrollReveal>
 
+      {/* FAQ esportivo — SÓ na variante ?sports=1: objeções reais de academia
+          (hormônio? substitui médico? funciona sem academia?) antes do FAQ geral. */}
+      {isSports && (
+        <Suspense fallback={null}>
+          <SportsFaq />
+        </Suspense>
+      )}
+
       {/* F4 — FAQ (mata objeções críticas de IA em saúde) */}
       <FaqSection />
+
+      {/* FAQPage schema (JSON-LD) — rich result no Google. Fonte única: o mesmo
+          array que renderiza o FAQ (nunca diverge). */}
+      <script type="application/ld+json">
+        {JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'FAQPage',
+          mainEntity: FAQ_ITEMS.slice(0, 8).map((f) => ({
+            '@type': 'Question',
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+          })),
+        })}
+      </script>
 
       {/* CTA FINAL — painel gradiente */}
       <Box sx={{ py: { xs: 8, md: 11 } }}>
@@ -1721,9 +1303,19 @@ export const LandingPage = () => {
           }}>
             <Box sx={{ position: 'absolute', top: '-30%', right: '-10%', width: 360, height: 360, borderRadius: '50%', background: 'rgba(255,255,255,.08)' }} />
             <Box sx={{ position: 'relative' }}>
-              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>Pronto pra entender <Box component="span" sx={{ ...SERIF_I }}>sua saúde?</Box></Typography>
-              <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.</Typography>
-              <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar grátis →</Button>
+              <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, mb: 2, letterSpacing: '-0.02em' }}>
+                {isSports
+                  ? <>Seu próximo exame pode <Box component="span" sx={SERIF_I}>fazer mais sentido.</Box></>
+                  : <>Pronto pra entender <Box component="span" sx={{ ...SERIF_I }}>sua saúde?</Box></>}
+              </Typography>
+              <Typography sx={{ color: 'rgba(255,255,255,.9)', mb: 4, fontSize: 17, maxWidth: 480, mx: 'auto' }}>
+                {isSports
+                  ? 'Ative o Modo Saúde Esportiva e leve perguntas prontas pra sua próxima consulta.'
+                  : 'Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.'}
+              </Typography>
+              {/* Message match: MESMO texto do CTA do hero (disciplina de conversão). */}
+              <Button size="large" onClick={() => navigate('/registrar')} sx={{ bgcolor: '#fff', color: TEAL_DARK, fontWeight: 800, fontSize: 17, borderRadius: '999px', px: 5, py: 1.5, textTransform: 'none', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-2px)' }, transition: 'all .2s' }}>Começar agora — é grátis</Button>
+              <Typography sx={{ color: 'rgba(255,255,255,.75)', fontSize: 13, fontWeight: 600, mt: 1.5 }}>Primeiro exame com análise grátis · sem cartão · cancele quando quiser</Typography>
               {/* App na Play Store — QR OFICIAL + badge Google Play no ponto de maior intenção.
                   Substitui o QR genérico antigo: agora aponta pro app APROVADO na loja (confiança + conversão). */}
               <Stack component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer"
@@ -1733,14 +1325,14 @@ export const LandingPage = () => {
                   boxShadow: '0 10px 28px rgba(0,0,0,.18)',
                   transition: 'transform .18s ease, box-shadow .18s ease',
                   '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 16px 34px rgba(0,0,0,.24)' } }}>
-                <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store"
+                <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store" loading="lazy" decoding="async"
                   sx={{ width: 116, height: 116, borderRadius: '12px', bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
                   <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame <Box component="span" sx={SERIF_I}>no seu celular</Box> 📱</Typography>
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 0.75 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
                   {/* Prova social real: nota atual do app na Play (5,0) */}
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}><Box component="span" sx={{ color: '#f5a623', letterSpacing: 1.5 }}>★★★★★</Box> <b style={{ color: 'text.primary' }}>5,0</b> no Google Play</Typography>
-                  <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play"
+                  <Box component="img" src={`${import.meta.env.BASE_URL}playstore-badge.png`} alt="Disponível no Google Play" loading="lazy" decoding="async"
                     sx={{ height: 46, width: 'auto', display: 'block', mx: { xs: 'auto', sm: 0 } }} />
                 </Box>
               </Stack>
@@ -1839,7 +1431,7 @@ export const LandingPage = () => {
           '&:active': { transform: 'scale(.98)' },
         }}
       >
-        Começar grátis — {credits} créditos de IA
+        Começar agora — é grátis
       </Box>
 
       {/* POPUP de captura de e-mail — scroll 55%, 1×/sessão, cooldown 7d, LGPD (popup-cro). */}
