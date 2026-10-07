@@ -4,7 +4,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNotify, useStore } from 'react-admin';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_URL, apiHeaders, fetchPublicConfig } from '../config';
 import { usePremium } from './PremiumGate';
 import { DeclaredSubstanceForm } from './DeclaredSubstanceForm';
@@ -37,6 +37,18 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   const { profile } = useSportsProfile();
   const hydratedRef = useRef(false);
   const touchedRef = useRef(false);
+  // Convite do dashboard (?sports=1): chega aqui pelo CTA "Ver como fica" → liga o
+  // modo na hora (o wizard aparece logo abaixo) e limpa o parâmetro pra não religar
+  // em reload. Deep link direto também funciona (/perfil?sports=1).
+  const [searchParams, setSearchParams] = useSearchParams();
+  const invitedRef = useRef(false);
+  useEffect(() => {
+    if (searchParams.get('sports') !== '1' || invitedRef.current || touchedRef.current) return;
+    invitedRef.current = true;
+    setSearchParams({}, { replace: true });
+    if (premium && enabled && profile?.active !== true) void toggle(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, profile?.active]);
   useEffect(() => {
     if (!profile || hydratedRef.current || touchedRef.current) return;
     hydratedRef.current = true;
