@@ -44,45 +44,47 @@ Alternativas:
 - `Exames + IA educativa. Novo: modo Saúde Esportiva para atletas e TRT.` (73)
 - `Entenda seus exames com IA. Musculação, corrida, reposição hormonal.` (70)
 
-## 3. Descrição longa (Play Store — colar por blocos)
+## 3. Descrição longa (Play Store — ATUALIZADA, substitui a atual; ~3.9k chars)
 
 ```
-O Dr. Exame lê seu exame e explica em português claro — o que cada valor
-significa, se está dentro da referência e o que perguntar ao seu médico.
-Tire a foto do PDF ou do papel: a IA extrai, organiza e acompanha sua
-evolução ao longo do tempo.
+O Dr. Exame é o seu assistente de saúde preventivo inteligente. Chega de sofrer decifrando jargões médicos e tabelas confusas: traduzimos seus exames laboratoriais em português claro, direto e acessível — e conectamos você ao médico certo quando precisa.
 
-🏋️ MODO SAÚDE ESPORTIVA (Premium)
-Para quem leva treino a sério — musculação, corrida, CrossFit, alta
-performance ou reposição hormonal com acompanhamento médico:
-• Seus marcadores por domínio: hormonal, cardiovascular, fígado e músculo,
-  rim e hemograma
-• Referência do laboratório, seu histórico pessoal e a meta clínica
-  definida pelo SEU médico — no mesmo gráfico, sempre separados
-• Contexto declarado (treino recente, horário da coleta, suplementos e
-  substâncias que você usa) para interpretar CK, creatinina, hematócrito
-  e hormônios corretamente
-• Perguntas prontas para a consulta e plano de acompanhamento do médico
-• Baseado em diretrizes de sociedades médicas (SBEM, Endocrine Society)
-• Sem julgamento: o que você declara é confidencial e serve de contexto —
-  o app nunca recomenda dose, ciclo ou substância
+🏋️ NOVO — MODO SAÚDE ESPORTIVA (Premium)
+Para quem leva treino a sério: musculação, corrida, CrossFit, alta performance ou reposição hormonal com acompanhamento médico.
+• Marcadores organizados por domínio: hormonal, cardiovascular, fígado e músculo, rim e hemograma
+• Referência do laboratório, seu histórico pessoal e a meta clínica definida pelo SEU médico — no mesmo gráfico, sempre visíveis e separados
+• Declare seu contexto (treino recente, horário da coleta, suplementos e substâncias que usa) e a IA interpreta CK, creatinina, hematócrito e hormônios com esse contexto — registro confidencial e sem julgamento
+• Perguntas prontas para levar à consulta e plano de acompanhamento do seu médico
+• Baseado em diretrizes de sociedades médicas (SBEM 2026, Endocrine Society, AUA). O app nunca recomenda dose, ciclo ou substância — educação e contexto, sempre.
 
-🤖 IA EDUCATIVA, COM RESPONSABILIDADE
-A IA explica e compara com faixas de referência — não diagnostica. Dados
-de saúde sensíveis criptografados (LGPD). Seus PDFs ficam só seus.
+🤖 IA que entende seus exames: envie PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente e explica tudo sem jargão — cada item com sua faixa de referência.
 
-📊 PARA O DIA A DIA
-• Score de saúde, idade biológica e tendências por marcador
-• Alertas quando algo sai da referência — gratuitos
-• Carteira com extrato de créditos e histórico
-• Compartilhe com seu médico pelo portal profissional
-• Funciona offline (PWA) e no celular (Android)
+📊 Score de Saúde, Idade Biológica e Tendências: veja o que mudou entre exames em gráficos claros, saiba com antecedência quando um valor está prestes a sair da faixa e acompanhe sua evolução mês a mês (Premium).
 
-💳 Créditos flexíveis: PIX instantâneo ou cartão direto no app.
-👨‍👩‍👧 Toda a família: perfis de dependentes no mesmo acesso.
+🔔 Alertas que não dependem de crédito: quando algo sai da referência, você fica sabendo — com notificação e histórico, gratuitamente.
 
-Dr. Exame é um app educativo de organização e interpretação de exames.
-Não substitui consulta, diagnóstico ou tratamento médico.
+🏃 Atividade física integrada: passos, calorias e frequência cardíaca do Health Connect aparecem junto com seus exames — saúde completa em um só lugar.
+
+💬 Chat inteligente: pergunte o que quiser sobre seu histórico ("Qual foi meu último TSH?") e receba respostas na hora, com o contexto dos seus exames.
+
+🩺 Telemedicina direta pelo marcador: valor alterado? Um toque direciona você ao especialista certo na rede Doctoralia (endocrinologistas, hematologistas, cardiologistas e mais) para agendar.
+
+👨‍⚕️ Pronto para o médico — dos dois lados: gere relatórios de uma página com as alterações e o perfil clínico, compartilhe por link criptografado com PIN. Seu médico ainda ganha um portal profissional com metas clínicas justificadas, tendências e acompanhamento de achados (revisado / em acompanhamento / resolvido).
+
+👨‍👩‍👧 Cuide de toda a família: gerencie com segurança exames, score e perfis de dependentes no mesmo acesso.
+
+🙈 Modo privacidade: borra nomes de exames sensíveis na tela — use o app em qualquer lugar sem exposição. Toque no nome para revelar por 5 segundos.
+
+🤟 Totalmente acessível: suporte completo de tradução automática para Libras, garantindo que pacientes surdos compreendam cada resultado.
+
+🔒 Segurança rigorosa e LGPD: dados de saúde sensíveis criptografados, controle por PIN, biometria e direito de excluir seu histórico a qualquer momento.
+
+Como funciona (menos de 1 minuto):
+1. Envie o exame (PDF ou foto)
+2. Entenda os resultados explicados de forma simples
+3. Na dúvida ou alteração: converse com a IA, gere o relatório ou agende o especialista
+
+Nota: o Dr. Exame fornece análises educativas e informativas com foco em prevenção. Não emite diagnósticos, não prescreve tratamentos e jamais substitui o parecer ou a consulta com um profissional de saúde qualificado.
 ```
 
 ## 4. Landing — blocos de "propaganda" pro público esportivo
