@@ -32,8 +32,8 @@ const FAQ = [
     a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
   },
   {
-    q: 'Isso é um diagnóstico?',
-    a: 'Nunca. O Dr. Exame mostra possíveis riscos e monta um plano de ação educativo. Sempre consulte um médico para qualquer decisão sobre sua saúde.',
+    q: 'Treino pesado ou tomo suplementos. O Dr. Exame entende meus exames esportivos?',
+    a: 'Sim! Atletas de alta performance, corredores e praticantes de musculação frequentemente têm CK, TGO e creatinina elevadas sem que haja qualquer doença no fígado ou rins. O Dr. Exame conta com o Modo Saúde Esportiva: ele cruza os dados com o histórico de treinos e suplementação declarada (como creatina), desmistifica falsos positivos e avisa quando marcadores críticos (como hematócrito em reposição hormonal/TRT) pedem atenção clínica.',
   },
   // Leva 2 — saúde mental, fontes da IA, efeitos relatados, voz, pesquisa clínica
   {

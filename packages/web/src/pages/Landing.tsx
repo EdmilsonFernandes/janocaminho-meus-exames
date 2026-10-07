@@ -29,6 +29,9 @@ import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import SpeedIcon from '@mui/icons-material/Speed';
+import ScienceIcon from '@mui/icons-material/Science';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { LeadPopup } from '../components/LeadPopup';
@@ -172,12 +175,101 @@ const SlideCarousel = () => {
   );
 };
 
+// Dados demonstrativos interativos da seção Saúde Esportiva (4 cenários reais de atletas)
+const sportsDemoData = {
+  ck: {
+    title: 'CK Total & TGO pós-treino',
+    badge: 'Músculo vs. Fígado',
+    badgeColor: '#0d9488',
+    patientContext: 'Treino de pernas (esforço excêntrico intenso) há 24h',
+    markerName: 'Creatina Quinase (CK Total)',
+    val: '1.420',
+    unit: 'U/L',
+    status: 'Dano Muscular Fisiológico',
+    statusBg: 'rgba(13,148,136,0.12)',
+    statusColor: '#0f766e',
+    labRef: 'Lab: 30 a 200 U/L',
+    targetRef: 'Meta pós-treino: até 2.000 U/L',
+    rulerLabLeft: '5%',
+    rulerLabWidth: '20%',
+    rulerTargetLeft: '25%',
+    rulerTargetWidth: '55%',
+    rulerPinLeft: '68%',
+    explanation: 'Sem alarme: elevação decorrente de microrrupturas musculares e sobrecarga de esforço, e NÃO lesão hepática. Seu TGO subiu acompanhando o músculo, enquanto TGP e Gama-GT continuam normais.',
+    tip: 'Hidratação reforçada (3,5L+) e intervalo antes do próximo treino pesado da mesma musculatura.'
+  },
+  renal: {
+    title: 'Creatinina vs. Cistatina-C',
+    badge: 'Função Renal Real',
+    badgeColor: '#6366f1',
+    patientContext: 'Praticante de musculação com alta massa muscular + uso contínuo de Creatina 5g/dia',
+    markerName: 'Cistatina-C (Filtração Glomerular)',
+    val: '0,78',
+    unit: 'mg/L',
+    status: 'Rins 100% Saudáveis (TFG > 95)',
+    statusBg: 'rgba(16,185,129,0.12)',
+    statusColor: '#047857',
+    labRef: 'Lab Ref: 0,55 a 1,02 mg/L',
+    targetRef: 'Ideal Atleta: 0,60 a 0,90 mg/L',
+    rulerLabLeft: '15%',
+    rulerLabWidth: '50%',
+    rulerTargetLeft: '20%',
+    rulerTargetWidth: '40%',
+    rulerPinLeft: '45%',
+    explanation: 'A creatinina no laudo acusou 1,35 mg/dL (falso positivo comum devido à grande massa magra e suplementação). A dosagem de Cistatina-C elimina a influência muscular e comprova rins íntegros.',
+    tip: 'Oriente seu médico a avaliar a Cistatina-C e não suspender treinos por creatinina isolada.'
+  },
+  trt: {
+    title: 'Hematócrito & Viscosidade (TRT)',
+    badge: 'Segurança Cardiovascular',
+    badgeColor: '#f59e0b',
+    patientContext: 'Homem de 34 anos em reposição hormonal de testosterona (TRT)',
+    markerName: 'Hematócrito (Concentração de Hemácias)',
+    val: '51,8',
+    unit: '%',
+    status: 'Zona de Atenção Pré-Clínica',
+    statusBg: 'rgba(245,158,11,0.12)',
+    statusColor: '#b45309',
+    labRef: 'Lab: 40% a 50%',
+    targetRef: 'Teto Seguro Atleta: ≤ 52%',
+    rulerLabLeft: '15%',
+    rulerLabWidth: '45%',
+    rulerTargetLeft: '35%',
+    rulerTargetWidth: '30%',
+    rulerPinLeft: '78%',
+    explanation: 'O hematócrito está em 51,8%, próximo ao limite de 52% onde a viscosidade do sangue começa a exigir cautela para evitar sobrecarga cardíaca. Não espere atingir 54% para agir.',
+    tip: 'Aumente o consumo diário de água para 4L, monitore a pressão arterial e converse com seu endocrinologista.'
+  },
+  ferro: {
+    title: 'Ferritina & Estoque de Ferro',
+    badge: 'Resistência & VO2 Máx',
+    badgeColor: '#ec4899',
+    patientContext: 'Corredora de rua / maratonista com fadiga nos treinos longos',
+    markerName: 'Ferritina Sérica',
+    val: '24',
+    unit: 'ng/mL',
+    status: 'Baixo para Prática de Endurance',
+    statusBg: 'rgba(239,68,68,0.12)',
+    statusColor: '#b91c1c',
+    labRef: 'Lab: 10 a 120 ng/mL',
+    targetRef: 'Meta de Performance: ≥ 50 ng/mL',
+    rulerLabLeft: '10%',
+    rulerLabWidth: '70%',
+    rulerTargetLeft: '45%',
+    rulerTargetWidth: '45%',
+    rulerPinLeft: '22%',
+    explanation: 'Embora o laboratório considere "normal" acima de 10 ng/mL, atletas de corrida com ferritina < 50 ng/mL sofrem queda drástica na oxigenação decorrente da hemólise de impacto e sudorese.',
+    tip: 'Investigar reposição de ferro elementar ou vitamina C adjuvante com sua nutricionista esportiva.'
+  }
+};
+
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [scrolled, setScrolled] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [demoOpen, setDemoOpen] = useState(false);
+  const [activeSportTab, setActiveSportTab] = useState<'ck' | 'renal' | 'trt' | 'ferro'>('ck');
   // Disclosure nível 1 (NN/g: máx 2 níveis, affordance óbvia) — showcase e ciência
   // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
   const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
@@ -266,6 +358,7 @@ export const LandingPage = () => {
           </Stack>
           <Stack direction="row" spacing={1.5} alignItems="center">
             <Box component="button" onClick={() => goTo('demo')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Como funciona</Box>
+            <Box component="button" onClick={() => goTo('esporte')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, color: TEAL_DARK, fontWeight: 700 }}>Saúde Esportiva</Box>
             <Box component="button" onClick={() => goTo('remedios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Remédios e preços</Box>
             <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
             <Box component="button" onClick={() => navigate('/doctor')} sx={{ ...navBtn(scrolled), display: { xs: 'none', lg: 'inline' } }}>É médico?</Box>
@@ -682,6 +775,430 @@ export const LandingPage = () => {
                 </Box>
               </Box>
             </Box>
+          </Box>
+        </Container>
+      </Box>
+      </ScrollReveal>
+
+      {/* SEÇÃO — Saúde Esportiva & Alta Performance (Atletas, Musculação, TRT e Corrida) */}
+      <ScrollReveal>
+      <Box id="esporte" sx={{
+        bgcolor: '#f8fafc',
+        py: { xs: 9, md: 13 },
+        borderTop: '1px solid',
+        borderBottom: '1px solid',
+        borderColor: 'rgba(15,95,90,0.08)',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Glow de fundo esportivo sutil */}
+        <Box sx={{
+          position: 'absolute', top: '-120px', right: '-100px', width: '420px', height: '420px',
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,0.12) 0%, rgba(248,250,252,0) 70%)',
+          pointerEvents: 'none', zIndex: 0
+        }} />
+        <Box sx={{
+          position: 'absolute', bottom: '-100px', left: '-80px', width: '380px', height: '380px',
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(248,250,252,0) 70%)',
+          pointerEvents: 'none', zIndex: 0
+        }} />
+
+        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+          {/* Header da Seção */}
+          <Box sx={{ textAlign: 'center', mb: { xs: 5, md: 7 } }}>
+            <Chip
+              icon={<FitnessCenterIcon sx={{ fontSize: 17 }} />}
+              label="Saúde Esportiva & Alta Performance"
+              sx={{
+                bgcolor: 'rgba(13,148,136,0.12)',
+                color: TEAL_DARK,
+                fontWeight: 700,
+                mb: 2,
+                fontSize: 13,
+                pl: 1,
+                '& .MuiChip-icon': { color: TEAL_DARK }
+              }}
+            />
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.8rem' }, fontWeight: 800, color: 'text.primary', mb: 2, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              Exames na realidade do atleta, <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>sem alarmismo.</Box>
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: { xs: 16, md: 18 }, maxWidth: 740, mx: 'auto', lineHeight: 1.65 }}>
+              Treina musculação pesada, corre maratona ou faz reposição hormonal (TRT)? Os laboratórios convencionais comparam você com pessoas sedentárias. O Dr. Exame contextualiza cada marcador com fisiologia esportiva real.
+            </Typography>
+          </Box>
+
+          {/* Grid Principal: 4 Pilares Clínicos + Demonstração Interativa da Régua de 4 Camadas */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.05fr 1.15fr' }, gap: { xs: 4, lg: 5 }, alignItems: 'start', mb: 6 }}>
+            {/* Coluna 1: Os 4 Pilares de Diferenciação */}
+            <Stack spacing={2.5}>
+              {[
+                {
+                  icon: <SpeedIcon sx={{ color: '#0d9488', fontSize: 26 }} />,
+                  title: 'Dano Muscular vs. Fígado (CK & TGO)',
+                  desc: 'Treinou perna pesado ontem? Sua CK pode passar de 1.400 U/L e o TGO subir sem significar lesão hepática. A IA do Dr. Exame correlaciona o esforço físico com suas enzimas e previne diagnósticos equivocados.',
+                  badge: 'Adequação Muscular'
+                },
+                {
+                  icon: <ScienceIcon sx={{ color: '#6366f1', fontSize: 26 }} />,
+                  title: 'Função Renal Real (Cistatina-C)',
+                  desc: 'Alta massa muscular e suplementação com creatina provocam falsos positivos de creatinina no laudo. Orientamos a dosagem de Cistatina-C para medir sua Taxa de Filtração Glomerular (TFG) exata.',
+                  badge: 'Zero Falso Positivo'
+                },
+                {
+                  icon: <HealthAndSafetyIcon sx={{ color: '#f59e0b', fontSize: 26 }} />,
+                  title: 'Viscosidade & Hematócrito em TRT',
+                  desc: 'Quem faz reposição de testosterona precisa vigiar o hematócrito antes de ultrapassar o teto seguro de 52%. Monitoramos a hemoconcentração para prevenir riscos trombóticos e orientar hidratação preventiva.',
+                  badge: 'Redução de Danos'
+                },
+                {
+                  icon: <VerifiedUserIcon sx={{ color: '#10b981', fontSize: 26 }} />,
+                  title: 'Registro Confidencial & LGPD',
+                  desc: 'Declare seus suplementos, pré-treinos e recursos ergogênicos sem nenhum tabu. Seus dados são criptografados de ponta a ponta e geram um roteiro objetivo de perguntas para levar ao seu médico do esporte.',
+                  badge: '100% Sigiloso'
+                }
+              ].map((item, idx) => (
+                <Box
+                  key={idx}
+                  sx={{
+                    p: 2.75,
+                    bgcolor: '#ffffff',
+                    borderRadius: '16px',
+                    border: '1px solid rgba(15,95,90,0.1)',
+                    boxShadow: '0 4px 16px rgba(15,95,90,0.03)',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: 'rgba(32,178,170,0.4)',
+                      boxShadow: '0 8px 24px rgba(15,95,90,0.08)',
+                      transform: 'translateY(-2px)'
+                    }
+                  }}
+                >
+                  <Stack direction="row" spacing={2} alignItems="flex-start">
+                    <Box sx={{
+                      width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.08)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                    }}>
+                      {item.icon}
+                    </Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary' }}>
+                          {item.title}
+                        </Typography>
+                        <Chip label={item.badge} size="small" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.07)', color: INK }} />
+                      </Stack>
+                      <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>
+                        {item.desc}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
+              ))}
+            </Stack>
+
+            {/* Coluna 2: Showcase Interativo ao Vivo — Réplica Fiel do Dashboard Esportivo */}
+            <Box sx={{
+              bgcolor: '#ffffff',
+              borderRadius: '24px',
+              border: '1px solid rgba(15,95,90,0.15)',
+              boxShadow: '0 12px 36px rgba(15,95,90,0.08)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              {/* Header do Card Simulador */}
+              <Box sx={{
+                p: { xs: 2.5, sm: 3 },
+                bgcolor: 'rgba(240,250,249,0.7)',
+                borderBottom: '1px solid rgba(15,95,90,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 1.5
+              }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Box sx={{
+                    width: 38, height: 38, borderRadius: '10px',
+                    bgcolor: TEAL_DARK, color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontWeight: 800, fontSize: 15
+                  }}>
+                    RS
+                  </Box>
+                  <Box>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                        Rodrigo Silva, 31 anos
+                      </Typography>
+                      <Chip label="Atleta Ativo" size="small" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.15)', color: TEAL_DARK }} />
+                    </Stack>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                      Contexto: Musculação Intensa + Suplementação
+                    </Typography>
+                  </Box>
+                </Stack>
+                <Chip
+                  icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
+                  label="Modo Esporte Ativo"
+                  sx={{ height: 26, fontSize: 11.5, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }}
+                />
+              </Box>
+
+              {/* Botões de Alternância de Casos Clínicos (Tabs Interativas) */}
+              <Box sx={{ px: { xs: 2, sm: 3 }, pt: 2, pb: 1, borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Selecione um cenário para testar:
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ overflowX: 'auto', pb: 1, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+                  {[
+                    { id: 'ck', label: '1. CK pós-treino' },
+                    { id: 'renal', label: '2. Creatinina vs Cistatina-C' },
+                    { id: 'trt', label: '3. Hematócrito em TRT' },
+                    { id: 'ferro', label: '4. Estoque de Ferro (Corrida)' },
+                  ].map((tab) => (
+                    <Button
+                      key={tab.id}
+                      onClick={() => setActiveSportTab(tab.id as any)}
+                      variant={activeSportTab === tab.id ? 'contained' : 'outlined'}
+                      size="small"
+                      sx={{
+                        borderRadius: '999px',
+                        textTransform: 'none',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        py: 0.5,
+                        px: 1.75,
+                        whiteSpace: 'nowrap',
+                        bgcolor: activeSportTab === tab.id ? TEAL_DARK : 'transparent',
+                        borderColor: activeSportTab === tab.id ? TEAL_DARK : 'rgba(15,95,90,0.2)',
+                        color: activeSportTab === tab.id ? '#fff' : 'text.primary',
+                        '&:hover': {
+                          bgcolor: activeSportTab === tab.id ? INK : 'rgba(13,148,136,0.06)',
+                          borderColor: TEAL_DARK
+                        }
+                      }}
+                    >
+                      {tab.label}
+                    </Button>
+                  ))}
+                </Stack>
+              </Box>
+
+              {/* Conteúdo Dinâmico do Marcador */}
+              {(() => {
+                const data = sportsDemoData[activeSportTab];
+                return (
+                  <Box sx={{ p: { xs: 2.5, sm: 3 } }}>
+                    {/* Linha de Contexto do Marcador */}
+                    <Box sx={{ mb: 2 }}>
+                      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 800, color: 'text.primary' }}>
+                          {data.markerName}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+                          Laudo de 02/10/2026
+                        </Typography>
+                      </Stack>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontStyle: 'italic' }}>
+                        Contexto clínico: {data.patientContext}
+                      </Typography>
+                    </Box>
+
+                    {/* Valor em Destaque + Badge de Classificação */}
+                    <Stack direction="row" justifyContent="space-between" alignItems="baseline" sx={{ mb: 2 }}>
+                      <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                        <Typography sx={{ fontSize: 32, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>
+                          {data.val}
+                        </Typography>
+                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.secondary' }}>
+                          {data.unit}
+                        </Typography>
+                      </Stack>
+                      <Box sx={{
+                        px: 1.5, py: 0.6, borderRadius: '8px',
+                        bgcolor: data.statusBg, color: data.statusColor,
+                        fontWeight: 800, fontSize: 12
+                      }}>
+                        {data.status}
+                      </Box>
+                    </Stack>
+
+                    {/* Régua Visual de 4 Camadas do Dr. Exame */}
+                    <Box sx={{ mb: 2.5 }}>
+                      <Box sx={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        fontSize: 11, color: 'text.secondary', mb: 0.8
+                      }}>
+                        <span>Referência Convencional vs. Meta Atleta</span>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#cbd5e1' }} />
+                            <Typography sx={{ fontSize: 10 }}>Lab</Typography>
+                          </Stack>
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#7c3aed' }} />
+                            <Typography sx={{ fontSize: 10 }}>Meta Atleta</Typography>
+                          </Stack>
+                          <Stack direction="row" spacing={0.5} alignItems="center">
+                            <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
+                            <Typography sx={{ fontSize: 10 }}>Você</Typography>
+                          </Stack>
+                        </Stack>
+                      </Box>
+
+                      {/* Trilho da Régua */}
+                      <Box sx={{
+                        position: 'relative', height: 12, bgcolor: '#f1f5f9',
+                        borderRadius: '999px', border: '1px solid #e2e8f0', my: 1
+                      }}>
+                        {/* Faixa Laboratório Convencional */}
+                        <Box sx={{
+                          position: 'absolute', top: 0, bottom: 0,
+                          left: data.rulerLabLeft, width: data.rulerLabWidth,
+                          bgcolor: '#cbd5e1', opacity: 0.7, borderRadius: '999px'
+                        }} />
+                        {/* Faixa Meta Atleta */}
+                        <Box sx={{
+                          position: 'absolute', top: -2, bottom: -2,
+                          left: data.rulerTargetLeft, width: data.rulerTargetWidth,
+                          border: '1.5px solid #7c3aed', bgcolor: 'rgba(124,58,237,0.12)',
+                          borderRadius: '999px'
+                        }} />
+                        {/* Marcador do Paciente */}
+                        <Box sx={{
+                          position: 'absolute', top: -5,
+                          left: data.rulerPinLeft, width: 6, height: 22,
+                          bgcolor: TEAL_DARK, borderRadius: '3px',
+                          transform: 'translateX(-50%)',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                          transition: 'left 0.3s ease'
+                        }} />
+                      </Box>
+
+                      {/* Legenda de Valores */}
+                      <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary' }}>
+                        <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{data.labRef}</Typography>
+                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>{data.targetRef}</Typography>
+                      </Stack>
+                    </Box>
+
+                    {/* Explicação Inteligente da IA */}
+                    <Box sx={{
+                      bgcolor: 'rgba(13,148,136,0.06)',
+                      border: '1px solid rgba(13,148,136,0.2)',
+                      borderRadius: '12px',
+                      p: 2,
+                      mb: 2.5
+                    }}>
+                      <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mb: 0.5 }}>
+                        <AutoAwesomeIcon sx={{ fontSize: 16, color: TEAL_DARK, mt: 0.2 }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 13, color: TEAL_DARK }}>
+                          Interpretação Clínica Dr. Exame:
+                        </Typography>
+                      </Stack>
+                      <Typography sx={{ fontSize: 13, color: 'text.primary', lineHeight: 1.55 }}>
+                        {data.explanation}
+                      </Typography>
+                    </Box>
+
+                    {/* Dica Prática de Conduta */}
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ bgcolor: '#f8fafc', p: 1.5, borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                      <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
+                        <strong style={{ color: '#0f172a' }}>Ação recomendada:</strong> {data.tip}
+                      </Typography>
+                    </Stack>
+                  </Box>
+                );
+              })()}
+
+              {/* Rodapé do Card com CTA direto */}
+              <Box sx={{ p: 2, bgcolor: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+                  🔒 Conformidade com a LGPD · Dados isolados e protegidos por criptografia de ponta a ponta.
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Nuvem de Termos e Consultas Frequentes (SEO Atleta + Confiança Clínica) */}
+          <Box sx={{
+            bgcolor: '#ffffff',
+            borderRadius: '16px',
+            p: { xs: 2.5, sm: 3.5 },
+            border: '1px solid rgba(15,95,90,0.1)',
+            textAlign: 'center'
+          }}>
+            <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary', mb: 2, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              O Dr. Exame responde com precisão as principais buscas dos atletas:
+            </Typography>
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent="center">
+              {[
+                'CK Total pós-treino intenso',
+                'Creatinina alta tomando creatina',
+                'Cistatina-C vs Creatinina em atletas',
+                'Hematócrito alto em TRT (limite ≤ 52%)',
+                'TGO elevado sem esteatose hepática',
+                'Testosterona Total e Livre calculada',
+                'Estradiol E2 e sensibilidade aos androgênios',
+                'Ferritina e transporte de oxigênio em maratonistas',
+                'HDL baixo em ciclo ergogênico',
+                'Gama-GT e proteção do fígado'
+              ].map((term, i) => (
+                <Chip
+                  key={i}
+                  label={term}
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(32,178,170,0.08)',
+                    color: INK,
+                    fontWeight: 600,
+                    fontSize: 12,
+                    border: '1px solid rgba(32,178,170,0.15)',
+                    py: 1.5,
+                    px: 0.5,
+                    '&:hover': { bgcolor: 'rgba(32,178,170,0.18)' }
+                  }}
+                />
+              ))}
+            </Stack>
+
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mt: 3.5 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                onClick={() => navigate('/registrar')}
+                sx={{
+                  borderRadius: '999px',
+                  px: 4,
+                  py: 1.4,
+                  fontWeight: 800,
+                  fontSize: 15,
+                  textTransform: 'none',
+                  boxShadow: '0 8px 24px rgba(32,178,170,0.3)'
+                }}
+              >
+                Analisar Meus Exames de Atleta Grátis
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                onClick={() => goTo('demo')}
+                sx={{
+                  borderRadius: '999px',
+                  px: 3,
+                  py: 1.4,
+                  fontWeight: 700,
+                  fontSize: 15,
+                  textTransform: 'none'
+                }}
+              >
+                Como funciona a IA
+              </Button>
+            </Stack>
           </Box>
         </Container>
       </Box>
