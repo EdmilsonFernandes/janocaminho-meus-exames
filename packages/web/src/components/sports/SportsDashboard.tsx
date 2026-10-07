@@ -12,7 +12,7 @@
 // inegociável, zero sistema visual novo.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Chip, Stack, Typography, useTheme } from '@mui/material';
+import { Box, Button, Chip, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScienceIcon from '@mui/icons-material/Science';
@@ -28,7 +28,7 @@ import { BiologicalAgeCard } from '../dashboard/BiologicalAgeCard';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
 import { TileShimmer } from '../Shimmer';
-import { SEM, tealText } from '../../theme';
+import { RADIUS, SEM, tealText } from '../../theme';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
 import { goalFor, withinGoal } from '../../utils/clinicalGoals';
 import { fetchActivitySummary } from '../../services/activitySummary';
@@ -609,8 +609,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               borderRadius: '999px',
               px: 1.5,
               py: 0.25,
-              color: (t) => tealText(t.palette.mode),
-              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)'),
+              color: tealText(theme.palette.mode),
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)',
               touchAction: 'manipulation',
             }}
           >
@@ -625,8 +625,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               p: 2,
               mb: 2,
               borderRadius: RADIUS.card,
-              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(0,0,0,0.25)' : 'rgba(240,248,247,0.7)'),
-              border: (t) => `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.25)' : 'rgba(240,248,247,0.7)',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.25)}`,
             }}
           >
             <Typography sx={{ fontWeight: 800, fontSize: 13, mb: 1, color: 'text.primary' }}>

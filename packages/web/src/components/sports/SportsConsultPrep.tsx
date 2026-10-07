@@ -7,7 +7,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
-import { tealText } from '../../theme';
+import { RADIUS, tealText } from '../../theme';
 import { priorityOf, PRIORITY_RANK, refScaleSuspect } from '../../utils/alertPriority';
 import { goalFor, goalRangeText, withinGoal } from '../../utils/clinicalGoals';
 import { androgenDeclared, hormoneDeclared, type QuestionBias } from './sportsDomains';

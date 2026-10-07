@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { AppCard } from '../AppCard';
-import { tealText } from '../../theme';
+import { RADIUS, tealText } from '../../theme';
 import type { SportsProfile } from '../../hooks/useSportsProfile';
 import type { SportArchetype } from './sportsDomains';
 import type { CollectionContextChips } from './SportsMarkerCard';

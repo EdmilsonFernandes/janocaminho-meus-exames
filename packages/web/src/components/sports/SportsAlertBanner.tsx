@@ -15,7 +15,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useNavigate } from 'react-router-dom';
 import { AppCard } from '../AppCard';
-import { SEM } from '../../theme';
+import { RADIUS, SEM } from '../../theme';
 import { fmtNum } from '../../utils/format';
 import { androgenDeclared } from './sportsDomains';
 import type { Marker } from '../dashboard/ChangesSinceExam';
