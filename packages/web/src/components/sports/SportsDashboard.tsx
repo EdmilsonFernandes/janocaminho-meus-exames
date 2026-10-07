@@ -14,7 +14,6 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Chip, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import ScienceIcon from '@mui/icons-material/Science';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -28,11 +27,12 @@ import { BiologicalAgeCard } from '../dashboard/BiologicalAgeCard';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
 import { TileShimmer } from '../Shimmer';
-import { SEM, tealText } from '../../theme';
+import { SEM } from '../../theme';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
 import { fetchActivitySummary } from '../../services/activitySummary';
 import type { SportsProfile } from '../../hooks/useSportsProfile';
 import { archetypeOf, sportsDomainOf, SPORTS_DOMAINS, type SportsDomainKey } from './sportsDomains';
+import { SportsPersonaBar } from './SportsPersonaBar';
 import { SportsAlertBanner } from './SportsAlertBanner';
 import { SportsMarkerCard, type EvolutionAnalyte, type CollectionContextChips } from './SportsMarkerCard';
 import { SportsTimeline, type SportsEvent } from './SportsTimeline';
@@ -283,42 +283,21 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
       )}
 
-      {/* ── CONTEXTO DO ATLETA (hero compacto do preview §1 — copy por arquétipo) ── */}
-      <AppCard kind="tinted" tone="primary" tone2="secondary" sx={{ mt: d.failed || d.rejected ? 2 : 0, p: { xs: 2, sm: 2.5 }, mb: 2 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ sm: 'center' }}>
-          <Box sx={{ width: 44, height: 44, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg, rgba(32,178,170,.25), rgba(212,165,116,.25))' }}>
-            <FitnessCenterIcon sx={{ color: (t) => tealText(t.palette.mode) }} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
-              <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 18, sm: 21 }, lineHeight: 1.15 }}>
-                {archetype.header}
-              </Typography>
-              {profile?.modality && (
-                <Chip size="small" label={profile.modality} sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
-              )}
-              <Chip size="small" label="🏃 Modo Esporte" sx={{ height: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
-            </Stack>
-            <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
-              {profile?.goals?.trim() || archetype.emphasis}
-            </Typography>
-            {(ctx || profile?.trainingFreq) && (
-              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-                {profile?.trainingFreq && <Chip size="small" label={`Treino: ${profile.trainingFreq}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.jejum && <Chip size="small" label="Coleta em jejum" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.treino24h && <Chip size="small" label="Treino <24h antes da coleta" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-                {ctx?.ultimaDose && <Chip size="small" label={`Última dose: ${ctx.ultimaDose}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
-              </Stack>
-            )}
-          </Box>
-          {d.lastExam && (
-            <Box sx={{ textAlign: { sm: 'right' }, flexShrink: 0 }}>
-              <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>Último exame</Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 800 }}>{fmtDay(d.lastExam)} · {relDays(d.lastExam)}</Typography>
-            </Box>
-          )}
-        </Stack>
-      </AppCard>
+      {/* ── BARRA DE PERSONA DO ATLETA (preview §1: avatar, nome+idade, objetivo, último
+          exame+lab, peso/altura, treino HC, médico vinculado — linha sem dado não existe) ── */}
+      <Box sx={{ mt: d.failed || d.rejected ? 2 : 0 }}>
+        <SportsPersonaBar
+          pid={pid}
+          profile={profile}
+          archetype={archetype}
+          fallbackName={firstName}
+          lastExam={lastExamRow
+            ? { date: lastExamRow.performedAt ?? null, lab: typeof lastExamRow.sourceLab === 'string' ? lastExamRow.sourceLab : null }
+            : d.lastExam ? { date: d.lastExam, lab: null } : null}
+          training={activityDays}
+          ctx={ctx}
+        />
+      </Box>
 
       {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) ── */}
       <SportsAlertBanner
