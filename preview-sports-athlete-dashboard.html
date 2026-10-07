@@ -4,54 +4,79 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#0f766e" />
-  <title>Dr. Exame • Estudo de Header Premium & Sininho Dourado</title>
-  <meta name="description" content="Propostas interativas de melhoria do Header, Sininho Dourado e Chips de Crédito para o Dr. Exame." />
+  <title>Dr. Exame • Preview Oficial do App (Paciente & Modo Esportista)</title>
+  <meta name="description" content="Dashboard do Paciente com Lente de Performance Esportiva e Prontuário Médico sem cortes." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-workspace: #080f12;
-      --bg-app: #f4f6f9;
+      --bg-studio: #0b1317;
+      --bg-app: #f4f7fb;
       --bg-card: #ffffff;
-      --border-color: #e5e9f0;
-      
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --text-dim: #9ca3af;
-      
+      --border-color: #e2e8f0;
+      --border-subtle: #edf2f7;
+
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+
       --teal-primary: #0d9488;
       --teal-dark: #0f766e;
       --teal-light: #20B2AA;
-      
+      --teal-soft: rgba(32, 178, 170, 0.12);
+      --teal-glow: rgba(32, 178, 170, 0.35);
+
       --gold-main: #f59e0b;
       --gold-dark: #d97706;
-      --gold-glow: rgba(245, 158, 11, 0.35);
-      
+      --gold-soft: rgba(245, 158, 11, 0.12);
+      --gold-glow: rgba(245, 158, 11, 0.3);
+
+      --copper: #c27d38;
+      --copper-soft: rgba(194, 125, 56, 0.14);
+
+      --red-alert: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.12);
+
+      --green-ok: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.12);
+
+      --blue-accent: #3b82f6;
+      --blue-soft: rgba(59, 130, 246, 0.12);
+
       --radius-sm: 8px;
-      --radius-md: 12px;
-      --radius-card: 22px;
+      --radius-md: 14px;
+      --radius-card: 20px;
       --radius-full: 9999px;
-      
+
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+      --shadow-md: 0 4px 16px rgba(0,0,0,0.06);
+      --shadow-card: 0 4px 20px rgba(13, 148, 136, 0.08), 0 1px 3px rgba(0,0,0,0.02);
+      --shadow-glow: 0 8px 30px rgba(32, 178, 170, 0.22);
+
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-display: 'Poppins', -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
     }
 
     [data-theme="dark"] {
-      --bg-app: #091316;
-      --bg-card: #102126;
+      --bg-app: #081215;
+      --bg-card: #0f1c21;
       --border-color: rgba(255, 255, 255, 0.08);
-      --text-main: #f9fafb;
-      --text-muted: #9ca3af;
-      --text-dim: #6b7280;
+      --border-subtle: rgba(255, 255, 255, 0.04);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --teal-soft: rgba(32, 178, 170, 0.18);
+      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.35);
+      --shadow-glow: 0 8px 30px rgba(32, 178, 170, 0.25);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body {
       font-family: var(--font-sans);
-      background-color: var(--bg-workspace);
+      background-color: var(--bg-studio);
       color: #fff;
       min-height: 100vh;
       display: flex;
@@ -59,770 +84,1895 @@
       overflow-x: hidden;
     }
 
-    /* BARRA SUPERIOR DE ESTÚDIO DO MOCKUP */
+    /* BARRA SUPERIOR DE CONTROLE DO MOCKUP */
     .studio-bar {
       background: #0d171b;
       border-bottom: 1px solid rgba(255,255,255,0.1);
-      padding: 10px 18px;
+      padding: 12px 20px;
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 14px;
       position: sticky;
       top: 0;
       z-index: 1000;
+      backdrop-filter: blur(16px);
     }
 
     .studio-title-group {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
-    .studio-badge {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      color: #fff;
-      font-size: 11px;
+
+    .studio-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: 800;
-      padding: 3px 8px;
-      border-radius: var(--radius-full);
-      text-transform: uppercase;
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 2px 10px var(--teal-glow);
     }
-    .studio-title {
+
+    .studio-title-group h1 {
       font-family: var(--font-display);
       font-size: 15px;
       font-weight: 700;
-      color: #f8fafc;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .studio-title-group span {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .studio-tabs {
+      display: flex;
+      align-items: center;
+      background: rgba(255,255,255,0.06);
+      padding: 4px;
+      border-radius: var(--radius-full);
+      gap: 4px;
+    }
+
+    .studio-tab-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .studio-tab-btn:hover {
+      color: #fff;
+      background: rgba(255,255,255,0.06);
+    }
+
+    .studio-tab-btn.active {
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      color: #fff;
+      box-shadow: 0 2px 8px var(--teal-glow);
     }
 
     .studio-controls {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .pill-group {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.12);
-      padding: 3px;
-      border-radius: var(--radius-full);
-      display: inline-flex;
-      align-items: center;
-      gap: 2px;
-    }
-
-    .pill-btn {
-      background: transparent;
-      border: none;
-      color: #cbd5e1;
-      font-family: var(--font-sans);
-      font-size: 11.5px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: var(--radius-full);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.2s;
-    }
-    .pill-btn:hover { color: #fff; background: rgba(255,255,255,0.08); }
-    .pill-btn.active {
-      background: var(--teal-primary);
-      color: #fff;
-      box-shadow: 0 2px 8px rgba(13,148,136,0.35);
-    }
-    .pill-btn.active.gold {
-      background: linear-gradient(135deg, #f59e0b, #d97706);
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
-    }
-
-    .theme-toggle-btn {
+    .device-toggle-btn, .theme-toggle-btn {
       background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: #fff;
-      padding: 5px 12px;
-      border-radius: var(--radius-full);
-      font-size: 11.5px;
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #e2e8f0;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
     }
 
-    .stage-wrapper {
+    .device-toggle-btn:hover, .theme-toggle-btn:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    /* ÁREA DO PALCO */
+    .stage {
       flex: 1;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding: 14px 10px 40px;
-      background: radial-gradient(circle at 50% 8%, rgba(245,158,11,0.08) 0%, rgba(8,15,18,1) 75%);
+      padding: 24px 16px 40px;
+      transition: all 0.3s ease;
     }
 
-    .device-viewport {
-      background: var(--bg-app);
+    .stage.mode-desktop .app-viewport {
+      width: 100%;
+      max-width: 1180px;
+      border-radius: 24px;
+      min-height: 820px;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.45);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .stage.mode-mobile .app-viewport {
+      width: 100%;
+      max-width: 410px;
+      border-radius: 36px;
+      min-height: 850px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border: 3px solid #23353e;
+    }
+
+    /* VIEWPORT DO APP DR. EXAME */
+    .app-viewport {
+      background-color: var(--bg-app);
       color: var(--text-main);
-      position: relative;
-      box-shadow: 0 25px 60px -15px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.1);
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      width: 412px;
-      max-width: 100%;
-      height: 890px;
-      border-radius: 40px;
-      border: 8px solid #1e293b;
-      margin: 2px auto;
+      position: relative;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
-    .android-status-bar {
-      padding: 8px 18px 4px;
+    /* APP HEADER OFICIAL */
+    .app-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 20px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      font-size: 12.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      background: var(--bg-app);
-    }
-
-    .viewport-scroll {
-      flex: 1;
-      overflow-y: auto;
-      overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      display: flex;
-      flex-direction: column;
-      padding-bottom: 74px;
-    }
-    .viewport-scroll::-webkit-scrollbar { width: 4px; }
-    .viewport-scroll::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.3); border-radius: 4px; }
-
-    /* ======================================================== */
-    /* COMPARATIVO DE HEADERS (ATUAL VS PROPOSTAS PREMIUM)      */
-    /* ======================================================== */
-    .header-container-slot {
+      justify-content: space-between;
       position: sticky;
       top: 0;
-      z-index: 200;
-      background: var(--bg-app);
-      transition: all 0.25s ease;
+      z-index: 100;
+      backdrop-filter: blur(12px);
     }
 
-    /* ── HEADER 0: COMO ESTÁ ATUALMENTE NO PRINT ── */
-    .app-header.variant-current {
-      padding: 10px 16px 12px;
+    .app-brand {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border-color);
-    }
-    .variant-current .brand-avatar-circle {
-      width: 36px; height: 36px; border-radius: 11px;
-      background: linear-gradient(135deg, #14b8a6, #0d9488);
-      display: grid; place-items: center; font-size: 19px;
-    }
-    .variant-current .points-pill {
-      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
-      padding: 4px 9px; border-radius: var(--radius-full); font-size: 12px; font-weight: 800;
-      display: flex; align-items: center; gap: 4px;
-    }
-    .variant-current .bell-btn {
-      position: relative; font-size: 19px; color: #1f2937; cursor: pointer; display: grid; place-items: center;
-      padding: 6px;
-    }
-    .variant-current .notif-badge-dot {
-      position: absolute; top: 1px; right: 1px;
-      background: #dc2626; color: #fff; font-size: 9.5px; font-weight: 800;
-      width: 15px; height: 15px; border-radius: 50%; display: grid; place-items: center;
-    }
-    .variant-current .user-avatar-pill {
-      background: #e6f7f5; border: 1px solid #99ded7;
-      padding: 3px 8px 3px 3px; border-radius: var(--radius-full);
-      display: flex; align-items: center; gap: 6px; cursor: pointer;
-    }
-    .variant-current .user-avatar-img {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #0f766e; color: #fff; font-weight: 700; font-size: 12px;
-      display: grid; place-items: center;
+      gap: 10px;
     }
 
-    /* ── PROPOSTA 1: GOLDEN BELL EXECUTIVE (Dourado Nobre + Glassmorphism) ── */
-    .app-header.variant-golden {
-      padding: 10px 16px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(245, 158, 11, 0.15);
-      background: linear-gradient(180deg, rgba(254, 243, 199, 0.25) 0%, var(--bg-app) 100%);
-    }
-    [data-theme="dark"] .app-header.variant-golden {
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, var(--bg-app) 100%);
-      border-bottom-color: rgba(245, 158, 11, 0.2);
-    }
-    .variant-golden .brand-avatar-circle {
-      width: 36px; height: 36px; border-radius: 12px;
-      background: linear-gradient(135deg, #20b2aa 0%, #0d9488 100%);
-      display: grid; place-items: center; font-size: 19px;
-      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
-    }
-    .variant-golden .points-pill {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid rgba(245, 158, 11, 0.3);
-      color: #78350f;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: 12px;
-      font-weight: 800;
-      font-family: var(--font-mono);
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      box-shadow: 0 2px 6px rgba(245, 158, 11, 0.12);
-    }
-    [data-theme="dark"] .variant-golden .points-pill {
-      background: rgba(16, 33, 38, 0.9);
-      color: #fde68a;
-      border-color: rgba(245, 158, 11, 0.35);
-    }
-    .variant-golden .bolt-gold-icon {
-      color: #f59e0b;
-      font-size: 13px;
-      filter: drop-shadow(0 1px 2px rgba(245, 158, 11, 0.4));
-    }
-    /* O SININHO DOURADO PREMIADO */
-    .variant-golden .golden-bell-btn {
-      position: relative;
+    .app-logo-badge {
       width: 38px;
       height: 38px;
-      border-radius: 12px;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.28);
-      display: grid;
-      place-items: center;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
-    }
-    .variant-golden .golden-bell-btn:hover {
-      background: rgba(245, 158, 11, 0.2);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.28);
-    }
-    .variant-golden .bell-svg-gold {
-      width: 20px;
-      height: 20px;
-      color: #d97706;
-      filter: drop-shadow(0 1px 2px rgba(217, 119, 6, 0.3));
-    }
-    [data-theme="dark"] .variant-golden .bell-svg-gold { color: #fbbf24; }
-    .variant-golden .notif-badge-pill {
-      position: absolute;
-      top: -3px;
-      right: -3px;
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 800;
-      height: 16px;
-      min-width: 16px;
-      padding: 0 4px;
-      border-radius: var(--radius-full);
-      display: grid;
-      place-items: center;
-      border: 2px solid var(--bg-card);
-      box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
-    }
-    .variant-golden .user-avatar-pill {
-      background: rgba(255, 255, 255, 0.85);
-      border: 1px solid rgba(13, 148, 136, 0.25);
-      padding: 2px 7px 2px 2px;
-      border-radius: var(--radius-full);
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
       display: flex;
       align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    }
-    [data-theme="dark"] .variant-golden .user-avatar-pill {
-      background: rgba(16, 33, 38, 0.9);
-      border-color: rgba(32, 178, 170, 0.3);
-    }
-    .variant-golden .user-avatar-img {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: #0f766e; color: #fff; font-weight: 700; font-size: 12px;
-      display: grid; place-items: center;
-      box-shadow: 0 0 0 1.5px #20b2aa;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 19px;
+      box-shadow: 0 3px 10px var(--teal-glow);
     }
 
-    /* ── PROPOSTA 2: LUXURY TEAL & GOLD (Equilíbrio Teal e Dourado) ── */
-    .app-header.variant-luxury {
-      padding: 10px 16px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(32, 178, 170, 0.18);
-      background: var(--bg-card);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-    }
-    .variant-luxury .points-pill {
-      background: linear-gradient(135deg, rgba(32,178,170,0.12) 0%, rgba(245,158,11,0.10) 100%);
-      border: 1px solid rgba(32,178,170,0.25);
-      color: #0f766e;
-      padding: 4px 10px;
-      border-radius: var(--radius-full);
-      font-size: 12px;
+    .app-brand-name h2 {
+      font-family: var(--font-display);
+      font-size: 16px;
       font-weight: 800;
-      font-family: var(--font-mono);
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+
+    .app-brand-name span {
+      font-size: 11px;
+      color: var(--teal-primary);
+      font-weight: 600;
+    }
+
+    .app-actions {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 10px;
     }
-    [data-theme="dark"] .variant-luxury .points-pill { color: #5eead4; }
-    .variant-luxury .golden-bell-btn {
+
+    /* CHIP DE CRÉDITOS OFICIAL */
+    .credits-chip {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 5px 11px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #b45309;
+    }
+
+    [data-theme="dark"] .credits-chip {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.18);
+    }
+
+    .credits-chip svg {
+      width: 14px;
+      height: 14px;
+      fill: #f59e0b;
+      filter: drop-shadow(0 1px 3px rgba(245, 158, 11, 0.5));
+    }
+
+    /* SININHO DOURADO */
+    .notif-bell-btn {
       position: relative;
       width: 38px;
       height: 38px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-      border: 1px solid rgba(245, 158, 11, 0.4);
-      display: grid;
-      place-items: center;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: rgba(245, 158, 11, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(245, 158, 11, 0.25);
-    }
-    [data-theme="dark"] .variant-luxury .golden-bell-btn {
-      background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(217, 119, 6, 0.3) 100%);
-    }
-    .variant-luxury .bell-svg-gold {
-      width: 20px; height: 20px; color: #b45309;
-    }
-    [data-theme="dark"] .variant-luxury .bell-svg-gold { color: #fde68a; }
-    .variant-luxury .notif-badge-pill {
-      position: absolute; top: -2px; right: -2px;
-      background: #dc2626; color: #fff; font-size: 9.5px; font-weight: 800;
-      width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center;
-      border: 2px solid #fff;
+      color: #d97706;
+      transition: all 0.2s ease;
     }
 
-    /* CARD DE EXPLICATIVO DA PROPOSTA NO TOPO DO APP */
-    .proposal-callout-card {
-      margin: 14px 16px 0;
-      padding: 14px 16px;
-      background: linear-gradient(135deg, #fef7ee 0%, #fff 100%);
-      border: 1px solid #f8dbb7;
-      border-radius: var(--radius-md);
+    [data-theme="dark"] .notif-bell-btn {
+      color: #fbbf24;
+      background: rgba(245, 158, 11, 0.14);
+    }
+
+    .notif-bell-badge {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      background: var(--red-alert);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 800;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    }
+
+    /* FOTO PERFIL REAL DO EDMILSON */
+    .user-avatar-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      padding: 2px;
+      background: linear-gradient(135deg, var(--teal-light), #f59e0b);
+      cursor: pointer;
+    }
+
+    .user-avatar-img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #e2e8f0;
+      display: block;
+    }
+
+    /* CORPO DO CONTEÚDO */
+    .app-content {
+      padding: 20px;
       display: flex;
       flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 120px);
+    }
+
+    /* BANNER DE PERSONA / LENTE ESPORTIVA (CHAVE DE MUDANÇA) */
+    .persona-switch-banner {
+      background: linear-gradient(135deg, rgba(32, 178, 170, 0.14) 0%, rgba(245, 158, 11, 0.1) 100%);
+      border: 1px solid rgba(32, 178, 170, 0.3);
+      border-radius: var(--radius-card);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      transition: all 0.2s ease;
+    }
+
+    .persona-switch-banner.sports-on {
+      background: linear-gradient(135deg, rgba(15, 118, 110, 0.18) 0%, rgba(32, 178, 170, 0.22) 100%);
+      border-color: var(--teal-light);
+      box-shadow: 0 4px 20px rgba(32, 178, 170, 0.15);
+    }
+
+    .persona-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .persona-icon-box {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 3px 10px var(--teal-glow);
+    }
+
+    .persona-icon-box.sports {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 3px 10px var(--gold-glow);
+    }
+
+    .persona-text h3 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .persona-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .persona-toggle-btn {
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      border: none;
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 9px 16px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
       gap: 6px;
+      box-shadow: 0 3px 10px var(--teal-glow);
+      transition: all 0.2s ease;
     }
-    [data-theme="dark"] .proposal-callout-card {
-      background: #191c1a;
-      border-color: rgba(245, 158, 11, 0.25);
+
+    .persona-toggle-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px var(--teal-glow);
     }
-    .proposal-callout-card h5 {
-      font-size: 13.5px;
+
+    .persona-toggle-btn.active-sports {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      box-shadow: 0 3px 10px var(--gold-glow);
+    }
+
+    /* GRID DO PACIENTE (HERO CARDS) */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .app-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.25s ease;
+    }
+
+    .app-card:hover {
+      border-color: rgba(32, 178, 170, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .card-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .card-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+    }
+
+    .badge-ok { background: var(--green-soft); color: #059669; }
+    .badge-alert { background: var(--gold-soft); color: #d97706; }
+    .badge-pro { background: var(--teal-soft); color: var(--teal-dark); }
+    [data-theme="dark"] .badge-pro { color: var(--teal-light); }
+
+    /* ANEL DO SCORE DE SAÚDE */
+    .score-display-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .score-radial {
+      position: relative;
+      width: 96px;
+      height: 96px;
+      flex-shrink: 0;
+    }
+
+    .score-radial svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .score-radial circle.bg {
+      fill: none;
+      stroke: rgba(32, 178, 170, 0.12);
+      stroke-width: 9;
+    }
+
+    .score-radial circle.meter {
+      fill: none;
+      stroke: var(--teal-light);
+      stroke-width: 9;
+      stroke-linecap: round;
+      stroke-dasharray: 245;
+      stroke-dashoffset: 29; /* 88% */
+      filter: drop-shadow(0 0 6px var(--teal-glow));
+      transition: stroke-dashoffset 1s ease;
+    }
+
+    .score-center-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      line-height: 1;
+    }
+
+    .score-center-text strong {
+      font-family: var(--font-display);
+      font-size: 26px;
       font-weight: 800;
-      color: #92400e;
+      color: var(--text-main);
+    }
+
+    .score-center-text span {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .score-details h4 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .score-details p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .score-breakdown-tags {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .tag-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(0,0,0,0.04);
+      color: var(--text-muted);
+    }
+
+    [data-theme="dark"] .tag-pill { background: rgba(255,255,255,0.05); }
+
+    /* CARD DE IDADE BIOLÓGICA */
+    .bio-age-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(32, 178, 170, 0.08) 0%, rgba(13, 148, 136, 0.12) 100%);
+      border: 1px solid rgba(32, 178, 170, 0.2);
+    }
+
+    .bio-age-number {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      color: var(--teal-dark);
+      line-height: 1;
+    }
+
+    [data-theme="dark"] .bio-age-number { color: var(--teal-light); }
+
+    .bio-age-delta {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #059669;
+      background: rgba(16, 185, 129, 0.14);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+    }
+
+    /* INSIGHT INTELIGENTE DA IA DR. EXAME */
+    .ai-insight-card {
+      background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(99, 102, 241, 0.08) 100%);
+      border: 1px solid rgba(32, 178, 170, 0.25);
+      border-radius: var(--radius-card);
+      padding: 18px 20px;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .ai-mascot-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      color: #fff;
+      box-shadow: 0 4px 14px var(--teal-glow);
+      flex-shrink: 0;
+    }
+
+    .ai-insight-content h4 {
+      font-family: var(--font-display);
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
       display: flex;
       align-items: center;
       gap: 6px;
+      margin-bottom: 4px;
     }
-    [data-theme="dark"] .proposal-callout-card h5 { color: #fde68a; }
-    .proposal-callout-card p {
+
+    .ai-insight-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .ai-action-pills {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .ai-pill-btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .ai-pill-btn:hover {
+      border-color: var(--teal-light);
+      color: var(--teal-dark);
+    }
+
+    /* SEÇÃO DE MARCADORES REAIS DO SABIN (04/08) */
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 6px;
+    }
+
+    .section-title-wrap h3 {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .markers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 16px;
+    }
+
+    .marker-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+
+    .marker-card:hover {
+      border-color: var(--teal-light);
+      box-shadow: var(--shadow-md);
+    }
+
+    .marker-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .marker-name-group h4 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .marker-name-group span {
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .marker-val-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .marker-val-big {
+      font-family: var(--font-mono);
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .marker-val-unit {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-left: 3px;
+    }
+
+    .marker-ref-note {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    /* MINI RÉGUA DE REFERÊNCIA */
+    .marker-bar-wrap {
+      height: 8px;
+      background: rgba(0,0,0,0.06);
+      border-radius: var(--radius-full);
+      position: relative;
+      overflow: visible;
+      margin: 4px 0;
+    }
+
+    [data-theme="dark"] .marker-bar-wrap { background: rgba(255,255,255,0.08); }
+
+    .marker-bar-ideal {
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      height: 100%;
+      background: rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-full);
+    }
+
+    .marker-bar-pin {
+      position: absolute;
+      top: -3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--teal-light);
+      border: 2px solid var(--bg-card);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+      transform: translateX(-50%);
+    }
+
+    .marker-bar-pin.warn {
+      background: var(--gold-main);
+    }
+
+    .marker-context-box {
+      background: rgba(0,0,0,0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 9px 12px;
       font-size: 11.5px;
       color: var(--text-muted);
       line-height: 1.45;
     }
 
-    /* RESTO DO DASHBOARD (O MESMO DO EDMILSON) */
-    .dashboard-body {
-      padding: 12px 16px 28px;
+    [data-theme="dark"] .marker-context-box {
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ELEMENTOS DA LENTE ESPORTIVA (FATOR TCHAN)
+       ═══════════════════════════════════════════════════════════ */
+    .sports-view-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: dxFadeIn 0.3s ease;
+    }
+
+    .sports-bio-readiness-hero {
+      background: linear-gradient(135deg, #092629 0%, #0e3d42 50%, #1a3227 100%);
+      color: #fff;
+      border-radius: var(--radius-card);
+      padding: 24px;
+      box-shadow: 0 12px 36px rgba(13, 148, 136, 0.28);
+      border: 1px solid rgba(32, 178, 170, 0.35);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sports-bio-readiness-hero::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .readiness-main-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .readiness-gauge-wrap {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+    }
+
+    .readiness-gauge-wrap svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .readiness-gauge-wrap circle.bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.12);
+      stroke-width: 10;
+    }
+
+    .readiness-gauge-wrap circle.val {
+      fill: none;
+      stroke: url(#goldTealGrad);
+      stroke-width: 10;
+      stroke-linecap: round;
+      stroke-dasharray: 314;
+      stroke-dashoffset: 25; /* 92% */
+      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.5));
+    }
+
+    .readiness-score-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .readiness-score-text strong {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .readiness-score-text span {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #fde047;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    .readiness-meta-text {
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .readiness-meta-text h3 {
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .readiness-meta-text p {
+      font-size: 13px;
+      color: #ccfbf1;
+      margin-top: 6px;
+      line-height: 1.45;
+    }
+
+    /* 5 PILARES METABÓLICOS DO ATLETA */
+    .metabolic-pillars-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .pillar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .pillar-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: #99f6e4;
+    }
+
+    .pillar-header strong {
+      color: #fff;
+    }
+
+    .pillar-bar-bg {
+      height: 6px;
+      background: rgba(255,255,255,0.15);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .pillar-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: linear-gradient(90deg, var(--teal-light), #f59e0b);
+    }
+
+    /* QUICK STATS COM SPARKLINES */
+    .sports-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .stat-spark-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 16px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stat-spark-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-spark-header span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stat-spark-main {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .stat-spark-val {
+      font-family: var(--font-mono);
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .stat-sparkline-svg {
+      width: 78px;
+      height: 28px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VISÃO DO CONSULTÓRIO MÉDICO (SEM CORTES, RESPONSIVA)
+       ═══════════════════════════════════════════════════════════ */
+    .doctor-view-container {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      animation: dxFadeIn 0.3s ease;
+    }
+
+    .doctor-patient-banner {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 18px 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      box-shadow: var(--shadow-card);
+    }
+
+    .doctor-patient-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .doctor-patient-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      border: 2px solid var(--teal-light);
+      padding: 2px;
+    }
+
+    .doctor-patient-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .doctor-patient-meta h3 {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .doctor-patient-meta p {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .doctor-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-doctor-action {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-doctor-action:hover {
+      border-color: var(--teal-light);
+      color: var(--teal-dark);
+    }
+
+    .btn-doctor-action.primary {
+      background: linear-gradient(135deg, var(--teal-light), var(--teal-dark));
+      color: #fff;
+      border: none;
+      box-shadow: 0 3px 12px var(--teal-glow);
+    }
+
+    /* CARD DE RESUMO EXECUTIVO CLÍNICO */
+    .clinical-summary-card {
+      background: var(--bg-card);
+      border-left: 5px solid var(--teal-light);
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
 
-    .greeting-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-card);
-      padding: 16px 18px;
+    .clinical-summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .greeting-title { font-family: var(--font-display); font-size: 17px; font-weight: 800; color: var(--text-main); }
-    .greeting-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-    .sports-persona-card {
+    .clinical-summary-header h4 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .clinical-summary-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .clinical-summary-body b {
+      color: var(--text-main);
+    }
+
+    /* TABELA CLÍNICA RESPONSIVA E SEM CORTE */
+    .clinical-table-card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-card);
-      padding: 18px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-    .persona-eyebrow-row { display: flex; justify-content: space-between; align-items: center; }
-    .persona-eyebrow { font-size: 11px; font-weight: 800; color: #0f766e; text-transform: uppercase; }
-    .athlete-mode-chip {
-      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
-      padding: 4px 10px; border-radius: var(--radius-full); font-size: 11px; font-weight: 700;
-    }
-    .persona-identity-row { display: flex; align-items: center; gap: 12px; }
-    .persona-avatar-box {
-      width: 44px; height: 44px; border-radius: 14px;
-      background: linear-gradient(135deg, #cceee8, #a7e0d7);
-      color: #0f766e; font-family: var(--font-display); font-weight: 800; font-size: 18px;
-      display: grid; place-items: center;
-    }
-    .persona-name-text { font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
-    .sport-pill-tag {
-      background: #e6f7f5; border: 1px solid #99ded7; color: #0f766e;
-      font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full);
-    }
-    .persona-goal-box {
-      background: rgba(244, 246, 249, 0.6); border: 1px solid var(--border-color);
-      border-radius: var(--radius-md); padding: 10px 12px; font-size: 12px; color: var(--text-main); line-height: 1.4;
     }
 
-    /* QUICK STATS */
-    .stats-2x2-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .stat-tile-card {
-      background: var(--bg-card); border: 1px solid var(--border-color);
-      border-radius: var(--radius-card); padding: 16px 18px; display: flex; flex-direction: column; gap: 4px;
+    .clinical-table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .stat-tile-top { display: flex; align-items: center; justify-content: space-between; }
-    .stat-tile-icon-box { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; }
-    .icon-teal { background: #e0f2f1; color: #00796b; }
-    .icon-heart { background: #fdf2e9; color: #d97706; }
-    .icon-red { background: #fde8e8; color: #e02424; }
-    .stat-tile-name { font-size: 10px; font-weight: 800; color: #4b5563; text-transform: uppercase; }
-    .stat-tile-main-val { font-family: var(--font-display); font-size: 21px; font-weight: 800; color: var(--text-main); margin-top: 3px; }
-    .stat-tile-footer { font-size: 11px; color: var(--text-muted); }
 
-    /* BOTTOM NAV */
-    .bottom-nav-bar {
-      position: absolute; bottom: 0; left: 0; right: 0; height: 64px;
-      background: var(--bg-card); border-top: 1px solid var(--border-color);
-      display: flex; align-items: center; justify-content: space-around; z-index: 500;
+    .clinical-table-header h4 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-main);
     }
-    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--text-muted); cursor: pointer; }
-    .nav-item.active { color: var(--teal-primary); }
-    .nav-item.active::after { content: ''; width: 4px; height: 4px; background: var(--teal-primary); border-radius: 50%; }
-    .center-fab-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; margin-top: -20px; }
-    .center-fab-btn {
-      width: 48px; height: 48px; border-radius: 50%;
-      background: linear-gradient(135deg, #14b8a6, #0d9488);
-      display: grid; place-items: center; font-size: 24px; color: #fff;
-      border: 3px solid #fff; box-shadow: 0 4px 14px rgba(13,148,136,0.35);
+
+    .table-scroll-wrapper {
+      overflow-x: auto;
+      width: 100%;
     }
-    .center-fab-label { font-size: 10px; font-weight: 800; color: var(--text-muted); }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+      min-width: 600px;
+    }
+
+    .clinical-table th {
+      background: rgba(0,0,0,0.02);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    [data-theme="dark"] .clinical-table th {
+      background: rgba(255,255,255,0.03);
+    }
+
+    .clinical-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    .clinical-table tr:hover td {
+      background: rgba(32, 178, 170, 0.04);
+    }
+
+    .clinical-badge-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      display: inline-block;
+    }
+
+    /* MODAL DE LAUDO MÉDICO TIMBRADO */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .modal-paper {
+      background: #ffffff;
+      color: #0f172a;
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      border-radius: 20px;
+      overflow-y: auto;
+      box-shadow: 0 25px 70px rgba(0,0,0,0.5);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 10;
+    }
+
+    .modal-body {
+      padding: 30px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .pdf-timbre {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #0d9488;
+      padding-bottom: 14px;
+    }
+
+    .btn-close-modal {
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+    }
+
+    /* ANIMAÇÃO */
+    @keyframes dxFadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 
-  <!-- BARRA DE CONTROLE DO ESTÚDIO -->
+  <!-- BARRA DE CONTROLE DO MOCKUP -->
   <header class="studio-bar">
     <div class="studio-title-group">
-      <div class="studio-badge">Estudo do Header</div>
-      <div class="studio-title">
-        <span>Dr. Exame • Sininho Dourado & Header Premium</span>
+      <div class="studio-logo">Dr</div>
+      <div>
+        <h1>Dr. Exame • Estúdio Visual Oficial</h1>
+        <span>Visualização real das telas do paciente e médico</span>
       </div>
     </div>
 
-    <div class="studio-controls">
-      <!-- SELETOR DE VERSÕES DO HEADER -->
-      <div class="pill-group">
-        <button class="pill-btn" onclick="selectHeaderVariant('current')">1. Atual (Do Print)</button>
-        <button class="pill-btn active gold" onclick="selectHeaderVariant('golden')">2. Sininho Ouro & Vidro (Recomendado)</button>
-        <button class="pill-btn" onclick="selectHeaderVariant('luxury')">3. Teal & Ouro Metálico</button>
-      </div>
+    <!-- ABAS REAIS DO APP -->
+    <nav class="studio-tabs">
+      <button class="studio-tab-btn active" id="tabPatient" onclick="switchAppView('patient')">
+        👤 1. Paciente: Saúde Geral
+      </button>
+      <button class="studio-tab-btn" id="tabSports" onclick="switchAppView('sports')">
+        🏃‍♂️ 2. Paciente: Lente Esportiva
+      </button>
+      <button class="studio-tab-btn" id="tabDoctor" onclick="switchAppView('doctor')">
+        🩺 3. Consultório Médico
+      </button>
+    </nav>
 
-      <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">🌙 Dark Mode</button>
+    <div class="studio-controls">
+      <button class="device-toggle-btn" id="btnDeviceToggle" onclick="toggleDeviceMode()">
+        📱 Celular / 💻 Desktop
+      </button>
+      <button class="theme-toggle-btn" onclick="toggleThemeMode()">
+        🌓 Tema
+      </button>
     </div>
   </header>
 
-  <!-- STAGE DO DISPOSITIVO -->
-  <main class="stage-wrapper">
-    <div class="device-viewport" id="device-frame">
-      
-      <!-- ANDROID STATUS BAR (DO PRINT) -->
-      <div class="android-status-bar">
-        <div>
-          <span>14:10</span>
-          <span style="font-size: 11px;">📷 📳 👥</span>
-        </div>
-        <div style="font-size: 11.5px;">
-          <span>📶 5G</span>
-          <span>🔋 65%</span>
-        </div>
-      </div>
+  <!-- PALCO PRINCIPAL -->
+  <main class="stage mode-desktop" id="appStage">
+    <div class="app-viewport" id="appViewport">
 
-      <!-- SLOT DO HEADER DINÂMICO -->
-      <div class="header-container-slot" id="header-slot">
+      <!-- APP HEADER OFICIAL (IDENTIDADE PRESERVADA) -->
+      <header class="app-header">
+        <div class="app-brand">
+          <div class="app-logo-badge">Dr</div>
+          <div class="app-brand-name">
+            <h2>Dr. Exame</h2>
+            <span id="appRoleSubtitle">Painel do Paciente</span>
+          </div>
+        </div>
+
+        <div class="app-actions">
+          <!-- CHIP DE CRÉDITOS COM RAIO OFICIAL -->
+          <div class="credits-chip" title="Seus créditos Dr. Exame">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <span>60 créditos</span>
+          </div>
+
+          <!-- SININHO DOURADO PRESERVADO -->
+          <div class="notif-bell-btn" title="Notificações">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <div class="notif-bell-badge">2</div>
+          </div>
+
+          <!-- FOTO OFICIAL DO EDMILSON LOPES -->
+          <div class="user-avatar-wrap" title="Edmilson Lopes • 47 anos">
+            <img 
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80" 
+              alt="Edmilson Lopes" 
+              class="user-avatar-img"
+              onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\' fill=\'%230d9488\'><circle cx=\'50\' cy=\'50\' r=\'50\'/><text x=\'50\' y=\'62\' font-size=\'40\' fill=\'white\' font-weight=\'bold\' text-anchor=\'middle\'>EL</text></svg>';"
+            />
+          </div>
+        </div>
+      </header>
+
+      <!-- ══════════════════════════════════════════════════════════════
+           VISÃO 1: DASHBOARD DO PACIENTE — SAÚDE GERAL (PADRÃO)
+           ══════════════════════════════════════════════════════════════ -->
+      <div class="app-content" id="viewPatient">
         
-        <!-- VARIANTE 2: GOLDEN BELL EXECUTIVE (PADRÃO RECOMENDADO) -->
-        <div class="app-header variant-golden" id="header-variant-elem">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="brand-avatar-circle">🩺</div>
-              <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
+        <!-- BANNER DE PERSONA / LENTE ESPORTIVA (TOGGLE DIRETO DO PACIENTE) -->
+        <div class="persona-switch-banner">
+          <div class="persona-info">
+            <div class="persona-icon-box">🏃‍♂️</div>
+            <div class="persona-text">
+              <h3>Lente de Alta Performance Esportiva</h3>
+              <p>Você corre e pedala! Ative para correlacionar seus exames com seus treinos e pace.</p>
+            </div>
+          </div>
+          <button class="persona-toggle-btn" onclick="switchAppView('sports')">
+            ⚡ Ativar Lente Esportiva
+          </button>
+        </div>
+
+        <!-- HERO CARDS (SCORE DE SAÚDE + IDADE BIOLÓGICA) -->
+        <div class="hero-grid">
+          
+          <!-- CARD A: SCORE DE SAÚDE (88/100) -->
+          <div class="app-card">
+            <div class="card-header-row">
+              <span class="card-title">🛡️ Nota Geral de Saúde</span>
+              <span class="card-badge badge-ok">Excelente</span>
+            </div>
+
+            <div class="score-display-row">
+              <div class="score-radial">
+                <svg viewBox="0 0 100 100">
+                  <circle class="bg" cx="50" cy="50" r="39"></circle>
+                  <circle class="meter" cx="50" cy="50" r="39"></circle>
+                </svg>
+                <div class="score-center-text">
+                  <strong>88</strong>
+                  <span>DE 100</span>
+                </div>
+              </div>
+
+              <div class="score-details">
+                <h4>Saúde Preventiva Otimizada</h4>
+                <p>Baseado nos 18 biomarcadores do laboratório Sabin (04/08/2026).</p>
+                <div class="score-breakdown-tags">
+                  <span class="tag-pill">16 no alvo</span>
+                  <span class="tag-pill" style="color:#d97706; background:rgba(245,158,11,0.15);">2 atenção médica</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <!-- CHIP DE CRÉDITOS PREMIUM -->
-            <div class="points-pill">
-              <span class="bolt-gold-icon">⚡</span>
-              <span>96.837</span>
+          <!-- CARD B: IDADE BIOLÓGICA (KDM) -->
+          <div class="app-card">
+            <div class="card-header-row">
+              <span class="card-title">🧬 Idade Biológica (KDM)</span>
+              <span class="card-badge badge-pro">Rejuvenescido</span>
             </div>
 
-            <!-- O SININHO DOURADO PREMIADO -->
-            <div class="golden-bell-btn" title="7 Notificações">
-              <!-- SVG do Sino Dourado Sofisticado -->
-              <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+            <div class="bio-age-box">
+              <div>
+                <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Idade Biológica</span>
+                <div class="bio-age-number">42 <span style="font-size:16px; font-weight:600; color:var(--text-muted);">anos</span></div>
+              </div>
+              <div style="text-align:right;">
+                <span class="bio-age-delta">⚡ -5 anos</span>
+                <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">vs 47 cronológicos</p>
+              </div>
+            </div>
+
+            <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">
+              Seu perfil lipídico e renal conferem um desgaste biológico 5 anos inferior à média para 47 anos.
+            </p>
+          </div>
+        </div>
+
+        <!-- INSIGHT INTELIGENTE DA IA DR. EXAME -->
+        <div class="ai-insight-card">
+          <div class="ai-mascot-avatar">✨</div>
+          <div class="ai-insight-content">
+            <h4>Análise Integrada da IA Dr. Exame</h4>
+            <p>
+              Olá, <b>Edmilson</b>! Seu perfil cardiovascular está protegido (Colesterol e Triglicerídeos excelentes). Notamos duas oportunidades preventivas: seu <b>TSH (12,1 μUI/mL)</b> está elevado sugerindo tireoide mais lenta, e a <b>Insulina/HOMA-IR (3,6)</b> merece atenção na alimentação pré/pós-treino.
+            </p>
+            <div class="ai-action-pills">
+              <button class="ai-pill-btn" onclick="switchAppView('doctor')">🩺 Ver Resumo Clínico</button>
+              <button class="ai-pill-btn" onclick="switchAppView('sports')">⚡ Ver Impacto na Corrida</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MARCADORES DO PACIENTE EM DESTAQUE -->
+        <div class="section-title-wrap">
+          <h3>🔬 Marcadores do Sabin (04/08/2026)</h3>
+          <span style="font-size:12px; color:var(--text-muted); font-weight:600;">18 Marcadores Analisados</span>
+        </div>
+
+        <div class="markers-grid">
+          
+          <!-- MARCADOR 1: HEMOGLOBINA -->
+          <div class="marker-card">
+            <div class="marker-card-top">
+              <div class="marker-name-group">
+                <h4>Hemoglobina</h4>
+                <span>Transporte de Oxigênio • Sangue Total</span>
+              </div>
+              <span class="card-badge badge-ok">Ideal</span>
+            </div>
+
+            <div class="marker-val-row">
+              <div>
+                <span class="marker-val-big">16,6</span>
+                <span class="marker-val-unit">g/dL</span>
+              </div>
+              <span class="marker-ref-note">Ref: 13,0 - 17,5</span>
+            </div>
+
+            <div class="marker-bar-wrap">
+              <div class="marker-bar-ideal" style="left:15%; right:15%;"></div>
+              <div class="marker-bar-pin" style="left:82%;"></div>
+            </div>
+
+            <div class="marker-context-box">
+              Excelente capacidade de carreamento de oxigênio celular.
+            </div>
+          </div>
+
+          <!-- MARCADOR 2: TSH -->
+          <div class="marker-card">
+            <div class="marker-card-top">
+              <div class="marker-name-group">
+                <h4>TSH Ultra-sensível</h4>
+                <span>Função da Tireoide • Hormônio Central</span>
+              </div>
+              <span class="card-badge badge-alert">Acompanhar</span>
+            </div>
+
+            <div class="marker-val-row">
+              <div>
+                <span class="marker-val-big" style="color:#d97706;">12,1</span>
+                <span class="marker-val-unit">μUI/mL</span>
+              </div>
+              <span class="marker-ref-note">Ref: 0,40 - 4,50</span>
+            </div>
+
+            <div class="marker-bar-wrap">
+              <div class="marker-bar-ideal" style="left:10%; right:45%;"></div>
+              <div class="marker-bar-pin warn" style="left:92%;"></div>
+            </div>
+
+            <div class="marker-context-box">
+              Elevado. Pode explicar momentos de cansaço ou metabolismo mais lento. Avaliar com endocrinologista.
+            </div>
+          </div>
+
+          <!-- MARCADOR 3: HOMA-IR / GLICEMIA -->
+          <div class="marker-card">
+            <div class="marker-card-top">
+              <div class="marker-name-group">
+                <h4>Índice HOMA-IR</h4>
+                <span>Sensibilidade à Insulina • Metabolismo</span>
+              </div>
+              <span class="card-badge badge-alert">Resistência Leve</span>
+            </div>
+
+            <div class="marker-val-row">
+              <div>
+                <span class="marker-val-big" style="color:#d97706;">3,6</span>
+                <span class="marker-val-unit">índice</span>
+              </div>
+              <span class="marker-ref-note">Ideal: &lt; 2,15</span>
+            </div>
+
+            <div class="marker-bar-wrap">
+              <div class="marker-bar-ideal" style="left:10%; right:50%;"></div>
+              <div class="marker-bar-pin warn" style="left:78%;"></div>
+            </div>
+
+            <div class="marker-context-box">
+              Indica resistência periférica leve à insulina. O exercício físico é o melhor remédio para otimizar esse índice.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- ══════════════════════════════════════════════════════════════
+           VISÃO 2: DASHBOARD DO PACIENTE — LENTE ESPORTIVA ATIVADA
+           ══════════════════════════════════════════════════════════════ -->
+      <div class="app-content sports-view-container" id="viewSports" style="display:none;">
+
+        <!-- BANNER INDICANDO QUE A LENTE ESPORTIVA ESTÁ ATIVA -->
+        <div class="persona-switch-banner sports-on">
+          <div class="persona-info">
+            <div class="persona-icon-box sports">⚡</div>
+            <div class="persona-text">
+              <h3>Lente Esportiva Ativa • Corrida & Ciclismo</h3>
+              <p>Métricas calibradas para sua rotina esportiva e adaptações de treino.</p>
+            </div>
+          </div>
+          <button class="persona-toggle-btn active-sports" onclick="switchAppView('patient')">
+            ↩ Voltar à Saúde Geral
+          </button>
+        </div>
+
+        <!-- HERO BIO-READINESS DO ATLETA (O FATOR TCHAN) -->
+        <div class="sports-bio-readiness-hero">
+          <svg style="position: absolute; width: 0; height: 0;">
+            <defs>
+              <linearGradient id="goldTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#20B2AA" />
+                <stop offset="100%" stop-color="#f59e0b" />
+              </linearGradient>
+            </defs>
+          </svg>
+
+          <div class="readiness-main-row">
+            <div class="readiness-gauge-wrap">
+              <svg viewBox="0 0 120 120">
+                <circle class="bg" cx="60" cy="60" r="50"></circle>
+                <circle class="val" cx="60" cy="60" r="50"></circle>
               </svg>
-              <div class="notif-badge-pill">7</div>
+              <div class="readiness-score-text">
+                <strong>92%</strong>
+                <span>ÓTIMO</span>
+              </div>
             </div>
 
-            <!-- AVATAR COM ANEL DE PRECISÃO -->
-            <div class="user-avatar-pill">
-              <div class="user-avatar-img">ES</div>
-              <span style="font-size: 12px; color: var(--text-muted); padding-right: 2px;">⌄</span>
+            <div class="readiness-meta-text">
+              <h3>Prontidão Metabólica para Endurance</h3>
+              <p>
+                Seus biomarcadores sustentam alta capacidade aeróbica para corrida e pedal. A taxa de oxigenação tecidual está no percentil superior.
+              </p>
+            </div>
+          </div>
+
+          <!-- 5 PILARES METABÓLICOS -->
+          <div class="metabolic-pillars-grid">
+            <div class="pillar-item">
+              <div class="pillar-header"><span>Oxigenação (Hb)</span><strong>96%</strong></div>
+              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:96%;"></div></div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-header"><span>Recuperação Hepática</span><strong>94%</strong></div>
+              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:94%;"></div></div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-header"><span>Eixo Androgênico</span><strong>88%</strong></div>
+              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:88%;"></div></div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-header"><span>Sensib. Insulina</span><strong>75%</strong></div>
+              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:75%;"></div></div>
+            </div>
+            <div class="pillar-item">
+              <div class="pillar-header"><span>Metab. Basal (TSH)</span><strong>68%</strong></div>
+              <div class="pillar-bar-bg"><div class="pillar-bar-fill" style="width:68%; background:#f59e0b;"></div></div>
             </div>
           </div>
         </div>
 
-      </div>
+        <!-- QUICK STATS COM SPARKLINES DO ATLETA -->
+        <div class="sports-stats-grid">
+          
+          <div class="stat-spark-card">
+            <div class="stat-spark-header">
+              <span>🫁 Hemoglobina</span>
+              <span class="card-badge badge-ok">Top 15%</span>
+            </div>
+            <div class="stat-spark-main">
+              <div>
+                <span class="stat-spark-val">16,6</span>
+                <span style="font-size:12px; color:var(--text-muted);">g/dL</span>
+              </div>
+              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
+                <path d="M0,25 Q25,28 50,15 T100,6" fill="none" stroke="#20B2AA" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
 
-      <div class="viewport-scroll">
+          <div class="stat-spark-card">
+            <div class="stat-spark-header">
+              <span>🔋 Ferritina</span>
+              <span class="card-badge badge-ok">Estável</span>
+            </div>
+            <div class="stat-spark-main">
+              <div>
+                <span class="stat-spark-val">195</span>
+                <span style="font-size:12px; color:var(--text-muted);">ng/mL</span>
+              </div>
+              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
+                <path d="M0,22 Q25,18 50,16 T100,12" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
 
-        <!-- CARD EXPLICANDO A MUDANÇA -->
-        <div class="proposal-callout-card" id="proposal-explainer">
-          <h5>✨ O que mudou nesta proposta do Header:</h5>
-          <p id="proposal-desc">
-            <b>1. Sininho Dourado Refinado:</b> Fundo em ouro suave translúcido com ícone dourado metálico. Transmite status premium sem parecer erro do sistema.<br>
-            <b>2. Pílula de Créditos Elegante:</b> Raio dourado com tipografia tabular limpa.<br>
-            <b>3. Avatar com Contorno de Precisão:</b> Anel duplo sutil ao redor da foto para acabamento executivo.
+          <div class="stat-spark-card">
+            <div class="stat-spark-header">
+              <span>❤️ FC Repouso</span>
+              <span class="card-badge badge-pro">Atleta</span>
+            </div>
+            <div class="stat-spark-main">
+              <div>
+                <span class="stat-spark-val">48</span>
+                <span style="font-size:12px; color:var(--text-muted);">bpm</span>
+              </div>
+              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
+                <path d="M0,15 Q25,8 50,22 T100,10" fill="none" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="stat-spark-card">
+            <div class="stat-spark-header">
+              <span>🧬 DHT Androgênico</span>
+              <span class="card-badge badge-ok">Ideal</span>
+            </div>
+            <div class="stat-spark-main">
+              <div>
+                <span class="stat-spark-val">245</span>
+                <span style="font-size:12px; color:var(--text-muted);">pg/mL</span>
+              </div>
+              <svg class="stat-sparkline-svg" viewBox="0 0 100 35">
+                <path d="M0,20 Q25,24 50,18 T100,14" fill="none" stroke="#20B2AA" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RAIO-X DO ESPORTE & PERCENTIL DE CORREDORES -->
+        <div class="app-card">
+          <div class="card-header-row">
+            <span class="card-title">🏃‍♂️ Raio-X do Esporte: Hemoglobina 16,6 g/dL</span>
+            <span class="card-badge badge-pro">Percentil 85 de Ciclistas & Corredores</span>
+          </div>
+
+          <p style="font-size:13px; color:var(--text-muted); line-height:1.5;">
+            Em uma pessoa sedentária, 16,6 g/dL pode parecer no limite superior laboratorial. Mas para um praticante assíduo de corrida e ciclismo como o Edmilson, isso reflete excelente capacidade de VO₂ e transporte de oxigênio muscular.
           </p>
+
+          <div style="background:rgba(32,178,170,0.08); border:1px solid rgba(32,178,170,0.2); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; font-weight:700;">
+              <span>População Geral: 13 a 17 g/dL</span>
+              <span style="color:var(--teal-primary);">Sua Marca: 16,6 g/dL (Alta Potência)</span>
+            </div>
+            <div style="height:10px; background:rgba(0,0,0,0.08); border-radius:999px; position:relative;">
+              <div style="position:absolute; left:0; width:65%; height:100%; background:#94a3b8; opacity:0.3; border-radius:999px 0 0 999px;"></div>
+              <div style="position:absolute; left:65%; width:35%; height:100%; background:var(--teal-light); border-radius:0 999px 999px 0;"></div>
+              <div style="position:absolute; left:85%; top:-3px; width:16px; height:16px; border-radius:50%; background:#f59e0b; border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3); transform:translateX(-50%);"></div>
+            </div>
+            <div style="font-size:11.5px; color:var(--text-muted); display:flex; justify-content:space-between;">
+              <span>Faixa Sedentária</span>
+              <span>Faixa de Atletas de Fundo</span>
+            </div>
+          </div>
         </div>
 
-        <div class="dashboard-body">
-
-          <!-- CARD SAUDAÇÃO -->
-          <div class="greeting-card">
-            <div class="greeting-title">Boa tarde, Edmilson 👋</div>
-            <div class="greeting-sub">Seu painel de saúde — educativo, não substitui o médico.</div>
-          </div>
-
-          <!-- CARD PERSONA -->
-          <div class="sports-persona-card">
-            <div class="persona-eyebrow-row">
-              <span class="persona-eyebrow">RESISTÊNCIA & PERFORMANCE</span>
-              <div class="athlete-mode-chip">🏃 Modo Atleta</div>
-            </div>
-
-            <div class="persona-identity-row">
-              <div class="persona-avatar-box">E</div>
-              <div class="persona-name-text">
-                <span>Edmilson Lopes, 47 anos</span>
-                <span class="sport-pill-tag">Corrida/Ciclismo</span>
-              </div>
-            </div>
-
-            <div class="persona-goal-box">
-              🎯 <b>Objetivo:</b> Base aeróbica: hemoglobina, hematócrito e ferro sustentam o consumo de oxigênio.
-            </div>
-
-            <div style="font-size: 11.5px; color: var(--text-muted);">
-              <b>Último exame:</b> 04/08 · Sabin · há 2 meses
-            </div>
-          </div>
-
-          <!-- QUICK STATS 2X2 -->
-          <div class="stats-2x2-grid">
-            <div class="stat-tile-card">
-              <div class="stat-tile-top">
-                <div class="stat-tile-icon-box icon-teal">🧪</div>
-                <span class="stat-tile-name">FERRITINA</span>
-              </div>
-              <div class="stat-tile-main-val">195 nanog/mL</div>
-              <div class="stat-tile-footer">na referência</div>
-            </div>
-
-            <div class="stat-tile-card">
-              <div class="stat-tile-top">
-                <div class="stat-tile-icon-box icon-teal">🧪</div>
-                <span class="stat-tile-name">HEMOGLOBINA</span>
-              </div>
-              <div class="stat-tile-main-val">5,1%</div>
-              <div class="stat-tile-footer">na referência</div>
-            </div>
-
-            <div class="stat-tile-card">
-              <div class="stat-tile-top">
-                <div class="stat-tile-icon-box icon-heart">🤍</div>
-                <span class="stat-tile-name">FC REPOUSO</span>
-              </div>
-              <div class="stat-tile-main-val">123 bpm</div>
-              <div class="stat-tile-footer">FC de repouso (7+ dias)</div>
-            </div>
-
-            <div class="stat-tile-card">
-              <div class="stat-tile-top">
-                <div class="stat-tile-icon-box icon-red">🤍</div>
-                <span class="stat-tile-name">ALTERADOS</span>
-              </div>
-              <div class="stat-tile-main-val" style="color: #dc2626;">76</div>
-              <div class="stat-tile-footer">pedem atenção</div>
-            </div>
-          </div>
-
-        </div>
       </div>
 
-      <!-- BOTTOM NAV -->
-      <div class="bottom-nav-bar">
-        <div class="nav-item active">
-          <span style="font-size: 18px;">🏠</span>
-          <span>Início</span>
+
+      <!-- ══════════════════════════════════════════════════════════════
+           VISÃO 3: CONSULTÓRIO MÉDICO (SEM CORTES, RESPONSIVA)
+           ══════════════════════════════════════════════════════════════ -->
+      <div class="app-content doctor-view-container" id="viewDoctor" style="display:none;">
+
+        <!-- BANNER DE IDENTIFICAÇÃO DO PACIENTE NA CONSULTA -->
+        <div class="doctor-patient-banner">
+          <div class="doctor-patient-left">
+            <div class="doctor-patient-avatar">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=160&q=80" alt="Edmilson Lopes" />
+            </div>
+            <div class="doctor-patient-meta">
+              <h3>Prontuário: Edmilson Lopes</h3>
+              <p>47 anos • Masculino • Atleta Amador (Corrida 10-21k, Ciclismo Estrada)</p>
+            </div>
+          </div>
+
+          <div class="doctor-actions-group">
+            <button class="btn-doctor-action primary" onclick="openPdfModal()">
+              📄 Gerar Laudo Timbrado PDF
+            </button>
+          </div>
         </div>
-        <div class="nav-item">
-          <span style="font-size: 18px;">📄</span>
-          <span>Exames</span>
+
+        <!-- RESUMO CLÍNICO DA IA PARA O MÉDICO (15 SEGUNDOS DE LEITURA) -->
+        <div class="clinical-summary-card">
+          <div class="clinical-summary-header">
+            <h4>🩺 Resumo Clínico para Tomada de Decisão Médica</h4>
+            <span class="card-badge badge-pro">IA Dr. Exame Clinical Core</span>
+          </div>
+          <div class="clinical-summary-body">
+            Paciente praticante assíduo de modalidades de endurance (corrida/ciclismo). Apresenta excelente perfil de oxigenação celular (<b>Hb 16,6 g/dL</b> e <b>Ferritina 195 ng/mL</b>) e função hepato-renal preservada. Dois pontos de conduta recomendados: 
+            <b>1) Hipotireoidismo primário/subclínico</b> (TSH 12,1 com T4L para dosar); 
+            <b>2) Resistência periférica à insulina</b> (HOMA-IR 3,6), orientando sincronização de carboidratos em janelas de treino.
+          </div>
         </div>
-        <div class="center-fab-wrap">
-          <div class="center-fab-btn">🩺</div>
-          <span class="center-fab-label">Dr. Exame</span>
+
+        <!-- TABELA CLÍNICA COMPLETA DE BIOMARCADORES (SEM CORTAR) -->
+        <div class="clinical-table-card">
+          <div class="clinical-table-header">
+            <h4>Painel Bioquímico & Hormonal Integrado (Sabin 04/08/2026)</h4>
+            <span style="font-size:12px; color:var(--text-muted);">Sincronizado automaticamente</span>
+          </div>
+
+          <div class="table-scroll-wrapper">
+            <table class="clinical-table">
+              <thead>
+                <tr>
+                  <th>Biomarcador</th>
+                  <th>Resultado</th>
+                  <th>Referência Geral</th>
+                  <th>Faixa do Atleta</th>
+                  <th>Status & Conduta</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><b>TSH Ultra-sensível</b></td>
+                  <td><b style="color:#d97706;">12,1 μUI/mL</b></td>
+                  <td>0,40 a 4,50</td>
+                  <td>1,00 a 2,50</td>
+                  <td><span class="clinical-badge-tag" style="background:rgba(245,158,11,0.15); color:#d97706;">Conduta: Investigar</span></td>
+                </tr>
+                <tr>
+                  <td><b>Hemoglobina</b></td>
+                  <td><b style="color:#059669;">16,6 g/dL</b></td>
+                  <td>13,0 a 17,5</td>
+                  <td>15,0 a 17,0</td>
+                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Excelente Transporte O₂</span></td>
+                </tr>
+                <tr>
+                  <td><b>HOMA-IR (Insulina)</b></td>
+                  <td><b style="color:#d97706;">3,6</b></td>
+                  <td>&lt; 2,15</td>
+                  <td>&lt; 1,80</td>
+                  <td><span class="clinical-badge-tag" style="background:rgba(245,158,11,0.15); color:#d97706;">Ajustar Dieta Pré-treino</span></td>
+                </tr>
+                <tr>
+                  <td><b>Ferritina Sérica</b></td>
+                  <td><b style="color:#059669;">195 ng/mL</b></td>
+                  <td>30 a 400</td>
+                  <td>100 a 250</td>
+                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Reserva Adequada</span></td>
+                </tr>
+                <tr>
+                  <td><b>DHT (Diidrotestosterona)</b></td>
+                  <td><b style="color:#059669;">245 pg/mL</b></td>
+                  <td>143 a 842</td>
+                  <td>200 a 500</td>
+                  <td><span class="clinical-badge-tag" style="background:rgba(16,185,129,0.15); color:#059669;">Eixo Equilibrado</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="nav-item">
-          <span style="font-size: 18px;">📈</span>
-          <span>Evolução</span>
-        </div>
-        <div class="nav-item">
-          <span style="font-size: 18px;">☰</span>
-          <span>Mais</span>
-        </div>
+
       </div>
 
     </div>
   </main>
 
+  <!-- MODAL DE LAUDO EM PDF TIMBRADO (SIMULADOR) -->
+  <div class="modal-backdrop" id="pdfModal">
+    <div class="modal-paper">
+      <div class="modal-header">
+        <h3 style="font-family:var(--font-display); font-size:16px; font-weight:700;">📄 Modelo de Laudo Médico Timbrado</h3>
+        <button class="btn-close-modal" onclick="closePdfModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="pdf-timbre">
+          <div>
+            <h2 style="color:#0f766e; font-size:18px; font-weight:800;">DR. EXAME • MEDICINA DE PRECISÃO</h2>
+            <p style="font-size:11px; color:#64748b;">Laudo Clínico-Esportivo Integrado • CRM 14829-SP</p>
+          </div>
+          <div style="text-align:right;">
+            <p style="font-size:12px; font-weight:700;">Data: 04/08/2026</p>
+            <p style="font-size:11px; color:#64748b;">Protocolo: #SAB-942B</p>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size:13px; text-transform:uppercase; color:#0f766e; margin-bottom:6px;">1. Identificação do Paciente</h4>
+          <p style="font-size:12.5px; line-height:1.5;">
+            <b>Paciente:</b> Edmilson Lopes • <b>Idade:</b> 47 anos • <b>Sexo:</b> Masculino<br>
+            <b>Modalidade:</b> Corrida & Ciclismo de Fundo • <b>Idade Biológica:</b> 42 anos (-5 anos)
+          </p>
+        </div>
+
+        <div>
+          <h4 style="font-size:13px; text-transform:uppercase; color:#0f766e; margin-bottom:6px;">2. Parecer e Conduta Clínica</h4>
+          <p style="font-size:12.5px; line-height:1.6; color:#334155;">
+            Paciente apresenta excelente reserva fisiológica e capacidade de transporte de oxigênio (Hb 16,6 g/dL). Observa-se elevação de TSH (12,1 μUI/mL) indicando hipotireoidismo subclínico em fase inicial, além de discreta elevação no índice HOMA-IR (3,6).<br><br>
+            <b>Prescrição / Próximos Passos:</b><br>
+            • Dosagem complementar de T4 Livre e Anti-TPO.<br>
+            • Manter volume aeróbico em zona 2 para ganho de sensibilidade insulínica periférica.<br>
+            • Retorno para reavaliação laboratorial em 60 dias.
+          </p>
+        </div>
+
+        <div style="border-top:1px solid #e2e8f0; padding-top:16px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:11px; color:#94a3b8;">Documento gerado digitalmente via plataforma Dr. Exame</span>
+          <button class="btn-doctor-action primary" onclick="closePdfModal()">Concluir Visualização</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
-    function selectHeaderVariant(variant) {
-      document.querySelectorAll('.studio-controls .pill-btn').forEach(b => b.classList.remove('active', 'gold'));
-      event.target.classList.add('active');
-      if (variant === 'golden') event.target.classList.add('gold');
+    // ESTADO E CONTROLES DO MOCKUP
+    function switchAppView(view) {
+      document.getElementById('viewPatient').style.display = view === 'patient' ? 'flex' : 'none';
+      document.getElementById('viewSports').style.display = view === 'sports' ? 'flex' : 'none';
+      document.getElementById('viewDoctor').style.display = view === 'doctor' ? 'flex' : 'none';
 
-      const slot = document.getElementById('header-slot');
-      const explainer = document.getElementById('proposal-desc');
+      document.getElementById('tabPatient').classList.toggle('active', view === 'patient');
+      document.getElementById('tabSports').classList.toggle('active', view === 'sports');
+      document.getElementById('tabDoctor').classList.toggle('active', view === 'doctor');
 
-      if (variant === 'current') {
-        slot.innerHTML = `
-          <div class="app-header variant-current">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 20px; color: var(--text-main);">☰</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="brand-avatar-circle">🩺</div>
-                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
-              </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="points-pill"><span>⚡</span> 96.837</div>
-              <div class="bell-btn">
-                <span>🔔</span>
-                <div class="notif-badge-dot">7</div>
-              </div>
-              <div class="user-avatar-pill">
-                <div class="user-avatar-img">ES</div>
-                <span style="font-size: 12px; color: #0f766e;">⌄</span>
-              </div>
-            </div>
-          </div>
-        `;
-        explainer.innerHTML = `
-          <b>Como está no seu print hoje:</b><br>
-          • Sininho preto padrão com bolinha vermelha básica em cima.<br>
-          • Pílula de créditos verde-água clássica.<br>
-          • Cápsula de perfil com fundo verde-claro.
-        `;
-      } else if (variant === 'golden') {
-        slot.innerHTML = `
-          <div class="app-header variant-golden">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="brand-avatar-circle">🩺</div>
-                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
-              </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="points-pill">
-                <span class="bolt-gold-icon">⚡</span>
-                <span>96.837</span>
-              </div>
-              <div class="golden-bell-btn" title="7 Notificações">
-                <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
-                </svg>
-                <div class="notif-badge-pill">7</div>
-              </div>
-              <div class="user-avatar-pill">
-                <div class="user-avatar-img">ES</div>
-                <span style="font-size: 12px; color: var(--text-muted); padding-right: 2px;">⌄</span>
-              </div>
-            </div>
-          </div>
-        `;
-        explainer.innerHTML = `
-          <b>Proposta Recomendada (Golden Bell Executive):</b><br>
-          • <b>Sininho Ouro Nobre:</b> Feito em tom âmbar/ouro acetinado (#d97706 / #fbbf24) dentro de uma cápsula suave com cantos arredondados e micro-sombra.<br>
-          • <b>Badge Refinado:</b> Contador vermelho com anel de proteção branco ao redor para não vazar.<br>
-          • <b>Créditos com Raio Dourado:</b> Conversa com a assinatura premium da conta.
-        `;
-      } else if (variant === 'luxury') {
-        slot.innerHTML = `
-          <div class="app-header variant-luxury">
-            <div style="display: flex; align-items: center; gap: 12px;">
-              <span style="font-size: 20px; color: var(--text-main); cursor: pointer;">☰</span>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <div class="brand-avatar-circle" style="box-shadow: 0 4px 14px rgba(32,178,170,0.35);">🩺</div>
-                <span style="font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--text-main);">Dr. Exame</span>
-              </div>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="points-pill">
-                <span style="color: #f59e0b;">⚡</span>
-                <span>96.837</span>
-              </div>
-              <div class="golden-bell-btn">
-                <svg class="bell-svg-gold" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
-                </svg>
-                <div class="notif-badge-pill">7</div>
-              </div>
-              <div style="width: 34px; height: 34px; border-radius: 50%; background: #0f766e; color: #fff; font-weight: 700; font-size: 12px; display: grid; place-items: center; border: 2px solid #20b2aa; cursor: pointer;">
-                ES
-              </div>
-            </div>
-          </div>
-        `;
-        explainer.innerHTML = `
-          <b>Proposta 3 (Teal & Ouro Metálico):</b><br>
-          • Sininho circular em dourado vivo com brilho mais evidente.<br>
-          • Chip com degradê suave unindo Teal e Ouro.<br>
-          • Avatar ultra-compacto com anel teal luminoso.
-        `;
+      const subtitle = document.getElementById('appRoleSubtitle');
+      if (view === 'patient') subtitle.innerText = 'Painel do Paciente • Saúde Geral';
+      if (view === 'sports') subtitle.innerText = 'Lente Esportiva • Atleta de Endurance';
+      if (view === 'doctor') subtitle.innerText = 'Prontuário Médico • Consulta Ativa';
+    }
+
+    function toggleDeviceMode() {
+      const stage = document.getElementById('appStage');
+      if (stage.classList.contains('mode-desktop')) {
+        stage.classList.remove('mode-desktop');
+        stage.classList.add('mode-mobile');
+      } else {
+        stage.classList.remove('mode-mobile');
+        stage.classList.add('mode-desktop');
       }
     }
 
-    function toggleTheme() {
-      const isDark = document.body.getAttribute('data-theme') === 'dark';
-      const newTheme = isDark ? 'light' : 'dark';
-      document.body.setAttribute('data-theme', newTheme);
-      document.getElementById('theme-btn').textContent = isDark ? '🌙 Dark Mode' : '☀️ Light Mode';
+    function toggleThemeMode() {
+      const viewport = document.getElementById('appViewport');
+      const isDark = viewport.getAttribute('data-theme') === 'dark';
+      viewport.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    }
+
+    function openPdfModal() {
+      document.getElementById('pdfModal').classList.add('open');
+    }
+
+    function closePdfModal() {
+      document.getElementById('pdfModal').classList.remove('open');
     }
   </script>
 </body>

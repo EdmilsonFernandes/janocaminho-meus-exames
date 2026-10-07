@@ -417,8 +417,8 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
 };
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg, sparkles. */
-const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, onDetails, onFirstExam, onChat, onDemo }: {
-  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
+const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, onDetails, onFirstExam, onChat, onDemo, onAlterados }: {
+  loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void; onAlterados?: () => void;
 }) => {
   const t = useTheme();
   const st = statusFromScore(score);
@@ -512,7 +512,10 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontSize: 12, fontWeight: 700, color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>Sua saúde hoje</Typography>
+          {/* Temporalidade clínica honesta: exibe a data real da coleta em vez de fingir tempo real */}
+          <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase', color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>
+            {last && !noData ? `🔬 Exame em ${last}` : 'Sua saúde hoje'}
+          </Typography>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
           {/* W2 — comemora o progresso (só quando SUBIU; nunca pune queda). */}
           {scoreGain > 0 && showGain && (
@@ -520,24 +523,36 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               ⚡ +{scoreGain} pontos desde sua última visita
             </Box>
           )}
-          <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5 }}>
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
             {totalAtt > 0 ? (
-              <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>
-                {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
-                {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
-                {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
-              </Typography>
+              <Box
+                component="button"
+                onClick={onAlterados ?? onDetails}
+                sx={{
+                  display: 'inline-flex', alignItems: 'center', gap: 0.75,
+                  background: 'none', border: 'none', p: 0, cursor: 'pointer', textAlign: 'left',
+                  fontFamily: 'inherit',
+                  '&:hover': { opacity: 0.85 },
+                }}
+              >
+                <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
+                  {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {importante} importante{importante > 1 ? 's' : ''}</Box>}
+                  {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
+                  {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {moderada} moderado{moderada > 1 ? 's' : ''}</Box>}
+                </Typography>
+                <Box component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'primary.main', bgcolor: (th) => alpha(th.palette.primary.main, 0.1), px: 0.75, py: 0.2, borderRadius: '6px' }}>
+                  ver lista →
+                </Box>
+              </Box>
             ) : noData ? (
               <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
             ) : score != null ? (
               <Typography sx={{ fontSize: 14, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
             ) : null}
-            {/* Honestidade de estado (voltou pra V2): dados velhos AVISAM em vez de parecerem atuais. */}
-            {staleWarning && !noData ? (
+            {/* Honestidade de estado: dados antigos avisam claramente */}
+            {staleWarning && !noData && (
               <Typography sx={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, color: (th) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'] }}>⏳ {staleWarning}</Typography>
-            ) : last && !noData ? (
-              <Typography sx={{ fontSize: 13, color: 'text.disabled' }}>· atualizado {last}</Typography>
-            ) : null}
+            )}
           </Stack>
         </Box>
       </Stack>
@@ -887,6 +902,7 @@ export const DashboardV2 = () => {
           staleWarning={d.staleWarning}
           scoreGain={demo ? 0 : (d.score != null && d.prevScore != null && d.score > d.prevScore ? d.score - d.prevScore : 0)}
           onDetails={go('/tendencias')}
+          onAlterados={go('/alterados')}
           onFirstExam={() => navigate('/exams/create')}
           onChat={go('/chat')}
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
@@ -991,8 +1007,8 @@ export const DashboardV2 = () => {
 
               {/* ATIVIDADE FÍSICA & HEALTH CONNECT — escondida no demo (dado é do DEVICE, não há como fingir) */}
               {!demo && (!real.me?.relationship || real.me.relationship === 'Titular') && (
-                <Section label="Atividade física • Health Connect" icon={<Heartbeat size={18} weight="duotone" />}>
-                  <Box sx={{ display: 'grid', gap: 2 }}>
+                <Section label="Atividade física & Dispositivos" icon={<Heartbeat size={18} weight="duotone" />}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
                     <ActivityCard lastExamAt={d.lastExam} />
                     <RestingHeartCard />
                   </Box>
