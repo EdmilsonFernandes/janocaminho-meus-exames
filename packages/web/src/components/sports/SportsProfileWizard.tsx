@@ -31,7 +31,15 @@ const HORMONAL: { v: string; l: string; hint?: string }[] = [
 const isPlainObject = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
 
-export const SportsProfileWizard = ({ pid }: { pid: string | null | undefined }) => {
+export const SportsProfileWizard = ({
+  pid,
+  onSaved,
+  embedded = false,
+}: {
+  pid: string | null | undefined;
+  onSaved?: () => void;
+  embedded?: boolean;
+}) => {
   const notify = useNotify();
   const [modality, setModality] = useState<string | null>(null);
   const [level, setLevel] = useState<string | null>(null);
@@ -87,6 +95,7 @@ export const SportsProfileWizard = ({ pid }: { pid: string | null | undefined })
       notify('Perfil esportivo salvo — o painel já reflete sua lente.', { type: 'success' });
       // Invalida o cache de sessão → o dashboard re-organiza na hora.
       try { window.dispatchEvent(new Event('sports-profile-changed')); } catch { /* SSR/test */ }
+      onSaved?.();
     } catch {
       notify('Não foi possível salvar.', { type: 'error' });
     } finally {
@@ -96,38 +105,61 @@ export const SportsProfileWizard = ({ pid }: { pid: string | null | undefined })
 
   const chipRow = (label: string, hint: string, children: React.ReactNode) => (
     <Box sx={{ minWidth: 0 }}>
-      <Typography sx={{ fontSize: 12.5, fontWeight: 800 }}>{label}</Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>{hint}</Typography>
-      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">{children}</Stack>
+      <Typography sx={{ fontSize: 13, fontWeight: 800 }}>{label}</Typography>
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.75, lineHeight: 1.35 }}>{hint}</Typography>
+      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">{children}</Stack>
     </Box>
   );
   const sel = (selected: boolean) => ({
     // 44px no touch (xs) — alvo de acessibilidade p/ chips clicáveis (júri E4+ #10);
     // 32px no desktop (sm+), onde o alvo é o mouse.
-    height: { xs: 44, sm: 32 } as const, fontWeight: 700, fontSize: 12.5,
+    height: { xs: 44, sm: 34 } as const, fontWeight: 700, fontSize: 12.5,
     ...(selected
-      ? { bgcolor: 'rgba(32,178,170,.16)', color: (t: any) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.5)' }
+      ? { bgcolor: 'rgba(32,178,170,.18)', color: (t: any) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.55)' }
       : {}),
   });
 
   return (
-    <Stack spacing={1.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
-      {chipRow('Seu esporte', 'Muda a lente do painel: ordem dos domínios e marcadores em destaque.', SPORTS.map((s) => (
+    <Stack
+      spacing={2}
+      sx={{
+        mt: embedded ? 0 : 1.5,
+        pt: embedded ? 0 : 1.5,
+        borderTop: embedded ? 'none' : '1px solid',
+        borderColor: 'divider',
+      }}
+    >
+      {chipRow('1. Seu esporte principal', 'Muda a lente do painel: prioriza marcadores chave de esforço, CK, ferro ou recuperação.', SPORTS.map((s) => (
         <Chip key={s} component="button" size="small" variant={modality === s ? 'filled' : 'outlined'}
           aria-pressed={modality === s} label={s} onClick={() => setModality(s)} sx={sel(modality === s)} />
       )))}
-      {chipRow('Seu nível', 'Contexto de intensidade — ajuda a interpretar CK e recuperação.', LEVELS.map((l) => (
+      {chipRow('2. Seu nível de treino', 'Contexto de intensidade — calibra limites para interpretação de enzimas musculares e recuperação.', LEVELS.map((l) => (
         <Chip key={l.v} component="button" size="small" variant={level === l.v ? 'filled' : 'outlined'}
           aria-pressed={level === l.v} label={l.l} onClick={() => setLevel(l.v)} sx={sel(level === l.v)} />
       )))}
-      {chipRow('Contexto hormonal', 'Independente do esporte. Reposição com prescrição ativa a lente de monitoramento (Hct, PSA, HDL).', HORMONAL.map((h) => (
+      {chipRow('3. Contexto hormonal', 'Independente do esporte. Reposição ativa monitoramento específico (Hematócrito, PSA, Perfil Lipídico).', HORMONAL.map((h) => (
         <Chip key={h.v} component="button" size="small" variant={hormonal === h.v ? 'filled' : 'outlined'}
           aria-pressed={hormonal === h.v} label={h.l} onClick={() => setHormonal(h.v)} sx={sel(hormonal === h.v)} />
       )))}
-      <Box>
-        <Button size="small" variant="contained" disabled={!dirty || saving || !modality} onClick={() => void save()}
-          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>
-          {saving ? 'Salvando…' : 'Salvar perfil esportivo'}
+      <Box sx={{ pt: 1, display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+        <Button
+          size="medium"
+          variant="contained"
+          disabled={!dirty || saving || !modality}
+          onClick={() => void save()}
+          sx={{
+            borderRadius: '999px',
+            textTransform: 'none',
+            fontWeight: 800,
+            fontSize: 13.5,
+            px: 3,
+            py: 0.9,
+            bgcolor: '#20b2aa',
+            boxShadow: '0 2px 10px rgba(32,178,170,0.3)',
+            '&:hover': { bgcolor: 'primary.dark' },
+          }}
+        >
+          {saving ? 'Salvando…' : 'Aplicar à Minha Lente'}
         </Button>
       </Box>
     </Stack>
