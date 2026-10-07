@@ -1,11 +1,9 @@
-// SportsPersonaBar (E5 §1) — barra de persona do atleta no topo do painel (substitui o
-// hero "contexto do atleta": mesmo AppCard tinted, agora com IDENTIDADE — avatar com
-// inicial, nome+idade, chips do esporte/nível, objetivo, último exame+lab, peso/altura,
-// treino recente do Health Connect e médico VINCULADO quando existe share ativo).
-//
-// Honestidade de dado (§E4.3): SEM dado = linha omitida — nunca zero, nunca fake. O
-// médico só aparece com DoctorShare ativo (sem CTA inventado). Peso vem da última
-// medição WEIGHT (mesma fonte do IMC no health-state); altura é heightCm do Patient.
+// SportsPersonaBar (E5 §1, júri E4+ #13 ENXUTA) — barra de persona do atleta no topo do
+// painel, ~2 LINHAS: avatar com inicial + nome/idade + chip da modalidade, objetivo e
+// último exame (data·lab·recência). O júri CORTOU médico vinculado, peso/altura e chips
+// de foco do arquétipo (o card de 171 linhas empilhava meta-dados acima da dobra);
+// treino recente já vive na linha do tempo unificada. Linha sem dado segue omitida —
+// honestidade §E4.3: nunca zero, nunca fake.
 import { useEffect, useState } from 'react';
 import { Box, Chip, Stack, Typography } from '@mui/material';
 import { API_URL, token } from '../../config';
@@ -28,12 +26,12 @@ const relDays = (d?: string | null) => {
   if (days === 1) return 'ontem';
   if (days < 30) return `há ${days} dias`;
   const m = Math.floor(days / 30);
-  return m < 12 ? `há ${m} ${m === 1 ? 'mês' : 'meses'}` : `há ${Math.floor(days / 365)} ano(s)`;
+  return m < 12 ? `há ${m} ${m === 1 ? 'mês' : 'meses'}` : `há ${Math.floor(m / 365)} ano(s)`;
 };
 
-interface PersonaPatient { fullName?: string | null; dateOfBirth?: string | null; heightCm?: number | null }
+interface PersonaPatient { fullName?: string | null; dateOfBirth?: string | null }
 
-export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastExam, training, ctx, focusChips }: {
+export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastExam, ctx }: {
   pid: string | null;
   profile: SportsProfile | null;
   archetype: SportArchetype;
@@ -41,42 +39,19 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
   fallbackName: string;
   /** Último exame EXTRAÍDO do titular ({date, lab} — o mesmo critério do tile "Último exame"). */
   lastExam: { date: string | null; lab?: string | null } | null;
-  /** Treinos do Health Connect (dias mais recentes com exercício >0 — ActivityCard pattern). */
-  training: { date: string; min: number }[];
   /** Contexto de coleta declarado (jejum/treino<24h/última dose) — chips, nunca supressor. */
   ctx?: CollectionContextChips | null;
-  /** Chips de foco do arquétipo (lente esporte × contexto — commit "lente por arquétipo"). */
-  focusChips?: string[];
 }) => {
   const [patient, setPatient] = useState<PersonaPatient | null>(null);
-  const [weightKg, setWeightKg] = useState<number | null>(null);
-  const [doctor, setDoctor] = useState<{ name: string; crm: string } | null>(null);
 
+  // Patient (nome/nascimento) — mesmo GET do EmergencyCard/Profile. Peso/altura e médico
+  // vinculado SAÍRAM da barra (júri #13): peso era medição isolada fora de contexto e o
+  // médico já aparece no painel de Metas/compartilhamento.
   useEffect(() => {
     if (!pid) return;
-    const h = { Authorization: `Bearer ${token()}` };
-    // Patient (nome/nascimento/altura) — mesmo GET do EmergencyCard/Profile.
-    fetch(`${API_URL}/patients/${pid}`, { headers: h })
+    fetch(`${API_URL}/patients/${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((p) => { if (p?.fullName) setPatient(p); })
-      .catch(() => {});
-    // Último PESO: medição WEIGHT mais recente (mesma semântica do IMC no health-state).
-    fetch(`${API_URL}/measurements?patientId=${pid}&type=WEIGHT`, { headers: h })
-      .then((r) => (r.ok ? r.json() : []))
-      .then((rows: any[]) => {
-        const w = (Array.isArray(rows) ? rows : [])
-          .filter((m) => m?.type === 'WEIGHT' && Number(m.value) > 0)
-          .sort((a, b) => new Date(b.measuredAt ?? 0).getTime() - new Date(a.measuredAt ?? 0).getTime())[0];
-        if (w) setWeightKg(Math.round(Number(w.value) * 10) / 10);
-      })
-      .catch(() => {});
-    // Médico VINCULADO: primeiro share ATIVO com médico (GET /doctor-shares — padrão Medicos).
-    fetch(`${API_URL}/doctor-shares`, { headers: h })
-      .then((r) => (r.ok ? r.json() : { items: [] }))
-      .then((d) => {
-        const s = (d.items ?? []).find((x: any) => x?.active !== false && x?.doctor?.name);
-        if (s?.doctor) setDoctor({ name: s.doctor.name, crm: String(s.doctor.crm ?? '').trim() });
-      })
       .catch(() => {});
   }, [pid]);
 
@@ -84,32 +59,13 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
   const age = patient?.dateOfBirth
     ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 3600 * 1000))
     : null;
-  // Treino recente: último dia COM exercício, mostrado só se ≤7d (stale = omitir, §E4.3).
-  const lastTraining = training.length > 0 ? training[training.length - 1] : null;
-  const trainingAge = lastTraining ? daysSince(lastTraining.date) : null;
-  const showTraining = !!(lastTraining && trainingAge != null && trainingAge <= 7);
 
-  // Linhas de meta — cada uma só com dado real (SEM dado = linha não existe).
-  const metaLines: { label: string; value: string }[] = [];
+  // Último exame: data · laboratório · recência (só com dado real — SEM dado = sem linha).
+  let lastExamLine: string | null = null;
   if (lastExam?.date) {
     const parts = [fmtDay(lastExam.date), lastExam.lab?.trim()].filter(Boolean).join(' · ');
     const rel = relDays(lastExam.date);
-    metaLines.push({ label: 'Último exame', value: rel ? `${parts} · ${rel}` : parts });
-  }
-  if (weightKg != null || patient?.heightCm != null) {
-    const parts = [
-      weightKg != null ? `${weightKg.toLocaleString('pt-BR')} kg` : null,
-      patient?.heightCm != null ? `${Math.round(patient.heightCm)} cm` : null,
-    ].filter(Boolean).join(' · ');
-    metaLines.push({ label: 'Peso/altura', value: parts });
-  }
-  if (showTraining && lastTraining) {
-    metaLines.push({ label: 'Treino recente', value: `${relDays(lastTraining.date)} · ${lastTraining.min} min` });
-  }
-  if (doctor) {
-    // Nome já pode trazer título próprio ("Dr Teste QA") — não duplica "Dr(a).".
-    const cleanName = doctor.name.replace(/^(dr\.?|dra\.?|dr\(a\)\.?)\s*/i, '').trim() || doctor.name;
-    metaLines.push({ label: 'Médico vinculado', value: `${/^[Dd]ra/.test(doctor.name) ? 'Dra.' : 'Dr.'} ${cleanName}${doctor.crm ? ` · CRM ${doctor.crm}` : ''}` });
+    lastExamLine = rel ? `${parts} · ${rel}` : parts;
   }
 
   const goalText = profile?.goals?.trim() || archetype.emphasis;
@@ -145,20 +101,13 @@ export const SportsPersonaBar = ({ pid, profile, archetype, fallbackName, lastEx
           <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
             🎯 {goalText}
           </Typography>
-          {metaLines.length > 0 && (
-            <Stack spacing={0.25} sx={{ mt: 1 }}>
-              {metaLines.map((m) => (
-                <Typography key={m.label} sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.4, wordBreak: 'break-word' }}>
-                  <Box component="b" sx={{ fontWeight: 800, color: 'text.primary' }}>{m.label}:</Box> {m.value}
-                </Typography>
-              ))}
-            </Stack>
+          {lastExamLine && (
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.4, wordBreak: 'break-word' }}>
+              <Box component="b" sx={{ fontWeight: 800, color: 'text.primary' }}>Último exame:</Box> {lastExamLine}
+            </Typography>
           )}
-          {(ctx?.jejum || ctx?.treino24h || ctx?.ultimaDose || (focusChips?.length ?? 0) > 0) && (
+          {(ctx?.jejum || ctx?.treino24h || ctx?.ultimaDose) && (
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
-              {(focusChips ?? []).map((f) => (
-                <Chip key={f} size="small" label={`Foco: ${f}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(212,165,116,.12)', color: 'text.secondary' }} />
-              ))}
               {ctx?.jejum && <Chip size="small" label="Coleta em jejum" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
               {ctx?.treino24h && <Chip size="small" label="Treino <24h antes da coleta" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
               {ctx?.ultimaDose && <Chip size="small" label={`Última dose: ${ctx.ultimaDose}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}

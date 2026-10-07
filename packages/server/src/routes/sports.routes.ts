@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
 import { sportsModeEnabled } from '../utils/settings';
+import { doctorWithCrm } from '../utils/doctorTitle';
 
 /**
  * SAÚDE ESPORTIVA (E1) — perfil DECLARADO pelo paciente (opt-in, 1:1 com o titular).
@@ -77,7 +78,7 @@ router.get('/clinical-goals', async (req: AuthedRequest, res, next) => {
         unit: g.unit,
         targetLow: g.targetLow,
         targetHigh: g.targetHigh,
-        setBy: `Dr. ${g.setByDoctor.name} (CRM ${g.setByDoctor.crm})`,
+        setBy: doctorWithCrm(g.setByDoctor.name, g.setByDoctor.crm),
         justification: g.justification,
         source: g.source,
         validFrom: g.validFrom,

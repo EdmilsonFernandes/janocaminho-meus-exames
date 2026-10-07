@@ -17,6 +17,11 @@ import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '.
 /** Cobre da marca — cor da meta clínica (idem TrendsChart.GOAL_COLOR). */
 export const GOAL_COLOR = '#d4a574';
 
+/** Cobre AA no LIGHT (júri E4+ #8): a borda tracejada #d4a574 sobre papel claro não
+ *  passa no contraste — o padrão do app é o par cobre escuro no light / cobre da
+ *  marca no dark (idem Evolution/ExamShow/ReviewControl). */
+const goalAccent = (mode: 'light' | 'dark') => (mode === 'dark' ? GOAL_COLOR : '#8a6240');
+
 /** Analito serializado pelo GET /items/evolution (contrato do server — ver item.routes). */
 export interface EvolutionPoint {
   value: number | null;
@@ -108,6 +113,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
   }
   const dual = dualStatusText(withinGoal(value, goal), inRef);
   const chips = contextChipsFor(it.nameCanonical, ctx ?? null);
+  const accent = goalAccent(theme.palette.mode);
 
   return (
     <AppCard kind="interactive" onClick={() => navigate(`/tendencias?select=${encodeURIComponent(it.nameCanonical)}`)}
@@ -149,9 +155,10 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
           <Box sx={{ position: 'relative', height: 14, borderRadius: '999px', background: theme.palette.mode === 'dark' ? '#2a3636' : '#eaeef5' }}>
             {/* Régua do LAB — zona verde SÓLIDA (sempre visível; a meta nunca a substitui) */}
             <Box sx={{ position: 'absolute', left: pct(it.refLow!), width: `calc(${pct(it.refHigh!)} - ${pct(it.refLow!)})`, top: 0, bottom: 0, background: 'rgba(46,125,50,.30)', borderRadius: '999px' }} />
-            {/* META clínica — banda COBRE TRACEJADA (só com os 2 limites; meia-banda fica no chip) */}
+            {/* META clínica — banda COBRE TRACEJADA (só com os 2 limites; meia-banda fica no
+                chip). Borda/fill AA no light (#8a6240 @ .28) — no dark mantém o cobre da marca. */}
             {goal && gLow != null && gHigh != null && gHigh > gLow && (
-              <Box sx={{ position: 'absolute', left: pct(gLow), width: `calc(${pct(gHigh)} - ${pct(gLow)})`, top: -2, bottom: -2, borderRadius: '999px', background: alpha(GOAL_COLOR, 0.18), border: `1.5px dashed ${GOAL_COLOR}` }} />
+              <Box sx={{ position: 'absolute', left: pct(gLow), width: `calc(${pct(gHigh)} - ${pct(gLow)})`, top: -2, bottom: -2, borderRadius: '999px', background: alpha(accent, 0.28), border: `1.5px dashed ${accent}` }} />
             )}
             {/* HISTÓRICO — dots discretos das coletas anteriores */}
             {history.map((h, i) => (
@@ -162,13 +169,15 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
           </Box>
           <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
             <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>{fmtNum(it.refLow)}</Typography>
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>Ref. laboratório {fmtNum(it.refLow)}–{fmtNum(it.refHigh)}</Typography>
+            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>Ref. lab</Typography>
             <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>{fmtNum(it.refHigh)}</Typography>
           </Stack>
         </Box>
       ) : (
-        <Typography variant="caption" sx={{ display: 'block', mt: 1.25, color: 'text.secondary' }}>
-          Sem faixa de referência informada pelo laboratório.
+        /* Sem régua: o card DIZ o que isso significa — alterado sem faixa é diferente de
+           "sem informação" (júri E4+ #11: sem linha fantasma de régua que não existe). */
+        <Typography variant="caption" sx={{ display: 'block', mt: 1.25, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 400 }}>
+          {out ? 'Alterado — faixa não informada pelo laboratório.' : 'Sem faixa de referência informada pelo laboratório.'}
         </Typography>
       )}
 
@@ -182,7 +191,7 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
             {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
           </Box>
         } arrow>
-          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(GOAL_COLOR, 0.14), border: `1px dashed ${alpha(GOAL_COLOR, 0.7)}`, cursor: 'help' }}>
+          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1, px: 1, py: 0.25, borderRadius: '999px', bgcolor: alpha(accent, 0.14), border: `1px dashed ${alpha(accent, 0.7)}`, cursor: 'help' }}>
             <Typography component="span" sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
               🎯 Meta {goalRangeText(goal)}{goal.setBy ? ` — ${goal.setBy.split(' (CRM')[0]}` : ''}
             </Typography>
@@ -204,23 +213,28 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx }: {
         </Stack>
       )}
 
-      {/* Legenda das 3 camadas — pontos lab · histórico · meta (compacta, 1 linha) */}
-      <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Box sx={{ width: 10, height: 6, borderRadius: '3px', bgcolor: 'rgba(46,125,50,.55)' }} />
-          <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Régua do lab</Typography>
-        </Stack>
-        {it.count > 1 && (
+      {/* Legenda das camadas — SÓ com a camada desenhada (júri E4+ #11): sem régua não
+          existe "Régua do lab · Meta" fantasma; sem meta não existe item de meta. */}
+      {hasRuler && (
+        <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" sx={{ mt: 1.25, pt: 1, borderTop: '1px solid', borderColor: 'divider' }}>
           <Stack direction="row" spacing={0.5} alignItems="center">
-            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'text.disabled' }} />
-            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Histórico ({it.count})</Typography>
+            <Box sx={{ width: 10, height: 6, borderRadius: '3px', bgcolor: 'rgba(46,125,50,.55)' }} />
+            <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Régua do lab</Typography>
           </Stack>
-        )}
-        <Stack direction="row" spacing={0.5} alignItems="center">
-          <Box sx={{ width: 12, height: 0, borderTop: `2px dashed ${GOAL_COLOR}` }} />
-          <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Meta do médico</Typography>
+          {it.count > 1 && (
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'text.disabled' }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Histórico ({it.count})</Typography>
+            </Stack>
+          )}
+          {goal && (
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <Box sx={{ width: 12, height: 0, borderTop: `2px dashed ${accent}` }} />
+              <Typography variant="caption" sx={{ fontSize: 11, color: 'text.secondary' }}>Meta do médico</Typography>
+            </Stack>
+          )}
         </Stack>
-      </Stack>
+      )}
     </AppCard>
   );
 };

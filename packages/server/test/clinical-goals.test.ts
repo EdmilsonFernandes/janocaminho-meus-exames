@@ -150,12 +150,32 @@ describe('clinical-goals: leitura do PACIENTE (E2.3)', () => {
     expect(g.body.goals).toHaveLength(1);
     expect(g.body.goals[0].analyte).toBe('TESTOSTERONA_TOTAL');
     expect(g.body.goals[0].patientId).toBe(a.patient.id);
-    expect(g.body.goals[0].setBy).toBe(`Dr. ${doctor.doctor.name} (CRM 11111-SP)`);
+    // default do helper: name "Dr Teste" → o título do cadastro NÃO duplica ("Dr. Dr")
+    expect(g.body.goals[0].setBy).toBe('Dr. Teste (CRM 11111-SP)');
     expect(g.body.goals[0].justification).toBeTruthy();
     expect(g.body.goals[0].targetLow).toBe(450);
 
     // sem auth → 401
     expect((await api().get('/api/sports/clinical-goals')).status).toBe(401);
+  });
+
+  it('setBy nunca duplica título do cadastro ("Dr. Dr…" / "Dra. Dra…") — júri E4+ #4', async () => {
+    const { user, token, patient } = await createUser();
+    const dr = await createDoctor({ name: 'Dr Teste QA', crm: '22222-SP', email: 'cg-drdr@t.com' });
+    const dra = await createDoctor({ name: 'Dra. Mariana Souza', crm: '33333-SP', email: 'cg-dra@t.com' });
+    await share(patient.id, dr.doctor.id);
+    await share(patient.id, dra.doctor.id);
+    await api().post(`/api/doctor/${dr.doctor.id}/clinical-goals`).set(authHeader(dr.token)).send(goalBody(patient.id, { analyte: 'HEMATOCRITO' }));
+    await api().post(`/api/doctor/${dra.doctor.id}/clinical-goals`).set(authHeader(dra.token)).send(goalBody(patient.id, { analyte: 'HDL' }));
+
+    const g = await api().get('/api/sports/clinical-goals').set(authHeader(token));
+    expect(g.status).toBe(200);
+    const byAnalyte = Object.fromEntries(g.body.goals.map((x: any) => [x.analyte, x.setBy]));
+    expect(byAnalyte.HEMATOCRITO).toBe('Dr. Teste QA (CRM 22222-SP)');
+    expect(byAnalyte.HEMATOCRITO).not.toContain('Dr. Dr');
+    expect(byAnalyte.HDL).toBe('Dra. Mariana Souza (CRM 33333-SP)');
+    expect(byAnalyte.HDL).not.toContain('Dra. Dra');
+    expect(user.id).toBeTruthy();
   });
 
   it('dependente do user também aparece; meta expirada NÃO aparece', async () => {

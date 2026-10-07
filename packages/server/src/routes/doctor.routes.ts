@@ -32,6 +32,7 @@ import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
+import { doctorWithCrm } from '../utils/doctorTitle';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -1375,7 +1376,7 @@ router.get('/:doctorId/clinical-goals', requireDoctor, async (req: any, res, nex
     const serialized = goals.map((g) => ({
       ...g,
       vigente: isVigente(g),
-      setBy: `Dr. ${g.setByDoctor.name} (CRM ${g.setByDoctor.crm})`,
+      setBy: doctorWithCrm(g.setByDoctor.name, g.setByDoctor.crm),
     }));
     serialized.sort((a, b) => Number(b.vigente) - Number(a.vigente));
     res.json({ goals: serialized });
@@ -1436,7 +1437,7 @@ router.post('/:doctorId/clinical-goals', requireDoctor, async (req: any, res, ne
       targetType: 'PATIENT', targetId: patientId,
       after: { goalId: created.id, analyte, targetLow, targetHigh, unit, justification, source, superseded: created.supersedesId ?? null },
     });
-    res.status(201).json({ goal: { ...created, vigente: true, setBy: `Dr. ${created.setByDoctor.name} (CRM ${created.setByDoctor.crm})` } });
+    res.status(201).json({ goal: { ...created, vigente: true, setBy: doctorWithCrm(created.setByDoctor.name, created.setByDoctor.crm) } });
   } catch (e) { next(e); }
 });
 
@@ -1446,7 +1447,7 @@ router.post('/:doctorId/clinical-goals/:id/expire', requireDoctor, async (req: a
     const goal = await prisma.clinicalGoal.findUnique({ where: { id: String(req.params.id) }, include: goalInclude });
     if (!goal) { res.status(404).json({ error: 'Meta não encontrada.' }); return; }
     if (!(await requireGoalAccess(req, res, goal.patientId))) return;
-    if (!isVigente(goal)) { res.json({ goal: { ...goal, vigente: false, setBy: `Dr. ${goal.setByDoctor.name} (CRM ${goal.setByDoctor.crm})` } }); return; }
+    if (!isVigente(goal)) { res.json({ goal: { ...goal, vigente: false, setBy: doctorWithCrm(goal.setByDoctor.name, goal.setByDoctor.crm) } }); return; }
     const now = new Date();
     const updated = await prisma.clinicalGoal.update({
       where: { id: goal.id },
@@ -1458,7 +1459,7 @@ router.post('/:doctorId/clinical-goals/:id/expire', requireDoctor, async (req: a
       targetType: 'CLINICAL_GOAL', targetId: goal.id,
       before: { validTo: goal.validTo }, after: { validTo: now },
     });
-    res.json({ goal: { ...updated, vigente: false, setBy: `Dr. ${updated.setByDoctor.name} (CRM ${updated.setByDoctor.crm})` } });
+    res.json({ goal: { ...updated, vigente: false, setBy: doctorWithCrm(updated.setByDoctor.name, updated.setByDoctor.crm) } });
   } catch (e) { next(e); }
 });
 

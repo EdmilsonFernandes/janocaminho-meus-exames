@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import {
   archetypeOf, sportsDomainOf, DEFAULT_ARCHETYPE, resolveArchetype, deduceHormonalContext,
   parseHormonalContext, domainOrderOf, androgenDeclared, hormoneDeclared,
+  mergePanelVariants, panelGroupKey, type PanelAnalyte,
 } from './sportsDomains';
 import { impactFor, SUBSTANCE_CATALOG } from './substanceCatalog';
 
@@ -184,5 +185,77 @@ describe('impactFor — impacto nos exames por substância (E5 §2)', () => {
   it('suplemento básico sem efeito laboratorial validado → sem campo impacto', () => {
     expect(impactFor('Ômega-3')).toBeNull();
     expect(impactFor('ZMA')).toBeNull();
+  });
+});
+
+// ── MERGE de variantes com/sem acento (júri E4+ #6 — "HEMATÓCRITO × HEMATOCRITO") ──
+const mkAnalyte = (over: Partial<PanelAnalyte> & Pick<PanelAnalyte, 'nameCanonical' | 'points'>): PanelAnalyte => ({
+  unit: '%', refLow: 36, refHigh: 52,
+  firstValue: null, lastValue: null, firstDate: null, lastDate: null,
+  pctChange: 0, direction: 'stable', inRange: true, abnormal: false,
+  ...over,
+} as PanelAnalyte);
+
+describe('mergePanelVariants — agrupamento do painel por chave sem acento', () => {
+  it('panelGroupKey ignora acento/caixa/espaço extra', () => {
+    expect(panelGroupKey('HEMATÓCRITO')).toBe(panelGroupKey('HEMATOCRITO'));
+    expect(panelGroupKey('Hematócrito')).toBe(panelGroupKey('HEMATÓCRITO'));
+    expect(panelGroupKey('TGO (AST)')).not.toBe(panelGroupKey('TGP (ALT)'));
+  });
+
+  it('HEMATÓCRITO × HEMATOCRITO (drift canônico) → UM card, série mesclada por data', () => {
+    const merged = mergePanelVariants([
+      mkAnalyte({
+        nameCanonical: 'HEMATÓCRITO',
+        points: [
+          { value: 45, date: '2026-01-10T09:00:00.000Z', refLow: 36, refHigh: 52 },
+          { value: 46, date: '2026-03-15T09:00:00.000Z', refLow: 36, refHigh: 52 },
+        ],
+      }),
+      mkAnalyte({
+        nameCanonical: 'HEMATOCRITO',
+        points: [
+          { value: 47, date: '2026-02-12T09:00:00.000Z', refLow: 36, refHigh: 52 },
+          { value: 53, date: '2026-04-20T09:00:00.000Z', refLow: 36, refHigh: 52, flag: 'HIGH' },
+        ],
+      }),
+    ]);
+    expect(merged).toHaveLength(1);
+    const it = merged[0];
+    expect(it.count).toBe(4); // série única: jan→abr
+    expect(it.firstValue).toBe(45);
+    expect(it.lastValue).toBe(53);
+    expect(it.abnormal).toBe(true); // 53 > 52 (mediana das faixas)
+    expect(it.inRange).toBe(false);
+    expect(it.direction).toBe('up');
+    expect(it.pctChange).toBe(18); // (53-45)/45
+  });
+
+  it('analitos distintos NÃO mesclam; singleton volta idêntico (sem recomputar)', () => {
+    const a = mkAnalyte({ nameCanonical: 'FERRITINA', points: [{ value: 90, date: '2026-01-10T09:00:00.000Z' }] });
+    const b = mkAnalyte({ nameCanonical: 'HEMOGLOBINA', points: [{ value: 14, date: '2026-01-10T09:00:00.000Z' }] });
+    const merged = mergePanelVariants([a, b]);
+    expect(merged).toHaveLength(2);
+    expect(merged[0]).toBe(a); // mesma referência — zero risco p/ quem não tem drift
+    expect(merged[1]).toBe(b);
+  });
+
+  it('mesmo DIA nas duas grafias → 1 ponto só (última medição vence, semântica do server)', () => {
+    const merged = mergePanelVariants([
+      mkAnalyte({ nameCanonical: 'HEMATÓCRITO', points: [{ value: 45, date: '2026-03-15T08:00:00.000Z' }] }),
+      mkAnalyte({ nameCanonical: 'HEMATOCRITO', points: [{ value: 46, date: '2026-03-15T11:00:00.000Z' }] }),
+    ]);
+    expect(merged).toHaveLength(1);
+    expect(merged[0].count).toBe(1);
+    expect(merged[0].lastValue).toBe(46);
+  });
+
+  it('grafia exibida = a do dado MAIS RECENTE (último laboratório vence)', () => {
+    const merged = mergePanelVariants([
+      mkAnalyte({ nameCanonical: 'HEMATÓCRITO', points: [{ value: 48, date: '2026-04-01T09:00:00.000Z' }] }),
+      mkAnalyte({ nameCanonical: 'HEMATOCRITO', points: [{ value: 44, date: '2026-01-01T09:00:00.000Z' }] }),
+    ]);
+    expect(merged[0].nameCanonical).toBe('HEMATÓCRITO'); // grafia do exame de abril
+    expect(merged[0].lastValue).toBe(48);
   });
 });

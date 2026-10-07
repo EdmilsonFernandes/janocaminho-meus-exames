@@ -102,7 +102,9 @@ export const SportsProfileWizard = ({ pid }: { pid: string | null | undefined })
     </Box>
   );
   const sel = (selected: boolean) => ({
-    height: 32, fontWeight: 700, fontSize: 12.5,
+    // 44px no touch (xs) — alvo de acessibilidade p/ chips clicáveis (júri E4+ #10);
+    // 32px no desktop (sm+), onde o alvo é o mouse.
+    height: { xs: 44, sm: 32 } as const, fontWeight: 700, fontSize: 12.5,
     ...(selected
       ? { bgcolor: 'rgba(32,178,170,.16)', color: (t: any) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.5)' }
       : {}),
@@ -110,15 +112,15 @@ export const SportsProfileWizard = ({ pid }: { pid: string | null | undefined })
 
   return (
     <Stack spacing={1.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
-      {chipRow('1 · Seu esporte', 'Muda a lente do painel: ordem dos domínios e marcadores em destaque.', SPORTS.map((s) => (
+      {chipRow('Seu esporte', 'Muda a lente do painel: ordem dos domínios e marcadores em destaque.', SPORTS.map((s) => (
         <Chip key={s} component="button" size="small" variant={modality === s ? 'filled' : 'outlined'}
           aria-pressed={modality === s} label={s} onClick={() => setModality(s)} sx={sel(modality === s)} />
       )))}
-      {chipRow('2 · Seu nível', 'Contexto de intensidade — ajuda a interpretar CK e recuperação.', LEVELS.map((l) => (
+      {chipRow('Seu nível', 'Contexto de intensidade — ajuda a interpretar CK e recuperação.', LEVELS.map((l) => (
         <Chip key={l.v} component="button" size="small" variant={level === l.v ? 'filled' : 'outlined'}
           aria-pressed={level === l.v} label={l.l} onClick={() => setLevel(l.v)} sx={sel(level === l.v)} />
       )))}
-      {chipRow('3 · Contexto hormonal', 'Independente do esporte. Reposição com prescrição ativa a lente de monitoramento (Hct, PSA, HDL).', HORMONAL.map((h) => (
+      {chipRow('Contexto hormonal', 'Independente do esporte. Reposição com prescrição ativa a lente de monitoramento (Hct, PSA, HDL).', HORMONAL.map((h) => (
         <Chip key={h.v} component="button" size="small" variant={hormonal === h.v ? 'filled' : 'outlined'}
           aria-pressed={hormonal === h.v} label={h.l} onClick={() => setHormonal(h.v)} sx={sel(hormonal === h.v)} />
       )))}

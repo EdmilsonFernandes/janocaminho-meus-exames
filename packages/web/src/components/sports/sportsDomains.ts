@@ -307,6 +307,105 @@ export function archetypeOf(modality?: string | null): SportArchetype {
   return resolveArchetype({ modality });
 }
 
+// ── MERGE de variantes ortográficas do PAINEL (júri E4+ #6 — "HEMATÓCRITO ×
+//    HEMATOCRITO"): laboratórios escrevem com e sem acento e o canonicalizador do
+//    server chegou a gerar DOIS analitos p/ o mesmo marcador → dois cards. O merge é
+//    AQUI no front (agrupamento do painel esportivo; pipeline server intocado neste
+//    fix): chave sem acento/minúscula, pontos reordenados por data, faixa = MEDIANA
+//    dos pontos (mesma régua do /items/evolution), grafia = a do dado mais recente. ──
+
+/** Contrato estrutural do analito do /items/evolution (contrato do SportsMarkerCard). */
+export interface PanelAnalyte {
+  nameCanonical: string;
+  unit: string | null;
+  refLow: number | null;
+  refHigh: number | null;
+  firstValue: number | null;
+  lastValue: number | null;
+  firstDate: string | null;
+  lastDate: string | null;
+  pctChange: number | null;
+  direction: 'up' | 'down' | 'stable';
+  inRange: boolean;
+  abnormal: boolean;
+  count: number;
+  points: { value: number | null; date: string | null; flag?: string | null; examId?: string; examTitle?: string | null; method?: string | null; refLow?: number | null; refHigh?: number | null }[];
+}
+
+/** Chave de agrupamento do painel: canônico minúsculo SEM acento (convenção norm()). */
+export function panelGroupKey(nameCanonical: string): string {
+  return norm(nameCanonical).replace(/\s+/g, ' ').trim();
+}
+
+const median = (nums: number[]): number => {
+  const s = [...nums].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : Math.round((s[mid - 1] + s[mid]) / 2);
+};
+
+/** Faixa unificada = MEDIANA das faixas válidas dos pontos (espelha medianRefRange
+ *  do server; fallback = faixa da entrada base). */
+function medianRefRangeOf<T extends { refLow?: number | null; refHigh?: number | null }>(points: T[]): { refLow: number | null; refHigh: number | null } {
+  const valid = points.filter((p) => p.refLow != null && p.refHigh != null && (p.refHigh as number) > (p.refLow as number));
+  if (!valid.length) return { refLow: null, refHigh: null };
+  return { refLow: median(valid.map((p) => p.refLow as number)), refHigh: median(valid.map((p) => p.refHigh as number)) };
+}
+
+/** Agrupa analitos que diferem SÓ por acento/caixa num único card. Singletons voltam
+ *  idênticos (sem recomputar nada — zero risco p/ quem não tem o drift). */
+export function mergePanelVariants<T extends PanelAnalyte>(items: T[]): T[] {
+  const groups = new Map<string, T[]>();
+  for (const it of items) {
+    const k = panelGroupKey(it.nameCanonical);
+    const arr = groups.get(k);
+    if (arr) arr.push(it);
+    else groups.set(k, [it]);
+  }
+  const out: T[] = [];
+  for (const group of groups.values()) {
+    if (group.length === 1) { out.push(group[0]); continue; }
+    // Base = entrada com o dado mais recente (grafia da última coleta vence; empate → mais pontos).
+    const base = [...group].sort((a, b) =>
+      new Date(b.lastDate ?? 0).getTime() - new Date(a.lastDate ?? 0).getTime() || b.points.length - a.points.length)[0];
+    // Pontos mesclados: 1 por DIA (a última medição do dia vence — mesma semântica do
+    // server), ordenados asc — o SportsMarkerCard pinta histórico+pin desta série.
+    const byDay = new Map<string, T['points'][number]>();
+    for (const g of group) {
+      for (const p of g.points) {
+        if (p.value == null) continue;
+        const day = p.date ? new Date(p.date).toDateString() : 's/d';
+        const prev = byDay.get(day);
+        if (!prev || new Date(p.date ?? 0).getTime() >= new Date(prev.date ?? 0).getTime()) byDay.set(day, p);
+      }
+    }
+    const points = [...byDay.values()].sort((a, b) => new Date(a.date ?? 0).getTime() - new Date(b.date ?? 0).getTime());
+    const first = points[0];
+    const last = points[points.length - 1];
+    const v0 = first?.value ?? null;
+    const v1 = last?.value ?? null;
+    const pct = v0 != null && v1 != null && v0 !== 0 ? Math.round(((v1 - v0) / Math.abs(v0)) * 100) : 0;
+    const { refLow, refHigh } = (() => {
+      const m = medianRefRangeOf(points);
+      return { refLow: m.refLow ?? base.refLow, refHigh: m.refHigh ?? base.refHigh };
+    })();
+    const outOfRange = v1 != null && ((refHigh != null && v1 > refHigh) || (refLow != null && v1 < refLow));
+    const flagAlt = !!(last?.flag && /high|low|alta|alto|baix|alterad/i.test(last.flag));
+    out.push({
+      ...base,
+      unit: base.unit ?? group.find((g) => g.unit)?.unit ?? null,
+      refLow, refHigh,
+      firstValue: v0, lastValue: v1,
+      firstDate: first?.date ?? null, lastDate: last?.date ?? null,
+      pctChange: pct, direction: pct > 0 ? 'up' : pct < 0 ? 'down' : 'stable',
+      inRange: !outOfRange,
+      abnormal: outOfRange || flagAlt,
+      count: points.length,
+      points,
+    });
+  }
+  return out;
+}
+
 /** Ordem das abas de domínio pela lente (ausentes depois na ordem padrão; 'outros' no fim). */
 export function domainOrderOf(a: SportArchetype): SportsDomainKey[] {
   const head = a.domainOrder.filter((k) => SPORTS_DOMAINS.some((s) => s.key === k));
