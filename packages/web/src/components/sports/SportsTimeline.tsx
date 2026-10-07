@@ -11,7 +11,7 @@ import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
 import { isStaleExam } from '../../utils/alertPriority';
-import { RADIUS } from '../../theme';
+import { RADIUS, tealText } from '../../theme';
 
 export interface SportsEvent {
   id: string;
@@ -37,7 +37,7 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
   const dot = (type: SportsEvent['type'], alerta: boolean) => {
     if (type === 'substancia') return { color: '#d4a574', icon: <MedicationIcon sx={{ fontSize: 12, color: '#fff' }} /> };
     if (type === 'atividade') return { color: theme.palette.success.main, icon: <DirectionsRunIcon sx={{ fontSize: 12, color: '#fff' }} /> };
-    return { color: alerta ? theme.palette.error.main : '#0d9488', icon: <ScienceIcon sx={{ fontSize: 12, color: '#fff' }} /> };
+    return { color: alerta ? theme.palette.error.main : tealText(theme.palette.mode), icon: <ScienceIcon sx={{ fontSize: 12, color: '#fff' }} /> };
   };
 
   return (
@@ -54,8 +54,8 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
           desc="Envie um exame ou declare uma substância para construir sua linha do tempo esportiva." />
       ) : (
         <Box sx={{ position: 'relative', pl: 3.5 }}>
-          {/* Linha vertical (padrão Timeline.tsx) */}
-          <Box sx={{ position: 'absolute', left: 14, top: 8, bottom: 8, width: 3, borderRadius: '12px', background: 'linear-gradient(#0d9488,#d4a574)' }} />
+          {/* Linha vertical (padrão Timeline.tsx) — teal→cobre da marca (teal mode-aware) */}
+          <Box sx={{ position: 'absolute', left: 14, top: 8, bottom: 8, width: 3, borderRadius: '12px', background: `linear-gradient(${tealText(theme.palette.mode)},#d4a574)` }} />
           <Stack spacing={1.5}>
             {shown.map((e) => {
               const alerta = e.type === 'exam' && (e.abnormalCount ?? 0) > 0;

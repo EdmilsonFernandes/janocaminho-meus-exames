@@ -131,7 +131,7 @@ export const DeclaredSubstanceForm = ({ pid }: { pid: string }) => {
           <TextField
             label="Dose / período (opcional)" value={dose} onChange={(e) => setDose(e.target.value)} fullWidth size="small"
             inputProps={{ maxLength: 80 }} placeholder={unitHint ? `Ex.: ${unitHint}` : undefined}
-            helperText={`Ex.: ${unitHint ?? '250mg/semana'}. Guardamos como DECLARAÇÃO sua — o app nunca sugere dose.`}
+            helperText={`Ex.: ${unitHint ?? '250 mg a cada 15 dias'}. Guardamos como DECLARAÇÃO sua — o app nunca sugere dose.`}
           />
           <DateFieldBR
             label="Início (opcional)" value={startedAt} onChange={setStartedAt} fullWidth size="small"

@@ -82,7 +82,7 @@ export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExa
   } else if (bias === 'monitoramento_trt' && items.length > 0) {
     questions.push({
       title: 'Cadência de monitoramento (TRT)',
-      body: '"Estou em reposição com prescrição. As diretrizes citam reavaliação de testosterona e hematócrito em 3, 6 e 12 meses e depois anualmente — qual cadência o senhor recomenda pro meu caso?"',
+      body: '"Estou em reposição com prescrição. As diretrizes citam reavaliação de testosterona e hematócrito em 3, 6 e 12 meses e depois anualmente — qual cadência recomenda pro meu caso?"',
     });
   }
 
@@ -92,7 +92,7 @@ export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExa
       ? ` (referência ${fmtNum(hctZone.refLow)}–${fmtNum(hctZone.refHigh)}${hctZone.unit ? ` ${hctZone.unit}` : ''})` : '';
     questions.push({
       title: `Conduta no hematócrito (${fmtNum(hctZone.lastValue)}${hctZone.unit === '%' || !hctZone.unit ? '%' : ''})`,
-      body: `"Doutor, com hematócrito de ${fmtNum(hctZone.lastValue)}%${refTxt} e meu uso hormonal declarado, qual conduta o senhor recomenda — reavaliar em quanto tempo?"`,
+      body: `"Doutor, com hematócrito de ${fmtNum(hctZone.lastValue)}%${refTxt} e meu uso hormonal declarado, qual conduta recomenda — reavaliar em quanto tempo?"`,
     });
   }
 
