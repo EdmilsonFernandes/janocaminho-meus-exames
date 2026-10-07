@@ -46,6 +46,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
 import { useSportsProfile } from '../../hooks/useSportsProfile';
 import { SportsDashboard } from '../sports/SportsDashboard';
+import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -851,6 +852,9 @@ export const DashboardV2 = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
+      {/* Descoberta (07/10): modo esportivo elegível e NÃO ativo → vitrine/atalho no topo.
+          Ativou → card some e o return do SportsDashboard assume. */}
+      {!demo && !sports.active && <SportsUpsellCard pid={pid} />}
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
       {/* E1 — sinal global de análise em andamento (o exame não "some" ao sair da lista). */}
