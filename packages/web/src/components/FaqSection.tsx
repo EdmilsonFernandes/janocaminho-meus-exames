@@ -10,7 +10,8 @@ const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
 
 // FAQ (F4) — mata as objeções críticas de um app de IA em saúde.
-const FAQ = [
+// Exportado: a Landing reusa o MESMO array no schema FAQPage (JSON-LD) — fonte única.
+export const FAQ_ITEMS = [
   {
     q: 'A IA do Dr. Exame substitui o médico?',
     a: 'Não. Ela é educativa: explica cada valor em português simples, compara com a faixa de referência e sugere perguntas para levar à consulta. A decisão e o diagnóstico são sempre do seu médico.',
@@ -78,7 +79,7 @@ export const FaqSection = () => {
 
         <Reveal delay={80}>
           <Box>
-            {FAQ.map((item, i) => (
+            {FAQ_ITEMS.map((item, i) => (
               <Accordion key={i} disableGutters elevation={0} sx={{
                 mb: 1.75, borderRadius: '18px !important', overflow: 'hidden',
                 border: '1px solid', borderColor: 'divider',
