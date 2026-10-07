@@ -91,6 +91,23 @@ export function sportsDomainOf(analyte: string): SportsDomainKey {
   return CAT_TO_DOMAIN[categorize(analyte).key] ?? 'outros';
 }
 
+// ── Famílias de substância declarada (lógica PURA p/ banner/prep/lente — testável) ──
+
+/** Substância da família ANDROGÊNICA/AAS (impacto conhecido em Hct/HDL/eixo). */
+const ANDROGEN_RX = /testosterona|durateston|sustanon|enantato|cipionato|cypionato|propionato|undecilato|nebido|nandrolona|trembolona|trenbolona|stanozolol|winstrol|oxandrolona|oximetolona|hemogenin|anadrol|metandrostenolona|dianabol|drostanolona|masteron|metenolona|primobolan|boldenona|equipoise|mesterolona|proviron|dht/i;
+
+/** Há androgênio/AAS declarado entre as substâncias? (banner: chip HDL×andrógeno;
+ *  prep: pergunta de conduta em Hct 48-54; lente: viés hormonal.) */
+export function androgenDeclared(substances: { name: string }[] | undefined | null): boolean {
+  return (substances ?? []).some((s) => ANDROGEN_RX.test(s?.name ?? ''));
+}
+
+/** Há HORMÔNIO declarado (classe "[Hormônio]" do form OU família eixo GH/androgênio)? */
+export function hormoneDeclared(substances: { name: string; klass?: string | null }[] | undefined | null): boolean {
+  return (substances ?? []).some((s) =>
+    s?.klass === 'Hormônio' || ANDROGEN_RX.test(s?.name ?? '') || /hgh|somatropina|igf-?1|ghrp|cjc|ipamorelina|sermorelina/i.test(s?.name ?? ''));
+}
+
 // ── Whitelabel interno por esporte (diretiva do dono: filtro-padrão + ênfase + copy) ──
 
 export interface SportArchetype {

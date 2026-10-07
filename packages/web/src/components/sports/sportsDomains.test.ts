@@ -3,7 +3,7 @@
 // default do vitest, não em node). Cobertura: canônicos do painel esportivo (E3.4/E3.5),
 // categorias clínicas existentes (delegação ao categorize) e arquétipos de modalidade.
 import { describe, expect, it } from 'vitest';
-import { archetypeOf, sportsDomainOf, DEFAULT_ARCHETYPE } from './sportsDomains';
+import { archetypeOf, sportsDomainOf, DEFAULT_ARCHETYPE, androgenDeclared, hormoneDeclared } from './sportsDomains';
 import { impactFor, SUBSTANCE_CATALOG } from './substanceCatalog';
 
 describe('sportsDomainOf — canônicos do painel esportivo (E3.4/E3.5)', () => {
@@ -107,5 +107,20 @@ describe('impactFor — impacto nos exames por substância (E5 §2)', () => {
   it('suplemento básico sem efeito laboratorial validado → sem campo impacto', () => {
     expect(impactFor('Ômega-3')).toBeNull();
     expect(impactFor('ZMA')).toBeNull();
+  });
+});
+
+describe('famílias de substância declarada (banner/prep/lente)', () => {
+  it('androgenDeclared detecta por nome de mercado', () => {
+    expect(androgenDeclared([{ name: 'Durateston' }])).toBe(true);
+    expect(androgenDeclared([{ name: 'Stanozolol' }])).toBe(true);
+    expect(androgenDeclared([{ name: 'Creatina' }])).toBe(false);
+    expect(androgenDeclared(undefined)).toBe(false);
+  });
+
+  it('hormoneDeclared cobre classe + eixo GH', () => {
+    expect(hormoneDeclared([{ name: 'hGH (somatropina)' }])).toBe(true);
+    expect(hormoneDeclared([{ name: 'X', klass: 'Hormônio' }])).toBe(true);
+    expect(hormoneDeclared([{ name: 'Whey protein', klass: 'Suplemento' }])).toBe(false);
   });
 });

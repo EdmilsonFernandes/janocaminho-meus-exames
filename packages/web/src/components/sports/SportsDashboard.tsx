@@ -299,7 +299,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         />
       </Box>
 
-      {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) ── */}
+      {/* ── ALERTAS (mesma fonte do modo normal: byPriority/staleWarning/worsening) +
+          contexto educativo E5 §3 (Hct diretriz, TGO-muscular) + chips relacionados ── */}
       <SportsAlertBanner
         loaded={d.loaded}
         exams={d.stats.exams}
@@ -307,6 +308,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         moderada={d.moderada}
         staleWarning={d.staleWarning}
         worsened={d.worsened}
+        items={items ?? undefined}
+        substances={substances}
+        training={activityDays}
       />
 
       {/* ── QUICK STATS (grid minmax da Carteira + Idade Biológica — mesma do modo normal) ── */}
