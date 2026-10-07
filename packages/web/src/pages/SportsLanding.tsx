@@ -32,13 +32,13 @@ const sportsScenarios = {
     statusBg: 'rgba(13,148,136,0.12)',
     statusColor: '#0f766e',
     labRef: 'Lab Convencional: 30 a 200 U/L',
-    targetRef: 'Meta Atleta: até 2.000 U/L transitório',
+    targetRef: 'Variação esperada pós-treino (contexto)',
     rulerLabLeft: '5%',
     rulerLabWidth: '20%',
     rulerTargetLeft: '25%',
     rulerTargetWidth: '55%',
     rulerPinLeft: '68%',
-    explanation: 'Sem alarme desnecessário: elevação fisiológica provocada por microrrupturas musculares e sobrecarga de esforço do treino de ontem, e NÃO lesão hepática. Seu TGO subiu acompanhando a fibra muscular, enquanto TGP e Gama-GT continuam 100% normais.',
+    explanation: 'Leitura provável: elevação por microrrupturas musculares do treino de ontem — e não lesão hepática (TGP e Gama-GT normais). A literatura (EFLM) mostra CK elevada por até 5–7 dias após esforço intenso. Confirmar com o médico é o próximo passo, não um alarme.',
     action: 'Hidratação reforçada (>3,5L/dia) e descanso antes de solicitar nova dosagem para não falsear dados.'
   },
   renal: {
@@ -49,17 +49,17 @@ const sportsScenarios = {
     markerName: 'Cistatina-C (Filtração Glomerular)',
     val: '0,78',
     unit: 'mg/L',
-    status: 'Rins 100% Saudáveis (TFG > 95)',
+    status: 'Função renal preservada',
     statusBg: 'rgba(16,185,129,0.12)',
     statusColor: '#047857',
     labRef: 'Lab Convencional: 0,55 a 1,02 mg/L',
-    targetRef: 'Ideal Atleta: 0,60 a 0,90 mg/L',
+    targetRef: 'Meta do seu médico (exemplo)',
     rulerLabLeft: '15%',
     rulerLabWidth: '50%',
     rulerTargetLeft: '20%',
     rulerTargetWidth: '40%',
     rulerPinLeft: '45%',
-    explanation: 'A creatinina no laudo acusou 1,35 mg/dL (falso positivo comum devido à grande massa magra e suplementação de creatina). A dosagem de Cistatina-C independe da massa muscular e comprova rins perfeitamente sadios.',
+    explanation: 'A creatinina do laudo acusou 1,35 mg/dL — falso positivo clássico de massa muscular e suplementação de creatina. A cistatina-C não depende do músculo e mostra função renal preservada (o grupo HAARLEM, JCEM 2026, recomenda o marcador nesse perfil).',
     action: 'Leve este comparativo ao médico antes de aceitar qualquer suspensão arbitrária de treinos ou suplementação.'
   },
   trt: {
@@ -70,17 +70,17 @@ const sportsScenarios = {
     markerName: 'Hematócrito (Concentração de Hemácias)',
     val: '51,8',
     unit: '%',
-    status: 'Atenção Preventiva (Limite Seguro ≤ 52%)',
+    status: 'Zona de atenção: 48% a 54%',
     statusBg: 'rgba(245,158,11,0.12)',
     statusColor: '#b45309',
     labRef: 'Lab Convencional: 40% a 50%',
-    targetRef: 'Teto Seguro Atleta: ≤ 52%',
+    targetRef: 'Zona de atenção clínica: 48% a 54%',
     rulerLabLeft: '15%',
     rulerLabWidth: '45%',
     rulerTargetLeft: '35%',
     rulerTargetWidth: '30%',
     rulerPinLeft: '78%',
-    explanation: 'O hematócrito está em 51,8%, muito próximo do teto de 52% onde a viscosidade do sangue começa a aumentar a sobrecarga cardiovascular. Monitoramento preventivo antes de atingir níveis de risco trombótico (≥54%).',
+    explanation: '51,8% está na zona de atenção (48–54%) em que desidratação, altitude e treino intenso também elevam o valor. Acima de 54%, diretrizes SBEM 2026 e Endocrine Society indicam protocolo médico — decisão de quem prescreveu. Não espere o 54% para organizar a conversa.',
     action: 'Aumente o consumo de líquidos para 4L/dia, meça a pressão arterial e apresente este alerta ao seu endocrinologista.'
   },
   ferro: {
@@ -91,17 +91,17 @@ const sportsScenarios = {
     markerName: 'Ferritina Sérica',
     val: '24',
     unit: 'ng/mL',
-    status: 'Baixo para Prática de Corrida',
+    status: 'Reservas de ferro baixas',
     statusBg: 'rgba(239,68,68,0.12)',
     statusColor: '#b91c1c',
     labRef: 'Lab Convencional: 10 a 120 ng/mL',
-    targetRef: 'Meta de Performance: ≥ 50 ng/mL',
+    targetRef: 'Meta do seu médico (exemplo)',
     rulerLabLeft: '10%',
     rulerLabWidth: '70%',
     rulerTargetLeft: '45%',
     rulerTargetWidth: '45%',
     rulerPinLeft: '22%',
-    explanation: 'Embora o laboratório considere "normal" qualquer valor acima de 10 ng/mL, corredores com ferritina abaixo de 50 ng/mL sofrem redução do transporte de oxigênio (VO2 máx) decorrente da hemólise de impacto e sudorese.',
+    explanation: 'O laboratório marca "normal" acima de 10 ng/mL, mas a referência da SBH 2024 considera reservas baixas abaixo de 30 ng/mL — e fadiga em treinos longos é a queixa clássica desse quadro. Investigar e repor é conduta médica.',
     action: 'Investigar reposição de ferro elementar ou coadjuvantes nutricionais com seu médico do esporte.'
   }
 };
@@ -255,7 +255,7 @@ export const SportsLandingPage: React.FC = () => {
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
               <ScienceIcon sx={{ fontSize: 18, color: '#6366f1' }} />
-              <span>Baseado em diretrizes da SBMEE e Endocrine Society</span>
+              <span>Baseado em diretrizes SBEM 2026 e Endocrine Society</span>
             </Stack>
           </Stack>
         </Container>
@@ -426,8 +426,8 @@ export const SportsLandingPage: React.FC = () => {
                       <Typography sx={{ fontSize: 10.5, color: 'text.secondary' }}>Lab Convencional</Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
-                      <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#7c3aed' }} />
-                      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#7c3aed' }}>Meta Atleta</Typography>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: '#b88a54' }} />
+                      <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: '#b88a54' }}>Meta do seu médico</Typography>
                     </Stack>
                     <Stack direction="row" spacing={0.5} alignItems="center">
                       <Box sx={{ width: 8, height: 8, borderRadius: '2px', bgcolor: TEAL_DARK }} />
@@ -438,13 +438,13 @@ export const SportsLandingPage: React.FC = () => {
 
                 <Box sx={{ position: 'relative', height: 12, bgcolor: '#e2e8f0', borderRadius: '999px', my: 1.5 }}>
                   <Box sx={{ position: 'absolute', top: 0, bottom: 0, left: scenario.rulerLabLeft, width: scenario.rulerLabWidth, bgcolor: '#94a3b8', opacity: 0.65, borderRadius: '999px' }} />
-                  <Box sx={{ position: 'absolute', top: -2, bottom: -2, left: scenario.rulerTargetLeft, width: scenario.rulerTargetWidth, border: '1.5px solid #7c3aed', bgcolor: 'rgba(124,58,237,0.18)', borderRadius: '999px' }} />
+                  <Box sx={{ position: 'absolute', top: -2, bottom: -2, left: scenario.rulerTargetLeft, width: scenario.rulerTargetWidth, border: '1.5px solid #b88a54', bgcolor: 'rgba(212,165,116,0.16)', borderRadius: '999px' }} />
                   <Box sx={{ position: 'absolute', top: -5, left: scenario.rulerPinLeft, width: 6, height: 22, bgcolor: TEAL_DARK, borderRadius: '3px', transform: 'translateX(-50%)', boxShadow: '0 2px 6px rgba(0,0,0,0.3)', transition: 'left 0.3s ease' }} />
                 </Box>
 
                 <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: 'text.secondary', mt: 0.5 }}>
                   <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{scenario.labRef}</Typography>
-                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#7c3aed' }}>{scenario.targetRef}</Typography>
+                  <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#b88a54' }}>{scenario.targetRef}</Typography>
                 </Stack>
               </Box>
 
@@ -491,17 +491,17 @@ export const SportsLandingPage: React.FC = () => {
               },
               {
                 title: 'CK alta após o treino de perna: Músculo ou Fígado?',
-                desc: 'Treinos intensos com contração excêntrica geram microrrupturas na membrana das células musculares, liberando Creatina Quinase (CK) e a enzima TGO. Valores de CK entre 800 e 2.500 U/L são normais após treinos extenuantes. Para ter certeza de que o fígado está saudável, o Dr. Exame verifica se TGP e Gama-GT continuam estáveis.',
+                desc: 'Treinos intensos com contração excêntrica geram microrrupturas na membrana das células musculares, liberando Creatina Quinase (CK) e a enzima TGO. A CK pode permanecer elevada por 5–7 dias após esforço muito intenso (recomendação EFLM de coleta sem exercício nas 24h anteriores). Para ter certeza de que o fígado está saudável, o Dr. Exame verifica se TGP e Gama-GT continuam estáveis.',
                 tag: 'Dano Muscular Fisiológico'
               },
               {
                 title: 'Hematócrito alto em TRT e Reposição Hormonal: Como prevenir?',
-                desc: 'A testosterona estimula a produção de glóbulos vermelhos pela medula óssea (eritropoiese). Em atletas e pacientes em TRT, o hematócrito não deve ultrapassar o limite seguro de 52%. Acima disso, o sangue torna-se viscoso, elevando a pressão arterial e a sobrecarga cardiovascular. Hidratação reforçada (>3,5L/dia) é essencial.',
+                desc: 'A testosterona estimula a produção de glóbulos vermelhos pela medula óssea (eritropoiese). Em atletas e pacientes em TRT, entre 48% e 54% é zona de atenção contextualizada; acima de 54%, diretrizes SBEM 2026 e Endocrine Society indicam protocolo médico. Hidratação reforçada (>3,5L/dia) é essencial.',
                 tag: 'Redução de Danos & TRT'
               },
               {
                 title: 'Ferritina baixa e oxigenação em corredores (Endurance)',
-                desc: 'Mesmo com hemoglobina normal, atletas de corrida sofrem perda de ferro devido ao impacto repetitivo nos vasos dos pés (hemólise por impacto) e sudorese intensa. No laudo comum, ferritina de 15 ng/mL é chamada de "normal", mas para quem corre, ferritina abaixo de 50 ng/mL compromete drasticamente a resistência aeróbica e o VO2 máx.',
+                desc: 'Mesmo com hemoglobina normal, atletas de corrida sofrem perda de ferro devido ao impacto repetitivo nos vasos dos pés (hemólise por impacto) e sudorese intensa. No laudo comum, ferritina de 15 ng/mL é chamada de "normal", mas a referência da SBH 2024 considera reservas baixas abaixo de 30 ng/mL — quadro clássico de fadiga em treinos longos.',
                 tag: 'Corrida & Transporte de O2'
               }
             ].map((guide, i) => (
