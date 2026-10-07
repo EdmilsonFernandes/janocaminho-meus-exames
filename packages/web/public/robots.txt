@@ -1,0 +1,28 @@
+# robots.txt para Dr. Exame (https://drexame.janocaminho.com.br)
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /saude-esportiva
+Allow: /exames-para-atletas
+Allow: /como-funciona
+Allow: /para-medicos
+Allow: /entender-exames-de-sangue
+Allow: /como-validamos
+Allow: /termos
+Allow: /privacidade
+Allow: /faq
+
+# Proteção de Privacidade & LGPD: Laudos, Pacientes, Admin e Sessões fora do índice do Google
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /app/*
+Disallow: /api/*
+Disallow: /exams/*
+Disallow: /patients/*
+Disallow: /perfil
+Disallow: /carteira
+Disallow: /laudo/*
+Disallow: /relatorio/*
+Disallow: /recuperar-senha
+
+Sitemap: https://drexame.janocaminho.com.br/sitemap.xml

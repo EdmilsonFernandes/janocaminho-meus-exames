@@ -61,6 +61,7 @@ import { hapticLight } from './utils/haptic';
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
+const SportsLandingPage = lazy(() => import('./pages/SportsLanding').then(m => ({ default: m.SportsLandingPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
 const InvitePage = lazy(() => import('./pages/Invite').then(m => ({ default: m.InvitePage })));
@@ -943,14 +944,21 @@ export const App = () => {
       <Route path="/entrar" element={<LoginPage key="paciente" />} />
       <Route path="/entrar/medico" element={<LoginPage key="medico" fixedRole="medico" />} />
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+      {/* Rotas Públicas de SEO e Aquisição (Saúde Esportiva, Atletas, Como Funciona) */}
+      <Route path="/saude-esportiva" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+      <Route path="/exames-para-atletas" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+      <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+      <Route path="/entender-exames-de-sangue" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
+      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
       <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
       {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
       <Route path="/api-docs" element={<Suspense fallback={<PageSkeleton />}><ApiDocsPage /></Suspense>} />
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
+      <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
       {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
       <Route path="/admin" element={<AdminPage />} />
     </CustomRoutes>

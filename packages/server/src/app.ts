@@ -149,6 +149,105 @@ app.get('/api/build-info', (_req, res) => res.json(APP_BUILD_INFO));
 app.get(['/privacidade', '/termos', '/privacy'], (_req, res) => {
   res.type('html').send(publicPrivacyHtml());
 });
+
+// SEO & GOOGLE CRAWLER — robots.txt e sitemap.xml públicos (retornam texto/xml legítimos, nunca o HTML da SPA).
+app.get('/robots.txt', (_req, res) => {
+  res.type('text/plain').send(`# robots.txt para Dr. Exame (https://drexame.janocaminho.com.br)
+User-agent: *
+Allow: /
+Allow: /landing
+Allow: /saude-esportiva
+Allow: /exames-para-atletas
+Allow: /como-funciona
+Allow: /para-medicos
+Allow: /entender-exames-de-sangue
+Allow: /como-validamos
+Allow: /termos
+Allow: /privacidade
+Allow: /faq
+
+# Proteção de Privacidade & LGPD: Laudos, Pacientes, Admin e Sessões fora do índice
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /app/*
+Disallow: /api/*
+Disallow: /exams/*
+Disallow: /patients/*
+Disallow: /perfil
+Disallow: /carteira
+Disallow: /laudo/*
+Disallow: /relatorio/*
+Disallow: /recuperar-senha
+
+Sitemap: https://drexame.janocaminho.com.br/sitemap.xml
+`);
+});
+
+app.get('/sitemap.xml', (_req, res) => {
+  res.type('application/xml').send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://drexame.janocaminho.com.br/</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/saude-esportiva</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/exames-para-atletas</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/como-funciona</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/entender-exames-de-sangue</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/para-medicos</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/como-validamos</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/faq</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/termos</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://drexame.janocaminho.com.br/privacidade</loc>
+    <lastmod>2026-10-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+</urlset>`);
+});
 // URL LIMPA do portal de docs: quem digita/compartilha sem a # cai aqui — manda pro hash
 // do SPA (o portal vive em /#/api-docs). O console swagger segue em /api/docs.
 app.get('/api-docs', (_req, res) => res.redirect('/#/api-docs'));
