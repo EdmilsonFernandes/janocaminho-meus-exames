@@ -34,11 +34,14 @@ describe('SportsModeCardBase — kill-switch admin (E1.5)', () => {
   });
 });
 
-describe('SportsModeCardBase — gate premium (E1.5)', () => {
-  it('sem premium → CTA "Disponível no Premium" (leva a /planos), sem toggle', () => {
+describe('SportsModeCardBase — gate premium (E1.5 + júri E4+ #9)', () => {
+  it('sem premium → 3 bullets do painel + CTA "Ver planos" (leva a /planos), sem toggle', () => {
     const html = shell(<SportsModeCardBase pid="p1" enabled premium={false} />);
     expect(html).toContain('Saúde Esportiva');
-    expect(html).toContain('Disponível no Premium');
+    expect(html).toContain('Régua do laboratório com a meta definida pelo seu médico');
+    expect(html).toContain('Substâncias declaradas com impacto esperado nos exames');
+    expect(html).toContain('Perguntas prontas para levar à consulta');
+    expect(html).toContain('Ver planos');
     expect(html).not.toContain('Modo esportivo ativado');
   });
 });

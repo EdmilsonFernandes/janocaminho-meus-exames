@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Box, Button, Chip, FormControlLabel, Stack, Switch, Typography } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LockIcon from '@mui/icons-material/Lock';
 import { useNotify, useStore } from 'react-admin';
@@ -8,6 +9,7 @@ import { API_URL, apiHeaders, fetchPublicConfig } from '../config';
 import { usePremium } from './PremiumGate';
 import { DeclaredSubstanceForm } from './DeclaredSubstanceForm';
 import { SportsProfileWizard } from './sports/SportsProfileWizard';
+import { useSportsProfile } from '../hooks/useSportsProfile';
 import { tealText } from '../theme';
 
 /**
@@ -29,8 +31,20 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   const navigate = useNavigate();
   // Persistido POR PACIENTE (useStore re-sincroniza quando a key muda — ver ra-core useStore).
   const [on, setOn] = useStore(pid ? `sportsMode.${pid}` : 'sportsMode', false);
+  // Fonte da verdade do toggle é o SERVIDOR (E4.1). O useStore é só cache local — cego,
+  // deixava o Switch OFF num device onde o modo já estava ativo noutro (dessincronizado).
+  // Hidrata UMA vez ao montar, sem pisar em toggle que o usuário já mexeu nesta sessão.
+  const { profile } = useSportsProfile();
+  const hydratedRef = useRef(false);
+  const touchedRef = useRef(false);
+  useEffect(() => {
+    if (!profile || hydratedRef.current || touchedRef.current) return;
+    hydratedRef.current = true;
+    setOn(profile.active === true);
+  }, [profile, setOn]);
 
   const toggle = async (next: boolean) => {
+    touchedRef.current = true;
     setOn(next);
     // E4.1: os DOIS sentidos persistem no servidor (commit 3938a58f gravava só o "on" —
     // desligar deixava active=true e o dashboard continuava esportivo). Dados declarados
@@ -49,24 +63,33 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   // ── gate 1: kill-switch admin (default OFF) → o card nem existe ──
   if (!enabled) return null;
 
-  // ── gate 2: sem premium → card de upgrade (padrão dos outros gates do app) ──
+  // ── gate 2: sem premium → card de upgrade com o QUE entra (3 bullets do painel) ──
   if (!premium) {
     return (
       <Box sx={{ mt: 2.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
         <Box sx={{
-          p: 2, borderRadius: '14px', textAlign: 'center',
+          p: 2, borderRadius: '12px', textAlign: 'center',
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
           background: 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(32,178,170,.02))',
           border: '1px dashed rgba(32,178,170,.45)',
         }}>
           <LockIcon sx={{ fontSize: 26, color: (t) => tealText(t.palette.mode) }} />
           <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>Saúde Esportiva</Typography>
-          <Typography variant="caption" color="text.secondary">
-            Interprete seus exames no contexto do treino e das substâncias declaradas — com as perguntas certas pro seu médico.
-          </Typography>
+          <Stack spacing={0.5} sx={{ textAlign: 'left', my: 0.5 }}>
+            {[
+              'Régua do laboratório com a meta definida pelo seu médico',
+              'Substâncias declaradas com impacto esperado nos exames',
+              'Perguntas prontas para levar à consulta',
+            ].map((b) => (
+              <Stack key={b} direction="row" spacing={0.75} alignItems="flex-start">
+                <CheckIcon sx={{ fontSize: 16, mt: 0.25, color: (t) => tealText(t.palette.mode) }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.45 }}>{b}</Typography>
+              </Stack>
+            ))}
+          </Stack>
           <Button variant="contained" size="small" onClick={() => navigate('/planos')}
             sx={{ mt: 0.5, borderRadius: '12px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>
-            Disponível no Premium
+            Ver planos
           </Button>
         </Box>
       </Box>
