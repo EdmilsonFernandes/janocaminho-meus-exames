@@ -108,7 +108,27 @@ export function hormoneDeclared(substances: { name: string; klass?: string | nul
     s?.klass === 'Hormônio' || ANDROGEN_RX.test(s?.name ?? '') || /hgh|somatropina|igf-?1|ghrp|cjc|ipamorelina|sermorelina/i.test(s?.name ?? ''));
 }
 
-// ── Whitelabel interno por esporte (diretiva do dono: filtro-padrão + ênfase + copy) ──
+// ── LENTE POR ARQUÉTIPO (E5 "lente por arquétipo" — matriz esporte × contexto hormonal,
+//    dimensões INDEPENDENTES: nunca acoplar "musculação = uso hormonal"). O perfil muda
+//    a FORMA de analisar: ordem das abas, spotlight nos quick stats/primeiros cards,
+//    chips de foco e viés das perguntas — dado + ordenação, ZERO sistema visual novo. ──
+
+/** Contexto hormonal declarado no wizard (persistido em collectionContext.hormonalContext). */
+export type HormonalContext = 'nenhum' | 'trt' | 'declarado' | 'nao_dizer';
+
+/** Viés das perguntas de consulta (o SportsConsultPrep monta o texto com o dado real). */
+export type QuestionBias = 'ferro_endurance' | 'ck_intensa' | 'monitoramento_trt' | 'hct_hormonal' | null;
+
+/** Marcador que "sobe" (quick stats + primeiros cards): analito (rx) OU métrica HC. */
+export interface SpotlightSpec {
+  key: string;
+  /** Label curto do tile. */
+  label: string;
+  /** Match por nameCanonical (analito) — SEMPRE com flag i (canônico é uppercase). */
+  rx?: RegExp;
+  /** Métrica do Health Connect (não-analito): FC de repouso (hr-trend) / distância 7d. */
+  metric?: 'hr_rest' | 'distance_week';
+}
 
 export interface SportArchetype {
   key: string;
@@ -118,49 +138,183 @@ export interface SportArchetype {
   emphasis: string;
   /** Domínio selecionado por padrão nos filtros (null = "Todos"). */
   defaultDomain: SportsDomainKey | null;
+  /** Ordem/prioridade das abas de domínio (domínios ausentes entram depois; 'outros' sempre no fim). */
+  domainOrder: SportsDomainKey[];
+  /** Marcadores que sobem pros quick stats e primeiros cards (lente do arquétipo). */
+  spotlight: SpotlightSpec[];
+  /** Chips de foco típicos da modalidade (rótulo de PREOCUPAÇÃO típica — não é dado do usuário). */
+  focusChips: string[];
+  /** Viés das perguntas da consulta (máx ~5 mantido — só muda a priorização). */
+  questionBias: QuestionBias;
 }
 
-const ARCHETYPES: { rx: RegExp; archetype: SportArchetype }[] = [
-  {
-    rx: /corrid|corredor|maraton|meia maraton|10k|21k|42k|ultra|trail|ciclism|pedal|nataca|triatlo|triathlon|ironman|endurance|resistencia/i,
-    archetype: {
-      key: 'endurance',
-      header: 'Resistência & Performance',
-      emphasis: 'Base aeróbica: hemoglobina, hematócrito e ferro sustentam o consumo de oxigênio.',
-      defaultDomain: 'cardio',
-    },
-  },
-  {
-    rx: /musculac|fisicult|bodybuild|hipertrofia|powerlift|levantamento|forca|strongman|calistenia|crossfit/i,
-    archetype: {
-      key: 'strength',
-      header: 'Força & Hipertrofia',
-      emphasis: 'Eixo hormonal, recuperação muscular (CK) e articulações sob carga de treino.',
-      defaultDomain: 'hormonal',
-    },
-  },
-  {
-    rx: /alta performance|competicao|competição|atleta|futebol|futebo|volei|basquete|handebol|luta|mma|boxe|jiu|judo|natacao|surf|skate/i,
-    archetype: {
-      key: 'performance',
-      header: 'Alta Performance',
-      emphasis: 'Oxigenação, recuperação e consistência dos marcadores ao longo da temporada.',
-      defaultDomain: 'hemograma',
-    },
-  },
-];
+const ALL_DOMAINS_ORDER: SportsDomainKey[] = ['hormonal', 'hemograma', 'cardio', 'musculo_figado', 'renal'];
+
+const ARCHETYPE_ENDURANCE: SportArchetype = {
+  key: 'endurance',
+  header: 'Resistência & Performance',
+  emphasis: 'Base aeróbica: hemoglobina, hematócrito e ferro sustentam o consumo de oxigênio.',
+  defaultDomain: 'hemograma',
+  domainOrder: ['hemograma', 'cardio', 'renal', 'musculo_figado', 'hormonal'],
+  spotlight: [
+    { key: 'FERRITINA', label: 'Ferritina', rx: /ferritina/i },
+    { key: 'HEMOGLOBINA', label: 'Hemoglobina', rx: /hemoglobina/i },
+    { key: 'HR_REST', label: 'FC repouso', metric: 'hr_rest' },
+    { key: 'DIST_7D', label: 'Distância 7d', metric: 'distance_week' },
+  ],
+  focusChips: ['Estresse de impacto e hidratação em provas longas'],
+  questionBias: 'ferro_endurance',
+};
+
+const ARCHETYPE_INTENSA: SportArchetype = {
+  key: 'crossfit',
+  header: 'CrossFit & Alta Intensidade',
+  emphasis: 'Recuperação muscular: CK e enzimas sob treino intenso e frequente.',
+  defaultDomain: 'musculo_figado',
+  domainOrder: ['musculo_figado', 'hormonal', 'cardio', 'hemograma', 'renal'],
+  spotlight: [
+    { key: 'CK', label: 'CK total', rx: /creatino quinase|creatina quinase|ck total/i },
+    { key: 'TGO', label: 'TGO (AST)', rx: /tgo|\bast\b/i },
+    { key: 'TGP', label: 'TGP (ALT)', rx: /tgp|\balt\b/i },
+    { key: 'GGT', label: 'Gama-GT', rx: /gama\s?gt|ggt/i },
+  ],
+  focusChips: ['CK alto após treino intenso pode ser esperado — interpretar com médico'],
+  questionBias: 'ck_intensa',
+};
+
+const ARCHETYPE_STRENGTH: SportArchetype = {
+  key: 'strength',
+  header: 'Força & Hipertrofia',
+  emphasis: 'Eixo hormonal, recuperação muscular (CK) e articulações sob carga de treino.',
+  defaultDomain: 'hormonal',
+  domainOrder: ['hormonal', 'musculo_figado', 'cardio', 'hemograma', 'renal'],
+  spotlight: [
+    { key: 'TESTOSTERONA', label: 'Testosterona', rx: /testosterona/i },
+    { key: 'CK', label: 'CK total', rx: /creatino quinase|creatina quinase|ck total/i },
+    { key: 'CREATININA', label: 'Creatinina', rx: /creatinina/i },
+  ],
+  focusChips: [],
+  questionBias: null,
+};
+
+/** HIPERTROFIA × uso hormonal declarado (matriz do dono): Hct/testo/HDL sobem. */
+const ARCHETYPE_STRENGTH_HORMONAL: SportArchetype = {
+  ...ARCHETYPE_STRENGTH,
+  spotlight: [
+    { key: 'TESTOSTERONA', label: 'Testosterona', rx: /testosterona/i },
+    { key: 'HEMATOCRITO', label: 'Hematócrito', rx: /hematocrito/i },
+    { key: 'HDL', label: 'HDL', rx: /hdl/i },
+  ],
+  focusChips: ['Hematócrito e HDL merecem acompanhamento'],
+  questionBias: 'hct_hormonal' as const,
+};
+
+const ARCHETYPE_TRT: SportArchetype = {
+  key: 'trt',
+  header: 'Reposição & Performance',
+  emphasis: 'Monitoramento da reposição prescrita: testosterona na meta, hematócrito, PSA e lipídios.',
+  defaultDomain: 'hormonal',
+  domainOrder: ['hormonal', 'cardio', 'hemograma', 'musculo_figado', 'renal'],
+  spotlight: [
+    { key: 'TESTOSTERONA', label: 'Testosterona', rx: /testosterona/i },
+    { key: 'HEMATOCRITO', label: 'Hematócrito', rx: /hematocrito/i },
+    { key: 'PSA', label: 'PSA', rx: /\bpsa\b/i },
+    { key: 'HDL', label: 'HDL', rx: /hdl/i },
+  ],
+  focusChips: ['Monitoramento periódico conforme diretriz de reposição'],
+  questionBias: 'monitoramento_trt' as const,
+};
+
+const ARCHETYPE_PERFORMANCE: SportArchetype = {
+  key: 'performance',
+  header: 'Alta Performance',
+  emphasis: 'Oxigenação, recuperação e consistência dos marcadores ao longo da temporada.',
+  defaultDomain: 'hemograma',
+  domainOrder: ALL_DOMAINS_ORDER,
+  spotlight: [],
+  focusChips: [],
+  questionBias: null,
+};
 
 export const DEFAULT_ARCHETYPE: SportArchetype = {
   key: 'geral',
   header: 'Saúde Esportiva',
   emphasis: 'Seus marcadores organizados pelo contexto de treino e coleta.',
   defaultDomain: null,
+  domainOrder: ALL_DOMAINS_ORDER,
+  spotlight: [],
+  focusChips: [],
+  questionBias: null,
 };
 
-/** Arquétipo da modalidade declarada (normalizada sem acento antes do match). */
+/** Esportes por família (fuzzy sobre a modalidade normalizada sem acento). */
+const ENDURANCE_RX = /corrid|corredor|maraton|meia maraton|10k|21k|42k|ultra|trail|ciclism|pedal|bike|nataca|triatlo|triathlon|ironman|endurance|resistencia/i;
+const INTENSA_RX = /crossfit|funcional|hiit|metcon|\bwod\b|\blpo\b/i;
+const STRENGTH_RX = /musculac|fisicult|bodybuild|hipertrofia|powerlift|levantamento|forca|strongman|calistenia/i;
+const PERFORMANCE_RX = /alta performance|competicao|atleta|futebol|futebo|volei|basquete|handebol|luta|mma|boxe|jiu|judo|natacao|surf|skate/i;
+
+/** Lê hormonalContext do jsonb collectionContext (wizard 3 passos — sem migration). */
+export function parseHormonalContext(cc: unknown): HormonalContext | null {
+  if (!cc || typeof cc !== 'object') return null;
+  const v = (cc as Record<string, unknown>).hormonalContext;
+  return v === 'nenhum' || v === 'trt' || v === 'declarado' || v === 'nao_dizer' ? v : null;
+}
+
+/** Lê o nível declarado no wizard (collectionContext.level). */
+export function parseSportLevel(cc: unknown): string | null {
+  if (!cc || typeof cc !== 'object') return null;
+  const v = (cc as Record<string, unknown>).level;
+  return typeof v === 'string' && v.trim() ? v.trim().slice(0, 40) : null;
+}
+
+/** Deduz contexto hormonal das substâncias declaradas (sem wizard): classe Hormônio →
+ *  keyword trt/reposição vira 'trt'; resto vira 'declarado'. Sem hormônio → null. */
+export function deduceHormonalContext(substances: { name: string; klass?: string | null }[] | undefined | null): HormonalContext | null {
+  for (const s of substances ?? []) {
+    const isHormone = s?.klass === 'Hormônio' || hormoneDeclared([s]);
+    if (!isHormone) continue;
+    if (/trt|reposicao/i.test(`${s?.name ?? ''} ${s?.klass ?? ''}`)) return 'trt';
+    return 'declarado';
+  }
+  return null;
+}
+
+export interface LensInput {
+  modality?: string | null;
+  /** Do wizard (collectionContext.hormonalContext) — prevalece sobre a dedução. */
+  hormonalContext?: HormonalContext | null;
+  /** Substâncias declaradas (dedução quando o wizard não rodou — dado antigo continua ok). */
+  substances?: { name: string; klass?: string | null }[] | undefined | null;
+}
+
+/** LENTE do painel: esporte (fuzzy da modalidade) × contexto hormonal. TRT vence
+ *  qualquer esporte (matriz do dono); 'nao_dizer' NÃO assume nada (lens só do esporte). */
+export function resolveArchetype(input: LensInput): SportArchetype {
+  const hc = input.hormonalContext ?? deduceHormonalContext(input.substances);
+  const hormonal = hc === 'trt' || hc === 'declarado';
+  const n = norm(input.modality ?? '');
+  if (hc === 'trt') return ARCHETYPE_TRT;
+  if (!n) return hormonal ? ARCHETYPE_STRENGTH_HORMONAL : DEFAULT_ARCHETYPE;
+  if (ENDURANCE_RX.test(n)) return ARCHETYPE_ENDURANCE;
+  if (INTENSA_RX.test(n)) return ARCHETYPE_INTENSA;
+  if (STRENGTH_RX.test(n)) return hormonal ? ARCHETYPE_STRENGTH_HORMONAL : ARCHETYPE_STRENGTH;
+  if (PERFORMANCE_RX.test(n)) return ARCHETYPE_PERFORMANCE;
+  return hormonal ? ARCHETYPE_STRENGTH_HORMONAL : DEFAULT_ARCHETYPE;
+}
+
+/** Retrocompatível: lente SÓ pela modalidade (wizard ainda não rodou / testes). */
 export function archetypeOf(modality?: string | null): SportArchetype {
-  const n = norm(modality ?? '');
-  if (!n) return DEFAULT_ARCHETYPE;
-  for (const a of ARCHETYPES) if (a.rx.test(n)) return a.archetype;
-  return DEFAULT_ARCHETYPE;
+  return resolveArchetype({ modality });
+}
+
+/** Ordem das abas de domínio pela lente (ausentes depois na ordem padrão; 'outros' no fim). */
+export function domainOrderOf(a: SportArchetype): SportsDomainKey[] {
+  const head = a.domainOrder.filter((k) => SPORTS_DOMAINS.some((s) => s.key === k));
+  const rest = ALL_DOMAINS_ORDER.filter((k) => !head.includes(k));
+  return [...head, ...rest, 'outros'];
+}
+
+/** Índice de spotlight de um analito (0 = primeiro; -1 = fora do spotlight). */
+export function spotlightIndexOf(a: SportArchetype, nameCanonical: string): number {
+  return a.spotlight.findIndex((s) => s.rx?.test(nameCanonical));
 }

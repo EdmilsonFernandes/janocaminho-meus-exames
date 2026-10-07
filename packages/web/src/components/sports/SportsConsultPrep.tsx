@@ -10,7 +10,7 @@ import { EmptyState } from '../EmptyState';
 import { tealText } from '../../theme';
 import { priorityOf, PRIORITY_RANK, refScaleSuspect } from '../../utils/alertPriority';
 import { goalFor, goalRangeText, withinGoal } from '../../utils/clinicalGoals';
-import { androgenDeclared, hormoneDeclared } from './sportsDomains';
+import { androgenDeclared, hormoneDeclared, type QuestionBias } from './sportsDomains';
 import type { ClinicalGoalView } from '@meus-exames/shared';
 import type { EvolutionAnalyte } from './SportsMarkerCard';
 
@@ -18,12 +18,14 @@ const fmtNum = (n: number | null | undefined) => (n == null ? '—' : n.toLocale
 const fmtDay = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 const MAX_QUESTIONS = 5;
 
-export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExamAt }: {
+export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExamAt, bias }: {
   items: EvolutionAnalyte[];
   goals: ClinicalGoalView[];
   patientId?: string | null;
   substances: { name: string; dosage?: string | null }[];
   lastExamAt?: string | null;
+  /** Viés da LENTE por arquétipo (E5): prioriza a pergunta típica do perfil. */
+  bias?: QuestionBias;
 }) => {
   // Perguntas derivadas — SEMPRE com o número real + a referência (educativo, CFM-safe).
   const questions: { title: string; body: string }[] = [];
@@ -55,6 +57,32 @@ export const SportsConsultPrep = ({ items, goals, patientId, substances, lastExa
     questions.push({
       title: `${titleCase(top.nameCanonical)} fora da referência`,
       body: `"Doutor, meu ${top.nameCanonical.toLowerCase()} está em ${fmtNum(top.lastValue)}${top.unit ? ` ${top.unit}` : ''}${refTxt} no contexto do meu treino. O que isso significa pra minha rotina?"`,
+    });
+  }
+
+  // (lens) VIÉS DA LENTE por arquétipo (E5): pergunta típica do perfil logo após o topo —
+  // sempre com o número real e linguagem educativa (nunca intervenção específica).
+  if (bias === 'ferro_endurance') {
+    const ferr = items.find((it) => /ferritina/i.test(it.nameCanonical) && it.lastValue != null);
+    if (ferr) {
+      const refTxt = ferr.refLow != null ? ` (referência a partir de ${fmtNum(ferr.refLow)}${ferr.unit ? ` ${ferr.unit}` : ''})` : '';
+      questions.push({
+        title: 'Estoque de ferro no endurance',
+        body: `"Minha ferritina está em ${fmtNum(ferr.lastValue)}${ferr.unit ? ` ${ferr.unit}` : ''}${refTxt}. Pra minha rotina de resistência, como acompanhar o estoque de ferro antes que vire anemia?"`,
+      });
+    }
+  } else if (bias === 'ck_intensa') {
+    const ck = items.find((it) => /creatino quinase|creatina quinase|ck total/i.test(it.nameCanonical) && it.lastValue != null);
+    if (ck && ck.abnormal && (ck.refHigh == null || ck.lastValue! > ck.refHigh)) {
+      questions.push({
+        title: 'CK após treino intenso',
+        body: `"Meu CK total está em ${fmtNum(ck.lastValue)}${ck.unit ? ` ${ck.unit}` : ''}${ck.refHigh != null ? ` (referência até ${fmtNum(ck.refHigh)})` : ''} treinando em alta intensidade — é recuperação esperada ou devo investigar?"`,
+      });
+    }
+  } else if (bias === 'monitoramento_trt' && items.length > 0) {
+    questions.push({
+      title: 'Cadência de monitoramento (TRT)',
+      body: '"Estou em reposição com prescrição. As diretrizes citam reavaliação de testosterona e hematócrito em 3, 6 e 12 meses e depois anualmente — qual cadência o senhor recomenda pro meu caso?"',
     });
   }
 

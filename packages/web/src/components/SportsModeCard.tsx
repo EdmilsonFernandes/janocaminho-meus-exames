@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { API_URL, apiHeaders, fetchPublicConfig } from '../config';
 import { usePremium } from './PremiumGate';
 import { DeclaredSubstanceForm } from './DeclaredSubstanceForm';
+import { SportsProfileWizard } from './sports/SportsProfileWizard';
 import { tealText } from '../theme';
 
 /**
@@ -94,8 +95,9 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
         <>
           <Chip size="small" color="success" sx={{ mt: 1.5, fontWeight: 700 }} label="✓ Modo esportivo ativado" />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-            O painel esportivo dedicado chega nas próximas semanas — suas declarações já alimentam a análise.
+            Seu painel dedicado está no Início — o esporte e o contexto hormonal abaixo mudam a LENTE de análise.
           </Typography>
+          <SportsProfileWizard pid={pid} />
           <DeclaredSubstanceForm pid={pid} />
         </>
       )}
