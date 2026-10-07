@@ -34,6 +34,7 @@ export const PricingTab = () => {
   const [uploadRules, setUploadRules] = useState({ freeCost: 0, premiumFreeQuota: 0, premiumCost: 0 });
   const [creditCosts, setCreditCosts] = useState<any>({});
   const [grants, setGrants] = useState({ freeSignup: 0 });
+  const [sports, setSports] = useState({ enabled: 0 });
 
   const load = async () => {
     setLoading(true); setError(false);
@@ -50,6 +51,7 @@ export const PricingTab = () => {
         setUploadRules({ freeCost: Number(c?.uploadRules?.freeCost ?? 0), premiumFreeQuota: Number(c?.uploadRules?.premiumFreeQuota ?? 0), premiumCost: Number(c?.uploadRules?.premiumCost ?? 0) });
         setCreditCosts({ chat: 0, summary: 0, consolidated: 0, extraction: 0, ...(c?.creditCosts ?? {}) });
         setGrants({ freeSignup: Number(c?.grants?.freeSignup ?? 0) });
+        setSports({ enabled: Number(c?.sportsMode?.enabled ?? 0) });
       } else setError(true);
     } catch { setError(true); }
     setLoading(false);
@@ -222,6 +224,18 @@ export const PricingTab = () => {
             <TextField label="Limite de perfis da família (premium)" type="number" size="small" value={premium.familyLimit} onChange={(e) => setPremium({ ...premium, familyLimit: Number(e.target.value) })} sx={{ width: { xs: '100%', sm: 240 } }} />
             <Typography variant="caption" color="text.secondary">Free continua com 4 perfis (extra custa créditos).</Typography>
           </Stack>
+        </Stack>
+      </Section>
+
+      <Section title="🏋️ Saúde Esportiva (modo premium)" desc="Master-switch do modo Saúde Esportiva: liga/desliga para TODO o app na hora (sem deploy). Com ligado: paciente PREMIUM vê o card no Perfil e pode ativar; desligado: feature invisível para todos. Kill-switch de emergência."
+        saving={savingKey === 'sportsMode'} onSave={async () => { if (await patch('sportsMode', { category: 'sportsMode', enabled: sports.enabled })) { notify('Saúde Esportiva ' + (sports.enabled ? 'ligada' : 'desligada') + ' ✅', { type: 'success' }); await load(); } }}
+        dirty={sports.enabled !== Number(config?.sportsMode?.enabled ?? 0)}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Switch checked={sports.enabled === 1} onChange={(e) => setSports({ enabled: e.target.checked ? 1 : 0 })} color="primary" />
+          <Box>
+            <Typography sx={{ fontSize: 14 }}>{sports.enabled === 1 ? '🟢 Ligada' : '🔴 Desligada'}</Typography>
+            <Typography variant="caption" color="text.secondary">Pacientes normais nunca são afetados — alertas e IA seguem idênticos com o modo desligado.</Typography>
+          </Box>
         </Stack>
       </Section>
 
