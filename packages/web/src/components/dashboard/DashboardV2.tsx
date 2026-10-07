@@ -47,6 +47,7 @@ import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
 import { useSportsProfile } from '../../hooks/useSportsProfile';
 import { SportsDashboard } from '../sports/SportsDashboard';
 import { SportsUpsellCard } from '../sports/SportsUpsellCard';
+import { PersonaSwitcher } from '../sports/PersonaSwitcher';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -867,6 +868,7 @@ export const DashboardV2 = () => {
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
+      {!demo && <PersonaSwitcher active={false} />}
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
       {/* Convite Saúde Esportiva (07/10, redesign): descartável 1x, só com exames,

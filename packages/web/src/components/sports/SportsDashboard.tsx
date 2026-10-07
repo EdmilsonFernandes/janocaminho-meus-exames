@@ -39,6 +39,7 @@ import {
 } from './sportsDomains';
 import { SportsPersonaBar } from './SportsPersonaBar';
 import { SportsAlertBanner } from './SportsAlertBanner';
+import { PersonaSwitcher } from './PersonaSwitcher';
 import { SportsMarkerCard, type EvolutionAnalyte, type CollectionContextChips } from './SportsMarkerCard';
 import { SportsTimeline, type SportsEvent } from './SportsTimeline';
 import { SportsConsultPrep } from './SportsConsultPrep';
@@ -453,6 +454,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
+      <PersonaSwitcher active={true} />
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
       {d.processing && d.processing.count > 0 && (
