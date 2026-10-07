@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Dr. Exame — Cartaz Academia (Métrica Vital)</title>
+<style>
+  /* ============ FONTES (canvas-design: canvas-fonts + marca Dr. Exame) ============ */
+  @font-face { font-family:'Big Shoulders'; src:url('assets/canvas-fonts/BigShoulders-Bold.ttf'); font-weight:700; }
+  @font-face { font-family:'Big Shoulders'; src:url('assets/canvas-fonts/BigShoulders-Regular.ttf'); font-weight:400; }
+  @font-face { font-family:'Geist Mono'; src:url('assets/canvas-fonts/GeistMono-Regular.ttf'); font-weight:400; }
+  @font-face { font-family:'Geist Mono'; src:url('assets/canvas-fonts/GeistMono-Bold.ttf'); font-weight:700; }
+  @font-face { font-family:'Poppins'; src:url('assets/brand-fonts/Poppins-Regular.ttf'); font-weight:400; }
+  @font-face { font-family:'Poppins'; src:url('assets/brand-fonts/Poppins-SemiBold.ttf'); font-weight:600; }
+  @font-face { font-family:'Poppins'; src:url('assets/brand-fonts/Poppins-ExtraBold.ttf'); font-weight:800; }
+
+  /* ============ TOKENS (Métrica Vital — paleta mínima e inegociável) ============ */
+  :root{
+    --bg:      #0f1818;   /* fundo profundo do app (dark) */
+    --bg-2:    #132525;
+    --teal:    #20b2aa;   /* única cor viva — assinatura Dr. Exame */
+    --teal-2:  #5fc9c3;
+    --teal-deep:#178f89;
+    --copper:  #d4a574;   /* cobre — rótulos e numeração */
+    --paper:   #ffffff;
+    --text:    #e8eef0;
+    --muted:   #9fb3b3;
+    --hair:    rgba(232,238,240,.16);
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html{ -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  body{ background:#222; font-family:'Poppins',sans-serif; }
+
+  .page{
+    position:relative; overflow:hidden;
+    background:
+      radial-gradient(120% 78% at 50% 108%, rgba(32,178,170,.13) 0%, rgba(32,178,170,0) 55%),
+      radial-gradient(150% 90% at 50% -12%, #142828 0%, rgba(20,40,40,0) 52%),
+      linear-gradient(178deg, var(--bg-2) 0%, var(--bg) 46%, #0c1414 100%);
+    color:var(--text);
+  }
+
+  /* ---------- dimensões ---------- */
+  .a3{ --pw:303mm; --ph:426mm; --safe:13mm; }   /* trim 297×420 + 3mm sangria */
+  .a5{ --pw:154mm; --ph:216mm; --safe:8.5mm; }  /* trim 148×210 + 3mm sangria */
+  .page{ width:var(--pw); height:var(--ph); }
+
+  /* linha de corte — só no PDF (marks=1) */
+  .marks .mark{ position:absolute; background:#000; }
+
+  /* área de conteúdo (dentro do trim + margem de segurança) */
+  .safe{
+    position:absolute; left:3mm; top:3mm; right:3mm; bottom:3mm;
+    padding:var(--safe);
+    display:flex; flex-direction:column;
+  }
+
+  /* ============ CABEÇALHO ============ */
+  header{ display:flex; align-items:center; gap:4.2mm; }
+  .logo{
+    width:var(--logo); height:var(--logo); border-radius:24%;
+    outline:1px solid rgba(232,238,240,.14); outline-offset:-.4mm;
+  }
+  .brand-name{ font-weight:800; font-size:var(--brand); letter-spacing:.015em; color:var(--text); line-height:1; }
+  .brand-sub{ font-family:'Geist Mono'; font-size:var(--micro); letter-spacing:.34em; color:var(--copper); margin-top:1.6mm; }
+  .head-right{ margin-left:auto; text-align:right; font-family:'Geist Mono'; font-size:var(--micro); letter-spacing:.3em; color:var(--muted); line-height:2.05; }
+  .head-right b{ color:var(--copper); font-weight:400; }
+
+  /* ============ BLOCO PRINCIPAL ============ */
+  main{ flex:1; display:flex; flex-direction:column; justify-content:center; }
+  .kicker{
+    font-family:'Geist Mono'; color:var(--copper);
+    font-size:var(--kicker); letter-spacing:.42em; font-weight:700;
+    display:flex; align-items:center; gap:4mm;
+  }
+  .kicker::before{ content:''; width:9mm; height:.5mm; background:var(--copper); }
+  h1{
+    font-family:'Big Shoulders'; font-weight:700; text-transform:uppercase;
+    font-size:var(--giant); line-height:.9; letter-spacing:.008em;
+    margin-top:5mm; color:var(--text);
+  }
+  h1 .ask{ display:block; color:var(--teal); }
+  .support{
+    font-size:var(--support); font-weight:400; color:#cdd9d9;
+    line-height:1.62; margin-top:8mm; max-width:78%;
+  }
+
+  .ticks{ list-style:none; margin-top:7mm; display:flex; flex-direction:column; gap:3.4mm; }
+  .ticks li{
+    display:flex; align-items:center; gap:3.4mm;
+    font-size:var(--tick); color:var(--text); font-weight:400; letter-spacing:.01em;
+  }
+  .ticks svg{ width:var(--tickbox); height:var(--tickbox); flex:none; }
+  .ticks b{ font-weight:600; color:#fff; }
+
+  /* ============ RODAPÉ ============ */
+  footer{ display:flex; align-items:flex-end; gap:8mm; }
+  .qr-card{
+    background:var(--paper); border-radius:3.2mm;
+    padding:4.6mm; flex:none;
+    box-shadow:0 0 0 1px rgba(232,238,240,.12), 0 3mm 9mm rgba(0,0,0,.42);
+  }
+  .qr-card img{ display:block; width:var(--qr); height:var(--qr); }
+  .cta-block{ flex:1; padding-bottom:2.4mm; }
+  .cta{
+    font-family:'Big Shoulders'; font-weight:700; text-transform:uppercase;
+    font-size:var(--cta); line-height:1; color:#fff;
+  }
+  .alt{ margin-top:4.6mm; }
+  .alt .ou{ display:block; font-family:'Geist Mono'; font-size:var(--micro); letter-spacing:.3em; color:var(--copper); margin-bottom:2mm; }
+  .alt .url{ display:block; font-size:var(--url); font-weight:600; color:var(--teal-2); letter-spacing:.01em; white-space:nowrap; }
+  .legal{
+    margin-top:6mm; padding-top:3.6mm; border-top:.3mm solid var(--hair);
+    display:flex; justify-content:space-between; align-items:baseline; gap:8mm;
+  }
+  .legal .disclaimer{ font-size:var(--legal); font-weight:600; color:#c3d0d0; }
+  .legal .colophon{
+    font-family:'Geist Mono'; font-size:var(--micro); letter-spacing:.26em;
+    color:rgba(159,179,179,.75); text-transform:uppercase; white-space:nowrap;
+  }
+
+  /* ============ ARTE DE FUNDO (Métrica Vital) ============ */
+  .art{ position:absolute; inset:0; z-index:0; } .art *{ position:absolute; }
+  .safe{ z-index:1; }
+  .spine{
+    position:absolute; z-index:1; left:5.9mm; top:50%; transform:translateY(-50%);
+    writing-mode:vertical-rl;
+    font-family:'Geist Mono'; font-size:2.7mm; letter-spacing:.42em;
+    color:rgba(212,165,116,.5); text-transform:uppercase; white-space:nowrap;
+  }
+
+  /* ============ ESCALAS A3 / A5 ============ */
+  .a3{
+    --logo:13.5mm; --brand:11mm; --micro:3mm;
+    --kicker:4.4mm; --giant:92mm;
+    --support:6.4mm; --tick:5.2mm; --tickbox:5.4mm;
+    --qr:52mm; --cta:14.5mm; --url:9mm; --legal:4.4mm;
+  }
+  .a5{
+    --logo:9.6mm; --brand:7.6mm; --micro:2.15mm;
+    --kicker:3mm; --giant:45.5mm;
+    --support:3.7mm; --tick:3.15mm; --tickbox:3.3mm;
+    --qr:30mm; --cta:6.7mm; --url:4.7mm; --legal:2.6mm;
+    --safe:8.5mm;
+  }
+  .a5 .spine{ display:none; }
+  .a5 .support{ max-width:88%; margin-top:4.6mm; }
+  .a5 .ticks{ gap:2.2mm; margin-top:4mm; }
+  .a5 .legal{ margin-top:3.6mm; padding-top:2.2mm; }
+  .a5 .alt{ margin-top:2.6mm; }
+  .a5 .qr-card{ padding:3.2mm; border-radius:2.4mm; }
+</style>
+</head>
+<body>
+<div class="page" id="page">
+  <div class="art" id="art"></div>
+  <div class="spine">Métrica Vital — série academia · 2026</div>
+
+  <div class="safe">
+    <header>
+      <img class="logo" src="assets/logo-app-icon.png" alt="Dr. Exame">
+      <div>
+        <div class="brand-name">Dr. Exame</div>
+        <div class="brand-sub">SEUS EXAMES COM IA</div>
+      </div>
+      <div class="head-right">
+        ATLETAS · CORREDORES · MUSCULAÇÃO<br>
+        <b>MODO SAÚDE ESPORTIVA</b>
+      </div>
+    </header>
+
+    <main>
+      <div class="kicker">VOCÊ ACOMPANHA SEUS TREINOS.</div>
+      <h1 data-qa="headline">E SEUS <span class="ask">EXAMES?</span></h1>
+
+      <p class="support" data-qa="support">Organize seus exames, acompanhe a evolução e conheça o <b>Modo Saúde Esportiva</b> do Dr.&nbsp;Exame.</p>
+
+      <ul class="ticks" data-qa="ticks">
+        <li><svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="22" height="22" rx="6" stroke="#20b2aa" stroke-width="2"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#20b2aa" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Exames interpretados no <b>contexto de quem treina</b></li>
+        <li><svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="22" height="22" rx="6" stroke="#20b2aa" stroke-width="2"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#20b2aa" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Régua do laboratório e <b>seu histórico</b> no mesmo gráfico</li>
+        <li><svg viewBox="0 0 24 24" fill="none"><rect x="1" y="1" width="22" height="22" rx="6" stroke="#20b2aa" stroke-width="2"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#20b2aa" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Perguntas prontas para <b>levar ao médico</b></li>
+      </ul>
+    </main>
+
+    <footer>
+      <div class="qr-card"><img src="assets/qr.svg" alt="QR Code — drexame.janocaminho.com.br"></div>
+      <div class="cta-block">
+        <div class="cta" data-qa="cta">Escaneie e conheça o app.</div>
+        <div class="alt">
+          <span class="ou">OU ACESSE</span>
+          <span class="url" data-qa="url">drexame.janocaminho.com.br</span>
+        </div>
+      </div>
+    </footer>
+
+    <div class="legal">
+      <span class="disclaimer" data-qa="disclaimer">Não substitui consulta médica.</span>
+      <span class="colophon">Dr. Exame · Assistente de saúde com IA · Conteúdo educativo</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ===== peça (a3|a5) e marcas de corte (marks=1 → só no PDF) ===== */
+  const q = new URLSearchParams(location.search);
+  document.body.classList.add(q.get('size') || 'a3');
+  if (q.get('marks') === '1') document.body.classList.add('marks');
+
+  /* ===== marca as linhas de corte: trim = 3mm de sangria em cada lado ===== */
+  if (document.body.classList.contains('marks')) {
+    const pw = parseFloat(getComputedStyle(document.documentElement.getPropertyValue('--pw'))) * 0 ||
+               (document.body.classList.contains('a5') ? 154 : 303);
+    const ph = document.body.classList.contains('a5') ? 216 : 426;
+    const b = 3, L = 2.5, T = .25;                 // sangria, comprimento, espessura
+    const marks = [
+      // [x, y, w, h] — horizontais e verticais em cada canto, dentro da faixa de sangria
+      [0, b, L, T], [b, 0, T, L],                                  // sup-esq
+      [pw - L, b, L, T], [pw - b - T, 0, T, L],                    // sup-dir
+      [0, ph - b - T, L, T], [b, ph - L, T, L],                    // inf-esq
+      [pw - L, ph - b - T, L, T], [pw - b - T, ph - L, T, L],      // inf-dir
+    ];
+    for (const [x, y, w, h] of marks) {
+      const d = document.createElement('div');
+      d.className = 'mark';
+      d.style.cssText = `left:${x}mm;top:${y}mm;width:${w}mm;height:${h}mm`;
+      document.getElementById('page').appendChild(d);
+    }
+  }
+
+  /* ===== arte Métrica Vital — determinística (seed fixa) ===== */
+  function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; } }
+  const rnd = mulberry32(20261007);
+  const art = document.getElementById('art');
+  const isA5 = document.body.classList.contains('a5');
+  const pw = isA5 ? 154 : 303, ph = isA5 ? 216 : 426;
+
+  /* faixas de referência: linhas finas + segmento em destaque (régua de laboratório) */
+  function refBand(yTop, rows, rowGap, opacity){
+    for (let r = 0; r < rows; r++) {
+      const y = yTop + r * rowGap;
+      const line = document.createElement('div');
+      const inset = 8 + rnd() * 14;
+      line.style.cssText = `left:${inset}mm;top:${y}mm;width:${pw - inset * 2}mm;height:.22mm;background:rgba(232,238,240,${opacity})`;
+      art.appendChild(line);
+      if (rnd() > .38) {                                        // faixa de referência destacada
+        const seg = document.createElement('div');
+        const w = 14 + rnd() * 40;
+        const x = inset + 8 + rnd() * (pw - inset * 2 - w - 16);
+        const teal = rnd() > .3;
+        seg.style.cssText = `left:${x}mm;top:${y - .34}mm;width:${w}mm;height:.9mm;border-radius:.5mm;background:${teal ? 'rgba(32,178,170,.34)' : 'rgba(212,165,116,.30)'}`;
+        art.appendChild(seg);
+      }
+      if (rnd() > .72) {                                        // marcador de valor
+        const dot = document.createElement('div');
+        const x = inset + 8 + rnd() * (pw - inset * 2 - 16);
+        dot.style.cssText = `left:${x}mm;top:${y - .7}mm;width:1.7mm;height:1.7mm;border-radius:50%;border:.3mm solid rgba(95,201,195,.55)`;
+        art.appendChild(dot);
+      }
+    }
+  }
+  /* banda A: sob o cabeçalho (quase sussurro) · banda B: acima do rodapé */
+  refBand(isA5 ? 26 : 34, isA5 ? 5 : 8, isA5 ? 3.4 : 4.6, .05);
+  refBand(isA5 ? 128 : 250, isA5 ? 6 : 10, isA5 ? 3.2 : 4.4, .065);
+
+  /* pulso (ECG): uma linha contínua atravessando a peça */
+  {
+    const yBase = isA5 ? 138 : 272;
+    const w = pw - 24, x0 = 12;
+    let pts = `M ${x0} ${yBase}`;
+    let x = x0, peak = { x: x0 + w * .5, amp: 0 };
+    while (x < x0 + w - 30) {
+      const run = 10 + rnd() * 26;
+      pts += ` L ${x + run} ${yBase}`;
+      x += run;
+      if (rnd() > .45 && x < x0 + w - 34) {                      // complexo QRS
+        const amp = 3 + rnd() * (isA5 ? 3 : 6);
+        pts += ` L ${x + 1.6} ${yBase - amp * .35} L ${x + 2.6} ${yBase - amp} L ${x + 3.8} ${yBase + amp * .5} L ${x + 5} ${yBase}`;
+        if (amp > peak.amp) peak = { x: x + 2.6, amp };
+        x += 5;
+      }
+    }
+    pts += ` L ${x0 + w} ${yBase}`;
+    const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svgEl.setAttribute('style', `left:0;top:0;width:${pw}mm;height:${ph}mm`);
+    svgEl.innerHTML =
+      `<path d="${pts}" fill="none" stroke="rgba(32,178,170,.5)" stroke-width=".32mm" stroke-linejoin="round"/>` +
+      `<circle cx="${peak.x}" cy="${yBase - peak.amp}" r="1.5mm" fill="none" stroke="rgba(212,165,116,.65)" stroke-width=".3mm"/>` +
+      `<path d="M ${peak.x - 3.4} ${yBase - peak.amp - 4.6} L ${peak.x} ${yBase - peak.amp - 2.2} L ${peak.x + 3.4} ${yBase - peak.amp - 4.6}" fill="none" stroke="rgba(212,165,116,.55)" stroke-width=".26mm"/>`;
+    art.appendChild(svgEl);
+  }
+</script>
+</body>
+</html>
