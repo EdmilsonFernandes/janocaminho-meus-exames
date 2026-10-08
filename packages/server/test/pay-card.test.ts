@@ -122,7 +122,9 @@ describe('billing/pay-card: cartão inline via Asaas', () => {
     expect(sub?.status).toBe('PENDING');
     expect(sub?.mpPaymentId).toBe('pay_3ds'); // webhook casa por aqui
 
-    // Webhook PAYMENT_RECEIVED do Asaas fecha o ciclo (pixCredits persistido na compra)
+    // Webhook PAYMENT_RECEIVED do Asaas fecha o ciclo (pixCredits persistido na compra).
+    // Verificação server-side do webhook: GET /v3/payments/pay_3ds → RECEIVED no provider.
+    fetchMock().mockResolvedValueOnce(resp({ id: 'pay_3ds', value: 24.9, status: 'RECEIVED' }));
     await api().post('/api/webhooks/asaas').send({ event: 'PAYMENT_RECEIVED', payment: { id: 'pay_3ds', value: 24.9, status: 'RECEIVED' } });
     expect(await getUserCredits(user.id)).toBe(140);
     const after = await prisma.subscription.findFirst({ where: { userId: user.id } });
