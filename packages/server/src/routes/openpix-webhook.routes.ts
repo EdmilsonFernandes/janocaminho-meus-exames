@@ -5,7 +5,10 @@
 //   1. existe Subscription PENDING com mpPaymentId == correlationID (charge criada por nós;
 //      correlationID gerado no server, nunca aceito do cliente);
 //   2. valor do pagamento (centavos) BATE com o registrado na Subscription;
-//   3. idempotente pelo status (reenvio não credita 2x — helper compartilhado com o MP).
+//   3. idempotente pelo status (reenvio não credita 2x — helper compartilhado com o MP);
+//   4. VERIFICAÇÃO SERVER-SIDE (audit segurança 10/26): a cobrança é CONFIRMADA na API do
+//      OpenPix (GET /api/v1/charge/{correlationID}) antes de aprovar — webhook forjado com
+//      payload inventado não passa, o provider é a fonte de verdade (mesmo padrão do MP).
 // Aprovação = MESMA função do webhook MP (utils/billingApproval) — créditos, plano e
 // pacote de API seguem idênticos entre provedores.
 //
@@ -13,6 +16,7 @@
 // payment: { correlationID?, status, value }, ... } — parse defensivo em várias formas.
 import { Router } from 'express';
 import { prisma } from '../prisma';
+import { config, hasOpenPix } from '../config';
 import { approvePendingSubscription } from '../utils/billingApproval';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 
@@ -67,6 +71,28 @@ router.post('/openpix', async (req, res) => {
     if (!Number.isFinite(valueCents) || valueCents !== expectedCents) {
       console.warn(`[openpix-webhook] valor divergente — RECUSADO (${correlationID}: ${valueCents} ≠ ${expectedCents} esperados)`);
       res.status(200).json({ ok: true, ignored: 'valor divergente' });
+      return;
+    }
+
+    // VERIFICAÇÃO SERVER-SIDE (audit #1 — webhook público e sem assinatura): confirma na
+    // API do OpenPix que a cobrança REALMENTE foi paga antes de aprovar. Payload forjado
+    // não existe no provider → 400. Sem App ID não há como confirmar → falha FECHADA
+    // (nunca aprova às cegas — em prod o ID existe sempre que uma charge foi criada).
+    if (!hasOpenPix()) {
+      console.warn('[openpix-webhook] OPENPIX_APP_ID ausente — impossível verificar no provider, RECUSADO.');
+      res.status(400).json({ error: 'Cobrança não confirmada no provider.' });
+      return;
+    }
+    let providerCharge: { charge?: { status?: string } } | null = null;
+    try {
+      const r = await fetch(`${config.openPixApiBaseUrl}/api/v1/charge/${encodeURIComponent(correlationID)}`, {
+        headers: { Authorization: config.openPixAppId },
+      });
+      providerCharge = r.ok ? ((await r.json().catch(() => null)) as { charge?: { status?: string } } | null) : null;
+    } catch { /* provider fora do ar → tratado como NÃO confirmado (fail closed) */ }
+    if (String(providerCharge?.charge?.status ?? '') !== 'COMPLETED') {
+      console.warn(`[openpix-webhook] cobrança NÃO confirmada no provider — RECUSADO (${correlationID})`);
+      res.status(400).json({ error: 'Cobrança não confirmada no provider.' });
       return;
     }
 

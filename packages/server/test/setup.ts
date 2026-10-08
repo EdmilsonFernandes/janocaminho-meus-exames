@@ -12,6 +12,7 @@ process.env.DATABASE_URL =
 process.env.JWT_SECRET = 'test-secret';
 process.env.MP_ACCESS_TOKEN = 'test-token'; // hasMercadoPago() = true → webhook/checkout testáveis
 process.env.ASAAS_API_KEY = 'asaas-test-key'; // hasAsaas() = true → POST /billing/pay-card (cartão inline) testável; PAYMENT_PROVIDER segue 'mp' → PIX dos outros testes não muda
+process.env.OPENPIX_APP_ID = 'openpix-test-appid'; // hasOpenPix() = true e DETERMINÍSTICO (sem .env local vazando) → verificação server-side do webhook OpenPix testável (fetch global mockado)
 process.env.WEB_ORIGIN = 'http://localhost:5173';
 // Google Sign-in: /auth/google retorna 500 "não configurado" sem esta var. No CI não há .env,
 // então setamos um valor de teste (mantém o real se já estiver no ambiente — ex.: dev local).

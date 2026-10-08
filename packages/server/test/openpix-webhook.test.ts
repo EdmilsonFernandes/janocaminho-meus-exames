@@ -1,11 +1,17 @@
 // E2E do webhook OpenPix (POST /api/webhooks/openpix): aprova créditos via
 // correlationID, idempotente no reenvio, ignora correlationID inexistente e
-// RECUSA valor divergente (defesa — OpenPix não tem assinatura nativa).
+// RECUSA valor divergente (defesa — OpenPix não tem assinatura nativa) e
+// cobrança NÃO confirmada na API do provider (verificação server-side — audit #1).
 // Vitest roda sequencial (fileParallelism:false) — DB de teste compartilhado.
-import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, createUser, getUserCredits } from './helpers';
+import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
+import { api, resetDb, createUser, getUserCredits, mpResponse } from './helpers';
 import { prisma } from '../src/prisma';
 import { createSubscriptionCompat, updateSubscriptionCompat, resetSubscriptionColumnsCacheForTests } from '../src/utils/subscriptionCompat';
+
+const fetchMock = () => globalThis.fetch as unknown as Mock;
+
+/** Resposta do GET /api/v1/charge/{correlationID} no OpenPix. */
+const openpixChargeApi = (status: string) => mpResponse({ charge: { correlationID: 'x', status, value: 990 } });
 
 /** Simula o buy-credits PIX no provider openpix: Subscription PENDING + mpPaymentId=correlationID. */
 async function createPendingPixCredits(userId: string, price: number, credits: number) {
@@ -31,12 +37,16 @@ describe('webhook OpenPix: aprovação de PIX por correlationID', () => {
   beforeEach(async () => {
     await resetDb();
     resetSubscriptionColumnsCacheForTests();
+    // Provider NÃO confirma por padrão (fail-closed): quem aprova mocka COMPLETED explicitamente.
+    fetchMock().mockClear();
+    fetchMock().mockResolvedValue(mpResponse({}));
   });
 
   it('evento COMPLETED com valor correto → credita créditos + APPROVED', async () => {
     const { user } = await createUser({ credits: 0 });
     const { sub, correlationID } = await createPendingPixCredits(user.id, 9.9, 140);
 
+    fetchMock().mockResolvedValueOnce(openpixChargeApi('COMPLETED'));
     const r = await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
     expect(r.status).toBe(200);
     expect(r.body.approved).toBe(true);
@@ -54,6 +64,7 @@ describe('webhook OpenPix: aprovação de PIX por correlationID', () => {
     const { user } = await createUser({ credits: 0 });
     const { correlationID } = await createPendingPixCredits(user.id, 9.9, 140);
 
+    fetchMock().mockResolvedValueOnce(openpixChargeApi('COMPLETED'));
     await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
     const r2 = await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
     expect(r2.status).toBe(200);
@@ -96,11 +107,54 @@ describe('webhook OpenPix: aprovação de PIX por correlationID', () => {
     const correlationID = `api_${sub.id}_500`;
     await updateSubscriptionCompat(sub.id, { mpPreferenceId: 'api_pack', mpPaymentId: correlationID, pixCredits: 500, pixExpiresAt: new Date(Date.now() + 5 * 60 * 1000) });
 
+    fetchMock().mockResolvedValueOnce(openpixChargeApi('COMPLETED'));
     const r = await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 2500));
     expect(r.status).toBe(200);
     expect(r.body.approved).toBe(true);
     expect(await getUserCredits(user.id)).toBe(0); // créditos de IA intactos
     const tx = await prisma.creditTransaction.findFirst({ where: { userId: user.id, kind: 'api_pack' }, select: { delta: true } });
     expect(tx?.delta).toBe(500);
+  });
+
+  it('VERIFICAÇÃO SERVER-SIDE: cobrança NÃO confirmada no provider → 400, NÃO aprova (anti-spoof)', async () => {
+    const { user } = await createUser({ credits: 0 });
+    const { sub, correlationID } = await createPendingPixCredits(user.id, 9.9, 140);
+
+    // Payload de webhook PERFEITO (status/value corretos), mas o provider diz que a
+    // charge segue PENDING — é exatamente o caso do webhook FORJADO (spoof).
+    fetchMock().mockResolvedValueOnce(openpixChargeApi('PENDING'));
+    const r = await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
+    expect(r.status).toBe(400);
+    expect(r.body.error).toBe('Cobrança não confirmada no provider.');
+    const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
+    expect(dbSub?.status).toBe('PENDING'); // NADA aprovado
+    expect(await getUserCredits(user.id)).toBe(0);
+    // Consultou o provider com auth do App ID (mesmo header da criação da charge)
+    expect(fetchMock()).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/v1/charge/${correlationID}`),
+      expect.objectContaining({ headers: { Authorization: 'openpix-test-appid' } }),
+    );
+  });
+
+  it('VERIFICAÇÃO SERVER-SIDE: provider fora do ar (não-ok) → 400, NÃO aprova (fail closed)', async () => {
+    const { user } = await createUser({ credits: 0 });
+    const { sub, correlationID } = await createPendingPixCredits(user.id, 9.9, 140);
+
+    fetchMock().mockResolvedValueOnce(mpResponse({}, { ok: false, status: 500 }));
+    const r = await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
+    expect(r.status).toBe(400);
+    const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
+    expect(dbSub?.status).toBe('PENDING');
+    expect(await getUserCredits(user.id)).toBe(0);
+  });
+
+  it('verificação consulta o provider ANTES de aprovar no caminho feliz', async () => {
+    const { user } = await createUser({ credits: 0 });
+    const { correlationID } = await createPendingPixCredits(user.id, 9.9, 140);
+
+    fetchMock().mockResolvedValueOnce(openpixChargeApi('COMPLETED'));
+    await api().post('/api/webhooks/openpix').send(openpixPayload(correlationID, 990));
+    expect(fetchMock()).toHaveBeenCalledTimes(1); // 1 chamada = a verificação (não aprovou às cegas)
+    expect(await getUserCredits(user.id)).toBe(140);
   });
 });

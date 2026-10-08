@@ -109,6 +109,7 @@ app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);
 app.use('/api/medications/scan-photo', aiLimiter); // foto→OCR→IA: mesma cesta de IA do chat
+app.use('/api/items/explain', aiLimiter); // explain de analito = chamada de IA (audit #3); só o /explain — GETs de /api/items são leituras baratas de DB
 app.use('/api/', generalLimiter);
 
 app.get('/api/health', async (_req, res) => {

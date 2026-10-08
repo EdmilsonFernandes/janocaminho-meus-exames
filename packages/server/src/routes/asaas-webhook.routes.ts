@@ -7,7 +7,10 @@
 //   1. existe Subscription PENDING com mpPaymentId == payment.id ("pay_..." — charge
 //      criada por nós; o id nunca é aceito do cliente);
 //   2. valor do pagamento (REAIS float → centavos) BATE com o registrado na Subscription;
-//   3. idempotente pelo status (reenvio não credita 2x — helper compartilhado MP/OpenPix).
+//   3. idempotente pelo status (reenvio não credita 2x — helper compartilhado MP/OpenPix);
+//   4. VERIFICAÇÃO SERVER-SIDE (audit segurança 10/26): o payment é CONFIRMADO na API do
+//      Asaas (GET /v3/payments/{id}, status RECEIVED*) antes de aprovar — webhook forjado
+//      com payload inventado não passa, o provider é a fonte de verdade (padrão do MP).
 // Aprovação = MESMA função dos webhooks MP/OpenPix (utils/billingApproval) — créditos,
 // plano e pacote de API seguem idênticos entre provedores.
 //
@@ -17,6 +20,7 @@
 // Subscription (tag mpPreferenceId='api_pack', periodDays>0, pixCredits) — drift-safe.
 import { Router } from 'express';
 import { prisma } from '../prisma';
+import { config, hasAsaas } from '../config';
 import { approvePendingSubscription } from '../utils/billingApproval';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 
@@ -79,6 +83,28 @@ router.post('/asaas', async (req, res) => {
     if (!Number.isFinite(valueCents) || valueCents !== expectedCents) {
       console.warn(`[asaas-webhook] valor divergente — RECUSADO (${paymentId}: ${valueCents} ≠ ${expectedCents} esperados)`);
       res.status(200).json({ ok: true, ignored: 'valor divergente' });
+      return;
+    }
+
+    // VERIFICAÇÃO SERVER-SIDE (audit #1 — webhook público e sem assinatura): confirma na
+    // API do Asaas que o pagamento REALMENTE foi recebido antes de aprovar. Payload forjado
+    // não existe no provider → 400. Sem API key não há como confirmar → falha FECHADA
+    // (nunca aprova às cegas — em prod a key existe sempre que um payment foi criado).
+    if (!hasAsaas()) {
+      console.warn('[asaas-webhook] ASAAS_API_KEY ausente — impossível verificar no provider, RECUSADO.');
+      res.status(400).json({ error: 'Pagamento não confirmado no provider.' });
+      return;
+    }
+    let providerPayment: { status?: string } | null = null;
+    try {
+      const r = await fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(paymentId)}`, {
+        headers: { access_token: config.asaasApiKey }, // SEM Bearer — header direto (asaas-provider)
+      });
+      providerPayment = r.ok ? ((await r.json().catch(() => null)) as { status?: string } | null) : null;
+    } catch { /* provider fora do ar → tratado como NÃO confirmado (fail closed) */ }
+    if (!providerPayment?.status || !RECEIVED_STATUSES.has(String(providerPayment.status).toUpperCase())) {
+      console.warn(`[asaas-webhook] pagamento NÃO confirmado no provider — RECUSADO (${paymentId})`);
+      res.status(400).json({ error: 'Pagamento não confirmado no provider.' });
       return;
     }
 
