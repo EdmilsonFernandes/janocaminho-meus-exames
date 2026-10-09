@@ -7,6 +7,7 @@ import { generateHealthSummary, generateConsolidatedSummary, loadExamContext } f
 import { streamChat } from '../analysis/chat';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { chargeCredits, refundCredits, logCredit, CREDIT_COSTS, isPremium } from '../utils/credits';
+import { logAiUsage } from '../utils/aiUsage';
 import { getPremiumPerks, guidelinesEnabled } from '../utils/settings';
 import { guidelinesContext } from '../analysis/guidelines';
 import { hashSharePin } from '../utils/crypto';
@@ -74,8 +75,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       return;
     }
     let generated;
+    const t0 = Date.now();
     try { generated = await generateHealthSummary(examId); }
-    catch (e) { await refundCredits(req.userId!, summaryCost, 'ai_summary_refund', 'Reembolso: falha na IA (resumo)'); throw e; }
+    catch (e: any) {
+      await refundCredits(req.userId!, summaryCost, 'ai_summary_refund', 'Reembolso: falha na IA (resumo)');
+      void logAiUsage({ userId: req.userId!, feature: 'SUMMARY', success: false, errorCode: String(e?.message ?? e).slice(0, 200), latencyMs: Date.now() - t0 });
+      throw e;
+    }
     const analysis = await prisma.aiAnalysis.create({
       data: {
         examId,
@@ -85,6 +91,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         modelUsed: generated.modelUsed,
         tokenUsage: generated.usage as any,
       },
+    });
+    // Uso de IA visível no admin (ai_usage_logs alimentava só leitura — nunca era escrita).
+    const usage = (generated.usage ?? {}) as { promptTokens?: number; completionTokens?: number };
+    void logAiUsage({
+      userId: req.userId!, feature: 'SUMMARY', model: generated.modelUsed, analysisId: analysis.id,
+      promptTokens: usage.promptTokens ?? 0, completionTokens: usage.completionTokens ?? 0,
+      latencyMs: Date.now() - t0,
     });
     res.status(201).json(analysis);
   } catch (e: any) {
@@ -123,7 +136,11 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
     }
+    // Premium com o perk ligado não é debitado — mas o uso PRECISA aparecer na carteira
+    // (usuário gera relatório e o extrato fica mudo = parece que não aconteceu nada).
+    if (premiumIncluded) await logCredit(req.userId!, 0, 'ai_consolidated', 'Relatório consolidado — incluído no plano');
     generatingReports.set(patientId, Date.now()); // R2: visita de volta sabe que está gerando
+    const t0 = Date.now();
     try {
       const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(patientId);
       // UPSERT: 1 resumo consolidado por paciente (atualiza o existente em vez de acumular duplicatas).
@@ -131,8 +148,15 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       const analysis = existing
         ? await prisma.aiAnalysis.update({ where: { id: existing.id }, data: { contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any, createdAt: new Date() } })
         : await prisma.aiAnalysis.create({ data: { patientId, examId: null, type: 'SUMMARY', contentMd, structured: summary as any, modelUsed, tokenUsage: usage as any } });
+      const u = (usage ?? {}) as { promptTokens?: number; completionTokens?: number };
+      void logAiUsage({
+        userId: req.userId!, feature: 'CONSOLIDATED', model: modelUsed, analysisId: analysis.id,
+        promptTokens: u.promptTokens ?? 0, completionTokens: u.completionTokens ?? 0,
+        latencyMs: Date.now() - t0,
+      });
       res.status(201).json({ ...analysis, sourceExams });
     } catch (genErr: any) {
+      void logAiUsage({ userId: req.userId!, feature: 'CONSOLIDATED', success: false, errorCode: String(genErr?.message ?? genErr).slice(0, 200), latencyMs: Date.now() - t0 });
       // IA falhou após o débito → reembolsa (premium não foi debitado — não reembolsa).
       if (!premiumIncluded) await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
@@ -263,6 +287,7 @@ router.post('/:id/chat', async (req: AuthedRequest, res, next) => {
         modelUsed: model,
       },
     });
+    void logAiUsage({ userId: req.userId!, feature: 'CHAT', model });
     // resposta já foi encerrada via SSE
   } catch (e) {
     if (!res.headersSent) next(e);

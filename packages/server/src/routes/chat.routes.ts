@@ -4,6 +4,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { streamChat } from '../analysis/chat';
 import { memoryDigest, patientSlug, appendConversation } from '../analysis/agent-memory';
 import { chargeCredits, refundCredits, CREDIT_COSTS } from '../utils/credits';
+import { logAiUsage } from '../utils/aiUsage';
 import { tryLocalAnswer, streamLocalAnswer } from '../analysis/chat-router';
 import { describeStaleness } from '../analysis/health-state';
 import { guidelinesContext } from '../analysis/guidelines';
@@ -45,6 +46,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (local.answered && local.text != null) {
       streamLocalAnswer(res, local.text);
       await prisma.aiAnalysis.create({ data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: local.text, modelUsed: 'local-router' } });
+      void logAiUsage({ userId: req.userId!, feature: 'CHAT', model: 'local-router' });
       console.log('[chat] router_hit (resposta local, sem IA)');
       return;
     }
@@ -259,6 +261,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     await prisma.aiAnalysis.create({
       data: { type: 'CHAT', patientId: pid, userMessage: message, contentMd: text, modelUsed: model, structured: { sources: sources ?? [] } as any },
     });
+    void logAiUsage({ userId: req.userId!, feature: 'CHAT', model });
     // Persiste a conversa em .md (não se perde; vira memória durável do paciente)
     appendConversation(slug, message, text);
   } catch (e) {
