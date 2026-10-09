@@ -7,16 +7,90 @@
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta name="theme-color" content="#20b2aa" />
-    <meta name="description" content="Dr. Exame — seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor em português simples, com leitura de risco, plano de ação e perguntas para o médico." />
+    <meta name="description" content="Dr. Exame — seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor com leitura de risco, plano de ação e Modo Saúde Esportiva para atletas, corredores e praticantes de alta performance." />
+    <meta name="keywords" content="exames de sangue, laudos com IA, saude esportiva, exames para atletas, musculacao, creatinina e creatina, ck total pos treino, hematocrito trt, cistatina c, medicina do esporte, dr exame" />
     <meta name="author" content="Dr. Exame" />
-    <meta property="og:title" content="Dr. Exame — Seus exames com IA" />
-    <meta property="og:description" content="Assistente de saúde com IA que lê seus exames, explica em português simples e mostra sua leitura de risco." />
+    <meta property="og:title" content="Dr. Exame — Seus exames com IA & Saúde Esportiva" />
+    <meta property="og:description" content="Assistente de saúde com IA que lê seus exames, explica cada marcador e conta com Modo Saúde Esportiva para atletas e alta performance." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="app-icon.png" />
     <link rel="manifest" href="manifest.json" />
     <link rel="icon" type="image/png" href="app-icon.png" />
     <link rel="apple-touch-icon" href="app-icon.png" />
-    <title>Dr. Exame — Seus exames com IA</title>
+    <link rel="canonical" href="https://drexame.janocaminho.com.br/" />
+    <title>Dr. Exame — Seus exames com IA & Saúde Esportiva</title>
+
+    <!-- Schema.org / JSON-LD — Google Rich Snippets & Search Console -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://drexame.janocaminho.com.br/#app",
+          "name": "Dr. Exame",
+          "applicationCategory": "HealthApplication",
+          "operatingSystem": "Web, Android, iOS",
+          "url": "https://drexame.janocaminho.com.br/",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "BRL"
+          },
+          "description": "Assistente inteligente de saúde com inteligência artificial para leitura e organização de laudos laboratoriais, exames de sangue e Modo Saúde Esportiva para atletas e alta performance."
+        },
+        {
+          "@type": "MedicalWebPage",
+          "@id": "https://drexame.janocaminho.com.br/#medical",
+          "name": "Dr. Exame • Saúde Esportiva & Exames com IA",
+          "url": "https://drexame.janocaminho.com.br/",
+          "description": "Interpretação educativa de exames de sangue, dano muscular (CK e TGO), função renal (Cistatina-C) e acompanhamento hematológico seguro para praticantes de musculação e atletas.",
+          "about": [
+            { "@type": "MedicalCondition", "name": "Saúde Esportiva e Monitoramento de Treino" },
+            { "@type": "MedicalCondition", "name": "Reposição Hormonal e Viscosidade Sanguínea" }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://drexame.janocaminho.com.br/#faq",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "Por que a creatinina pode dar alta em quem faz musculação e toma creatina?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Atletas e praticantes de musculação com grande massa magra e suplementação de creatina produzem mais creatinina fisiologicamente. Isso gera um falso positivo de sobrecarga renal nas referências convencionais. Nesses casos, a dosagem de Cistatina-C mede a taxa de filtração glomerular real (TFG) sem interferência muscular."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Por que a CK (Creatina Quinase) e o TGO sobem após o treino?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "O treino de força intenso, especialmente com contrações excêntricas (como treino de pernas), causa microlesões musculares fisiológicas temporárias. Essas microlesões liberam CK e TGO na corrente sanguínea. Quando o TGP e a Gama-GT permanecem normais, indica sobrecarga muscular e não lesão do fígado."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Qual o limite seguro de hematócrito para quem faz reposição hormonal (TRT)?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Em pacientes em terapia de reposição de testosterona (TRT) ou uso de androgênios, o teto seguro recomendado pela literatura médica esportiva é de até 52%. Acima desse valor, a viscosidade sanguínea aumenta o esforço cardíaco, exigindo hidratação reforçada (>3,5L/dia) e ajuste clínico preventivo."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Como o Dr. Exame protege a privacidade dos meus exames?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Todos os dados são protegidos por criptografia e conformidade rigorosa com a LGPD. As informações de saúde, suplementos e laudos pertencem exclusivamente ao paciente e nunca são compartilhadas ou indexadas em mecanismos de busca públicos."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
     <style>
       /* Feel nativo: remove o highlight azul do tap no webview/mobile. */
       html, body, * { -webkit-tap-highlight-color: transparent; }
@@ -81,24 +155,59 @@
       #main-content, main, [class*="RaLayout"] { margin-top: 0 !important; padding-top: 0 !important; }
       #main-content { width: 100% !important; max-width: 100% !important; box-sizing: border-box; }
       .MuiDrawer-paper { padding-top: env(safe-area-inset-top); }
-      /* Dr. Exame flutuante: pulso suave pra convidar a perguntar (só desktop, JS controla o segue-cur sor) */
+      /* Dr. Exame flutuante: pulso suave pra convidar a perguntar (só desktop, JS controla o segue-cursor) */
       @keyframes drPulse { 0%,100% { box-shadow: 0 6px 18px rgba(32,178,170,.35); } 50% { box-shadow: 0 6px 26px rgba(32,178,170,.75); } }
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-D912zVSL.js"></script>
+    <script type="module" crossorigin src="./assets/index-WXJ5FMwd.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-DTSSWJwV.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-B0l68p1h.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-DjNIk_6x.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-BELt8f81.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BTYM9qFW.js">
-    <link rel="modulepreload" crossorigin href="./assets/theme-DSzSws6m.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BrNLKvPV.js">
+    <link rel="modulepreload" crossorigin href="./assets/theme-BnC1GYl-.js">
   </head>
   <body>
     <noscript>
-      <h1>Dr. Exame</h1>
-      <p>Seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor em português simples, com leitura de risco, plano de ação e perguntas para levar ao médico. Conteúdo educativo — não substitui consulta médica.</p>
-      <p>Acesse: <a href="https://drexame.janocaminho.com.br">drexame.janocaminho.com.br</a></p>
+      <header>
+        <h1>Dr. Exame — Leitura Inteligente de Exames de Sangue com IA & Modo Saúde Esportiva</h1>
+        <p>Seu assistente de saúde com IA. Envie seus exames (PDF ou foto) e entenda cada valor em português simples, com leitura de risco, plano de ação e perguntas para levar ao médico.</p>
+      </header>
+      <main>
+        <section>
+          <h2>Modo Saúde Esportiva para Atletas, Musculação e Alta Performance</h2>
+          <p>Treina pesado, corre ou faz reposição hormonal (TRT)? Os laboratórios convencionais comparam você com pessoas sedentárias. O Dr. Exame contextualiza cada marcador com fisiologia esportiva:</p>
+          <ul>
+            <li><strong>CK Total & TGO pós-treino:</strong> Diferenciação precisa entre dano muscular do treino e lesão hepática real.</li>
+            <li><strong>Função Renal & Cistatina-C:</strong> Elimina falsos positivos de creatinina alta em quem toma creatina e possui grande massa muscular.</li>
+            <li><strong>Hematócrito e Viscosidade em TRT:</strong> Monitoramento preventivo com limite seguro de até 52% para reduzir risco cardiovascular.</li>
+            <li><strong>Ferritina para Corredores:</strong> Avaliação correta da reserva de ferro e transporte de oxigênio (VO2 máx).</li>
+          </ul>
+        </section>
+        <section>
+          <h2>Perguntas Frequentes (FAQ)</h2>
+          <article>
+            <h3>Creatina aumenta a creatinina no exame?</h3>
+            <p>Sim. Quem suplementa creatina e tem alta densidade muscular costuma ter falso positivo de creatinina. O exame de Cistatina-C avalia a função renal real.</p>
+          </article>
+          <article>
+            <h3>O que é o Dr. Exame?</h3>
+            <p>Uma plataforma tecnológica e educativa que organiza, compara e explica laudos laboratoriais, preparando o paciente para consultas médicas mais produtivas.</p>
+          </article>
+        </section>
+        <nav>
+          <h3>Acesso Rápido</h3>
+          <ul>
+            <li><a href="https://drexame.janocaminho.com.br/saude-esportiva">Modo Saúde Esportiva</a></li>
+            <li><a href="https://drexame.janocaminho.com.br/exames-para-atletas">Exames para Atletas</a></li>
+            <li><a href="https://drexame.janocaminho.com.br/como-funciona">Como Funciona</a></li>
+            <li><a href="https://drexame.janocaminho.com.br/para-medicos">Portal para Médicos</a></li>
+            <li><a href="https://drexame.janocaminho.com.br/termos">Termos de Uso</a></li>
+            <li><a href="https://drexame.janocaminho.com.br/privacidade">Política de Privacidade (LGPD)</a></li>
+          </ul>
+        </nav>
+      </main>
     </noscript>
     <div id="root"></div>
     <script>
