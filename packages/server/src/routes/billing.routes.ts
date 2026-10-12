@@ -229,8 +229,9 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     // Gate por provider: PIX usa o ativo (mp|openpix|asaas); cartão/débito exigem MP abaixo.
     if (!pixProviderReady()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const subscriptionColumns = await getSubscriptionColumnSupport();
-    const pack = packById(String(req.body?.pack ?? ''));
-    if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+    // ⚠️ Guard de pack fica DEPOIS do branch do plano mensal (abaixo): o front manda
+    // {plan:'monthly'} SEM pack — validar pack aqui matava a compra do Premium com
+    // 400 'Pacote inválido' (regressão 165eceb3, corrigida 12/10). Mesma semântica do /pay-card.
     const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
@@ -300,6 +301,11 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), credits: monthlyCredits, price: eff.price, plan: true });
       return;
     }
+
+    // Fluxo de PACKS de créditos: daqui pra frente o body PRECISA ter um pack válido
+    // (plano mensal já retornou acima — mesmo bypass do /pay-card).
+    const pack = packById(String(req.body?.pack ?? ''));
+    if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
 
     // ===== LOCK (PIX de créditos): 1 PIX pendente por vez — vale p/ QUALQUER método =====
     if (subscriptionColumns.hasPixResume) {

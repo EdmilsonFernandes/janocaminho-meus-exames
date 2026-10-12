@@ -90,6 +90,22 @@ describe('billing: planos, webhook (idempotente), compra de créditos', () => {
     expect(r.body.credits).toBe(140);
   });
 
+  // ===== REGRESSÃO 12/10: compra do PLANO por PIX mandava {plan:'monthly'} SEM pack e o
+  // guard de pack (antes do branch do plano) devolvia 400 'Pacote inválido' — Premium
+  // incomprável por PIX desde 165eceb3. Guard movido p/ depois do branch (padrão /pay-card).
+  it('buy-credits {plan:"monthly"} SEM pack cria PIX do PLANO (não 400 Pacote inválido)', async () => {
+    const { token } = await createUser();
+    fetchMock().mockResolvedValueOnce(mpResponse({
+      id: 'planPay1', status: 'pending',
+      point_of_interaction: { transaction_data: { qr_code: 'PLANQR', qr_code_base64: 'AAAA' } },
+    }));
+    const r = await api().post('/api/billing/buy-credits').set(authHeader(token))
+      .send({ plan: 'monthly', method: 'pix' });
+    expect(r.status).toBe(200);
+    expect(r.body.plan).toBe(true);
+    expect(r.body.qrCode).toBe('PLANQR');
+  });
+
   // ===== LOCK 1-por-vez (dono 03/10): PIX PENDING vivo trava NOVA compra (409) =====
 
   /** Factory: Subscription PENDING de pacote com QR PIX persistido. */
