@@ -57,7 +57,33 @@ export const DecifreReal = () => {
   const [phase, setPhase] = useState(0);
   const [result, setResult] = useState<{ items: any[]; totalDetected: number; cached?: boolean; disclaimer?: string } | null>(null);
   const [err, setErr] = useState('');
+  // Captura OPCIONAL de lead no resultado (wizard público etapa 2): o decode segue
+  // grátis e sem cadastro — o e-mail é convite, nunca portão.
+  const [leadEmail, setLeadEmail] = useState('');
+  const [leadSending, setLeadSending] = useState(false);
+  const [leadDone, setLeadDone] = useState(false);
+  const [leadErr, setLeadErr] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const sendLead = async () => {
+    const mail = leadEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { setLeadErr('Confira o e-mail — parece incompleto.'); return; }
+    setLeadSending(true);
+    setLeadErr('');
+    try {
+      const r = await fetch(`${API_URL}/public/lead`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: mail, website: '' }), // mesmo contrato do LeadPopup (honeypot)
+      });
+      if (!r.ok) { setLeadErr('Não deu pra enviar agora — tente de novo em instantes.'); return; }
+      setLeadDone(true);
+    } catch {
+      setLeadErr('Sem conexão agora — tente de novo.');
+    } finally {
+      setLeadSending(false);
+    }
+  };
 
   // Ciclo de fases durante o loading (a cada 1.4s avança — "tá calculando")
   useEffect(() => {
@@ -389,8 +415,37 @@ export const DecifreReal = () => {
                 ? <>Os outros <b>{hidden} valores</b> + entender <b>o que isso significa</b> — explicação com IA, tendência entre exames e perguntas pro seu médico?</>
                 : <>Quer entender <b>o que isso significa</b> — explicação com IA, tendência entre exames e perguntas pro seu médico?</>}
             </Typography>
+
+            {/* Lead opcional (wizard público): recebe o convite do app por e-mail. */}
+            {!leadDone ? (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap sx={{ mt: 1.5, maxWidth: 420, mx: 'auto' }}>
+                <TextField
+                  size="small"
+                  type="email"
+                  placeholder="Seu e-mail (opcional)"
+                  value={leadEmail}
+                  onChange={(e) => { setLeadEmail(e.target.value); setLeadErr(''); }}
+                  sx={{
+                    flex: 1, bgcolor: 'rgba(255,255,255,.96)', borderRadius: '12px',
+                    '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: 14 },
+                    '& input': { color: '#0f5f5a' },
+                  }}
+                />
+                <Button
+                  onClick={() => void sendLead()}
+                  disabled={leadSending}
+                  sx={{ borderRadius: '999px', px: 3, fontWeight: 800, fontSize: 14, textTransform: 'none', bgcolor: 'rgba(255,255,255,.25)', color: '#fff', border: '1px solid rgba(255,255,255,.45)', '&:hover': { bgcolor: 'rgba(255,255,255,.35)' } }}
+                >
+                  {leadSending ? 'Enviando…' : 'Receber convite'}
+                </Button>
+              </Stack>
+            ) : (
+              <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#a7f3d0', mt: 1.5 }}>📩 Pronto! Confira seu e-mail.</Typography>
+            )}
+            {leadErr && <Typography sx={{ fontSize: 12, color: '#ffd9b3', mt: 0.5 }}>{leadErr}</Typography>}
+
             <Button onClick={() => navigate('/registrar')} endIcon={<ArrowForwardIcon />}
-              sx={{ mt: 1.5, borderRadius: '999px', px: 4, py: 1.25, fontWeight: 800, fontSize: 15, textTransform: 'none', bgcolor: '#ffffff', color: '#0f5f5a', boxShadow: '0 10px 24px rgba(0,0,0,.28)', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-1px)' } }}>
+              sx={{ mt: 1.75, borderRadius: '999px', px: 4, py: 1.25, fontWeight: 800, fontSize: 15, textTransform: 'none', bgcolor: '#ffffff', color: '#0f5f5a', boxShadow: '0 10px 24px rgba(0,0,0,.28)', '&:hover': { bgcolor: '#f0fafa', transform: 'translateY(-1px)' } }}>
               Criar conta grátis — 1º resumo por nossa conta
             </Button>
             <Typography sx={{ fontSize: 12, opacity: 0.8, mt: 1, fontWeight: 500 }}>Créditos de boas-vindas · sem cartão · cancele quando quiser</Typography>

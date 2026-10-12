@@ -38,6 +38,9 @@ import { SportsSection } from '../components/landing/SportsSection';
 // FAQ esportivo: lazy — só entra no bundle quando a variante ?sports=1 abre (CWV).
 const SportsFaq = lazy(() => import('../components/landing/SportsFaq').then((m) => ({ default: m.SportsFaq })));
 import { HeroRuler } from '../components/landing/HeroRuler';
+import { ProductPreview } from '../components/landing/ProductPreview';
+import { ComparisonTable } from '../components/landing/ComparisonTable';
+import { TrustSection } from '../components/landing/TrustSection';
 import { DrExame } from '../components/DrExame';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
@@ -48,7 +51,7 @@ import { tealText } from '../theme';
 import {
   Gift, CheckCircle, UploadSimple, Heartbeat, Lightning, FileText,
   ClockCounterClockwise, UsersThree, CreditCard, Stack as StackIcon, Coins,
-  CalendarBlank, Browser,
+  CalendarBlank, Browser, Dna, ChartLineUp, Barbell,
 } from '@phosphor-icons/react';
 
 /** Ícone premium por feature dos planos — Phosphor em vez de checkbox genérico.
@@ -70,6 +73,7 @@ const PlanFeatureIcon = ({ name, highlight }: { name: string; highlight: boolean
     coins: <Coins size={size} color={color} weight="duotone" />,
     'no-subscription': <CalendarBlank size={size} color={color} weight="duotone" />,
     clock: <Browser size={size} color={color} weight="duotone" />,
+    barbell: <Barbell size={size} color={color} weight="duotone" />,
   };
   return <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>{icons[name] ?? <CheckCircle size={size} color={color} weight="fill" />}</Box>;
 };
@@ -95,14 +99,16 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
   const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
   return [
     { name: 'Grátis', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis →', features: [
-      { icon: 'gift', text: `${credits} créditos de presente (≈ ${Math.floor(credits / 10)} resumos)` },
-      { icon: 'check', text: 'Tudo funciona: envios, valores, tendências, família' },
-      { icon: 'upload', text: 'Envie exames (PDF/foto)' },
-      { icon: 'heartbeat', text: 'Score de Saúde' },
+      { icon: 'gift', text: `${credits} créditos no cadastro (≈ ${Math.floor(credits / 10)} resumos)` },
+      { icon: 'check', text: '1º exame com análise completa grátis' },
+      { icon: 'upload', text: 'Envie exames (PDF/foto) + alertas' },
+      { icon: 'heartbeat', text: 'Score de Saúde e tendências' },
+      { icon: 'users', text: 'Família e portal do médico no plano grátis' },
     ] },
     { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês', highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal', features: [
       { icon: 'lightning', text: `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)` },
       { icon: 'file-text', text: 'Relatórios completos incluídos' },
+      { icon: 'barbell', text: 'Modo Saúde Esportiva' },
       { icon: 'history', text: 'Histórico de anos anteriores' },
       { icon: 'users', text: `Família até ${perks?.familyLimit ?? 10} perfis` },
       { icon: 'upload', text: 'Envios de exame sem custo' },
@@ -117,65 +123,8 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
   ];
 };
 
-// Carrossel "Veja na prática" — 15 slides da apresentação (Meus_Exames_AI_Platform) em WebP
-// (~0,5 MB total — 60× mais leve que o vídeo de 37 MB). Cross-fade suave, auto-rotação,
-// pausa no hover, dots clicáveis, clique no slide avança.
-const SHOWCASE_SLIDE_COUNT = 15;
-
-// Tour em vídeo (YouTube) — embedado no hero (botão play → modal) e na seção "Veja na prática".
+// Tour em vídeo (YouTube) — embedado no hero (botão play → modal).
 const TOUR_VIDEO_ID = 'jyHezElJyjA';
-const TOUR_VIDEO_SRC = `https://www.youtube-nocookie.com/embed/${TOUR_VIDEO_ID}?rel=0`;
-
-const SlideCarousel = () => {
-  const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
-  useEffect(() => {
-    if (paused) return;
-    const t = setInterval(() => setI((p) => (p + 1) % SHOWCASE_SLIDE_COUNT), 3200);
-    return () => clearInterval(t);
-  }, [paused]);
-  return (
-    <Box onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} sx={{ maxWidth: 880, mx: 'auto', width: '100%' }}>
-      <Box sx={{
-        position: 'relative', width: '100%', aspectRatio: '16 / 9',
-        borderRadius: '12px', overflow: 'hidden', bgcolor: '#0c2422',
-        boxShadow: '0 30px 60px rgba(32,178,170,.20), 0 12px 26px rgba(0,0,0,.10)',
-        border: '1px solid rgba(255,255,255,.06)',
-      }}>
-        {Array.from({ length: SHOWCASE_SLIDE_COUNT }).map((_, idx) => (
-          <Box
-            key={idx}
-            component="img"
-            src={`${import.meta.env.BASE_URL}showcase/slide-${idx + 1}.webp`}
-            alt={`Dr. Exame — slide ${idx + 1}`}
-            loading={idx === 0 ? 'eager' : 'lazy'}
-            onClick={() => setI((idx + 1) % SHOWCASE_SLIDE_COUNT)}
-            sx={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain',
-              opacity: idx === i ? 1 : 0, transition: 'opacity .6s ease', cursor: 'pointer',
-            }}
-          />
-        ))}
-      </Box>
-      <Stack direction="row" spacing={0.7} useFlexGap sx={{ mt: 2.5, justifyContent: 'center', flexWrap: 'wrap' }}>
-        {Array.from({ length: SHOWCASE_SLIDE_COUNT }).map((_, idx) => (
-          <Box
-            key={idx}
-            onClick={() => setI(idx)}
-            sx={{
-              width: 22, height: 7, borderRadius: '999px',
-              bgcolor: idx === i ? TEAL : 'rgba(15,61,58,.22)',
-              cursor: 'pointer',
-              transform: idx === i ? 'scaleX(1)' : 'scaleX(0.35)',
-              transformOrigin: 'center',
-              transition: 'transform .3s ease, background-color .3s ease',
-            }}
-          />
-        ))}
-      </Stack>
-    </Box>
-  );
-};
 
 export const LandingPage = () => {
   const navigate = useNavigate();
@@ -192,7 +141,6 @@ export const LandingPage = () => {
   }, [isSports]);
   // Disclosure nível 1 (NN/g: máx 2 níveis, affordance óbvia) — showcase e ciência
   // mostram o essencial e revelam o resto sob botão claro. Nada é apagado.
-  const [showTour, setShowTour] = useState<'video' | 'slides'>('video');
   const [showAllScience, setShowAllScience] = useState(false);
   // CTA FIXO mobile: a página tem ~12 mil px e o botão grande só existia na 1ª e na
   // última dobra — no meio do funil o polegar não alcançava conversão nenhuma.
@@ -389,10 +337,30 @@ export const LandingPage = () => {
                   {isSports ? 'Ver como a IA interpreta ↓' : 'Ver como funciona ↓'}
                 </Button>
               </Stack>
-              {/* Risk-reversal no ponto de decisão (o mesmo texto volta no CTA final — message match) */}
-              <Typography sx={{ fontSize: 13, color: isSports ? 'rgba(255,255,255,.75)' : 'text.secondary', fontWeight: 600 }}>
-                Primeiro exame com análise grátis · sem cartão · dados protegidos (LGPD)
+              {/* Risk-reversal no ponto de decisão — atrito zero em 1 linha (insight
+                  Kantesti: "60 segundos, sem cadastro" como centro). */}
+              <Typography sx={{ fontSize: 13, color: isSports ? 'rgba(255,255,255,.75)' : 'text.secondary', fontWeight: 700 }}>
+                ⚡ Em menos de 1 minuto · Grátis · Sem cartão · Primeiro exame com análise grátis
               </Typography>
+              {/* Badge Android — app REAL na Play Store desde a 1ª dobra (o QR do rodapé
+                  cobre quem chegou ao fim; este cobre quem só viu o topo). */}
+              <Box
+                component="a"
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  display: 'inline-flex', alignItems: 'center', gap: 0.75, mt: 1,
+                  px: 1.5, py: 0.5, borderRadius: '999px', textDecoration: 'none',
+                  border: '1px solid', borderColor: isSports ? 'rgba(95,201,195,.4)' : 'rgba(32,178,170,.35)',
+                  bgcolor: isSports ? 'rgba(32,178,170,.14)' : 'rgba(32,178,170,.06)',
+                  color: isSports ? '#5fc9c3' : TEAL_DARK,
+                  fontSize: 12.5, fontWeight: 800, width: 'fit-content',
+                  '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+                }}
+              >
+                📱 App Android disponível
+              </Box>
               {/* Prova imediata sem scroll — SÓ verificável: nota real da Play, fontes
                   reais (diretrizes em packages/server/knowledge), LGPD. Zero métrica inventada. */}
               <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
@@ -584,6 +552,10 @@ export const LandingPage = () => {
           quem escaneou o QR do cartaz de academia não vai rolar atrás da própria oferta. */}
       {isSports && <SportsSection variant="full" onGoDemo={() => goTo('demo')} />}
 
+      {/* PRODUCT PREVIEW (maior conversor — insight Kantesti/AI DiagMe: mostrar o
+          produto por dentro logo no início, não só descrever). */}
+      <ProductPreview />
+
       {/* PROBLEMA — na linguagem de quem sai do laboratório sem entender nada
           (framework PAS: público leigo, consciente da dor). 3 dores + ponte pra solução. */}
       <Box id="problema" sx={{ bgcolor: 'background.default', py: { xs: 5, md: 7 }, scrollMarginTop: 80 }}>
@@ -659,6 +631,43 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* DIFERENCIAIS — features que JÁ EXISTEM no app e a landing não mostrava
+          (insight concorrentes: o "site mostra 20% do produto"). Grid compacto
+          entre métricas e prova social. */}
+      <ScrollReveal>
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>
+              O que <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>só</Box> o Dr. Exame tem
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 540, mx: 'auto' }}>
+              Já está no app, pronto pra usar — não é roadmap.
+            </Typography>
+          </Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+            {[
+              { Icon: Dna, t: 'Idade Biológica', d: 'Descubra a idade do seu sangue, calculada por 9 marcadores (PhenoAge).' },
+              { Icon: Heartbeat, t: 'Score de Saúde', d: 'Um número que resume sua saúde — e a evolução dele exame a exame.' },
+              { Icon: ChartLineUp, t: 'Tendências', d: 'Veja se seus valores estão melhorando ou piorando ao longo do tempo.' },
+              { Icon: Barbell, t: 'Saúde Esportiva', d: 'Modo premium pra quem treina: marcadores por esporte e impacto de substâncias.' },
+              { Icon: UsersThree, t: 'Família', d: 'Exames de todos os dependentes no mesmo app — cada um com histórico próprio.' },
+            ].map(({ Icon, t, d }) => (
+              <Reveal key={t}>
+                <Box sx={{ height: '100%', p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', gap: 1.25, transition: 'transform .2s ease, box-shadow .2s ease', '&:hover': { transform: 'translateY(-3px)', boxShadow: '0 14px 34px rgba(32,178,170,.12)' } }}>
+                  <Box sx={{ width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.10)' }}>
+                    <Icon size={24} color={TEAL_DARK} weight="duotone" />
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary' }}>{t}</Typography>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.6, flex: 1 }}>{d}</Typography>
+                </Box>
+              </Reveal>
+            ))}
+          </Box>
+        </Container>
+      </Box>
+      </ScrollReveal>
+
       {/* PROVA SOCIAL — rostos e palavras de quem usa (critique P2: a página tinha
           ZERO prova humana; nota 5,0 na Play escondida no pé). Depoimentos REAIS da
           loja — copy factual, nada inventado. */}
@@ -690,6 +699,12 @@ export const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+
+      {/* COMPARAÇÃO — Dr. Exame vs IA genérica: o visitante está decidindo entre
+          você e o ChatGPT; coloque os dois na mesa (insight AI DiagMe). */}
+      <ScrollReveal>
+        <ComparisonTable onCta={() => navigate('/registrar')} />
+      </ScrollReveal>
 
       {/* SEÇÃO — Descubra seu risco + plano de ação — momento premium esculpido (dark-teal card) */}
       <Box sx={{ py: { xs: 5, md: 8 }, bgcolor: 'background.default' }}>
@@ -1186,6 +1201,12 @@ export const LandingPage = () => {
           </Button>
         </Container>
       </Box>
+
+      {/* SEGURANÇA & LGPD — dado de saúde pede confiança ANTES do preço (insight
+          concorrentes: seção de privacidade explícita). */}
+      <ScrollReveal>
+        <TrustSection />
+      </ScrollReveal>
 
       {/* PLANOS — modelo explicado antes dos preços: "como funciona" mata a confusão
           créditos × avulso × assinatura (feedback do dono: travou 3× lendo os cards). */}
