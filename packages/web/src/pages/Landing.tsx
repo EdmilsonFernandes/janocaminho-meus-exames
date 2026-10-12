@@ -39,6 +39,8 @@ import { SportsSection } from '../components/landing/SportsSection';
 const SportsFaq = lazy(() => import('../components/landing/SportsFaq').then((m) => ({ default: m.SportsFaq })));
 import { HeroRuler } from '../components/landing/HeroRuler';
 import { ProductPreview } from '../components/landing/ProductPreview';
+import { LandingNavbar } from '../components/landing/LandingNavbar';
+import { LandingBodyMapSection } from '../components/landing/LandingBodyMapSection';
 import { ComparisonTable } from '../components/landing/ComparisonTable';
 import { TrustSection } from '../components/landing/TrustSection';
 import { DrExame } from '../components/DrExame';
@@ -208,38 +210,8 @@ export const LandingPage = () => {
         @media (prefers-reduced-motion: reduce){ .hero-float{ animation: none !important; } }
       `}</style>
 
-      {/* NAVBAR flutuante — GLASSMORPHISM premium (blur 20px + border sutil + sombra leve;
-          NN/g: "sparingly, high-value elements" — navbar é o elemento #1). */}
-      <Box sx={{
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000, transition: 'all .3s cubic-bezier(.16,1,.3,1)',
-        paddingTop: 'env(safe-area-inset-top)',
-        bgcolor: scrolled ? 'rgba(255,255,255,.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(32,178,170,.12)' : '1px solid transparent',
-        boxShadow: scrolled ? '0 1px 12px rgba(15,95,90,.06)' : 'none',
-      }}>
-        <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
-          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ cursor: 'pointer' }} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 38, height: 38, borderRadius: '16%', objectFit: 'cover' }} />
-            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 19, letterSpacing: '-0.01em' }}>Dr. Exame</Typography>
-          </Stack>
-          <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box component="button" onClick={() => goTo('demo')} sx={{ ...navBtn(scrolled), display: { xs: 'none', sm: 'inline' } }}>Como funciona</Box>
-            {isSports ? (
-              <Box component="a" href="#/" sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, textDecoration: 'none' }}>Modo geral</Box>
-            ) : (
-              <Box component="button" onClick={() => goTo('esporte')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' }, color: TEAL_DARK, fontWeight: 700 }}>Saúde Esportiva</Box>
-            )}
-            {!isSports && <Box component="button" onClick={() => goTo('remedios')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Remédios e preços</Box>}
-            <Box component="button" onClick={() => goTo('planos')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Planos</Box>
-            <Box component="button" onClick={() => navigate('/doctor')} sx={{ ...navBtn(scrolled), display: { xs: 'none', lg: 'inline' } }}>É médico?</Box>
-            <Box component="button" onClick={() => navigate('/faq')} sx={{ ...navBtn(scrolled), display: { xs: 'none', md: 'inline' } }}>Dúvidas</Box>
-            <Button onClick={() => navigate('/entrar')} sx={{ color: INK, fontWeight: 700, textTransform: 'none', minHeight: 44, px: 1.5 }}>Entrar</Button>
-            <Button variant="contained" color="primary" size="small" onClick={() => navigate('/registrar')} sx={{ borderRadius: '999px', px: 2.5, textTransform: 'none', fontWeight: 700 }}>Criar conta</Button>
-          </Stack>
-        </Container>
-      </Box>
+      {/* NAVBAR flutuante com MEGA MENU estilo Kantesti (Web e Mobile/APK safe) */}
+      <LandingNavbar scrolled={scrolled} isSports={isSports} onGoToSection={goTo} />
 
       {/* HERO — premium mesh gradient (padrão) OU Métrica Vital dark (variante ?sports=1:
           mesmo fundo profundo dos cartazes de academia — continuidade da campanha QR). */}
@@ -555,6 +527,9 @@ export const LandingPage = () => {
       {/* PRODUCT PREVIEW (maior conversor — insight Kantesti/AI DiagMe: mostrar o
           produto por dentro logo no início, não só descrever). */}
       <ProductPreview />
+
+      {/* MAPA DO CORPO INTERATIVO & CÁLCULOS CLÍNICOS POR ÓRGÃO (Inspirado no Kantesti Body Map) */}
+      <LandingBodyMapSection />
 
       {/* PROBLEMA — na linguagem de quem sai do laboratório sem entender nada
           (framework PAS: público leigo, consciente da dor). 3 dores + ponte pra solução. */}

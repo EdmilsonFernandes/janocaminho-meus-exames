@@ -211,7 +211,7 @@ describe('computeBodyRegions — agregação por região', () => {
     ]).map((r) => [r.key, r]));
     expect(by.figado.level).toBe('alterado');
     expect(by.ossos.level).toBe('ok');
-    expect(by.musculos.level).toBe('ok');
+    expect(by.hormonios.level).toBe('ok'); // DHEA é hormônio adrenal (não muscular)
   });
 
   it('hemograma completo acende sangue; creatinina alterada acende rins', () => {
@@ -221,5 +221,51 @@ describe('computeBodyRegions — agregação por região', () => {
     expect(by.sangue.level).toBe('ok');
     expect(by.sangue.markers).toHaveLength(2);
     expect(by.rins.level).toBe('alterado');
+  });
+
+  it('HbA1c NÃO acende Sangue (match exato, não por substring)', () => {
+    const by = Object.fromEntries(computeBodyRegions([input('HEMOGLOBINA_GLICADA', 'moderada')]).map((r) => [r.key, r]));
+    expect(by.pancreas.level).toBe('alterado');
+    expect(by.sangue.level).toBe('sem_dados');
+  });
+
+  it('marcador pode pertencer a mais de uma região (potássio → rins e coração; fosfatase → fígado e ossos)', () => {
+    const by = Object.fromEntries(computeBodyRegions([input('POTASSIO', 'leve'), input('FOSFATASE', 'normal')]).map((r) => [r.key, r]));
+    expect(by.rins.level).toBe('atencao');
+    expect(by.coracao.level).toBe('atencao');
+    expect(by.figado.level).toBe('ok');
+    expect(by.ossos.level).toBe('ok');
+  });
+
+  it('hormônios têm região própria (testosterona/LH/FSH/DHEA)', () => {
+    const by = Object.fromEntries(computeBodyRegions([input('TESTOSTERONA_TOTAL', 'normal'), input('LH', 'leve')]).map((r) => [r.key, r]));
+    expect(by.hormonios.level).toBe('atencao');
+    expect(by.hormonios.markers).toHaveLength(2);
+  });
+
+  it('só marcadores históricos (>12m) → desatualizado, nunca ok/alterado atual', () => {
+    const hist = { ...input('TSH', 'importante'), historical: true };
+    const by = Object.fromEntries(computeBodyRegions([hist]).map((r) => [r.key, r]));
+    expect(by.cerebro.level).toBe('desatualizado');
+    expect(by.cerebro.markers[0].historical).toBe(true);
+  });
+
+  it('histórico não contamina o nível quando há marcador atual', () => {
+    const by = Object.fromEntries(computeBodyRegions([
+      { ...input('TSH', 'importante'), historical: true }, input('T4_LIVRE', 'normal'),
+    ]).map((r) => [r.key, r]));
+    expect(by.cerebro.level).toBe('ok');
+  });
+
+  it('payload rico: unidade, referência legível, data, anterior e examId', () => {
+    const by = Object.fromEntries(computeBodyRegions([{
+      nameCanonical: 'LDL', name: 'LDL', priority: 'moderada', valueText: '190', unit: 'mg/dL',
+      refLow: null, refHigh: 130, performedAt: new Date('2026-06-01T00:00:00Z'),
+      prior: { valueText: '170', performedAt: new Date('2026-01-01T00:00:00Z') }, deltaPct: 11.8, trend: 'piorou', examId: 'ex1',
+    }]).map((r) => [r.key, r]));
+    const m = by.coracao.markers[0];
+    expect(m).toMatchObject({ unit: 'mg/dL', refText: '< 130', examId: 'ex1', trend: 'piorou', historical: false });
+    expect(m.performedAt).toBe('2026-06-01T00:00:00.000Z');
+    expect(m.prior?.valueText).toBe('170');
   });
 });

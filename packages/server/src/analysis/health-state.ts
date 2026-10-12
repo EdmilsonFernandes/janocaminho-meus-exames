@@ -45,6 +45,8 @@ export interface ItemRow {
   flag: string;
   isAbnormal: boolean;
   performedAt: Date | null;
+  /** Exame de origem do item (link "ver exame original" no Mapa do Corpo). */
+  examId?: string | null;
 }
 
 /** Layer 1 — estado de um marcador (paciente × nameCanonical). */
@@ -52,7 +54,7 @@ export interface MarkerState {
   nameCanonical: string;
   name: string; // nome de exibição (do item mais recente)
   unit: string | null;
-  latest: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; ageMonths: number | null; stale: boolean; /** Camada 3 (consolidado): meses desde a última medição (arredondado). */ monthsSinceLast?: number | null };
+  latest: { examId?: string | null; valueNumeric: number | null; valueText: string | null; performedAt: Date | null; ageMonths: number | null; stale: boolean; /** Camada 3 (consolidado): meses desde a última medição (arredondado). */ monthsSinceLast?: number | null };
   prior: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; unit: string | null } | null;
   deltaPct: number | null; // latest vs prior (null se não-numérico/prior=0)
   refLow: number | null;
@@ -400,7 +402,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       nameCanonical: canonical,
       name: latest.name,
       unit: latest.unit,
-      latest: { valueNumeric: latest.valueNumeric, valueText: latest.valueText, performedAt: latest.performedAt, ageMonths: age, stale, monthsSinceLast: age == null ? null : Math.round(age) },
+      latest: { examId: latest.examId ?? null, valueNumeric: latest.valueNumeric, valueText: latest.valueText, performedAt: latest.performedAt, ageMonths: age, stale, monthsSinceLast: age == null ? null : Math.round(age) },
       prior: prior ? { valueNumeric: prior.valueNumeric, valueText: prior.valueText, performedAt: prior.performedAt, unit: prior.unit } : null,
       deltaPct: deltaPct(latest, priorForTrend),
       refLow: latest.refLow,
@@ -449,6 +451,7 @@ async function loadPatientRows(patientId: string): Promise<ItemRow[]> {
     flag: r.flag,
     isAbnormal: r.isAbnormal,
     performedAt: (r.exam as { performedAt: Date | null }).performedAt,
+    examId: r.examId,
   }));
 }
 
@@ -690,6 +693,18 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
       name: m.name,
       priority: m.priority,
       valueText: m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : null),
+      unit: m.unit,
+      refLow: m.refLow,
+      refHigh: m.refHigh,
+      refText: m.refText,
+      performedAt: m.latest.performedAt,
+      prior: m.prior
+        ? { valueText: m.prior.valueText ?? (m.prior.valueNumeric != null ? String(m.prior.valueNumeric).replace('.', ',') : null), performedAt: m.prior.performedAt }
+        : null,
+      deltaPct: m.deltaPct,
+      trend: m.trend,
+      examId: m.latest.examId ?? null,
+      historical: !!m.historical,
     })));
   } catch { /* best-effort */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };

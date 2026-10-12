@@ -26,11 +26,16 @@ const FLAG_META: Record<string, { label: string; color: string; bg: string }> = 
 
 const fmt = (n: number | null) => (n == null ? '—' : String(n).replace('.', ','));
 
-/** Fases do "calculando" — texto vivo + skeleton shimmer (a sensação de trabalho real). */
-const PHASES = ['Abrindo o laudo…', 'Encontrando os valores…', 'Conferindo as faixas de referência…', 'Quase lá…'];
+/** 4 etapas clínicas do processamento com IA (Inspirado no fluxo de validação médica) */
+const CLINICAL_STEPS = [
+  { step: 1, label: 'Extração do Arquivo', desc: 'Lendo dados do laudo com segurança…' },
+  { step: 2, label: 'Identificação de Marcadores', desc: 'Mapeando exames de sangue e unidades…' },
+  { step: 3, label: 'Faixas do Laboratório', desc: 'Conferindo referências clínicas de cada valor…' },
+  { step: 4, label: 'Resumo Clínico', desc: 'Organizando resultados e preparando relatório…' },
+];
 
 /** Mobile: hint pra não trocar de app durante o processamento (Android mata a conexão). */
-const MOBILE_HINT = '📱 Mantenha esta tela aberta — pode levar até 1 minuto';
+const MOBILE_HINT = '📱 Mantenha esta tela aberta — processando com segurança na nuvem';
 
 /**
  * "Decifre seu exame" — VERSÃO REAL do funil público: PDF do laboratório (o fluxo real do
@@ -85,10 +90,10 @@ export const DecifreReal = () => {
     }
   };
 
-  // Ciclo de fases durante o loading (a cada 1.4s avança — "tá calculando")
+  // Ciclo das 4 etapas durante o loading (~1.8s por etapa com feedback visual)
   useEffect(() => {
     if (!loading) { setPhase(0); return; }
-    const iv = setInterval(() => setPhase((p) => Math.min(p + 1, PHASES.length - 1)), 1400);
+    const iv = setInterval(() => setPhase((p) => Math.min(p + 1, CLINICAL_STEPS.length - 1)), 1800);
     return () => clearInterval(iv);
   }, [loading]);
 
@@ -326,7 +331,7 @@ export const DecifreReal = () => {
             '&:hover': { bgcolor: canSend ? '#f0fafa' : 'rgba(255,255,255,0.25)' }
           }}
         >
-          {loading ? PHASES[phase] : 'Decifrar grátis'}
+          {loading ? CLINICAL_STEPS[phase].label : 'Decifrar grátis'}
         </Button>
         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ opacity: 0.95 }}>
           <LockIcon sx={{ fontSize: 15 }} />
@@ -340,13 +345,65 @@ export const DecifreReal = () => {
         </Typography>
       )}
 
-      {/* LOADING — cena Dr. Exame analisando (29/09: mesmo robô do app; sem label porque
-          o texto da fase abaixo já é branco — o label do componente usaria cor clara-em-fundo-
-          escuro no dark mode). Fases rotativas + hint mobile seguem. */}
+      {/* LOADING — 4 ETAPAS CLÍNICAS (Inspirado no fluxo de validação médica do Kantesti) */}
       {loading && (
-        <Box sx={{ mt: 2.5, borderRadius: '16px', bgcolor: 'rgba(0,0,0,.32)', border: '1px solid rgba(255,255,255,.2)', p: 2.5 }}>
+        <Box sx={{ mt: 2.5, borderRadius: '16px', bgcolor: 'rgba(0,0,0,.4)', border: '1px solid rgba(255,255,255,.22)', p: { xs: 2, sm: 2.5 } }}>
           <RobotAnalysis />
-          <Typography sx={{ fontWeight: 800, fontSize: 15, mt: 1, color: '#fff', textAlign: 'center' }}>{PHASES[phase]}</Typography>
+          
+          {/* Barra de progresso visual das etapas */}
+          <Box sx={{ maxWidth: 440, mx: 'auto', mt: 2, mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#5eead4', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Etapa {phase + 1} de 4: {CLINICAL_STEPS[phase].label}
+              </Typography>
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#fff' }}>
+                {Math.round(((phase + 1) / 4) * 100)}%
+              </Typography>
+            </Box>
+            <Box sx={{ width: '100%', height: 6, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 3, overflow: 'hidden' }}>
+              <Box
+                sx={{
+                  width: `${((phase + 1) / 4) * 100}%`,
+                  height: '100%',
+                  bgcolor: '#20b2aa',
+                  borderRadius: 3,
+                  transition: 'width 0.4s ease-in-out',
+                }}
+              />
+            </Box>
+          </Box>
+
+          {/* Stepper horizontal leve */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, maxWidth: 480, mx: 'auto', mb: 1.5 }}>
+            {CLINICAL_STEPS.map((s, idx) => {
+              const done = idx < phase;
+              const current = idx === phase;
+
+              return (
+                <Box
+                  key={s.step}
+                  sx={{
+                    textAlign: 'center',
+                    p: 0.75,
+                    borderRadius: '8px',
+                    bgcolor: current ? 'rgba(32,178,170,0.25)' : done ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)',
+                    border: '1px solid',
+                    borderColor: current ? '#5eead4' : done ? '#34d399' : 'transparent',
+                    transition: 'all .2s ease',
+                  }}
+                >
+                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: current ? '#5eead4' : done ? '#86efac' : 'rgba(255,255,255,0.5)' }}>
+                    {done ? '✓' : s.step}. {s.label.split(' ')[0]}
+                  </Typography>
+                </Box>
+              );
+            })}
+          </Box>
+
+          <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'rgba(255,255,255,0.9)', textAlign: 'center' }}>
+            {CLINICAL_STEPS[phase].desc}
+          </Typography>
+
           {/* Mobile: Android mata conexão se trocar de app durante processamento */}
           <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 1, textAlign: 'center', display: { xs: 'block', sm: 'none' } }}>
             {MOBILE_HINT}

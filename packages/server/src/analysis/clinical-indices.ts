@@ -320,15 +320,31 @@ export function computeClinicalIndices(
   return out;
 }
 
-// ─────────────────── mapa corporal: marcador → região ────────────────────
+// ─────────────────── mapa corporal: marcador → região(ões) ────────────────────
 
-export type RegionLevel = 'ok' | 'atencao' | 'alterado' | 'sem_dados';
+/** 'desatualizado' = há marcadores da região, mas TODOS com última medição > 12 meses (só
+ *  contexto histórico — nunca vira "normal" nem "alterado" atual). 'sem_dados' = nenhum marcador. */
+export type RegionLevel = 'ok' | 'atencao' | 'alterado' | 'sem_dados' | 'desatualizado';
+export type MarkerLevel = 'ok' | 'atencao' | 'alterado';
 
 export interface BodyRegionMarker {
   nameCanonical: string;
   name: string;
-  level: Exclude<RegionLevel, 'sem_dados'>;
+  level: MarkerLevel;
   valueText: string | null;
+  unit: string | null;
+  /** Faixa de referência legível ("70 – 99", "< 130", "> 40") — null se o laudo não trouxe. */
+  refText: string | null;
+  /** ISO da coleta do valor mais recente. */
+  performedAt: string | null;
+  /** Medição anterior (p/ "evolução desde o exame anterior"); null se só há 1 ponto. */
+  prior: { valueText: string | null; performedAt: string | null } | null;
+  deltaPct: number | null;
+  trend: string | null;
+  /** Exame de origem do valor mais recente (link "ver exame original"). */
+  examId: string | null;
+  /** Última medição > 12 meses: contexto, não estado atual. */
+  historical: boolean;
 }
 
 export interface BodyRegionState {
@@ -339,54 +355,108 @@ export interface BodyRegionState {
   markers: BodyRegionMarker[];
 }
 
-/** MarkerState "achatado" p/ computeBodyRegions (permite teste sem importar health-state). */
+/** MarkerState "achatado" p/ computeBodyRegions (permite teste sem importar health-state).
+ *  Campos além dos 4 primeiros são opcionais (testes antigos / chamadores mínimos). */
 export interface RegionInput {
   nameCanonical: string;
   name: string;
   priority: 'normal' | 'leve' | 'moderada' | 'importante';
   valueText: string | null;
+  unit?: string | null;
+  refLow?: number | null;
+  refHigh?: number | null;
+  refText?: string | null;
+  performedAt?: Date | string | null;
+  prior?: { valueText: string | null; performedAt: Date | string | null } | null;
+  deltaPct?: number | null;
+  trend?: string | null;
+  examId?: string | null;
+  historical?: boolean;
 }
 
-/** Regiões do corpo + como casar marcadores (canonical exato OU contém — p/ analitos
- *  sem canonical próprio, ex.: BILIRRUBINA TOTAL / DHEA / FÓSFORO). */
-const BODY_REGIONS: { key: string; label: string; emoji: string; matchers: string[] }[] = [
-  { key: 'cerebro', label: 'Cérebro & tireoide (SNC)', emoji: '🧠', matchers: ['TSH', 'T4_LIVRE', 'T3'] },
-  { key: 'coracao', label: 'Coração', emoji: '❤️', matchers: ['COLESTEROL_TOTAL', 'LDL', 'HDL', 'TRIGLICERIDES', 'PCR'] },
-  { key: 'pulmoes', label: 'Pulmões', emoji: '🫁', matchers: [] }, // sem analito de rotina no painel — região honesta "sem dados"
-  { key: 'figado', label: 'Fígado', emoji: '🍽️', matchers: ['TGO', 'TGP', 'GAMA_GT', 'BILIRRUBINA'] },
-  { key: 'pancreas', label: 'Pâncreas & glicemia', emoji: '🧬', matchers: ['GLICEMIA', 'HEMOGLOBINA_GLICADA', 'INSULINA'] },
-  { key: 'rins', label: 'Rins', emoji: '🫘', matchers: ['CREATININA', 'UREIA', 'CISTATINA_C'] },
-  { key: 'sangue', label: 'Sangue (hemograma)', emoji: '🩸', matchers: ['HEMOGLOBINA', 'HEMATOCRITO', 'LEUCOCITOS', 'PLAQUETAS'] },
-  { key: 'musculos', label: 'Músculos', emoji: '💪', matchers: ['CREATINO_QUINASE', 'DHEA'] }, // TGO/AST também é muscular — mas região hepática já o cobre
-  { key: 'ossos', label: 'Ossos & metabolismo', emoji: '🦴', matchers: ['VITAMINA_D', 'CALCIO', 'FOSFORO', 'FOSFATASE'] },
+/**
+ * MAPEAMENTO marcador → região(ões) — fonte ÚNICA (revisão clínica: editar só aqui).
+ *  - `exact`: casa o canônico INTEIRO (nunca por substring — 'HEMOGLOBINA' não pode casar
+ *    'HEMOGLOBINA_GLICADA', que é analito de outra região).
+ *  - `contains`: só p/ analitos SEM canônico próprio (grafias cruas: "BILIRRUBINA TOTAL",
+ *    "FOSFORO", "DHEA SULFATO").
+ *  - Um marcador PODE estar em mais de uma região quando a relação é clinicamente defensável
+ *    (potássio/sódio/magnésio → rins e coração; fosfatase → fígado e ossos). Nada de associação
+ *    inventada: sem analito de rotina (pulmões) a região fica 'sem_dados'.
+ */
+export const BODY_REGIONS: { key: string; label: string; emoji: string; exact: string[]; contains?: string[] }[] = [
+  { key: 'cerebro', label: 'Cérebro & tireoide', emoji: '🧠', exact: ['TSH', 'T4_LIVRE', 'T3'] },
+  { key: 'coracao', label: 'Coração & vasos', emoji: '❤️', exact: ['COLESTEROL_TOTAL', 'LDL', 'HDL', 'TRIGLICERIDES', 'PCR', 'POTASSIO', 'SODIO', 'MAGNESIO'] },
+  { key: 'pulmoes', label: 'Pulmões', emoji: '🫁', exact: [] }, // sem analito de rotina — região honesta "sem dados"
+  { key: 'figado', label: 'Fígado', emoji: '🍽️', exact: ['TGO', 'TGP', 'GAMA_GT', 'FOSFATASE'], contains: ['BILIRRUBINA'] },
+  { key: 'pancreas', label: 'Pâncreas & glicemia', emoji: '🧬', exact: ['GLICEMIA', 'HEMOGLOBINA_GLICADA', 'INSULINA'] },
+  { key: 'rins', label: 'Rins & eletrólitos', emoji: '🫘', exact: ['CREATININA', 'UREIA', 'CISTATINA_C', 'ACIDO_URICO', 'POTASSIO', 'SODIO', 'MAGNESIO'] },
+  { key: 'sangue', label: 'Sangue (hemograma)', emoji: '🩸', exact: ['HEMOGLOBINA', 'HEMATOCRITO', 'HEMACIAS', 'VCM', 'HCM', 'CHCM', 'RDW', 'LEUCOCITOS', 'NEUTROFILOS', 'LINFOCITOS', 'MONOCITOS', 'EOSINOFILOS', 'BASOFILOS', 'PLAQUETAS', 'FERRITINA', 'VITAMINA_B12'] },
+  { key: 'hormonios', label: 'Hormônios', emoji: '🧪', exact: ['TESTOSTERONA_TOTAL', 'TESTOSTERONA_LIVRE', 'DIHIDROTESTOSTERONA', 'LH', 'FSH', 'SHBG', 'IGF1'], contains: ['DHEA'] },
+  { key: 'musculos', label: 'Músculos', emoji: '💪', exact: ['CREATINO_QUINASE'] }, // TGO/AST também é muscular — mas a região hepática já o cobre
+  { key: 'ossos', label: 'Ossos & metabolismo', emoji: '🦴', exact: ['VITAMINA_D', 'CALCIO', 'FOSFATASE'], contains: ['FOSFORO'] },
 ];
 
-const matchRegion = (canon: string, matcher: string): boolean =>
-  canon === matcher || canon.includes(matcher);
+const belongsTo = (canon: string, r: (typeof BODY_REGIONS)[number]): boolean =>
+  r.exact.includes(canon) || (r.contains ?? []).some((c) => canon.includes(c));
 
 /** prioridade MarkerState → nível de região. */
-const levelOf = (p: RegionInput['priority']): Exclude<RegionLevel, 'sem_dados'> =>
+const levelOf = (p: RegionInput['priority']): MarkerLevel =>
   p === 'normal' ? 'ok' : p === 'leve' ? 'atencao' : 'alterado';
 
-const LEVEL_RANK: Record<Exclude<RegionLevel, 'sem_dados'>, number> = { ok: 0, atencao: 1, alterado: 2 };
+const LEVEL_RANK: Record<MarkerLevel, number> = { ok: 0, atencao: 1, alterado: 2 };
+
+const toIso = (d: Date | string | null | undefined): string | null => {
+  if (!d) return null;
+  const t = d instanceof Date ? d : new Date(d);
+  return Number.isNaN(t.getTime()) ? null : t.toISOString();
+};
+
+const fmtNum = (n: number) => String(n).replace('.', ',');
+/** Faixa legível a partir dos limites numéricos (refText cru do laudo tem prioridade). */
+const refLabel = (m: RegionInput): string | null => {
+  if (m.refText && m.refText.trim()) return m.refText.trim();
+  const lo = m.refLow ?? null;
+  const hi = m.refHigh ?? null;
+  if (lo != null && hi != null) return `${fmtNum(lo)} – ${fmtNum(hi)}`;
+  if (hi != null) return `< ${fmtNum(hi)}`;
+  if (lo != null) return `> ${fmtNum(lo)}`;
+  return null;
+};
 
 /**
- * Agrega marcadores por região do corpo p/ o Mapa Corporal. Região acende no pior
- * nível dos seus marcadores; sem nenhum marcador → 'sem_dados' (cinza — nunca verde).
+ * Agrega marcadores por região do corpo p/ o Mapa do Corpo. Região acende no pior nível dos
+ * marcadores ATUAIS (≤12 meses); só histórico → 'desatualizado'; nenhum marcador → 'sem_dados'
+ * (cinza — nunca verde: ausência de exame não é saúde).
  */
 export function computeBodyRegions(markers: RegionInput[]): BodyRegionState[] {
   return BODY_REGIONS.map((r) => {
-    const inRegion = markers.filter((mk) => r.matchers.some((mt) => matchRegion(mk.nameCanonical, mt)));
+    const inRegion = markers.filter((mk) => belongsTo(mk.nameCanonical, r));
     if (inRegion.length === 0) {
       return { key: r.key, label: r.label, emoji: r.emoji, level: 'sem_dados' as const, markers: [] };
     }
-    const regionMarkers: BodyRegionMarker[] = inRegion.map((mk) => ({
-      nameCanonical: mk.nameCanonical,
-      name: mk.name,
-      level: levelOf(mk.priority),
-      valueText: mk.valueText,
-    }));
-    const level = regionMarkers.reduce<Exclude<RegionLevel, 'sem_dados'>>(
+    const regionMarkers: BodyRegionMarker[] = inRegion
+      .map((mk) => ({
+        nameCanonical: mk.nameCanonical,
+        name: mk.name,
+        level: levelOf(mk.priority),
+        valueText: mk.valueText,
+        unit: mk.unit ?? null,
+        refText: refLabel(mk),
+        performedAt: toIso(mk.performedAt),
+        prior: mk.prior ? { valueText: mk.prior.valueText, performedAt: toIso(mk.prior.performedAt) } : null,
+        deltaPct: mk.deltaPct ?? null,
+        trend: mk.trend ?? null,
+        examId: mk.examId ?? null,
+        historical: !!mk.historical,
+      }))
+      // pior primeiro (o painel abre pelo que mais importa)
+      .sort((a, b) => Number(a.historical) - Number(b.historical) || LEVEL_RANK[b.level] - LEVEL_RANK[a.level]);
+    const current = regionMarkers.filter((x) => !x.historical);
+    if (current.length === 0) {
+      return { key: r.key, label: r.label, emoji: r.emoji, level: 'desatualizado' as const, markers: regionMarkers };
+    }
+    const level = current.reduce<MarkerLevel>(
       (worst, x) => (LEVEL_RANK[x.level] > LEVEL_RANK[worst] ? x.level : worst),
       'ok',
     );
