@@ -10,6 +10,7 @@ import { normalizeKey } from '../utils/normalize';
 import { guidelinesContext, extractSources } from './guidelines';
 import { guidelinesEnabled } from '../utils/settings';
 import { sportsContextBlocks } from './sports-context';
+import { getUrgencyDetail, type UrgencyItem } from './urgency';
 
 /**
  * PÓS-COERÇÃO (anti-alucinação): substitui os valores que a IA escreveu no comparativo pelos
@@ -175,6 +176,56 @@ export function attachAntigosNormalizados(summary: HealthSummary, snapshot: Curr
 }
 
 /**
+ * TRIAGEM DE URGÊNCIA (camada 1, determinística): anexa `urgency {level, message}` ao resumo
+ * com base nas regras hardcoded de analysis/urgency.ts — SEM IA decidindo. Só grava quando
+ * há algo a dizer (CRITICO/ATENCAO); NORMAL/ACOMPANHAR não geram banner no front e o campo
+ * fica ausente (relatórios antigos e novos convivem sem migração). Função PURA — testável.
+ */
+export function attachUrgency(summary: HealthSummary, items: readonly UrgencyItem[]): HealthSummary {
+  if (!items.length) return summary;
+  const u = getUrgencyDetail(items);
+  if (u.level === 'NORMAL' || u.level === 'ACOMPANHAR') return summary;
+  return { ...summary, urgency: u };
+}
+
+/**
+ * CAMADA 3 — lead do prompt consolidado: âncora temporal explícita. O resumo é BASEADO no
+ * exame mais recente; exames anteriores só entram como evolução. Data interpolada (nunca
+ * colchete-placeholder). Função PURA — testável isoladamente.
+ */
+export function consolidatedLead(latestExamAt: Date | string | null): string {
+  const d = latestExamAt instanceof Date ? latestExamAt : latestExamAt ? new Date(latestExamAt) : null;
+  const label = d && !Number.isNaN(d.getTime())
+    ? d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : 'data não informada pelo laboratório';
+  return `Baseado no exame mais recente do paciente (${label}).`;
+}
+
+/**
+ * CAMADA 3 — frescor estruturado do consolidado: anexa ao summary a data-base (exame mais
+ * recente) + idade de cada marcador, tudo do DB (snapshot.recency). O front usa p/ header
+ * "Baseado no exame de dd/mm/aaaa", chip "há X meses" em marcador envelhecido e banner
+ * quando TUDO passa de 6m. Função PURA — testável isoladamente.
+ */
+export function attachRecency(summary: HealthSummary, snapshot: CurrentHealthSummary): HealthSummary {
+  const r = snapshot.recency;
+  if (!r) return summary;
+  return {
+    ...summary,
+    recency: {
+      baseDate: r.latestExamAt ? new Date(r.latestExamAt).toLocaleDateString('pt-BR') : null,
+      allOutdated: r.allOutdated,
+      markers: [...r.current, ...r.aging, ...r.historical].map((m) => ({
+        name: m.name,
+        nameCanonical: m.nameCanonical,
+        monthsSinceLast: m.latest.monthsSinceLast ?? (m.latest.ageMonths != null ? Math.round(m.latest.ageMonths) : null),
+        historical: !!m.historical,
+      })),
+    },
+  };
+}
+
+/**
  * ATIVIDADE FÍSICA (Health Connect) como contexto de estilo de vida pro prompt da IA.
  * Médias dos últimos 30 dias de STEPS/CALORIES/DISTANCE (medições sincronizadas do
  * celular). Só retorna texto com ≥10 dias de dados — menos que isso não representa o
@@ -243,9 +294,12 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   // [mês/ano mais recente]" e a IA copiava o COLCHETE literal pro texto final (visto em produção:
   // "exames de [data não informada no contexto]").
   const latestExam = await prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED' }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } });
-  const latestLabel = latestExam?.performedAt
-    ? latestExam.performedAt.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+  // Camada 3: âncora = exame MAIS RECENTE (data cheia dd/mm/aaaa — não só mês/ano).
+  const latestDate: Date | null = latestExam?.performedAt ?? snapshot.recency?.latestExamAt ?? null;
+  const latestLabel = latestDate
+    ? latestDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
     : 'seu exame mais recente';
+  const lead = consolidatedLead(latestDate);
 
   // CORRELAÇÕES (Fase 2): hábitos × exames detectados pelo CorrelationEngine.
   // A IA recebe a conclusão ESTRUTURADA e só humaniza — NUNCA inventa correlação.
@@ -287,22 +341,24 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         (audience === 'doctor'
           ? `Atue como um assistente clínico. Produza um resumo OBJETIVO para o MÉDICO (pré-consulta) — tom clínico, direto, SEM acolhimento/parabéns. Foque em alterações relevantes e pontos a investigar na consulta.\n`
           : `Atue como um consultor de SAÚDE de alto nível. `) +
-        `O contexto abaixo JÁ está organizado por RECÊNCIA — use cada seção conforme seu papel:\n` +
-        `- ESTADO ATUAL = valores MAIS RECENTES de cada marcador (verdade presente; BASEIE o resumo aqui).\n` +
+        `${lead} O contexto abaixo JÁ está organizado por RECÊNCIA em torno desse exame — use cada seção conforme seu papel:\n` +
+        `- MARCADORES ATUAIS (ESTADO ATUAL) = valores do EXAME MAIS RECENTE (verdade presente; BASEIE o resumo aqui). Um exame de 2024 NÃO vale o mesmo que um de ontem.\n` +
+        `- Marcador com "⚠️ última medição há X meses" (6–12m): ainda é o valor mais recente, MAS cite o aviso de frescor com o NÚMERO exato dado ("última medição há X meses — valor pode ter mudado").\n` +
         `- TENDÊNCIAS = direção (melhorou/piorou/estável/1º exame) + variação % JÁ calculada (não reinvente o número).\n` +
-        `- CONTEXTO HISTÓRICO = marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante.\n\n` +
+        `- CONTEXTO HISTÓRICO = marcadores medidos há >1 ano — NÃO é estado atual; NÃO entra no corpo principal. Use só como tendência/contexto ("dosar novamente se relevante").\n\n` +
         `REGRAS TEMPORAIS OBRIGATÓRIAS (NÃO VIOLAR):\n` +
+        `- O valor ATUAL de cada marcador é o da MEDIÇÃO MAIS RECENTE. Medições antigas servem SÓ de comparação (ex.: "14,2 (↓ vs 15,1 em 03/06)") — nunca como valor de hoje.\n` +
         `- ESTADO ATUAL = SOMENTE marcadores classificados como [ATUAL] (≤6 meses) ou [RECENTE] (≤12 meses).\n` +
         `- Marcadores [HISTÓRICO] (>1 ano) ou [ANTIGO] (>3 anos): NUNCA apresentar como condição atual. Só em "Evolução" ou "Histórico relevante".\n` +
         `- Marcadores [DESATUALIZADO]: estava alterado no passado + sem medição recente. Diga "pode estar desatualizado, converse com seu médico sobre refazer" — NUNCA afirme que está alterado hoje.\n` +
         `- Se um marcador estava alterado em 2018 mas normal em 2026: o resultado ATUAL é NORMAL. Diga "houve melhora" (não "está alterado").\n` +
-        `- COMECE o resumo com: "Esta análise considera principalmente os exames de ${latestLabel}. Exames anteriores foram usados apenas para avaliar a evolução."\n` +
+        `- COMECE o resumoGeral com: "${audience === 'doctor' ? `Baseado no exame mais recente (${latestLabel})` : `Baseado no seu exame mais recente (${latestLabel})`}. Exames anteriores foram usados apenas para avaliar a evolução."\n` +
         `- NUNCA escreva colchetes "[...]" no texto final — placeholder entre colchetes é bug, não estilo.\n\n` +
         `REGRAS DE PESO TEMPORAL (obrigatórias):\n` +
         `- Baseie o quadro atual no ESTADO ATUAL; use TENDÊNCIAS só pra indicar direção/mudança.\n` +
         `- NUNCA conclua tendência de marcador marcado [confiança baixa] ou [DESATUALIZADO] sem ≥2 exames recentes.\n` +
         `- Sem exame recente de um marcador? sugira refazer com o médico — não invente conclusão.\n` +
-        `- PRAZOS (OBRIGATÓRIO): NUNCA escreva "não medido há X meses/anos" inventando prazo. Só diga "desatualizado" (SEM número) de um marcador se ele estiver EXPLICITAMENTE rotulado [DESATUALIZADO] no ESTADO ATUAL; pra qualquer outro, ele foi medido recentemente — não comente prazo.\n` +
+        `- PRAZOS (OBRIGATÓRIO): NUNCA escreva "não medido há X meses/anos" INVENTANDO prazo. Exceções com NÚMERO: (1) marcadores com "⚠️ última medição há X meses" no contexto — repita o número EXATO dado; (2) seção de desatualizados, quando o backend fornecer. Fora disso, não comente prazo.\n` +
         `- VALORES NUMÉRICOS (OBRIGATÓRIO): cite APENAS os números do ESTADO ATUAL/TENDÊNCIAS abaixo. NUNCA arredonde (2,75 NÃO vira "3" nem "2,8"), NUNCA estime, NUNCA invente. Se não há valor, escreva "sem dado".\n` +
         `- SEM REFERÊNCIA (OBRIGATÓRIO): marcadores rotulados [SEM REFERÊNCIA] no ESTADO ATUAL não têm faixa no laudo. NUNCA afirme "normal/alterado/melhorou/piorou" — sem faixa não há classificação. Use "depende do contexto clínico" (LDL, colesterol não-HDL — metas variam por risco cardiovascular) ou "referência não informada pelo laboratório" (demais). Tendência (se ≥2 exames comparáveis) só numérica ("aumentou/reduziu X%"), nunca juízo clínico. Sempre oriente a confirmar com o médico.\n\n` +
         (audience === 'doctor'
@@ -354,6 +410,25 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   summary = attachDesatualizados(summary, snapshot); // seção estruturada de desatualizados (fonte: DB, confiável)
   summary = attachEvolucao(summary, snapshot); // seção de evolução (direção + Δ% do DB)
   summary = attachAntigosNormalizados(summary, snapshot); // seção de alterações antigas normalizadas
+  summary = attachRecency(summary, snapshot); // Camada 3: frescor (data-base + idade por marcador, do DB)
+  // TRIAGEM DE URGÊNCIA (camada 1, determinística): regras hardcoded sobre o valor MAIS
+  // RECENTE de cada analito (exames dos últimos 12 meses em ordem desc + dedup por
+  // nameCanonical). Sem IA no caminho — banner do front lê `summary.urgency`.
+  const urgencyExams = await prisma.exam.findMany({
+    where: { patientId, status: 'EXTRACTED', performedAt: { gte: new Date(Date.now() - 365 * 86400000) } },
+    orderBy: { performedAt: 'desc' },
+    select: { items: { select: { nameCanonical: true, name: true, valueNumeric: true, refLow: true, refHigh: true } } },
+  }).catch(() => [] as { items: UrgencyItem[] }[]);
+  const seenCanon = new Set<string>();
+  const urgencyItems: UrgencyItem[] = [];
+  for (const e of urgencyExams) {
+    for (const it of e.items) {
+      if (seenCanon.has(it.nameCanonical)) continue;
+      seenCanon.add(it.nameCanonical);
+      urgencyItems.push(it);
+    }
+  }
+  summary = attachUrgency(summary, urgencyItems);
   // FEATURE C — fontes citadas: parse determinístico do texto BRUTO da IA (antes de qualquer
   // coerção — as citações [FONTE ANO] vêm inline no texto/JSON). Sobrescreve qualquer campo
   // `sources` que o modelo tenha inventado sozinho (fonte de verdade = o que ele ESCREVEU).
@@ -504,6 +579,8 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   // FEATURE C — fontes citadas: parse determinístico das citações [FONTE ANO] que a IA
   // escreveu no texto/JSON. Sobrescreve campo `sources` auto-inventado pelo modelo.
   summary = { ...summary, sources: extractSources(text, [...guidelineTopics, ...sports.topics]) };
+  // TRIAGEM DE URGÊNCIA (camada 1): regras determinísticas sobre os itens DESTE exame.
+  summary = attachUrgency(summary, exam.items);
 
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;
@@ -516,7 +593,13 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
 
 /** Renderiza o resumo estruturado em Markdown legível (estilo do paciente). */
 export function renderSummaryMd(s: HealthSummary): string {
-  const out: string[] = ['### Resumo geral', s.resumoGeral];
+  const out: string[] = [];
+  // Camada 3: âncora temporal no topo — o leitor vê DE QUAL exame o relatório fala antes
+  // de qualquer conclusão (um consolidado de 2024 não pode parecer "atual").
+  if (s.recency?.baseDate) {
+    out.push(`📅 **Baseado no exame mais recente (${s.recency.baseDate})** — exames anteriores entram só como evolução.`, '');
+  }
+  out.push('### Resumo geral', s.resumoGeral);
 
   if (s.comparativo?.length) {
     out.push('', '### Comparativo (anterior × atual)');

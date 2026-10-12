@@ -133,6 +133,27 @@ export const HealthSummarySchema = z.object({
     label: z.string(),
     topic: z.string(),
   })).default([]),
+  // TRIAGEM DE URGÊNCIA (camada 1 — determinística): computed pelo BACKEND (getUrgencyDetail
+  // em analysis/urgency.ts) a partir dos valores extraídos, NUNCA pela IA. Opcional p/ não
+  // quebrar relatórios antigos (sem o campo → front não mostra banner).
+  urgency: z.object({
+    level: z.enum(['CRITICO', 'ATENCAO', 'ACOMPANHAR', 'NORMAL']),
+    message: z.string().nullable().optional(),
+  }).nullable().optional(),
+  // CAMADA 3 (recência do consolidado): frescor do relatório — data-base do exame mais
+  // recente + idade de cada marcador citado. Preenchido pelo BACKEND (attachRecency a
+  // partir do snapshot) — datas vêm do DB, não da IA. Opcional p/ não quebrar relatórios
+  // antigos (front antigo ignora e cai no sourceExams de sempre).
+  recency: z.object({
+    baseDate: z.string().nullable().optional(),
+    allOutdated: z.boolean().nullable().optional(),
+    markers: z.array(z.object({
+      name: z.string(),
+      nameCanonical: z.string().nullable().optional(),
+      monthsSinceLast: z.number().nullable().optional(),
+      historical: z.boolean().nullable().optional(),
+    })).default([]),
+  }).nullable().optional(),
   disclaimer: z.string().default(''),
 });
 
