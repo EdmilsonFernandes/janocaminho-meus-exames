@@ -53,6 +53,7 @@ import { FirstExamExperience } from './FirstExamExperience';
 import { SportsDashboard } from '../sports/SportsDashboard';
 import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 import { PersonaSwitcher } from '../sports/PersonaSwitcher';
+import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -62,7 +63,8 @@ interface MentalRow {
   id: string;
   type: 'phq9' | 'gad7';
   total: number;
-  severity: { key: string; label: string };
+  /** Opcional: cache offline de versão antiga pode não ter o shape completo. */
+  severity?: { key: string; label: string };
   /** F3 — ideação (item 9 do PHQ-9 > 0). Opcional: cache offline antigo pode não ter o campo. */
   suicidalIdeation?: boolean;
   createdAt: string;
@@ -134,9 +136,17 @@ function useDashboardData(pid: string | null) {
     // Score cacheado (instantâneo na 1ª pintura, igual ao legacy).
     try {
       const c = pid ? localStorage.getItem(`dashScore:${pid}`) : null;
-      if (c) setBuckets(JSON.parse(c));
+      if (c) {
+        const parsed = JSON.parse(c);
+        // Valida o shape: cache corrompido/legado nunca pode vazar pro render.
+        if (parsed && typeof parsed === 'object'
+          && Number.isFinite(parsed.bons) && Number.isFinite(parsed.alerta) && Number.isFinite(parsed.alterados)) {
+          setBuckets(parsed);
+        }
+      }
       const cn = pid ? localStorage.getItem(`dashScoreNum:${pid}`) : null;
-      if (cn) { setScore(Number(cn)); setPrevScore(Number(cn)); } // prevScore = score da ÚLTIMA VISITA (pro badge de ganho)
+      const n = cn == null ? NaN : Number(cn);
+      if (Number.isFinite(n)) { setScore(n); setPrevScore(n); } // prevScore = score da ÚLTIMA VISITA (pro badge de ganho)
     } catch { /* ignore */ }
     (async () => {
       const h = { Authorization: `Bearer ${token()}` };
@@ -388,7 +398,7 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
         <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mt: 0.25 }}>
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 22, lineHeight: 1.1, letterSpacing: '-0.02em' }}>{row.total}</Typography>
           <Typography sx={{ fontSize: 11.5, color: 'text.disabled', fontWeight: 600 }}>/{kind === 'phq9' ? 27 : 21}</Typography>
-          <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', ml: 0.5 }}>{row.severity.label}</Typography>
+          <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', ml: 0.5 }}>{row.severity?.label ?? ''}</Typography>
         </Stack>
         <Box sx={{ mt: 0.5 }}><SeverityBar type={kind} score={row.total} compact /></Box>
       </Box>
@@ -760,7 +770,17 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { 
   );
 };
 
-export const DashboardV2 = () => {
+export const DashboardV2 = () => (
+  // Boundary ESCOPADO: qualquer crash de renderização dentro do painel (shape de API
+  // inesperada, cache offline de versão anterior, componente novo) vira um fallback
+  // "toque para recarregar" — NUNCA tela branca, e o remontar é por key (sem reload
+  // da WebView, que crasha o APK).
+  <DashboardErrorBoundary>
+    <DashboardV2Inner />
+  </DashboardErrorBoundary>
+);
+
+const DashboardV2Inner = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const real = useDashboardData(pid);
@@ -786,9 +806,11 @@ export const DashboardV2 = () => {
   // navegar pro vazio (quebraria a ilusão e confundiria).
   const go = (to: string) => (demo ? () => setDemoAsk(true) : () => navigate(to));
   // Mapa corporal → Tendências do 1º marcador ALTERADO da região (sem alterado, o 1º da lista).
+  // Guard: markers pode chegar ausente (cache offline de versão antiga / API velha).
   const openRegion = (r: BodyRegionView) => {
-    const target = r.markers.find((m) => m.level !== 'ok') ?? r.markers[0];
-    if (target) navigate(`/tendencias?select=${encodeURIComponent(target.nameCanonical)}`);
+    const markers = Array.isArray(r?.markers) ? r.markers : [];
+    const target = markers.find((m) => m.level !== 'ok') ?? markers[0];
+    if (target?.nameCanonical) navigate(`/tendencias?select=${encodeURIComponent(target.nameCanonical)}`);
   };
 
   // MEDIÇÃO do modo exemplo (R1): started = entrou; converted = clicou "Usar meu exame"
@@ -1056,7 +1078,7 @@ export const DashboardV2 = () => {
 
               {/* ÍNDICES CLÍNICOS CALCULADOS (razões/fórmulas da literatura — zero IA).
                   Escondido no demo: índice clínico fictício é dado de saúde falso. */}
-              {!demo && <ClinicalIndicesCard indices={d.indices} loaded={d.hsLoaded} />}
+              {/* HOTFIX: ClinicalIndicesCard removido temporariamente — investigando crash APK */}
 
               {/* G2 — saúde mental: flui do "como estou" (exames) pro "como estou por
                   dentro". Dado real do paciente → JAMAIS no modo exemplo. */}
@@ -1094,8 +1116,9 @@ export const DashboardV2 = () => {
               {/* PANORAMA DOS MARCADORES */}
               <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => (dest === 'alterados' ? go('/alterados') : go('/exams'))()} />
 
-              {/* MAPA CORPORAL — silhueta com regiões acesas pelo estado dos marcadores.
-                  Escondido no demo (dado fictício de saúde jamais "acende"). */}
+              {/* SAÚDE POR SISTEMA (ex-BodyMap) — a silhueta SVG crashava a WebView
+                  Android (AAB 480); redesenhado como grid de cards de sistema, sem
+                  SVG custom. Escondido no demo (dado fictício de saúde jamais "acende"). */}
               {!demo && <BodyMap regions={d.bodyRegions} loaded={d.hsLoaded} onRegionClick={openRegion} />}
 
               {/* AÇÕES RÁPIDAS */}
