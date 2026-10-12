@@ -167,6 +167,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
       items = flattenLabItems(raw as LabExtraction, demo, ageBandAt(patient?.dateOfBirth, exam.performedAt));
     }
 
+    // ANTI-ALUCINAÇÃO pós-extração: cada item precisa ter nome de volta no TEXTO REAL do
+    // documento (fuzzy, tolerante a OCR). Sem respaldo = alucinação do modelo → descartado
+    // com log de auditoria (ex. real: "Espermatozoide" inventado num exame de urina feminina).
+    if (kind !== 'IMAGING') items = filterUnbackedItems(text, items, examId);
+
     // trava anti-alucinação (apenas painel lab): compara itens extraídos vs. densidade de valores no texto
     const reviewRequired = kind !== 'IMAGING' ? sanityCheckItems(text, items) : false;
 
@@ -351,7 +356,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
         if (oldSplits.length) await prisma.exam.deleteMany({ where: { id: { in: oldSplits.map((o) => o.id) } } });
         for (let i = 0; i < splitLabs.length; i++) {
           const slab = splitLabs[i];
-          const sitems = flattenLabItems(slab, demo);
+          // Splits passam pela MESMA validação anti-alucinação (mesmo documento/texto-fonte).
+          const sitems = filterUnbackedItems(text, flattenLabItems(slab, demo), `${examId}#split-${i + 2}`);
           if (!sitems.length) continue;
           // PROPAGA identidade p/ o split: sem isto, o exame principal marcava CPF divergente
           // mas os splits ficavam "sem info" (rawExtraction sem identityMatch) → UI não aplicava
@@ -392,6 +398,91 @@ async function runExtractionOnce(examId: string): Promise<void> {
     console.error(`[extraction] exame ${examId} falhou (tentativa):`, e?.message);
     throw e; // runExtraction cuida do retry + do FAILED amigável
   }
+}
+
+// ─────────────────── ANTI-ALUCINAÇÃO pós-extração ───────────────────
+// O modelo às vezes adiciona analitos "típicos" do painel que NÃO estão no documento
+// (caso real: "Espermatozoide" num exame de URINA de paciente feminina — item inexistente
+// no laudo, inventado por conhecimento prévio do painel). Validamos cada item extraído
+// contra o TEXTO REAL do documento (pdftotext/OCR): nome que não aparece (fuzzy, tolerante
+// a ruído de OCR) = alucinação → descartado antes de persistir, com log de auditoria.
+
+/** Texto insuficiente p/ validar (OCR falhou / doc ilegível) → NÃO filtra (evita descartar
+ *  itens legítimos só porque o texto veio vazio/curto). */
+const MIN_TEXT_LEN_FOR_VALIDATION = 200;
+
+const NAME_MATCH_STOPWORDS = new Set(['com', 'sem', 'dos', 'das', 'por', 'para', 'mais', 'menos']);
+
+/** Normaliza p/ comparação: minúsculas, sem acento, só [a-z0-9] e espaços. */
+function normForNameMatch(s: string): string {
+  return String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+/** Levenshtein com teto (early-exit): dist(a,b) <= max? Barato mesmo em textos longos. */
+function withinEditDistance(a: string, b: string, max: number): boolean {
+  if (Math.abs(a.length - b.length) > max) return false;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = new Array<number>(b.length + 1);
+    cur[0] = i;
+    let rowMin = i;
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+      if (cur[j] < rowMin) rowMin = cur[j];
+    }
+    if (rowMin > max) return false; // linha inteira acima do teto → aborta
+    prev = cur;
+  }
+  return prev[b.length] <= max;
+}
+
+/** Tokens significativos do nome (≥3 chars, sem stopwords) p/ o fuzzy match. */
+function nameMatchTokens(name: string): string[] {
+  return normForNameMatch(name).split(' ').filter((w) => w.length >= 3 && !NAME_MATCH_STOPWORDS.has(w));
+}
+
+/** O nome do analito tem respaldo no texto do documento? (nome completo OU ≥50% dos tokens,
+ *  com tolerância de 1-2 edições p/ ruído de OCR). Testa name e, em fallback, nameCanonical. */
+export function itemBackedByText(name: string, canonical: string | null | undefined, text: string): boolean {
+  const normText = normForNameMatch(text);
+  if (!normText) return false;
+  const textWords = normText.split(' ');
+  const textWordSet = new Set(textWords);
+  for (const cand of [name, canonical ?? '']) {
+    if (!cand) continue;
+    const n = normForNameMatch(cand);
+    if (!n) continue;
+    if (n.length < 3) return true; // sigla curtíssima ("pH") — não validável, mantém (conservador)
+    if (normText.includes(n)) return true; // nome completo (frase) presente
+    const tokens = nameMatchTokens(cand);
+    if (!tokens.length) return true; // ex. "Hb" — sem token validável, mantém
+    let matched = 0;
+    for (const t of tokens) {
+      if (textWordSet.has(t)) { matched++; continue; }
+      // ruído de OCR: 2 edições p/ nomes longos, 1 p/ médios, 0 p/ curtos (≤4)
+      const tol = t.length >= 8 ? 2 : t.length >= 5 ? 1 : 0;
+      if (tol > 0 && textWords.some((w) => Math.abs(w.length - t.length) <= tol && withinEditDistance(w, t, tol))) matched++;
+    }
+    if (matched > 0 && matched >= Math.ceil(tokens.length / 2)) return true;
+  }
+  return false;
+}
+
+/** Remove itens extraídos cujo nome NÃO aparece no texto do documento (alucinação do modelo).
+ *  Log de auditoria lista tudo que foi descartado. Função pura (o log é o único efeito). */
+export function filterUnbackedItems<T extends { name: string; nameCanonical: string | null }>(text: string, rows: T[], logTag = ''): T[] {
+  if (!rows.length || normForNameMatch(text).length < MIN_TEXT_LEN_FOR_VALIDATION) return rows;
+  const dropped: string[] = [];
+  const kept = rows.filter((r) => {
+    if (itemBackedByText(r.name, r.nameCanonical, text)) return true;
+    dropped.push(r.name);
+    return false;
+  });
+  if (dropped.length) {
+    console.warn(`[extraction]${logTag ? ' ' + logTag : ''} ANTI-ALUCINAÇÃO: ${dropped.length} item(ns) descartado(s) — nome não encontrado no texto do documento: ${dropped.join('; ').slice(0, 300)}`);
+  }
+  return kept;
 }
 
 /** Colapsa itens DUPLICADOS dentro do MESMO documento (mesmo nameCanonical + valor + unidade).

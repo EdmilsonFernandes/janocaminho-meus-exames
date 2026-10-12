@@ -13,6 +13,33 @@ import { sportsContextBlocks } from './sports-context';
 import { getUrgencyDetail, type UrgencyItem } from './urgency';
 
 /**
+ * ANTI-ALUCINAÇÃO (resumo): a IA só pode comentar o que está EXPLICITAMENTE nos dados
+ * extraídos — nunca citar analitos/achados que não foram medidos (caso real: IA citou
+ * "espermatozoide" num exame de urina de paciente feminina, analito inexistente no laudo).
+ * Exportada p/ teste unitário e reuso nos dois prompts (por-exame e consolidado).
+ */
+export const ANTI_HALLUCINATION_RULES =
+  `ANTI-ALUCINAÇÃO (OBRIGATÓRIO): NUNCA mencione analitos, condições ou achados que não estejam ` +
+  `EXPLICITAMENTE nos dados extraídos do exame fornecidos no contexto. Se um valor não foi ` +
+  `medido, NÃO comente sobre ele — nem como hipótese, nem como comparação.\n`;
+
+/**
+ * Contexto de GÊNERO p/ o prompt do resumo: a interpretação precisa respeitar o sexo do
+ * paciente (IA generalizava achados de urina p/ contexto masculino). Vazio quando o sexo
+ * não é informado (não trava o prompt). Função pura — testável isoladamente.
+ */
+export function genderContextText(gender?: string | null): string {
+  const g = String(gender ?? '').trim().toLowerCase();
+  if (['female', 'f', 'feminino', 'feminina'].includes(g)) {
+    return `\nCONTEXTO DE GÊNERO: Paciente do sexo feminino — interprete achados nesse contexto clínico (não cite achados exclusivos do sexo masculino, ex.: espermatozoide, PSA).\n`;
+  }
+  if (['male', 'm', 'masculino', 'masculina'].includes(g)) {
+    return `\nCONTEXTO DE GÊNERO: Paciente do sexo masculino — interprete achados nesse contexto clínico (não cite achados exclusivos do sexo feminino, ex.: gravidez, menopausa).\n`;
+  }
+  return '';
+}
+
+/**
  * PÓS-COERÇÃO (anti-alucinação): substitui os valores que a IA escreveu no comparativo pelos
  * REAIS do banco (MarkerState do snapshot). A IA só interpreta; os números vêm do DB. Previne
  * "TSH 3" quando o real é "2,75". Casa comparativo.name com marker por name/nameCanonical
@@ -282,6 +309,7 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
 
   const perfil = patient.clinicalProfile?.trim();
   const perfilText = perfil ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${perfil}\n` : '';
+  const genderText = genderContextText(patient.gender);
   // ATIVIDADE FÍSICA (Health Connect, Onda "inteligência"): média 30d de passos/calorias/km
   // como CONTEXTO de estilo de vida. Só entra no prompt com dados suficientes (≥10 dias) —
   // e a regra é explícita: correlação educativa, JAMAIS causalidade.
@@ -361,11 +389,12 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
         `- PRAZOS (OBRIGATÓRIO): NUNCA escreva "não medido há X meses/anos" INVENTANDO prazo. Exceções com NÚMERO: (1) marcadores com "⚠️ última medição há X meses" no contexto — repita o número EXATO dado; (2) seção de desatualizados, quando o backend fornecer. Fora disso, não comente prazo.\n` +
         `- VALORES NUMÉRICOS (OBRIGATÓRIO): cite APENAS os números do ESTADO ATUAL/TENDÊNCIAS abaixo. NUNCA arredonde (2,75 NÃO vira "3" nem "2,8"), NUNCA estime, NUNCA invente. Se não há valor, escreva "sem dado".\n` +
         `- SEM REFERÊNCIA (OBRIGATÓRIO): marcadores rotulados [SEM REFERÊNCIA] no ESTADO ATUAL não têm faixa no laudo. NUNCA afirme "normal/alterado/melhorou/piorou" — sem faixa não há classificação. Use "depende do contexto clínico" (LDL, colesterol não-HDL — metas variam por risco cardiovascular) ou "referência não informada pelo laboratório" (demais). Tendência (se ≥2 exames comparáveis) só numérica ("aumentou/reduziu X%"), nunca juízo clínico. Sempre oriente a confirmar com o médico.\n\n` +
+        ANTI_HALLUCINATION_RULES + '\n' +
         (audience === 'doctor'
           ? `PACIENTE (refira-se SEMPRE em 3ª pessoa — "O paciente ${String(patient.fullName || '').split(' ')[0] || 'o paciente'} apresenta/relata..."; NUNCA em 2ª pessoa "você/seu/sua"): ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`
           : `PACIENTE: ${String(patient.fullName || '').split(' ')[0] || 'paciente'}\n`) +
         `Score atual: ${snapshot.score ?? '—'}/100 em ${snapshot.markers} marcador(es). Distribuição: ${JSON.stringify(snapshot.byPriority)}.\n` +
-        perfilText + activityText + correlationText + '\n' + memoryText +
+        perfilText + genderText + activityText + correlationText + '\n' + memoryText +
         (guidelinesTxt ?? '') + sports.addendum + sports.knowledge +
         `${formatSnapshotContext(snapshot)}\n\n` +
         (audience === 'doctor'
@@ -519,6 +548,7 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   const profileText = profile
     ? `\nPERFIL CLÍNICO DO PACIENTE (use para contextualizar, nunca para diagnosticar):\n${profile}\n`
     : '';
+  const genderText = genderContextText(exam.patient.gender);
 
   // FEATURE C — diretrizes com citação: analitos DESTE exame (nameCanonical) contra os
   // cards de knowledge/guidelines/*.md. Kill-switch: AppSetting guidelines.enabled.
@@ -545,9 +575,10 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
           `LABORATÓRIO: ${exam.sourceLab ?? (exam.rawExtraction as any)?.sourceLab ?? 'Não identificado'}\n` +
           `MÉDICO SOLICITANTE: ${(exam.rawExtraction as any)?.requestingDoctor ?? 'Não identificado'}\n` +
           (prior ? `Exame anterior de comparação: ${prior.title} (${prior.performedAt?.toLocaleDateString('pt-BR') ?? 's/d'}).\n` : 'Não há exame anterior para comparar; use apenas o atual.\n') +
-          profileText + '\n' + memoryText + (guidelinesTxt ?? '') + sports.addendum + sports.knowledge +
+          profileText + genderText + '\n' + memoryText + (guidelinesTxt ?? '') + sports.addendum + sports.knowledge +
           `ITENS (atual x anterior x referência):\n${JSON.stringify(comparativoInput, null, 2)}\n\n` +
           `VALORES FORA DA FAIXA NO ATUAL:\n${JSON.stringify(foraDaFaixa, null, 2)}\n\n` +
+          ANTI_HALLUCINATION_RULES + '\n' +
           `Monte o JSON com estas chaves:\n` +
           `- resumoGeral (string, 1-2 parágrafos)\n` +
           `- comparativo (array de {name, anterior, atual, leitura, entenda}) — "anterior" = valor do exame anterior (ou null); "leitura" = Melhorou/Piorou/Estável/Atenção; "entenda" = UMA frase curta e SIMPLES sobre o que é o exame e o que o valor significa (ex.: "Hemoglobina leva oxigênio no sangue; 13,8 está normal")\n` +

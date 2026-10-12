@@ -34,7 +34,13 @@ async function contentBlocksFromBuffer(buffer: Buffer, mediaType: string): Promi
   return [{ type: 'image', source: { type: 'base64', media_type: mediaType, data } }];
 }
 
-const LAB_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
+export const LAB_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
+
+REGRAS CRÍTICAS (ANTI-ALUCINAÇÃO):
+- EXTRAIA APENAS o que está ESCRITO no documento. NUNCA adicione, infira ou complete analitos que não aparecem no texto.
+- Se um analito não tem valor no documento, NÃO o inclua na resposta.
+- NÃO invente unidades, valores de referência ou nomes de analitos.
+- NUNCA complete painéis com analitos "típicos" do exame por conhecimento prévio: se o laudo de urina NÃO traz "Espermatozoide" (ou qualquer outro analito), ele NÃO existe neste exame. Itens adicionados por raciocínio clínico em vez de leitura do texto são ERRO GRAVE.
 
 LEIA TODAS AS PÁGINAS do documento. Extraia TODOS os analitos de TODOS os painéis/seções (hemograma, urina, bioquímica, hormônios, coagulação, etc.). NÃO pule nenhum painel. NÃO pare antes de extrair tudo.
 
@@ -137,7 +143,13 @@ export async function extractLabPanel(buffer: Buffer, mediaType = 'application/p
   return (z.success ? z.data : json) as LabExtraction;
 }
 
-const LAB_MULTI_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
+export const LAB_MULTI_INSTRUCTIONS = `Você é um especialista em ler resultados de EXAMES LABORATORIAIS brasileiros a partir de um documento.
+
+REGRAS CRÍTICAS (ANTI-ALUCINAÇÃO):
+- EXTRAIA APENAS o que está ESCRITO no documento. NUNCA adicione, infira ou complete analitos que não aparecem no texto.
+- Se um analito não tem valor no documento, NÃO o inclua na resposta.
+- NÃO invente unidades, valores de referência ou nomes de analitos.
+- NUNCA complete painéis com analitos "típicos" do exame por conhecimento prévio: se o laudo de urina NÃO traz "Espermatozoide" (ou qualquer outro analito), ele NÃO existe neste exame. Itens adicionados por raciocínio clínico em vez de leitura do texto são ERRO GRAVE.
 
 MÚLTIPLOS EXAMES NUM ÚNICO PDF (CRÍTICO): o documento pode conter VÁRIOS exames de DATAS DE COLETA DIFERENTES (ex.: hemograma coletado em 15/03/2026 e outro em 20/01/2025, exportados juntos pelo laboratório). SEPARE-OS: cada exame = um elemento do array "exams", agrupado pela DATA DE COLETA. Se todos os analitos pertencem à MESMA data de coleta, devolva o array com 1 único elemento. NUNCA misture itens de datas de coleta diferentes num mesmo exame.
 
