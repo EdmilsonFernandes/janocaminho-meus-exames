@@ -15,8 +15,10 @@ import { genExamCode, EXAM_INBOX_ADDRESS, inboxConfig } from '../utils/emailInbo
 import { serializeExam } from '../utils/serialize';
 import { runExtraction } from '../extraction/pipeline';
 import { config } from '../config';
-import { chargeCredits, computeUploadCost, UPLOAD_RULES } from '../utils/credits';
+import { chargeCredits, computeUploadCost, UPLOAD_RULES, CREDIT_COSTS } from '../utils/credits';
 import { invalidateHealthSummary } from '../analysis/hs-cache';
+import { buildCurrentHealthSummary } from '../analysis/health-state';
+import { buildExamNarration } from '../utils/examNarration';
 
 const router = Router();
 router.use(requireAuth);
@@ -290,6 +292,57 @@ router.post('/:id/reextract', async (req: AuthedRequest, res, next) => {
     if (!exam) return;
     runExtraction(exam.id).catch((e) => console.error('[reextract] falhou:', e?.message));
     res.json({ ok: true, id: exam.id, status: 'EXTRACTING' });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// NARRAÇÃO DO RESUMO ("🔊 Ouvir resumo" — Feature voz por exame).
+// Não gera MP3 no server: devolve o ROTEIRO pt-BR (determinístico, sem custo de IA) que o
+// front fala via TTS nativo/speechSynthesis (mesma infra do "Dr. Exame fala" do HealthSummary).
+// Custo: 1 crédito de chat por GERAÇÃO; replay do cache é grátis (1 geração por exame,
+// persistida em rawExtraction.narration — mesmo padrão do nameAttested, sem migration).
+router.post('/:id/narrate', async (req: AuthedRequest, res, next) => {
+  try {
+    const exam = await loadOwnedExam(req, res, req.params.id, {
+      items: true,
+      patient: { select: { fullName: true } },
+    });
+    if (!exam) return;
+    if (exam.status !== 'EXTRACTED') {
+      res.status(409).json({ error: 'Exame ainda não extraído — aguarde a leitura para ouvir o resumo.' });
+      return;
+    }
+    const cached = (exam.rawExtraction as any)?.narration as { text?: string } | undefined;
+    if (cached?.text) { res.json({ text: cached.text, cached: true }); return; }
+
+    // Débito atômico ANTES de gerar (mesma regra anti-race do chat). Falta saldo → 402.
+    const charged = await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'narration', `Narração do resumo: ${exam.title}`, exam.id);
+    if (!charged) {
+      res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para ouvir o resumo. Compre um pacote ou assine o mensal.' });
+      return;
+    }
+
+    // Score atual do paciente (layer 2) — best-effort: sem ele a narração segue (só omite).
+    let score: number | null = null;
+    try { score = (await buildCurrentHealthSummary(exam.patientId)).score ?? null; } catch { /* opcional */ }
+
+    const panels = [...new Set((exam.items as any[]).map((i) => i.panel || ''))];
+    const text = buildExamNarration({
+      patientName: exam.patient?.fullName ?? '',
+      examTitle: synthesizeExamTitle(exam.title, panels),
+      performedAt: exam.performedAt,
+      items: exam.items as any[],
+      score,
+    });
+
+    // Cacheia (best-effort — falha de gravação não devolve erro: o texto já foi cobrado/gerado).
+    await prisma.exam.update({
+      where: { id: exam.id },
+      data: { rawExtraction: { ...(exam.rawExtraction ?? {}), narration: { text, generatedAt: new Date().toISOString() } } },
+    }).catch(() => {});
+
+    res.json({ text, cached: false });
   } catch (e) {
     next(e);
   }

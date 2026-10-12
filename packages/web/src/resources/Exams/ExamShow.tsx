@@ -4,15 +4,18 @@ import {
   Box, Card, CardContent, Typography, Chip, Button, CircularProgress, Alert, Divider, Stack,
   Accordion, AccordionSummary, AccordionDetails, Tooltip as MuiTooltip,
 } from '@mui/material';
+import { keyframes } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
+import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import StopIcon from '@mui/icons-material/Stop';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { LabBadge } from '../../components/LabBadge';
 import { Capacitor } from '@capacitor/core';
-import { openBlobFile } from '../../utils/nativeDoc';
+import { openBlobFile, speakText, stopSpeakText } from '../../utils/nativeDoc';
 import { openExamFile } from '../../utils/examFile';
 import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
@@ -66,6 +69,20 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = {
   EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info',
 };
+
+/** Waveform da narração (CSS only — barras com atrasos defasados, anima só enquanto fala). */
+const waveBar = keyframes`0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}`;
+const WaveBars = () => (
+  <Box aria-hidden sx={{ display: 'inline-flex', alignItems: 'center', gap: '2px', height: 16, ml: 0.5 }}>
+    {[0, 1, 2, 3, 4].map((i) => (
+      <Box key={i} sx={{
+        width: 3, height: 16, borderRadius: '2px', bgcolor: 'primary.main', transformOrigin: 'center',
+        animation: `${waveBar} 1s ease-in-out ${i * 0.12}s infinite`,
+        '@media (prefers-reduced-motion: reduce)': { animation: 'none', transform: 'scaleY(.6)' },
+      }} />
+    ))}
+  </Box>
+);
 const statusLabel: Record<string, string> = {
   EXTRACTED: 'Pronto', FAILED: 'Falhou', UPLOADED: 'Enviado', EXTRACTING: 'Extraindo…',
 };
@@ -108,6 +125,12 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const [docOpen, setDocOpen] = useState(false);
   const [docTitle, setDocTitle] = useState('Documento');
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; credits: number; title: string; desc?: string; onYes: () => void }>({ open: false, credits: 0, title: '', onYes: () => {} });
+  // NARRAÇÃO DO RESUMO (🔊): server devolve o roteiro pt-BR (1 geração por exame, cobrada
+  // 1x); o áudio sai do TTS do dispositivo (nativo APK / speechSynthesis web).
+  const [narrLoading, setNarrLoading] = useState(false);
+  const [speaking, setSpeaking] = useState(false);
+  // Para a fala ao sair da tela (senão o áudio continua na página seguinte).
+  useEffect(() => { return () => { void stopSpeakText(); }; }, []);
 
   const prevStatusRef = useRef<string | undefined>(undefined);
   // Meta clínica vigente (E2.4 — camada 2): chip 🎯 + texto duplo-estado no item, SEMPRE
@@ -227,6 +250,35 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   /** Abre o laudo/PDF original inteiro (header). Mesmo fluxo robusto web+APK do openCitation. */
   const openPdf = async () => { if (!id) return; const ok = await openExamFile(id); if (!ok) notify('Não consegui abrir o laudo.', { type: 'error' }); };
 
+  /** 🔊 Ouvir resumo: POST /exams/:id/narrate → roteiro pt-BR → TTS do dispositivo.
+   *  1ª vez consome créditos de chat; replays usam o cache do exame (grátis). */
+  const narrate = async () => {
+    if (speaking || narrLoading) return;
+    setNarrLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/exams/${id}/narrate`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+      if (r.status === 402) {
+        const e = await r.json().catch(() => ({}));
+        notify(e.message || 'Sem créditos para ouvir o resumo.', { type: 'warning' });
+        window.dispatchEvent(new Event('creditsChanged'));
+        return;
+      }
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha ao gerar a narração'); }
+      const d = await r.json();
+      window.dispatchEvent(new Event('creditsChanged'));
+      setSpeaking(true);
+      void speakText(d.text, {
+        onDone: () => setSpeaking(false),
+        onFail: () => { setSpeaking(false); notify('Não consegui falar neste dispositivo.', { type: 'warning' }); },
+      });
+    } catch (e: any) {
+      notify(e.message || 'Falha ao gerar a narração', { type: 'error' });
+    } finally {
+      setNarrLoading(false);
+    }
+  };
+  const stopNarration = () => { void stopSpeakText(); setSpeaking(false); };
+
   const sendChat = async () => {
     if (!summary) return;
     const message = chatInput.trim();
@@ -291,12 +343,8 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   };
 
   const inline = inlineId !== undefined;
-  // width:'100%' OBRIGATÓRIO no root: o RaLayout-content é flex-column e `mx:'auto'` sozinho
-  // desliga o stretch → o box era dimensionado por MAX-CONTENT (~521px com chips/régua sem
-  // quebrar) e estourava a viewport no mobile (clipado no web, EMPURRAVA tudo pra direita no
-  // APK). Mesmo padrão do PageContainer (width 100% + maxWidth + mx auto).
   return (
-    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { width: '100%', maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
+    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
       {!inline && <Title title={titleInfo.text || exam.title} />}
 
       {/* Cabeçalho */}
@@ -326,9 +374,20 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               </Box>
             )}
           </Stack>
-          <Box sx={{ mt: 1.5 }}>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
             <Button size="small" variant="outlined" onClick={openPdf} startIcon={<PictureAsPdfOutlinedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>Abrir laudo</Button>
-          </Box>
+            {exam.status === 'EXTRACTED' && (
+              speaking ? (
+                <Button size="small" variant="contained" color="error" onClick={stopNarration} startIcon={<StopIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+                  Parar <WaveBars />
+                </Button>
+              ) : (
+                <Button size="small" variant="outlined" onClick={narrate} disabled={narrLoading} startIcon={narrLoading ? <CircularProgress size={16} color="inherit" /> : <RecordVoiceOverIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>
+                  Ouvir resumo ({CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat > 1 ? 's' : ''})
+                </Button>
+              )
+            )}
+          </Stack>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (
             <Typography color="text.secondary" sx={{ fontSize: '0.85rem', mt: 0.5 }}>
               {patientInfo.text ? `👤 ${patientInfo.text}` : patientInfo.suspicious ? '👤 Titular detectado em revisão' : ''}
