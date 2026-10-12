@@ -51,7 +51,7 @@ export interface MarkerState {
   nameCanonical: string;
   name: string; // nome de exibição (do item mais recente)
   unit: string | null;
-  latest: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; ageMonths: number | null; stale: boolean };
+  latest: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; ageMonths: number | null; stale: boolean; /** Camada 3 (consolidado): meses desde a última medição (arredondado). */ monthsSinceLast?: number | null };
   prior: { valueNumeric: number | null; valueText: string | null; performedAt: Date | null; unit: string | null } | null;
   deltaPct: number | null; // latest vs prior (null se não-numérico/prior=0)
   refLow: number | null;
@@ -66,6 +66,53 @@ export interface MarkerState {
   temporalClass: TemporalClass; // atual/recente/historico/antigo/desatualizado
   outdated: boolean; // true = estava alterado no passado + sem medição recente
   priorAbnormal: boolean; // true = alguma medição anterior estava alterada (usado p/ "normalizado")
+  /** Camada 3 (consolidado): última medição >12m (ou sem data) — só CONTEXTO histórico,
+   *  nunca estado atual. Não confundir com `latest.stale` (mesma faixa, mas usada pelo
+   *  filtro de score); aqui o rótulo alimenta o resumo consolidado e o front. */
+  historical?: boolean;
+}
+
+/** Camada 3 — quebra por RECÊNCIA p/ o resumo consolidado: o valor ATUAL de cada marcador
+ *  é o da MEDIÇÃO MAIS RECENTE; medidores antigos viram tendência, e quem foi medido há
+ *  muito tempo vira contexto. Buckets derivados de temporalClass (≤6m = atual; 6–12m =
+ *  envelhecendo, entra com aviso de frescor; >12m/s-data = histórico, só contexto). */
+export interface RecencyBreakdown {
+  /** Data do exame mais recente (max performedAt entre os marcadores). */
+  latestExamAt: Date | null;
+  /** ≤6m — corpo principal do consolidado (valor ATUAL + tendência vs anterior). */
+  current: MarkerState[];
+  /** 6–12m — corpo principal COM aviso "⚠️ última medição há X meses". */
+  aging: MarkerState[];
+  /** >12m ou sem data — contexto histórico apenas; NÃO entra no corpo principal. */
+  historical: MarkerState[];
+  /** true = TODOS os marcadores >6m → banner "considere refazer os exames" no front. */
+  allOutdated: boolean;
+}
+
+/** Classifica marcadores nos buckets de recência (Camada 3). PURA — testável direto. */
+export function splitByRecency(markers: MarkerState[]): RecencyBreakdown {
+  const current: MarkerState[] = [];
+  const aging: MarkerState[] = [];
+  const historical: MarkerState[] = [];
+  for (const m of markers) {
+    if (m.temporalClass === 'atual') current.push(m);
+    else if (m.temporalClass === 'recente') aging.push(m);
+    else historical.push(m); // historico | antigo | desatualizado | sem data
+  }
+  const sortByPriority = (a: MarkerState, b: MarkerState) => PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority];
+  current.sort(sortByPriority);
+  aging.sort(sortByPriority);
+  const latestExamAt = markers.reduce<Date | null>((acc, m) => {
+    const d = m.latest.performedAt;
+    return d && (!acc || d > acc) ? d : acc;
+  }, null);
+  return {
+    latestExamAt,
+    current,
+    aging,
+    historical,
+    allOutdated: markers.length > 0 && current.length === 0,
+  };
 }
 
 /** Status de disponibilidade de uma feature — fonte única p/ empty states honestos.
@@ -121,6 +168,8 @@ export interface CurrentHealthSummary {
    *  Leitura COMPLEMENTAR: NUNCA substituem a faixa do laboratório e NÃO alteram
    *  score/flags/prioridade — a IA do chat e o front consomem. */
   personalizedTargets?: PersonalizedTarget[];
+  /** Camada 3 — quebra por recência p/ o resumo consolidado (ver RecencyBreakdown). */
+  recency?: RecencyBreakdown;
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -344,7 +393,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       nameCanonical: canonical,
       name: latest.name,
       unit: latest.unit,
-      latest: { valueNumeric: latest.valueNumeric, valueText: latest.valueText, performedAt: latest.performedAt, ageMonths: age, stale },
+      latest: { valueNumeric: latest.valueNumeric, valueText: latest.valueText, performedAt: latest.performedAt, ageMonths: age, stale, monthsSinceLast: age == null ? null : Math.round(age) },
       prior: prior ? { valueNumeric: prior.valueNumeric, valueText: prior.valueText, performedAt: prior.performedAt, unit: prior.unit } : null,
       deltaPct: deltaPct(latest, priorForTrend),
       refLow: latest.refLow,
@@ -359,6 +408,7 @@ export function computeMarkerState(rows: ItemRow[]): MarkerState[] {
       temporalClass,
       outdated,
       priorAbnormal: hadPriorAbnormal,
+      historical: temporalClass === 'historico' || temporalClass === 'antigo' || temporalClass === 'desatualizado',
     });
   }
   return out;
@@ -672,6 +722,10 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     cardiometabolicRisk,
     availability,
     personalizedTargets: pTargets,
+    // Camada 3 (consolidado): quebra por recência — corpo principal = marcadores do exame
+    // mais recente; antigos viram tendência/contexto. Computado do MESMO conjunto `markers`
+    // (com fallback includeStale) p/ o snapshot nunca se contradizer.
+    recency: splitByRecency(markers),
   };
 }
 
@@ -693,24 +747,98 @@ export function fmtMarker(m: MarkerState): string {
   return `${m.name}: ${v}${m.unit ? ' ' + m.unit : ''} (ref ${ref}, ${m.flag}, ${m.priority}${delta}, ${age})${stale}${conf}${noRef}`;
 }
 
+/** Seta de tendência p/ a linha do marcador atual (vs medição anterior).
+ *  melhorou/piorou = relativa à FAIXA (clínica); aumentando/reduzindo = só numérica. */
+function trendArrow(m: MarkerState): string | null {
+  const priorVal = m.prior?.valueText ?? (m.prior?.valueNumeric != null ? String(m.prior.valueNumeric).replace('.', ',') : null);
+  const when = m.prior?.performedAt
+    ? ` em ${new Date(m.prior.performedAt).toLocaleDateString('pt-BR', { month: '2-digit', year: '2-digit' })}`
+    : '';
+  const vs = priorVal != null ? ` vs ${priorVal}${m.prior?.unit && m.unit && m.prior.unit !== m.unit ? ` ${m.prior.unit}` : ''}${when}` : '';
+  switch (m.trend) {
+    case 'melhorou': return `(↑ melhorou${vs})`;
+    case 'piorou': return `(↓ piorou${vs})`;
+    case 'estavel': return `(→ estável${vs})`;
+    case 'aumentando': return `(↑ aumentou${vs} — sem faixa, só numérico)`;
+    case 'reduzindo': return `(↓ reduziu${vs} — sem faixa, só numérico)`;
+    default: return null; // 'primeiro' — sem histórico
+  }
+}
+
 /**
- * Contexto ROTULADO por recência — peso temporal ESTRUTURAL (não por prompt).
- * ESTADO ATUAL (mais recente) / TENDÊNCIAS (direção+% já calculados) / CONTEXTO HISTÓRICO (>1 ano).
- * A IA não precisa inferir o que é recente: o dado já diz. (M2)
+ * Contexto ROTULADO por RECÊNCIA (Camada 3 — prioriza o exame MAIS RECENTE).
+ * Layout: EXAME MAIS RECENTE / MARCADORES ATUAIS (≤6m + 6–12m com aviso ⚠️) /
+ * TENDÊNCIAS (direção+% já calculadas) / CONTEXTO HISTÓRICO (>12m — só contexto).
+ * O valor ATUAL de cada marcador é o da medição MAIS RECENTE; medições antigas aparecem
+ * só como "vs anterior" na seta. A IA não infere nada: o dado já diz. (M2 + Camada 3)
+ *
+ * Fallback: snapshot sem `recency` (fixtures antigas) deriva os buckets de
+ * topAttention/improving/worsening/normalized (!stale) + stale (histórico).
  */
 export function formatSnapshotContext(s: CurrentHealthSummary): string {
-  const estado = s.topAttention.map(fmtMarker);
+  const fmtBR = (d: Date | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'data não informada');
+
+  // Buckets: do roll-up `recency` quando existe; senão fallback conservador.
+  let current: MarkerState[], aging: MarkerState[], historical: MarkerState[], latestExamAt: Date | null;
+  if (s.recency) {
+    current = s.recency.current;
+    aging = s.recency.aging;
+    historical = s.recency.historical;
+    latestExamAt = s.recency.latestExamAt;
+  } else {
+    const seen = new Set<string>();
+    const dedup = (arr: MarkerState[]) => arr.filter((m) => {
+      const k = m.nameCanonical || m.name;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+    historical = s.stale ?? [];
+    current = dedup([...(s.topAttention ?? []), ...(s.improving ?? []), ...(s.worsening ?? []), ...(s.normalized ?? [])]).filter((m) => !m.latest.stale);
+    aging = [];
+    latestExamAt = [...current, ...historical].reduce<Date | null>((acc, m) => {
+      const d = m.latest.performedAt;
+      return d && (!acc || d > acc) ? d : acc;
+    }, null);
+  }
+
+  // Corpo principal: marcadores do exame mais recente que dizem algo (alterados/borderline,
+  // com histórico p/ tendência, ou envelhecendo 6–12m). Normais sem histórico ficam fora
+  // (só contagem) — prompt finito mesmo em painel completo.
+  const relevant = (m: MarkerState) => m.priority !== 'normal' || m.deltaPct != null || m.trend !== 'primeiro' || aging.includes(m);
+  const main = [...current, ...aging].filter(relevant);
+  const skipped = current.length + aging.length - main.length;
+  const mainLines = main.slice(0, 30).map((m) => {
+    const arrow = trendArrow(m);
+    const warn = aging.includes(m)
+      ? ` ⚠️ última medição há ${m.latest.monthsSinceLast ?? Math.round(m.latest.ageMonths ?? 0)} meses — valor pode ter mudado`
+      : '';
+    return `  - ${fmtMarker(m)}${arrow ? ` ${arrow}` : ''}${warn}`;
+  });
+
   const tend = s.whatChanged.map((w) => `${w.name}: ${w.trend}${w.deltaPct != null ? ` (${w.deltaPct > 0 ? '+' : ''}${Math.round(w.deltaPct)}%)` : ''}`);
-  const hist = s.stale.map((m) => `${m.name} (último há ${Math.round(m.latest.ageMonths ?? 0)}m)`);
+  const fmtVal = (m: MarkerState) => {
+    const v = m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : '—');
+    return `${m.name}: ${v}${m.unit ? ' ' + m.unit : ''}`;
+  };
+  const hist = historical.slice(0, 15).map((m) => {
+    const ha = m.latest.monthsSinceLast ?? (m.latest.ageMonths != null ? Math.round(m.latest.ageMonths) : null);
+    const sugere = ha != null && ha <= 24 ? ' — dosar novamente' : ' — contexto apenas';
+    return `  - ${fmtVal(m)} (há ${ha ?? '?'}m${sugere})`;
+  });
+
   return [
-    `ESTADO ATUAL (verdade presente — use como quadro atual do paciente):`,
-    estado.length ? estado.map((x) => `  - ${x}`).join('\n') : '  (tudo dentro da faixa de referência)',
+    `EXAME MAIS RECENTE: ${fmtBR(latestExamAt)}`,
+    ``,
+    `MARCADORES ATUAIS (ESTADO ATUAL — do exame mais recente; verdade presente; BASEIE o resumo aqui):`,
+    mainLines.length ? mainLines.join('\n') : '  (tudo dentro da faixa de referência no exame mais recente)',
+    skipped > 0 ? `  (+${skipped} marcador(es) normal(is) e sem histórico no exame mais recente)` : '',
     ``,
     `TENDÊNCIAS (direção + variação % JÁ calculadas — use só pra direção, não repita os valores):`,
     tend.length ? tend.map((x) => `  - ${x}`).join('\n') : '  (sem histórico comparável — 1º exame de cada marcador)',
     ``,
     `MELHORAS: ${s.improving.length ? s.improving.map((m) => m.name).join(', ') : 'nenhuma registrada'}`,
     `PIORAS: ${s.worsening.length ? s.worsening.map((m) => m.name).join(', ') : 'nenhuma registrada'}`,
-    hist.length ? `\nCONTEXTO HISTÓRICO (marcadores medidos há >1 ano — NÃO é estado atual; cite só se relevante):\n` + hist.map((x) => `  - ${x}`).join('\n') : '',
+    hist.length ? `\nCONTEXTO HISTÓRICO (medidos há mais de 1 ano — NÃO é estado atual; tendência/contexto apenas, NÃO entram no corpo principal):\n` + hist.join('\n') + (historical.length > 15 ? `\n  (+${historical.length - 15} mais)` : '') : '',
   ].filter(Boolean).join('\n');
 }
