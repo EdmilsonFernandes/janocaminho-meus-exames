@@ -48,6 +48,7 @@ const PatientCards = () => {
       if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha ao excluir'); }
       notify('Perfil excluído!', { type: 'success' });
       window.dispatchEvent(new Event('selPatientChanged'));
+      window.dispatchEvent(new Event('patients-changed')); // switcher do AppBar recarrega a lista
       refresh();
     } catch (e: any) { notify(e.message, { type: 'error' }); }
     finally { setDeleting(null); }
@@ -173,7 +174,10 @@ export const PatientCreate = () => (
      O transform:none no :active do card: o theme dá scale(0.985) a todo MuiCard :active —
      ao PRESSIONAR o Salvar o card virava containing-block da toolbar fixed (toolbar pulava
      ~200px no meio do toque e o click era retargetado pro fundo = Salvar "morto"). */
-  <Create title="Adicionar dependente" sx={{
+  /* mutationOptions.onSuccess: dispara 'patients-changed' → PatientSwitcher (AppBar, persiste
+     entre rotas) recarrega /patients na hora — antes o dependente novo só aparecia depois de
+     navegar pra outra tela e voltar. */
+  <Create title="Adicionar dependente" mutationOptions={{ onSuccess: () => window.dispatchEvent(new Event('patients-changed')) }} sx={{
     '& .MuiToolbar-root.RaToolbar-mobileToolbar': { bottom: 'calc(var(--me-bottom-nav-h, 76px) + 14px)' },
     '& .MuiCard-root:active': { transform: 'none !important' },
   }}>
@@ -196,7 +200,7 @@ export const PatientCreate = () => (
 
 export const PatientEdit = () => (
   /* Mesma subida do toolbar mobile + mesmo neutralizador do :active do card (ver PatientCreate). */
-  <Edit title="Perfil do paciente" sx={{
+  <Edit title="Perfil do paciente" mutationOptions={{ onSuccess: () => window.dispatchEvent(new Event('patients-changed')) }} sx={{
     '& .MuiToolbar-root.RaToolbar-mobileToolbar': { bottom: 'calc(var(--me-bottom-nav-h, 76px) + 14px)' },
     '& .MuiCard-root:active': { transform: 'none !important' },
   }}>
