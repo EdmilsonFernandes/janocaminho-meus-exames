@@ -111,6 +111,7 @@ import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
 import { CreditRewardFx } from './components/CreditRewardFx';
+import { useCredits } from './hooks/useCredits';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
@@ -271,7 +272,7 @@ const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText
 // Card de perfil do usuário (Foto Edmilson, nome, plano, créditos) — topo do menu.
 const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
-  const [credits, setCredits] = useState<number | null>(null);
+  const { credits } = useCredits(); // saldo reativo compartilhado c/ o chip do header
   const [userInfo, setUserInfo] = useState<{ name: string; photo?: string; isPremium: boolean }>({
     name: 'Usuário',
     isPremium: false,
@@ -299,17 +300,6 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
       window.removeEventListener('storage', updateUserInfo);
       window.removeEventListener('userChanged', updateUserInfo);
     };
-  }, []);
-
-  useEffect(() => {
-    const load = () => fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setCredits(typeof d?.credits === 'number' ? d.credits : null))
-      .catch(() => {});
-    load();
-    const h = () => load();
-    window.addEventListener('creditsChanged', h);
-    return () => window.removeEventListener('creditsChanged', h);
   }, []);
 
   return (

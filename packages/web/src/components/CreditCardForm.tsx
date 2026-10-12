@@ -12,6 +12,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerOutlinedIcon from '@mui/icons-material/DocumentScannerOutlined';
 import { API_URL, token } from '../config';
+import { bumpCredits } from '../utils/credits-events';
 import { PaymentLogos } from './PaymentLogos';
 
 /**
@@ -260,7 +261,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
       try {
         const r = await fetch(`${API_URL}/billing/payment-status/${paymentId}`, { headers: { Authorization: `Bearer ${token()}` } });
         const d = await r.json();
-        if (d?.approved) { stopPoll(); setApproved(true); onApproved(); }
+        if (d?.approved) { stopPoll(); bumpCredits(); setApproved(true); onApproved(); }
       } catch { /* rede oscilou — segue tentando */ }
       if (tries >= 40) stopPoll(); // ~2min: usuário pode reabrir o app depois (webhook credita igual)
     }, 3000);
@@ -281,7 +282,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d?.error || 'Falha ao processar o pagamento.');
-      if (d.approved) { setApproved(true); onApproved(); }
+      if (d.approved) { bumpCredits(); setApproved(true); onApproved(); }
       else { setResult({ status: d.status ?? 'PENDING', paymentId: d.paymentId, threeDSUrl: d.threeDSUrl }); startPoll(d.paymentId); }
     } catch (e: any) { setApiErr(e.message || 'Falha ao processar o pagamento.'); }
     setSubmitting(false);

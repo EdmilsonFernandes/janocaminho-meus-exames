@@ -1,37 +1,19 @@
-import { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import { useNavigate } from 'react-router-dom';
-import { API_URL, token } from '../config';
+import { useCredits } from '../hooks/useCredits';
 
 /** Saldo de créditos no AppBar — chip TONAL discreto (o gradiente/sombra são assinatura da MARCA,
  *  não da carteira): ⚡ 97,2k compacto, toque → /planos. Número completo no aria-label/tooltip;
  *  saldo detalhado segue no drawer e no card do Dashboard. Sem olho (privacidade de banco não se
- *  aplica a non-dinheiro e criava botão aninhado — alvo colado + inválido p/ leitores de tela). */
+ *  aplica a non-dinheiro e criava botão aninhado — alvo colado + inválido p/ leitores de tela).
+ *
+ * REATIVO (hooks/useCredits.ts): poll 30s + evento creditsChanged + foco na aba — qualquer
+ * transação (compra PIX/cartão aprovada, chat, resumo, quiz, indicação paga pelo server)
+ * reflete no chip sem reload. */
 export const CreditsChip = () => {
   const navigate = useNavigate();
-  const [credits, setCredits] = useState<number | null>(null);
-  const load = () => {
-    // Anônimo na landing: NÃO dispara (boot anônimo pedia billing sem sessão — 401 no console)
-    if (!token()) return Promise.resolve();
-    return fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setCredits(typeof d?.credits === 'number' ? d?.credits : null));
-  };
-  useEffect(() => {
-    load();
-    const h = () => load();
-    window.addEventListener('selPatientChanged', h);
-    window.addEventListener('creditsChanged', h);
-    document.addEventListener('visibilitychange', h);   // rede de segurança: ao voltar pra aba/app refaz o saldo
-    window.addEventListener('focus', h);
-    return () => {
-      window.removeEventListener('selPatientChanged', h);
-      window.removeEventListener('creditsChanged', h);
-      document.removeEventListener('visibilitychange', h);
-      window.removeEventListener('focus', h);
-    };
-  }, []);
+  const { credits } = useCredits();
   if (credits == null) return null;
   // Saldo exato até 999.999 (feedback do dono: "tem que fazer jus do que o usuário tem" —
   // "999.999" ainda cabe no chip). ≥1 milhão vira compacto pt-BR ("1,2 mi"): 7+ dígitos

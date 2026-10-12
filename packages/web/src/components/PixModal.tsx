@@ -7,6 +7,7 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
+import { bumpCredits } from '../utils/credits-events';
 import { ConfettiCanvas } from './Celebration';
 import { PaymentLogos } from './PaymentLogos';
 
@@ -77,7 +78,9 @@ export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { p
       try {
         const r = await fetch(`${API_URL}/billing/payment-status/${pix.paymentId}`, { headers: { Authorization: `Bearer ${token()}` } });
         const d = await r.json();
-        if (d.approved) setPhase('approved');
+        // Aprovado: o webhook já creditou server-side → avisa o chip na HORA (poll 30s
+        // cobriria, mas o usuário está OLHANDO pra esta tela — feedback instantâneo).
+        if (d.approved) { bumpCredits(); setPhase('approved'); }
       } catch { /* ignora falhas pontuais de polling */ }
     }, 3000);
     return () => { clearInterval(tick); clearInterval(poll); };
