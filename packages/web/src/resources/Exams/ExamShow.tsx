@@ -10,6 +10,7 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
 import StopIcon from '@mui/icons-material/Stop';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
@@ -129,6 +130,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   // 1x); o áudio sai do TTS do dispositivo (nativo APK / speechSynthesis web).
   const [narrLoading, setNarrLoading] = useState(false);
   const [speaking, setSpeaking] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
   // Para a fala ao sair da tela (senão o áudio continua na página seguinte).
   useEffect(() => { return () => { void stopSpeakText(); }; }, []);
 
@@ -279,6 +281,24 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   };
   const stopNarration = () => { void stopSpeakText(); setSpeaking(false); };
 
+  /** 📄 Baixar PDF premium (4 páginas p/ levar ao médico). Web: abre em nova aba;
+   *  APK: salva + Share (usuário abre no visualizador / manda pro médico). Grátis. */
+  const downloadPdf = async () => {
+    if (pdfLoading) return;
+    setPdfLoading(true);
+    try {
+      const r = await fetch(`${API_URL}/exams/${id}/report-pdf`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e.error || 'Falha ao gerar o PDF'); }
+      const blob = await r.blob();
+      const dt = exam?.performedAt ? new Date(exam.performedAt).toISOString().slice(0, 10) : 'exame';
+      await openBlobFile(blob, `relatorio-dr-exame-${dt}.pdf`);
+    } catch (e: any) {
+      notify(e.message || 'Não consegui gerar o PDF.', { type: 'error' });
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   const sendChat = async () => {
     if (!summary) return;
     const message = chatInput.trim();
@@ -343,8 +363,12 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   };
 
   const inline = inlineId !== undefined;
+  // width:'100%' OBRIGATÓRIO no root: o RaLayout-content é flex-column e `mx:'auto'` sozinho
+  // desliga o stretch → o box era dimensionado por MAX-CONTENT (~521px com chips/régua sem
+  // quebrar) e estourava a viewport no mobile (clipado no web, EMPURRAVA tudo pra direita no
+  // APK). Mesmo padrão do PageContainer (width 100% + maxWidth + mx auto).
   return (
-    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
+    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { width: '100%', maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
       {!inline && <Title title={titleInfo.text || exam.title} />}
 
       {/* Cabeçalho */}
@@ -386,6 +410,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   Ouvir resumo ({CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat > 1 ? 's' : ''})
                 </Button>
               )
+            )}
+            {exam.status === 'EXTRACTED' && (
+              <Button size="small" variant="outlined" onClick={downloadPdf} disabled={pdfLoading} startIcon={pdfLoading ? <CircularProgress size={16} color="inherit" /> : <FileDownloadOutlinedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, borderColor: 'divider', color: 'text.secondary' }}>
+                Baixar PDF
+              </Button>
             )}
           </Stack>
           {(patientInfo.text || patientInfo.suspicious || doctorInfo.text || doctorInfo.suspicious) && (

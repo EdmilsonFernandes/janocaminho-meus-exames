@@ -31,6 +31,7 @@ import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
+import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
 
@@ -584,6 +585,46 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     const r = await resolveExamFile(exam.filePath);
     if (r.kind === 'url') res.redirect(302, r.url as string);
     else { res.setHeader('Content-Type', 'application/pdf'); fs.createReadStream(r.file as string).pipe(res); }
+  } catch (e) { next(e); }
+});
+
+// PDF PREMIUM do exame (mesmo gerador do app do paciente — 4 páginas, capa com score/idade
+// biológica, resumo executivo, tabela completa, perguntas+plano). Espelha o guard do /file:
+// share ativo com scope 'exams' + per-exam sharing (examIds não-vazio = só esses).
+router.get('/patients/:patientId/exams/:examId/report-pdf', requireDoctor, async (req: any, res, next) => {
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const exam = await prisma.exam.findFirst({
+      where: { id: req.params.examId, patientId: req.params.patientId, status: 'EXTRACTED' },
+      include: {
+        items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] },
+        patient: { select: { fullName: true, dateOfBirth: true } },
+      },
+    });
+    if (!exam) { res.status(404).json({ error: 'Exame não encontrado.' }); return; }
+    // Score + idade biológica — best-effort (capa segue sem eles se o cálculo falhar).
+    let score: number | null = null;
+    let biologicalAge: number | null = null;
+    try {
+      const snapshot = await buildCurrentHealthSummary(exam.patientId);
+      score = snapshot.score ?? null;
+      biologicalAge = snapshot.biologicalAge?.age ?? null;
+    } catch { /* opcionais */ }
+    const pdf = await buildExamReportPdf({
+      patientName: exam.patient?.fullName ?? 'Paciente',
+      patientDob: exam.patient?.dateOfBirth ?? null,
+      examTitle: exam.title,
+      performedAt: exam.performedAt,
+      sourceLab: exam.sourceLab,
+      score,
+      biologicalAge,
+      items: exam.items as any[],
+    });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="relatorio-${exam.patient?.fullName ? exam.patient.fullName.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'paciente'}.pdf"`);
+    res.send(pdf);
   } catch (e) { next(e); }
 });
 

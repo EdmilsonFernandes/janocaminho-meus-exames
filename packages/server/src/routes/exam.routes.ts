@@ -19,6 +19,7 @@ import { chargeCredits, computeUploadCost, UPLOAD_RULES, CREDIT_COSTS } from '..
 import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
 import { buildExamNarration } from '../utils/examNarration';
+import { buildExamReportPdf } from '../utils/examPdf';
 
 const router = Router();
 router.use(requireAuth);
@@ -343,6 +344,47 @@ router.post('/:id/narrate', async (req: AuthedRequest, res, next) => {
     }).catch(() => {});
 
     res.json({ text, cached: false });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// PDF PREMIUM DO EXAME ("📄 Baixar PDF" — 4 páginas p/ levar ao médico: capa com score +
+// idade biológica, resumo executivo com régua, tabela completa, perguntas + plano).
+// Grátis (não passa por IA — pdfkit determinístico); auth = dono do exame (loadOwnedExam).
+router.get('/:id/report-pdf', async (req: AuthedRequest, res, next) => {
+  try {
+    const exam = await loadOwnedExam(req, res, req.params.id, {
+      items: { orderBy: [{ panel: 'asc' }, { name: 'asc' }] },
+      patient: { select: { fullName: true, dateOfBirth: true } },
+    });
+    if (!exam) return;
+    if (exam.status !== 'EXTRACTED') {
+      res.status(409).json({ error: 'Exame ainda não extraído — aguarde a leitura para baixar o relatório.' });
+      return;
+    }
+    // Score + idade biológica atuais do paciente (layer 2) — best-effort: sem eles a capa segue.
+    let score: number | null = null;
+    let biologicalAge: number | null = null;
+    try {
+      const snapshot = await buildCurrentHealthSummary(exam.patientId);
+      score = snapshot.score ?? null;
+      biologicalAge = snapshot.biologicalAge?.age ?? null;
+    } catch { /* opcionais */ }
+
+    const pdf = await buildExamReportPdf({
+      patientName: exam.patient?.fullName ?? 'Paciente',
+      patientDob: exam.patient?.dateOfBirth ?? null,
+      examTitle: exam.title,
+      performedAt: exam.performedAt,
+      sourceLab: exam.sourceLab,
+      score,
+      biologicalAge,
+      items: exam.items as any[],
+    });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `inline; filename="relatorio-${patientSlug(exam.patient?.fullName ?? 'paciente', exam.patientId)}.pdf"`);
+    res.send(pdf);
   } catch (e) {
     next(e);
   }
