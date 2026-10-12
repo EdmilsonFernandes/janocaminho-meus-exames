@@ -141,6 +141,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   }, [id]);
 
   const summary = exam?.analyses?.[0] ?? null;
+  // TRIAGEM DE URGÊNCIA (camada 1 — determinística, computada no server junto ao resumo):
+  // CRITICO/ATENCAO mostram banner; ausente/ACOMPANHAR/NORMAL → nada (relatórios antigos ok).
+  const urgency = (summary?.structured as any)?.urgency as { level: string; message?: string | null } | undefined;
   const identity = exam?.rawExtraction?.identityMatch as any;
   const nm = exam?.rawExtraction?.nameMatch as any;
   const cpfBlock = identity?.method === 'cpf' && !!identity?.mismatch;
@@ -345,6 +348,25 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
           )}
         </CardContent>
       </Card>
+
+      {/* TRIAGEM DE URGÊNCIA (camada 1 — regras determinísticas do server, sem IA decidir):
+          vermelho = procure atendimento AGORA; laranja = agende consulta. Sem banner = normal. */}
+      {exam.status === 'EXTRACTED' && (urgency?.level === 'CRITICO' || urgency?.level === 'ATENCAO') && (
+        <Alert
+          severity={urgency.level === 'CRITICO' ? 'error' : 'warning'}
+          icon={false}
+          sx={{ mt: 2, borderRadius: '12px', '& .MuiAlert-message': { width: '100%' } }}
+        >
+          <Typography component="div" sx={{ fontWeight: 800, fontSize: '1.02rem' }}>
+            {urgency.level === 'CRITICO' ? '🚨 Procure atendimento médico URGENTE' : '⚠️ Agende consulta médica'}
+          </Typography>
+          {urgency.message && (
+            <Typography component="div" variant="body2" sx={{ mt: 0.25 }}>
+              {urgency.message}
+            </Typography>
+          )}
+        </Alert>
+      )}
 
       {/* BLOQUEIO FORTE: CPF do documento ≠ perfil */}
       {cpfBlock && (

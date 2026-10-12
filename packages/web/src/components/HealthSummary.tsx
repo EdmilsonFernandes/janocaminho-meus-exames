@@ -35,6 +35,8 @@ interface Summary {
   antigosNormalizados?: { name: string; quando?: string | null; detalhe?: string | null }[];
   // FEATURE C — diretrizes de sociedades médicas citadas na resposta (parse server-side).
   sources?: { label: string; topic: string }[];
+  // Triagem de urgência (camada 1 — determinística, computada no server). Banner no ExamShow.
+  urgency?: { level: 'CRITICO' | 'ATENCAO' | 'ACOMPANHAR' | 'NORMAL'; message?: string | null };
   disclaimer?: string;
 }
 
