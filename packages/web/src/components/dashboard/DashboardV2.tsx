@@ -45,6 +45,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
 import { useSportsProfile } from '../../hooks/useSportsProfile';
+import { celebrate as fireCelebration } from '../../hooks/useCelebrate';
 import { SportsDashboard } from '../sports/SportsDashboard';
 import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 import { PersonaSwitcher } from '../sports/PersonaSwitcher';
@@ -822,6 +823,22 @@ export const DashboardV2 = () => {
     setCelebrate(false);
     try { localStorage.setItem(firstKey, '1'); } catch { /* ignore */ }
   };
+
+  // SCORE SUBIU (useCelebrate): score de AGORA vs o da ÚLTIMA visita (prevScore = cache
+  // do mount). Pill discreta 1×/dia por paciente — o badge "⚡ +N" do hero mostra o ganho
+  // em toda visita; delta >= 3 filtra ruído de arredondamento (score 0-100).
+  const scoreDelta = d.loaded && d.score != null && d.prevScore != null && d.prevScore > 0 && d.score > d.prevScore
+    ? d.score - d.prevScore : 0;
+  useEffect(() => {
+    if (demo || !pid || scoreDelta < 3) return;
+    const t = new Date();
+    const key = `dx-score-celebrated:${pid}:${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+    try {
+      if (localStorage.getItem(key) === '1') return;
+      localStorage.setItem(key, '1');
+    } catch { return; }
+    fireCelebration('score_improved', { delta: scoreDelta });
+  }, [demo, pid, scoreDelta]);
 
   // G2 — variante educativa do card mental: 1× por PACIENTE (dx-mental-intro:<pid>),
   // setada ao dispensar (X) OU ao responder (entrar na tela conta como "viu").

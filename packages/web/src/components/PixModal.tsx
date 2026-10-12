@@ -8,6 +8,7 @@ import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
 import { bumpCredits } from '../utils/credits-events';
+import { celebrate } from '../hooks/useCelebrate';
 import { ConfettiCanvas } from './Celebration';
 import { PaymentLogos } from './PaymentLogos';
 
@@ -29,6 +30,22 @@ export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { p
   const [regen, setRegen] = useState(0);
   const copyTimer = useRef<any>(null);
   const approvedDone = useRef(false); // garante que onApproved dispara só 1x (evita toast duplicado)
+
+  // Celebração pós-aprovação (useCelebrate): dispara quando o modal SAI da tela — no X,
+  // backdrop/Escape ou quando o pai fecha após o onApproved. Nunca DURANTE o dialog: a
+  // tela "aprovado" já tem confetti próprio (Celebration.ConfettiCanvas), pill em cima
+  // seria celebração dupla. Refs porque o cleanup roda com o closure do 1º render.
+  const pixRef = useRef<any>(null);
+  useEffect(() => { pixRef.current = pix; }, [pix]);
+  useEffect(() => () => {
+    if (!approvedDone.current) return;
+    if (plan) celebrate('premium_activated');
+    else {
+      const amount = Number(pixRef.current?.credits ?? 0);
+      if (amount > 0) celebrate('credits_earned', { amount });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (!packId) return;

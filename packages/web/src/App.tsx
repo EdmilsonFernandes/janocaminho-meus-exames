@@ -111,6 +111,7 @@ import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
 import { CreditRewardFx } from './components/CreditRewardFx';
+import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
@@ -744,6 +745,7 @@ const AppLayout = (props: any) => {
       <GoalQuiz />
       <Motd />
       <CreditRewardFx />
+      <CelebrateFx />
       </BiometricGate>
     </DrawerProvider>
     </NudgeQueueProvider>

@@ -19,6 +19,7 @@ import { SEM } from '../../theme';
 import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
 import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
+import { celebrate } from '../../hooks/useCelebrate';
 
 /**
  * ActivityCard — widget de atividade física (Health Connect) no Dashboard.
@@ -43,6 +44,22 @@ const rangeLabel = (r: ActivityRange) => RANGES.find((x) => x.value === r)?.labe
 /** Chave de "esconder card" (o volta é no Perfil → Acessibilidade — mesmo padrão do banner Pro). */
 export const ACTIVITY_HIDDEN_KEY = 'dx_activity_hidden';
 export const activityCardHidden = (): boolean => { try { return localStorage.getItem(ACTIVITY_HIDDEN_KEY) === '1'; } catch { return false; } };
+
+/** Celebração "🎯 meta batida" — 1× POR DIA, só com dado de HOJE vindo do Health Connect
+ *  (device; o consolidado cloud pode estar defasado — sem celebração em cima de dado velho).
+ *  Chamada a cada leitura (mount/foreground), o localStorage segura a repetição. */
+const maybeCelebrateGoal = (days: ActivityDay[] | null): void => {
+  if (!days?.length) return;
+  const t = new Date();
+  const today = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`;
+  const key = `dx-goal-celebrated:${today}`;
+  try { if (localStorage.getItem(key) === '1') return; } catch { return; }
+  const latest = days[0]; // série DESC — o mais recente primeiro
+  if (latest.date === today && latest.steps >= STEPS_GOAL) {
+    try { localStorage.setItem(key, '1'); } catch { /* ignore */ }
+    celebrate('goal_reached');
+  }
+};
 
 export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => {
   const notify = useNotify();
@@ -83,6 +100,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     setDays(d);
     setUpdatedAt(d ? new Date() : null);
     setPhase('data');
+    maybeCelebrateGoal(d); // meta de HOJE batida → pill discreta (1×/dia)
     return d;
   };
 

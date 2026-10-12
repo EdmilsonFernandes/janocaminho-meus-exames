@@ -13,6 +13,7 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerOutlinedIcon from '@mui/icons-material/DocumentScannerOutlined';
 import { API_URL, token } from '../config';
 import { bumpCredits } from '../utils/credits-events';
+import { celebrate } from '../hooks/useCelebrate';
 import { PaymentLogos } from './PaymentLogos';
 
 /**
@@ -37,6 +38,13 @@ const BRAND_LABEL: Record<Exclude<Brand, null>, string> = {
 const ELO_BINS = ['4011', '4312', '4389', '4514', '4576', '5041', '5066', '5067', '5090', '6277', '6362', '6363', '6500', '6516', '6550'];
 
 const digits = (v: string) => v.replace(/\D/g, '');
+
+/** Créditos numéricos do packLabel ("140 créditos • R$ 24,90" → 140) — p/ a celebração
+ *  de compra aprovada (mesmo regex do PaymentChooser, local p/ não criar import circular). */
+const creditsFromLabel = (label: string): number => {
+  const m = label.match(/(\d+)\s*cr[eé]ditos?/i);
+  return m ? Number(m[1]) : 0;
+};
 
 const detectBrand = (num: string): Brand => {
   const n = digits(num);
@@ -261,7 +269,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
       try {
         const r = await fetch(`${API_URL}/billing/payment-status/${paymentId}`, { headers: { Authorization: `Bearer ${token()}` } });
         const d = await r.json();
-        if (d?.approved) { stopPoll(); bumpCredits(); setApproved(true); onApproved(); }
+        if (d?.approved) { stopPoll(); bumpCredits(); celebrate(plan ? 'premium_activated' : 'credits_earned', { amount: plan ? undefined : creditsFromLabel(packLabel) }); setApproved(true); onApproved(); }
       } catch { /* rede oscilou — segue tentando */ }
       if (tries >= 40) stopPoll(); // ~2min: usuário pode reabrir o app depois (webhook credita igual)
     }, 3000);
@@ -282,7 +290,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d?.error || 'Falha ao processar o pagamento.');
-      if (d.approved) { bumpCredits(); setApproved(true); onApproved(); }
+      if (d.approved) { bumpCredits(); celebrate(plan ? 'premium_activated' : 'credits_earned', { amount: plan ? undefined : creditsFromLabel(packLabel) }); setApproved(true); onApproved(); }
       else { setResult({ status: d.status ?? 'PENDING', paymentId: d.paymentId, threeDSUrl: d.threeDSUrl }); startPoll(d.paymentId); }
     } catch (e: any) { setApiErr(e.message || 'Falha ao processar o pagamento.'); }
     setSubmitting(false);

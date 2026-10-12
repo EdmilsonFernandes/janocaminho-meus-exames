@@ -18,6 +18,7 @@ import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { useNavigate } from 'react-router-dom';
 import { useSelectedPatient } from '../../patient-context';
 import { useReveal } from '../../hooks/useReveal';
+import { celebrate } from '../../hooks/useCelebrate';
 import { DUR } from '../../motion';
 import { PrivacyText } from '../../hooks/usePrivacyMode';
 import { API_URL, token, fetchPublicConfig } from '../../config';
@@ -335,9 +336,12 @@ const ExamCards = () => {
       window.dispatchEvent(new Event('notificationsChanged'));
       setBump((b) => b + 1);
       track('exam_extracted'); // G4 — funil de ativação (no-op sem PostHog)
+      // Celebração "exame pronto" — SÓ se NÃO é o 1º exame (o 1º tem o modal Celebration
+      // dedicado no Dashboard; pill aqui seria celebração dupla).
+      if ((data?.length ?? 0) !== 1) celebrate('exam_extracted', { count: prevProcessingRef.current });
     }
     prevProcessingRef.current = processingCount;
-  }, [processingCount]);
+  }, [processingCount, data]);
   useEffect(() => {
     if (!processingCount) return;
     const t = setInterval(refresh, 5000);
