@@ -1092,7 +1092,7 @@ const DashboardV2Inner = () => {
                   Escondido no demo: índice clínico fictício é dado de saúde falso. */}
               {!demo && Array.isArray(d.indices) && d.indices.length > 0 && (
                 <DashboardErrorBoundary>
-                  <ClinicalIndicesCard indices={d.indices} />
+                  <ClinicalIndicesCard indices={d.indices} loaded={d.hsLoaded} />
                 </DashboardErrorBoundary>
               )}
 
