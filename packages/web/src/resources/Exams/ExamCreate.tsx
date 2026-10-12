@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink } from '@mui/material';
+import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink, IconButton } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
@@ -10,11 +10,14 @@ import CheckIcon from '@mui/icons-material/Check';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
+import CloseIcon from '@mui/icons-material/Close';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token, fetchPublicConfig } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
 import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
+import { takeExamFiles } from '../../utils/examHandoff';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 
@@ -92,6 +95,47 @@ function notifyRetry(attempt: number) {
   try { console.warn(`[upload] retentando (tentativa ${attempt + 1}/3)…`); } catch { /* */ }
 }
 
+/** Preview do arquivo selecionado (wizard etapa 1): imagem vira miniatura real;
+ *  PDF vira tile de documento. O usuário CONFIRMA que é o arquivo certo antes de
+ *  avançar — X remove/troca. */
+const FilePreview = ({ file, onRemove }: { file: File; onRemove: () => void }) => {
+  const isImg = file.type.startsWith('image/');
+  const [url] = useState<string | null>(() => (isImg ? URL.createObjectURL(file) : null));
+  useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
+  return (
+    <Box sx={{ position: 'relative', p: 1.25, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', width: { xs: '100%', sm: 210 } }}>
+      <Stack direction="row" spacing={1.5} alignItems="center">
+        <Box sx={{
+          width: 52, height: 52, borderRadius: '12px', overflow: 'hidden', flexShrink: 0,
+          bgcolor: 'rgba(32,178,170,.10)', display: 'grid', placeItems: 'center',
+        }}>
+          {url ? (
+            <Box component="img" src={url} alt={`Preview de ${file.name}`} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <DescriptionOutlinedIcon sx={{ fontSize: 26, color: '#178f89' }} />
+          )}
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {file.name}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {file.type.startsWith('image/') ? 'imagem' : 'PDF'} · {Math.max(1, Math.round(file.size / 1024))} KB · pronto ✓
+          </Typography>
+        </Box>
+      </Stack>
+      <IconButton
+        size="small"
+        onClick={onRemove}
+        aria-label={`Remover ${file.name}`}
+        sx={{ position: 'absolute', top: -10, right: -10, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 3px 10px rgba(0,0,0,.12)', '&:hover': { bgcolor: 'action.hover' } }}
+      >
+        <CloseIcon sx={{ fontSize: 15 }} />
+      </IconButton>
+    </Box>
+  );
+};
+
 export const ExamCreate = () => {
   const [pid] = useSelectedPatient();
   const [files, setFiles] = useState<File[]>([]);
@@ -119,12 +163,23 @@ export const ExamCreate = () => {
   const [method, setMethod] = useState<'upload' | 'email'>('upload');
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  // Erro "de verdade" (todos os envios falharam): card amigável c/ tentar de novo,
+  // não toast que some antes de ser lido.
+  const [hardError, setHardError] = useState<string | null>(null);
   const notify = useNotify();
   const redirect = useRedirect();
   const refresh = useRefresh();
   const logout = useLogout();
 
   useEffect(() => {
+    // Handoff do first-exam flow: arquivo(s) arrastado(s) no dashboard chegam aqui.
+    const stashed = takeExamFiles();
+    if (stashed.length) {
+      const tooBig = stashed.filter((f) => f.size > MAX_BYTES);
+      const ok = stashed.filter((f) => f.size <= MAX_BYTES);
+      if (ok.length) setFiles((prev) => [...prev, ...ok]);
+      if (tooBig.length) notify(`${tooBig.length} arquivo(s) acima de 32MB foram ignorados.`, { type: 'warning' });
+    }
     fetchPublicConfig().then((c) => setFirstBonus(c.freeSignup)).catch(() => {});
     // Código de envio por e-mail no MOUNT: define se o card existe (enabled) e já
     // deixa o código pronto pro copiar (sem fetch na hora do clique).
@@ -265,7 +320,7 @@ export const ExamCreate = () => {
         }
       }
       setBusy(false);
-      if (errors.length === imgs.length) { notify('Nenhum envio concluído.', { type: 'error' }); return; }
+      if (errors.length === imgs.length) { setHardError(errors[0] || 'Nenhum envio concluído. Verifique sua conexão e tente de novo.'); notify('Não deu pra enviar — veja o aviso abaixo.', { type: 'error' }); return; }
       const sent = imgs.length - errors.length - dups.length;
       refresh();
       if (dups.length) setDupInfo({ dups, elsewhere: [], sent });
@@ -297,6 +352,7 @@ export const ExamCreate = () => {
       if (suspicious && !(await confirmDialog({ title: 'Exame duplicado?', message: 'Parece que você já enviou um exame com nome parecido pra este perfil. Quer enviar mesmo assim?', confirmLabel: 'Enviar', tone: 'warning' }))) return;
     } catch { /* falhou a checagem — segue o upload (sha256 continua protegendo) */ }
     setBusy(true);
+    setHardError(null);
     setProgress({ done: 0, total: files.length, errors: [] });
     const errors: string[] = [];
     const dups: string[] = [];
@@ -325,7 +381,11 @@ export const ExamCreate = () => {
       }
     }
     setBusy(false);
-    if (errors.length === files.length) { notify('Nenhum envio concluído.', { type: 'error' }); return; }
+    if (errors.length === files.length) {
+      setHardError(errors[0] || 'Nenhum envio concluído. Verifique sua conexão e tente de novo.');
+      notify('Não deu pra enviar — veja o aviso abaixo.', { type: 'error' });
+      return;
+    }
     const sent = files.length - errors.length - dups.length;
     refresh();
     if (dups.length || elsewhere.length) {
@@ -642,6 +702,9 @@ export const ExamCreate = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#178f89',
+                    animation: 'ecDropFloat 2.6s ease-in-out infinite',
+                    '@keyframes ecDropFloat': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } },
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                   }}>
                     <UploadFileIcon sx={{ fontSize: 32 }} />
                   </Box>
@@ -661,28 +724,16 @@ export const ExamCreate = () => {
                 </Box>
               )}
 
-              {/* Arquivos selecionados */}
+              {/* Arquivos selecionados — PREVIEW com miniatura (wizard: confirme que
+                  é o arquivo certo) + X pra remover/trocar. */}
               {files.length > 0 && (
                 <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 1 }}>
-                    Arquivos selecionados ({files.length}):
+                  <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 1.25 }}>
+                    Confira antes de analisar ({files.length}):
                   </Typography>
-                  <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                  <Stack direction="row" spacing={1.5} useFlexGap flexWrap="wrap">
                     {files.map((f, i) => (
-                      <Chip
-                        key={i}
-                        icon={<DescriptionOutlinedIcon sx={{ fontSize: 16 }} />}
-                        label={`${f.name} (${Math.round(f.size / 1024)} KB)`}
-                        onDelete={() => setFiles(files.filter((_, j) => j !== i))}
-                        sx={{
-                          borderRadius: '10px',
-                          maxWidth: '100%',
-                          fontWeight: 600,
-                          bgcolor: 'background.paper',
-                          border: '1px solid',
-                          borderColor: 'divider',
-                        }}
-                      />
+                      <FilePreview key={`${f.name}-${i}`} file={f} onRemove={() => setFiles(files.filter((_, j) => j !== i))} />
                     ))}
                   </Stack>
                 </Box>
@@ -721,6 +772,35 @@ export const ExamCreate = () => {
                 </Box>
               )}
 
+              {/* ERRO elegante (wizard): card amigável + tentar de novo — não alert feio. */}
+              {hardError && (
+                <Box sx={{
+                  p: 2, borderRadius: '18px',
+                  bgcolor: 'rgba(234,88,12,.07)',
+                  border: '1px solid rgba(234,88,12,.35)',
+                  display: 'flex', alignItems: 'center', gap: 1.75,
+                }}>
+                  <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: 'rgba(234,88,12,.14)', display: 'grid', placeItems: 'center', fontSize: 22, flexShrink: 0 }} aria-hidden="true">⚠️</Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+                      Não deu pra enviar
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.5, mt: 0.25 }}>
+                      {hardError}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<RefreshIcon sx={{ fontSize: 17 }} />}
+                    onClick={() => { setHardError(null); setProgress(null); }}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, flexShrink: 0, borderColor: 'rgba(234,88,12,.4)', color: '#c2410c', '&:hover': { borderColor: '#c2410c', bgcolor: 'rgba(234,88,12,.06)' } }}
+                  >
+                    Tentar novamente
+                  </Button>
+                </Box>
+              )}
+
               {/* Botão de Ação Primário */}
               <Button
                 type="submit"
@@ -741,7 +821,7 @@ export const ExamCreate = () => {
                   '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'text.disabled' },
                 }}
               >
-                {busy ? 'Enviando e analisando com IA…' : `Enviar ${files.length ? files.length + ' arquivo(s)' : ''} e extrair com IA →`}
+                {busy ? 'Enviando e analisando com IA…' : files.length ? 'Analisar exame com IA →' : 'Enviar e extrair com IA →'}
               </Button>
 
               <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontWeight: 600 }}>

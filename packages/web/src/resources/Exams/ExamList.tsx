@@ -34,6 +34,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { LabBadge } from '../../components/LabBadge';
 import { AppCard } from '../../components/AppCard';
 import { GradientButton } from '../../components/GradientButton';
+import { ProcessingStages } from '../../components/ProcessingStages';
 import { DateLabel } from '../../components/DateLabel';
 import { ChangesSinceExam, type Marker } from '../../components/dashboard/ChangesSinceExam';
 import { ExamShow } from './ExamShow';
@@ -60,7 +61,8 @@ const yearOf = (r: any): number | null => {
 };
 
 /** Cartão de exame EM PROCESSAMENTO (UPLOADED/EXTRACTING) — sempre no TOPO da lista.
- *  Barra indeterminada (não há % real no servidor). Toca pra acompanhar a extração.
+ *  Etapas visuais (ProcessingStages) + barra indeterminada (não há % real no
+ *  servidor). Toca pra acompanhar a extração.
  *  E2: tempo decorrido INLINE (criação real do exame) — sem precisar entrar no detalhe
  *  pra saber "há quanto tempo está analisando" (queixa do dono 26/09). */
 const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }) => {
@@ -71,6 +73,8 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   const elapsed = start ? Math.max(0, Math.floor((now - start) / 1000)) : 0;
   const mm = Math.floor(elapsed / 60);
   const ss = (elapsed % 60).toString().padStart(2, '0');
+  // Etapa corrente pelo status REAL do exame: EXTRACTING = IA já lendo o conteúdo.
+  const stage = r.status === 'EXTRACTING' ? 1 : 0;
   return (
     <AppCard kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -84,6 +88,9 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
         {onCancel && <IconButton size="small" onClick={(e) => { e.stopPropagation(); onCancel(e); }} title="Cancelar e excluir" aria-label="Cancelar e excluir exame" sx={{ flexShrink: 0, color: 'text.secondary', p: 1.25 }}><CloseIcon fontSize="small" /></IconButton>}
         <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </CardContent>
+      <Box sx={{ px: { xs: 1.5, sm: 2 }, pb: 1.25 }}>
+        <ProcessingStages active={stage} />
+      </Box>
       <LinearProgress sx={{ height: 4, '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#0ea5e9,#20b2aa)' } }} />
     </AppCard>
   );

@@ -46,6 +46,8 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { getGoals, goalSubtitle, GoalQuizCard } from '../GoalQuiz';
 import { useSportsProfile } from '../../hooks/useSportsProfile';
 import { celebrate as fireCelebration } from '../../hooks/useCelebrate';
+import { ProcessingStages } from '../ProcessingStages';
+import { FirstExamExperience } from './FirstExamExperience';
 import { SportsDashboard } from '../sports/SportsDashboard';
 import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 import { PersonaSwitcher } from '../sports/PersonaSwitcher';
@@ -285,20 +287,25 @@ export const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; o
   const mm = Math.floor(elapsed / 60);
   const ss = (elapsed % 60).toString().padStart(2, '0');
   return (
-    <AppCard kind="interactive" onClick={onClick} sx={{ p: 1.5, mb: 2, borderRadius: '16px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-      <Box sx={{ position: 'relative', flexShrink: 0, width: 40, height: 40, display: 'grid', placeItems: 'center' }}>
-        <CircularProgress size={34} thickness={4.5} sx={{ color: 'info.main', position: 'absolute' }} />
-        <Box sx={{ fontSize: 15 }}>🤖</Box>
+    <AppCard kind="interactive" onClick={onClick} sx={{ p: 1.75, mb: 2, borderRadius: '16px' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ position: 'relative', flexShrink: 0, width: 40, height: 40, display: 'grid', placeItems: 'center' }}>
+          <CircularProgress size={34} thickness={4.5} sx={{ color: 'info.main', position: 'absolute' }} />
+          <Box sx={{ fontSize: 15 }}>🤖</Box>
+        </Box>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+            {count === 1 ? 'Dr. Exame está analisando seu exame' : `Dr. Exame está analisando ${count} exames`}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+            {start ? `há ${mm}:${ss}` : 'agora'} · toque para acompanhar · pode usar o app normalmente
+          </Typography>
+        </Box>
+        <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
       </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
-          {count === 1 ? 'Dr. Exame está analisando seu exame' : `Dr. Exame está analisando ${count} exames`}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-          {start ? `há ${mm}:${ss}` : 'agora'} · toque para acompanhar · pode usar o app normalmente
-        </Typography>
+      <Box sx={{ mt: 1.25, px: { xs: 0.5, sm: 1.5 } }}>
+        <ProcessingStages active={0} />
       </Box>
-      <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
     </AppCard>
   );
 };
@@ -880,6 +887,29 @@ export const DashboardV2 = () => {
   // EXATAMENTE igual à atual (screenshot-comparável).
   if (!demo && sports.active) {
     return <SportsDashboard pid={pid} d={real} profile={sports.profile} firstName={firstName} />;
+  }
+
+  // FIRST-EXAM FLOW — conta SEM exames: uma missão só (enviar o 1º exame), zero
+  // tile vazio, score vazio ou bio-idade vazia ao redor (insight Kantesti: o
+  // momento de maior fricção vira o mais limpo). Exame em processamento segue
+  // visível pelo strip no topo. 1º exame extraído → volta ao dashboard completo
+  // e a celebração W1 assume.
+  if (!demo && d.loaded && d.stats.exams === 0) {
+    return (
+      <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
+        <DashboardHeader firstName={firstName} />
+        <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
+        <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
+        {d.processing && d.processing.count > 0 && (
+          <ProcessingStrip count={d.processing.count} oldestAt={d.processing.oldestAt} onClick={() => navigate('/exams')} />
+        )}
+        <FirstExamExperience
+          firstName={firstName}
+          onGoCreate={() => navigate('/exams/create')}
+          onDemo={() => { setDemo(true); demoEvent('started'); }}
+        />
+      </PageContainer>
+    );
   }
 
   return (
