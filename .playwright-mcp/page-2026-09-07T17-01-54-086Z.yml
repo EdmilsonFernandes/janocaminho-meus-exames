@@ -1,0 +1,121 @@
+- generic [ref=f11e1]:
+  - generic [aria-hidden] [ref=f11e2]:
+    - generic [ref=f11e3]:
+      - button [ref=f11e365] [cursor=pointer]
+      - generic [ref=f11e5]:
+        - banner [ref=f11e6]:
+          - generic [ref=f11e7]:
+            - button [ref=f11e366] [cursor=pointer]
+            - paragraph [ref=f11e372]: Dr. Exame
+            - generic [ref=f11e8]:
+              - button [ref=f11e373] [cursor=pointer]:
+                - generic [ref=f11e12]: "69"
+              - button [ref=f11e374] [cursor=pointer]:
+                - generic [ref=f11e14]: 9+
+              - button [ref=f11e375] [cursor=pointer]:
+                - generic [ref=f11e20]: E
+        - main [ref=f11e31]:
+          - generic [ref=f11e108]:
+            - generic [ref=f11e111]:
+              - paragraph [ref=f11e112]: Boa tarde, Edmilson 👋
+              - generic [ref=f11e113]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f11e118]:
+              - generic [ref=f11e120]:
+                - generic [ref=f11e121]:
+                  - generic [ref=f11e122]:
+                    - generic:
+                      - paragraph: "62"
+                      - paragraph: de 100
+                  - generic [ref=f11e126]:
+                    - paragraph [ref=f11e127]: Sua saúde hoje
+                    - paragraph [ref=f11e128]: Em boa forma
+                    - paragraph [ref=f11e130]:
+                      - generic [ref=f11e131]: ● 5 moderados
+                - button [ref=f11e376] [cursor=pointer]: Ver análise completa
+              - generic [ref=f11e137]:
+                - paragraph [ref=f11e138]: O que mudou nos seus exames
+                - generic [ref=f11e139]: 1 melhorou
+                - generic [ref=f11e145]:
+                  - paragraph [ref=f11e146]: ↓GLICOSE
+                  - paragraph [ref=f11e147]: 95 mg/dL
+                - button [ref=f11e377] [cursor=pointer]: Ver evolução completa
+            - generic [ref=f11e160]:
+              - generic [ref=f11e164]:
+                - paragraph [ref=f11e165]: ✨ Dica personalizada (IA)
+                - paragraph [ref=f11e166]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=f11e379] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f11e173]:
+              - paragraph [ref=f11e179]: Seus indicadores
+              - generic [ref=f11e381]:
+                - button [ref=f11e382] [cursor=pointer]:
+                  - generic [ref=f11e383]:
+                    - generic [ref=f11e389]:
+                      - paragraph [ref=f11e390]: Cardiometabólico
+                      - paragraph [ref=f11e391]: baixo
+                    - paragraph [ref=f11e395]: 1 fator de risco
+                - button [ref=f11e396] [cursor=pointer]:
+                  - generic [ref=f11e402]:
+                    - paragraph [ref=f11e403]: Idade biológica
+                    - paragraph [ref=f11e404]: 42a
+                    - paragraph [ref=f11e405]: estimativa corporal
+                - button [ref=f11e406] [cursor=pointer]:
+                  - generic [ref=f11e407]:
+                    - generic [ref=f11e413]:
+                      - paragraph [ref=f11e414]: Seus exames
+                      - paragraph [ref=f11e415]: "9"
+                    - paragraph [ref=f11e419]: 8 alterados
+                - button [ref=f11e420] [cursor=pointer]:
+                  - generic [ref=f11e421]:
+                    - generic [ref=f11e427]:
+                      - paragraph [ref=f11e428]: Evolução
+                      - paragraph [ref=f11e429]: "34"
+                    - paragraph [ref=f11e430]: histórico de tendências
+            - paragraph [ref=f11e242]: Atividade física
+            - generic [ref=f11e244]:
+              - paragraph [ref=f11e250]: Ações rápidas
+              - generic [ref=f11e330]:
+                - generic [ref=f11e333] [cursor=pointer]:
+                  - generic [ref=f11e334]: +
+                  - generic [ref=f11e335]: Enviar exame
+                - generic [ref=f11e341]: Evolução
+                - generic [ref=f11e349]: Família
+                - generic [ref=f11e357]: Relatório
+            - generic [ref=f11e289]:
+              - generic [ref=f11e294]:
+                - paragraph [ref=f11e295]: "69"
+                - text: créditos disponíveis
+              - button [ref=f11e431] [cursor=pointer]: Comprar
+            - generic [ref=f11e300] [cursor=pointer]:
+              - generic [ref=f11e302]:
+                - paragraph [ref=f11e303]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=f11e306]:
+                - generic [ref=f11e307]: 🎉
+                - generic [ref=f11e309]: 📚
+                - generic [ref=f11e311]: 🎓
+                - generic [ref=f11e313]: 💚
+                - generic [ref=f11e315]: 🔥
+              - generic [ref=f11e319]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=f11e432] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f11e433]:
+      - button [ref=f11e434] [cursor=pointer]:
+        - paragraph [ref=f11e438]: Início
+      - button [ref=f11e440] [cursor=pointer]:
+        - paragraph [ref=f11e444]: Exames
+      - button [ref=f11e445] [cursor=pointer]:
+        - paragraph [ref=f11e448]: Dr. Exame
+      - button [ref=f11e449] [cursor=pointer]:
+        - paragraph [ref=f11e453]: Evolução
+      - button [ref=f11e454] [cursor=pointer]:
+        - paragraph [ref=f11e458]: Mais
+  - button [ref=f11e459] [cursor=pointer]
+  - dialog [active] [ref=f11e461]:
+    - navigation [ref=f11e462]:
+      - button "Exames" [ref=f11e464] [cursor=pointer]
+      - button "Cuidados" [ref=f11e473] [cursor=pointer]
+      - button "Pessoas" [ref=f11e483] [cursor=pointer]
+      - button "Conta" [ref=f11e493] [cursor=pointer]
+      - button "Dúvidas frequentes" [ref=f11e502] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f11e508] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f11e514] [cursor=pointer]
+      - generic [ref=f11e520]: Dr. Exame • Saúde Inteligente 🩺

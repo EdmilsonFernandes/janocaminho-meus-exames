@@ -1,0 +1,32 @@
+- generic [ref=f2e20]:
+  - generic [ref=f2e21]:
+    - generic [ref=f2e729]:
+      - button [ref=f2e730] [cursor=pointer]
+      - generic [ref=f2e731]:
+        - banner [ref=f2e732]:
+          - generic [ref=f2e733]:
+            - button [ref=f2e734] [cursor=pointer]
+            - paragraph [ref=f2e740]: Dr. Exame
+            - button [ref=f2e741] [cursor=pointer]
+            - button [ref=f2e746] [cursor=pointer]
+        - main [ref=f2e751]:
+          - generic [ref=f2e753]:
+            - heading [level=4] [ref=f2e759]: Meus Exames
+            - paragraph [ref=f2e760]: Seu assistente de saúde com IA
+    - navigation [ref=f2e768]:
+      - paragraph [ref=f2e773] [cursor=pointer]: Início
+      - paragraph [ref=f2e779] [cursor=pointer]: Exames
+      - paragraph [ref=f2e783] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f2e788] [cursor=pointer]: Evolução
+      - paragraph [ref=f2e793] [cursor=pointer]: Mais
+  - generic [ref=f2e17] [cursor=pointer]
+  - dialog [active] [ref=f2e798]:
+    - generic [ref=f2e799]:
+      - button "Pular" [ref=f2e800] [cursor=pointer]
+      - generic [ref=f2e801]:
+        - img "Dr. Exame" [ref=f2e803]
+        - heading "Envie seu exame" [level=4] [ref=f2e804]
+        - paragraph [ref=f2e805]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f2e806]:
+        - button [ref=f2e812] [cursor=pointer]
+        - paragraph [ref=f2e816]: Toque em Próximo para continuar →

@@ -1,0 +1,85 @@
+- generic [ref=e1003]:
+  - navigation [ref=e1004]:
+    - generic [ref=e1006]:
+      - button "Menu do médico" [ref=e1007] [cursor=pointer]:
+        - generic [ref=e1008]: D
+      - generic [ref=e1009]:
+        - paragraph [ref=e1010]: Dr Teste QA
+        - generic [ref=e1011]: Clínico Geral • CRM 99999-SP
+    - separator [ref=e1012]
+    - generic [ref=e1013]:
+      - generic [ref=e1014]: PLANO
+      - paragraph [ref=e1015]: Grátis (0/5 usados)
+      - text: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=e1016]:
+      - button "Painel" [ref=e1017] [cursor=pointer]
+      - button "Pacientes" [ref=e1023] [cursor=pointer]
+      - button "Convites" [ref=e1029] [cursor=pointer]
+      - button "Perguntas" [ref=e1036] [cursor=pointer]
+      - button "Meu perfil" [ref=e1043] [cursor=pointer]
+      - button "Trocar senha" [ref=e1049] [cursor=pointer]
+      - separator [ref=e1055]
+      - button "Sair" [ref=e1056] [cursor=pointer]
+    - generic [ref=e1062]: Portal do Médico
+  - generic [ref=e1063]:
+    - generic [ref=e1065]:
+      - paragraph [ref=e1067]: Painel
+      - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=e1068]: Acesso médico · leitura
+    - generic [ref=e1072]:
+      - generic [ref=e1073]:
+        - generic [ref=e1074]:
+          - paragraph [ref=e1075]: Bom dia, Dr. Teste 👋
+          - paragraph [ref=e1076]: 2 pacientes com valores alterados
+          - generic [ref=e1077]: sábado, 12 de setembro
+        - generic [ref=e1078]:
+          - button [ref=e1079] [cursor=pointer]:
+            - generic [ref=e1080]:
+              - paragraph [ref=e1085]: "3"
+              - text: Pacientes
+          - button [ref=e1086] [cursor=pointer]:
+            - generic [ref=e1087]:
+              - paragraph [ref=e1093]: "2"
+              - text: Com alerta
+          - button [ref=e1094] [cursor=pointer]:
+            - generic [ref=e1095]:
+              - paragraph [ref=e1100]: "0"
+              - text: Perguntas abertas
+          - button [ref=e1101] [cursor=pointer]:
+            - generic [ref=e1102]:
+              - paragraph [ref=e1107]: "0"
+              - text: Convites pendentes
+        - generic [ref=e1108]:
+          - generic [ref=e1109]:
+            - generic [ref=e1110]: Precisam de atenção agora
+            - button "Ver todos" [ref=e1114] [cursor=pointer]
+          - generic [ref=e1115]:
+            - button "E Edmilson Lopes Fernandes dos Santos 41a · M · Alterações moderadas · exame há 1 mês" [ref=e1116] [cursor=pointer]:
+              - generic [ref=e1117]:
+                - generic [ref=e1118]: E
+                - generic [ref=e1119]:
+                  - paragraph [ref=e1120]: Edmilson Lopes Fernandes dos Santos
+                  - generic [ref=e1121]: 41a · M · Alterações moderadas · exame há 1 mês
+            - button "E Edmilson Lopes QA M · Alterações moderadas · exame há 1 mês" [ref=e1125] [cursor=pointer]:
+              - generic [ref=e1126]:
+                - generic [ref=e1127]: E
+                - generic [ref=e1128]:
+                  - paragraph [ref=e1129]: Edmilson Lopes QA
+                  - generic [ref=e1130]: M · Alterações moderadas · exame há 1 mês
+        - generic [ref=e1134]:
+          - generic [ref=e1135]:
+            - generic [ref=e1136]: Exames para renovar
+            - button "Ver todos" [ref=e1140] [cursor=pointer]
+          - generic [ref=e1141]: Sem exame novo há mais de 1 ano (ou nenhum compartilhado) — peça uma atualização na próxima consulta.
+          - button "U Usuário Teste sem exames compartilhados" [ref=e1143] [cursor=pointer]:
+            - generic [ref=e1144]:
+              - generic [ref=e1145]: U
+              - generic [ref=e1146]:
+                - paragraph [ref=e1147]: Usuário Teste
+                - generic [ref=e1148]: sem exames compartilhados
+      - generic [ref=e1151]:
+        - button "Fechar banner" [ref=e1152] [cursor=pointer]:
+          - generic [aria-hidden] [ref=e1153]: ×
+        - generic [ref=e1154]:
+          - paragraph [ref=e1155]: Dr. Exame Pro
+          - paragraph [ref=e1158]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=e1159] [cursor=pointer]

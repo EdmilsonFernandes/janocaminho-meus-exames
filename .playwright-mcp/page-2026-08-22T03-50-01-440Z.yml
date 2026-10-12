@@ -1,0 +1,439 @@
+- generic [active] [ref=f31e1]:
+  - generic [ref=f31e2]:
+    - generic [ref=f31e3]:
+      - generic [ref=f31e4]:
+        - text: We use cookies to enhance your experience, analyze site usage, and deliver personalized content and ads. By continuing to use our site, you consent to our use of cookies as described in our
+        - link "Privacy Policy" [ref=f31e5] [cursor=pointer]:
+          - /url: /privacy-policy
+        - text: . You can update your preferences at any time.
+      - button "Manage preferences" [ref=f31e7] [cursor=pointer]
+      - generic [ref=f31e8] [cursor=pointer]
+    - main [ref=f31e11]:
+      - generic [ref=f31e13]:
+        - img "marek-health-logo" [ref=f31e14]
+        - heading "Get Started with Guided Optimization" [level=1] [ref=f31e15]
+        - list [ref=f31e16]:
+          - listitem [ref=f31e17]:
+            - generic [ref=f31e18]: "1"
+            - generic [ref=f31e20]: Create a Marek Health profile.
+          - listitem [ref=f31e21]:
+            - generic [ref=f31e22]: "2"
+            - generic [ref=f31e24]: Schedule & book your intake with a Marek Health Coach.
+          - listitem [ref=f31e25]:
+            - generic [ref=f31e26]: "3"
+            - generic [ref=f31e28]: Meet with your Marek Health Coach to create your personalized lab panel and begin your health optimization journey.
+        - generic [ref=f31e29]:
+          - generic [ref=f31e30]:
+            - generic [ref=f31e31]: Already have an account?
+            - button "Login" [ref=f31e32] [cursor=pointer]
+          - generic [ref=f31e34]: Create Your Marek Health Profile
+          - generic [ref=f31e35]:
+            - generic [ref=f31e36]: "1"
+            - generic [ref=f31e37]:
+              - generic [ref=f31e38]:
+                - generic [ref=f31e39]: What state do you reside in?
+                - generic [ref=f31e41]: Required to continue.
+              - generic [ref=f31e42]:
+                - combobox [ref=f31e43] [cursor=pointer]:
+                  - option "None" [selected]
+                  - option "non-us"
+                  - option "AL"
+                  - option "AK"
+                  - option "AZ"
+                  - option "AR"
+                  - option "CA"
+                  - option "CO"
+                  - option "CT"
+                  - option "DE"
+                  - option "FL"
+                  - option "GA"
+                  - option "HI"
+                  - option "ID"
+                  - option "IL"
+                  - option "IN"
+                  - option "IA"
+                  - option "KS"
+                  - option "KY"
+                  - option "LA"
+                  - option "ME"
+                  - option "MD"
+                  - option "MA"
+                  - option "MI"
+                  - option "MN"
+                  - option "MS"
+                  - option "MO"
+                  - option "MT"
+                  - option "NE"
+                  - option "NV"
+                  - option "NH"
+                  - option "NJ"
+                  - option "NM"
+                  - option "NY"
+                  - option "NC"
+                  - option "ND"
+                  - option "OH"
+                  - option "OK"
+                  - option "OR"
+                  - option "PA"
+                  - option "RI"
+                  - option "SC"
+                  - option "SD"
+                  - option "TN"
+                  - option "TX"
+                  - option "UT"
+                  - option "VT"
+                  - option "VA"
+                  - option "WA"
+                  - option "DC"
+                  - option "WV"
+                  - option "WI"
+                  - option "WY"
+                  - option "AFA"
+                  - option "AFP"
+                  - option "AFO"
+                - paragraph [ref=f31e44]
+          - generic [ref=f31e45]:
+            - generic [ref=f31e46]: "2"
+            - generic [ref=f31e47]:
+              - generic [ref=f31e48]:
+                - generic [ref=f31e49]: What is your date of birth?
+                - generic [ref=f31e51]: You must be 18 years or older to work with Marek Health.
+              - generic [ref=f31e52]:
+                - generic [ref=f31e53]:
+                  - text: Date of birth
+                  - textbox "Date of birth" [ref=f31e54] [cursor=pointer]:
+                    - /placeholder: MM/DD/YYYY
+                  - paragraph [ref=f31e55]
+                - generic [ref=f31e56]:
+                  - text: Confirm date of birth
+                  - textbox "Confirm date of birth" [ref=f31e57] [cursor=pointer]:
+                    - /placeholder: MM/DD/YYYY
+                  - paragraph [ref=f31e58]
+          - generic [ref=f31e59]:
+            - generic [ref=f31e60]: "3"
+            - generic [ref=f31e61]:
+              - generic [ref=f31e62]:
+                - generic [ref=f31e63]: Let's get to know each other.
+                - generic [ref=f31e65]: Please provide your full legal name.
+              - generic [ref=f31e66]:
+                - text: First Name
+                - textbox "First Name" [ref=f31e67]
+                - paragraph [ref=f31e68]
+              - generic [ref=f31e69]:
+                - text: Last Name
+                - textbox "Last Name" [ref=f31e70]
+                - paragraph [ref=f31e71]
+              - generic [ref=f31e72]:
+                - text: Preferred Name (optional)
+                - textbox "Preferred Name (optional)" [ref=f31e73]:
+                  - /placeholder: Preferred Name
+                - paragraph [ref=f31e74]
+          - generic [ref=f31e75]:
+            - generic [ref=f31e76]: "4"
+            - generic [ref=f31e77]:
+              - generic [ref=f31e78]: Mobile Phone Number.
+              - generic [ref=f31e81]:
+                - generic [ref=f31e82]: Mobile Phone Number
+                - generic [ref=f31e83]:
+                  - combobox "Phone number country" [ref=f31e85] [cursor=pointer]:
+                    - option "International"
+                    - option "Afghanistan"
+                    - option "Åland Islands"
+                    - option "Albania"
+                    - option "Algeria"
+                    - option "American Samoa"
+                    - option "Andorra"
+                    - option "Angola"
+                    - option "Anguilla"
+                    - option "Antigua and Barbuda"
+                    - option "Argentina"
+                    - option "Armenia"
+                    - option "Aruba"
+                    - option "Ascension Island"
+                    - option "Australia"
+                    - option "Austria"
+                    - option "Azerbaijan"
+                    - option "Bahamas"
+                    - option "Bahrain"
+                    - option "Bangladesh"
+                    - option "Barbados"
+                    - option "Belarus"
+                    - option "Belgium"
+                    - option "Belize"
+                    - option "Benin"
+                    - option "Bermuda"
+                    - option "Bhutan"
+                    - option "Bolivia"
+                    - option "Bonaire, Sint Eustatius and Saba"
+                    - option "Bosnia and Herzegovina"
+                    - option "Botswana"
+                    - option "Brazil"
+                    - option "British Indian Ocean Territory"
+                    - option "Brunei Darussalam"
+                    - option "Bulgaria"
+                    - option "Burkina Faso"
+                    - option "Burundi"
+                    - option "Cambodia"
+                    - option "Cameroon"
+                    - option "Canada"
+                    - option "Cape Verde"
+                    - option "Cayman Islands"
+                    - option "Central African Republic"
+                    - option "Chad"
+                    - option "Chile"
+                    - option "China"
+                    - option "Christmas Island"
+                    - option "Cocos (Keeling) Islands"
+                    - option "Colombia"
+                    - option "Comoros"
+                    - option "Congo"
+                    - option "Congo, Democratic Republic of the"
+                    - option "Cook Islands"
+                    - option "Costa Rica"
+                    - option "Cote d'Ivoire"
+                    - option "Croatia"
+                    - option "Cuba"
+                    - option "Curaçao"
+                    - option "Cyprus"
+                    - option "Czech Republic"
+                    - option "Denmark"
+                    - option "Djibouti"
+                    - option "Dominica"
+                    - option "Dominican Republic"
+                    - option "Ecuador"
+                    - option "Egypt"
+                    - option "El Salvador"
+                    - option "Equatorial Guinea"
+                    - option "Eritrea"
+                    - option "Estonia"
+                    - option "Ethiopia"
+                    - option "Falkland Islands"
+                    - option "Faroe Islands"
+                    - option "Federated States of Micronesia"
+                    - option "Fiji"
+                    - option "Finland"
+                    - option "France"
+                    - option "French Guiana"
+                    - option "French Polynesia"
+                    - option "Gabon"
+                    - option "Gambia"
+                    - option "Georgia"
+                    - option "Germany"
+                    - option "Ghana"
+                    - option "Gibraltar"
+                    - option "Greece"
+                    - option "Greenland"
+                    - option "Grenada"
+                    - option "Guadeloupe"
+                    - option "Guam"
+                    - option "Guatemala"
+                    - option "Guernsey"
+                    - option "Guinea"
+                    - option "Guinea-Bissau"
+                    - option "Guyana"
+                    - option "Haiti"
+                    - option "Holy See (Vatican City State)"
+                    - option "Honduras"
+                    - option "Hong Kong"
+                    - option "Hungary"
+                    - option "Iceland"
+                    - option "India"
+                    - option "Indonesia"
+                    - option "Iran"
+                    - option "Iraq"
+                    - option "Ireland"
+                    - option "Isle of Man"
+                    - option "Israel"
+                    - option "Italy"
+                    - option "Jamaica"
+                    - option "Japan"
+                    - option "Jersey"
+                    - option "Jordan"
+                    - option "Kazakhstan"
+                    - option "Kenya"
+                    - option "Kiribati"
+                    - option "Kosovo"
+                    - option "Kuwait"
+                    - option "Kyrgyzstan"
+                    - option "Laos"
+                    - option "Latvia"
+                    - option "Lebanon"
+                    - option "Lesotho"
+                    - option "Liberia"
+                    - option "Libya"
+                    - option "Liechtenstein"
+                    - option "Lithuania"
+                    - option "Luxembourg"
+                    - option "Macao"
+                    - option "Madagascar"
+                    - option "Malawi"
+                    - option "Malaysia"
+                    - option "Maldives"
+                    - option "Mali"
+                    - option "Malta"
+                    - option "Marshall Islands"
+                    - option "Martinique"
+                    - option "Mauritania"
+                    - option "Mauritius"
+                    - option "Mayotte"
+                    - option "Mexico"
+                    - option "Moldova"
+                    - option "Monaco"
+                    - option "Mongolia"
+                    - option "Montenegro"
+                    - option "Montserrat"
+                    - option "Morocco"
+                    - option "Mozambique"
+                    - option "Myanmar"
+                    - option "Namibia"
+                    - option "Nauru"
+                    - option "Nepal"
+                    - option "Netherlands"
+                    - option "New Caledonia"
+                    - option "New Zealand"
+                    - option "Nicaragua"
+                    - option "Niger"
+                    - option "Nigeria"
+                    - option "Niue"
+                    - option "Norfolk Island"
+                    - option "North Korea"
+                    - option "North Macedonia"
+                    - option "Northern Mariana Islands"
+                    - option "Norway"
+                    - option "Oman"
+                    - option "Pakistan"
+                    - option "Palau"
+                    - option "Palestine"
+                    - option "Panama"
+                    - option "Papua New Guinea"
+                    - option "Paraguay"
+                    - option "Peru"
+                    - option "Philippines"
+                    - option "Poland"
+                    - option "Portugal"
+                    - option "Puerto Rico"
+                    - option "Qatar"
+                    - option "Reunion"
+                    - option "Romania"
+                    - option "Russia"
+                    - option "Rwanda"
+                    - option "Saint Barthélemy"
+                    - option "Saint Helena"
+                    - option "Saint Kitts and Nevis"
+                    - option "Saint Lucia"
+                    - option "Saint Martin (French Part)"
+                    - option "Saint Pierre and Miquelon"
+                    - option "Saint Vincent and the Grenadines"
+                    - option "Samoa"
+                    - option "San Marino"
+                    - option "Sao Tome and Principe"
+                    - option "Saudi Arabia"
+                    - option "Senegal"
+                    - option "Serbia"
+                    - option "Seychelles"
+                    - option "Sierra Leone"
+                    - option "Singapore"
+                    - option "Sint Maarten"
+                    - option "Slovakia"
+                    - option "Slovenia"
+                    - option "Solomon Islands"
+                    - option "Somalia"
+                    - option "South Africa"
+                    - option "South Korea"
+                    - option "South Sudan"
+                    - option "Spain"
+                    - option "Sri Lanka"
+                    - option "Sudan"
+                    - option "Suriname"
+                    - option "Svalbard and Jan Mayen"
+                    - option "Swaziland"
+                    - option "Sweden"
+                    - option "Switzerland"
+                    - option "Syria"
+                    - option "Taiwan"
+                    - option "Tajikistan"
+                    - option "Tanzania"
+                    - option "Thailand"
+                    - option "Timor-Leste"
+                    - option "Togo"
+                    - option "Tokelau"
+                    - option "Tonga"
+                    - option "Trinidad and Tobago"
+                    - option "Tristan da Cunha"
+                    - option "Tunisia"
+                    - option "Turkey"
+                    - option "Turkmenistan"
+                    - option "Turks and Caicos Islands"
+                    - option "Tuvalu"
+                    - option "Uganda"
+                    - option "Ukraine"
+                    - option "United Arab Emirates"
+                    - option "United Kingdom"
+                    - option "United States" [selected]
+                    - option "Uruguay"
+                    - option "Uzbekistan"
+                    - option "Vanuatu"
+                    - option "Venezuela"
+                    - option "Vietnam"
+                    - option "Virgin Islands, British"
+                    - option "Virgin Islands, U.S."
+                    - option "Wallis and Futuna"
+                    - option "Western Sahara"
+                    - option "Yemen"
+                    - option "Zambia"
+                    - option "Zimbabwe"
+                  - textbox "(555) 555-5555" [ref=f31e89]
+                - paragraph [ref=f31e90]
+              - generic [ref=f31e91]: By submitting this form and providing your phone number, you consent to receive SMS messages from Marek Health at the number provided. Consent is not a condition of purchase. Msg & data rates may apply.
+          - generic [ref=f31e92]:
+            - generic [ref=f31e93]: "5"
+            - generic [ref=f31e94]:
+              - generic [ref=f31e95]: Email address.
+              - generic [ref=f31e98]:
+                - textbox [ref=f31e99]:
+                  - /placeholder: name@email.com
+                - paragraph [ref=f31e100]
+              - generic [ref=f31e101]:
+                - text: Confirm email address
+                - textbox "Confirm email address" [ref=f31e102]:
+                  - /placeholder: name@email.com
+                - paragraph [ref=f31e103]
+          - generic [ref=f31e104]:
+            - generic [ref=f31e105]: "6"
+            - generic [ref=f31e106]:
+              - generic [ref=f31e107]: Create password.
+              - generic [ref=f31e114]:
+                - textbox "password" [ref=f31e115]
+                - paragraph [ref=f31e116]
+              - generic [ref=f31e117]:
+                - text: Confirm password
+                - textbox "Confirm password" [ref=f31e118]:
+                  - /placeholder: password
+                - paragraph [ref=f31e119]
+          - generic [ref=f31e120]:
+            - generic [ref=f31e121]:
+              - generic [ref=f31e123] [cursor=pointer]:
+                - checkbox "I agree to the Terms & Conditions and acknowledge the Privacy Policy."
+                - generic [ref=f31e125]:
+                  - text: I agree to the
+                  - link "Terms & Conditions" [ref=f31e126]:
+                    - /url: /terms-and-conditions
+                  - text: and acknowledge the
+                  - link "Privacy Policy" [ref=f31e127]:
+                    - /url: /privacy-policy
+                  - text: .
+              - generic [ref=f31e130] [cursor=pointer]:
+                - checkbox "I have reviewed and agree to the Telehealth Informed Consent (including consent to evaluation and treatment via telehealth)."
+                - generic [ref=f31e132]:
+                  - text: I have reviewed and agree to the
+                  - link "Telehealth" [ref=f31e133]:
+                    - /url: /telehealth
+                  - text: Informed Consent (including consent to evaluation and treatment via telehealth).
+              - generic [ref=f31e136] [cursor=pointer]:
+                - checkbox "By submitting this form and providing your phone number, you consent to receive SMS messages from Marek Health at the number provided. Consent is not a condition of purchase. Msg & data rates may apply."
+                - generic [ref=f31e138]: By submitting this form and providing your phone number, you consent to receive SMS messages from Marek Health at the number provided. Consent is not a condition of purchase. Msg & data rates may apply.
+            - generic [ref=f31e141]:
+              - button "Accept & create account" [ref=f31e142] [cursor=pointer]
+              - link "Decline" [ref=f31e144] [cursor=pointer]:
+                - /url: /
+  - alert [ref=f31e145]

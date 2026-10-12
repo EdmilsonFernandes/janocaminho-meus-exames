@@ -1,0 +1,90 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e882]:
+    - button "Pular para o conteúdo" [ref=e3727] [cursor=pointer]
+    - generic [ref=e884]:
+      - banner [ref=e885]:
+        - generic [ref=e886]:
+          - heading [level=6]
+          - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+            - generic [ref=e897]: "19"
+            - button "Ocultar créditos" [ref=e2151]
+          - button "Notificações" [ref=e2152] [cursor=pointer]:
+            - generic [ref=e902]: "1"
+          - button "E Ed teste 2 Titular" [ref=e3728] [cursor=pointer]:
+            - generic [ref=e908]: E
+            - generic [ref=e3729]:
+              - generic [ref=e3730]: Ed teste 2
+              - generic [ref=e3731]: Titular
+          - button "Atualizar" [ref=e2154] [cursor=pointer]
+      - main [ref=e919]:
+        - navigation [ref=e3735]:
+          - generic [ref=e3736]:
+            - paragraph [ref=e3741] [cursor=pointer]: Início
+            - paragraph [ref=e3746] [cursor=pointer]: Exames
+            - paragraph [ref=e3752] [cursor=pointer]: Valores alterados
+            - paragraph [ref=e3758] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=e3763] [cursor=pointer]: Tendências
+            - paragraph [ref=e3768] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=e3773] [cursor=pointer]: Relatório completo
+            - paragraph [ref=e3778] [cursor=pointer]: Perguntas
+            - paragraph [ref=e3784] [cursor=pointer]: Saúde da Família
+          - button "Minha saúde" [ref=e3786] [cursor=pointer]
+          - button "Família & médicos" [ref=e3796] [cursor=pointer]
+          - generic [ref=e3805]:
+            - button "Conta" [ref=e3806] [cursor=pointer]
+            - generic [ref=e3816]:
+              - button "Meu perfil" [ref=e3817] [cursor=pointer]
+              - button "Segurança" [ref=e3823] [cursor=pointer]
+              - button "Privacidade e termos" [ref=e3829] [cursor=pointer]
+              - button "Planos e Créditos" [ref=e3835] [cursor=pointer]
+          - separator [ref=e3841]
+          - button "Ajuda & Suporte" [ref=e3842] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e3848] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e3854] [cursor=pointer]
+        - generic [ref=e3860]:
+          - generic [ref=e3861]:
+            - paragraph [ref=e3862]: Bom dia, tudo bem? 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e3863]:
+            - generic [ref=e3865]:
+              - generic [ref=e3866]:
+                - paragraph [ref=e3873]: de 100
+                - generic [ref=e3874]:
+                  - paragraph [ref=e3875]: Sua saúde hoje
+                  - paragraph [ref=e3876]: Em ótima forma
+                  - paragraph [ref=e3878]: ● Nada crítico no momento
+              - button [ref=e3879] [cursor=pointer]
+            - generic [ref=e3884]:
+              - paragraph [ref=e3885]: Desde seu último exame
+              - paragraph [ref=e3887]: Carregando…
+              - button [ref=e3889] [cursor=pointer]
+          - button [ref=e3898] [cursor=pointer]
+          - generic [ref=e3902]:
+            - generic [ref=e3909] [cursor=pointer]:
+              - paragraph [ref=e3910]: Cardiometabólico
+              - paragraph [ref=e3911]: —
+              - paragraph [ref=e3912]: sem fatores
+            - generic [ref=e3915] [cursor=pointer]:
+              - generic [ref=e3916]: 🧬
+              - generic [ref=e3917]:
+                - paragraph [ref=e3918]: Idade biológica
+                - paragraph [ref=e3919]: Em breve
+                - paragraph [ref=e3920]: estimativa c/ +exames
+            - generic [ref=e3927] [cursor=pointer]:
+              - paragraph [ref=e3928]: Seus exames
+              - paragraph [ref=e3929]: —
+              - paragraph [ref=e3930]: 0 alterados
+            - generic [ref=e3937] [cursor=pointer]:
+              - paragraph [ref=e3938]: Evolução
+              - paragraph [ref=e3939]: Tendências
+              - paragraph [ref=e3940]: 89 resultados
+          - generic [ref=e3942]:
+            - generic [ref=e3943]: Enviar exame
+            - generic [ref=e3950]: Evolução
+            - generic [ref=e3957]: Família
+            - generic [ref=e3965]: Relatório
+          - button [ref=e3973] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

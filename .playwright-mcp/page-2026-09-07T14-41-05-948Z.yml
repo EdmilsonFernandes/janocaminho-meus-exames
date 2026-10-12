@@ -1,0 +1,39 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e110]:
+      - button [ref=e382] [cursor=pointer]
+      - generic [ref=e112]:
+        - banner [ref=e113]:
+          - generic [ref=e114]:
+            - button [ref=e383] [cursor=pointer]
+            - paragraph [ref=e121]: Dr. Exame
+            - generic [ref=e122]:
+              - button [ref=e385] [cursor=pointer]:
+                - generic [ref=e126]: "69"
+              - button [ref=e386] [cursor=pointer]:
+                - generic [ref=e128]: 9+
+              - button [ref=e387] [cursor=pointer]:
+                - generic [ref=e134]: E
+        - main [ref=e139]
+    - button [ref=e419] [cursor=pointer]
+    - navigation [ref=e356]:
+      - button [ref=e398] [cursor=pointer]:
+        - paragraph [ref=e361]: Início
+      - button [ref=e399] [cursor=pointer]:
+        - paragraph [ref=e367]: Exames
+      - button [ref=e400] [cursor=pointer]:
+        - paragraph [ref=e371]: Dr. Exame
+      - button [ref=e402] [cursor=pointer]:
+        - paragraph [ref=e376]: Evolução
+      - button [ref=e403] [cursor=pointer]:
+        - paragraph [ref=e381]: Mais
+  - button [ref=e404] [cursor=pointer]
+  - dialog [active] [ref=e407]:
+    - heading [level=2] [ref=e408]:
+      - generic [ref=e409]:
+        - img "Dr. Exame" [ref=e410]
+        - paragraph [ref=e411]: "🎉 Conquista: Constância"
+    - paragraph [ref=e413]: 3 dias seguidos no app — resgate seu crédito!
+    - generic [ref=e414]:
+      - button "Depois" [ref=e415] [cursor=pointer]
+      - button "Ver notificações" [ref=e416] [cursor=pointer]

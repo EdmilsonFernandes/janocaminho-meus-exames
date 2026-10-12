@@ -1,0 +1,52 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e59]:
+    - navigation [ref=e60]:
+      - generic [ref=e62]:
+        - button "Menu do médico" [ref=e63] [cursor=pointer]:
+          - generic [ref=e64]: D
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: 🩺 Dr Teste QA
+          - generic [ref=e67]: Clínico Geral • CRM 99999-SP
+      - separator [ref=e68]
+      - generic [ref=e69]:
+        - generic [ref=e70]: PLANO
+        - paragraph [ref=e71]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e72]:
+        - button "Pacientes" [ref=e73] [cursor=pointer]
+        - button "Convites" [ref=e79] [cursor=pointer]
+        - button "Perguntas" [ref=e86] [cursor=pointer]
+        - button "Meu perfil" [ref=e93] [cursor=pointer]
+        - button "Trocar senha" [ref=e99] [cursor=pointer]
+        - separator [ref=e105]
+        - button "Sair" [ref=e106] [cursor=pointer]
+      - generic [ref=e112]: Portal do Médico
+    - generic [ref=e113]:
+      - paragraph [ref=e116]: Pacientes
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - button "Fechar banner" [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]: ×
+          - generic [ref=e121]:
+            - paragraph [ref=e122]: 💎 Dr. Exame Pro
+            - paragraph [ref=e123]: 💡 0 de 5 pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=e124] [cursor=pointer]
+        - generic [ref=e125]:
+          - heading "Pacientes (2)" [level=6] [ref=e126]
+          - generic [ref=e127]: 🔴 1 com alerta
+        - generic [ref=e129]:
+          - textbox "Buscar paciente" [ref=e134]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=e135] [cursor=pointer]
+        - generic [ref=e138]:
+          - generic [ref=e145] [cursor=pointer]:
+            - paragraph [ref=e146]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=e147]: M
+            - generic [ref=e148]: 🔴 alerta · 📋 5 exames · 📅 09/07/2026 · Particular
+          - generic [ref=e156] [cursor=pointer]:
+            - paragraph [ref=e157]: Usuário Teste
+            - generic [ref=e158]: Titular
+            - generic [ref=e159]: Particular
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

@@ -1,0 +1,417 @@
+- generic [active] [ref=f25e1]:
+  - generic [ref=f25e2]:
+    - generic [ref=f25e3]:
+      - generic [ref=f25e4]:
+        - text: We use cookies to enhance your experience, analyze site usage, and deliver personalized content and ads. By continuing to use our site, you consent to our use of cookies as described in our
+        - link "Privacy Policy" [ref=f25e5] [cursor=pointer]:
+          - /url: /privacy-policy
+        - text: . You can update your preferences at any time.
+      - button "Manage preferences" [ref=f25e7] [cursor=pointer]
+      - generic [ref=f25e8] [cursor=pointer]
+    - main [ref=f25e11]:
+      - generic [ref=f25e12]:
+        - generic [ref=f25e17]:
+          - generic [ref=f25e18]:
+            - generic [ref=f25e21]:
+              - img "marek-health-logo" [ref=f25e23] [cursor=pointer]
+              - generic [ref=f25e24]:
+                - link "Treatments" [ref=f25e26] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "Diagnostic Labs" [ref=f25e28] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "Coaching" [ref=f25e30] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f25e32] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "FAQs" [ref=f25e34] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f25e36] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f25e38] [cursor=pointer]:
+                  - /url: /weight-loss
+                - button "Start your journey" [ref=f25e39] [cursor=pointer]
+            - generic [ref=f25e42]:
+              - img "marek-health-logo" [ref=f25e44] [cursor=pointer]
+              - generic [ref=f25e45]:
+                - link "Treatments" [ref=f25e47] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "Diagnostic Labs" [ref=f25e49] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "Coaching" [ref=f25e51] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f25e53] [cursor=pointer]:
+                  - /url: /weight-loss
+                - link "FAQs" [ref=f25e55] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f25e57] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f25e59] [cursor=pointer]:
+                  - /url: /weight-loss
+                - button "Start your journey" [ref=f25e60] [cursor=pointer]
+          - generic [ref=f25e61]:
+            - generic [ref=f25e63]:
+              - generic [ref=f25e64]:
+                - heading "Weight loss protocols tailored to you." [level=2] [ref=f25e65]
+                - paragraph [ref=f25e66]: Enhance your health and optimize your body composition with medical weight loss therapies. Sustainable weight loss has never been easier.
+              - generic [ref=f25e67]:
+                - 'link "Tirzepatide GLP-1 & GIP: Dual action Tirzepatide injections once weekly may offer more pronounced weight loss than GLP-1 agonists alone with fewer side effects. Tirzepatide Get started" [ref=f25e69] [cursor=pointer]':
+                  - /url: /sign-up
+                  - generic [ref=f25e70]:
+                    - generic [ref=f25e71]:
+                      - heading "Tirzepatide" [level=3] [ref=f25e72]
+                      - paragraph [ref=f25e73]: "GLP-1 & GIP: Dual action Tirzepatide injections once weekly may offer more pronounced weight loss than GLP-1 agonists alone with fewer side effects."
+                    - img "Tirzepatide" [ref=f25e74]
+                    - generic [ref=f25e75]: Get started
+                - button "Disclaimer" [ref=f25e77] [cursor=pointer]
+            - generic [ref=f25e79]:
+              - img "Body Composition" [ref=f25e81]
+              - generic [ref=f25e82]:
+                - heading "The importance of body recomposition." [level=2] [ref=f25e83]
+                - paragraph [ref=f25e84]: Stubborn body fat is both a cause and consequence of poor internal health. Hormone imbalances, heart disease, and metabolic dysfunction can all result from prolonged exposure to excess body weight. Losing weight, and keeping it off, is often excruciatingly difficult if your biology is at odds with your goals.
+                - paragraph [ref=f25e85]: We developed our holistic approach to address this very problem.
+                - link [ref=f25e86] [cursor=pointer]:
+                  - /url: /sign-up
+                  - button "Start treatment online" [ref=f25e87]
+            - generic [ref=f25e91]:
+              - img "Weight Loss" [ref=f25e93]
+              - generic [ref=f25e94]:
+                - heading [level=2] [ref=f25e95]:
+                  - text: Weight LossGuided Optimization
+                  - superscript [ref=f25e96]: ®
+                - paragraph [ref=f25e97]: TThe first step is booking an intake consultation with one of our expert health coaches to build a custom lab panel tailored to your weight loss goals.
+                - list [ref=f25e98]:
+                  - listitem [ref=f25e99]: "Personalized Assessment: Meet your expert Marek Health Coach to discuss your symptoms and goals. Unlock exclusive discounted pricing on advanced lab testing— minimum $450 lab panel purchase required."
+                  - listitem [ref=f25e100]: "In-Depth Lab Analysis: Receive a custom report with actionable recommendations based on your individual lab results."
+                  - listitem [ref=f25e101]: "Expert Medical Oversight: A 25-minute consultation with a licensed medical provider to discuss your health blueprint and prescription treatments."
+                  - listitem [ref=f25e102]: "Delivered To Your Door: Exclusive access to Marek Health’s FDA-approved pharmacies and supplement dispensaries."
+                  - listitem [ref=f25e103]: "Proactive Care: Monthly Marek Health Coach check-ins, treatment refills, follow-up lab work, and continuous support for health optimization."
+                - generic [ref=f25e104]:
+                  - link [ref=f25e105] [cursor=pointer]:
+                    - /url: /sign-up
+                    - button "Start treatment online" [ref=f25e106]
+                  - paragraph [ref=f25e107]: $299
+            - generic [ref=f25e109]:
+              - generic [ref=f25e110]: Featured On
+              - generic [ref=f25e111]:
+                - generic [ref=f25e113]:
+                  - img "logo-0" [ref=f25e115]
+                  - img "logo-1" [ref=f25e117]
+                  - img "logo-2" [ref=f25e119]
+                  - img "logo-3" [ref=f25e121]
+                  - img "logo-4" [ref=f25e123]
+                  - img "logo-5" [ref=f25e125]
+                  - img "logo-6" [ref=f25e127]
+                  - img "logo-7" [ref=f25e129]
+                  - img "logo-8" [ref=f25e131]
+                  - img "logo-9" [ref=f25e133]
+                  - img "logo-10" [ref=f25e135]
+                - generic [ref=f25e136]:
+                  - img "logo-0" [ref=f25e138]
+                  - img "logo-1" [ref=f25e140]
+                  - img "logo-2" [ref=f25e142]
+                  - img "logo-3" [ref=f25e144]
+                  - img "logo-4" [ref=f25e146]
+                  - img "logo-5" [ref=f25e148]
+                  - img "logo-6" [ref=f25e150]
+                  - img "logo-7" [ref=f25e152]
+                  - img "logo-8" [ref=f25e154]
+                  - img "logo-9" [ref=f25e156]
+                  - img "logo-10" [ref=f25e158]
+            - generic [ref=f25e160]:
+              - generic [ref=f25e162]:
+                - generic [ref=f25e163]:
+                  - 'heading "At a glance: The obesity epidemic" [level=2] [ref=f25e164]'
+                  - paragraph [ref=f25e165]: In light of the current obesity epidemic, it's no surprise the success of new generation weight-loss medications continue to break headlines. The recent popularity of these medications emerges from a dire need to combat staggering rates of obesity and metabolic dysfunction.
+                  - link [ref=f25e166] [cursor=pointer]:
+                    - /url: /sign-up
+                    - button "Start treatment online" [ref=f25e167]
+                - generic [ref=f25e171]:
+                  - heading "Nearly 2 out of every 3 Americans are overweight or obese" [level=2] [ref=f25e172]
+                  - generic [ref=f25e173]:
+                    - generic [ref=f25e174]:
+                      - img "2 out of 3 Overweight"
+                    - generic [ref=f25e175]:
+                      - paragraph [ref=f25e176]: Obese individuals spend on average
+                      - heading "40% more" [level=2] [ref=f25e177]
+                      - paragraph [ref=f25e178]: on healthcare costs per year
+              - generic [ref=f25e179]:
+                - generic [ref=f25e180]:
+                  - generic [ref=f25e182]:
+                    - generic:
+                      - img "30 Percent"
+                    - generic [ref=f25e183]:
+                      - heading "11lbs of excessive body weight is associated with a 30% higher risk of overall mortality." [level=2] [ref=f25e184]
+                      - heading "(based on average height)" [level=2] [ref=f25e185]
+                  - generic [ref=f25e187]:
+                    - generic:
+                      - img "28 Percent"
+                    - heading "Being overweight or obese increases risk of a heart attack by 28%, independent of cholesterol, blood pressure, and blood sugar." [level=2] [ref=f25e189]
+                - generic [ref=f25e190]:
+                  - img "Overweight = 22% increased risk of stroke" [ref=f25e191]
+                  - img "Obese = 64% increased risk of stroke" [ref=f25e192]
+              - link [ref=f25e193] [cursor=pointer]:
+                - /url: /sign-up
+                - button "Explore treatment" [ref=f25e194]
+            - generic [ref=f25e198]:
+              - heading "Our client's experiences with weight loss" [level=2] [ref=f25e199]
+              - paragraph [ref=f25e200]: We can tell you why Marek Health is the future of health optimization all day long, but we'd rather you hear it from our clients. You can read all of our 5 star reviews… but it's gonna take a while.
+              - generic [ref=f25e203]:
+                - generic [ref=f25e205]:
+                  - generic [ref=f25e206]:
+                    - generic [ref=f25e207]: Nelson M
+                    - generic [ref=f25e208]: Aug 15, 2023
+                  - paragraph [ref=f25e210]: "\"The proof is in the RESULTS! I've already lost 40+ lbs by addressing a few issues that were apparent in my lab results.\""
+                  - generic [ref=f25e211]:
+                    - img "Star" [ref=f25e212]
+                    - img "Star" [ref=f25e213]
+                    - img "Star" [ref=f25e214]
+                    - img "Star" [ref=f25e215]
+                    - img "Star" [ref=f25e216]
+                - generic [ref=f25e218]:
+                  - generic [ref=f25e219]:
+                    - generic [ref=f25e220]: Erik T
+                    - generic [ref=f25e221]: Aug 02, 2024
+                  - paragraph [ref=f25e223]: "\"3 months later I'm down 20 pounds, feeling better than I've felt in over 20 years, and all of my blood work is in optimal range.\""
+                  - generic [ref=f25e224]:
+                    - img "Star" [ref=f25e225]
+                    - img "Star" [ref=f25e226]
+                    - img "Star" [ref=f25e227]
+                    - img "Star" [ref=f25e228]
+                    - img "Star" [ref=f25e229]
+                - generic [ref=f25e231]:
+                  - generic [ref=f25e232]:
+                    - generic [ref=f25e233]: John M
+                    - generic [ref=f25e234]: Nov 09, 2022
+                  - paragraph [ref=f25e236]: "\"I have lost 65 pounds and restored most of my blood markers to their ideal referential ranges.\""
+                  - generic [ref=f25e237]:
+                    - img "Star" [ref=f25e238]
+                    - img "Star" [ref=f25e239]
+                    - img "Star" [ref=f25e240]
+                    - img "Star" [ref=f25e241]
+                    - img "Star" [ref=f25e242]
+                - generic [ref=f25e244]:
+                  - generic [ref=f25e245]:
+                    - generic [ref=f25e246]: Nathaniel W
+                    - generic [ref=f25e247]: Apr 13, 2024
+                  - paragraph [ref=f25e249]: "\"My body composition has completely changed. Body fat percentage has greatly decreased.\""
+                  - generic [ref=f25e250]:
+                    - img "Star" [ref=f25e251]
+                    - img "Star" [ref=f25e252]
+                    - img "Star" [ref=f25e253]
+                    - img "Star" [ref=f25e254]
+                    - img "Star" [ref=f25e255]
+                - generic [ref=f25e257]:
+                  - generic [ref=f25e258]:
+                    - generic [ref=f25e259]: Mara
+                    - generic [ref=f25e260]: Jan 18, 2024
+                  - paragraph [ref=f25e262]: "\"I am now sleeping better, less anxious, more energetic and have lost over 30 lbs so far!\""
+                  - generic [ref=f25e263]:
+                    - img "Star" [ref=f25e264]
+                    - img "Star" [ref=f25e265]
+                    - img "Star" [ref=f25e266]
+                    - img "Star" [ref=f25e267]
+                    - img "Star" [ref=f25e268]
+                - generic [ref=f25e270]:
+                  - generic [ref=f25e271]:
+                    - generic [ref=f25e272]: David P
+                    - generic [ref=f25e273]: Sep 15, 2023
+                  - paragraph [ref=f25e275]: "\"To date I've been able to lose over 30 pounds and make significant improvements on multiple health markers.\""
+                  - generic [ref=f25e276]:
+                    - img "Star" [ref=f25e277]
+                    - img "Star" [ref=f25e278]
+                    - img "Star" [ref=f25e279]
+                    - img "Star" [ref=f25e280]
+                    - img "Star" [ref=f25e281]
+              - generic [ref=f25e282]:
+                - generic [ref=f25e283] [cursor=pointer]
+                - generic [ref=f25e284] [cursor=pointer]
+                - generic [ref=f25e285] [cursor=pointer]
+                - generic [ref=f25e286] [cursor=pointer]
+                - generic [ref=f25e287] [cursor=pointer]
+                - generic [ref=f25e288] [cursor=pointer]
+            - generic [ref=f25e291]:
+              - generic [ref=f25e292]:
+                - heading "Weight Loss Frequently Asked Questions" [level=2] [ref=f25e293]
+                - paragraph [ref=f25e294]: More questions and answers can be found on our FAQ page
+              - generic [ref=f25e295]:
+                - generic [ref=f25e296]:
+                  - generic [ref=f25e297] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f25e299]
+                    - paragraph [ref=f25e300]: I am NOT a United States Resident, can I still work with Marek?
+                  - generic:
+                    - paragraph [ref=f25e301]: We currently only work with U.S. based residents so unfortunately we aren’t able to service you right now.
+                    - paragraph [ref=f25e302]: "*If you’re an American Citizen working overseas with an APO box, we may be able to ship select items to you, please inquire with your Health Coach."
+                - generic [ref=f25e303]:
+                  - generic [ref=f25e304] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f25e306]
+                    - paragraph [ref=f25e307]: Will I Regain the Weight After Stopping Treatment with Semaglutide/Tirzepatide?
+                  - paragraph [ref=f25e308]: It's possible to regain weight after stopping Semaglutide or Tirzepatide, as seen in the STEP trials where many participants regained weight after discontinuing treatment. However, at Marek Health, we focus on sustainable long-term success. We don't just provide medication; we work with you to implement lifestyle strategies that support lasting results. By optimizing your nutrition, exercise, and other key health factors, we help you maintain the progress you've made. If discontinuation of therapy is your goal, we'll guide you toward achieving and sustaining your body composition goals even after stopping treatment.
+                - generic [ref=f25e309]:
+                  - generic [ref=f25e310] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f25e312]
+                    - paragraph [ref=f25e313]: How Do Semaglutide and Tirzepatide Work?
+                  - generic:
+                    - paragraph [ref=f25e314]: "Both Semaglutide and Tirzepatide mimic the action of natural gut hormones to:"
+                    - list [ref=f25e316]:
+                      - listitem [ref=f25e317]:
+                        - paragraph [ref=f25e318]: Increase insulin production
+                      - listitem [ref=f25e319]:
+                        - paragraph [ref=f25e320]: Reduce glucagon synthesis
+                      - listitem [ref=f25e321]:
+                        - paragraph [ref=f25e322]: Delay gastric emptying
+                      - listitem [ref=f25e323]:
+                        - paragraph [ref=f25e324]: Suppress appetite
+                - generic [ref=f25e325]:
+                  - generic [ref=f25e326] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f25e328]
+                    - paragraph [ref=f25e329]: What are the potential side effects?
+                  - generic:
+                    - paragraph [ref=f25e330]: "Like any medication, Semaglutide and Tirzepatide may cause side effects, including:"
+                    - list [ref=f25e332]:
+                      - listitem [ref=f25e333]:
+                        - paragraph [ref=f25e334]: "Gastrointestinal issues: nausea, vomiting, diarrhea, constipation, abdominal pain"
+                      - listitem [ref=f25e335]:
+                        - paragraph [ref=f25e336]: Injection site reactions
+                      - listitem [ref=f25e337]:
+                        - paragraph [ref=f25e338]: Fatigue
+                      - listitem [ref=f25e339]:
+                        - paragraph [ref=f25e340]: Headaches
+                - generic [ref=f25e341]:
+                  - generic [ref=f25e342] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f25e344]
+                    - paragraph [ref=f25e345]: Who is a candidate?
+                  - generic:
+                    - paragraph [ref=f25e346]: If you're looking for a comprehensive solution to tackle weight loss and metabolic optimization, you may be an excellent candidate for Semaglutide or Tirzepatide therapy. Whether you're new to weight management treatments or have had limited success with other methods, our team at Marek Health will tailor a protocol designed to help you achieve your goals safely and effectively.
+                    - paragraph [ref=f25e347]: Take control of your health with expert-guided therapies designed to optimize not just your weight, but your entire metabolic health.
+              - link "See more FAQs" [ref=f25e349] [cursor=pointer]:
+                - /url: /faqs
+            - generic [ref=f25e351]:
+              - heading "Explore Other Treatment Options." [level=2] [ref=f25e352]
+              - paragraph [ref=f25e353]: If weight loss isn't the issue you're dealing with, here are some other services you can explore.
+              - generic [ref=f25e356]:
+                - generic [ref=f25e358]:
+                  - img "Optimize your testosterone" [ref=f25e359]
+                  - generic [ref=f25e360]:
+                    - heading "Optimize your testosterone" [level=3] [ref=f25e361]
+                    - link "Explore treatment" [ref=f25e362] [cursor=pointer]:
+                      - /url: /testosterone
+                - generic [ref=f25e364]:
+                  - img "Hair loss prevention" [ref=f25e365]
+                  - generic [ref=f25e366]:
+                    - heading "Hair loss prevention" [level=3] [ref=f25e367]
+                    - link "Explore treatment" [ref=f25e368] [cursor=pointer]:
+                      - /url: /hair-loss
+                - generic [ref=f25e370]:
+                  - img "Look younger" [ref=f25e371]
+                  - generic [ref=f25e372]:
+                    - heading "Look younger" [level=3] [ref=f25e373]
+                    - link "Explore treatment" [ref=f25e374] [cursor=pointer]:
+                      - /url: /look-younger
+                - generic [ref=f25e376]:
+                  - img "Increase your libido" [ref=f25e377]
+                  - generic [ref=f25e378]:
+                    - heading "Increase your libido" [level=3] [ref=f25e379]
+                    - link "Explore treatment" [ref=f25e380] [cursor=pointer]:
+                      - /url: /sexual-health
+                - generic [ref=f25e382]:
+                  - img "Remove brain fog" [ref=f25e383]
+                  - generic [ref=f25e384]:
+                    - heading "Remove brain fog" [level=3] [ref=f25e385]
+                    - link "Explore treatment" [ref=f25e386] [cursor=pointer]:
+                      - /url: /think-sharper
+                - generic [ref=f25e388]:
+                  - img "Sleep better" [ref=f25e389]
+                  - generic [ref=f25e390]:
+                    - heading "Sleep better" [level=3] [ref=f25e391]
+                    - link "Explore treatment" [ref=f25e392] [cursor=pointer]:
+                      - /url: /sleep-better
+                - generic [ref=f25e394]:
+                  - img "Perform better" [ref=f25e395]
+                  - generic [ref=f25e396]:
+                    - heading "Perform better" [level=3] [ref=f25e397]
+                    - link "Explore treatment" [ref=f25e398] [cursor=pointer]:
+                      - /url: /performance
+                - generic [ref=f25e400]:
+                  - img "Better heart health" [ref=f25e401]
+                  - generic [ref=f25e402]:
+                    - heading "Better heart health" [level=3] [ref=f25e403]
+                    - link "Explore treatment" [ref=f25e404] [cursor=pointer]:
+                      - /url: /heart-health
+                - generic [ref=f25e406]:
+                  - img "Fertility" [ref=f25e407]
+                  - generic [ref=f25e408]:
+                    - heading "Fertility" [level=3] [ref=f25e409]
+                    - link "Explore treatment" [ref=f25e410] [cursor=pointer]:
+                      - /url: /fertility
+              - generic [ref=f25e411]:
+                - generic [ref=f25e412] [cursor=pointer]
+                - generic [ref=f25e413] [cursor=pointer]
+                - generic [ref=f25e414] [cursor=pointer]
+                - generic [ref=f25e415] [cursor=pointer]
+                - generic [ref=f25e416] [cursor=pointer]
+                - generic [ref=f25e417] [cursor=pointer]
+                - generic [ref=f25e418] [cursor=pointer]
+                - generic [ref=f25e419] [cursor=pointer]
+                - generic [ref=f25e420] [cursor=pointer]
+            - generic [ref=f25e422]:
+              - img "Phone Conference" [ref=f25e424]
+              - generic [ref=f25e425]:
+                - generic [ref=f25e426]:
+                  - heading "Not sure what treatment is right for you?" [level=2] [ref=f25e427]
+                  - paragraph [ref=f25e428]: "The first step towards optimizing your health online is to book your intake assessment, which includes:"
+                - link [ref=f25e429] [cursor=pointer]:
+                  - /url: /dc/form/discovery-intro
+                  - button "Book a free call" [ref=f25e430]
+        - generic [ref=f25e434]:
+          - generic [ref=f25e436]:
+            - generic [ref=f25e437]:
+              - paragraph [ref=f25e438]: Contact Info
+              - generic [ref=f25e439]:
+                - link "Info@MarekHealth.com" [ref=f25e442] [cursor=pointer]:
+                  - /url: mailto:info@marekhealth.com
+                - generic [ref=f25e444]: "Phone: 1 (877) 572 2582"
+                - generic [ref=f25e447]: The fastest and most effective way to reach us is via email
+                - generic [ref=f25e450]: "Tracking the status of your med order? Please Contact:"
+                - generic [ref=f25e453]: Trackingmailbox@marekhealth.com
+                - generic [ref=f25e456]: Office hours
+                - generic [ref=f25e459]: "Mon-Fri: 9:00 am – 5:00 pm EST"
+            - generic [ref=f25e462]:
+              - generic [ref=f25e463]:
+                - paragraph [ref=f25e464]: More Info
+                - generic [ref=f25e465]:
+                  - link "Careers" [ref=f25e468] [cursor=pointer]:
+                    - /url: mailto:careers@marekhealth.com
+                  - generic [ref=f25e471]:
+                    - generic [ref=f25e472] [cursor=pointer]: Legal
+                    - generic [ref=f25e473] [cursor=pointer]
+                  - link "Cancellation & Refund Policy" [ref=f25e479] [cursor=pointer]:
+                    - /url: /cancellation-refund-policy
+                  - generic [ref=f25e481]: Do Not Share or Sell My Personal Information
+              - link [ref=f25e484] [cursor=pointer]:
+                - /url: https://www.legitscript.com/websites/?checker_keywords=marekhealth.com
+                - img "Verify Approval for www.marekhealth.com" [ref=f25e485]
+            - generic [ref=f25e486]:
+              - generic [ref=f25e487]:
+                - paragraph [ref=f25e488]: Services
+                - generic [ref=f25e489]:
+                  - link "Guided Optimization" [ref=f25e492] [cursor=pointer]:
+                    - /url: https://marekhealth.com/sign-up
+                  - link "Diagnostic Labs" [ref=f25e496] [cursor=pointer]:
+                    - /url: https://marekdiagnostics.com/
+                  - link "Partnership Program" [ref=f25e500] [cursor=pointer]:
+                    - /url: mailto:coaching@marekhealth.com
+              - generic [ref=f25e502]:
+                - paragraph [ref=f25e503]: Follow us
+                - generic [ref=f25e504]:
+                  - link "https://www.instagram.com/marekhealth/?hl=en" [ref=f25e505] [cursor=pointer]:
+                    - /url: https://www.instagram.com/marekhealth/?hl=en
+                  - link "https://twitter.com/marekhealth?s=20" [ref=f25e510] [cursor=pointer]:
+                    - /url: https://twitter.com/marekhealth?s=20
+                  - link "https://www.youtube.com/@marekhealth" [ref=f25e515] [cursor=pointer]:
+                    - /url: https://www.youtube.com/@marekhealth
+                  - link "https://www.facebook.com/marekhealth/" [ref=f25e520] [cursor=pointer]:
+                    - /url: https://www.facebook.com/marekhealth/
+                  - link "https://www.linkedin.com/company/marek-health" [ref=f25e525] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/marek-health
+          - generic [ref=f25e530]: Copyright 2026 | All Rights Reserved
+  - alert [ref=f25e535]

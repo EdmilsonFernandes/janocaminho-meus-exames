@@ -1,0 +1,44 @@
+- generic [ref=e27]:
+  - button "Pular para o conteúdo" [ref=e181] [cursor=pointer]
+  - generic [ref=e29]:
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading [level=6]
+        - generic [ref=e32]:
+          - button "Notificações" [ref=e182] [cursor=pointer]:
+            - generic [ref=e34]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e183] [cursor=pointer]:
+            - generic [ref=e39]: E
+            - generic [ref=e41]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=e184] [cursor=pointer]
+    - main [ref=e50]:
+      - navigation [ref=e54]:
+        - generic [ref=e57]:
+          - generic [ref=e58]: E
+          - generic [ref=e61]:
+            - paragraph [ref=e62]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=e63]:
+              - generic [ref=e64]: Plano grátis
+              - button "⚡ 69 (+)" [ref=e185] [cursor=pointer]
+        - separator [ref=e66]
+        - button "Exames" [ref=e186] [cursor=pointer]
+        - button "Cuidados" [ref=e187] [cursor=pointer]
+        - button "Pessoas" [ref=e188] [cursor=pointer]
+        - button "Conta" [ref=e189] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=e190] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=e191] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=e192] [cursor=pointer]
+        - generic [ref=e124]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=e155]:
+        - generic [ref=e161]:
+          - heading "Saúde mental" [level=5] [ref=e193]
+          - paragraph [ref=e163]: PHQ-9 e GAD-7 — questionários validados, 2 minutos cada
+        - generic [ref=e164]:
+          - button "Responder PHQ-9 (depressão)" [ref=e194] [cursor=pointer]:
+            - paragraph [ref=e170]: PHQ-9 · Depressão
+            - paragraph [ref=e171]: 9 perguntas · nas últimas 2 semanas
+            - button "Responder agora" [ref=e195]
+          - button "Responder GAD-7 (ansiedade)" [ref=e196] [cursor=pointer]:
+            - paragraph [ref=e178]: GAD-7 · Ansiedade
+            - paragraph [ref=e179]: 7 perguntas · nas últimas 2 semanas
+            - button "Responder agora" [ref=e197]

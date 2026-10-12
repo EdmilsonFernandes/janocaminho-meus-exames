@@ -1,0 +1,35 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e4]:
+    - generic [ref=f2e5]:
+      - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f2e8]
+      - generic [ref=f2e9]: Painel do operador
+    - paragraph [ref=f2e6]: Acesso restrito a administradores.
+    - generic [ref=f2e10]:
+      - paragraph [ref=f2e11]: Credenciais de demonstração
+      - paragraph [ref=f2e12]:
+        - text: "Admin:"
+        - code [ref=f2e13]: "+5511999990000"
+        - text: · OTP
+        - code [ref=f2e14]: "123456"
+    - generic [ref=f2e15]: Telefone
+    - generic [ref=f2e16]:
+      - generic "Brasil (+55)" [ref=f2e17]:
+        - img "Bandeira do Brasil" [ref=f2e18]
+        - generic [ref=f2e22]: "+55"
+      - textbox "(11) 90000-0000" [ref=f2e23]: (11) 90000-6091
+    - generic [ref=f2e24]: Código de acesso
+    - textbox "000000" [ref=f2e25]: "435357"
+    - paragraph [ref=f2e47]: código inválido ou expirado
+    - button "Entrar" [ref=f2e26] [cursor=pointer]
+    - link "← Voltar ao site" [ref=f2e27] [cursor=pointer]:
+      - /url: /
+  - generic [ref=f2e32] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=f2e33]
+    - generic [ref=f2e37]:
+      - button "Open issues overlay" [ref=f2e38]:
+        - generic [ref=f2e39]:
+          - generic [aria-hidden] [ref=f2e40]: "0"
+          - generic [ref=f2e41]: "1"
+        - generic [ref=f2e42]: Issue
+      - button "Collapse issues badge" [ref=f2e43]
+  - alert [ref=f2e46]

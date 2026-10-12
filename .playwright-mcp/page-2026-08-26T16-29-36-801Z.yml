@@ -1,0 +1,301 @@
+- generic [ref=f2e4]:
+  - generic [ref=f2e6]:
+    - generic [ref=f2e10]:
+      - paragraph [ref=f2e11]: API do Dr. Exame · v1.2
+      - paragraph [ref=f2e12]: Preço real de medicamentos em farmácias brasileiras + interações D/X + motores de laudo (extração e interpretação). Feito pra devs, documentado pra humanos.
+    - generic [ref=f2e13]:
+      - button "← Início" [ref=f2e14] [cursor=pointer]
+      - link [ref=f2e15] [cursor=pointer]:
+        - /url: /api/docs
+  - generic [ref=f2e19]:
+    - navigation [ref=f2e20]:
+      - paragraph [ref=f2e21]: NESTA PÁGINA
+      - generic [ref=f2e22]:
+        - button "Como começar" [ref=f2e23] [cursor=pointer]
+        - button "Autenticação" [ref=f2e24] [cursor=pointer]
+        - button "Limites e erros" [ref=f2e25] [cursor=pointer]
+        - button "GET /meds" [ref=f2e26] [cursor=pointer]
+        - button "POST /meds/normalize" [ref=f2e27] [cursor=pointer]
+        - button "GET /meds/prices" [ref=f2e28] [cursor=pointer]
+        - button "GET /meds/interactions" [ref=f2e29] [cursor=pointer]
+        - button "POST /exams/extract" [ref=f2e30] [cursor=pointer]
+        - button "POST /exams/interpret" [ref=f2e31] [cursor=pointer]
+        - button "Pacotes e preços" [ref=f2e32] [cursor=pointer]
+      - button [ref=f2e33] [cursor=pointer]
+    - generic [ref=f2e37]:
+      - generic [ref=f2e38]:
+        - paragraph [ref=f2e39]: Como começar
+        - generic [ref=f2e40]:
+          - generic [ref=f2e41]:
+            - generic [ref=f2e42]: "1"
+            - generic [ref=f2e43]:
+              - paragraph [ref=f2e44]: Crie sua conta no Dr. Exame
+              - paragraph [ref=f2e45]: O acesso à API é por conta — cadastro grátis no app.
+          - generic [ref=f2e46]:
+            - generic [ref=f2e47]: "2"
+            - generic [ref=f2e48]:
+              - paragraph [ref=f2e49]: Solicite o acesso
+              - paragraph [ref=f2e50]: Perfil → "API para desenvolvedores" → informe empresa e o que vai construir. Leva minutos.
+          - generic [ref=f2e51]:
+            - generic [ref=f2e52]: "3"
+            - generic [ref=f2e53]:
+              - paragraph [ref=f2e54]: Aprovação libera o teste
+              - paragraph [ref=f2e55]: Você recebe push e e-mail na hora, com 25 chamadas de teste.
+          - generic [ref=f2e56]:
+            - generic [ref=f2e57]: "4"
+            - generic [ref=f2e58]:
+              - paragraph [ref=f2e59]: Crie sua chave
+              - paragraph [ref=f2e60]: "No painel: \"+ Nova chave\" → guardada só com você (exibida uma única vez)."
+          - generic [ref=f2e61]:
+            - generic [ref=f2e62]: "5"
+            - generic [ref=f2e63]:
+              - paragraph [ref=f2e64]: Faça a primeira chamada
+              - paragraph [ref=f2e65]: Header x-api-key nos endpoints abaixo. Quando o teste acabar, recarregue com PIX, cartão ou débito.
+      - generic [ref=f2e66]:
+        - paragraph [ref=f2e67]: Autenticação
+        - paragraph [ref=f2e68]:
+          - text: Toda chamada usa a chave no header
+          - code [ref=f2e69]: x-api-key
+          - text: . A chave tem formato
+          - code [ref=f2e70]: dxk_live_…
+          - text: ", é pessoal como senha e pode ser revogada no painel a qualquer momento."
+        - generic [ref=f2e71]:
+          - generic [ref=f2e72]: bash
+          - button "copiar" [ref=f2e74] [cursor=pointer]
+          - generic [ref=f2e75]: "curl \"https://drexame.janocaminho.com.br/api/public/v1/meds?q=dipirona\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\""
+      - generic [ref=f2e76]:
+        - paragraph [ref=f2e77]: Limites e erros
+        - generic [ref=f2e78]:
+          - generic [ref=f2e79]: 60 chamadas por minuto por chave
+          - generic [ref=f2e83]: "Saldo pré-pago: sem saldo → 402"
+          - generic [ref=f2e85]: Dado de varejo — nada de dado pessoal de saúde (LGPD)
+        - generic [ref=f2e87]:
+          - generic [ref=f2e88]:
+            - paragraph [ref=f2e89]: Propriedade
+            - paragraph [ref=f2e90]: Tipo
+            - paragraph [ref=f2e91]: Descrição
+          - generic [ref=f2e92]:
+            - paragraph [ref=f2e93]: "401"
+            - paragraph [ref=f2e94]: erro
+            - paragraph [ref=f2e95]: Chave ausente, inválida ou revogada.
+          - generic [ref=f2e96]:
+            - paragraph [ref=f2e97]: "402"
+            - paragraph [ref=f2e98]: erro
+            - paragraph [ref=f2e99]: Saldo de chamadas esgotado — a resposta traz os pacotes disponíveis pra recarga.
+          - generic [ref=f2e100]:
+            - paragraph [ref=f2e101]: "404"
+            - paragraph [ref=f2e102]: erro
+            - paragraph [ref=f2e103]: "Recurso não encontrado (ex.: sem snapshot de preço para o termo)."
+          - generic [ref=f2e104]:
+            - paragraph [ref=f2e105]: "429"
+            - paragraph [ref=f2e106]: erro
+            - paragraph [ref=f2e107]: Rate limit (60/min) atingido — tente em instantes.
+      - generic [ref=f2e109]:
+        - paragraph [ref=f2e110]: Buscar medicamentos
+        - paragraph [ref=f2e111]: Pesquisa no catálogo por nome, marca ou princípio ativo. Cada resultado traz o melhor preço cacheado, foto e EAN — leitura instantânea do cache (nunca dispara busca na farmácia).
+        - generic [ref=f2e112]:
+          - generic [ref=f2e113]: GET
+          - paragraph [ref=f2e115]: https://drexame.janocaminho.com.br/api/public/v1/meds
+        - paragraph [ref=f2e116]: Parâmetros (query)
+        - generic [ref=f2e117]:
+          - generic [ref=f2e118]:
+            - paragraph [ref=f2e119]: Propriedade
+            - paragraph [ref=f2e120]: Tipo
+            - paragraph [ref=f2e121]: Descrição
+          - generic [ref=f2e122]:
+            - paragraph [ref=f2e123]: q
+            - paragraph [ref=f2e124]: string · obrigatório
+            - paragraph [ref=f2e125]: "Termo de busca (mín. 2 caracteres). Ex.: losartana, Cozaar, dipirona."
+        - paragraph [ref=f2e126]: Exemplo
+        - generic [ref=f2e127]:
+          - generic [ref=f2e128]: bash
+          - button "copiar" [ref=f2e130] [cursor=pointer]
+          - generic [ref=f2e131]: "curl \"https://drexame.janocaminho.com.br/api/public/v1/meds?q=losartana\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\""
+        - paragraph [ref=f2e132]: Resposta 200
+        - generic [ref=f2e133]:
+          - generic [ref=f2e134]: json
+          - button "copiar" [ref=f2e136] [cursor=pointer]
+          - generic [ref=f2e137]: "{ \"query\": \"losartana\", \"count\": 1, \"results\": [ { \"name\": \"Losartana Potássica\", \"activeIngredient\": \"LOSARTANA POTASSICA\", \"brands\": [\"Cozaar\"], \"doses\": [\"50 mg\"], \"bestPriceCents\": 989, \"bestPharmacy\": \"Pague Menos\", \"ean\": \"7891058001231\", \"offersCount\": 3 } ] }"
+      - generic [ref=f2e139]:
+        - paragraph [ref=f2e140]: Preços por farmácia
+        - paragraph [ref=f2e141]: Snapshot de preços coletados das farmácias para o princípio ativo (+apresentação opcional), com ofertas ordenadas do menor preço. O campo stale avisa quando a coleta passa de 6h — quem consome decide se usa.
+        - generic [ref=f2e142]:
+          - generic [ref=f2e143]: GET
+          - paragraph [ref=f2e145]: https://drexame.janocaminho.com.br/api/public/v1/meds/prices
+        - paragraph [ref=f2e146]: Parâmetros (query)
+        - generic [ref=f2e147]:
+          - generic [ref=f2e148]:
+            - paragraph [ref=f2e149]: Propriedade
+            - paragraph [ref=f2e150]: Tipo
+            - paragraph [ref=f2e151]: Descrição
+          - generic [ref=f2e152]:
+            - paragraph [ref=f2e153]: ingredient
+            - paragraph [ref=f2e154]: string · obrigatório
+            - paragraph [ref=f2e155]: "Princípio ativo (nome funciona: \"dipirona\"). Mín. 3 caracteres."
+          - generic [ref=f2e156]:
+            - paragraph [ref=f2e157]: dose
+            - paragraph [ref=f2e158]: number · opcional
+            - paragraph [ref=f2e159]: "Dosagem (ex.: 500). Com dose, filtra a apresentação exata."
+          - generic [ref=f2e160]:
+            - paragraph [ref=f2e161]: unit
+            - paragraph [ref=f2e162]: string · opcional
+            - paragraph [ref=f2e163]: MG | MCG | ML | G (default MG).
+        - paragraph [ref=f2e164]: Exemplo
+        - generic [ref=f2e165]:
+          - generic [ref=f2e166]: bash
+          - button "copiar" [ref=f2e168] [cursor=pointer]
+          - generic [ref=f2e169]: "curl \"https://drexame.janocaminho.com.br/api/public/v1/meds/prices?ingredient=dipirona&dose=500&unit=MG\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\""
+        - paragraph [ref=f2e170]: Resposta 200
+        - generic [ref=f2e171]:
+          - generic [ref=f2e172]: json
+          - button "copiar" [ref=f2e174] [cursor=pointer]
+          - generic [ref=f2e175]: "{ \"medicationKey\": \"DIPIRONA|500MG|CP|20\", \"lowestPriceCents\": 589, \"averagePriceCents\": 742, \"offersCount\": 7, \"stale\": false, \"collectedAt\": \"2026-08-25T19:00:00.000Z\", \"offers\": [ { \"pharmacy\": \"Pague Menos\", \"productName\": \"Dipirona 500mg 20 Comprimidos\", \"priceCents\": 589, \"url\": \"https://www.paguemenos.com.br/...\", \"imageUrl\": \"https://.../foto.jpg\", \"ean\": \"7891058001231\" } ] }"
+      - generic [ref=f2e177]:
+        - paragraph [ref=f2e178]: Interações entre medicamentos
+        - paragraph [ref=f2e179]: "Checa todos os pares entre os remédios informados contra a base curada (marcas viram genérico: levoid → levotiroxina). Por padrão devolve só D (requer ajuste) e X (contraindicação); ?all=1 inclui A/B/C."
+        - generic [ref=f2e180]:
+          - generic [ref=f2e181]: GET
+          - paragraph [ref=f2e183]: https://drexame.janocaminho.com.br/api/public/v1/meds/interactions
+        - paragraph [ref=f2e184]: Parâmetros (query)
+        - generic [ref=f2e185]:
+          - generic [ref=f2e186]:
+            - paragraph [ref=f2e187]: Propriedade
+            - paragraph [ref=f2e188]: Tipo
+            - paragraph [ref=f2e189]: Descrição
+          - generic [ref=f2e190]:
+            - paragraph [ref=f2e191]: drugs
+            - paragraph [ref=f2e192]: string · obrigatório
+            - paragraph [ref=f2e193]: "2+ nomes separados por vírgula. Ex.: varfarina,losartana."
+          - generic [ref=f2e194]:
+            - paragraph [ref=f2e195]: all
+            - paragraph [ref=f2e196]: string · opcional
+            - paragraph [ref=f2e197]: Envie "1" para incluir severidades A/B/C.
+        - paragraph [ref=f2e198]: Exemplo
+        - generic [ref=f2e199]:
+          - generic [ref=f2e200]: bash
+          - button "copiar" [ref=f2e202] [cursor=pointer]
+          - generic [ref=f2e203]: "curl \"https://drexame.janocaminho.com.br/api/public/v1/meds/interactions?drugs=losartana,espironolactona\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\""
+        - paragraph [ref=f2e204]: Resposta 200
+        - generic [ref=f2e205]:
+          - generic [ref=f2e206]: json
+          - button "copiar" [ref=f2e208] [cursor=pointer]
+          - generic [ref=f2e209]: "{ \"drugs\": [\"LOSARTAN\", \"ESPIRONOLACTONA\"], \"checkedPairs\": 1, \"count\": 1, \"interactions\": [ { \"drugA\": \"LOSARTAN\", \"drugB\": \"ESPIRONOLACTONA\", \"severity\": \"D\", \"effect\": \"Risco de potássio alto (hipercalemia).\", \"recommendation\": \"Monitorar potássio; sintomas como formigamento ou fraqueza merecem exame rápido.\" } ], \"disclaimer\": \"Informativo — nunca substitui a checagem do farmacêutico/médico.\" }"
+      - generic [ref=f2e211]:
+        - paragraph [ref=f2e212]: Normalizar nome de medicamento
+        - paragraph [ref=f2e213]: "O usuário digita de qualquer jeito — \"Dorflex 10cp\", linha de receita, \"levotirox 75\". Este endpoint devolve a chave canônica (princípio ativo + dose + forma + embalagem), resolvendo marca → genérico (Levoid → Levotiroxina). É a mesma chave que os endpoints de preço usam: normalize e compare no mesmo fôlego."
+        - generic [ref=f2e214]:
+          - generic [ref=f2e215]: POST
+          - paragraph [ref=f2e217]: https://drexame.janocaminho.com.br/api/public/v1/meds/normalize
+        - paragraph [ref=f2e218]: Corpo (JSON)
+        - generic [ref=f2e219]:
+          - generic [ref=f2e220]:
+            - paragraph [ref=f2e221]: Propriedade
+            - paragraph [ref=f2e222]: Tipo
+            - paragraph [ref=f2e223]: Descrição
+          - generic [ref=f2e224]:
+            - paragraph [ref=f2e225]: text
+            - paragraph [ref=f2e226]: string · obrigatório
+            - paragraph [ref=f2e227]: "Texto livre como veio do usuário. Ex.: \"Dorflex Analgésico e Relaxante Muscular 10 comprimidos\"."
+          - generic [ref=f2e228]:
+            - paragraph [ref=f2e229]: packQty
+            - paragraph [ref=f2e230]: number · opcional
+            - paragraph [ref=f2e231]: Embalagem conhecida (senão o parser infere do texto).
+          - generic [ref=f2e232]:
+            - paragraph [ref=f2e233]: includePrices
+            - paragraph [ref=f2e234]: boolean · opcional
+            - paragraph [ref=f2e235]: true = inclui o melhor preço cacheado do ingrediente na resposta.
+        - paragraph [ref=f2e236]: Exemplo
+        - generic [ref=f2e237]:
+          - generic [ref=f2e238]: bash
+          - button "copiar" [ref=f2e240] [cursor=pointer]
+          - generic [ref=f2e241]: "curl -X POST \"https://drexame.janocaminho.com.br/api/public/v1/meds/normalize\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\" \\ -H \"Content-Type: application/json\" \\ -d '{\"text\":\"Levoid 75mcg\",\"includePrices\":true}'"
+        - paragraph [ref=f2e242]: Resposta 200
+        - generic [ref=f2e243]:
+          - generic [ref=f2e244]: json
+          - button "copiar" [ref=f2e246] [cursor=pointer]
+          - generic [ref=f2e247]: "{ \"input\": \"Levoid 75mcg\", \"brandResolved\": { \"from\": \"LEVOID\", \"to\": \"LEVOTIROXINA\" }, \"activeIngredient\": \"LEVOTIROXINA\", \"dosage\": { \"value\": 75, \"unit\": \"MCG\" }, \"form\": \"CP\", \"packQty\": null, \"medicationKey\": \"LEVOTIROXINA|75MCG|CP|?\", \"comparable\": false, \"prices\": { \"lowestPriceCents\": 765, \"offersCount\": 11 } }"
+      - generic [ref=f2e249]:
+        - paragraph [ref=f2e250]: Extrair laudo (PDF/foto/texto → JSON)
+        - paragraph [ref=f2e251]: "A joia do Dr. Exame como serviço: envie o laudo laboratorial e receba o JSON estruturado — painéis, itens, valores, unidades, faixas de referência e a página-fonte de cada dado. Funciona com PDF, foto ou texto puro. Nada é armazenado: você envia, a gente estrutura e devolve (LGPD — o documento é seu, nós só processamos)."
+        - generic [ref=f2e252]:
+          - generic [ref=f2e253]: POST
+          - paragraph [ref=f2e255]: https://drexame.janocaminho.com.br/api/public/v1/exams/extract
+        - paragraph [ref=f2e256]: Envio (multipart OU JSON)
+        - generic [ref=f2e257]:
+          - generic [ref=f2e258]:
+            - paragraph [ref=f2e259]: Propriedade
+            - paragraph [ref=f2e260]: Tipo
+            - paragraph [ref=f2e261]: Descrição
+          - generic [ref=f2e262]:
+            - paragraph [ref=f2e263]: file
+            - paragraph [ref=f2e264]: arquivo · multipart
+            - paragraph [ref=f2e265]: PDF ou foto do laudo (campo file do multipart/form-data).
+          - generic [ref=f2e266]:
+            - paragraph [ref=f2e267]: text
+            - paragraph [ref=f2e268]: string · JSON
+            - paragraph [ref=f2e269]: "Alternativa ao arquivo: o conteúdo textual do laudo (mín. 50 caracteres)."
+        - paragraph [ref=f2e270]: Exemplo (PDF)
+        - generic [ref=f2e271]:
+          - generic [ref=f2e272]: bash
+          - button "copiar" [ref=f2e274] [cursor=pointer]
+          - generic [ref=f2e275]: "curl -X POST \"https://drexame.janocaminho.com.br/api/public/v1/exams/extract\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\" \\ -F \"file=@laudo.pdf\""
+        - paragraph [ref=f2e276]: Resposta 200
+        - generic [ref=f2e277]:
+          - generic [ref=f2e278]: json
+          - button "copiar" [ref=f2e280] [cursor=pointer]
+          - generic [ref=f2e281]: "{ \"exams\": [ { \"examTitle\": \"HEMOGRAMA + TIREOIDE\", \"sourceLab\": \"Lab Central\", \"performedAt\": \"2026-08-01\", \"panels\": [ { \"name\": \"TIREOIDE\", \"items\": [ { \"name\": \"TSH\", \"valueText\": \"7,32\", \"valueNumeric\": 7.32, \"unit\": \"µUI/mL\", \"references\": [{ \"appliesTo\": \"Adultos\", \"lowNumeric\": 0.4, \"highNumeric\": 4.0 }], \"page\": 1 } ] } ] } ], \"itemCount\": 23, \"charged\": 20, \"disclaimer\": \"Estruturação automática (IA) do documento ENVIADO POR VOCÊ...\" }"
+      - generic [ref=f2e283]:
+        - paragraph [ref=f2e284]: Interpretar valor × faixa de referência
+        - paragraph [ref=f2e285]: "O motor determinístico do app: cada item vira flag + tom + rótulo com grau. \">20% além do limite\" já é \"Muito acima\" (tom crítico). LDL e Colesterol não-HDL sem faixa viram \"depende do contexto clínico\" (metas por risco cardiovascular), e sem faixa a API nunca inventa rótulo. Você envia a faixa do laudo de origem; a régua é nossa. Zero IA na chamada: resposta em milissegundos."
+        - generic [ref=f2e286]:
+          - generic [ref=f2e287]: POST
+          - paragraph [ref=f2e289]: https://drexame.janocaminho.com.br/api/public/v1/exams/interpret
+        - paragraph [ref=f2e290]: Corpo (JSON)
+        - generic [ref=f2e291]:
+          - generic [ref=f2e292]:
+            - paragraph [ref=f2e293]: Propriedade
+            - paragraph [ref=f2e294]: Tipo
+            - paragraph [ref=f2e295]: Descrição
+          - generic [ref=f2e296]:
+            - paragraph [ref=f2e297]: items
+            - paragraph [ref=f2e298]: array · obrigatório
+            - paragraph [ref=f2e299]: "1-200 itens: { name, value, refLow?, refHigh? }. A faixa é a do laudo de origem."
+        - paragraph [ref=f2e300]: Exemplo
+        - generic [ref=f2e301]:
+          - generic [ref=f2e302]: bash
+          - button "copiar" [ref=f2e304] [cursor=pointer]
+          - generic [ref=f2e305]: "curl -X POST \"https://drexame.janocaminho.com.br/api/public/v1/exams/interpret\" \\ -H \"x-api-key: dxk_live_sua_chave_aqui\" \\ -H \"Content-Type: application/json\" \\ -d '{\"items\":[{\"name\":\"TSH\",\"value\":4.4,\"refLow\":0.4,\"refHigh\":4.0},{\"name\":\"Hemoglobina\",\"value\":14,\"refLow\":12,\"refHigh\":16}]}'"
+        - paragraph [ref=f2e306]: Resposta 200
+        - generic [ref=f2e307]:
+          - generic [ref=f2e308]: json
+          - button "copiar" [ref=f2e310] [cursor=pointer]
+          - generic [ref=f2e311]: "{ \"items\": [ { \"name\": \"TSH\", \"value\": 4.4, \"refLow\": 0.4, \"refHigh\": 4.0, \"flag\": \"HIGH\", \"tone\": \"atencao\", \"label\": \"Acima da referência\" }, { \"name\": \"Hemoglobina\", \"value\": 14.0, \"refLow\": 12, \"refHigh\": 16, \"flag\": \"NORMAL\", \"tone\": \"normal\", \"label\": \"Dentro da referência\" } ], \"summary\": { \"total\": 2, \"altered\": 1, \"critical\": 0 }, \"disclaimer\": \"Comparação determinística valor × faixa ENVIADA POR VOCÊ. Educativo — nunca diagnóstico.\" }"
+      - generic [ref=f2e312]:
+        - paragraph [ref=f2e313]: Pacotes e preços
+        - paragraph [ref=f2e314]: "Pré-pago, sem surpresa: cada chamada de dados debita 1 do saldo (a extração de laudo debita 20 — motor de IA por trás, e falha da nossa parte = reembolso automático). Recarga por PIX (QR na hora), cartão ou débito — a aprovação da sua solicitação já vem com 25 chamadas de teste."
+        - generic [ref=f2e315]:
+          - generic [ref=f2e316]:
+            - paragraph [ref=f2e317]: Propriedade
+            - paragraph [ref=f2e318]: Tipo
+            - paragraph [ref=f2e319]: Descrição
+          - generic [ref=f2e320]:
+            - paragraph [ref=f2e321]: Teste
+            - paragraph [ref=f2e322]: grátis
+            - paragraph [ref=f2e323]: 25 chamadas, concedidas na aprovação do acesso.
+          - generic [ref=f2e324]:
+            - paragraph [ref=f2e325]: Inicial
+            - paragraph [ref=f2e326]: R$ 19,90
+            - paragraph [ref=f2e327]: 1.000 chamadas (R$ 0,02 por chamada) = 50 extrações de laudo.
+          - generic [ref=f2e328]:
+            - paragraph [ref=f2e329]: Profissional
+            - paragraph [ref=f2e330]: R$ 99,00
+            - paragraph [ref=f2e331]: 10.000 chamadas (R$ 0,01 por chamada) = 500 extrações — o mais pedido.
+          - generic [ref=f2e332]:
+            - paragraph [ref=f2e333]: Grande volume
+            - paragraph [ref=f2e334]: R$ 399,00
+            - paragraph [ref=f2e335]: 50.000 chamadas (R$ 0,008 por chamada) = 2.500 extrações.
+        - generic [ref=f2e336]:
+          - button [ref=f2e337] [cursor=pointer]
+          - link [ref=f2e341] [cursor=pointer]:
+            - /url: /api/docs
+        - generic [ref=f2e345]: "Meus Exames — dado educativo de varejo farmacêutico. Não é recomendação médica (linha ANVISA RDC 657). Dúvidas: contato@janocaminho.com.br."

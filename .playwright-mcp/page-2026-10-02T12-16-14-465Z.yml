@@ -1,0 +1,62 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - link "Pular para o conteúdo" [ref=f1e4] [cursor=pointer]:
+      - /url: "#conteudo-rifa"
+    - banner [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - link "PremioX — página inicial" [ref=f1e8] [cursor=pointer]:
+          - /url: /
+          - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f1e10]
+        - navigation [ref=f1e11]:
+          - button "Mudar para tema escuro" [ref=f1e12] [cursor=pointer]
+    - main [ref=f1e15]
+    - contentinfo [ref=f1e22]:
+      - generic [ref=f1e23]:
+        - generic [ref=f1e24]:
+          - generic [ref=f1e25]:
+            - generic [ref=f1e26]:
+              - generic [ref=f1e27]: P
+              - generic [ref=f1e28]: PremioX
+            - paragraph [ref=f1e29]: Plataforma de ofertas ao vivo com preço que cai em tempo real. Sorteios auditáveis, arremate em grupo e pagamento seguro via PIX.
+            - generic [ref=f1e30]:
+              - generic [ref=f1e31]: 🇧🇷 Empresa brasileira
+              - generic [ref=f1e32]: 📄 LGPD compliant
+          - generic [ref=f1e33]:
+            - generic [ref=f1e34]: Legal
+            - generic [ref=f1e35]:
+              - link "Como funciona" [ref=f1e36] [cursor=pointer]:
+                - /url: /ajuda
+              - link "Termos de Uso" [ref=f1e37] [cursor=pointer]:
+                - /url: /termos
+              - link "Política de Privacidade" [ref=f1e38] [cursor=pointer]:
+                - /url: /privacidade
+              - generic [ref=f1e39]: Em breve
+          - generic [ref=f1e40]:
+            - generic [ref=f1e41]: Pagamentos
+            - generic [ref=f1e42]:
+              - generic [ref=f1e43]:
+                - img "Mercado Pago" [ref=f1e44]
+                - generic [ref=f1e45]: ● ATIVO
+              - img "InfoPago" [ref=f1e47]
+              - img "PagSeguro" [ref=f1e49]
+            - paragraph [ref=f1e50]: Pagamentos processados por gateways certificados. Ambiente criptografado (TLS).
+        - generic [ref=f1e51]:
+          - paragraph [ref=f1e52]:
+            - text: © 2026 PremioX ·
+            - link "v5b4d939" [ref=f1e53] [cursor=pointer]:
+              - /url: https://github.com/EdmilsonFernandes/premiax/commit/5b4d939
+          - generic [ref=f1e54]:
+            - generic [ref=f1e55]: 🔒 TLS/SSL
+            - generic [ref=f1e56]: ✓ LGPD
+            - generic [ref=f1e57]: ⚡ PIX
+  - navigation [ref=f1e58]:
+    - generic [ref=f1e61]:
+      - link "Ofertas" [ref=f1e62] [cursor=pointer]:
+        - /url: /
+      - link "Sorteios" [ref=f1e68] [cursor=pointer]:
+        - /url: /raffle
+      - link "Ganhar" [ref=f1e73] [cursor=pointer]:
+        - /url: /embaixador
+      - link "Conta" [ref=f1e80] [cursor=pointer]:
+        - /url: /conta
+  - alert [ref=f1e86]

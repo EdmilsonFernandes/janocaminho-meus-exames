@@ -1,0 +1,31 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - button "Pular para o conteúdo" [ref=f5e4] [cursor=pointer]
+      - generic [ref=f5e5]:
+        - banner [ref=f5e6]:
+          - generic [ref=f5e7]:
+            - button "Voltar" [ref=f5e8] [cursor=pointer]
+            - img "Dr. Exame" [ref=f5e13]
+            - generic [ref=f5e15]:
+              - button "Você tem 1.234.567 créditos. Toque para ver a carteira." [ref=f5e16] [cursor=pointer]:
+                - generic [ref=f5e19]: 1,2 mi
+              - button "Notificações" [ref=f5e20] [cursor=pointer]:
+                - generic [ref=f5e21]: 9+
+              - button "E" [ref=f5e26] [cursor=pointer]
+        - main [ref=f5e32]
+    - navigation [ref=f5e526]:
+      - button "Início" [ref=f5e527] [cursor=pointer]:
+        - paragraph [ref=f5e531]: Início
+      - button "Exames" [ref=f5e532] [cursor=pointer]:
+        - paragraph [ref=f5e536]: Exames
+      - button "Dr. Exame — conversar com a IA" [ref=f5e537] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f5e539]
+        - paragraph [ref=f5e540]: Dr. Exame
+      - button "Evolução" [ref=f5e541] [cursor=pointer]:
+        - paragraph [ref=f5e545]: Evolução
+      - button "Mais" [ref=f5e546] [cursor=pointer]:
+        - paragraph [ref=f5e550]: Mais
+  - generic [ref=f5e551]:
+    - img "Acessível com VLibras" [ref=f5e552]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f5e553] [cursor=pointer]

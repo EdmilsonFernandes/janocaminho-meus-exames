@@ -1,0 +1,64 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e159] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e160] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e161] [cursor=pointer]:
+              - img [ref=e29]
+            - button "79" [ref=e162] [cursor=pointer]:
+              - img [ref=e32]
+              - generic [ref=e34]: "79"
+            - button "E" [ref=e163] [cursor=pointer]:
+              - generic [ref=e38]: E
+            - button "3" [ref=e164] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic [ref=e43]: "3"
+            - button "Mais opções" [ref=e165] [cursor=pointer]:
+              - img [ref=e45]
+            - button "Atualizar" [ref=e166] [cursor=pointer]:
+              - img [ref=e49]
+        - main [ref=e51]:
+          - generic [ref=e367]:
+            - generic [ref=e368]:
+              - img [ref=e370]
+              - generic [ref=e372]:
+                - heading "Meus Médicos" [level=5] [ref=e373]
+                - paragraph [ref=e374]: Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.
+              - button "Compartilhar" [ref=e376] [cursor=pointer]:
+                - img [ref=e378]
+                - text: Compartilhar
+            - generic [ref=e385]:
+              - generic [ref=e386]: 🩺
+              - heading "Nenhum médico ainda?" [level=6] [ref=e387]
+              - paragraph [ref=e388]: Compartilhe seus exames com seu médico em segundos — ele recebe tudo organizado.
+              - button "Compartilhar agora →" [ref=e389] [cursor=pointer]:
+                - img [ref=e391]
+                - text: Compartilhar agora →
+    - button "Pergunte ao Dr. Exame" [ref=e286] [cursor=pointer]:
+      - generic [ref=e287]:
+        - img "Dr. Exame" [ref=e289]
+        - img [ref=e291]
+    - navigation [ref=e103]:
+      - generic [ref=e104] [cursor=pointer]:
+        - generic [ref=e105]: 🏠
+        - paragraph [ref=e106]: Início
+      - generic [ref=e107] [cursor=pointer]:
+        - generic [ref=e108]: 📋
+        - paragraph [ref=e109]: Exames
+      - generic [ref=e111] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e174]
+        - paragraph [ref=e114]: Dr. Exame
+      - generic [ref=e115] [cursor=pointer]:
+        - generic [ref=e116]: 📈
+        - paragraph [ref=e117]: Evolução
+      - generic [ref=e118] [cursor=pointer]:
+        - generic [ref=e119]: ☰
+        - paragraph [ref=e120]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e175]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e176]

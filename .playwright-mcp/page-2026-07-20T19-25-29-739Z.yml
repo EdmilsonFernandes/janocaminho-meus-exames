@@ -1,0 +1,37 @@
+- generic [ref=e1]:
+  - generic [ref=e57]:
+    - banner [ref=e58]:
+      - generic [ref=e60]:
+        - button "Voltar" [ref=e61]
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - img "Já no Caminho" [ref=e66]
+            - paragraph [ref=e67]: Já no Caminho
+          - heading "Área do lojista" [level=1] [ref=e68]
+          - paragraph [ref=e69]: Painel, pedidos e operação
+    - generic [ref=e83]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - textbox "E-mail ou usuário" [ref=e86]:
+            - /placeholder: " "
+            - text: gustavao-espetos
+          - generic: E-mail ou usuário
+        - generic [ref=e87]:
+          - textbox "Sua senha secreta" [ref=e88]:
+            - /placeholder: " "
+            - text: gustavo123
+          - generic: Sua senha secreta
+          - button "Mostrar senha" [ref=e89]
+      - generic [ref=e97]:
+        - generic [ref=e98] [cursor=pointer]:
+          - checkbox "Lembrar acesso" [checked] [ref=e100]
+          - generic [ref=e104]: Lembrar acesso
+        - button "Recuperar senha" [ref=e105]
+      - button "Acessar Painel" [active] [ref=e107]
+      - region "Segurança do acesso" [ref=e122]:
+        - generic [ref=e124]:
+          - generic [ref=e128]: Operação protegida
+          - generic [ref=e133]: Ajuda operacional
+  - contentinfo [ref=e120]:
+    - link "Rastreamento" [ref=e121] [cursor=pointer]:
+      - /url: https://www.siterastreio.com.br/

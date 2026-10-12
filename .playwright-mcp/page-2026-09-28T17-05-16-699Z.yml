@@ -1,0 +1,91 @@
+- generic [ref=f4e3]:
+  - navigation [ref=f4e4]:
+    - generic [ref=f4e6]:
+      - button "Menu do médico" [ref=f4e7] [cursor=pointer]:
+        - generic [ref=f4e8]: D
+      - generic [ref=f4e9]:
+        - paragraph [ref=f4e10]: Dra. QA Teste
+        - generic [ref=f4e11]: Clínica Médica • CRM 999999-QA
+    - separator [ref=f4e12]
+    - generic [ref=f4e13]:
+      - generic [ref=f4e14]: PLANO
+      - paragraph [ref=f4e15]: Grátis (0/5 usados)
+      - generic [ref=f4e16]: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=f4e17]:
+      - button "Painel" [ref=f4e18] [cursor=pointer]
+      - button "Pacientes" [ref=f4e24] [cursor=pointer]
+      - button "Convites" [ref=f4e30] [cursor=pointer]
+      - button "Perguntas" [ref=f4e37] [cursor=pointer]
+      - button "Meu perfil" [ref=f4e44] [cursor=pointer]
+      - button "Trocar senha" [ref=f4e50] [cursor=pointer]
+      - separator [ref=f4e56]
+      - button "Sair" [ref=f4e57] [cursor=pointer]
+    - generic [ref=f4e63]: Dr. Exame • Portal do Médico 🩺
+  - generic [ref=f4e65]:
+    - generic [ref=f4e66]:
+      - button "Voltar" [ref=f4e208] [cursor=pointer]
+      - generic [ref=f4e67]:
+        - paragraph [ref=f4e69]: Detalhe do paciente
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e70]: Acesso médico · leitura
+    - generic [ref=f4e176]:
+      - generic [ref=f4e177]:
+        - heading "Pacientes (1)" [level=6] [ref=f4e179]
+        - textbox "Buscar paciente" [ref=f4e185]:
+          - /placeholder: Buscar paciente pelo nome…
+        - button "Q QA Vazio Titular 1 exame · 21/09/2026 · Particular" [ref=f4e187] [cursor=pointer]:
+          - generic [ref=f4e188]:
+            - generic [ref=f4e189]: Q
+            - generic [ref=f4e191]:
+              - paragraph [ref=f4e192]: QA Vazio
+              - generic [ref=f4e193]: Titular
+              - generic [ref=f4e194]:
+                - generic [ref=f4e195]: 1 exame
+                - generic [ref=f4e200]:
+                  - text: ·
+                  - generic [ref=f4e201]: 21/09/2026
+                - generic [ref=f4e205]: · Particular
+      - generic [ref=f4e211]:
+        - button [ref=f4e212] [cursor=pointer]
+        - generic [ref=f4e216]:
+          - generic [ref=f4e217]:
+            - generic [ref=f4e218]: Q
+            - generic [ref=f4e221]:
+              - generic [ref=f4e222]: PACIENTE · PRONTUÁRIO COMPARTILHADO
+              - generic [ref=f4e223]:
+                - paragraph [ref=f4e224]: QA Vazio
+                - button "Trocar paciente" [ref=f4e225] [cursor=pointer]: Trocar
+              - paragraph [ref=f4e229]: Titular • Particular
+          - generic [ref=f4e230]:
+            - button "Abrir Último exame" [ref=f4e231] [cursor=pointer]:
+              - generic [ref=f4e232]: Último exame
+              - paragraph [ref=f4e237]: 21/09
+              - generic [ref=f4e238]: há 7 dias
+            - button "Abrir Alterações" [ref=f4e239] [cursor=pointer]:
+              - generic [ref=f4e240]: Alterações
+              - paragraph [ref=f4e246]: "0"
+            - button "Abrir Perguntas" [ref=f4e247] [cursor=pointer]:
+              - generic [ref=f4e248]: Perguntas
+              - paragraph [ref=f4e253]: "0"
+            - button "Abrir Anotações" [ref=f4e254] [cursor=pointer]:
+              - generic [ref=f4e255]: Anotações
+              - paragraph [ref=f4e260]: "0"
+            - button "Abrir Remédios" [ref=f4e261] [cursor=pointer]:
+              - generic [ref=f4e262]: Remédios
+              - paragraph [ref=f4e267]: "0"
+              - generic [ref=f4e268]: ativos
+        - tablist "Abas do paciente" [ref=f4e272]:
+          - tab "Exames (1)" [ref=f4e273] [cursor=pointer]:
+            - generic [ref=f4e277]:
+              - generic [ref=f4e278]: Exames
+              - superscript [ref=f4e279]: "1"
+          - tab "Alterados" [ref=f4e280] [cursor=pointer]
+          - tab "Tendências" [ref=f4e286] [cursor=pointer]
+          - tab "Relatório" [active] [selected] [ref=f4e292] [cursor=pointer]
+        - generic [ref=f4e342]:
+          - heading "Relatório completo" [level=6] [ref=f4e345]
+          - generic [ref=f4e346]:
+            - generic [ref=f4e347]: 📑
+            - heading "Relatório do paciente" [level=6] [ref=f4e349]
+            - paragraph [ref=f4e350]: Gere a análise consolidada dos exames de QA Vazio no seu tom clínico — educativo, sem diagnóstico.
+            - button "✨ Gerar relatório" [ref=f4e351] [cursor=pointer]
+          - generic [ref=f4e352]: Sem condições mapeadas para pesquisa clínica neste paciente.

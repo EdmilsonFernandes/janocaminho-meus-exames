@@ -1,0 +1,68 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e23]:
+    - generic [ref=e24]:
+      - img "Dr. Exame" [ref=e26]
+      - generic [ref=e27]:
+        - paragraph [ref=e28]: Meus Exames
+        - paragraph [ref=e29]: Seu assistente de saúde com IA
+    - generic [ref=e30]:
+      - button [ref=e31] [cursor=pointer]
+      - button [ref=e36] [cursor=pointer]
+    - generic [ref=e42]:
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - text: E-mail
+          - generic [ref=e45]: "*"
+        - generic [ref=e46]:
+          - textbox "E-mail" [ref=e51]
+          - group:
+            - generic: E-mail *
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - text: Senha
+          - generic [ref=e54]: "*"
+        - generic [ref=e55]:
+          - textbox "Senha" [ref=e60]
+          - button "Mostrar senha" [ref=e62] [cursor=pointer]
+          - group:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e68] [cursor=pointer]
+      - button [ref=e69] [cursor=pointer]
+      - generic [ref=e73]: ou
+      - generic [ref=e77]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=e79] [cursor=pointer]:
+          - generic [ref=e81]: Continuar com o Google
+        - iframe
+      - generic [ref=e96]:
+        - paragraph [ref=e97]: Acesso seguro
+        - paragraph [ref=e98]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=e99]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e100] [cursor=pointer]
+    - generic [ref=e101]:
+      - generic [ref=e102]: 🩺
+      - paragraph [ref=e103]:
+        - strong [ref=e104]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]
+  - generic: ✦ ai color palette, ✦ decorative radial spotlight glow
+  - generic: ✦ ai color palette
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e105] [cursor=pointer]
+        - button "›" [ref=e106] [cursor=pointer]
+      - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: low contrast text, ✦ ai color palette
+  - generic [ref=e107]:
+    - generic [ref=e108]:
+      - generic [ref=e109]: "✦ overused font: Primary font: inter (73% of text)"
+      - generic [ref=e110]: "layout property animation: transition: max-width"
+      - generic [ref=e111]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e112]:
+      - button "◉" [ref=e113] [cursor=pointer]
+      - button "×" [ref=e114] [cursor=pointer]

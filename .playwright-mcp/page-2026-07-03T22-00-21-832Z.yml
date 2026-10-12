@@ -1,0 +1,54 @@
+- generic [active] [ref=f24e18]:
+  - generic [ref=f24e19]:
+    - generic [ref=f24e20]:
+      - button "Pular para o conteúdo" [ref=f24e402] [cursor=pointer]
+      - generic [ref=f24e22]:
+        - banner [ref=f24e23]:
+          - generic [ref=f24e24]:
+            - button "Voltar" [ref=f24e422] [cursor=pointer]:
+              - img [ref=f24e423]
+            - button "71" [ref=f24e425] [cursor=pointer]:
+              - img [ref=f24e426]
+              - generic [ref=f24e428]: "71"
+            - button "E" [ref=f24e430] [cursor=pointer]:
+              - generic [ref=f24e432]: E
+            - button "18" [ref=f24e433] [cursor=pointer]:
+              - generic [ref=f24e434]:
+                - img [ref=f24e435]
+                - generic [ref=f24e437]: "18"
+            - button "Mais opções" [ref=f24e438] [cursor=pointer]:
+              - img [ref=f24e439]
+            - button "Atualizar" [ref=f24e408] [cursor=pointer]:
+              - img [ref=f24e46]
+        - main [ref=f24e48]:
+          - generic [ref=f24e441]:
+            - generic [ref=f24e442]:
+              - img [ref=f24e444]
+              - generic [ref=f24e446]:
+                - heading "Evolução ao longo do tempo" [level=5] [ref=f24e447]
+                - paragraph [ref=f24e448]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - progressbar [ref=f24e449]:
+              - img [ref=f24e450]
+    - button "Pergunte ao Dr. Exame" [ref=f24e452] [cursor=pointer]:
+      - generic [ref=f24e453]:
+        - img "Dr. Exame" [ref=f24e455]
+        - img [ref=f24e457]
+    - navigation [ref=f24e370]:
+      - generic [ref=f24e371] [cursor=pointer]:
+        - generic [ref=f24e372]: 🏠
+        - paragraph [ref=f24e373]: Início
+      - generic [ref=f24e375] [cursor=pointer]:
+        - generic [ref=f24e376]: 📋
+        - paragraph [ref=f24e377]: Exames
+      - generic [ref=f24e378] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f24e419]
+        - paragraph [ref=f24e381]: Dr. Exame
+      - generic [ref=f24e382] [cursor=pointer]:
+        - generic [ref=f24e383]: 📈
+        - paragraph [ref=f24e384]: Evolução
+      - generic [ref=f24e385] [cursor=pointer]:
+        - generic [ref=f24e386]: ☰
+        - paragraph [ref=f24e387]: Mais
+  - generic [ref=f24e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f24e420]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f24e421]

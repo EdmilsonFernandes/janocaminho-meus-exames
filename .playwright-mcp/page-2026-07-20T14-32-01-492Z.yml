@@ -1,0 +1,120 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e101]:
+      - button [ref=e102] [cursor=pointer]
+      - generic [ref=e103]:
+        - banner [ref=e104]:
+          - generic [ref=e105]:
+            - button [ref=e106] [cursor=pointer]
+            - paragraph [ref=e112]: Dr. Exame
+            - button [ref=e113] [cursor=pointer]
+            - button [ref=e118] [cursor=pointer]:
+              - generic [ref=e119]: E
+            - button [ref=e122] [cursor=pointer]
+        - main [ref=e125]:
+          - generic [ref=e127]:
+            - generic [ref=e128]:
+              - paragraph [ref=e129]: Bom dia, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e132]:
+              - generic [ref=e137]:
+                - paragraph [ref=e138]: "8"
+                - generic [ref=e139]: de 100
+              - generic [ref=e140]:
+                - generic [ref=e141]: Score de Saúde
+                - generic [ref=e146]: Bom
+                - paragraph [ref=e148]: Alguns valores merecem atenção — comente com seu médico.
+                - text: Nenhum fora da faixa.
+                - button [ref=e150] [cursor=pointer]: Ver detalhes
+            - generic [ref=e153]:
+              - generic [ref=e157]:
+                - generic [ref=e158]: Organizando seus dados
+                - paragraph [ref=e160]: Montando sua prioridade de hoje
+                - paragraph [ref=e161]: Estamos cruzando exames, alertas e créditos para sugerir o melhor próximo passo.
+              - button [ref=e162] [cursor=pointer]: Ver exames →
+            - generic [ref=e163]:
+              - paragraph [ref=e170]: Sua saúde agora
+              - generic [ref=e172]:
+                - generic [ref=e173]:
+                  - generic [ref=e174]:
+                    - paragraph [ref=e177]: Leitura de risco
+                    - button [ref=e178] [cursor=pointer]
+                  - generic [ref=e181]:
+                    - generic [ref=e182]: 🟢 Baixo
+                    - generic [ref=e184]: → Risco estável desde 17/07/2026
+                - paragraph [ref=e186]: Possível pré-diabetes
+                - paragraph [ref=e187]: "Atenção de intensidade leve a moderada: alguns marcadores glicêmicos estão na faixa de pré-diabetes. Isso costuma ser reversível com mudanças de hábito, mas merece atenção. Os exames que mais influenciaram esta análise foram: GLICEMIA. Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica."
+                - button [ref=e188] [cursor=pointer]: Ver mais
+                - generic [ref=e189]:
+                  - generic [ref=e190]: ⚠️ O QUE CHAMOU ATENÇÃO
+                  - generic [ref=e192]:
+                    - generic [ref=e193]: 🟡
+                    - generic [ref=e194]:
+                      - generic [ref=e195]:
+                        - paragraph [ref=e196]: GLICEMIA
+                        - generic [ref=e197]: 108 mg/dL
+                      - generic [ref=e198]: Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial
+                      - group [ref=e200]:
+                        - generic [ref=e201] [cursor=pointer]: 📖 Por quê? (fonte da faixa)
+                - button [ref=e202] [cursor=pointer]: Perguntas pra levar ao médico (2)
+                - separator [ref=e209]
+                - button [ref=e210] [cursor=pointer]: Plano de ação do Dr. Exame · 8 créditos
+                - generic [ref=e214]: Baseada em 3 marcadores (poucos dados — leitura parcial).
+                - generic [ref=e215]: Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.
+                - generic [ref=e216]:
+                  - generic [ref=e217]: 🧪 Ajudar a IA a melhorar (dados anônimos)
+                  - switch [ref=e220] [cursor=pointer]
+              - generic [ref=e223]:
+                - button [ref=e224] [cursor=pointer]: 📊 Tendências & Previsões →
+                - button [ref=e225] [cursor=pointer]: 🏆 Conquistas →
+            - generic [ref=e226]:
+              - paragraph [ref=e232]: Dr. Exame
+              - generic [ref=e235]:
+                - generic [ref=e239]:
+                  - paragraph [ref=e240]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=e241]: Atividade física regular ajuda a reduzir colesterol, glicemia e pressão.
+                - button [ref=e243] [cursor=pointer]: Conversar com a IA
+            - heading [level=3] [ref=e248]:
+              - button [ref=e249] [cursor=pointer]:
+                - generic [ref=e254]:
+                  - paragraph [ref=e255]: Análises detalhadas da sua saúde
+                  - text: Estado atual, idade biológica, risco cardiometabólico e distribuição
+            - generic [ref=e259]:
+              - paragraph [ref=e265]: Seus números
+              - generic [ref=e266]:
+                - generic [ref=e269] [cursor=pointer]:
+                  - paragraph [ref=e273]: "5"
+                  - generic [ref=e274]: Exames enviados
+                - generic [ref=e277] [cursor=pointer]:
+                  - paragraph [ref=e282]: "0"
+                  - generic [ref=e283]: Valores alterados
+                - generic [ref=e286] [cursor=pointer]:
+                  - paragraph [ref=e291]: "0"
+                  - generic [ref=e292]: Dependentes
+                - generic [ref=e295] [cursor=pointer]:
+                  - paragraph [ref=e299]: —
+                  - generic [ref=e300]: Última atualização
+            - generic [ref=e301]:
+              - paragraph [ref=e307]: Ações rápidas
+              - generic [ref=e309]:
+                - generic [ref=e310]: Enviar exame
+                - generic [ref=e317]: Evolução
+                - generic [ref=e324]: Família
+                - generic [ref=e332]: Relatório
+            - button [ref=e340] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e344]:
+      - paragraph [ref=e349] [cursor=pointer]: Início
+      - paragraph [ref=e355] [cursor=pointer]: Exames
+      - paragraph [ref=e359] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e364] [cursor=pointer]: Evolução
+      - paragraph [ref=e369] [cursor=pointer]: Mais
+  - dialog [active] [ref=e374]:
+    - generic [ref=e375]:
+      - button "Pular" [ref=e376] [cursor=pointer]
+      - generic [ref=e377]:
+        - generic [ref=e378]: 📄
+        - heading "Envie seu exame" [level=4] [ref=e379]
+        - paragraph [ref=e380]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e381]:
+        - button [ref=e387] [cursor=pointer]
+        - paragraph [ref=e391]: Toque em Próximo para continuar →

@@ -1,0 +1,384 @@
+- generic [active] [ref=f70e1]:
+  - alert [ref=f70e2]: Press Alt+1 for screen-reader mode, Alt+0 to cancel
+  - button "Use Website In a Screen-Reader Mode" [ref=f70e3]
+  - link "Accessibility Screen-Reader Guide, Feedback, and Issue Reporting | New window" [ref=f70e4] [cursor=pointer]:
+    - /url: https://accessibe.com/blog/knowledgebase/screen-reader-guide
+  - generic:
+    - generic:
+      - region "Skip Links":
+        - generic:
+          - link "Skip to Content":
+            - /url: "#acsbContent"
+            - text: Skip to Content
+            - generic:
+              - generic: ↵
+              - text: ENTER
+  - dialog [ref=f70e5]:
+    - generic [ref=f70e6]: Simplify Text
+    - button [ref=f70e9] [cursor=pointer]
+  - generic [ref=f70e13]:
+    - generic [ref=f70e19] [cursor=pointer]:
+      - generic [ref=f70e20]:
+        - generic [ref=f70e23]:
+          - strong [ref=f70e24]: NOW ACCEPTING HSA/FSA.
+          - text: SELECT 'TRUEMED' PAYMENT METHOD AT CHECKOUT
+        - strong [ref=f70e31]: SAVE AN AVERAGE OF 30%
+      - generic [ref=f70e35]:
+        - generic [ref=f70e38]:
+          - strong [ref=f70e39]: NOW ACCEPTING HSA/FSA.
+          - text: SELECT 'TRUEMED' PAYMENT METHOD AT CHECKOUT
+        - strong [ref=f70e46]: SAVE AN AVERAGE OF 30%
+      - generic [ref=f70e50]:
+        - generic [ref=f70e53]:
+          - strong [ref=f70e54]: NOW ACCEPTING HSA/FSA.
+          - text: SELECT 'TRUEMED' PAYMENT METHOD AT CHECKOUT
+        - strong [ref=f70e61]: SAVE AN AVERAGE OF 30%
+    - banner [ref=f70e65]:
+      - link [ref=f70e67] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=f70e77]:
+        - link "How It Works" [ref=f70e78] [cursor=pointer]:
+          - /url: /how-it-works
+        - link "What We Measure" [ref=f70e79] [cursor=pointer]:
+          - /url: /what-we-measure
+        - link "Blog" [ref=f70e80] [cursor=pointer]:
+          - /url: /blog
+        - link "Practitioners" [ref=f70e81] [cursor=pointer]:
+          - /url: /pro
+      - generic [ref=f70e82]:
+        - link "Login" [ref=f70e83] [cursor=pointer]:
+          - /url: /login
+        - button "Get Started" [ref=f70e84]
+    - main [ref=f70e85]:
+      - generic [ref=f70e86]:
+        - generic [ref=f70e91]:
+          - paragraph [ref=f70e92]: How it works
+          - heading "E x p l o r e t h e L e v e l s e x p e r i e n c e" [level=1] [ref=f70e93]:
+            - generic [ref=f70e94]:
+              - generic [ref=f70e95]: E
+              - generic [ref=f70e96]: x
+              - generic [ref=f70e97]: p
+              - generic [ref=f70e98]: l
+              - generic [ref=f70e99]: o
+              - generic [ref=f70e100]: r
+              - generic [ref=f70e101]: e
+            - generic [ref=f70e102]:
+              - generic [ref=f70e103]: t
+              - generic [ref=f70e104]: h
+              - generic [ref=f70e105]: e
+            - generic [ref=f70e106]:
+              - generic [ref=f70e107]: L
+              - generic [ref=f70e108]: e
+              - generic [ref=f70e109]: v
+              - generic [ref=f70e110]: e
+              - generic [ref=f70e111]: l
+              - generic [ref=f70e112]: s
+            - generic [ref=f70e113]:
+              - generic [ref=f70e114]: e
+              - generic [ref=f70e115]: x
+              - generic [ref=f70e116]: p
+              - generic [ref=f70e117]: e
+              - generic [ref=f70e118]: r
+              - generic [ref=f70e119]: i
+              - generic [ref=f70e120]: e
+              - generic [ref=f70e121]: "n"
+              - generic [ref=f70e122]: c
+              - generic [ref=f70e123]: e
+        - generic [ref=f70e125]:
+          - generic [ref=f70e126]:
+            - heading "How it works in 8 steps" [level=2] [ref=f70e127]
+            - paragraph [ref=f70e128]: From your first lab panel to your personalized plan and ongoing programs, Levels makes it simple to understand your body and take action with confidence.
+          - generic [ref=f70e129]:
+            - generic [ref=f70e130]:
+              - generic [ref=f70e131]:
+                - paragraph [ref=f70e133]: Step 1
+                - generic [ref=f70e134]:
+                  - heading "Complete your comprehensive intake" [level=3] [ref=f70e135]
+                  - paragraph [ref=f70e136]: Start by defining your health goals, walking through what to expect in your new membership, and building the foundation for a Levels experience personalized to your data, priorities, and progress.
+                - generic [ref=f70e137]:
+                  - paragraph [ref=f70e138]: "Included in:"
+                  - generic [ref=f70e139]:
+                    - generic [ref=f70e140]: Core
+                    - generic [ref=f70e144]: Complete
+              - img "Complete your comprehensive intake" [ref=f70e149]
+            - generic [ref=f70e150]:
+              - generic [ref=f70e151]:
+                - paragraph [ref=f70e153]: Step 2
+                - generic [ref=f70e154]:
+                  - heading "Understand Your Blood Sugar" [level=3] [ref=f70e155]
+                  - paragraph [ref=f70e156]: Receive your glucose monitor, set it up in minutes, sync with the Levels app, and start learning about your blood sugar in real time.
+                - generic [ref=f70e157]:
+                  - paragraph [ref=f70e158]: "Included in:"
+                  - generic [ref=f70e159]:
+                    - generic [ref=f70e160]: Classic
+                    - generic [ref=f70e164]: Core
+                    - generic [ref=f70e168]: Complete
+              - img "Understand Your Blood Sugar" [ref=f70e173]
+            - generic [ref=f70e174]:
+              - generic [ref=f70e175]:
+                - paragraph [ref=f70e177]: Step 3
+                - generic [ref=f70e178]:
+                  - heading "Complete Your Lab Panel" [level=3] [ref=f70e179]
+                  - paragraph [ref=f70e180]: Our labs measure key markers across the full spectrum of your health. Results integrate automatically into the Levels app and dashboard, making it easy to track your trends over time. 28+ Marker Lab Panel with Core 100+ Marker Lab Panel with Complete
+                - generic [ref=f70e181]:
+                  - paragraph [ref=f70e182]: "Included in:"
+                  - generic [ref=f70e183]:
+                    - generic [ref=f70e184]: Core
+                    - generic [ref=f70e188]: Complete
+              - img "Complete Your Lab Panel" [ref=f70e193]
+            - generic [ref=f70e194]:
+              - generic [ref=f70e195]:
+                - paragraph [ref=f70e197]: Step 4
+                - generic [ref=f70e198]:
+                  - heading "Get Clinician Analysis and Action Plan" [level=3] [ref=f70e199]
+                  - paragraph [ref=f70e200]: Receive a detailed analysis of your data, highlighting health status, priorities, and risk factors from a licensed, Levels-verified clinician.
+                - generic [ref=f70e201]:
+                  - paragraph [ref=f70e202]: "Included in:"
+                  - generic [ref=f70e203]:
+                    - generic [ref=f70e204]: Core
+                    - generic [ref=f70e208]: Complete
+              - img "Get Clinician Analysis and Action Plan" [ref=f70e213]
+            - generic [ref=f70e214]:
+              - generic [ref=f70e215]:
+                - paragraph [ref=f70e217]: Step 5
+                - generic [ref=f70e218]:
+                  - heading "Hit Your Health Goals" [level=3] [ref=f70e219]
+                  - paragraph [ref=f70e220]: Effortlessly adopt lifestyle changes that support your health priorities. See realtime progress with your personalized in-app program.
+                - generic [ref=f70e221]:
+                  - paragraph [ref=f70e222]: "Included in:"
+                  - generic [ref=f70e223]:
+                    - generic [ref=f70e224]: Core
+                    - generic [ref=f70e228]: Complete
+              - img "Hit Your Health Goals" [ref=f70e233]
+            - generic [ref=f70e234]:
+              - generic [ref=f70e235]:
+                - paragraph [ref=f70e237]: Step 6
+                - generic [ref=f70e238]:
+                  - heading "Advanced In-App Insights" [level=3] [ref=f70e239]
+                  - paragraph [ref=f70e240]: Built on the largest dataset of its kind, the Levels app leverages your realtime glucose, lab, and nutrition data to deliver personalized insights showing patterns, flagging triggers, and offering guidance to help you build lasting habits.
+                - generic [ref=f70e241]:
+                  - paragraph [ref=f70e242]: "Included in:"
+                  - generic [ref=f70e243]:
+                    - generic [ref=f70e244]: Classic
+                    - generic [ref=f70e248]: Core
+                    - generic [ref=f70e252]: Complete
+              - img "Advanced In-App Insights" [ref=f70e257]
+            - generic [ref=f70e258]:
+              - generic [ref=f70e259]:
+                - paragraph [ref=f70e261]: Step 7
+                - generic [ref=f70e262]:
+                  - heading "Meet with our Functional Nutritionist partner" [level=3] [ref=f70e263]
+                  - paragraph [ref=f70e264]: Turn your CGM, food logs, and labs into a clear nutrition roadmap. Your Functional Nutritionist will review your data ahead of time, then meet with you 1:1 to pinpoint what's driving your patterns and give you a personalized plan with specific, realistic next steps you can follow for the next several weeks.
+                - generic [ref=f70e265]:
+                  - paragraph [ref=f70e266]: "Included in:"
+                  - generic [ref=f70e267]: Complete
+              - img "Meet with our Functional Nutritionist partner" [ref=f70e273]
+            - generic [ref=f70e274]:
+              - generic [ref=f70e275]:
+                - paragraph [ref=f70e277]: Step 8
+                - generic [ref=f70e278]:
+                  - heading "Measure Progress. Track Over Time." [level=3] [ref=f70e279]
+                  - paragraph [ref=f70e280]: Get a full reassessment of health state when you're ready—often around the six-month mark—with clinical analysis. Track your progress and update your goals. 28+ Marker Lab Panel with Core 100+ Marker Lab Panel with Complete
+                - generic [ref=f70e281]:
+                  - paragraph [ref=f70e282]: "Included in:"
+                  - generic [ref=f70e283]:
+                    - generic [ref=f70e284]: Core
+                    - generic [ref=f70e288]: Complete
+              - img "Measure Progress. Track Over Time." [ref=f70e293]
+        - generic [ref=f70e295]:
+          - generic [ref=f70e296]:
+            - paragraph [ref=f70e297]: Choose Your Path
+            - 'heading "Three memberships, one goal: Your best health" [level=2] [ref=f70e298]': Three memberships, one goal:Your best health
+          - generic [ref=f70e299]:
+            - generic [ref=f70e300]:
+              - heading "Classic" [level=3] [ref=f70e305]
+              - paragraph [ref=f70e306]: Glucose Only, Self-Guided Journey
+              - generic [ref=f70e308]:
+                - generic [ref=f70e309]:
+                  - generic [ref=f70e310]: $24
+                  - generic [ref=f70e311]: /mo
+                - text: $288 billed annually
+              - link "Get Classic" [ref=f70e312] [cursor=pointer]:
+                - /url: /join/cgm
+              - list [ref=f70e313]:
+                - listitem [ref=f70e314]:
+                  - generic [ref=f70e317]: 1-month continuous glucose monitoring
+                - listitem [ref=f70e318]:
+                  - generic [ref=f70e321]: Levels app and dashboard
+                - listitem [ref=f70e322]:
+                  - generic [ref=f70e325]: Self-guided insights
+                - listitem [ref=f70e326]:
+                  - generic [ref=f70e329]: Unlimited uploading of past bloodwork
+              - generic [ref=f70e333]:
+                - generic [ref=f70e334]:
+                  - generic [ref=f70e335]: HSA/FSA eligible
+                  - img "Truemed logo" [ref=f70e336]
+                  - generic [ref=f70e339]: Save an average of 30%
+                - button "Learn more about Truemed and how to pay with your HSA or FSA for qualified customers" [ref=f70e340] [cursor=pointer]: Learn more
+            - generic [ref=f70e341]:
+              - heading "Core" [level=3] [ref=f70e346]
+              - paragraph [ref=f70e347]: Glucose + Essential Labs, Clinician Review & Input
+              - generic [ref=f70e349]:
+                - generic [ref=f70e350]:
+                  - generic [ref=f70e351]: $41
+                  - generic [ref=f70e352]: /mo
+                - text: $499 billed annually
+              - link "Get Core" [ref=f70e353] [cursor=pointer]:
+                - /url: /join?bundle=core
+              - list [ref=f70e354]:
+                - listitem [ref=f70e355]:
+                  - generic [ref=f70e358]: 2 Essential Lab Panels w/ 28+ Markers
+                - listitem [ref=f70e359]:
+                  - generic [ref=f70e362]: 1-month continuous glucose monitoring
+                - listitem [ref=f70e363]:
+                  - generic [ref=f70e366]:
+                    - text: Clinician review of health data
+                    - generic [ref=f70e367]: 2x annually
+                - listitem [ref=f70e368]:
+                  - generic [ref=f70e371]: Levels app and dashboard
+                - listitem [ref=f70e372]:
+                  - generic [ref=f70e375]:
+                    - text: AI health insights
+                    - generic [ref=f70e376]: From glucose and labs data
+                - listitem [ref=f70e377]:
+                  - generic [ref=f70e380]: AI adaptive programs
+                - listitem [ref=f70e381]:
+                  - generic [ref=f70e384]: Unlimited uploading of past bloodwork
+              - generic [ref=f70e388]:
+                - generic [ref=f70e389]:
+                  - generic [ref=f70e390]: HSA/FSA eligible
+                  - img "Truemed logo" [ref=f70e391]
+                  - generic [ref=f70e394]: Save an average of 30%
+                - button "Learn more about Truemed and how to pay with your HSA or FSA for qualified customers" [ref=f70e395] [cursor=pointer]: Learn more
+            - generic [ref=f70e396]:
+              - heading "Complete" [level=3] [ref=f70e401]
+              - paragraph [ref=f70e402]: Glucose + Comprehensive Labs, Clinician Review & Concierge Support
+              - generic [ref=f70e404]:
+                - generic [ref=f70e405]:
+                  - generic [ref=f70e406]: $167
+                  - generic [ref=f70e407]: /mo
+                - text: $1,999 billed annually
+              - link "Get Complete" [ref=f70e408] [cursor=pointer]:
+                - /url: /join?bundle=complete
+              - list [ref=f70e409]:
+                - listitem [ref=f70e410]:
+                  - generic [ref=f70e413]: 2 Comprehensive Labs w/ 100+ Markers
+                - listitem [ref=f70e414]:
+                  - generic [ref=f70e417]:
+                    - text: 2-months continuous glucose monitoring
+                    - generic [ref=f70e418]: with free shipping
+                - listitem [ref=f70e419]:
+                  - generic [ref=f70e422]:
+                    - text: Clinician review of health data
+                    - generic [ref=f70e423]: 2x annually
+                - listitem [ref=f70e424]:
+                  - generic [ref=f70e427]: 50-minute functional nutritionist session
+                - listitem [ref=f70e428]:
+                  - generic [ref=f70e431]: Dedicated concierge support
+                - listitem [ref=f70e432]:
+                  - generic [ref=f70e435]: Levels app and dashboard
+                - listitem [ref=f70e436]:
+                  - generic [ref=f70e439]:
+                    - text: Advanced AI health insights
+                    - generic [ref=f70e440]: From glucose & labs data
+                - listitem [ref=f70e441]:
+                  - generic [ref=f70e444]: AI adaptive programs
+                - listitem [ref=f70e445]:
+                  - generic [ref=f70e448]: Unlimited uploading of past bloodwork
+              - generic [ref=f70e452]:
+                - generic [ref=f70e453]:
+                  - generic [ref=f70e454]: HSA/FSA eligible
+                  - img "Truemed logo" [ref=f70e455]
+                  - generic [ref=f70e458]: Save an average of 30%
+                - button "Learn more about Truemed and how to pay with your HSA or FSA for qualified customers" [ref=f70e459] [cursor=pointer]: Learn more
+        - generic [ref=f70e463]:
+          - generic [ref=f70e464]:
+            - paragraph [ref=f70e465]: The data behind better health
+            - heading "What we measure" [level=2] [ref=f70e466]
+            - paragraph [ref=f70e467]: Track key signals in real time and over time. Learn how your daily habits shape your energy, performance, and long-term well-being.
+          - generic [ref=f70e468]:
+            - link "Real-Time Measurements" [ref=f70e469] [cursor=pointer]:
+              - /url: /what-we-measure
+            - link "Long-Term Measurements" [ref=f70e477] [cursor=pointer]:
+              - /url: /what-we-measure
+        - generic [ref=f70e487]:
+          - paragraph [ref=f70e488]: Start with Levels
+          - heading "Your path to improved health starts now" [level=2] [ref=f70e489]
+          - button "Get started" [ref=f70e491]
+    - contentinfo [ref=f70e492]:
+      - generic [ref=f70e493]:
+        - generic [ref=f70e494]:
+          - generic [ref=f70e495]:
+            - link [ref=f70e496] [cursor=pointer]:
+              - /url: /
+            - generic [ref=f70e499]:
+              - link "Instagram" [ref=f70e500] [cursor=pointer]:
+                - /url: https://www.instagram.com/levels/?hl=en
+              - link "Youtube" [ref=f70e505] [cursor=pointer]:
+                - /url: https://www.youtube.com/@levels
+              - link "Podcasts" [ref=f70e508] [cursor=pointer]:
+                - /url: /podcasts
+              - link "X" [ref=f70e511] [cursor=pointer]:
+                - /url: https://x.com/Levels
+              - link "TikTok" [ref=f70e514] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@levels?lang=en
+              - link "LinkedIn" [ref=f70e517] [cursor=pointer]:
+                - /url: https://www.linkedin.com/company/levels
+              - link "Facebook" [ref=f70e520] [cursor=pointer]:
+                - /url: https://www.facebook.com/Levels
+            - generic [ref=f70e523]:
+              - heading "Join our mailing list" [level=3] [ref=f70e524]
+              - paragraph [ref=f70e525]: Subscribe to get updates, articles, exclusive discounts, and more
+              - generic [ref=f70e526]:
+                - textbox "email@example.com" [ref=f70e527]
+                - button "Join" [ref=f70e528]
+          - navigation [ref=f70e529]:
+            - generic [ref=f70e530]:
+              - heading "Product" [level=4] [ref=f70e531]
+              - list [ref=f70e532]:
+                - listitem [ref=f70e533]:
+                  - link "How It Works" [ref=f70e534] [cursor=pointer]:
+                    - /url: /how-it-works
+                - listitem [ref=f70e535]:
+                  - link "What We Measure" [ref=f70e536] [cursor=pointer]:
+                    - /url: /what-we-measure
+            - generic [ref=f70e537]:
+              - heading "Company" [level=4] [ref=f70e538]
+              - list [ref=f70e539]:
+                - listitem [ref=f70e540]:
+                  - link "Careers" [ref=f70e541] [cursor=pointer]:
+                    - /url: https://levelshealth.notion.site/Careers-at-Levels-3616891ed02d4c0787fd64227f9bc57a
+                - listitem [ref=f70e542]:
+                  - link "Partner With Us" [ref=f70e543] [cursor=pointer]:
+                    - /url: https://levels.link/partner
+                - listitem [ref=f70e544]:
+                  - link "Media & Creators" [ref=f70e545] [cursor=pointer]:
+                    - /url: https://levelshealth.notion.site/Levels-Assets-for-Media-Content-Creators-January-2022-f7e9b3066e2444cfae92dc786c2f8a32
+                - listitem [ref=f70e546]:
+                  - link "Contact Us" [ref=f70e547] [cursor=pointer]:
+                    - /url: mailto:support@levels.com
+            - generic [ref=f70e548]:
+              - heading "Resources" [level=4] [ref=f70e549]
+              - list [ref=f70e550]:
+                - listitem [ref=f70e551]:
+                  - link "Support" [ref=f70e552] [cursor=pointer]:
+                    - /url: https://support.levels.com/
+                - listitem [ref=f70e553]:
+                  - link "Blog" [ref=f70e554] [cursor=pointer]:
+                    - /url: /blog
+                - listitem [ref=f70e555]:
+                  - link "Gift Levels" [ref=f70e556] [cursor=pointer]:
+                    - /url: https://app.levels.com/gift-card
+                - listitem [ref=f70e557]:
+                  - link "Refund Policy" [ref=f70e558] [cursor=pointer]:
+                    - /url: https://support.levels.com/article/651-refund-replacement-policies
+        - generic [ref=f70e559]:
+          - generic [ref=f70e560]:
+            - paragraph [ref=f70e561]: © 2025 Levels Health
+            - generic [ref=f70e562]:
+              - link "Legal" [ref=f70e563] [cursor=pointer]:
+                - /url: https://levelshealth.notion.site/Levels-Health-Inc-Privacy-Policy-6a8d24dc188a4a41ba8e1e5ba433cf70
+              - link "Terms of service" [ref=f70e564] [cursor=pointer]:
+                - /url: /terms-of-service
+          - paragraph [ref=f70e565]: The Levels program, products, and services are intended only for maintaining and encouraging a healthy lifestyle and are not to be used for the diagnosis, cure, management, prevention, or treatment of any disease or condition. The Levels app, products, and services should never be used for medication management or dosing decisions.
+  - alert [ref=f70e566]

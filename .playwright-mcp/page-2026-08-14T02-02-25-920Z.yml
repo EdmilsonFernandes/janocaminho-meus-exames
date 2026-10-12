@@ -1,0 +1,91 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e105]:
+      - button "Pular para o conteúdo" [ref=e403] [cursor=pointer]
+      - generic [ref=e107]:
+        - banner [ref=e108]:
+          - generic [ref=e109]:
+            - button "Menu" [ref=e404] [cursor=pointer]
+            - generic [ref=e113]:
+              - img "Dr. Exame" [ref=e405]
+              - paragraph [ref=e116]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e406] [cursor=pointer]:
+              - generic [ref=e409]: "71"
+              - button "Ocultar créditos" [ref=e410]
+            - button "Notificações" [ref=e413] [cursor=pointer]:
+              - generic [ref=e118]: "34"
+            - button "E" [ref=e415] [cursor=pointer]
+            - button "Atualizar" [ref=e416] [cursor=pointer]
+        - main [ref=e134]:
+          - generic [ref=e136]:
+            - generic [ref=e137]:
+              - paragraph [ref=e138]: Boa noite, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e139]:
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - generic [ref=e147]:
+                    - paragraph [ref=e417]: "45"
+                    - paragraph [ref=e149]: de 100
+                  - generic [ref=e150]:
+                    - paragraph [ref=e151]: Sua saúde hoje
+                    - paragraph [ref=e152]: Pede atenção
+                    - paragraph [ref=e154]:
+                      - generic [ref=e418]: ● 6 moderados
+                - button [ref=e419] [cursor=pointer]
+              - generic [ref=e160]:
+                - paragraph [ref=e161]: Desde seu último exame
+                - generic [ref=e162]: 3 pioraram
+                - generic [ref=e424]:
+                  - generic [ref=e425]:
+                    - paragraph [ref=e426]: ↑COLESTEROL TOTAL
+                    - paragraph [ref=e427]: 232 mg/dL
+                  - generic [ref=e428]:
+                    - paragraph [ref=e429]: ↑LDL COLESTEROL
+                    - paragraph [ref=e430]: 158 mg/dL
+                  - generic [ref=e431]:
+                    - paragraph [ref=e432]: ↓HDL COLESTEROL
+                    - paragraph [ref=e433]: 38 mg/dL
+                - button [ref=e434] [cursor=pointer]
+            - button [ref=e435] [cursor=pointer]
+            - generic [ref=e178]:
+              - generic [ref=e185] [cursor=pointer]:
+                - paragraph [ref=e186]: Cardiometabólico
+                - paragraph [ref=e187]: Em dia
+                - paragraph [ref=e188]: sem fatores
+              - generic [ref=e191] [cursor=pointer]:
+                - generic [ref=e192]: 🧬
+                - generic [ref=e193]:
+                  - paragraph [ref=e194]: Idade biológica
+                  - paragraph [ref=e195]: Em breve
+                  - paragraph [ref=e196]: estimativa c/ +exames
+              - generic [ref=e203] [cursor=pointer]:
+                - paragraph [ref=e204]: Seus exames
+                - paragraph [ref=e205]: "5"
+                - paragraph [ref=e206]: 8 alterados
+              - generic [ref=e213] [cursor=pointer]:
+                - paragraph [ref=e214]: Evolução
+                - paragraph [ref=e215]: Tendências
+                - paragraph [ref=e216]: 28 resultados
+            - generic [ref=e218]:
+              - generic [ref=e219]: Enviar exame
+              - generic [ref=e226]: Evolução
+              - generic [ref=e233]: Família
+              - generic [ref=e241]: Relatório
+            - generic [ref=e438]:
+              - generic [ref=e442]:
+                - paragraph [ref=e443]: "71"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=e444] [cursor=pointer]
+            - button [ref=e445] [cursor=pointer]
+    - navigation [ref=e253]:
+      - paragraph [ref=e258] [cursor=pointer]: Início
+      - paragraph [ref=e264] [cursor=pointer]: Exames
+      - generic [ref=e265] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e446]
+        - paragraph [ref=e268]: Dr. Exame
+      - paragraph [ref=e273] [cursor=pointer]: Evolução
+      - paragraph [ref=e278] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e447]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e448]

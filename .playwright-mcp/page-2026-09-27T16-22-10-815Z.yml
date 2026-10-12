@@ -1,0 +1,23 @@
+- generic [ref=f11e4]:
+  - button "← Voltar ao app" [ref=f11e6] [cursor=pointer]
+  - generic [ref=f11e7]:
+    - img "Dr. Exame" [ref=f11e9]
+    - heading "Portal do Médico" [level=5] [ref=f11e10]
+    - generic [ref=f11e11]: Acesso restrito a profissionais
+  - generic [ref=f11e12]:
+    - generic [ref=f11e14]:
+      - textbox "E-mail ou CRM" [ref=f11e19]
+      - group [aria-hidden]
+    - generic [ref=f11e21]:
+      - textbox "Senha (mín. 6 caracteres)" [ref=f11e26]
+      - button [ref=f11e28] [cursor=pointer]
+      - group [aria-hidden]
+    - button "Entrar" [ref=f11e33] [cursor=pointer]
+  - paragraph [ref=f11e34]:
+    - text: Primeiro acesso?
+    - button "Cadastrar" [ref=f11e35] [cursor=pointer]
+  - generic [ref=f11e36]:
+    - generic [ref=f11e37]: 🩺
+    - paragraph [ref=f11e38]:
+      - strong [ref=f11e39]: Conteúdo educativo.
+      - text: O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.

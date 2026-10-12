@@ -1,0 +1,106 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e83]:
+      - button [ref=e367] [cursor=pointer]
+      - main [ref=e108]:
+        - generic [ref=e110]:
+          - generic [ref=e111]:
+            - paragraph [ref=e112]: Bom dia, Paciente 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e120]:
+            - generic [ref=e124]:
+              - generic [ref=e125]: Primeiro passo
+              - paragraph [ref=e127]: Envie seu primeiro exame
+              - paragraph [ref=e128]: Com um PDF ou foto, o Dr. Exame já extrai resultados e monta seus próximos insights.
+            - button [ref=e368] [cursor=pointer]: Enviar exame →
+          - generic [ref=e130]:
+            - paragraph [ref=e137]: Suas leituras
+            - generic [ref=e138]:
+              - generic [ref=e309]:
+                - paragraph [ref=e310]: Leitura de risco
+                - paragraph [ref=e311]: Envie exames de sangue (glicemia, hemograma, colesterol) e registre sua pressão pra ver sua leitura de risco aqui.
+              - generic [ref=e317]:
+                - paragraph [ref=e318]: Meu estado atual
+                - paragraph [ref=e319]: Envie um exame pra ver seu estado de saúde atual aqui — valores, tendências e o que mudou.
+            - generic [ref=e151]:
+              - button [ref=e369] [cursor=pointer]: 📊 Tendências & Previsões →
+              - button [ref=e370] [cursor=pointer]: 🏆 Conquistas →
+          - generic [ref=e154]:
+            - paragraph [ref=e160]: Dr. Exame
+            - generic [ref=e163]:
+              - generic [ref=e167]:
+                - paragraph [ref=e168]: ✨ Dica personalizada (IA)
+                - paragraph [ref=e169]: Jejum de 8–12h antes de exames de sangue garante resultados mais precisos.
+              - button [ref=e372] [cursor=pointer]: Conversar com a IA
+          - generic [ref=e175]:
+            - paragraph [ref=e181]: Seus números
+            - generic [ref=e182]:
+              - generic [ref=e183]:
+                - generic [ref=e186] [cursor=pointer]:
+                  - paragraph [ref=e190]: "0"
+                  - generic [ref=e191]: Exames enviados
+                - generic [ref=e194] [cursor=pointer]:
+                  - paragraph [ref=e199]: "0"
+                  - generic [ref=e200]: Valores alterados
+                - generic [ref=e203] [cursor=pointer]:
+                  - paragraph [ref=e208]: "1"
+                  - generic [ref=e209]: Dependentes
+                - generic [ref=e212] [cursor=pointer]:
+                  - paragraph [ref=e216]: —
+                  - generic [ref=e217]: Última atualização
+              - generic [ref=e221]:
+                - heading [level=6] [ref=e373]: Distribuição dos valores
+                - paragraph [ref=e223]: Últimos exames extraídos deste perfil.
+                - paragraph [ref=e224]: Sem valores extraídos ainda. Envie um exame.
+          - generic [ref=e225]:
+            - paragraph [ref=e231]: Ações rápidas
+            - generic [ref=e232]:
+              - generic [ref=e233]:
+                - generic [ref=e234]: Enviar exame
+                - generic [ref=e241]: Evolução
+                - generic [ref=e248]: Família
+                - generic [ref=e256]: Relatório
+              - generic [ref=e326]:
+                - generic [ref=e330]:
+                  - paragraph [ref=e331]: "59"
+                  - text: créditos disponíveis
+                - button [ref=e374] [cursor=pointer]: Comprar
+          - button [ref=e375] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e268]:
+      - paragraph [ref=e273] [cursor=pointer]: Início
+      - paragraph [ref=e279] [cursor=pointer]: Exames
+      - paragraph [ref=e283] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e288] [cursor=pointer]: Evolução
+      - paragraph [ref=e293] [cursor=pointer]: Mais
+  - dialog [active] [ref=e380]:
+    - generic [ref=e381]:
+      - button "Fechar" [ref=e382] [cursor=pointer]
+      - generic [ref=e385]:
+        - generic [ref=e386]: P
+        - generic [ref=e387]:
+          - paragraph [ref=e388]: Paciente 3
+          - paragraph [ref=e389]: Plano grátis • 💎 59
+          - generic [ref=e390]:
+            - paragraph [ref=e391]: ⚡ 59 créditos
+            - button "(+ Recarregar)" [ref=e392] [cursor=pointer]
+    - separator [ref=e393]
+    - navigation [ref=e395]:
+      - button "Início" [ref=e396] [cursor=pointer]
+      - button "Exames" [ref=e402] [cursor=pointer]
+      - button "Evolução" [ref=e408] [cursor=pointer]
+      - button "Família" [ref=e415] [cursor=pointer]
+      - button "Meu perfil" [ref=e422] [cursor=pointer]
+      - button "Relatório completo" [ref=e428] [cursor=pointer]
+      - button "Evolução & Conquistas" [ref=e435] [cursor=pointer]
+      - button "Minha Saúde" [ref=e444] [cursor=pointer]
+      - button "Família & Médicos" [ref=e454] [cursor=pointer]
+      - button "Conta" [ref=e464] [cursor=pointer]
+      - separator [ref=e472]
+      - button "❓ Ajuda & Suporte" [ref=e473] [cursor=pointer]:
+        - generic [ref=e474]: ❓
+        - generic [ref=e476]: Ajuda & Suporte
+      - menuitem "ℹ️ Sobre o app" [ref=e478] [cursor=pointer]:
+        - generic [ref=e479]: ℹ️
+        - generic [ref=e480]: Sobre o app
+      - menuitem "Sair da conta" [ref=e482] [cursor=pointer]
+      - generic [ref=e488]: Meus Exames · v2.4.1.208 (2891c21)

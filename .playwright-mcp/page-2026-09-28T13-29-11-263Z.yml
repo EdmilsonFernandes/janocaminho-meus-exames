@@ -1,0 +1,63 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e14]:
+      - heading [level=3] [ref=e15]: Dr. Exame
+      - paragraph [ref=e18]: Iniciando o Dr. Exame…
+    - generic [ref=e27]:
+      - button [ref=e28] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=e29]:
+        - banner [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - button [ref=e33] [cursor=pointer]
+              - button [ref=e38] [cursor=pointer]:
+                - generic [ref=e39]: 👤
+                - generic [ref=e41]: Selecionar
+            - button [ref=e47] [cursor=pointer]
+        - main [ref=e50]:
+          - navigation [ref=e54]:
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e63]: Plano grátis
+            - separator [ref=e66]
+            - button [ref=e68] [cursor=pointer]:
+              - generic [ref=e72]: Exames
+            - button [ref=e77] [cursor=pointer]:
+              - generic [ref=e82]: Cuidados
+            - button [ref=e87] [cursor=pointer]:
+              - generic [ref=e92]: Pessoas
+            - button [ref=e97] [cursor=pointer]:
+              - generic [ref=e101]: Conta
+            - button [ref=e106] [cursor=pointer]:
+              - generic [ref=e110]: Dúvidas frequentes
+            - menuitem [ref=e112] [cursor=pointer]:
+              - generic [ref=e116]: Sobre o app
+            - menuitem [ref=e118] [cursor=pointer]:
+              - generic [ref=e122]: Sair da conta
+            - generic [ref=e124]: Dr. Exame • Saúde Inteligente 🩺
+  - dialog [active] [ref=e129]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e130]
+    - generic [ref=e131]:
+      - generic [ref=e132]: Versão 2.7.193
+      - generic [ref=e133]:
+        - generic [ref=e134]:
+          - generic [ref=e135]: 📱
+          - generic [ref=e136]:
+            - paragraph [ref=e137]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e138]:
+          - generic [ref=e139]: 🔐
+          - generic [ref=e140]:
+            - paragraph [ref=e141]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e142]:
+          - generic [ref=e143]: 🩺
+          - generic [ref=e144]:
+            - paragraph [ref=e145]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e146]:
+          - generic [ref=e147]: 🚑
+          - generic [ref=e148]:
+            - paragraph [ref=e149]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button "Legal! →" [ref=e151] [cursor=pointer]

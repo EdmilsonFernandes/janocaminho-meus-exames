@@ -1,0 +1,141 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e20]:
+    - button "Pular para o conteúdo" [ref=e279] [cursor=pointer]
+    - generic [ref=e22]:
+      - banner [ref=e23]:
+        - generic [ref=e24]:
+          - button "Close menu" [ref=e280] [cursor=pointer]:
+            - img [ref=e26]
+          - heading [level=6]
+          - button "79" [ref=e281] [cursor=pointer]:
+            - img [ref=e29]
+            - generic [ref=e31]: "79"
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e282] [cursor=pointer]:
+            - generic [ref=e35]: E
+            - generic [ref=e37]: Edmilson Lopes Fernandes dos Santos
+            - img [ref=e39]
+          - button "3" [ref=e283] [cursor=pointer]:
+            - generic [ref=e42]:
+              - img [ref=e43]
+              - generic [ref=e45]: "3"
+          - button "Mais opções" [ref=e284] [cursor=pointer]:
+            - img [ref=e47]
+          - button "Atualizar" [ref=e285] [cursor=pointer]:
+            - img [ref=e51]
+      - main [ref=e53]:
+        - navigation [ref=e57]:
+          - button "Início" [ref=e286] [cursor=pointer]:
+            - img [ref=e60]
+            - generic [ref=e63]: Início
+          - button "Exames" [ref=e287] [cursor=pointer]:
+            - img [ref=e66]
+            - generic [ref=e69]: Exames
+          - button "Dr. Exame (IA)" [ref=e288] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e75]: Dr. Exame (IA)
+          - button "Relatório completo" [ref=e289] [cursor=pointer]:
+            - img [ref=e78]
+            - generic [ref=e81]: Relatório completo
+          - button "Evolução & Conquistas" [ref=e290] [cursor=pointer]:
+            - img [ref=e85]
+            - generic [ref=e89]: Evolução & Conquistas
+            - img [ref=e90]
+          - button "Minha Saúde" [ref=e291] [cursor=pointer]:
+            - img [ref=e95]
+            - generic [ref=e99]: Minha Saúde
+            - img [ref=e100]
+          - button "Família & Médicos" [ref=e292] [cursor=pointer]:
+            - img [ref=e105]
+            - generic [ref=e109]: Família & Médicos
+            - img [ref=e110]
+          - button "Conta" [ref=e293] [cursor=pointer]:
+            - img [ref=e115]
+            - generic [ref=e118]: Conta
+            - img [ref=e119]
+          - separator [ref=e121]
+          - menuitem "❓ Ajuda & Suporte" [ref=e294] [cursor=pointer]:
+            - generic [ref=e123]: ❓
+            - generic [ref=e125]: Ajuda & Suporte
+          - menuitem "ℹ️ Sobre o app" [ref=e295] [cursor=pointer]:
+            - generic [ref=e127]: ℹ️
+            - generic [ref=e129]: Sobre o app
+          - menuitem "Sair da conta" [ref=e296] [cursor=pointer]:
+            - img [ref=e132]
+            - generic [ref=e135]: Sair da conta
+          - generic [ref=e136]: Meus Exames · v0.1.0 (unknown)
+        - generic [ref=e138]:
+          - generic [ref=e139]:
+            - heading "Boa noite, Edmilson 👋" [level=5] [ref=e297]
+            - paragraph [ref=e141]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e142]:
+            - img
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - img "Dr. Exame" [ref=e298]
+                - generic [ref=e148]:
+                  - paragraph [ref=e149]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=e150]: "Atenção: seu CHCM está baixo. Vale conversar com seu médico."
+              - button "Conversar com a IA" [ref=e299] [cursor=pointer]:
+                - img [ref=e154]
+                - text: Conversar com a IA
+          - alert [ref=e156]:
+            - img [ref=e158]
+            - generic [ref=e160]: 1 exame(s) falhou(aram) na leitura — abra e toque em “Re-extrair”.
+            - button "Ver" [ref=e300] [cursor=pointer]
+          - generic [ref=e164]:
+            - img [ref=e166]
+            - generic [ref=e168]:
+              - paragraph [ref=e169]: "79"
+              - text: créditos disponíveis
+            - button "Comprar" [ref=e301] [cursor=pointer]
+          - generic [ref=e171]:
+            - generic [ref=e174] [cursor=pointer]:
+              - img [ref=e176]
+              - paragraph [ref=e178]: "1"
+              - generic [ref=e179]: Exames enviados
+            - generic [ref=e182] [cursor=pointer]:
+              - img [ref=e184]
+              - paragraph [ref=e187]: "10"
+              - generic [ref=e188]: Valores alterados
+            - generic [ref=e191] [cursor=pointer]:
+              - img [ref=e193]
+              - paragraph [ref=e196]: "1"
+              - generic [ref=e197]: Dependentes
+            - generic [ref=e200] [cursor=pointer]:
+              - img [ref=e202]
+              - paragraph [ref=e204]: —
+              - generic [ref=e205]: Última atualização
+          - generic [ref=e209]:
+            - heading "Distribuição dos valores" [level=6] [ref=e302]
+            - paragraph [ref=e211]: Últimos exames extraídos deste perfil.
+            - paragraph [ref=e212]: Sem valores extraídos ainda. Envie um exame.
+          - generic [ref=e213]:
+            - generic [ref=e216] [cursor=pointer]:
+              - img [ref=e218]
+              - generic [ref=e220]: Enviar exame
+            - generic [ref=e223] [cursor=pointer]:
+              - img [ref=e225]
+              - generic [ref=e227]: Evolução
+            - generic [ref=e230] [cursor=pointer]:
+              - img [ref=e232]
+              - generic [ref=e235]: Família
+            - generic [ref=e238] [cursor=pointer]:
+              - img [ref=e240]
+              - generic [ref=e242]: Relatório
+          - generic [ref=e244]: Toque nos cards de contador para navegar.
+          - generic [ref=e247] [cursor=pointer]:
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - paragraph [ref=e250]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - img [ref=e251]
+            - generic [ref=e253]:
+              - generic [ref=e255]: 🎉
+              - generic [ref=e257]: 📚
+              - generic [ref=e259]: 🎓
+              - generic [ref=e261]: 💚
+              - generic [ref=e263]: 🔥
+            - generic [ref=e264]: 1 desbloqueada(s) · toque para ver e resgatar →
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e303]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e304]

@@ -1,0 +1,92 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e27]:
+    - button "Pular para o conteúdo" [ref=f6e1265] [cursor=pointer]
+    - generic [ref=f6e29]:
+      - banner [ref=f6e30]:
+        - generic [ref=f6e31]:
+          - button "Voltar" [ref=f6e1307] [cursor=pointer]
+          - generic [ref=f6e607]:
+            - img "Dr. Exame" [ref=f6e1308]
+            - paragraph [ref=f6e935]: Dr. Exame
+          - generic [ref=f6e32]:
+            - button "Você tem 69 créditos. Toque para comprar mais." [ref=f6e1309] [cursor=pointer]:
+              - generic [ref=f6e137]: "69"
+            - button "Notificações" [ref=f6e1310] [cursor=pointer]:
+              - generic [ref=f6e34]: 9+
+            - button "E" [ref=f6e1311] [cursor=pointer]
+      - main [ref=f6e50]:
+        - generic [ref=f6e1312]:
+          - generic [ref=f6e1314]:
+            - generic [ref=f6e1315]:
+              - heading "HEMOGRAMA" [level=1] [ref=f6e1316]
+              - generic [ref=f6e1317]: Pronto
+              - generic [ref=f6e1319]: Hemograma
+              - generic [ref=f6e1323]: conferir dados
+            - generic [ref=f6e1325]:
+              - generic [ref=f6e1326]: Data não identificada
+              - generic [ref=f6e1327]:
+                - 'generic "Laboratório: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=f6e1328]':
+                  - generic [ref=f6e1329]: V
+                  - generic [ref=f6e1330]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                - generic [ref=f6e1331]: 1 pág.
+            - button [ref=f6e1333] [cursor=pointer]
+            - paragraph [ref=f6e1337]: 👤 BIANCA) pr mpi
+            - alert [ref=f6e1338]:
+              - generic [ref=f6e1339]: Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
+          - generic [ref=f6e1341]:
+            - paragraph [ref=f6e1342]: ⚠️ Confirme o titular antes da análise
+            - paragraph [ref=f6e1343]:
+              - text: O nome detectado no documento (
+              - strong [ref=f6e1344]: BIANCA) pr mpi
+              - text: ) parece diferente do perfil selecionado (
+              - strong [ref=f6e1345]: Edmilson Lopes Fernandes dos Santos
+              - text: ).
+            - generic [ref=f6e1346]:
+              - generic [ref=f6e1347]: Similaridade 0%
+              - generic [ref=f6e1349]: Proteção de privacidade
+            - paragraph [ref=f6e1351]: Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.
+            - generic [ref=f6e1352]:
+              - button "✓ Confirmo que é deste paciente" [ref=f6e1353] [cursor=pointer]
+              - button "✕ Não é deste paciente (excluir)" [ref=f6e1354] [cursor=pointer]
+          - generic [ref=f6e1356]:
+            - paragraph [ref=f6e1357]: 🚩 2 valor(es) fora da faixa de referência
+            - generic [ref=f6e1358]:
+              - 'button "↓ Plaquetas: 116.000/mm³" [ref=f6e1359] [cursor=pointer]'
+              - 'button "↓ VCM: 80,8" [ref=f6e1361] [cursor=pointer]'
+          - heading [level=3] [ref=f6e1364]:
+            - button "Leucograma 12 itens" [ref=f6e1365] [cursor=pointer]:
+              - generic [ref=f6e1366]:
+                - paragraph [ref=f6e1367]: Leucograma
+                - generic [ref=f6e1368]: 12 itens
+          - heading [level=3] [ref=f6e1374]:
+            - button "Plaquetas 1 alterado 1 item" [ref=f6e1375] [cursor=pointer]:
+              - generic [ref=f6e1376]:
+                - paragraph [ref=f6e1377]: Plaquetas
+                - generic [ref=f6e1378]: 1 alterado
+                - generic [ref=f6e1380]: 1 item
+          - heading [level=3] [ref=f6e1386]:
+            - button "Série Vermelha 1 alterado 7 itens" [ref=f6e1387] [cursor=pointer]:
+              - generic [ref=f6e1388]:
+                - paragraph [ref=f6e1389]: Série Vermelha
+                - generic [ref=f6e1390]: 1 alterado
+                - generic [ref=f6e1392]: 7 itens
+          - generic [ref=f6e1399]:
+            - heading "Análise de saúde" [level=6] [ref=f6e1400]
+            - paragraph [ref=f6e1401]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+            - button "Gerar resumo" [ref=f6e1402] [cursor=pointer]
+            - generic [ref=f6e1403]:
+              - generic [ref=f6e1404]: 💎
+              - generic [ref=f6e1405]: 10 créditos
+          - generic [ref=f6e1407]:
+            - generic [ref=f6e1408]:
+              - heading "📋 Preparar visita ao médico" [level=6] [ref=f6e1409]
+              - button "Gerar documento" [ref=f6e1410] [cursor=pointer]
+            - paragraph [ref=f6e1411]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+  - navigation [ref=f6e638]:
+    - paragraph [ref=f6e643] [cursor=pointer]: Início
+    - paragraph [ref=f6e648] [cursor=pointer]: Exames
+    - generic [ref=f6e650] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f6e1306]
+      - paragraph [ref=f6e653]: Dr. Exame
+    - paragraph [ref=f6e658] [cursor=pointer]: Evolução
+    - paragraph [ref=f6e663] [cursor=pointer]: Mais

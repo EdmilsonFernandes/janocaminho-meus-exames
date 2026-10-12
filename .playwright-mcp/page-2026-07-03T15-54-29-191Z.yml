@@ -1,0 +1,201 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - button [ref=f4e6] [cursor=pointer]
+      - generic [ref=f4e7]:
+        - banner [ref=f4e8]:
+          - generic [ref=f4e9]:
+            - button [ref=f4e10] [cursor=pointer]:
+              - img [ref=f4e11]
+            - button [ref=f4e13] [cursor=pointer]:
+              - img [ref=f4e14]
+            - button [ref=f4e16] [cursor=pointer]:
+              - img [ref=f4e17]
+              - generic [ref=f4e19]: "71"
+            - button [ref=f4e21] [cursor=pointer]:
+              - generic [ref=f4e23]: E
+            - button [ref=f4e24] [cursor=pointer]:
+              - generic [ref=f4e25]:
+                - img [ref=f4e26]
+                - generic [ref=f4e28]: "18"
+            - button [ref=f4e29] [cursor=pointer]:
+              - img [ref=f4e30]
+            - button [ref=f4e33] [cursor=pointer]:
+              - img [ref=f4e34]
+        - main [ref=f4e36]:
+          - generic [ref=f4e38]:
+            - generic [ref=f4e39]:
+              - img [ref=f4e41]
+              - generic [ref=f4e43]:
+                - heading [level=5] [ref=f4e44]: Meu perfil
+                - paragraph [ref=f4e45]: Sua conta, dados e preferências
+            - generic [ref=f4e47]:
+              - generic [ref=f4e49]:
+                - generic [ref=f4e50]: E
+                - button [ref=f4e51] [cursor=pointer]:
+                  - img [ref=f4e52]
+              - generic [ref=f4e55]:
+                - heading [level=5] [ref=f4e56]: Edmilson Lopes Fernandes dos Santos
+                - paragraph [ref=f4e57]: ✉️ edmilson@exemplo.com
+                - generic [ref=f4e60]: Plano grátis
+                - generic [ref=f4e61]: Toque na câmera da foto para trocar a imagem.
+            - generic [ref=f4e63]:
+              - heading [level=6] [ref=f4e64]: Dados e perfil clínico
+              - generic [ref=f4e65]:
+                - generic [ref=f4e66]:
+                  - generic [ref=f4e67]: Nome completo
+                  - generic [ref=f4e68]:
+                    - textbox [ref=f4e69]: Edmilson Lopes Fernandes dos Santos
+                    - group:
+                      - generic: Nome completo
+                - generic [ref=f4e70]:
+                  - generic: Telefone / WhatsApp
+                  - generic [ref=f4e71]:
+                    - textbox [ref=f4e72]
+                    - group:
+                      - generic: Telefone / WhatsApp
+                - generic [ref=f4e73]:
+                  - generic [ref=f4e74]: Sexo (define a faixa de referência dos exames)
+                  - generic [ref=f4e75]:
+                    - combobox [ref=f4e76] [cursor=pointer]: Masculino
+                    - textbox: male
+                    - img
+                    - group:
+                      - generic: Sexo (define a faixa de referência dos exames)
+                  - paragraph [ref=f4e77]: Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.
+                - generic [ref=f4e78]:
+                  - generic [ref=f4e79]: Altura (cm)
+                  - generic [ref=f4e80]:
+                    - spinbutton [ref=f4e81]: "178"
+                    - group:
+                      - generic: Altura (cm)
+                  - paragraph [ref=f4e82]: Usada pra calcular o IMC e contextualizar exames.
+                - generic [ref=f4e83]:
+                  - generic [ref=f4e84]: Etnia (opcional)
+                  - generic [ref=f4e85]:
+                    - combobox [ref=f4e86] [cursor=pointer]: Parda
+                    - textbox: parda
+                    - img
+                    - group:
+                      - generic: Etnia (opcional)
+                  - paragraph [ref=f4e87]: Dados demográficos ajudam a refinar futuras análises.
+                - generic [ref=f4e88]:
+                  - generic [ref=f4e89]: Data de nascimento
+                  - generic [ref=f4e90]:
+                    - textbox [ref=f4e91]
+                    - group:
+                      - generic: Data de nascimento
+                  - paragraph [ref=f4e92]: Usado pra calcular idade e ajustar faixas de referência.
+                - generic [ref=f4e93]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+                  - generic [ref=f4e94]:
+                    - textbox [ref=f4e95]
+                    - group:
+                      - generic: Perfil clínico (condições, medicações, histórico)
+                  - paragraph [ref=f4e96]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+              - button [ref=f4e98] [cursor=pointer]:
+                - img [ref=f4e100]
+                - text: Salvar perfil
+            - generic [ref=f4e103]:
+              - heading [level=6] [ref=f4e104]: 🔔 Notificações
+              - generic [ref=f4e105] [cursor=pointer]:
+                - switch [checked] [ref=f4e108]
+                - generic [ref=f4e111]: Avisar quando eu desbloquear uma conquista
+              - generic [ref=f4e112]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=f4e114]:
+              - heading [level=6] [ref=f4e115]:
+                - img [ref=f4e116]
+                - text: Trocar senha
+              - generic [ref=f4e118]:
+                - generic [ref=f4e119]:
+                  - generic: Senha atual
+                  - generic [ref=f4e120]:
+                    - textbox [ref=f4e121]
+                    - group:
+                      - generic: Senha atual
+                - generic [ref=f4e122]:
+                  - generic [ref=f4e123]:
+                    - generic: Nova senha
+                    - generic [ref=f4e124]:
+                      - textbox [ref=f4e125]
+                      - group:
+                        - generic: Nova senha
+                  - generic [ref=f4e126]:
+                    - generic: Confirmar nova senha
+                    - generic [ref=f4e127]:
+                      - textbox [ref=f4e128]
+                      - group:
+                        - generic: Confirmar nova senha
+              - generic [ref=f4e129]:
+                - button [disabled]:
+                  - generic:
+                    - img
+                  - text: Alterar senha
+            - generic [ref=f4e131]:
+              - generic [ref=f4e132]:
+                - img [ref=f4e133]
+                - heading [level=6] [ref=f4e135]: Indique e ganhe créditos
+              - paragraph [ref=f4e136]:
+                - text: Cada amigo que se cadastrar com seu código ganha
+                - strong [ref=f4e137]: +30 créditos
+                - text: . Você também ganha
+                - strong [ref=f4e138]: "+30"
+                - text: "!"
+              - generic [ref=f4e139]:
+                - paragraph [ref=f4e141]: EDMILSON-DZLJ
+                - button [ref=f4e142] [cursor=pointer]:
+                  - img [ref=f4e144]
+                  - text: Copiar
+              - button [ref=f4e146] [cursor=pointer]:
+                - img [ref=f4e148]
+                - text: Compartilhar link
+              - generic [ref=f4e150]:
+                - generic [ref=f4e151]:
+                  - paragraph [ref=f4e152]: "0"
+                  - text: amigos indicados
+                - generic [ref=f4e153]:
+                  - paragraph [ref=f4e154]: "+0"
+                  - text: créditos ganhos
+            - generic [ref=f4e156]:
+              - heading [level=6] [ref=f4e157]: Meus dados
+              - generic [ref=f4e158]:
+                - button [ref=f4e159] [cursor=pointer]: Excluir minha conta
+                - button [ref=f4e160] [cursor=pointer]:
+                  - img [ref=f4e162]
+                  - text: Exportar dados
+                - button [ref=f4e164] [cursor=pointer]:
+                  - img [ref=f4e166]
+                  - text: Importar dados
+              - generic [ref=f4e168]: A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".
+    - button [ref=f4e169] [cursor=pointer]:
+      - generic [ref=f4e170]:
+        - img [ref=f4e172]
+        - img [ref=f4e174]
+    - navigation [ref=f4e176]:
+      - generic [ref=f4e177] [cursor=pointer]:
+        - generic [ref=f4e178]: 🏠
+        - paragraph [ref=f4e179]: Início
+      - generic [ref=f4e180] [cursor=pointer]:
+        - generic [ref=f4e181]: 📋
+        - paragraph [ref=f4e182]: Exames
+      - generic [ref=f4e183] [cursor=pointer]:
+        - img [ref=f4e185]
+        - paragraph [ref=f4e186]: Dr. Exame
+      - generic [ref=f4e187] [cursor=pointer]:
+        - generic [ref=f4e188]: 📈
+        - paragraph [ref=f4e189]: Evolução
+      - generic [ref=f4e190] [cursor=pointer]:
+        - generic [ref=f4e191]: ☰
+        - paragraph [ref=f4e192]: Mais
+  - generic [ref=f4e2] [cursor=pointer]:
+    - img [ref=f4e194]
+    - img [ref=f4e195]
+  - dialog "Dr. Exame Edmilson, um valor precisa de atenção" [active] [ref=f4e198]:
+    - heading "Dr. Exame Edmilson, um valor precisa de atenção" [level=2] [ref=f4e199]:
+      - generic [ref=f4e200]:
+        - img "Dr. Exame" [ref=f4e201]
+        - paragraph [ref=f4e202]: Edmilson, um valor precisa de atenção
+    - paragraph [ref=f4e204]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+    - generic [ref=f4e205]:
+      - button "Depois" [ref=f4e206] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f4e207] [cursor=pointer]

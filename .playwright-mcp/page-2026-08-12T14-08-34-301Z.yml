@@ -1,0 +1,126 @@
+- generic [ref=f10e1]:
+  - generic [ref=f10e44]:
+    - navigation [ref=f10e357]:
+      - generic [ref=f10e359]:
+        - button "Menu do médico" [ref=f10e360] [cursor=pointer]:
+          - generic [ref=f10e361]: D
+        - generic [ref=f10e362]:
+          - paragraph [ref=f10e363]: 🩺 Dr Teste QA
+          - generic [ref=f10e364]: Clínico Geral • CRM 99999-SP
+      - separator [ref=f10e365]
+      - generic [ref=f10e366]:
+        - generic [ref=f10e367]: PLANO
+        - paragraph [ref=f10e368]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f10e369]:
+        - button "Pacientes" [ref=f10e370] [cursor=pointer]
+        - button "Convites" [ref=f10e376] [cursor=pointer]
+        - button "Perguntas" [ref=f10e383] [cursor=pointer]
+        - button "Meu perfil" [ref=f10e390] [cursor=pointer]
+        - button "Trocar senha" [ref=f10e396] [cursor=pointer]
+        - separator [ref=f10e402]
+        - button "Sair" [ref=f10e403] [cursor=pointer]
+      - generic [ref=f10e409]: Portal do Médico
+    - generic [ref=f10e98]:
+      - generic [ref=f10e99]:
+        - button "Voltar" [ref=f10e156] [cursor=pointer]
+        - paragraph [ref=f10e411]: Edmilson Lopes Fernandes dos Santos
+      - generic [ref=f10e159]:
+        - generic [ref=f10e160]:
+          - generic [ref=f10e161]:
+            - generic [ref=f10e162]: E
+            - generic [ref=f10e165]:
+              - generic [ref=f10e166]:
+                - paragraph [ref=f10e167]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=f10e168] [cursor=pointer]: Trocar
+              - paragraph [ref=f10e172]: Masculino • Particular
+          - generic [ref=f10e173]:
+            - generic [ref=f10e174]:
+              - generic [ref=f10e175]: Último exame
+              - paragraph [ref=f10e179]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=f10e180] [cursor=pointer]:
+              - generic [ref=f10e181]: Alterações
+              - paragraph [ref=f10e186]: "8"
+            - generic [ref=f10e187]:
+              - generic [ref=f10e188]: Pendências
+              - paragraph [ref=f10e192]: "0"
+            - generic [ref=f10e193]:
+              - generic [ref=f10e194]: Anotações
+              - paragraph [ref=f10e198]: "0"
+        - tablist "Abas do paciente" [ref=f10e202]:
+          - tab "Exames" [ref=f10e203] [cursor=pointer]:
+            - generic [ref=f10e412]:
+              - generic [ref=f10e413]: Exames
+              - superscript [ref=f10e414]: "5"
+          - tab "Alterados" [ref=f10e209] [cursor=pointer]:
+            - generic [ref=f10e213]:
+              - generic [ref=f10e214]: Alterados
+              - superscript [ref=f10e215]: "8"
+          - tab "Tendências" [active] [selected] [ref=f10e216] [cursor=pointer]
+          - tab "Relatório" [ref=f10e221] [cursor=pointer]
+          - tab "Perguntas" [ref=f10e226] [cursor=pointer]
+          - tab "Anotações" [ref=f10e231] [cursor=pointer]
+        - generic [ref=f10e423]:
+          - generic [ref=f10e425]:
+            - heading "📈 Tendências" [level=5] [ref=f10e426]
+            - paragraph [ref=f10e427]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=f10e429]:
+            - generic [ref=f10e430]:
+              - button "Hemácias" [ref=f10e431] [cursor=pointer]
+              - button "Hematócrito" [ref=f10e433] [cursor=pointer]
+              - button "Hemoglobina" [ref=f10e435] [cursor=pointer]
+              - button "Leucócitos" [ref=f10e437] [cursor=pointer]
+              - button "Plaquetas" [ref=f10e439] [cursor=pointer]
+            - generic [ref=f10e442]:
+              - combobox [ref=f10e443] [cursor=pointer]: Hemácias (2 exames)
+              - textbox: HEMÁCIAS
+              - group
+          - generic [ref=f10e445]:
+            - generic [ref=f10e446]:
+              - heading "Hemácias" [level=6] [ref=f10e447]
+              - button "O que é este exame?" [ref=f10e448] [cursor=pointer]
+            - generic [ref=f10e451]:
+              - generic [ref=f10e452]:
+                - paragraph [ref=f10e453]: 4,9 milhões/mm3
+                - paragraph [ref=f10e454]: ↑ 7%
+              - generic [ref=f10e455]: 4.6 milhões/mm3 (14/04/26) → 4.9 milhões/mm3 (09/07/26)
+              - paragraph [ref=f10e456]: "Subindo em 2 medições. Faixa de referência: 4.5–5.9 milhões/mm3."
+            - application [ref=f10e459]:
+              - generic [ref=f10e482]:
+                - generic [ref=f10e483]:
+                  - generic [ref=f10e484]: 14/04/26
+                  - generic [ref=f10e486]: 09/07/26
+                - generic [ref=f10e488]:
+                  - generic [ref=f10e489]: "0"
+                  - generic [ref=f10e491]: "2"
+                  - generic [ref=f10e493]: "4"
+                  - generic [ref=f10e495]: "6"
+                  - generic [ref=f10e497]: "8"
+            - generic [ref=f10e499]:
+              - paragraph [ref=f10e500]: "📈 Tendência: subindo"
+              - paragraph [ref=f10e501]:
+                - text: Neste ritmo, HEMÁCIAS ultrapassa a faixa em
+                - strong [ref=f10e502]: ~10 meses
+                - text: .
+            - generic [ref=f10e503]:
+              - heading "Histórico (do mais recente)" [level=6] [ref=f10e504]
+              - generic [ref=f10e505]:
+                - generic [ref=f10e506]:
+                  - generic [ref=f10e507]:
+                    - paragraph [ref=f10e508]: 09/07/26
+                    - generic "HEMOGRAMA" [ref=f10e509]
+                  - generic [ref=f10e510]:
+                    - paragraph [ref=f10e511]: 4,9 milhões/mm3
+                    - generic "Dentro da referência" [ref=f10e512]: Normal
+                - generic [ref=f10e514]:
+                  - generic [ref=f10e515]:
+                    - paragraph [ref=f10e516]: 14/04/26
+                    - generic "HEMOGRAMA" [ref=f10e517]
+                  - generic [ref=f10e518]:
+                    - paragraph [ref=f10e519]: 4,6 milhões/mm3
+                    - generic "Dentro da referência" [ref=f10e520]: Normal
+  - generic [ref=f10e41] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e42]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e43]
+  - generic [ref=f10e522]: "0"

@@ -1,0 +1,92 @@
+- generic [active] [ref=f20e18]:
+  - generic [ref=f20e19]:
+    - generic [ref=f20e20]:
+      - button "Pular para o conteúdo" [ref=f20e404] [cursor=pointer]
+      - generic [ref=f20e22]:
+        - banner [ref=f20e23]:
+          - generic [ref=f20e24]:
+            - button "Menu" [ref=f20e405] [cursor=pointer]:
+              - img [ref=f20e26]
+            - button "Voltar" [ref=f20e424] [cursor=pointer]:
+              - img [ref=f20e425]
+            - button "71" [ref=f20e406] [cursor=pointer]:
+              - img [ref=f20e29]
+              - generic [ref=f20e31]: "71"
+            - button "E" [ref=f20e407] [cursor=pointer]:
+              - generic [ref=f20e35]: E
+            - button "18" [ref=f20e408] [cursor=pointer]:
+              - generic [ref=f20e37]:
+                - img [ref=f20e38]
+                - generic [ref=f20e40]: "18"
+            - button "Mais opções" [ref=f20e409] [cursor=pointer]:
+              - img [ref=f20e42]
+            - button "Atualizar" [ref=f20e410] [cursor=pointer]:
+              - img [ref=f20e46]
+        - main [ref=f20e48]:
+          - generic [ref=f20e427]:
+            - generic [ref=f20e428]:
+              - img [ref=f20e430]
+              - generic [ref=f20e432]:
+                - heading "Evolução ao longo do tempo" [level=5] [ref=f20e433]
+                - paragraph [ref=f20e434]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - generic [ref=f20e446]:
+              - generic [ref=f20e447]:
+                - generic [ref=f20e448]: 🟢 0 Melhoraram
+                - generic [ref=f20e449]: 🔴 0 Pioraram
+                - generic [ref=f20e450]: ✅ 20 Estáveis
+              - generic [ref=f20e451]:
+                - text: Tudo estável entre as coletas — mantenha o acompanhamento.
+                - strong [ref=f20e452]: ·
+                - text: Conteúdo educativo — a decisão final é do médico.
+            - generic [ref=f20e453]:
+              - button "📋 Todos (20)" [ref=f20e455] [cursor=pointer]:
+                - generic [ref=f20e456]: 📋 Todos (20)
+              - button "🔴 Fora da faixa (10)" [ref=f20e458] [cursor=pointer]:
+                - generic [ref=f20e459]: 🔴 Fora da faixa (10)
+              - button "🟠 Em mudança (0)" [ref=f20e461] [cursor=pointer]:
+                - generic [ref=f20e462]: 🟠 Em mudança (0)
+              - button "✅ Estável (10)" [ref=f20e464] [cursor=pointer]:
+                - generic [ref=f20e465]: ✅ Estável (10)
+            - generic [ref=f20e466]:
+              - img [ref=f20e467]
+              - textbox "Buscar exame (TSH, glicose, colesterol…)" [ref=f20e470]
+            - generic [ref=f20e471]:
+              - generic [ref=f20e473] [cursor=pointer]:
+                - generic [ref=f20e474]: 🩸
+                - paragraph [ref=f20e475]: Hemograma
+                - generic "Fora da faixa" [ref=f20e476]: 🔴
+                - generic [ref=f20e478]: 10 alterados
+                - img [ref=f20e479]
+              - generic [ref=f20e482] [cursor=pointer]:
+                - generic [ref=f20e483]: 🫀
+                - paragraph [ref=f20e484]: Função Hepática
+                - generic "Estável" [ref=f20e485]: ✅
+                - img [ref=f20e486]
+              - generic [ref=f20e489] [cursor=pointer]:
+                - generic [ref=f20e490]: 📋
+                - paragraph [ref=f20e491]: Outros exames
+                - generic "Estável" [ref=f20e492]: ✅
+                - img [ref=f20e493]
+    - button "Pergunte ao Dr. Exame" [ref=f20e438] [cursor=pointer]:
+      - generic [ref=f20e439]:
+        - img "Dr. Exame" [ref=f20e441]
+        - img [ref=f20e443]
+    - navigation [ref=f20e372]:
+      - generic [ref=f20e373] [cursor=pointer]:
+        - generic [ref=f20e374]: 🏠
+        - paragraph [ref=f20e375]: Início
+      - generic [ref=f20e377] [cursor=pointer]:
+        - generic [ref=f20e378]: 📋
+        - paragraph [ref=f20e379]: Exames
+      - generic [ref=f20e380] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f20e421]
+        - paragraph [ref=f20e383]: Dr. Exame
+      - generic [ref=f20e384] [cursor=pointer]:
+        - generic [ref=f20e385]: 📈
+        - paragraph [ref=f20e386]: Evolução
+      - generic [ref=f20e387] [cursor=pointer]:
+        - generic [ref=f20e388]: ☰
+        - paragraph [ref=f20e389]: Mais
+  - generic [ref=f20e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f20e422]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f20e423]

@@ -1,0 +1,177 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e95]:
+      - button [ref=e148] [cursor=pointer]
+      - generic [ref=e97]:
+        - banner [ref=e98]:
+          - generic [ref=e99]:
+            - button [ref=e149] [cursor=pointer]
+            - paragraph [ref=e106]: Dr. Exame
+            - generic [ref=e107]:
+              - button [ref=e151] [cursor=pointer]:
+                - generic [ref=e154]: "15"
+              - button [ref=e155] [cursor=pointer]:
+                - generic [ref=e109]: 9+
+              - button [ref=e157] [cursor=pointer]:
+                - generic [ref=e114]: E
+        - main [ref=e119]:
+          - generic [ref=e158]:
+            - generic [ref=e163]:
+              - heading [level=5] [ref=e164]: Planos e Créditos
+              - paragraph [ref=e165]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=e166]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=e167]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=e168] [cursor=pointer]:
+              - paragraph [ref=e171]: 15 créditos
+              - paragraph [ref=e172]: Ver carteira →
+            - heading [level=6] [ref=e173]: Comprar créditos (PIX instantâneo)
+            - generic [ref=e176]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+            - generic [ref=e177]:
+              - generic [ref=e179]:
+                - paragraph [ref=e180]: "50"
+                - paragraph [ref=e181]: créditos
+                - heading [level=5] [ref=e182]: R$ 9,90
+                - button [ref=e183] [cursor=pointer]: Comprar
+              - generic [ref=e184]:
+                - generic [ref=e185]: MAIS VENDIDO
+                - generic [ref=e188]:
+                  - paragraph [ref=e189]: "140"
+                  - paragraph [ref=e190]: créditos
+                  - heading [level=5] [ref=e191]: R$ 24,90
+                  - button [ref=e192] [cursor=pointer]: Comprar
+              - generic [ref=e194]:
+                - paragraph [ref=e195]: "320"
+                - paragraph [ref=e196]: créditos
+                - heading [level=5] [ref=e197]: R$ 49,90
+                - button [ref=e198] [cursor=pointer]: Comprar
+            - paragraph [ref=e199]: — ou assine —
+            - generic [ref=e201]:
+              - heading [level=6] [ref=e203]: 💎 Premium Mensal
+              - paragraph [ref=e204]:
+                - text: 250 créditos que
+                - strong [ref=e205]: somam
+                - text: ao seu saldo e
+                - strong [ref=e206]: não expiram
+                - text: — o plano vale 30 dias e você decide se renova. Sem fidelidade.
+              - list [ref=e207]:
+                - listitem [ref=e208]:
+                  - strong [ref=e209]: 250 créditos de IA
+                  - text: por mês (melhor custo por crédito)
+                - listitem [ref=e210]:
+                  - text: 📄 Relatórios completos
+                  - strong [ref=e211]: incluídos
+                  - text: — sem gastar créditos
+                - listitem [ref=e212]: 📅 Histórico completo (exames de anos anteriores)
+                - listitem [ref=e213]: 👨‍👩‍👧 Família até 10 perfis
+                - listitem [ref=e214]: 📤 Envios de exame sem custo
+              - separator [ref=e215]
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - heading [level=4] [ref=e218]: R$ 19,90
+                  - paragraph [ref=e219]: /mês · sem anual · sem fidelidade · PIX ou cartão
+                - button [ref=e220] [cursor=pointer]: Assinar mensal
+    - navigation [ref=e122]:
+      - button [ref=e221] [cursor=pointer]:
+        - paragraph [ref=e127]: Início
+      - button [ref=e222] [cursor=pointer]:
+        - paragraph [ref=e132]: Exames
+      - button [ref=e223] [cursor=pointer]:
+        - paragraph [ref=e136]: Dr. Exame
+      - button [ref=e225] [cursor=pointer]:
+        - paragraph [ref=e141]: Evolução
+      - button [ref=e226] [cursor=pointer]:
+        - paragraph [ref=e146]: Mais
+  - button [ref=e228] [cursor=pointer]
+  - dialog [active] [ref=e282]:
+    - heading [level=2] [ref=e283]:
+      - generic [ref=e287]:
+        - paragraph [ref=e288]: Cartão de crédito
+        - text: 50 créditos • R$ 9,90
+      - button [ref=e289] [cursor=pointer]
+    - generic [ref=e292]:
+      - generic [ref=e294]:
+        - generic [ref=e295]:
+          - paragraph [ref=e299]: ⋯
+          - paragraph [ref=e300]: •••• •••• •••• ••••
+          - generic [ref=e301]:
+            - generic [ref=e302]:
+              - paragraph [ref=e303]: NOME NO CARTÃO
+              - paragraph [ref=e304]: SEU NOME
+            - generic [ref=e305]:
+              - paragraph [ref=e306]: VALIDADE
+              - paragraph [ref=e307]: MM/AA
+        - generic [ref=e308]:
+          - generic [ref=e310]:
+            - paragraph [ref=e312]: dados impressos no verso do cartão
+            - generic [ref=e313]:
+              - paragraph [ref=e314]: CVV
+              - paragraph [ref=e316]: ···
+          - paragraph [ref=e317]: Processado com segurança pelo Asaas · Dr. Exame
+      - generic [ref=e318]:
+        - generic [ref=e319]:
+          - generic: Número do cartão
+          - generic [ref=e320]:
+            - textbox "Número do cartão" [ref=e321]:
+              - /placeholder: 0000 0000 0000 0000
+            - group [aria-hidden]:
+              - generic: Número do cartão
+          - paragraph [ref=e322]
+        - generic [ref=e323]:
+          - generic: Nome impresso no cartão
+          - generic [ref=e324]:
+            - textbox "Nome impresso no cartão" [ref=e325]:
+              - /placeholder: COMO ESTÁ NO CARTÃO
+            - group [aria-hidden]:
+              - generic: Nome impresso no cartão
+          - paragraph [ref=e326]
+        - generic [ref=e327]:
+          - generic [ref=e328]:
+            - generic: Validade
+            - generic [ref=e329]:
+              - textbox "Validade" [ref=e330]:
+                - /placeholder: MM/AA
+              - group [aria-hidden]:
+                - generic: Validade
+            - paragraph [ref=e331]
+          - generic [ref=e332]:
+            - generic: CVV
+            - generic [ref=e333]:
+              - textbox "CVV" [ref=e334]:
+                - /placeholder: "000"
+              - group [aria-hidden]:
+                - generic: CVV
+            - paragraph [ref=e338]
+        - generic [ref=e339]:
+          - generic: CPF do titular
+          - generic [ref=e340]:
+            - textbox "CPF do titular" [ref=e341]:
+              - /placeholder: 000.000.000-00
+            - group [aria-hidden]:
+              - generic: CPF do titular
+          - paragraph [ref=e342]
+        - generic [ref=e343]:
+          - generic [ref=e344]:
+            - generic: CEP
+            - generic [ref=e345]:
+              - textbox "CEP" [ref=e346]:
+                - /placeholder: 00000-000
+              - group [aria-hidden]:
+                - generic: CEP
+            - paragraph [ref=e347]
+          - generic [ref=e348]:
+            - generic: Número
+            - generic [ref=e349]:
+              - textbox "Número" [ref=e350]:
+                - /placeholder: "100"
+              - group [aria-hidden]:
+                - generic: Número
+            - paragraph [ref=e351]
+      - button "Pagar R$ 9,90" [disabled]
+      - generic [ref=e352]:
+        - generic [ref=e353]: Seus dados de cartão não são salvos — vão direto ao processador
+        - generic [ref=e357]:
+          - img "OpenPix" [ref=e358]
+          - img "Asaas" [ref=e359]

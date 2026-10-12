@@ -1,0 +1,48 @@
+- generic [ref=f2e106]:
+  - button "Pular para o conteúdo" [ref=f2e491] [cursor=pointer]
+  - generic [ref=f2e108]:
+    - banner [ref=f2e109]:
+      - generic [ref=f2e110]:
+        - heading [level=6]
+        - generic [ref=f2e111]:
+          - button "Você tem 65 créditos. Toque para comprar mais." [ref=f2e519] [cursor=pointer]:
+            - generic [ref=f2e115]: "65"
+          - button "Notificações" [ref=f2e520] [cursor=pointer]:
+            - generic [ref=f2e117]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f2e521] [cursor=pointer]:
+            - generic [ref=f2e123]: E
+            - generic [ref=f2e125]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f2e522] [cursor=pointer]
+    - main [ref=f2e134]:
+      - navigation [ref=f2e138]:
+        - generic [ref=f2e141]:
+          - generic [ref=f2e142]: E
+          - generic [ref=f2e144]:
+            - paragraph [ref=f2e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e146]:
+              - generic [ref=f2e147]: Plano grátis
+              - button "⚡ 65 (+)" [ref=f2e492] [cursor=pointer]
+        - separator [ref=f2e151]
+        - button "Exames" [ref=f2e493] [cursor=pointer]
+        - button "Cuidados" [ref=f2e494] [cursor=pointer]
+        - button "Pessoas" [ref=f2e495] [cursor=pointer]
+        - button "Conta" [ref=f2e496] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f2e497] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f2e498] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f2e499] [cursor=pointer]
+        - generic [ref=f2e209]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f2e524]:
+        - generic [ref=f2e530]:
+          - heading "Saúde mental" [level=5] [ref=f2e531]
+          - paragraph [ref=f2e532]: PHQ-9 e GAD-7 — questionários validados, 2 minutos cada
+        - generic [ref=f2e553]:
+          - generic [ref=f2e554]:
+            - button [ref=f2e555] [cursor=pointer]
+            - generic [ref=f2e561]: 2/7
+          - text: "Pensando nas últimas 2 semanas, com que frequência você foi incomodado(a) por:"
+          - paragraph [ref=f2e562]: Não conseguir parar de se preocupar ou controlar as preocupações
+          - generic [ref=f2e563]:
+            - button "Nunca" [ref=f2e564] [cursor=pointer]
+            - button "Alguns dias" [active] [ref=f2e566] [cursor=pointer]
+            - button "Mais da metade dos dias" [ref=f2e568] [cursor=pointer]
+            - button "Quase todos os dias" [ref=f2e570] [cursor=pointer]

@@ -1,0 +1,44 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e2147] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e2148] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e2149]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e2151]
+            - button "Notificações" [ref=e2152] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e2153] [cursor=pointer]
+            - button "Atualizar" [ref=e2154] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e2964]:
+            - heading "🔐 Segurança" [level=5] [ref=e2965]
+            - paragraph [ref=e2966]: Proteja sua conta com autenticação em 2 fatores e biometria.
+            - generic [ref=e2968]:
+              - heading "🔐 Segurança (2FA)" [level=6] [ref=e2970]
+              - paragraph [ref=e2971]: Autenticação em 2 fatores (TOTP). Depois de ativar, todo login pede um código do app autenticador (Google Authenticator, Authy, 1Password).
+              - button "Ativar 2FA" [ref=e2972] [cursor=pointer]
+            - paragraph [ref=e2975]:
+              - text: 💡
+              - strong [ref=e2976]: "Dica:"
+              - text: Ative ambos pra máxima segurança. A biometria deixa o dia a dia mais rápido (1 toque pra entrar), e o 2FA protege contra acesso não autorizado mesmo se alguém descobrir sua senha.
+    - button "Pergunte ao Dr. Exame" [ref=e2207] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e2208]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2209]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

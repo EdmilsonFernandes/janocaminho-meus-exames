@@ -1,0 +1,89 @@
+- generic [ref=f6e18]:
+  - generic [ref=f6e19]:
+    - generic [ref=f6e20]:
+      - button [ref=f6e21] [cursor=pointer]
+      - generic [ref=f6e22]:
+        - banner [ref=f6e23]:
+          - generic [ref=f6e24]:
+            - button [ref=f6e25] [cursor=pointer]:
+              - img [ref=f6e26]
+            - button [ref=f6e28] [cursor=pointer]:
+              - img [ref=f6e29]
+            - button [ref=f6e31] [cursor=pointer]:
+              - img [ref=f6e32]
+              - generic [ref=f6e34]: "71"
+            - button [ref=f6e36] [cursor=pointer]:
+              - generic [ref=f6e38]: E
+            - button [ref=f6e39] [cursor=pointer]:
+              - generic [ref=f6e40]:
+                - img [ref=f6e41]
+                - generic [ref=f6e43]: "18"
+            - button [ref=f6e44] [cursor=pointer]:
+              - img [ref=f6e45]
+            - button [ref=f6e48] [cursor=pointer]:
+              - img [ref=f6e49]
+        - main [ref=f6e51]:
+          - generic [ref=f6e53]:
+            - generic [ref=f6e54]:
+              - img [ref=f6e56]
+              - generic [ref=f6e59]:
+                - heading [level=5] [ref=f6e60]: Valores fora da faixa
+                - paragraph [ref=f6e61]:
+                  - text: Ordenados por
+                  - strong [ref=f6e62]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=f6e63]: Agendar
+                  - text: pro especialista.
+            - generic [ref=f6e65]:
+              - generic [ref=f6e66]:
+                - generic [ref=f6e67]: 🔴 0 Importantes
+                - generic [ref=f6e68]: 🟠 0 Moderadas
+                - generic [ref=f6e69]: 🟡 2 Leves
+              - generic [ref=f6e70]:
+                - text: Nada crítico — os ajustes são
+                - strong [ref=f6e71]: 🟠 moderados
+                - text: ou
+                - strong [ref=f6e72]: 🟡 leves
+                - text: . Comente com seu médico na próxima consulta.
+            - heading [level=3] [ref=f6e75]:
+              - button [ref=f6e76] [cursor=pointer]:
+                - generic [ref=f6e78]:
+                  - generic [ref=f6e79]: 🟡
+                  - generic [ref=f6e80]:
+                    - paragraph [ref=f6e81]: HEMOGRAMA
+                    - generic [ref=f6e82]: 📅 s/d
+                  - generic [ref=f6e84]: 2 alterado(s)
+                - img [ref=f6e86]
+            - generic [ref=f6e88]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=f6e89] [cursor=pointer]:
+      - generic [ref=f6e90]:
+        - img [ref=f6e92]
+        - img [ref=f6e94]
+    - navigation [ref=f6e96]:
+      - generic [ref=f6e97] [cursor=pointer]:
+        - generic [ref=f6e98]: 🏠
+        - paragraph [ref=f6e99]: Início
+      - generic [ref=f6e100] [cursor=pointer]:
+        - generic [ref=f6e101]: 📋
+        - paragraph [ref=f6e102]: Exames
+      - generic [ref=f6e103] [cursor=pointer]:
+        - img [ref=f6e105]
+        - paragraph [ref=f6e106]: Dr. Exame
+      - generic [ref=f6e107] [cursor=pointer]:
+        - generic [ref=f6e108]: 📈
+        - paragraph [ref=f6e109]: Evolução
+      - generic [ref=f6e110] [cursor=pointer]:
+        - generic [ref=f6e111]: ☰
+        - paragraph [ref=f6e112]: Mais
+  - generic [ref=f6e15] [cursor=pointer]:
+    - img [ref=f6e114]
+    - img [ref=f6e115]
+  - dialog "Dr. Exame Edmilson, um valor precisa de atenção" [active] [ref=f6e118]:
+    - heading "Dr. Exame Edmilson, um valor precisa de atenção" [level=2] [ref=f6e119]:
+      - generic [ref=f6e120]:
+        - img "Dr. Exame" [ref=f6e121]
+        - paragraph [ref=f6e122]: Edmilson, um valor precisa de atenção
+    - paragraph [ref=f6e124]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+    - generic [ref=f6e125]:
+      - button "Depois" [ref=f6e126] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f6e127] [cursor=pointer]

@@ -1,0 +1,46 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e206]:
+    - generic [ref=e207]:
+      - img "Dr. Exame" [ref=e209]
+      - generic [ref=e210]:
+        - heading "Meus Exames" [level=5] [ref=e211]
+        - paragraph [ref=e212]: Seu assistente de saúde com IA
+    - generic [ref=e213]:
+      - paragraph [ref=e214]: Crie sua conta gratuita em segundos.
+      - generic [ref=e216]:
+        - textbox "Seu nome" [ref=e221]
+        - group
+      - generic [ref=e222]:
+        - generic [ref=e223]:
+          - textbox "CPF" [ref=e228]
+          - group
+        - paragraph [ref=e229]: Usado para confirmar que o exame pertence ao perfil.
+      - generic [ref=e231]:
+        - textbox "E-mail" [ref=e236]
+        - group
+      - generic [ref=e238]:
+        - textbox "Senha (mín. 6 caracteres)" [ref=e243]
+        - button [ref=e245] [cursor=pointer]
+        - group
+      - generic [ref=e251]:
+        - textbox "Código de indicação (opcional)" [ref=e252]
+        - group
+      - generic [ref=e253] [cursor=pointer]:
+        - checkbox "Li e aceito os Termos de Uso e Política de Privacidade." [ref=e255]
+        - paragraph [ref=e258]:
+          - text: Li e aceito os
+          - link "Termos de Uso e Política de Privacidade" [ref=e259]:
+            - /url: "#/termos"
+          - text: .
+      - button [ref=e260] [cursor=pointer]
+    - paragraph [ref=e264]:
+      - text: Já tem conta?
+      - button "Entrar" [ref=e265] [cursor=pointer]
+    - generic [ref=e266]:
+      - generic [ref=e267]: 🩺
+      - paragraph [ref=e268]:
+        - strong [ref=e269]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e192]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e193]

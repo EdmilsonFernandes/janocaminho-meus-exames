@@ -1,0 +1,115 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1403]:
+      - button "Pular para o conteúdo" [ref=e2086] [cursor=pointer]
+      - generic [ref=e1405]:
+        - banner [ref=e1406]:
+          - generic [ref=e1407]:
+            - button "Menu" [ref=e2087] [cursor=pointer]
+            - generic [ref=e1411]:
+              - img "Dr. Exame" [ref=e2088]
+              - paragraph [ref=e1414]: Dr. Exame
+            - generic [ref=e1415]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=e2089] [cursor=pointer]:
+                - generic [ref=e1490]: "69"
+              - button "Notificações" [ref=e2090] [cursor=pointer]:
+                - generic [ref=e1417]: 9+
+              - button "E" [ref=e2091] [cursor=pointer]
+        - main [ref=e1427]:
+          - generic [ref=e1872]:
+            - generic [ref=e1875]:
+              - paragraph [ref=e1876]: Boa noite, Edmilson 👋
+              - generic [ref=e1877]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e1878]:
+              - generic [ref=e1880]:
+                - generic [ref=e1881]:
+                  - generic [ref=e1882]:
+                    - generic:
+                      - paragraph: "62"
+                      - paragraph: de 100
+                  - generic [ref=e1886]:
+                    - paragraph [ref=e1887]: Sua saúde hoje
+                    - paragraph [ref=e1888]: Em boa forma
+                    - paragraph [ref=e1890]:
+                      - generic [ref=e2065]: ● 5 moderados
+                - button [ref=e2092] [cursor=pointer]
+              - generic [ref=e1896]:
+                - paragraph [ref=e1897]: O que mudou nos seus exames
+                - generic [ref=e1898]: 1 melhorou
+                - generic [ref=e2071]:
+                  - paragraph [ref=e2072]: ↓GLICOSE
+                  - paragraph [ref=e2073]: 95 mg/dL
+                - button [ref=e2093] [cursor=pointer]
+            - generic [ref=e1908]:
+              - generic [ref=e1909]:
+                - img "Dr. Exame" [ref=e2094]
+                - generic [ref=e1912]:
+                  - paragraph [ref=e1913]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=e1914]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=e2095] [cursor=pointer]
+            - generic [ref=e1920]:
+              - generic [ref=e1928] [cursor=pointer]:
+                - paragraph [ref=e1929]: Cardiometabólico
+                - paragraph [ref=e1930]: baixo
+                - paragraph [ref=e2074]: 1 fator de risco
+              - generic [ref=e1938] [cursor=pointer]:
+                - paragraph [ref=e1939]: Idade biológica
+                - paragraph [ref=e1940]: 42a
+                - paragraph [ref=e2075]: estimativa corporal
+              - generic [ref=e1948] [cursor=pointer]:
+                - paragraph [ref=e1949]: Seus exames
+                - paragraph [ref=e1950]: "9"
+                - paragraph [ref=e1951]: 8 alterados
+              - generic [ref=e1959] [cursor=pointer]:
+                - paragraph [ref=e1960]: Evolução
+                - paragraph [ref=e1961]: "34"
+                - paragraph [ref=e1962]: histórico de tendências
+            - generic [ref=e1975]:
+              - generic [ref=e1976]: Enviar exame
+              - generic [ref=e1983]: Evolução
+              - generic [ref=e1990]: Família
+              - generic [ref=e1998]: Relatório
+            - generic [ref=e2078]:
+              - generic [ref=e2082]:
+                - paragraph [ref=e2083]: "69"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=e2096] [cursor=pointer]
+            - generic [ref=e2007] [cursor=pointer]:
+              - generic [ref=e2009]:
+                - paragraph [ref=e2010]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e2013]:
+                - generic [ref=e2014]: 🎉
+                - generic [ref=e2016]: 📚
+                - generic [ref=e2018]: 🎓
+                - generic [ref=e2020]: 💚
+                - generic [ref=e2022]: 🔥
+              - generic [ref=e2024]: 2 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=e2097] [cursor=pointer]
+    - navigation [ref=e1432]:
+      - paragraph [ref=e1437] [cursor=pointer]: Início
+      - paragraph [ref=e1442] [cursor=pointer]: Exames
+      - generic [ref=e1444] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2098]
+        - paragraph [ref=e1447]: Dr. Exame
+      - paragraph [ref=e1452] [cursor=pointer]: Evolução
+      - paragraph [ref=e1457] [cursor=pointer]: Mais
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e2099] [cursor=pointer]
+      - button "×" [ref=e2100] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e2101] [cursor=pointer]
+      - button "×" [ref=e2102] [cursor=pointer]

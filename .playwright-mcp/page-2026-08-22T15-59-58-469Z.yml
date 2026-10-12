@@ -1,0 +1,381 @@
+- generic [ref=f21e1]:
+  - generic [ref=f21e2]:
+    - generic [ref=f21e3]:
+      - button [ref=f21e4] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=f21e5]:
+        - banner [ref=f21e6]:
+          - generic [ref=f21e7]:
+            - heading [level=6] [ref=f21e8]:
+              - generic [ref=f21e9]: Exames
+            - button [ref=f21e11] [cursor=pointer]:
+              - generic [ref=f21e14]: "71"
+            - button [ref=f21e15] [cursor=pointer]
+            - button [ref=f21e20] [cursor=pointer]:
+              - generic [ref=f21e21]: E
+              - generic [ref=f21e23]: Edmilson Lopes Fernandes dos Santos
+            - button [ref=f21e29] [cursor=pointer]
+        - main [ref=f21e32]:
+          - navigation [ref=f21e36]:
+            - generic [ref=f21e37]:
+              - button [expanded] [ref=f21e38] [cursor=pointer]:
+                - generic [ref=f21e42]: Exames
+              - generic [ref=f21e49]:
+                - button [ref=f21e50] [cursor=pointer]:
+                  - generic [ref=f21e54]: Exames
+                - button [ref=f21e56] [cursor=pointer]:
+                  - generic [ref=f21e61]: Valores alterados
+                - button [ref=f21e63] [cursor=pointer]:
+                  - generic [ref=f21e68]: Evolução
+                - button [ref=f21e70] [cursor=pointer]:
+                  - generic [ref=f21e74]: Tendências
+                - button [ref=f21e76] [cursor=pointer]:
+                  - generic [ref=f21e80]: Linha do Tempo
+                - button [ref=f21e82] [cursor=pointer]:
+                  - generic [ref=f21e86]: Relatório completo
+            - button [ref=f21e89] [cursor=pointer]:
+              - generic [ref=f21e94]: Cuidados
+            - button [ref=f21e99] [cursor=pointer]:
+              - generic [ref=f21e104]: Pessoas
+            - button [ref=f21e109] [cursor=pointer]:
+              - generic [ref=f21e113]: Conta
+            - separator [ref=f21e117]
+            - button [ref=f21e118] [cursor=pointer]:
+              - generic [ref=f21e122]: Dúvidas frequentes
+            - button [ref=f21e124] [cursor=pointer]:
+              - generic [ref=f21e128]: Como validamos
+            - menuitem [ref=f21e130] [cursor=pointer]:
+              - generic [ref=f21e134]: Sobre o app
+            - menuitem [ref=f21e136] [cursor=pointer]:
+              - generic [ref=f21e140]: Sair da conta
+          - generic [ref=f21e146]:
+            - generic [ref=f21e147]:
+              - generic [ref=f21e152]:
+                - heading [level=5] [ref=f21e153]: Seus exames
+                - paragraph [ref=f21e154]: 17 no total • toque para ver detalhes
+              - generic [ref=f21e155]:
+                - generic [ref=f21e157]:
+                  - textbox [ref=f21e161]:
+                    - /placeholder: Buscar exame (TSH, glicose, hemograma…)
+                  - group
+                - generic [ref=f21e162]:
+                  - group [ref=f21e163]:
+                    - button [pressed] [ref=f21e164] [cursor=pointer]: Todos
+                    - button [ref=f21e165] [cursor=pointer]: Alterados
+                    - button [ref=f21e166] [cursor=pointer]: Recentes
+                  - group [ref=f21e167]:
+                    - button [pressed] [ref=f21e168] [cursor=pointer]: 📅 Por data
+                    - button [ref=f21e169] [cursor=pointer]: 🗂️ Por categoria
+                - generic [ref=f21e170]:
+                  - button [ref=f21e171] [cursor=pointer]:
+                    - generic [ref=f21e172]: Todos (17)
+                  - button [ref=f21e173] [cursor=pointer]:
+                    - generic [ref=f21e176]: Hemograma (3)
+                  - button [ref=f21e177] [cursor=pointer]:
+                    - generic [ref=f21e180]: Função Renal (3)
+                  - button [ref=f21e181] [cursor=pointer]:
+                    - generic [ref=f21e184]: Glicemia e Diabetes (2)
+                  - button [ref=f21e185] [cursor=pointer]:
+                    - generic [ref=f21e188]: Lipídios e Colesterol (2)
+                  - button [ref=f21e189] [cursor=pointer]:
+                    - generic [ref=f21e192]: Eletrólitos e Minerais (2)
+                  - button [ref=f21e193] [cursor=pointer]:
+                    - generic [ref=f21e196]: Inflamação e Ferro (2)
+                  - button [ref=f21e197] [cursor=pointer]:
+                    - generic [ref=f21e200]: Função Hepática (1)
+                  - button [ref=f21e201] [cursor=pointer]:
+                    - generic [ref=f21e204]: Hormônios (1)
+                  - button [ref=f21e205] [cursor=pointer]:
+                    - generic [ref=f21e208]: Vitaminas e Ácido Fólico (1)
+              - generic [ref=f21e209]:
+                - heading [level=3] [ref=f21e210]:
+                  - button [expanded] [ref=f21e211] [cursor=pointer]:
+                    - generic [ref=f21e212]:
+                      - paragraph [ref=f21e213]: 📅 2026
+                      - generic [ref=f21e214]: 17 exames
+                - region [ref=f21e222]:
+                  - generic [ref=f21e223]:
+                    - generic [ref=f21e225] [cursor=pointer]:
+                      - generic [ref=f21e228]:
+                        - generic [ref=f21e229]:
+                          - paragraph [ref=f21e230]: HEMOGRAMA
+                          - button [ref=f21e232]
+                        - generic [ref=f21e235]: s/ data
+                        - generic [ref=f21e237]:
+                          - generic [ref=f21e238]: V
+                          - generic [ref=f21e239]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                        - generic [ref=f21e240]: 🏥 Laboratório em revisão
+                        - generic [ref=f21e241]: Hemograma • 20 resultados • 2 alterados
+                        - generic [ref=f21e242]:
+                          - generic [ref=f21e243]: Pronto
+                          - generic [ref=f21e245]: Conferir dados
+                      - button [ref=f21e247]
+                    - generic [ref=f21e253] [cursor=pointer]:
+                      - generic [ref=f21e256]:
+                        - generic [ref=f21e257]:
+                          - paragraph [ref=f21e258]: HOMOCISTEÍNA
+                          - button [ref=f21e260]
+                        - generic [ref=f21e264]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e265]: · há 1 mês
+                        - generic [ref=f21e267]:
+                          - generic [ref=f21e268]: F
+                          - generic [ref=f21e269]: Fleury
+                        - text: Vitaminas e Ácido Fólico
+                        - generic [ref=f21e270]:
+                          - generic [ref=f21e271]: 🆕 Novo
+                          - generic [ref=f21e273]: Pronto
+                      - button [ref=f21e275]
+                    - generic [ref=f21e281] [cursor=pointer]:
+                      - generic [ref=f21e284]:
+                        - generic [ref=f21e285]:
+                          - paragraph [ref=f21e286]: MAGNÉSIO
+                          - button [ref=f21e288]
+                        - generic [ref=f21e292]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e293]: · há 1 mês
+                        - generic [ref=f21e295]:
+                          - generic [ref=f21e296]: F
+                          - generic [ref=f21e297]: Fleury
+                        - text: Eletrólitos e Minerais
+                        - generic [ref=f21e298]:
+                          - generic [ref=f21e299]: 🆕 Novo
+                          - generic [ref=f21e301]: Pronto
+                      - button [ref=f21e303]
+                    - generic [ref=f21e309] [cursor=pointer]:
+                      - generic [ref=f21e312]:
+                        - generic [ref=f21e313]:
+                          - paragraph [ref=f21e314]: TSH - TIREOESTIMULANTE
+                          - button [ref=f21e316]
+                        - generic [ref=f21e320]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e321]: · há 1 mês
+                        - generic [ref=f21e323]:
+                          - generic [ref=f21e324]: F
+                          - generic [ref=f21e325]: Fleury
+                        - text: Hormônios
+                        - generic [ref=f21e326]:
+                          - generic [ref=f21e327]: 🆕 Novo
+                          - generic [ref=f21e329]: Pronto
+                      - button [ref=f21e331]
+                    - generic [ref=f21e337] [cursor=pointer]:
+                      - generic [ref=f21e340]:
+                        - generic [ref=f21e341]:
+                          - paragraph [ref=f21e342]: POTÁSSIO
+                          - button [ref=f21e344]
+                        - generic [ref=f21e348]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e349]: · há 1 mês
+                        - generic [ref=f21e351]:
+                          - generic [ref=f21e352]: F
+                          - generic [ref=f21e353]: Fleury
+                        - text: Eletrólitos e Minerais
+                        - generic [ref=f21e354]:
+                          - generic [ref=f21e355]: 🆕 Novo
+                          - generic [ref=f21e357]: Pronto
+                      - button [ref=f21e359]
+                    - generic [ref=f21e365] [cursor=pointer]:
+                      - generic [ref=f21e368]:
+                        - generic [ref=f21e369]:
+                          - paragraph [ref=f21e370]: FERRITINA
+                          - button [ref=f21e372]
+                        - generic [ref=f21e376]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e377]: · há 1 mês
+                        - generic [ref=f21e379]:
+                          - generic [ref=f21e380]: F
+                          - generic [ref=f21e381]: Fleury
+                        - text: Inflamação e Ferro
+                        - generic [ref=f21e382]:
+                          - generic [ref=f21e383]: 🆕 Novo
+                          - generic [ref=f21e385]: Pronto
+                      - button [ref=f21e387]
+                    - generic [ref=f21e393] [cursor=pointer]:
+                      - generic [ref=f21e396]:
+                        - generic [ref=f21e397]:
+                          - paragraph [ref=f21e398]: FERRO SÉRICO
+                          - button [ref=f21e400]
+                        - generic [ref=f21e404]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e405]: · há 1 mês
+                        - generic [ref=f21e407]:
+                          - generic [ref=f21e408]: F
+                          - generic [ref=f21e409]: Fleury
+                        - text: Inflamação e Ferro
+                        - generic [ref=f21e410]:
+                          - generic [ref=f21e411]: 🆕 Novo
+                          - generic [ref=f21e413]: Pronto
+                      - button [ref=f21e415]
+                    - generic [ref=f21e421] [cursor=pointer]:
+                      - generic [ref=f21e424]:
+                        - generic [ref=f21e425]:
+                          - paragraph [ref=f21e426]: TGP (ALT)
+                          - button [ref=f21e428]
+                        - generic [ref=f21e432]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e433]: · há 1 mês
+                        - generic [ref=f21e435]:
+                          - generic [ref=f21e436]: F
+                          - generic [ref=f21e437]: Fleury
+                        - text: Função Hepática
+                        - generic [ref=f21e438]:
+                          - generic [ref=f21e439]: 🆕 Novo
+                          - generic [ref=f21e441]: Pronto
+                      - button [ref=f21e443]
+                    - generic [ref=f21e449] [cursor=pointer]:
+                      - generic [ref=f21e452]:
+                        - generic [ref=f21e453]:
+                          - paragraph [ref=f21e454]: UREIA
+                          - button [ref=f21e456]
+                        - generic [ref=f21e460]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e461]: · há 1 mês
+                        - generic [ref=f21e463]:
+                          - generic [ref=f21e464]: F
+                          - generic [ref=f21e465]: Fleury
+                        - text: Função Renal
+                        - generic [ref=f21e466]:
+                          - generic [ref=f21e467]: 🆕 Novo
+                          - generic [ref=f21e469]: Pronto
+                      - button [ref=f21e471]
+                    - generic [ref=f21e477] [cursor=pointer]:
+                      - generic [ref=f21e480]:
+                        - generic [ref=f21e481]:
+                          - paragraph [ref=f21e482]: COLESTEROL TOTAL E FRAÇÕES COM TRIGLICERÍDEOS
+                          - button [ref=f21e484]
+                        - generic [ref=f21e488]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e489]: · há 1 mês
+                        - generic [ref=f21e491]:
+                          - generic [ref=f21e492]: F
+                          - generic [ref=f21e493]: Fleury
+                        - text: Lipídios e Colesterol
+                        - generic [ref=f21e494]:
+                          - generic [ref=f21e495]: 🆕 Novo
+                          - generic [ref=f21e497]: Pronto
+                      - button [ref=f21e499]
+                    - generic [ref=f21e505] [cursor=pointer]:
+                      - generic [ref=f21e508]:
+                        - generic [ref=f21e509]:
+                          - paragraph [ref=f21e510]: INSULINA BASAL
+                          - button [ref=f21e512]
+                        - generic [ref=f21e516]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e517]: · há 1 mês
+                        - generic [ref=f21e519]:
+                          - generic [ref=f21e520]: F
+                          - generic [ref=f21e521]: Fleury
+                        - text: Glicemia e Diabetes
+                        - generic [ref=f21e522]:
+                          - generic [ref=f21e523]: 🆕 Novo
+                          - generic [ref=f21e525]: Pronto
+                      - button [ref=f21e527]
+                    - generic [ref=f21e533] [cursor=pointer]:
+                      - generic [ref=f21e536]:
+                        - generic [ref=f21e537]:
+                          - paragraph [ref=f21e538]: CREATININA
+                          - button [ref=f21e540]
+                        - generic [ref=f21e544]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e545]: · há 1 mês
+                        - generic [ref=f21e547]:
+                          - generic [ref=f21e548]: F
+                          - generic [ref=f21e549]: Fleury
+                        - text: Função Renal
+                        - generic [ref=f21e550]:
+                          - generic [ref=f21e551]: 🆕 Novo
+                          - generic [ref=f21e553]: Pronto
+                      - button [ref=f21e555]
+                    - generic [ref=f21e561] [cursor=pointer]:
+                      - generic [ref=f21e564]:
+                        - generic [ref=f21e565]:
+                          - paragraph [ref=f21e566]: ÁCIDO ÚRICO
+                          - button [ref=f21e568]
+                        - generic [ref=f21e572]:
+                          - text: 16 jul 2026
+                          - generic [ref=f21e573]: · há 1 mês
+                        - generic [ref=f21e575]:
+                          - generic [ref=f21e576]: F
+                          - generic [ref=f21e577]: Fleury
+                        - text: Função Renal
+                        - generic [ref=f21e578]:
+                          - generic [ref=f21e579]: 🆕 Novo
+                          - generic [ref=f21e581]: Pronto
+                      - button [ref=f21e583]
+                    - generic [ref=f21e589] [cursor=pointer]:
+                      - generic [ref=f21e592]:
+                        - generic [ref=f21e593]:
+                          - paragraph [ref=f21e594]: GLICEMIA DE JEJUM
+                          - button [ref=f21e596]
+                        - generic [ref=f21e600]:
+                          - text: 09 jul 2026
+                          - generic [ref=f21e601]: · há 1 mês
+                        - generic [ref=f21e603]:
+                          - generic [ref=f21e604]: F
+                          - generic [ref=f21e605]: Fleury
+                        - generic [ref=f21e606]: Glicemia e Diabetes • 2 resultados • 2 alterados
+                        - generic [ref=f21e607]: Pronto
+                      - button [ref=f21e610]
+                    - generic [ref=f21e616] [cursor=pointer]:
+                      - generic [ref=f21e619]:
+                        - generic [ref=f21e620]:
+                          - paragraph [ref=f21e621]: PERFIL LIPÍDICO
+                          - button [ref=f21e623]
+                        - generic [ref=f21e627]:
+                          - text: 09 jul 2026
+                          - generic [ref=f21e628]: · há 1 mês
+                        - generic [ref=f21e630]:
+                          - generic [ref=f21e631]: F
+                          - generic [ref=f21e632]: Fleury
+                        - generic [ref=f21e633]: Lipídios e Colesterol • 4 resultados • 4 alterados
+                        - generic [ref=f21e634]: Pronto
+                      - button [ref=f21e637]
+                    - generic [ref=f21e643] [cursor=pointer]:
+                      - generic [ref=f21e646]:
+                        - generic [ref=f21e647]:
+                          - paragraph [ref=f21e648]: HEMOGRAMA
+                          - button [ref=f21e650]
+                        - generic [ref=f21e654]:
+                          - text: 09 jul 2026
+                          - generic [ref=f21e655]: · há 1 mês
+                        - generic [ref=f21e657]:
+                          - generic [ref=f21e658]: L
+                          - generic [ref=f21e659]: Laboratório Central
+                        - generic [ref=f21e660]: Hemograma • 5 resultados
+                        - generic [ref=f21e661]: Pronto
+                      - button [ref=f21e664]
+                    - generic [ref=f21e670] [cursor=pointer]:
+                      - generic [ref=f21e673]:
+                        - generic [ref=f21e674]:
+                          - paragraph [ref=f21e675]: HEMOGRAMA
+                          - button [ref=f21e677]
+                        - generic [ref=f21e681]:
+                          - text: 14 abr 2026
+                          - generic [ref=f21e682]: · há 4 meses
+                        - generic [ref=f21e684]:
+                          - generic [ref=f21e685]: L
+                          - generic [ref=f21e686]: Laboratório Central
+                        - generic [ref=f21e687]: Hemograma • 5 resultados
+                        - generic [ref=f21e688]: Pronto
+                      - button [ref=f21e691]
+            - generic [ref=f21e698]:
+              - paragraph [ref=f21e699]: Último exame
+              - paragraph [ref=f21e700]: HEMOGRAMA
+              - generic [ref=f21e701]: Data não identificada no PDF
+              - generic [ref=f21e702]:
+                - paragraph [ref=f21e703]: 20 resultados
+                - generic [ref=f21e704]: 2 alterados
+              - generic [ref=f21e706]:
+                - button [ref=f21e707] [cursor=pointer]: Ver análise
+                - button [ref=f21e711] [cursor=pointer]: Abrir laudo
+    - button [ref=f21e715] [cursor=pointer]
+  - generic [ref=f21e719] [cursor=pointer]
+  - dialog [active] [ref=f21e724]:
+    - generic [ref=f21e725]:
+      - button "Pular" [ref=f21e726] [cursor=pointer]
+      - generic [ref=f21e727]:
+        - img "Dr. Exame" [ref=f21e729]
+        - heading "Envie seu exame" [level=4] [ref=f21e730]
+        - paragraph [ref=f21e731]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f21e732]:
+        - button [ref=f21e738] [cursor=pointer]
+        - paragraph [ref=f21e742]: Toque em Próximo para continuar →

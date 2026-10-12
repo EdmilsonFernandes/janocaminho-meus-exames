@@ -1,0 +1,516 @@
+- generic [active] [ref=f60e1]:
+  - alert [ref=f60e2]: Press Alt+1 for screen-reader mode, Alt+0 to cancel
+  - button "Use Website In a Screen-Reader Mode" [ref=f60e3]
+  - link "Accessibility Screen-Reader Guide, Feedback, and Issue Reporting | New window" [ref=f60e4] [cursor=pointer]:
+    - /url: https://accessibe.com/blog/knowledgebase/screen-reader-guide
+  - generic:
+    - generic:
+      - region "Skip Links":
+        - generic:
+          - link "Skip to Content":
+            - /url: "#acsbContent"
+            - text: Skip to Content
+            - generic:
+              - generic: ↵
+              - text: ENTER
+  - dialog [ref=f60e5]:
+    - generic [ref=f60e6]: Simplify Text
+    - button [ref=f60e9] [cursor=pointer]
+  - generic [ref=f60e14]:
+    - banner [ref=f60e15]:
+      - generic [ref=f60e16]:
+        - link "Levels home" [ref=f60e18] [cursor=pointer]:
+          - /url: /
+          - img "Levels" [ref=f60e19]
+        - navigation [ref=f60e20]:
+          - link "What You Get" [ref=f60e21] [cursor=pointer]:
+            - /url: "#what-you-get"
+          - link "What We Measure" [ref=f60e22] [cursor=pointer]:
+            - /url: /what-we-measure
+          - link "Blog" [ref=f60e23] [cursor=pointer]:
+            - /url: /blog
+          - link "Practitioners" [ref=f60e24] [cursor=pointer]:
+            - /url: /pro
+        - generic [ref=f60e25]:
+          - link "Login" [ref=f60e26] [cursor=pointer]:
+            - /url: /login
+          - link "Buy now" [ref=f60e27] [cursor=pointer]:
+            - /url: /join/start
+    - main [ref=f60e28]:
+      - generic [ref=f60e33]:
+        - paragraph [ref=f60e34]: The most trusted name in metabolic health
+        - heading "See how food affects your health." [level=1] [ref=f60e35]
+        - paragraph [ref=f60e36]: Levels helps you understand how diet and lifestyle affect your body, so you can make changes that improve energy, appetite, and long-term metabolic health.
+        - link "Get your personalized plan" [ref=f60e38] [cursor=pointer]:
+          - /url: https://app.levels.com/quiz
+      - generic [ref=f60e40]:
+        - generic [ref=f60e41]:
+          - paragraph [ref=f60e42]: 100,000+ lives changed
+          - paragraph [ref=f60e43]: People come to Levels to see what food is doing to their body and improve from there.
+        - generic [ref=f60e44]:
+          - paragraph [ref=f60e45]: The first and most trusted
+          - paragraph [ref=f60e46]: The company that brought glucose monitoring into everyday metabolic health.
+        - generic [ref=f60e47]:
+          - paragraph [ref=f60e48]: Private, secure, and personalized
+          - paragraph [ref=f60e49]: HIPAA compliant and SOC 2 compliant, with feedback that gets more personal as you connect more of your data.
+      - generic [ref=f60e51]:
+        - generic [ref=f60e52]:
+          - generic [ref=f60e53]:
+            - paragraph [ref=f60e54]: Stop guessing
+            - heading "Nutrition advice is generic. Your body isn't." [level=2] [ref=f60e55]
+            - paragraph [ref=f60e56]: Most people know their choices matter. What they do not have is a clear way to tell whether the advice they are following actually fits their body. Even when it comes from AI, most nutrition advice is still generic. Levels combines your own feedback with one of the largest proprietary metabolic datasets of its kind to make the guidance personal.
+          - link "Get your personalized recommendation" [ref=f60e57] [cursor=pointer]:
+            - /url: https://app.levels.com/quiz
+        - generic [ref=f60e66]:
+          - paragraph [ref=f60e67]: Sneaky spikers and steadier choices
+          - generic [ref=f60e68]:
+            - button "Oat milk latte" [ref=f60e69]
+            - button "Granola bowl" [ref=f60e71]
+            - button "Green smoothie" [ref=f60e73]
+            - button "Eggs + avocado" [ref=f60e75]
+      - generic [ref=f60e78]:
+        - generic [ref=f60e79]:
+          - paragraph [ref=f60e80]: What you get with Levels
+          - heading "Your system for better metabolic health." [level=2] [ref=f60e81]
+          - paragraph [ref=f60e82]: Start with the app, connect live data and the rest of your health story, and go deeper with testing and expert support when you want it.
+        - generic [ref=f60e83]:
+          - generic [ref=f60e84]:
+            - generic [ref=f60e85]:
+              - paragraph [ref=f60e89]: Start here
+              - heading "The app that helps you see what works for your body." [level=3] [ref=f60e90]
+              - paragraph [ref=f60e91]: Log meals, track macros, and build healthier habits with feedback that helps the right patterns stand out.
+              - list [ref=f60e92]:
+                - listitem [ref=f60e93]:
+                  - generic [ref=f60e95]: Meal logging by text, photo, or barcode
+                - listitem [ref=f60e96]:
+                  - generic [ref=f60e98]: Macro breakdowns and food quality feedback
+                - listitem [ref=f60e99]:
+                  - generic [ref=f60e101]: Habit tracking across sleep, movement, and routines
+                - listitem [ref=f60e102]:
+                  - generic [ref=f60e104]: Long-term trends that help you see what is changing
+            - img "The app that helps you see what works for your body." [ref=f60e108]
+          - generic [ref=f60e109]:
+            - generic [ref=f60e110]:
+              - paragraph [ref=f60e114]: Connect your data
+              - heading "Bring your signals and your health story together." [level=3] [ref=f60e115]
+              - paragraph [ref=f60e116]: Connect what is happening now, add the context that explains where you have been, and let Levels use both to personalize guidance over time.
+              - list [ref=f60e117]:
+                - listitem [ref=f60e118]:
+                  - generic [ref=f60e120]: Bring your own CGM or get one through Levels
+                - listitem [ref=f60e121]:
+                  - generic [ref=f60e123]: Connect Apple Health and wearable data
+                - listitem [ref=f60e124]:
+                  - generic [ref=f60e126]: Upload prior labs, DEXA scans, and health records
+                - listitem [ref=f60e127]:
+                  - generic [ref=f60e129]: Share your goals, history, and the context that matters most
+                - listitem [ref=f60e130]:
+                  - generic [ref=f60e132]: See food, sleep, activity, and glucose in one view
+                - listitem [ref=f60e133]:
+                  - generic [ref=f60e135]: Keep your health story organized in a single system
+            - img "Bring your signals and your health story together." [ref=f60e139]
+          - generic [ref=f60e140]:
+            - generic [ref=f60e141]:
+              - paragraph [ref=f60e145]: Go deeper with Levels
+              - heading "Add labs, experts, and more when you want more precision." [level=3] [ref=f60e146]
+              - paragraph [ref=f60e147]: Comprehensive testing and expert support help turn what you are seeing day to day into a clearer plan for long-term improvement.
+              - list [ref=f60e148]:
+                - listitem [ref=f60e149]:
+                  - generic [ref=f60e151]: Comprehensive bloodwork and biomarker tracking
+                - listitem [ref=f60e152]:
+                  - generic [ref=f60e154]: Nutritionist and clinician guidance
+                - listitem [ref=f60e155]:
+                  - generic [ref=f60e157]: Programs built around goals like glucose control and heart health
+                - listitem [ref=f60e158]:
+                  - generic [ref=f60e160]: Actionable guidance grounded in your own data
+            - img "Add labs, experts, and more when you want more precision." [ref=f60e164]
+        - generic [ref=f60e165]:
+          - generic [ref=f60e170]:
+            - paragraph [ref=f60e171]: Your health data belongs to you. Levels does not sell your personal health data.
+            - generic [ref=f60e172]:
+              - generic [ref=f60e173]: Encrypted
+              - generic [ref=f60e174]: HIPAA compliant
+              - generic [ref=f60e175]: SOC 2 compliant
+              - generic [ref=f60e176]: Data not sold
+          - link "Read our privacy principles" [ref=f60e177] [cursor=pointer]:
+            - /url: /privacy
+        - link "See what's right for you" [ref=f60e181] [cursor=pointer]:
+          - /url: https://app.levels.com/quiz
+      - generic [ref=f60e183]:
+        - generic [ref=f60e184]:
+          - img "Levels dashboard showing glucose-related metabolic health insights" [ref=f60e185]
+          - generic [ref=f60e187]:
+            - paragraph [ref=f60e188]: See it in real time
+            - paragraph [ref=f60e189]: For many people, glucose monitoring is the first time they can actually see what a meal is doing to them.
+        - generic [ref=f60e190]:
+          - generic [ref=f60e191]:
+            - paragraph [ref=f60e192]: Glucose monitoring
+            - heading "The clearest way to see what food is doing to you." [level=2] [ref=f60e193]
+            - paragraph [ref=f60e194]: Levels pioneered bringing glucose monitoring into everyday metabolic health. It is still one of the most powerful ways to connect a meal, a workout, or a bad night of sleep to how you actually feel.
+          - generic [ref=f60e195]:
+            - generic [ref=f60e196]: Watch glucose respond to the meals and routines that shape your day.
+            - generic [ref=f60e197]: Connect the chart to energy, cravings, and focus.
+            - generic [ref=f60e198]: Use Levels with your own CGM or get one through us.
+      - generic [ref=f60e200]:
+        - generic [ref=f60e201]:
+          - paragraph [ref=f60e202]: Inside Levels
+          - heading "See the patterns that matter." [level=2] [ref=f60e203]
+          - paragraph [ref=f60e204]: From your next meal to your next lab draw, Levels helps the right signals stand out so you know what to keep, what to change, and what to try next.
+        - generic [ref=f60e205]:
+          - article [ref=f60e206]:
+            - img "Log food your way" [ref=f60e208]
+            - generic [ref=f60e209]:
+              - heading "Log food your way" [level=3] [ref=f60e210]
+              - paragraph [ref=f60e211]: Use text, photos, or barcodes to build a clearer picture of what you eat and how those choices are adding up.
+              - list [ref=f60e212]:
+                - listitem [ref=f60e213]:
+                  - generic [ref=f60e215]: Detailed macro breakdowns
+                - listitem [ref=f60e216]:
+                  - generic [ref=f60e218]: Meal quality feedback
+                - listitem [ref=f60e219]:
+                  - generic [ref=f60e221]: Fast logging built for real life
+          - article [ref=f60e222]:
+            - img "See patterns across your day" [ref=f60e224]
+            - generic [ref=f60e225]:
+              - heading "See patterns across your day" [level=3] [ref=f60e226]
+              - paragraph [ref=f60e227]: Connect meals, movement, sleep, stress, and recovery so you can see the routines that help you feel steady.
+              - list [ref=f60e228]:
+                - listitem [ref=f60e229]:
+                  - generic [ref=f60e231]: Daily feedback loops
+                - listitem [ref=f60e232]:
+                  - generic [ref=f60e234]: Context from sleep and lifestyle
+                - listitem [ref=f60e235]:
+                  - generic [ref=f60e237]: Signals that help patterns stand out
+          - article [ref=f60e238]:
+            - img "Follow biomarkers and trends" [ref=f60e240]
+            - generic [ref=f60e241]:
+              - heading "Follow biomarkers and trends" [level=3] [ref=f60e242]
+              - paragraph [ref=f60e243]: Bring labs and long-term health markers into the same system so you can track change with more clarity.
+              - list [ref=f60e244]:
+                - listitem [ref=f60e245]:
+                  - generic [ref=f60e247]: Optimal ranges and context
+                - listitem [ref=f60e248]:
+                  - generic [ref=f60e250]: 30, 60, and 90-day views
+                - listitem [ref=f60e251]:
+                  - generic [ref=f60e253]: A clearer picture of progress
+        - generic [ref=f60e254]:
+          - generic [ref=f60e255]:
+            - heading "Meal logging" [level=3] [ref=f60e262]
+            - paragraph [ref=f60e263]: Log food quickly and understand macros, timing, and food quality.
+          - generic [ref=f60e264]:
+            - heading "Health insights" [level=3] [ref=f60e278]
+            - paragraph [ref=f60e279]: Turn patterns in food, sleep, and activity into next-step guidance.
+          - generic [ref=f60e280]:
+            - heading "Habit tracking" [level=3] [ref=f60e284]
+            - paragraph [ref=f60e285]: Keep daily behaviors in view so consistency becomes easier to build.
+          - generic [ref=f60e286]:
+            - heading "CGM context" [level=3] [ref=f60e291]
+            - paragraph [ref=f60e292]: See glucose data in context with the choices and routines around it.
+          - generic [ref=f60e293]:
+            - heading "Labs and biomarkers" [level=3] [ref=f60e298]
+            - paragraph [ref=f60e299]: Understand deeper metabolic signals, not just what happens in the moment.
+          - generic [ref=f60e300]:
+            - heading "Trusted guidance" [level=3] [ref=f60e304]
+            - paragraph [ref=f60e305]: Get science-backed explainers, articles, and recommendations inside the product.
+        - link "Take the quiz to find your starting point" [ref=f60e307] [cursor=pointer]:
+          - /url: https://app.levels.com/quiz
+      - generic [ref=f60e311]:
+        - generic [ref=f60e312]:
+          - generic [ref=f60e313]:
+            - paragraph [ref=f60e314]: What to do next
+            - heading "Know what to change. Then make it stick." [level=2] [ref=f60e315]
+            - paragraph [ref=f60e316]: Levels does more than show you your health state. It turns insight into action with guidance, focused programs, and the habit systems that keep progress moving.
+          - generic [ref=f60e317]:
+            - generic [ref=f60e318]:
+              - heading "Habit tracking" [level=3] [ref=f60e319]
+              - paragraph [ref=f60e320]: Turn good intentions into daily reps with meal logging, routines, and simple targets you can actually follow.
+            - generic [ref=f60e321]:
+              - heading "Guided programs" [level=3] [ref=f60e322]
+              - paragraph [ref=f60e323]: Follow focused paths around goals like glucose control, heart health, and weight loss when you want more structure.
+            - generic [ref=f60e324]:
+              - heading "Progress you can see" [level=3] [ref=f60e325]
+              - paragraph [ref=f60e326]: Track adherence, follow trends over time, and see whether the changes you are making are actually working.
+        - generic [ref=f60e328]:
+          - generic [ref=f60e329]:
+            - paragraph [ref=f60e330]: Programs and habits
+            - paragraph [ref=f60e331]: Focus on the behaviors that matter most and keep your progress moving in the right direction.
+          - img "Levels app showing challenge details, adherence, and progress tracking" [ref=f60e333]
+      - generic [ref=f60e335]:
+        - generic [ref=f60e336]:
+          - generic [ref=f60e337]:
+            - paragraph [ref=f60e338]: Real results
+            - heading "Not just more data. Measurable improvement." [level=2] [ref=f60e339]
+            - paragraph [ref=f60e340]: Levels helps people change what they do in ways that show up in the biomarkers that matter most.
+          - generic [ref=f60e341]:
+            - paragraph [ref=f60e342]: Research and evidence
+            - paragraph [ref=f60e343]: Levels is also running one of the largest observational glucose studies ever conducted in people without diabetes, helping build the reference data this field has been missing.
+            - generic [ref=f60e344]:
+              - link "Read the biomarker report" [ref=f60e345] [cursor=pointer]:
+                - /url: /blog/levels-improves-biomarkers
+              - link "Read about the study" [ref=f60e348] [cursor=pointer]:
+                - /url: /blog/why-levels-does-research-and-what-we-hope-to-learn
+        - generic [ref=f60e351]:
+          - generic [ref=f60e352]:
+            - paragraph [ref=f60e353]: 81%
+            - heading "improved HbA1c" [level=3] [ref=f60e354]
+            - paragraph [ref=f60e355]: Among members who started in the prediabetes range, most improved their level and many reversed course.
+          - generic [ref=f60e356]:
+            - paragraph [ref=f60e357]: 79%
+            - heading "improved fasting insulin" [level=3] [ref=f60e358]
+            - paragraph [ref=f60e359]: Members with insulin resistance often saw meaningful improvement from sustained behavior change.
+          - generic [ref=f60e360]:
+            - paragraph [ref=f60e361]: 84%
+            - heading "improved triglycerides" [level=3] [ref=f60e362]
+            - paragraph [ref=f60e363]: For members who started high, triglycerides came down significantly in most cases.
+        - paragraph [ref=f60e364]: Based on retrospective analysis of Levels members. Not a clinical trial. Results may vary.
+      - generic [ref=f60e366]:
+        - generic [ref=f60e367]:
+          - paragraph [ref=f60e368]: 100,000+ lives changed
+          - heading "What change can look like." [level=2] [ref=f60e369]
+          - paragraph [ref=f60e370]: The product matters because it helps people see something clearly enough to do something about it.
+        - generic [ref=f60e371]:
+          - button "Watch testimonial from Mike Didonato" [ref=f60e372]:
+            - generic [ref=f60e373]:
+              - img "Mike Didonato" [ref=f60e374]
+              - generic [ref=f60e376]: Watch story
+            - generic [ref=f60e380]:
+              - paragraph [ref=f60e381]: "\"I reduced my ApoB by more than 40% without medication.\""
+              - paragraph [ref=f60e382]: Mike Didonato
+              - paragraph [ref=f60e383]: Levels member
+          - button "Watch testimonial from Traci Lowe" [ref=f60e384]:
+            - generic [ref=f60e385]:
+              - img "Traci Lowe" [ref=f60e386]
+              - generic [ref=f60e388]: Watch story
+            - generic [ref=f60e392]:
+              - paragraph [ref=f60e393]: "\"I was at 153, now I'm down to 127.\""
+              - paragraph [ref=f60e394]: Traci Lowe
+              - paragraph [ref=f60e395]: Levels member
+          - button "Watch testimonial from Tony Hedges" [ref=f60e396]:
+            - generic [ref=f60e397]:
+              - img "Tony Hedges" [ref=f60e398]
+              - generic [ref=f60e400]: Watch story
+            - generic [ref=f60e404]:
+              - paragraph [ref=f60e405]: "\"I got another 15 pounds to lose.\""
+              - paragraph [ref=f60e406]: Tony Hedges
+              - paragraph [ref=f60e407]: Levels member
+          - button "Watch testimonial from Julie Smith" [ref=f60e408]:
+            - generic [ref=f60e409]:
+              - img "Julie Smith" [ref=f60e410]
+              - generic [ref=f60e412]: Watch story
+            - generic [ref=f60e416]:
+              - paragraph [ref=f60e417]: "\"I feel like it probably saved my life.\""
+              - paragraph [ref=f60e418]: Julie Smith
+              - paragraph [ref=f60e419]: Levels member
+      - generic [ref=f60e421]:
+        - generic [ref=f60e422]:
+          - paragraph [ref=f60e423]: Three ways to start
+          - heading "One metabolic health system. Three ways to start." [level=2] [ref=f60e424]
+          - paragraph [ref=f60e425]: "Choose the starting point that fits you best: Build your system for flexibility, Core for a curated package with the essentials built in, or Complete for our fullest package from day one."
+        - generic [ref=f60e426]:
+          - generic [ref=f60e427]:
+            - paragraph [ref=f60e428]: Recommended first step
+            - paragraph [ref=f60e429]: Not sure where to start? Take the quiz first and get a personalized recommendation before choosing a plan.
+          - link "Get your personalized plan" [ref=f60e430] [cursor=pointer]:
+            - /url: https://app.levels.com/quiz
+        - generic [ref=f60e433]:
+          - article [ref=f60e434]:
+            - generic [ref=f60e435]: Flexible path
+            - generic [ref=f60e441]:
+              - heading "Build your system" [level=3] [ref=f60e442]
+              - paragraph [ref=f60e443]: Start with the app, then add the measurement and support you want.
+            - generic [ref=f60e444]:
+              - generic [ref=f60e445]:
+                - generic [ref=f60e446]: $15
+                - generic [ref=f60e447]: /mo
+              - paragraph [ref=f60e448]: or $80 billed annually
+            - link "Build your system" [ref=f60e449] [cursor=pointer]:
+              - /url: /join/start
+            - generic [ref=f60e451]:
+              - generic [ref=f60e452]:
+                - paragraph [ref=f60e453]: Included
+                - list [ref=f60e454]:
+                  - listitem [ref=f60e455]:
+                    - generic [ref=f60e458]: Levels app
+                  - listitem [ref=f60e459]:
+                    - generic [ref=f60e462]: Food logging
+                  - listitem [ref=f60e463]:
+                    - generic [ref=f60e466]: AI health insights
+                  - listitem [ref=f60e467]:
+                    - generic [ref=f60e470]: Adaptive programs
+                  - listitem [ref=f60e471]:
+                    - generic [ref=f60e474]: Wearable data import
+                  - listitem [ref=f60e475]:
+                    - generic [ref=f60e478]: Past bloodwork uploads
+              - generic [ref=f60e479]:
+                - paragraph [ref=f60e480]: Available to add
+                - list [ref=f60e481]:
+                  - listitem [ref=f60e482]:
+                    - generic [ref=f60e485]: Glucose monitoring
+                  - listitem [ref=f60e486]:
+                    - generic [ref=f60e489]: Essential or comprehensive labs
+                  - listitem [ref=f60e490]:
+                    - generic [ref=f60e493]: Dietitian support
+            - generic [ref=f60e494]:
+              - generic [ref=f60e495]:
+                - generic [ref=f60e496]: HSA/FSA eligible
+                - link "Learn more" [ref=f60e497] [cursor=pointer]:
+                  - /url: "#what-you-get"
+              - generic [ref=f60e503]:
+                - generic [ref=f60e504]:
+                  - generic [ref=f60e505]: HSA/FSA eligible
+                  - img "Truemed logo" [ref=f60e506]
+                  - generic [ref=f60e509]: Save an average of 30%
+                - button "Learn more about Truemed and how to pay with your HSA or FSA for qualified customers" [ref=f60e510] [cursor=pointer]: Learn more
+          - article [ref=f60e511]:
+            - generic [ref=f60e512]: Recommended package
+            - generic [ref=f60e518]:
+              - heading "Core" [level=3] [ref=f60e519]
+              - paragraph [ref=f60e520]: Glucose + essential labs, clinician review, and input.
+            - generic [ref=f60e521]:
+              - generic [ref=f60e522]:
+                - generic [ref=f60e523]: $41
+                - generic [ref=f60e524]: /mo
+              - paragraph [ref=f60e525]: $499 billed annually
+            - link "Get Core" [ref=f60e526] [cursor=pointer]:
+              - /url: /checkout?bundle=core
+            - generic [ref=f60e528]:
+              - generic [ref=f60e529]:
+                - paragraph [ref=f60e530]: Included
+                - list [ref=f60e531]:
+                  - listitem [ref=f60e532]:
+                    - generic [ref=f60e535]: 2 Essential Lab Panels w/ 28+ Markers
+                  - listitem [ref=f60e536]:
+                    - generic [ref=f60e539]: 1-month continuous glucose monitoring
+                  - listitem [ref=f60e540]:
+                    - generic [ref=f60e543]:
+                      - text: Clinician review of health data
+                      - generic [ref=f60e544]: 2x annually
+                  - listitem [ref=f60e545]:
+                    - generic [ref=f60e548]: Levels app, AI health insights, and adaptive programs
+                  - listitem [ref=f60e549]:
+                    - generic [ref=f60e552]: Unlimited uploading of past bloodwork
+              - generic [ref=f60e553]:
+                - paragraph [ref=f60e554]: Available to add
+                - list [ref=f60e555]:
+                  - listitem [ref=f60e556]:
+                    - generic [ref=f60e559]: Additional glucose monitors
+                  - listitem [ref=f60e560]:
+                    - generic [ref=f60e563]: Comprehensive labs
+                  - listitem [ref=f60e564]:
+                    - generic [ref=f60e567]: Dietitian support
+            - generic [ref=f60e569]:
+              - generic [ref=f60e570]: HSA/FSA eligible
+              - link "Learn more" [ref=f60e571] [cursor=pointer]:
+                - /url: "#what-you-get"
+          - article [ref=f60e574]:
+            - generic [ref=f60e575]: Highest-touch package
+            - generic [ref=f60e581]:
+              - heading "Complete" [level=3] [ref=f60e582]
+              - paragraph [ref=f60e583]: Glucose + comprehensive labs, clinician review, and concierge support.
+            - generic [ref=f60e584]:
+              - generic [ref=f60e585]:
+                - generic [ref=f60e586]: $167
+                - generic [ref=f60e587]: /mo
+              - paragraph [ref=f60e588]: $1,999 billed annually
+            - link "Get Complete" [ref=f60e589] [cursor=pointer]:
+              - /url: /checkout?bundle=complete
+            - generic [ref=f60e591]:
+              - generic [ref=f60e592]:
+                - paragraph [ref=f60e593]: Included
+                - list [ref=f60e594]:
+                  - listitem [ref=f60e595]:
+                    - generic [ref=f60e598]: 2 Comprehensive Labs w/ 100+ Markers
+                  - listitem [ref=f60e599]:
+                    - generic [ref=f60e602]:
+                      - text: 2-months continuous glucose monitoring
+                      - generic [ref=f60e603]: with free shipping
+                  - listitem [ref=f60e604]:
+                    - generic [ref=f60e607]:
+                      - text: Clinician review of health data
+                      - generic [ref=f60e608]: 2x annually
+                  - listitem [ref=f60e609]:
+                    - generic [ref=f60e612]: 50-minute functional nutritionist session
+                  - listitem [ref=f60e613]:
+                    - generic [ref=f60e616]: Dedicated concierge support
+                  - listitem [ref=f60e617]:
+                    - generic [ref=f60e620]: Levels app, advanced AI health insights, and adaptive programs
+                  - listitem [ref=f60e621]:
+                    - generic [ref=f60e624]: Unlimited uploading of past bloodwork
+              - generic [ref=f60e625]:
+                - paragraph [ref=f60e626]: Available to add
+                - list [ref=f60e627]:
+                  - listitem [ref=f60e628]:
+                    - generic [ref=f60e631]: Additional glucose monitors
+                  - listitem [ref=f60e632]:
+                    - generic [ref=f60e635]: Additional lab testing
+                  - listitem [ref=f60e636]:
+                    - generic [ref=f60e639]: Additional dietitian sessions
+            - generic [ref=f60e641]:
+              - generic [ref=f60e642]: HSA/FSA eligible
+              - link "Learn more" [ref=f60e643] [cursor=pointer]:
+                - /url: "#what-you-get"
+      - generic [ref=f60e647]:
+        - paragraph [ref=f60e648]: Start with Levels
+        - heading "Stop guessing. Start seeing." [level=2] [ref=f60e649]
+        - paragraph [ref=f60e650]: Understand how food affects your health, learn what works for your body, and add CGM, labs, and expert support whenever you want more.
+        - link "Get your personalized plan" [ref=f60e652] [cursor=pointer]:
+          - /url: https://app.levels.com/quiz
+    - contentinfo [ref=f60e653]:
+      - generic [ref=f60e654]:
+        - generic [ref=f60e655]:
+          - generic [ref=f60e656]:
+            - link "Levels home" [ref=f60e657] [cursor=pointer]:
+              - /url: /
+              - img "Levels" [ref=f60e658]
+            - generic [ref=f60e659]:
+              - paragraph [ref=f60e660]: Join our mailing list
+              - paragraph [ref=f60e661]: Subscribe for updates, articles, exclusive discounts, and more.
+            - generic [ref=f60e663]:
+              - textbox "email@example.com" [ref=f60e664]
+              - button "Join" [ref=f60e665]
+          - navigation [ref=f60e666]:
+            - generic [ref=f60e667]:
+              - heading "Product" [level=3] [ref=f60e668]
+              - list [ref=f60e669]:
+                - listitem [ref=f60e670]:
+                  - link "What We Measure" [ref=f60e671] [cursor=pointer]:
+                    - /url: /what-we-measure
+            - generic [ref=f60e672]:
+              - heading "Company" [level=3] [ref=f60e673]
+              - list [ref=f60e674]:
+                - listitem [ref=f60e675]:
+                  - link "Careers" [ref=f60e676] [cursor=pointer]:
+                    - /url: https://levelshealth.notion.site/Careers-at-Levels-3616891ed02d4c0787fd64227f9bc57a
+                - listitem [ref=f60e677]:
+                  - link "Partner With Us" [ref=f60e678] [cursor=pointer]:
+                    - /url: https://levels.link/partner
+                - listitem [ref=f60e679]:
+                  - link "Media & Creators" [ref=f60e680] [cursor=pointer]:
+                    - /url: https://levelshealth.notion.site/Levels-Assets-for-Media-Content-Creators-January-2022-f7e9b3066e2444cfae92dc786c2f8a32
+                - listitem [ref=f60e681]:
+                  - link "Contact Us" [ref=f60e682] [cursor=pointer]:
+                    - /url: mailto:support@levels.com
+            - generic [ref=f60e683]:
+              - heading "Resources" [level=3] [ref=f60e684]
+              - list [ref=f60e685]:
+                - listitem [ref=f60e686]:
+                  - link "Support" [ref=f60e687] [cursor=pointer]:
+                    - /url: https://support.levels.com/
+                - listitem [ref=f60e688]:
+                  - link "Blog" [ref=f60e689] [cursor=pointer]:
+                    - /url: /blog
+                - listitem [ref=f60e690]:
+                  - link "Gift Levels" [ref=f60e691] [cursor=pointer]:
+                    - /url: https://app.levels.com/gift-card
+                - listitem [ref=f60e692]:
+                  - link "Refund Policy" [ref=f60e693] [cursor=pointer]:
+                    - /url: https://support.levels.com/article/651-refund-replacement-policies
+        - generic [ref=f60e694]:
+          - generic [ref=f60e695]:
+            - paragraph [ref=f60e696]: © 2026 Levels Health
+            - generic [ref=f60e697]:
+              - link "Legal" [ref=f60e698] [cursor=pointer]:
+                - /url: https://levelshealth.notion.site/Levels-Health-Inc-Privacy-Policy-6a8d24dc188a4a41ba8e1e5ba433cf70
+              - link "Terms of service" [ref=f60e699] [cursor=pointer]:
+                - /url: /terms-of-service
+          - paragraph [ref=f60e700]: The Levels program, products, and services are intended only for maintaining and encouraging a healthy lifestyle and are not to be used for the diagnosis, cure, management, prevention, or treatment of any disease or condition. The Levels app, products, and services should never be used for medication management or dosing decisions.
+  - alert [ref=f60e701]

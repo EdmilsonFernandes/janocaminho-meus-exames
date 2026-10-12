@@ -1,0 +1,137 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e110]:
+      - button "Pular para o conteúdo" [ref=e512] [cursor=pointer]
+      - main [ref=e134]:
+        - generic [ref=e136]:
+          - generic [ref=e139]:
+            - paragraph [ref=e140]: Boa tarde, QA 👋
+            - generic [ref=e141]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e513]:
+            - paragraph [ref=e514]: 👀 Modo exemplo — tudo aqui é de uma pessoa fictícia. Seu app real ganha essa análise no 1º exame.
+            - generic [ref=e515]:
+              - button "Sair" [ref=e516] [cursor=pointer]
+              - button "Usar meu exame" [ref=e517] [cursor=pointer]
+          - generic [ref=e143]:
+            - generic [ref=e144]:
+              - generic [ref=e145]:
+                - generic:
+                  - paragraph: "78"
+                  - paragraph: de 100
+              - generic [ref=e149]:
+                - paragraph [ref=e150]: Sua saúde hoje
+                - paragraph [ref=e151]: Em boa forma
+                - generic [ref=e152]:
+                  - paragraph [ref=e153]:
+                    - generic [ref=e518]: ● 1 importante
+                    - text: ·
+                    - generic [ref=e519]: ● 2 moderados
+                  - paragraph [ref=e520]: · atualizado 13/09/2026
+            - generic [ref=e154]:
+              - button [ref=e521] [cursor=pointer]
+              - button [active] [ref=e522] [cursor=pointer]
+          - generic [ref=e161]:
+            - button [ref=e526] [cursor=pointer]:
+              - generic [ref=e163]:
+                - paragraph [ref=e164]: Alterados
+                - paragraph [ref=e165]: "5"
+                - paragraph [ref=e530]: de 29 marcadores
+            - button [ref=e531] [cursor=pointer]:
+              - generic [ref=e170]:
+                - paragraph [ref=e171]: Exames
+                - paragraph [ref=e172]: "6"
+                - paragraph [ref=e173]: 5 alterados
+            - button [ref=e532] [cursor=pointer]:
+              - generic [ref=e179]:
+                - paragraph [ref=e180]: Idade Bio
+                - paragraph [ref=e181]: 32a
+                - paragraph [ref=e437]: 2a mais jovem
+            - button [ref=e533] [cursor=pointer]:
+              - generic [ref=e187]:
+                - paragraph [ref=e188]: Cardiorrisco
+                - paragraph [ref=e189]: moderado
+                - paragraph [ref=e438]: 2 fatores de risco
+          - generic [ref=e198]:
+            - generic [ref=e200]:
+              - generic [ref=e534]:
+                - paragraph [ref=e535]: O que mudou nos seus exames
+                - generic [ref=e536]:
+                  - generic [ref=e537]: 1 piorou
+                  - generic [ref=e541]: 1 melhorou
+                - generic [ref=e545]:
+                  - generic [ref=e546]:
+                    - paragraph [ref=e547]: ↑LDL colesterol
+                    - paragraph [ref=e548]: 142 mg/dL
+                  - generic [ref=e550]:
+                    - paragraph [ref=e551]: ↓Glicose em jejum
+                    - paragraph [ref=e552]: 98 mg/dL
+                - button [ref=e554] [cursor=pointer]
+              - generic [ref=e234]:
+                - generic [ref=e235]:
+                  - img "Dr. Exame" [ref=e558]
+                  - generic [ref=e238]:
+                    - paragraph [ref=e239]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e240]: "Atenção: seu LDL colesterol está alto (142 mg/dL). Vale conversar com seu médico."
+                - button [ref=e559] [cursor=pointer]
+            - generic [ref=e247]:
+              - generic [ref=e248]:
+                - generic [ref=e253]:
+                  - paragraph [ref=e254]: Seus Marcadores
+                  - paragraph [ref=e255]: Distribuição de 29 marcadores analisados
+                - generic [ref=e256]:
+                  - generic [ref=e257]:
+                    - generic [ref=e258]:
+                      - paragraph [ref=e259]: Normais & Saudáveis
+                      - paragraph [ref=e260]: 24/29 (83%)
+                    - progressbar [ref=e261]
+                  - generic [ref=e263]:
+                    - generic [ref=e264]:
+                      - paragraph [ref=e265]: Alteração Leve
+                      - paragraph [ref=e266]: 3/29 (10%)
+                    - progressbar [ref=e267]
+                  - generic [ref=e269]:
+                    - generic [ref=e270]:
+                      - paragraph [ref=e271]: Requerem Atenção
+                      - paragraph [ref=e272]: 2/29 (7%)
+                    - progressbar [ref=e273]
+                - paragraph [ref=e275]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+              - generic [ref=e276]:
+                - paragraph [ref=e282]: Ações rápidas
+                - generic [ref=e284]:
+                  - generic [ref=e286] [cursor=pointer]:
+                    - generic [ref=e287]: +
+                    - generic [ref=e288]: Enviar exame
+                  - generic [ref=e294]: Evolução
+                  - generic [ref=e302]: Família
+                  - generic [ref=e310]: Relatório
+              - generic [ref=e460]:
+                - generic [ref=e465]:
+                  - paragraph [ref=e466]: "60"
+                  - text: créditos disponíveis
+                - button "Comprar" [ref=e560] [cursor=pointer]
+              - generic [ref=e319] [cursor=pointer]:
+                - generic [ref=e321]:
+                  - paragraph [ref=e322]: 🏆 Suas conquistas
+                  - text: Resgate 1 crédito a cada meta atingida
+                - generic [ref=e325]:
+                  - generic [ref=e326]: 🎉
+                  - generic [ref=e328]: 📚
+                  - generic [ref=e330]: 🎓
+                  - generic [ref=e332]: 💚
+                  - generic [ref=e334]: 🔥
+                - generic [ref=e338]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=e344]:
+      - button "Início" [ref=e561] [cursor=pointer]:
+        - paragraph [ref=e349]: Início
+      - button "Exames" [ref=e562] [cursor=pointer]:
+        - paragraph [ref=e355]: Exames
+      - button "Dr. Exame — conversar com a IA" [ref=e563] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e564]
+        - paragraph [ref=e359]: Dr. Exame
+      - button "Evolução" [ref=e565] [cursor=pointer]:
+        - paragraph [ref=e364]: Evolução
+      - button "Mais" [ref=e566] [cursor=pointer]:
+        - paragraph [ref=e369]: Mais
+  - generic [ref=e91]:
+    - img "Acessível com VLibras" [ref=e567]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e568] [cursor=pointer]

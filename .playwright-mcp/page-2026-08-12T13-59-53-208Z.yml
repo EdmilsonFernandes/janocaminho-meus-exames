@@ -1,0 +1,104 @@
+- generic [active] [ref=f10e1]:
+  - generic [ref=f10e44]:
+    - navigation [ref=f10e45]:
+      - generic [ref=f10e47]:
+        - button "Menu do médico" [ref=f10e48] [cursor=pointer]:
+          - generic [ref=f10e49]: D
+        - generic [ref=f10e50]:
+          - paragraph [ref=f10e51]: 🩺 Dr Teste QA
+          - generic [ref=f10e52]: Clínico Geral • CRM 99999-SP
+      - separator [ref=f10e53]
+      - generic [ref=f10e54]:
+        - generic [ref=f10e55]: PLANO
+        - paragraph [ref=f10e56]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f10e57]:
+        - button "Pacientes" [ref=f10e58] [cursor=pointer]
+        - button "Convites" [ref=f10e64] [cursor=pointer]
+        - button "Perguntas" [ref=f10e71] [cursor=pointer]
+        - button "Meu perfil" [ref=f10e78] [cursor=pointer]
+        - button "Trocar senha" [ref=f10e84] [cursor=pointer]
+        - separator [ref=f10e90]
+        - button "Sair" [ref=f10e91] [cursor=pointer]
+      - generic [ref=f10e97]: Portal do Médico
+    - generic [ref=f10e98]:
+      - generic [ref=f10e99]:
+        - button "Voltar" [ref=f10e156] [cursor=pointer]
+        - paragraph [ref=f10e101]: Edmilson Lopes Fernandes dos Santos
+      - generic [ref=f10e159]:
+        - generic [ref=f10e160]:
+          - generic [ref=f10e161]:
+            - generic [ref=f10e162]: E
+            - generic [ref=f10e165]:
+              - generic [ref=f10e166]:
+                - paragraph [ref=f10e167]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=f10e168] [cursor=pointer]: Trocar
+              - paragraph [ref=f10e172]: Masculino • Particular
+          - generic [ref=f10e173]:
+            - generic [ref=f10e174]:
+              - generic [ref=f10e175]: Último exame
+              - paragraph [ref=f10e179]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=f10e180] [cursor=pointer]:
+              - generic [ref=f10e181]: Alterações
+              - paragraph [ref=f10e186]: "8"
+            - generic [ref=f10e187]:
+              - generic [ref=f10e188]: Pendências
+              - paragraph [ref=f10e192]: "0"
+            - generic [ref=f10e193]:
+              - generic [ref=f10e194]: Anotações
+              - paragraph [ref=f10e198]: "0"
+        - tablist "Abas do paciente" [ref=f10e202]:
+          - tab "Exames" [ref=f10e203] [cursor=pointer]:
+            - generic [ref=f10e206]:
+              - generic [ref=f10e207]: Exames
+              - superscript [ref=f10e208]: "5"
+          - tab "Alterados" [selected] [ref=f10e209] [cursor=pointer]:
+            - generic [ref=f10e213]:
+              - generic [ref=f10e214]: Alterados
+              - superscript [ref=f10e215]: "8"
+          - tab "Tendências" [ref=f10e216] [cursor=pointer]
+          - tab "Relatório" [ref=f10e221] [cursor=pointer]
+          - tab "Perguntas" [ref=f10e226] [cursor=pointer]
+          - tab "Anotações" [ref=f10e231] [cursor=pointer]
+        - generic [ref=f10e237]:
+          - generic [ref=f10e239]:
+            - generic [ref=f10e240]:
+              - generic [ref=f10e241]: 🔴 0 Importantes
+              - generic [ref=f10e242]: 🟠 6 Moderadas
+              - generic [ref=f10e243]: 🟡 2 Leves
+            - generic [ref=f10e244]:
+              - text: Nada crítico — os ajustes são
+              - strong [ref=f10e245]: 🟠 moderados
+              - text: ou
+              - strong [ref=f10e246]: 🟡 leves
+              - text: . Comente com seu paciente na próxima consulta.
+          - generic [ref=f10e247]:
+            - heading [level=3] [ref=f10e249]:
+              - button "🟠 PERFIL LIPÍDICO 📅 09/07/2026 · há 1 mês 4 alterado(s)" [ref=f10e250] [cursor=pointer]:
+                - generic [ref=f10e252]:
+                  - generic [ref=f10e253]: 🟠
+                  - generic [ref=f10e254]:
+                    - heading "PERFIL LIPÍDICO" [level=6] [ref=f10e255]
+                    - generic [ref=f10e256]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=f10e257]: 4 alterado(s)
+            - heading [level=3] [ref=f10e263]:
+              - button "🟠 GLICEMIA DE JEJUM 📅 09/07/2026 · há 1 mês 2 alterado(s)" [ref=f10e264] [cursor=pointer]:
+                - generic [ref=f10e266]:
+                  - generic [ref=f10e267]: 🟠
+                  - generic [ref=f10e268]:
+                    - heading "GLICEMIA DE JEJUM" [level=6] [ref=f10e269]
+                    - generic [ref=f10e270]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=f10e271]: 2 alterado(s)
+            - heading [level=3] [ref=f10e277]:
+              - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [ref=f10e278] [cursor=pointer]:
+                - generic [ref=f10e280]:
+                  - generic [ref=f10e281]: 🟡
+                  - generic [ref=f10e282]:
+                    - heading "HEMOGRAMA" [level=6] [ref=f10e283]
+                    - generic [ref=f10e284]: 📅 s/d
+                  - generic [ref=f10e285]: 2 alterado(s)
+          - generic [ref=f10e290]: "*Educativo. A interpretação final é sua."
+  - generic [ref=f10e41] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e42]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e43]

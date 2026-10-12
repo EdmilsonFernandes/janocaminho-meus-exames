@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { sendPushToUser } from './push';
+import { interpolateTemplate } from './template';
 
 /**
  * pushAudience — resolução de PÚBLICOS-ALVO pra campanhas de push do admin.
@@ -13,7 +14,7 @@ import { sendPushToUser } from './push';
  * respeitando a regra de drift (nada de depender de coluna recém-nascida).
  *
  * Merge fields (F2): {{nome}}, {{streak}}, {{passosOntem}} — resolvidos POR USUÁRIO
- * no momento do envio (dispatchCampaign).
+ * no momento do envio (dispatchCampaign segmentada / dispatchToUsers global).
  */
 
 export type AudienceFilter = {
@@ -165,32 +166,42 @@ async function stepsYesterdayByOwner(): Promise<Map<string, number>> {
 const firstName = (name: string): string => name.trim().split(/\s+/)[0] || 'você';
 const fmtInt = (n: number): string => n.toLocaleString('pt-BR');
 
-/** Substitui {{nome}}, {{streak}}, {{passosOntem}} no título/corpo da campanha. */
+/** Substitui {{nome}}, {{streak}}, {{passosOntem}} (+aliases) no título/corpo da campanha. */
 export function applyMergeFields(text: string, ctx: { name: string; streakDays: number; stepsYesterday?: number }): string {
-  return text
-    .replace(/\{\{\s*nome\s*\}\}/g, firstName(ctx.name))
-    .replace(/\{\{\s*streak\s*\}\}/g, String(ctx.streakDays ?? 0))
-    .replace(/\{\{\s*passosOntem\s*\}\}/g, ctx.stepsYesterday != null ? fmtInt(ctx.stepsYesterday) : 'seus passos de ontem');
+  return interpolateTemplate(text, {
+    nome: firstName(ctx.name),
+    streak: String(ctx.streakDays ?? 0),
+    passosOntem: ctx.stepsYesterday != null ? fmtInt(ctx.stepsYesterday) : 'seus passos de ontem',
+  });
 }
 
 /**
- * Dispara a campanha segmentada: resolve a audiência e envia 1-a-1 (sendPushToUser
- * já cria a Notification in-app — que é o que alimenta o cap anti-spam — e o FCM
- * pros devices do usuário). Merge fields resolvidos por usuário.
+ * Envia 1-a-1 pra uma lista EXPLÍCITA de userIds, com merge fields resolvidos POR
+ * USUÁRIO (sendPushToUser já cria a Notification in-app — que alimenta o cap
+ * anti-spam — e o FCM pros devices do usuário). Caminho comum do campaign
+ * segmentado E do push global do admin — global é broadcast, mas NUNCA vai
+ * "{{nome}}" cru: cada usuário recebe o próprio nome/streak/passos.
  */
-export async function dispatchCampaign(opts: { title: string; body: string; route?: string; filter: AudienceFilter }): Promise<{ sent: number }> {
-  const ids = await resolveAudienceUserIds(opts.filter);
-  if (!ids.length) return { sent: 0 };
-  const stepsYesterday = /passosOntem/.test(`${opts.title} ${opts.body}`) ? await stepsYesterdayByOwner() : null;
-  const users = await prisma.user.findMany({ where: { id: { in: ids } }, select: { id: true, name: true, streakDays: true } });
+export async function dispatchToUsers(userIds: string[], opts: { title: string; body: string; route?: string; type?: string }): Promise<{ sent: number }> {
+  if (!userIds.length) return { sent: 0 };
+  const stepsYesterday = /passos|steps/i.test(`${opts.title} ${opts.body}`) ? await stepsYesterdayByOwner() : null;
+  const users = await prisma.user.findMany({ where: { id: { in: userIds }, blocked: false }, select: { id: true, name: true, streakDays: true } });
   let sent = 0;
   for (const u of users) {
     const ctx = { name: u.name, streakDays: u.streakDays, stepsYesterday: stepsYesterday?.get(u.id) };
     await sendPushToUser(u.id, applyMergeFields(opts.title, ctx), applyMergeFields(opts.body, ctx), {
-      type: MANUAL_PUSH_TYPE,
+      type: opts.type ?? MANUAL_PUSH_TYPE,
       ...(opts.route ? { route: opts.route } : {}),
     }).catch((e) => console.error('[pushCampaign] falha user', u.id, (e as Error).message));
     sent++;
   }
   return { sent };
+}
+
+/**
+ * Dispara a campanha segmentada: resolve a audiência e envia via dispatchToUsers.
+ */
+export async function dispatchCampaign(opts: { title: string; body: string; route?: string; filter: AudienceFilter }): Promise<{ sent: number }> {
+  const ids = await resolveAudienceUserIds(opts.filter);
+  return dispatchToUsers(ids, opts);
 }

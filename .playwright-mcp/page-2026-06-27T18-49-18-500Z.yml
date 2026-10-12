@@ -1,0 +1,190 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button "Pular para o conteúdo" [ref=e1043] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button "Menu" [ref=e1044] [cursor=pointer]:
+              - img [ref=e495]
+            - button "Voltar" [ref=e1045] [cursor=pointer]:
+              - img [ref=e766]
+            - button "79" [ref=e1046] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button "E" [ref=e1047] [cursor=pointer]:
+              - generic [ref=e504]: E
+            - button "3" [ref=e1048] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button "Mais opções" [ref=e1049] [cursor=pointer]:
+              - img [ref=e511]
+            - button "Atualizar" [ref=e1050] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - generic [ref=e1077]:
+            - generic [ref=e1078]:
+              - img [ref=e1080]
+              - generic [ref=e1083]:
+                - heading "Valores fora da faixa" [level=5] [ref=e1084]
+                - paragraph [ref=e1085]:
+                  - text: Agrupado por exame (do mais recente), itens por categoria. Toque num exame pra expandir e em
+                  - strong [ref=e1086]: Agendar
+                  - text: pro especialista.
+            - generic [ref=e1100]:
+              - heading "🚨 HEMOGRAMA 📅 s/d 10 alterado(s)" [level=3] [ref=e1101]:
+                - button "🚨 HEMOGRAMA 📅 s/d 10 alterado(s)" [expanded] [active] [ref=e1102] [cursor=pointer]:
+                  - generic [ref=e1104]:
+                    - generic [ref=e1105]: 🚨
+                    - generic [ref=e1106]:
+                      - paragraph [ref=e1107]: HEMOGRAMA
+                      - generic [ref=e1108]: 📅 s/d
+                    - generic [ref=e1110]: 10 alterado(s)
+                  - img [ref=e1112]
+              - region [ref=e1118]:
+                - generic [ref=e1120]:
+                  - generic [ref=e1122]:
+                    - generic [ref=e1123]:
+                      - generic [ref=e1124]:
+                        - paragraph [ref=e1125]: Hemácias
+                        - button "O que é este exame?" [ref=e1126] [cursor=pointer]:
+                          - img [ref=e1127]
+                      - text: "Ref: 450 - 550 milhões/mm*"
+                    - generic [ref=e1129]: 5,78 milhões/mm*milhões/mm*
+                    - link "Agendar com Hematologista" [ref=e1130] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1132]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1135]:
+                    - generic [ref=e1136]:
+                      - generic [ref=e1137]:
+                        - paragraph [ref=e1138]: Hemoglobina
+                        - button "O que é este exame?" [ref=e1139] [cursor=pointer]:
+                          - img [ref=e1140]
+                      - text: "Ref: 130 - 170 g/dt"
+                    - generic [ref=e1142]: 15,0 g/dt.g/dt
+                    - link "Agendar com Hematologista" [ref=e1143] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1145]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1148]:
+                    - generic [ref=e1149]:
+                      - generic [ref=e1150]:
+                        - paragraph [ref=e1151]: Hematócrito
+                        - button "O que é este exame?" [ref=e1152] [cursor=pointer]:
+                          - img [ref=e1153]
+                      - text: "Ref: 400 - 500 %"
+                    - generic [ref=e1155]: 46,7 %%
+                    - link "Agendar com Hematologista" [ref=e1156] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1158]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1161]:
+                    - generic [ref=e1162]:
+                      - generic [ref=e1163]:
+                        - paragraph [ref=e1164]: VCM
+                        - button "O que é este exame?" [ref=e1165] [cursor=pointer]:
+                          - img [ref=e1166]
+                      - text: "Ref: 83 - 101"
+                    - generic [ref=e1168]: 80,8
+                    - link "Agendar com Hematologista" [ref=e1169] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1171]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1174]:
+                    - generic [ref=e1175]:
+                      - generic [ref=e1176]:
+                        - paragraph [ref=e1177]: HCM
+                        - button "O que é este exame?" [ref=e1178] [cursor=pointer]:
+                          - img [ref=e1179]
+                      - text: "Ref: 270 - 320 pg"
+                    - generic [ref=e1181]: 26,0 pgpg
+                    - link "Agendar com Hematologista" [ref=e1182] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1184]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1187]:
+                    - generic [ref=e1188]:
+                      - generic [ref=e1189]:
+                        - paragraph [ref=e1190]: CHCM
+                        - button "O que é este exame?" [ref=e1191] [cursor=pointer]:
+                          - img [ref=e1192]
+                      - text: "Ref: 315 - 345 g/dt"
+                    - generic [ref=e1194]: 32,1 g/dtg/dt
+                    - link "Agendar com Hematologista" [ref=e1195] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1197]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1200]:
+                    - generic [ref=e1201]:
+                      - generic [ref=e1202]:
+                        - paragraph [ref=e1203]: Segmentados
+                        - button "O que é este exame?" [ref=e1204] [cursor=pointer]:
+                          - img [ref=e1205]
+                      - text: "Ref: 1800 - 7500 %"
+                    - generic [ref=e1207]: 59,6 %%
+                    - link "Agendar com Hematologista" [ref=e1208] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1210]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1213]:
+                    - generic [ref=e1214]:
+                      - generic [ref=e1215]:
+                        - paragraph [ref=e1216]: Linfócitos Típicos
+                        - button "O que é este exame?" [ref=e1217] [cursor=pointer]:
+                          - img [ref=e1218]
+                      - text: "Ref: 1200 - 5200 %"
+                    - generic [ref=e1220]: 28,5 %%
+                    - link "Agendar com Hematologista" [ref=e1221] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1223]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1226]:
+                    - generic [ref=e1227]:
+                      - generic [ref=e1228]:
+                        - paragraph [ref=e1229]: Monócitos
+                        - button "O que é este exame?" [ref=e1230] [cursor=pointer]:
+                          - img [ref=e1231]
+                      - text: "Ref: 80 - 800 %"
+                    - generic [ref=e1233]: 65%%
+                    - link "Agendar com Hematologista" [ref=e1234] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1236]
+                      - text: Agendar com Hematologista
+                  - generic [ref=e1239]:
+                    - generic [ref=e1240]:
+                      - generic [ref=e1241]:
+                        - paragraph [ref=e1242]: Plaquetas
+                        - button "O que é este exame?" [ref=e1243] [cursor=pointer]:
+                          - img [ref=e1244]
+                      - text: "Ref: 150000 - 450000 /mm*"
+                    - generic [ref=e1246]: 116.000/mm*/mm*
+                    - link "Agendar com Hematologista" [ref=e1247] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista
+                      - img [ref=e1249]
+                      - text: Agendar com Hematologista
+            - generic [ref=e1091]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e1092] [cursor=pointer]:
+      - generic [ref=e1093]:
+        - img "Dr. Exame" [ref=e1095]
+        - img [ref=e1097]
+    - navigation [ref=e636]:
+      - generic [ref=e637] [cursor=pointer]:
+        - generic [ref=e638]: 🏠
+        - paragraph [ref=e639]: Início
+      - generic [ref=e641] [cursor=pointer]:
+        - generic [ref=e642]: 📋
+        - paragraph [ref=e643]: Exames
+      - generic [ref=e644] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1074]
+        - paragraph [ref=e647]: Dr. Exame
+      - generic [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]: 📈
+        - paragraph [ref=e650]: Evolução
+      - generic [ref=e651] [cursor=pointer]:
+        - generic [ref=e652]: ☰
+        - paragraph [ref=e653]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1075]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1076]

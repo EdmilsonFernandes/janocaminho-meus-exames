@@ -1,0 +1,56 @@
+- generic [active] [ref=f20e18]:
+  - generic [ref=f20e19]:
+    - generic [ref=f20e20]:
+      - button "Pular para o conteúdo" [ref=f20e404] [cursor=pointer]
+      - generic [ref=f20e22]:
+        - banner [ref=f20e23]:
+          - generic [ref=f20e24]:
+            - button "Menu" [ref=f20e405] [cursor=pointer]:
+              - img [ref=f20e26]
+            - button "Voltar" [ref=f20e424] [cursor=pointer]:
+              - img [ref=f20e425]
+            - button "71" [ref=f20e406] [cursor=pointer]:
+              - img [ref=f20e29]
+              - generic [ref=f20e31]: "71"
+            - button "E" [ref=f20e407] [cursor=pointer]:
+              - generic [ref=f20e35]: E
+            - button "18" [ref=f20e408] [cursor=pointer]:
+              - generic [ref=f20e37]:
+                - img [ref=f20e38]
+                - generic [ref=f20e40]: "18"
+            - button "Mais opções" [ref=f20e409] [cursor=pointer]:
+              - img [ref=f20e42]
+            - button "Atualizar" [ref=f20e410] [cursor=pointer]:
+              - img [ref=f20e46]
+        - main [ref=f20e48]:
+          - generic [ref=f20e427]:
+            - generic [ref=f20e428]:
+              - img [ref=f20e430]
+              - generic [ref=f20e432]:
+                - heading "Evolução ao longo do tempo" [level=5] [ref=f20e433]
+                - paragraph [ref=f20e434]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - progressbar [ref=f20e435]:
+              - img [ref=f20e436]
+    - button "Pergunte ao Dr. Exame" [ref=f20e438] [cursor=pointer]:
+      - generic [ref=f20e439]:
+        - img "Dr. Exame" [ref=f20e441]
+        - img [ref=f20e443]
+    - navigation [ref=f20e372]:
+      - generic [ref=f20e373] [cursor=pointer]:
+        - generic [ref=f20e374]: 🏠
+        - paragraph [ref=f20e375]: Início
+      - generic [ref=f20e377] [cursor=pointer]:
+        - generic [ref=f20e378]: 📋
+        - paragraph [ref=f20e379]: Exames
+      - generic [ref=f20e380] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f20e421]
+        - paragraph [ref=f20e383]: Dr. Exame
+      - generic [ref=f20e384] [cursor=pointer]:
+        - generic [ref=f20e385]: 📈
+        - paragraph [ref=f20e386]: Evolução
+      - generic [ref=f20e387] [cursor=pointer]:
+        - generic [ref=f20e388]: ☰
+        - paragraph [ref=f20e389]: Mais
+  - generic [ref=f20e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f20e422]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f20e423]

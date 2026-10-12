@@ -1,0 +1,151 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button [ref=e25] [cursor=pointer]:
+              - img [ref=e26]
+            - button [ref=e28] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "99"
+            - button [ref=e33] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button [ref=e36] [cursor=pointer]:
+              - img [ref=e37]
+            - button [ref=e39] [cursor=pointer]:
+              - img [ref=e41]
+            - button [ref=e43] [cursor=pointer]:
+              - img [ref=e44]
+            - button [ref=e47] [cursor=pointer]:
+              - img [ref=e48]
+        - main [ref=e50]:
+          - generic [ref=e52]:
+            - generic [ref=e53]:
+              - heading [level=5] [ref=e54]: Boa noite, Edmilson 👋
+              - paragraph [ref=e55]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e56]:
+              - img
+              - generic [ref=e58]:
+                - generic [ref=e59]:
+                  - img [ref=e60]
+                  - generic [ref=e63]:
+                    - paragraph [ref=e64]: "50"
+                    - generic [ref=e65]: de 100
+                - generic [ref=e66]:
+                  - generic [ref=e67]:
+                    - img [ref=e68]
+                    - generic [ref=e71]: Score de Saúde
+                  - generic [ref=e73]: Atenção
+                  - paragraph [ref=e74]: Vários valores fora da faixa — procure orientação.
+                  - generic [ref=e75]: "*Educativo. 10 alterado(s)."
+                  - button [ref=e77] [cursor=pointer]: Ver detalhes
+            - generic [ref=e78]:
+              - img
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - img [ref=e83]
+                  - generic [ref=e84]:
+                    - paragraph [ref=e85]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e86]: "Atenção: seu CHCM está baixo. Vale conversar com seu médico."
+                - button [ref=e88] [cursor=pointer]:
+                  - img [ref=e90]
+                  - text: Conversar com a IA
+            - generic [ref=e93]:
+              - img [ref=e95]
+              - generic [ref=e97]:
+                - paragraph [ref=e98]: "99"
+                - text: créditos disponíveis
+              - button [ref=e99] [cursor=pointer]: Comprar
+            - generic [ref=e100]:
+              - generic [ref=e103] [cursor=pointer]:
+                - img [ref=e105]
+                - paragraph [ref=e107]: "1"
+                - generic [ref=e108]: Exames enviados
+              - generic [ref=e111] [cursor=pointer]:
+                - img [ref=e113]
+                - paragraph [ref=e116]: "10"
+                - generic [ref=e117]: Valores alterados
+              - generic [ref=e120] [cursor=pointer]:
+                - img [ref=e122]
+                - paragraph [ref=e125]: "1"
+                - generic [ref=e126]: Dependentes
+              - generic [ref=e129] [cursor=pointer]:
+                - img [ref=e131]
+                - paragraph [ref=e133]: —
+                - generic [ref=e134]: Última atualização
+            - generic [ref=e138]:
+              - heading [level=6] [ref=e139]: Distribuição dos valores
+              - paragraph [ref=e140]: Últimos exames extraídos deste perfil.
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - application [ref=e144]
+                  - generic [ref=e154]:
+                    - paragraph [ref=e155]: "20"
+                    - generic [ref=e156]: valores
+                - generic [ref=e157]:
+                  - paragraph [ref=e160]:
+                    - strong [ref=e161]: "10"
+                    - text: Bons (na faixa) (50%)
+                  - paragraph [ref=e164]:
+                    - strong [ref=e165]: "10"
+                    - text: Alerta (abaixo) (50%)
+            - generic [ref=e166]:
+              - generic [ref=e169] [cursor=pointer]:
+                - img [ref=e171]
+                - generic [ref=e173]: Enviar exame
+              - generic [ref=e176] [cursor=pointer]:
+                - img [ref=e178]
+                - generic [ref=e180]: Evolução
+              - generic [ref=e183] [cursor=pointer]:
+                - img [ref=e185]
+                - generic [ref=e188]: Família
+              - generic [ref=e191] [cursor=pointer]:
+                - img [ref=e193]
+                - generic [ref=e195]: Relatório
+            - generic [ref=e197]: Toque nos cards de contador para navegar.
+            - generic [ref=e200] [cursor=pointer]:
+              - generic [ref=e201]:
+                - generic [ref=e202]:
+                  - paragraph [ref=e203]: 🏆 Suas conquistas
+                  - text: Resgate 1 crédito a cada meta atingida
+                - img [ref=e204]
+              - generic [ref=e206]:
+                - generic [ref=e208]: 🎉
+                - generic [ref=e210]: 📚
+                - generic [ref=e212]: 🎓
+                - generic [ref=e214]: 💚
+                - generic [ref=e216]: 🔥
+              - generic [ref=e217]: 1 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=e218]:
+      - generic [ref=e219] [cursor=pointer]:
+        - generic [ref=e220]: 🏠
+        - paragraph [ref=e221]: Início
+      - generic [ref=e223] [cursor=pointer]:
+        - generic [ref=e224]: 📋
+        - paragraph [ref=e225]: Exames
+      - generic [ref=e226] [cursor=pointer]:
+        - img [ref=e228]
+        - paragraph [ref=e229]: Dr. Exame
+      - generic [ref=e230] [cursor=pointer]:
+        - generic [ref=e231]: 📈
+        - paragraph [ref=e232]: Evolução
+      - generic [ref=e233] [cursor=pointer]:
+        - generic [ref=e234]: ☰
+        - paragraph [ref=e235]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e236]
+    - img [ref=e237]
+  - dialog [active] [ref=e240]:
+    - generic [ref=e241]:
+      - button "Pular" [ref=e242] [cursor=pointer]
+      - generic [ref=e243]:
+        - generic [ref=e244]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=e245]
+        - paragraph [ref=e246]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=e247]:
+        - button "Próximo" [ref=e253] [cursor=pointer]:
+          - text: Próximo
+          - img [ref=e255]
+        - paragraph [ref=e257]: Toque em Próximo para continuar →

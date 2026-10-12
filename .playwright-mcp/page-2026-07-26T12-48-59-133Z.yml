@@ -1,0 +1,48 @@
+- generic [active] [ref=f1e20]:
+  - generic [ref=f1e21]:
+    - generic [ref=f1e22]:
+      - button "Pular para o conteúdo" [ref=f1e23] [cursor=pointer]
+      - generic [ref=f1e24]:
+        - banner [ref=f1e25]:
+          - generic [ref=f1e26]:
+            - button "Menu" [ref=f1e27] [cursor=pointer]
+            - generic [ref=f1e30]:
+              - img "Dr. Exame" [ref=f1e32]
+              - paragraph [ref=f1e33]: Dr. Exame
+            - button [ref=f1e34] [cursor=pointer]
+            - button [ref=f1e39] [cursor=pointer]
+            - button "Atualizar" [ref=f1e48] [cursor=pointer]
+        - main [ref=f1e51]:
+          - generic [ref=f1e53]:
+            - alert [ref=f1e54]: Algo deu errado
+            - generic [ref=f1e57]: A client error occurred and your request couldn't be completed.
+            - heading [level=3] [ref=f1e59]:
+              - button "Cannot read properties of undefined (reading 'importante')" [ref=f1e60] [cursor=pointer]
+            - generic [ref=f1e65]:
+              - paragraph [ref=f1e66]: "Need help with this error? Try the following:"
+              - list [ref=f1e68]:
+                - listitem [ref=f1e69]:
+                  - text: Check the
+                  - link "react-admin documentation" [ref=f1e70] [cursor=pointer]:
+                    - /url: https://marmelab.com/react-admin/documentation.html
+                - listitem [ref=f1e71]:
+                  - text: Search on
+                  - link "StackOverflow" [ref=f1e72] [cursor=pointer]:
+                    - /url: https://stackoverflow.com/questions/tagged/react-admin
+                  - text: for community answers
+                - listitem [ref=f1e73]:
+                  - text: Get help from the core team via
+                  - link "react-admin Enterprise Edition" [ref=f1e74] [cursor=pointer]:
+                    - /url: https://react-admin-ee.marmelab.com/#fromsww
+            - button [ref=f1e76] [cursor=pointer]
+    - navigation [ref=f1e80]:
+      - paragraph [ref=f1e85] [cursor=pointer]: Início
+      - paragraph [ref=f1e91] [cursor=pointer]: Exames
+      - generic [ref=f1e92] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f1e94]
+        - paragraph [ref=f1e95]: Dr. Exame
+      - paragraph [ref=f1e100] [cursor=pointer]: Evolução
+      - paragraph [ref=f1e105] [cursor=pointer]: Mais
+  - generic [ref=f1e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e19]

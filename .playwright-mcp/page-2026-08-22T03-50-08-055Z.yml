@@ -1,0 +1,118 @@
+- generic [active] [ref=f38e1]:
+  - banner [ref=f38e2]:
+    - generic [ref=f38e3]:
+      - link "Go to levelshealth.com" [ref=f38e5] [cursor=pointer]:
+        - /url: https://www.levelshealth.com
+      - navigation [ref=f38e16]:
+        - list [ref=f38e17]:
+          - listitem [ref=f38e18]:
+            - link "Levels Blog" [ref=f38e19] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/blog
+          - listitem [ref=f38e21]:
+            - link "Join the Waitlist" [ref=f38e22] [cursor=pointer]:
+              - /url: https://levels.link/waitlist-international?utm_campaign=homepage
+  - main [ref=f38e24]:
+    - generic [ref=f38e26]:
+      - heading "Oops! We can’t find that page." [level=1] [ref=f38e27]
+      - paragraph [ref=f38e28]: You might have clicked on an old link, or the page you are looking for may have moved.
+      - link "Back to Home" [ref=f38e29] [cursor=pointer]:
+        - /url: https://www.levelshealth.com
+  - contentinfo [ref=f38e30]:
+    - link "Go to levelshealth.com" [ref=f38e33] [cursor=pointer]:
+      - /url: https://www.levelshealth.com
+    - generic [ref=f38e46]:
+      - generic [ref=f38e47]:
+        - generic [ref=f38e48]:
+          - paragraph [ref=f38e49]: The Levels program, products, and services are intended only for maintaining and encouraging a healthy lifestyle and are not to be used for the diagnosis, cure, management, prevention, or treatment of any disease or condition.
+          - paragraph [ref=f38e50]: The Levels app, products, and services should never be used for medication management or dosing decisions.
+        - list [ref=f38e51]:
+          - listitem [ref=f38e52]:
+            - link "Go to Levels Facebook" [ref=f38e53] [cursor=pointer]:
+              - /url: https://facebook.com/LevelsHealth
+          - listitem [ref=f38e57]:
+            - link "Go to Levels Instagram" [ref=f38e58] [cursor=pointer]:
+              - /url: https://www.instagram.com/levels/
+          - listitem [ref=f38e62]:
+            - link "Go to Levels Twitter" [ref=f38e63] [cursor=pointer]:
+              - /url: https://twitter.com/levels
+          - listitem [ref=f38e67]:
+            - link "Go to Levels Youtube" [ref=f38e68] [cursor=pointer]:
+              - /url: https://www.youtube.com/channel/UClwMr26t47qS1L9S59P35Mg/
+          - listitem [ref=f38e71]:
+            - link "Go to Levels LinkedIn" [ref=f38e72] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/levels-health/
+          - listitem [ref=f38e78]:
+            - link "Go to Levels on Apple Podcasts" [ref=f38e79] [cursor=pointer]:
+              - /url: https://podcasts.apple.com/ca/podcast/a-whole-new-level/id1563263076
+          - listitem [ref=f38e83]:
+            - link "Go to Levels on Medium" [ref=f38e84] [cursor=pointer]:
+              - /url: https://medium.com/levelshealth
+        - generic [ref=f38e90]:
+          - link "Join the Waitlist" [ref=f38e91] [cursor=pointer]:
+            - /url: https://levels.link/waitlist-international?utm_campaign=homepage
+          - link "Login" [ref=f38e92] [cursor=pointer]:
+            - /url: https://app.levelshealth.com/home/login
+      - generic [ref=f38e94]:
+        - list [ref=f38e95]:
+          - listitem [ref=f38e96]:
+            - link "Refund Policy" [ref=f38e97] [cursor=pointer]:
+              - /url: https://support.levelshealth.com/article/43-refund-policy
+          - listitem [ref=f38e98]:
+            - link "Support" [ref=f38e99] [cursor=pointer]:
+              - /url: https://support.levelshealth.com
+          - listitem [ref=f38e100]:
+            - link "Levels Blog" [ref=f38e101] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/blog
+          - listitem [ref=f38e102]:
+            - link "Press" [ref=f38e103] [cursor=pointer]:
+              - /url: mailto:press@levelshealth.com
+          - listitem [ref=f38e104]:
+            - link "Careers" [ref=f38e105] [cursor=pointer]:
+              - /url: https://levels.link/careers
+          - listitem [ref=f38e106]:
+            - link "Inside the Company" [ref=f38e107] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/inside-the-company
+          - listitem [ref=f38e108]:
+            - link "Team Publications" [ref=f38e109] [cursor=pointer]:
+              - /url: https://medium.com/levelshealth
+          - listitem [ref=f38e110]:
+            - link "Press Appearances" [ref=f38e111] [cursor=pointer]:
+              - /url: /press
+          - listitem [ref=f38e112]:
+            - link "Video Appearances" [ref=f38e113] [cursor=pointer]:
+              - /url: /videos
+          - listitem [ref=f38e114]:
+            - link "Podcast Appearances" [ref=f38e115] [cursor=pointer]:
+              - /url: /podcasts
+        - list [ref=f38e116]:
+          - listitem [ref=f38e117]:
+            - link "About Levels" [ref=f38e118] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-demo
+          - listitem [ref=f38e119]:
+            - link "Our Program" [ref=f38e120] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-programs
+          - listitem [ref=f38e121]:
+            - link "User Profiles" [ref=f38e122] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-keypoints
+          - listitem [ref=f38e123]:
+            - link "Testimonials" [ref=f38e124] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-testimonials
+          - listitem [ref=f38e125]:
+            - link "Advisors" [ref=f38e126] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-medical
+          - listitem [ref=f38e127]:
+            - link "Founders" [ref=f38e128] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/#frontpage-founders
+          - listitem [ref=f38e129]:
+            - link "Media & Creators" [ref=f38e130] [cursor=pointer]:
+              - /url: https://levelshealth.notion.site/Levels-Assets-for-Media-Content-Creators-January-2022-f7e9b3066e2444cfae92dc786c2f8a32
+          - listitem [ref=f38e131]:
+            - link "Privacy Policy" [ref=f38e132] [cursor=pointer]:
+              - /url: https://levels.link/privacy
+          - listitem [ref=f38e133]:
+            - link "Terms of Service" [ref=f38e134] [cursor=pointer]:
+              - /url: https://www.levelshealth.com/terms-of-service
+          - listitem [ref=f38e135]:
+            - link "Member Login" [ref=f38e136] [cursor=pointer]:
+              - /url: https://app.levelshealth.com/home/login
+    - paragraph [ref=f38e139]: © 2026 Levels. All rights reserved.

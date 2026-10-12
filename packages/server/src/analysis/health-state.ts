@@ -21,6 +21,7 @@ import { collapseAdjacentNearDupes } from './dedup';
 import { getSettings } from '../utils/settings';
 import { normalizeUnit, parseNumeric, normalizeKey } from '../utils/normalize';
 import { personalizedTargets as computePersonalizedTargets, type PersonalizedTarget } from './personalized-targets';
+import { computeClinicalIndices, computeBodyRegions, type ClinicalIndexResult, type BodyRegionState } from './clinical-indices';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -170,6 +171,12 @@ export interface CurrentHealthSummary {
   personalizedTargets?: PersonalizedTarget[];
   /** Camada 3 — quebra por recência p/ o resumo consolidado (ver RecencyBreakdown). */
   recency?: RecencyBreakdown;
+  /** Índices clínicos CALCULADOS (determinísticos, zero IA — Castelli, AIP, HOMA-IR, TYG,
+   *  FIB-4, eGFR, não-HDL, LH/FSH, FAI…). Só aparecem os com TODOS os marcadores exigidos. */
+  clinicalIndices?: ClinicalIndexResult[];
+  /** Mapa corporal: agregação dos marcadores por região anatômica (nível ok/atencao/
+   *  alterado/sem_dados por região — alimenta o BodyMap do dashboard). */
+  bodyRegions?: BodyRegionState[];
 }
 
 // ───────────────────────── helpers puros ─────────────────────────
@@ -667,6 +674,24 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
       },
     );
   } catch { /* best-effort — sem alvos se falhar */ }
+  // Índices clínicos calculados (Castelli/AIP/HOMA-IR/TYG/FIB-4/eGFR/não-HDL/LH-FSH/FAI)
+  // + mapa corporal — pura matemática sobre os marcadores JÁ extraídos (zero IA).
+  // Idade/sexo vêm do perfil (FIB-4, eGFR, LH/FSH e FAI são sexo/idade-dependentes);
+  // sem perfil → esses índices simplesmente não aparecem (nunca se adivinha insumo).
+  let clinicalIndices: ClinicalIndexResult[] = [];
+  let bodyRegions: BodyRegionState[] = [];
+  try {
+    const p = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
+    const ageYears = p?.dateOfBirth ? Math.floor((Date.now() - new Date(p.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
+    const sex: 'male' | 'female' | null = p?.gender === 'male' || p?.gender === 'female' ? p.gender : null;
+    clinicalIndices = computeClinicalIndices(markers, { ageYears, sex });
+    bodyRegions = computeBodyRegions(markers.map((m) => ({
+      nameCanonical: m.nameCanonical,
+      name: m.name,
+      priority: m.priority,
+      valueText: m.latest.valueText ?? (m.latest.valueNumeric != null ? String(m.latest.valueNumeric).replace('.', ',') : null),
+    })));
+  } catch { /* best-effort */ }
   const byPriority: Record<Priority, number> = { normal: 0, leve: 0, moderada: 0, importante: 0 };
   for (const m of markers) byPriority[m.priority]++;
   const total = markers.length;
@@ -722,6 +747,8 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     cardiometabolicRisk,
     availability,
     personalizedTargets: pTargets,
+    clinicalIndices,
+    bodyRegions,
     // Camada 3 (consolidado): quebra por recência — corpo principal = marcadores do exame
     // mais recente; antigos viram tendência/contexto. Computado do MESMO conjunto `markers`
     // (com fallback includeStale) p/ o snapshot nunca se contradizer.

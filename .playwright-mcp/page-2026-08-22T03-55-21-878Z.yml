@@ -1,0 +1,113 @@
+- generic [active] [ref=f90e1]:
+  - banner [ref=f90e2]:
+    - generic [ref=f90e4]:
+      - link [ref=f90e5] [cursor=pointer]:
+        - /url: https://levels.com
+        - img "Levels Support" [ref=f90e6]
+      - generic:
+        - navigation:
+          - list [ref=f90e7]:
+            - listitem [ref=f90e8]:
+              - link "Home" [ref=f90e9] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f90e10]:
+              - link "Getting Started" [ref=f90e11] [cursor=pointer]:
+                - /url: /collection/434-getting-started
+            - listitem [ref=f90e12]:
+              - link "Levels 101" [ref=f90e13] [cursor=pointer]:
+                - /url: /collection/6-levels-101
+            - listitem [ref=f90e14]:
+              - link "Glucose Monitoring" [ref=f90e15] [cursor=pointer]:
+                - /url: /collection/606-glucose-monitoring
+            - listitem [ref=f90e17]:
+              - link "Labs & Nutritionist" [ref=f90e18] [cursor=pointer]:
+                - /url: /collection/11-labs-nutritionist
+            - listitem [ref=f90e19]:
+              - link "My Account" [ref=f90e20] [cursor=pointer]:
+                - /url: /collection/22-my-account
+            - listitem [ref=f90e21]:
+              - link "Education & Community" [ref=f90e22] [cursor=pointer]:
+                - /url: /collection/712-education-community
+            - listitem [ref=f90e23]:
+              - link "Policies" [ref=f90e24] [cursor=pointer]:
+                - /url: /collection/689-policies
+            - listitem [ref=f90e25]:
+              - link "Contact" [ref=f90e26] [cursor=pointer]:
+                - /url: "#"
+  - generic [ref=f90e27]:
+    - generic [ref=f90e28]:
+      - generic [ref=f90e30]:
+        - generic [ref=f90e31]:
+          - heading "Using Your Sensor" [level=1] [ref=f90e32]
+          - paragraph [ref=f90e33]: How to get the most out of Stelo
+          - combobox "Page reloads on selection" [ref=f90e36] [cursor=pointer]:
+            - option "Sort by Default"
+            - option "Sort A-Z"
+            - option "Sort by Popularity" [selected]
+            - option "Sort by Last Updated"
+        - list [ref=f90e37]:
+          - listitem [ref=f90e38]:
+            - link "Using a Sensor in the Sauna" [ref=f90e39] [cursor=pointer]:
+              - /url: /article/96-using-a-sensor-in-the-sauna
+              - generic [ref=f90e40]: 
+              - text: Using a Sensor in the Sauna
+          - listitem [ref=f90e41]:
+            - link "Sharing Stelo Biosensors with Someone Else" [ref=f90e42] [cursor=pointer]:
+              - /url: /article/128-sharing-stelo-biosensors-with-someone-else
+              - generic [ref=f90e43]: 
+              - text: Sharing Stelo Biosensors with Someone Else
+          - listitem [ref=f90e44]:
+            - link "Traveling with a Stelo Biosensor" [ref=f90e45] [cursor=pointer]:
+              - /url: /article/140-traveling-with-a-stelo-biosensor
+              - generic [ref=f90e46]: 
+              - text: Traveling with a Stelo Biosensor
+          - listitem [ref=f90e47]:
+            - link "How to Remove Your Stelo Biosensor" [ref=f90e48] [cursor=pointer]:
+              - /url: /article/733-how-to-remove-your-stelo-biosensor
+              - generic [ref=f90e49]: 
+              - text: How to Remove Your Stelo Biosensor
+          - listitem [ref=f90e50]:
+            - link "Stelo Biosensor Lifespan & Early Failures" [ref=f90e51] [cursor=pointer]:
+              - /url: /article/734-stelo-biosensor-lifespan-and-early-failures
+              - generic [ref=f90e52]: 
+              - text: Stelo Biosensor Lifespan & Early Failures
+      - complementary [ref=f90e53]:
+        - generic [ref=f90e54]:
+          - textbox "Search" [ref=f90e55]
+          - button "Toggle Search " [ref=f90e56] [cursor=pointer]:
+            - generic [ref=f90e57]: Toggle Search
+            - generic [ref=f90e58]: 
+        - heading "Categories" [level=3] [ref=f90e59]
+        - list [ref=f90e60]:
+          - listitem [ref=f90e61]:
+            - link "Setting Up Your Sensor" [ref=f90e62] [cursor=pointer]:
+              - /url: /category/610-setting-up-stelo
+              - text: Setting Up Your Sensor 
+          - listitem [ref=f90e63]:
+            - link "Using Your Sensor " [ref=f90e64] [cursor=pointer]:
+              - /url: /category/728-using-your-sensor
+              - text: Using Your Sensor
+              - generic [ref=f90e65]: 
+          - listitem [ref=f90e66]:
+            - link "Troubleshooting" [ref=f90e67] [cursor=pointer]:
+              - /url: /category/612-troubleshooting-stelo
+              - text: Troubleshooting 
+    - generic [ref=f90e68]:
+      - strong [ref=f90e69]: Questions?
+      - text: "Contact us:"
+      - link "support@levels.com" [ref=f90e70] [cursor=pointer]:
+        - /url: mailto:support@levels.com
+    - paragraph [ref=f90e72]:
+      - text: ©
+      - link "Levels Health, Inc." [ref=f90e73] [cursor=pointer]:
+        - /url: https://levels.com
+      - text: "2026."
+      - generic [ref=f90e74]:
+        - text: Powered by
+        - link "Help Scout" [ref=f90e75] [cursor=pointer]:
+          - /url: https://www.helpscout.com/docs-refer/?co=Levels+Health%2C+Inc.&utm_source=docs&utm_medium=footerlink&utm_campaign=Docs+Branding
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - iframe

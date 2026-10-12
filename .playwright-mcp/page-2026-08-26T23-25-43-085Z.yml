@@ -1,0 +1,39 @@
+- generic [ref=f22e40]:
+  - generic [ref=f22e41]:
+    - generic [ref=f22e42]:
+      - button "Menu do médico" [ref=f22e43] [cursor=pointer]
+      - generic [ref=f22e46]:
+        - paragraph [ref=f22e47]: Doutor Exame
+        - text: Otorrinolaringologista • CRM 12345-SP
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f22e48]: 🩺 Acesso médico · leitura
+    - generic [ref=f22e50]:
+      - generic [ref=f22e114]:
+        - button "Fechar banner" [ref=f22e115] [cursor=pointer]:
+          - generic [ref=f22e116]: ×
+        - generic [ref=f22e117]:
+          - paragraph [ref=f22e118]: 💎 Dr. Exame Pro
+          - paragraph [ref=f22e119]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f22e120] [cursor=pointer]
+      - generic [ref=f22e154]:
+        - generic [ref=f22e155]:
+          - heading "Pacientes (1)" [level=6] [ref=f22e156]
+          - generic [ref=f22e157]: 🔴 1 com alerta
+        - generic [ref=f22e159]:
+          - textbox "Buscar paciente" [ref=f22e164]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=f22e165] [cursor=pointer]
+        - generic [ref=f22e175] [cursor=pointer]:
+          - paragraph [ref=f22e176]: Edmilson Lopes
+          - generic [ref=f22e177]: 47a · M · Titular
+          - generic [ref=f22e178]: 🔴 alerta · 📋 23 exames · 📅 04/08/2026 · Particular
+  - navigation [ref=f22e121]:
+    - button "Início" [ref=f22e122] [cursor=pointer]:
+      - paragraph [ref=f22e127]: Início
+    - button "Pacientes" [active] [ref=f22e129] [cursor=pointer]:
+      - paragraph [ref=f22e134]: Pacientes
+    - button "Perguntas" [ref=f22e135] [cursor=pointer]:
+      - paragraph [ref=f22e140]: Perguntas
+    - button "Perfil" [ref=f22e141] [cursor=pointer]:
+      - paragraph [ref=f22e146]: Perfil
+    - button "Mais" [ref=f22e147] [cursor=pointer]:
+      - paragraph [ref=f22e152]: Mais

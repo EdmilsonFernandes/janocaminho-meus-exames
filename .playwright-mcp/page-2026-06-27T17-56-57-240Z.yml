@@ -1,0 +1,55 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e81]:
+      - button [ref=e347] [cursor=pointer]
+      - generic [ref=e83]:
+        - banner [ref=e84]:
+          - generic [ref=e85]:
+            - button [ref=e348] [cursor=pointer]:
+              - img [ref=e349]
+            - button [ref=e412] [cursor=pointer]:
+              - img [ref=e413]
+            - button [ref=e351] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e92]: "79"
+            - button [ref=e352] [cursor=pointer]:
+              - generic [ref=e96]: E
+            - button [ref=e353] [cursor=pointer]:
+              - generic [ref=e103]:
+                - img [ref=e104]
+                - generic [ref=e354]: "3"
+            - button [ref=e355] [cursor=pointer]:
+              - img [ref=e107]
+            - button [ref=e356] [cursor=pointer]:
+              - img [ref=e111]
+        - main [ref=e113]
+    - button [ref=e415] [cursor=pointer]:
+      - img [ref=e416]
+    - navigation [ref=e379]:
+      - generic [ref=e380] [cursor=pointer]:
+        - generic [ref=e381]: 🏠
+        - paragraph [ref=e382]: Início
+      - generic [ref=e384] [cursor=pointer]:
+        - generic [ref=e385]: 📋
+        - paragraph [ref=e386]: Exames
+      - generic [ref=e387] [cursor=pointer]:
+        - img [ref=e389]
+        - paragraph [ref=e390]: Dr. Exame
+      - generic [ref=e391] [cursor=pointer]:
+        - generic [ref=e392]: 📈
+        - paragraph [ref=e393]: Evolução
+      - generic [ref=e394] [cursor=pointer]:
+        - generic [ref=e395]: ☰
+        - paragraph [ref=e396]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e397]
+    - img [ref=e398]
+  - dialog [active] [ref=e402]:
+    - heading [level=2] [ref=e403]:
+      - generic [ref=e404]:
+        - img [ref=e405]
+        - paragraph [ref=e406]: "🎉 Conquista: Primeiro exame"
+    - paragraph [ref=e408]: Envie seu primeiro exame — resgate seu crédito!
+    - generic [ref=e409]:
+      - button [ref=e410] [cursor=pointer]: Depois
+      - button [ref=e411] [cursor=pointer]: Ver notificacoes

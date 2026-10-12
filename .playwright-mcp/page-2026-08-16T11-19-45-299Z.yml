@@ -1,0 +1,72 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "Menu do médico" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: D
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e29]:
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - paragraph [ref=e32]: Bom dia, Dr. Teste 👋
+            - paragraph [ref=e33]: 2 pacientes com valores alterados
+            - generic [ref=e34]: domingo, 16 de agosto
+          - generic [ref=e35]:
+            - generic [ref=e37] [cursor=pointer]:
+              - paragraph [ref=e42]: "3"
+              - text: Pacientes
+            - generic [ref=e44] [cursor=pointer]:
+              - paragraph [ref=e50]: "2"
+              - text: Com alerta
+            - generic [ref=e52] [cursor=pointer]:
+              - paragraph [ref=e57]: "0"
+              - text: Perguntas abertas
+            - generic [ref=e59] [cursor=pointer]:
+              - paragraph [ref=e64]: "0"
+              - text: Convites pendentes
+          - generic [ref=e65]:
+            - generic [ref=e66]:
+              - paragraph [ref=e67]: 🩺 Precisam de atenção agora
+              - button "Ver todos" [ref=e68] [cursor=pointer]
+            - generic [ref=e69]:
+              - generic [ref=e71] [cursor=pointer]:
+                - generic [ref=e72]: E
+                - generic [ref=e73]:
+                  - paragraph [ref=e74]: Edmilson Lopes QA
+                  - generic [ref=e75]: M · 🟠 Alterações moderadas · exame há 12 dias
+              - generic [ref=e79] [cursor=pointer]:
+                - generic [ref=e80]: E
+                - generic [ref=e81]:
+                  - paragraph [ref=e82]: Edmilson Lopes Fernandes dos Santos
+                  - generic [ref=e83]: M · 🟠 Alterações moderadas · exame há 1 mês
+          - generic [ref=e86]:
+            - paragraph [ref=e87]: 📅 Exames para renovar
+            - generic [ref=e88]: Sem exame novo há mais de 1 ano (ou nenhum compartilhado) — peça uma atualização na próxima consulta.
+            - generic [ref=e91] [cursor=pointer]:
+              - generic [ref=e92]: U
+              - generic [ref=e93]:
+                - paragraph [ref=e94]: Usuário Teste
+                - generic [ref=e95]: · sem exames compartilhados
+        - generic [ref=e98]:
+          - button "Fechar banner" [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]: ×
+          - generic [ref=e101]:
+            - paragraph [ref=e102]: 💎 Dr. Exame Pro
+            - paragraph [ref=e103]: 💡 0 de 5 pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=e104] [cursor=pointer]
+    - navigation [ref=e105]:
+      - button "Início" [ref=e106] [cursor=pointer]:
+        - paragraph [ref=e111]: Início
+      - button "Pacientes" [ref=e113] [cursor=pointer]:
+        - paragraph [ref=e118]: Pacientes
+      - button "Perguntas" [ref=e119] [cursor=pointer]:
+        - paragraph [ref=e124]: Perguntas
+      - button "Perfil" [ref=e125] [cursor=pointer]:
+        - paragraph [ref=e130]: Perfil
+      - button "Mais" [ref=e131] [cursor=pointer]:
+        - paragraph [ref=e136]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

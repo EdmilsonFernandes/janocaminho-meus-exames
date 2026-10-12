@@ -1,0 +1,164 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e1643]:
+            - generic [ref=e1644]:
+              - button [ref=e1645] [cursor=pointer]
+              - heading [level=6] [ref=e1650]: Minhas conquistas
+            - generic [ref=e1652]:
+              - generic [ref=e1653]:
+                - generic [ref=e1654]:
+                  - paragraph [ref=e1655]:
+                    - text: "0"
+                    - generic [ref=e1656]: de 12 créditos resgatados
+                  - paragraph [ref=e1657]: 3 conquistas desbloqueadas · saldo atual 💎 71
+                - generic [ref=e1658]:
+                  - generic [ref=e1659]: 🔥
+                  - generic [ref=e1660]: 1 dia
+              - button [ref=e1661] [cursor=pointer]: 🎁 Resgatar tudo (3 créditos)
+            - generic [ref=e1662]:
+              - generic [ref=e1663]:
+                - heading [level=6] [ref=e1664]: ♻️ Desafios do mês
+                - generic [ref=e1665]: agosto de 2026
+              - generic [ref=e1667]: Recomeçam todo mês — mantê-los em dia é o hábito que cuida da sua saúde.
+              - generic [ref=e1668]:
+                - generic [ref=e1669]:
+                  - generic [ref=e1670]: ♻️ mensal
+                  - generic [ref=e1672]: 📤
+                  - paragraph [ref=e1673]: Mês atualizado
+                  - paragraph [ref=e1674]: Envie 1 exame neste mês
+                  - paragraph [ref=e1675]: 🎁 2 créditos
+                  - progressbar [ref=e1676]
+                  - paragraph [ref=e1678]: 0%
+                - generic [ref=e1679]:
+                  - generic [ref=e1680]: ♻️ mensal
+                  - generic [ref=e1682]: 🧪
+                  - paragraph [ref=e1683]: Check-up do mês
+                  - paragraph [ref=e1684]: Envie 3 exames neste mês
+                  - paragraph [ref=e1685]: 🎁 5 créditos
+                  - progressbar [ref=e1686]
+                  - paragraph [ref=e1688]: 0%
+                - generic [ref=e1689]:
+                  - generic [ref=e1690]: ♻️ mensal
+                  - generic [ref=e1692]: 🔥
+                  - paragraph [ref=e1693]: Constância mensal
+                  - paragraph [ref=e1694]: Fique 10 dias seguidos no app
+                  - paragraph [ref=e1695]: 🎁 4 créditos
+                  - progressbar [ref=e1696]
+                  - paragraph [ref=e1698]: 10%
+                - generic [ref=e1699]:
+                  - generic [ref=e1700]: ♻️ mensal
+                  - generic [ref=e1702]: 🤝
+                  - paragraph [ref=e1703]: Médico em dia
+                  - paragraph [ref=e1704]: Compartilhe c/ um médico neste mês
+                  - paragraph [ref=e1705]: 🎁 3 créditos
+                  - progressbar [ref=e1706]
+                  - paragraph [ref=e1708]: 0%
+            - heading [level=6] [ref=e1709]: 🏆 Conquistas permanentes
+            - generic [ref=e1710]:
+              - generic [ref=e1711]:
+                - generic [ref=e1712]: 🎉
+                - paragraph [ref=e1713]: Primeiro exame
+                - paragraph [ref=e1714]: Envie seu primeiro exame
+                - paragraph [ref=e1715]: 🎁 2 créditos
+                - button [ref=e1716] [cursor=pointer]: Resgatar
+              - generic [ref=e1717]:
+                - generic [ref=e1718]: 📚
+                - paragraph [ref=e1719]: Colecionador
+                - paragraph [ref=e1720]: Acumule 5 exames
+                - paragraph [ref=e1721]: 🎁 3 créditos
+                - button [ref=e1722] [cursor=pointer]: Resgatar
+              - generic [ref=e1723]:
+                - generic [ref=e1724]: 🎓
+                - paragraph [ref=e1725]: Estudioso
+                - paragraph [ref=e1726]: Acumule 10 exames
+                - paragraph [ref=e1727]: 🎁 5 créditos
+                - progressbar [ref=e1728]
+                - paragraph [ref=e1730]: 50%
+              - generic [ref=e1731]:
+                - generic [ref=e1732]: 🗄️
+                - paragraph [ref=e1733]: Arquivista
+                - paragraph [ref=e1734]: Acumule 25 exames
+                - paragraph [ref=e1735]: 🎁 10 créditos
+                - progressbar [ref=e1736]
+                - paragraph [ref=e1738]: 20%
+              - generic [ref=e1739]:
+                - generic [ref=e1740]: 💚
+                - paragraph [ref=e1741]: Saudável
+                - paragraph [ref=e1742]: Score de saúde acima de 80
+                - paragraph [ref=e1743]: 🎁 5 créditos
+                - button [ref=e1744] [cursor=pointer]: Resgatar
+              - generic [ref=e1745]:
+                - generic [ref=e1746]: 🔥
+                - paragraph [ref=e1747]: Constância
+                - paragraph [ref=e1748]: 3 dias seguidos no app
+                - paragraph [ref=e1749]: 🎁 2 créditos
+                - progressbar [ref=e1750]
+                - paragraph [ref=e1752]: 33%
+              - generic [ref=e1753]:
+                - generic [ref=e1754]: ⚡
+                - paragraph [ref=e1755]: Dedicado
+                - paragraph [ref=e1756]: 7 dias seguidos no app
+                - paragraph [ref=e1757]: 🎁 5 créditos
+                - progressbar [ref=e1758]
+                - paragraph [ref=e1760]: 14%
+              - generic [ref=e1761]:
+                - generic [ref=e1762]: 👑
+                - paragraph [ref=e1763]: Mestre da saúde
+                - paragraph [ref=e1764]: 30 dias seguidos no app
+                - paragraph [ref=e1765]: 🎁 20 créditos
+                - progressbar [ref=e1766]
+                - paragraph [ref=e1768]: 3%
+            - generic [ref=e1769]: Conquistas dão créditos de IA (resumo, relatório, chat). O streak conta dias seguidos usando o app.
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

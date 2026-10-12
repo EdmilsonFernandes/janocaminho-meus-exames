@@ -1,0 +1,59 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e95]:
+      - button [ref=e148] [cursor=pointer]
+      - generic [ref=e97]:
+        - banner [ref=e98]:
+          - generic [ref=e99]:
+            - button [ref=e149] [cursor=pointer]
+            - paragraph [ref=e106]: Dr. Exame
+            - generic [ref=e107]:
+              - button [ref=e151] [cursor=pointer]:
+                - generic [ref=e154]: "15"
+              - button [ref=e155] [cursor=pointer]:
+                - generic [ref=e109]: 9+
+              - button [ref=e157] [cursor=pointer]:
+                - generic [ref=e114]: E
+        - main [ref=e119]
+    - navigation [ref=e122]:
+      - button [ref=e221] [cursor=pointer]:
+        - paragraph [ref=e127]: Início
+      - button [ref=e222] [cursor=pointer]:
+        - paragraph [ref=e132]: Exames
+      - button [ref=e223] [cursor=pointer]:
+        - paragraph [ref=e136]: Dr. Exame
+      - button [ref=e225] [cursor=pointer]:
+        - paragraph [ref=e141]: Evolução
+      - button [ref=e226] [cursor=pointer]:
+        - paragraph [ref=e146]: Mais
+  - button [ref=e228] [cursor=pointer]
+  - dialog [active] [ref=e363]:
+    - heading [level=2] [ref=e364]:
+      - text: Forma de pagamento
+      - button [ref=e365] [cursor=pointer]
+    - generic [ref=e368]:
+      - paragraph [ref=e369]: 50 créditos • R$ 9,90
+      - generic [ref=e370]:
+        - button [ref=e371] [cursor=pointer]:
+          - generic [ref=e375]:
+            - paragraph [ref=e376]: PIX
+            - text: Instantâneo • aprovação em segundos
+        - button [ref=e377] [cursor=pointer]:
+          - generic [ref=e381]:
+            - paragraph [ref=e382]: Cartão de crédito
+            - text: À vista • processado com segurança
+        - button [ref=e383] [cursor=pointer]:
+          - generic [ref=e387]:
+            - paragraph [ref=e388]: Débito
+            - text: À vista • processado com segurança
+      - generic [ref=e389]:
+        - generic [ref=e390]:
+          - generic [ref=e391]: 🔒 Ambiente seguro
+          - generic [ref=e392]: ·
+          - generic [ref=e393]: Dr. Exame
+          - generic [ref=e394]: ·
+          - generic [ref=e395]: "Processado via:"
+        - generic [ref=e396]:
+          - img "OpenPix" [ref=e397]
+          - img "Asaas" [ref=e398]
+      - generic [ref=e399]: No extrato do cartão aparece o nome do recebedor registrado

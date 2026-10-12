@@ -1,0 +1,258 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button [ref=e25] [cursor=pointer]:
+              - img [ref=e26]
+            - button [ref=e28] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "71"
+            - button [ref=e33] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button [ref=e36] [cursor=pointer]:
+              - generic [ref=e37]:
+                - img [ref=e38]
+                - generic [ref=e40]: "18"
+            - button [ref=e41] [cursor=pointer]:
+              - img [ref=e42]
+            - button [ref=e45] [cursor=pointer]:
+              - img [ref=e46]
+        - main [ref=e48]:
+          - generic [ref=e50]:
+            - generic [ref=e51]:
+              - paragraph [ref=e52]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e53]:
+              - img
+              - generic [ref=e55]:
+                - generic [ref=e56]:
+                  - img [ref=e57]
+                  - generic [ref=e60]:
+                    - paragraph [ref=e61]: "90"
+                    - generic [ref=e62]: de 100
+                - generic [ref=e63]:
+                  - generic [ref=e64]:
+                    - img [ref=e65]
+                    - generic [ref=e68]: Score de Saúde
+                  - generic [ref=e70]: Excelente
+                  - paragraph [ref=e71]: A maioria dos seus valores está dentro da faixa.
+                  - generic [ref=e72]: "*Educativo. 2 alterado(s)."
+                  - button [ref=e74] [cursor=pointer]: Ver detalhes
+            - generic [ref=e75]:
+              - generic [ref=e77]:
+                - img [ref=e79]
+                - generic [ref=e82]: Suas leituras
+              - generic [ref=e83]:
+                - generic [ref=e86]:
+                  - generic [ref=e87]:
+                    - generic [ref=e88]:
+                      - img [ref=e89]
+                      - paragraph [ref=e91]: Leitura de risco
+                      - button [ref=e92] [cursor=pointer]:
+                        - img [ref=e93]
+                    - generic [ref=e95]:
+                      - generic [ref=e97]: 🟢 Baixo
+                      - generic [ref=e99]: → Risco estável desde 03/07/2026
+                  - paragraph [ref=e100]: Sem alterações relevantes
+                  - paragraph [ref=e101]: Nos parâmetros analisados, não foram identificadas alterações relevantes. Isso não descarta a necessidade de acompanhamento médico de rotina. Esta análise não substitui uma consulta médica.
+                  - button [ref=e102] [cursor=pointer]: Ver mais
+                  - button [ref=e103] [cursor=pointer]:
+                    - img [ref=e105]
+                    - text: Perguntas pra levar ao médico (1)
+                    - img [ref=e108]
+                  - separator [ref=e110]
+                  - button [ref=e111] [cursor=pointer]:
+                    - img [ref=e113]
+                    - text: Plano de ação do Dr. Exame · 8 créditos
+                  - generic [ref=e115]: Baseada em 2 marcadores (poucos dados — leitura parcial).
+                  - generic [ref=e116]: "*Educativo. Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico."
+                  - generic [ref=e117]:
+                    - generic [ref=e118]: 🧪 Ajudar a IA a melhorar (dados anônimos)
+                    - switch [ref=e121] [cursor=pointer]
+                - generic [ref=e126]:
+                  - generic [ref=e127]:
+                    - img [ref=e128]
+                    - paragraph [ref=e131]: Meu estado atual
+                    - generic [ref=e133]: 90/100
+                  - paragraph [ref=e134]: 2 de 20 marcadores fora da faixa — vale revisar com seu médico.
+                  - generic [ref=e135]:
+                    - generic [ref=e137]: 🟡 2 leves
+                    - generic [ref=e139]: ✅ 18 normais
+                  - generic [ref=e140]:
+                    - generic [ref=e141]:
+                      - generic [ref=e142]:
+                        - paragraph [ref=e143]: VCM
+                        - text: 1º exame
+                      - paragraph [ref=e144]: 80,8
+                    - generic [ref=e145]:
+                      - generic [ref=e146]:
+                        - paragraph [ref=e147]: Plaquetas
+                        - text: 1º exame
+                      - paragraph [ref=e148]: 116.000/mm*
+                  - button [ref=e149] [cursor=pointer]:
+                    - text: Ver valores alterados
+                    - img [ref=e151]
+                  - generic [ref=e153]: "*Educativo. Sempre confirme com seu médico."
+                - generic [ref=e156]:
+                  - generic [ref=e157]:
+                    - img [ref=e158]
+                    - paragraph [ref=e160]: Score de Adesão
+                    - generic [ref=e162]: 🥉 Bronze
+                  - generic [ref=e163]:
+                    - generic [ref=e164]:
+                      - paragraph [ref=e165]: "25"
+                      - text: /100
+                    - generic [ref=e166]:
+                      - generic [ref=e167]:
+                        - generic [ref=e168]: Exames
+                        - progressbar [ref=e170]
+                        - generic [ref=e172]: "0"
+                      - generic [ref=e173]:
+                        - generic [ref=e174]: Medições
+                        - progressbar [ref=e176]
+                        - generic [ref=e178]: "0"
+                      - generic [ref=e179]:
+                        - generic [ref=e180]: Avaliações
+                        - progressbar [ref=e182]
+                        - generic [ref=e184]: "0"
+                      - generic [ref=e185]:
+                        - generic [ref=e186]: Consentimento
+                        - progressbar [ref=e188]
+                        - generic [ref=e190]: "0"
+                      - generic [ref=e191]:
+                        - generic [ref=e192]: Engajamento
+                        - progressbar [ref=e194]
+                        - generic [ref=e196]: "15"
+                      - generic [ref=e197]:
+                        - generic [ref=e198]: Atualização
+                        - progressbar [ref=e200]
+                        - generic [ref=e202]: "10"
+                  - generic [ref=e203]:
+                    - generic [ref=e204]: 💡 Envie exames regularmente (1 a cada 4 meses maximiza seus pontos).
+                    - generic [ref=e205]: 💡 Registre medições (pressão, peso) — 4 a cada 3 meses.
+                    - generic [ref=e206]: 💡 Avalie os planos de ação (👍/👎) pra ajudar a IA a melhorar.
+            - generic [ref=e207]:
+              - generic [ref=e209]:
+                - img [ref=e211]
+                - generic [ref=e213]: Dr. Exame
+              - generic [ref=e214]:
+                - img
+                - generic [ref=e216]:
+                  - generic [ref=e217]:
+                    - img [ref=e219]
+                    - generic [ref=e220]:
+                      - paragraph [ref=e221]: ✨ Dica personalizada (IA)
+                      - paragraph [ref=e222]: "Atenção: seu Plaquetas está baixo. Vale conversar com seu médico."
+                  - button [ref=e224] [cursor=pointer]:
+                    - img [ref=e226]
+                    - text: Conversar com a IA
+            - generic [ref=e228]:
+              - generic [ref=e230]:
+                - img [ref=e232]
+                - generic [ref=e234]: Seus números
+              - generic [ref=e235]:
+                - generic [ref=e236]:
+                  - generic [ref=e239] [cursor=pointer]:
+                    - img [ref=e241]
+                    - paragraph [ref=e243]: "1"
+                    - generic [ref=e244]: Exames enviados
+                  - generic [ref=e247] [cursor=pointer]:
+                    - img [ref=e249]
+                    - paragraph [ref=e252]: "2"
+                    - generic [ref=e253]: Valores alterados
+                  - generic [ref=e256] [cursor=pointer]:
+                    - img [ref=e258]
+                    - paragraph [ref=e261]: "1"
+                    - generic [ref=e262]: Dependentes
+                  - generic [ref=e265] [cursor=pointer]:
+                    - img [ref=e267]
+                    - paragraph [ref=e269]: —
+                    - generic [ref=e270]: Última atualização
+                - generic [ref=e274]:
+                  - heading [level=6] [ref=e275]: Distribuição dos valores
+                  - paragraph [ref=e276]: Últimos exames extraídos deste perfil.
+                  - generic [ref=e277]:
+                    - generic [ref=e278]:
+                      - application [ref=e280]
+                      - generic [ref=e290]:
+                        - paragraph [ref=e291]: "20"
+                        - generic [ref=e292]: valores
+                    - generic [ref=e293]:
+                      - paragraph [ref=e296]:
+                        - strong [ref=e297]: "18"
+                        - text: Bons (na faixa) (90%)
+                      - paragraph [ref=e300]:
+                        - strong [ref=e301]: "2"
+                        - text: Alerta (abaixo) (10%)
+            - generic [ref=e302]:
+              - generic [ref=e304]:
+                - img [ref=e306]
+                - generic [ref=e308]: Ações rápidas
+              - generic [ref=e309]:
+                - generic [ref=e310]:
+                  - generic [ref=e313] [cursor=pointer]:
+                    - img [ref=e315]
+                    - generic [ref=e317]: Enviar exame
+                  - generic [ref=e320] [cursor=pointer]:
+                    - img [ref=e322]
+                    - generic [ref=e324]: Evolução
+                  - generic [ref=e327] [cursor=pointer]:
+                    - img [ref=e329]
+                    - generic [ref=e332]: Família
+                  - generic [ref=e335] [cursor=pointer]:
+                    - img [ref=e337]
+                    - generic [ref=e339]: Relatório
+                - generic [ref=e341]:
+                  - img [ref=e343]
+                  - generic [ref=e345]:
+                    - paragraph [ref=e346]: "71"
+                    - text: créditos disponíveis
+                  - button [ref=e347] [cursor=pointer]: Comprar
+            - generic [ref=e348]:
+              - generic [ref=e350]:
+                - img [ref=e352]
+                - generic [ref=e354]: Conquistas
+              - generic [ref=e356] [cursor=pointer]:
+                - generic [ref=e357]:
+                  - generic [ref=e358]:
+                    - paragraph [ref=e359]: 🏆 Suas conquistas
+                    - text: Resgate 1 crédito a cada meta atingida
+                  - img [ref=e360]
+                - generic [ref=e362]:
+                  - generic [ref=e364]: 🎉
+                  - generic [ref=e366]: 📚
+                  - generic [ref=e368]: 🎓
+                  - generic [ref=e370]: 💚
+                  - generic [ref=e372]: 🔥
+                - generic [ref=e373]: 2 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=e374]:
+      - generic [ref=e375] [cursor=pointer]:
+        - generic [ref=e376]: 🏠
+        - paragraph [ref=e377]: Início
+      - generic [ref=e379] [cursor=pointer]:
+        - generic [ref=e380]: 📋
+        - paragraph [ref=e381]: Exames
+      - generic [ref=e382] [cursor=pointer]:
+        - img [ref=e384]
+        - paragraph [ref=e385]: Dr. Exame
+      - generic [ref=e386] [cursor=pointer]:
+        - generic [ref=e387]: 📈
+        - paragraph [ref=e388]: Evolução
+      - generic [ref=e389] [cursor=pointer]:
+        - generic [ref=e390]: ☰
+        - paragraph [ref=e391]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e392]
+    - img [ref=e393]
+  - dialog "Dr. Exame Edmilson, um valor precisa de atenção" [active] [ref=e396]:
+    - heading "Dr. Exame Edmilson, um valor precisa de atenção" [level=2] [ref=e397]:
+      - generic [ref=e398]:
+        - img "Dr. Exame" [ref=e399]
+        - paragraph [ref=e400]: Edmilson, um valor precisa de atenção
+    - paragraph [ref=e402]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+    - generic [ref=e403]:
+      - button "Depois" [ref=e404] [cursor=pointer]
+      - button "Ver notificacoes" [ref=e405] [cursor=pointer]

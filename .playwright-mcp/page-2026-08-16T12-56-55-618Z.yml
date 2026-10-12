@@ -1,0 +1,31 @@
+- generic [active] [ref=f4e20]:
+  - generic [ref=f4e21]:
+    - generic [ref=f4e22]:
+      - button "Pular para o conteúdo" [ref=f4e315] [cursor=pointer]
+      - generic [ref=f4e24]:
+        - banner [ref=f4e25]:
+          - generic [ref=f4e26]:
+            - button "Voltar" [ref=f4e316] [cursor=pointer]
+            - generic [ref=f4e30]:
+              - img "Dr. Exame" [ref=f4e317]
+              - paragraph [ref=f4e33]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=f4e318] [cursor=pointer]:
+              - generic [ref=f4e37]: "71"
+              - button "Ocultar créditos" [ref=f4e319]
+            - button "Notificações" [ref=f4e320] [cursor=pointer]:
+              - generic [ref=f4e42]: "36"
+            - button "E" [ref=f4e321] [cursor=pointer]
+            - button "Atualizar" [ref=f4e322] [cursor=pointer]
+        - main [ref=f4e57]
+    - navigation [ref=f4e159]:
+      - paragraph [ref=f4e164] [cursor=pointer]: Início
+      - paragraph [ref=f4e169] [cursor=pointer]: Exames
+      - generic [ref=f4e170] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f4e454]
+        - paragraph [ref=f4e173]: Dr. Exame
+      - paragraph [ref=f4e178] [cursor=pointer]: Evolução
+      - paragraph [ref=f4e184] [cursor=pointer]: Mais
+  - generic [ref=f4e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e458]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e459]
+  - generic [ref=f4e460]: "0"

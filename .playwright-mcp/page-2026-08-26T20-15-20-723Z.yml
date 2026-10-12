@@ -1,0 +1,140 @@
+- generic [ref=f6e1]:
+  - banner [ref=f6e2]:
+    - generic [ref=f6e4]:
+      - generic [ref=f6e5]:
+        - link "Lomadee — página inicial" [ref=f6e6] [cursor=pointer]:
+          - /url: /pt-br
+          - img "Lomadee" [ref=f6e7]
+        - navigation "Navegação principal" [ref=f6e18]:
+          - link "Para Creators" [ref=f6e19] [cursor=pointer]:
+            - /url: /pt-br/influenciadores
+          - link "Para Afiliados" [ref=f6e20] [cursor=pointer]:
+            - /url: /pt-br/afiliados
+          - link "Marcas" [ref=f6e21] [cursor=pointer]:
+            - /url: /pt-br/marcas
+          - link "Para Anunciantes" [ref=f6e22] [cursor=pointer]:
+            - /url: /pt-br/anunciantes
+          - link "Programa próprio" [ref=f6e23] [cursor=pointer]:
+            - /url: /pt-br/whitelabel
+          - link "Blog" [ref=f6e24] [cursor=pointer]:
+            - /url: /pt-br/blog
+      - generic [ref=f6e25]:
+        - link "Entrar" [ref=f6e26] [cursor=pointer]:
+          - /url: https://app.lomadee.com/login
+        - button "Cadastre-se grátis" [ref=f6e27] [cursor=pointer]
+  - main [ref=f6e28]:
+    - region [ref=f6e29]:
+      - generic [ref=f6e30]:
+        - generic [ref=f6e31]:
+          - button "Voltar" [ref=f6e32] [cursor=pointer]
+          - heading "Parcerias" [level=1] [ref=f6e33]
+          - paragraph [ref=f6e34]: Conte sobre a parceria que você imagina e vamos avaliar juntos a melhor forma de avançar.
+        - generic [ref=f6e36]:
+          - paragraph [ref=f6e37]: 1 de 2
+          - heading "Dados pessoais" [active] [level=2] [ref=f6e38]
+          - paragraph [ref=f6e39]: Conte-nos quem é você e suas informações de contato
+          - generic [ref=f6e40]:
+            - generic:
+              - generic [ref=f6e41]:
+                - generic [ref=f6e45]:
+                  - generic: Seu nome
+                  - textbox "Seu nome" [ref=f6e46]
+                - generic [ref=f6e50]:
+                  - generic: Seu e-mail
+                  - textbox "Seu e-mail" [ref=f6e51]
+                - generic [ref=f6e55]:
+                  - generic: Telefone / WhatsApp
+                  - textbox "Telefone / WhatsApp" [ref=f6e56]:
+                    - /placeholder: (00) 00000-0000
+                - button "Próximo" [ref=f6e57] [cursor=pointer]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: Nome da empresa
+                        - textbox
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic:
+                        - generic: Site da empresa
+                        - textbox
+                - generic:
+                  - combobox:
+                    - generic: Segmento
+                - combobox
+                - generic:
+                  - generic: Conte sobre a parceria
+                  - textbox:
+                    - /placeholder: Descreva a parceria que você imagina e o que espera dessa conversa.
+                - generic:
+                  - checkbox
+                  - checkbox
+                  - generic: Declaro que li e concordo com os Termos de Uso e Políticas de Privacidade da Lomadee.
+                - button: Solicitar contato
+    - region [ref=f6e58]:
+      - generic [ref=f6e59]:
+        - heading "Perguntas frequentes" [level=2] [ref=f6e61]
+        - generic [ref=f6e62]:
+          - generic [ref=f6e63]:
+            - heading [level=3] [ref=f6e64]:
+              - button "O que é a Lomadee?" [expanded] [ref=f6e65] [cursor=pointer]
+            - region "O que é a Lomadee?" [ref=f6e69]:
+              - generic [ref=f6e70]: A Lomadee é uma plataforma de creator commerce que conecta creators e afiliados às maiores marcas do Brasil. Com mais de 1 milhão de afiliados cadastrados, R$ 10 bilhões em GMV gerado e R$ 5 milhões em comissões pagas, somos o maior ecossistema de performance e monetização de audiência do país.
+          - heading [level=3] [ref=f6e72]:
+            - button "Como funciona a Lomadee?" [ref=f6e73] [cursor=pointer]
+          - heading [level=3] [ref=f6e78]:
+            - button "Quanto posso ganhar com a Lomadee?" [ref=f6e79] [cursor=pointer]
+          - heading [level=3] [ref=f6e84]:
+            - button "A Lomadee é gratuita?" [ref=f6e85] [cursor=pointer]
+          - heading [level=3] [ref=f6e90]:
+            - button "Quais marcas estão disponíveis na Lomadee?" [ref=f6e91] [cursor=pointer]
+          - heading [level=3] [ref=f6e96]:
+            - button "Como recebo meu pagamento na Lomadee?" [ref=f6e97] [cursor=pointer]
+  - contentinfo [ref=f6e101]:
+    - generic [ref=f6e102]:
+      - generic [ref=f6e103]:
+        - img "Lomadee" [ref=f6e104]
+        - paragraph [ref=f6e107]: Cadastre-se e receba novidades do mundo dos afiliados.
+      - generic [ref=f6e110]:
+        - generic [ref=f6e111]:
+          - generic [ref=f6e115]:
+            - generic: Seu nome
+            - textbox "Seu nome" [ref=f6e116]
+          - generic [ref=f6e120]:
+            - generic: Seu melhor e-mail
+            - textbox "Seu melhor e-mail" [ref=f6e121]
+          - button "Cadastrar" [ref=f6e122] [cursor=pointer]
+        - generic [ref=f6e124]:
+          - checkbox "Eu concordo em receber comunicações institucionais e de marketing da Lomadee." [ref=f6e125]
+          - checkbox
+          - generic [ref=f6e126]: Eu concordo em receber comunicações institucionais e de marketing da Lomadee.
+    - generic [ref=f6e127]:
+      - navigation "Links institucionais" [ref=f6e128]:
+        - link "Sobre nós" [ref=f6e129] [cursor=pointer]:
+          - /url: "#"
+        - link "Contato" [ref=f6e130] [cursor=pointer]:
+          - /url: /pt-br/contato
+        - link "Ajuda" [ref=f6e131] [cursor=pointer]:
+          - /url: "#"
+        - link "Carreiras" [ref=f6e132] [cursor=pointer]:
+          - /url: "#"
+        - link "Termos de Uso" [ref=f6e133] [cursor=pointer]:
+          - /url: "#"
+        - link "Política de Privacidade" [ref=f6e134] [cursor=pointer]:
+          - /url: "#"
+      - generic "Redes sociais" [ref=f6e135]:
+        - link "Instagram da Lomadee" [ref=f6e136] [cursor=pointer]:
+          - /url: https://www.instagram.com/lomadee.co
+        - link "LinkedIn da Lomadee" [ref=f6e139] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/lomadee
+    - generic [ref=f6e142]:
+      - paragraph [ref=f6e143]: Lomadee © 2026
+      - generic [ref=f6e144]:
+        - paragraph [ref=f6e145]:
+          - text: A Lomadee é a plataforma de creator commerce do Brasil — onde creators, marcas varejistas e afiliados de performance transformam recomendação autêntica em renda real.
+          - link "Saiba mais sobre marketing de afiliados." [ref=f6e146] [cursor=pointer]:
+            - /url: /pt-br/marketing-de-afiliados
+        - paragraph [ref=f6e147]: "Fundada há 14 anos como uma das maiores redes de afiliados do país, redesenhamos a plataforma para a era dos creators: cadastro pelo @instagram, @tiktok ou YouTube, dashboard mobile e Pix em dias, não em 60. Hoje, conectamos 300+ varejistas brasileiros a 1 milhão de creators e afiliados que movem audiências de verdade. A forma como as marcas alcançam consumidores mudou. Nós mudamos com ela."
+  - alert [ref=f6e148]

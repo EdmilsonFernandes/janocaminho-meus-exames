@@ -1,0 +1,52 @@
+- generic [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - generic [ref=f3e795]:
+      - generic [ref=f3e796]:
+        - img "Dr. Exame" [ref=f3e798]
+        - generic [ref=f3e799]:
+          - paragraph [ref=f3e800]: Meus Exames
+          - paragraph [ref=f3e801]: Seu assistente de saúde com IA
+      - generic [ref=f3e802]:
+        - button [ref=f3e803] [cursor=pointer]
+        - button [ref=f3e808] [cursor=pointer]
+      - generic [ref=f3e814]:
+        - generic [ref=f3e815]:
+          - generic [ref=f3e816]:
+            - text: E-mail
+            - generic [ref=f3e817]: "*"
+          - generic [ref=f3e818]:
+            - textbox "E-mail" [ref=f3e823]: edmilson@exemplo.com
+            - group:
+              - generic: E-mail *
+        - generic [ref=f3e824]:
+          - generic [ref=f3e825]:
+            - text: Senha
+            - generic [ref=f3e826]: "*"
+          - generic [ref=f3e827]:
+            - textbox "Senha" [active] [ref=f3e832]: troque123
+            - button "Mostrar senha" [ref=f3e834] [cursor=pointer]
+            - group:
+              - generic: Senha *
+        - button "Esqueci minha senha" [ref=f3e840] [cursor=pointer]
+        - button [ref=f3e841] [cursor=pointer]
+        - generic [ref=f3e845]: ou
+        - generic [ref=f3e849]:
+          - button "Continuar com o Google. Abre em uma nova guia" [ref=f3e851] [cursor=pointer]:
+            - generic [ref=f3e853]: Continuar com o Google
+          - iframe
+        - generic [ref=f3e868]:
+          - paragraph [ref=f3e869]: Acesso seguro
+          - paragraph [ref=f3e870]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+        - paragraph [ref=f3e871]:
+          - text: Não tem conta?
+          - button "Criar conta" [ref=f3e872] [cursor=pointer]
+      - generic [ref=f3e873]:
+        - generic [ref=f3e874]: 🩺
+        - paragraph [ref=f3e875]:
+          - strong [ref=f3e876]: Conteúdo educativo.
+          - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+    - alert [ref=f3e877]:
+      - generic [ref=f3e878]: E-mail ou senha incorretos.
+  - generic [ref=f3e10] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e11]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e12]

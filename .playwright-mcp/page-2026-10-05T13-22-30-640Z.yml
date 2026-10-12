@@ -1,0 +1,46 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e645]:
+    - generic [ref=f3e646]:
+      - img "Dr. Exame" [ref=f3e648]
+      - paragraph [ref=f3e649]: Meus Exames
+      - paragraph [ref=f3e650]: Seu assistente de saúde com IA
+    - generic [ref=f3e651]:
+      - generic [ref=f3e652]:
+        - button [ref=f3e653] [cursor=pointer]
+        - button [ref=f3e658] [cursor=pointer]
+      - generic [ref=f3e664]:
+        - generic [ref=f3e665]:
+          - generic [ref=f3e666]:
+            - text: E-mail
+            - generic [aria-hidden] [ref=f3e667]: "*"
+          - generic [ref=f3e668]:
+            - textbox "E-mail" [ref=f3e673]
+            - group [aria-hidden]:
+              - generic: E-mail *
+        - generic [ref=f3e674]:
+          - generic [ref=f3e675]:
+            - text: Senha
+            - generic [aria-hidden] [ref=f3e676]: "*"
+          - generic [ref=f3e677]:
+            - textbox "Senha" [ref=f3e682]
+            - button "Mostrar senha" [ref=f3e684] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Senha *
+        - button "Esqueci minha senha" [ref=f3e689] [cursor=pointer]
+        - button [ref=f3e690] [cursor=pointer]
+        - generic [ref=f3e694]: ou
+        - generic [ref=f3e698]:
+          - button "Continuar com o Google. Abre em uma nova guia" [ref=f3e700] [cursor=pointer]:
+            - generic [ref=f3e702]: Continuar com o Google
+          - iframe
+        - paragraph [ref=f3e712]:
+          - text: Não tem conta?
+          - button "Criar conta" [ref=f3e713] [cursor=pointer]
+      - generic [ref=f3e714]:
+        - paragraph [ref=f3e720]: Seus dados de saúde são protegidos pela LGPD.
+        - paragraph [ref=f3e721]:
+          - strong [ref=f3e722]: Conteúdo educativo.
+          - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=f3e561]:
+    - img "Acessível com VLibras" [ref=f3e562]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e563] [cursor=pointer]

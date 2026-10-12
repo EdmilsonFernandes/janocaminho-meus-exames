@@ -1,0 +1,119 @@
+- generic [active] [ref=f4e20]:
+  - generic [ref=f4e21]:
+    - generic [ref=f4e22]:
+      - button "Pular para o conteúdo" [ref=f4e315] [cursor=pointer]
+      - generic [ref=f4e24]:
+        - banner [ref=f4e25]:
+          - generic [ref=f4e26]:
+            - button "Voltar" [ref=f4e316] [cursor=pointer]
+            - generic [ref=f4e30]:
+              - img "Dr. Exame" [ref=f4e317]
+              - paragraph [ref=f4e33]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=f4e318] [cursor=pointer]:
+              - generic [ref=f4e37]: "71"
+              - button "Ocultar créditos" [ref=f4e319]
+            - button "Notificações" [ref=f4e320] [cursor=pointer]:
+              - generic [ref=f4e42]: "36"
+            - button "E" [ref=f4e321] [cursor=pointer]
+            - button "Atualizar" [ref=f4e322] [cursor=pointer]
+        - main [ref=f4e57]:
+          - generic [ref=f4e323]:
+            - generic [ref=f4e325]:
+              - heading "📈 Tendências" [level=5] [ref=f4e326]
+              - paragraph [ref=f4e327]: Veja como seus resultados evoluíram ao longo do tempo.
+            - generic [ref=f4e329]:
+              - generic [ref=f4e330]:
+                - button "Hemácias" [ref=f4e331] [cursor=pointer]
+                - button "Hematócrito" [ref=f4e333] [cursor=pointer]
+                - button "Hemoglobina" [ref=f4e335] [cursor=pointer]
+                - button "Leucócitos" [ref=f4e337] [cursor=pointer]
+                - button "Plaquetas" [ref=f4e339] [cursor=pointer]
+              - generic [ref=f4e342]:
+                - combobox [ref=f4e343] [cursor=pointer]: Hemoglobina (3 exames)
+                - textbox: HEMOGLOBINA
+                - group
+            - generic [ref=f4e345]:
+              - generic [ref=f4e346]:
+                - heading "Hemoglobina" [level=6] [ref=f4e347]
+                - button "O que é este exame?" [ref=f4e348] [cursor=pointer]
+              - generic [ref=f4e351]:
+                - generic [ref=f4e352]:
+                  - paragraph [ref=f4e353]:
+                    - text: 14,6
+                    - generic [ref=f4e354]:
+                      - generic [ref=f4e355]: g/dL
+                      - button "O que significa g/dL?" [ref=f4e356] [cursor=pointer]
+                  - paragraph [ref=f4e359]: ↓ 3%
+                - paragraph [ref=f4e360]: ↑ Tendência de alta · 3 medições
+                - paragraph [ref=f4e361]:
+                  - text: "Última medição:"
+                  - strong [ref=f4e362]: 09/07/26
+                - paragraph [ref=f4e363]: "Referência: 13.5–17.5 g/dL"
+              - application [ref=f4e366]:
+                - generic [ref=f4e387]:
+                  - generic [ref=f4e388]:
+                    - generic [ref=f4e389]: s/d
+                    - generic [ref=f4e391]: 14/04
+                    - generic [ref=f4e393]: 09/07
+                  - generic [ref=f4e395]:
+                    - generic [ref=f4e396]: "0"
+                    - generic [ref=f4e398]: "4"
+                    - generic [ref=f4e400]: "8"
+                    - generic [ref=f4e402]: "12"
+                    - generic [ref=f4e404]: "16"
+              - generic [ref=f4e406]:
+                - paragraph [ref=f4e407]: "📈 Tendência: subindo"
+                - paragraph [ref=f4e408]:
+                  - text: Neste ritmo, HEMOGLOBINA ultrapassa a faixa em
+                  - strong [ref=f4e409]: ~10 meses
+                  - text: .
+              - generic [ref=f4e410]:
+                - heading "Histórico (do mais recente)" [level=6] [ref=f4e411]
+                - generic [ref=f4e412]:
+                  - generic [ref=f4e413]:
+                    - generic [ref=f4e414]:
+                      - paragraph [ref=f4e415]: 09/07/26
+                      - generic "HEMOGRAMA" [ref=f4e416]
+                    - generic [ref=f4e417]:
+                      - paragraph [ref=f4e418]:
+                        - text: 14,6
+                        - generic [ref=f4e419]:
+                          - generic [ref=f4e420]: g/dL
+                          - button "O que significa g/dL?" [ref=f4e421] [cursor=pointer]
+                      - generic "Dentro da referência" [ref=f4e424]: Normal
+                  - generic [ref=f4e426]:
+                    - generic [ref=f4e427]:
+                      - paragraph [ref=f4e428]: 14/04/26
+                      - generic "HEMOGRAMA" [ref=f4e429]
+                    - generic [ref=f4e430]:
+                      - paragraph [ref=f4e431]:
+                        - text: 13,8
+                        - generic [ref=f4e432]:
+                          - generic [ref=f4e433]: g/dL
+                          - button "O que significa g/dL?" [ref=f4e434] [cursor=pointer]
+                      - generic "Dentro da referência" [ref=f4e437]: Normal
+                  - generic [ref=f4e439]:
+                    - generic [ref=f4e440]:
+                      - paragraph [ref=f4e441]: s/d
+                      - generic "HEMOGRAMA" [ref=f4e442]
+                    - generic [ref=f4e443]:
+                      - paragraph [ref=f4e444]:
+                        - text: "15"
+                        - generic [ref=f4e445]:
+                          - generic [ref=f4e446]: g/dL
+                          - button "O que significa g/dL?" [ref=f4e447] [cursor=pointer]
+                      - generic "Não classificado automaticamente" [ref=f4e450]: —
+    - button "Pergunte ao Dr. Exame" [ref=f4e452] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f4e453]
+    - navigation [ref=f4e159]:
+      - paragraph [ref=f4e164] [cursor=pointer]: Início
+      - paragraph [ref=f4e169] [cursor=pointer]: Exames
+      - generic [ref=f4e170] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f4e454]
+        - paragraph [ref=f4e173]: Dr. Exame
+      - paragraph [ref=f4e178] [cursor=pointer]: Evolução
+      - paragraph [ref=f4e184] [cursor=pointer]: Mais
+  - generic [ref=f4e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e458]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e459]
+  - generic [ref=f4e460]: "0"

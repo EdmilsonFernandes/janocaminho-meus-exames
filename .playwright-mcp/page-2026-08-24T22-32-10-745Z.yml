@@ -1,0 +1,110 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - generic [ref=f4e4]:
+      - link "Open in app" [ref=f4e5] [cursor=pointer]:
+        - /url: https://play.google.com/store/apps/details?id=com.medium.reader&referrer=utm_source%3DmobileNavBar&source=---top_nav_layout_nav-----------------------------------------
+      - generic [ref=f4e8]:
+        - paragraph [ref=f4e9]:
+          - button "Sign up" [ref=f4e11]
+        - paragraph [ref=f4e13]:
+          - link "Sign in" [ref=f4e15] [cursor=pointer]:
+            - /url: https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fkrishaweb.medium.com%2Fdark-mode-glassmorphism-and-spatial-design-the-2026-web-design-trends-that-actually-matter-0b63c9a96061&source=post_page---top_nav_layout_nav-----------------------global_nav------------------
+    - generic [ref=f4e16]:
+      - link "Homepage" [ref=f4e18] [cursor=pointer]:
+        - /url: https://medium.com/?source=---top_nav_layout_nav-----------------------------------------
+      - link "Search" [ref=f4e22] [cursor=pointer]:
+        - /url: https://medium.com/search?source=---top_nav_layout_nav-----------------------------------------
+      - button "user options menu" [ref=f4e31] [cursor=pointer]:
+        - img "Unknown user" [ref=f4e33]
+  - generic [ref=f4e37]:
+    - generic:
+      - dialog
+    - article [ref=f4e39]:
+      - generic [ref=f4e43]:
+        - paragraph [ref=f4e56] [cursor=pointer]: Member-only story
+        - generic [ref=f4e60]:
+          - generic [ref=f4e61]:
+            - link "Web Design" [ref=f4e65] [cursor=pointer]:
+              - /url: https://medium.com/tag/web-design?source=post_page---header_tags--0b63c9a96061---------------------------------------
+            - button "Follow Web Design" [ref=f4e67] [cursor=pointer]
+          - generic [ref=f4e70]:
+            - link "UX" [ref=f4e74] [cursor=pointer]:
+              - /url: https://medium.com/tag/ux?source=post_page---header_tags--0b63c9a96061---------------------------------------
+            - button "Follow UX" [ref=f4e76] [cursor=pointer]
+          - generic [ref=f4e79]:
+            - link "UX Design" [ref=f4e83] [cursor=pointer]:
+              - /url: https://medium.com/tag/ux-design?source=post_page---header_tags--0b63c9a96061---------------------------------------
+            - button "Follow UX Design" [ref=f4e85] [cursor=pointer]
+          - generic [ref=f4e88]:
+            - link "Design Thinking" [ref=f4e92] [cursor=pointer]:
+              - /url: https://medium.com/tag/design-thinking?source=post_page---header_tags--0b63c9a96061---------------------------------------
+            - button "Follow Design Thinking" [ref=f4e94] [cursor=pointer]
+          - generic [ref=f4e97]:
+            - link "Product Design" [ref=f4e101] [cursor=pointer]:
+              - /url: https://medium.com/tag/product-design?source=post_page---header_tags--0b63c9a96061---------------------------------------
+            - button "Follow Product Design" [ref=f4e103] [cursor=pointer]
+        - generic [ref=f4e108]:
+          - generic [ref=f4e109]:
+            - 'heading "Dark Mode, Glassmorphism, and Spatial Design: The 2026 Web Design Trends That Actually Matter" [level=1] [ref=f4e110]'
+            - generic [ref=f4e113]:
+              - generic [ref=f4e114]:
+                - generic [ref=f4e115]:
+                  - link [ref=f4e119] [cursor=pointer]:
+                    - /url: /?source=post_page---byline--0b63c9a96061---------------------------------------
+                    - img "KrishaWeb" [ref=f4e122]
+                  - link "KrishaWeb" [ref=f4e131] [cursor=pointer]:
+                    - /url: /?source=post_page---byline--0b63c9a96061---------------------------------------
+                - generic [ref=f4e134]:
+                  - generic [ref=f4e135]: 9 min read
+                  - generic [ref=f4e136]: ·
+                  - generic [ref=f4e138]: Jun 22, 2026
+              - generic [ref=f4e140]:
+                - link [ref=f4e147] [cursor=pointer]:
+                  - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D0b63c9a96061&operation=register&redirect=https%3A%2F%2Fkrishaweb.medium.com%2Fdark-mode-glassmorphism-and-spatial-design-the-2026-web-design-trends-that-actually-matter-0b63c9a96061&source=---header_actions--0b63c9a96061---------------------post_audio_button------------------
+                  - button "Listen" [ref=f4e151]:
+                    - paragraph [ref=f4e155]: Listen
+                - button "Share Post" [ref=f4e160] [cursor=pointer]:
+                  - paragraph [ref=f4e164]: Share
+          - figure [ref=f4e165]:
+            - button "Press enter or click to view image in full size" [ref=f4e166]
+          - paragraph [ref=f4e170]: Dark mode is now the default. Glassmorphism is everywhere. Spatial design is moving from novelty to mainstream. The question is not whether these trends are real. It is what they actually mean for your next website and where each one quietly works against you.
+          - paragraph [ref=f4e171]: "Most trend roundups skip that second part. They show you pretty examples and move on. This one takes a position on each trend: the psychology behind why it works, the brands using it well, and the specific situations where it backfires. Because a beautiful design that converts poorly is worse than a plain one that converts well, and knowing when not to use a trend is worth more than knowing the trend exists."
+          - paragraph [ref=f4e172]: Here are the three visual trends defining 2026, and what to actually do with each.
+          - heading [level=2] [ref=f4e173]:
+            - strong [ref=f4e174]: "Dark Mode: From Toggle to Default"
+          - figure "Dark Mode" [ref=f4e175]:
+            - button "Press enter or click to view image in full size" [ref=f4e176]
+          - paragraph [ref=f4e181]: The shift that defines 2026 is that dark mode stopped being a feature you add and became the design you start from. Mature dark mode in 2026 is designed first, not adapted from a light theme afterward.
+          - heading [level=3] [ref=f4e182]:
+            - strong [ref=f4e183]: Why it works
+    - contentinfo [ref=f4e184]:
+      - generic [ref=f4e188]:
+        - generic [ref=f4e189]:
+          - generic [ref=f4e192]:
+            - link [ref=f4e195] [cursor=pointer]:
+              - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F0b63c9a96061&operation=register&redirect=https%3A%2F%2Fkrishaweb.medium.com%2Fdark-mode-glassmorphism-and-spatial-design-the-2026-web-design-trends-that-actually-matter-0b63c9a96061&user=KrishaWeb&userId=fc7ec9e77059&source=---footer_actions--0b63c9a96061---------------------clap_footer------------------
+              - generic [ref=f4e198]:
+                - img "clap"
+            - paragraph [ref=f4e200]: "--"
+          - button "responses" [ref=f4e205] [cursor=pointer]
+          - generic [ref=f4e208]:
+            - link "Repost" [ref=f4e213] [cursor=pointer]:
+              - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Frepost%2Fp%2F0b63c9a96061&operation=register&redirect=https%3A%2F%2Fkrishaweb.medium.com%2Fdark-mode-glassmorphism-and-spatial-design-the-2026-web-design-trends-that-actually-matter-0b63c9a96061&user=KrishaWeb&userId=fc7ec9e77059&source=---footer_actions--0b63c9a96061---------------------repost_footer------------------
+            - paragraph [ref=f4e220]: "--"
+        - button "Share Post" [ref=f4e227] [cursor=pointer]
+    - generic [ref=f4e233]:
+      - link [ref=f4e236] [cursor=pointer]:
+        - /url: /?source=post_page---post_author_info--0b63c9a96061---------------------------------------
+        - img "KrishaWeb" [ref=f4e238]
+      - generic [ref=f4e241]:
+        - link [ref=f4e242] [cursor=pointer]:
+          - /url: /?source=post_page---post_author_info--0b63c9a96061---------------------------------------
+          - heading "Written by KrishaWeb" [level=2] [ref=f4e243]
+        - generic [ref=f4e244]:
+          - link "312 followers" [ref=f4e247] [cursor=pointer]:
+            - /url: /followers?source=post_page---post_author_info--0b63c9a96061---------------------------------------
+          - generic [ref=f4e248]:
+            - generic [ref=f4e249]: ·
+            - link "395 following" [ref=f4e250] [cursor=pointer]:
+              - /url: /following?source=post_page---post_author_info--0b63c9a96061---------------------------------------
+        - paragraph [ref=f4e252]: Full-service digital agency since 2008. Web design, UI/UX, open-source and framework development, and AI solutions for clients globally.

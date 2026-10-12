@@ -1,0 +1,94 @@
+- generic [ref=e1]:
+  - generic [ref=e27]:
+    - button [ref=e407] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e29]:
+      - banner [ref=e30]:
+        - generic [ref=e31]:
+          - heading [level=6] [ref=e408]:
+            - generic [ref=e409]: Evolução da minha saúde
+          - generic [ref=e32]:
+            - button [ref=e411] [cursor=pointer]:
+              - generic [ref=e34]: 9+
+            - button [ref=e412] [cursor=pointer]:
+              - generic [ref=e39]: T
+              - generic [ref=e41]:
+                - generic [ref=e42]: Theo QA
+                - generic [ref=e413]: Filho(a)
+          - button [ref=e414] [cursor=pointer]
+      - main [ref=e50]:
+        - navigation [ref=e54]:
+          - generic [ref=e57]:
+            - generic [ref=e58]: E
+            - generic [ref=e61]:
+              - paragraph [ref=e62]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e63]:
+                - generic [ref=e64]: Plano grátis
+                - button [ref=e415] [cursor=pointer]:
+                  - generic [ref=e154]: ⚡ 69 (+)
+          - separator [ref=e66]
+          - button [expanded] [ref=e416] [cursor=pointer]:
+            - generic [ref=e72]: Exames
+          - generic [ref=e76]:
+            - button [expanded] [ref=e421] [cursor=pointer]:
+              - generic [ref=e82]: Cuidados
+            - generic [ref=e221]:
+              - button [ref=e422] [cursor=pointer]:
+                - generic [ref=e340]: Medições
+              - button [ref=e423] [cursor=pointer]:
+                - generic [ref=e346]: Remédios
+              - button [ref=e424] [cursor=pointer]:
+                - generic [ref=e352]: Vacinas
+              - button [ref=e425] [cursor=pointer]:
+                - generic [ref=e358]: Lembretes
+              - button [ref=e426] [cursor=pointer]:
+                - generic [ref=e364]: Cartão de Emergência
+              - button [ref=e427] [cursor=pointer]:
+                - generic [ref=e370]: Conquistas
+              - button [ref=e428] [cursor=pointer]:
+                - generic [ref=e376]: Despesas Médicas
+          - button [ref=e429] [cursor=pointer]:
+            - generic [ref=e92]: Pessoas
+          - button [ref=e430] [cursor=pointer]:
+            - generic [ref=e101]: Conta
+          - button [ref=e431] [cursor=pointer]:
+            - generic [ref=e110]: Dúvidas frequentes
+          - menuitem [ref=e432] [cursor=pointer]:
+            - generic [ref=e116]: Sobre o app
+          - menuitem [ref=e433] [cursor=pointer]:
+            - generic [ref=e122]: Sair da conta
+          - generic [ref=e124]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=e439]:
+          - heading [level=5] [ref=e440]: Evolução ao longo do tempo
+          - paragraph [ref=e441]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.
+  - dialog [active] [ref=e465]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 2 Fechar" [level=2] [ref=e466]:
+      - generic [ref=e467]:
+        - paragraph [ref=e468]: Vamos preparar o Dr. Exame
+        - generic [ref=e469]: Passo 1 de 2
+      - button "Fechar" [ref=e470] [cursor=pointer]
+    - progressbar [ref=e473]
+    - generic [ref=e476]:
+      - paragraph [ref=e477]: Essas informações personalizam as faixas de referência dos seus exames e os cálculos de idade biológica e função renal.
+      - generic [ref=e478]:
+        - generic:
+          - text: Sexo
+          - generic [aria-hidden]: "*"
+        - generic [ref=e479]:
+          - combobox "Sexo" [ref=e480] [cursor=pointer]
+          - textbox [aria-hidden]
+          - group [aria-hidden]:
+            - generic: Sexo *
+      - generic [ref=e481]:
+        - generic [ref=e482]:
+          - generic [ref=e483]: Data de nascimento
+          - generic [ref=e484]:
+            - textbox "Data de nascimento" [ref=e485]:
+              - /placeholder: dd/mm/aaaa
+              - text: 10/05/2022
+            - button "Abrir calendário" [ref=e487] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Data de nascimento
+        - textbox [aria-hidden]: 2022-05-10
+    - generic [ref=e490]:
+      - button "Agora não" [ref=e491] [cursor=pointer]
+      - button "Continuar" [disabled]

@@ -1,0 +1,205 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e105]:
+      - button "Pular para o conteúdo" [ref=e449] [cursor=pointer]
+      - main [ref=e134]:
+        - navigation [ref=e456]:
+          - generic [ref=e457]:
+            - paragraph [ref=e462] [cursor=pointer]: Início
+            - paragraph [ref=e467] [cursor=pointer]: Exames
+            - paragraph [ref=e473] [cursor=pointer]: Valores alterados
+            - paragraph [ref=e479] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=e484] [cursor=pointer]: Tendências
+            - paragraph [ref=e489] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=e494] [cursor=pointer]: Relatório completo
+            - paragraph [ref=e499] [cursor=pointer]: Perguntas
+            - paragraph [ref=e505] [cursor=pointer]: Saúde da Família
+          - generic [ref=e506]:
+            - button "Minha saúde" [active] [ref=e507] [cursor=pointer]
+            - generic [ref=e790]:
+              - button "Valores alterados" [ref=e791] [cursor=pointer]
+              - button "Tendências" [ref=e798] [cursor=pointer]
+              - button "Linha do Tempo" [ref=e804] [cursor=pointer]
+              - button "Medições" [ref=e810] [cursor=pointer]
+              - button "Vacinas" [ref=e817] [cursor=pointer]
+              - button "Lembretes" [ref=e823] [cursor=pointer]
+              - button "Cartão de Emergência" [ref=e829] [cursor=pointer]
+              - button "Conquistas" [ref=e835] [cursor=pointer]
+          - button "Família & médicos" [ref=e517] [cursor=pointer]
+          - button "Conta" [ref=e527] [cursor=pointer]
+          - separator [ref=e535]
+          - button "Ajuda & Suporte" [ref=e536] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e542] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e548] [cursor=pointer]
+        - generic [ref=e563]:
+          - generic [ref=e564]:
+            - generic [ref=e569]:
+              - heading "Seus exames" [level=5] [ref=e570]
+              - paragraph [ref=e571]: 5 no total • toque para ver detalhes
+            - generic [ref=e572]:
+              - generic [ref=e574]:
+                - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=e578]
+                - group
+              - generic [ref=e579]:
+                - group [ref=e580]:
+                  - button "Todos" [pressed] [ref=e581] [cursor=pointer]
+                  - button "Alterados" [ref=e582] [cursor=pointer]
+                  - button "Recentes" [ref=e583] [cursor=pointer]
+                - group [ref=e584]:
+                  - button "📅 Por data" [pressed] [ref=e585] [cursor=pointer]
+                  - button "🗂️ Por categoria" [ref=e586] [cursor=pointer]
+              - generic [ref=e587]:
+                - button "Todos (5)" [ref=e588] [cursor=pointer]
+                - button "🩸 Hemograma (3)" [ref=e590] [cursor=pointer]
+                - button "🍩 Glicemia e Diabetes (1)" [ref=e592] [cursor=pointer]
+                - button "🧈 Lipídios e Colesterol (1)" [ref=e594] [cursor=pointer]
+            - generic [ref=e596]:
+              - heading [level=3] [ref=e597]:
+                - button "📅 2026 5" [expanded] [ref=e598] [cursor=pointer]:
+                  - generic [ref=e599]:
+                    - paragraph [ref=e600]: 📅 2026
+                    - generic [ref=e601]: "5"
+              - region [ref=e609]:
+                - generic [ref=e610]:
+                  - generic [ref=e612] [cursor=pointer]:
+                    - generic [ref=e615]:
+                      - generic [ref=e616]:
+                        - paragraph [ref=e617]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e619]
+                      - generic [ref=e622]: s/ data
+                      - 'generic "Laboratório: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=e624]':
+                        - generic [ref=e625]: V
+                        - generic [ref=e626]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                      - generic [ref=e627]: 🏥 Laboratório em revisão
+                      - generic [ref=e628]: Hemograma • 20 resultados • 2 alterados
+                      - generic [ref=e629]:
+                        - generic [ref=e630]: Pronto
+                        - generic [ref=e632]: Conferir dados
+                    - button "Excluir exame HEMOGRAMA" [ref=e634]
+                  - generic [ref=e640] [cursor=pointer]:
+                    - generic [ref=e643]:
+                      - generic [ref=e644]:
+                        - paragraph [ref=e645]: GLICEMIA DE JEJUM
+                        - button "O que é este exame?" [ref=e647]
+                      - generic [ref=e651]:
+                        - text: 09 jul 2026
+                        - generic [ref=e652]: · há 1 mês
+                      - 'generic "Laboratório: Fleury" [ref=e654]':
+                        - generic [ref=e655]: F
+                        - generic [ref=e656]: Fleury
+                      - generic [ref=e657]: Glicemia e Diabetes • 2 resultados • 2 alterados
+                      - generic [ref=e658]: Pronto
+                    - button "Excluir exame GLICEMIA DE JEJUM" [ref=e661]
+                  - generic [ref=e667] [cursor=pointer]:
+                    - generic [ref=e670]:
+                      - generic [ref=e671]:
+                        - paragraph [ref=e672]: PERFIL LIPÍDICO
+                        - button "O que é este exame?" [ref=e674]
+                      - generic [ref=e678]:
+                        - text: 09 jul 2026
+                        - generic [ref=e679]: · há 1 mês
+                      - 'generic "Laboratório: Fleury" [ref=e681]':
+                        - generic [ref=e682]: F
+                        - generic [ref=e683]: Fleury
+                      - generic [ref=e684]: Lipídios e Colesterol • 4 resultados • 4 alterados
+                      - generic [ref=e685]: Pronto
+                    - button "Excluir exame PERFIL LIPÍDICO" [ref=e688]
+                  - generic [ref=e694] [cursor=pointer]:
+                    - generic [ref=e697]:
+                      - generic [ref=e698]:
+                        - paragraph [ref=e699]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e701]
+                      - generic [ref=e705]:
+                        - text: 09 jul 2026
+                        - generic [ref=e706]: · há 1 mês
+                      - 'generic "Laboratório: Laboratório Central" [ref=e708]':
+                        - generic [ref=e709]: L
+                        - generic [ref=e710]: Laboratório Central
+                      - generic [ref=e711]: Hemograma • 5 resultados
+                      - generic [ref=e712]: Pronto
+                    - button "Excluir exame HEMOGRAMA" [ref=e715]
+                  - generic [ref=e721] [cursor=pointer]:
+                    - generic [ref=e724]:
+                      - generic [ref=e725]:
+                        - paragraph [ref=e726]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e728]
+                      - generic [ref=e732]:
+                        - text: 14 abr 2026
+                        - generic [ref=e733]: · há 4 meses
+                      - 'generic "Laboratório: Laboratório Central" [ref=e735]':
+                        - generic [ref=e736]: L
+                        - generic [ref=e737]: Laboratório Central
+                      - generic [ref=e738]: Hemograma • 5 resultados
+                      - generic [ref=e739]: Pronto
+                    - button "Excluir exame HEMOGRAMA" [ref=e742]
+          - generic [ref=e841]:
+            - generic [ref=e843]:
+              - generic [ref=e844]:
+                - heading "HEMOGRAMA" [level=1] [ref=e845]
+                - generic [ref=e846]: Pronto
+                - generic [ref=e848]: 🩸 Hemograma
+                - generic [ref=e850]: conferir dados
+              - generic [ref=e852]:
+                - generic [ref=e853]: Data não identificada
+                - generic [ref=e854]:
+                  - 'generic "Laboratório: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=e855]':
+                    - generic [ref=e856]: V
+                    - generic [ref=e857]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                  - generic [ref=e858]: 1 pág.
+              - button [ref=e860] [cursor=pointer]
+              - paragraph [ref=e864]: 👤 BIANCA) pr mpi
+              - alert [ref=e865]:
+                - generic [ref=e866]: Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
+            - generic [ref=e868]:
+              - paragraph [ref=e869]: ⚠️ Confirme o titular antes da análise
+              - paragraph [ref=e870]:
+                - text: O nome detectado no documento (
+                - strong [ref=e871]: BIANCA) pr mpi
+                - text: ) parece diferente do perfil selecionado (
+                - strong [ref=e872]: Edmilson Lopes Fernandes dos Santos
+                - text: ).
+              - generic [ref=e873]:
+                - generic [ref=e874]: Similaridade 0%
+                - generic [ref=e876]: Proteção de privacidade
+              - paragraph [ref=e878]: Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.
+              - generic [ref=e879]:
+                - button "✓ Confirmo que é deste paciente" [ref=e880] [cursor=pointer]
+                - button "✕ Não é deste paciente (excluir)" [ref=e881] [cursor=pointer]
+            - generic [ref=e883]:
+              - paragraph [ref=e884]: 🚩 2 valor(es) fora da faixa de referência
+              - generic [ref=e885]:
+                - 'button "↓ Plaquetas: 116.000/mm³" [ref=e886] [cursor=pointer]'
+                - 'button "↓ VCM: 80,8" [ref=e888] [cursor=pointer]'
+            - heading [level=3] [ref=e891]:
+              - button "Leucograma 12 itens" [ref=e892] [cursor=pointer]:
+                - generic [ref=e893]:
+                  - paragraph [ref=e894]: Leucograma
+                  - generic [ref=e895]: 12 itens
+            - heading [level=3] [ref=e901]:
+              - button "Plaquetas 1 alterado 1 itens" [ref=e902] [cursor=pointer]:
+                - generic [ref=e903]:
+                  - paragraph [ref=e904]: Plaquetas
+                  - generic [ref=e905]: 1 alterado
+                  - generic [ref=e907]: 1 itens
+            - heading [level=3] [ref=e913]:
+              - button "Série Vermelha 1 alterado 7 itens" [ref=e914] [cursor=pointer]:
+                - generic [ref=e915]:
+                  - paragraph [ref=e916]: Série Vermelha
+                  - generic [ref=e917]: 1 alterado
+                  - generic [ref=e919]: 7 itens
+            - generic [ref=e926]:
+              - heading "Análise de saúde" [level=6] [ref=e927]
+              - paragraph [ref=e928]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+              - button "Gerar resumo" [ref=e929] [cursor=pointer]
+              - generic [ref=e930]:
+                - generic [ref=e931]: 💎
+                - generic [ref=e932]: 10 créditos
+            - generic [ref=e934]:
+              - generic [ref=e935]:
+                - heading "📋 Preparar visita ao médico" [level=6] [ref=e936]
+                - button "Gerar documento" [ref=e937] [cursor=pointer]
+              - paragraph [ref=e938]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+    - button "Enviar exame" [ref=e554] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e447]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e448]

@@ -1,0 +1,27 @@
+- generic [ref=f18e2]:
+  - generic [ref=f18e3]:
+    - button "Pular para o conteúdo" [ref=f18e4] [cursor=pointer]
+    - generic [ref=f18e5]:
+      - banner [ref=f18e6]:
+        - generic [ref=f18e7]:
+          - button "Voltar" [ref=f18e767] [cursor=pointer]
+          - generic [ref=f18e11]:
+            - img "Dr. Exame" [ref=f18e13]
+            - paragraph [ref=f18e766]: Dr. Exame
+          - generic [ref=f18e15]:
+            - button "Notificações" [ref=f18e16] [cursor=pointer]:
+              - generic [ref=f18e17]: "0"
+            - button "E" [ref=f18e22] [cursor=pointer]
+      - main [ref=f18e28]
+  - navigation [ref=f18e740]:
+    - button "Início" [ref=f18e741] [cursor=pointer]:
+      - paragraph [ref=f18e745]: Início
+    - button "Exames" [ref=f18e747] [cursor=pointer]:
+      - paragraph [ref=f18e751]: Exames
+    - button "Dr. Exame — conversar com a IA" [ref=f18e752] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f18e754]
+      - paragraph [ref=f18e755]: Dr. Exame
+    - button "Evolução" [ref=f18e756] [cursor=pointer]:
+      - paragraph [ref=f18e760]: Evolução
+    - button "Mais" [ref=f18e761] [cursor=pointer]:
+      - paragraph [ref=f18e765]: Mais

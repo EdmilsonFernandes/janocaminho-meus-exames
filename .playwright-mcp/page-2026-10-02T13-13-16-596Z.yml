@@ -1,0 +1,80 @@
+- generic [active] [ref=f14e1]:
+  - generic [ref=f14e7]:
+    - complementary [ref=f14e8]:
+      - generic [ref=f14e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f14e13]
+        - generic [ref=f14e14]: Admin
+      - navigation [ref=f14e15]:
+        - generic [ref=f14e16]: Operação
+        - link "Dashboard" [ref=f14e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f14e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f14e28] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f14e32] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f14e38] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f14e43] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f14e50]:
+        - generic [ref=f14e52]: Operação ao vivo
+        - paragraph [ref=f14e57]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f14e58]:
+        - link "Ver site público" [ref=f14e59] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f14e64]: © 2026 PremioX · Painel do operador
+    - generic [ref=f14e65]:
+      - banner [ref=f14e66]:
+        - generic [ref=f14e67]:
+          - searchbox "Buscar no painel…" [ref=f14e68]
+          - generic: ⌘K
+        - button "Atualizar" [ref=f14e69] [cursor=pointer]
+        - link "Ver site" [ref=f14e75] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f14e81]:
+          - generic [ref=f14e82]: S
+          - generic [ref=f14e83]: Sim Admin E2E
+          - generic "Online" [ref=f14e84]
+        - button "Sair" [ref=f14e85] [cursor=pointer]
+      - main [ref=f14e89]:
+        - generic [ref=f14e90]:
+          - generic [ref=f14e91]:
+            - generic [ref=f14e92]:
+              - heading "Nova campanha" [level=1] [ref=f14e93]
+              - paragraph [ref=f14e94]: Oferta ao vivo · Passo 1 de 4 · Produto
+              - paragraph [ref=f14e95]: Digite o nome do produto como seu cliente pesquisaria.
+            - button "trocar tipo" [ref=f14e96] [cursor=pointer]
+          - generic [ref=f14e97]:
+            - progressbar [ref=f14e98]
+            - generic "Etapas do formulário" [ref=f14e99]:
+              - list [ref=f14e100]:
+                - listitem [ref=f14e101]:
+                  - generic [ref=f14e102]:
+                    - generic [ref=f14e103]: "1"
+                    - generic [ref=f14e104]: Produto
+                - listitem [ref=f14e106]:
+                  - generic [ref=f14e107]:
+                    - generic [ref=f14e108]: "2"
+                    - generic [ref=f14e109]: Mídia & ficha
+                - listitem [ref=f14e111]:
+                  - generic [ref=f14e112]:
+                    - generic [ref=f14e113]: "3"
+                    - generic [ref=f14e114]: Preços
+                - listitem [ref=f14e116]:
+                  - generic [ref=f14e117]:
+                    - generic [ref=f14e118]: "4"
+                    - generic [ref=f14e119]: Agendamento
+            - generic [ref=f14e120]:
+              - generic [ref=f14e121]:
+                - generic [ref=f14e122]: Título do produto *
+                - 'textbox "Ex: iPhone 17 Pro 256 GB" [ref=f14e123]'
+              - generic [ref=f14e124]:
+                - generic [ref=f14e125]: Slug (URL), opcional
+                - textbox "gerado automaticamente se vazio" [ref=f14e126]
+            - generic [ref=f14e127]:
+              - button "← Voltar" [ref=f14e128] [cursor=pointer]
+              - button "Continuar →" [disabled] [ref=f14e129]
+  - button "Open Next.js Dev Tools" [ref=f14e135] [cursor=pointer]
+  - alert [ref=f14e139]

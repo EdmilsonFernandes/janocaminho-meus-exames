@@ -1,0 +1,295 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e301] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button "Voltar" [ref=e507] [cursor=pointer]
+            - generic [ref=e283]:
+              - img "Dr. Exame" [ref=e305]
+              - paragraph [ref=e300]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e306] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button "Notificações" [active] [ref=e307] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button "E" [ref=e308] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e510]:
+            - generic [ref=e511]:
+              - heading "Notificações" [level=5] [ref=e516]
+              - button "Marcar todas como lidas" [ref=e518] [cursor=pointer]
+            - generic [ref=e519]:
+              - generic [ref=e522] [cursor=pointer]:
+                - generic [ref=e523]: ✨
+                - generic [ref=e524]:
+                  - paragraph [ref=e525]: "🎉 Conquista: Saudável"
+                  - paragraph [ref=e526]: Score de saúde acima de 80 — resgate seu crédito!
+                  - text: 16/08, 08:33
+                - generic [ref=e527]: nova
+              - generic [ref=e531] [cursor=pointer]:
+                - generic [ref=e532]: ✨
+                - generic [ref=e533]:
+                  - paragraph [ref=e534]: "🎉 Conquista: Colecionador"
+                  - paragraph [ref=e535]: Acumule 5 exames — resgate seu crédito!
+                  - text: 16/08, 08:33
+                - generic [ref=e536]: nova
+              - generic [ref=e540] [cursor=pointer]:
+                - generic [ref=e541]: ✨
+                - generic [ref=e542]:
+                  - paragraph [ref=e543]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e544]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+                  - text: 29/07, 09:52
+                - generic [ref=e545]: nova
+              - generic [ref=e549] [cursor=pointer]:
+                - generic [ref=e550]: ✨
+                - generic [ref=e551]:
+                  - paragraph [ref=e552]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e553]: Beba um copo de água agora mesmo! Manter o corpo hidratado melhora a energia, a pele e ajuda até na concentração durante o dia.
+                  - text: 28/07, 17:12
+                - generic [ref=e554]: nova
+              - generic [ref=e558] [cursor=pointer]:
+                - generic [ref=e559]: 🔴
+                - generic [ref=e560]:
+                  - paragraph [ref=e561]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e562]: Seu HEMOGLOBINA GLICADA está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 27/07, 08:16
+                - generic [ref=e563]: nova
+              - generic [ref=e567] [cursor=pointer]:
+                - generic [ref=e568]: ✨
+                - generic [ref=e569]:
+                  - paragraph [ref=e570]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e571]: A cada hora, levante-se e estique as pernas por 2 minutos para melhorar a circulação e reduzir o cansaço.
+                  - text: 24/07, 14:29
+                - generic [ref=e572]: nova
+              - generic [ref=e576] [cursor=pointer]:
+                - generic [ref=e577]: ✨
+                - generic [ref=e578]:
+                  - paragraph [ref=e579]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e580]: Beba um copo de água ao acordar para hidratar o corpo e dar aquele gás para começar o dia com energia!
+                  - text: 23/07, 18:26
+                - generic [ref=e581]: nova
+              - generic [ref=e585] [cursor=pointer]:
+                - generic [ref=e586]: 🔴
+                - generic [ref=e587]:
+                  - paragraph [ref=e588]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e589]: Seu TRIGLICERÍDEOS está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 22/07, 10:12
+                - generic [ref=e590]: nova
+              - generic [ref=e594] [cursor=pointer]:
+                - generic [ref=e595]: ✨
+                - generic [ref=e596]:
+                  - paragraph [ref=e597]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e598]: Beba um copo de água agora mesmo para hidratar o corpo e melhorar o focor.
+                  - text: 18/07, 08:00
+                - generic [ref=e599]: nova
+              - generic [ref=e603] [cursor=pointer]:
+                - generic [ref=e604]: 🔴
+                - generic [ref=e605]:
+                  - paragraph [ref=e606]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e607]: Seu HEMOGLOBINA GLICADA está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 17/07, 20:33
+                - generic [ref=e608]: nova
+              - generic [ref=e612] [cursor=pointer]:
+                - generic [ref=e613]: ✨
+                - generic [ref=e614]:
+                  - paragraph [ref=e615]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e616]: Beba água assim que acordar para hidratar o corpo logo cedo. Deixe uma garrafa cheia na sua mesa como lembrete constante ao longo do dia.
+                  - text: 16/07, 08:01
+                - generic [ref=e617]: nova
+              - generic [ref=e621] [cursor=pointer]:
+                - generic [ref=e622]: ✨
+                - generic [ref=e623]:
+                  - paragraph [ref=e624]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e625]: Beba um copo d'água agora mesmo! Manter o corpo hidratado melhora o foco e a disposição para o seu dia.
+                  - text: 15/07, 18:32
+                - generic [ref=e626]: nova
+              - generic [ref=e630] [cursor=pointer]:
+                - generic [ref=e631]: ✨
+                - generic [ref=e632]:
+                  - paragraph [ref=e633]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e634]: Mantenha uma garrafa de água por perto e beba pequenos goles ao longo do dia; sua pele e rins vão agradecer pelo cuidado extra.
+                  - text: 14/07, 08:00
+                - generic [ref=e635]: nova
+              - generic [ref=e639] [cursor=pointer]:
+                - generic [ref=e640]: 🔴
+                - generic [ref=e641]:
+                  - paragraph [ref=e642]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e643]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 13/07, 12:57
+                - generic [ref=e644]: nova
+              - generic [ref=e648] [cursor=pointer]:
+                - generic [ref=e649]: 🔴
+                - generic [ref=e650]:
+                  - paragraph [ref=e651]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e652]: Seu Plaquetas está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 10/07, 11:22
+                - generic [ref=e653]: nova
+              - generic [ref=e657] [cursor=pointer]:
+                - generic [ref=e658]: ✨
+                - generic [ref=e659]:
+                  - paragraph [ref=e660]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e661]: "Dance sua música favorita por 10 minutos: movimentar-se eleva o humor e queima calorias sem parecer exercício."
+                  - text: 06/07, 12:15
+                - generic [ref=e662]: nova
+              - generic [ref=e666] [cursor=pointer]:
+                - generic [ref=e667]: 🔴
+                - generic [ref=e668]:
+                  - paragraph [ref=e669]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e670]: Seu Plaquetas está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 05/07, 15:54
+                - generic [ref=e671]: nova
+              - generic [ref=e675] [cursor=pointer]:
+                - generic [ref=e676]: ✨
+                - generic [ref=e677]:
+                  - paragraph [ref=e678]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e679]: "Comece o dia bebendo um copo de água em jejum: essa simples ação ativa o metabolismo e repõe a hidratação perdida durante a noite."
+                  - text: 04/07, 08:00
+                - generic [ref=e680]: nova
+              - generic [ref=e684] [cursor=pointer]:
+                - generic [ref=e685]: 🔴
+                - generic [ref=e686]:
+                  - paragraph [ref=e687]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e688]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 02/07, 08:00
+                - generic [ref=e689]: nova
+              - generic [ref=e693] [cursor=pointer]:
+                - generic [ref=e694]: 💬
+                - generic [ref=e695]:
+                  - paragraph [ref=e696]: "Chamado #1"
+                  - paragraph [ref=e697]: Consegui reproduzir o bug. Pode me mandar um print da tela de exames? Estamos ve…
+                  - text: 30/06, 19:18
+                - generic [ref=e698]: nova
+              - generic [ref=e702] [cursor=pointer]:
+                - generic [ref=e703]: 🔴
+                - generic [ref=e704]:
+                  - paragraph [ref=e705]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e706]: Seu Hemoglobina está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 30/06, 08:37
+                - generic [ref=e707]: nova
+              - generic [ref=e711] [cursor=pointer]:
+                - generic [ref=e712]: 🔴
+                - generic [ref=e713]:
+                  - paragraph [ref=e714]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e715]: Seu Hematócrito está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 30/06, 08:37
+                - generic [ref=e716]: nova
+              - generic [ref=e720] [cursor=pointer]:
+                - generic [ref=e721]: 🔴
+                - generic [ref=e722]:
+                  - paragraph [ref=e723]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e724]: Seu HCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 30/06, 08:37
+                - generic [ref=e725]: nova
+              - generic [ref=e729] [cursor=pointer]:
+                - generic [ref=e730]: 🔴
+                - generic [ref=e731]:
+                  - paragraph [ref=e732]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e733]: Seu Plaquetas está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 30/06, 08:37
+                - generic [ref=e734]: nova
+              - generic [ref=e738] [cursor=pointer]:
+                - generic [ref=e739]: 🔴
+                - generic [ref=e740]:
+                  - paragraph [ref=e741]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e742]: Seu Monócitos está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 30/06, 08:37
+                - generic [ref=e743]: nova
+              - generic [ref=e747] [cursor=pointer]:
+                - generic [ref=e748]: ✨
+                - generic [ref=e749]:
+                  - paragraph [ref=e750]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e751]: Estique as pernas por 5 minutos a cada hora sentido para melhorar a circulação e diminuir o inchaço. Seu corpo vai agradecer o movimento!
+                  - text: 29/06, 19:44
+                - generic [ref=e752]: nova
+              - generic [ref=e756] [cursor=pointer]:
+                - generic [ref=e757]: ✨
+                - generic [ref=e758]:
+                  - paragraph [ref=e759]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e760]: Estique as pernas por 5 minutos a cada hora sentido para melhorar a circulação e diminuir o inchaço. Seu corpo vai agradecer o movimento!
+                  - text: 29/06, 19:44
+                - generic [ref=e761]: nova
+              - generic [ref=e765] [cursor=pointer]:
+                - generic [ref=e766]: ✨
+                - generic [ref=e767]:
+                  - paragraph [ref=e768]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e769]: 15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.
+                  - text: 28/06, 08:52
+                - generic [ref=e770]: nova
+              - generic [ref=e774] [cursor=pointer]:
+                - generic [ref=e775]: ✨
+                - generic [ref=e776]:
+                  - paragraph [ref=e777]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e778]: 15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.
+                  - text: 28/06, 08:52
+                - generic [ref=e779]: nova
+              - generic [ref=e783] [cursor=pointer]:
+                - generic [ref=e784]: ✨
+                - generic [ref=e785]:
+                  - paragraph [ref=e786]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e787]: Capriche no prato colorido — frutas, verduras e fibras ajudam intestino e coração.
+                  - text: 28/06, 08:52
+                - generic [ref=e788]: nova
+              - generic [ref=e792] [cursor=pointer]:
+                - generic [ref=e793]: ✨
+                - generic [ref=e794]:
+                  - paragraph [ref=e795]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e796]: 15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.
+                  - text: 28/06, 08:52
+                - generic [ref=e797]: nova
+              - generic [ref=e801] [cursor=pointer]:
+                - generic [ref=e802]: ✨
+                - generic [ref=e803]:
+                  - paragraph [ref=e804]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e805]: 15 min de sol de manhã ajudam na vitamina D e no ritmo do sono.
+                  - text: 28/06, 08:52
+                - generic [ref=e806]: nova
+              - generic [ref=e810] [cursor=pointer]:
+                - generic [ref=e811]: ✨
+                - generic [ref=e812]:
+                  - paragraph [ref=e813]: 💡 Dica do Dr. Exame pra Edmilson
+                  - paragraph [ref=e814]: Capriche no prato colorido — frutas, verduras e fibras ajudam intestino e coração.
+                  - text: 28/06, 08:52
+                - generic [ref=e815]: nova
+              - generic [ref=e819] [cursor=pointer]:
+                - generic [ref=e820]: ✨
+                - generic [ref=e821]:
+                  - paragraph [ref=e822]: "🎉 Conquista: Primeiro exame"
+                  - paragraph [ref=e823]: Envie seu primeiro exame — resgate seu crédito!
+                  - text: 27/06, 11:33
+                - generic [ref=e824]: nova
+              - generic [ref=e828] [cursor=pointer]:
+                - generic [ref=e829]: 🔴
+                - generic [ref=e830]:
+                  - paragraph [ref=e831]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e832]: Seu Hematócrito está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 27/06, 08:01
+                - generic [ref=e833]: nova
+              - generic [ref=e837] [cursor=pointer]:
+                - generic [ref=e838]: 🔴
+                - generic [ref=e839]:
+                  - paragraph [ref=e840]: Edmilson, um valor precisa de atenção
+                  - paragraph [ref=e841]: Seu Hematócrito está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+                  - text: 27/06, 08:01
+                - generic [ref=e842]: nova
+            - generic [ref=e844]: Conteúdo educativo — não substitui o médico.
+    - button "Pergunte ao Dr. Exame" [ref=e845] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e848]
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - generic [ref=e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e381]
+        - paragraph [ref=e191]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e383]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e384]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation

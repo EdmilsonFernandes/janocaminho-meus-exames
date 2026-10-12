@@ -1,0 +1,90 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - button "Menu do médico" [ref=f4e6] [cursor=pointer]:
+        - generic [ref=f4e7]: D
+      - generic [ref=f4e8]:
+        - paragraph [ref=f4e9]: Dra. QA Teste
+        - text: Clínica Médica • CRM 999999-QA
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e10]: Acesso médico · leitura
+    - generic [ref=f4e15]:
+      - generic [ref=f4e16]:
+        - paragraph [ref=f4e17]: Bom dia, Dr(a). QA 👋
+        - paragraph [ref=f4e18]: Tudo em ordem — nenhum alerta crítico no momento ✅
+        - generic [ref=f4e19]: sábado, 26 de setembro
+      - generic [ref=f4e20]:
+        - button "Pacientes Ativos 1 carteira acompanhada" [ref=f4e21] [cursor=pointer]:
+          - generic [ref=f4e23]:
+            - generic [ref=f4e24]: Pacientes Ativos
+            - paragraph [ref=f4e25]: "1"
+            - generic [ref=f4e26]: carteira acompanhada
+        - button "Com Alerta Clínico 0 0 requerem atenção" [ref=f4e30] [cursor=pointer]:
+          - generic [ref=f4e32]:
+            - generic [ref=f4e33]: Com Alerta Clínico
+            - paragraph [ref=f4e34]: "0"
+            - generic [ref=f4e35]: 0 requerem atenção
+        - button "Dúvidas de Pacientes 0 0 aguardando" [ref=f4e40] [cursor=pointer]:
+          - generic [ref=f4e42]:
+            - generic [ref=f4e43]: Dúvidas de Pacientes
+            - paragraph [ref=f4e44]: "0"
+            - generic [ref=f4e45]: 0 aguardando
+        - button "Convites Pendentes 0 0 aguardando" [ref=f4e49] [cursor=pointer]:
+          - generic [ref=f4e51]:
+            - generic [ref=f4e52]: Convites Pendentes
+            - paragraph [ref=f4e53]: "0"
+            - generic [ref=f4e54]: 0 aguardando
+      - generic [ref=f4e58]:
+        - generic [ref=f4e60]:
+          - generic [ref=f4e61]:
+            - paragraph [ref=f4e66]: Exames para renovar
+            - button "Ver todos" [ref=f4e67] [cursor=pointer]
+          - generic [ref=f4e68]: Sem exames novos há mais de 1 ano — oportuno solicitar atualização na próxima consulta.
+          - button "Q QA Vazio sem exames compartilhados ainda" [ref=f4e70] [cursor=pointer]:
+            - generic [ref=f4e71]:
+              - generic [ref=f4e72]: Q
+              - generic [ref=f4e74]:
+                - paragraph [ref=f4e76]: QA Vazio
+                - generic [ref=f4e77]: sem exames compartilhados ainda
+        - generic [ref=f4e80]:
+          - generic [ref=f4e81]:
+            - generic [ref=f4e86]:
+              - paragraph [ref=f4e87]: Panorama da Carteira
+              - text: Distribuição clínica dos pacientes
+            - generic [ref=f4e88]:
+              - generic [ref=f4e89]:
+                - generic [ref=f4e90]:
+                  - paragraph [ref=f4e91]: Exames em dia
+                  - paragraph [ref=f4e92]: 0/1 (0%)
+                - progressbar [ref=f4e93]
+              - generic [ref=f4e95]:
+                - generic [ref=f4e96]:
+                  - paragraph [ref=f4e97]: Valores alterados
+                  - paragraph [ref=f4e98]: 0/1 (0%)
+                - progressbar [ref=f4e99]
+              - generic [ref=f4e101]:
+                - generic [ref=f4e102]:
+                  - paragraph [ref=f4e103]: A renovar (>1 ano)
+                  - paragraph [ref=f4e104]: 1/1 (100%)
+                - progressbar [ref=f4e105]
+            - generic [ref=f4e107]: 💡 Dados alimentados automaticamente pelos exames autorizados que os pacientes sobem no app.
+          - generic [ref=f4e108]:
+            - paragraph [ref=f4e113]: Ações Rápidas
+            - generic [ref=f4e114]:
+              - button [ref=f4e115] [cursor=pointer]
+              - button [ref=f4e119] [cursor=pointer]
+              - button [ref=f4e123] [cursor=pointer]
+          - generic [ref=f4e127]:
+            - paragraph [ref=f4e131]: Dr. Exame Pro
+            - paragraph [ref=f4e132]: 0 de 5 pré-consultas gratuitas usadas.
+            - button "Assinar R$29,90/mês" [ref=f4e133] [cursor=pointer]
+  - navigation [ref=f4e134]:
+    - button "Início" [ref=f4e135] [cursor=pointer]:
+      - paragraph [ref=f4e140]: Início
+    - button "Pacientes" [ref=f4e142] [cursor=pointer]:
+      - paragraph [ref=f4e147]: Pacientes
+    - button "Perguntas" [ref=f4e148] [cursor=pointer]:
+      - paragraph [ref=f4e153]: Perguntas
+    - button "Perfil" [ref=f4e154] [cursor=pointer]:
+      - paragraph [ref=f4e159]: Perfil
+    - button "Mais" [ref=f4e160] [cursor=pointer]:
+      - paragraph [ref=f4e165]: Mais

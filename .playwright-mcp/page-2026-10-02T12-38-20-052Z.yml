@@ -1,0 +1,83 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e7]:
+    - complementary [ref=f5e8]:
+      - generic [ref=f5e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f5e13]
+        - generic [ref=f5e14]: Admin
+      - navigation [ref=f5e15]:
+        - generic [ref=f5e16]: Operação
+        - link "Dashboard" [ref=f5e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f5e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f5e28] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f5e32] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f5e38] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f5e43] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f5e50]:
+        - generic [ref=f5e52]: Operação ao vivo
+        - paragraph [ref=f5e57]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f5e58]:
+        - link "Ver site público" [ref=f5e59] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f5e64]: © 2026 PremioX · Painel do operador
+    - generic [ref=f5e65]:
+      - banner [ref=f5e66]:
+        - button "Menu" [ref=f5e67] [cursor=pointer]
+        - heading "Nova campanha" [level=2] [ref=f5e70]
+        - button "Atualizar" [ref=f5e71] [cursor=pointer]
+        - link "Ver site" [ref=f5e77] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f5e83]:
+          - generic [ref=f5e84]: S
+          - generic [ref=f5e85]: Sim Admin E2E
+          - generic "Online" [ref=f5e86]
+        - button "Sair" [ref=f5e87] [cursor=pointer]
+      - main [ref=f5e91]:
+        - generic [ref=f5e92]:
+          - generic [ref=f5e93]:
+            - generic [ref=f5e94]:
+              - heading "Nova campanha" [level=1] [ref=f5e95]
+              - paragraph [ref=f5e96]: Sorteio · Passo 1 de 3 · Prêmio
+              - paragraph [ref=f5e97]: Mostre o que seu cliente pode ganhar — foto boa vende sozinha.
+            - button "trocar tipo" [ref=f5e98] [cursor=pointer]
+          - generic [ref=f5e99]:
+            - progressbar [ref=f5e100]
+            - generic "Etapas do formulário" [ref=f5e101]:
+              - list [ref=f5e102]:
+                - listitem [ref=f5e103]:
+                  - generic [ref=f5e104]:
+                    - generic [ref=f5e105]: "1"
+                    - generic [ref=f5e106]: Prêmio
+                - listitem [ref=f5e108]:
+                  - generic [ref=f5e109]:
+                    - generic [ref=f5e110]: "2"
+                    - generic [ref=f5e111]: Sorteio
+                - listitem [ref=f5e113]:
+                  - generic [ref=f5e114]:
+                    - generic [ref=f5e115]: "3"
+                    - generic [ref=f5e116]: Data & publicação
+            - generic [ref=f5e117]:
+              - generic [ref=f5e118]:
+                - generic [ref=f5e119]: Título do prêmio *
+                - 'textbox "Ex: Honda CG 160 Fan 2026" [ref=f5e120]'
+              - generic [ref=f5e121]:
+                - generic [ref=f5e122]: Slug (URL), opcional
+                - textbox "gerado automaticamente se vazio" [ref=f5e123]
+              - generic [ref=f5e124]:
+                - generic [ref=f5e125]: Fotos do prêmio
+                - generic [ref=f5e126] [cursor=pointer]: 📷 Selecionar fotos (várias)
+              - generic [ref=f5e127]:
+                - generic [ref=f5e128]: Descrição do prêmio
+                - textbox "Honda CG 160 Fan 2026 — 0 km - Capacete - Manual e chave reserva" [ref=f5e129]:
+                  - /placeholder: "Honda CG 160 Fan 2026 — 0 km\n- Capacete\n- Manual e chave reserva"
+                - paragraph [ref=f5e130]: 1ª linha = resumo. Linhas começando com ‘-’ viram checklist do que vem no kit.
+            - generic [ref=f5e131]:
+              - button "← Voltar" [ref=f5e132] [cursor=pointer]
+              - button "Continuar →" [disabled] [ref=f5e133]
+  - button "Open Next.js Dev Tools" [ref=f5e139] [cursor=pointer]
+  - alert [ref=f5e143]

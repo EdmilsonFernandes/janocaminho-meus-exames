@@ -1,0 +1,49 @@
+- generic [active] [ref=f6e20]:
+  - generic [ref=f6e59]:
+    - navigation [ref=f6e60]:
+      - generic [ref=f6e65]:
+        - paragraph [ref=f6e66]: 🩺 Dr Enrico de Amaral
+        - generic [ref=f6e67]: Endocrinologista • CRM 116739-SP
+      - separator [ref=f6e68]
+      - generic [ref=f6e69]:
+        - generic [ref=f6e70]: PLANO
+        - paragraph [ref=f6e71]: 💎 Dr. Exame Pro
+        - generic [ref=f6e72]: SOAP e planos ilimitados. Até 08/08/2026.
+      - list [ref=f6e73]:
+        - button "Pacientes" [ref=f6e74] [cursor=pointer]
+        - button "Meu perfil" [ref=f6e80] [cursor=pointer]
+        - button "Trocar senha" [ref=f6e86] [cursor=pointer]
+        - separator [ref=f6e92]
+        - button "Sair" [ref=f6e93] [cursor=pointer]
+      - generic [ref=f6e99]: Portal do Médico
+    - generic [ref=f6e100]:
+      - generic [ref=f6e102]:
+        - paragraph [ref=f6e103]: Pacientes
+        - generic [ref=f6e104]: 💎 Pro
+      - generic [ref=f6e106]:
+        - generic [ref=f6e107]: 💎 Dr. Exame Pro ativo
+        - generic [ref=f6e109]:
+          - heading "Pacientes (3)" [level=6] [ref=f6e110]
+          - generic [ref=f6e111]: 🔴 3 com alerta
+        - generic [ref=f6e113]:
+          - textbox "Buscar paciente pelo nome…" [ref=f6e118]
+          - button "🔴 Só com alerta" [ref=f6e119] [cursor=pointer]:
+            - generic [ref=f6e120]: 🔴
+            - generic [ref=f6e121]: Só com alerta
+        - generic [ref=f6e122]:
+          - heading [level=3] [ref=f6e124]:
+            - button "👨‍👩‍👧 Família Edmilson 2 2 alerta" [ref=f6e125] [cursor=pointer]:
+              - generic [ref=f6e127]:
+                - generic [ref=f6e128]: 👨‍👩‍👧
+                - paragraph [ref=f6e129]: Família Edmilson
+                - generic [ref=f6e130]: "2"
+                - generic [ref=f6e132]: 2 alerta
+          - generic [ref=f6e143] [cursor=pointer]:
+            - paragraph [ref=f6e144]: Paciente 3
+            - generic [ref=f6e145]:
+              - text: 41a · M · Titular
+              - generic [ref=f6e146]: "· #299T"
+            - generic [ref=f6e147]: 🔴 alerta · 📋 2 exames · 📅 19/05/2021 · Particular
+  - generic [ref=f6e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e19]

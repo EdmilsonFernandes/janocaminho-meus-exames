@@ -1,0 +1,17 @@
+- generic [active] [ref=f7e20]:
+  - generic [ref=f7e280]:
+    - generic [ref=f7e281]:
+      - banner [ref=f7e282]:
+        - generic [ref=f7e283]:
+          - button [ref=f7e284] [cursor=pointer]
+          - paragraph [ref=f7e287]: Dashboard
+      - progressbar [ref=f7e292]
+    - contentinfo [ref=f7e295]:
+      - paragraph [ref=f7e299] [cursor=pointer]: Início
+      - paragraph [ref=f7e304] [cursor=pointer]: Usuários
+      - paragraph [ref=f7e308] [cursor=pointer]: Financ.
+      - paragraph [ref=f7e312] [cursor=pointer]: Config.
+      - paragraph [ref=f7e316] [cursor=pointer]: Mais
+  - generic [ref=f7e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f7e317]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f7e318]

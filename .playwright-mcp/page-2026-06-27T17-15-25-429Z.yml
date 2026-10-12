@@ -1,0 +1,94 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button [ref=e25] [cursor=pointer]:
+              - img [ref=e26]
+            - button [ref=e28] [cursor=pointer]:
+              - img [ref=e29]
+            - button [ref=e31] [cursor=pointer]:
+              - img [ref=e32]
+              - generic [ref=e34]: "79"
+            - button [ref=e36] [cursor=pointer]:
+              - generic [ref=e38]: E
+            - button [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic [ref=e43]: "3"
+            - button [ref=e44] [cursor=pointer]:
+              - img [ref=e45]
+            - button [ref=e48] [cursor=pointer]:
+              - img [ref=e49]
+        - main [ref=e51]:
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - img [ref=e59]
+              - generic [ref=e61]:
+                - heading [level=5] [ref=e62]: Seus exames
+                - paragraph [ref=e63]: 1 exame no total • toque pra ver detalhes
+            - generic [ref=e64]:
+              - heading [level=3] [ref=e65]:
+                - button [expanded] [ref=e66] [cursor=pointer]:
+                  - generic [ref=e67]:
+                    - paragraph [ref=e68]: 📅 2026
+                    - generic [ref=e70]: "1"
+                  - img [ref=e72]
+              - region [ref=e77]:
+                - generic [ref=e80] [cursor=pointer]:
+                  - img [ref=e81]
+                  - generic [ref=e83]:
+                    - generic [ref=e84]:
+                      - paragraph [ref=e85]: HEMOGRAMA
+                      - button [ref=e87]:
+                        - img [ref=e88]
+                    - generic [ref=e90]: 🏥 VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                    - generic [ref=e91]: Outro • s/d • 20 itens • Enviado 22/06/2026
+                    - generic [ref=e94]: Pronto
+                  - button [ref=e95]:
+                    - img [ref=e96]
+                  - img [ref=e98]
+    - button [ref=e100] [cursor=pointer]:
+      - img [ref=e101]
+    - navigation [ref=e103]:
+      - generic [ref=e104] [cursor=pointer]:
+        - generic [ref=e105]: 🏠
+        - paragraph [ref=e106]: Início
+      - generic [ref=e107] [cursor=pointer]:
+        - generic [ref=e108]: 📋
+        - paragraph [ref=e109]: Exames
+      - generic [ref=e111] [cursor=pointer]:
+        - img [ref=e113]
+        - paragraph [ref=e114]: Dr. Exame
+      - generic [ref=e115] [cursor=pointer]:
+        - generic [ref=e116]: 📈
+        - paragraph [ref=e117]: Evolução
+      - generic [ref=e118] [cursor=pointer]:
+        - generic [ref=e119]: ☰
+        - paragraph [ref=e120]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e121]
+    - img [ref=e122]
+  - dialog [ref=e126]:
+    - generic [ref=e127]:
+      - button [ref=e128] [cursor=pointer]: Pular
+      - generic [ref=e129]:
+        - generic [ref=e130]: 📋
+        - heading [level=4] [ref=e131]: Sua saúde centralizada
+        - paragraph [ref=e132]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=e133]:
+        - button [ref=e139] [cursor=pointer]:
+          - text: Próximo
+          - img [ref=e141]
+        - paragraph [ref=e143]: Toque em Próximo para continuar →
+  - 'dialog "Dr. Exame 🎉 Conquista: Primeiro exame" [active] [ref=e146]':
+    - 'heading "Dr. Exame 🎉 Conquista: Primeiro exame" [level=2] [ref=e147]':
+      - generic [ref=e148]:
+        - img "Dr. Exame" [ref=e149]
+        - paragraph [ref=e150]: "🎉 Conquista: Primeiro exame"
+    - paragraph [ref=e152]: Envie seu primeiro exame — resgate seu crédito!
+    - generic [ref=e153]:
+      - button "Depois" [ref=e154] [cursor=pointer]
+      - button "Ver notificacoes" [ref=e155] [cursor=pointer]

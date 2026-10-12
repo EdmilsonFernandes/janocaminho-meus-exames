@@ -1,0 +1,133 @@
+- generic [ref=e20]:
+  - generic [ref=e4316]:
+    - navigation [ref=e4317]:
+      - generic [ref=e4319]:
+        - button "Menu do médico" [ref=e4320] [cursor=pointer]
+        - generic [ref=e4323]:
+          - paragraph [ref=e4324]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e4325]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e4326]
+      - generic [ref=e4327]:
+        - generic [ref=e4328]: PLANO
+        - paragraph [ref=e4329]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e4330]:
+        - button "Pacientes" [ref=e4331] [cursor=pointer]
+        - button "Convites" [ref=e4337] [cursor=pointer]
+        - button "Perguntas" [ref=e4344] [cursor=pointer]
+        - button "Meu perfil" [ref=e4351] [cursor=pointer]
+        - button "Trocar senha" [ref=e4357] [cursor=pointer]
+        - separator [ref=e4363]
+        - button "Sair" [ref=e4364] [cursor=pointer]
+      - generic [ref=e4370]: Portal do Médico
+    - generic [ref=e4371]:
+      - generic [ref=e4372]:
+        - button "Voltar" [ref=e4421] [cursor=pointer]
+        - paragraph [ref=e4374]: Heloisa Cristina Fernandes
+      - generic [ref=e4424]:
+        - generic [ref=e4425]:
+          - generic [ref=e4431]:
+            - generic [ref=e4432]:
+              - paragraph [ref=e4433]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e4434] [cursor=pointer]: Trocar
+            - paragraph [ref=e4438]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e4439]:
+            - generic [ref=e4440]:
+              - generic [ref=e4441]: Último exame
+              - paragraph [ref=e4445]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e4446] [cursor=pointer]:
+              - generic [ref=e4447]: Alterações
+              - paragraph [ref=e4452]: "40"
+            - generic [ref=e4453]:
+              - generic [ref=e4454]: Pendências
+              - paragraph [ref=e4458]: "1"
+            - generic [ref=e4459]:
+              - generic [ref=e4460]: Anotações
+              - paragraph [ref=e4464]: "0"
+        - tablist "Abas do paciente" [ref=e4468]:
+          - tab "Exames" [ref=e4469] [cursor=pointer]:
+            - generic [ref=e4472]:
+              - generic [ref=e4473]: Exames
+              - superscript [ref=e4474]: "13"
+          - tab "Alterados" [ref=e4475] [cursor=pointer]:
+            - generic [ref=e4479]:
+              - generic [ref=e4480]: Alterados
+              - superscript [ref=e4481]: "40"
+          - tab "Tendências" [active] [selected] [ref=e4482] [cursor=pointer]
+          - tab "Relatório" [ref=e4487] [cursor=pointer]
+          - tab "Perguntas" [ref=e4492] [cursor=pointer]:
+            - generic [ref=e4495]:
+              - generic [ref=e4496]: Perguntas
+              - superscript [ref=e4497]: "1"
+          - tab "Anotações" [ref=e4498] [cursor=pointer]
+        - generic [ref=e4672]:
+          - generic [ref=e4674]:
+            - heading "📈 Tendências" [level=5] [ref=e4675]
+            - paragraph [ref=e4676]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=e4678]:
+            - generic [ref=e4679]:
+              - button "Acido Folico" [ref=e4680] [cursor=pointer]
+              - button "Acido Urico" [ref=e4682] [cursor=pointer]
+              - button "Albumina" [ref=e4684] [cursor=pointer]
+              - button "Anticorpos Anti-hcv" [ref=e4686] [cursor=pointer]
+              - button "Antigeno De Superficie Do Hbv (hbsag)" [ref=e4688] [cursor=pointer]
+              - button "Atividade De Protrombina" [ref=e4690] [cursor=pointer]
+              - generic "Ver todos no seletor abaixo" [ref=e4692]: "+75"
+            - generic [ref=e4695]:
+              - combobox [ref=e4696] [cursor=pointer]: Acido Folico (3 exames)
+              - textbox: ACIDO FOLICO
+              - group
+          - generic [ref=e4698]:
+            - generic [ref=e4699]:
+              - heading "Acido Folico" [level=6] [ref=e4700]
+              - button "O que é este exame?" [ref=e4701] [cursor=pointer]
+            - generic [ref=e4704]:
+              - generic [ref=e4705]:
+                - paragraph [ref=e4706]: 9,82 ng/mL
+                - paragraph [ref=e4707]: ↑ 66%
+              - paragraph [ref=e4708]: ↑ Tendência de alta · 3 medições
+              - paragraph [ref=e4709]:
+                - text: "Última medição:"
+                - strong [ref=e4710]: 13/08/26
+              - paragraph [ref=e4711]: "Referência: 3.89–20 ng/mL"
+            - application [ref=e4714]:
+              - generic [ref=e4735]:
+                - generic [ref=e4736]:
+                  - generic [ref=e4737]: 06/02/25
+                  - generic [ref=e4739]: 20/03/25
+                  - generic [ref=e4741]: 13/08/26
+                - generic [ref=e4743]:
+                  - generic [ref=e4744]: "0"
+                  - generic [ref=e4746]: "3"
+                  - generic [ref=e4748]: "6"
+                  - generic [ref=e4750]: "9"
+                  - generic [ref=e4752]: "12"
+            - generic [ref=e4754]:
+              - heading "Histórico (do mais recente)" [level=6] [ref=e4755]
+              - generic [ref=e4756]:
+                - generic [ref=e4757]:
+                  - generic [ref=e4758]:
+                    - paragraph [ref=e4759]: 13/08/26
+                    - generic "HEMOGRAMA COMPLETO" [ref=e4760]
+                  - generic [ref=e4761]:
+                    - paragraph [ref=e4762]: 9,82 ng/mL
+                    - generic "Dentro da referência" [ref=e4763]: Normal
+                - generic [ref=e4765]:
+                  - generic [ref=e4766]:
+                    - paragraph [ref=e4767]: 20/03/25
+                    - generic "EXAMES LABORATORIAIS" [ref=e4768]
+                  - generic [ref=e4769]:
+                    - paragraph [ref=e4770]: 8,2 ng/mL
+                    - generic "Dentro da referência" [ref=e4771]: Normal
+                - generic [ref=e4773]:
+                  - generic [ref=e4774]:
+                    - paragraph [ref=e4775]: 06/02/25
+                    - generic "EXAMES LABORATORIAIS" [ref=e4776]
+                  - generic [ref=e4777]:
+                    - paragraph [ref=e4778]: 5,9 ng/mL
+                    - generic "Dentro da referência" [ref=e4779]: Normal
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

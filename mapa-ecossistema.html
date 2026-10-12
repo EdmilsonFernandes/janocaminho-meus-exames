@@ -1,0 +1,134 @@
+<title>Mapa do Ecossistema</title>
+<style>
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --surface2:#eef1f6; --line:#d7dde8;
+  --fg:#1c2333; --fg2:#5a6478; --accent:#3b54d6; --accent-soft:#e6eafb;
+  --good:#0c8a5f; --warn:#b3670a; --wibx:#8a5cf6; --wibx-soft:#efe9fd;
+  --font-d:"Sora",system-ui,sans-serif; --font-b:"IBM Plex Sans",system-ui,sans-serif; --font-m:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0d1220; --surface:#151c30; --surface2:#1c2440; --line:#2a3352;
+  --fg:#e8ecf6; --fg2:#9aa5c0; --accent:#8ea2ff; --accent-soft:#1f2a52;
+  --good:#4ad29b; --warn:#f0b35a; --wibx:#b79aff; --wibx-soft:#2a2352; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d1220; --surface:#151c30; --surface2:#1c2440; --line:#2a3352;
+  --fg:#e8ecf6; --fg2:#9aa5c0; --accent:#8ea2ff; --accent-soft:#1f2a52;
+  --good:#4ad29b; --warn:#f0b35a; --wibx:#b79aff; --wibx-soft:#2a2352; color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);line-height:1.5;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:36px 20px 70px}
+h1{font-family:var(--font-d);font-size:clamp(24px,4vw,34px);margin:4px 0 8px;text-wrap:balance}
+.kicker{font-family:var(--font-m);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--fg2);font-size:15.5px;max-width:70ch}
+/* métricas antes/depois */
+.dash{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:22px 0 8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat .v{font-family:var(--font-d);font-size:28px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .v small{font-size:15px;color:var(--fg2);font-weight:400}
+.stat .l{font-size:12px;color:var(--fg2);margin-top:2px}
+.gain{color:var(--good);font-family:var(--font-m);font-size:11px;margin-top:6px}
+/* quadro de escopos */
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:22px;align-items:start}
+.col{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}
+.col.scope-plataform{border-color:var(--wibx)}
+.col h2{font-family:var(--font-d);font-size:16px;margin:0 0 2px}
+.col .sub{font-family:var(--font-m);font-size:11px;color:var(--fg2);margin-bottom:12px}
+.col.scope-plataform .sub{color:var(--wibx)}
+.blk{margin-top:12px}
+.blk .bt{font-family:var(--font-m);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--fg2);margin-bottom:6px;display:flex;justify-content:space-between}
+.blk .bt em{font-style:normal;color:var(--accent)}
+.chip{display:block;font-family:var(--font-m);font-size:11.5px;padding:4px 9px;border:1px solid var(--line);border-radius:7px;margin-bottom:4px;color:var(--fg);background:var(--surface2);overflow-wrap:anywhere}
+.chip.on{border-color:transparent;background:var(--accent-soft);color:var(--accent)}
+.chip.wx{border-color:transparent;background:var(--wibx-soft);color:var(--wibx)}
+.chip.dim{color:var(--fg2);border-style:dashed;background:transparent}
+.note{margin-top:26px;padding:14px 16px;border-left:3px solid var(--good);background:var(--surface);border-radius:0 10px 10px 0;font-size:14px}
+.note b{font-family:var(--font-m);font-size:11px;display:block;letter-spacing:.08em;text-transform:uppercase;color:var(--good);margin-bottom:4px}
+.foot{margin-top:34px;font-size:12px;color:var(--fg2);border-top:1px solid var(--line);padding-top:12px;font-family:var(--font-m)}
+@media (max-width:960px){.board{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.board,.dash{grid-template-columns:1fr}}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<div class="wrap">
+
+<header>
+  <div class="kicker">Snapshot · 30/09/2026 · pós-migração wibx</div>
+  <h1>Mapa do Ecossistema Claude</h1>
+  <p class="lede">Quatro escopos de carregamento: o que paga contexto em <b>toda</b> sessão (global), o que carrega por projeto, o que fica em biblioteca e o que roda como automação (hooks). Roxo = Wibx — hoje confinado ao escopo dele.</p>
+</header>
+
+<div class="dash">
+  <div class="stat"><div class="v">5 <small>/16</small></div><div class="l">MCPs globais (eram 16) — todo resto foi pro escopo do projeto</div><div class="gain">▼ 69% de contexto fixo por sessão</div></div>
+  <div class="stat"><div class="v">118 <small>/129</small></div><div class="l">skills globais ativas (11 wibx movidas p/ plataform)</div><div class="gain">▼ meta: ~50</div></div>
+  <div class="stat"><div class="v">20 + 11</div><div class="l">skills de projeto: Dr. Exame (20) · plataform (11)</div><div class="gain">✓ domínio no domínio</div></div>
+  <div class="stat"><div class="v">193</div><div class="l">skills em biblioteca (archive) — carregam zero, reativam por mv</div><div class="gain">✓ estoque saudável</div></div>
+</div>
+
+<div class="board">
+  <div class="col scope-global">
+    <h2>🌐 Global</h2><div class="sub">carrega em TODA sessão, todo projeto</div>
+    <div class="blk"><div class="bt"><span>MCP — universal</span><em>5</em></div>
+      <span class="chip on">context7</span><span class="chip on">github</span><span class="chip on">serena</span>
+      <span class="chip">ui-expert</span><span class="chip">microsoft-planner-mcp</span>
+    </div>
+    <div class="blk"><div class="bt"><span>skills ativas</span><em>118</em></div>
+      <span class="chip">dev-workflow núcleo · segurança · docs Office · economia token · corporativo</span>
+      <span class="chip dim">+ ~100 outras → candidatas à poda (meta 50)</span>
+    </div>
+    <div class="blk"><div class="bt"><span>agents / commands</span><em>2</em></div>
+      <span class="chip">design-critic (novo)</span><span class="chip">/gate · /critique (novos)</span>
+    </div>
+    <div class="blk"><div class="bt"><span>hooks</span><em>2</em></div>
+      <span class="chip">rtk (economia de token)</span><span class="chip">graphify post-commit (por repo)</span>
+    </div>
+  </div>
+
+  <div class="col scope-exame">
+    <h2>🩺 Dr. Exame</h2><div class="sub">carrega só neste repo</div>
+    <div class="blk"><div class="bt"><span>MCP (.mcp.json + local)</span><em>7</em></div>
+      <span class="chip on">serena</span><span class="chip on">playwright</span><span class="chip on">biomcp</span>
+      <span class="chip">context7 · prisma · postgres-dev · shadcn</span>
+    </div>
+    <div class="blk"><div class="bt"><span>skills do repo</span><em>20</em></div>
+      <span class="chip">ui-ux-reviewer · product-designer · design-system-guardian · a11y · perf · cybersecurity · conversion · mobile-first · frontend-refactor · playwright-qa</span>
+      <span class="chip">graphify · ionic-* · medical-research</span>
+    </div>
+    <div class="blk"><div class="bt"><span>framework .claude/</span><em>7 docs</em></div>
+      <span class="chip">STARTUP · AGENTS · GRAPH_RULES · ARCHITECTURE · DESIGN_SYSTEM · TASK_RULES · /start</span>
+    </div>
+  </div>
+
+  <div class="col scope-plataform">
+    <h2>🟣 Plataform / Wibx</h2><div class="sub">carrega só aqui — confinado hoje</div>
+    <div class="blk"><div class="bt"><span>MCP (.mcp.json)</span><em>11</em></div>
+      <span class="chip wx">wibx-cpm/des/fin/bgm/ems/cms/pgh/tam/bch-pg</span>
+      <span class="chip wx">wibx-aws-ops · wibx-fraud-detector</span>
+      <span class="chip">etherscan (local claude.json)</span>
+    </div>
+    <div class="blk"><div class="bt"><span>skills do repo</span><em>11</em></div>
+      <span class="chip wx">admin-cli · deploy · pipeline-trigger · support-queries · wallet-recovery · shopping-config · rank-names · bch/fin-investigation · cms-pgh-orders · aws-diagnostics</span>
+    </div>
+    <div class="blk"><div class="bt"><span>também em</span><em>D:/WIBOO</em></div>
+      <span class="chip dim">repo WIBX-SSH tem os mesmos 11 + serena (escopo local, correto)</span>
+    </div>
+  </div>
+
+  <div class="col scope-library">
+    <h2>📚 Biblioteca</h2><div class="sub">carrega ZERO — reativa sob demanda</div>
+    <div class="blk"><div class="bt"><span>skills-archive</span><em>193</em></div>
+      <span class="chip dim">marketing 52 · hardening-compliance 50 · frontend-styles 37 · seo 27 · media-av 27</span>
+    </div>
+    <div class="blk"><div class="bt"><span>agents-library</span><em>~460</em></div>
+      <span class="chip dim">agentes prontos p/ ativar — nunca instalar flat</span>
+    </div>
+    <div class="blk"><div class="bt"><span>índice</span><em>SKILLS-CATALOG.md</em></div>
+      <span class="chip">o mapa da biblioteca: status + como reativar</span>
+    </div>
+  </div>
+</div>
+
+<div class="note"><b>Regra de ouro da migração de hoje</b>
+Qualquer coisa nova se pergunta: <b>serve a todo projeto?</b> → global. <b>Serve a um domínio?</b> → <code>.claude/skills</code> ou <code>.mcp.json</code> do repo dono. <b>Usa raramente?</b> → biblioteca com catálogo. Nada volta pro global "por enquanto".</div>
+
+<p class="foot">Gerado a partir do filesystem real (30/09/2026 12:5x) · vale a partir da próxima sessão · manutenção: rodar o inventário novamente após cada mudança de escopo</p>
+</div>

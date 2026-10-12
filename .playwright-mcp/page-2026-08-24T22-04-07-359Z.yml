@@ -1,0 +1,106 @@
+- generic [ref=f14e1]:
+  - generic [ref=f14e2]:
+    - generic [ref=f14e3]:
+      - button [ref=f14e4] [cursor=pointer]
+      - generic [ref=f14e5]:
+        - banner [ref=f14e6]:
+          - generic [ref=f14e7]:
+            - button [ref=f14e8] [cursor=pointer]
+            - paragraph [ref=f14e14]: Dr. Exame
+            - button [ref=f14e15] [cursor=pointer]:
+              - generic [ref=f14e18]: "19"
+            - button [ref=f14e19] [cursor=pointer]:
+              - generic [ref=f14e20]: "4"
+            - button [ref=f14e25] [cursor=pointer]:
+              - generic [ref=f14e26]: E
+        - main [ref=f14e28]:
+          - generic [ref=f14e30]:
+            - generic [ref=f14e31]:
+              - paragraph [ref=f14e32]: Boa noite, Ed 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - alert [ref=f14e33]:
+              - generic [ref=f14e37]: 3 exames não foram adicionados — o CPF do documento é diferente do CPF da sua conta.
+              - button [ref=f14e39] [cursor=pointer]: Ver
+            - generic [ref=f14e42]:
+              - generic [ref=f14e43]:
+                - generic [ref=f14e48]:
+                  - paragraph [ref=f14e49]: —
+                  - paragraph [ref=f14e50]: de 100
+                - generic [ref=f14e51]:
+                  - paragraph [ref=f14e52]: Sua saúde hoje
+                  - paragraph [ref=f14e53]: Score indisponível
+                  - paragraph [ref=f14e55]: · atualizado 11/11/2025
+              - button [ref=f14e56] [cursor=pointer]: Ver análise completa
+            - button [ref=f14e65] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f14e69]:
+              - generic [ref=f14e76] [cursor=pointer]:
+                - paragraph [ref=f14e77]: Cardiometabólico
+                - paragraph [ref=f14e78]: baixo
+                - paragraph [ref=f14e79]: 1 fator de risco
+              - generic [ref=f14e82] [cursor=pointer]:
+                - generic [ref=f14e83]: 🧬
+                - generic [ref=f14e84]:
+                  - paragraph [ref=f14e85]: Idade biológica
+                  - paragraph [ref=f14e86]: —
+                  - paragraph [ref=f14e87]: após o 1º exame
+              - generic [ref=f14e94] [cursor=pointer]:
+                - paragraph [ref=f14e95]: Seus exames
+                - paragraph [ref=f14e96]: "3"
+                - paragraph [ref=f14e97]: 0 alterados
+              - generic [ref=f14e104] [cursor=pointer]:
+                - paragraph [ref=f14e105]: Evolução
+                - paragraph [ref=f14e106]: Tendências
+                - paragraph [ref=f14e107]: após o 1º exame
+            - generic [ref=f14e109]:
+              - generic [ref=f14e110]: Enviar exame
+              - generic [ref=f14e117]: Evolução
+              - generic [ref=f14e124]: Família
+              - generic [ref=f14e132]: Relatório
+            - generic [ref=f14e141]:
+              - generic [ref=f14e145]:
+                - paragraph [ref=f14e146]: "19"
+                - text: créditos disponíveis
+              - button [ref=f14e147] [cursor=pointer]: Comprar
+            - button [ref=f14e149] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f14e153]:
+      - paragraph [ref=f14e158] [cursor=pointer]: Início
+      - paragraph [ref=f14e164] [cursor=pointer]: Exames
+      - paragraph [ref=f14e168] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f14e173] [cursor=pointer]: Evolução
+      - paragraph [ref=f14e178] [cursor=pointer]: Mais
+  - button [ref=f14e181] [cursor=pointer]
+  - dialog [ref=f14e186]:
+    - heading [level=2] [ref=f14e187]: ✨ Novidades do Dr. Exame
+    - generic [ref=f14e188]:
+      - generic [ref=f14e189]: Versão 2.7.149
+      - generic [ref=f14e190]:
+        - generic [ref=f14e191]:
+          - generic [ref=f14e192]: 📱
+          - generic [ref=f14e193]:
+            - paragraph [ref=f14e194]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=f14e195]:
+          - generic [ref=f14e196]: 🔐
+          - generic [ref=f14e197]:
+            - paragraph [ref=f14e198]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=f14e199]:
+          - generic [ref=f14e200]: 🩺
+          - generic [ref=f14e201]:
+            - paragraph [ref=f14e202]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=f14e203]:
+          - generic [ref=f14e204]: 🚑
+          - generic [ref=f14e205]:
+            - paragraph [ref=f14e206]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=f14e208] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=f14e211]:
+    - heading [level=2] [ref=f14e212]:
+      - generic [ref=f14e213]:
+        - img "Dr. Exame" [ref=f14e214]
+        - paragraph [ref=f14e215]: 💡 Dica do Dr. Exame pra Ed
+    - paragraph [ref=f14e217]: "Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico."
+    - generic [ref=f14e218]:
+      - button "Depois" [ref=f14e219] [cursor=pointer]
+      - button "Ver notificações" [ref=f14e220] [cursor=pointer]

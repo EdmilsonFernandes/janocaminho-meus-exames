@@ -1,0 +1,327 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e1052]:
+      - button [ref=e1053] [cursor=pointer]
+      - generic [ref=e1054]:
+        - banner [ref=e1055]:
+          - generic [ref=e1056]:
+            - button [ref=e1057] [cursor=pointer]
+            - paragraph [ref=e1063]: Dr. Exame
+            - generic [ref=e1064]:
+              - button [ref=e1065] [cursor=pointer]
+              - button [ref=e1070] [cursor=pointer]:
+                - generic [ref=e1071]: 👤
+        - main [ref=e1076]:
+          - generic [ref=e1078]:
+            - generic [ref=e1081]:
+              - paragraph [ref=e1082]: Boa noite, tudo bem? 👋
+              - generic [ref=e1083]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e1084]:
+              - generic [ref=e1086]:
+                - generic [ref=e1087]:
+                  - generic [ref=e1088]:
+                    - generic:
+                      - paragraph: de 100
+                  - generic [ref=e1092]:
+                    - paragraph [ref=e1093]: Sua saúde hoje
+                    - paragraph [ref=e1094]: Em boa forma
+                    - paragraph [ref=e1096]: ● Nada crítico no momento
+                - button [ref=e1097] [cursor=pointer]: Ver análise completa
+              - generic [ref=e1102]:
+                - paragraph [ref=e1103]: O que mudou nos seus exames
+                - paragraph [ref=e1105]: Carregando…
+                - button [ref=e1107] [cursor=pointer]: Ver evolução completa
+            - generic [ref=e1114]:
+              - generic [ref=e1118]:
+                - paragraph [ref=e1119]: ✨ Dica personalizada (IA)
+                - paragraph [ref=e1120]: Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder.
+              - button [ref=e1122] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e1126]:
+              - generic [ref=e1134] [cursor=pointer]:
+                - paragraph [ref=e1135]: Cardiometabólico
+                - paragraph [ref=e1136]: —
+              - generic [ref=e1144] [cursor=pointer]:
+                - paragraph [ref=e1145]: Idade biológica
+                - paragraph [ref=e1146]: …
+              - generic [ref=e1154] [cursor=pointer]:
+                - paragraph [ref=e1155]: Seus exames
+                - paragraph [ref=e1156]: —
+                - paragraph [ref=e1157]: 0 alterados
+              - generic [ref=e1165] [cursor=pointer]:
+                - paragraph [ref=e1166]: Evolução
+                - paragraph [ref=e1167]: "34"
+                - paragraph [ref=e1168]: histórico de tendências
+            - generic [ref=e1181]:
+              - generic [ref=e1182]: Enviar exame
+              - generic [ref=e1189]: Evolução
+              - generic [ref=e1196]: Família
+              - generic [ref=e1204]: Relatório
+            - generic [ref=e1213] [cursor=pointer]:
+              - generic [ref=e1215]:
+                - paragraph [ref=e1216]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e1219]:
+                - generic [ref=e1220]: 🎉
+                - generic [ref=e1222]: 📚
+                - generic [ref=e1224]: 🎓
+                - generic [ref=e1226]: 💚
+                - generic [ref=e1228]: 🔥
+              - generic [ref=e1230]: 0 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=e1232] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e1236]:
+      - paragraph [ref=e1241] [cursor=pointer]: Início
+      - paragraph [ref=e1247] [cursor=pointer]: Exames
+      - paragraph [ref=e1251] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e1256] [cursor=pointer]: Evolução
+      - paragraph [ref=e1261] [cursor=pointer]: Mais
+  - generic [aria-hidden] [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button [ref=e1262] [cursor=pointer]: ◉
+      - button [ref=e1263] [cursor=pointer]: ×
+  - generic [aria-hidden]:
+    - generic: positioned child clipped by overflow container
+  - generic [aria-hidden]:
+    - generic:
+      - generic:
+        - button [ref=e1264] [cursor=pointer]: ‹
+        - button [ref=e1265] [cursor=pointer]: ›
+      - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette, positioned child clipped by overflow container
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette, ✦ decorative radial spotlight glow
+  - generic [aria-hidden]:
+    - generic: ✦ decorative radial spotlight glow
+  - generic [aria-hidden]:
+    - generic: ✦ decorative radial spotlight glow
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text, ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette, positioned child clipped by overflow container
+  - generic [aria-hidden]:
+    - generic: ✦ decorative radial spotlight glow
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette, ✦ decorative radial spotlight glow
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: tiny body text
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: tiny body text
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: all-caps body text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: undersized functional text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: cramped padding
+  - generic [aria-hidden]:
+    - generic: layout property animation
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette, positioned child clipped by overflow container
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: line length too long
+  - generic [aria-hidden]:
+    - generic:
+      - generic:
+        - button [ref=e1266] [cursor=pointer]: ‹
+        - button [ref=e1267] [cursor=pointer]: ›
+      - generic: low contrast text
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden]:
+    - generic: ✦ ai color palette
+  - generic [aria-hidden] [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button [ref=e1268] [cursor=pointer]: ◉
+      - button [ref=e1269] [cursor=pointer]: ×
+  - dialog [active] [ref=e1272]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e1273]
+    - generic [ref=e1274]:
+      - generic [ref=e1275]: Versão 0.1.0
+      - generic [ref=e1276]:
+        - generic [ref=e1277]:
+          - generic [ref=e1278]: 📱
+          - generic [ref=e1279]:
+            - paragraph [ref=e1280]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e1281]:
+          - generic [ref=e1282]: 🔐
+          - generic [ref=e1283]:
+            - paragraph [ref=e1284]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e1285]:
+          - generic [ref=e1286]: 🩺
+          - generic [ref=e1287]:
+            - paragraph [ref=e1288]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e1289]:
+          - generic [ref=e1290]: 🚑
+          - generic [ref=e1291]:
+            - paragraph [ref=e1292]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button "Legal! →" [ref=e1294] [cursor=pointer]

@@ -1,0 +1,51 @@
+- generic [ref=f3e2]:
+  - generic [ref=f3e106]:
+    - button "Pular para o conteúdo" [ref=f3e895] [cursor=pointer]
+    - generic [ref=f3e108]:
+      - banner [ref=f3e109]:
+        - generic [ref=f3e110]:
+          - button "Voltar" [ref=f3e896] [cursor=pointer]
+          - generic [ref=f3e114]:
+            - img "Dr. Exame" [ref=f3e897]
+            - paragraph [ref=f3e117]: Dr. Exame
+          - generic [ref=f3e118]:
+            - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f3e898] [cursor=pointer]:
+              - generic [ref=f3e122]: "15"
+            - button "Notificações" [ref=f3e899] [cursor=pointer]:
+              - generic [ref=f3e124]: 9+
+            - button "E" [ref=f3e900] [cursor=pointer]
+      - main [ref=f3e134]:
+        - generic [ref=f3e1057]:
+          - alert [ref=f3e1058]: Algo deu errado
+          - generic [ref=f3e1061]: A client error occurred and your request couldn't be completed.
+          - heading [level=3] [ref=f3e1063]:
+            - button "Rendered more hooks than during the previous render." [ref=f3e1064] [cursor=pointer]
+          - generic [ref=f3e1069]:
+            - paragraph [ref=f3e1070]: "Need help with this error? Try the following:"
+            - list [ref=f3e1072]:
+              - listitem [ref=f3e1073]:
+                - text: Check the
+                - link "react-admin documentation" [ref=f3e1074] [cursor=pointer]:
+                  - /url: https://marmelab.com/react-admin/documentation.html
+              - listitem [ref=f3e1075]:
+                - text: Search on
+                - link "StackOverflow" [ref=f3e1076] [cursor=pointer]:
+                  - /url: https://stackoverflow.com/questions/tagged/react-admin
+                - text: for community answers
+              - listitem [ref=f3e1077]:
+                - text: Get help from the core team via
+                - link "react-admin Enterprise Edition" [ref=f3e1078] [cursor=pointer]:
+                  - /url: https://react-admin-ee.marmelab.com/#fromsww
+          - button [ref=f3e1080] [cursor=pointer]
+  - navigation [ref=f3e333]:
+    - button "Início" [ref=f3e1051] [cursor=pointer]:
+      - paragraph [ref=f3e338]: Início
+    - button "Exames" [ref=f3e1052] [cursor=pointer]:
+      - paragraph [ref=f3e344]: Exames
+    - button "Dr. Exame — conversar com a IA" [ref=f3e1053] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f3e1054]
+      - paragraph [ref=f3e348]: Dr. Exame
+    - button "Evolução" [ref=f3e1055] [cursor=pointer]:
+      - paragraph [ref=f3e353]: Evolução
+    - button "Mais" [ref=f3e1056] [cursor=pointer]:
+      - paragraph [ref=f3e358]: Mais

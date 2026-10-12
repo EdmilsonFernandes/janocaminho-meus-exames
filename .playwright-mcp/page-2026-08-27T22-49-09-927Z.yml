@@ -1,0 +1,73 @@
+- generic [active] [ref=f15e5]:
+  - generic [ref=f15e6]:
+    - generic [ref=f15e86]:
+      - button "Pular para o conteúdo" [ref=f15e441] [cursor=pointer]
+      - generic [ref=f15e88]:
+        - banner [ref=f15e89]:
+          - generic [ref=f15e90]:
+            - button "Menu" [ref=f15e442] [cursor=pointer]
+            - generic [ref=f15e94]:
+              - img "Dr. Exame" [ref=f15e443]
+              - paragraph [ref=f15e792]: Dr. Exame
+            - generic [ref=f15e98]:
+              - button "Você tem 71 créditos. Toque para comprar mais." [ref=f15e444] [cursor=pointer]:
+                - generic [ref=f15e359]: "71"
+              - button "Notificações" [ref=f15e445] [cursor=pointer]:
+                - generic [ref=f15e100]: "2"
+              - button "E Edmilson Lopes Fernandes dos Santos" [ref=f15e446] [cursor=pointer]:
+                - generic [ref=f15e105]: E
+                - generic [ref=f15e107]: Edmilson Lopes Fernandes dos Santos
+        - main [ref=f15e112]:
+          - generic [ref=f15e793]:
+            - generic [ref=f15e796]:
+              - paragraph [ref=f15e797]: Boa noite, tudo bem? 👋
+              - generic [ref=f15e798]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f15e799]:
+              - generic [ref=f15e801]:
+                - generic [ref=f15e802]:
+                  - paragraph [ref=f15e809]: de 100
+                  - generic [ref=f15e810]:
+                    - paragraph [ref=f15e811]: Sua saúde hoje
+                    - paragraph [ref=f15e812]: Em ótima forma
+                    - paragraph [ref=f15e814]: ● Nada crítico no momento
+                - button [ref=f15e815] [cursor=pointer]
+              - generic [ref=f15e820]:
+                - paragraph [ref=f15e821]: O que mudou nos seus exames
+                - paragraph [ref=f15e823]: Carregando…
+                - button [ref=f15e825] [cursor=pointer]
+            - generic [ref=f15e832]:
+              - generic [ref=f15e833]:
+                - paragraph [ref=f15e835]: ✨ Entenda seus exames com IA
+                - paragraph [ref=f15e836]: Tire dúvidas clínicas, compare referências e receba orientações personalizadas sobre seus marcadores em segundos.
+              - button [ref=f15e838] [cursor=pointer]
+            - generic [ref=f15e842]:
+              - generic [ref=f15e850] [cursor=pointer]:
+                - paragraph [ref=f15e851]: Cardiometabólico
+                - paragraph [ref=f15e852]: —
+              - generic [ref=f15e860] [cursor=pointer]:
+                - paragraph [ref=f15e861]: Idade biológica
+                - paragraph [ref=f15e862]: …
+                - paragraph
+              - generic [ref=f15e870] [cursor=pointer]:
+                - paragraph [ref=f15e871]: Seus exames
+                - paragraph [ref=f15e872]: —
+                - paragraph [ref=f15e873]: 0 alterados
+              - generic [ref=f15e881] [cursor=pointer]:
+                - paragraph [ref=f15e882]: Evolução
+                - paragraph [ref=f15e883]: "42"
+                - paragraph [ref=f15e884]: histórico de tendências
+            - generic [ref=f15e886]:
+              - generic [ref=f15e887]: Enviar exame
+              - generic [ref=f15e894]: Evolução
+              - generic [ref=f15e901]: Família
+              - generic [ref=f15e909]: Relatório
+            - button [ref=f15e917] [cursor=pointer]
+    - navigation [ref=f15e241]:
+      - paragraph [ref=f15e246] [cursor=pointer]: Início
+      - paragraph [ref=f15e252] [cursor=pointer]: Exames
+      - generic [ref=f15e253] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f15e452]
+        - paragraph [ref=f15e256]: Dr. Exame
+      - paragraph [ref=f15e261] [cursor=pointer]: Evolução
+      - paragraph [ref=f15e266] [cursor=pointer]: Mais
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f15e453] [cursor=pointer]

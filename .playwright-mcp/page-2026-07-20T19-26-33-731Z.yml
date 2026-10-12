@@ -1,0 +1,21 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - generic [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e12]: Lojas
+        - generic [ref=f1e17]: Destinos
+        - generic [ref=f1e22]: Condomínios
+        - generic [ref=f1e27]: Entregas
+        - generic [ref=f1e44]: pedidosexperiências locais
+      - generic [ref=f1e52]:
+        - heading [level=1] [ref=f1e53]: Já no Caminho
+        - paragraph [ref=f1e54]: Encontrando lojas por perto
+      - generic [ref=f1e55]: Conectando com segurança
+    - status [ref=f1e58]:
+      - generic [ref=f1e59]:
+        - paragraph [ref=f1e70]: Já no Caminho
+        - heading "Abrindo a próxima tela" [level=2] [ref=f1e71]
+        - paragraph [ref=f1e72]: Carregando a experiência sem perder o contexto do app.
+  - contentinfo [ref=f1e77]:
+    - link "Rastreamento" [ref=f1e78] [cursor=pointer]:
+      - /url: https://www.siterastreio.com.br/

@@ -1,0 +1,44 @@
+- generic [ref=f6e1]:
+  - generic [aria-hidden] [ref=f6e2]:
+    - generic [ref=f6e27]:
+      - button [ref=f6e603] [cursor=pointer]
+      - generic [ref=f6e29]:
+        - banner [ref=f6e30]:
+          - generic [ref=f6e31]:
+            - button [ref=f6e604] [cursor=pointer]
+            - paragraph [ref=f6e610]: Dr. Exame
+            - generic [ref=f6e32]:
+              - button [ref=f6e611] [cursor=pointer]:
+                - generic [ref=f6e137]: "69"
+              - button [ref=f6e612] [cursor=pointer]:
+                - generic [ref=f6e34]: 9+
+              - button [ref=f6e613] [cursor=pointer]:
+                - generic [ref=f6e39]: E
+        - main [ref=f6e50]:
+          - generic [ref=f6e625]:
+            - heading [level=3] [ref=f6e626]: Dr. Exame
+            - paragraph [ref=f6e629]: Seu assistente de saúde com IA
+    - navigation [ref=f6e638]:
+      - paragraph [ref=f6e643] [cursor=pointer]: Início
+      - paragraph [ref=f6e648] [cursor=pointer]: Exames
+      - paragraph [ref=f6e653] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f6e658] [cursor=pointer]: Evolução
+      - paragraph [ref=f6e663] [cursor=pointer]: Mais
+  - dialog [active] [ref=f6e665]:
+    - navigation [ref=f6e666]:
+      - generic [ref=f6e667]:
+        - button "Exames" [expanded] [ref=f6e668] [cursor=pointer]
+        - generic [ref=f6e679]:
+          - button "Exames" [ref=f6e680] [cursor=pointer]
+          - button "Valores alterados" [ref=f6e686] [cursor=pointer]
+          - button "Evolução" [ref=f6e693] [cursor=pointer]
+          - button "Tendências" [ref=f6e700] [cursor=pointer]
+          - button "Linha do Tempo" [ref=f6e706] [cursor=pointer]
+          - button "Relatório completo" [ref=f6e712] [cursor=pointer]
+      - button "Cuidados" [ref=f6e719] [cursor=pointer]
+      - button "Pessoas" [ref=f6e729] [cursor=pointer]
+      - button "Conta" [ref=f6e739] [cursor=pointer]
+      - separator [ref=f6e747]
+      - button "Dúvidas frequentes" [ref=f6e748] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f6e754] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f6e760] [cursor=pointer]

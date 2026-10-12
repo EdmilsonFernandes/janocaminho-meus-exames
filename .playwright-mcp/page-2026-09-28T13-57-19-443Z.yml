@@ -1,0 +1,36 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e7]:
+    - img "Dr. Exame" [ref=f4e13]
+    - generic [ref=f4e14]:
+      - heading "Dr. Exame" [level=3] [ref=f4e15]
+      - paragraph [ref=f4e18]: Iniciando o Dr. Exame…
+  - generic [ref=f4e27]:
+    - button "Pular para o conteúdo" [ref=f4e28] [cursor=pointer]
+    - generic [ref=f4e29]:
+      - banner [ref=f4e30]:
+        - generic [ref=f4e31]:
+          - heading "Evolução da minha saúde" [level=6] [ref=f4e32]
+          - generic [ref=f4e35]:
+            - button "Notificações" [ref=f4e36] [cursor=pointer]:
+              - generic [ref=f4e37]: "0"
+            - button "👤 Selecionar" [ref=f4e41] [cursor=pointer]:
+              - generic [ref=f4e42]: 👤
+              - generic [ref=f4e44]: Selecionar
+          - button "Atualizar" [ref=f4e50] [cursor=pointer]
+      - main [ref=f4e53]:
+        - navigation [ref=f4e57]:
+          - generic [ref=f4e64]:
+            - paragraph [ref=f4e65]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f4e66]: Plano grátis
+          - separator [ref=f4e69]
+          - button "Exames" [expanded] [ref=f4e71] [cursor=pointer]
+          - button "Cuidados" [ref=f4e84] [cursor=pointer]
+          - button "Pessoas" [ref=f4e94] [cursor=pointer]
+          - button "Conta" [ref=f4e104] [cursor=pointer]
+          - button "Dúvidas frequentes" [ref=f4e113] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=f4e119] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=f4e125] [cursor=pointer]
+          - generic [ref=f4e131]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=f4e138]:
+          - heading "Evolução ao longo do tempo" [level=5] [ref=f4e139]
+          - paragraph [ref=f4e140]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.

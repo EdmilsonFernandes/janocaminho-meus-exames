@@ -1,0 +1,62 @@
+- generic [active] [ref=f10e1]:
+  - generic [ref=f10e44]:
+    - navigation [ref=f10e45]:
+      - generic [ref=f10e47]:
+        - button "Menu do médico" [ref=f10e48] [cursor=pointer]:
+          - generic [ref=f10e49]: D
+        - generic [ref=f10e50]:
+          - paragraph [ref=f10e51]: 🩺 Dr Teste QA
+          - generic [ref=f10e52]: Clínico Geral • CRM 99999-SP
+      - separator [ref=f10e53]
+      - generic [ref=f10e54]:
+        - generic [ref=f10e55]: PLANO
+        - paragraph [ref=f10e56]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f10e57]:
+        - button "Pacientes" [ref=f10e58] [cursor=pointer]
+        - button "Convites" [ref=f10e64] [cursor=pointer]
+        - button "Perguntas" [ref=f10e71] [cursor=pointer]
+        - button "Meu perfil" [ref=f10e78] [cursor=pointer]
+        - button "Trocar senha" [ref=f10e84] [cursor=pointer]
+        - separator [ref=f10e90]
+        - button "Sair" [ref=f10e91] [cursor=pointer]
+      - generic [ref=f10e97]: Portal do Médico
+    - generic [ref=f10e98]:
+      - paragraph [ref=f10e101]: Pacientes
+      - generic [ref=f10e102]:
+        - generic [ref=f10e103]:
+          - button "Fechar banner" [ref=f10e104] [cursor=pointer]:
+            - generic [ref=f10e105]: ×
+          - generic [ref=f10e106]:
+            - paragraph [ref=f10e107]: 💎 Dr. Exame Pro
+            - paragraph [ref=f10e108]: 💡 0 de 5 pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=f10e109] [cursor=pointer]
+        - generic [ref=f10e110]:
+          - heading "Pacientes (3)" [level=6] [ref=f10e111]
+          - generic [ref=f10e112]: 🔴 2 com alerta
+        - generic [ref=f10e114]:
+          - textbox "Buscar paciente" [ref=f10e119]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=f10e120] [cursor=pointer]
+        - generic [ref=f10e123]:
+          - generic [ref=f10e125] [cursor=pointer]:
+            - generic [ref=f10e126]: E
+            - generic [ref=f10e129]:
+              - paragraph [ref=f10e130]: Edmilson Lopes QA
+              - generic [ref=f10e131]: M · Titular
+              - generic [ref=f10e132]: 🔴 alerta · 📋 1 exame · 📅 03/08/2026 · Particular
+          - generic [ref=f10e136] [cursor=pointer]:
+            - generic [ref=f10e137]: E
+            - generic [ref=f10e140]:
+              - paragraph [ref=f10e141]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f10e142]: M
+              - generic [ref=f10e143]: 🔴 alerta · 📋 5 exames · 📅 09/07/2026 · Particular
+          - generic [ref=f10e147] [cursor=pointer]:
+            - generic [ref=f10e148]: U
+            - generic [ref=f10e150]:
+              - paragraph [ref=f10e151]: Usuário Teste
+              - generic [ref=f10e152]: Titular
+              - generic [ref=f10e153]: Particular
+  - generic [ref=f10e41] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e42]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f10e43]

@@ -1,0 +1,107 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - button [ref=f5e4] [cursor=pointer]
+      - generic [ref=f5e5]:
+        - banner [ref=f5e6]:
+          - generic [ref=f5e7]:
+            - button [ref=f5e8] [cursor=pointer]
+            - paragraph [ref=f5e14]: Dr. Exame
+            - button [ref=f5e15] [cursor=pointer]:
+              - generic [ref=f5e18]: "71"
+            - button [ref=f5e19] [cursor=pointer]:
+              - generic [ref=f5e20]: 9+
+            - button [ref=f5e25] [cursor=pointer]:
+              - generic [ref=f5e26]: E
+        - main [ref=f5e28]:
+          - generic [ref=f5e651]:
+            - heading [level=5] [ref=f5e652]: 🛡️ Privacidade e Termos
+            - paragraph [ref=f5e653]: Como seus dados são tratados e seus direitos (LGPD).
+            - generic [ref=f5e655]:
+              - heading [level=6] [ref=f5e656]: 📋 Termos de Uso
+              - paragraph [ref=f5e657]:
+                - text: O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é
+                - strong [ref=f5e658]: educativa
+                - text: e
+                - strong [ref=f5e659]: não substitui
+                - text: consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+              - button [ref=f5e660] [cursor=pointer]: Ler termos completos →
+            - generic [ref=f5e662]:
+              - heading [level=6] [ref=f5e663]: 🧾 Antes de enviar um exame
+              - alert [ref=f5e664]:
+                - generic [ref=f5e668]: Ao enviar PDF, foto ou usar a câmera, o arquivo e os dados de saúde são enviados ao Meus Exames para extração e análise educativa com IA.
+              - generic [ref=f5e669]:
+                - generic [ref=f5e670]:
+                  - generic [ref=f5e671]: "1"
+                  - paragraph [ref=f5e672]: A IA ajuda a organizar e explicar seus exames, mas não diagnostica, não prescreve e não substitui consulta médica.
+                - generic [ref=f5e673]:
+                  - generic [ref=f5e674]: "2"
+                  - paragraph [ref=f5e675]: O processamento pode usar operadores necessários, como Z.ai/GLM para IA, Firebase para notificações, Sentry para erros e Mercado Pago para pagamentos.
+                - generic [ref=f5e676]:
+                  - generic [ref=f5e677]: "3"
+                  - paragraph [ref=f5e678]: Você controla o compartilhamento com médicos; links usam PIN, expiram em 12 horas e podem ser revogados.
+                - generic [ref=f5e679]:
+                  - generic [ref=f5e680]: "4"
+                  - paragraph [ref=f5e681]: Você pode apagar exames, exportar seus dados ou excluir a conta aqui mesmo, em "Gerenciar seus dados".
+            - generic [ref=f5e683]:
+              - heading [level=6] [ref=f5e684]: 🔐 LGPD (Lei Geral de Proteção de Dados)
+              - generic [ref=f5e685]:
+                - generic [ref=f5e686]:
+                  - generic [ref=f5e687]: "1"
+                  - paragraph [ref=f5e688]: Seus dados de saúde são tratados em ambiente controlado, com autenticação, HTTPS em produção e acesso restrito.
+                - generic [ref=f5e689]:
+                  - generic [ref=f5e690]: "2"
+                  - paragraph [ref=f5e691]: Você controla quem acessa seus dados (compartilhamento com médicos é opcional e revogável).
+                - generic [ref=f5e692]:
+                  - generic [ref=f5e693]: "3"
+                  - paragraph [ref=f5e694]: Você pode exportar todos os seus dados a qualquer momento (abaixo, nesta tela).
+                - generic [ref=f5e695]:
+                  - generic [ref=f5e696]: "4"
+                  - paragraph [ref=f5e697]: Você pode excluir sua conta e todos os dados permanentemente (abaixo, nesta tela).
+                - generic [ref=f5e698]:
+                  - generic [ref=f5e699]: "5"
+                  - paragraph [ref=f5e700]: Não vendemos seus dados; compartilhamos apenas com operadores necessários para IA, notificações, pagamentos, suporte e infraestrutura.
+            - generic [ref=f5e702]:
+              - heading [level=6] [ref=f5e703]: ⚙️ Gerenciar seus dados
+              - paragraph [ref=f5e704]: Seus direitos de portabilidade e exclusão (LGPD art. 18) — na hora, sem intermediário.
+              - generic [ref=f5e705]:
+                - button [ref=f5e706] [cursor=pointer]: Excluir minha conta
+                - button [ref=f5e707] [cursor=pointer]: Exportar dados (.json)
+                - button [ref=f5e711] [cursor=pointer]: Importar dados
+              - button [ref=f5e715] [cursor=pointer]: Baixar tudo (.zip)
+              - generic [ref=f5e719]: O pacote .zip traz dados, relatórios legíveis e os PDFs originais. A exclusão apaga definitivamente exames, análises e dados — não dá pra desfazer.
+    - button [ref=f5e458] [cursor=pointer]
+    - navigation [ref=f5e167]:
+      - paragraph [ref=f5e172] [cursor=pointer]: Início
+      - paragraph [ref=f5e178] [cursor=pointer]: Exames
+      - paragraph [ref=f5e182] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e187] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e192] [cursor=pointer]: Mais
+  - generic [ref=f5e194] [cursor=pointer]
+  - dialog [active] [ref=f5e199]:
+    - navigation [ref=f5e200]:
+      - button "Exames" [ref=f5e321] [cursor=pointer]
+      - generic [ref=f5e210]:
+        - button "Cuidados" [expanded] [ref=f5e322] [cursor=pointer]
+        - generic [ref=f5e574]:
+          - button "Medições" [ref=f5e575] [cursor=pointer]
+          - button "Remédios" [ref=f5e582] [cursor=pointer]
+          - button "Vacinas" [ref=f5e588] [cursor=pointer]
+          - button "Lembretes" [ref=f5e594] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=f5e600] [cursor=pointer]
+          - button "Conquistas" [ref=f5e606] [cursor=pointer]
+      - button "Pessoas" [ref=f5e323] [cursor=pointer]
+      - generic [ref=f5e230]:
+        - button "Conta" [expanded] [ref=f5e324] [cursor=pointer]
+        - generic [ref=f5e470]:
+          - button "Meu perfil" [ref=f5e471] [cursor=pointer]
+          - button "Segurança & senha" [ref=f5e477] [cursor=pointer]
+          - button "Privacidade e termos" [ref=f5e483] [cursor=pointer]
+          - button "Planos e Créditos" [ref=f5e489] [cursor=pointer]
+          - button "Despesas Médicas" [ref=f5e495] [cursor=pointer]
+          - button "Painel Admin" [ref=f5e501] [cursor=pointer]
+      - separator [ref=f5e239]
+      - button "Dúvidas frequentes" [ref=f5e325] [cursor=pointer]
+      - button "Ajuda & Suporte" [ref=f5e326] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f5e327] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f5e328] [cursor=pointer]

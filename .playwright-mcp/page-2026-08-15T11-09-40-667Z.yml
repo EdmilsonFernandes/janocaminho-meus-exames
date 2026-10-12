@@ -1,0 +1,132 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button [ref=e1596] [cursor=pointer]
+      - main [ref=e919]:
+        - generic [ref=e1404]:
+          - generic [ref=e1410]:
+            - heading [level=5] [ref=e1597]: Valores fora da faixa
+            - paragraph [ref=e1412]:
+              - text: Ordenados por
+              - strong [ref=e1413]: prioridade de atenção
+              - text: (🔴→🟡). Toque num exame pra expandir e em
+              - strong [ref=e1414]: Agendar
+              - text: pro especialista.
+          - generic [ref=e1445]:
+            - generic [ref=e1446]:
+              - generic [ref=e1447]: 🔴 1 Importante
+              - generic [ref=e1448]: 🟠 0 Moderadas
+              - generic [ref=e1449]: 🟡 7 Leves
+            - generic [ref=e1450]:
+              - text: Os
+              - strong [ref=e1451]: 🔴 importantes
+              - text: "merecem prioridade — leve ao médico. 🟠 moderadas: comente na consulta. 🟡 leves: só acompanhe."
+          - generic [ref=e1452]:
+            - heading [level=3] [ref=e1598]:
+              - button [ref=e1599] [cursor=pointer]:
+                - generic [ref=e1457]:
+                  - generic [ref=e1458]: 🟡
+                  - generic [ref=e1459]:
+                    - paragraph [ref=e1460]: HEMOGRAMA COMPLETO
+                    - generic [ref=e1461]: 📅 05/11/2025 · há 9 meses
+                    - generic [ref=e1462]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                  - generic [ref=e1463]: 3 alterado(s)
+            - generic [ref=e1468]:
+              - heading [level=3] [ref=e1600]:
+                - button [expanded] [ref=e1601] [cursor=pointer]:
+                  - generic [ref=e1472]:
+                    - generic [ref=e1473]: 🔴
+                    - generic [ref=e1474]:
+                      - paragraph [ref=e1475]: HEMOGRAMA COMPLETO
+                      - generic [ref=e1476]: 📅 07/02/2025 · há 1 ano
+                      - generic [ref=e1477]: ⏳ Exame antigo — considere renovar com seu médico
+                      - generic [ref=e1478]: 🩺 Dr. GISELLE R. MAXIMO
+                    - generic [ref=e1479]: 5 alterado(s)
+              - region [ref=e1488]:
+                - generic [ref=e1490]:
+                  - generic [ref=e1492]:
+                    - generic [ref=e1493]:
+                      - generic [ref=e1494]:
+                        - paragraph [ref=e1495]: HOMA IR
+                        - generic [ref=e1602]: 🔴 Importante
+                        - button [expanded] [ref=e1603] [cursor=pointer]
+                      - text: "Ref: 0 - 2.7"
+                    - generic [ref=e1501]:
+                      - generic [ref=e1502]: 7,2
+                      - generic [ref=e1503]: ↑ Acima da ref.
+                    - img [ref=e1604]:
+                      - generic [ref=e1509]:
+                        - generic [ref=e1510]: ▲ 0
+                        - generic [ref=e1511]: 2.7 ▲
+                  - generic [ref=e1513]:
+                    - generic [ref=e1514]:
+                      - generic [ref=e1515]:
+                        - paragraph [ref=e1516]: GLICOSE
+                        - generic [ref=e1605]: 🟡 Leve
+                        - button [ref=e1606] [cursor=pointer]
+                      - text: "Ref: 70 - 99 mg/dL"
+                    - generic [ref=e1522]:
+                      - generic [ref=e1523]: 102 mg/dL
+                      - generic [ref=e1524]: ↑ Acima da ref.
+                    - img [ref=e1607]:
+                      - generic [ref=e1530]:
+                        - generic [ref=e1531]: ▲ 70
+                        - generic [ref=e1532]: 99 ▲
+                  - generic [ref=e1534]:
+                    - generic [ref=e1535]:
+                      - generic [ref=e1536]:
+                        - paragraph [ref=e1537]: INSULINA BASAL
+                        - generic [ref=e1608]: 🟡 Leve
+                        - button [ref=e1609] [cursor=pointer]
+                      - text: "Ref: 2.6 - 24.9 mU/mL"
+                    - generic [ref=e1543]:
+                      - generic [ref=e1544]: 28,70 mU/mL
+                      - generic [ref=e1545]: ↑ Acima da ref.
+                    - img [ref=e1610]:
+                      - generic [ref=e1551]:
+                        - generic [ref=e1552]: ▲ 2.6
+                        - generic [ref=e1553]: 24.9 ▲
+                  - generic [ref=e1555]:
+                    - generic [ref=e1556]:
+                      - generic [ref=e1557]:
+                        - paragraph [ref=e1558]: FSH - HORMÔNIO FOLÍCULO ESTIMULANTE
+                        - generic [ref=e1611]: 🟡 Leve
+                        - button [ref=e1612] [cursor=pointer]
+                      - text: "Ref: 3.5 - 12.5 mUI/mL"
+                    - generic [ref=e1564]:
+                      - generic [ref=e1565]: 2,0 mUI/mL
+                      - generic [ref=e1566]: ↓ Abaixo da ref.
+                    - img [ref=e1613]:
+                      - generic [ref=e1572]:
+                        - generic [ref=e1573]: ▲ 3.5
+                        - generic [ref=e1574]: 12.5 ▲
+                  - generic [ref=e1576]:
+                    - generic [ref=e1577]:
+                      - generic [ref=e1578]:
+                        - paragraph [ref=e1579]: ESTRADIOL
+                        - generic [ref=e1614]: 🟡 Leve
+                        - button [ref=e1615] [cursor=pointer]
+                      - text: "Ref: 30.9 - 90.4 pg/mL"
+                    - generic [ref=e1585]:
+                      - generic [ref=e1586]: 96,20 pg/mL
+                      - generic [ref=e1587]: ↑ Acima da ref.
+                    - img [ref=e1616]:
+                      - generic [ref=e1593]:
+                        - generic [ref=e1594]: ▲ 30.9
+                        - generic [ref=e1595]: 90.4 ▲
+          - generic [ref=e1431]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=e1617] [cursor=pointer]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - paragraph [ref=e1053] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e1623]:
+    - generic [ref=e1624]:
+      - paragraph [ref=e1625]: Índice HOMA-IR (Resistência à Insulina)
+      - paragraph [ref=e1626]: Este exame verifica se o seu corpo está respondendo bem à ação da insulina ou se está tendo dificuldade para usar o açúcar do sangue.
+      - paragraph [ref=e1627]: 💡 Imagine que a insulina é uma chave que abre a porta das células para entrar o açúcar (energia); se a fechadura enferrujou (resistência), a chave gira mas não abre com facilidade.
+      - generic [ref=e1628]: ⚠️ Valores acima da faixa podem indicar que o corpo está precisando produzir mais insulina para compensar essa dificuldade (resistência à insulina), enquanto valores muito baixos são menos comuns e podem ocorrer em pessoas com baixa reserva de insulina.
+      - generic [ref=e1629]: "*Educativo. Sempre confirme com seu médico."

@@ -1,0 +1,48 @@
+- generic [ref=f13e2]:
+  - generic [ref=f13e7]:
+    - img "Dr. Exame" [ref=f13e13]
+    - generic [ref=f13e14]:
+      - heading "Dr. Exame" [level=3] [ref=f13e15]
+      - paragraph [ref=f13e18]: Iniciando o Dr. Exame…
+  - generic [ref=f13e28]:
+    - generic [ref=f13e29]:
+      - img "Dr. Exame" [ref=f13e31]
+      - generic [ref=f13e32]:
+        - paragraph [ref=f13e33]: Meus Exames
+        - paragraph [ref=f13e34]: Seu assistente de saúde com IA
+    - generic [ref=f13e35]:
+      - button [ref=f13e36] [cursor=pointer]
+      - button [ref=f13e41] [cursor=pointer]
+    - generic [ref=f13e47]:
+      - generic [ref=f13e48]:
+        - generic [ref=f13e49]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=f13e50]: "*"
+        - generic [ref=f13e51]:
+          - textbox "E-mail" [ref=f13e56]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=f13e57]:
+        - generic [ref=f13e58]:
+          - text: Senha
+          - generic [aria-hidden] [ref=f13e59]: "*"
+        - generic [ref=f13e60]:
+          - textbox "Senha" [ref=f13e65]
+          - button "Mostrar senha" [ref=f13e67] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=f13e72] [cursor=pointer]
+      - button [ref=f13e73] [cursor=pointer]
+      - generic [ref=f13e77]: ou
+      - generic [ref=f13e81]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=f13e83] [cursor=pointer]:
+          - generic [ref=f13e85]: Continuar com o Google
+        - iframe
+      - paragraph [ref=f13e95]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=f13e96] [cursor=pointer]
+    - generic [ref=f13e97]:
+      - paragraph [ref=f13e103]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=f13e104]:
+        - strong [ref=f13e105]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.

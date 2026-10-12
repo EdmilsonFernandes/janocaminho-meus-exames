@@ -1,0 +1,47 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - button [aria-hidden] [ref=e12] [cursor=pointer]
+        - img "Logo" [ref=e16] [cursor=pointer]
+      - generic [ref=e24]:
+        - searchbox [ref=e25]
+        - button "Buscar" [disabled] [ref=e27] [cursor=pointer]:
+          - generic: 
+      - link "Acessar Área do Cliente do Serpro" [ref=e38] [cursor=pointer]:
+        - /url: https://web.archive.org/web/20260824191407/https://cliente.serpro.gov.br/
+  - main [ref=e42]:
+    - generic [ref=e45]:
+      - generic [ref=e46]: Aguarde...
+      - button "<" [ref=e47] [cursor=pointer]
+      - button ">" [ref=e48] [cursor=pointer]
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - paragraph
+      - generic [ref=e58]:
+        - paragraph
+  - contentinfo [ref=e59]:
+    - generic [ref=e66]:
+      - img "Logotipo Serpro" [ref=e68]
+      - img "Bandeira do Brasil" [ref=e70]
+      - generic [ref=e71]:
+        - paragraph [ref=e72]: CIDADÃO
+        - paragraph [ref=e73]:
+          - link "Área do Cliente (Abre em nova guia)" [ref=e74] [cursor=pointer]:
+            - /url: https://web.archive.org/web/20260824191407/https://cliente.serpro.gov.br/
+            - text: Área do Cliente
+            - generic [ref=e75]: (Abre em nova guia)
+      - generic [ref=e76]:
+        - paragraph [ref=e77]: SUPORTE
+        - paragraph [ref=e78]:
+          - link "Central de Ajuda (Abre em nova guia)" [ref=e79] [cursor=pointer]:
+            - /url: https://web.archive.org/web/20260824191407/https://centraldeajuda.serpro.gov.br/duvidas/pt/
+            - text: Central de Ajuda
+            - generic [ref=e80]: (Abre em nova guia)
+      - generic [ref=e81]:
+        - paragraph [ref=e82]: PRIVACIDADE
+        - paragraph [ref=e83]:
+          - link "Termos de Uso e Política de Privacidade (Abre em nova guia)" [ref=e84] [cursor=pointer]:
+            - /url: https://web.archive.org/web/20260824191407/https://www.serpro.gov.br/privacidade-protecao-dados
+            - text: Termos de Uso e Política de Privacidade
+            - generic [ref=e85]: (Abre em nova guia)

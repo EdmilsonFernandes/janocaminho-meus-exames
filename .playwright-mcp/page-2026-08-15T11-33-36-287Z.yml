@@ -1,0 +1,43 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e4255]:
+    - generic [ref=e4256]:
+      - img "Dr. Exame" [ref=e4258]
+      - generic [ref=e4259]:
+        - paragraph [ref=e4260]: Meus Exames
+        - paragraph [ref=e4261]: Portal do Médico
+    - generic [ref=e4262]:
+      - button [ref=e4263] [cursor=pointer]
+      - button [ref=e4268] [cursor=pointer]
+    - generic [ref=e4274]:
+      - generic [ref=e4275]:
+        - generic [ref=e4276]:
+          - text: E-mail ou CRM
+          - generic [ref=e4277]: "*"
+        - generic [ref=e4278]:
+          - textbox "E-mail ou CRM" [ref=e4283]
+          - group:
+            - generic: E-mail ou CRM *
+        - paragraph [ref=e4284]: "Ex.: seu@email.com ou CRM (123456-SP ou só 123456)"
+      - generic [ref=e4285]:
+        - generic [ref=e4286]:
+          - text: Senha
+          - generic [ref=e4287]: "*"
+        - generic [ref=e4288]:
+          - textbox "Senha" [ref=e4293]
+          - button "Mostrar senha" [ref=e4295] [cursor=pointer]
+          - group:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e4300] [cursor=pointer]
+      - button [ref=e4301] [cursor=pointer]
+      - paragraph [ref=e4305]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e4306] [cursor=pointer]
+    - generic [ref=e4307]:
+      - paragraph [ref=e4313]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e4314]:
+        - strong [ref=e4315]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

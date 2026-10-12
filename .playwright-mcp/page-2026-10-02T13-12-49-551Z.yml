@@ -1,0 +1,87 @@
+- generic [active] [ref=f13e1]:
+  - generic [ref=f13e7]:
+    - complementary [ref=f13e8]:
+      - generic [ref=f13e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f13e13]
+        - generic [ref=f13e14]: Admin
+      - navigation [ref=f13e15]:
+        - generic [ref=f13e16]: Operação
+        - link "Dashboard" [ref=f13e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f13e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f13e28] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f13e32] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f13e38] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f13e43] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f13e50]:
+        - generic [ref=f13e52]: Operação ao vivo
+        - paragraph [ref=f13e57]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f13e58]:
+        - link "Ver site público" [ref=f13e59] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f13e64]: © 2026 PremioX · Painel do operador
+    - generic [ref=f13e65]:
+      - banner [ref=f13e66]:
+        - generic [ref=f13e67]:
+          - searchbox "Buscar no painel…" [ref=f13e68]
+          - generic: ⌘K
+        - button "Atualizar" [ref=f13e69] [cursor=pointer]
+        - link "Ver site" [ref=f13e75] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f13e81]:
+          - generic [ref=f13e82]: S
+          - generic [ref=f13e83]: Sim Admin E2E
+          - generic "Online" [ref=f13e84]
+        - button "Sair" [ref=f13e85] [cursor=pointer]
+      - main [ref=f13e89]:
+        - generic [ref=f13e90]:
+          - generic [ref=f13e91]:
+            - generic [ref=f13e92]:
+              - heading "Nova campanha" [level=1] [ref=f13e93]
+              - paragraph [ref=f13e94]: Sorteio · Passo 1 de 3 · Prêmio
+              - paragraph [ref=f13e95]: Mostre o que seu cliente pode ganhar — foto boa vende sozinha.
+            - button "trocar tipo" [ref=f13e96] [cursor=pointer]
+          - generic [ref=f13e97]:
+            - progressbar [ref=f13e98]
+            - generic "Etapas do formulário" [ref=f13e99]:
+              - list [ref=f13e100]:
+                - listitem [ref=f13e101]:
+                  - generic [ref=f13e102]:
+                    - generic [ref=f13e103]: "1"
+                    - generic [ref=f13e104]: Prêmio
+                - listitem [ref=f13e106]:
+                  - generic [ref=f13e107]:
+                    - generic [ref=f13e108]: "2"
+                    - generic [ref=f13e109]: Sorteio
+                - listitem [ref=f13e111]:
+                  - generic [ref=f13e112]:
+                    - generic [ref=f13e113]: "3"
+                    - generic [ref=f13e114]: Data & publicação
+            - generic [ref=f13e115]:
+              - generic [ref=f13e116]:
+                - generic [ref=f13e117]: Título do prêmio *
+                - 'textbox "Ex: Kit churrasco completo" [ref=f13e118]': Kit churrasco premium
+              - generic [ref=f13e119]:
+                - generic [ref=f13e120]: Slug (URL), opcional
+                - textbox "gerado automaticamente se vazio" [ref=f13e121]
+              - generic [ref=f13e122]:
+                - generic [ref=f13e123]: Fotos do prêmio
+                - generic [ref=f13e124] [cursor=pointer]: 📷 Selecionar fotos (várias)
+              - generic [ref=f13e125]:
+                - generic [ref=f13e126]:
+                  - generic [ref=f13e127]: Descrição do prêmio
+                  - button "✨ Sugerir com IA" [ref=f13e128] [cursor=pointer]
+                - textbox "Kit churrasco completo - Picanha 500g - Linguiça artesanal - Carvão e acendedor" [ref=f13e129]:
+                  - /placeholder: "Kit churrasco completo\n- Picanha 500g\n- Linguiça artesanal\n- Carvão e acendedor"
+                  - text: Kit churrasco premium — pronto pra entrega - Produto novo, lacrado e com nota fiscal - Entrega para todo o Brasil ou retirada com agendamento - Acompanha garantia do fabricante - Dúvidas? Chame a loja antes de participar
+                - paragraph [ref=f13e130]: 1ª linha = resumo. Linhas começando com ‘-’ viram checklist do que vem no kit.
+            - generic [ref=f13e131]:
+              - button "← Voltar" [ref=f13e132] [cursor=pointer]
+              - button "Continuar →" [ref=f13e133] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f13e139] [cursor=pointer]
+  - alert [ref=f13e143]

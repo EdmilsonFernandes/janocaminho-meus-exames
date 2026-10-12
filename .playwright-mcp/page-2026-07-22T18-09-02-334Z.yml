@@ -1,0 +1,49 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e801]:
+    - generic [ref=e802]:
+      - img "Dr. Exame" [ref=e804]
+      - generic [ref=e805]:
+        - heading "Meus Exames" [level=5] [ref=e806]
+        - paragraph [ref=e807]: Seu assistente de saúde com IA
+    - generic [ref=e808]:
+      - button [ref=e809] [cursor=pointer]
+      - button [ref=e814] [cursor=pointer]
+    - generic [ref=e820]:
+      - generic [ref=e821]:
+        - generic [ref=e822]:
+          - text: E-mail
+          - generic [ref=e823]: "*"
+        - generic [ref=e824]:
+          - textbox "E-mail" [ref=e829]
+          - group:
+            - generic: E-mail *
+      - generic [ref=e830]:
+        - generic [ref=e831]:
+          - text: Senha
+          - generic [ref=e832]: "*"
+        - generic [ref=e833]:
+          - textbox "Senha" [ref=e838]
+          - button "Mostrar senha" [ref=e840] [cursor=pointer]
+          - group:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e846] [cursor=pointer]
+      - button [ref=e847] [cursor=pointer]
+      - generic [ref=e851]: ou
+      - generic [ref=e855]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=e857] [cursor=pointer]:
+          - generic [ref=e859]: Continuar com o Google
+        - iframe
+      - generic [ref=e874]:
+        - paragraph [ref=e875]: Acesso seguro
+        - paragraph [ref=e876]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=e877]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e878] [cursor=pointer]
+    - generic [ref=e879]:
+      - generic [ref=e880]: 🩺
+      - paragraph [ref=e881]:
+        - strong [ref=e882]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

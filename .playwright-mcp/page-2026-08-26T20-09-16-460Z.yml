@@ -1,0 +1,355 @@
+- main [ref=e12]:
+  - generic [ref=e14]:
+    - generic [ref=e16]:
+      - button "Menu Formulário" [ref=e21] [cursor=pointer]
+      - heading "Pré-Cadastro para Avaliação de Fornecedores de Serviços e/ou Materiais Indiretos - RD Saúde" [level=1] [ref=e28]
+    - generic [ref=e31]:
+      - text: Caro fornecedor,Agradecemos seu interesse em fazer parte da rede de parceiros comerciais da RD Saúde. Este formulário corresponde a uma
+      - strong [ref=e32]: RFI (Request for Information - Solicitação de Informação)
+      - text: ", uma etapa inicial do processo de avaliação de fornecedores de Serviços e/ou Materiais Indiretos (não medicamentos). Nos próximos minutos, solicitaremos algumas informações básicas sobre sua empresa, que serão utilizadas pela área de Suprimentos para análise interna. Pedimos que todas as perguntas sejam respondidas"
+      - strong [ref=e33]: com atenção e veracidade
+      - text: ", respeitando as formatações indicadas no formulário e revisando as informações antes do envio. As respostas serão analisadas para verificar a aderência do perfil da empresa às necessidades atuais ou futuras da companhia e aos processos de concorrências em andamento. Caso o perfil do fornecedor esteja alinhado ao que buscamos, ele poderá ser convidado a seguir para as próximas etapas do processo. Após o envio do formulário, pedimos que"
+      - strong [ref=e34]: aguarde nosso contato
+      - text: ", caso seja necessário avançar com as próximas etapas. Se desejar conhecer mais detalhes sobre o processo de avaliação e cadastro de fornecedores, acesse nossa página:"
+      - generic [ref=e35]:
+        - link "https://rdsaude.com.br/parceiros-comerciais/#bibloteca" [ref=e36] [cursor=pointer]:
+          - /url: https://rdsaude.com.br/parceiros-comerciais/#bibloteca
+        - text: O preenchimento deste formulário não garante,
+        - strong [ref=e37]: início do cadastro
+        - generic [ref=e38]: na RD Saúde,
+        - text: aprovação ou contratação, sendo destinado à inclusão do fornecedor em processo interno de avaliação.Agradecemos sua colaboração e interesse em trabalhar conosco.
+  - generic [ref=e39]:
+    - generic [ref=e40]:
+      - generic [ref=e41]: Quando você enviar este formulário, ele não coletará automaticamente seus detalhes, como nome e endereço de email, a menos que você mesmo o forneça.
+      - generic [ref=e42]:
+        - generic [ref=e43]: "*"
+        - text: Obrigatória
+    - region [ref=e44]:
+      - generic "DADOS BÁSICOS DO FORNECEDOR Nesta seção, solicitamos informações básicas sobre a empresa, dados de contato e sua localização. Preencha com atenção, pois essas informações serão acrescentadas no cadastro da empresa." [ref=e46]:
+        - generic [ref=e47]:
+          - heading "DADOS BÁSICOS DO FORNECEDOR" [level=2] [ref=e49]
+          - generic [ref=e51]: Nesta seção, solicitamos informações básicas sobre a empresa, dados de contato e sua localização. Preencha com atenção, pois essas informações serão acrescentadas no cadastro da empresa.
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e55]:
+            - heading "1. Razão Social (Conforme site do Gov)Requer resposta" [level=2] [ref=e56]:
+              - generic [ref=e57]: "1."
+              - generic [ref=e58]: Razão Social (Conforme site do Gov)
+              - note "Requer resposta" [ref=e59]: "*"
+            - log [ref=e60]
+          - generic [ref=e65]:
+            - link "https://www.gov.br/pt-br/servicos/consultar-cadastro-nacional-de-pessoas-juridicas" [ref=e66] [cursor=pointer]:
+              - /url: https://www.gov.br/pt-br/servicos/consultar-cadastro-nacional-de-pessoas-juridicas
+            - text: "| Preenchimento fora do formado obrigatório poderá resultar na desclassificação do fornecedor."
+        - textbox "1. Razão Social (Conforme site do Gov)Requer resposta https://www.gov.br/pt-br/servicos/consultar-cadastro-nacional-de-pessoas-juridicas | Preenchimento fora do formado obrigatório poderá resultar na desclassificação do fornecedor." [active] [ref=e70]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e71]:
+        - generic [ref=e74]:
+          - heading "2. Nome FantasiaRequer resposta" [level=2] [ref=e75]:
+            - generic [ref=e76]: "2."
+            - generic [ref=e77]: Nome Fantasia
+            - note "Requer resposta" [ref=e78]: "*"
+          - log [ref=e79]
+        - textbox "2. Nome FantasiaRequer resposta" [ref=e83]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - generic [ref=e87]:
+            - heading "3. Sua empresa já é fornecedor da RD?Requer resposta" [level=2] [ref=e88]:
+              - generic [ref=e89]: "3."
+              - text: Sua empresa já é fornecedor da RD?
+              - note "Requer resposta" [ref=e90]: "*"
+            - log [ref=e91]
+          - generic [ref=e92]: Ou seja já teve pedido, NF emitida, pagamentos em 2025/2026...
+        - radiogroup "3. Sua empresa já é fornecedor da RD?Requer resposta Ou seja já teve pedido, NF emitida, pagamentos em 2025/2026..." [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e99]:
+              - radio "Sim" [ref=e101] [cursor=pointer]
+              - generic "Sim" [ref=e105]
+            - generic [ref=e108]:
+              - radio "Não" [ref=e110] [cursor=pointer]
+              - generic "Não" [ref=e114]
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e118]:
+            - heading "4. CNPJ Requer resposta" [level=2] [ref=e119]:
+              - generic [ref=e120]: "4."
+              - generic [ref=e121]: CNPJ
+              - note "Requer resposta" [ref=e122]: "*"
+            - log [ref=e123]
+          - generic [ref=e124]: "Formato obrigatório: 00.000.000/0000-00 - Preenchimento fora do formado obrigatório poderá resultar na desclassificação do fornecedor."
+        - 'textbox "4. CNPJ Requer resposta Formato obrigatório: 00.000.000/0000-00 - Preenchimento fora do formado obrigatório poderá resultar na desclassificação do fornecedor." [ref=e131]':
+          - /placeholder: Insira sua resposta
+      - generic [ref=e132]:
+        - generic [ref=e133]:
+          - generic [ref=e135]:
+            - heading "5. Inscrição MunicipalRequer resposta" [level=2] [ref=e136]:
+              - generic [ref=e137]: "5."
+              - generic [ref=e138]: Inscrição Municipal
+              - note "Requer resposta" [ref=e139]: "*"
+            - log [ref=e140]
+          - generic [ref=e141]: Caso não possua, coloque "Isento".
+        - textbox "5. Inscrição MunicipalRequer resposta Caso não possua, coloque \"Isento\"." [ref=e147]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e148]:
+        - generic [ref=e149]:
+          - generic [ref=e151]:
+            - heading "6. Inscrição EstadualRequer resposta" [level=2] [ref=e152]:
+              - generic [ref=e153]: "6."
+              - generic [ref=e154]: Inscrição Estadual
+              - note "Requer resposta" [ref=e155]: "*"
+            - log [ref=e156]
+          - generic [ref=e157]: Caso não possua, coloque "Isento".
+        - textbox "6. Inscrição EstadualRequer resposta Caso não possua, coloque \"Isento\"." [ref=e163]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e164]:
+        - generic [ref=e167]:
+          - heading "7. Tipo de EmpresaRequer resposta" [level=2] [ref=e168]:
+            - generic [ref=e169]: "7."
+            - text: Tipo de Empresa
+            - note "Requer resposta" [ref=e170]: "*"
+          - log [ref=e171]
+        - button "7. Tipo de EmpresaRequer resposta" [ref=e175] [cursor=pointer]:
+          - generic [ref=e176]: Selecionar sua resposta
+      - generic [ref=e180]:
+        - generic [ref=e183]:
+          - heading "8. Qual o seu nome completo?Requer resposta" [level=2] [ref=e184]:
+            - generic [ref=e185]: "8."
+            - text: Qual o seu nome completo?
+            - note "Requer resposta" [ref=e186]: "*"
+          - log [ref=e187]
+        - textbox "8. Qual o seu nome completo?Requer resposta" [ref=e191]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e192]:
+        - generic [ref=e195]:
+          - heading "9. Qual seu cargo atual dentro da empresa?Requer resposta" [level=2] [ref=e196]:
+            - generic [ref=e197]: "9."
+            - text: Qual seu cargo atual dentro da empresa?
+            - note "Requer resposta" [ref=e198]: "*"
+          - log [ref=e199]
+        - textbox "9. Qual seu cargo atual dentro da empresa?Requer resposta" [ref=e203]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e204]:
+        - generic [ref=e207]:
+          - heading "10. Qual seu e-mail?Requer resposta" [level=2] [ref=e208]:
+            - generic [ref=e209]: "10."
+            - text: Qual seu e-mail?
+            - note "Requer resposta" [ref=e210]: "*"
+          - log [ref=e211]
+        - textbox "10. Qual seu e-mail?Requer resposta" [ref=e215]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e216]:
+        - generic [ref=e219]:
+          - 'heading "11. Qual seu celular - Formato obrigatório: 00-00000-0000Requer resposta" [level=2] [ref=e220]':
+            - generic [ref=e221]: "11."
+            - generic [ref=e222]: "Qual seu celular - Formato obrigatório: 00-00000-0000"
+            - note "Requer resposta" [ref=e223]: "*"
+          - log [ref=e224]
+        - 'textbox "11. Qual seu celular - Formato obrigatório: 00-00000-0000Requer resposta" [ref=e228]':
+          - /placeholder: Insira sua resposta
+      - generic [ref=e229]:
+        - generic [ref=e230]:
+          - generic [ref=e232]:
+            - heading "12. Nome Completo - Diretor(a) Comercial da empresaRequer resposta" [level=2] [ref=e233]:
+              - generic [ref=e234]: "12."
+              - generic [ref=e235]: Nome Completo - Diretor(a) Comercial da empresa
+              - note "Requer resposta" [ref=e236]: "*"
+            - log [ref=e237]
+          - generic [ref=e238]: (Responsável pelo contato comercial junto a RD Saúde)
+        - textbox "12. Nome Completo - Diretor(a) Comercial da empresaRequer resposta (Responsável pelo contato comercial junto a RD Saúde)" [ref=e244]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e245]:
+        - generic [ref=e246]:
+          - generic [ref=e248]:
+            - heading "13. E-mail - Diretor(a) Comercial da empresaRequer resposta" [level=2] [ref=e249]:
+              - generic [ref=e250]: "13."
+              - generic [ref=e251]: E-mail - Diretor(a) Comercial da empresa
+              - note "Requer resposta" [ref=e253]: "*"
+            - log [ref=e254]
+          - generic [ref=e255]: (Responsável pelo contato comercial junto a RD Saúde)
+        - textbox "13. E-mail - Diretor(a) Comercial da empresaRequer resposta (Responsável pelo contato comercial junto a RD Saúde)" [ref=e262]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e263]:
+        - generic [ref=e264]:
+          - generic [ref=e266]:
+            - heading "14. Celular - Diretor(a) Comercial da empresaRequer resposta" [level=2] [ref=e267]:
+              - generic [ref=e268]: "14."
+              - generic [ref=e269]: Celular - Diretor(a) Comercial da empresa
+              - note "Requer resposta" [ref=e271]: "*"
+            - log [ref=e272]
+          - generic [ref=e273]: "(Responsável pelo contato comercial junto a RD Saúde)) - Formato obrigatório: 00-00000-0000"
+        - 'textbox "14. Celular - Diretor(a) Comercial da empresaRequer resposta (Responsável pelo contato comercial junto a RD Saúde)) - Formato obrigatório: 00-00000-0000" [ref=e280]':
+          - /placeholder: Insira sua resposta
+      - generic [ref=e281]:
+        - generic [ref=e284]:
+          - heading "15. Qual cidade está localizada sua empresa?Requer resposta" [level=2] [ref=e285]:
+            - generic [ref=e286]: "15."
+            - generic [ref=e287]: Qual cidade está localizada sua empresa?
+            - note "Requer resposta" [ref=e288]: "*"
+          - log [ref=e289]
+        - textbox "15. Qual cidade está localizada sua empresa?Requer resposta" [ref=e293]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e294]:
+        - generic [ref=e295]:
+          - generic [ref=e297]:
+            - heading "16. Em qual estado está localizado sua empresa?Requer resposta" [level=2] [ref=e298]:
+              - generic [ref=e299]: "16."
+              - generic [ref=e300]: Em qual estado está localizado sua empresa?
+              - note "Requer resposta" [ref=e301]: "*"
+            - log [ref=e302]
+          - generic [ref=e303]: Selecione o Estado onde fica a SEDE da sua empresa
+        - button "16. Em qual estado está localizado sua empresa?Requer resposta Selecione o Estado onde fica a SEDE da sua empresa" [ref=e309] [cursor=pointer]:
+          - generic [ref=e310]: Selecionar sua resposta
+      - generic [ref=e314]:
+        - generic [ref=e315]:
+          - generic [ref=e317]:
+            - heading "17. Endereço CompletoRequer resposta" [level=2] [ref=e318]:
+              - generic [ref=e319]: "17."
+              - generic [ref=e320]: Endereço Completo
+              - note "Requer resposta" [ref=e321]: "*"
+            - log [ref=e322]
+          - generic [ref=e323]: "FORMATO: Logradouro, Número e Complemento - RUA, XXXXX - Nº . Exemplo: Rua Duque de Caxias, 120 ["
+        - 'textbox "17. Endereço CompletoRequer resposta FORMATO: Logradouro, Número e Complemento - RUA, XXXXX - Nº . Exemplo: Rua Duque de Caxias, 120 [" [ref=e329]':
+          - /placeholder: Insira sua resposta
+      - generic [ref=e330]:
+        - generic [ref=e331]:
+          - generic [ref=e333]:
+            - heading "18. CEPRequer resposta" [level=2] [ref=e334]:
+              - generic [ref=e335]: "18."
+              - generic [ref=e336]: CEP
+              - note "Requer resposta" [ref=e337]: "*"
+            - log [ref=e338]
+          - generic [ref=e339]: "FORMATO OBRIGATÓRIO: 00000-000"
+        - 'textbox "18. CEPRequer resposta FORMATO OBRIGATÓRIO: 00000-000" [ref=e345]':
+          - /placeholder: Insira sua resposta
+      - generic [ref=e346]:
+        - generic [ref=e347]:
+          - generic [ref=e349]:
+            - heading "19. Website" [level=2] [ref=e350]:
+              - generic [ref=e351]: "19."
+              - generic [ref=e352]: Website
+            - log [ref=e353]
+          - generic [ref=e354]: Caso possua
+        - textbox "19. Website Caso possua" [ref=e360]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e361]:
+        - generic [ref=e364]:
+          - heading "20. Sua empresa pertence à grupo empresarial? Se sim, qual?" [level=2] [ref=e365]:
+            - generic [ref=e366]: "20."
+            - generic [ref=e367]: Sua empresa pertence à grupo empresarial? Se sim, qual?
+          - log [ref=e369]
+        - textbox "20. Sua empresa pertence à grupo empresarial? Se sim, qual?" [ref=e373]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e374]:
+        - generic [ref=e377]:
+          - heading "21. Sua empresa é de Capital Aberto?Requer resposta" [level=2] [ref=e378]:
+            - generic [ref=e379]: "21."
+            - generic [ref=e380]: Sua empresa é de Capital Aberto?
+            - note "Requer resposta" [ref=e382]: "*"
+          - log [ref=e383]
+        - button "21. Sua empresa é de Capital Aberto?Requer resposta" [ref=e387] [cursor=pointer]:
+          - generic [ref=e388]: Selecionar sua resposta
+      - generic [ref=e392]:
+        - generic [ref=e395]:
+          - heading "22. Informar Regime Tributário de sua empresaRequer resposta" [level=2] [ref=e396]:
+            - generic [ref=e397]: "22."
+            - generic [ref=e398]: Informar Regime Tributário de sua empresa
+            - note "Requer resposta" [ref=e399]: "*"
+          - log [ref=e400]
+        - button "22. Informar Regime Tributário de sua empresaRequer resposta" [ref=e404] [cursor=pointer]:
+          - generic [ref=e405]: Selecionar sua resposta
+      - generic [ref=e409]:
+        - generic [ref=e410]:
+          - generic [ref=e412]:
+            - heading "23. Qual nome Completo seu contato/solicitante dentro da RD?Requer resposta" [level=2] [ref=e413]:
+              - generic [ref=e414]: "23."
+              - generic [ref=e415]: Qual nome Completo seu contato/solicitante dentro da RD?
+              - note "Requer resposta" [ref=e416]: "*"
+            - log [ref=e417]
+          - generic [ref=e418]: Ou seja, qual o nome da pessoa dentro da RD que solicitou ou te encaminhou esse formulário?Caso tenha vindo da página de "Parceiros Comerciais" do site da RD Saúde - insira "Site RD Saúde" na resposta
+        - textbox "23. Qual nome Completo seu contato/solicitante dentro da RD?Requer resposta Ou seja, qual o nome da pessoa dentro da RD que solicitou ou te encaminhou esse formulário?Caso tenha vindo da página de \"Parceiros Comerciais\" do site da RD Saúde - insira \"Site RD Saúde\" na resposta" [ref=e424]:
+          - /placeholder: Insira sua resposta
+      - generic [ref=e425]:
+        - generic [ref=e428]:
+          - heading "24. De onde você conhece esse contato/solicitante RD?Requer resposta" [level=2] [ref=e429]:
+            - generic [ref=e430]: "24."
+            - text: De onde você conhece esse contato/solicitante RD?
+            - note "Requer resposta" [ref=e431]: "*"
+          - log [ref=e432]
+        - radiogroup "24. De onde você conhece esse contato/solicitante RD?Requer resposta" [ref=e434]:
+          - generic [ref=e435]:
+            - generic [ref=e438]:
+              - radio "LinkedIn" [ref=e440] [cursor=pointer]
+              - generic "LinkedIn" [ref=e444]
+            - generic [ref=e447]:
+              - radio "Contato Pessoal" [ref=e449] [cursor=pointer]
+              - generic "Contato Pessoal" [ref=e453]
+            - generic [ref=e456]:
+              - radio "Outras empresas" [ref=e458] [cursor=pointer]
+              - generic "Outras empresas" [ref=e462]
+            - generic [ref=e465]:
+              - radio "Google" [ref=e467] [cursor=pointer]
+              - generic "Google" [ref=e471]
+            - generic [ref=e474]:
+              - radio "Site RD Saúde" [ref=e476] [cursor=pointer]
+              - generic "Site RD Saúde" [ref=e480]
+          - generic [ref=e482]:
+            - radio "Outra resposta" [ref=e484] [cursor=pointer]
+            - textbox "Outra resposta" [ref=e490]:
+              - /placeholder: Outra
+      - generic [ref=e491]:
+        - generic [ref=e494]:
+          - heading "25. Qual o Ramo de Atuação Principal da sua empresa?Requer resposta" [level=2] [ref=e495]:
+            - generic [ref=e496]: "25."
+            - text: Qual o Ramo de Atuação Principal da sua empresa?
+            - note "Requer resposta" [ref=e497]: "*"
+          - log [ref=e498]
+        - radiogroup "25. Qual o Ramo de Atuação Principal da sua empresa?Requer resposta" [ref=e500]:
+          - generic [ref=e501]:
+            - generic [ref=e504]:
+              - radio "Logística" [ref=e506] [cursor=pointer]
+              - generic "Logística" [ref=e510]
+            - generic [ref=e513]:
+              - radio "Serviços Profissionais" [ref=e515] [cursor=pointer]
+              - generic "Serviços Profissionais" [ref=e519]
+            - generic [ref=e522]:
+              - radio "Serviços de RH" [ref=e524] [cursor=pointer]
+              - generic "Serviços de RH" [ref=e528]
+            - generic [ref=e531]:
+              - radio "Tecnologia da Informação" [ref=e533] [cursor=pointer]
+              - generic "Tecnologia da Informação" [ref=e537]
+            - generic [ref=e540]:
+              - radio "Engenharia e/ou Manutenção" [ref=e542] [cursor=pointer]
+              - generic "Engenharia e/ou Manutenção" [ref=e546]
+            - generic [ref=e549]:
+              - radio "Marketing" [ref=e551] [cursor=pointer]
+              - generic "Marketing" [ref=e555]
+            - generic [ref=e558]:
+              - radio "Operações" [ref=e560] [cursor=pointer]
+              - generic "Operações" [ref=e564]
+            - generic [ref=e567]:
+              - radio "Eventos" [ref=e569] [cursor=pointer]
+              - generic "Eventos" [ref=e573]
+    - generic [ref=e574]:
+      - button "Avançar" [ref=e576] [cursor=pointer]
+      - progressbar "Página 1 de 8" [ref=e577]
+    - generic [ref=e581]:
+      - text: Nunca forneça sua senha.
+      - link "Relatar abuso" [ref=e582] [cursor=pointer]
+  - generic [ref=e583]:
+    - link "Microsoft 365" [ref=e585] [cursor=pointer]
+    - contentinfo [ref=e586]:
+      - generic [ref=e587]:
+        - generic [ref=e588]: Este conteúdo foi criado pelo proprietário do formulário. Os dados que você enviar serão enviados ao proprietário do formulário. A Microsoft não é responsável pela privacidade ou práticas de segurança de seus clientes, incluindo aqueles do proprietário deste formulário. Nunca forneça sua senha.
+        - generic [ref=e589]:
+          - generic [ref=e590]:
+            - link "Microsoft Forms" [ref=e591] [cursor=pointer]
+            - text: "| Pesquisas, questionários e votações com tecnologia de IA"
+            - link "Criar meu próprio formulário" [ref=e593] [cursor=pointer]
+          - generic [ref=e594]:
+            - text: O proprietário deste formulário não forneceu uma política de privacidade sobre como usará seus dados de resposta. Não forneça informações pessoais ou confidenciais. |
+            - link "Política de Privacidade dos Dados de Saúde do Consumidor" [ref=e596] [cursor=pointer]:
+              - /url: https://go.microsoft.com/fwlink/?linkid=2259814
+            - text: "|"
+            - link "Condições de uso" [ref=e597] [cursor=pointer]:
+              - /url: https://go.microsoft.com/fwlink/?linkid=866263

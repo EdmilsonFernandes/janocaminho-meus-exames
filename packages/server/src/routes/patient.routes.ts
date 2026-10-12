@@ -200,6 +200,8 @@ router.get('/:id/dashboard-summary', async (req: AuthedRequest, res, next) => {
         worsening: hd.worsening ?? [],
         improving: hd.improving ?? [],
         biologicalAge: hd.biologicalAge ?? null,
+        clinicalIndices: hd.clinicalIndices ?? [],
+        bodyRegions: hd.bodyRegions ?? [],
       } : null,
       me,
       credits: user?.credits ?? null,

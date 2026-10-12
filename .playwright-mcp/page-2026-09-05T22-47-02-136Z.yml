@@ -1,0 +1,62 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e1321]:
+    - generic [ref=e1322]:
+      - img "Dr. Exame" [ref=e1324]
+      - generic [ref=e1325]:
+        - paragraph [ref=e1326]: Meus Exames
+        - paragraph [ref=e1327]: Seu assistente de saúde com IA
+    - generic [ref=e1328]:
+      - button [ref=e1329] [cursor=pointer]
+      - button [ref=e1334] [cursor=pointer]
+    - generic [ref=e1340]:
+      - generic [ref=e1341]:
+        - generic [ref=e1342]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=e1343]: "*"
+        - generic [ref=e1344]:
+          - textbox "E-mail" [ref=e1349]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=e1350]:
+        - generic [ref=e1351]:
+          - text: Senha
+          - generic [aria-hidden] [ref=e1352]: "*"
+        - generic [ref=e1353]:
+          - textbox "Senha" [ref=e1358]
+          - button "Mostrar senha" [ref=e1360] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e1365] [cursor=pointer]
+      - button [ref=e1366] [cursor=pointer]
+      - generic [ref=e1370]: ou
+      - generic [ref=e1374]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=e1376] [cursor=pointer]:
+          - generic [ref=e1378]: Continuar com o Google
+        - iframe
+      - paragraph [ref=e1388]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e1389] [cursor=pointer]
+    - generic [ref=e1390]:
+      - paragraph [ref=e1396]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e1397]:
+        - strong [ref=e1398]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e1399] [cursor=pointer]
+      - button "×" [ref=e1400] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e1401] [cursor=pointer]
+      - button "×" [ref=e1402] [cursor=pointer]

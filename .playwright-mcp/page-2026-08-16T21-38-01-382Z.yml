@@ -1,0 +1,105 @@
+- generic [active] [ref=f2e20]:
+  - generic [ref=f2e22]:
+    - generic [ref=f2e23]:
+      - generic [ref=f2e24]:
+        - button "Voltar" [ref=f2e137] [cursor=pointer]
+        - button "Menu do médico" [ref=f2e25] [cursor=pointer]:
+          - generic [ref=f2e26]: D
+        - generic [ref=f2e27]:
+          - paragraph [ref=f2e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=f2e141]:
+        - generic [ref=f2e142]:
+          - generic [ref=f2e143]:
+            - generic [ref=f2e144]: E
+            - generic [ref=f2e147]:
+              - generic [ref=f2e148]:
+                - paragraph [ref=f2e149]: Edmilson Lopes QA
+                - button "Trocar paciente" [ref=f2e150] [cursor=pointer]: Trocar
+              - paragraph [ref=f2e154]: Masculino • Titular • Particular
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]:
+              - generic [ref=f2e157]: Último exame
+              - paragraph [ref=f2e161]: 03/08
+              - text: há 12 dias
+            - button "Alterações 1" [ref=f2e162] [cursor=pointer]:
+              - generic [ref=f2e163]: Alterações
+              - paragraph [ref=f2e168]: "1"
+            - generic [ref=f2e169]:
+              - generic [ref=f2e170]: Pendências
+              - paragraph [ref=f2e174]: "0"
+            - generic [ref=f2e175]:
+              - generic [ref=f2e176]: Anotações
+              - paragraph [ref=f2e180]: "0"
+        - tablist "Abas do paciente" [ref=f2e184]:
+          - tab "Exames" [selected] [ref=f2e185] [cursor=pointer]:
+            - generic [ref=f2e189]:
+              - generic [ref=f2e190]: Exames
+              - superscript [ref=f2e191]: "1"
+          - tab "Alterados" [ref=f2e192] [cursor=pointer]:
+            - generic [ref=f2e195]:
+              - generic [ref=f2e196]: Alterados
+              - superscript [ref=f2e197]: "1"
+          - tab "Tendências" [ref=f2e198] [cursor=pointer]
+          - tab "Relatório" [ref=f2e203] [cursor=pointer]
+          - tab "Perguntas" [ref=f2e208] [cursor=pointer]
+          - tab "Anotações" [ref=f2e213] [cursor=pointer]
+        - generic [ref=f2e289]:
+          - generic [ref=f2e291]:
+            - generic [ref=f2e292]:
+              - button [ref=f2e293] [cursor=pointer]
+              - generic [ref=f2e297]:
+                - heading "Hemograma Completo" [level=1] [ref=f2e298]
+                - generic [ref=f2e299]: Laboratorial · Glicemia e Diabetes
+              - generic [ref=f2e300]: Concluído
+            - button [ref=f2e302] [cursor=pointer]
+          - generic [ref=f2e308]:
+            - generic [ref=f2e309]: 03 ago 2026
+            - text: "0"
+          - generic [ref=f2e314]:
+            - paragraph [ref=f2e315]: 🚩 1 valor(es) fora da faixa de referência
+            - generic [ref=f2e316]: "GLICEMIA: 110"
+          - generic [ref=f2e319]:
+            - heading [level=3] [ref=f2e320]:
+              - button "Geral 1 item · 1 alterado" [expanded] [ref=f2e321] [cursor=pointer]:
+                - generic [ref=f2e322]:
+                  - paragraph [ref=f2e323]: Geral
+                  - generic [ref=f2e324]:
+                    - text: 1 item ·
+                    - generic [ref=f2e325]: 1 alterado
+            - region [ref=f2e332]:
+              - generic [ref=f2e335]:
+                - generic [ref=f2e336]:
+                  - paragraph [ref=f2e337]: GLICEMIA
+                  - button "O que é este exame?" [ref=f2e338] [cursor=pointer]
+                  - generic [ref=f2e341]: ↑ Acima
+                - generic [ref=f2e343]:
+                  - paragraph [ref=f2e344]: "110"
+                  - generic [ref=f2e345]:
+                    - generic [ref=f2e346]: mg/dL
+                    - button "O que significa mg/dL?" [ref=f2e347] [cursor=pointer]
+                - paragraph [ref=f2e350]:
+                  - strong [ref=f2e351]: "Referência:"
+                  - text: 70 a 100 mg/dL
+                - 'img "Valor 110: faixa de referência de 70 a 100, fora da faixa." [ref=f2e352]':
+                  - generic [ref=f2e356]:
+                    - generic [ref=f2e357]: ▲ 70
+                    - generic [ref=f2e358]: 100 ▲
+                - generic [ref=f2e365]:
+                  - generic [ref=f2e366]: 70 mg/dL
+                  - generic [ref=f2e367]: 100 mg/dL
+                - generic [ref=f2e368]: ↑ 10% acima do limite
+    - navigation [ref=f2e105]:
+      - button "Início" [ref=f2e106] [cursor=pointer]:
+        - paragraph [ref=f2e111]: Início
+      - button "Pacientes" [ref=f2e113] [cursor=pointer]:
+        - paragraph [ref=f2e118]: Pacientes
+      - button "Perguntas" [ref=f2e119] [cursor=pointer]:
+        - paragraph [ref=f2e124]: Perguntas
+      - button "Perfil" [ref=f2e125] [cursor=pointer]:
+        - paragraph [ref=f2e130]: Perfil
+      - button "Mais" [ref=f2e131] [cursor=pointer]:
+        - paragraph [ref=f2e136]: Mais
+  - generic [ref=f2e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e19]

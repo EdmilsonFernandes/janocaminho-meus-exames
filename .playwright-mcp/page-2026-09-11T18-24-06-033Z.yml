@@ -1,0 +1,129 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - button [aria-hidden] [ref=e11] [cursor=pointer]
+        - img "Logo" [ref=e15] [cursor=pointer]
+      - generic [ref=e23]:
+        - searchbox "O que você procura?" [ref=e24]
+        - button "Buscar" [disabled] [ref=e26] [cursor=pointer]:
+          - generic: 
+      - link "Acessar Área do Cliente do Serpro" [ref=e37] [cursor=pointer]:
+        - /url: https://cliente.serpro.gov.br/
+  - main [ref=e41]:
+    - navigation [ref=e43]:
+      - link "Ir para a página inicial" [ref=e44] [cursor=pointer]:
+        - /url: /home
+      - generic [ref=e47]: ">"
+      - link "Consulta CPF" [ref=e48] [cursor=pointer]:
+        - /url: consulta-cpf/product/consultacpf
+    - generic [ref=e49]:
+      - figure [ref=e53]:
+        - paragraph
+        - generic [ref=e55]:
+          - heading [level=1] [ref=e57]:
+            - img "Consulta CPF" [ref=e58]
+          - generic [ref=e59]:
+            - paragraph [ref=e60]:
+              - strong [ref=e61]: Procurando automação de acesso a informações atualizadas do CPF?
+            - paragraph [ref=e62]: Consulta CPF provê à sua empresa informações obtidas diretamente das bases da Receita Federal, garantindo mais confiabilidade, disponibilidade e desempenho
+            - paragraph [ref=e63]:
+              - link "Quero contratar" [ref=e64] [cursor=pointer]:
+                - /url: https://cliente.serpro.gov.br/#!/e-commerce/apiconsultacpf-faixa-privado-v3/inicio
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - generic [ref=e67] [cursor=pointer]: Visão Geral
+          - generic [ref=e68] [cursor=pointer]: Características
+          - generic [ref=e69] [cursor=pointer]: Forma de Contratação
+          - generic [ref=e70] [cursor=pointer]: Preço
+          - generic [ref=e71] [cursor=pointer]: Documentação
+        - generic [ref=e211]:
+          - generic [ref=e215]:
+            - heading "Benefícios" [level=2] [ref=e216]
+            - generic [ref=e217]:
+              - paragraph [ref=e223]: Acesso a informações diretamente do Governo, sem intermediários
+              - paragraph [ref=e229]: Confiabilidade das informações
+              - paragraph [ref=e235]: Informações sempre atualizadas
+              - paragraph [ref=e241]: Melhora a qualidade da avaliação de crédito
+              - paragraph [ref=e247]: Minimiza o risco de fraudes
+              - paragraph [ref=e253]: Possibilita checagem automática de informações
+              - paragraph [ref=e259]: Segurança da informação
+          - generic [ref=e261]:
+            - heading "Quais informações o serviço oferece?" [level=2] [ref=e262]
+            - paragraph [ref=e263]: "Ao fazer uma requisição, você insere o Número de Inscrição do Cadastro de Pessoa Física (CPF) e a Data de Nascimento, e obtém os seguintes dados:"
+          - figure [ref=e270]:
+            - table [ref=e271]:
+              - rowgroup [ref=e272]:
+                - row [ref=e273]:
+                  - columnheader "Tipos de campos" [ref=e274]
+                  - columnheader "Valor de retorno" [ref=e275]
+              - rowgroup [ref=e276]:
+                - row [ref=e277]:
+                  - cell "NI" [ref=e278]
+                  - cell "Número de Inscrição no Cadastro de Pessoa Física, no formato 99999999999" [ref=e279]
+                - row [ref=e280]:
+                  - cell "Nome" [ref=e281]
+                  - cell "Nome da Pessoa Física" [ref=e282]
+                - row [ref=e283]:
+                  - cell "Situação" [ref=e284]
+                  - 'cell "Situação Cadastral da Pessoa Física, formada por dois campos: Código e Descrição" [ref=e285]'
+                - row [ref=e286]:
+                  - cell "Situação/Código" [ref=e287]
+                  - cell "Código da Situação Cadastral da Pessoa Física" [ref=e288]
+                - row [ref=e289]:
+                  - cell "Situação/Descrição" [ref=e290]
+                  - cell "Descrição da Situação Cadastral da Pessoa Física" [ref=e291]
+                - row [ref=e292]:
+                  - cell "Data de Nascimento" [ref=e293]
+                  - cell "Data de Nascimento da Pessoa Física, no formato DDMMAAAA" [ref=e294]
+                - row [ref=e295]:
+                  - cell "Data de Inscrição" [ref=e296]
+                  - cell "Data de Inscrição da Pessoa Física, no formato DDMMAAAA" [ref=e297]
+                - row [ref=e298]:
+                  - cell "Nome Social" [ref=e299]
+                  - cell "Nome Social da Pessoa Física" [ref=e300]
+    - generic [ref=e145]:
+      - heading "Use outras soluções em conjunto e expanda seus negócios" [level=2] [ref=e148]
+      - generic [ref=e156]:
+        - generic [ref=e159]:
+          - generic [ref=e160]: Datavalid
+          - generic [ref=e161]: A solução que sua empresa precisa, com a usabilidade que seus clientes merecem.
+          - generic [ref=e162]: Conectividade
+          - link "Ver detalhes" [ref=e167] [cursor=pointer]:
+            - /url: datavalid/product/datavalid
+        - generic [ref=e170]:
+          - generic [ref=e171]: Consulta CNPJ
+          - generic [ref=e172]: Informações de pessoas jurídicas diretamente das bases da Receita Federal
+          - generic [ref=e173]: API
+          - link "Ver detalhes" [ref=e178] [cursor=pointer]:
+            - /url: consulta-cnpj/product/consultacnpj
+    - generic [ref=e179]:
+      - generic [ref=e180]:
+        - paragraph
+      - generic [ref=e181]:
+        - paragraph
+  - contentinfo [ref=e182]:
+    - generic [ref=e189]:
+      - img "Logotipo Serpro" [ref=e191]
+      - img "Bandeira do Brasil" [ref=e193]
+      - generic [ref=e194]:
+        - paragraph [ref=e195]: CIDADÃO
+        - paragraph [ref=e196]:
+          - link "Área do Cliente (Abre em nova guia)" [ref=e197] [cursor=pointer]:
+            - /url: https://cliente.serpro.gov.br/
+            - text: Área do Cliente
+            - generic [ref=e198]: (Abre em nova guia)
+      - generic [ref=e199]:
+        - paragraph [ref=e200]: SUPORTE
+        - paragraph [ref=e201]:
+          - link "Central de Ajuda (Abre em nova guia)" [ref=e202] [cursor=pointer]:
+            - /url: https://centraldeajuda.serpro.gov.br/duvidas/pt/
+            - text: Central de Ajuda
+            - generic [ref=e203]: (Abre em nova guia)
+      - generic [ref=e204]:
+        - paragraph [ref=e205]: PRIVACIDADE
+        - paragraph [ref=e206]:
+          - link "Termos de Uso e Política de Privacidade (Abre em nova guia)" [ref=e207] [cursor=pointer]:
+            - /url: https://www.serpro.gov.br/privacidade-protecao-dados
+            - text: Termos de Uso e Política de Privacidade
+            - generic [ref=e208]: (Abre em nova guia)

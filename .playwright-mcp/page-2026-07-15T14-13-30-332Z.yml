@@ -1,0 +1,34 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e23]:
+    - generic [ref=e24]:
+      - img "Dr. Exame" [ref=e26]
+      - generic [ref=e27]:
+        - heading "Meus Exames" [level=5] [ref=e28]
+        - paragraph [ref=e29]: Seu assistente de saúde com IA
+    - generic [ref=e30]:
+      - button [ref=e31] [cursor=pointer]
+      - button [ref=e36] [cursor=pointer]
+    - generic [ref=e42]:
+      - generic [ref=e44]:
+        - textbox "E-mail" [ref=e49]: sasaheh352@buloan.com
+        - group
+      - generic [ref=e51]:
+        - textbox "Senha" [ref=e56]: "211277"
+        - button "Mostrar senha" [ref=e58] [cursor=pointer]
+        - group
+      - button "Esqueci minha senha" [ref=e64] [cursor=pointer]
+      - button [ref=e65] [cursor=pointer]
+      - generic [ref=e74]:
+        - paragraph [ref=e75]: Acesso seguro
+        - paragraph [ref=e76]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=e77]:
+        - text: Não tem conta?
+        - button "Criar agora" [ref=e78] [cursor=pointer]
+    - generic [ref=e79]:
+      - generic [ref=e80]: 🩺
+      - paragraph [ref=e81]:
+        - strong [ref=e82]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

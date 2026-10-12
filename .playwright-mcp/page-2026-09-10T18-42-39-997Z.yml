@@ -1,0 +1,39 @@
+- generic [active] [ref=f8e1]:
+  - main [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - generic [ref=f8e4]: 🔐
+      - heading "Seus dados, suas regras" [level=1] [ref=f8e5]
+      - paragraph [ref=f8e6]:
+        - text: Este é o canal oficial do
+        - strong [ref=f8e7]: Uai ID
+        - text: para titulares de dados (LGPD, art. 18). Sem login, sem cadastro — só seu CPF e um e-mail para retorno.
+    - generic [ref=f8e8]:
+      - generic [ref=f8e9]:
+        - generic [ref=f8e10]: CPF do titular
+        - textbox "000.000.000-00" [ref=f8e11]
+      - generic [ref=f8e12]:
+        - generic [ref=f8e13]: E-mail para retorno
+        - textbox "voce@email.com" [ref=f8e14]
+      - generic [ref=f8e15]:
+        - generic [ref=f8e16]: O que você deseja
+        - generic [ref=f8e17] [cursor=pointer]:
+          - radio "Excluir meus dados Apaga documentos, selfie e biometria vinculados ao meu CPF" [checked] [ref=f8e18]
+          - generic [ref=f8e19]:
+            - strong [ref=f8e20]: Excluir meus dados
+            - text: Apaga documentos, selfie e biometria vinculados ao meu CPF
+        - generic [ref=f8e21] [cursor=pointer]:
+          - radio "Revogar consentimento Cancelo a permissão de uso da minha biometria na Rede Uai ID" [ref=f8e22]
+          - generic [ref=f8e23]:
+            - strong [ref=f8e24]: Revogar consentimento
+            - text: Cancelo a permissão de uso da minha biometria na Rede Uai ID
+        - generic [ref=f8e25] [cursor=pointer]:
+          - radio "Saber quem acessou Quero o histórico de consultas aos meus dados" [ref=f8e26]
+          - generic [ref=f8e27]:
+            - strong [ref=f8e28]: Saber quem acessou
+            - text: Quero o histórico de consultas aos meus dados
+      - generic [ref=f8e29]:
+        - generic [ref=f8e30]: Mensagem (opcional)
+        - textbox "Detalhe seu pedido se quiser" [ref=f8e31]
+      - button "Enviar pedido ao DPO" [disabled] [ref=f8e32] [cursor=pointer]
+      - paragraph [ref=f8e33]: Seu CPF é armazenado criptografado (HMAC), nunca em texto claro. Documentos e biometria ficam em armazenamento criptografado e são eliminados conforme a política de retenção.
+  - alert [ref=f8e34]

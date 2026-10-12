@@ -1,0 +1,44 @@
+- generic [ref=e20]:
+  - generic [ref=e928]:
+    - generic [ref=e929]:
+      - img "Dr. Exame" [ref=e931]
+      - generic [ref=e932]:
+        - paragraph [ref=e933]: Meus Exames
+        - paragraph [ref=e934]: Seu assistente de saúde com IA
+    - generic [ref=e935]:
+      - button [ref=e936] [cursor=pointer]
+      - button [ref=e941] [cursor=pointer]
+    - generic [ref=e947]:
+      - generic [ref=e948]:
+        - generic [ref=e949]:
+          - text: E-mail
+          - generic [ref=e950]: "*"
+        - generic [ref=e951]:
+          - textbox "E-mail" [ref=e956]: zhelyazko7644@uorak.com
+          - group:
+            - generic: E-mail *
+      - generic [ref=e957]:
+        - generic [ref=e958]:
+          - text: Senha
+          - generic [ref=e959]: "*"
+        - generic [ref=e960]:
+          - textbox "Senha" [active] [ref=e965]: "211277"
+          - button "Mostrar senha" [ref=e967] [cursor=pointer]
+          - group:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e972] [cursor=pointer]
+      - button [disabled]:
+        - progressbar
+      - generic [ref=e977]: ou
+      - iframe [ref=e1006]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=f4e3] [cursor=pointer]:
+          - generic [ref=f4e5]: Continuar com o Google
+      - paragraph [ref=e995]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e996] [cursor=pointer]
+    - generic [ref=e997]:
+      - paragraph [ref=e1003]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e1004]:
+        - strong [ref=e1005]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18] [cursor=pointer]

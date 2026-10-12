@@ -1,0 +1,45 @@
+- generic [active] [ref=e18] [box=0,0,390,844]:
+  - generic [ref=e21] [box=16,64,358,717]:
+    - generic [ref=e22] [box=40,88,310,133]:
+      - img "Dr. Exame" [ref=e24] [box=167,99,56,56]
+      - generic [ref=e25] [box=97,174,196,47]:
+        - heading "Meus Exames" [level=5] [ref=e26] [box=97,174,196,26]
+        - paragraph [ref=e27] [box=97,200,196,21]: Seu assistente de saúde com IA
+    - generic [ref=e28] [box=40,244,310,50]:
+      - button "Paciente" [ref=e29] [cursor=pointer] [box=45,249,148,40]:
+        - img [ref=e31] [box=73,260,18,18]
+        - text: Paciente
+      - button "Médico" [ref=e34] [cursor=pointer] [box=197,249,148,40]:
+        - img [ref=e36] [box=231,260,18,18]
+        - text: Médico
+    - generic [ref=e40] [box=40,310,310,351]:
+      - generic [ref=e42] [box=40,310,310,55]:
+        - img [ref=e44] [box=54,327,20,20]
+        - textbox "E-mail" [ref=e47] [box=82,310,268,55]
+        - group [box=40,305,310,60]
+      - generic [ref=e49] [box=40,381,310,55]:
+        - img [ref=e51] [box=54,398,20,20]
+        - textbox "Senha" [ref=e54] [box=82,381,219,55]
+        - button "Mostrar senha" [ref=e56] [cursor=pointer] [box=309,393,30,30]:
+          - img [ref=e57] [box=314,398,20,20]
+        - group [box=40,376,310,60]
+      - button "Esqueci minha senha" [ref=e62] [cursor=pointer] [box=223,452,128,19]
+      - button "Entrar" [ref=e63] [cursor=pointer] [box=40,489,310,50]:
+        - text: Entrar
+        - img [ref=e65] [box=218,505,18,18]
+      - generic [ref=e67] [box=40,562,310,52]:
+        - img [ref=e69] [box=40,566,16,16]
+        - generic [ref=e72] [box=64,562,286,52]:
+          - paragraph [ref=e73] [box=64,562,286,20]: Acesso seguro
+          - paragraph [ref=e74] [box=64,582,286,32]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=e75] [box=40,639,310,22]:
+        - text: Não tem conta?
+        - button "Criar agora" [ref=e76] [cursor=pointer] [box=210,640,71,21]
+    - generic [ref=e77] [box=40,685,310,72]:
+      - generic [ref=e78] [box=51,695,22,21]: 🩺
+      - paragraph [ref=e79] [box=81,695,259,50]:
+        - strong [ref=e80] [box=81,696,118,14]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e15] [cursor=pointer] [box=340,402,40,40]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e16] [box=340,402,40,40]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e17] [box=340,402,150,40]

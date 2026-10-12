@@ -1,0 +1,94 @@
+- generic [ref=f14e3]:
+  - button "Pular para o conteúdo" [ref=f14e4] [cursor=pointer]
+  - generic [ref=f14e5]:
+    - banner [ref=f14e6]:
+      - generic [ref=f14e7]:
+        - heading [level=6]
+        - generic [ref=f14e8]:
+          - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f14e9] [cursor=pointer]:
+            - generic [ref=f14e12]: "15"
+          - button "Notificações" [ref=f14e13] [cursor=pointer]:
+            - generic [ref=f14e14]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f14e19] [cursor=pointer]:
+            - generic [ref=f14e20]: E
+            - generic [ref=f14e22]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f14e28] [cursor=pointer]
+    - main [ref=f14e31]:
+      - navigation [ref=f14e35]:
+        - generic [ref=f14e38]:
+          - generic [ref=f14e39]: E
+          - generic [ref=f14e41]:
+            - paragraph [ref=f14e42]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f14e43]:
+              - generic [ref=f14e44]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f14e46] [cursor=pointer]
+        - separator [ref=f14e48]
+        - button "Início" [ref=f14e49] [cursor=pointer]
+        - button "Exames" [ref=f14e56] [cursor=pointer]
+        - button "Cuidados" [ref=f14e67] [cursor=pointer]
+        - button "Pessoas" [ref=f14e77] [cursor=pointer]
+        - generic [ref=f14e86]:
+          - button "Conta" [expanded] [ref=f14e87] [cursor=pointer]
+          - generic [ref=f14e1136]:
+            - button "Meu perfil" [ref=f14e1354] [cursor=pointer]
+            - button "Carteira" [ref=f14e1361] [cursor=pointer]
+            - button "Indique e ganhe 🎁" [ref=f14e1367] [cursor=pointer]
+            - button "Segurança & senha" [ref=f14e1373] [cursor=pointer]
+            - button "Privacidade e termos" [ref=f14e1379] [cursor=pointer]
+            - button "Planos e Créditos" [ref=f14e1385] [cursor=pointer]
+            - button "Painel Admin" [ref=f14e1391] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f14e96] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f14e102] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f14e108] [cursor=pointer]
+        - generic [ref=f14e115]:
+          - generic [ref=f14e117]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f14e118]: v2.7.225
+      - generic [ref=f14e1420]:
+        - generic [ref=f14e1422]:
+          - generic [ref=f14e1423]:
+            - heading "Bom dia, tudo bem? 👋" [level=1] [ref=f14e1424]
+            - generic [ref=f14e1425]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f14e1426]: Sincronizado
+        - generic [ref=f14e1431]:
+          - generic [ref=f14e1432]: A
+          - generic [ref=f14e1433]:
+            - paragraph [ref=f14e1434]: Reposição & Performance
+            - generic [ref=f14e1435]:
+              - heading "Atleta" [level=2] [ref=f14e1436]
+              - generic [ref=f14e1437]: Musculação/Hipertrofia
+              - generic [ref=f14e1439]: 🏃 Modo Esporte
+            - paragraph [ref=f14e1441]: "🎯 Monitoramento da reposição prescrita: testosterona na meta, hematócrito, PSA e lipídios."
+            - generic [ref=f14e1442]: "Foco: Monitoramento periódico conforme diretriz de reposição"
+        - generic [ref=f14e1470]:
+          - button "Todos (0)" [pressed] [ref=f14e1471] [cursor=pointer]
+          - button "Hormonal (0)" [ref=f14e1473] [cursor=pointer]
+          - button "Cardio-Lipídios (0)" [ref=f14e1475] [cursor=pointer]
+          - button "Hemograma (0)" [ref=f14e1477] [cursor=pointer]
+          - button "Músculo-Fígado (0)" [ref=f14e1479] [cursor=pointer]
+          - button "Renal (0)" [ref=f14e1481] [cursor=pointer]
+        - generic [ref=f14e1509]:
+          - heading "Linha do tempo do atleta" [level=2] [ref=f14e1510]
+          - generic [ref=f14e1511]: Exames, substâncias declaradas — dos mais recentes.
+          - generic [ref=f14e1512]:
+            - generic [ref=f14e1513]: 🗓️
+            - heading "Nada por aqui ainda" [level=6] [ref=f14e1515]
+            - paragraph [ref=f14e1516]: Envie um exame ou declare uma substância para construir sua linha do tempo esportiva.
+          - generic [ref=f14e1517]: 📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
+        - generic [ref=f14e1518]:
+          - generic [ref=f14e1519]:
+            - heading "Perguntas para levar ao médico" [level=2] [ref=f14e1523]
+            - generic [ref=f14e1524]: Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+            - generic [ref=f14e1525]:
+              - generic [ref=f14e1526]: 🩺
+              - heading "Sem exames ainda" [level=6] [ref=f14e1528]
+              - paragraph [ref=f14e1529]: Envie um exame para o Dr. Exame preparar perguntas de consulta contextualizadas ao seu treino.
+          - generic [ref=f14e1530]:
+            - generic [ref=f14e1531]:
+              - heading "Substâncias declaradas" [level=2] [ref=f14e1532]
+              - generic [ref=f14e1533]: Confidencial · Registro LGPD
+            - generic [ref=f14e1534]: O que você declarou entra como CONTEXTO da análise — o app nunca sugere dose, ciclo ou substância.
+            - generic [ref=f14e1535]:
+              - generic [ref=f14e1536]: 💊
+              - heading "Nenhuma substância declarada" [level=6] [ref=f14e1538]
+              - paragraph [ref=f14e1539]: Declare hormônios e suplementos no seu Perfil › Saúde Esportiva para contextualizar a leitura dos exames.
+        - generic [ref=f14e1540]: "*Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico."

@@ -1,0 +1,172 @@
+- generic [ref=f105e2]:
+  - generic [ref=f105e3]:
+    - link "DuckDuckGo" [ref=f105e4] [cursor=pointer]:
+      - /url: /html/
+    - generic [ref=f105e5]:
+      - generic [ref=f105e6]:
+        - textbox [ref=f105e7]: "\"examesia\""
+        - button "Submit" [ref=f105e8] [cursor=pointer]
+      - combobox [ref=f105e10] [cursor=pointer]:
+        - option "All Regions" [selected]
+        - option "Argentina"
+        - option "Australia"
+        - option "Austria"
+        - option "Belgium (fr)"
+        - option "Belgium (nl)"
+        - option "Brazil"
+        - option "Bulgaria"
+        - option "Canada (en)"
+        - option "Canada (fr)"
+        - option "Catalonia"
+        - option "Chile"
+        - option "China"
+        - option "Colombia"
+        - option "Croatia"
+        - option "Czech Republic"
+        - option "Denmark"
+        - option "Estonia"
+        - option "Finland"
+        - option "France"
+        - option "Germany"
+        - option "Greece"
+        - option "Hong Kong"
+        - option "Hungary"
+        - option "Iceland"
+        - option "India (en)"
+        - option "Indonesia (en)"
+        - option "Ireland"
+        - option "Israel (en)"
+        - option "Italy"
+        - option "Japan"
+        - option "Korea"
+        - option "Latvia"
+        - option "Lithuania"
+        - option "Malaysia (en)"
+        - option "Mexico"
+        - option "Netherlands"
+        - option "New Zealand"
+        - option "Norway"
+        - option "Pakistan (en)"
+        - option "Peru"
+        - option "Philippines (en)"
+        - option "Poland"
+        - option "Portugal"
+        - option "Romania"
+        - option "Russia"
+        - option "Saudi Arabia"
+        - option "Singapore"
+        - option "Slovakia"
+        - option "Slovenia"
+        - option "South Africa"
+        - option "Spain (ca)"
+        - option "Spain (es)"
+        - option "Sweden"
+        - option "Switzerland (de)"
+        - option "Switzerland (fr)"
+        - option "Taiwan"
+        - option "Thailand (en)"
+        - option "Turkey"
+        - option "US (English)"
+        - option "US (Spanish)"
+        - option "Ukraine"
+        - option "United Kingdom"
+        - option "Vietnam (en)"
+      - combobox [ref=f105e12] [cursor=pointer]:
+        - option "Any Time" [selected]
+        - option "Past Day"
+        - option "Past Week"
+        - option "Past Month"
+        - option "Past Year"
+  - generic [ref=f105e15]:
+    - generic [ref=f105e17]:
+      - heading [level=2] [ref=f105e18]:
+        - 'link "ExamesIA: Análise de exames laboratoriais com inteligência artificial" [ref=f105e19] [cursor=pointer]':
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2F&rut=8323ad898c5db81f2b88b58b596a2e5a39b889a378bc770eaccc3fc70ee0d06f
+      - generic [ref=f105e21]:
+        - link [ref=f105e23] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2F&rut=8323ad898c5db81f2b88b58b596a2e5a39b889a378bc770eaccc3fc70ee0d06f
+        - link "examesia.com.br" [ref=f105e24] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2F&rut=8323ad898c5db81f2b88b58b596a2e5a39b889a378bc770eaccc3fc70ee0d06f
+      - link "O ExamesIA é uma ferramenta de apoio à decisão. As leituras, hipóteses e sugestões são geradas por IA e devem ser revisadas e validadas pelo profissional de saúde, que é o responsável pela conduta. O exame é processado apenas para gerar a leitura e não é usado para treinar modelos." [ref=f105e25] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2F&rut=8323ad898c5db81f2b88b58b596a2e5a39b889a378bc770eaccc3fc70ee0d06f
+    - generic [ref=f105e27]:
+      - heading [level=2] [ref=f105e28]:
+        - link "ExamesIA - Transformando análises clínica com IA" [ref=f105e29] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.examesia.com%2F&rut=86db49b6d06fa7b37ab48e7a768ca3cea4d3d7732f42cbf6634b26afa8c89cb3
+      - generic [ref=f105e31]:
+        - link [ref=f105e33] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.examesia.com%2F&rut=86db49b6d06fa7b37ab48e7a768ca3cea4d3d7732f42cbf6634b26afa8c89cb3
+        - link "www.examesia.com" [ref=f105e34] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.examesia.com%2F&rut=86db49b6d06fa7b37ab48e7a768ca3cea4d3d7732f42cbf6634b26afa8c89cb3
+      - link "A ExamesIA está na vanguarda da inovação tecnológica, dedicada ao estudo e teste de sistemas de inteligência artificial aplicados à medicina. Nossa principal missão é investigar o potencial e os limites dessas tecnologias." [ref=f105e35] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.examesia.com%2F&rut=86db49b6d06fa7b37ab48e7a768ca3cea4d3d7732f42cbf6634b26afa8c89cb3
+    - generic [ref=f105e37]:
+      - heading [level=2] [ref=f105e38]:
+        - link "ExamesIA - Transformando análises clínica com IA" [ref=f105e39] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com%2Fabout%2Dus&rut=984fd7077534be856f9cbd4fa00e12d92e20bbddce8d698d981905eca220dda4
+      - generic [ref=f105e41]:
+        - link [ref=f105e43] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com%2Fabout%2Dus&rut=984fd7077534be856f9cbd4fa00e12d92e20bbddce8d698d981905eca220dda4
+        - link "examesia.com/about-us" [ref=f105e44] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com%2Fabout%2Dus&rut=984fd7077534be856f9cbd4fa00e12d92e20bbddce8d698d981905eca220dda4
+      - link "Transforme a leitura e interpretação de exames médicos com nossa aplicação de inteligência artificial. Torne os exames mais claros e compreensíveis por meio de análises precisas e expressivas. Experimente agora para uma experiência única na interpretação de resultados de saúde." [ref=f105e45] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com%2Fabout%2Dus&rut=984fd7077534be856f9cbd4fa00e12d92e20bbddce8d698d981905eca220dda4
+    - generic [ref=f105e47]:
+      - heading [level=2] [ref=f105e48]:
+        - link "Exemplo de leitura de exame com IA | ExamesIA · ExamesIA" [ref=f105e49] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2Fexemplo&rut=1dd76f0a04b9ed502abdab836474ebc68a4e7fae574f6abcde7684c86acde46c
+      - generic [ref=f105e51]:
+        - link [ref=f105e53] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2Fexemplo&rut=1dd76f0a04b9ed502abdab836474ebc68a4e7fae574f6abcde7684c86acde46c
+        - link "examesia.com.br/exemplo" [ref=f105e54] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2Fexemplo&rut=1dd76f0a04b9ed502abdab836474ebc68a4e7fae574f6abcde7684c86acde46c
+      - 'link "Veja como o ExamesIA lê um exame laboratorial: marcadores organizados por sistema, alterações em destaque, hipóteses prováveis e sugestão de conduta: apoio à decisão do médico." [ref=f105e55] [cursor=pointer]':
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fexamesia.com.br%2Fexemplo&rut=1dd76f0a04b9ed502abdab836474ebc68a4e7fae574f6abcde7684c86acde46c
+    - generic [ref=f105e57]:
+      - heading [level=2] [ref=f105e58]:
+        - link "Examesia - Facebook" [ref=f105e59] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2F&rut=177730f75c78f8cc9af0e35d5feb85c5c7254d2e0ebc4fd516dca2df56413145
+      - generic [ref=f105e61]:
+        - link [ref=f105e63] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2F&rut=177730f75c78f8cc9af0e35d5feb85c5c7254d2e0ebc4fd516dca2df56413145
+        - link "www.facebook.com/examesia/" [ref=f105e64] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2F&rut=177730f75c78f8cc9af0e35d5feb85c5c7254d2e0ebc4fd516dca2df56413145
+      - link "O ExamesIA.com serve como uma ferramenta de suporte para alertar sobre condições de saúde antes que se tornem graves. 👏 Nosso aplauso a Mariana por ser proativa em sua saúde!" [ref=f105e65] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2F&rut=177730f75c78f8cc9af0e35d5feb85c5c7254d2e0ebc4fd516dca2df56413145
+    - generic [ref=f105e67]:
+      - heading [level=2] [ref=f105e68]:
+        - link "Examesia.com é confiável? Examesia é segura? | Site Confiável" [ref=f105e69] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.siteconfiavel.com.br%2Fsite%2Fexamesia%2Dcom&rut=ce1f5f309d566d3777577dcf51d69ea61e66915dac95d927600a4305a0ebc286
+      - generic [ref=f105e71]:
+        - link [ref=f105e73] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.siteconfiavel.com.br%2Fsite%2Fexamesia%2Dcom&rut=ce1f5f309d566d3777577dcf51d69ea61e66915dac95d927600a4305a0ebc286
+        - link "www.siteconfiavel.com.br/site/examesia-com" [ref=f105e74] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.siteconfiavel.com.br%2Fsite%2Fexamesia%2Dcom&rut=ce1f5f309d566d3777577dcf51d69ea61e66915dac95d927600a4305a0ebc286
+        - text: 2026-04-30T00:00:00.0000000
+      - 'link "Como saber se examesia.com é confiável? Tome sua decisão de compra, acesso ou cadastro a partir do resultado da verificação que fizemos. Abaixo algumas dicas para você entender melhor os dados: Tempo de registro: prefira sempre empresas que já estejam no mercado há mais tempo, é comum que sites fraudulentos tenham pouco ..." [ref=f105e75] [cursor=pointer]':
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.siteconfiavel.com.br%2Fsite%2Fexamesia%2Dcom&rut=ce1f5f309d566d3777577dcf51d69ea61e66915dac95d927600a4305a0ebc286
+    - generic [ref=f105e77]:
+      - heading [level=2] [ref=f105e78]:
+        - link "Examesia - www.ExamesIA.com Saiba Hoje Mesmo o ... - Facebook" [ref=f105e79] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2Fposts%2F%2Dwwwexamesiacom%2Dsaiba%2Dhoje%2Dmesmo%2Do%2Dresultado%2Dde%2Dsuas%2Dan%25C3%25A1lises%2Dcl%25C3%25ADnicasgratuitame%2F122117556998058223%2F&rut=9511538cce417a0f01eb29fe528691a3b81f45dca51c5812bc19dde1106536f1
+      - generic [ref=f105e81]:
+        - link [ref=f105e83] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2Fposts%2F%2Dwwwexamesiacom%2Dsaiba%2Dhoje%2Dmesmo%2Do%2Dresultado%2Dde%2Dsuas%2Dan%25C3%25A1lises%2Dcl%25C3%25ADnicasgratuitame%2F122117556998058223%2F&rut=9511538cce417a0f01eb29fe528691a3b81f45dca51c5812bc19dde1106536f1
+        - link "www.facebook.com/examesia/posts/-wwwexamesiacom-saiba-hoje-mesmo-o-resultado-de-suas-análises-clínicasgratuitame/122117556998058223/" [ref=f105e84] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2Fposts%2F%2Dwwwexamesiacom%2Dsaiba%2Dhoje%2Dmesmo%2Do%2Dresultado%2Dde%2Dsuas%2Dan%25C3%25A1lises%2Dcl%25C3%25ADnicasgratuitame%2F122117556998058223%2F&rut=9511538cce417a0f01eb29fe528691a3b81f45dca51c5812bc19dde1106536f1
+      - link "🚀 www.ExamesIA.com Saiba Hoje Mesmo o Resultado de Suas Análises Clínicas,Gratuitamente🚀 Introduzindo a Examesia - uma revolução tecnológica que combina..." [ref=f105e85] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fwww.facebook.com%2Fexamesia%2Fposts%2F%2Dwwwexamesiacom%2Dsaiba%2Dhoje%2Dmesmo%2Do%2Dresultado%2Dde%2Dsuas%2Dan%25C3%25A1lises%2Dcl%25C3%25ADnicasgratuitame%2F122117556998058223%2F&rut=9511538cce417a0f01eb29fe528691a3b81f45dca51c5812bc19dde1106536f1
+    - generic [ref=f105e87]:
+      - heading [level=2] [ref=f105e88]:
+        - link "examesia · GitHub" [ref=f105e89] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fexamesia&rut=ec891647600249d657e6ae4fc4cd1a5effd6ac633d748c7f477733076c4a1658
+      - generic [ref=f105e91]:
+        - link [ref=f105e93] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fexamesia&rut=ec891647600249d657e6ae4fc4cd1a5effd6ac633d748c7f477733076c4a1658
+        - link "github.com/examesia" [ref=f105e94] [cursor=pointer]:
+          - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fexamesia&rut=ec891647600249d657e6ae4fc4cd1a5effd6ac633d748c7f477733076c4a1658
+      - link "Popular repositories examesia doesn't have any public repositories yet. 1 contribution in the last year ... Learn how we count contributions Less" [ref=f105e95] [cursor=pointer]:
+        - /url: //duckduckgo.com/l/?uddg=https%3A%2F%2Fgithub.com%2Fexamesia&rut=ec891647600249d657e6ae4fc4cd1a5effd6ac633d748c7f477733076c4a1658
+    - button "Next" [ref=f105e98] [cursor=pointer]
+    - link "Feedback" [ref=f105e100] [cursor=pointer]:
+      - /url: //duckduckgo.com/feedback.html

@@ -1,0 +1,154 @@
+- generic [active] [ref=f108e1]:
+  - generic [ref=f108e2]:
+    - region "Notifications (F8)":
+      - list
+    - generic [ref=f108e3]:
+      - generic [ref=f108e5]:
+        - generic [ref=f108e7]:
+          - heading "Instalar App no seu Computador" [level=3] [ref=f108e12]
+          - button [ref=f108e13] [cursor=pointer]
+        - generic [ref=f108e14]:
+          - img "Grupo Me Indica" [ref=f108e16]
+          - paragraph [ref=f108e17]: Acesse rapidamente nossos e-books PLR direto do desktop
+          - generic [ref=f108e18]:
+            - button "Instalar App" [ref=f108e19] [cursor=pointer]
+            - button "Agora não" [ref=f108e20] [cursor=pointer]
+      - banner [ref=f108e21]:
+        - generic [ref=f108e22]:
+          - generic [ref=f108e23]:
+            - img "Grupo Me Indica Logo" [ref=f108e24]
+            - heading "Grupo Me Indica" [level=1] [ref=f108e25]
+          - generic [ref=f108e26]:
+            - button [ref=f108e27] [cursor=pointer]
+            - generic [ref=f108e28]:
+              - button "Entrar" [ref=f108e29] [cursor=pointer]
+              - button "Cadastrar" [ref=f108e30] [cursor=pointer]
+      - main [ref=f108e31]:
+        - generic [ref=f108e33]:
+          - generic [ref=f108e34]: Consolidado no mercado desde 2021
+          - heading "E-books PLR com direitos de revenda." [level=1] [ref=f108e35]: E-books PLRcom direitos de revenda.
+          - paragraph [ref=f108e36]: Venda E-books PLR Nas principais plataformas como Hotmart, Google Livros, Eduzz, Monetizze, Braip e muito mais!
+          - generic [ref=f108e37]:
+            - generic [ref=f108e38]: Hotmart
+            - generic [ref=f108e39]: Google Livros
+            - generic [ref=f108e40]: Eduzz
+            - generic [ref=f108e41]: Monetizze
+            - generic [ref=f108e42]: Braip
+            - generic [ref=f108e43]: Amazon KDP
+          - button "Começar Agora" [ref=f108e44] [cursor=pointer]
+        - generic [ref=f108e50]:
+          - heading "Funcionalidades" [level=2] [ref=f108e51]
+          - paragraph [ref=f108e52]: Explore nossa ampla seleção de e-books PLR de alta qualidade, desenvolvidos para apoiar o crescimento do seu projeto digital.
+          - generic [ref=f108e53]:
+            - generic [ref=f108e55]:
+              - heading "E-books PLR a partir de R$ 1,00" [level=3] [ref=f108e59]
+              - paragraph [ref=f108e60]: Acesse milhares de e-books com direitos de revenda por preços imbatíveis
+            - generic [ref=f108e62]:
+              - heading "Mercado Consolidado" [level=3] [ref=f108e67]
+              - paragraph [ref=f108e68]: Atuamos no mercado digital desde 2021 com resultados comprovados
+            - generic [ref=f108e70]:
+              - heading "Plataformas Integradas" [level=3] [ref=f108e77]
+              - paragraph [ref=f108e78]: Compatível com Hotmart, Eduzz, Monetizze, Braip e muito mais
+            - generic [ref=f108e80]:
+              - heading "Revenda Lucrativa" [level=3] [ref=f108e84]
+              - paragraph [ref=f108e85]: Transforme conhecimento em renda com nossos produtos digitais
+        - generic [ref=f108e88]:
+          - generic [ref=f108e89]:
+            - heading "Vantagens Exclusivas" [level=2] [ref=f108e90]
+            - paragraph [ref=f108e91]: Com o Grupo Me Indica, você tem acesso aos melhores recursos do mercado digital
+            - generic [ref=f108e92]:
+              - generic [ref=f108e93]: E-books PLR com direitos de revenda completos
+              - generic [ref=f108e98]: Preços a partir de apenas R$ 1,00
+              - generic [ref=f108e103]: Produtos testados e aprovados pelo mercado
+              - generic [ref=f108e108]: Suporte completo para iniciantes
+              - generic [ref=f108e113]: Acesso a comunidade exclusiva
+              - generic [ref=f108e118]: Atualizações constantes do catálogo
+          - generic [ref=f108e124]:
+            - heading "Para Quem é Indicado?" [level=3] [ref=f108e125]
+            - list [ref=f108e126]:
+              - listitem [ref=f108e127]: ✓ Empreendedores digitais iniciantes
+              - listitem [ref=f108e128]: ✓ Pessoas buscando renda extra
+              - listitem [ref=f108e129]: ✓ Afiliados experientes
+              - listitem [ref=f108e130]: ✓ Criadores de conteúdo
+              - listitem [ref=f108e131]: ✓ Profissionais de marketing
+        - generic [ref=f108e133]:
+          - heading "Avaliações dos Clientes" [level=2] [ref=f108e134]
+          - generic [ref=f108e135]:
+            - generic [ref=f108e137]:
+              - paragraph [ref=f108e149]: "\"Comecei com R$ 1,00 e hoje tenho uma renda extra consistente vendendo e-books PLR!\""
+              - paragraph [ref=f108e150]: Maria Silva
+            - generic [ref=f108e152]:
+              - paragraph [ref=f108e164]: "\"A qualidade dos produtos é excepcional. Já vendi centenas de e-books através das plataformas indicadas.\""
+              - paragraph [ref=f108e165]: João Santos
+            - generic [ref=f108e167]:
+              - paragraph [ref=f108e179]: "\"O Grupo Me Indica transformou minha vida digital. Recomendo para todos que querem empreender online.\""
+              - paragraph [ref=f108e180]: Ana Costa
+        - generic [ref=f108e182]:
+          - heading "Perguntas Frequentes" [level=2] [ref=f108e183]
+          - generic [ref=f108e184]:
+            - generic [ref=f108e186]:
+              - heading "O que são E-books PLR?" [level=3] [ref=f108e187]
+              - paragraph [ref=f108e188]: PLR (Private Label Rights) são e-books que você pode revender, editar e comercializar como se fossem seus próprios produtos.
+            - generic [ref=f108e190]:
+              - heading "Como funciona a revenda?" [level=3] [ref=f108e191]
+              - paragraph [ref=f108e192]: Você compra o e-book PLR, pode editá-lo, criar sua capa e vender em qualquer plataforma digital como Hotmart, Eduzz, etc.
+            - generic [ref=f108e194]:
+              - heading "Qual o investimento inicial?" [level=3] [ref=f108e195]
+              - paragraph [ref=f108e196]: Nossos e-books PLR começam a partir de 1 crédito que vale apenas R$ 1,00, tornando o investimento inicial muito baixo.
+            - generic [ref=f108e198]:
+              - heading "Preciso de conhecimento técnico?" [level=3] [ref=f108e199]
+              - paragraph [ref=f108e200]: Não! Fornecemos todo o suporte e orientação necessária para que você comece a vender imediatamente.
+        - generic [ref=f108e202]:
+          - heading "Comece Sua Jornada Digital Hoje!" [level=2] [ref=f108e203]
+          - paragraph [ref=f108e204]: "\"Acesse uma biblioteca completa de e-books com direitos de revenda para estruturar seu negócio digital.\""
+          - button "Criar Conta Grátis" [ref=f108e205] [cursor=pointer]
+      - contentinfo [ref=f108e206]:
+        - generic [ref=f108e207]:
+          - generic [ref=f108e208]:
+            - generic [ref=f108e209]:
+              - generic [ref=f108e210]:
+                - img "Grupo Me Indica Logo" [ref=f108e211]
+                - heading "Grupo Me Indica" [level=3] [ref=f108e212]
+              - paragraph [ref=f108e213]: A plataforma líder em e-books PLR no Brasil. Transformando conhecimento em oportunidades desde 2021.
+            - generic [ref=f108e214]:
+              - heading "Redes Sociais" [level=4] [ref=f108e215]
+              - generic [ref=f108e216]:
+                - link [ref=f108e217] [cursor=pointer]:
+                  - /url: https://www.instagram.com/meindica87/
+                - link [ref=f108e221] [cursor=pointer]:
+                  - /url: https://www.facebook.com/grupomeindica
+                - link [ref=f108e224] [cursor=pointer]:
+                  - /url: https://x.com/MeIndica87
+                - link [ref=f108e228] [cursor=pointer]:
+                  - /url: https://br.pinterest.com/meindicaoficial/
+            - generic [ref=f108e231]:
+              - heading "Links Importantes" [level=4] [ref=f108e232]
+              - generic [ref=f108e233]:
+                - link "Termos de Uso" [ref=f108e234] [cursor=pointer]:
+                  - /url: /termos-de-uso-grupo-me-indica
+                - link "Política de Privacidade" [ref=f108e235] [cursor=pointer]:
+                  - /url: /politica-de-privacidade-grupo-me-indica
+          - paragraph [ref=f108e237]:
+            - text: "Desenvolvido por:"
+            - link "Grupo Me Indica" [ref=f108e238] [cursor=pointer]:
+              - /url: https://grupomeindica.com.br/
+            - text: © 2026 | Todos os direitos reservados
+      - generic [ref=f108e241]:
+        - generic [ref=f108e243]:
+          - heading "Preferências de Cookies" [level=3] [ref=f108e244]
+          - paragraph [ref=f108e245]: Utilizamos cookies para melhorar sua experiência de navegação, analisar o uso do site e personalizar conteúdo.
+          - generic [ref=f108e246]:
+            - generic [ref=f108e247]: Consulte nossa
+            - link "Política de Privacidade" [ref=f108e248] [cursor=pointer]:
+              - /url: https://grupomeindica.com.br/politica-de-privacidade-grupo-me-indica
+            - generic [ref=f108e249]: e
+            - link "Termos de Uso" [ref=f108e250] [cursor=pointer]:
+              - /url: https://grupomeindica.com.br/termos-de-uso-grupo-me-indica
+        - generic [ref=f108e251]:
+          - button "Aceitar Todos" [ref=f108e252] [cursor=pointer]
+          - button "Rejeitar Todos" [ref=f108e253] [cursor=pointer]
+  - complementary "Edit with Lovable" [ref=f108e254]:
+    - link "Edit with Lovable" [ref=f108e255] [cursor=pointer]:
+      - /url: https://lovable.dev/projects/lovp_3ezm7r9bx89b49jfz9220meen1?utm_source=lovable-badge
+      - generic [ref=f108e256]: Edit with
+    - button "Dismiss" [ref=f108e262] [cursor=pointer]

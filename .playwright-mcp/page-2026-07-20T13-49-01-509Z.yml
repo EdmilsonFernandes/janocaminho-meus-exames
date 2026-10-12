@@ -1,0 +1,244 @@
+- generic [ref=e18]:
+  - generic [ref=e20]:
+    - button [ref=e21] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e22]:
+      - banner [ref=e23]:
+        - generic [ref=e24]:
+          - button [ref=e25] [cursor=pointer]
+          - button [ref=e28] [cursor=pointer]:
+            - generic [ref=e31]: "71"
+          - button [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: E
+            - generic [ref=e36]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=e41] [cursor=pointer]:
+            - generic [ref=e42]: "28"
+          - button [ref=e46] [cursor=pointer]
+          - button [ref=e50] [cursor=pointer]
+      - main [ref=e53]:
+        - navigation [ref=e57]:
+          - button [ref=e58] [cursor=pointer]:
+            - generic [ref=e62]: Início
+          - button [ref=e64] [cursor=pointer]:
+            - generic [ref=e68]: Exames
+          - button [ref=e70] [cursor=pointer]:
+            - generic [ref=e74]: Dr. Exame (IA)
+          - button [ref=e76] [cursor=pointer]:
+            - generic [ref=e80]: Relatório completo
+          - button [ref=e83] [cursor=pointer]:
+            - generic [ref=e88]: Evolução & Conquistas
+          - button [ref=e93] [cursor=pointer]:
+            - generic [ref=e98]: Minha Saúde
+          - button [ref=e103] [cursor=pointer]:
+            - generic [ref=e108]: Família & Médicos
+          - button [ref=e113] [cursor=pointer]:
+            - generic [ref=e117]: Conta
+          - separator [ref=e121]
+          - button [ref=e122] [cursor=pointer]:
+            - generic [ref=e123]: ❓
+            - generic [ref=e125]: Ajuda & Suporte
+          - menuitem [ref=e127] [cursor=pointer]:
+            - generic [ref=e128]: ℹ️
+            - generic [ref=e129]: Sobre o app
+          - menuitem [ref=e131] [cursor=pointer]:
+            - generic [ref=e135]: Sair da conta
+          - generic [ref=e137]: Meus Exames · v0.1.0 (unknown)
+        - generic [ref=e139]:
+          - generic [ref=e140]:
+            - paragraph [ref=e141]: Bom dia, Edmilson 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e144]:
+            - generic [ref=e149]:
+              - paragraph [ref=e150]: "78"
+              - generic [ref=e151]: de 100
+            - generic [ref=e152]:
+              - generic [ref=e153]: Score de Saúde
+              - generic [ref=e158]: Bom
+              - paragraph [ref=e160]: Alguns valores merecem atenção — comente com seu médico.
+              - generic [ref=e161]: "*Educativo. 8 alterado(s)."
+              - button [ref=e163] [cursor=pointer]: Ver detalhes
+          - generic [ref=e164]:
+            - generic [ref=e165]: Suas leituras
+            - generic [ref=e172]:
+              - generic [ref=e175]:
+                - generic [ref=e176]:
+                  - generic [ref=e177]:
+                    - paragraph [ref=e180]: Leitura de risco
+                    - button [ref=e181] [cursor=pointer]
+                  - generic [ref=e184]:
+                    - generic [ref=e185]: 🟢 Baixo
+                    - generic [ref=e187]: → Risco estável desde 17/07/2026
+                - paragraph [ref=e189]: Possível pré-diabetes
+                - paragraph [ref=e190]: "Atenção de intensidade leve a moderada: alguns marcadores glicêmicos estão na faixa de pré-diabetes. Isso costuma ser reversível com mudanças de hábito, mas merece atenção. Os exames que mais influenciaram esta análise foram: GLICEMIA. Recomendamos levar estes resultados ao seu médico para confirmação e conduta. Esta análise não substitui uma consulta médica."
+                - button [ref=e191] [cursor=pointer]: Ver mais
+                - generic [ref=e192]:
+                  - generic [ref=e193]: ⚠️ O QUE CHAMOU ATENÇÃO
+                  - generic [ref=e195]:
+                    - generic [ref=e196]: 🟡
+                    - generic [ref=e197]:
+                      - generic [ref=e198]:
+                        - paragraph [ref=e199]: GLICEMIA
+                        - generic [ref=e200]: 108 mg/dL
+                      - generic [ref=e201]: Glicemia de jejum na faixa de pré-diabetes (100–125 mg/dL) — pode indicar alteração glicêmica inicial
+                      - group [ref=e203]:
+                        - generic [ref=e204] [cursor=pointer]: 📖 Por quê? (fonte da faixa)
+                - button [ref=e205] [cursor=pointer]: Perguntas pra levar ao médico (2)
+                - separator [ref=e212]
+                - button [ref=e213] [cursor=pointer]: Plano de ação do Dr. Exame · 8 créditos
+                - generic [ref=e217]: Baseada em 3 marcadores (poucos dados — leitura parcial).
+                - generic [ref=e218]: "*Educativo. Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico."
+                - generic [ref=e219]:
+                  - generic [ref=e220]: 🧪 Ajudar a IA a melhorar (dados anônimos)
+                  - switch [ref=e223] [cursor=pointer]
+              - generic [ref=e228]:
+                - generic [ref=e229]:
+                  - paragraph [ref=e233]: Meu estado atual
+                  - generic [ref=e234]: 75/100
+                - paragraph [ref=e236]: 7 de 28 marcadores fora da faixa — vale revisar com seu médico.
+                - generic [ref=e237]:
+                  - generic [ref=e238]: 🟠 6 moderadas
+                  - generic [ref=e240]: 🟡 1 leve
+                  - generic [ref=e242]: ✅ 21 normais
+                - generic [ref=e244]:
+                  - generic [ref=e245]:
+                    - generic [ref=e246]:
+                      - paragraph [ref=e247]: COLESTEROL TOTAL
+                      - text: 1º exame
+                    - paragraph [ref=e248]: 232mg/dL
+                  - generic [ref=e249]:
+                    - generic [ref=e250]:
+                      - paragraph [ref=e251]: LDL COLESTEROL
+                      - text: 1º exame
+                    - paragraph [ref=e252]: 158mg/dL
+                  - generic [ref=e253]:
+                    - generic [ref=e254]:
+                      - paragraph [ref=e255]: HDL COLESTEROL
+                      - text: 1º exame
+                    - paragraph [ref=e256]: 38mg/dL
+                - button [ref=e257] [cursor=pointer]: Ver valores alterados
+                - generic [ref=e261]: "*Educativo. Sempre confirme com seu médico."
+              - generic [ref=e262]:
+                - generic [ref=e264]:
+                  - generic [ref=e265]:
+                    - paragraph [ref=e268]: Score de Adesão
+                    - generic [ref=e269]: 🥈 Prata
+                  - generic [ref=e271]:
+                    - generic [ref=e272]:
+                      - paragraph [ref=e273]: "55"
+                      - text: /100
+                    - generic [ref=e274]:
+                      - generic [ref=e275]:
+                        - generic [ref=e276]: Exames
+                        - progressbar [ref=e278]
+                        - generic [ref=e280]: "30"
+                      - generic [ref=e281]:
+                        - generic [ref=e282]: Medições
+                        - progressbar [ref=e284]
+                        - generic [ref=e286]: "0"
+                      - generic [ref=e287]:
+                        - generic [ref=e288]: Avaliações
+                        - progressbar [ref=e290]
+                        - generic [ref=e292]: "0"
+                      - generic [ref=e293]:
+                        - generic [ref=e294]: Consentimento
+                        - progressbar [ref=e296]
+                        - generic [ref=e298]: "0"
+                      - generic [ref=e299]:
+                        - generic [ref=e300]: Engajamento
+                        - progressbar [ref=e302]
+                        - generic [ref=e304]: "15"
+                      - generic [ref=e305]:
+                        - generic [ref=e306]: Atualização
+                        - progressbar [ref=e308]
+                        - generic [ref=e310]: "10"
+                  - generic [ref=e311]:
+                    - generic [ref=e312]: 💡 Registre medições (pressão, peso) — 4 a cada 3 meses.
+                    - generic [ref=e313]: 💡 Avalie os planos de ação (👍/👎) pra ajudar a IA a melhorar.
+                    - generic [ref=e314]: 💡 Ative a contribuição anônima de dados (ajuda a IA a aprender).
+                - generic [ref=e316]:
+                  - generic [ref=e317]:
+                    - paragraph [ref=e320]: Previsões
+                    - generic [ref=e321]: Premium
+                  - generic [ref=e324]:
+                    - generic [ref=e325]:
+                      - generic [ref=e326]: 🔴
+                      - paragraph [ref=e328]: Linfócitos Reativos
+                    - text: Linfócitos Reativos caindo -57.0/mês — pode ficar abaixo de 0 em ~0m.
+                  - generic [ref=e329]: "*Projeção baseada em tendência — não é diagnóstico. Sempre confirme com seu médico."
+          - generic [ref=e330]:
+            - generic [ref=e331]: Dr. Exame
+            - generic [ref=e339]:
+              - generic [ref=e343]:
+                - paragraph [ref=e344]: ✨ Dica personalizada (IA)
+                - paragraph [ref=e345]: "Atenção: seu COLESTEROL TOTAL está alto. Vale conversar com seu médico."
+              - button [ref=e347] [cursor=pointer]: Conversar com a IA
+          - generic [ref=e351]:
+            - generic [ref=e352]: Seus números
+            - generic [ref=e358]:
+              - generic [ref=e359]:
+                - generic [ref=e362] [cursor=pointer]:
+                  - paragraph [ref=e366]: "5"
+                  - generic [ref=e367]: Exames enviados
+                - generic [ref=e370] [cursor=pointer]:
+                  - paragraph [ref=e375]: "8"
+                  - generic [ref=e376]: Valores alterados
+                - generic [ref=e379] [cursor=pointer]:
+                  - paragraph [ref=e384]: "1"
+                  - generic [ref=e385]: Dependentes
+                - generic [ref=e388] [cursor=pointer]:
+                  - paragraph [ref=e392]: —
+                  - generic [ref=e393]: Última atualização
+              - generic [ref=e397]:
+                - heading [level=6] [ref=e398]: Distribuição dos valores
+                - paragraph [ref=e399]: Últimos exames extraídos deste perfil.
+                - generic [ref=e400]:
+                  - generic [ref=e401]:
+                    - application [ref=e403]
+                    - generic [ref=e416]:
+                      - paragraph [ref=e417]: "36"
+                      - generic [ref=e418]: valores
+                  - generic [ref=e419]:
+                    - paragraph [ref=e422]:
+                      - strong [ref=e423]: "28"
+                      - text: Bons (na faixa) (78%)
+                    - paragraph [ref=e426]:
+                      - strong [ref=e427]: "3"
+                      - text: Alerta (abaixo) (8%)
+                    - paragraph [ref=e430]:
+                      - strong [ref=e431]: "5"
+                      - text: Alterados (14%)
+          - generic [ref=e432]:
+            - generic [ref=e433]: Ações rápidas
+            - generic [ref=e439]:
+              - generic [ref=e440]:
+                - generic [ref=e441]: Enviar exame
+                - generic [ref=e448]: Evolução
+                - generic [ref=e455]: Família
+                - generic [ref=e463]: Relatório
+              - generic [ref=e471]:
+                - generic [ref=e475]:
+                  - paragraph [ref=e476]: "71"
+                  - text: créditos disponíveis
+                - button [ref=e477] [cursor=pointer]: Comprar
+          - generic [ref=e478]:
+            - generic [ref=e479]: Conquistas
+            - generic [ref=e486] [cursor=pointer]:
+              - generic [ref=e488]:
+                - paragraph [ref=e489]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e492]:
+                - generic [ref=e493]: 🎉
+                - generic [ref=e495]: 📚
+                - generic [ref=e497]: 🎓
+                - generic [ref=e499]: 💚
+                - generic [ref=e501]: 🔥
+              - generic [ref=e503]: 2 desbloqueada(s) · toque para ver e resgatar →
+  - dialog [active] [ref=e509]:
+    - generic [ref=e510]:
+      - button "Pular" [ref=e539] [cursor=pointer]
+      - generic [ref=e512]:
+        - generic [ref=e513]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=e540]
+        - paragraph [ref=e515]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=e516]:
+        - button [ref=e541] [cursor=pointer]
+        - paragraph [ref=e526]: Toque em Próximo para continuar →

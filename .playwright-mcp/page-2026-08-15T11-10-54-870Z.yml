@@ -1,0 +1,170 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e1630] [cursor=pointer]
+      - main [ref=e919]:
+        - generic [ref=e1631]:
+          - generic [ref=e1636]:
+            - heading "Evolução ao longo do tempo" [level=5] [ref=e1637]
+            - paragraph [ref=e1638]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.
+          - generic [ref=e1668]:
+            - generic [ref=e1669]:
+              - generic [ref=e1670]: 🟢 9 Melhoraram
+              - generic [ref=e1671]: 🔴 0 Pioraram
+              - generic [ref=e1672]: ✅ 53 Estáveis
+            - generic [ref=e1673]:
+              - text: Seus marcadores estão evoluindo bem — continue assim. ✅
+              - strong [ref=e1674]: ·
+              - text: Conteúdo educativo — a decisão final é do médico.
+          - generic [ref=e1675]:
+            - button "📋 Todos (62)" [ref=e1677] [cursor=pointer]
+            - button "🔴 Fora da faixa (3)" [ref=e1680] [cursor=pointer]
+            - button "🟠 Em mudança (27)" [ref=e1683] [cursor=pointer]
+            - button "✅ Estável (32)" [ref=e1686] [cursor=pointer]
+          - textbox "Buscar exame (TSH, glicose, colesterol…)" [ref=e1692]
+          - generic [ref=e1693]:
+            - generic [ref=e1695] [cursor=pointer]:
+              - generic [ref=e1696]: 🍩
+              - paragraph [ref=e1697]: Glicemia e Diabetes
+              - generic "Em mudança" [ref=e1698]: 🟠
+            - generic [ref=e1702] [cursor=pointer]:
+              - generic [ref=e1703]: 🩸
+              - paragraph [ref=e1704]: Hemograma
+              - generic "Em mudança" [ref=e1705]: 🟠
+            - generic [ref=e1709] [cursor=pointer]:
+              - generic [ref=e1710]: 🧈
+              - paragraph [ref=e1711]: Lipídios e Colesterol
+              - generic "Em mudança" [ref=e1712]: 🟠
+            - generic [ref=e1716] [cursor=pointer]:
+              - generic [ref=e1717]: 🫀
+              - paragraph [ref=e1718]: Função Hepática
+              - generic "Em mudança" [ref=e1719]: 🟠
+            - generic [ref=e1723] [cursor=pointer]:
+              - generic [ref=e1724]: 🫘
+              - paragraph [ref=e1725]: Função Renal
+              - generic "Em mudança" [ref=e1726]: 🟠
+            - generic [ref=e1729]:
+              - generic [ref=e1730] [cursor=pointer]:
+                - generic [ref=e1731]: ⚗️
+                - paragraph [ref=e1732]: Hormônios
+                - generic "Fora da faixa" [ref=e1733]: 🔴
+                - generic [ref=e1734]: 3 alterados
+              - generic [ref=e1774]:
+                - heading [level=3] [ref=e1776]:
+                  - button "🔴 LH - HORMONIO LUTEINIZANTE 12.7 mUI/mL O que significa mUI/mL?" [ref=e1777] [cursor=pointer]:
+                    - generic [ref=e1779]:
+                      - generic [ref=e1780]: 🔴
+                      - paragraph [ref=e1781]: LH - HORMONIO LUTEINIZANTE
+                      - paragraph [ref=e1782]:
+                        - text: "12.7"
+                        - generic [ref=e1783]:
+                          - generic [ref=e1784]: mUI/mL
+                          - button "O que significa mUI/mL?" [ref=e1785]
+                - heading [level=3] [ref=e1792]:
+                  - button "🔴 TESTOSTERONA_TOTAL 2.5 ng/dL O que significa ng/dL?" [ref=e1793] [cursor=pointer]:
+                    - generic [ref=e1795]:
+                      - generic [ref=e1796]: 🔴
+                      - paragraph [ref=e1797]: TESTOSTERONA_TOTAL
+                      - paragraph [ref=e1798]:
+                        - text: "2.5"
+                        - generic [ref=e1799]:
+                          - generic [ref=e1800]: ng/dL
+                          - button "O que significa ng/dL?" [ref=e1801]
+                - heading [level=3] [ref=e1808]:
+                  - button "🔴 TESTOSTERONA_LIVRE 0.35 pg/mL O que significa pg/mL?" [ref=e1809] [cursor=pointer]:
+                    - generic [ref=e1811]:
+                      - generic [ref=e1812]: 🔴
+                      - paragraph [ref=e1813]: TESTOSTERONA_LIVRE
+                      - paragraph [ref=e1814]:
+                        - text: "0.35"
+                        - generic [ref=e1815]:
+                          - generic [ref=e1816]: pg/mL
+                          - button "O que significa pg/mL?" [ref=e1817]
+                - heading [level=3] [ref=e1824]:
+                  - button "🟠 TSH 2.83 µUI/mL O que significa µUI/mL? +20%" [ref=e1825] [cursor=pointer]:
+                    - generic [ref=e1827]:
+                      - generic [ref=e1828]: 🟠
+                      - paragraph [ref=e1829]: TSH
+                      - paragraph [ref=e1830]:
+                        - text: "2.83"
+                        - generic [ref=e1831]:
+                          - generic [ref=e1832]: µUI/mL
+                          - button "O que significa µUI/mL?" [ref=e1833]
+                      - generic [ref=e1836]: +20%
+                - heading [level=3] [ref=e1842]:
+                  - button "🟠 FSH - HORMONIO FOLICULO ESTIMULANTE 5.8 mUI/mL O que significa mUI/mL? +190%" [ref=e1843] [cursor=pointer]:
+                    - generic [ref=e1845]:
+                      - generic [ref=e1846]: 🟠
+                      - paragraph [ref=e1847]: FSH - HORMONIO FOLICULO ESTIMULANTE
+                      - paragraph [ref=e1848]:
+                        - text: "5.8"
+                        - generic [ref=e1849]:
+                          - generic [ref=e1850]: mUI/mL
+                          - button "O que significa mUI/mL?" [ref=e1851]
+                      - generic [ref=e1854]: +190%
+                - heading [level=3] [ref=e1860]:
+                  - button "🟠 ESTRADIOL 43.7 pg/mL O que significa pg/mL? -55%" [ref=e1861] [cursor=pointer]:
+                    - generic [ref=e1863]:
+                      - generic [ref=e1864]: 🟠
+                      - paragraph [ref=e1865]: ESTRADIOL
+                      - paragraph [ref=e1866]:
+                        - text: "43.7"
+                        - generic [ref=e1867]:
+                          - generic [ref=e1868]: pg/mL
+                          - button "O que significa pg/mL?" [ref=e1869]
+                      - generic [ref=e1872]: "-55%"
+                - heading [level=3] [ref=e1878]:
+                  - button "✅ GLOBULINA LIGADORA DE HORMONIOS SEXUAIS 50 nmol/L" [ref=e1879] [cursor=pointer]:
+                    - generic [ref=e1881]:
+                      - generic [ref=e1882]: ✅
+                      - paragraph [ref=e1883]: GLOBULINA LIGADORA DE HORMONIOS SEXUAIS
+                      - paragraph [ref=e1884]: 50 nmol/L
+                - heading [level=3] [ref=e1889]:
+                  - button "✅ DEHIDROEPIANDROSTERONA (DHEA) 145 ng/dL O que significa ng/dL?" [ref=e1890] [cursor=pointer]:
+                    - generic [ref=e1892]:
+                      - generic [ref=e1893]: ✅
+                      - paragraph [ref=e1894]: DEHIDROEPIANDROSTERONA (DHEA)
+                      - paragraph [ref=e1895]:
+                        - text: "145"
+                        - generic [ref=e1896]:
+                          - generic [ref=e1897]: ng/dL
+                          - button "O que significa ng/dL?" [ref=e1898]
+                - heading [level=3] [ref=e1905]:
+                  - button "✅ ANDROSTENEDIONA 0.59 ng/mL" [ref=e1906] [cursor=pointer]:
+                    - generic [ref=e1908]:
+                      - generic [ref=e1909]: ✅
+                      - paragraph [ref=e1910]: ANDROSTENEDIONA
+                      - paragraph [ref=e1911]: 0.59 ng/mL
+            - generic [ref=e1739] [cursor=pointer]:
+              - generic [ref=e1740]: ❤️
+              - paragraph [ref=e1741]: Marcadores Cardíacos
+              - generic "Estável" [ref=e1742]: ✅
+            - generic [ref=e1746] [cursor=pointer]:
+              - generic [ref=e1747]: ⚡
+              - paragraph [ref=e1748]: Eletrólitos e Minerais
+              - generic "Estável" [ref=e1749]: ✅
+            - generic [ref=e1753] [cursor=pointer]:
+              - generic [ref=e1754]: 🛡️
+              - paragraph [ref=e1755]: Inflamação e Ferro
+              - generic "Em mudança" [ref=e1756]: 🟠
+            - generic [ref=e1760] [cursor=pointer]:
+              - generic [ref=e1761]: 💊
+              - paragraph [ref=e1762]: Vitaminas e Ácido Fólico
+              - generic "Em mudança" [ref=e1763]: 🟠
+            - generic [ref=e1767] [cursor=pointer]:
+              - generic [ref=e1768]: 📋
+              - paragraph [ref=e1769]: Outros exames
+              - generic "Em mudança" [ref=e1770]: 🟠
+    - button "Pergunte ao Dr. Exame" [ref=e1660] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e1661]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1662]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1665]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1666]

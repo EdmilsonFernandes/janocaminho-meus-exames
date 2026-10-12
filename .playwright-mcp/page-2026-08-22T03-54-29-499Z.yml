@@ -1,0 +1,108 @@
+- generic [active] [ref=f82e1]:
+  - banner [ref=f82e2]:
+    - generic [ref=f82e4]:
+      - link [ref=f82e5] [cursor=pointer]:
+        - /url: https://levels.com
+        - img "Levels Support" [ref=f82e6]
+      - generic:
+        - navigation:
+          - list [ref=f82e7]:
+            - listitem [ref=f82e8]:
+              - link "Home" [ref=f82e9] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f82e10]:
+              - link "Getting Started" [ref=f82e11] [cursor=pointer]:
+                - /url: /collection/434-getting-started
+            - listitem [ref=f82e12]:
+              - link "Levels 101" [ref=f82e13] [cursor=pointer]:
+                - /url: /collection/6-levels-101
+            - listitem [ref=f82e14]:
+              - link "Glucose Monitoring" [ref=f82e15] [cursor=pointer]:
+                - /url: /collection/606-glucose-monitoring
+            - listitem [ref=f82e16]:
+              - link "Labs & Nutritionist" [ref=f82e17] [cursor=pointer]:
+                - /url: /collection/11-labs-nutritionist
+            - listitem [ref=f82e18]:
+              - link "My Account" [ref=f82e19] [cursor=pointer]:
+                - /url: /collection/22-my-account
+            - listitem [ref=f82e21]:
+              - link "Education & Community" [ref=f82e22] [cursor=pointer]:
+                - /url: /collection/712-education-community
+            - listitem [ref=f82e23]:
+              - link "Policies" [ref=f82e24] [cursor=pointer]:
+                - /url: /collection/689-policies
+            - listitem [ref=f82e25]:
+              - link "Contact" [ref=f82e26] [cursor=pointer]:
+                - /url: "#"
+  - generic [ref=f82e27]:
+    - generic [ref=f82e28]:
+      - generic [ref=f82e30]:
+        - generic [ref=f82e31]:
+          - heading "Data & Privacy" [level=1] [ref=f82e32]
+          - paragraph [ref=f82e33]: Manage and share your data
+          - combobox "Page reloads on selection" [ref=f82e36] [cursor=pointer]:
+            - option "Sort by Default" [selected]
+            - option "Sort A-Z"
+            - option "Sort by Popularity"
+            - option "Sort by Last Updated"
+        - list [ref=f82e37]:
+          - listitem [ref=f82e38]:
+            - link "How to Export Your Data" [ref=f82e39] [cursor=pointer]:
+              - /url: /article/105-how-to-export-your-data
+              - generic [ref=f82e40]: 
+              - text: How to Export Your Data
+          - listitem [ref=f82e41]:
+            - link "How to Share Levels Data With Your Doctor" [ref=f82e42] [cursor=pointer]:
+              - /url: /article/501-how-to-share-levels-data-with-your-doctor
+              - generic [ref=f82e43]: 
+              - text: How to Share Levels Data With Your Doctor
+          - listitem [ref=f82e44]:
+            - link "How to Delete Your Data" [ref=f82e45] [cursor=pointer]:
+              - /url: /article/239-how-to-delete-your-data
+              - generic [ref=f82e46]: 
+              - text: How to Delete Your Data
+          - listitem [ref=f82e47]:
+            - link "Privacy and App Analytics" [ref=f82e48] [cursor=pointer]:
+              - /url: /article/136-privacy-and-app-analytics
+              - generic [ref=f82e49]: 
+              - text: Privacy and App Analytics
+      - complementary [ref=f82e50]:
+        - generic [ref=f82e51]:
+          - textbox "Search" [ref=f82e52]
+          - button "Toggle Search " [ref=f82e53] [cursor=pointer]:
+            - generic [ref=f82e54]: Toggle Search
+            - generic [ref=f82e55]: 
+        - heading "Categories" [level=3] [ref=f82e56]
+        - list [ref=f82e57]:
+          - listitem [ref=f82e58]:
+            - link "Account Basics" [ref=f82e59] [cursor=pointer]:
+              - /url: /category/711-account-settings
+              - text: Account Basics 
+          - listitem [ref=f82e60]:
+            - link "Membership, Billing, & Orders" [ref=f82e61] [cursor=pointer]:
+              - /url: /category/677-levels-membership
+              - text: Membership, Billing, & Orders 
+          - listitem [ref=f82e62]:
+            - link "Data & Privacy " [ref=f82e63] [cursor=pointer]:
+              - /url: /category/678-resources
+              - text: Data & Privacy
+              - generic [ref=f82e64]: 
+    - generic [ref=f82e65]:
+      - strong [ref=f82e66]: Questions?
+      - text: "Contact us:"
+      - link "support@levels.com" [ref=f82e67] [cursor=pointer]:
+        - /url: mailto:support@levels.com
+    - paragraph [ref=f82e69]:
+      - text: ©
+      - link "Levels Health, Inc." [ref=f82e70] [cursor=pointer]:
+        - /url: https://levels.com
+      - text: "2026."
+      - generic [ref=f82e71]:
+        - text: Powered by
+        - link "Help Scout" [ref=f82e72] [cursor=pointer]:
+          - /url: https://www.helpscout.com/docs-refer/?co=Levels+Health%2C+Inc.&utm_source=docs&utm_medium=footerlink&utm_campaign=Docs+Branding
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - iframe

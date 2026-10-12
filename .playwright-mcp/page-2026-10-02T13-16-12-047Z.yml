@@ -1,0 +1,23 @@
+- generic [active] [ref=f14e1]:
+  - generic [ref=f14e158]:
+    - generic [ref=f14e159]:
+      - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f14e161]
+      - generic [ref=f14e162]: Painel do operador
+    - paragraph [ref=f14e163]: Acesso restrito a administradores.
+    - generic [ref=f14e164]:
+      - paragraph [ref=f14e165]: Credenciais de demonstração (dev)
+      - paragraph [ref=f14e166]:
+        - text: "Admin:"
+        - code [ref=f14e167]: "+5511999990000"
+        - text: — o código aparece aqui depois de pedir (OTP_REVEAL).
+    - generic [ref=f14e168]: Telefone
+    - generic [ref=f14e169]:
+      - generic "Brasil (+55)" [ref=f14e170]:
+        - img "Bandeira do Brasil" [ref=f14e171]
+        - generic [ref=f14e175]: "+55"
+      - textbox "(11) 90000-0000" [ref=f14e176]
+    - button "Enviar código" [disabled] [ref=f14e177]
+    - link "← Voltar ao site" [ref=f14e178] [cursor=pointer]:
+      - /url: /
+  - button "Open Next.js Dev Tools" [ref=f14e135] [cursor=pointer]
+  - alert [ref=f14e139]

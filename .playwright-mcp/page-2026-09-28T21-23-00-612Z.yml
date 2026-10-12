@@ -1,0 +1,63 @@
+- generic [ref=f2e106]:
+  - button "Pular para o conteúdo" [ref=f2e491] [cursor=pointer]
+  - generic [ref=f2e108]:
+    - banner [ref=f2e109]:
+      - generic [ref=f2e110]:
+        - heading "Relatório completo" [level=6] [ref=f2e600]
+        - generic [ref=f2e111]:
+          - button "Você tem 65 créditos. Toque para comprar mais." [ref=f2e519] [cursor=pointer]:
+            - generic [ref=f2e115]: "65"
+          - button "Notificações" [ref=f2e520] [cursor=pointer]:
+            - generic [ref=f2e117]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f2e521] [cursor=pointer]:
+            - generic [ref=f2e123]: E
+            - generic [ref=f2e125]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f2e522] [cursor=pointer]
+    - main [ref=f2e134]:
+      - navigation [ref=f2e138]:
+        - generic [ref=f2e141]:
+          - generic [ref=f2e142]: E
+          - generic [ref=f2e144]:
+            - paragraph [ref=f2e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e146]:
+              - generic [ref=f2e147]: Plano grátis
+              - button "⚡ 65 (+)" [ref=f2e492] [cursor=pointer]
+        - separator [ref=f2e151]
+        - button "Cuidados" [ref=f2e494] [cursor=pointer]
+        - button "Pessoas" [ref=f2e495] [cursor=pointer]
+        - button "Conta" [ref=f2e496] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f2e497] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f2e498] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f2e499] [cursor=pointer]
+        - generic [ref=f2e209]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f2e607]:
+        - generic [ref=f2e612]:
+          - heading "Relatório completo de saúde" [level=5] [ref=f2e613]
+          - paragraph [ref=f2e614]: A IA junta seus últimos exames, tendências e perguntas num documento único para consulta.
+        - generic [ref=f2e615]:
+          - generic [ref=f2e616]:
+            - generic [ref=f2e617]:
+              - generic [ref=f2e618]: Preview do relatório
+              - paragraph [ref=f2e620]: Um resumo pronto para consulta, antes de abrir exame por exame
+              - paragraph [ref=f2e621]: O Dr. Exame consolida seu histórico em linguagem simples, com prioridades, contexto e perguntas para discutir com o profissional de saúde.
+            - generic [ref=f2e622]:
+              - button [ref=f2e623] [cursor=pointer]
+              - generic [ref=f2e628]:
+                - generic [ref=f2e629]: 💎
+                - generic [ref=f2e630]: 20 créditos
+          - generic [ref=f2e631]:
+            - generic [ref=f2e633]:
+              - paragraph [ref=f2e637]: Prioridades clínicas
+              - paragraph [ref=f2e638]: Valores alterados e pontos que merecem atenção.
+            - generic [ref=f2e640]:
+              - paragraph [ref=f2e645]: Evolução dos exames
+              - paragraph [ref=f2e646]: Comparação entre resultados anteriores e atuais.
+            - generic [ref=f2e648]:
+              - paragraph [ref=f2e652]: Perguntas para o médico
+              - paragraph [ref=f2e653]: Uma lista objetiva para levar na consulta.
+            - generic [ref=f2e655]:
+              - paragraph [ref=f2e659]: Pontos positivos
+              - paragraph [ref=f2e660]: O que está estável ou dentro da referência.
+          - generic [ref=f2e661]:
+            - generic [ref=f2e662]: Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
+            - button "Ver exames usados →" [ref=f2e663] [cursor=pointer]

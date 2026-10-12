@@ -1,0 +1,86 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e987] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button [ref=e988] [cursor=pointer]
+            - paragraph [ref=e300]: Dr. Exame
+            - button [ref=e990] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button [ref=e991] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button [ref=e992] [cursor=pointer]:
+              - generic [ref=e298]: E
+        - main [ref=e57]:
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - paragraph [ref=e859]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e862]:
+              - generic [ref=e863]:
+                - generic [ref=e868]:
+                  - paragraph [ref=e976]: "45"
+                  - paragraph [ref=e870]: de 100
+                - generic [ref=e871]:
+                  - paragraph [ref=e872]: Sua saúde hoje
+                  - paragraph [ref=e873]: Pede atenção
+                  - paragraph [ref=e875]:
+                    - generic [ref=e977]: ● 6 moderados
+              - button [ref=e993] [cursor=pointer]: Ver análise completa
+            - button [ref=e994] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e899]:
+              - generic [ref=e906] [cursor=pointer]:
+                - paragraph [ref=e907]: Cardiometabólico
+                - paragraph [ref=e908]: Em dia
+                - paragraph [ref=e909]: sem fatores
+              - generic [ref=e912] [cursor=pointer]:
+                - generic [ref=e913]: 🧬
+                - generic [ref=e914]:
+                  - paragraph [ref=e915]: Idade biológica
+                  - paragraph [ref=e916]: Em breve
+                  - paragraph [ref=e917]: estimativa c/ +exames
+              - generic [ref=e924] [cursor=pointer]:
+                - paragraph [ref=e925]: Seus exames
+                - paragraph [ref=e926]: "5"
+                - paragraph [ref=e927]: 8 alterados
+              - generic [ref=e934] [cursor=pointer]:
+                - paragraph [ref=e935]: Evolução
+                - paragraph [ref=e936]: Tendências
+                - paragraph [ref=e937]: 28 resultados
+            - generic [ref=e939]:
+              - generic [ref=e940]: Enviar exame
+              - generic [ref=e947]: Evolução
+              - generic [ref=e954]: Família
+              - generic [ref=e962]: Relatório
+            - generic [ref=e980]:
+              - generic [ref=e984]:
+                - paragraph [ref=e985]: "71"
+                - text: créditos disponíveis
+              - button [ref=e995] [cursor=pointer]: Comprar
+            - button [ref=e996] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - paragraph [ref=e191] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - menu [ref=e1002]:
+    - menuitem "E Edmilson Lopes Fernandes dos Santos" [active] [ref=e1003] [cursor=pointer]:
+      - generic [ref=e1004]: E
+      - generic [ref=e1005]: Edmilson Lopes Fernandes dos Santos
+    - separator [ref=e1009]
+    - menuitem "Adicionar dependente" [ref=e1010] [cursor=pointer]
+    - separator [ref=e1016]
+    - menuitem "Modo escuro" [ref=e1017] [cursor=pointer]
+    - menuitem "Mudar para English" [ref=e1023] [cursor=pointer]
+    - menuitem "Sair" [ref=e1029] [cursor=pointer]

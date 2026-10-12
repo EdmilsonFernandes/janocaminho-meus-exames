@@ -1,0 +1,27 @@
+- main [ref=f30e2]:
+  - heading "Gandalf is checking your connection" [level=1] [ref=f30e4]
+  - generic [ref=f30e5]:
+    - paragraph [ref=f30e6]: Please wait while Gandalf decides whether you shall pass
+    - paragraph [ref=f30e8]: This verification process may take a while to complete.Do not reload this page, as doing so will interrupt the verification.
+    - generic [ref=f30e9]:
+      - generic [ref=f30e10]: Need help?
+      - paragraph [ref=f30e11]: "Should you encounter any issues, please contact the administrator via:"
+      - generic [ref=f30e12]:
+        - link "Matrix" [ref=f30e13] [cursor=pointer]:
+          - /url: https://matrix.to/#/@weidenwiesel:nerdvpn.de
+        - link "Forgejo" [ref=f30e15] [cursor=pointer]:
+          - /url: https://git.nerdvpn.de/NerdVPN.de/gandalf-issues/issues
+      - paragraph [ref=f30e17]: When contacting the administrator, please include this temporary, anonymous session ID:ena@3c83a580-f8a3-4270-93a9-599635a485e6
+    - generic [ref=f30e18]:
+      - text: "For general information about Gandalf, browser compatibility, and privacy:"
+      - link "More info" [ref=f30e20] [cursor=pointer]:
+        - /url: https://gandalf.nerdvpn.de
+    - generic:
+      - button "Confirm" [ref=f30e22]
+      - link "Confirm" [ref=f30e23] [cursor=pointer]:
+        - /url: /.gandalf/verify
+  - paragraph [ref=f30e25]:
+    - text: Protected by Gandalf, self-hosted bot-blocker by
+    - link "NerdVPN.de" [ref=f30e26] [cursor=pointer]:
+      - /url: https://nerdvpn.de
+  - generic [ref=f30e27]: version 2.0.2 (2026.08.07-7d814b8)

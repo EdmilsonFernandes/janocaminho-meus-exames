@@ -1,0 +1,114 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e866]:
+      - button "Pular para o conteúdo" [ref=e867] [cursor=pointer]
+      - generic [ref=e868]:
+        - banner [ref=e869]:
+          - generic [ref=e870]:
+            - button "Voltar" [ref=e1162] [cursor=pointer]:
+              - img [ref=e1163]
+            - button "71" [ref=e874] [cursor=pointer]:
+              - img [ref=e875]
+              - generic [ref=e877]: "71"
+            - button "E" [ref=e879] [cursor=pointer]:
+              - generic [ref=e881]: E
+            - button "21" [ref=e882] [cursor=pointer]:
+              - generic [ref=e883]:
+                - img [ref=e884]
+                - generic [ref=e886]: "21"
+            - button "Mais opções" [ref=e887] [cursor=pointer]:
+              - img [ref=e888]
+            - button "Atualizar" [ref=e891] [cursor=pointer]:
+              - img [ref=e892]
+        - main [ref=e894]:
+          - generic [ref=e1233]:
+            - generic [ref=e1234]:
+              - img [ref=e1236]
+              - generic [ref=e1239]:
+                - heading "Valores fora da faixa" [level=5] [ref=e1240]
+                - paragraph [ref=e1241]:
+                  - text: Ordenados por
+                  - strong [ref=e1242]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e1243]: Agendar
+                  - text: pro especialista.
+            - generic [ref=e1245]:
+              - generic [ref=e1246]:
+                - generic [ref=e1247]: 🔴 0 Importantes
+                - generic [ref=e1248]: 🟠 0 Moderadas
+                - generic [ref=e1249]: 🟡 2 Leves
+              - generic [ref=e1250]:
+                - text: Nada crítico — os ajustes são
+                - strong [ref=e1251]: 🟠 moderados
+                - text: ou
+                - strong [ref=e1252]: 🟡 leves
+                - text: . Comente com seu médico na próxima consulta.
+            - generic [ref=e1254]:
+              - heading "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [level=3] [ref=e1255]:
+                - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [expanded] [active] [ref=e1256] [cursor=pointer]:
+                  - generic [ref=e1258]:
+                    - generic [ref=e1259]: 🟡
+                    - generic [ref=e1260]:
+                      - paragraph [ref=e1261]: HEMOGRAMA
+                      - generic [ref=e1262]: 📅 s/d
+                    - generic [ref=e1264]: 2 alterado(s)
+                  - img [ref=e1266]
+              - region [ref=e1282]:
+                - generic [ref=e1283]:
+                  - link "Agendar com Hematologista" [ref=e1285] [cursor=pointer]:
+                    - /url: https://www.doctoralia.com.br/hematologista
+                    - img [ref=e1287]
+                    - text: Agendar com Hematologista
+                  - generic [ref=e1289]:
+                    - generic [ref=e1291]:
+                      - generic [ref=e1292]:
+                        - generic [ref=e1293]:
+                          - paragraph [ref=e1294]: VCM
+                          - generic "Acompanhe — pouco fora da faixa" [ref=e1295]:
+                            - generic [ref=e1296]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1297] [cursor=pointer]:
+                            - img [ref=e1298]
+                        - text: "Ref: 83 - 101"
+                      - generic [ref=e1300]: 80,8
+                      - 'img "Valor 80.8: faixa de referência de 83 a 101, fora da faixa." [ref=e1302]':
+                        - generic [ref=e1306]:
+                          - generic [ref=e1307]: ▲ 83
+                          - generic [ref=e1308]: 101 ▲
+                    - generic [ref=e1310]:
+                      - generic [ref=e1311]:
+                        - generic [ref=e1312]:
+                          - paragraph [ref=e1313]: Plaquetas
+                          - generic "Acompanhe — pouco fora da faixa" [ref=e1314]:
+                            - generic [ref=e1315]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1316] [cursor=pointer]:
+                            - img [ref=e1317]
+                        - text: "Ref: 150000 - 450000 /mm³"
+                      - generic [ref=e1319]: 116.000/mm³
+                      - 'img "Valor 116000: faixa de referência de 150000 a 450000, fora da faixa." [ref=e1321]':
+                        - generic [ref=e1325]:
+                          - generic [ref=e1326]: ▲ 150000
+                          - generic [ref=e1327]: 450000 ▲
+            - generic [ref=e1268]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e1269] [cursor=pointer]:
+      - generic [ref=e1270]:
+        - img "Dr. Exame" [ref=e1272]
+        - img [ref=e1274]
+    - navigation [ref=e1136]:
+      - generic [ref=e1137] [cursor=pointer]:
+        - img [ref=e1228]
+        - paragraph [ref=e1141]: Início
+      - generic [ref=e1143] [cursor=pointer]:
+        - img [ref=e1276]
+        - paragraph [ref=e1147]: Exames
+      - generic [ref=e1148] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1150]
+        - paragraph [ref=e1151]: Dr. Exame
+      - generic [ref=e1152] [cursor=pointer]:
+        - img [ref=e1154]
+        - paragraph [ref=e1156]: Evolução
+      - generic [ref=e1157] [cursor=pointer]:
+        - img [ref=e1159]
+        - paragraph [ref=e1161]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e803]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e804]

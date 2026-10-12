@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e18]:
+      - generic [ref=e19]: UaiID
+      - generic [ref=e20]: Identidade Digital
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Acessar Plataforma" [level=2] [ref=e23]
+        - paragraph [ref=e24]: Entre com suas credenciais de tenant para gerenciar verificações.
+      - generic [ref=e25]:
+        - button "E-mail & Senha" [ref=e26] [cursor=pointer]
+        - button "API Key" [ref=e30] [cursor=pointer]
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: E-mail Corporativo
+          - button "Preencher piloto" [ref=e36] [cursor=pointer]
+        - textbox "voce@empresa.com.br" [ref=e38]: admin@edespetohub.com.br
+      - generic [ref=e39]:
+        - generic [ref=e40]: Senha de Acesso
+        - generic [ref=e41]:
+          - textbox "••••••••" [ref=e42]: admin1234
+          - button "Mostrar" [ref=e43] [cursor=pointer]
+      - button "Entrar no Painel" [ref=e44] [cursor=pointer]
+      - generic [ref=e45]: Ambiente seguro protegido por criptografia de ponta
+  - alert [ref=e59]

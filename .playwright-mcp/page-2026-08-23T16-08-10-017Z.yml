@@ -1,0 +1,128 @@
+- generic [ref=f7e20]:
+  - generic [ref=f7e21]:
+    - generic [ref=f7e22]:
+      - button [ref=f7e23] [cursor=pointer]
+      - generic [ref=f7e24]:
+        - banner [ref=f7e25]:
+          - generic [ref=f7e26]:
+            - button [ref=f7e27] [cursor=pointer]
+            - paragraph [ref=f7e33]: Dr. Exame
+            - button [ref=f7e34] [cursor=pointer]:
+              - generic [ref=f7e37]: "71"
+            - button [ref=f7e38] [cursor=pointer]
+            - button [ref=f7e43] [cursor=pointer]:
+              - generic [ref=f7e44]: E
+        - main [ref=f7e46]:
+          - generic [ref=f7e48]:
+            - generic [ref=f7e53]:
+              - heading [level=5] [ref=f7e54]: Planos e Créditos
+              - paragraph [ref=f7e55]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=f7e56]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=f7e57]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=f7e59]:
+              - paragraph [ref=f7e60]: Seus créditos
+              - paragraph [ref=f7e61]: "71"
+              - generic [ref=f7e62]: Sem assinatura — créditos custeiam a IA.
+            - generic [ref=f7e65] [cursor=pointer]:
+              - heading [level=6] [ref=f7e66]: Histórico de Uso
+              - generic [ref=f7e67]: Ver histórico ▼
+            - heading [level=6] [ref=f7e68]: Comprar créditos (PIX instantâneo)
+            - generic [ref=f7e71]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+            - generic [ref=f7e72]:
+              - generic [ref=f7e74]:
+                - paragraph [ref=f7e75]: "50"
+                - paragraph [ref=f7e76]: créditos
+                - heading [level=5] [ref=f7e77]: R$ 9,90
+                - button [ref=f7e78] [cursor=pointer]: Comprar
+              - generic [ref=f7e79]:
+                - generic [ref=f7e80]: MAIS VENDIDO
+                - generic [ref=f7e83]:
+                  - paragraph [ref=f7e84]: "140"
+                  - paragraph [ref=f7e85]: créditos
+                  - heading [level=5] [ref=f7e86]: R$ 24,90
+                  - button [ref=f7e87] [cursor=pointer]: Comprar
+              - generic [ref=f7e89]:
+                - paragraph [ref=f7e90]: "320"
+                - paragraph [ref=f7e91]: créditos
+                - heading [level=5] [ref=f7e92]: R$ 49,90
+                - button [ref=f7e93] [cursor=pointer]: Comprar
+            - paragraph [ref=f7e94]: — ou assine —
+            - generic [ref=f7e96]:
+              - heading [level=6] [ref=f7e98]: 💎 Premium Mensal
+              - paragraph [ref=f7e99]:
+                - text: 250 créditos que
+                - strong [ref=f7e100]: somam
+                - text: ao seu saldo e
+                - strong [ref=f7e101]: não expiram
+                - text: — o plano vale 30 dias e você decide se renova. Sem fidelidade.
+              - list [ref=f7e102]:
+                - listitem [ref=f7e103]:
+                  - strong [ref=f7e104]: 250 créditos de IA
+                  - text: por mês (melhor custo por crédito)
+                - listitem [ref=f7e105]:
+                  - text: 📄 Relatórios completos
+                  - strong [ref=f7e106]: incluídos
+                  - text: — sem gastar créditos
+                - listitem [ref=f7e107]: 📅 Histórico completo (exames de anos anteriores)
+                - listitem [ref=f7e108]: 👨‍👩‍👧 Família até 10 perfis
+                - listitem [ref=f7e109]: 📤 Envios de exame sem custo
+              - separator [ref=f7e110]
+              - generic [ref=f7e111]:
+                - generic [ref=f7e112]:
+                  - heading [level=4] [ref=f7e113]: R$ 19,90
+                  - paragraph [ref=f7e114]: /mês · sem anual · sem fidelidade · PIX ou cartão
+                - button [ref=f7e115] [cursor=pointer]: Assinar mensal
+    - button [ref=f7e116] [cursor=pointer]
+    - navigation [ref=f7e123]:
+      - paragraph [ref=f7e128] [cursor=pointer]: Início
+      - paragraph [ref=f7e133] [cursor=pointer]: Exames
+      - paragraph [ref=f7e137] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f7e142] [cursor=pointer]: Evolução
+      - paragraph [ref=f7e147] [cursor=pointer]: Mais
+  - generic [ref=f7e17] [cursor=pointer]
+  - dialog [active] [ref=f7e153]:
+    - navigation [ref=f7e154]:
+      - button [ref=f7e156] [cursor=pointer]:
+        - generic [ref=f7e160]: Exames
+      - button [ref=f7e165] [cursor=pointer]:
+        - generic [ref=f7e170]: Cuidados
+      - button [ref=f7e175] [cursor=pointer]:
+        - generic [ref=f7e180]: Pessoas
+      - generic [ref=f7e184]:
+        - button [expanded] [ref=f7e185] [cursor=pointer]:
+          - generic [ref=f7e189]: Conta
+        - generic [ref=f7e196]:
+          - button [ref=f7e197] [cursor=pointer]:
+            - generic [ref=f7e201]: Meu perfil
+          - button [ref=f7e203] [cursor=pointer]:
+            - generic [ref=f7e207]: Segurança & senha
+          - button [ref=f7e209] [cursor=pointer]:
+            - generic [ref=f7e213]: Privacidade e termos
+          - button [ref=f7e215] [cursor=pointer]:
+            - generic [ref=f7e219]: Planos e Créditos
+          - button [ref=f7e221] [cursor=pointer]:
+            - generic [ref=f7e225]: Despesas Médicas
+          - button [ref=f7e227] [cursor=pointer]:
+            - generic [ref=f7e232]: Painel Admin
+      - separator [ref=f7e234]
+      - button [ref=f7e235] [cursor=pointer]:
+        - generic [ref=f7e239]: Dúvidas frequentes
+      - button [ref=f7e241] [cursor=pointer]:
+        - generic [ref=f7e245]: Como validamos
+      - menuitem [ref=f7e247] [cursor=pointer]:
+        - generic [ref=f7e251]: Sobre o app
+      - menuitem [ref=f7e253] [cursor=pointer]:
+        - generic [ref=f7e257]: Sair da conta
+  - dialog [ref=f7e261]:
+    - generic [ref=f7e262]:
+      - button "Pular" [ref=f7e263] [cursor=pointer]
+      - generic [ref=f7e264]:
+        - img "Dr. Exame" [ref=f7e266]
+        - heading "Envie seu exame" [level=4] [ref=f7e267]
+        - paragraph [ref=f7e268]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f7e269]:
+        - button [ref=f7e275] [cursor=pointer]
+        - paragraph [ref=f7e279]: Toque em Próximo para continuar →

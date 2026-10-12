@@ -1,0 +1,257 @@
+- generic [ref=f12e1]:
+  - generic [ref=f12e7]:
+    - complementary [ref=f12e8]:
+      - generic [ref=f12e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e13]
+        - generic [ref=f12e14]: Admin
+      - navigation [ref=f12e15]:
+        - generic [ref=f12e16]: Operação
+        - link "Dashboard" [ref=f12e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f12e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f12e27] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f12e30] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f12e36] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f12e42] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f12e49]:
+        - generic [ref=f12e51]: Operação ao vivo
+        - paragraph [ref=f12e56]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f12e57]:
+        - link "Ver site público" [ref=f12e58] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f12e63]: © 2026 PremioX · Painel do operador
+    - generic [ref=f12e64]:
+      - banner [ref=f12e65]:
+        - button "Menu" [ref=f12e66] [cursor=pointer]
+        - heading "Painel" [level=2] [ref=f12e69]
+        - button "Atualizar" [ref=f12e70] [cursor=pointer]
+        - link "Ver site público" [ref=f12e424] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f12e82]:
+          - generic [ref=f12e83]: S
+          - generic "Online" [ref=f12e85]
+        - button "Sair" [ref=f12e86] [cursor=pointer]
+      - main [ref=f12e90]:
+        - generic [ref=f12e91]:
+          - complementary [ref=f12e92]:
+            - generic [ref=f12e93]:
+              - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e97]
+              - generic [ref=f12e98]: Admin
+            - navigation [ref=f12e99]:
+              - generic [ref=f12e100]: Operação
+              - link "Dashboard" [ref=f12e101] [cursor=pointer]:
+                - /url: /admin
+              - link "Campanhas" [ref=f12e107] [cursor=pointer]:
+                - /url: /admin/campanhas
+              - link "Nova campanha" [ref=f12e111] [cursor=pointer]:
+                - /url: /admin/campanhas/nova
+              - link "Parceiros" [ref=f12e114] [cursor=pointer]:
+                - /url: /admin/parceiros
+              - link "Usuários" [ref=f12e120] [cursor=pointer]:
+                - /url: /admin/usuarios
+              - link "Bloqueados" [ref=f12e126] [cursor=pointer]:
+                - /url: /admin/bloqueados
+            - generic [ref=f12e133]:
+              - generic [ref=f12e135]: Operação ao vivo
+              - paragraph [ref=f12e140]: Métricas atualizadas a cada poucos segundos.
+            - generic [ref=f12e141]:
+              - link "Ver site público" [ref=f12e142] [cursor=pointer]:
+                - /url: /
+              - paragraph [ref=f12e147]: © 2026 PremioX · Painel do operador
+          - generic [ref=f12e148]:
+            - generic [ref=f12e149]:
+              - button "Menu" [ref=f12e150] [cursor=pointer]
+              - heading "Painel" [level=2] [ref=f12e153]
+              - button "Atualizar" [ref=f12e154] [cursor=pointer]
+              - link "Ver site público" [ref=f12e425] [cursor=pointer]:
+                - /url: /
+              - generic [ref=f12e166]:
+                - generic [ref=f12e167]: S
+                - generic "Online" [ref=f12e169]
+              - button "Sair" [ref=f12e170] [cursor=pointer]
+            - main [ref=f12e174]:
+              - generic [ref=f12e175]:
+                - generic [ref=f12e176]:
+                  - heading "Usuários" [level=1] [ref=f12e177]
+                  - paragraph [ref=f12e178]: Busque, corrija contatos e gerencie contas.
+                - paragraph [ref=f12e179]: 28 usuário(s) · mostrando 1–20
+              - generic [ref=f12e180]:
+                - textbox "Buscar usuários" [ref=f12e182]:
+                  - /placeholder: Buscar por nome, telefone ou email…
+                - generic [ref=f12e183]:
+                  - button "Todos" [active] [pressed] [ref=f12e184] [cursor=pointer]
+                  - button "🟢 Ativos" [ref=f12e185] [cursor=pointer]
+                  - button "🔒 Bloqueados" [ref=f12e186] [cursor=pointer]
+              - generic [ref=f12e187]:
+                - generic [ref=f12e429]:
+                  - generic [ref=f12e430]: Q
+                  - generic [ref=f12e431]:
+                    - link "QA Usuario 15" [ref=f12e432] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-15
+                    - generic [ref=f12e433]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e434]: Ativo
+                  - button "✏️ Editar" [ref=f12e436] [cursor=pointer]
+                - generic [ref=f12e438]:
+                  - generic [ref=f12e439]: Q
+                  - generic [ref=f12e440]:
+                    - link "QA Usuario 2" [ref=f12e441] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-2
+                    - generic [ref=f12e442]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e443]: Ativo
+                  - button "✏️ Editar" [ref=f12e445] [cursor=pointer]
+                - generic [ref=f12e447]:
+                  - generic [ref=f12e448]: Q
+                  - generic [ref=f12e449]:
+                    - link "QA Usuario 3" [ref=f12e450] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-3
+                    - generic [ref=f12e451]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e452]: Ativo
+                  - button "✏️ Editar" [ref=f12e454] [cursor=pointer]
+                - generic [ref=f12e456]:
+                  - generic [ref=f12e457]: Q
+                  - generic [ref=f12e458]:
+                    - link "QA Usuario 4" [ref=f12e459] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-4
+                    - generic [ref=f12e460]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e461]: Ativo
+                  - button "✏️ Editar" [ref=f12e463] [cursor=pointer]
+                - generic [ref=f12e465]:
+                  - generic [ref=f12e466]: Q
+                  - generic [ref=f12e467]:
+                    - link "QA Usuario 5" [ref=f12e468] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-5
+                    - generic [ref=f12e469]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e470]: Ativo
+                  - button "✏️ Editar" [ref=f12e472] [cursor=pointer]
+                - generic [ref=f12e474]:
+                  - generic [ref=f12e475]: Q
+                  - generic [ref=f12e476]:
+                    - link "QA Usuario 6" [ref=f12e477] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-6
+                    - generic [ref=f12e478]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e479]: Ativo
+                  - button "✏️ Editar" [ref=f12e481] [cursor=pointer]
+                - generic [ref=f12e483]:
+                  - generic [ref=f12e484]: Q
+                  - generic [ref=f12e485]:
+                    - link "QA Usuario 7" [ref=f12e486] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-7
+                    - generic [ref=f12e487]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e488]: Ativo
+                  - button "✏️ Editar" [ref=f12e490] [cursor=pointer]
+                - generic [ref=f12e492]:
+                  - generic [ref=f12e493]: Q
+                  - generic [ref=f12e494]:
+                    - link "QA Usuario 8" [ref=f12e495] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-8
+                    - generic [ref=f12e496]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e497]: Ativo
+                  - button "✏️ Editar" [ref=f12e499] [cursor=pointer]
+                - generic [ref=f12e501]:
+                  - generic [ref=f12e502]: Q
+                  - generic [ref=f12e503]:
+                    - link "QA Usuario 9" [ref=f12e504] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-9
+                    - generic [ref=f12e505]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e506]: Ativo
+                  - button "✏️ Editar" [ref=f12e508] [cursor=pointer]
+                - generic [ref=f12e510]:
+                  - generic [ref=f12e511]: Q
+                  - generic [ref=f12e512]:
+                    - link "QA Usuario 10" [ref=f12e513] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-10
+                    - generic [ref=f12e514]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e515]: Ativo
+                  - button "✏️ Editar" [ref=f12e517] [cursor=pointer]
+                - generic [ref=f12e519]:
+                  - generic [ref=f12e520]: Q
+                  - generic [ref=f12e521]:
+                    - link "QA Usuario 11" [ref=f12e522] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-11
+                    - generic [ref=f12e523]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e524]: Ativo
+                  - button "✏️ Editar" [ref=f12e526] [cursor=pointer]
+                - generic [ref=f12e528]:
+                  - generic [ref=f12e529]: Q
+                  - generic [ref=f12e530]:
+                    - link "QA Usuario 12" [ref=f12e531] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-12
+                    - generic [ref=f12e532]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e533]: Ativo
+                  - button "✏️ Editar" [ref=f12e535] [cursor=pointer]
+                - generic [ref=f12e537]:
+                  - generic [ref=f12e538]: Q
+                  - generic [ref=f12e539]:
+                    - link "QA Usuario 13" [ref=f12e540] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-13
+                    - generic [ref=f12e541]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e542]: Ativo
+                  - button "✏️ Editar" [ref=f12e544] [cursor=pointer]
+                - generic [ref=f12e546]:
+                  - generic [ref=f12e547]: Q
+                  - generic [ref=f12e548]:
+                    - link "QA Usuario 14" [ref=f12e549] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-14
+                    - generic [ref=f12e550]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e551]: Ativo
+                  - button "✏️ Editar" [ref=f12e553] [cursor=pointer]
+                - generic [ref=f12e555]:
+                  - generic [ref=f12e556]: Q
+                  - generic [ref=f12e557]:
+                    - link "QA Usuario 1" [ref=f12e558] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-1
+                    - generic [ref=f12e559]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e560]: Ativo
+                  - button "✏️ Editar" [ref=f12e562] [cursor=pointer]
+                - generic [ref=f12e354]:
+                  - generic [ref=f12e355]: B
+                  - generic [ref=f12e356]:
+                    - link "Beto Calote" [ref=f12e357] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj5r000hdtukebrxog63
+                    - generic [ref=f12e358]: (11) 90000-6006 · beto.e2e@premiox.app
+                  - generic [ref=f12e426]: Bloqueado
+                  - button "✏️ Editar" [ref=f12e363] [cursor=pointer]
+                - generic [ref=f12e564]:
+                  - generic [ref=f12e565]: E
+                  - generic [ref=f12e566]:
+                    - link "Eva Teste" [ref=f12e567] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj5e000gdtuk6qns9ct7
+                    - generic [ref=f12e568]: (11) 90000-6005 · eva.e2e@premiox.app
+                  - generic [ref=f12e569]: Ativo
+                  - button "✏️ Editar" [ref=f12e571] [cursor=pointer]
+                - generic [ref=f12e573]:
+                  - generic [ref=f12e574]: D
+                  - generic [ref=f12e575]:
+                    - link "Diego Teste" [ref=f12e576] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj58000fdtukz0wu4ksy
+                    - generic [ref=f12e577]: (11) 90000-6004 · diego.e2e@premiox.app
+                  - generic [ref=f12e578]: Ativo
+                  - button "✏️ Editar" [ref=f12e580] [cursor=pointer]
+                - generic [ref=f12e582]:
+                  - generic [ref=f12e583]: C
+                  - generic [ref=f12e584]:
+                    - link "Carla Teste" [ref=f12e585] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj53000edtuk0i2ft3tl
+                    - generic [ref=f12e586]: (11) 90000-6003 · carla.e2e@premiox.app
+                  - generic [ref=f12e587]: Ativo
+                  - button "✏️ Editar" [ref=f12e589] [cursor=pointer]
+                - generic [ref=f12e591]:
+                  - generic [ref=f12e592]: B
+                  - generic [ref=f12e593]:
+                    - link "Bruno Embaixador" [ref=f12e594] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj4w000ddtuk8ef2iox4
+                    - generic [ref=f12e595]: (11) 90000-6002 · bruno.e2e@premiox.app
+                  - generic [ref=f12e596]: Ativo
+                  - button "✏️ Editar" [ref=f12e598] [cursor=pointer]
+              - navigation "Paginação" [ref=f12e599]:
+                - button "Página anterior" [disabled] [ref=f12e600]: ‹
+                - button "1" [ref=f12e601] [cursor=pointer]
+                - button "2" [ref=f12e602] [cursor=pointer]
+                - button "Próxima página" [ref=f12e603] [cursor=pointer]: ›
+  - button "Open Next.js Dev Tools" [ref=f12e419] [cursor=pointer]
+  - alert [ref=f12e423]

@@ -1,0 +1,42 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e1394] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e1395] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e1398]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e1399] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e1400]
+            - button "Notificações" [ref=e1401] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e1402] [cursor=pointer]
+            - button "Atualizar" [ref=e1403] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e1404]:
+            - generic [ref=e1410]:
+              - heading "Valores fora da faixa" [level=5] [ref=e1411]
+              - paragraph [ref=e1412]:
+                - text: Ordenados por
+                - strong [ref=e1413]: prioridade de atenção
+                - text: (🔴→🟡). Toque num exame pra expandir e em
+                - strong [ref=e1414]: Agendar
+                - text: pro especialista.
+            - generic [ref=e1431]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e1432] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e1435]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1441]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1442]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1443]

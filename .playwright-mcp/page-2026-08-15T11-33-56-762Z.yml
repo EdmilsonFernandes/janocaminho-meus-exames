@@ -1,0 +1,52 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e4316]:
+    - navigation [ref=e4317]:
+      - generic [ref=e4319]:
+        - button "Menu do médico" [ref=e4320] [cursor=pointer]
+        - generic [ref=e4323]:
+          - paragraph [ref=e4324]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e4325]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e4326]
+      - generic [ref=e4327]:
+        - generic [ref=e4328]: PLANO
+        - paragraph [ref=e4329]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e4330]:
+        - button "Pacientes" [ref=e4331] [cursor=pointer]
+        - button "Convites" [ref=e4337] [cursor=pointer]
+        - button "Perguntas" [ref=e4344] [cursor=pointer]
+        - button "Meu perfil" [ref=e4351] [cursor=pointer]
+        - button "Trocar senha" [ref=e4357] [cursor=pointer]
+        - separator [ref=e4363]
+        - button "Sair" [ref=e4364] [cursor=pointer]
+      - generic [ref=e4370]: Portal do Médico
+    - generic [ref=e4371]:
+      - paragraph [ref=e4374]: Pacientes
+      - generic [ref=e4375]:
+        - generic [ref=e4376]:
+          - button "Fechar banner" [ref=e4377] [cursor=pointer]:
+            - generic [ref=e4378]: ×
+          - generic [ref=e4379]:
+            - paragraph [ref=e4380]: 💎 Dr. Exame Pro
+            - paragraph [ref=e4381]: 💡 0 de 5 pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=e4382] [cursor=pointer]
+        - generic [ref=e4383]:
+          - heading "Pacientes (2)" [level=6] [ref=e4384]
+          - generic [ref=e4385]: 🔴 2 com alerta
+        - generic [ref=e4387]:
+          - textbox "Buscar paciente" [ref=e4392]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=e4393] [cursor=pointer]
+        - generic [ref=e4396]:
+          - generic [ref=e4403] [cursor=pointer]:
+            - paragraph [ref=e4404]: Heloisa Cristina Fernandes
+            - generic [ref=e4405]: "48a · F · Cônjuge · titular: Edmilson"
+            - generic [ref=e4406]: 🔴 alerta · 📋 13 exames · 📅 13/08/2026 · AMIL
+          - generic [ref=e4415] [cursor=pointer]:
+            - paragraph [ref=e4416]: Edmilson Lopes
+            - generic [ref=e4417]: 47a · M · Titular
+            - generic [ref=e4418]: 🔴 alerta · 📋 23 exames · 📅 04/08/2026 · AMIL
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

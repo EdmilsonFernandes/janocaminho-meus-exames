@@ -1,0 +1,43 @@
+- generic [ref=f3e18]:
+  - generic [ref=f3e19]:
+    - generic [ref=f3e81]:
+      - button [ref=f3e451] [cursor=pointer]
+      - generic [ref=f3e83]:
+        - banner [ref=f3e84]:
+          - generic [ref=f3e85]:
+            - button [ref=f3e452] [cursor=pointer]
+            - button [ref=f3e453] [cursor=pointer]
+            - button [ref=f3e456] [cursor=pointer]:
+              - generic [ref=f3e92]: "71"
+            - button [ref=f3e457] [cursor=pointer]:
+              - generic [ref=f3e95]: E
+            - button [ref=f3e458] [cursor=pointer]:
+              - generic [ref=f3e98]: "24"
+            - button [ref=f3e459] [cursor=pointer]
+            - button [ref=f3e460] [cursor=pointer]
+        - main [ref=f3e109]:
+          - progressbar [ref=f3e462]
+    - button [ref=f3e465] [cursor=pointer]
+    - navigation [ref=f3e433]:
+      - generic [ref=f3e434] [cursor=pointer]:
+        - generic [ref=f3e435]: 🏠
+        - paragraph [ref=f3e436]: Início
+      - generic [ref=f3e438] [cursor=pointer]:
+        - generic [ref=f3e439]: 📋
+        - paragraph [ref=f3e440]: Exames
+      - paragraph [ref=f3e444] [cursor=pointer]: Dr. Exame
+      - generic [ref=f3e445] [cursor=pointer]:
+        - generic [ref=f3e446]: 📈
+        - paragraph [ref=f3e447]: Evolução
+      - generic [ref=f3e448] [cursor=pointer]:
+        - generic [ref=f3e449]: ☰
+        - paragraph [ref=f3e450]: Mais
+  - dialog [active] [ref=f3e477]:
+    - heading [level=2] [ref=f3e478]:
+      - generic [ref=f3e479]:
+        - img "Dr. Exame" [ref=f3e480]
+        - paragraph [ref=f3e481]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f3e483]: Mantenha uma garrafa de água por perto e beba pequenos goles ao longo do dia; sua pele e rins vão agradecer pelo cuidado extra.
+    - generic [ref=f3e484]:
+      - button "Depois" [ref=f3e485] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f3e486] [cursor=pointer]

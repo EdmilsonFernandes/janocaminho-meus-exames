@@ -1,0 +1,75 @@
+- generic [ref=f2e20]:
+  - generic [ref=f2e21]:
+    - generic [ref=f2e886]:
+      - button [ref=f2e887] [cursor=pointer]
+      - generic [ref=f2e888]:
+        - banner [ref=f2e889]:
+          - generic [ref=f2e890]:
+            - button [ref=f2e891] [cursor=pointer]
+            - paragraph [ref=f2e897]: Dr. Exame
+            - button [ref=f2e898] [cursor=pointer]:
+              - generic [ref=f2e901]: "71"
+              - button [ref=f2e902]
+            - button [ref=f2e905] [cursor=pointer]:
+              - generic [ref=f2e906]: "34"
+            - button [ref=f2e911] [cursor=pointer]:
+              - generic [ref=f2e912]: E
+            - button [ref=f2e918] [cursor=pointer]
+        - main [ref=f2e921]:
+          - generic [ref=f2e1496]:
+            - heading [level=5] [ref=f2e1497]: 🧾 Relatório completo de saúde
+            - paragraph [ref=f2e1498]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - generic [ref=f2e1499]:
+              - generic [ref=f2e1500]:
+                - generic [ref=f2e1501]:
+                  - generic [ref=f2e1502]: Preview do relatório
+                  - paragraph [ref=f2e1504]: Um resumo pronto para consulta, antes de abrir exame por exame
+                  - paragraph [ref=f2e1505]: O Dr. Exame consolida seu histórico em linguagem simples, com prioridades, contexto e perguntas para discutir com o profissional de saúde.
+                - generic [ref=f2e1506]:
+                  - button [ref=f2e1507] [cursor=pointer]: Gerar relatório completo
+                  - generic [ref=f2e1512]:
+                    - generic [ref=f2e1513]: 💎
+                    - generic [ref=f2e1514]: 20 créditos
+              - generic [ref=f2e1515]:
+                - generic [ref=f2e1517]:
+                  - paragraph [ref=f2e1521]: Prioridades clínicas
+                  - paragraph [ref=f2e1522]: Valores alterados e pontos que merecem atenção.
+                - generic [ref=f2e1524]:
+                  - paragraph [ref=f2e1529]: Evolução dos exames
+                  - paragraph [ref=f2e1530]: Comparação entre resultados anteriores e atuais.
+                - generic [ref=f2e1532]:
+                  - paragraph [ref=f2e1536]: Perguntas para o médico
+                  - paragraph [ref=f2e1537]: Uma lista objetiva para levar na consulta.
+                - generic [ref=f2e1539]:
+                  - paragraph [ref=f2e1543]: Pontos positivos
+                  - paragraph [ref=f2e1544]: O que está estável ou dentro da referência.
+              - generic [ref=f2e1545]:
+                - generic [ref=f2e1546]: Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
+                - button [ref=f2e1547] [cursor=pointer]: Ver exames usados →
+    - button [ref=f2e1326] [cursor=pointer]
+    - navigation [ref=f2e1234]:
+      - paragraph [ref=f2e1239] [cursor=pointer]: Início
+      - paragraph [ref=f2e1245] [cursor=pointer]: Exames
+      - paragraph [ref=f2e1249] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f2e1254] [cursor=pointer]: Evolução
+      - paragraph [ref=f2e1259] [cursor=pointer]: Mais
+  - generic [ref=f2e17] [cursor=pointer]
+  - dialog [ref=f2e1265]:
+    - generic [ref=f2e1266]:
+      - button [ref=f2e1267] [cursor=pointer]: Pular
+      - generic [ref=f2e1268]:
+        - heading [level=4] [ref=f2e1271]: Envie seu exame
+        - paragraph [ref=f2e1272]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f2e1273]:
+        - button [ref=f2e1279] [cursor=pointer]: Próximo
+        - paragraph [ref=f2e1283]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f2e1286]:
+    - heading [level=2] [ref=f2e1287]:
+      - generic [ref=f2e1288]:
+        - img "Dr. Exame" [ref=f2e1289]
+        - paragraph [ref=f2e1290]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f2e1292]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=f2e1293]:
+      - button "Depois" [ref=f2e1294] [cursor=pointer]
+      - button "Ver notificações" [ref=f2e1295] [cursor=pointer]
+  - generic [ref=f2e1495]: "0"

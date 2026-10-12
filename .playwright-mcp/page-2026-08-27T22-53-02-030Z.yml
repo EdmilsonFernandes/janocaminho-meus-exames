@@ -1,0 +1,29 @@
+- generic [active] [ref=f24e1]:
+  - generic [ref=f24e2]:
+    - generic [ref=f24e3]:
+      - button "Pular para o conteúdo" [ref=f24e4] [cursor=pointer]
+      - generic [ref=f24e5]:
+        - banner [ref=f24e6]:
+          - generic [ref=f24e7]:
+            - button "Voltar" [ref=f24e8] [cursor=pointer]
+            - generic [ref=f24e11]:
+              - img "Dr. Exame" [ref=f24e13]
+              - paragraph [ref=f24e14]: Dr. Exame
+            - generic [ref=f24e15]:
+              - button "Você tem 71 créditos. Toque para comprar mais." [ref=f24e16] [cursor=pointer]:
+                - generic [ref=f24e19]: "71"
+              - button "Notificações" [ref=f24e20] [cursor=pointer]:
+                - generic [ref=f24e21]: "2"
+              - button "E Edmilson Lopes Fernandes dos Santos" [ref=f24e26] [cursor=pointer]:
+                - generic [ref=f24e27]: E
+                - generic [ref=f24e29]: Edmilson Lopes Fernandes dos Santos
+        - main [ref=f24e34]
+    - navigation [ref=f24e37]:
+      - paragraph [ref=f24e42] [cursor=pointer]: Início
+      - paragraph [ref=f24e48] [cursor=pointer]: Exames
+      - generic [ref=f24e49] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f24e51]
+        - paragraph [ref=f24e52]: Dr. Exame
+      - paragraph [ref=f24e57] [cursor=pointer]: Evolução
+      - paragraph [ref=f24e62] [cursor=pointer]: Mais
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f24e65] [cursor=pointer]

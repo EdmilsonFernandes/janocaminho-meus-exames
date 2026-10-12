@@ -1,0 +1,143 @@
+- generic [ref=f10e2]:
+  - banner [ref=f10e3]:
+    - generic [ref=f10e6]:
+      - generic [ref=f10e7]:
+        - button [aria-hidden] [ref=f10e11] [cursor=pointer]
+        - img "Logo" [ref=f10e15] [cursor=pointer]
+      - generic [ref=f10e23]:
+        - searchbox "O que você procura?" [ref=f10e24]
+        - button "Buscar" [disabled] [ref=f10e26] [cursor=pointer]:
+          - generic: 
+      - link "Acessar Área do Cliente do Serpro" [ref=f10e37] [cursor=pointer]:
+        - /url: https://cliente.serpro.gov.br/
+  - main [ref=f10e41]:
+    - navigation [ref=f10e43]:
+      - link "Ir para a página inicial" [ref=f10e44] [cursor=pointer]:
+        - /url: /home
+      - generic [ref=f10e47]: ">"
+      - link "Consulta CPF" [ref=f10e48] [cursor=pointer]:
+        - /url: consulta-cpf/product/consultacpf
+    - generic [ref=f10e49]:
+      - figure [ref=f10e53]:
+        - paragraph
+        - generic [ref=f10e55]:
+          - heading [level=1] [ref=f10e57]:
+            - img "Consulta CPF" [ref=f10e58]
+          - generic [ref=f10e59]:
+            - paragraph [ref=f10e60]:
+              - strong [ref=f10e61]: Procurando automação de acesso a informações atualizadas do CPF?
+            - paragraph [ref=f10e62]: Consulta CPF provê à sua empresa informações obtidas diretamente das bases da Receita Federal, garantindo mais confiabilidade, disponibilidade e desempenho
+            - paragraph [ref=f10e63]:
+              - link "Quero contratar" [ref=f10e64] [cursor=pointer]:
+                - /url: https://cliente.serpro.gov.br/#!/e-commerce/apiconsultacpf-faixa-privado-v3/inicio
+      - generic [ref=f10e65]:
+        - generic [ref=f10e66]:
+          - generic [ref=f10e67] [cursor=pointer]: Visão Geral
+          - generic [ref=f10e68] [cursor=pointer]: Características
+          - generic [ref=f10e69] [cursor=pointer]: Forma de Contratação
+          - generic [ref=f10e70] [cursor=pointer]: Preço
+          - generic [ref=f10e71] [cursor=pointer]: Documentação
+        - generic [ref=f10e215]:
+          - generic [ref=f10e216]:
+            - heading "Como funciona o modelo de pagamento?" [level=2] [ref=f10e217]
+            - paragraph [ref=f10e218]: Pague conforme o seu consumo. Identifique a sua faixa de preços conforme o seu volume de consumo. Multiplique então o número de consultas pelo valor unitário da respectiva faixa de quantidade de consultas no mês.
+          - figure [ref=f10e220]:
+            - table [ref=f10e221]:
+              - rowgroup [ref=f10e222]:
+                - row [ref=f10e223]:
+                  - columnheader "Quantidades de Consultas" [ref=f10e224]
+                  - columnheader "Valor" [ref=f10e225]
+              - rowgroup [ref=f10e226]:
+                - row [ref=f10e227]:
+                  - cell "1 - até 999" [ref=f10e228]
+                  - cell "R$ 0,6591 / consulta" [ref=f10e229]
+                - row [ref=f10e230]:
+                  - cell "2 - de 1.000 até 9.999" [ref=f10e231]
+                  - cell "R$ 0,5649 / consulta" [ref=f10e232]
+                - row [ref=f10e233]:
+                  - cell "3 - de 10.000 até 49.999" [ref=f10e234]
+                  - cell "R$ 0,3557 / consulta" [ref=f10e235]
+                - row [ref=f10e236]:
+                  - cell "4 - de 50.000 até 99.999" [ref=f10e237]
+                  - cell "R$ 0,2616 / consulta" [ref=f10e238]
+                - row [ref=f10e239]:
+                  - cell "5 - de 100.000 até 249.999" [ref=f10e240]
+                  - cell "R$ 0,1779 / consulta" [ref=f10e241]
+                - row [ref=f10e242]:
+                  - cell "6 - de 250.000 até 499.999" [ref=f10e243]
+                  - cell "R$ 0,1569 / consulta" [ref=f10e244]
+                - row [ref=f10e245]:
+                  - cell "7 - de 500.000 até 999.999" [ref=f10e246]
+                  - cell "R$ 0,1465 / consulta" [ref=f10e247]
+                - row [ref=f10e248]:
+                  - cell "8 - de 1.000.000 até 1.499.999" [ref=f10e249]
+                  - cell "R$ 0,1360 / consulta" [ref=f10e250]
+                - row [ref=f10e251]:
+                  - cell "9 - de 1.500.000 até 2.999.999" [ref=f10e252]
+                  - cell "R$ 0,1151 / consulta" [ref=f10e253]
+                - row [ref=f10e254]:
+                  - cell "10 - de 3.000.000 até 4.499.999" [ref=f10e255]
+                  - cell "R$ 0,0732 / consulta" [ref=f10e256]
+                - row [ref=f10e257]:
+                  - cell "11 - de 4.500.000 até 9.999.999" [ref=f10e258]
+                  - cell "R$ 0,0523 / consulta" [ref=f10e259]
+                - row [ref=f10e260]:
+                  - cell "12 - de 10.000.000 até 16.999.999" [ref=f10e261]
+                  - cell "R$ 0,0314 / consulta" [ref=f10e262]
+                - row [ref=f10e263]:
+                  - cell "13 - de 17.000.000 até 19.999.999" [ref=f10e264]
+                  - cell "R$ 0,025 / consulta" [ref=f10e265]
+                - row [ref=f10e266]:
+                  - cell "14 - de 20.000.000 até 24.999.999" [ref=f10e267]
+                  - cell "R$ 0,023 / consulta" [ref=f10e268]
+                - row [ref=f10e269]:
+                  - cell "15 - de 25.000.000 até 29.999.999" [ref=f10e270]
+                  - cell "R$ 0,02 / consulta" [ref=f10e271]
+                - row [ref=f10e272]:
+                  - cell "16 - acima de 30.000.000" [ref=f10e273]
+                  - cell "R$ 0,017 / consulta" [ref=f10e274]
+    - generic [ref=f10e145]:
+      - heading "Use outras soluções em conjunto e expanda seus negócios" [level=2] [ref=f10e148]
+      - generic [ref=f10e156]:
+        - generic [ref=f10e159]:
+          - generic [ref=f10e160]: Datavalid
+          - generic [ref=f10e161]: A solução que sua empresa precisa, com a usabilidade que seus clientes merecem.
+          - generic [ref=f10e162]: Conectividade
+          - link "Ver detalhes" [ref=f10e167] [cursor=pointer]:
+            - /url: datavalid/product/datavalid
+        - generic [ref=f10e170]:
+          - generic [ref=f10e171]: Consulta CNPJ
+          - generic [ref=f10e172]: Informações de pessoas jurídicas diretamente das bases da Receita Federal
+          - generic [ref=f10e173]: API
+          - link "Ver detalhes" [ref=f10e178] [cursor=pointer]:
+            - /url: consulta-cnpj/product/consultacnpj
+    - generic [ref=f10e179]:
+      - generic [ref=f10e180]:
+        - paragraph
+      - generic [ref=f10e181]:
+        - paragraph
+  - contentinfo [ref=f10e182]:
+    - generic [ref=f10e189]:
+      - img "Logotipo Serpro" [ref=f10e191]
+      - img "Bandeira do Brasil" [ref=f10e193]
+      - generic [ref=f10e194]:
+        - paragraph [ref=f10e195]: CIDADÃO
+        - paragraph [ref=f10e196]:
+          - link "Área do Cliente (Abre em nova guia)" [ref=f10e197] [cursor=pointer]:
+            - /url: https://cliente.serpro.gov.br/
+            - text: Área do Cliente
+            - generic [ref=f10e198]: (Abre em nova guia)
+      - generic [ref=f10e199]:
+        - paragraph [ref=f10e200]: SUPORTE
+        - paragraph [ref=f10e201]:
+          - link "Central de Ajuda (Abre em nova guia)" [ref=f10e202] [cursor=pointer]:
+            - /url: https://centraldeajuda.serpro.gov.br/duvidas/pt/
+            - text: Central de Ajuda
+            - generic [ref=f10e203]: (Abre em nova guia)
+      - generic [ref=f10e204]:
+        - paragraph [ref=f10e205]: PRIVACIDADE
+        - paragraph [ref=f10e206]:
+          - link "Termos de Uso e Política de Privacidade (Abre em nova guia)" [ref=f10e207] [cursor=pointer]:
+            - /url: https://www.serpro.gov.br/privacidade-protecao-dados
+            - text: Termos de Uso e Política de Privacidade
+            - generic [ref=f10e208]: (Abre em nova guia)

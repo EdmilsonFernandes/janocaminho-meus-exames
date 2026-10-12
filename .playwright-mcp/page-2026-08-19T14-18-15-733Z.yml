@@ -1,0 +1,64 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e49]:
+            - heading [level=5] [ref=e56]: Medições
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - heading [level=6] [ref=e60]: Nova medição
+                - button [ref=e61] [cursor=pointer]: Registrar
+              - generic: Tipo
+              - generic: Valor
+              - generic: Data
+            - generic [ref=e66]:
+              - heading [level=6] [ref=e67]: ⚖️ Peso
+              - paragraph [ref=e68]: Nenhum peso registrado ainda.
+            - generic [ref=e70]:
+              - heading [level=6] [ref=e71]: Medições vitais
+              - paragraph [ref=e72]: Nenhuma medição vital ainda. Registre pressão, glicose ou frequência cardíaca acima.
+    - button [ref=e73] [cursor=pointer]
+    - navigation [ref=e80]:
+      - paragraph [ref=e85] [cursor=pointer]: Início
+      - paragraph [ref=e90] [cursor=pointer]: Exames
+      - paragraph [ref=e94] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e99] [cursor=pointer]: Evolução
+      - paragraph [ref=e104] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e109]:
+    - navigation [ref=e110]:
+      - button "Exames" [ref=e112] [cursor=pointer]
+      - generic [ref=e120]:
+        - button "Cuidados" [expanded] [ref=e121] [cursor=pointer]
+        - generic [ref=e133]:
+          - button "Medições" [ref=e134] [cursor=pointer]
+          - button "Vacinas" [ref=e141] [cursor=pointer]
+          - button "Lembretes" [ref=e147] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e153] [cursor=pointer]
+          - button "Conquistas" [ref=e159] [cursor=pointer]
+      - button "Pessoas" [ref=e166] [cursor=pointer]
+      - generic [ref=e175]:
+        - button "Conta" [expanded] [ref=e176] [cursor=pointer]
+        - generic [ref=e187]:
+          - button "Meu perfil" [ref=e188] [cursor=pointer]
+          - button "Segurança & senha" [ref=e194] [cursor=pointer]
+          - button "Privacidade e termos" [ref=e200] [cursor=pointer]
+          - button "Planos e Créditos" [ref=e206] [cursor=pointer]
+          - button "Despesas Médicas" [ref=e212] [cursor=pointer]
+          - button "Painel Admin" [ref=e218] [cursor=pointer]
+      - separator [ref=e225]
+      - button "Ajuda & Suporte" [ref=e226] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e232] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e238] [cursor=pointer]

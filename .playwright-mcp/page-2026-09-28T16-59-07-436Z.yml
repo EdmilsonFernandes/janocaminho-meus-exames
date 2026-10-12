@@ -1,0 +1,311 @@
+- generic [ref=f2e3]:
+  - button "Pular para o conteúdo" [ref=f2e4] [cursor=pointer]
+  - generic [ref=f2e5]:
+    - banner [ref=f2e6]:
+      - generic [ref=f2e7]:
+        - heading [level=6]
+        - generic [ref=f2e8]:
+          - button "Notificações" [ref=f2e9] [cursor=pointer]:
+            - generic [ref=f2e10]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f2e15] [cursor=pointer]:
+            - generic [ref=f2e16]: E
+            - generic [ref=f2e18]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f2e24] [cursor=pointer]
+    - main [ref=f2e27]:
+      - navigation [ref=f2e31]:
+        - generic [ref=f2e34]:
+          - generic [ref=f2e35]: E
+          - generic [ref=f2e37]:
+            - paragraph [ref=f2e38]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e39]:
+              - generic [ref=f2e40]: Plano grátis
+              - button "⚡ 65 (+)" [ref=f2e42] [cursor=pointer]
+        - separator [ref=f2e44]
+        - button "Exames" [ref=f2e46] [cursor=pointer]
+        - generic [ref=f2e54]:
+          - button "Cuidados" [expanded] [ref=f2e55] [cursor=pointer]
+          - generic [ref=f2e67]:
+            - button "Medições" [ref=f2e68] [cursor=pointer]
+            - button "Remédios" [ref=f2e75] [cursor=pointer]
+            - button "Vacinas" [ref=f2e81] [cursor=pointer]
+            - button "Lembretes" [ref=f2e87] [cursor=pointer]
+            - button "Cartão de Emergência" [ref=f2e93] [cursor=pointer]
+            - button "Conquistas" [ref=f2e99] [cursor=pointer]
+            - button "Despesas Médicas" [ref=f2e105] [cursor=pointer]
+        - button "Pessoas" [ref=f2e112] [cursor=pointer]
+        - button "Conta" [ref=f2e122] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f2e130] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f2e136] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f2e142] [cursor=pointer]
+        - generic [ref=f2e148]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f2e150]:
+        - generic [ref=f2e155]:
+          - heading "Remédios" [level=5] [ref=f2e156]
+          - paragraph [ref=f2e157]: Busque, fotografe a receita ou toque nos comuns.
+        - generic [ref=f2e158]:
+          - button [ref=f2e159] [cursor=pointer]
+          - button [ref=f2e163] [cursor=pointer]
+        - generic [ref=f2e1056]:
+          - progressbar [ref=f2e1057]
+          - generic [ref=f2e1060]: Buscando melhores preços…
+        - generic [ref=f2e1061]:
+          - generic [ref=f2e1062]:
+            - generic [ref=f2e1063]:
+              - img "Dipirona" [ref=f2e1064]
+              - generic [ref=f2e1065]:
+                - paragraph [ref=f2e1066]: Dipirona
+                - generic [ref=f2e1067]: 500 mg
+                - button "Ver preços de Dipirona" [ref=f2e1068] [cursor=pointer]:
+                  - generic [ref=f2e1069]:
+                    - generic [ref=f2e1070]: R$
+                    - generic [ref=f2e1071]: "2"
+                    - generic [ref=f2e1072]: ",76"
+                  - generic [ref=f2e1073]:
+                    - generic [ref=f2e1074]: SP
+                    - generic [ref=f2e1075]: Drogaria São Paulo
+                  - generic [ref=f2e1078]: +14 ofertas
+              - generic [ref=f2e1079]:
+                - button "Suspender" [ref=f2e1080] [cursor=pointer]
+                - button "Excluir Dipirona" [ref=f2e1081] [cursor=pointer]
+            - button [ref=f2e1085] [cursor=pointer]
+          - generic [ref=f2e1092]:
+            - generic [ref=f2e1093]:
+              - img "Levotiroxina" [ref=f2e1094]
+              - generic [ref=f2e1095]:
+                - paragraph [ref=f2e1096]: Levotiroxina
+                - generic [ref=f2e1097]: 125 mcg
+                - button "Ver preços de Levotiroxina" [ref=f2e1098] [cursor=pointer]:
+                  - generic [ref=f2e1099]:
+                    - generic [ref=f2e1100]: R$
+                    - generic [ref=f2e1101]: "12"
+                    - generic [ref=f2e1102]: ",79"
+                  - generic [ref=f2e1103]:
+                    - generic [ref=f2e1104]: PM
+                    - generic [ref=f2e1105]: Pague Menos
+                  - generic [ref=f2e1108]: +10 ofertas
+              - generic [ref=f2e1109]:
+                - button "Suspender" [ref=f2e1110] [cursor=pointer]
+                - button "Excluir Levotiroxina" [ref=f2e1111] [cursor=pointer]
+            - button [ref=f2e1115] [cursor=pointer]
+          - generic [ref=f2e1123]:
+            - img "Levotiroxina" [ref=f2e1124]
+            - generic [ref=f2e1125]:
+              - paragraph [ref=f2e1126]: Levotiroxina
+              - generic [ref=f2e1127]: 25 mcg
+              - button "Ver preços de Levotiroxina" [ref=f2e1128] [cursor=pointer]:
+                - generic [ref=f2e1129]:
+                  - generic [ref=f2e1130]: R$
+                  - generic [ref=f2e1131]: "9"
+                  - generic [ref=f2e1132]: ",49"
+                - generic [ref=f2e1133]:
+                  - generic [ref=f2e1134]: CD
+                  - generic [ref=f2e1135]: Coop Drogaria
+                - generic [ref=f2e1138]: +11 ofertas
+            - generic [ref=f2e1139]:
+              - button "Suspender" [ref=f2e1140] [cursor=pointer]
+              - button "Excluir Levotiroxina" [ref=f2e1141] [cursor=pointer]
+          - generic [ref=f2e1144]:
+            - generic [ref=f2e1145]:
+              - img "Losartana" [ref=f2e1146]
+              - generic [ref=f2e1147]:
+                - paragraph [ref=f2e1148]: Losartana
+                - generic [ref=f2e1149]: 50 mg
+                - button "Ver preços de Losartana" [ref=f2e1150] [cursor=pointer]:
+                  - generic [ref=f2e1151]:
+                    - generic [ref=f2e1152]: R$
+                    - generic [ref=f2e1153]: "3"
+                    - generic [ref=f2e1154]: ",80"
+                  - generic [ref=f2e1155]:
+                    - generic [ref=f2e1156]: CD
+                    - generic [ref=f2e1157]: Coop Drogaria
+                  - generic [ref=f2e1160]: +14 ofertas
+              - generic [ref=f2e1161]:
+                - button "Suspender" [ref=f2e1162] [cursor=pointer]
+                - button "Excluir Losartana" [ref=f2e1163] [cursor=pointer]
+            - button [ref=f2e1167] [cursor=pointer]
+          - generic [ref=f2e1174]:
+            - generic [ref=f2e1175]:
+              - img "Losartana Potassica" [ref=f2e1176]
+              - generic [ref=f2e1177]:
+                - paragraph [ref=f2e1178]: Losartana Potassica
+                - generic [ref=f2e1179]: 50 mg
+                - button "Ver preços de Losartana Potassica" [ref=f2e1180] [cursor=pointer]:
+                  - generic [ref=f2e1181]:
+                    - generic [ref=f2e1182]: R$
+                    - generic [ref=f2e1183]: "3"
+                    - generic [ref=f2e1184]: ",80"
+                  - generic [ref=f2e1185]:
+                    - generic [ref=f2e1186]: CD
+                    - generic [ref=f2e1187]: Coop Drogaria
+                  - generic [ref=f2e1190]: +12 ofertas
+              - generic [ref=f2e1191]:
+                - button "Suspender" [ref=f2e1192] [cursor=pointer]
+                - button "Excluir Losartana Potassica" [ref=f2e1193] [cursor=pointer]
+            - button [ref=f2e1197] [cursor=pointer]
+          - generic [ref=f2e1205]:
+            - img "Losartana Potassica" [ref=f2e1206]
+            - generic [ref=f2e1207]:
+              - paragraph [ref=f2e1208]: Losartana Potassica
+              - generic [ref=f2e1209]: 50 mg
+              - button "Ver preços de Losartana Potassica" [ref=f2e1210] [cursor=pointer]:
+                - generic [ref=f2e1211]:
+                  - generic [ref=f2e1212]: R$
+                  - generic [ref=f2e1213]: "3"
+                  - generic [ref=f2e1214]: ",80"
+                - generic [ref=f2e1215]:
+                  - generic [ref=f2e1216]: CD
+                  - generic [ref=f2e1217]: Coop Drogaria
+                - generic [ref=f2e1220]: +12 ofertas
+            - generic [ref=f2e1221]:
+              - button "Suspender" [ref=f2e1222] [cursor=pointer]
+              - button "Excluir Losartana Potassica" [ref=f2e1223] [cursor=pointer]
+          - generic [ref=f2e1227]:
+            - img "Losartana Potassica" [ref=f2e1228]
+            - generic [ref=f2e1229]:
+              - paragraph [ref=f2e1230]: Losartana Potassica
+              - generic [ref=f2e1231]: 50 mg
+              - button "Ver preços de Losartana Potassica" [ref=f2e1232] [cursor=pointer]:
+                - generic [ref=f2e1233]:
+                  - generic [ref=f2e1234]: R$
+                  - generic [ref=f2e1235]: "3"
+                  - generic [ref=f2e1236]: ",80"
+                - generic [ref=f2e1237]:
+                  - generic [ref=f2e1238]: CD
+                  - generic [ref=f2e1239]: Coop Drogaria
+                - generic [ref=f2e1242]: +12 ofertas
+            - generic [ref=f2e1243]:
+              - button "Suspender" [ref=f2e1244] [cursor=pointer]
+              - button "Excluir Losartana Potassica" [ref=f2e1245] [cursor=pointer]
+          - generic [ref=f2e1249]:
+            - img "Losartana Potassica" [ref=f2e1250]
+            - generic [ref=f2e1251]:
+              - paragraph [ref=f2e1252]: Losartana Potassica
+              - generic [ref=f2e1253]: 50 mg
+              - button "Ver preços de Losartana Potassica" [ref=f2e1254] [cursor=pointer]:
+                - generic [ref=f2e1255]:
+                  - generic [ref=f2e1256]: R$
+                  - generic [ref=f2e1257]: "3"
+                  - generic [ref=f2e1258]: ",80"
+                - generic [ref=f2e1259]:
+                  - generic [ref=f2e1260]: CD
+                  - generic [ref=f2e1261]: Coop Drogaria
+                - generic [ref=f2e1264]: +12 ofertas
+            - generic [ref=f2e1265]:
+              - button "Suspender" [ref=f2e1266] [cursor=pointer]
+              - button "Excluir Losartana Potassica" [ref=f2e1267] [cursor=pointer]
+          - generic [ref=f2e1271]:
+            - img "Losartana Potassica" [ref=f2e1272]
+            - generic [ref=f2e1273]:
+              - paragraph [ref=f2e1274]: Losartana Potassica
+              - generic [ref=f2e1275]: 50 mg
+              - button "Ver preços de Losartana Potassica" [ref=f2e1276] [cursor=pointer]:
+                - generic [ref=f2e1277]:
+                  - generic [ref=f2e1278]: R$
+                  - generic [ref=f2e1279]: "3"
+                  - generic [ref=f2e1280]: ",80"
+                - generic [ref=f2e1281]:
+                  - generic [ref=f2e1282]: CD
+                  - generic [ref=f2e1283]: Coop Drogaria
+                - generic [ref=f2e1286]: +12 ofertas
+            - generic [ref=f2e1287]:
+              - button "Suspender" [ref=f2e1288] [cursor=pointer]
+              - button "Excluir Losartana Potassica" [ref=f2e1289] [cursor=pointer]
+          - generic [ref=f2e1292]:
+            - generic [ref=f2e1293]:
+              - img "Metformina 850mg" [ref=f2e1294]
+              - generic [ref=f2e1295]:
+                - paragraph [ref=f2e1296]: Metformina 850mg
+                - generic [ref=f2e1297]: 850mg · 2x ao dia
+                - button "Ver preços de Metformina 850mg" [ref=f2e1298] [cursor=pointer]:
+                  - generic [ref=f2e1299]:
+                    - generic [ref=f2e1300]: R$
+                    - generic [ref=f2e1301]: "5"
+                    - generic [ref=f2e1302]: ",99"
+                  - generic [ref=f2e1303]:
+                    - generic [ref=f2e1304]: PM
+                    - generic [ref=f2e1305]: Pague Menos
+                  - generic [ref=f2e1308]: +13 ofertas
+              - generic [ref=f2e1309]:
+                - button "Suspender" [ref=f2e1310] [cursor=pointer]
+                - button "Excluir Metformina 850mg" [ref=f2e1311] [cursor=pointer]
+            - button [ref=f2e1315] [cursor=pointer]
+          - generic [ref=f2e1322]:
+            - generic [ref=f2e1323]:
+              - img "Paracetamol" [ref=f2e1324]
+              - generic [ref=f2e1325]:
+                - paragraph [ref=f2e1326]: Paracetamol
+                - generic [ref=f2e1327]: 750 mg
+                - button "Ver preços de Paracetamol" [ref=f2e1328] [cursor=pointer]:
+                  - generic [ref=f2e1329]:
+                    - generic [ref=f2e1330]: R$
+                    - generic [ref=f2e1331]: "4"
+                    - generic [ref=f2e1332]: ",19"
+                  - generic [ref=f2e1333]:
+                    - generic [ref=f2e1334]: PM
+                    - generic [ref=f2e1335]: Pague Menos
+                  - generic [ref=f2e1338]: +10 ofertas
+              - generic [ref=f2e1339]:
+                - button "Suspender" [ref=f2e1340] [cursor=pointer]
+                - button "Excluir Paracetamol" [ref=f2e1341] [cursor=pointer]
+            - button [ref=f2e1345] [cursor=pointer]
+          - generic [ref=f2e1353]:
+            - img "Paracetamol" [ref=f2e1354]
+            - generic [ref=f2e1355]:
+              - paragraph [ref=f2e1356]: Paracetamol
+              - generic [ref=f2e1357]: 750 mg
+              - button "Ver preços de Paracetamol" [ref=f2e1358] [cursor=pointer]:
+                - generic [ref=f2e1359]:
+                  - generic [ref=f2e1360]: R$
+                  - generic [ref=f2e1361]: "4"
+                  - generic [ref=f2e1362]: ",19"
+                - generic [ref=f2e1363]:
+                  - generic [ref=f2e1364]: PM
+                  - generic [ref=f2e1365]: Pague Menos
+                - generic [ref=f2e1368]: +10 ofertas
+            - generic [ref=f2e1369]:
+              - button "Suspender" [ref=f2e1370] [cursor=pointer]
+              - button "Excluir Paracetamol" [ref=f2e1371] [cursor=pointer]
+          - generic [ref=f2e1374]:
+            - generic [ref=f2e1375]:
+              - img "Paroxetina" [ref=f2e1376]
+              - generic [ref=f2e1377]:
+                - paragraph [ref=f2e1378]: Paroxetina
+                - generic [ref=f2e1379]: 20 mg
+                - button "Ver preços de Paroxetina" [ref=f2e1380] [cursor=pointer]:
+                  - generic [ref=f2e1381]:
+                    - generic [ref=f2e1382]: R$
+                    - generic [ref=f2e1383]: "8"
+                    - generic [ref=f2e1384]: ",99"
+                  - generic [ref=f2e1385]:
+                    - generic [ref=f2e1386]: CD
+                    - generic [ref=f2e1387]: Coop Drogaria
+                  - generic [ref=f2e1390]: +13 ofertas
+              - generic [ref=f2e1391]:
+                - button "Suspender" [ref=f2e1392] [cursor=pointer]
+                - button "Excluir Paroxetina" [ref=f2e1393] [cursor=pointer]
+            - button [ref=f2e1397] [cursor=pointer]
+          - generic [ref=f2e1404]:
+            - generic [ref=f2e1405]:
+              - generic [ref=f2e1406]: S
+              - generic [ref=f2e1407]:
+                - paragraph [ref=f2e1408]: Sertralina
+                - generic [ref=f2e1409]: 50 mg
+              - generic [ref=f2e1410]:
+                - button "Suspender" [ref=f2e1411] [cursor=pointer]
+                - button "Excluir Sertralina" [ref=f2e1412] [cursor=pointer]
+            - button [ref=f2e1416] [cursor=pointer]
+          - generic [ref=f2e1424]:
+            - generic [ref=f2e1425]: S
+            - generic [ref=f2e1426]:
+              - paragraph [ref=f2e1427]: Sertralina
+              - generic [ref=f2e1428]: 50 mg
+            - generic [ref=f2e1429]:
+              - button "Suspender" [ref=f2e1430] [cursor=pointer]
+              - button "Excluir Sertralina" [ref=f2e1431] [cursor=pointer]
+        - generic [ref=f2e1435]:
+          - paragraph [ref=f2e1439]: Seus remédios podem interagir?
+          - paragraph [ref=f2e1440]:
+            - text: O Dr. Exame cruza seus
+            - strong [ref=f2e1441]: remédios com seus exames
+            - text: "e responde em segundos: \"Posso tomar estes dois juntos?\" · \"Este exame mudou por causa do remédio?\" · \"O que perguntar ao médico?\""
+          - button [ref=f2e1442] [cursor=pointer]

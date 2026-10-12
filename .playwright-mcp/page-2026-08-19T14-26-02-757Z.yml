@@ -1,0 +1,133 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e90]:
+    - navigation [ref=e91]:
+      - generic [ref=e93]:
+        - button "Menu do médico" [ref=e94] [cursor=pointer]:
+          - generic [ref=e95]: D
+        - generic [ref=e96]:
+          - paragraph [ref=e97]: 🩺 Dr Teste QA
+          - generic [ref=e98]: Clínico Geral • CRM 99999-SP
+      - separator [ref=e99]
+      - generic [ref=e100]:
+        - generic [ref=e101]: PLANO
+        - paragraph [ref=e102]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e103]:
+        - button "Painel" [ref=e104] [cursor=pointer]
+        - button "Pacientes" [ref=e110] [cursor=pointer]
+        - button "Convites" [ref=e116] [cursor=pointer]
+        - button "Perguntas" [ref=e123] [cursor=pointer]
+        - button "Meu perfil" [ref=e130] [cursor=pointer]
+        - button "Trocar senha" [ref=e136] [cursor=pointer]
+        - separator [ref=e142]
+        - button "Sair" [ref=e143] [cursor=pointer]
+      - generic [ref=e149]: Portal do Médico
+    - generic [ref=e150]:
+      - generic [ref=e151]:
+        - button "Voltar" [ref=e230] [cursor=pointer]
+        - paragraph [ref=e153]: Edmilson Lopes Fernandes dos Santos
+      - generic [ref=e233]:
+        - generic [ref=e234]:
+          - generic [ref=e235]:
+            - heading "Pacientes (3)" [level=6] [ref=e236]
+            - generic [ref=e237]: 🔴 2 com alerta
+          - generic [ref=e239]:
+            - textbox "Buscar paciente" [ref=e244]:
+              - /placeholder: Buscar paciente pelo nome…
+            - button "Só alerta" [ref=e245] [cursor=pointer]
+          - generic [ref=e248]:
+            - generic [ref=e250] [cursor=pointer]:
+              - generic [ref=e251]: E
+              - generic [ref=e254]:
+                - paragraph [ref=e255]: Edmilson Lopes QA
+                - generic [ref=e256]: M · Titular
+                - generic [ref=e257]: 🔴 alerta · 📋 1 exame · 📅 03/08/2026 · Particular
+            - generic [ref=e261] [cursor=pointer]:
+              - generic [ref=e262]: E
+              - generic [ref=e265]:
+                - paragraph [ref=e266]: Edmilson Lopes Fernandes dos Santos
+                - generic [ref=e267]: M
+                - generic [ref=e268]: 🔴 alerta · 📋 5 exames · 📅 09/07/2026 · Particular
+            - generic [ref=e272] [cursor=pointer]:
+              - generic [ref=e273]: U
+              - generic [ref=e275]:
+                - paragraph [ref=e276]: Usuário Teste
+                - generic [ref=e277]: Titular
+                - generic [ref=e278]: Particular
+        - generic [ref=e281]:
+          - generic [ref=e282]:
+            - generic [ref=e283]:
+              - generic [ref=e284]: E
+              - generic [ref=e287]:
+                - generic [ref=e288]:
+                  - paragraph [ref=e289]: Edmilson Lopes Fernandes dos Santos
+                  - button "Trocar paciente" [ref=e290] [cursor=pointer]: Trocar
+                - paragraph [ref=e294]: Masculino • Particular
+            - generic [ref=e295]:
+              - generic [ref=e296]:
+                - generic [ref=e297]: Último exame
+                - paragraph [ref=e301]: 09/07
+                - text: há 1 mês
+              - button "Alterações 8" [ref=e302] [cursor=pointer]:
+                - generic [ref=e303]: Alterações
+                - paragraph [ref=e308]: "8"
+              - generic [ref=e309]:
+                - generic [ref=e310]: Pendências
+                - paragraph [ref=e314]: "0"
+              - generic [ref=e315]:
+                - generic [ref=e316]: Anotações
+                - paragraph [ref=e320]: "0"
+          - tablist "Abas do paciente" [ref=e324]:
+            - tab "Exames" [ref=e325] [cursor=pointer]:
+              - generic [ref=e329]:
+                - generic [ref=e330]: Exames
+                - superscript [ref=e331]: "5"
+            - tab "Alterados" [selected] [ref=e332] [cursor=pointer]:
+              - generic [ref=e335]:
+                - generic [ref=e336]: Alterados
+                - superscript [ref=e337]: "8"
+            - tab "Tendências" [ref=e338] [cursor=pointer]
+            - tab "Relatório" [ref=e343] [cursor=pointer]
+            - tab "Perguntas" [ref=e348] [cursor=pointer]
+            - tab "Anotações" [ref=e353] [cursor=pointer]
+          - generic [ref=e359]:
+            - generic [ref=e361]:
+              - generic [ref=e362]:
+                - generic [ref=e363]: 🔴 0 Importantes
+                - generic [ref=e364]: 🟠 6 Moderadas
+                - generic [ref=e365]: 🟡 2 Leves
+              - generic [ref=e366]:
+                - text: Nada crítico — os ajustes são
+                - strong [ref=e367]: 🟠 moderados
+                - text: ou
+                - strong [ref=e368]: 🟡 leves
+                - text: . Comente com seu paciente na próxima consulta.
+            - generic [ref=e369]:
+              - heading [level=3] [ref=e371]:
+                - button "🟠 PERFIL LIPÍDICO 📅 09/07/2026 · há 1 mês 4 alterado(s)" [ref=e372] [cursor=pointer]:
+                  - generic [ref=e374]:
+                    - generic [ref=e375]: 🟠
+                    - generic [ref=e376]:
+                      - heading "PERFIL LIPÍDICO" [level=6] [ref=e377]
+                      - generic [ref=e378]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=e379]: 4 alterado(s)
+              - heading [level=3] [ref=e385]:
+                - button "🟠 GLICEMIA DE JEJUM 📅 09/07/2026 · há 1 mês 2 alterado(s)" [ref=e386] [cursor=pointer]:
+                  - generic [ref=e388]:
+                    - generic [ref=e389]: 🟠
+                    - generic [ref=e390]:
+                      - heading "GLICEMIA DE JEJUM" [level=6] [ref=e391]
+                      - generic [ref=e392]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=e393]: 2 alterado(s)
+              - heading [level=3] [ref=e399]:
+                - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [ref=e400] [cursor=pointer]:
+                  - generic [ref=e402]:
+                    - generic [ref=e403]: 🟡
+                    - generic [ref=e404]:
+                      - heading "HEMOGRAMA" [level=6] [ref=e405]
+                      - generic [ref=e406]: 📅 s/d
+                    - generic [ref=e407]: 2 alterado(s)
+            - generic [ref=e412]: "*Educativo. A interpretação final é sua."
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

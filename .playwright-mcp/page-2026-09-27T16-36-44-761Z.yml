@@ -1,0 +1,20 @@
+- generic [ref=f19e3]:
+  - generic [ref=f19e4]:
+    - generic [ref=f19e5]:
+      - button "Menu do médico" [ref=f19e6] [cursor=pointer]
+      - generic [ref=f19e10]:
+        - paragraph [ref=f19e11]: Médico
+        - text: Portal do Médico
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f19e12]: Acesso médico · leitura
+    - progressbar [ref=f19e18]
+  - navigation [ref=f19e21]:
+    - button "Início" [ref=f19e22] [cursor=pointer]:
+      - paragraph [ref=f19e27]: Início
+    - button "Pacientes" [ref=f19e29] [cursor=pointer]:
+      - paragraph [ref=f19e34]: Pacientes
+    - button "Perguntas" [ref=f19e35] [cursor=pointer]:
+      - paragraph [ref=f19e40]: Perguntas
+    - button "Perfil" [ref=f19e41] [cursor=pointer]:
+      - paragraph [ref=f19e46]: Perfil
+    - button "Mais" [ref=f19e47] [cursor=pointer]:
+      - paragraph [ref=f19e52]: Mais

@@ -1,0 +1,105 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e59]:
+    - navigation [ref=e60]:
+      - generic [ref=e62]:
+        - button "Menu do médico" [ref=e63] [cursor=pointer]:
+          - generic [ref=e64]: D
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: 🩺 Dr Teste QA
+          - generic [ref=e67]: Clínico Geral • CRM 99999-SP
+      - separator [ref=e68]
+      - generic [ref=e69]:
+        - generic [ref=e70]: PLANO
+        - paragraph [ref=e71]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e72]:
+        - button "Pacientes" [ref=e73] [cursor=pointer]
+        - button "Convites" [ref=e79] [cursor=pointer]
+        - button "Perguntas" [ref=e86] [cursor=pointer]
+        - button "Meu perfil" [ref=e93] [cursor=pointer]
+        - button "Trocar senha" [ref=e99] [cursor=pointer]
+        - separator [ref=e105]
+        - button "Sair" [ref=e106] [cursor=pointer]
+      - generic [ref=e112]: Portal do Médico
+    - generic [ref=e113]:
+      - generic [ref=e114]:
+        - button "Voltar" [ref=e162] [cursor=pointer]
+        - paragraph [ref=e116]: Edmilson Lopes Fernandes dos Santos
+      - generic [ref=e117]:
+        - generic [ref=e165]:
+          - generic [ref=e166]:
+            - generic [ref=e167]: E
+            - generic [ref=e170]:
+              - generic [ref=e171]:
+                - paragraph [ref=e172]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=e173] [cursor=pointer]: Trocar
+              - generic [ref=e177]: Masculino • Particular
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - generic [ref=e180]: Último exame
+              - paragraph [ref=e184]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=e185] [cursor=pointer]:
+              - generic [ref=e186]: Alterações
+              - paragraph [ref=e191]: "8"
+            - generic [ref=e192]:
+              - generic [ref=e193]: Pendências
+              - paragraph [ref=e197]: "0"
+            - generic [ref=e198]:
+              - generic [ref=e199]: Anotações
+              - paragraph [ref=e203]: "0"
+        - generic [ref=e205]:
+          - tablist "Abas do paciente" [ref=e208]:
+            - tab "Exames 5" [ref=e209] [cursor=pointer]:
+              - generic [ref=e212]:
+                - generic [ref=e213]: Exames
+                - superscript [ref=e214]: "5"
+            - tab "Alterados 8" [selected] [ref=e215] [cursor=pointer]:
+              - generic [ref=e219]:
+                - generic [ref=e220]: Alterados
+                - superscript [ref=e221]: "8"
+            - tab "Relatório" [ref=e222] [cursor=pointer]
+            - tab "Perguntas" [ref=e227] [cursor=pointer]
+            - tab "Anotações" [ref=e232] [cursor=pointer]
+          - generic [ref=e237] [cursor=pointer]
+        - generic [ref=e240]:
+          - generic [ref=e242]:
+            - generic [ref=e243]:
+              - generic [ref=e244]: 🔴 0 Importantes
+              - generic [ref=e245]: 🟠 6 Moderadas
+              - generic [ref=e246]: 🟡 2 Leves
+            - generic [ref=e247]:
+              - text: Nada crítico — os ajustes são
+              - strong [ref=e248]: 🟠 moderados
+              - text: ou
+              - strong [ref=e249]: 🟡 leves
+              - text: . Comente com seu paciente na próxima consulta.
+          - generic [ref=e250]:
+            - heading [level=3] [ref=e252]:
+              - button "🟠 PERFIL LIPÍDICO 📅 09/07/2026 · há 1 mês 4 alterado(s)" [ref=e253] [cursor=pointer]:
+                - generic [ref=e255]:
+                  - generic [ref=e256]: 🟠
+                  - generic [ref=e257]:
+                    - paragraph [ref=e258]: PERFIL LIPÍDICO
+                    - generic [ref=e259]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=e260]: 4 alterado(s)
+            - heading [level=3] [ref=e266]:
+              - button "🟠 GLICEMIA DE JEJUM 📅 09/07/2026 · há 1 mês 2 alterado(s)" [ref=e267] [cursor=pointer]:
+                - generic [ref=e269]:
+                  - generic [ref=e270]: 🟠
+                  - generic [ref=e271]:
+                    - paragraph [ref=e272]: GLICEMIA DE JEJUM
+                    - generic [ref=e273]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=e274]: 2 alterado(s)
+            - heading [level=3] [ref=e280]:
+              - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [ref=e281] [cursor=pointer]:
+                - generic [ref=e283]:
+                  - generic [ref=e284]: 🟡
+                  - generic [ref=e285]:
+                    - paragraph [ref=e286]: HEMOGRAMA
+                    - generic [ref=e287]: 📅 s/d
+                  - generic [ref=e288]: 2 alterado(s)
+          - generic [ref=e293]: "*Educativo. A interpretação final é sua."
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

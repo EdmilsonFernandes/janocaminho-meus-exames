@@ -1,0 +1,78 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e301] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button "Menu" [ref=e854] [cursor=pointer]
+            - generic [ref=e283]:
+              - img "Dr. Exame" [ref=e305]
+              - paragraph [ref=e300]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e306] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button "Notificações" [active] [ref=e307] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button "E" [ref=e308] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - paragraph [ref=e859]: Boa tarde, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e860]:
+              - generic [ref=e862]:
+                - generic [ref=e863]:
+                  - paragraph [ref=e870]: de 100
+                  - generic [ref=e871]:
+                    - paragraph [ref=e872]: Sua saúde hoje
+                    - paragraph [ref=e873]: Pede atenção
+                    - paragraph [ref=e875]: ● Nada crítico no momento
+                - button [ref=e876] [cursor=pointer]
+              - generic [ref=e881]:
+                - paragraph [ref=e882]: Desde seu último exame
+                - paragraph [ref=e884]: Carregando…
+                - button [ref=e886] [cursor=pointer]
+            - button [ref=e895] [cursor=pointer]
+            - generic [ref=e899]:
+              - generic [ref=e906] [cursor=pointer]:
+                - paragraph [ref=e907]: Cardiometabólico
+                - paragraph [ref=e908]: —
+                - paragraph [ref=e909]: sem fatores
+              - generic [ref=e912] [cursor=pointer]:
+                - generic [ref=e913]: 🧬
+                - generic [ref=e914]:
+                  - paragraph [ref=e915]: Idade biológica
+                  - paragraph [ref=e916]: Em breve
+                  - paragraph [ref=e917]: estimativa c/ +exames
+              - generic [ref=e924] [cursor=pointer]:
+                - paragraph [ref=e925]: Seus exames
+                - paragraph [ref=e926]: —
+                - paragraph [ref=e927]: 0 alterados
+              - generic [ref=e934] [cursor=pointer]:
+                - paragraph [ref=e935]: Evolução
+                - paragraph [ref=e936]: Tendências
+                - paragraph [ref=e937]: 28 resultados
+            - generic [ref=e939]:
+              - generic [ref=e940]: Enviar exame
+              - generic [ref=e947]: Evolução
+              - generic [ref=e954]: Família
+              - generic [ref=e962]: Relatório
+            - button [ref=e970] [cursor=pointer]
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - generic [ref=e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e381]
+        - paragraph [ref=e191]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e383]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e384]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation

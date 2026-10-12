@@ -1,0 +1,314 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - list [ref=f3e7]:
+        - listitem [ref=f3e8]:
+          - link "Ir para o conteúdo 1" [ref=f3e9] [cursor=pointer]:
+            - /url: "#inicioConteudo"
+        - listitem [ref=f3e10]:
+          - link "Ir para o menu 2" [ref=f3e11] [cursor=pointer]:
+            - /url: "#inicioMenu"
+        - listitem [ref=f3e12]:
+          - link "Ir para o rodapé 3" [ref=f3e13] [cursor=pointer]:
+            - /url: "#inicioRodape"
+      - generic [ref=f3e14]:
+        - banner [ref=f3e15]:
+          - generic [ref=f3e16]:
+            - list [ref=f3e19]:
+              - listitem [ref=f3e20]:
+                - link "Alto Contraste" [ref=f3e21] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=f3e22]:
+                - link [ref=f3e23] [cursor=pointer]:
+                  - /url: /en
+                  - emphasis [ref=f3e24]: English
+            - link "Banco Central do Brasil":
+              - /url: /
+              - img "Banco Central do Brasil" [ref=f3e25] [cursor=pointer]
+            - generic [ref=f3e26]:
+              - button "Lupa" [ref=f3e27] [cursor=pointer]:
+                - generic [ref=f3e28]: search
+              - button "Fechar" [ref=f3e29] [cursor=pointer]:
+                - generic [ref=f3e30]: close
+          - generic [ref=f3e31] [cursor=pointer]
+        - navigation [ref=f3e36]
+        - generic [ref=f3e44]:
+          - generic [ref=f3e46]:
+            - textbox "Buscar" [ref=f3e48]
+            - button "Buscar" [ref=f3e50] [cursor=pointer]:
+              - generic [ref=f3e51]: search
+          - generic [ref=f3e53]:
+            - generic [ref=f3e54] [cursor=pointer]:
+              - radio "Tudo"
+              - text: Tudo
+            - generic [ref=f3e55] [cursor=pointer]:
+              - radio "Notícias"
+              - text: Notícias
+            - generic [ref=f3e56] [cursor=pointer]:
+              - radio "Publicações"
+              - text: Publicações
+            - generic [ref=f3e57] [cursor=pointer]:
+              - radio "Normativos"
+              - text: Normativos
+        - navigation "breadcrumb" [ref=f3e59]:
+          - list [ref=f3e60]:
+            - listitem [ref=f3e61]:
+              - link "Home" [ref=f3e62] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f3e63]:
+              - text: ">"
+              - link "Notícias" [ref=f3e258] [cursor=pointer]:
+                - /url: /noticias
+            - listitem [ref=f3e259]: "> BC lança serviço contra fraudes com uso de id..."
+      - main [ref=f3e64]:
+        - generic [ref=f3e263]:
+          - generic [ref=f3e264]:
+            - generic [ref=f3e266]:
+              - heading "BC lança serviço contra fraudes com uso de identidade falsa no Sistema Financeiro Nacional. Saiba como vai funcionar o BC Protege+" [level=1] [ref=f3e267]
+              - paragraph [ref=f3e268]: A proteção abrange a abertura de conta corrente, poupança e conta de pagamento pré-paga e a inclusão como titular ou representante nessas contas. Serviço estará disponível a partir desta segunda-feira (1°/12).
+              - generic [ref=f3e269]:
+                - generic [ref=f3e270]:
+                  - generic [ref=f3e271]: Publicado 01/12/2025 às 07:00
+                  - generic [ref=f3e272]: Atualizado 11/12 às 09:31
+                - generic [ref=f3e274]:
+                  - generic [ref=f3e275]: "Compartilhe:"
+                  - link "RSS" [ref=f3e276] [cursor=pointer]:
+                    - /url: /acessoinformacao/rss
+                  - link "WhatsApp" [ref=f3e279] [cursor=pointer]:
+                    - /url: https://api.whatsapp.com/send?text=https://www.bcb.gov.br/detalhenoticia/20953/noticia
+                  - link "Facebook" [ref=f3e282] [cursor=pointer]:
+                    - /url: https://www.facebook.com/sharer/sharer.php?u=https://www.bcb.gov.br/detalhenoticia/20953/noticia&src=sdkpreparse
+                  - link "Twitter" [ref=f3e285] [cursor=pointer]:
+                    - /url: https://twitter.com/intent/tweet?hashtags=BancoCentral,BCB&original_referer=https%3A%2F%2Fdeveloper.twitter.com%2Fen%2Fdocs%2Ftwitter-for-websites%2Ftweet-button%2Foverview&ref_src=twsrc%5Etfw&related=twitterapi%2Ctwitter&text=BC lança serviço contra fraudes com uso de identidade falsa no Sistema Financeiro Nacional. Saiba como vai funcionar o BC Protege+ &tw_p=tweetbutton&url=https://www.bcb.gov.br/detalhenoticia/20953/noticia&via=BancoCentralBR
+                  - link "Telegram" [ref=f3e288] [cursor=pointer]:
+                    - /url: https://telegram.me/share/url?url=https://www.bcb.gov.br/detalhenoticia/20953/noticia&text=BC%20lan%C3%A7a%20servi%C3%A7o%20contra%20fraudes%20com%20uso%20de%20identidade%20falsa%20no%20Sistema%20Financeiro%20Nacional.%20Saiba%20como%20vai%20funcionar%20o%20BC%20Protege+
+                  - button "Copiar URL" [ref=f3e291] [cursor=pointer]:
+                    - generic [aria-hidden] [ref=f3e292]: content_copy
+                - button "print Imprimir" [ref=f3e293] [cursor=pointer]:
+                  - generic [ref=f3e294]: print
+                  - text: Imprimir
+            - generic [ref=f3e295]:
+              - generic [ref=f3e296]:
+                - separator [ref=f3e297]
+                - generic [ref=f3e300]:
+                  - generic [ref=f3e301]: O Banco Central lança em 1º de dezembro de 2025 hoje o BC Protege+, serviço gratuito que permite que pessoas e empresas comuniquem ao sistema financeiro que não desejam a abertura de conta ou sua inclusão como titular ou representante em contas. O evento oficial acontece no auditório do Edifício-Sede do Banco Central em Brasília, com transmissão ao vivo pelo YouTube do BC, às 14h30.
+                  - generic [ref=f3e303]:
+                    - text: Clique
+                    - link "aqui" [ref=f3e304] [cursor=pointer]:
+                      - /url: https://www.youtube.com/live/pp6bDjJkUek
+                    - text: para assistir à transmissão.
+                  - generic [ref=f3e306]: A proteção se aplica a contas de depósitos à vista, contas de depósitos de poupança e contas de pagamento pré-pagas, bem como a inclusão de titular ou representante nessas contas. Ela vale para todas as novas aberturas de contas, inclusive na mesma instituição ou conglomerado que o CPF ou o CNPJ já tenha conta.
+                  - generic [ref=f3e308]:
+                    - text: Vale destacar que o BC Protege+ não substitui outras medidas de segurança dado que o sistema é uma camada extra de proteção. As instituições financeiras devem continuar verificando a identidade dos clientes e a autenticidade das informações, inclusive para atender ao disposto na
+                    - link "Resolução Conjunta nº 6" [ref=f3e309] [cursor=pointer]:
+                      - /url: /estabilidadefinanceira/exibenormativo?tipo=Resolu%C3%A7%C3%A3o%20Conjunta&numero=6
+                    - text: ", de 23/5/2023."
+                  - generic [ref=f3e311]: A iniciativa faz parte de um conjunto de ações que vêm sendo discutidas entre vários órgãos públicos e participantes do sistema financeiro, sendo que o principal objetivo da ferramenta é reforçar a segurança contra fraudes com uso de identidade falsa no Sistema Financeiro Nacional.
+                  - generic [ref=f3e313]:
+                    - generic [ref=f3e314]: "\"O BC Protege+ vai ao encontro de uma demanda da sociedade e reforça o compromisso do BC em garantir mais segurança e transparência para os cidadãos em suas interações com o sistema financeiro\", destaca Maria Clara Roriz Haag, do Departamento de Atendimento Institucional (Deati) do BC."
+                    - strong [ref=f3e317]: Acesso pelo cidadão
+                    - generic [ref=f3e318]: Qualquer pessoa, física ou jurídica, pode ativar a proteção. Para acessar o serviço, é preciso ter conta gov.br nível prata ou ouro com a verificação em duas etapas habilitada.
+                    - generic [ref=f3e319]:
+                      - text: O BC Protege+ estará disponível no site do BC, dentro da área logada do Meu BC no site do Banco Central (
+                      - link "www.bcb.gov.br/meubc" [ref=f3e320] [cursor=pointer]:
+                        - /url: /meubc
+                      - text: "), seguindo: “Serviços > Cidadão >"
+                      - link "Meu BC" [ref=f3e321] [cursor=pointer]:
+                        - /url: /meubc
+                      - text: ”. Dentro do sistema, é possível ativar ou desativar a proteção a qualquer momento.
+                    - generic [ref=f3e323]: “É importante destacar que a ativação da proteção não é automática. Os cidadãos, que desejarem ativar o serviço, deverão acessar o BC Protege+ e fazer essa opção. A jornada é simples e intuitiva e o serviço é on-line, portanto, a ativação ou a desativação tem efeito imediato no sistema”, explica Haag.
+                    - strong [ref=f3e326]: Como funciona
+                    - generic [ref=f3e327]: A opção registrada pelo cidadão no BC Protege+ fica marcada no banco de dados e, antes da abertura da conta ou da inclusão de titular ou representante em contas, as instituições financeiras autorizadas a funcionar pelo BC são obrigadas consultar o sistema para saber se a proteção está ativada ou desativada.
+                    - generic [ref=f3e329]: As instituições financeiras devem tratar os dados recebidos exclusivamente para as finalidades previstas, garantindo a segurança, o processamento e a eliminação dos dados pessoais conforme a legislação vigente.
+                    - generic [ref=f3e331]: "Se a proteção estiver ativada:"
+                    - list [ref=f3e333]:
+                      - listitem [ref=f3e334]: a instituição financeira não pode abrir a conta nem incluir o correntista como titular ou representante numa conta.
+                      - listitem [ref=f3e335]: a instituição financeira deve avisar o cidadão que a proteção está ativada.
+                      - listitem [ref=f3e336]: O cidadão precisa desativar o serviço, se quiser seguir com a contratação.
+                    - generic [ref=f3e338]: Também é importante destacar que o cidadão pode visualizar quais instituições financeiras consultaram seu CPF ou CNPJ e o motivo da consulta (abertura de conta ou inclusão como titular/representante). Dentro do sistema, basta o cidadão acessar a área “Histórico de Consultas”.
+                    - strong [ref=f3e341]: Passo a passo para usar o BC Protege+
+                    - strong [ref=f3e344]: Como ativo a proteção para o meu CPF (pessoa física)?
+                    - list [ref=f3e346]:
+                      - listitem [ref=f3e347]: "Acesse a área logada do Meu BC no site do Banco Central em: Serviços > Cidadão > Meu BC > BC Protege+."
+                      - listitem [ref=f3e348]: Entre com sua conta gov.br prata ou ouro com verificação em duas etapas.
+                      - listitem [ref=f3e349]: Clique em BC Protege+ no menu ou no card inicial.
+                      - listitem [ref=f3e350]: Na tela principal, escolha ativar a proteção.
+                    - strong [ref=f3e352]: Como desativo a proteção para o meu CPF (pessoa física)?
+                    - list [ref=f3e355]:
+                      - listitem [ref=f3e356]: "Acesse a área logada do Meu BC no site do Banco Central em: Serviços > Cidadão > Meu BC > BC Protege+."
+                      - listitem [ref=f3e357]: Entre com sua conta gov.br prata ou ouro com verificação em duas etapas.
+                      - listitem [ref=f3e358]: Clique em BC Protege+ no menu ou no card inicial.
+                      - listitem [ref=f3e359]: Na tela principal, escolha desativar a proteção.
+                      - listitem [ref=f3e360]: Escolha quanto tempo deseja manter a proteção desativada. Você pode desativar por tempo indeterminado ou escolher uma data para a proteção ser reativada automaticamente.
+                    - strong [ref=f3e363]: Como ativo ou desativo a proteção para um CNPJ (pessoa jurídica)?
+                    - list [ref=f3e366]:
+                      - listitem [ref=f3e367]: "O sócio ou o representante ou o colaborador devidamente cadastrado no módulo de empresas da plataforma Gov.br deve acessar a área logada do Meu BC no site do Banco Central em: Serviços > Cidadão > Meu BC > BC Protege+."
+                      - listitem [ref=f3e368]: Entre com sua Conta gov.br prata ou ouro com verificação em duas etapas.
+                      - listitem [ref=f3e369]: Clique em BC Protege+ no menu ou no card inicial.
+                      - listitem [ref=f3e370]: Escolha a empresa em “Selecionar dados do titular” na tela principal.
+                      - listitem [ref=f3e371]: Em seguida, escolha ativar ou desativar a proteção. Se a empresa quiser abrir uma conta, todos os titulares e representantes precisam estar com seus CPFs com a proteção desativada.
+                    - generic [ref=f3e373]:
+                      - text: Para saber mais, acesse a página do
+                      - link "BC Protege+" [ref=f3e374] [cursor=pointer]:
+                        - /url: /meubc/bcprotege
+                      - text: .
+              - generic [ref=f3e376]:
+                - generic [ref=f3e378]:
+                  - link "BC Protege+" [ref=f3e379] [cursor=pointer]:
+                    - /url: https://www.bcb.gov.br/meubc/bcprotege
+                  - generic [ref=f3e380]: Para saber mais, acesse a página
+                - link [ref=f3e382] [cursor=pointer]:
+                  - /url: /assinar-noticias
+                  - img "Clique para assinar notícias" [ref=f3e383]
+          - generic [ref=f3e385]:
+            - paragraph [ref=f3e386]: Últimas notícias
+            - generic [ref=f3e387]:
+              - link [ref=f3e389] [cursor=pointer]:
+                - /url: /detalhenoticia/21257/noticia
+                - strong [ref=f3e391]: 10/09/2026 18:31
+                - generic [ref=f3e392]:
+                  - paragraph [ref=f3e393]:
+                    - strong [ref=f3e394]: Novas regras ampliam transparência sobre riscos sociais, ambientais e climáticos no Sistema Financeiro Nacional
+                  - paragraph [ref=f3e397]: Relatório GRSAC terá métricas padronizadas e maior comparabilidade. Divulgação seguirá cronograma gradual conforme porte das instituições. Medida reforça transparência, disciplina de mercado e estabilidade financeira.
+              - link [ref=f3e399] [cursor=pointer]:
+                - /url: /detalhenoticia/21252/noticia
+                - strong [ref=f3e401]: 08/09/2026 11:03
+                - generic [ref=f3e402]:
+                  - paragraph [ref=f3e403]:
+                    - strong [ref=f3e404]: Ajustes pontuais organizam regras operacionais do Pix Automático
+                  - paragraph [ref=f3e407]: Padronização reduz barreiras tecnológicas e estimula a concorrência no setor financeiro.
+              - link [ref=f3e409] [cursor=pointer]:
+                - /url: /detalhenoticia/21237/noticia
+                - strong [ref=f3e411]: 24/08/2026 12:19
+                - generic [ref=f3e412]:
+                  - paragraph [ref=f3e413]:
+                    - strong [ref=f3e414]: Banco Central recebe inscrições para três vagas no Programa de Estágio de Pós-Graduação em Pesquisa (PEPP) até 18 de setembro
+                  - paragraph [ref=f3e417]: Os candidatos devem mencionar a ordem de preferência entre duas linhas de pesquisa. A carga horária do estágio é de trinta horas semanais, com bolsa no valor de R$2.231,39. O estágio poderá ser realizado de forma remota ou presencial, conforme as necessidades do trabalho.
+            - link "Últimas notícias" [ref=f3e419] [cursor=pointer]:
+              - /url: /noticias
+              - text: Últimas notícias
+              - generic [aria-hidden] [ref=f3e420]: chevron_right
+      - button "Vá para o topo" [ref=f3e68] [cursor=pointer]:
+        - generic [aria-hidden] [ref=f3e69]: expand_less
+      - contentinfo [ref=f3e70]:
+        - generic [ref=f3e74]:
+          - generic [ref=f3e75]: Siga o BC
+          - list [ref=f3e76]:
+            - listitem [ref=f3e77]:
+              - link "Instagram oficial do Banco Central do Brasil" [ref=f3e78] [cursor=pointer]:
+                - /url: http://www.instagram.com/bancocentraldobrasil/
+            - listitem [ref=f3e84]:
+              - link "Linkedin oficial do Banco Central do Brasil" [ref=f3e85] [cursor=pointer]:
+                - /url: http://br.linkedin.com/company/banco-central-do-brasil
+            - listitem [ref=f3e90]:
+              - link "X oficial do Banco Central do Brasil" [ref=f3e91] [cursor=pointer]:
+                - /url: http://twitter.com/bancocentralbr
+            - listitem [ref=f3e95]:
+              - link "Canal oficial do Banco Central do Brasil no WhatsApp" [ref=f3e96] [cursor=pointer]:
+                - /url: https://whatsapp.com/channel/0029VaB1KjR6BIEjJMs4HN1O
+            - listitem [ref=f3e101]:
+              - link "Canal oficial do Banco Central do Brasil no YouTube" [ref=f3e102] [cursor=pointer]:
+                - /url: http://www.youtube.com/user/BancoCentralBR
+            - listitem [ref=f3e106]:
+              - link "TikTok oficial do Banco Central do Brasil" [ref=f3e107] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@bancocentraldobrasil
+            - listitem [ref=f3e111]:
+              - link "Facebook oficial do Banco Central do Brasil" [ref=f3e112] [cursor=pointer]:
+                - /url: http://pt-br.facebook.com/bancocentraldobrasil/
+            - listitem [ref=f3e116]:
+              - link "Threads oficial do Banco Central do Brasil" [ref=f3e117] [cursor=pointer]:
+                - /url: https://www.threads.net/@bancocentraldobrasil
+            - listitem [ref=f3e121]:
+              - link "Telegram oficial do Banco Central do Brasil" [ref=f3e122] [cursor=pointer]:
+                - /url: https://t.me/bancocentraloficial
+            - listitem [ref=f3e126]:
+              - link "Flickr oficial do Banco Central do Brasil" [ref=f3e127] [cursor=pointer]:
+                - /url: http://www.flickr.com/photos/134175749@N03/
+            - listitem [ref=f3e132]:
+              - link "Assinar notícias" [ref=f3e133] [cursor=pointer]:
+                - /url: /assinar-noticias
+            - listitem [ref=f3e143]:
+              - link "RSS - Feeds do BC" [ref=f3e144] [cursor=pointer]:
+                - /url: /acessoinformacao/rss
+            - listitem [ref=f3e150]:
+              - link "Calendário do Banco Central do Brasil" [ref=f3e151] [cursor=pointer]:
+                - /url: /acessoinformacao/calendariobc_ics
+        - generic [ref=f3e162]:
+          - button "Acesso à informação expand_less" [expanded] [ref=f3e167] [cursor=pointer]:
+            - generic [ref=f3e168]: Acesso à informação
+            - generic [ref=f3e169]: expand_less
+          - button "Política monetária expand_less" [expanded] [ref=f3e174] [cursor=pointer]:
+            - generic [ref=f3e175]: Política monetária
+            - generic [ref=f3e176]: expand_less
+          - button "Estabilidade financeira expand_less" [expanded] [ref=f3e181] [cursor=pointer]:
+            - generic [ref=f3e182]: Estabilidade financeira
+            - generic [ref=f3e183]: expand_less
+          - button "Estatísticas expand_less" [expanded] [ref=f3e188] [cursor=pointer]:
+            - generic [ref=f3e189]: Estatísticas
+            - generic [ref=f3e190]: expand_less
+          - button "Cédulas e moedas expand_less" [expanded] [ref=f3e195] [cursor=pointer]:
+            - generic [ref=f3e196]: Cédulas e moedas
+            - generic [ref=f3e197]: expand_less
+          - button "Publicações e pesquisa expand_less" [expanded] [ref=f3e202] [cursor=pointer]:
+            - generic [ref=f3e203]: Publicações e pesquisa
+            - generic [ref=f3e204]: expand_less
+        - generic [ref=f3e207]:
+          - generic [ref=f3e208]: Garantir a estabilidade de preços, zelar por um sistema financeiro sólido e eficiente, e fomentar o bem-estar econômico da sociedade.
+          - generic [ref=f3e209]:
+            - generic [ref=f3e210]: "Atendimento: 145 (custo de ligação local)"
+            - list [ref=f3e211]:
+              - listitem [ref=f3e212]:
+                - link "Fale conosco" [ref=f3e213] [cursor=pointer]:
+                  - /url: /acessoinformacao/faleconosco
+                - text: "|"
+              - listitem [ref=f3e214]:
+                - link "Política de privacidade" [ref=f3e215] [cursor=pointer]:
+                  - /url: /acessoinformacao/politicaprivacidade
+                - text: "|"
+              - listitem [ref=f3e216]:
+                - link "Política de acessibilidade" [ref=f3e217] [cursor=pointer]:
+                  - /url: /acessoinformacao/politica_acessibilidade
+            - generic [ref=f3e218]:
+              - text: © Banco Central do Brasil -
+              - link "Todos os direitos reservados" [ref=f3e219] [cursor=pointer]:
+                - /url: /acessoinformacao/direitosautorais
+    - generic [ref=f3e221]:
+      - link "Ir para o conteúdo" [ref=f3e223] [cursor=pointer]:
+        - /url: "#conteudo"
+      - generic [ref=f3e224]:
+        - link "GovBR" [ref=f3e225] [cursor=pointer]:
+          - /url: https://gov.br/
+        - navigation [ref=f3e226]:
+          - list [ref=f3e227]:
+            - listitem [ref=f3e228]
+            - listitem [ref=f3e229]:
+              - link "Acesso à informação" [ref=f3e230] [cursor=pointer]:
+                - /url: http://www.gov.br/acessoainformacao/
+            - listitem [ref=f3e231]
+            - listitem [ref=f3e232]:
+              - link "Participe" [ref=f3e233] [cursor=pointer]:
+                - /url: https://www.gov.br/pt-br/participacao-social/
+            - listitem [ref=f3e234]
+            - listitem [ref=f3e235]:
+              - link "Legislação" [ref=f3e236] [cursor=pointer]:
+                - /url: http://www4.planalto.gov.br/legislacao/
+            - listitem [ref=f3e237]
+            - listitem [ref=f3e238]:
+              - link "Órgãos do Governo" [ref=f3e239] [cursor=pointer]:
+                - /url: http://www.gov.br/pt-br/orgaos-do-governo
+    - generic [ref=f3e241]:
+      - paragraph [ref=f3e243]:
+        - text: Usamos cookies para melhorar sua experiência e oferecer serviços personalizados. Ao aceitar os cookies, todas as funcionalidades disponíveis no site serão ativadas. Você também pode rejeitar os não essenciais ou gerenciar suas preferências. Saiba mais na nossa
+        - link "Política de Privacidade e Termos de Uso" [ref=f3e244] [cursor=pointer]:
+          - /url: /acessoinformacao/politicaprivacidade
+        - text: .
+      - generic [ref=f3e245]:
+        - button "cookie Gerenciar cookies" [ref=f3e246] [cursor=pointer]:
+          - generic [ref=f3e247]: cookie
+          - generic [ref=f3e248]: Gerenciar cookies
+        - button "Rejeitar cookies" [ref=f3e249] [cursor=pointer]
+        - button "Aceitar cookies" [ref=f3e250] [cursor=pointer]
+  - generic [ref=f3e252] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e253]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e254]
+  - generic [ref=f3e256] [cursor=pointer]

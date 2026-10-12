@@ -1,0 +1,114 @@
+- generic [ref=f6e2]:
+  - banner [ref=f6e3]:
+    - generic [ref=f6e6]:
+      - generic [ref=f6e7]:
+        - button [aria-hidden] [ref=f6e11] [cursor=pointer]
+        - img "Logo" [ref=f6e15] [cursor=pointer]
+      - generic [ref=f6e23]:
+        - searchbox "O que você procura?" [ref=f6e24]
+        - button "Buscar" [disabled] [ref=f6e26] [cursor=pointer]:
+          - generic: 
+      - link "Acessar Área do Cliente do Serpro" [ref=f6e37] [cursor=pointer]:
+        - /url: https://cliente.serpro.gov.br/
+  - main [ref=f6e41]:
+    - navigation [ref=f6e43]:
+      - link "Ir para a página inicial" [ref=f6e44] [cursor=pointer]:
+        - /url: /home
+      - generic [ref=f6e47]: ">"
+      - link "Consulta CPF" [ref=f6e48] [cursor=pointer]:
+        - /url: consulta-cpf/product/consultacpf
+    - generic [ref=f6e49]:
+      - figure [ref=f6e53]:
+        - paragraph
+        - generic [ref=f6e55]:
+          - heading [level=1] [ref=f6e57]:
+            - img "Consulta CPF" [ref=f6e58]
+          - generic [ref=f6e59]:
+            - paragraph [ref=f6e60]:
+              - strong [ref=f6e61]: Procurando automação de acesso a informações atualizadas do CPF?
+            - paragraph [ref=f6e62]: Consulta CPF provê à sua empresa informações obtidas diretamente das bases da Receita Federal, garantindo mais confiabilidade, disponibilidade e desempenho
+            - paragraph [ref=f6e63]:
+              - link "Quero contratar" [ref=f6e64] [cursor=pointer]:
+                - /url: https://cliente.serpro.gov.br/#!/e-commerce/apiconsultacpf-faixa-privado-v3/inicio
+      - generic [ref=f6e65]:
+        - generic [ref=f6e66]:
+          - generic [ref=f6e67] [cursor=pointer]: Visão Geral
+          - generic [ref=f6e68] [cursor=pointer]: Características
+          - generic [ref=f6e69] [cursor=pointer]: Forma de Contratação
+          - generic [ref=f6e70] [cursor=pointer]: Preço
+          - generic [ref=f6e71] [cursor=pointer]: Documentação
+        - generic [ref=f6e75]:
+          - generic [ref=f6e79]:
+            - img "Mulher sorrindo mexendo no celular" [ref=f6e81]
+            - generic [ref=f6e82]:
+              - heading "Segurança e praticidade para o seu negócio" [level=2] [ref=f6e83]
+              - paragraph [ref=f6e84]: A Consulta CPF é a solução oficial que conecta sua empresa diretamente à base da Receita Federal do Brasil, oferecendo dados sempre atualizados para validação cadastral, automatização de formulários, além de informações essenciais como data de nascimento e verificação de óbito.
+              - paragraph [ref=f6e85]: Com ela, você fortalece seus processos de cadastro, reduz riscos de fraude e protege sua operação contra golpes, garantindo mais segurança e confiabilidade para o seu negócio.
+              - paragraph [ref=f6e86]: "A implementação é simples: ao contratar o serviço, sua equipe de TI ou consultoria técnica pode integrar rapidamente a funcionalidade aos seus sistemas, permitindo que sua empresa passe a contar com consultas diretas e automáticas ao Cadastro de Pessoas Físicas (CPF)."
+              - paragraph [ref=f6e87]: Mais do que informação, a Consulta CPF é um aliado estratégico para proteger, agilizar e dar credibilidade aos seus processos.
+              - heading "Solução para:" [level=3] [ref=f6e88]
+              - paragraph [ref=f6e97]: Empresas de qualquer porte
+          - generic [ref=f6e102]:
+            - heading "Veja como a Consulta CPF pode ajudar a sua empresa" [level=2] [ref=f6e103]
+            - generic [ref=f6e106]:
+              - generic [ref=f6e109]:
+                - heading "Decisões financeiras mais seguras" [level=3] [ref=f6e112]
+                - paragraph [ref=f6e113]: Reduza a inadimplência e fortaleça a adimplência com base em dados oficiais que apoiam decisões de crédito confiáveis.
+              - generic [ref=f6e116]:
+                - heading "Dados oficiais e confiáveis" [level=3] [ref=f6e119]
+                - paragraph [ref=f6e120]: Consulte restrições cadastrais diretamente na Receita Federal, garantindo análises com base em informações atualizadas e oficiais.
+              - generic [ref=f6e123]:
+                - heading "Crédito mais seguro" [level=3] [ref=f6e126]
+                - paragraph [ref=f6e127]: Aprimore a análise de crédito e a gestão de carteiras, otimizando processos e reduzindo riscos financeiros.
+            - generic [ref=f6e130]:
+              - generic [ref=f6e133]:
+                - heading "Prevenção a fraudes" [level=3] [ref=f6e136]
+                - paragraph [ref=f6e137]: Minimize fraudes com acesso a bases da RFB, protegendo seus negócios com dados de alta confiabilidade.
+              - generic [ref=f6e140]:
+                - heading "Agilidade para novos negócios" [level=3] [ref=f6e143]
+                - paragraph [ref=f6e144]: Automatize consultas ao CPF e acelere a prospecção, conquistando clientes com mais rapidez e eficiência.
+    - generic [ref=f6e145]:
+      - heading "Use outras soluções em conjunto e expanda seus negócios" [level=2] [ref=f6e148]
+      - generic [ref=f6e156]:
+        - generic [ref=f6e159]:
+          - generic [ref=f6e160]: Datavalid
+          - generic [ref=f6e161]: A solução que sua empresa precisa, com a usabilidade que seus clientes merecem.
+          - generic [ref=f6e162]: Conectividade
+          - link "Ver detalhes" [ref=f6e167] [cursor=pointer]:
+            - /url: datavalid/product/datavalid
+        - generic [ref=f6e170]:
+          - generic [ref=f6e171]: Consulta CNPJ
+          - generic [ref=f6e172]: Informações de pessoas jurídicas diretamente das bases da Receita Federal
+          - generic [ref=f6e173]: API
+          - link "Ver detalhes" [ref=f6e178] [cursor=pointer]:
+            - /url: consulta-cnpj/product/consultacnpj
+    - generic [ref=f6e179]:
+      - generic [ref=f6e180]:
+        - paragraph
+      - generic [ref=f6e181]:
+        - paragraph
+  - contentinfo [ref=f6e182]:
+    - generic [ref=f6e189]:
+      - img "Logotipo Serpro" [ref=f6e191]
+      - img "Bandeira do Brasil" [ref=f6e193]
+      - generic [ref=f6e194]:
+        - paragraph [ref=f6e195]: CIDADÃO
+        - paragraph [ref=f6e196]:
+          - link "Área do Cliente (Abre em nova guia)" [ref=f6e197] [cursor=pointer]:
+            - /url: https://cliente.serpro.gov.br/
+            - text: Área do Cliente
+            - generic [ref=f6e198]: (Abre em nova guia)
+      - generic [ref=f6e199]:
+        - paragraph [ref=f6e200]: SUPORTE
+        - paragraph [ref=f6e201]:
+          - link "Central de Ajuda (Abre em nova guia)" [ref=f6e202] [cursor=pointer]:
+            - /url: https://centraldeajuda.serpro.gov.br/duvidas/pt/
+            - text: Central de Ajuda
+            - generic [ref=f6e203]: (Abre em nova guia)
+      - generic [ref=f6e204]:
+        - paragraph [ref=f6e205]: PRIVACIDADE
+        - paragraph [ref=f6e206]:
+          - link "Termos de Uso e Política de Privacidade (Abre em nova guia)" [ref=f6e207] [cursor=pointer]:
+            - /url: https://www.serpro.gov.br/privacidade-protecao-dados
+            - text: Termos de Uso e Política de Privacidade
+            - generic [ref=f6e208]: (Abre em nova guia)

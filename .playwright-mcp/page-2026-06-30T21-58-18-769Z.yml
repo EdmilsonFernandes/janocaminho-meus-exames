@@ -1,0 +1,93 @@
+- generic [ref=f1e18]:
+  - generic [ref=f1e19]:
+    - generic [ref=f1e20]:
+      - button [ref=f1e21] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=f1e22]:
+        - banner [ref=f1e23]:
+          - generic [ref=f1e24]:
+            - button [ref=f1e25] [cursor=pointer]:
+              - img [ref=f1e26]
+            - heading [level=6] [ref=f1e356]:
+              - generic [ref=f1e358]: Ajuda & Suporte
+            - button [ref=f1e28] [cursor=pointer]:
+              - img [ref=f1e29]
+              - generic [ref=f1e31]: "79"
+            - button [ref=f1e33] [cursor=pointer]:
+              - generic [ref=f1e35]: E
+              - generic [ref=f1e37]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=f1e39]
+            - button [ref=f1e41] [cursor=pointer]:
+              - generic [ref=f1e42]:
+                - img [ref=f1e43]
+                - generic [ref=f1e45]: "16"
+            - button [ref=f1e46] [cursor=pointer]:
+              - img [ref=f1e47]
+            - button [ref=f1e50] [cursor=pointer]:
+              - img [ref=f1e51]
+        - main [ref=f1e53]:
+          - navigation [ref=f1e57]:
+            - button [ref=f1e58] [cursor=pointer]:
+              - img [ref=f1e60]
+              - generic [ref=f1e63]: Início
+            - button [ref=f1e64] [cursor=pointer]:
+              - img [ref=f1e66]
+              - generic [ref=f1e69]: Exames
+            - button [ref=f1e70] [cursor=pointer]:
+              - img [ref=f1e72]
+              - generic [ref=f1e75]: Dr. Exame (IA)
+            - button [ref=f1e76] [cursor=pointer]:
+              - img [ref=f1e78]
+              - generic [ref=f1e81]: Relatório completo
+            - button [ref=f1e83] [cursor=pointer]:
+              - img [ref=f1e85]
+              - generic [ref=f1e89]: Evolução & Conquistas
+              - img [ref=f1e90]
+            - button [ref=f1e93] [cursor=pointer]:
+              - img [ref=f1e95]
+              - generic [ref=f1e99]: Minha Saúde
+              - img [ref=f1e100]
+            - button [ref=f1e103] [cursor=pointer]:
+              - img [ref=f1e105]
+              - generic [ref=f1e109]: Família & Médicos
+              - img [ref=f1e110]
+            - button [ref=f1e113] [cursor=pointer]:
+              - img [ref=f1e115]
+              - generic [ref=f1e118]: Conta
+              - img [ref=f1e119]
+            - separator [ref=f1e121]
+            - button [ref=f1e122] [cursor=pointer]:
+              - generic [ref=f1e124]: ❓
+              - generic [ref=f1e126]: Ajuda & Suporte
+            - menuitem [ref=f1e127] [cursor=pointer]:
+              - generic [ref=f1e128]: ℹ️
+              - generic [ref=f1e130]: Sobre o app
+            - menuitem [ref=f1e131] [cursor=pointer]:
+              - img [ref=f1e133]
+              - generic [ref=f1e136]: Sair da conta
+            - generic [ref=f1e137]: Meus Exames · v2.4.0.131 (a01ab89)
+          - generic [ref=f1e359]:
+            - generic [ref=f1e360]:
+              - img [ref=f1e362]
+              - generic [ref=f1e367]:
+                - heading [level=5] [ref=f1e368]: Ajuda & Suporte
+                - paragraph [ref=f1e369]: Abra um chamado, acompanhe o status e converse com o suporte.
+            - button [ref=f1e370] [cursor=pointer]:
+              - img [ref=f1e372]
+              - text: Novo chamado
+            - paragraph [ref=f1e384]: Não foi possível carregar seus chamados.
+    - button [ref=f1e377] [cursor=pointer]:
+      - generic [ref=f1e378]:
+        - img [ref=f1e380]
+        - img [ref=f1e382]
+  - generic [ref=f1e15] [cursor=pointer]:
+    - img [ref=f1e342]
+    - img [ref=f1e343]
+  - dialog "Dr. Exame Edmilson, um valor precisa de atenção" [active] [ref=f1e346]:
+    - heading "Dr. Exame Edmilson, um valor precisa de atenção" [level=2] [ref=f1e347]:
+      - generic [ref=f1e348]:
+        - img "Dr. Exame" [ref=f1e349]
+        - paragraph [ref=f1e350]: Edmilson, um valor precisa de atenção
+    - paragraph [ref=f1e352]: Seu Hemoglobina está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+    - generic [ref=f1e353]:
+      - button "Depois" [ref=f1e354] [cursor=pointer]: Depois
+      - button "Ver notificacoes" [ref=f1e355] [cursor=pointer]: Ver notificacoes

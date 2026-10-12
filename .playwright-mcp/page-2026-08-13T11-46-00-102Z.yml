@@ -1,0 +1,472 @@
+- generic [active] [ref=f2e20]:
+  - generic [ref=f2e22]:
+    - generic [ref=f2e24]:
+      - generic [ref=f2e25] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f2e26]
+        - heading "Meus Exames" [level=6] [ref=f2e27]
+      - generic [ref=f2e28]:
+        - button "Entrar" [ref=f2e29] [cursor=pointer]
+        - button "Criar conta" [ref=f2e30] [cursor=pointer]
+    - generic [ref=f2e33]:
+      - generic [ref=f2e34]:
+        - generic [ref=f2e35]: IA de Saúde no seu bolso
+        - heading "Entenda seus exames como nunca antes." [level=1] [ref=f2e39]:
+          - generic [ref=f2e40]: Entenda seus exames
+          - text: como nunca antes.
+        - paragraph [ref=f2e41]: Envie o exame. O Dr. Exame lê com IA, explica em português simples, mostra sua leitura de risco e monta um plano de ação pra levar ao médico.
+        - generic [ref=f2e42]:
+          - generic [ref=f2e43]: A IA não inventa números — vêm do seu laudo
+          - generic [ref=f2e47]: Conforme a LGPD
+        - button "Começar grátis →" [ref=f2e52] [cursor=pointer]
+        - button "Já tem conta? Entrar" [ref=f2e53] [cursor=pointer]
+        - paragraph [ref=f2e54]: ou entre com Google — 1 toque, sem senha
+        - generic [ref=f2e55]:
+          - paragraph [ref=f2e59]: 60 créditos ao enviar seu 1º exame
+          - paragraph [ref=f2e63]: Leitura de risco
+        - paragraph [ref=f2e64]: É médico? Acesse o Portal do Médico →
+      - generic [ref=f2e67]:
+        - img "Dr. Exame — seus exames com IA" [ref=f2e68]
+        - button "Assistir tour do Dr. Exame" [ref=f2e69] [cursor=pointer]
+    - generic [ref=f2e73]:
+      - generic [ref=f2e74]:
+        - paragraph [ref=f2e75]: Veja acontecer
+        - heading "Decifre um exame em 5 segundos" [level=2] [ref=f2e76]
+        - paragraph [ref=f2e77]: Toque e veja o Dr. Exame ler o laudo, explicar cada valor e montar sua leitura de risco — sem cadastro.
+      - generic [ref=f2e78]:
+        - paragraph [ref=f2e83]: Exemplo · Perfil Lipídico
+        - generic [ref=f2e84]:
+          - generic [ref=f2e85]:
+            - generic [ref=f2e86]: LAB CENTRAL · Perfil Lipídico
+            - generic [ref=f2e87]: COL Total ......... 295 mg/dL
+            - generic [ref=f2e88]: LDL ............... 190 mg/dL ← alterado
+            - generic [ref=f2e89]: HDL ................ 35 mg/dL ← baixo
+            - generic [ref=f2e90]: Triglicerídeos .... 260 mg/dL ← alterado
+            - generic [ref=f2e91]: Glicemia .......... 92 mg/dL
+          - generic [ref=f2e92]:
+            - button [ref=f2e93] [cursor=pointer]
+            - paragraph [ref=f2e97]: Exame fictício · sem cadastro · veja como funciona
+        - paragraph [ref=f2e102]: Demonstração com saída real de IA · nenhum dado seu é processado
+    - generic [ref=f2e105]:
+      - paragraph [ref=f2e109]: Conforme a LGPD
+      - paragraph [ref=f2e113]: Acessível em Libras
+      - paragraph [ref=f2e117]: Portal do Médico
+      - paragraph [ref=f2e121]: Sem cartão pra começar
+    - generic [ref=f2e124]:
+      - generic [ref=f2e125]:
+        - paragraph [ref=f2e126]: < 30s
+        - paragraph [ref=f2e127]: pra ler seu exame com IA
+      - generic [ref=f2e128]:
+        - paragraph [ref=f2e129]: "7"
+        - paragraph [ref=f2e130]: "riscos monitorados: diabetes, anemia, colesterol, renal…"
+      - generic [ref=f2e131]:
+        - paragraph [ref=f2e132]: "3"
+        - paragraph [ref=f2e133]: "índices que o laudo não dá: IMC, eGFR e HOMA-IR"
+      - generic [ref=f2e134]:
+        - paragraph [ref=f2e135]: 100%
+        - paragraph [ref=f2e136]: educativo · LGPD · nunca um diagnóstico
+    - generic [ref=f2e137]:
+      - generic [ref=f2e138]:
+        - heading "Tudo que você precisa pra dominar sua saúde" [level=2] [ref=f2e139]
+        - paragraph [ref=f2e140]: Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
+      - generic [ref=f2e141]:
+        - button "Todos" [ref=f2e142] [cursor=pointer]
+        - button "IA & Análise" [ref=f2e143] [cursor=pointer]
+        - button "Acompanhamento" [ref=f2e144] [cursor=pointer]
+        - button "Médico & Família" [ref=f2e145] [cursor=pointer]
+        - button "Segurança" [ref=f2e146] [cursor=pointer]
+      - generic [ref=f2e147]:
+        - generic [ref=f2e148]:
+          - heading "Leitura de risco" [level=6] [ref=f2e152]
+          - paragraph [ref=f2e153]: Veja possíveis riscos (diabetes, anemia, hipertensão, colesterol, cardiovascular, renal, obesidade) a partir dos seus exames — sempre como "possível", e cada faixa cita a diretriz (ADA/SBC/OMS).
+        - generic [ref=f2e154]:
+          - heading "Índices que o laudo não dá" [level=6] [ref=f2e158]
+          - paragraph [ref=f2e159]: "Calcula IMC, função renal (eGFR) e resistência insulínica (HOMA-IR) automaticamente. E mostra o valor IDEAL — não só o de referência (ex.: LDL ideal <100, não só <130)."
+        - generic [ref=f2e160]:
+          - heading "Plano de ação do Dr. Exame" [level=6] [ref=f2e164]
+          - paragraph [ref=f2e165]: "A IA monta um plano personalizado: o que fazer, quando refazer os exames e perguntas pra levar ao médico. Educativo, nunca diagnóstico."
+        - generic [ref=f2e166]:
+          - heading "IA que lê seus exames" [level=6] [ref=f2e170]
+          - paragraph [ref=f2e171]: Envie o PDF ou foto. O Dr. Exame extrai todos os valores e explica em português simples — sem jargão.
+        - generic [ref=f2e172]:
+          - heading "Portal do seu médico" [level=6] [ref=f2e176]
+          - paragraph [ref=f2e177]: "Indique pelo CRM e seu médico ganha um brief de pré-consulta: top 3 mudanças do dia, padrões por sistema (glicêmico, renal, lipídico) e exames de seguimento sugeridos — só o que você autorizar."
+        - generic [ref=f2e178]:
+          - heading "Dados protegidos + Libras" [level=6] [ref=f2e182]
+          - paragraph [ref=f2e183]: Seus valores vêm do laudo — a IA não inventa números (extração determinística). Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.
+      - button "Ver todos os 14 recursos" [ref=f2e185] [cursor=pointer]
+    - generic [ref=f2e187]:
+      - heading "Veja na prática" [level=2] [ref=f2e188]
+      - paragraph [ref=f2e189]: Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
+      - iframe [ref=f2e192]
+      - generic [ref=f2e193]:
+        - generic [ref=f2e194]:
+          - img "Meus Exames — slide 1" [ref=f2e195] [cursor=pointer]
+          - img "Meus Exames — slide 2" [ref=f2e196] [cursor=pointer]
+          - img "Meus Exames — slide 3" [ref=f2e197] [cursor=pointer]
+          - img "Meus Exames — slide 4" [ref=f2e198] [cursor=pointer]
+          - img "Meus Exames — slide 5" [ref=f2e199] [cursor=pointer]
+          - img "Meus Exames — slide 6" [ref=f2e200] [cursor=pointer]
+          - img "Meus Exames — slide 7" [ref=f2e201] [cursor=pointer]
+          - img "Meus Exames — slide 8" [ref=f2e202] [cursor=pointer]
+          - img "Meus Exames — slide 9" [ref=f2e203] [cursor=pointer]
+          - img "Meus Exames — slide 10" [ref=f2e204] [cursor=pointer]
+          - img "Meus Exames — slide 11" [ref=f2e205] [cursor=pointer]
+          - img "Meus Exames — slide 12" [ref=f2e206] [cursor=pointer]
+          - img "Meus Exames — slide 13" [ref=f2e207] [cursor=pointer]
+          - img "Meus Exames — slide 14" [ref=f2e208] [cursor=pointer]
+          - img "Meus Exames — slide 15" [ref=f2e209] [cursor=pointer]
+        - generic [ref=f2e210]:
+          - generic [ref=f2e211] [cursor=pointer]
+          - generic [ref=f2e212] [cursor=pointer]
+          - generic [ref=f2e213] [cursor=pointer]
+          - generic [ref=f2e214] [cursor=pointer]
+          - generic [ref=f2e215] [cursor=pointer]
+          - generic [ref=f2e216] [cursor=pointer]
+          - generic [ref=f2e217] [cursor=pointer]
+          - generic [ref=f2e218] [cursor=pointer]
+          - generic [ref=f2e219] [cursor=pointer]
+          - generic [ref=f2e220] [cursor=pointer]
+          - generic [ref=f2e221] [cursor=pointer]
+          - generic [ref=f2e222] [cursor=pointer]
+          - generic [ref=f2e223] [cursor=pointer]
+          - generic [ref=f2e224] [cursor=pointer]
+          - generic [ref=f2e225] [cursor=pointer]
+    - generic [ref=f2e228]:
+      - generic [ref=f2e230]:
+        - generic [ref=f2e231]:
+          - paragraph [ref=f2e234]: Leitura de risco
+          - generic [ref=f2e235]: 🟠 Moderado
+        - generic [ref=f2e237]: ↓ Risco caiu desde 11/06
+        - paragraph [ref=f2e240]: Possível risco de colesterol alto
+        - generic [ref=f2e241]:
+          - generic [ref=f2e242]:
+            - generic [ref=f2e243]: 🟠 190 mg/dL
+            - paragraph [ref=f2e245]: LDL
+          - generic [ref=f2e246]:
+            - generic [ref=f2e247]: 🟠 260 mg/dL
+            - paragraph [ref=f2e249]: Triglicerídeos
+          - generic [ref=f2e250]:
+            - generic [ref=f2e251]: 🟠 35 mg/dL
+            - paragraph [ref=f2e253]: HDL
+        - generic [ref=f2e254]:
+          - paragraph [ref=f2e255]: Plano de ação do Dr. Exame
+          - paragraph [ref=f2e258]: Reduza carnes vermelhas e frituras; mais aveia e azeite. Refazer perfil lipídico em 3 meses.
+        - generic [ref=f2e259]: "*Educativo. Não substitui consulta médica."
+      - generic [ref=f2e260]:
+        - generic [ref=f2e261]: Leitura de risco + plano de ação
+        - heading "Descubra seu risco — e o que fazer" [level=2] [ref=f2e266]
+        - paragraph [ref=f2e267]: "A IA cruza seus exames e aponta possíveis riscos (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um plano de ação personalizado: hábitos, quando refazer e perguntas pra levar ao médico."
+        - paragraph [ref=f2e271]: Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.
+        - paragraph [ref=f2e275]: "Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar."
+        - paragraph [ref=f2e279]: "Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo."
+        - paragraph [ref=f2e283]: "Sempre educativo: nunca diagnóstico. A decisão é do seu médico."
+        - button "Ver minha leitura de risco" [ref=f2e284] [cursor=pointer]
+    - generic [ref=f2e286]:
+      - heading "A IA não inventa números" [level=2] [ref=f2e287]
+      - paragraph [ref=f2e288]: Seus valores saem direto do laudo. A IA só explica o que já está escrito — com criptografia e no seu controle do começo ao fim.
+      - generic [ref=f2e289]:
+        - generic [ref=f2e290]:
+          - paragraph [ref=f2e294]: 1. Você envia
+          - paragraph [ref=f2e295]: PDF ou foto do exame. O arquivo fica fora do banco — só o caminho é guardado.
+        - generic [ref=f2e296]:
+          - paragraph [ref=f2e300]: 2. Leitura do laudo
+          - paragraph [ref=f2e301]: Cada valor é extraído do documento, com a página de origem. Nada é chutado.
+        - generic [ref=f2e302]:
+          - paragraph [ref=f2e306]: 3. Criptografia
+          - paragraph [ref=f2e307]: Dados sensíveis (CPF/RG) cifrados com pgcrypto. PDFs nunca vão pro banco.
+        - generic [ref=f2e308]:
+          - paragraph [ref=f2e312]: 4. A IA explica
+          - paragraph [ref=f2e313]: Compara com a referência, calcula índices e monta o plano — sem inventar.
+        - generic [ref=f2e314]:
+          - paragraph [ref=f2e318]: 5. Só você vê
+          - paragraph [ref=f2e319]: Compartilha por link com PIN e revoga quando quiser. Exclusão total a qualquer momento.
+      - paragraph [ref=f2e323]: Conforme a LGPD · Análise educativa, nunca um diagnóstico.
+    - generic [ref=f2e325]:
+      - generic [ref=f2e327]:
+        - generic [ref=f2e328]: Dr. Exame Pro
+        - heading "Médico e paciente, conectados num clique" [level=2] [ref=f2e332]
+        - paragraph [ref=f2e333]: O paciente chega pronto na consulta. O médico recebe um brief de pré-consulta com tudo que importa — gerado por IA, sob controle total de quem compartilha.
+      - generic [ref=f2e334]:
+        - button "🩺 Para o médico" [ref=f2e335] [cursor=pointer]
+        - button "💬 Compartilhar" [ref=f2e336] [cursor=pointer]
+        - button "✨ Convite pelo médico" [ref=f2e337] [cursor=pointer]
+      - generic [ref=f2e338]:
+        - generic [ref=f2e339]:
+          - heading "Resumo clínico automático em 1 minuto" [level=3] [ref=f2e340]
+          - paragraph [ref=f2e341]: "Use o mesmo CRM do convite e receba um brief de pré-consulta: principais mudanças, risco, o que investigar e as perguntas que o paciente fez no app."
+          - paragraph [ref=f2e345]: 🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.
+          - paragraph [ref=f2e349]: 🛡️ Risco + tendência + marcadores a investigar — num relance.
+          - paragraph [ref=f2e353]: 📝 SOAP rascunho gerado por IA (S/O/A/P) — só revisa e edita.
+          - paragraph [ref=f2e357]: 🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.
+          - button "Conhecer o Portal do Médico →" [ref=f2e358] [cursor=pointer]
+        - generic [ref=f2e360]:
+          - paragraph [ref=f2e361]: 🩺 PRÉ-CONSULTA · desde 15/05
+          - text: ⚠️ TOP 3 PRA HOJE
+          - generic [ref=f2e362]:
+            - generic [ref=f2e363]:
+              - generic [ref=f2e364]: "1"
+              - paragraph [ref=f2e366]: Creatinina
+              - generic [ref=f2e367]: ↑ 22%
+            - generic [ref=f2e369]:
+              - generic [ref=f2e370]: "2"
+              - paragraph [ref=f2e372]: HDL
+              - generic [ref=f2e373]: ↓ 15%
+            - generic [ref=f2e375]:
+              - generic [ref=f2e376]: "3"
+              - paragraph [ref=f2e378]: Testosterona
+              - generic [ref=f2e379]: ↑ elevada
+          - paragraph [ref=f2e381]: "Risco: 🟠 Moderado (cardiovascular) · ↓ caiu"
+          - text: 🔬 INVESTIGAR
+          - paragraph [ref=f2e382]: • TGO/TGP · Microalbuminúria
+          - generic [ref=f2e383]:
+            - paragraph [ref=f2e384]: 📝 SOAP (rascunho IA)
+            - paragraph [ref=f2e385]: "S: Uso de Masteron... O: Creatinina 1,4 (↑22%)... A: Risco cardiovascular... P: Solicitar TGO/TGP..."
+      - generic [ref=f2e387]:
+        - generic [ref=f2e388]:
+          - paragraph [ref=f2e392]: Pra você, paciente
+          - paragraph [ref=f2e393]: Seu médico ainda não te chamou? Crie sua conta e indique-o pelo CRM em segundos.
+          - button "Criar conta grátis" [ref=f2e394] [cursor=pointer]
+        - generic [ref=f2e395]:
+          - paragraph [ref=f2e399]: Pra você, médico
+          - paragraph [ref=f2e400]: Convide seus pacientes pelo portal e receba um brief de pré-consulta de cada um. Conheça o Dr. Exame Pro.
+          - button "Portal do médico →" [ref=f2e401] [cursor=pointer]
+    - generic [ref=f2e403]:
+      - generic [ref=f2e405]:
+        - generic [ref=f2e406]: Índices que o laudo não dá
+        - heading "O laboratório mediu. Nós interpretamos." [level=2] [ref=f2e410]
+        - paragraph [ref=f2e411]: Seu laudo traz os valores brutos. O Dr. Exame calcula os índices que importam — e mostra o valor ideal, não só o de referência.
+      - generic [ref=f2e412]:
+        - generic [ref=f2e413]:
+          - generic [ref=f2e414]:
+            - generic [ref=f2e416]:
+              - paragraph [ref=f2e422]: IMC
+              - paragraph [ref=f2e423]: 18,5 – 24,9
+              - paragraph [ref=f2e424]: peso adequado
+              - paragraph [ref=f2e425]: Relação peso/altura. Calculamos e dizemos sua faixa (OMS).
+            - generic [ref=f2e427]:
+              - paragraph [ref=f2e432]: eGFR
+              - paragraph [ref=f2e433]: "> 90"
+              - paragraph [ref=f2e434]: função renal ideal
+              - paragraph [ref=f2e435]: Filtração renal — a partir de creatinina, idade e sexo.
+            - generic [ref=f2e437]:
+              - paragraph [ref=f2e443]: HOMA-IR
+              - paragraph [ref=f2e444]: < 2,5
+              - paragraph [ref=f2e445]: baixa resistência
+              - paragraph [ref=f2e446]: Resistência insulínica — sinal precoce de pré-diabetes.
+          - paragraph [ref=f2e448]: "+ Score de Saúde, tendência por marcador e valor ideal de cada item (ex.: LDL ideal < 100, não só < 130)."
+        - generic [ref=f2e450]:
+          - generic [ref=f2e451]:
+            - generic [ref=f2e452]:
+              - paragraph [ref=f2e455]: Altura
+              - paragraph [ref=f2e456]: 170 cm
+            - slider [ref=f2e461]: "170"
+          - generic [ref=f2e462]:
+            - generic [ref=f2e463]:
+              - paragraph [ref=f2e467]: Peso
+              - paragraph [ref=f2e468]: 70 kg
+            - slider [ref=f2e473]: "70"
+          - generic [ref=f2e474]:
+            - paragraph [ref=f2e475]: Seu IMC
+            - paragraph [ref=f2e476]: "24.2"
+            - generic [ref=f2e477]: Peso adequado
+          - generic [ref=f2e486]:
+            - generic [ref=f2e487]: "15"
+            - generic [ref=f2e488]: 18,5
+            - generic [ref=f2e489]: "25"
+            - generic [ref=f2e490]: "30"
+            - generic [ref=f2e491]: "40"
+          - paragraph [ref=f2e493]: O IMC é só o começo. No app, o Dr. Exame calcula também eGFR (função renal) e HOMA-IR (resistência insulínica) direto dos seus exames — além de mostrar o valor ideal, não só o de referência.
+    - generic [ref=f2e495]:
+      - heading "Quem usa, entende a diferença" [level=2] [ref=f2e496]
+      - paragraph [ref=f2e497]: Histórias de quem parou de guardar o exame sem entender.
+      - generic [ref=f2e498]:
+        - generic [ref=f2e499]:
+          - paragraph [ref=f2e500]: “
+          - paragraph [ref=f2e501]: Tinha uma pilha de exames na gaveta. O Dr. Exame explicou cada valor da tireoide antes da consulta — cheguei sabendo o que perguntar.
+          - generic [ref=f2e502]:
+            - generic [ref=f2e503]: E
+            - generic [ref=f2e504]:
+              - paragraph [ref=f2e505]: Edna Aparecida
+              - paragraph [ref=f2e506]: Hipotireoidismo controlado
+        - generic [ref=f2e507]:
+          - paragraph [ref=f2e508]: “
+          - paragraph [ref=f2e509]: Vi que a glicose estava subindo a cada exame. Mudei a alimentação e, na consulta seguinte, já tinha normalizado.
+          - generic [ref=f2e510]:
+            - generic [ref=f2e511]: H
+            - generic [ref=f2e512]:
+              - paragraph [ref=f2e513]: Heloisa Cristina
+              - paragraph [ref=f2e514]: Pré-diabetes revertido
+        - generic [ref=f2e515]:
+          - paragraph [ref=f2e516]: “
+          - paragraph [ref=f2e517]: Gero o relatório e mando pro meu médico antes da consulta. Ele já chega sabendo o que mudou — a consulta rende muito mais.
+          - generic [ref=f2e518]:
+            - generic [ref=f2e519]: M
+            - generic [ref=f2e520]:
+              - paragraph [ref=f2e521]: Melissa Fernandes
+              - paragraph [ref=f2e522]: Acompanha com o cardiologista
+        - generic [ref=f2e523]:
+          - paragraph [ref=f2e524]: “
+          - paragraph [ref=f2e525]: O comparativo mostrou o colesterol caindo exame após exame. Ver o gráfico fez toda a diferença pra eu manter o tratamento.
+          - generic [ref=f2e526]:
+            - generic [ref=f2e527]: T
+            - generic [ref=f2e528]:
+              - paragraph [ref=f2e529]: Thomé Eduardo
+              - paragraph [ref=f2e530]: Colesterol em queda
+        - generic [ref=f2e531]:
+          - paragraph [ref=f2e532]: “
+          - paragraph [ref=f2e533]: Guardo os exames da minha mãe e das crianças no app. Quando o pediatra ou o geriatra pede, está tudo lá, organizado.
+          - generic [ref=f2e534]:
+            - generic [ref=f2e535]: Q
+            - generic [ref=f2e536]:
+              - paragraph [ref=f2e537]: Quenaz Silva
+              - paragraph [ref=f2e538]: Cuida da mãe e dos filhos
+        - generic [ref=f2e539]:
+          - paragraph [ref=f2e540]: “
+          - paragraph [ref=f2e541]: Tava cansado pra tudo. O app flagrou a ferro baixa, levei ao médico, recebi a reposição e voltou ao normal.
+          - generic [ref=f2e542]:
+            - generic [ref=f2e543]: L
+            - generic [ref=f2e544]:
+              - paragraph [ref=f2e545]: Leandro Porto
+              - paragraph [ref=f2e546]: Anemia tratada
+        - generic [ref=f2e547]:
+          - paragraph [ref=f2e548]: “
+          - paragraph [ref=f2e549]: Faço exame de rotina todo ano. O score de saúde me dá a visão geral em segundos — sei o que está em dia e o que refazer.
+          - generic [ref=f2e550]:
+            - generic [ref=f2e551]: D
+            - generic [ref=f2e552]:
+              - paragraph [ref=f2e553]: Daniel Oliveira
+              - paragraph [ref=f2e554]: Check-up em dia
+        - generic [ref=f2e555]:
+          - paragraph [ref=f2e556]: “
+          - paragraph [ref=f2e557]: Antes eu googlava cada valor e ficava mais confusa. Agora a IA explica na hora, sem jargão — saí daquele ciclo de ansiedade.
+          - generic [ref=f2e558]:
+            - generic [ref=f2e559]: "N"
+            - generic [ref=f2e560]:
+              - paragraph [ref=f2e561]: Natália Fernandes
+              - paragraph [ref=f2e562]: Saiu da ansiedade com o laudo
+      - paragraph [ref=f2e563]: Quem já usa o Dr. Exame no dia a dia.
+    - generic [ref=f2e565]:
+      - heading "Por que não basta ler o papel?" [level=2] [ref=f2e566]
+      - paragraph [ref=f2e567]: O que o Dr. Exame faz que o laudo, o Google e a espera pela consulta não fazem.
+      - generic [ref=f2e568]:
+        - generic [ref=f2e569]:
+          - generic [ref=f2e571]: Dr. Exame
+          - generic [ref=f2e572]: Sozinho / Google
+        - generic [ref=f2e573]:
+          - generic [ref=f2e574]: Explica cada valor em português simples
+          - paragraph [ref=f2e579]: ✕
+        - generic [ref=f2e580]:
+          - generic [ref=f2e581]: Mostra seu risco (diabetes, colesterol, renal…)
+          - paragraph [ref=f2e586]: ✕
+        - generic [ref=f2e587]:
+          - generic [ref=f2e588]: Calcula IMC, eGFR e HOMA-IR
+          - paragraph [ref=f2e593]: ✕
+        - generic [ref=f2e594]:
+          - generic [ref=f2e595]: Compara com exames anteriores
+          - paragraph [ref=f2e600]: manual
+        - generic [ref=f2e601]: Disponível agora, a qualquer hora
+        - generic [ref=f2e609]:
+          - generic [ref=f2e610]: Plano de ação + perguntas pro médico
+          - paragraph [ref=f2e615]: ✕
+    - generic [ref=f2e617]:
+      - heading "Planos simples e justos" [level=2] [ref=f2e618]
+      - paragraph [ref=f2e619]: Comece grátis. Assine quando precisar — ou pague só pelo que usar.
+      - generic [ref=f2e620]:
+        - generic [ref=f2e621]:
+          - heading "Grátis" [level=6] [ref=f2e622]
+          - paragraph [ref=f2e623]: R$ 0
+          - paragraph [ref=f2e627]: 60 créditos pra testar
+          - paragraph [ref=f2e631]: Envie exames (PDF/foto)
+          - paragraph [ref=f2e635]: Valores + referência
+          - paragraph [ref=f2e639]: Score de Saúde
+          - paragraph [ref=f2e643]: Pergunte ao Dr. Exame
+          - button "Começar grátis" [ref=f2e644] [cursor=pointer]
+        - generic [ref=f2e645]:
+          - generic [ref=f2e646]: RECOMENDADO
+          - heading "Mensal" [level=6] [ref=f2e648]
+          - paragraph [ref=f2e649]: R$ 19,90/mês
+          - paragraph [ref=f2e653]: 250 créditos de IA/mês
+          - paragraph [ref=f2e657]: Exames + dependentes
+          - paragraph [ref=f2e661]: Comparativo + Tendências
+          - paragraph [ref=f2e665]: Relatório completo + PDF
+          - paragraph [ref=f2e669]: Chat com o Dr. Exame
+          - button "Assinar mensal" [ref=f2e670] [cursor=pointer]
+        - generic [ref=f2e671]:
+          - heading "Créditos" [level=6] [ref=f2e672]
+          - paragraph [ref=f2e673]: a partir de R$ 9,90avulso
+          - paragraph [ref=f2e677]: PIX, cartão ou débito
+          - paragraph [ref=f2e681]: Pacotes flexíveis
+          - paragraph [ref=f2e685]: Cada análise consome créditos
+          - paragraph [ref=f2e689]: Sem mensalidade
+          - paragraph [ref=f2e693]: Use quando precisar
+          - button "Ver pacotes" [ref=f2e694] [cursor=pointer]
+    - generic [ref=f2e697]:
+      - generic [ref=f2e698]: 🎁
+      - generic [ref=f2e699]:
+        - heading "Indique e ganhe créditos" [level=2] [ref=f2e700]
+        - paragraph [ref=f2e701]:
+          - text: Compartilhe seu código com amigos. Quando alguém cria a conta com ele,
+          - generic [ref=f2e702]: vocês dois ganham +10 créditos
+          - text: — pra usar no Dr. Exame.
+        - generic [ref=f2e703]:
+          - generic [ref=f2e704]:
+            - paragraph [ref=f2e705]: "+10"
+            - paragraph [ref=f2e706]: pra você
+          - generic [ref=f2e707]:
+            - paragraph [ref=f2e708]: "+10"
+            - paragraph [ref=f2e709]: pra seu amigo
+          - generic [ref=f2e710]:
+            - paragraph [ref=f2e711]: 10/mês
+            - paragraph [ref=f2e712]: limite anti-abuso
+    - generic [ref=f2e714]:
+      - generic [ref=f2e716]:
+        - paragraph [ref=f2e720]: Dúvidas frequentes
+        - heading "Tudo que você quer saber" [level=2] [ref=f2e721]
+        - paragraph [ref=f2e722]: Saúde e IA geram perguntas — e a gente responde na lata.
+      - generic [ref=f2e724]:
+        - heading [level=3] [ref=f2e726]:
+          - button [ref=f2e727] [cursor=pointer]:
+            - paragraph [ref=f2e729]: A IA do Dr. Exame substitui o médico?
+        - heading [level=3] [ref=f2e734]:
+          - button [ref=f2e735] [cursor=pointer]:
+            - paragraph [ref=f2e737]: A IA inventa os valores do meu exame?
+        - heading [level=3] [ref=f2e742]:
+          - button [ref=f2e743] [cursor=pointer]:
+            - paragraph [ref=f2e745]: Funciona com o exame do meu laboratório?
+        - heading [level=3] [ref=f2e750]:
+          - button [ref=f2e751] [cursor=pointer]:
+            - paragraph [ref=f2e753]: Meus dados estão seguros?
+        - heading [level=3] [ref=f2e758]:
+          - button [ref=f2e759] [cursor=pointer]:
+            - paragraph [ref=f2e761]: Preciso pagar para testar?
+        - heading [level=3] [ref=f2e766]:
+          - button [ref=f2e767] [cursor=pointer]:
+            - paragraph [ref=f2e769]: Isso é um diagnóstico?
+      - generic [ref=f2e774]:
+        - paragraph [ref=f2e775]: Ainda com dúvidas? Teste sem compromisso.
+        - button "Criar conta grátis →" [ref=f2e776] [cursor=pointer]
+    - generic [ref=f2e781]:
+      - heading "Pronto pra entender sua saúde?" [level=2] [ref=f2e782]
+      - paragraph [ref=f2e783]: Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.
+      - button "Começar agora →" [ref=f2e784] [cursor=pointer]
+      - link [ref=f2e785] [cursor=pointer]:
+        - /url: https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR
+        - img "QR code para baixar o Dr. Exame na Play Store" [ref=f2e786]
+        - generic [ref=f2e787]:
+          - paragraph [ref=f2e788]: Dr. Exame no seu celular 📱
+          - paragraph [ref=f2e789]: Aponte a câmera do celular ou toque pra baixar.
+          - img "Disponível no Google Play"
+    - generic [ref=f2e791]:
+      - generic [ref=f2e792]:
+        - img "Dr. Exame" [ref=f2e793]
+        - paragraph [ref=f2e794]: Meus Exames
+      - paragraph [ref=f2e795]: © 2026 janocaminho.com.br • contato@janocaminho.com.br
+      - paragraph [ref=f2e796]: "Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica."
+      - generic [ref=f2e797]:
+        - generic [ref=f2e798] [cursor=pointer]: Portal do Médico
+        - generic [ref=f2e799] [cursor=pointer]: Termos e LGPD
+        - generic [ref=f2e800] [cursor=pointer]: Criar conta
+        - generic [ref=f2e801] [cursor=pointer]: Entrar
+  - generic [ref=f2e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e19]

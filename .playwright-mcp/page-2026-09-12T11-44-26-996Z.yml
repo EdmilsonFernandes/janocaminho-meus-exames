@@ -1,0 +1,118 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - link "Ir para o conteúdo" [ref=f4e3] [cursor=pointer]:
+      - /url: "#main"
+    - generic [ref=f4e4]:
+      - banner [ref=f4e6]:
+        - banner [ref=f4e7]:
+          - generic [ref=f4e9]:
+            - link [ref=f4e14] [cursor=pointer]:
+              - /url: https://www.sbemsp.org.br
+            - generic [ref=f4e18]:
+              - navigation "Menu" [ref=f4e19]:
+                - list [ref=f4e20]:
+                  - listitem [ref=f4e21]:
+                    - link "Inicial" [ref=f4e22] [cursor=pointer]:
+                      - /url: https://www.sbemsp.org.br/
+                  - listitem [ref=f4e23]:
+                    - link [ref=f4e24] [cursor=pointer]:
+                      - /url: https://www.sbemsp.org.br/sbem-sp/
+                      - text: Sbem SP
+                      - generic [ref=f4e25]:
+                        - generic [aria-hidden]: 
+                  - listitem [ref=f4e26]:
+                    - link [ref=f4e27] [cursor=pointer]:
+                      - /url: "#"
+                      - text: Para o Público
+                      - generic [ref=f4e28]:
+                        - generic [aria-hidden]: 
+                  - listitem [ref=f4e29]:
+                    - link [ref=f4e30] [cursor=pointer]:
+                      - /url: "#"
+                      - text: Para Associados
+                      - generic [ref=f4e31]:
+                        - generic [aria-hidden]: 
+                  - listitem [ref=f4e32]:
+                    - link "Eventos Médicos" [ref=f4e33] [cursor=pointer]:
+                      - /url: https://www.sbemsp.org.br/eventos-medicos/
+                  - listitem [ref=f4e34]:
+                    - link [ref=f4e35] [cursor=pointer]:
+                      - /url: https://www.sbemsp.org.br/imprensa/
+                      - text: Imprensa
+                      - generic [ref=f4e36]:
+                        - generic [aria-hidden]: 
+                  - listitem [ref=f4e37]:
+                    - link "Busca de associados" [ref=f4e38] [cursor=pointer]:
+                      - /url: https://www.sbemsp.org.br/socios/
+                  - listitem [ref=f4e39]:
+                    - link "Contato" [ref=f4e40] [cursor=pointer]:
+                      - /url: "#contato"
+              - text:      
+            - search [ref=f4e45]:
+              - generic [ref=f4e46]:
+                - button "Pesquisar" [ref=f4e47] [cursor=pointer]:
+                  - generic [aria-hidden] [ref=f4e48]: 
+                - generic:
+                  - generic: Pesquisar
+                  - searchbox "Pesquisar"
+                  - text: 
+      - main [ref=f4e49]:
+        - generic [ref=f4e50]:
+          - heading "SÓCIOS" [level=2] [ref=f4e57]
+          - generic [ref=f4e61]:
+            - heading "Selecione uma opção de busca para localizar um associado:" [level=2] [ref=f4e64]
+            - generic [ref=f4e70]:
+              - combobox [ref=f4e71] [cursor=pointer]:
+                - option "UF" [selected]
+                - option "NOME"
+                - option "CIDADE"
+              - combobox [ref=f4e72] [cursor=pointer]:
+                - option "BA" [selected]
+                - option "CE"
+                - option "DF"
+                - option "ES"
+                - option "GO"
+                - option "MA"
+                - option "MG"
+                - option "MS"
+                - option "MT"
+                - option "PA"
+                - option "PI"
+                - option "PR"
+                - option "RJ"
+                - option "RN"
+                - option "SP"
+                - option "TO"
+              - button "" [ref=f4e73] [cursor=pointer]
+      - contentinfo [ref=f4e74]:
+        - generic [ref=f4e79]:
+          - generic [ref=f4e81]:
+            - heading "Contato" [level=2] [ref=f4e86]
+            - list [ref=f4e91]:
+              - listitem [ref=f4e92]:
+                - link "Icons-icone_facebook" [ref=f4e93] [cursor=pointer]:
+                  - /url: https://www.facebook.com/sbem.saopaulo
+                  - generic [aria-hidden] [ref=f4e95]: 
+              - listitem [ref=f4e96]:
+                - link "Icons-icone_instagram" [ref=f4e97] [cursor=pointer]:
+                  - /url: https://www.instagram.com/sbemsp/
+                  - generic [aria-hidden] [ref=f4e99]: 
+              - listitem [ref=f4e100]:
+                - link "Youtube" [ref=f4e101] [cursor=pointer]:
+                  - /url: https://www.youtube.com/channel/UCTtfSKnx6M8GJsblJG2AHRA
+                  - generic [aria-hidden] [ref=f4e103]: 
+              - listitem [ref=f4e104]:
+                - link "Twitter" [ref=f4e105] [cursor=pointer]:
+                  - /url: https://twitter.com/SBEMSP
+                  - generic [aria-hidden] [ref=f4e107]: 
+              - listitem [ref=f4e108]:
+                - link "Icons-icone_spotify" [ref=f4e109] [cursor=pointer]:
+                  - /url: https://open.spotify.com/show/03XCLMck6BB1KBmoKk9gym?si=w45s6R0MQ0Ck3WvHQKL3pw&nd=1
+                  - generic [aria-hidden] [ref=f4e111]: 
+          - generic [ref=f4e113]:
+            - generic [ref=f4e115]:
+              - heading [level=3] [ref=f4e121]
+              - heading [level=3] [ref=f4e127]
+            - heading [level=3] [ref=f4e135]
+  - text: 
+  - generic [ref=f4e147]: desktop

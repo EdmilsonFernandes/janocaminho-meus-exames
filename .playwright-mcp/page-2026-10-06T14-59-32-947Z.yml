@@ -1,0 +1,1727 @@
+- generic [active] [ref=f10e1]:
+  - generic [ref=f10e3]:
+    - link "Skip to main content":
+      - /url: "#main"
+    - link "Skip to article":
+      - /url: "#article"
+    - banner [ref=f10e6]:
+      - generic [ref=f10e7]:
+        - link "ScienceDirect home page" [ref=f10e8] [cursor=pointer]:
+          - /url: /
+          - img "Elsevier logo" [ref=f10e9]
+        - generic [ref=f10e18]:
+          - navigation "ai-links" [ref=f10e19]:
+            - list [ref=f10e20]:
+              - listitem [ref=f10e21]:
+                - link "LeapSpace" [ref=f10e22] [cursor=pointer]:
+                  - /url: /leapspace?DGCID=rai_sd_header_ls_link
+                  - generic [ref=f10e25]:
+                    - text: LeapSpace
+                    - img "Opens in new window" [ref=f10e26]
+          - navigation "links" [ref=f10e28]:
+            - list [ref=f10e29]:
+              - listitem [ref=f10e30]:
+                - link "Journals & Books" [ref=f10e31] [cursor=pointer]:
+                  - /url: /browse/journals-and-books
+          - navigation "utilities" [ref=f10e33]:
+            - list [ref=f10e34]:
+              - listitem [ref=f10e35]:
+                - button "Help" [ref=f10e39] [cursor=pointer]
+              - listitem [ref=f10e42]:
+                - button "Search" [ref=f10e44] [cursor=pointer]
+        - link "My account" [ref=f10e48] [cursor=pointer]:
+          - /url: /user/login?targetURL=%2Fscience%2Farticle%2Fpii%2FS2211266924000252&from=globalheader
+        - link "Sign In" [ref=f10e51] [cursor=pointer]:
+          - /url: /user/institution/login?targetURL=%2Fscience%2Farticle%2Fpii%2FS2211266924000252
+    - main [ref=f10e55]:
+      - generic [ref=f10e56]:
+        - generic [ref=f10e59]:
+          - generic [ref=f10e60]:
+            - heading [level=2] [ref=f10e62]:
+              - link "Performance Enhancement & Health" [ref=f10e63] [cursor=pointer]:
+                - /url: /journal/performance-enhancement-and-health
+            - generic [ref=f10e66]:
+              - generic [ref=f10e67]: "Date:"
+              - text: October 2024
+          - button "Show more" [ref=f10e68] [cursor=pointer]
+        - generic [ref=f10e74]:
+          - generic [ref=f10e75]:
+            - generic [ref=f10e76]:
+              - generic [ref=f10e77]:
+                - generic [ref=f10e78]: Short communication
+                - generic [ref=f10e79]: Open access
+              - generic [ref=f10e80]:
+                - text: Under a Creative Commons
+                - link [ref=f10e81] [cursor=pointer]:
+                  - /url: http://creativecommons.org/licenses/by-nc-nd/4.0/
+                  - generic [ref=f10e82]:
+                    - text: license
+                    - img "Opens in new window" [ref=f10e83]
+              - link [ref=f10e86] [cursor=pointer]:
+                - /url: https://s100.copyright.com/AppDispatchServlet?publisherName=ELS&contentID=S2211266924000252&orderBeanReset=true
+                - generic [ref=f10e87]:
+                  - text: Get rights and content
+                  - img "Opens in new window" [ref=f10e88]
+            - 'heading "Navigating non-medical androgen use: Towards a harm reduction paradigm" [level=1] [ref=f10e90]'
+            - generic [ref=f10e91]:
+              - generic [ref=f10e93]:
+                - button "Diederik L. Smit a bCorrespondence author iconAuthor email or social media contact details icon" [ref=f10e94] [cursor=pointer]:
+                  - generic [ref=f10e96]:
+                    - generic [ref=f10e97]: Diederik L. Smit
+                    - superscript [ref=f10e99]: a
+                    - superscript [ref=f10e101]: b
+                    - img "Correspondence author icon" [ref=f10e102]
+                    - img "Author email or social media contact details icon" [ref=f10e104]
+                - text: ","
+                - button "Tijs Verdegaal a b" [ref=f10e106] [cursor=pointer]:
+                  - generic [ref=f10e108]:
+                    - generic [ref=f10e109]: Tijs Verdegaal
+                    - superscript [ref=f10e111]: a
+                    - superscript [ref=f10e113]: b
+                - text: ","
+                - button "Peter Bond a b" [ref=f10e114] [cursor=pointer]:
+                  - generic [ref=f10e116]:
+                    - generic [ref=f10e117]: Peter Bond
+                    - superscript [ref=f10e119]: a
+                    - superscript [ref=f10e121]: b
+                - text: ","
+                - button "Willem de Ronde c" [ref=f10e122] [cursor=pointer]:
+                  - generic [ref=f10e124]:
+                    - generic [ref=f10e125]: Willem de Ronde
+                    - superscript [ref=f10e127]: c
+              - button "Show more" [ref=f10e128] [cursor=pointer]
+          - generic [ref=f10e134]:
+            - link "View PDF. Opens in a new window." [ref=f10e135] [cursor=pointer]:
+              - /url: /science/article/pii/S2211266924000252/pdfft?md5=5815b48eddec8449bd1706ec3c71d0d4&pid=1-s2.0-S2211266924000252-main.pdf
+              - generic [ref=f10e143]:
+                - text: View
+                - strong [ref=f10e144]: PDF
+            - button "Download full issue" [ref=f10e145] [cursor=pointer]
+            - button "Cite" [ref=f10e152] [cursor=pointer]
+            - button "Add to Mendeley" [ref=f10e156] [cursor=pointer]
+            - button "Share" [ref=f10e162] [cursor=pointer]
+            - link [ref=f10e169] [cursor=pointer]:
+              - /url: https://doi.org/10.1016/j.peh.2024.100288
+              - generic [ref=f10e170]:
+                - text: 10.1016/j.peh.2024.100288
+                - img "Opens in new window" [ref=f10e171]
+        - navigation "In-page navigation" [ref=f10e173]:
+          - list [ref=f10e174]:
+            - listitem [ref=f10e175]:
+              - link "Article" [ref=f10e176] [cursor=pointer]:
+                - /url: "#article"
+            - listitem [ref=f10e177]:
+              - link "Recommended articles" [ref=f10e178] [cursor=pointer]:
+                - /url: "#recommended-articles"
+            - listitem [ref=f10e179]:
+              - link "Cited by (11)" [ref=f10e180] [cursor=pointer]:
+                - /url: "#cited-by"
+            - listitem [ref=f10e182]:
+              - link "Metrics" [ref=f10e183] [cursor=pointer]:
+                - /url: "#metrics"
+        - navigation "Table of contents" [ref=f10e185]:
+          - generic [ref=f10e187]:
+            - heading "Outline" [level=2] [ref=f10e188]
+            - generic [ref=f10e189]:
+              - list [ref=f10e190]:
+                - listitem [ref=f10e191]:
+                  - link "Abstract" [ref=f10e192] [cursor=pointer]:
+                    - /url: "#abs0001"
+                - listitem [ref=f10e194]:
+                  - link "Keywords" [ref=f10e195] [cursor=pointer]:
+                    - /url: "#keys0001"
+                - listitem [ref=f10e197]:
+                  - link "1. Introduction" [ref=f10e198] [cursor=pointer]:
+                    - /url: "#sec0001"
+                - listitem [ref=f10e201]:
+                  - link "2. Case report" [ref=f10e202] [cursor=pointer]:
+                    - /url: "#sec0002"
+                - listitem [ref=f10e205]:
+                  - link "3. Concluding remarks" [ref=f10e206] [cursor=pointer]:
+                    - /url: "#sec0010"
+                - listitem [ref=f10e209]:
+                  - link "CRediT authorship contribution statement" [ref=f10e210] [cursor=pointer]:
+                    - /url: "#sec0010a"
+                - listitem [ref=f10e212]:
+                  - link "Declaration of competing interest" [ref=f10e213] [cursor=pointer]:
+                    - /url: "#coi0001"
+                - listitem [ref=f10e215]:
+                  - link "References" [ref=f10e216] [cursor=pointer]:
+                    - /url: "#cebibl1"
+              - button "Show full outline" [ref=f10e218] [cursor=pointer]
+        - generic [ref=f10e222]:
+          - generic [ref=f10e224]:
+            - heading "Abstract" [level=2] [ref=f10e225]
+            - generic [ref=f10e227]:
+              - text: Non-medical androgen use is on the rise, with short-term
+              - link "side effects" [ref=f10e228] [cursor=pointer]:
+                - /url: /topics/nursing-and-health-professions/side-effect
+              - generic [ref=f10e229]:
+                - text: being well-documented whereas long-term consequences remain less understood but are likely to entail cardiovascular illness and permanent endocrine disruptions. Current educational initiatives are falling short in curbing this significant increase, signaling the need for a different approach. In this context, harm reduction emerges as a promising secondary prevention strategy. The key principles of the harm reduction approach outlined in this article emphasize educating individuals about
+                - link "side effects" [ref=f10e230] [cursor=pointer]:
+                  - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/side-effect
+                - text: ", limiting androgen use, and monitoring health closely. Successful implementation of this strategy hinges upon healthcare providers possessing expertise in the field, fostering non-judgmental interpersonal relationships, and securing cooperation of the athlete. The efficacy of this strategy will be rigorously evaluated in the HARNAS trial, comparing its outcomes with those of a historical control group. The findings from this trial are anticipated to be published in the coming years, shedding light on the effectiveness of this pioneering approach."
+          - generic [ref=f10e233]:
+            - heading "Keywords" [level=2] [ref=f10e234]
+            - generic [ref=f10e235]: Anabolic steroids
+            - text: ;
+            - generic [ref=f10e236]: Androgen use
+            - text: ;
+            - generic [ref=f10e237]: Harm reduction
+            - text: ;
+            - generic [ref=f10e238]: Body building
+          - list [ref=f10e239]:
+            - listitem [ref=f10e240]:
+              - link "Previous article in this issue" [ref=f10e241] [cursor=pointer]:
+                - /url: /science/article/pii/S2211266924000495
+            - listitem [ref=f10e246]:
+              - link "Next article in this issue" [ref=f10e247] [cursor=pointer]:
+                - /url: /science/article/pii/S2211266924000264
+          - generic [ref=f10e252]:
+            - generic [ref=f10e253]:
+              - generic [ref=f10e254]:
+                - heading "1. Introduction" [level=2] [ref=f10e255]
+                - generic [ref=f10e256]:
+                  - text: This article is a commentary on the pressing issue of non-medical androgen use by strength athletes who frequent the gym, which has seen a significant rise in recent years (
+                  - link "Balk & Melman, 2023" [ref=f10e257] [cursor=pointer]:
+                    - /url: "#bib0004"
+                  - text: ;
+                  - link "Goldman et al., 2018" [ref=f10e259] [cursor=pointer]:
+                    - /url: "#bib0013"
+                  - text: ). While its primary focus is to address the problem of androgen use, it includes a case report to illustrate the complex interactions between people who use androgens and healthcare professionals. This case report is not central to the article but serves to highlight the real-world challenges faced by both parties.
+                - generic [ref=f10e261]:
+                  - generic [ref=f10e262]:
+                    - generic [ref=f10e263]:
+                      - text: To explore potential solutions, the article emphasizes on harm reduction as a strategy. This approach focuses on educating individuals about the
+                      - link "side effects" [ref=f10e264] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/side-effect
+                      - text: of androgens, promoting more responsible use, and implementing close health monitoring. Harm reduction is not a new methodology, with its implementation in various contexts, including
+                    - link "anabolic steroid" [ref=f10e265] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/anabolic-agent
+                    - text: use, dating back over 30 years in the United Kingdom and Australia (
+                  - link "Bates et al., 2021" [ref=f10e266] [cursor=pointer]:
+                    - /url: "#bib0005"
+                  - text: ;
+                  - link "Gibbs et al., 2022" [ref=f10e268] [cursor=pointer]:
+                    - /url: "#bib0012"
+                  - text: ). Trying to expand on the existing knowledge, this article outlines the forthcoming HARNAS trial, which will rigorously evaluate the effectiveness of a clinical and longitudinal harm reduction strategy and compare its outcomes with a historical control group. The findings from the HARNAS trial are anticipated to offer valuable insights and contribute to developing best practices for managing androgen use in clinical settings.
+              - generic [ref=f10e270]:
+                - heading "2. Case report" [level=2] [ref=f10e271]
+                - generic [ref=f10e272]:
+                  - text: A 43-year-old man consults his general practitioner because he intends to start using non-prescribed androgens at short notice. His use is motivated by a decline in strength due to his increasing age. Some acquaintances have already started using and could supply him with the required androgens and protocols on how to use them. He requests a blood analysis halfway through his cycle with testosterone and
+                  - link "nandrolone" [ref=f10e273] [cursor=pointer]:
+                    - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/nandrolone
+                  - text: to screen for possible health issues. The consulted general practitioner is not very familiar with non-prescribed androgens and is unwilling to perform the analysis as he would not be able to interpret the results accurately. He advises the patient to refrain from starting androgens, but the man is adamant and intends to proceed regardless.
+                - generic [ref=f10e274]:
+                  - text: Two years later, the man consults the general practitioner again. He has been using androgens continuously for the last two years, alternating high-dose cycles with a relatively low
+                  - link "maintenance dose" [ref=f10e275] [cursor=pointer]:
+                    - /url: /topics/nursing-and-health-professions/maintenance-drug-dose
+                  - generic [ref=f10e276]:
+                    - text: . He did not want to quit his use after the first cycle, as he was reluctant to face a decline in the strength that he had accrued. To boost performance even further, he uses growth hormone 4 IU per day and
+                    - link "insulin glargine" [ref=f10e277] [cursor=pointer]:
+                      - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/insulin-glargine
+                    - generic [ref=f10e278]:
+                      - generic [ref=f10e279]:
+                        - text: 10 IU before bedtime. He has undergone blood tests several times through a private laboratory that does not provide review by a medical professional. The athletic performance coach, who lacks a formal medical education, has reviewed the results of the blood test instead, in order to direct medical advice. His hematocrit has been elevated ever since he started using. His current request is for treatment of his
+                        - link "elevated blood pressure" [ref=f10e280] [cursor=pointer]:
+                          - /url: /topics/nursing-and-health-professions/elevated-blood-pressure
+                        - text: ", which stands at 160/100 mmHg, even when using lower androgen dosages. The general practitioner declines to prescribe"
+                      - link "antihypertensive drugs" [ref=f10e281] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/antihypertensive-agent
+                      - text: and advises the patient to discontinue using androgens instead.
+                - generic [ref=f10e282]:
+                  - generic [ref=f10e283]:
+                    - generic [ref=f10e284]:
+                      - text: Five years after his initial consultation, having never stopped androgens in an effort to push his limits even further, the man is admitted to the
+                      - link "cardiology" [ref=f10e285] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/cardiology
+                      - text: ward with hypertension,
+                    - link "left ventricular hypertrophy" [ref=f10e286] [cursor=pointer]:
+                      - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/heart-left-ventricle-hypertrophy
+                    - text: ", and signs of heart failure. His left ventricular"
+                  - link "ejection fraction" [ref=f10e287] [cursor=pointer]:
+                    - /url: /topics/nursing-and-health-professions/heart-ejection-fraction
+                  - generic [ref=f10e288]:
+                    - text: has declined to 30 %. He recently initiated a heavy cycle for an upcoming bodybuilding competition. Despite self-medicating with
+                    - link "telmisartan" [ref=f10e289] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/telmisartan
+                    - generic [ref=f10e290]:
+                      - text: from the black market, his blood pressure remains high. As a result of these events, the patient decides to discontinue cycling with high doses of androgens but intends to continue using testosterone in a lower
+                      - link "maintenance dose" [ref=f10e291] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/maintenance-drug-dose
+                      - text: .
+                - generic [ref=f10e292]:
+                  - text: The presented case effectively highlights the intricate and challenging interaction between athletes who use
+                  - link "anabolic steroids" [ref=f10e293] [cursor=pointer]:
+                    - /url: /topics/medicine-and-dentistry/anabolic-agent
+                  - generic [ref=f10e294]:
+                    - text: and healthcare professionals. Constrained by a lack of knowledge about androgens, the general practitioner is unable to adequately educate the man about the associated
+                    - link "side effects" [ref=f10e295] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/side-effect
+                    - text: and risks. Unsupported by guidelines on managing people who use androgens, he declines to assist with health check-ups. When the man presents with hypertension, he sensibly advises discontinuing androgens, though he likely knows this advice may not be heeded.
+                - generic [ref=f10e296]:
+                  - generic [ref=f10e297]:
+                    - text: The patient, a typical determined user of androgens, has made efforts to monitor his health through blood work and
+                    - link "blood pressure measurements" [ref=f10e298] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/blood-pressure-measurement
+                    - generic [ref=f10e299]:
+                      - text: . However, he lacks the ability to accurately interpret the results, anticipate potential consequences on his health, or address emerging
+                      - link "side effects" [ref=f10e300] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/side-effect
+                      - text: adequately. This culmination leads to a serious
+                  - link "adverse event" [ref=f10e301] [cursor=pointer]:
+                    - /url: /topics/nursing-and-health-professions/adverse-event
+                  - text: that may have been prevented with better patient education or side effect management—or had the man never used androgens at all.
+                - generic [ref=f10e302]:
+                  - heading "2.1. Androgen use and its health effects" [level=3] [ref=f10e303]
+                  - generic [ref=f10e304]:
+                    - text: Anabolic-androgenic steroids (AAS), or simply androgens, have been used for decades to enhance muscle mass and strength. While androgen use was largely restricted to elite bodybuilders in the 1980s and 1990s, nowadays, its use has become widespread among amateur athletes (
+                    - link "Handelsman, 2021" [ref=f10e305] [cursor=pointer]:
+                      - /url: "#bib0016"
+                    - text: ), i.e., strength athletes not taking part in bodybuilding competitions, and often goes beyond bodybuilding as a means to improve body image. In the Netherlands, the prevalence of androgen use, measured as any use in the last 12 months, has surged from 20,000 in 2009 (
+                    - link "Woerdeman et al., 2010" [ref=f10e307] [cursor=pointer]:
+                      - /url: "#bib0039"
+                    - text: ) to almost half a million in 2023 (
+                    - link "Balk & Melman, 2023" [ref=f10e309] [cursor=pointer]:
+                      - /url: "#bib0004"
+                    - text: ).
+                  - generic [ref=f10e311]:
+                    - generic [ref=f10e312]:
+                      - generic [ref=f10e313]:
+                        - generic [ref=f10e314]:
+                          - text: The harmful effects of androgen use are increasingly understood. Short-term side effects, including irritability,
+                          - link "gynecomastia" [ref=f10e315] [cursor=pointer]:
+                            - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/gynecomastia
+                          - text: ", and"
+                        - link "acne" [ref=f10e316] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/acneiform-eruption
+                        - text: during androgen use are well recognized, just as fatigue,
+                      - link "loss of libido" [ref=f10e317] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/libido-disorder
+                      - generic [ref=f10e318]:
+                        - text: ", and depressed mood after discontinuation due to temporary"
+                        - link "hypogonadism" [ref=f10e319] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/hypogonadism
+                        - text: which may be highly variable in people who use androgens (
+                    - link "Bond et al., 2022" [ref=f10e320] [cursor=pointer]:
+                      - /url: "#bib0008"
+                    - text: ;
+                    - link "Smit et al., 2022" [ref=f10e322] [cursor=pointer]:
+                      - /url: "#bib0033"
+                    - text: ;
+                    - link "Solanki et al., 2023" [ref=f10e324] [cursor=pointer]:
+                      - /url: "#bib0029"
+                    - text: ). The severity and the incidence of these adverse effects are less understood, however. The long-term effects on health remain even less clear and are the most important gaps in current knowledge. This notwithstanding, cardiovascular disease and the risk of permanent dysfunction of the hypothalamic-pituitary-gonadal axis are prominent concerns (
+                    - link "Baggish et al., 2017" [ref=f10e326] [cursor=pointer]:
+                      - /url: "#bib0003"
+                    - text: ;
+                    - link "Kanayama et al., 2018" [ref=f10e328] [cursor=pointer]:
+                      - /url: "#bib0023"
+                    - text: ).
+                  - generic [ref=f10e330]:
+                    - text: Educational programs in many countries have endeavored to inform young athletes about the risks of androgen use and promote "natural" bodybuilding with proper dietary and training regimens and safe performance-enhancing supplements (
+                    - link "Hurst et al., 2023" [ref=f10e331] [cursor=pointer]:
+                      - /url: "#bib0022"
+                    - text: ;
+                    - link "Sagoe et al., 2016" [ref=f10e333] [cursor=pointer]:
+                      - /url: "#bib0027"
+                    - text: ). However, the increasing prevalence of androgen use suggests that this approach may be insufficient, highlighting the urgent need for emphasis on a different approach.
+                - generic [ref=f10e335]:
+                  - heading "2.2. Harm reduction as a different approach to androgen use" [level=3] [ref=f10e336]
+                  - generic [ref=f10e337]:
+                    - text: Harm reduction could offer such an approach. It focuses on mitigating the negative consequences of androgen use, assuming that certain athletes will continue to use these substances. The primary goal is not necessarily to compel users to quit androgen use outright–although this would be a welcome collateral effect–but rather to minimize its adverse effects by providing education on more responsible usage and treating emerging side effects. The call for harm reduction as an approach for androgen use is growing, with recent studies emphasizing the need for tailored harm reduction strategies and healthcare professional training (
+                    - link "Atkinson et al., 2021" [ref=f10e338] [cursor=pointer]:
+                      - /url: "#bib0002"
+                    - text: ;
+                    - link "Bonnecaze et al., 2021" [ref=f10e340] [cursor=pointer]:
+                      - /url: "#bib0009"
+                    - text: ;
+                    - link "Bates et al., 2019" [ref=f10e342] [cursor=pointer]:
+                      - /url: "#bib0006"
+                    - text: ","
+                    - link "2021" [ref=f10e344] [cursor=pointer]:
+                      - /url: "#bib0005"
+                    - text: ). This literature highlights the potential benefits of these approaches, such as better engagement with healthcare services and more informed users (
+                    - link "Piatkowski et al., 2022" [ref=f10e346] [cursor=pointer]:
+                      - /url: "#bib40"
+                    - text: ). In addition, reports have showed promising results from general practitioners interacting with their androgen using patients (
+                    - link "Eu et al., 2023" [ref=f10e348] [cursor=pointer]:
+                      - /url: "#bib0011"
+                    - text: ) and e-modules being developed to educate healthcare professionals on how to engage with people who use performance- and image-enhancing drugs (
+                    - link "Atkinson et al., 2021" [ref=f10e350] [cursor=pointer]:
+                      - /url: "#bib0002"
+                    - text: ).
+                  - generic [ref=f10e352]:
+                    - generic [ref=f10e353]:
+                      - text: Controversial as it may be for people who use
+                      - link "anabolic steroids" [ref=f10e354] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/anabolic-steroid
+                      - text: ", the concept of harm reduction is not new in medicine ("
+                    - link "Hawk et al., 2017" [ref=f10e355] [cursor=pointer]:
+                      - /url: "#bib0017"
+                    - text: ). Needle and syringe programs aim to reduce the risk of bloodborne virus transmission among people who inject drugs (
+                    - link "van Santen et al., 2021" [ref=f10e357] [cursor=pointer]:
+                      - /url: "#bib0028"
+                    - text: ;
+                    - link "Smye et al., 2011" [ref=f10e359] [cursor=pointer]:
+                      - /url: "#bib0037"
+                    - generic [ref=f10e361]:
+                      - text: ), while
+                      - link "methadone maintenance" [ref=f10e362] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/methadone-treatment
+                      - generic [ref=f10e363]:
+                        - text: therapy helps manage
+                        - link "opioid dependence" [ref=f10e364] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/opioid-dependence
+                        - text: . Testing recreational drugs at festivals to prevent accidental overdoses is another example of effective harm reduction (
+                    - link "Palamar et al., 2021" [ref=f10e365] [cursor=pointer]:
+                      - /url: "#bib0026"
+                    - text: ). Supervised injection facilities provide a safe environment for drug use, reducing the risk of overdose and infection (
+                    - link "Levengood et al., 2021" [ref=f10e367] [cursor=pointer]:
+                      - /url: "#bib0025"
+                    - generic [ref=f10e369]:
+                      - text: ). Additionally, distributing
+                      - link "naloxone" [ref=f10e370] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/naloxone
+                      - text: kits to opioid users and their families helps to prevent fatal overdoses (
+                    - link "Chimbar & Moleta, 2018" [ref=f10e371] [cursor=pointer]:
+                      - /url: "#bib0010"
+                    - generic [ref=f10e373]:
+                      - generic [ref=f10e374]:
+                        - text: ). To some degree, treating
+                        - link "liver cirrhosis" [ref=f10e375] [cursor=pointer]:
+                          - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/liver-cirrhosis
+                        - generic [ref=f10e376]:
+                          - text: in patients who keep drinking alcohol, treating
+                          - link "pulmonary disease" [ref=f10e377] [cursor=pointer]:
+                            - /url: /topics/medicine-and-dentistry/silo-fillers-disease
+                          - text: in patients who continue smoking and treating insulin resistance in
+                      - link "sedentary patients" [ref=f10e378] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/sedentary-patient
+                      - text: could be regarded as harm reduction.
+                  - generic [ref=f10e379]:
+                    - link "Hawk et al. (2017)" [ref=f10e380] [cursor=pointer]:
+                      - /url: "#bib0017"
+                    - generic [ref=f10e382]:
+                      - text: "define six key harm reduction principles that emphasize: humanism, pragmatism, individualism, autonomy, incrementalism, and accountability without termination. These principles guide healthcare providers to treat patients with respect, understand their unique circumstances, support their autonomy, encourage gradual positive changes, and maintain ongoing engagement without moral judgment. In applying these principles to the case study, the healthcare provider should have respected the patient's decision to use androgens, offered safer usage guidelines, and provided regular health monitoring. Building a trusting relationship through non-judgmental communication and comprehensive risk education, the provider could have encouraged safer practices, such as shorter cycles or"
+                      - link "lower doses" [ref=f10e383] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/low-drug-dose
+                      - text: ", while ensuring continuous support and care."
+                - generic [ref=f10e384]:
+                  - heading "2.3. Development of our harm reduction strategy" [level=3] [ref=f10e385]
+                  - generic [ref=f10e386]:
+                    - generic [ref=f10e387]:
+                      - text: In the Netherlands, two hospitals have
+                      - link "outpatient clinics" [ref=f10e388] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/outpatient-department
+                      - text: for people who used androgens in the past and who still experience symptoms related to this use (
+                    - link "Smit & De Ronde, 2018" [ref=f10e389] [cursor=pointer]:
+                      - /url: "#bib0035"
+                    - text: ). Additionally, the HAARLEM study (Health risks of Anabolic Androgenic steroid use in maLE aMateur athletes) has provided valuable prospective observational data on the short-term health effects of androgen use and opportunities to engage with users (
+                    - link "Smit et al., 2022" [ref=f10e391] [cursor=pointer]:
+                      - /url: "#bib0030"
+                    - text: ). The accumulated clinical experience from both the clinic and the study has led to a vast understanding of real-world androgen use and a couple of interesting observations.
+                  - generic [ref=f10e393]:
+                    - generic [ref=f10e394]:
+                      - generic [ref=f10e395]:
+                        - text: First, men who use androgens adhere to certain fundamental principles. These include alternating cycles with high dosages of androgens followed by periods of no use (intermittent cycling) or alternating high-dose cycles with a lower maintenance dose of testosterone (blast-and-cruise), the use of medication to limit side effects such as
+                        - link "gynecomastia" [ref=f10e396] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/gynecomastia
+                        - text: ", and the routine practice of performing post-cycle therapy (PCT). PCT involves using substances like"
+                      - link "selective estrogen receptor modulators" [ref=f10e397] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/selective-estrogen-receptor-modulator
+                      - text: (SERMs) to purportedly expedite recovery of the hypothalamic-pituitary-gonadal axis (
+                    - link "Griffiths et al., 2017" [ref=f10e398] [cursor=pointer]:
+                      - /url: "#bib0015"
+                    - text: ). However, beyond these principles, cycles vary widely in terms of the compounds used and dosing regimens. Many men initially start their cycles with a specific plan in mind but quickly deviate, often opting for longer cycles with higher dosages (
+                    - link "Smit et al., 2020" [ref=f10e400] [cursor=pointer]:
+                      - /url: "#bib0034"
+                    - text: ). This improvisation and escalation in androgen use is particularly concerning as it further exacerbates the detrimental effects on health and narrows the opportunity to quit use in the future.
+                  - generic [ref=f10e402]:
+                    - text: Second, athletes invest significant time in researching androgens, primarily online (
+                    - link "Harvey et al., 2019" [ref=f10e403] [cursor=pointer]:
+                      - /url: "#bib0018"
+                    - generic [ref=f10e405]:
+                      - text: ). Although they may possess a rudimentary understanding of the basic
+                      - link "endocrinology" [ref=f10e406] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/endocrinology
+                      - generic [ref=f10e407]:
+                        - generic [ref=f10e408]:
+                          - text: of androgen use, misconceptions are prevalent, and many knowledge gaps persist—especially regarding cardiovascular and hormonal issues. These misconceptions often lead to underestimation of health risks and, similarly, overestimation of how one can mitigate these risks. Moreover, much of the information, both accurate and inaccurate, is sourced from blogs, forums, anecdotes, or personal social networks, sometimes causing individuals to lose perspective on what is considered 'normal'. For instance, a user may perceive a weekly dose of 300 mg of a
+                          - link "testosterone ester" [ref=f10e409] [cursor=pointer]:
+                            - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/testosterone-ester
+                          - generic [ref=f10e410]:
+                            - text: as a standard maintenance dose (akin to 'testosterone replacement therapy', or TRT) simply because their peers do the same, despite medical TRT generally being dosed roughly between 75 and 100 mg per week. In this regard, it is important to differentiate between testosterone esters and testosterone. Testosterone esters, such as
+                            - link "testosterone enanthate" [ref=f10e411] [cursor=pointer]:
+                              - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/testosterone-enantate
+                            - text: or cypionate, are injectable
+                        - link "prodrugs" [ref=f10e412] [cursor=pointer]:
+                          - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/prodrug
+                        - text: of testosterone that release the hormone slowly into the bloodstream, requiring less frequent dosing. In contrast, testosterone gel is applied daily, delivering a consistent amount of testosterone through the skin but with low (∼10 %) bioavailability, such that the usual dose is about 50 mg per day.
+                  - generic [ref=f10e413]: Thirdly, people who use androgens tend to defer to individuals with expertise in androgens, preferably those with a reputable status—a 'guru'. They consume their content through ‘debunks’, podcasts, and social media feeds, allowing their use of androgens to be influenced by such content. Particularly ardent athletes often seek guidance from bodybuilding coaches who are remunerated to provide advice on lifestyle, diet, training, androgen use, and androgen-related health problems. Likewise, the internists-endocrinologists from the aforementioned outpatient clinics have garnered significant recognition over time, and their advice is typically regarded with seriousness.
+                  - generic [ref=f10e414]:
+                    - generic [ref=f10e415]:
+                      - text: These observations could inform a harm reduction strategy, wherein counseling aims to educate users about the risks of androgen use using reliable and evidence-based information. The strategy would also advocate for more responsible (i.e., less excessive), cycle protocols, discouraging improvisation and escalating use, thereby limiting the time spent performing cycles. Additionally, medical investigations such as blood tests could be conducted to enhance adherence to the strategy, to provide insight into deleterious effects of androgens on
+                      - link "health status" [ref=f10e416] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/health-status
+                      - text: ", and to detect potential health damage at an early stage. It is anticipated that users would heed these advices if provided by a knowledgeable and preferably reputable health professional ("
+                    - link "Havnes et al., 2019" [ref=f10e417] [cursor=pointer]:
+                      - /url: "#bib0019"
+                    - text: ).
+                - generic [ref=f10e419]:
+                  - heading "2.4. Details of the harm reduction strategy" [level=3] [ref=f10e420]
+                  - generic [ref=f10e421]: The initial consultation holds paramount importance in the harm reduction strategy. It is imperative for the healthcare professional to adopt an unbiased approach, demonstrating genuine interest in the athlete and showcasing expertise on androgens to build trust. The athlete should feel at ease discussing bodybuilding and performance enhancement without fear of judgment and should establish a strong interpersonal rapport with the counseling physician.
+                  - generic [ref=f10e422]:
+                    - generic [ref=f10e423]:
+                      - text: During this pivotal meeting, the healthcare professional delves into the goals of the athlete and assesses their feasibility, with or without the use of androgens. Alternative avenues to fulfill the ambitions of the athlete are explored. Emphasis is placed on finding shortcomings in diet, sleep, training, and stress levels, which could otherwise contribute to improved physical performance and may reduce the desire to resort to androgen use. Additionally, the presence of addiction and body dysmorphia is explored and addressed. A significant portion of time is dedicated to educating athletes about the health risks associated with androgen use, considering the
+                      - link "health status" [ref=f10e424] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/health-status
+                      - text: and family history of the athlete. The health risks discussed encompassing physical and psychological side effects, potential long-term
+                    - link "endocrine dysfunction" [ref=f10e425] [cursor=pointer]:
+                      - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/endocrine-disease
+                    - text: ", and cardiovascular disease."
+                  - generic [ref=f10e426]:
+                    - text: "If the athlete remains adamant to use androgens after providing comprehensive information, the healthcare professional advocates for a more responsible approach to using androgens. This includes several key aspects:"
+                    - list [ref=f10e427]:
+                      - listitem [ref=f10e428]:
+                        - generic [ref=f10e429]: •
+                        - generic [ref=f10e431]:
+                          - generic [ref=f10e432]:
+                            - generic [ref=f10e433]:
+                              - text: "Cycle duration: Ideally, cycles should last between 8 and 10, at most 12 weeks. Prolonged cycles increase the risk of side effects, particularly concerning the heart, such as"
+                              - link "left ventricular hypertrophy" [ref=f10e434] [cursor=pointer]:
+                                - /url: /topics/nursing-and-health-professions/heart-left-ventricle-hypertrophy
+                              - text: and diminished
+                            - link "ejection fraction" [ref=f10e435] [cursor=pointer]:
+                              - /url: /topics/medicine-and-dentistry/ejection-fraction
+                            - text: (
+                          - link "Smit et al., 2021c" [ref=f10e436] [cursor=pointer]:
+                            - /url: "#bib0036"
+                          - text: ). In addition, short cycles are believed to result in less severe withdrawal symptoms (
+                          - link "Grant et al., 2023" [ref=f10e438] [cursor=pointer]:
+                            - /url: "#bib0014"
+                          - text: ), facilitating the retention of accrued body mass post-cycle.
+                      - listitem [ref=f10e440]:
+                        - generic [ref=f10e441]: •
+                        - generic [ref=f10e443]:
+                          - text: "Type of compounds: Injectable testosterone esters are preferred, as other androgen types are less well-studied and non-testosterone products obtained from the black market are often unreliable in terms of active ingredients ("
+                          - link "Smit et al., 2020" [ref=f10e444] [cursor=pointer]:
+                            - /url: "#bib0034"
+                          - generic [ref=f10e446]:
+                            - generic [ref=f10e447]:
+                              - text: ). Oral
+                              - link "anabolic steroids" [ref=f10e448] [cursor=pointer]:
+                                - /url: /topics/nursing-and-health-professions/anabolic-agent
+                              - text: in particular should be avoided due to their greater
+                            - link "hepatotoxicity" [ref=f10e449] [cursor=pointer]:
+                              - /url: /topics/medicine-and-dentistry/liver-toxicity
+                            - text: and disturbance of lipid profiles (
+                          - link "Smit et al., 2021c" [ref=f10e450] [cursor=pointer]:
+                            - /url: "#bib0036"
+                          - text: ;
+                          - link "Bond et al., 2016" [ref=f10e452] [cursor=pointer]:
+                            - /url: "#bib0007"
+                          - text: ","
+                          - link "2022" [ref=f10e454] [cursor=pointer]:
+                            - /url: "#bib0008"
+                          - text: ;).
+                      - listitem [ref=f10e456]:
+                        - generic [ref=f10e457]: •
+                        - generic [ref=f10e459]:
+                          - text: "Cycle dose: Weekly cumulative androgen doses should range between 250 and 750 mg, certainly not exceeding 1000 mg. Higher doses yield diminishing returns in terms of gains in muscle mass and strength, and increase the risk of side effects, particularly cardiovascular issues ("
+                          - link "Smit et al., 2021c" [ref=f10e460] [cursor=pointer]:
+                            - /url: "#bib0036"
+                          - text: ).
+                      - listitem [ref=f10e462]:
+                        - generic [ref=f10e463]: •
+                        - generic [ref=f10e465]:
+                          - text: "Recovery period: A strong preference is given to discontinuing all androgens after a cycle, rather than adopting a blast-and-cruise protocol. Recovery time should be at least three months, as this is typically the duration required for full recovery ("
+                          - link "Smit et al., 2021b" [ref=f10e466] [cursor=pointer]:
+                            - /url: "#bib0032"
+                          - generic [ref=f10e468]:
+                            - text: ). Recovery time should ideally be twice the duration of the cycle, to limit androgen exposure. If an athlete persists in performing TRT between cycles (‘bridging’ or ‘cruising’), a weekly maintenance dose of 100–125 mg
+                            - link "testosterone enanthate" [ref=f10e469] [cursor=pointer]:
+                              - /url: /topics/medicine-and-dentistry/testosterone-enantate
+                            - text: or cypionate is recommended.
+                      - listitem [ref=f10e470]:
+                        - generic [ref=f10e471]: •
+                        - generic [ref=f10e473]:
+                          - generic [ref=f10e474]:
+                            - generic [ref=f10e475]:
+                              - text: "Other performance and image-enhancing drugs: Adding additional drugs like growth hormone and insulin to anabolic steroid regimens offers minimal benefits but poses significant health risks, including"
+                              - link "arthropathy" [ref=f10e476] [cursor=pointer]:
+                                - /url: /topics/medicine-and-dentistry/arthropathy
+                              - generic [ref=f10e477]:
+                                - text: and
+                                - link "cardiomyopathy" [ref=f10e478] [cursor=pointer]:
+                                  - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/cardiomyopathy
+                                - text: with growth hormone, and hypoglycemia and
+                            - link "metabolic liver disease" [ref=f10e479] [cursor=pointer]:
+                              - /url: /topics/medicine-and-dentistry/metabolic-liver-disease
+                            - text: with insulin abuse (
+                          - link "Holt et al., 2008" [ref=f10e480] [cursor=pointer]:
+                            - /url: "#bib0021"
+                          - text: ).
+                  - generic [ref=f10e482]:
+                    - generic [ref=f10e483]:
+                      - generic [ref=f10e484]:
+                        - generic [ref=f10e485]:
+                          - generic [ref=f10e486]:
+                            - text: Medical investigations conducted after the initial intake session and during follow-up sessions, both during and after cycles, include
+                            - link "blood pressure measurements" [ref=f10e487] [cursor=pointer]:
+                              - /url: /topics/medicine-and-dentistry/blood-pressure-measurement
+                            - text: ", blood and"
+                          - link "urine analysis" [ref=f10e488] [cursor=pointer]:
+                            - /url: /topics/nursing-and-health-professions/urinalysis
+                          - text: ", and electrocardiography to screen for"
+                        - link "arrhythmia" [ref=f10e489] [cursor=pointer]:
+                          - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/heart-arrhythmia
+                        - text: and
+                      - link "left ventricular hypertrophy" [ref=f10e490] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/left-ventricular-hypertrophy
+                      - generic [ref=f10e491]:
+                        - text: . Ideally,
+                        - link "echocardiography" [ref=f10e492] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/echocardiography
+                        - text: would have been included in the investigations as well to screen cardiac health more meticulously (
+                    - link "Abdullah et al., 2024" [ref=f10e493] [cursor=pointer]:
+                      - /url: "#bib0001"
+                    - text: ;
+                    - link "Henriksen et al., 2023" [ref=f10e495] [cursor=pointer]:
+                      - /url: "#bib0020"
+                    - generic [ref=f10e497]:
+                      - generic [ref=f10e498]:
+                        - text: ), but this was too cost-prohibitive for this study to perform routinely. Blood tests encompass a blood count, liver panel, kidney function, and cholesterol profile to detect
+                        - link "erythrocytosis" [ref=f10e499] [cursor=pointer]:
+                          - /url: /topics/nursing-and-health-professions/erythrocytosis
+                        - text: ","
+                      - link "hepatotoxicity" [ref=f10e500] [cursor=pointer]:
+                        - /url: /topics/nursing-and-health-professions/liver-toxicity
+                      - generic [ref=f10e501]:
+                        - text: ", decreased kidney function, and"
+                        - link "dyslipidemia" [ref=f10e502] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/dyslipidemia
+                        - generic [ref=f10e503]:
+                          - text: ", respectively. Urine tests are primarily for detecting"
+                          - link "proteinuria" [ref=f10e504] [cursor=pointer]:
+                            - /url: /topics/medicine-and-dentistry/proteinuria
+                          - text: . Testosterone concentrations are only measured when androgens are not being used to confirm hormonal recovery. Results are interpreted collaboratively with the athlete and utilized to discuss the potential health impacts with them. Any abnormalities detected before or between cycles should prompt athletes to postpone androgen use, while abnormalities detected during cycles can serve as motivation to adhere to the original cycle plan or discontinue the cycle in case of serious issues.
+                - generic [ref=f10e505]:
+                  - heading "2.5. Caveats with this approach" [level=3] [ref=f10e506]
+                  - generic [ref=f10e507]:
+                    - text: Despite the thoughtfulness and innovation of the presented harm reduction strategy, it is not without its objections. If medical doctors or other health care providers would treat individuals who use androgens, this could be seen as tacitly condoning their unhealthy lifestyle choices. This is certainly an objection in many European countries, including the Netherlands. However, a fundamental principle of harm reduction is providing healthcare without the requirement for cessation of drug use. This approach respects the autonomy of individuals and focuses on minimizing health risks and negative outcomes. While primary prevention and cessation are important goals, harm reduction offers a pragmatic strategy to engage individuals who might not be ready or willing to stop using androgens immediately. Additionally, legislative barriers regarding anabolic steroids may present challenges. It could be difficult for
+                    - link "healthcare facilities" [ref=f10e508] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/health-care-facility
+                    - text: to offer harm reduction methods in countries where the use of anabolic steroids is prohibited. Authorities may not endorse such clinics, and even if they did, athletes might be hesitant to openly discuss and admit their use.
+                  - generic [ref=f10e509]: Arguably, the most significant drawback of offering harm reduction is its potential for enabling androgen use. In essence, individuals who were considering androgen use might feel emboldened to start a cycle simply because a healthcare professional is monitoring their health. If many athletes were to commence using anabolic steroids due to this strategy, it could negate its intended health benefits entirely, rendering the effort futile or even counterproductive. The extent of this enabling effect, if present, cannot be determined until empirical or real-world data becomes available.
+                  - generic [ref=f10e510]:
+                    - text: Additionally, harm reduction for androgen abuse is not widely taught to doctors and healthcare professionals, necessitating specific training to effectively engage in this practice (
+                    - link "Atkinson et al., 2021" [ref=f10e511] [cursor=pointer]:
+                      - /url: "#bib0002"
+                    - text: ). Harm reduction provided by healthcare institutions would then have to compete with the widespread lay harm reduction advice and efforts often disseminated online or through social supply channels (
+                    - link "Kimergård & McVeigh, 2014" [ref=f10e513] [cursor=pointer]:
+                      - /url: "#bib0024"
+                    - text: ). Engaging androgen abusers with public services that provide harm reduction is challenging, as users may not believe that physicians understand their specific needs and goals in bodybuilding (
+                    - link "Henriksen et al., 2023" [ref=f10e515] [cursor=pointer]:
+                      - /url: "#bib0020"
+                    - text: ). This challenge is compounded when the advice provided by professionals is perceived as inconsistent with the users' objectives.
+                - generic [ref=f10e517]:
+                  - heading "2.6. The HARNAS trial" [level=3] [ref=f10e518]
+                  - generic [ref=f10e519]: A harm reduction strategy, if implemented by qualified experts, holds promise for effectiveness. However, its efficacy remains uncertain, and like any new treatment, it requires validation through clinical experimentation. The HARNAS trial (HArm Reduction in aNAbolic Steroid use) compares the harm reduction strategy outlined above with a historical control group, the HAARLEM study, which was purely observational. Both studies will involve 100 men with nearly identical inclusion and exclusion criteria to ensure maximum comparability. The follow-up period for both studies is one year. In addition to testing the harm reduction strategy, participants in the HARNAS trial are randomly assigned to a consultation session with a renowned natural strength athlete to explore potential improvements in muscle mass and strength using conventional methods like diet and training regimen enhancements.
+                  - generic [ref=f10e520]:
+                    - text: The primary outcome measure of the trial is the difference in cycle duration between the intervention and control groups. Cycle duration has been chosen to be the most pivotal parameter as it seems that duration of androgen exposure contributes more to cardiovascular risk than does dose (
+                    - link "Smit et al., 2022" [ref=f10e521] [cursor=pointer]:
+                      - /url: "#bib0033"
+                    - text: ). Secondary outcome measures include the weekly cycle dose, cumulative cycle dose, cumulative androgen exposure during the follow-up year, the number of compounds used in the cycle, and the use of growth hormone. The potential enabling effect of the harm reduction intervention is assessed by tracking the number of new users of anabolic steroids at baseline and through questionnaires.
+                  - generic [ref=f10e523]:
+                    - text: The trial has received approval from the local
+                    - link "medical ethics" [ref=f10e524] [cursor=pointer]:
+                      - /url: /topics/medicine-and-dentistry/medical-ethics
+                    - text: committee and is currently concluding data collection. Interim analyses have been conducted to allow for preliminary termination of the trial if no harm reduction effect is perceived or if the enabling effect proves to be too significant. These analyses have already shown promising results. The final reports and their implications for future research and clinical practice will be published in the coming years.
+                - generic [ref=f10e525]:
+                  - heading "2.7. Future horizons" [level=3] [ref=f10e526]
+                  - generic [ref=f10e527]:
+                    - generic [ref=f10e528]:
+                      - text: Not included in the outlined harm reduction strategy is the management of emergent side effects, notably hypertension,
+                      - link "dyslipidemia" [ref=f10e529] [cursor=pointer]:
+                        - /url: /topics/pharmacology-toxicology-and-pharmaceutical-science/dyslipidemia
+                      - generic [ref=f10e530]:
+                        - text: ", and"
+                        - link "erythrocytosis" [ref=f10e531] [cursor=pointer]:
+                          - /url: /topics/medicine-and-dentistry/erythrocytosis
+                        - text: . These conditions could be ameliorated through the prescription of antihypertensives, cholesterol-lowering agents, and
+                    - link "phlebotomy" [ref=f10e532] [cursor=pointer]:
+                      - /url: /topics/nursing-and-health-professions/phlebotomy
+                    - generic [ref=f10e533]:
+                      - text: ", respectively. Given that cardiovascular disease stands as the foremost concern for long-term morbidity, addressing these complications in accordance with contemporary best practices for non-androgen users might facilitate the attenuation of cardiovascular risks alongside the advocacy for more conscientious androgen utilization. For now, future investigations should primarily delve into the underlying mechanisms of these adverse effects, such as elucidating the primary drivers of hypertension—whether stemming predominantly from water and salt retention, heightened sympathetic tone, or dysregulation of the renin-angiotensin system. Subsequently, interventional trials ought to elucidate the most efficacious approaches for each side effect, delineating the optimal pharmacotherapeutic interventions in the context of androgen use and establishing an appropriate"
+                      - link "phlebotomy" [ref=f10e534] [cursor=pointer]:
+                        - /url: /topics/medicine-and-dentistry/phlebotomy
+                      - text: regimen. Moreover, it is imperative to ascertain whether cardiovascular complications should be managed on an individualized basis, contingent upon observed health outcomes in a given patient and/or the duration of androgen misuse, or if standardized medications and procedures should be universally offered to all users.
+              - generic [ref=f10e535]:
+                - heading "3. Concluding remarks" [level=2] [ref=f10e536]
+                - generic [ref=f10e537]: The presented case, alongside the rapidly increasing prevalence of androgen use, underscores the urgent call for proactive measures, such as harm reduction, to mitigate the health repercussions of anabolic steroid use. Healthcare professionals can play a pivotal role in addressing this issue by emphasizing education, more responsible usage, and health monitoring. Despite obstacles like concerns about enabling and legislative barriers, the ongoing HARNAS trial provides optimism for assessing the efficacy of an innovative harm reduction strategy. In the end, new efforts are essential to advocate for safer practices and protect the well-being of individuals engaged in performance-enhancing drug use.
+              - generic [ref=f10e538]:
+                - heading "CRediT authorship contribution statement" [level=2] [ref=f10e539]
+                - generic [ref=f10e540]:
+                  - strong [ref=f10e541]: "Diederik L. Smit:"
+                  - text: Writing – review & editing, Writing – original draft, Conceptualization.
+                  - strong [ref=f10e542]: "Tijs Verdegaal:"
+                  - text: Writing – review & editing.
+                  - strong [ref=f10e543]: "Peter Bond:"
+                  - text: Writing – review & editing.
+                  - strong [ref=f10e544]: "Willem de Ronde:"
+                  - text: Writing – review & editing.
+            - generic [ref=f10e545]:
+              - heading "Declaration of competing interest" [level=2] [ref=f10e546]
+              - generic [ref=f10e547]: The authors declare that there are no conflicts of interest regarding the publication of this paper. This study did not receive any specific grant from funding agencies in the public, commercial, or notfor-profit sectors. All authors have contributed significantly to the research and preparation of the manuscript and have approved the final version submitted for publication.
+          - generic [ref=f10e549]:
+            - heading "References" [level=2] [ref=f10e550]
+            - list [ref=f10e552]:
+              - listitem [ref=f10e553]:
+                - link "Abdullah et al., 2024" [ref=f10e555] [cursor=pointer]:
+                  - /url: "#bbib0001"
+                - generic [ref=f10e557]:
+                  - generic [ref=f10e558]:
+                    - generic [ref=f10e559]:
+                      - text: R. Abdullah, A. Bjørnebekk, L.E. Hauger,
+                      - emphasis [ref=f10e560]: et al.
+                    - generic [ref=f10e561]: Severe biventricular cardiomyopathy in both current and former long-term users of anabolic–androgenic steroids
+                  - generic [ref=f10e562]: European Journal of Preventive Cardiology, 31 (5) (2024), pp. 599-608
+                  - generic [ref=f10e563]:
+                    - link [ref=f10e564] [cursor=pointer]:
+                      - /url: https://doi.org/10.1093/eurjpc/zwad362
+                      - generic [ref=f10e565]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e566]
+                    - link [ref=f10e568] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85181472553&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e569]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e570]
+                    - link [ref=f10e572] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Severe%20biventricular%20cardiomyopathy%20in%20both%20current%20and%20former%20long-term%20users%20of%20anabolicandrogenic%20steroids&publication_year=2024&author=R.%20Abdullah&author=A.%20Bj%C3%B8rnebekk&author=L.E.%20Hauger
+                      - generic [ref=f10e573]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e574]
+              - listitem [ref=f10e576]:
+                - link "Atkinson et al., 2021" [ref=f10e578] [cursor=pointer]:
+                  - /url: "#bbib0002"
+                - generic [ref=f10e580]:
+                  - generic [ref=f10e581]:
+                    - generic [ref=f10e582]:
+                      - text: A.M. Atkinson, K. Van De Ven, M. Cunningham,
+                      - emphasis [ref=f10e583]: et al.
+                    - generic [ref=f10e584]: "Performance and image enhancing drug interventions aimed at increasing knowledge among healthcare professionals (HCP): Reflections on the implementation of the Dopinglinkki e-module in Europe and Australia in the HCP workforce"
+                  - generic [ref=f10e585]: The International Journal of Drug Policy, 95 (2021), Article 103141
+                  - generic [ref=f10e586]:
+                    - link "View PDF" [ref=f10e587] [cursor=pointer]:
+                      - /url: /science/article/pii/S0955395921000396/pdfft?md5=442a0e8a94e7019dc22053368ac4e1a1&pid=1-s2.0-S0955395921000396-main.pdf
+                    - link "View article" [ref=f10e594] [cursor=pointer]:
+                      - /url: /science/article/pii/S0955395921000396
+                    - link [ref=f10e596] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85100383346&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e597]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e598]
+                    - link [ref=f10e600] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Performance%20and%20image%20enhancing%20drug%20interventions%20aimed%20at%20increasing%20knowledge%20among%20healthcare%20professionals%20%3A%20Reflections%20on%20the%20implementation%20of%20the%20Dopinglinkki%20e-module%20in%20Europe%20and%20Australia%20in%20the%20HCP%20workforce&publication_year=2021&author=A.M.%20Atkinson&author=K.%20Van%20De%20Ven&author=M.%20Cunningham
+                      - generic [ref=f10e601]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e602]
+              - listitem [ref=f10e604]:
+                - link "Baggish et al., 2017" [ref=f10e606] [cursor=pointer]:
+                  - /url: "#bbib0003"
+                - generic [ref=f10e608]:
+                  - generic [ref=f10e609]:
+                    - generic [ref=f10e610]:
+                      - text: A.L. Baggish, R.B. Weiner, G. Kanayama,
+                      - emphasis [ref=f10e611]: et al.
+                    - generic [ref=f10e612]: Cardiovascular toxicity of illicit anabolic-androgenic steroid use
+                  - generic [ref=f10e613]: Circulation, 135 (2017), pp. 1991-2002
+                  - generic [ref=f10e614]:
+                    - link [ref=f10e615] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85019668345&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e616]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e617]
+                    - link [ref=f10e619] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Cardiovascular%20toxicity%20of%20illicit%20anabolic-androgenic%20steroid%20use&publication_year=2017&author=A.L.%20Baggish&author=R.B.%20Weiner&author=G.%20Kanayama
+                      - generic [ref=f10e620]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e621]
+              - listitem [ref=f10e623]:
+                - link "Balk and Melman, 2023" [ref=f10e625] [cursor=pointer]:
+                  - /url: "#bbib0004"
+                - generic [ref=f10e627]:
+                  - generic [ref=f10e628]:
+                    - generic [ref=f10e629]: L. Balk, M. Melman
+                    - generic [ref=f10e630]: Dopinggebruik in de kracht- en vechtsport
+                  - generic [ref=f10e631]: Mulier Instituut (2023)
+                  - link [ref=f10e633] [cursor=pointer]:
+                    - /url: https://scholar.google.com/scholar_lookup?title=Dopinggebruik%20in%20de%20kracht-%20en%20vechtsport&publication_year=2023&author=L.%20Balk&author=M.%20Melman
+                    - generic [ref=f10e634]:
+                      - text: Google Scholar
+                      - img "Opens in new window" [ref=f10e635]
+              - listitem [ref=f10e637]:
+                - link "Bates et al., 2021" [ref=f10e639] [cursor=pointer]:
+                  - /url: "#bbib0005"
+                - generic [ref=f10e641]:
+                  - generic [ref=f10e642]:
+                    - generic [ref=f10e643]: G. Bates, S. Shepherd, J. McVeigh
+                    - generic [ref=f10e644]: "Harm reduction strategies for androgen users: Providing appropriate support and improving engagement with healthcare"
+                  - generic [ref=f10e645]: Current pin Endocrinol Diabetes Obes, 28 (6) (2021), pp. 630-635
+                  - generic [ref=f10e646]:
+                    - link [ref=f10e647] [cursor=pointer]:
+                      - /url: https://doi.org/10.1097/med.0000000000000676
+                      - generic [ref=f10e648]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e649]
+                    - link [ref=f10e651] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85117320362&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e652]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e653]
+                    - link [ref=f10e655] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Harm%20reduction%20strategies%20for%20androgen%20users%3A%20Providing%20appropriate%20support%20and%20improving%20engagement%20with%20healthcare&publication_year=2021&author=G.%20Bates&author=S.%20Shepherd&author=J.%20McVeigh
+                      - generic [ref=f10e656]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e657]
+              - listitem [ref=f10e659]:
+                - link "Bates et al., 2019" [ref=f10e661] [cursor=pointer]:
+                  - /url: "#bbib0006"
+                - generic [ref=f10e663]:
+                  - generic [ref=f10e664]:
+                    - generic [ref=f10e665]: G. Bates, M.C. Van Hout, J.T.W. Teck, J. McVeigh
+                    - generic [ref=f10e666]: "Treatments for people who use anabolic androgenic steroids: A scoping review"
+                  - generic [ref=f10e667]: Harm Reduction Journal, 16 (1) (2019), p. 75
+                  - generic [ref=f10e668]:
+                    - link [ref=f10e669] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85077316582&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e670]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e671]
+                    - link [ref=f10e673] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Treatments%20for%20people%20who%20use%20anabolic%20androgenic%20steroids%3A%20A%20scoping%20review&publication_year=2019&author=G.%20Bates&author=M.C.%20Van%20Hout&author=J.T.W.%20Teck&author=J.%20McVeigh
+                      - generic [ref=f10e674]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e675]
+              - listitem [ref=f10e677]:
+                - link "Bond et al., 2016" [ref=f10e679] [cursor=pointer]:
+                  - /url: "#bbib0007"
+                - generic [ref=f10e681]:
+                  - generic [ref=f10e682]:
+                    - generic [ref=f10e683]: P. Bond, W. Llewellyn, P. Van Mol
+                    - generic [ref=f10e684]: Anabolic androgenic steroid-induced hepatotoxicity
+                  - generic [ref=f10e685]: Medical Hypotheses, 93 (2016), pp. 150-153
+                  - generic [ref=f10e686]:
+                    - link "View PDF" [ref=f10e687] [cursor=pointer]:
+                      - /url: /science/article/pii/S0306987716302158/pdfft?md5=ff05fa472bd975f20199cc5c377b68ac&pid=1-s2.0-S0306987716302158-main.pdf
+                    - link "View article" [ref=f10e694] [cursor=pointer]:
+                      - /url: /science/article/pii/S0306987716302158
+                    - link [ref=f10e696] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-84978795491&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e697]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e698]
+                    - link [ref=f10e700] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Anabolic%20androgenic%20steroid-induced%20hepatotoxicity&publication_year=2016&author=P.%20Bond&author=W.%20Llewellyn&author=P.%20Van%20Mol
+                      - generic [ref=f10e701]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e702]
+              - listitem [ref=f10e704]:
+                - link "Bond et al., 2022" [ref=f10e706] [cursor=pointer]:
+                  - /url: "#bbib0008"
+                - generic [ref=f10e708]:
+                  - generic [ref=f10e709]:
+                    - generic [ref=f10e710]: P. Bond, D.L. Smit, W. de Ronde
+                    - generic [ref=f10e711]: "Anabolic-androgenic steroids: How do they work and what are the risks?"
+                  - generic [ref=f10e712]: Front Endocrinol, 13 (2022), Article 1059473
+                  - generic [ref=f10e713]:
+                    - link [ref=f10e714] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85146166864&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e715]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e716]
+                    - link [ref=f10e718] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Anabolic-androgenic%20steroids%3A%20How%20do%20they%20work%20and%20what%20are%20the%20risks&publication_year=2022&author=P.%20Bond&author=D.L.%20Smit&author=W.%20de%20Ronde
+                      - generic [ref=f10e719]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e720]
+              - listitem [ref=f10e722]:
+                - link "Bonnecaze et al., 2021" [ref=f10e724] [cursor=pointer]:
+                  - /url: "#bbib0009"
+                - generic [ref=f10e726]:
+                  - generic [ref=f10e727]:
+                    - generic [ref=f10e728]: A.K. Bonnecaze, T. O'Connor, C.A Burns
+                    - generic [ref=f10e729]: "Harm reduction in male patients actively using anabolic androgenic steroids (AAS) and performance-enhancing drugs (PEDs): A review"
+                  - generic [ref=f10e730]: Journal of General Internal Medicine, 36 (7) (2021), pp. 2055-2064
+                  - generic [ref=f10e731]:
+                    - link [ref=f10e732] [cursor=pointer]:
+                      - /url: https://doi.org/10.1007/s11606-021-06751-3
+                      - generic [ref=f10e733]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e734]
+                    - link [ref=f10e736] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85105459144&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e737]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e738]
+                    - link [ref=f10e740] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Harm%20reduction%20in%20male%20patients%20actively%20using%20anabolic%20androgenic%20steroids%20%20and%20performance-enhancing%20drugs%20%3A%20A%20review&publication_year=2021&author=A.K.%20Bonnecaze&author=T.%20O'Connor&author=C.A%20Burns
+                      - generic [ref=f10e741]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e742]
+              - listitem [ref=f10e744]:
+                - link "Chimbar and Moleta, 2018" [ref=f10e746] [cursor=pointer]:
+                  - /url: "#bbib0010"
+                - generic [ref=f10e748]:
+                  - generic [ref=f10e749]:
+                    - generic [ref=f10e750]: L.&. Chimbar, Y. Moleta
+                    - generic [ref=f10e751]: "Naloxone Effectiveness: A Systematic Review"
+                  - generic [ref=f10e752]: Journal of Addictions Nursing, 29 (3) (2018), pp. 167-171
+                  - generic [ref=f10e753]:
+                    - link [ref=f10e754] [cursor=pointer]:
+                      - /url: https://doi.org/10.1097/jan.0000000000000230
+                      - generic [ref=f10e755]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e756]
+                    - link [ref=f10e758] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85053354678&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e759]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e760]
+                    - link [ref=f10e762] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Naloxone%20Effectiveness%3A%20A%20Systematic%20Review&publication_year=2018&author=L.%26.%20Chimbar&author=Y.%20Moleta
+                      - generic [ref=f10e763]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e764]
+              - listitem [ref=f10e766]:
+                - link "Eu et al., 2023" [ref=f10e768] [cursor=pointer]:
+                  - /url: "#bbib0011"
+                - generic [ref=f10e770]:
+                  - generic [ref=f10e771]:
+                    - generic [ref=f10e772]:
+                      - text: B. Eu, J. Dawe, M. Dunn,
+                      - emphasis [ref=f10e773]: et al.
+                    - generic [ref=f10e774]: "Impact of harm reduction practice on the use of non-prescribed performance and image-enhancing drugs: The PUSH! Audit"
+                  - generic [ref=f10e775]: Australian Journal of General Practice, 52 (4) (2023), pp. 197-202
+                  - generic [ref=f10e776]:
+                    - link [ref=f10e777] [cursor=pointer]:
+                      - /url: https://doi.org/10.31128/ajgp-04-22-6402
+                      - generic [ref=f10e778]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e779]
+                    - link [ref=f10e781] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85151785018&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e782]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e783]
+                    - link [ref=f10e785] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Impact%20of%20harm%20reduction%20practice%20on%20the%20use%20of%20non-prescribed%20performance%20and%20image-enhancing%20drugs%3A%20The%20PUSH%20Audit&publication_year=2023&author=B.%20Eu&author=J.%20Dawe&author=M.%20Dunn
+                      - generic [ref=f10e786]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e787]
+              - listitem [ref=f10e789]:
+                - link "Gibbs et al., 2022" [ref=f10e791] [cursor=pointer]:
+                  - /url: "#bbib0012"
+                - generic [ref=f10e793]:
+                  - generic [ref=f10e794]:
+                    - generic [ref=f10e795]: N. Gibbs, L. Cox, L. Turnock
+                    - generic [ref=f10e796]: "Anabolics coaching: Emic harm reduction or a public health concern?"
+                  - generic [ref=f10e797]: Performance Enhancement & Health, 10 (3) (2022), Article 100227
+                  - generic [ref=f10e798]:
+                    - link "View PDF" [ref=f10e799] [cursor=pointer]:
+                      - /url: /science/article/pii/S2211266922000184/pdfft?md5=6a04e9711eb8b8ee0cb408132bbf94c9&pid=1-s2.0-S2211266922000184-main.pdf
+                    - link "View article" [ref=f10e806] [cursor=pointer]:
+                      - /url: /science/article/pii/S2211266922000184
+                    - link [ref=f10e808] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85134334424&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e809]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e810]
+                    - link [ref=f10e812] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Anabolics%20coaching%3A%20Emic%20harm%20reduction%20or%20a%20public%20health%20concern&publication_year=2022&author=N.%20Gibbs&author=L.%20Cox&author=L.%20Turnock
+                      - generic [ref=f10e813]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e814]
+              - listitem [ref=f10e816]:
+                - link "Goldman et al., 2018" [ref=f10e818] [cursor=pointer]:
+                  - /url: "#bbib0013"
+                - generic [ref=f10e820]:
+                  - generic [ref=f10e821]:
+                    - generic [ref=f10e822]: A. Goldman, H. Pope, S. Bhasin
+                    - generic [ref=f10e823]: The health threat posed by the hidden epidemic of anabolic steroid use and body image disorders among young men
+                  - generic [ref=f10e824]: Endocrinology, Diabetes & Metabolism, 104 (2018), pp. 1069-1074
+                  - link [ref=f10e826] [cursor=pointer]:
+                    - /url: https://scholar.google.com/scholar_lookup?title=The%20health%20threat%20posed%20by%20the%20hidden%20epidemic%20of%20anabolic%20steroid%20use%20and%20body%20image%20disorders%20among%20young%20men&publication_year=2018&author=A.%20Goldman&author=H.%20Pope&author=S.%20Bhasin
+                    - generic [ref=f10e827]:
+                      - text: Google Scholar
+                      - img "Opens in new window" [ref=f10e828]
+              - listitem [ref=f10e830]:
+                - link "Grant et al., 2023" [ref=f10e832] [cursor=pointer]:
+                  - /url: "#bbib0014"
+                - generic [ref=f10e834]:
+                  - generic [ref=f10e835]:
+                    - generic [ref=f10e836]:
+                      - text: B. Grant, J. Kean, N. Vali,
+                      - emphasis [ref=f10e837]: et al.
+                    - generic [ref=f10e838]: "The use of post-cycle therapy is associated with reduced withdrawal symptoms from anabolic-androgenic steroid use: A survey of 470 men"
+                  - generic [ref=f10e839]: Substance Abuse Treatment, Prevention, and Policy, 18 (1) (2023), p. 66
+                  - generic [ref=f10e840]:
+                    - link [ref=f10e841] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85176232453&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e842]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e843]
+                    - link [ref=f10e845] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=The%20use%20of%20post-cycle%20therapy%20is%20associated%20with%20reduced%20withdrawal%20symptoms%20from%20anabolic-androgenic%20steroid%20use%3A%20A%20survey%20of%20470%20men&publication_year=2023&author=B.%20Grant&author=J.%20Kean&author=N.%20Vali
+                      - generic [ref=f10e846]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e847]
+              - listitem [ref=f10e849]:
+                - link "Griffiths et al., 2017" [ref=f10e851] [cursor=pointer]:
+                  - /url: "#bbib0015"
+                - generic [ref=f10e853]:
+                  - generic [ref=f10e854]:
+                    - generic [ref=f10e855]: S. Griffiths, R. Henshaw, F.H. McKay, M. Dunn
+                    - generic [ref=f10e856]: "Post-cycle therapy for performance and image enhancing drug users: A qualitative investigation"
+                  - generic [ref=f10e857]: Performance Enhancement & Health, 5 (3) (2017), pp. 103-107
+                  - generic [ref=f10e858]:
+                    - link "View PDF" [ref=f10e859] [cursor=pointer]:
+                      - /url: /science/article/pii/S2211266916300238/pdfft?md5=47c923a5006fe5c718e494c6bd43d596&pid=1-s2.0-S2211266916300238-main.pdf
+                    - link "View article" [ref=f10e866] [cursor=pointer]:
+                      - /url: /science/article/pii/S2211266916300238
+                    - link [ref=f10e868] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85006922661&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e869]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e870]
+                    - link [ref=f10e872] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Post-cycle%20therapy%20for%20performance%20and%20image%20enhancing%20drug%20users%3A%20A%20qualitative%20investigation&publication_year=2017&author=S.%20Griffiths&author=R.%20Henshaw&author=F.H.%20McKay&author=M.%20Dunn
+                      - generic [ref=f10e873]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e874]
+              - listitem [ref=f10e876]:
+                - link "Handelsman, 2021" [ref=f10e878] [cursor=pointer]:
+                  - /url: "#bbib0016"
+                - generic [ref=f10e880]:
+                  - generic [ref=f10e881]:
+                    - generic [ref=f10e882]: D.J. Handelsman
+                    - generic [ref=f10e883]: Androgen misuse and abuse
+                  - generic [ref=f10e884]: Endocrine reviews, 42 (4) (2021), pp. 457-501
+                  - generic [ref=f10e885]:
+                    - link [ref=f10e886] [cursor=pointer]:
+                      - /url: https://doi.org/10.1210/endrev/bnab001
+                      - generic [ref=f10e887]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e888]
+                    - link [ref=f10e890] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85109154824&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e891]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e892]
+                    - link [ref=f10e894] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Androgen%20misuse%20and%20abuse&publication_year=2021&author=D.J.%20Handelsman
+                      - generic [ref=f10e895]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e896]
+              - listitem [ref=f10e898]:
+                - link "Hawk et al., 2017" [ref=f10e900] [cursor=pointer]:
+                  - /url: "#bbib0017"
+                - generic [ref=f10e902]:
+                  - generic [ref=f10e903]:
+                    - generic [ref=f10e904]:
+                      - text: M. Hawk, R.W.S. Coulter, J.E. Egan,
+                      - emphasis [ref=f10e905]: et al.
+                    - generic [ref=f10e906]: Harm reduction principles for healthcare settings
+                  - generic [ref=f10e907]: Harm Reduction Journal, 14 (2017), p. 70
+                  - generic [ref=f10e908]:
+                    - link [ref=f10e909] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85042881704&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e910]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e911]
+                    - link [ref=f10e913] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Harm%20reduction%20principles%20for%20healthcare%20settings&publication_year=2017&author=M.%20Hawk&author=R.W.S.%20Coulter&author=J.E.%20Egan
+                      - generic [ref=f10e914]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e915]
+              - listitem [ref=f10e917]:
+                - link "Harvey et al., 2019" [ref=f10e919] [cursor=pointer]:
+                  - /url: "#bbib0018"
+                - generic [ref=f10e921]:
+                  - generic [ref=f10e922]:
+                    - generic [ref=f10e923]: O. Harvey, S. Keen, M. Parrish, E. van Teijlingen
+                    - generic [ref=f10e924]: "Support for people who use anabolic androgenic steroids: A systematic scoping review into what they want and what they access"
+                  - generic [ref=f10e925]: BMC Public Health, 19 (1) (2019), p. 1024
+                  - generic [ref=f10e926]:
+                    - link [ref=f10e927] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85070904757&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e928]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e929]
+                    - link [ref=f10e931] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Support%20for%20people%20who%20use%20anabolic%20androgenic%20steroids%3A%20A%20systematic%20scoping%20review%20into%20what%20they%20want%20and%20what%20they%20access&publication_year=2019&author=O.%20Harvey&author=S.%20Keen&author=M.%20Parrish&author=E.%20van%20Teijlingen
+                      - generic [ref=f10e932]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e933]
+              - listitem [ref=f10e935]:
+                - link "Havnes et al., 2019" [ref=f10e937] [cursor=pointer]:
+                  - /url: "#bbib0019"
+                - generic [ref=f10e939]:
+                  - generic [ref=f10e940]:
+                    - generic [ref=f10e941]: I.A. Havnes, M.L. Jørstad, C. Wisløff
+                    - generic [ref=f10e942]: Anabolic-androgenic steroid users receiving health-related information; health problems, motivations to quit and treatment desires
+                  - generic [ref=f10e943]: Substance Abuse Treatment, Prevention, and Policy, 14 (1) (2019), p. 20
+                  - generic [ref=f10e944]:
+                    - link [ref=f10e945] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85065872372&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e946]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e947]
+                    - link [ref=f10e949] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Anabolic-androgenic%20steroid%20users%20receiving%20health-related%20information%3B%20health%20problems%2C%20motivations%20to%20quit%20and%20treatment%20desires&publication_year=2019&author=I.A.%20Havnes&author=M.L.%20J%C3%B8rstad&author=C.%20Wisl%C3%B8ff
+                      - generic [ref=f10e950]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e951]
+              - listitem [ref=f10e953]:
+                - link "Henriksen et al., 2023" [ref=f10e955] [cursor=pointer]:
+                  - /url: "#bbib0020"
+                - generic [ref=f10e957]:
+                  - generic [ref=f10e958]:
+                    - generic [ref=f10e959]: H.C.B. Henriksen, I.A. Havnes, M.L. Jørstad, A. Bjørnebekk
+                    - generic [ref=f10e960]: "Health service engagement, side effects and concerns among men with anabolic-androgenic steroid use: A cross-sectional Norwegian study"
+                  - generic [ref=f10e961]: Substance Abuse Treatment, Prevention, and Policy, 18 (1) (2023), p. 19
+                  - generic [ref=f10e962]:
+                    - link [ref=f10e963] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85151697443&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e964]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e965]
+                    - link [ref=f10e967] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Health%20service%20engagement%2C%20side%20effects%20and%20concerns%20among%20men%20with%20anabolic-androgenic%20steroid%20use%3A%20A%20cross-sectional%20Norwegian%20study&publication_year=2023&author=H.C.B.%20Henriksen&author=I.A.%20Havnes&author=M.L.%20J%C3%B8rstad&author=A.%20Bj%C3%B8rnebekk
+                      - generic [ref=f10e968]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e969]
+              - listitem [ref=f10e971]:
+                - link "Holt and Sönksen, 2008" [ref=f10e973] [cursor=pointer]:
+                  - /url: "#bbib0021"
+                - generic [ref=f10e975]:
+                  - generic [ref=f10e976]:
+                    - generic [ref=f10e977]: R.I. Holt, P.H. Sönksen
+                    - generic [ref=f10e978]: Growth hormone, IGF-I and insulin and their abuse in sport
+                  - generic [ref=f10e979]: British Journal of Pharmacology, 154 (3) (2008), pp. 542-556
+                  - generic [ref=f10e980]:
+                    - link [ref=f10e981] [cursor=pointer]:
+                      - /url: https://doi.org/10.1038/bjp.2008.99
+                      - generic [ref=f10e982]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e983]
+                    - link [ref=f10e985] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-44349094812&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e986]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e987]
+                    - link [ref=f10e989] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Growth%20hormone%2C%20IGF-I%20and%20insulin%20and%20their%20abuse%20in%20sport&publication_year=2008&author=R.I.%20Holt&author=P.H.%20S%C3%B6nksen
+                      - generic [ref=f10e990]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e991]
+              - listitem [ref=f10e993]:
+                - link "Hurst et al., 2023" [ref=f10e995] [cursor=pointer]:
+                  - /url: "#bbib0022"
+                - generic [ref=f10e997]:
+                  - generic [ref=f10e998]:
+                    - generic [ref=f10e999]: P. Hurst, A. King, K. Massey, M. Kavussanu, C. Ring
+                    - generic [ref=f10e1000]: A national anti-doping education programme reduces doping susceptibility in British athletes
+                  - generic [ref=f10e1001]: Psychology of Sport and Exercise, 69 (2023), Article 102512
+                  - generic [ref=f10e1002]:
+                    - link "View PDF" [ref=f10e1003] [cursor=pointer]:
+                      - /url: /science/article/pii/S146902922300136X/pdfft?md5=5e292cabe9dc481363d8381927c3f52a&pid=1-s2.0-S146902922300136X-main.pdf
+                    - link "View article" [ref=f10e1010] [cursor=pointer]:
+                      - /url: /science/article/pii/S146902922300136X
+                    - link [ref=f10e1012] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85168110892&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1013]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1014]
+                    - link [ref=f10e1016] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=A%20national%20anti-doping%20education%20programme%20reduces%20doping%20susceptibility%20in%20British%20athletes&publication_year=2023&author=P.%20Hurst&author=A.%20King&author=K.%20Massey&author=M.%20Kavussanu&author=C.%20Ring
+                      - generic [ref=f10e1017]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1018]
+              - listitem [ref=f10e1020]:
+                - link "Kanayama et al., 2018" [ref=f10e1022] [cursor=pointer]:
+                  - /url: "#bbib0023"
+                - generic [ref=f10e1024]:
+                  - generic [ref=f10e1025]:
+                    - generic [ref=f10e1026]: G. Kanayama, M.J. Kaufman, H.G. Pope Jr.
+                    - generic [ref=f10e1027]: Public health impact of androgens
+                  - generic [ref=f10e1028]: Current Opinion in Endocrinology, Diabetes, and Obesity, 25 (3) (2018), pp. 218-223
+                  - generic [ref=f10e1029]:
+                    - link [ref=f10e1030] [cursor=pointer]:
+                      - /url: https://doi.org/10.1097/med.0000000000000404
+                      - generic [ref=f10e1031]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1032]
+                    - link [ref=f10e1034] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85046826349&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1035]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1036]
+                    - link [ref=f10e1038] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Public%20health%20impact%20of%20androgens&publication_year=2018&author=G.%20Kanayama&author=M.J.%20Kaufman&author=H.G.%20Pope%20Jr.
+                      - generic [ref=f10e1039]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1040]
+              - listitem [ref=f10e1042]:
+                - link "Kimergård and McVeigh, 2014" [ref=f10e1044] [cursor=pointer]:
+                  - /url: "#bbib0024"
+                - generic [ref=f10e1046]:
+                  - generic [ref=f10e1047]:
+                    - generic [ref=f10e1048]: A. Kimergård, J. McVeigh
+                    - generic [ref=f10e1049]: "Environments, risk and health harms: A qualitative investigation into the illicit use of anabolic steroids among people using harm reduction services in the UK"
+                  - generic [ref=f10e1050]: BMJ Open, 4 (6) (2014), Article e005275
+                  - generic [ref=f10e1051]:
+                    - link [ref=f10e1052] [cursor=pointer]:
+                      - /url: https://doi.org/10.1136/bmjopen-2014-005275
+                      - generic [ref=f10e1053]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1054]
+                    - link [ref=f10e1056] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-84901918360&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1057]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1058]
+                    - link [ref=f10e1060] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Environments%2C%20risk%20and%20health%20harms%3A%20A%20qualitative%20investigation%20into%20the%20illicit%20use%20of%20anabolic%20steroids%20among%20people%20using%20harm%20reduction%20services%20in%20the%20UK&publication_year=2014&author=A.%20Kimerg%C3%A5rd&author=J.%20McVeigh
+                      - generic [ref=f10e1061]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1062]
+              - listitem [ref=f10e1064]:
+                - link "Levengood et al., 2021" [ref=f10e1066] [cursor=pointer]:
+                  - /url: "#bbib0025"
+                - generic [ref=f10e1068]:
+                  - generic [ref=f10e1069]:
+                    - generic [ref=f10e1070]:
+                      - text: T.W. Levengood, G.H. Yoon, M.J. Davoust,
+                      - emphasis [ref=f10e1071]: et al.
+                    - generic [ref=f10e1072]: "Supervised injection facilities as harm reduction: A systematic review"
+                  - generic [ref=f10e1073]: American Journal of Preventive Medicine, 61 (5) (2021), pp. 738-749
+                  - generic [ref=f10e1074]:
+                    - link "View PDF" [ref=f10e1075] [cursor=pointer]:
+                      - /url: /science/article/pii/S0749379721002750/pdfft?md5=73664f400ffef66d12e0451d83f6fc0d&pid=1-s2.0-S0749379721002750-main.pdf
+                    - link "View article" [ref=f10e1082] [cursor=pointer]:
+                      - /url: /science/article/pii/S0749379721002750
+                    - link [ref=f10e1084] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85110189157&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1085]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1086]
+                    - link [ref=f10e1088] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Supervised%20injection%20facilities%20as%20harm%20reduction%3A%20A%20systematic%20review&publication_year=2021&author=T.W.%20Levengood&author=G.H.%20Yoon&author=M.J.%20Davoust
+                      - generic [ref=f10e1089]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1090]
+              - listitem [ref=f10e1092]:
+                - link "Palamar et al., 2021" [ref=f10e1094] [cursor=pointer]:
+                  - /url: "#bbib0026"
+                - generic [ref=f10e1096]:
+                  - generic [ref=f10e1097]:
+                    - generic [ref=f10e1098]: J.J. Palamar, N.D. Fitzgerald, K.M. Keyes, L.B. Cottler
+                    - generic [ref=f10e1099]: "Drug checking at dance festivals: A review with recommendations to increase generalizability of findings"
+                  - generic [ref=f10e1100]: Experimental and Clinical Psychopharmacology, 29 (3) (2021), pp. 229-235
+                  - generic [ref=f10e1101]:
+                    - link [ref=f10e1102] [cursor=pointer]:
+                      - /url: https://doi.org/10.1037/pha0000452
+                      - generic [ref=f10e1103]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1104]
+                    - link [ref=f10e1106] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85112125213&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1107]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1108]
+                    - link [ref=f10e1110] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Drug%20checking%20at%20dance%20festivals%3A%20A%20review%20with%20recommendations%20to%20increase%20generalizability%20of%20findings&publication_year=2021&author=J.J.%20Palamar&author=N.D.%20Fitzgerald&author=K.M.%20Keyes&author=L.B.%20Cottler
+                      - generic [ref=f10e1111]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1112]
+              - listitem [ref=f10e1114]:
+                - link "Piatkowski, Hides, White, Obst, & Dunn, 2022" [ref=f10e1116] [cursor=pointer]:
+                  - /url: "#bbib40"
+                - generic [ref=f10e1118]:
+                  - generic [ref=f10e1119]:
+                    - generic [ref=f10e1120]: T.M. Piatkowski, L.M. Hides, K.M. White, P.L. Obst, M. Dunn
+                    - generic [ref=f10e1121]: Understanding harm reduction perspectives of performance and image enhancing drug consumers and health care providers
+                  - generic [ref=f10e1122]: Performance Enhancement and Health, 10 (3) (2022), pp. 1-8
+                  - generic [ref=f10e1123]:
+                    - link [ref=f10e1124] [cursor=pointer]:
+                      - /url: https://doi.org/10.23919/fusion49751.2022.9841388
+                      - generic [ref=f10e1125]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1126]
+                    - link [ref=f10e1128] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Understanding%20harm%20reduction%20perspectives%20of%20performance%20and%20image%20enhancing%20drug%20consumers%20and%20health%20care%20providers&publication_year=2022&author=T.M.%20Piatkowski&author=L.M.%20Hides&author=K.M.%20White&author=P.L.%20Obst&author=M.%20Dunn
+                      - generic [ref=f10e1129]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1130]
+              - listitem [ref=f10e1132]:
+                - link "Sagoe et al., 2016" [ref=f10e1134] [cursor=pointer]:
+                  - /url: "#bbib0027"
+                - generic [ref=f10e1136]:
+                  - generic [ref=f10e1137]:
+                    - generic [ref=f10e1138]:
+                      - text: D. Sagoe, G. Holden, E.N.K. Rise,
+                      - emphasis [ref=f10e1139]: et al.
+                    - generic [ref=f10e1140]: "Doping prevention through anti-doping education and practical strength training: The Hercules program"
+                  - generic [ref=f10e1141]: Performance Enhancement & Health, 5 (1) (2016), pp. 24-30
+                  - generic [ref=f10e1142]:
+                    - link "View PDF" [ref=f10e1143] [cursor=pointer]:
+                      - /url: /science/article/pii/S221126691530013X/pdfft?md5=509e556ab38d488f99ae356cd417fbdf&pid=1-s2.0-S221126691530013X-main.pdf
+                    - link "View article" [ref=f10e1150] [cursor=pointer]:
+                      - /url: /science/article/pii/S221126691530013X
+                    - link [ref=f10e1152] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-84960533446&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1153]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1154]
+                    - link [ref=f10e1156] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Doping%20prevention%20through%20anti-doping%20education%20and%20practical%20strength%20training%3A%20The%20Hercules%20program&publication_year=2016&author=D.%20Sagoe&author=G.%20Holden&author=E.N.K.%20Rise
+                      - generic [ref=f10e1157]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1158]
+              - listitem [ref=f10e1160]:
+                - link "van Santen et al., 2021" [ref=f10e1162] [cursor=pointer]:
+                  - /url: "#bbib0028"
+                - generic [ref=f10e1164]:
+                  - generic [ref=f10e1165]:
+                    - generic [ref=f10e1166]: D.K. van Santen, R.A. Coutinho, A. van den Hoek, G. van Brussel, M. Buster, M. Prins
+                    - generic [ref=f10e1167]: "Lessons learned from the Amsterdam Cohort Studies among people who use drugs: A historical perspective"
+                  - generic [ref=f10e1168]: Harm Reduction Journal, 18 (1) (2021), p. 2
+                  - generic [ref=f10e1169]:
+                    - link [ref=f10e1170] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85098758401&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1171]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1172]
+                    - link [ref=f10e1174] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Lessons%20learned%20from%20the%20Amsterdam%20Cohort%20Studies%20among%20people%20who%20use%20drugs%3A%20A%20historical%20perspective&publication_year=2021&author=D.K.%20van%20Santen&author=R.A.%20Coutinho&author=A.%20van%20den%20Hoek&author=G.%20van%20Brussel&author=M.%20Buster&author=M.%20Prins
+                      - generic [ref=f10e1175]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1176]
+              - listitem [ref=f10e1178]:
+                - link "Solanki et al., 2023" [ref=f10e1180] [cursor=pointer]:
+                  - /url: "#bbib0029"
+                - generic [ref=f10e1182]:
+                  - generic [ref=f10e1183]:
+                    - generic [ref=f10e1184]:
+                      - text: P. Solanki, B. Eu, J. Smith,
+                      - emphasis [ref=f10e1185]: et al.
+                    - generic [ref=f10e1186]: "Physical, psychological and biochemical recovery from anabolic steroid-induced hypogonadism: A scoping review"
+                  - generic [ref=f10e1187]: Endocrine Connections, 12 (12) (2023), Article e230358
+                  - generic [ref=f10e1188]:
+                    - link [ref=f10e1189] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85175712649&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1190]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1191]
+                    - link [ref=f10e1193] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Physical%2C%20psychological%20and%20biochemical%20recovery%20from%20anabolic%20steroid-induced%20hypogonadism%3A%20A%20scoping%20review&publication_year=2023&author=P.%20Solanki&author=B.%20Eu&author=J.%20Smith
+                      - generic [ref=f10e1194]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1195]
+              - listitem [ref=f10e1197]:
+                - link "Smit et al., 2022" [ref=f10e1199] [cursor=pointer]:
+                  - /url: "#bbib0030"
+                - generic [ref=f10e1201]:
+                  - generic [ref=f10e1202]:
+                    - generic [ref=f10e1203]: D.L. Smit, P. Bond, W. de Ronde
+                    - generic [ref=f10e1204]: "Health effects of androgen abuse: A review of the HAARLEM study"
+                  - generic [ref=f10e1205]: Current Opinion in Endocrinology, Diabetes, and Obesity, 29 (6) (2022), pp. 560-565
+                  - generic [ref=f10e1206]:
+                    - link [ref=f10e1207] [cursor=pointer]:
+                      - /url: https://doi.org/10.1097/med.0000000000000759
+                      - generic [ref=f10e1208]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1209]
+                    - link [ref=f10e1211] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85140817175&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1212]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1213]
+                    - link [ref=f10e1215] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Health%20effects%20of%20androgen%20abuse%3A%20A%20review%20of%20the%20HAARLEM%20study&publication_year=2022&author=D.L.%20Smit&author=P.%20Bond&author=W.%20de%20Ronde
+                      - generic [ref=f10e1216]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1217]
+              - listitem [ref=f10e1219]:
+                - link "Smit et al., 2021b" [ref=f10e1221] [cursor=pointer]:
+                  - /url: "#bbib0032"
+                - generic [ref=f10e1223]:
+                  - generic [ref=f10e1224]:
+                    - generic [ref=f10e1225]: D.L. Smit, M.M. Buijs, O. de Hon, M. den Heijer, W. de Ronde
+                    - generic [ref=f10e1226]: "Positive and negative side effects of androgen abuse. The HAARLEM study: A one-year prospective cohort study in 100 men"
+                  - generic [ref=f10e1227]: Scandinavian Journal of Medicine & Science in Sports, 31 (2) (2021), pp. 427-438
+                  - generic [ref=f10e1228]:
+                    - link [ref=f10e1229] [cursor=pointer]:
+                      - /url: https://doi.org/10.1111/sms.13843
+                      - generic [ref=f10e1230]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1231]
+                    - link [ref=f10e1233] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85096700663&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1234]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1235]
+                    - link [ref=f10e1237] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Positive%20and%20negative%20side%20effects%20of%20androgen%20abuse.%20The%20HAARLEM%20study%3A%20A%20one-year%20prospective%20cohort%20study%20in%20100%20men&publication_year=2021&author=D.L.%20Smit&author=M.M.%20Buijs&author=O.%20de%20Hon&author=M.%20den%20Heijer&author=W.%20de%20Ronde
+                      - generic [ref=f10e1238]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1239]
+              - listitem [ref=f10e1241]:
+                - link "Smit et al., 2022b" [ref=f10e1243] [cursor=pointer]:
+                  - /url: "#bbib0033"
+                - generic [ref=f10e1245]:
+                  - generic [ref=f10e1246]:
+                    - generic [ref=f10e1247]: D.L. Smit, A. Grefhorst, M.M. Buijs, O. de Hon, M. den Heijer, W. de Ronde
+                    - generic [ref=f10e1248]: Prospective study on blood pressure, lipid metabolism and erythrocytosis during and after androgen abuse
+                  - generic [ref=f10e1249]: Andrologia, 54 (4) (2022), p. e14372
+                  - generic [ref=f10e1250]:
+                    - link [ref=f10e1251] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85122442789&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1252]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1253]
+                    - link [ref=f10e1255] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Prospective%20study%20on%20blood%20pressure%2C%20lipid%20metabolism%20and%20erythrocytosis%20during%20and%20after%20androgen%20abuse&publication_year=2022&author=D.L.%20Smit&author=A.%20Grefhorst&author=M.M.%20Buijs&author=O.%20de%20Hon&author=M.%20den%20Heijer&author=W.%20de%20Ronde
+                      - generic [ref=f10e1256]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1257]
+              - listitem [ref=f10e1259]:
+                - link "Smit et al., 2020" [ref=f10e1261] [cursor=pointer]:
+                  - /url: "#bbib0034"
+                - generic [ref=f10e1263]:
+                  - generic [ref=f10e1264]:
+                    - generic [ref=f10e1265]: D.L. Smit, O. de Hon, B.J. Venhuis, M. den Heijer, W. de Ronde
+                    - generic [ref=f10e1266]: "Baseline characteristics of the HAARLEM study: 100 male amateur athletes using anabolic androgenic steroids"
+                  - generic [ref=f10e1267]: Scandinavian Journal of Medicine & Science in Sports, 30 (3) (2020), pp. 531-539
+                  - generic [ref=f10e1268]:
+                    - link [ref=f10e1269] [cursor=pointer]:
+                      - /url: https://doi.org/10.1111/sms.13592
+                      - generic [ref=f10e1270]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1271]
+                    - link [ref=f10e1273] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85075486412&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1274]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1275]
+                    - link [ref=f10e1277] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Baseline%20characteristics%20of%20the%20HAARLEM%20study%3A%20100%20male%20amateur%20athletes%20using%20anabolic%20androgenic%20steroids&publication_year=2020&author=D.L.%20Smit&author=O.%20de%20Hon&author=B.J.%20Venhuis&author=M.%20den%20Heijer&author=W.%20de%20Ronde
+                      - generic [ref=f10e1278]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1279]
+              - listitem [ref=f10e1281]:
+                - link "Smit and de Ronde, 2018" [ref=f10e1283] [cursor=pointer]:
+                  - /url: "#bbib0035"
+                - generic [ref=f10e1285]:
+                  - generic [ref=f10e1286]:
+                    - generic [ref=f10e1287]: D.L. Smit, W. de Ronde
+                    - generic [ref=f10e1288]: "Outpatient clinic for users of anabolic androgenic steroids: An overview"
+                  - generic [ref=f10e1289]: The Netherlands Journal of Medicine, 76 (2018), p. 167
+                  - generic [ref=f10e1290]:
+                    - link [ref=f10e1291] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85047910778&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1292]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1293]
+                    - link [ref=f10e1295] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Outpatient%20clinic%20for%20users%20of%20anabolic%20androgenic%20steroids%3A%20An%20overview&publication_year=2018&author=D.L.%20Smit&author=W.%20de%20Ronde
+                      - generic [ref=f10e1296]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1297]
+              - listitem [ref=f10e1299]:
+                - link "Smit et al., 2021c" [ref=f10e1301] [cursor=pointer]:
+                  - /url: "#bbib0036"
+                - generic [ref=f10e1303]:
+                  - generic [ref=f10e1304]:
+                    - generic [ref=f10e1305]: D.L. Smit, A.J. Voogel, M. den Heijer, W. de Ronde
+                    - generic [ref=f10e1306]: Anabolic androgenic steroids induce reversible left ventricular hypertrophy and cardiac dysfunction. Echocardiography results of the HAARLEM study
+                  - generic [ref=f10e1307]: Frontiers in Reproductive Health, 3 (2021), Article 732318
+                  - generic [ref=f10e1308]:
+                    - link [ref=f10e1309] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-85153696234&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1310]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1311]
+                    - link [ref=f10e1313] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Anabolic%20androgenic%20steroids%20induce%20reversible%20left%20ventricular%20hypertrophy%20and%20cardiac%20dysfunction.%20Echocardiography%20results%20of%20the%20HAARLEM%20study&publication_year=2021&author=D.L.%20Smit&author=A.J.%20Voogel&author=M.%20den%20Heijer&author=W.%20de%20Ronde
+                      - generic [ref=f10e1314]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1315]
+              - listitem [ref=f10e1317]:
+                - link "Smye et al., 2011" [ref=f10e1319] [cursor=pointer]:
+                  - /url: "#bbib0037"
+                - generic [ref=f10e1321]:
+                  - generic [ref=f10e1322]:
+                    - generic [ref=f10e1323]: V. Smye, A.J. Browne, C. Varcoe, V. Josewski
+                    - generic [ref=f10e1324]: "Harm reduction, methadone maintenance treatment and the root causes of health and social inequities: An intersectional lens in the Canadian context"
+                  - generic [ref=f10e1325]: Harm Reduction Journal, 8 (2011), p. 17
+                  - generic [ref=f10e1326]:
+                    - link [ref=f10e1327] [cursor=pointer]:
+                      - /url: https://doi.org/10.1186/1477-7517-8-17
+                      - generic [ref=f10e1328]:
+                        - text: Crossref
+                        - img "Opens in new window" [ref=f10e1329]
+                    - link [ref=f10e1331] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-79959659389&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1332]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1333]
+                    - link [ref=f10e1335] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Harm%20reduction%2C%20methadone%20maintenance%20treatment%20and%20the%20root%20causes%20of%20health%20and%20social%20inequities%3A%20An%20intersectional%20lens%20in%20the%20Canadian%20context&publication_year=2011&author=V.%20Smye&author=A.J.%20Browne&author=C.%20Varcoe&author=V.%20Josewski
+                      - generic [ref=f10e1336]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1337]
+              - listitem [ref=f10e1339]:
+                - link "Woerdeman et al., 2010" [ref=f10e1341] [cursor=pointer]:
+                  - /url: "#bbib0039"
+                - generic [ref=f10e1343]:
+                  - generic [ref=f10e1344]:
+                    - generic [ref=f10e1345]: J. Woerdeman, O. de Hon, M.M. Levi, W. De Ronde
+                    - generic [ref=f10e1346]: Het gebruik van anabole androgene steroïden bij amateursporters in Nederland, een overzicht van de prevalentie, wijze van gebruik en bijwerkingen van anabole androgene steroïden in Nederland
+                  - generic [ref=f10e1347]: Nederlands Tijdschrift Voor Geneeskunde, 154 (2010), p. A2004
+                  - generic [ref=f10e1348]:
+                    - link [ref=f10e1349] [cursor=pointer]:
+                      - /url: https://www.scopus.com/inward/record.url?eid=2-s2.0-77957962898&partnerID=10&rel=R3.0.0
+                      - generic [ref=f10e1350]:
+                        - text: View in Scopus
+                        - img "Opens in new window" [ref=f10e1351]
+                    - link [ref=f10e1353] [cursor=pointer]:
+                      - /url: https://scholar.google.com/scholar_lookup?title=Het%20gebruik%20van%20anabole%20androgene%20stero%C3%AFden%20bij%20amateursporters%20in%20Nederland%2C%20een%20overzicht%20van%20de%20prevalentie%2C%20wijze%20van%20gebruik%20en%20bijwerkingen%20van%20anabole%20androgene%20stero%C3%AFden%20in%20Nederland&publication_year=2010&author=J.%20Woerdeman&author=O.%20de%20Hon&author=M.M.%20Levi&author=W.%20De%20Ronde
+                      - generic [ref=f10e1354]:
+                        - text: Google Scholar
+                        - img "Opens in new window" [ref=f10e1355]
+        - generic [ref=f10e1357]:
+          - generic [ref=f10e1358]:
+            - heading "Recommended articles" [level=2] [ref=f10e1359]
+            - heading "Based on reading popularity" [level=3] [ref=f10e1360]
+            - list [ref=f10e1361]:
+              - listitem [ref=f10e1362]:
+                - generic [ref=f10e1363]:
+                  - generic [ref=f10e1364]:
+                    - text: Research article
+                    - generic [ref=f10e1365]: Open access
+                  - link "Metabolic improvement after gastric bypass correlates with changes in IGF-regulatory proteins stanniocalcin-2 and IGFBP-4" [ref=f10e1367] [cursor=pointer]:
+                    - /url: /science/article/pii/S0026049521001864
+                  - generic [ref=f10e1370]: Rikke Hjortebjerg, …, Jan Frystyk
+                  - generic [ref=f10e1371]:
+                    - generic [ref=f10e1372]: Metabolism
+                    - text: • Volume 124 • 2021 • Article 154886
+                - link "View PDF" [ref=f10e1374] [cursor=pointer]:
+                  - /url: /science/article/pii/S0026049521001864/pdfft?md5=fd3fe4b8634043a04c406a9a7feb7ee6&pid=1-s2.0-S0026049521001864-main.pdf
+              - listitem [ref=f10e1381]:
+                - generic [ref=f10e1382]:
+                  - generic [ref=f10e1383]:
+                    - text: Short communication
+                    - generic [ref=f10e1384]: Open access
+                  - link "Tracking internet interest in anabolic-androgenic steroids using Google Trends" [ref=f10e1386] [cursor=pointer]:
+                    - /url: /science/article/pii/S0955395917303213
+                  - generic [ref=f10e1389]: Joseph Tay Wee Teck, Mark McCann
+                  - generic [ref=f10e1390]:
+                    - generic [ref=f10e1391]: International Journal of Drug Policy
+                    - text: • Volume 51 • 2018 • Pages 52-55
+                - link "View PDF" [ref=f10e1393] [cursor=pointer]:
+                  - /url: /science/article/pii/S0955395917303213/pdfft?md5=db04c708d64bf3c99e689276fe2329c7&pid=1-s2.0-S0955395917303213-main.pdf
+              - listitem [ref=f10e1400]:
+                - generic [ref=f10e1401]:
+                  - generic [ref=f10e1402]:
+                    - text: Research article
+                    - generic [ref=f10e1403]: Open access
+                  - link "How do income changes impact on mental health and wellbeing for working-age adults? A systematic review and meta-analysis" [ref=f10e1405] [cursor=pointer]:
+                    - /url: /science/article/pii/S2468266722000585
+                  - generic [ref=f10e1408]: Rachel M Thomson, …, S Vittal Katikireddi
+                  - generic [ref=f10e1409]:
+                    - generic [ref=f10e1410]: The Lancet Public Health
+                    - text: • Volume 7, Issue 6 • 2022 • Pages e515-e528
+                - link "View PDF" [ref=f10e1412] [cursor=pointer]:
+                  - /url: /science/article/pii/S2468266722000585/pdfft?md5=a2397ad74e5ee60e8b7bb9b6ed97e6b1&pid=1-s2.0-S2468266722000585-main.pdf
+              - listitem [ref=f10e1419]:
+                - generic [ref=f10e1420]:
+                  - generic [ref=f10e1421]:
+                    - text: Research article
+                    - generic [ref=f10e1422]: Open access
+                  - link "Desire for genetically related children among transgender and gender-diverse patients seeking gender-affirming hormones" [ref=f10e1424] [cursor=pointer]:
+                    - /url: /science/article/pii/S2666334123000454
+                  - generic [ref=f10e1427]: Moira A. Kyweluk, …, Jae Downing
+                  - generic [ref=f10e1428]:
+                    - generic [ref=f10e1429]: F&S Reports
+                    - text: • Volume 4, Issue 2 • 2023 • Pages 224-230
+                - link "View PDF" [ref=f10e1431] [cursor=pointer]:
+                  - /url: /science/article/pii/S2666334123000454/pdfft?md5=a1be0d3db0a8d8a9c1a2c0aadd214f12&pid=1-s2.0-S2666334123000454-main.pdf
+              - listitem [ref=f10e1438]:
+                - generic [ref=f10e1439]:
+                  - generic [ref=f10e1440]: Discussion
+                  - 'link "Management of Erythrocytosis in Men Receiving Testosterone Therapy: Clinical Consultation Guide" [ref=f10e1442] [cursor=pointer]':
+                    - /url: /science/article/pii/S240545692200236X
+                  - generic [ref=f10e1445]: Pranjal Agrawal, …, Taylor Kohn
+                  - generic [ref=f10e1446]:
+                    - generic [ref=f10e1447]: European Urology Focus
+                    - text: • Volume 9, Issue 1 • 2023 • Pages 20-21
+              - listitem [ref=f10e1448]:
+                - generic [ref=f10e1449]:
+                  - generic [ref=f10e1450]:
+                    - text: Research article
+                    - generic [ref=f10e1451]: Open access
+                  - 'link "Preferred and perceived participation roles of oncological patients in medical decision-making: Results of a survey among users of the German Cancer Information Service" [ref=f10e1453] [cursor=pointer]':
+                    - /url: /science/article/pii/S1865921722000757
+                  - generic [ref=f10e1456]: Pia Grabbe, …, Christiane Bieber
+                  - generic [ref=f10e1457]:
+                    - generic [ref=f10e1458]: Zeitschrift für Evidenz, Fortbildung und Qualität im Gesundheitswesen
+                    - text: • Volume 172 • 2022 • Pages 40-48
+                - link "View PDF" [ref=f10e1460] [cursor=pointer]:
+                  - /url: /science/article/pii/S1865921722000757/pdfft?md5=c60448b2459bf894086f837b9d890b35&pid=1-s2.0-S1865921722000757-main.pdf
+          - generic [ref=f10e1467]:
+            - heading "Cited by (11)" [level=2] [ref=f10e1468]
+            - list [ref=f10e1469]:
+              - listitem [ref=f10e1470]:
+                - generic [ref=f10e1471]:
+                  - generic [ref=f10e1472]: Research article
+                  - 'link "A multimodal, theory-based prevention program for IPED use in recreational fitness: evidence from a German cluster-randomized study" [ref=f10e1474] [cursor=pointer]':
+                    - /url: /science/article/pii/S2211266925000891
+                  - generic [ref=f10e1477]: Paasch R., …, Korol O.
+                  - generic [ref=f10e1478]:
+                    - generic [ref=f10e1479]: Performance Enhancement and Health
+                    - text: • Volume 14 • 2026 • Article 100406
+                - button "Show abstract" [ref=f10e1480] [cursor=pointer]
+              - listitem [ref=f10e1485]:
+                - generic [ref=f10e1486]:
+                  - generic [ref=f10e1487]:
+                    - text: Research article
+                    - generic [ref=f10e1488]: Open access
+                  - link "Associations between anabolic-androgenic steroid testing, healthcare access and undesirable effects among international consumers" [ref=f10e1490] [cursor=pointer]:
+                    - /url: /science/article/pii/S2211266925000738
+                  - generic [ref=f10e1493]: Grobler E., …, Piatkowski T.
+                  - generic [ref=f10e1494]:
+                    - generic [ref=f10e1495]: Performance Enhancement and Health
+                    - text: • Volume 14 • 2026 • Article 100390
+                - button "Show abstract" [ref=f10e1496] [cursor=pointer]
+              - listitem [ref=f10e1501]:
+                - generic [ref=f10e1502]:
+                  - generic [ref=f10e1503]:
+                    - text: Research article
+                    - generic [ref=f10e1504]: Open access
+                  - 'link "Efficacy of human chorionic gonadotropin hormone in restoring spermatogenesis in men using non-prescribed androgens: a retrospective analysis of real-world data" [ref=f10e1506] [cursor=pointer]':
+                    - /url: /science/article/pii/S2666334125000509
+                  - generic [ref=f10e1509]: Smit D.L., …, Bond P.
+                  - generic [ref=f10e1510]:
+                    - generic [ref=f10e1511]: F and S Reports
+                    - text: • Volume 6 • 2025
+                - button "Show abstract" [ref=f10e1512] [cursor=pointer]
+              - listitem [ref=f10e1517]:
+                - generic [ref=f10e1518]:
+                  - generic [ref=f10e1519]:
+                    - text: Research article
+                    - generic [ref=f10e1520]: Open access
+                  - 'link "Harm reduction techniques among cisgender gay, bisexual, and queer men using anabolic androgenic steroids: a qualitative studyOpens in new window" [ref=f10e1522] [cursor=pointer]':
+                    - /url: http://www.scopus.com/scopus/inward/record.url?partnerID=10&rel=3.0.0&view=basic&eid=2-s2.0-85209477679&md5=d5dc9c8bf6dc8b46843ba05c86be3ec
+                    - generic [ref=f10e1523]:
+                      - generic [ref=f10e1524]: "Harm reduction techniques among cisgender gay, bisexual, and queer men using anabolic androgenic steroids: a qualitative study"
+                      - img "Opens in new window" [ref=f10e1525]
+                  - generic [ref=f10e1527]: Kutscher E., …, Kladney M.
+                  - generic [ref=f10e1528]:
+                    - generic [ref=f10e1529]: Harm Reduction Journal
+                    - text: • Volume 21 • 2024 • Article 196
+                - button "Show abstract" [ref=f10e1530] [cursor=pointer]
+              - listitem [ref=f10e1535]:
+                - generic [ref=f10e1536]:
+                  - 'link "The efficacy of a harm reduction intervention for androgen abuse: a historically controlled trialOpens in new window" [ref=f10e1538] [cursor=pointer]':
+                    - /url: http://www.scopus.com/scopus/inward/record.url?partnerID=10&rel=3.0.0&view=basic&eid=2-s2.0-105029422896&md5=9acfdd5fcbe71d722060d5acecaafac
+                    - generic [ref=f10e1539]:
+                      - generic [ref=f10e1540]: "The efficacy of a harm reduction intervention for androgen abuse: a historically controlled trial"
+                      - img "Opens in new window" [ref=f10e1541]
+                  - generic [ref=f10e1543]: Verdegaal T.J., …, Smit D.L.
+                  - generic [ref=f10e1544]:
+                    - generic [ref=f10e1545]: European Journal of Endocrinology
+                    - text: • Volume 194 • 2026
+              - listitem [ref=f10e1546]:
+                - generic [ref=f10e1547]:
+                  - 'link "Approach to the Young Male Patient Who Abuses Androgens: Harm Reduction as a Clinical StrategyOpens in new window" [ref=f10e1549] [cursor=pointer]':
+                    - /url: http://www.scopus.com/scopus/inward/record.url?partnerID=10&rel=3.0.0&view=basic&eid=2-s2.0-105025252732&md5=4eb09dffef7b70c077a27933db4db69
+                    - generic [ref=f10e1550]:
+                      - generic [ref=f10e1551]: "Approach to the Young Male Patient Who Abuses Androgens: Harm Reduction as a Clinical Strategy"
+                      - img "Opens in new window" [ref=f10e1552]
+                  - generic [ref=f10e1554]: Smit D.L., …, de Ronde W.
+                  - generic [ref=f10e1555]:
+                    - generic [ref=f10e1556]: Journal of Clinical Endocrinology and Metabolism
+                    - text: • Volume 111 • 2026
+            - link "View all citing articles on Scopus Opens in new window" [ref=f10e1557] [cursor=pointer]:
+              - /url: http://www.scopus.com/scopus/inward/citedby.url?partnerID=10&rel=3.0.0&eid=2-s2.0-85201298539&md5=3e9e952b692ebe9480563963d452d47
+              - generic [ref=f10e1560]: View all citing articles on Scopus
+              - img "Opens in new window" [ref=f10e1561]
+          - generic [ref=f10e1563]:
+            - heading "Metrics" [level=2] [ref=f10e1564]
+            - generic [ref=f10e1565]:
+              - heading "Citations" [level=3] [ref=f10e1566]
+              - list [ref=f10e1567]:
+                - listitem [ref=f10e1568]:
+                  - generic [ref=f10e1569]: Citation Indexes
+                  - generic [ref=f10e1570]: "10"
+              - heading "Captures" [level=3] [ref=f10e1571]
+              - list [ref=f10e1572]:
+                - listitem [ref=f10e1573]:
+                  - generic [ref=f10e1574]: Mendeley Readers
+                  - generic [ref=f10e1575]: "6"
+              - generic [ref=f10e1576]:
+                - img "PlumX Metrics Logo" [ref=f10e1577]
+                - link [ref=f10e1578] [cursor=pointer]:
+                  - /url: https://plu.mx/plum/a/?doi=10.1016%2Fj.peh.2024.100288&theme=plum-sciencedirect-theme&hideUsage=true
+                  - generic [ref=f10e1579]:
+                    - text: View details
+                    - img "Opens in new window" [ref=f10e1580]
+          - generic [ref=f10e1582]: © 2024 The Authors. Published by Elsevier Ltd.
+      - button "Expand Reading Assistant" [ref=f10e1586] [cursor=pointer]
+    - contentinfo [ref=f10e1589]:
+      - link "Elsevier home page (opens in a new tab)" [ref=f10e1591] [cursor=pointer]:
+        - /url: https://www.elsevier.com/
+        - img "Elsevier logo with wordmark" [ref=f10e1592]
+      - generic [ref=f10e1593]:
+        - list [ref=f10e1595]:
+          - listitem [ref=f10e1596]:
+            - link [ref=f10e1597] [cursor=pointer]:
+              - /url: https://www.elsevier.com/solutions/sciencedirect
+              - generic [ref=f10e1598]:
+                - text: About ScienceDirect
+                - img "Opens in new window" [ref=f10e1599]
+          - listitem [ref=f10e1601]:
+            - link "Remote access" [ref=f10e1602] [cursor=pointer]:
+              - /url: /user/institution/login?targetURL=%2Fscience%2Farticle%2Fpii%2FS2211266924000252
+          - listitem [ref=f10e1604]:
+            - link [ref=f10e1605] [cursor=pointer]:
+              - /url: https://service.elsevier.com/app/contact/supporthub/sciencedirect/
+              - generic [ref=f10e1606]:
+                - text: Contact and support
+                - img "Opens in new window" [ref=f10e1607]
+          - listitem [ref=f10e1609]:
+            - link [ref=f10e1610] [cursor=pointer]:
+              - /url: https://www.elsevier.com/legal/elsevier-website-terms-and-conditions
+              - generic [ref=f10e1611]:
+                - text: Terms and conditions
+                - img "Opens in new window" [ref=f10e1612]
+          - listitem [ref=f10e1614]:
+            - link [ref=f10e1615] [cursor=pointer]:
+              - /url: https://www.elsevier.com/legal/privacy-policy
+              - generic [ref=f10e1616]:
+                - text: Privacy policy
+                - img "Opens in new window" [ref=f10e1617]
+          - listitem [ref=f10e1619]:
+            - button "Cookie settings" [ref=f10e1620] [cursor=pointer]
+        - paragraph [ref=f10e1621]: "All content on this site: Copyright © 2026 Elsevier B.V., its licensors, and contributors. All rights are reserved, including those for text and data mining, AI training, and similar technologies. For all open access content, the relevant licensing terms apply."
+      - link "RELX home page (opens in a new tab)" [ref=f10e1623] [cursor=pointer]:
+        - /url: https://www.relx.com/
+        - img "RELX group home page" [ref=f10e1624]
+  - generic:
+    - tooltip
+  - button "Feedback" [ref=f10e1625] [cursor=pointer]:
+    - img "Feedback" [ref=f10e1626]

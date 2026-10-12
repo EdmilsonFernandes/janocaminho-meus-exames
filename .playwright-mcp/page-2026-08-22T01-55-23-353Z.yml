@@ -1,0 +1,62 @@
+- generic [active] [ref=f3e20]:
+  - generic [ref=f3e195]:
+    - generic [ref=f3e196]:
+      - img "Dr. Exame" [ref=f3e197]
+      - heading "Perguntas frequentes" [level=5] [ref=f3e198]
+      - paragraph [ref=f3e199]: Tudo sobre exames, IA, planos e privacidade — direto ao ponto
+    - generic [ref=f3e201]:
+      - 'textbox "Busque sua dúvida… (ex.: créditos, PDF, médico)" [ref=f3e205]'
+      - group
+    - generic [ref=f3e206]:
+      - button "Todas" [ref=f3e207] [cursor=pointer]
+      - button "Começando" [ref=f3e209] [cursor=pointer]
+      - button "Créditos & planos" [ref=f3e211] [cursor=pointer]
+      - button "Conta" [ref=f3e213] [cursor=pointer]
+      - button "Exames & IA" [ref=f3e215] [cursor=pointer]
+      - button "Médico" [ref=f3e217] [cursor=pointer]
+      - button "Privacidade" [ref=f3e219] [cursor=pointer]
+    - heading [level=3] [ref=f3e222]:
+      - button "O que é o Dr. Exame?" [ref=f3e223] [cursor=pointer]
+    - heading [level=3] [ref=f3e229]:
+      - button "Preciso pagar pra começar?" [ref=f3e230] [cursor=pointer]
+    - heading [level=3] [ref=f3e236]:
+      - button "Como envio meu exame?" [ref=f3e237] [cursor=pointer]
+    - heading [level=3] [ref=f3e243]:
+      - button "Como funcionam os créditos?" [ref=f3e244] [cursor=pointer]
+    - heading [level=3] [ref=f3e250]:
+      - button "O que muda com o plano mensal?" [ref=f3e251] [cursor=pointer]
+    - heading [level=3] [ref=f3e257]:
+      - button "Como funciona o programa de indicação?" [ref=f3e258] [cursor=pointer]
+    - heading [level=3] [ref=f3e264]:
+      - button "Esqueci minha senha, e agora?" [ref=f3e265] [cursor=pointer]
+    - heading [level=3] [ref=f3e271]:
+      - button "Posso entrar com o Google?" [ref=f3e272] [cursor=pointer]
+    - heading [level=3] [ref=f3e278]:
+      - button "Dá pra gerenciar exames de familiares?" [ref=f3e279] [cursor=pointer]
+    - heading [level=3] [ref=f3e285]:
+      - button "A IA dá diagnóstico?" [ref=f3e286] [cursor=pointer]
+    - heading [level=3] [ref=f3e292]:
+      - button "A IA pode inventar valores?" [ref=f3e293] [cursor=pointer]
+    - heading [level=3] [ref=f3e299]:
+      - button "Funciona sem internet?" [ref=f3e300] [cursor=pointer]
+    - heading [level=3] [ref=f3e306]:
+      - button "Como compartilho meus exames com meu médico?" [ref=f3e307] [cursor=pointer]
+    - heading [level=3] [ref=f3e313]:
+      - button "O que o médico vê exatamente?" [ref=f3e314] [cursor=pointer]
+    - heading [level=3] [ref=f3e320]:
+      - button "Posso cancelar o compartilhamento?" [ref=f3e321] [cursor=pointer]
+    - heading [level=3] [ref=f3e327]:
+      - button "Meus dados de saúde estão seguros?" [ref=f3e328] [cursor=pointer]
+    - heading [level=3] [ref=f3e334]:
+      - button "Quem pode ver meus exames?" [ref=f3e335] [cursor=pointer]
+    - heading [level=3] [ref=f3e341]:
+      - button "Como excluo meus dados?" [ref=f3e342] [cursor=pointer]
+    - generic [ref=f3e347]:
+      - heading "Ainda com dúvidas?" [level=6] [ref=f3e348]
+      - paragraph [ref=f3e349]: Abra um chamado no app (Suporte) ou fale com a gente por e-mail.
+      - link "Falar com o suporte" [ref=f3e350] [cursor=pointer]:
+        - /url: mailto:contato@janocaminho.com.br
+    - generic [ref=f3e351]: ← Voltar ao início · Meus Exames — análise educativa, não substitui avaliação médica.
+  - generic [ref=f3e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e19]

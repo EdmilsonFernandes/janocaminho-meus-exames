@@ -1,0 +1,95 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - generic [ref=f1e4]:
+        - generic [ref=f1e5]:
+          - link "Uai ID UaiID" [ref=f1e6] [cursor=pointer]:
+            - /url: /dashboard
+            - generic [ref=f1e7]:
+              - img "Uai ID" [ref=f1e8]
+              - generic [ref=f1e9]: UaiID
+          - button "Mudar para tema escuro" [ref=f1e11] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f1e12]: ☾
+            - generic [aria-hidden] [ref=f1e13]: ☀
+            - generic [aria-hidden] [ref=f1e14]: ☾
+          - button "Wibx Company startup" [ref=f1e16] [cursor=pointer]:
+            - generic [ref=f1e18]: Wibx Company
+            - generic [ref=f1e19]: startup
+          - navigation [ref=f1e22]:
+            - link "Overview" [ref=f1e23] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Verificações" [ref=f1e31] [cursor=pointer]:
+              - /url: /dashboard/verifications
+            - link "Revisão Manual" [ref=f1e39] [cursor=pointer]:
+              - /url: /dashboard/review
+            - link "Motor" [ref=f1e46] [cursor=pointer]:
+              - /url: /dashboard/motor
+            - link "Faturamento" [ref=f1e50] [cursor=pointer]:
+              - /url: /dashboard/billing
+            - link "🔑 Chave de API" [ref=f1e55] [cursor=pointer]:
+              - /url: /dashboard/chave
+            - link "Webhooks" [ref=f1e60] [cursor=pointer]:
+              - /url: /dashboard/webhooks
+        - button "Sair" [ref=f1e66] [cursor=pointer]
+    - main [ref=f1e70]:
+      - generic [ref=f1e71]:
+        - generic [ref=f1e72]:
+          - generic [ref=f1e73]:
+            - heading "Verificações de Identidade" [level=1] [ref=f1e74]
+            - paragraph [ref=f1e75]: Histórico completo de auditoria biométrica, validação de documentos e consultas oficiais.
+          - generic [ref=f1e76]:
+            - button "Atualizar" [ref=f1e77] [cursor=pointer]
+            - button "+ Nova Verificação" [ref=f1e83] [cursor=pointer]
+        - generic [ref=f1e85]:
+          - textbox "Buscar por nome ou CPF..." [ref=f1e87]
+          - generic [ref=f1e88]:
+            - button "Todos 0" [ref=f1e89] [cursor=pointer]:
+              - generic [ref=f1e90]: Todos
+              - generic [ref=f1e91]: "0"
+            - button "Aprovados 0" [ref=f1e92] [cursor=pointer]:
+              - generic [ref=f1e93]: Aprovados
+              - generic [ref=f1e94]: "0"
+            - button "Em Revisão 0" [ref=f1e95] [cursor=pointer]:
+              - generic [ref=f1e96]: Em Revisão
+              - generic [ref=f1e97]: "0"
+            - button "Recusados 0" [ref=f1e98] [cursor=pointer]:
+              - generic [ref=f1e99]: Recusados
+              - generic [ref=f1e100]: "0"
+          - generic [ref=f1e101]:
+            - combobox [ref=f1e103]:
+              - option "Últimos 7 dias"
+              - option "Últimos 30 dias"
+              - option "Últimos 90 dias" [selected]
+              - option "Último ano"
+            - button "Aplicar" [ref=f1e104] [cursor=pointer]
+        - generic [ref=f1e105]:
+          - table [ref=f1e107]:
+            - rowgroup [ref=f1e108]:
+              - row [ref=f1e109]:
+                - columnheader "Pessoa / Biometria" [ref=f1e110]
+                - columnheader "Sessão" [ref=f1e111]
+                - columnheader "Status" [ref=f1e112]
+                - columnheader "Score de Confiança" [ref=f1e113]
+                - columnheader "Motivo / Veredito" [ref=f1e114]
+                - columnheader "Data & Timestamp Forense" [ref=f1e115]
+                - columnheader "Ação" [ref=f1e116]
+            - rowgroup [ref=f1e117]:
+              - row [ref=f1e118]:
+                - cell "🔍 Nenhuma verificação encontrada Tente ajustar os filtros ou a busca por CPF." [ref=f1e119]:
+                  - generic [ref=f1e120]:
+                    - generic [ref=f1e121]: 🔍
+                    - generic [ref=f1e122]: Nenhuma verificação encontrada
+                    - generic [ref=f1e123]: Tente ajustar os filtros ou a busca por CPF.
+          - generic [ref=f1e125]:
+            - generic [ref=f1e126]:
+              - text: Mostrando
+              - generic [ref=f1e127]: 0–0
+              - text: de 0 verificações
+            - generic [ref=f1e128]:
+              - generic [ref=f1e129]: "Linhas por página:"
+              - combobox [ref=f1e130]:
+                - option "10" [selected]
+                - option "25"
+                - option "50"
+                - option "100"
+  - alert [ref=f1e131]

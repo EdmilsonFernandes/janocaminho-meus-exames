@@ -1,0 +1,42 @@
+- generic [active] [ref=f33e20]:
+  - generic [ref=f33e21]:
+    - generic [ref=f33e22]:
+      - button "Pular para o conteúdo" [ref=f33e23] [cursor=pointer]
+      - generic [ref=f33e24]:
+        - banner [ref=f33e25]:
+          - generic [ref=f33e26]:
+            - button "Close menu" [ref=f33e27] [cursor=pointer]
+            - heading [level=6]
+            - button "100" [ref=f33e30] [cursor=pointer]
+            - button [ref=f33e345] [cursor=pointer]
+            - button "Selecionar" [ref=f33e39] [cursor=pointer]
+            - button "Atualizar" [ref=f33e50] [cursor=pointer]
+        - main [ref=f33e53]:
+          - navigation [ref=f33e57]:
+            - generic [ref=f33e58]:
+              - paragraph [ref=f33e63] [cursor=pointer]: Início
+              - paragraph [ref=f33e68] [cursor=pointer]: Exames
+              - paragraph [ref=f33e74] [cursor=pointer]: Valores alterados
+              - paragraph [ref=f33e80] [cursor=pointer]: Evolução da saúde
+              - paragraph [ref=f33e85] [cursor=pointer]: Tendências
+              - paragraph [ref=f33e90] [cursor=pointer]: Linha do Tempo
+              - paragraph [ref=f33e95] [cursor=pointer]: Relatório completo
+              - paragraph [ref=f33e100] [cursor=pointer]: Perguntas
+              - paragraph [ref=f33e106] [cursor=pointer]: Saúde da Família
+            - button "Minha saúde" [ref=f33e108] [cursor=pointer]
+            - button "Família & médicos" [ref=f33e118] [cursor=pointer]
+            - button "Conta" [ref=f33e128] [cursor=pointer]
+            - separator [ref=f33e136]
+            - button "Ajuda & Suporte" [ref=f33e137] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=f33e143] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=f33e149] [cursor=pointer]
+          - generic [ref=f33e346]:
+            - img "Dr. Exame" [ref=f33e347]
+            - heading "Página não encontrada" [level=4] [ref=f33e348]
+            - paragraph [ref=f33e349]: O endereço pode estar incorrito ou a página foi movida. Que tal voltar pro painel?
+            - button "← Voltar ao início" [ref=f33e350] [cursor=pointer]
+    - button "Pergunte ao Dr. Exame" [ref=f33e351] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f33e354]
+  - generic [ref=f33e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f33e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f33e19]

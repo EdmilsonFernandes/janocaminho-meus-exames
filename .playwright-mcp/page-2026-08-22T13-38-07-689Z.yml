@@ -1,0 +1,44 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e340] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - heading "Ajuda & Suporte" [level=6] [ref=e404]
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e407] [cursor=pointer]:
+              - generic [ref=e33]: "71"
+            - button "Notificações" [ref=e408] [cursor=pointer]:
+              - generic [ref=e35]: "0"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e409] [cursor=pointer]:
+              - generic [ref=e40]: E
+              - generic [ref=e42]: Edmilson Lopes Fernandes dos Santos
+            - button "Atualizar" [ref=e410] [cursor=pointer]
+        - main [ref=e51]:
+          - navigation [ref=e55]:
+            - button "Exames" [ref=e341] [cursor=pointer]
+            - button "Cuidados" [ref=e342] [cursor=pointer]
+            - button "Pessoas" [ref=e343] [cursor=pointer]
+            - button "Conta" [ref=e344] [cursor=pointer]
+            - separator [ref=e94]
+            - button "Dúvidas frequentes" [ref=e345] [cursor=pointer]
+            - button "Como validamos" [ref=e346] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=e347] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=e348] [cursor=pointer]
+          - generic [ref=e411]:
+            - generic [ref=e419]:
+              - heading "Ajuda & Suporte" [level=5] [ref=e420]
+              - paragraph [ref=e421]: Abra um chamado, acompanhe o status e converse com o suporte.
+            - button [ref=e422] [cursor=pointer]
+            - generic [ref=e428] [cursor=pointer]:
+              - generic [ref=e429]:
+                - paragraph [ref=e430]: "#1"
+                - generic [ref=e431]: Erro no app
+                - generic [ref=e433]: Aguardando você
+              - paragraph [ref=e435]: "E2E: tela de exames trava"
+              - text: Última atualização 30/06/26, 19:18
+    - button "Pergunte ao Dr. Exame" [ref=e400] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e401]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e402]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e403]

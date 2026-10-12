@@ -15,6 +15,7 @@ import { errorHandler, notFound } from './middleware/errorHandler';
 import { requirePhotoToken } from './middleware/auth';
 import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
+import { interpolateTemplate } from './utils/template';
 import { verifyUnsubToken } from './utils/unsubscribeToken';
 import { hashSharePin } from './utils/crypto';
 import authRoutes, { REFERRAL_BONUS } from './routes/auth.routes';
@@ -267,21 +268,30 @@ app.get('/api/public/config', (_req, res) => {
   // REFERRAL_BONUS (auth.routes); isto é o que a copy ANUNCIA, editável sem deploy.
   const refNewUser = Number(referral?.newUser) > 0 ? Number(referral.newUser) : REFERRAL_BONUS;
   const refRecommender = Number(referral?.recommender) > 0 ? Number(referral.recommender) : REFERRAL_BONUS;
+  // Anti-"{{var}}" cru (bug 10/26): MOTD e shareMessage são templates editáveis no
+  // admin — aqui é a ÚLTIMA porta antes do app. Vars de contexto conhecidas são
+  // preenchidas; as demais ({{nome}} etc., sem usuário aqui — endpoint público)
+  // viram string vazia; desconhecidas são removidas. Nunca chega "{{...}}" no device.
+  // Placeholders de CHAVE SIMPLES do share ({code}/{bonus}/{link}) seguem vivos —
+  // o app os resolve com o código do usuário logado (ReferralCard).
+  const tplVars = { bonus: refNewUser, link: 'https://drexame.janocaminho.com.br', data: new Date().toLocaleDateString('pt-BR') };
+  const cleanShare = interpolateTemplate(referral?.shareMessage ?? '', tplVars);
+  const cleanMotd = (s: string) => interpolateTemplate(s, tplVars);
   res.json({
     freeSignup: grants?.freeSignup ?? 60, referralBonus: REFERRAL_BONUS,
     // 04/10: cartão/débito INLINE via Asaas (form próprio) → default true. Kill-switch:
     // AppSetting payments.cardEnabled=false (zero deploy). PIX = OpenPix + Asaas.
     cardEnabled: payments?.cardEnabled ?? true,
     // Share de indicação editável no admin (vazio = texto padrão do app).
-    shareMessage: referral?.shareMessage ?? '',
+    shareMessage: cleanShare,
     // Referral dois lados: newUser = o que o AMIGO ganha; recommender = o que QUEM
     // INDICA ganha. Landing//indique/cadastro leem daqui → copy sempre coerente.
-    referral: { newUser: refNewUser, recommender: refRecommender, shareMessage: referral?.shareMessage ?? '' },
+    referral: { newUser: refNewUser, recommender: refRecommender, shareMessage: cleanShare },
     // MOTD (mensagem do dia): dialog pós-login, 1x/dia. enabled=0 = front nem mostra.
     motd: {
       enabled: motd?.enabled ? 1 : 0,
-      title: motd?.title ?? '', message: motd?.message ?? '',
-      ctaLabel: motd?.ctaLabel ?? '', ctaRoute: motd?.ctaRoute ?? '',
+      title: cleanMotd(motd?.title ?? ''), message: cleanMotd(motd?.message ?? ''),
+      ctaLabel: cleanMotd(motd?.ctaLabel ?? ''), ctaRoute: motd?.ctaRoute ?? '',
     },
     // SAÚDE ESPORTIVA (E1): kill-switch público no padrão referral — o card do Perfil só
     // existe quando o admin ligou (AppSetting sportsMode.enabled). Default false = oculto.

@@ -1,0 +1,39 @@
+- generic [ref=f10e2]:
+  - generic [ref=f10e7]:
+    - img "Dr. Exame" [ref=f10e13]
+    - generic [ref=f10e14]:
+      - heading "Dr. Exame" [level=3] [ref=f10e15]
+      - paragraph [ref=f10e18]: Iniciando o Dr. Exame…
+  - generic [ref=f10e27]:
+    - button "Pular para o conteúdo" [ref=f10e28] [cursor=pointer]
+    - generic [ref=f10e29]:
+      - banner [ref=f10e30]:
+        - generic [ref=f10e31]:
+          - heading [level=6]
+          - generic [ref=f10e32]:
+            - button "Notificações" [ref=f10e33] [cursor=pointer]:
+              - generic [ref=f10e34]: "0"
+            - button "👤 Selecionar" [ref=f10e38] [cursor=pointer]:
+              - generic [ref=f10e39]: 👤
+              - generic [ref=f10e41]: Selecionar
+          - button "Atualizar" [ref=f10e47] [cursor=pointer]
+      - main [ref=f10e50]:
+        - navigation [ref=f10e54]:
+          - generic [ref=f10e60]:
+            - paragraph [ref=f10e61]: Ed teste 2
+            - generic [ref=f10e62]: Plano grátis
+          - separator [ref=f10e65]
+          - button "Exames" [ref=f10e67] [cursor=pointer]
+          - button "Cuidados" [ref=f10e76] [cursor=pointer]
+          - button "Pessoas" [ref=f10e86] [cursor=pointer]
+          - button "Conta" [ref=f10e96] [cursor=pointer]
+          - separator [ref=f10e104]
+          - button "Dúvidas frequentes" [ref=f10e105] [cursor=pointer]
+          - button "Como validamos" [ref=f10e111] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=f10e117] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=f10e123] [cursor=pointer]
+        - generic [ref=f10e134]:
+          - img "Dr. Exame" [ref=f10e140]
+          - generic [ref=f10e141]:
+            - heading "Dr. Exame" [level=3] [ref=f10e142]
+            - paragraph [ref=f10e145]: Seu assistente de saúde com IA

@@ -1,0 +1,68 @@
+- generic [ref=f1e18]:
+  - generic [ref=f1e21]:
+    - button "← Voltar ao app" [ref=f1e23] [cursor=pointer]
+    - generic [ref=f1e24]:
+      - img "Dr. Exame" [ref=f1e26]
+      - heading "Portal do Médico" [level=5] [ref=f1e27]
+      - generic [ref=f1e28]: Crie sua conta de profissional de saúde
+    - generic [ref=f1e29]:
+      - generic [ref=f1e57]:
+        - generic [ref=f1e58]: 🩺
+        - generic [ref=f1e59]:
+          - paragraph [ref=f1e60]: Conta de Profissional de Saúde
+          - paragraph [ref=f1e61]:
+            - text: Use o
+            - strong [ref=f1e62]: mesmo CRM
+            - text: que seu paciente informou no convite pra ativar seu acesso.
+      - generic [ref=f1e64]:
+        - textbox "Nome completo" [ref=f1e69]
+        - group
+      - generic [ref=f1e70]:
+        - generic [ref=f1e71]:
+          - textbox "CPF" [ref=f1e76]
+          - group
+        - paragraph [ref=f1e77]: Usado para proteger sua identidade profissional.
+      - generic [ref=f1e78]:
+        - generic [ref=f1e79]:
+          - generic [ref=f1e80]:
+            - textbox "CRM (número)" [ref=f1e85]
+            - group
+          - paragraph [ref=f1e86]: Mesmo CRM do convite.
+        - generic [ref=f1e87]:
+          - generic:
+            - text: UF
+            - generic: "*"
+          - generic [ref=f1e88]:
+            - combobox "UF" [ref=f1e89] [cursor=pointer]
+            - textbox
+            - group:
+              - generic: UF *
+      - button "🔍 Buscar dados no conselho" [ref=f1e90] [cursor=pointer]:
+        - generic [ref=f1e91]: 🔍
+        - text: Buscar dados no conselho
+      - generic [ref=f1e93]:
+        - generic: Especialidade
+        - generic [ref=f1e94]:
+          - combobox "Especialidade" [ref=f1e95] [cursor=pointer]
+          - textbox
+          - group:
+            - generic: Especialidade
+      - generic [ref=f1e31]:
+        - textbox "E-mail ou CRM" [ref=f1e36]
+        - group
+      - generic [ref=f1e38]:
+        - textbox "Senha (mín. 6 caracteres)" [ref=f1e43]
+        - button [ref=f1e45] [cursor=pointer]
+        - group
+      - button "Criar conta médica" [ref=f1e96] [cursor=pointer]
+    - paragraph [ref=f1e51]:
+      - text: Já tem conta?
+      - button "Fazer login" [active] [ref=f1e97] [cursor=pointer]
+    - generic [ref=f1e53]:
+      - generic [ref=f1e54]: 🩺
+      - paragraph [ref=f1e55]:
+        - strong [ref=f1e56]: Conteúdo educativo.
+        - text: O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.
+  - generic [ref=f1e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e17]

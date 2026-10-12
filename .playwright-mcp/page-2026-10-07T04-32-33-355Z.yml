@@ -1,0 +1,190 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e1096]:
+    - button "Pular para o conteúdo" [ref=f4e1780] [cursor=pointer]
+    - main [ref=f4e1124]:
+      - navigation [ref=f4e1128]:
+        - generic [ref=f4e1131]:
+          - generic [ref=f4e1132]: E
+          - generic [ref=f4e1134]:
+            - paragraph [ref=f4e1135]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f4e1136]:
+              - generic [ref=f4e1137]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f4e1781] [cursor=pointer]
+        - separator [ref=f4e1141]
+        - button "Início" [ref=f4e1782] [cursor=pointer]
+        - button "Exames" [ref=f4e1783] [cursor=pointer]
+        - button "Cuidados" [ref=f4e1784] [cursor=pointer]
+        - button "Pessoas" [ref=f4e1785] [cursor=pointer]
+        - generic [ref=f4e1179]:
+          - button "Conta" [expanded] [ref=f4e1786] [cursor=pointer]
+          - generic [ref=f4e1550]:
+            - button "Meu perfil" [ref=f4e1787] [cursor=pointer]
+            - button "Carteira" [ref=f4e1788] [cursor=pointer]
+            - button "Indique e ganhe 🎁" [ref=f4e1789] [cursor=pointer]
+            - button "Segurança & senha" [ref=f4e1790] [cursor=pointer]
+            - button "Privacidade e termos" [ref=f4e1791] [cursor=pointer]
+            - button "Planos e Créditos" [ref=f4e1792] [cursor=pointer]
+            - button "Painel Admin" [ref=f4e1793] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f4e1794] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f4e1795] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f4e1796] [cursor=pointer]
+        - generic [ref=f4e1208]:
+          - generic [ref=f4e1210]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f4e1211]: v2.7.225
+      - generic [ref=f4e1551]:
+        - generic [ref=f4e1556]:
+          - heading "Meu perfil" [level=5] [ref=f4e1797]
+          - paragraph [ref=f4e1558]: Sua conta, dados e preferências
+        - generic [ref=f4e1560]:
+          - generic [ref=f4e1562]:
+            - generic [ref=f4e1563]: E
+            - button [ref=f4e1564] [cursor=pointer]
+          - generic [ref=f4e1568]:
+            - heading "Edmilson Lopes Fernandes dos Santos" [level=5] [ref=f4e1798]
+            - paragraph [ref=f4e1570]: ✉️ edmilson@exemplo.com
+            - generic [ref=f4e1571]: Premium ativo
+            - generic [ref=f4e1574]: Toque na câmera da foto para trocar a imagem.
+        - generic [ref=f4e1576]:
+          - heading "Dados e perfil clínico" [level=6] [ref=f4e1799]
+          - generic [ref=f4e1578]:
+            - generic [ref=f4e1579]:
+              - generic [ref=f4e1773]: Nome completo
+              - generic [ref=f4e1580]:
+                - textbox "Nome completo" [disabled] [ref=f4e1800]: Edmilson Lopes Fernandes dos Santos
+                - group [aria-hidden]:
+                  - generic: Nome completo
+              - paragraph [ref=f4e1774]: Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.
+            - generic [ref=f4e1582]:
+              - generic [ref=f4e1775]: CPF
+              - generic [ref=f4e1583]:
+                - textbox "CPF" [disabled] [ref=f4e1801]: "***.***.***-00"
+                - group [aria-hidden]:
+                  - generic: CPF
+              - paragraph [ref=f4e1585]: CPF verificado e mascarado. Correção somente via suporte auditado.
+            - generic [ref=f4e1586]:
+              - generic: Telefone / WhatsApp
+              - generic [ref=f4e1587]:
+                - textbox "Telefone / WhatsApp" [ref=f4e1802]
+                - group [aria-hidden]:
+                  - generic: Telefone / WhatsApp
+            - generic [ref=f4e1589]:
+              - generic [ref=f4e1776]: Sexo
+              - generic [ref=f4e1590]:
+                - combobox "Sexo Masculino" [ref=f4e1803] [cursor=pointer]: Masculino
+                - textbox [aria-hidden]: male
+                - group [aria-hidden]:
+                  - generic: Sexo
+              - paragraph [ref=f4e1592]: Usamos a coluna de referência correspondente do laudo (Homens/Mulheres) e ajustamos IMC, eGFR e idade biológica.
+            - generic [ref=f4e1593]:
+              - generic [ref=f4e1777]: Altura
+              - generic [ref=f4e1594]:
+                - textbox "Altura" [ref=f4e1804]: "178"
+                - group [aria-hidden]:
+                  - generic: Altura
+              - paragraph [ref=f4e1596]: 1,78 m (178 cm)
+            - generic [ref=f4e1597]:
+              - generic [ref=f4e1778]: Etnia (opcional)
+              - generic [ref=f4e1598]:
+                - combobox "Etnia (opcional) Parda" [ref=f4e1805] [cursor=pointer]: Parda
+                - textbox [aria-hidden]: parda
+                - group [aria-hidden]:
+                  - generic: Etnia (opcional)
+              - paragraph [ref=f4e1600]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+            - generic [ref=f4e1601]:
+              - generic [ref=f4e1602]:
+                - generic [ref=f4e1603]: Data de nascimento
+                - generic [ref=f4e1604]:
+                  - textbox "Data de nascimento" [ref=f4e1806]:
+                    - /placeholder: dd/mm/aaaa
+                    - text: 15/03/1985
+                  - button "Abrir calendário" [ref=f4e1807] [cursor=pointer]
+                  - group [aria-hidden]:
+                    - generic: Data de nascimento
+                - paragraph [ref=f4e1610]: Usado pra calcular idade e ajustar faixas de referência.
+              - textbox [aria-hidden]: 1985-03-15
+            - generic [ref=f4e1611]:
+              - generic: Perfil clínico (condições, medicações, histórico)
+              - generic [ref=f4e1612]:
+                - textbox "Perfil clínico (condições, medicações, histórico)" [ref=f4e1808]
+                - group [aria-hidden]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+              - paragraph [ref=f4e1614]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+          - button [ref=f4e1809] [cursor=pointer]
+        - generic [ref=f4e1622]:
+          - generic [ref=f4e1626]:
+            - heading "Peso atual" [level=6] [ref=f4e1810]
+            - paragraph [ref=f4e1628]:
+              - generic [ref=f4e1779]: 92,4 kg
+              - text: · registrado em 22/08/2026
+          - button "Novo peso" [ref=f4e1811] [cursor=pointer]
+        - generic [ref=f4e1631]:
+          - heading "Preferências" [level=6] [ref=f4e1812]
+          - generic [ref=f4e1633] [cursor=pointer]:
+            - switch "🔔 Avisar quando eu desbloquear uma conquista" [checked] [ref=f4e1813]
+            - generic [ref=f4e1639]: 🔔 Avisar quando eu desbloquear uma conquista
+          - generic [ref=f4e1641]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+          - generic [ref=f4e1642] [cursor=pointer]:
+            - switch "♿ Botão de tradução em Libras" [ref=f4e1814]
+            - generic [ref=f4e1648]: ♿ Botão de tradução em Libras
+          - generic [ref=f4e1650] [cursor=pointer]:
+            - switch "🔍 Aa Texto grande — amplia os textos do app" [ref=f4e1815]
+            - generic [ref=f4e1656]: 🔍 Aa Texto grande — amplia os textos do app
+          - generic [ref=f4e1658]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+          - generic [ref=f4e1659] [cursor=pointer]:
+            - switch "🏃 Card de atividade física no início" [checked] [ref=f4e1816]
+            - generic [ref=f4e1665]: 🏃 Card de atividade física no início
+          - generic [ref=f4e1667]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+          - generic [ref=f4e1668] [cursor=pointer]:
+            - switch "🙈 Modo privacidade — borra nomes de exames" [ref=f4e1817]
+            - generic [ref=f4e1674]: 🙈 Modo privacidade — borra nomes de exames
+          - generic [ref=f4e1676]: "Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos."
+          - generic [ref=f4e1677]:
+            - generic [ref=f4e1678]:
+              - generic [ref=f4e1682]:
+                - paragraph [ref=f4e1683]: Saúde Esportiva
+                - text: Organiza o que você declara (treino, substâncias, coleta) para contextualizar a análise — nunca esconde alterações.
+              - switch [checked] [active] [ref=f4e1687] [cursor=pointer]
+            - generic [ref=f4e1820]: ✓ Modo esportivo ativado
+            - generic [ref=f4e1822]: Seu painel dedicado está no Início — o esporte e o contexto hormonal abaixo mudam a LENTE de análise.
+            - generic [ref=f4e1823]:
+              - generic [ref=f4e1824]:
+                - paragraph [ref=f4e1825]: 1 · Seu esporte
+                - generic [ref=f4e1826]: "Muda a lente do painel: ordem dos domínios e marcadores em destaque."
+                - generic [ref=f4e1827]:
+                  - button "Musculação/Hipertrofia" [ref=f4e1828] [cursor=pointer]
+                  - button "Corrida/Ciclismo" [ref=f4e1830] [cursor=pointer]
+                  - button "CrossFit/Funcional" [ref=f4e1832] [cursor=pointer]
+                  - button "Outro" [ref=f4e1834] [cursor=pointer]
+              - generic [ref=f4e1836]:
+                - paragraph [ref=f4e1837]: 2 · Seu nível
+                - generic [ref=f4e1838]: Contexto de intensidade — ajuda a interpretar CK e recuperação.
+                - generic [ref=f4e1839]:
+                  - button "Recreativo" [ref=f4e1840] [cursor=pointer]
+                  - button "Amador competitivo" [ref=f4e1842] [cursor=pointer]
+                  - button "Alta performance" [ref=f4e1844] [cursor=pointer]
+              - generic [ref=f4e1846]:
+                - paragraph [ref=f4e1847]: 3 · Contexto hormonal
+                - generic [ref=f4e1848]: Independente do esporte. Reposição com prescrição ativa a lente de monitoramento (Hct, PSA, HDL).
+                - generic [ref=f4e1849]:
+                  - button "Nenhum" [ref=f4e1850] [cursor=pointer]
+                  - button "Reposição com prescrição (TRT)" [ref=f4e1852] [cursor=pointer]
+                  - button "Uso declarado sem prescrição" [ref=f4e1854] [cursor=pointer]
+                  - button "Prefiro não dizer" [ref=f4e1856] [cursor=pointer]
+              - generic [ref=f4e1858]:
+                - button "Salvar perfil esportivo" [disabled]
+            - button [ref=f4e1859] [cursor=pointer]
+          - button "📋 Enviar diagnóstico ao suporte" [ref=f4e1818] [cursor=pointer]
+          - generic [ref=f4e1691]: Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).
+          - button [ref=f4e1819] [cursor=pointer]
+        - generic [ref=f4e1697]:
+          - generic [ref=f4e1702] [cursor=pointer]:
+            - paragraph [ref=f4e1703]: Segurança
+            - paragraph [ref=f4e1704]: Trocar senha, 2FA e biometria
+          - generic [ref=f4e1711] [cursor=pointer]:
+            - paragraph [ref=f4e1712]: Privacidade e dados
+            - paragraph [ref=f4e1713]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+          - generic [ref=f4e1720] [cursor=pointer]:
+            - paragraph [ref=f4e1721]: API para desenvolvedores
+            - paragraph [ref=f4e1722]: Integre preço de remédios e interações no seu produto
+  - alert [ref=f4e1863]:
+    - generic [ref=f4e1864]: Modo esportivo ativado ✨

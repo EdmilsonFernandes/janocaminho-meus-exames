@@ -1,0 +1,100 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e325] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button "Menu" [ref=e326] [cursor=pointer]
+            - generic [ref=e30]:
+              - img "Dr. Exame" [ref=e327]
+              - paragraph [ref=e33]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e328] [cursor=pointer]:
+              - generic [ref=e37]: "19"
+              - button "Ocultar créditos" [ref=e329]
+            - button "Notificações" [ref=e330] [cursor=pointer]:
+              - generic [ref=e42]: "1"
+            - button "E" [ref=e331] [cursor=pointer]
+            - button "Atualizar" [ref=e332] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - paragraph [ref=e61]: Bom dia, Ed 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e62]:
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - generic [ref=e70]:
+                    - paragraph [ref=e291]: "93"
+                    - paragraph [ref=e72]: de 100
+                  - generic [ref=e73]:
+                    - paragraph [ref=e74]: Sua saúde hoje
+                    - paragraph [ref=e75]: Em ótima forma
+                    - generic [ref=e76]:
+                      - paragraph [ref=e77]: ● Nada crítico no momento
+                      - paragraph [ref=e78]: · atualizado 11/11/2025
+                - button [ref=e333] [cursor=pointer]
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: Desde seu último exame
+                - generic [ref=e86]:
+                  - generic [ref=e292]: 3 pioraram
+                  - generic [ref=e296]: 2 melhoraram
+                - generic [ref=e300]:
+                  - generic [ref=e301]:
+                    - paragraph [ref=e302]: •BASTONETES
+                    - paragraph [ref=e303]: 0 %
+                  - generic [ref=e304]:
+                    - paragraph [ref=e305]: ↑LH - HORMONIO LUTEINIZANTE
+                    - paragraph [ref=e306]: 12.7 mUI/mL
+                  - generic [ref=e307]:
+                    - paragraph [ref=e308]: ↓TESTOSTERONA TOTAL
+                    - paragraph [ref=e309]: 2.5 ng/dL
+                  - generic [ref=e310]:
+                    - paragraph [ref=e311]: •FSH - HORMÔNIO FOLÍCULO ESTIMULANTE
+                    - paragraph [ref=e312]: 5.8 mUI/mL
+                  - generic [ref=e313]:
+                    - paragraph [ref=e314]: •ESTRADIOL
+                    - paragraph [ref=e315]: 43.7 pg/mL
+                - button [ref=e334] [cursor=pointer]
+            - button [ref=e335] [cursor=pointer]
+            - generic [ref=e102]:
+              - generic [ref=e109] [cursor=pointer]:
+                - paragraph [ref=e110]: Cardiometabólico
+                - paragraph [ref=e111]: baixo
+                - paragraph [ref=e112]: 1 fator de risco
+              - generic [ref=e115] [cursor=pointer]:
+                - generic [ref=e116]: 🧬
+                - generic [ref=e117]:
+                  - paragraph [ref=e118]: Idade biológica
+                  - paragraph [ref=e119]: 49a
+                  - paragraph [ref=e120]: cadastre seu nascimento
+              - generic [ref=e127] [cursor=pointer]:
+                - paragraph [ref=e128]: Seus exames
+                - paragraph [ref=e129]: "3"
+                - paragraph [ref=e130]: 8 alterados
+              - generic [ref=e137] [cursor=pointer]:
+                - paragraph [ref=e138]: Evolução
+                - paragraph [ref=e139]: Tendências
+                - paragraph [ref=e140]: 0 resultados
+            - generic [ref=e142]:
+              - generic [ref=e143]: Enviar exame
+              - generic [ref=e150]: Evolução
+              - generic [ref=e157]: Família
+              - generic [ref=e165]: Relatório
+            - generic [ref=e318]:
+              - generic [ref=e322]:
+                - paragraph [ref=e323]: "19"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=e336] [cursor=pointer]
+            - button [ref=e337] [cursor=pointer]
+    - navigation [ref=e177]:
+      - paragraph [ref=e182] [cursor=pointer]: Início
+      - paragraph [ref=e188] [cursor=pointer]: Exames
+      - generic [ref=e189] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e338]
+        - paragraph [ref=e192]: Dr. Exame
+      - paragraph [ref=e197] [cursor=pointer]: Evolução
+      - paragraph [ref=e202] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e339]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e340]

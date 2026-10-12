@@ -1,0 +1,173 @@
+- generic [ref=f2e20]:
+  - generic [ref=f2e21]:
+    - generic [ref=f2e886]:
+      - button [ref=f2e887] [cursor=pointer]
+      - generic [ref=f2e888]:
+        - banner [ref=f2e889]:
+          - generic [ref=f2e890]:
+            - button [ref=f2e891] [cursor=pointer]
+            - paragraph [ref=f2e897]: Dr. Exame
+            - button [ref=f2e898] [cursor=pointer]:
+              - generic [ref=f2e901]: "71"
+              - button [ref=f2e902]
+            - button [ref=f2e905] [cursor=pointer]:
+              - generic [ref=f2e906]: "34"
+            - button [ref=f2e911] [cursor=pointer]:
+              - generic [ref=f2e912]: E
+            - button [ref=f2e918] [cursor=pointer]
+        - main [ref=f2e921]:
+          - generic [ref=f2e1496]:
+            - heading [level=5] [ref=f2e1497]: 🧾 Relatório completo de saúde
+            - paragraph [ref=f2e1498]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - generic [ref=f2e1548]:
+              - generic [ref=f2e1550]:
+                - generic [ref=f2e1554]:
+                  - heading [level=6] [ref=f2e1555]: Relatório consolidado 🩺
+                  - paragraph [ref=f2e1556]: Análise educativa — não substitui consulta médica
+                - generic [ref=f2e1557]:
+                  - generic [ref=f2e1559]:
+                    - paragraph [ref=f2e1560]: "4"
+                    - text: Itens
+                  - generic [ref=f2e1562]:
+                    - paragraph [ref=f2e1563]: "3"
+                    - text: Atenção
+                  - generic [ref=f2e1565]:
+                    - paragraph [ref=f2e1566]: "2"
+                    - text: Positivos
+                - generic [ref=f2e1567]:
+                  - button [ref=f2e1568] [cursor=pointer]: Ouvir
+                  - button [ref=f2e1573] [cursor=pointer]
+                  - button [ref=f2e1576] [cursor=pointer]
+                  - button [ref=f2e1579] [cursor=pointer]: ↻ Atualizar relatório
+                - paragraph [ref=f2e1583]: Edmilson, seu exame mais recente mostra alterações principalmente na parte do sangue (hemograma), especificamente no tamanho e na cor das hemácias (células vermelhas) e na contagem de plaquetas. O valor da hemoglobina (15,0) está dentro da faixa de referência, mas o tamanho das células (VCM e HCM) está um pouco reduzido.
+              - generic [ref=f2e1584]:
+                - generic [ref=f2e1586]:
+                  - paragraph [ref=f2e1590]: Baseado nos exames
+                  - generic [ref=f2e1591]: "5"
+                - generic [ref=f2e1594]:
+                  - paragraph [ref=f2e1596] [cursor=pointer]: 📄 HEMOGRAMA • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO …
+                  - paragraph [ref=f2e1598] [cursor=pointer]: 📄 GLICEMIA DE JEJUM — 09/07/2026 • Fleury
+                  - paragraph [ref=f2e1600] [cursor=pointer]: 📄 PERFIL LIPÍDICO — 09/07/2026 • Fleury
+                  - paragraph [ref=f2e1602] [cursor=pointer]: 📄 HEMOGRAMA — 09/07/2026 • Laboratório Central
+                  - paragraph [ref=f2e1604] [cursor=pointer]: 📄 HEMOGRAMA — 14/04/2026 • Laboratório Central
+              - generic [ref=f2e1605]:
+                - generic [ref=f2e1607]:
+                  - paragraph [ref=f2e1612]: Itens em destaque
+                  - generic [ref=f2e1613]: "4"
+                - generic [ref=f2e1616]:
+                  - generic [ref=f2e1619]:
+                    - generic [ref=f2e1620]:
+                      - generic [ref=f2e1621] [cursor=pointer]: VCM (Volume Corpuscular Médio)…mais
+                      - generic [ref=f2e1622]:
+                        - paragraph [ref=f2e1623]: N/A
+                        - paragraph [ref=f2e1624]: →
+                        - paragraph [ref=f2e1625]: 80,8 fL
+                    - generic [ref=f2e1626]:
+                      - generic [ref=f2e1627]: Atenção
+                      - button [ref=f2e1629] [cursor=pointer]
+                  - generic [ref=f2e1634]:
+                    - generic [ref=f2e1635]:
+                      - generic [ref=f2e1636]: Plaquetas
+                      - generic [ref=f2e1637]:
+                        - paragraph [ref=f2e1638]: N/A
+                        - paragraph [ref=f2e1639]: →
+                        - paragraph [ref=f2e1640]: 116.000/mm³
+                    - generic [ref=f2e1641]:
+                      - generic [ref=f2e1642]: Atenção
+                      - button [ref=f2e1644] [cursor=pointer]
+                  - generic [ref=f2e1649]:
+                    - generic [ref=f2e1650]:
+                      - generic [ref=f2e1651] [cursor=pointer]: CHCM (Conc. Hemoglob. Corpuscular Média)…mais
+                      - generic [ref=f2e1652]:
+                        - paragraph [ref=f2e1653]: N/A
+                        - paragraph [ref=f2e1654]: →
+                        - paragraph [ref=f2e1655]: 32,1 g/dL
+                    - generic [ref=f2e1656]:
+                      - generic [ref=f2e1657]: Atenção
+                      - button [ref=f2e1659] [cursor=pointer]
+                  - generic [ref=f2e1664]:
+                    - generic [ref=f2e1665]:
+                      - generic [ref=f2e1666]: Monócitos
+                      - generic [ref=f2e1667]:
+                        - paragraph [ref=f2e1668]: N/A
+                        - paragraph [ref=f2e1669]: →
+                        - paragraph [ref=f2e1670]: 6,5 %
+                    - generic [ref=f2e1671]:
+                      - generic [ref=f2e1672]: Estável
+                      - button [ref=f2e1674] [cursor=pointer]
+              - generic [ref=f2e1677]:
+                - generic [ref=f2e1679]:
+                  - paragraph [ref=f2e1683]: Pontos de atenção
+                  - generic [ref=f2e1684]: "3"
+                - generic [ref=f2e1687]:
+                  - generic [ref=f2e1688]:
+                    - paragraph [ref=f2e1689]: 1. Contagem de Plaquetas
+                    - paragraph [ref=f2e1690]: O valor atual (116.000/mm³) está abaixo da faixa de referência (150.000-450.000). É importante discutir isso com o médico para entender a causa.
+                  - generic [ref=f2e1691]:
+                    - paragraph [ref=f2e1692]: 2. Índices Hematimétricos (VCM, HCM, CHCM)
+                    - paragraph [ref=f2e1693]: O VCM (80,8) e o HCM (26,0) estão ligeiramente abaixo do limite inferior. Isso sugere que as células sanguíneas podem estar microcíticas (pequenas), o que pode estar relacionado a questões nutricionais, como ferro.
+                  - generic [ref=f2e1694]:
+                    - paragraph [ref=f2e1695]: 3. Leucograma
+                    - paragraph [ref=f2e1696]: Há valores listados com 'flag' de baixo (Linfócitos, Segmentados, Monócitos), mas é fundamental saber se estes valores são absolutos (número) ou relativos (%). Se o valor total de leucócitos estiver normal, pequenas variações percentuais podem não ter significado clínico isolado.
+              - heading [level=3] [ref=f2e1698]:
+                - button [ref=f2e1699] [cursor=pointer]:
+                  - generic [ref=f2e1701]:
+                    - paragraph [ref=f2e1705]: Pontos positivos
+                    - generic [ref=f2e1706]: "2"
+              - heading [level=3] [ref=f2e1712]:
+                - button [ref=f2e1713] [cursor=pointer]:
+                  - generic [ref=f2e1715]:
+                    - paragraph [ref=f2e1719]: Sugestões de nutrição
+                    - generic [ref=f2e1720]: "1"
+              - heading [level=3] [ref=f2e1726]:
+                - button [ref=f2e1727] [cursor=pointer]:
+                  - generic [ref=f2e1729]:
+                    - paragraph [ref=f2e1733]: Metas de saúde
+                    - generic [ref=f2e1734]: "2"
+              - generic [ref=f2e1739]:
+                - generic [ref=f2e1741]:
+                  - paragraph [ref=f2e1745]: Perguntas para levar ao médico
+                  - generic [ref=f2e1746]: "3"
+                - generic [ref=f2e1749]:
+                  - generic [ref=f2e1750]:
+                    - checkbox [ref=f2e1752] [cursor=pointer]
+                    - paragraph [ref=f2e1755]: Minhas plaquetas estão em 116.000/mm³, abaixo do referencial. O que pode ter causado isso e preciso repetir o exame?
+                  - generic [ref=f2e1756]:
+                    - checkbox [ref=f2e1758] [cursor=pointer]
+                    - paragraph [ref=f2e1761]: O VCM (80,8) e HCM (26,0) estão baixos, indicando células pequenas (microcitose). Isso pode ser falta de ferro ou outro motivo?
+                  - generic [ref=f2e1762]:
+                    - checkbox [ref=f2e1764] [cursor=pointer]
+                    - paragraph [ref=f2e1767]: Os valores de leucócitos (linfócitos, monócitos) estão alterados em porcentagem ou número absoluto? Isso indica infecção ou é variação normal?
+                  - button [disabled]: Enviar ao médico
+                  - generic [ref=f2e1768]: Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.
+              - generic [ref=f2e1769]:
+                - paragraph [ref=f2e1770]: 📌 Leitura final
+                - paragraph [ref=f2e1771]: Edmilson, seu hemograma mostra que a quantidade de hemoglobina (a parte que transporta oxigênio) está boa (15,0). Porém, o tamanho das suas células vermelhas (VCM 80,8) e a contagem de plaquetas (116.000) estão abaixo do esperado no laboratório. Isso geralmente pede uma avaliação clínica para verificar se há necessidade de ajustes na alimentação ou investigação adicional. Não se assuste, pois o médico saberá interpretar esses dados no contexto do seu histórico.
+              - generic [ref=f2e1772]: "IMPORTANTE: Esta análise é educativa e serve para ajudar você a entender seus exames. Eu NÃO sou médico e NÃO substituo uma consulta. Alterações em exames podem ser variações de laboratório, erros de medição ou indicar condições que precisam de avaliação clínica. Leve este relatório ao seu médico responsável."
+    - button [ref=f2e1326] [cursor=pointer]
+    - navigation [ref=f2e1234]:
+      - paragraph [ref=f2e1239] [cursor=pointer]: Início
+      - paragraph [ref=f2e1245] [cursor=pointer]: Exames
+      - paragraph [ref=f2e1249] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f2e1254] [cursor=pointer]: Evolução
+      - paragraph [ref=f2e1259] [cursor=pointer]: Mais
+  - generic [ref=f2e17] [cursor=pointer]
+  - dialog [ref=f2e1265]:
+    - generic [ref=f2e1266]:
+      - button [ref=f2e1267] [cursor=pointer]: Pular
+      - generic [ref=f2e1268]:
+        - heading [level=4] [ref=f2e1271]: Envie seu exame
+        - paragraph [ref=f2e1272]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f2e1273]:
+        - button [ref=f2e1279] [cursor=pointer]: Próximo
+        - paragraph [ref=f2e1283]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f2e1286]:
+    - heading [level=2] [ref=f2e1287]:
+      - generic [ref=f2e1288]:
+        - img "Dr. Exame" [ref=f2e1289]
+        - paragraph [ref=f2e1290]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f2e1292]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=f2e1293]:
+      - button "Depois" [ref=f2e1294] [cursor=pointer]
+      - button "Ver notificações" [ref=f2e1295] [cursor=pointer]
+  - generic [ref=f2e1495]: "0"

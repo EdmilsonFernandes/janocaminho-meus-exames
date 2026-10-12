@@ -1,0 +1,114 @@
+- generic [ref=f2e20]:
+  - generic [ref=f2e22]:
+    - generic [ref=f2e23]:
+      - generic [ref=f2e24]:
+        - button [ref=f2e369] [cursor=pointer]
+        - button [ref=f2e370] [cursor=pointer]:
+          - generic [ref=f2e26]: D
+        - generic [ref=f2e27]:
+          - paragraph [ref=f2e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=f2e141]:
+        - generic [ref=f2e142]:
+          - generic [ref=f2e143]:
+            - generic [ref=f2e144]: E
+            - generic [ref=f2e147]:
+              - generic [ref=f2e148]:
+                - paragraph [ref=f2e149]: Edmilson Lopes QA
+                - button [ref=f2e371] [cursor=pointer]: Trocar
+              - paragraph [ref=f2e154]: Masculino • Titular • Particular
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]:
+              - generic [ref=f2e157]: Último exame
+              - paragraph [ref=f2e161]: 03/08
+              - text: há 12 dias
+            - button [ref=f2e372] [cursor=pointer]:
+              - generic [ref=f2e163]: Alterações
+              - paragraph [ref=f2e168]: "1"
+            - generic [ref=f2e169]:
+              - generic [ref=f2e170]: Pendências
+              - paragraph [ref=f2e174]: "0"
+            - generic [ref=f2e175]:
+              - generic [ref=f2e176]: Anotações
+              - paragraph [ref=f2e180]: "0"
+        - tablist [ref=f2e373]:
+          - tab [selected] [ref=f2e374] [cursor=pointer]:
+            - generic [ref=f2e189]:
+              - generic [ref=f2e190]: Exames
+              - superscript [ref=f2e191]: "1"
+          - tab [ref=f2e375] [cursor=pointer]:
+            - generic [ref=f2e195]:
+              - generic [ref=f2e196]: Alterados
+              - superscript [ref=f2e197]: "1"
+          - tab [ref=f2e376] [cursor=pointer]:
+            - generic [ref=f2e201]: Tendências
+          - tab [ref=f2e377] [cursor=pointer]:
+            - generic [ref=f2e206]: Relatório
+          - tab [ref=f2e378] [cursor=pointer]:
+            - generic [ref=f2e211]: Perguntas
+          - tab [ref=f2e379] [cursor=pointer]:
+            - generic [ref=f2e216]: Anotações
+        - generic [ref=f2e289]:
+          - generic [ref=f2e291]:
+            - generic [ref=f2e292]:
+              - button [ref=f2e380] [cursor=pointer]: Voltar
+              - generic [ref=f2e297]:
+                - heading [level=1] [ref=f2e381]: Hemograma Completo
+                - generic [ref=f2e299]: Laboratorial · Glicemia e Diabetes
+              - generic [ref=f2e300]: Concluído
+            - button [ref=f2e382] [cursor=pointer]: Abrir laudo
+          - generic [ref=f2e308]:
+            - generic [ref=f2e309]: 03 ago 2026
+            - text: "0"
+          - generic [ref=f2e314]:
+            - paragraph [ref=f2e315]: 🚩 1 valor(es) fora da faixa de referência
+            - generic [ref=f2e316]: "GLICEMIA: 110"
+          - generic [ref=f2e319]:
+            - heading [level=3] [ref=f2e383]:
+              - button [expanded] [ref=f2e384] [cursor=pointer]:
+                - generic [ref=f2e322]:
+                  - paragraph [ref=f2e323]: Geral
+                  - generic [ref=f2e324]:
+                    - text: 1 item ·
+                    - generic [ref=f2e325]: 1 alterado
+            - region [ref=f2e332]:
+              - generic [ref=f2e335]:
+                - generic [ref=f2e336]:
+                  - paragraph [ref=f2e337]: GLICEMIA
+                  - button [expanded] [ref=f2e385] [cursor=pointer]
+                  - generic [ref=f2e341]: ↑ Acima
+                - generic [ref=f2e343]:
+                  - paragraph [ref=f2e344]: "110"
+                  - generic [ref=f2e345]:
+                    - generic [ref=f2e346]: mg/dL
+                    - button [ref=f2e386] [cursor=pointer]
+                - paragraph [ref=f2e350]:
+                  - strong [ref=f2e351]: "Referência:"
+                  - text: 70 a 100 mg/dL
+                - img [ref=f2e387]:
+                  - generic [ref=f2e356]:
+                    - generic [ref=f2e357]: ▲ 70
+                    - generic [ref=f2e358]: 100 ▲
+                - generic [ref=f2e365]:
+                  - generic [ref=f2e366]: 70 mg/dL
+                  - generic [ref=f2e367]: 100 mg/dL
+                - generic [ref=f2e368]: ↑ 10% acima do limite
+    - navigation [ref=f2e105]:
+      - button [ref=f2e388] [cursor=pointer]:
+        - paragraph [ref=f2e111]: Início
+      - button [ref=f2e389] [cursor=pointer]:
+        - paragraph [ref=f2e118]: Pacientes
+      - button [ref=f2e390] [cursor=pointer]:
+        - paragraph [ref=f2e124]: Perguntas
+      - button [ref=f2e391] [cursor=pointer]:
+        - paragraph [ref=f2e130]: Perfil
+      - button [ref=f2e392] [cursor=pointer]:
+        - paragraph [ref=f2e136]: Mais
+  - generic [ref=f2e17] [cursor=pointer]
+  - dialog [active] [ref=f2e396]:
+    - generic [ref=f2e397]:
+      - paragraph [ref=f2e398]: Glicemia (glicose em jejum)
+      - paragraph [ref=f2e399]: A quantidade de açúcar no sangue.
+      - paragraph [ref=f2e400]: 💡 É o "combustível" que comemos circulando no sangue.
+      - generic [ref=f2e401]: ⚠️ Alta pode indicar pré-diabetes ou diabetes. Veja com o médico, especialmente se houver histórico.
+      - generic [ref=f2e402]: "*Educativo. Sempre confirme com seu médico."

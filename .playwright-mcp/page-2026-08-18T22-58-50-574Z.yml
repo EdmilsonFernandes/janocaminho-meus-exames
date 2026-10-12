@@ -1,0 +1,72 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e22]:
+    - button "Pular para o conteúdo" [ref=e3179] [cursor=pointer]
+    - generic [ref=e24]:
+      - banner [ref=e25]:
+        - generic [ref=e26]:
+          - heading [level=6]
+          - button "Você tem 71 créditos. Toque para comprar mais." [ref=e3180] [cursor=pointer]:
+            - generic [ref=e37]: "71"
+          - button "Notificações" [ref=e3181] [cursor=pointer]:
+            - generic [ref=e39]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e3182] [cursor=pointer]:
+            - generic [ref=e45]: E
+            - generic [ref=e3183]: Edmilson Lopes Fernandes dos Santos
+          - button "Atualizar" [ref=e3189] [cursor=pointer]
+      - main [ref=e47]:
+        - navigation [ref=e3195]:
+          - button "Exames" [ref=e3197] [cursor=pointer]
+          - button "Cuidados" [ref=e3206] [cursor=pointer]
+          - button "Pessoas" [ref=e3216] [cursor=pointer]
+          - button "Conta" [ref=e3226] [cursor=pointer]
+          - separator [ref=e3234]
+          - button "Ajuda & Suporte" [ref=e3235] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e3241] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e3247] [cursor=pointer]
+        - generic [ref=e3253]:
+          - generic [ref=e3254]:
+            - paragraph [ref=e3255]: Boa noite, tudo bem? 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e3256]:
+            - generic [ref=e3258]:
+              - generic [ref=e3259]:
+                - paragraph [ref=e3266]: de 100
+                - generic [ref=e3267]:
+                  - paragraph [ref=e3268]: Sua saúde hoje
+                  - paragraph [ref=e3269]: Pede atenção
+                  - paragraph [ref=e3271]: ● Nada crítico no momento
+              - button [ref=e3272] [cursor=pointer]
+            - generic [ref=e3277]:
+              - paragraph [ref=e3278]: Desde seu último exame
+              - paragraph [ref=e3280]: Carregando…
+              - button [ref=e3282] [cursor=pointer]
+          - button [ref=e3291] [cursor=pointer]
+          - generic [ref=e3295]:
+            - generic [ref=e3302] [cursor=pointer]:
+              - paragraph [ref=e3303]: Cardiometabólico
+              - paragraph [ref=e3304]: —
+              - paragraph [ref=e3305]: sem fatores
+            - generic [ref=e3308] [cursor=pointer]:
+              - generic [ref=e3309]: 🧬
+              - generic [ref=e3310]:
+                - paragraph [ref=e3311]: Idade biológica
+                - paragraph [ref=e3312]: Em breve
+                - paragraph [ref=e3313]: estimativa c/ +exames
+            - generic [ref=e3320] [cursor=pointer]:
+              - paragraph [ref=e3321]: Seus exames
+              - paragraph [ref=e3322]: —
+              - paragraph [ref=e3323]: 0 alterados
+            - generic [ref=e3330] [cursor=pointer]:
+              - paragraph [ref=e3331]: Evolução
+              - paragraph [ref=e3332]: Tendências
+              - paragraph [ref=e3333]: 28 resultados
+          - generic [ref=e3335]:
+            - generic [ref=e3336]: Enviar exame
+            - generic [ref=e3343]: Evolução
+            - generic [ref=e3350]: Família
+            - generic [ref=e3358]: Relatório
+          - button [ref=e3366] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e3370]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e3371]
+  - generic [ref=e962]: "0"

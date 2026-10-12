@@ -1,0 +1,115 @@
+- generic [ref=e20]:
+  - generic [ref=e455]:
+    - generic [ref=e456]:
+      - generic [ref=e457]:
+        - button "Voltar" [ref=e458] [cursor=pointer]
+        - button "Menu do médico" [ref=e461] [cursor=pointer]
+        - generic [ref=e464]:
+          - paragraph [ref=e465]: Dr. Daniel Shirane
+          - text: Cirurgiao Geral • CRM 185642-SP
+      - generic [ref=e467]:
+        - generic [ref=e468]:
+          - generic [ref=e474]:
+            - generic [ref=e475]:
+              - paragraph [ref=e476]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e477] [cursor=pointer]: Trocar
+            - paragraph [ref=e481]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - generic [ref=e484]: Último exame
+              - paragraph [ref=e488]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e489] [cursor=pointer]:
+              - generic [ref=e490]: Alterações
+              - paragraph [ref=e495]: "40"
+            - generic [ref=e496]:
+              - generic [ref=e497]: Pendências
+              - paragraph [ref=e501]: "1"
+            - generic [ref=e502]:
+              - generic [ref=e503]: Anotações
+              - paragraph [ref=e507]: "0"
+        - tablist "Abas do paciente" [ref=e511]:
+          - tab "Exames" [ref=e512] [cursor=pointer]:
+            - superscript [ref=e1388]: "13"
+          - tab "Alterados" [ref=e516] [cursor=pointer]:
+            - superscript [ref=e731]: "40"
+          - tab "Tendências" [active] [selected] [ref=e523] [cursor=pointer]
+          - tab "Relatório" [ref=e526] [cursor=pointer]
+          - tab "Perguntas" [ref=e529] [cursor=pointer]:
+            - superscript [ref=e532]: "1"
+          - tab "Anotações" [ref=e533] [cursor=pointer]
+        - generic [ref=e1391]:
+          - generic [ref=e1393]:
+            - heading "📈 Tendências" [level=5] [ref=e1394]
+            - paragraph [ref=e1395]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=e1398]:
+            - generic [ref=e1400]:
+              - combobox [ref=e1401] [cursor=pointer]: Acido Folico (3 exames)
+              - textbox: ACIDO FOLICO
+              - group
+            - generic [ref=e1403]:
+              - combobox [ref=e1404] [cursor=pointer]: Todo histórico
+              - textbox: all
+              - group
+          - generic [ref=e1406]:
+            - generic [ref=e1407]:
+              - heading "Acido Folico" [level=6] [ref=e1408]
+              - button "O que é este exame?" [ref=e1409] [cursor=pointer]
+            - generic [ref=e1412]:
+              - generic [ref=e1413]:
+                - paragraph [ref=e1414]: 9,82 ng/mL
+                - paragraph [ref=e1415]: ↑ 66%
+              - paragraph [ref=e1416]: ↑ Tendência de alta · 3 medições
+              - paragraph [ref=e1417]:
+                - text: "Última medição:"
+                - strong [ref=e1418]: 13/08/26
+              - paragraph [ref=e1419]: "Referência: 3.89–20 ng/mL"
+            - application [ref=e1422]:
+              - generic [ref=e1443]:
+                - generic [ref=e1444]:
+                  - generic [ref=e1445]: 06/02
+                  - generic [ref=e1447]: 20/03
+                  - generic [ref=e1449]: 13/08
+                - generic [ref=e1451]:
+                  - generic [ref=e1452]: "0"
+                  - generic [ref=e1454]: "3"
+                  - generic [ref=e1456]: "6"
+                  - generic [ref=e1458]: "9"
+                  - generic [ref=e1460]: "12"
+            - generic [ref=e1462]:
+              - heading "Histórico (do mais recente)" [level=6] [ref=e1463]
+              - generic [ref=e1464]:
+                - generic [ref=e1465]:
+                  - generic [ref=e1466]:
+                    - paragraph [ref=e1467]: 13/08/26
+                    - generic "HEMOGRAMA COMPLETO" [ref=e1468]
+                  - generic [ref=e1469]:
+                    - paragraph [ref=e1470]: 9,82 ng/mL
+                    - generic "Dentro da referência" [ref=e1471]: Normal
+                - generic [ref=e1473]:
+                  - generic [ref=e1474]:
+                    - paragraph [ref=e1475]: 20/03/25
+                    - generic "EXAMES LABORATORIAIS" [ref=e1476]
+                  - generic [ref=e1477]:
+                    - paragraph [ref=e1478]: 8,2 ng/mL
+                    - generic "Dentro da referência" [ref=e1479]: Normal
+                - generic [ref=e1481]:
+                  - generic [ref=e1482]:
+                    - paragraph [ref=e1483]: 06/02/25
+                    - generic "EXAMES LABORATORIAIS" [ref=e1484]
+                  - generic [ref=e1485]:
+                    - paragraph [ref=e1486]: 5,9 ng/mL
+                    - generic "Dentro da referência" [ref=e1487]: Normal
+    - navigation [ref=e705]:
+      - button "Pacientes" [ref=e706] [cursor=pointer]:
+        - paragraph [ref=e711]: Pacientes
+      - button "Perguntas" [ref=e713] [cursor=pointer]:
+        - paragraph [ref=e718]: Perguntas
+      - button "Perfil" [ref=e719] [cursor=pointer]:
+        - paragraph [ref=e724]: Perfil
+      - button "Mais" [ref=e725] [cursor=pointer]:
+        - paragraph [ref=e730]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e339]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e340]
+  - generic [ref=e832]: "0"

@@ -1,0 +1,61 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e81]:
+      - button "Pular para o conteúdo" [ref=e440] [cursor=pointer]
+      - generic [ref=e83]:
+        - banner [ref=e84]:
+          - generic [ref=e85]:
+            - button "Menu" [ref=e441] [cursor=pointer]:
+              - img [ref=e349]
+            - button "Voltar" [ref=e442] [cursor=pointer]:
+              - img [ref=e411]
+            - button "79" [ref=e443] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e92]: "79"
+            - button "E" [ref=e444] [cursor=pointer]:
+              - generic [ref=e96]: E
+            - button "3" [ref=e445] [cursor=pointer]:
+              - generic [ref=e103]:
+                - img [ref=e104]
+                - generic [ref=e354]: "3"
+            - button "Mais opções" [ref=e446] [cursor=pointer]:
+              - img [ref=e107]
+            - button "Atualizar" [ref=e447] [cursor=pointer]:
+              - img [ref=e111]
+        - main [ref=e113]:
+          - generic [ref=e413]:
+            - generic [ref=e414]:
+              - img [ref=e416]
+              - generic [ref=e419]:
+                - heading "Valores fora da faixa" [level=5] [ref=e448]
+                - paragraph [ref=e421]:
+                  - text: Ordenados por
+                  - strong [ref=e422]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e423]: Agendar
+                  - text: pro especialista.
+            - paragraph [ref=e438]: Nenhum valor alterado — tudo dentro da faixa. ✅
+            - generic [ref=e428]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e449] [cursor=pointer]:
+      - generic [ref=e430]:
+        - img "Dr. Exame" [ref=e450]
+        - img [ref=e434]
+    - navigation [ref=e377]:
+      - generic [ref=e378] [cursor=pointer]:
+        - generic [ref=e379]: 🏠
+        - paragraph [ref=e380]: Início
+      - generic [ref=e382] [cursor=pointer]:
+        - generic [ref=e383]: 📋
+        - paragraph [ref=e384]: Exames
+      - generic [ref=e385] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e451]
+        - paragraph [ref=e388]: Dr. Exame
+      - generic [ref=e389] [cursor=pointer]:
+        - generic [ref=e390]: 📈
+        - paragraph [ref=e391]: Evolução
+      - generic [ref=e392] [cursor=pointer]:
+        - generic [ref=e393]: ☰
+        - paragraph [ref=e394]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e452]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e453]

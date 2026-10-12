@@ -1,0 +1,757 @@
+- generic [ref=f51e2]:
+  - banner [ref=f51e3]:
+    - generic [ref=f51e4]:
+      - link "Levels home" [ref=f51e6] [cursor=pointer]:
+        - /url: /new3
+        - img "Levels" [ref=f51e7]
+      - navigation [ref=f51e8]:
+        - link "What You Get" [ref=f51e9] [cursor=pointer]:
+          - /url: /#what-you-get
+        - link "What We Measure" [ref=f51e10] [cursor=pointer]:
+          - /url: /what-we-measure
+        - link "Blog" [ref=f51e11] [cursor=pointer]:
+          - /url: /blog
+        - link "Practitioners" [ref=f51e12] [cursor=pointer]:
+          - /url: /pro
+      - generic [ref=f51e13]:
+        - link "Login" [ref=f51e14] [cursor=pointer]:
+          - /url: /login
+        - link "Buy now" [ref=f51e15] [cursor=pointer]:
+          - /url: /join/start
+  - main [ref=f51e16]:
+    - generic [ref=f51e21]:
+      - paragraph [ref=f51e22]: What we measure
+      - heading "We measure what matters for better health" [level=1] [ref=f51e23]
+    - generic [ref=f51e25]:
+      - generic [ref=f51e26]:
+        - paragraph [ref=f51e27]: Continuous glucose monitoring
+        - heading "Real-time measurements" [level=2] [ref=f51e28]
+        - paragraph [ref=f51e29]: Track real-time signals from your body and turn glucose data into insights that help you fuel better and feel more balanced.
+      - generic [ref=f51e30]:
+        - generic [ref=f51e31]:
+          - heading "CGM + Levels app" [level=3] [ref=f51e32]
+          - generic [ref=f51e33]: 4 biomarkers
+        - generic [ref=f51e34]:
+          - button [ref=f51e35]:
+            - paragraph [ref=f51e37]: Basal Glucose
+          - button [ref=f51e41]:
+            - paragraph [ref=f51e43]: Glucose Variability
+          - button [ref=f51e47]:
+            - paragraph [ref=f51e49]: Insulin Sensitivity
+          - button [ref=f51e53]:
+            - paragraph [ref=f51e55]: Post-Meal Glucose Dynamics
+    - generic [ref=f51e60]:
+      - generic [ref=f51e61]:
+        - paragraph [ref=f51e62]: Comprehensive lab testing
+        - heading "Long-term measurements" [level=2] [ref=f51e63]
+        - paragraph [ref=f51e64]: See the bigger picture of your health. Track long-term trends in key markers to understand how your habits shape your metabolism and performance.
+      - generic [ref=f51e65]:
+        - generic [ref=f51e66]:
+          - generic [ref=f51e67]:
+            - heading "Metabolic" [level=3] [ref=f51e68]
+            - generic [ref=f51e69]: 5 biomarkers
+          - generic [ref=f51e70]:
+            - button [ref=f51e71]:
+              - paragraph [ref=f51e73]: Fasting Glucose
+            - button [ref=f51e78]:
+              - paragraph [ref=f51e80]: Fasting Insulin
+            - button [ref=f51e85]:
+              - paragraph [ref=f51e87]: Hemoglobin A1c (HbA1c)
+            - button "Uric Acid Complete" [ref=f51e92]:
+              - generic [ref=f51e93]:
+                - paragraph [ref=f51e94]: Uric Acid
+                - generic [ref=f51e95]: Complete
+            - button "Leptin Complete" [ref=f51e100]:
+              - generic [ref=f51e101]:
+                - paragraph [ref=f51e102]: Leptin
+                - generic [ref=f51e103]: Complete
+        - generic [ref=f51e108]:
+          - generic [ref=f51e109]:
+            - heading "Cardiovascular" [level=3] [ref=f51e110]
+            - generic [ref=f51e111]: 9 biomarkers
+          - generic [ref=f51e112]:
+            - button [ref=f51e113]:
+              - paragraph [ref=f51e115]: ApoB (Apolipoprotein B)
+            - button [ref=f51e120]:
+              - paragraph [ref=f51e122]: Triglycerides
+            - button [ref=f51e127]:
+              - paragraph [ref=f51e129]: Total Cholesterol/HDL Ratio
+            - button [ref=f51e134]:
+              - paragraph [ref=f51e136]: Low-density lipoprotein (LDL)
+            - button [ref=f51e141]:
+              - paragraph [ref=f51e143]: High-density lipoprotein (HDL)
+            - button [ref=f51e148]:
+              - paragraph [ref=f51e150]: LDL / HDL Ratio
+            - button [ref=f51e155]:
+              - paragraph [ref=f51e157]: Non-HDL Cholesterol
+            - button "HsCRP Complete" [ref=f51e162]:
+              - generic [ref=f51e163]:
+                - paragraph [ref=f51e164]: HsCRP
+                - generic [ref=f51e165]: Complete
+            - button "Lipoprotein (a) Complete" [ref=f51e170]:
+              - generic [ref=f51e171]:
+                - paragraph [ref=f51e172]: Lipoprotein (a)
+                - generic [ref=f51e173]: Complete
+        - generic [ref=f51e178]:
+          - generic [ref=f51e179]:
+            - heading "Liver" [level=3] [ref=f51e180]
+            - generic [ref=f51e181]: 9 biomarkers
+          - generic [ref=f51e182]:
+            - button [ref=f51e183]:
+              - paragraph [ref=f51e185]: Albumin
+            - button [ref=f51e190]:
+              - paragraph [ref=f51e192]: Albumin / Globulin Ratio
+            - button [ref=f51e197]:
+              - paragraph [ref=f51e199]: Alkaline Phosphatase (ALP)
+            - button [ref=f51e204]:
+              - paragraph [ref=f51e206]: Alanine Aminotransferase (ALT)
+            - button [ref=f51e211]:
+              - paragraph [ref=f51e213]: Aspartate Aminotransferase (AST)
+            - button [ref=f51e218]:
+              - paragraph [ref=f51e220]: Total Bilirubin
+            - button [ref=f51e225]:
+              - paragraph [ref=f51e227]: Total Protein
+            - button [ref=f51e232]:
+              - paragraph [ref=f51e234]: Globulin
+            - button "γ-Glutamyl Transferase (GGT) Complete" [ref=f51e239]:
+              - generic [ref=f51e240]:
+                - paragraph [ref=f51e241]: γ-Glutamyl Transferase (GGT)
+                - generic [ref=f51e242]: Complete
+        - generic [ref=f51e247]:
+          - generic [ref=f51e248]:
+            - heading "Immune Regulation" [level=3] [ref=f51e249]
+            - generic [ref=f51e250]: 6 biomarkers
+          - generic [ref=f51e251]:
+            - button "Basophils Complete" [ref=f51e252]:
+              - generic [ref=f51e253]:
+                - paragraph [ref=f51e254]: Basophils
+                - generic [ref=f51e255]: Complete
+            - button "Eosinophils Complete" [ref=f51e260]:
+              - generic [ref=f51e261]:
+                - paragraph [ref=f51e262]: Eosinophils
+                - generic [ref=f51e263]: Complete
+            - button "Lymphocytes Complete" [ref=f51e268]:
+              - generic [ref=f51e269]:
+                - paragraph [ref=f51e270]: Lymphocytes
+                - generic [ref=f51e271]: Complete
+            - button "Monocytes Complete" [ref=f51e276]:
+              - generic [ref=f51e277]:
+                - paragraph [ref=f51e278]: Monocytes
+                - generic [ref=f51e279]: Complete
+            - button "Neutrophils Complete" [ref=f51e284]:
+              - generic [ref=f51e285]:
+                - paragraph [ref=f51e286]: Neutrophils
+                - generic [ref=f51e287]: Complete
+            - button "White Blood Cell Count Complete" [ref=f51e292]:
+              - generic [ref=f51e293]:
+                - paragraph [ref=f51e294]: White Blood Cell Count
+                - generic [ref=f51e295]: Complete
+        - generic [ref=f51e300]:
+          - generic [ref=f51e301]:
+            - heading "Kidney" [level=3] [ref=f51e302]
+            - generic [ref=f51e303]: 6 biomarkers
+          - generic [ref=f51e304]:
+            - button [ref=f51e305]:
+              - paragraph [ref=f51e307]: BUN/Creatinine Ratio
+            - button [ref=f51e312]:
+              - paragraph [ref=f51e314]: Creatinine
+            - button [ref=f51e319]:
+              - paragraph [ref=f51e321]: Urea Nitrogen (BUN)
+            - button [ref=f51e326]:
+              - paragraph [ref=f51e328]: Estimated Glomerular Filtration Rate
+            - button "Cystatin C Complete" [ref=f51e333]:
+              - generic [ref=f51e334]:
+                - paragraph [ref=f51e335]: Cystatin C
+                - generic [ref=f51e336]: Complete
+            - button "eGFR (Cystatin C) Complete" [ref=f51e341]:
+              - generic [ref=f51e342]:
+                - paragraph [ref=f51e343]: eGFR (Cystatin C)
+                - generic [ref=f51e344]: Complete
+        - generic [ref=f51e349]:
+          - generic [ref=f51e350]:
+            - heading "Stress & Aging" [level=3] [ref=f51e351]
+            - generic [ref=f51e352]: 3 biomarkers
+          - generic [ref=f51e353]:
+            - button "Cortisol Complete" [ref=f51e354]:
+              - generic [ref=f51e355]:
+                - paragraph [ref=f51e356]: Cortisol
+                - generic [ref=f51e357]: Complete
+            - button "DHEA Sulfate Complete" [ref=f51e362]:
+              - generic [ref=f51e363]:
+                - paragraph [ref=f51e364]: DHEA Sulfate
+                - generic [ref=f51e365]: Complete
+            - button "Biological Age Complete" [ref=f51e370]:
+              - generic [ref=f51e371]:
+                - paragraph [ref=f51e372]: Biological Age
+                - generic [ref=f51e373]: Complete
+        - generic [ref=f51e378]:
+          - generic [ref=f51e379]:
+            - heading "Male Health" [level=3] [ref=f51e380]
+            - generic [ref=f51e381]: 10 biomarkers
+          - generic [ref=f51e382]:
+            - button "Estradiol Complete" [ref=f51e383]:
+              - generic [ref=f51e384]:
+                - paragraph [ref=f51e385]: Estradiol
+                - generic [ref=f51e386]: Complete
+            - button "Follicle-stimulating Hormone (FSH) Complete" [ref=f51e391]:
+              - generic [ref=f51e392]:
+                - paragraph [ref=f51e393]: Follicle-stimulating Hormone (FSH)
+                - generic [ref=f51e394]: Complete
+            - button "Free Testosterone Complete" [ref=f51e399]:
+              - generic [ref=f51e400]:
+                - paragraph [ref=f51e401]: Free Testosterone
+                - generic [ref=f51e402]: Complete
+            - button "Total Testosterone Complete" [ref=f51e407]:
+              - generic [ref=f51e408]:
+                - paragraph [ref=f51e409]: Total Testosterone
+                - generic [ref=f51e410]: Complete
+            - button "Luteinizing Hormone (LH) Complete" [ref=f51e415]:
+              - generic [ref=f51e416]:
+                - paragraph [ref=f51e417]: Luteinizing Hormone (LH)
+                - generic [ref=f51e418]: Complete
+            - button "Prolactin Complete" [ref=f51e423]:
+              - generic [ref=f51e424]:
+                - paragraph [ref=f51e425]: Prolactin
+                - generic [ref=f51e426]: Complete
+            - button "Sex Hormone Binding Globulin Complete" [ref=f51e431]:
+              - generic [ref=f51e432]:
+                - paragraph [ref=f51e433]: Sex Hormone Binding Globulin
+                - generic [ref=f51e434]: Complete
+            - button "PSA Percent Free Complete" [ref=f51e439]:
+              - generic [ref=f51e440]:
+                - paragraph [ref=f51e441]: PSA Percent Free
+                - generic [ref=f51e442]: Complete
+            - button "PSA, Free Complete" [ref=f51e447]:
+              - generic [ref=f51e448]:
+                - paragraph [ref=f51e449]: PSA, Free
+                - generic [ref=f51e450]: Complete
+            - button "PSA, Total Complete" [ref=f51e455]:
+              - generic [ref=f51e456]:
+                - paragraph [ref=f51e457]: PSA, Total
+                - generic [ref=f51e458]: Complete
+        - generic [ref=f51e463]:
+          - generic [ref=f51e464]:
+            - heading "Female Health" [level=3] [ref=f51e465]
+            - generic [ref=f51e466]: 8 biomarkers
+          - generic [ref=f51e467]:
+            - button "Anti-Mullerian Hormone (AMH) Complete" [ref=f51e468]:
+              - generic [ref=f51e469]:
+                - paragraph [ref=f51e470]: Anti-Mullerian Hormone (AMH)
+                - generic [ref=f51e471]: Complete
+            - button "Estradiol Complete" [ref=f51e476]:
+              - generic [ref=f51e477]:
+                - paragraph [ref=f51e478]: Estradiol
+                - generic [ref=f51e479]: Complete
+            - button "Follicle-stimulating Hormone (FSH) Complete" [ref=f51e484]:
+              - generic [ref=f51e485]:
+                - paragraph [ref=f51e486]: Follicle-stimulating Hormone (FSH)
+                - generic [ref=f51e487]: Complete
+            - button "Free Testosterone Complete" [ref=f51e492]:
+              - generic [ref=f51e493]:
+                - paragraph [ref=f51e494]: Free Testosterone
+                - generic [ref=f51e495]: Complete
+            - button "Total Testosterone Complete" [ref=f51e500]:
+              - generic [ref=f51e501]:
+                - paragraph [ref=f51e502]: Total Testosterone
+                - generic [ref=f51e503]: Complete
+            - button "Luteinizing Hormone (LH) Complete" [ref=f51e508]:
+              - generic [ref=f51e509]:
+                - paragraph [ref=f51e510]: Luteinizing Hormone (LH)
+                - generic [ref=f51e511]: Complete
+            - button "Prolactin Complete" [ref=f51e516]:
+              - generic [ref=f51e517]:
+                - paragraph [ref=f51e518]: Prolactin
+                - generic [ref=f51e519]: Complete
+            - button "Sex Hormone Binding Globulin Complete" [ref=f51e524]:
+              - generic [ref=f51e525]:
+                - paragraph [ref=f51e526]: Sex Hormone Binding Globulin
+                - generic [ref=f51e527]: Complete
+        - generic [ref=f51e532]:
+          - generic [ref=f51e533]:
+            - heading "Nutrients" [level=3] [ref=f51e534]
+            - generic [ref=f51e535]: 19 biomarkers
+          - generic [ref=f51e536]:
+            - button [ref=f51e537]:
+              - paragraph [ref=f51e539]: Calcium
+            - button "Arachidonic Acid (Omega-6) Complete" [ref=f51e544]:
+              - generic [ref=f51e545]:
+                - paragraph [ref=f51e546]: Arachidonic Acid (Omega-6)
+                - generic [ref=f51e547]: Complete
+            - button "Linoleic Acid (Omega-6) Complete" [ref=f51e552]:
+              - generic [ref=f51e553]:
+                - paragraph [ref=f51e554]: Linoleic Acid (Omega-6)
+                - generic [ref=f51e555]: Complete
+            - button "DPA (Omega-3) Complete" [ref=f51e560]:
+              - generic [ref=f51e561]:
+                - paragraph [ref=f51e562]: DPA (Omega-3)
+                - generic [ref=f51e563]: Complete
+            - button "DHA (Omega-3) Complete" [ref=f51e568]:
+              - generic [ref=f51e569]:
+                - paragraph [ref=f51e570]: DHA (Omega-3)
+                - generic [ref=f51e571]: Complete
+            - button "EPA (Omega-3) Complete" [ref=f51e576]:
+              - generic [ref=f51e577]:
+                - paragraph [ref=f51e578]: EPA (Omega-3)
+                - generic [ref=f51e579]: Complete
+            - button "Arachidonic Acid (Omega-6) / EPA (Omega-3) Complete" [ref=f51e584]:
+              - generic [ref=f51e585]:
+                - paragraph [ref=f51e586]: Arachidonic Acid (Omega-6) / EPA (Omega-3)
+                - generic [ref=f51e587]: Complete
+            - button "Omega-3 total Complete" [ref=f51e592]:
+              - generic [ref=f51e593]:
+                - paragraph [ref=f51e594]: Omega-3 total
+                - generic [ref=f51e595]: Complete
+            - button "Omega-6 total Complete" [ref=f51e600]:
+              - generic [ref=f51e601]:
+                - paragraph [ref=f51e602]: Omega-6 total
+                - generic [ref=f51e603]: Complete
+            - button "Omega-6 / Omega-3 Complete" [ref=f51e608]:
+              - generic [ref=f51e609]:
+                - paragraph [ref=f51e610]: Omega-6 / Omega-3
+                - generic [ref=f51e611]: Complete
+            - button "Vitamin B12 - MMA test Complete" [ref=f51e616]:
+              - generic [ref=f51e617]:
+                - paragraph [ref=f51e618]: Vitamin B12 - MMA test
+                - generic [ref=f51e619]: Complete
+            - button "Ferritin Complete" [ref=f51e624]:
+              - generic [ref=f51e625]:
+                - paragraph [ref=f51e626]: Ferritin
+                - generic [ref=f51e627]: Complete
+            - button "Iron Complete" [ref=f51e632]:
+              - generic [ref=f51e633]:
+                - paragraph [ref=f51e634]: Iron
+                - generic [ref=f51e635]: Complete
+            - button "Magnesium Complete" [ref=f51e640]:
+              - generic [ref=f51e641]:
+                - paragraph [ref=f51e642]: Magnesium
+                - generic [ref=f51e643]: Complete
+            - button "Zinc Complete" [ref=f51e648]:
+              - generic [ref=f51e649]:
+                - paragraph [ref=f51e650]: Zinc
+                - generic [ref=f51e651]: Complete
+            - button "Vitamin D, 25‐Hydroxy Complete" [ref=f51e656]:
+              - generic [ref=f51e657]:
+                - paragraph [ref=f51e658]: Vitamin D, 25‐Hydroxy
+                - generic [ref=f51e659]: Complete
+            - button "Iron % Saturation (calculated) Complete" [ref=f51e664]:
+              - generic [ref=f51e665]:
+                - paragraph [ref=f51e666]: Iron % Saturation (calculated)
+                - generic [ref=f51e667]: Complete
+            - button "Iron Binding Capacity Complete" [ref=f51e672]:
+              - generic [ref=f51e673]:
+                - paragraph [ref=f51e674]: Iron Binding Capacity
+                - generic [ref=f51e675]: Complete
+            - button "Homocysteine Complete" [ref=f51e680]:
+              - generic [ref=f51e681]:
+                - paragraph [ref=f51e682]: Homocysteine
+                - generic [ref=f51e683]: Complete
+        - generic [ref=f51e688]:
+          - generic [ref=f51e689]:
+            - heading "Thyroid" [level=3] [ref=f51e690]
+            - generic [ref=f51e691]: 6 biomarkers
+          - generic [ref=f51e692]:
+            - button "Thyroid Stimulating Hormone (TSH) Complete" [ref=f51e693]:
+              - generic [ref=f51e694]:
+                - paragraph [ref=f51e695]: Thyroid Stimulating Hormone (TSH)
+                - generic [ref=f51e696]: Complete
+            - button "Total T4 Complete" [ref=f51e701]:
+              - generic [ref=f51e702]:
+                - paragraph [ref=f51e703]: Total T4
+                - generic [ref=f51e704]: Complete
+            - button "Free T4 Complete" [ref=f51e709]:
+              - generic [ref=f51e710]:
+                - paragraph [ref=f51e711]: Free T4
+                - generic [ref=f51e712]: Complete
+            - button "Thyroid Peroxidase (TPO) Antibodies Complete" [ref=f51e717]:
+              - generic [ref=f51e718]:
+                - paragraph [ref=f51e719]: Thyroid Peroxidase (TPO) Antibodies
+                - generic [ref=f51e720]: Complete
+            - button "Thyroglobulin Antibodies Complete" [ref=f51e725]:
+              - generic [ref=f51e726]:
+                - paragraph [ref=f51e727]: Thyroglobulin Antibodies
+                - generic [ref=f51e728]: Complete
+            - button "T3 Uptake Complete" [ref=f51e733]:
+              - generic [ref=f51e734]:
+                - paragraph [ref=f51e735]: T3 Uptake
+                - generic [ref=f51e736]: Complete
+        - generic [ref=f51e741]:
+          - generic [ref=f51e742]:
+            - heading "Pancreas" [level=3] [ref=f51e743]
+            - generic [ref=f51e744]: 2 biomarkers
+          - generic [ref=f51e745]:
+            - button "Amylase Complete" [ref=f51e746]:
+              - generic [ref=f51e747]:
+                - paragraph [ref=f51e748]: Amylase
+                - generic [ref=f51e749]: Complete
+            - button "Lipase Complete" [ref=f51e754]:
+              - generic [ref=f51e755]:
+                - paragraph [ref=f51e756]: Lipase
+                - generic [ref=f51e757]: Complete
+        - generic [ref=f51e762]:
+          - generic [ref=f51e763]:
+            - heading "Blood" [level=3] [ref=f51e764]
+            - generic [ref=f51e765]: 8 biomarkers
+          - generic [ref=f51e766]:
+            - button "Hematocrit Complete" [ref=f51e767]:
+              - generic [ref=f51e768]:
+                - paragraph [ref=f51e769]: Hematocrit
+                - generic [ref=f51e770]: Complete
+            - button "Hemoglobin Complete" [ref=f51e775]:
+              - generic [ref=f51e776]:
+                - paragraph [ref=f51e777]: Hemoglobin
+                - generic [ref=f51e778]: Complete
+            - button "Mean Corpuscular Hemoglobin Complete" [ref=f51e783]:
+              - generic [ref=f51e784]:
+                - paragraph [ref=f51e785]: Mean Corpuscular Hemoglobin
+                - generic [ref=f51e786]: Complete
+            - button "MCHC Complete" [ref=f51e791]:
+              - generic [ref=f51e792]:
+                - paragraph [ref=f51e793]: MCHC
+                - generic [ref=f51e794]: Complete
+            - button "Mean Corpuscular Volume Complete" [ref=f51e799]:
+              - generic [ref=f51e800]:
+                - paragraph [ref=f51e801]: Mean Corpuscular Volume
+                - generic [ref=f51e802]: Complete
+            - button "Mean Platelet Volume (MPV) Complete" [ref=f51e807]:
+              - generic [ref=f51e808]:
+                - paragraph [ref=f51e809]: Mean Platelet Volume (MPV)
+                - generic [ref=f51e810]: Complete
+            - button "Red Cell Distribution Width Complete" [ref=f51e815]:
+              - generic [ref=f51e816]:
+                - paragraph [ref=f51e817]: Red Cell Distribution Width
+                - generic [ref=f51e818]: Complete
+            - button "Red Blood Cell Count Complete" [ref=f51e823]:
+              - generic [ref=f51e824]:
+                - paragraph [ref=f51e825]: Red Blood Cell Count
+                - generic [ref=f51e826]: Complete
+        - generic [ref=f51e831]:
+          - generic [ref=f51e832]:
+            - heading "Urine" [level=3] [ref=f51e833]
+            - generic [ref=f51e834]: 27 biomarkers
+          - generic [ref=f51e835]:
+            - button "Platelet Count Complete" [ref=f51e836]:
+              - generic [ref=f51e837]:
+                - paragraph [ref=f51e838]: Platelet Count
+                - generic [ref=f51e839]: Complete
+            - button "Bacteria Complete" [ref=f51e844]:
+              - generic [ref=f51e845]:
+                - paragraph [ref=f51e846]: Bacteria
+                - generic [ref=f51e847]: Complete
+            - button "Bilirubin Complete" [ref=f51e852]:
+              - generic [ref=f51e853]:
+                - paragraph [ref=f51e854]: Bilirubin
+                - generic [ref=f51e855]: Complete
+            - button "Appearance Complete" [ref=f51e860]:
+              - generic [ref=f51e861]:
+                - paragraph [ref=f51e862]: Appearance
+                - generic [ref=f51e863]: Complete
+            - button "Color Complete" [ref=f51e868]:
+              - generic [ref=f51e869]:
+                - paragraph [ref=f51e870]: Color
+                - generic [ref=f51e871]: Complete
+            - button "Glucose in Urine Complete" [ref=f51e876]:
+              - generic [ref=f51e877]:
+                - paragraph [ref=f51e878]: Glucose in Urine
+                - generic [ref=f51e879]: Complete
+            - button "Hyaline Casts Complete" [ref=f51e884]:
+              - generic [ref=f51e885]:
+                - paragraph [ref=f51e886]: Hyaline Casts
+                - generic [ref=f51e887]: Complete
+            - button "Ketones Complete" [ref=f51e892]:
+              - generic [ref=f51e893]:
+                - paragraph [ref=f51e894]: Ketones
+                - generic [ref=f51e895]: Complete
+            - button "Leukocyte Esterase Complete" [ref=f51e900]:
+              - generic [ref=f51e901]:
+                - paragraph [ref=f51e902]: Leukocyte Esterase
+                - generic [ref=f51e903]: Complete
+            - button "Nitrite Complete" [ref=f51e908]:
+              - generic [ref=f51e909]:
+                - paragraph [ref=f51e910]: Nitrite
+                - generic [ref=f51e911]: Complete
+            - button "Occult Blood Complete" [ref=f51e916]:
+              - generic [ref=f51e917]:
+                - paragraph [ref=f51e918]: Occult Blood
+                - generic [ref=f51e919]: Complete
+            - button "pH Complete" [ref=f51e924]:
+              - generic [ref=f51e925]:
+                - paragraph [ref=f51e926]: pH
+                - generic [ref=f51e927]: Complete
+            - button "Protein Complete" [ref=f51e932]:
+              - generic [ref=f51e933]:
+                - paragraph [ref=f51e934]: Protein
+                - generic [ref=f51e935]: Complete
+            - button "RBC (Urine) Complete" [ref=f51e940]:
+              - generic [ref=f51e941]:
+                - paragraph [ref=f51e942]: RBC (Urine)
+                - generic [ref=f51e943]: Complete
+            - button "Specific Gravity Complete" [ref=f51e948]:
+              - generic [ref=f51e949]:
+                - paragraph [ref=f51e950]: Specific Gravity
+                - generic [ref=f51e951]: Complete
+            - button "Squamous Epithelial Cells Complete" [ref=f51e956]:
+              - generic [ref=f51e957]:
+                - paragraph [ref=f51e958]: Squamous Epithelial Cells
+                - generic [ref=f51e959]: Complete
+            - button "WBC (Urine) Complete" [ref=f51e964]:
+              - generic [ref=f51e965]:
+                - paragraph [ref=f51e966]: WBC (Urine)
+                - generic [ref=f51e967]: Complete
+            - button "Transitional Epithelial Cells Complete" [ref=f51e972]:
+              - generic [ref=f51e973]:
+                - paragraph [ref=f51e974]: Transitional Epithelial Cells
+                - generic [ref=f51e975]: Complete
+            - button "Renal Epithelial Cells Complete" [ref=f51e980]:
+              - generic [ref=f51e981]:
+                - paragraph [ref=f51e982]: Renal Epithelial Cells
+                - generic [ref=f51e983]: Complete
+            - button "Calcium Oxalate Crystals Complete" [ref=f51e988]:
+              - generic [ref=f51e989]:
+                - paragraph [ref=f51e990]: Calcium Oxalate Crystals
+                - generic [ref=f51e991]: Complete
+            - button "Triple Phosphate Crystals Complete" [ref=f51e996]:
+              - generic [ref=f51e997]:
+                - paragraph [ref=f51e998]: Triple Phosphate Crystals
+                - generic [ref=f51e999]: Complete
+            - button "Uric Acid Crystals Complete" [ref=f51e1004]:
+              - generic [ref=f51e1005]:
+                - paragraph [ref=f51e1006]: Uric Acid Crystals
+                - generic [ref=f51e1007]: Complete
+            - button "Crystals Complete" [ref=f51e1012]:
+              - generic [ref=f51e1013]:
+                - paragraph [ref=f51e1014]: Crystals
+                - generic [ref=f51e1015]: Complete
+            - button "Amorphous Sediment Complete" [ref=f51e1020]:
+              - generic [ref=f51e1021]:
+                - paragraph [ref=f51e1022]: Amorphous Sediment
+                - generic [ref=f51e1023]: Complete
+            - button "Granular Cast Complete" [ref=f51e1028]:
+              - generic [ref=f51e1029]:
+                - paragraph [ref=f51e1030]: Granular Cast
+                - generic [ref=f51e1031]: Complete
+            - button "Casts Complete" [ref=f51e1036]:
+              - generic [ref=f51e1037]:
+                - paragraph [ref=f51e1038]: Casts
+                - generic [ref=f51e1039]: Complete
+            - button "Yeast Complete" [ref=f51e1044]:
+              - generic [ref=f51e1045]:
+                - paragraph [ref=f51e1046]: Yeast
+                - generic [ref=f51e1047]: Complete
+        - generic [ref=f51e1052]:
+          - generic [ref=f51e1053]:
+            - heading "Electrolytes" [level=3] [ref=f51e1054]
+            - generic [ref=f51e1055]: 4 biomarkers
+          - generic [ref=f51e1056]:
+            - button [ref=f51e1057]:
+              - paragraph [ref=f51e1059]: Chloride
+            - button [ref=f51e1064]:
+              - paragraph [ref=f51e1066]: Sodium
+            - button [ref=f51e1071]:
+              - paragraph [ref=f51e1073]: Potassium
+            - button [ref=f51e1078]:
+              - paragraph [ref=f51e1080]: Carbon Dioxide
+    - generic [ref=f51e1086]:
+      - generic [ref=f51e1087]:
+        - paragraph [ref=f51e1088]: Three ways to start
+        - heading "One metabolic health system. Three ways to start." [level=2] [ref=f51e1089]
+        - paragraph [ref=f51e1090]: "Choose the starting point that fits you best: Build your system for flexibility, Core for a curated package with the essentials built in, or Complete for our fullest package from day one."
+      - generic [ref=f51e1091]:
+        - generic [ref=f51e1092]:
+          - paragraph [ref=f51e1093]: Recommended first step
+          - paragraph [ref=f51e1094]: Not sure where to start? Take the quiz first and get a personalized recommendation before choosing a plan.
+        - link "Get your personalized plan" [ref=f51e1095] [cursor=pointer]:
+          - /url: https://app.levels.com/quiz
+      - generic [ref=f51e1098]:
+        - article [ref=f51e1099]:
+          - generic [ref=f51e1100]: Flexible path
+          - generic [ref=f51e1106]:
+            - heading "Build your system" [level=3] [ref=f51e1107]
+            - paragraph [ref=f51e1108]: Start with the app, then add the measurement and support you want.
+          - generic [ref=f51e1109]:
+            - generic [ref=f51e1110]:
+              - generic [ref=f51e1111]: $15
+              - generic [ref=f51e1112]: /mo
+            - paragraph [ref=f51e1113]: or $80 billed annually
+          - link "Build your system" [ref=f51e1114] [cursor=pointer]:
+            - /url: /join/start
+          - generic [ref=f51e1116]:
+            - generic [ref=f51e1117]:
+              - paragraph [ref=f51e1118]: Included
+              - list [ref=f51e1119]:
+                - listitem [ref=f51e1120]:
+                  - generic [ref=f51e1123]: Levels app
+                - listitem [ref=f51e1124]:
+                  - generic [ref=f51e1127]: Food logging
+                - listitem [ref=f51e1128]:
+                  - generic [ref=f51e1131]: AI health insights
+                - listitem [ref=f51e1132]:
+                  - generic [ref=f51e1135]: Adaptive programs
+                - listitem [ref=f51e1136]:
+                  - generic [ref=f51e1139]: Wearable data import
+                - listitem [ref=f51e1140]:
+                  - generic [ref=f51e1143]: Past bloodwork uploads
+            - generic [ref=f51e1144]:
+              - paragraph [ref=f51e1145]: Available to add
+              - list [ref=f51e1146]:
+                - listitem [ref=f51e1147]:
+                  - generic [ref=f51e1150]: Glucose monitoring
+                - listitem [ref=f51e1151]:
+                  - generic [ref=f51e1154]: Essential or comprehensive labs
+                - listitem [ref=f51e1155]:
+                  - generic [ref=f51e1158]: Dietitian support
+          - generic [ref=f51e1159]: HSA/FSA eligible
+        - article [ref=f51e1162]:
+          - generic [ref=f51e1163]: Recommended package
+          - generic [ref=f51e1169]:
+            - heading "Core" [level=3] [ref=f51e1170]
+            - paragraph [ref=f51e1171]: Glucose + essential labs, clinician review, and input.
+          - generic [ref=f51e1172]:
+            - generic [ref=f51e1173]:
+              - generic [ref=f51e1174]: $41
+              - generic [ref=f51e1175]: /mo
+            - paragraph [ref=f51e1176]: $499 billed annually
+          - link "Get Core" [ref=f51e1177] [cursor=pointer]:
+            - /url: /checkout?bundle=core
+          - generic [ref=f51e1179]:
+            - generic [ref=f51e1180]:
+              - paragraph [ref=f51e1181]: Included
+              - list [ref=f51e1182]:
+                - listitem [ref=f51e1183]:
+                  - generic [ref=f51e1186]: 2 Essential Lab Panels w/ 28+ Markers
+                - listitem [ref=f51e1187]:
+                  - generic [ref=f51e1190]: 1-month continuous glucose monitoring
+                - listitem [ref=f51e1191]:
+                  - generic [ref=f51e1194]:
+                    - text: Clinician review of health data
+                    - generic [ref=f51e1195]: 2x annually
+                - listitem [ref=f51e1196]:
+                  - generic [ref=f51e1199]: Levels app, AI health insights, and adaptive programs
+                - listitem [ref=f51e1200]:
+                  - generic [ref=f51e1203]: Unlimited uploading of past bloodwork
+            - generic [ref=f51e1204]:
+              - paragraph [ref=f51e1205]: Available to add
+              - list [ref=f51e1206]:
+                - listitem [ref=f51e1207]:
+                  - generic [ref=f51e1210]: Additional glucose monitors
+                - listitem [ref=f51e1211]:
+                  - generic [ref=f51e1214]: Comprehensive labs
+                - listitem [ref=f51e1215]:
+                  - generic [ref=f51e1218]: Dietitian support
+          - generic [ref=f51e1219]: HSA/FSA eligible
+        - article [ref=f51e1222]:
+          - generic [ref=f51e1223]: Highest-touch package
+          - generic [ref=f51e1229]:
+            - heading "Complete" [level=3] [ref=f51e1230]
+            - paragraph [ref=f51e1231]: Glucose + comprehensive labs, clinician review, and concierge support.
+          - generic [ref=f51e1232]:
+            - generic [ref=f51e1233]:
+              - generic [ref=f51e1234]: $167
+              - generic [ref=f51e1235]: /mo
+            - paragraph [ref=f51e1236]: $1,999 billed annually
+          - link "Get Complete" [ref=f51e1237] [cursor=pointer]:
+            - /url: /checkout?bundle=complete
+          - generic [ref=f51e1239]:
+            - generic [ref=f51e1240]:
+              - paragraph [ref=f51e1241]: Included
+              - list [ref=f51e1242]:
+                - listitem [ref=f51e1243]:
+                  - generic [ref=f51e1246]: 2 Comprehensive Labs w/ 100+ Markers
+                - listitem [ref=f51e1247]:
+                  - generic [ref=f51e1250]:
+                    - text: 2-months continuous glucose monitoring
+                    - generic [ref=f51e1251]: with free shipping
+                - listitem [ref=f51e1252]:
+                  - generic [ref=f51e1255]:
+                    - text: Clinician review of health data
+                    - generic [ref=f51e1256]: 2x annually
+                - listitem [ref=f51e1257]:
+                  - generic [ref=f51e1260]: 50-minute functional nutritionist session
+                - listitem [ref=f51e1261]:
+                  - generic [ref=f51e1264]: Dedicated concierge support
+                - listitem [ref=f51e1265]:
+                  - generic [ref=f51e1268]: Levels app, advanced AI health insights, and adaptive programs
+                - listitem [ref=f51e1269]:
+                  - generic [ref=f51e1272]: Unlimited uploading of past bloodwork
+            - generic [ref=f51e1273]:
+              - paragraph [ref=f51e1274]: Available to add
+              - list [ref=f51e1275]:
+                - listitem [ref=f51e1276]:
+                  - generic [ref=f51e1279]: Additional glucose monitors
+                - listitem [ref=f51e1280]:
+                  - generic [ref=f51e1283]: Additional lab testing
+                - listitem [ref=f51e1284]:
+                  - generic [ref=f51e1287]: Additional dietitian sessions
+          - generic [ref=f51e1288]: HSA/FSA eligible
+    - generic [ref=f51e1293]:
+      - generic [ref=f51e1294]:
+        - paragraph [ref=f51e1295]: Your path to better health
+        - heading "How it works" [level=2] [ref=f51e1296]
+        - paragraph [ref=f51e1297]: See how Levels works to connect your data, habits, and results. Explore each plan to understand how real-time tracking, lab testing, and expert guidance come together to improve your health.
+      - generic [ref=f51e1298]:
+        - link "Levels Core" [ref=f51e1299] [cursor=pointer]:
+          - /url: /how-it-works
+        - link "Levels Complete" [ref=f51e1308] [cursor=pointer]:
+          - /url: /how-it-works
+    - generic [ref=f51e1318]:
+      - paragraph [ref=f51e1319]: Start with Levels
+      - heading "Your path to improved health starts now" [level=2] [ref=f51e1320]
+      - button "Get started" [ref=f51e1322]
+  - contentinfo [ref=f51e1323]:
+    - generic [ref=f51e1324]:
+      - generic [ref=f51e1325]:
+        - generic [ref=f51e1326]:
+          - link "Levels home" [ref=f51e1327] [cursor=pointer]:
+            - /url: /
+            - img "Levels" [ref=f51e1328]
+          - generic [ref=f51e1329]:
+            - paragraph [ref=f51e1330]: Join our mailing list
+            - paragraph [ref=f51e1331]: Subscribe for updates, articles, exclusive discounts, and more.
+          - generic [ref=f51e1333]:
+            - textbox "email@example.com" [ref=f51e1334]
+            - button "Join" [ref=f51e1335]
+        - navigation [ref=f51e1336]:
+          - generic [ref=f51e1337]:
+            - heading "Product" [level=3] [ref=f51e1338]
+            - list [ref=f51e1339]:
+              - listitem [ref=f51e1340]:
+                - link "What We Measure" [ref=f51e1341] [cursor=pointer]:
+                  - /url: /what-we-measure
+          - generic [ref=f51e1342]:
+            - heading "Company" [level=3] [ref=f51e1343]
+            - list [ref=f51e1344]:
+              - listitem [ref=f51e1345]:
+                - link "Careers" [ref=f51e1346] [cursor=pointer]:
+                  - /url: https://levelshealth.notion.site/Careers-at-Levels-3616891ed02d4c0787fd64227f9bc57a
+              - listitem [ref=f51e1347]:
+                - link "Partner With Us" [ref=f51e1348] [cursor=pointer]:
+                  - /url: https://levels.link/partner
+              - listitem [ref=f51e1349]:
+                - link "Media & Creators" [ref=f51e1350] [cursor=pointer]:
+                  - /url: https://levelshealth.notion.site/Levels-Assets-for-Media-Content-Creators-January-2022-f7e9b3066e2444cfae92dc786c2f8a32
+              - listitem [ref=f51e1351]:
+                - link "Contact Us" [ref=f51e1352] [cursor=pointer]:
+                  - /url: mailto:support@levels.com
+          - generic [ref=f51e1353]:
+            - heading "Resources" [level=3] [ref=f51e1354]
+            - list [ref=f51e1355]:
+              - listitem [ref=f51e1356]:
+                - link "Support" [ref=f51e1357] [cursor=pointer]:
+                  - /url: https://support.levels.com/
+              - listitem [ref=f51e1358]:
+                - link "Blog" [ref=f51e1359] [cursor=pointer]:
+                  - /url: /blog
+              - listitem [ref=f51e1360]:
+                - link "Gift Levels" [ref=f51e1361] [cursor=pointer]:
+                  - /url: https://app.levels.com/gift-card
+              - listitem [ref=f51e1362]:
+                - link "Refund Policy" [ref=f51e1363] [cursor=pointer]:
+                  - /url: https://support.levels.com/article/651-refund-replacement-policies
+      - generic [ref=f51e1364]:
+        - generic [ref=f51e1365]:
+          - paragraph [ref=f51e1366]: © 2026 Levels Health
+          - generic [ref=f51e1367]:
+            - link "Legal" [ref=f51e1368] [cursor=pointer]:
+              - /url: https://levelshealth.notion.site/Levels-Health-Inc-Privacy-Policy-6a8d24dc188a4a41ba8e1e5ba433cf70
+            - link "Terms of service" [ref=f51e1369] [cursor=pointer]:
+              - /url: /terms-of-service
+        - paragraph [ref=f51e1370]: The Levels program, products, and services are intended only for maintaining and encouraging a healthy lifestyle and are not to be used for the diagnosis, cure, management, prevention, or treatment of any disease or condition. The Levels app, products, and services should never be used for medication management or dosing decisions.

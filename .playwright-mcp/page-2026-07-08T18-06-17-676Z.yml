@@ -1,0 +1,41 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Voltar" [ref=e258] [cursor=pointer]:
+              - img [ref=e259]
+            - button [ref=e29] [cursor=pointer]:
+              - img [ref=e32]
+            - button "0" [ref=e34] [cursor=pointer]:
+              - generic [ref=e35]:
+                - img [ref=e36]
+                - generic: "0"
+            - button "Mais opções" [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+            - button "Atualizar" [ref=e42] [cursor=pointer]:
+              - img [ref=e43]
+        - main [ref=e45]
+    - button "Enviar exame" [ref=e261] [cursor=pointer]:
+      - img [ref=e262]
+    - navigation [ref=e240]:
+      - generic [ref=e241] [cursor=pointer]:
+        - generic [ref=e242]: 🏠
+        - paragraph [ref=e243]: Início
+      - generic [ref=e245] [cursor=pointer]:
+        - generic [ref=e246]: 📋
+        - paragraph [ref=e247]: Exames
+      - generic [ref=e248] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e250]
+        - paragraph [ref=e251]: Dr. Exame
+      - generic [ref=e252] [cursor=pointer]:
+        - generic [ref=e253]: 📈
+        - paragraph [ref=e254]: Evolução
+      - generic [ref=e255] [cursor=pointer]:
+        - generic [ref=e256]: ☰
+        - paragraph [ref=e257]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e17]

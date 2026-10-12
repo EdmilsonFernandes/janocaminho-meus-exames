@@ -1,0 +1,49 @@
+- main [ref=f4e2]:
+  - paragraph [ref=f4e10]: "404"
+  - heading "Essa página não existe" [level=1] [ref=f4e11]
+  - paragraph [ref=f4e12]: O endereço pode estar incorreto ou a página foi movida. Vamos te colocar de volta nos trilhos.
+  - search [ref=f4e13]:
+    - generic [ref=f4e14]: Buscar no app
+    - searchbox "Buscar no app" [ref=f4e15]
+    - button "Buscar" [ref=f4e16] [cursor=pointer]
+  - paragraph [ref=f4e17]: A busca filtra os atalhos abaixo.
+  - navigation "Atalhos do app" [ref=f4e18]:
+    - heading "Tente por aqui" [level=2] [ref=f4e19]
+    - list [ref=f4e20]:
+      - listitem [ref=f4e21]:
+        - link "Início Seu painel de saúde" [ref=f4e22] [cursor=pointer]:
+          - /url: "#/"
+          - text: Início
+          - generic [ref=f4e23]: Seu painel de saúde
+      - listitem [ref=f4e24]:
+        - link "Meus exames Histórico e laudos" [ref=f4e25] [cursor=pointer]:
+          - /url: "#/exams"
+          - text: Meus exames
+          - generic [ref=f4e26]: Histórico e laudos
+      - listitem [ref=f4e27]:
+        - link "Evolução Gráficos ao longo do tempo" [ref=f4e28] [cursor=pointer]:
+          - /url: "#/evolution"
+          - text: Evolução
+          - generic [ref=f4e29]: Gráficos ao longo do tempo
+      - listitem [ref=f4e30]:
+        - link "Planos Créditos e assinatura" [ref=f4e31] [cursor=pointer]:
+          - /url: "#/plans"
+          - text: Planos
+          - generic [ref=f4e32]: Créditos e assinatura
+      - listitem [ref=f4e33]:
+        - link "Suporte Abra um chamado" [ref=f4e34] [cursor=pointer]:
+          - /url: "#/suporte"
+          - text: Suporte
+          - generic [ref=f4e35]: Abra um chamado
+      - listitem [ref=f4e36]:
+        - link "Criar conta É grátis" [ref=f4e37] [cursor=pointer]:
+          - /url: "#/registrar"
+          - text: Criar conta
+          - generic [ref=f4e38]: É grátis
+  - link "← Voltar ao início" [ref=f4e39] [cursor=pointer]:
+    - /url: "#/"
+  - paragraph [ref=f4e40]:
+    - text: Acha que é um link quebrado?
+    - link "Avise a gente" [ref=f4e41] [cursor=pointer]:
+      - /url: mailto:contato@janocaminho.com.br?subject=Link%20quebrado%20no%20Dr.%20Exame
+    - text: .

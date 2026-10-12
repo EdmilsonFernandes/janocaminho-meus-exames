@@ -1,0 +1,52 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e745]:
+      - button [ref=e746] [cursor=pointer]
+      - generic [ref=e747]:
+        - banner [ref=e748]:
+          - generic [ref=e749]:
+            - button [ref=e750] [cursor=pointer]
+            - paragraph [ref=e756]: Dr. Exame
+            - button [ref=e903] [cursor=pointer]:
+              - generic [ref=e906]: "71"
+              - button [ref=e907]
+            - button [ref=e757] [cursor=pointer]:
+              - generic [ref=e758]: "34"
+            - button [ref=e762] [cursor=pointer]:
+              - generic [ref=e763]: E
+            - button [ref=e771] [cursor=pointer]
+        - main [ref=e774]:
+          - progressbar [ref=e1097]
+    - button [ref=e1100] [cursor=pointer]
+    - navigation [ref=e791]:
+      - paragraph [ref=e796] [cursor=pointer]: Início
+      - paragraph [ref=e802] [cursor=pointer]: Exames
+      - paragraph [ref=e806] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e811] [cursor=pointer]: Evolução
+      - paragraph [ref=e816] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic [ref=e703]: "0"
+  - dialog [ref=e819]:
+    - navigation [ref=e820]:
+      - generic [ref=e821]:
+        - button "Exames" [expanded] [active] [ref=e1051] [cursor=pointer]
+        - generic [ref=e1061]:
+          - button "Exames" [ref=e1062] [cursor=pointer]
+          - button "Valores alterados" [ref=e1068] [cursor=pointer]
+          - button "Evolução & tendências" [ref=e1075] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e1082] [cursor=pointer]
+          - button "Relatório completo" [ref=e1088] [cursor=pointer]
+      - generic [ref=e830]:
+        - button "Cuidados" [expanded] [ref=e1052] [cursor=pointer]
+        - generic [ref=e1112]:
+          - button "Medições" [ref=e1113] [cursor=pointer]
+          - button "Vacinas" [ref=e1120] [cursor=pointer]
+          - button "Lembretes" [ref=e1126] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1132] [cursor=pointer]
+          - button "Conquistas" [ref=e1138] [cursor=pointer]
+      - button "Pessoas" [ref=e1053] [cursor=pointer]
+      - button "Conta" [ref=e1054] [cursor=pointer]
+      - separator [ref=e859]
+      - button "Ajuda & Suporte" [ref=e1055] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e1056] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e1057] [cursor=pointer]

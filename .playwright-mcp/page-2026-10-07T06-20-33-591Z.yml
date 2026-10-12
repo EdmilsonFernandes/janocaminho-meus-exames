@@ -1,0 +1,150 @@
+- generic [ref=f33e2]:
+  - generic [ref=f33e3]:
+    - button "Pular para o conteúdo" [ref=f33e341] [cursor=pointer]
+    - generic [ref=f33e5]:
+      - banner [ref=f33e6]:
+        - generic [ref=f33e7]:
+          - button "Voltar" [ref=f33e375] [cursor=pointer]
+          - img "Dr. Exame" [ref=f33e343]
+          - generic [ref=f33e14]:
+            - button "Você tem 0 créditos. Toque para ver a carteira." [ref=f33e344] [cursor=pointer]:
+              - generic [ref=f33e18]: "0"
+            - button "Notificações" [ref=f33e345] [cursor=pointer]:
+              - generic [ref=f33e20]: "0"
+            - button "Q" [ref=f33e346] [cursor=pointer]
+      - main [ref=f33e30]:
+        - generic [ref=f33e378]:
+          - generic [ref=f33e383]:
+            - heading "Meu perfil" [level=5] [ref=f33e384]
+            - paragraph [ref=f33e385]: Sua conta, dados e preferências
+          - generic [ref=f33e387]:
+            - generic [ref=f33e389]:
+              - generic [ref=f33e390]: "?"
+              - button [ref=f33e391] [cursor=pointer]
+            - generic [ref=f33e395]:
+              - heading "—" [level=5] [ref=f33e396]
+              - paragraph [ref=f33e397]: ✉️ —
+              - generic [ref=f33e398]: Plano grátis
+              - generic [ref=f33e401]: Toque na câmera da foto para trocar a imagem.
+          - generic [ref=f33e403]:
+            - heading "Dados e perfil clínico" [level=6] [ref=f33e404]
+            - generic [ref=f33e405]:
+              - generic [ref=f33e406]:
+                - generic: Nome completo
+                - generic [ref=f33e407]:
+                  - textbox "Nome completo" [ref=f33e408]
+                  - group [aria-hidden]:
+                    - generic: Nome completo
+              - generic [ref=f33e409]:
+                - generic: CPF
+                - generic [ref=f33e410]:
+                  - textbox "CPF" [ref=f33e411]
+                  - group [aria-hidden]:
+                    - generic: CPF
+                - paragraph [ref=f33e412]: Usado para confirmar que os exames pertencem a este perfil.
+              - generic [ref=f33e413]:
+                - generic: Telefone / WhatsApp
+                - generic [ref=f33e414]:
+                  - textbox "Telefone / WhatsApp" [ref=f33e415]
+                  - group [aria-hidden]:
+                    - generic: Telefone / WhatsApp
+              - generic [ref=f33e416]:
+                - generic: Sexo
+                - generic [ref=f33e417]:
+                  - combobox "Sexo" [ref=f33e418] [cursor=pointer]
+                  - textbox [aria-hidden]
+                  - group [aria-hidden]:
+                    - generic: Sexo
+                - paragraph [ref=f33e419]: Sem sexo informado, os cálculos usam a referência masculina — informe para referências exatas.
+              - generic [ref=f33e420]:
+                - generic: Altura
+                - generic [ref=f33e421]:
+                  - textbox "Altura" [ref=f33e422]
+                  - group [aria-hidden]:
+                    - generic: Altura
+                - paragraph [ref=f33e423]: "Ex.: 1,72 ou 172 — convertemos pra você. Usada no IMC."
+              - generic [ref=f33e424]:
+                - generic: Etnia (opcional)
+                - generic [ref=f33e425]:
+                  - combobox "Etnia (opcional)" [ref=f33e426] [cursor=pointer]
+                  - textbox [aria-hidden]
+                  - group [aria-hidden]:
+                    - generic: Etnia (opcional)
+                - paragraph [ref=f33e427]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+              - generic [ref=f33e428]:
+                - generic [ref=f33e429]:
+                  - generic [ref=f33e430]: Data de nascimento
+                  - generic [ref=f33e431]:
+                    - textbox "Data de nascimento" [ref=f33e432]:
+                      - /placeholder: dd/mm/aaaa
+                    - button "Abrir calendário" [ref=f33e434] [cursor=pointer]
+                    - group [aria-hidden]:
+                      - generic: Data de nascimento
+                  - paragraph [ref=f33e437]: Usado pra calcular idade e ajustar faixas de referência.
+                - textbox [aria-hidden]
+              - generic [ref=f33e438]:
+                - generic: Perfil clínico (condições, medicações, histórico)
+                - generic [ref=f33e439]:
+                  - textbox "Perfil clínico (condições, medicações, histórico)" [ref=f33e440]
+                  - group [aria-hidden]:
+                    - generic: Perfil clínico (condições, medicações, histórico)
+                - paragraph [ref=f33e441]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+            - button [ref=f33e443] [cursor=pointer]
+          - generic [ref=f33e449]:
+            - generic [ref=f33e453]:
+              - heading "Peso atual" [level=6] [ref=f33e454]
+              - paragraph [ref=f33e455]: Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.
+            - button "Registrar peso" [ref=f33e456] [cursor=pointer]
+          - generic [ref=f33e458]:
+            - heading "Preferências" [level=6] [ref=f33e459]
+            - generic [ref=f33e460] [cursor=pointer]:
+              - switch "🔔 Avisar quando eu desbloquear uma conquista" [checked] [ref=f33e463]
+              - generic [ref=f33e466]: 🔔 Avisar quando eu desbloquear uma conquista
+            - generic [ref=f33e468]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=f33e469] [cursor=pointer]:
+              - switch "♿ Botão de tradução em Libras" [ref=f33e472]
+              - generic [ref=f33e475]: ♿ Botão de tradução em Libras
+            - generic [ref=f33e477] [cursor=pointer]:
+              - switch "🔍 Aa Texto grande — amplia os textos do app" [ref=f33e480]
+              - generic [ref=f33e483]: 🔍 Aa Texto grande — amplia os textos do app
+            - generic [ref=f33e485]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+            - generic [ref=f33e486] [cursor=pointer]:
+              - switch "🏃 Card de atividade física no início" [checked] [ref=f33e489]
+              - generic [ref=f33e492]: 🏃 Card de atividade física no início
+            - generic [ref=f33e494]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+            - generic [ref=f33e495] [cursor=pointer]:
+              - switch "🙈 Modo privacidade — borra nomes de exames" [ref=f33e498]
+              - generic [ref=f33e501]: 🙈 Modo privacidade — borra nomes de exames
+            - generic [ref=f33e503]: "Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos."
+            - generic [ref=f33e505]:
+              - paragraph [ref=f33e508]: Saúde Esportiva
+              - generic [ref=f33e509]:
+                - generic [ref=f33e510]: Régua do laboratório com a meta definida pelo seu médico
+                - generic [ref=f33e514]: Substâncias declaradas com impacto esperado nos exames
+                - generic [ref=f33e518]: Perguntas prontas para levar à consulta
+              - button "Ver planos" [ref=f33e522] [cursor=pointer]
+            - button "📋 Enviar diagnóstico ao suporte" [ref=f33e523] [cursor=pointer]
+            - generic [ref=f33e524]: Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).
+            - button [ref=f33e525] [cursor=pointer]
+          - generic [ref=f33e530]:
+            - generic [ref=f33e535] [cursor=pointer]:
+              - paragraph [ref=f33e536]: Segurança
+              - paragraph [ref=f33e537]: Trocar senha, 2FA e biometria
+            - generic [ref=f33e544] [cursor=pointer]:
+              - paragraph [ref=f33e545]: Privacidade e dados
+              - paragraph [ref=f33e546]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+            - generic [ref=f33e553] [cursor=pointer]:
+              - paragraph [ref=f33e554]: API para desenvolvedores
+              - paragraph [ref=f33e555]: Integre preço de remédios e interações no seu produto
+  - navigation [ref=f33e294]:
+    - button "Início" [ref=f33e369] [cursor=pointer]:
+      - paragraph [ref=f33e299]: Início
+    - button "Exames" [ref=f33e370] [cursor=pointer]:
+      - paragraph [ref=f33e305]: Exames
+    - button "Dr. Exame — conversar com a IA" [ref=f33e371] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f33e372]
+      - paragraph [ref=f33e309]: Dr. Exame
+    - button "Evolução" [ref=f33e373] [cursor=pointer]:
+      - paragraph [ref=f33e314]: Evolução
+    - button "Mais" [ref=f33e374] [cursor=pointer]:
+      - paragraph [ref=f33e319]: Mais

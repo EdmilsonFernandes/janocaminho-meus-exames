@@ -1,0 +1,39 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button [ref=e21] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button [ref=e25] [cursor=pointer]:
+              - img [ref=e223]
+            - button [ref=e29] [cursor=pointer]:
+              - img [ref=e32]
+            - button [ref=e34] [cursor=pointer]:
+              - img [ref=e36]
+            - button [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+            - button [ref=e42] [cursor=pointer]:
+              - img [ref=e43]
+        - main [ref=e45]
+    - button [ref=e225] [cursor=pointer]:
+      - img [ref=e226]
+    - navigation [ref=e195]:
+      - generic [ref=e196] [cursor=pointer]:
+        - img [ref=e228]
+        - paragraph [ref=e200]: Início
+      - generic [ref=e202] [cursor=pointer]:
+        - img [ref=e230]
+        - paragraph [ref=e206]: Exames
+      - generic [ref=e207] [cursor=pointer]:
+        - img [ref=e209]
+        - paragraph [ref=e210]: Dr. Exame
+      - generic [ref=e211] [cursor=pointer]:
+        - img [ref=e213]
+        - paragraph [ref=e215]: Evolução
+      - generic [ref=e216] [cursor=pointer]:
+        - img [ref=e218]
+        - paragraph [ref=e220]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e221]
+    - img [ref=e222]

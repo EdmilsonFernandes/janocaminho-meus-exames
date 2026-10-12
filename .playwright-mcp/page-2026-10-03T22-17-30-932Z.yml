@@ -1,0 +1,61 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e106]:
+    - button [ref=f4e107] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f4e108]:
+      - banner [ref=f4e109]:
+        - generic [ref=f4e110]:
+          - generic [ref=f4e111]:
+            - button [ref=f4e112] [cursor=pointer]:
+              - generic [ref=f4e115]: "15"
+            - button [ref=f4e116] [cursor=pointer]:
+              - generic [ref=f4e117]: 9+
+            - button [ref=f4e122] [cursor=pointer]:
+              - generic [ref=f4e123]: E
+              - generic [ref=f4e125]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=f4e131] [cursor=pointer]
+      - main [ref=f4e134]:
+        - navigation [ref=f4e138]:
+          - generic [ref=f4e141]:
+            - generic [ref=f4e142]: E
+            - generic [ref=f4e144]:
+              - paragraph [ref=f4e145]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f4e146]:
+                - generic [ref=f4e147]: Plano grátis
+                - button [ref=f4e149] [cursor=pointer]:
+                  - generic [ref=f4e150]: ⚡ 15 (+)
+          - separator [ref=f4e151]
+          - button [ref=f4e152] [cursor=pointer]:
+            - generic [ref=f4e156]: Início
+          - button [ref=f4e159] [cursor=pointer]:
+            - generic [ref=f4e165]: Exames
+          - button [ref=f4e170] [cursor=pointer]:
+            - generic [ref=f4e175]: Cuidados
+          - button [ref=f4e180] [cursor=pointer]:
+            - generic [ref=f4e185]: Pessoas
+          - button [expanded] [ref=f4e190] [cursor=pointer]:
+            - generic [ref=f4e194]: Conta
+          - button [ref=f4e199] [cursor=pointer]:
+            - generic [ref=f4e203]: Dúvidas frequentes
+          - menuitem [ref=f4e205] [cursor=pointer]:
+            - generic [ref=f4e209]: Sobre o app
+          - menuitem [ref=f4e211] [cursor=pointer]:
+            - generic [ref=f4e215]: Sair da conta
+          - generic [ref=f4e217]: Dr. Exame • Saúde Inteligente 🩺
+  - dialog [ref=f4e457]:
+    - generic [ref=f4e458]:
+      - button [ref=f4e482] [cursor=pointer]: Pular
+      - generic [ref=f4e460]:
+        - heading [level=4] [ref=f4e484]: Envie seu exame
+        - paragraph [ref=f4e464]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f4e465]:
+        - button [ref=f4e485] [cursor=pointer]: Próximo
+        - paragraph [ref=f4e475]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f4e488]:
+    - heading [level=2] [ref=f4e489]:
+      - generic [ref=f4e490]:
+        - img "Dr. Exame" [ref=f4e491]
+        - paragraph [ref=f4e492]: 💡 Dica do Dr. Exame pra Theo
+    - paragraph [ref=f4e494]: Faz 40 dias sem registrar peso/altura de Theo — 1 medição por mês mantém a curva de crescimento (OMS) em dia e mostra o ritmo dele(a) pro pediatra.
+    - generic [ref=f4e495]:
+      - button "Depois" [ref=f4e496] [cursor=pointer]
+      - button "Ver notificações" [ref=f4e497] [cursor=pointer]

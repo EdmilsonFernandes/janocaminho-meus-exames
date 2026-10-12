@@ -1,0 +1,52 @@
+- generic [ref=e97]:
+  - generic [ref=e98]:
+    - generic [ref=e99]:
+      - button "Menu do médico" [ref=e100] [cursor=pointer]
+      - generic [ref=e103]:
+        - paragraph [ref=e104]: Dr. Daniel Shirane
+        - text: Cirurgiao Geral • CRM 185642-SP
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=e105]: 🩺 Acesso médico · leitura
+    - generic [ref=e107]:
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - paragraph [ref=e110]: Boa tarde, Dr. Daniel 👋
+          - paragraph [ref=e111]: 1 paciente com valores alterados
+          - generic [ref=e112]: segunda-feira, 31 de agosto
+        - generic [ref=e113]:
+          - generic [ref=e115] [cursor=pointer]:
+            - paragraph [ref=e120]: "1"
+            - text: Pacientes
+          - generic [ref=e122] [cursor=pointer]:
+            - paragraph [ref=e128]: "1"
+            - text: Com alerta
+          - generic [ref=e130] [cursor=pointer]:
+            - paragraph [ref=e135]: "0"
+            - text: Perguntas abertas
+          - generic [ref=e137] [cursor=pointer]:
+            - paragraph [ref=e142]: "0"
+            - text: Convites pendentes
+        - generic [ref=e143]:
+          - generic [ref=e144]:
+            - paragraph [ref=e145]: 🩺 Precisam de atenção agora
+            - button "Ver todos" [ref=e146] [cursor=pointer]
+          - generic [ref=e152] [cursor=pointer]:
+            - paragraph [ref=e153]: Edmilson Lopes
+            - generic [ref=e154]: 47a · M · 🔴 Prioridade alta · exame há 27 dias
+      - generic [ref=e157]:
+        - button "Fechar banner" [ref=e158] [cursor=pointer]:
+          - generic [ref=e159]: ×
+        - generic [ref=e160]:
+          - paragraph [ref=e161]: 💎 Dr. Exame Pro
+          - paragraph [ref=e162]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=e163] [cursor=pointer]
+  - navigation [ref=e164]:
+    - button "Início" [ref=e165] [cursor=pointer]:
+      - paragraph [ref=e170]: Início
+    - button "Pacientes" [ref=e172] [cursor=pointer]:
+      - paragraph [ref=e177]: Pacientes
+    - button "Perguntas" [ref=e178] [cursor=pointer]:
+      - paragraph [ref=e183]: Perguntas
+    - button "Perfil" [ref=e184] [cursor=pointer]:
+      - paragraph [ref=e189]: Perfil
+    - button "Mais" [ref=e190] [cursor=pointer]:
+      - paragraph [ref=e195]: Mais

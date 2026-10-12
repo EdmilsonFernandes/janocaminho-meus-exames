@@ -1,0 +1,251 @@
+- generic [ref=f128e11]:
+  - generic [ref=f128e13]:
+    - link [ref=f128e16] [cursor=pointer]:
+      - /url: /
+      - img "Instagram" [ref=f128e19]
+    - generic [ref=f128e30]:
+      - link "Entrar" [ref=f128e32] [cursor=pointer]:
+        - /url: /accounts/login/?next=%2Fmeindica87%2F&source=desktop_nav
+      - link "Cadastre-se" [ref=f128e34] [cursor=pointer]:
+        - /url: /accounts/emailsignup/
+  - main [ref=f128e35]:
+    - generic [ref=f128e37]:
+      - generic [ref=f128e38]:
+        - link [ref=f128e42] [cursor=pointer]:
+          - /url: /meindica87/
+          - img "Foto do perfil de meindica87" [ref=f128e43]
+        - heading "meindica87" [level=2] [ref=f128e50]
+        - list [ref=f128e53]:
+          - listitem [ref=f128e54]:
+            - link "279 seguidores" [ref=f128e56] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=f128e57]:
+                - generic "279" [ref=f128e58]
+                - text: seguidores
+          - listitem [ref=f128e59]:
+            - link "1.214 seguindo" [ref=f128e61] [cursor=pointer]:
+              - /url: "#"
+              - generic [ref=f128e62]:
+                - generic [ref=f128e63]: "1.214"
+                - text: seguindo
+        - generic [ref=f128e65]:
+          - generic [ref=f128e66]: Grupo Me Indica
+          - link "Threads meindica87" [ref=f128e70] [cursor=pointer]:
+            - /url: https://www.threads.com/@meindica87?xmt=AQG0EEuvNedP6OGhN7B84Lu-3_7DveekiIFCdhq-cZMYvP4
+            - img "Threads" [ref=f128e72]
+            - generic [ref=f128e74]: meindica87
+          - generic [ref=f128e76]:
+            - img "Ícone de link" [ref=f128e78]
+            - link "saiba-mais.grupomeindica.com.br/page/grupomeindica-augu" [ref=f128e82] [cursor=pointer]:
+              - /url: https://l.instagram.com/?u=https%3A%2F%2Fsaiba-mais.grupomeindica.com.br%2Fpage%2Fgrupomeindica-augu&e=AUD1AwLvFqxEL3K6CyHTVpSeVJ3zWbJnywcADDFq8GTJFXXbi3NtJr0TYGC9DcCDpQ1cYUUY2A3A79dcq26eBeTZQ8uPgUyduZrhTN-4xBMbnzhGJ7CC92nSGvIHHQEi3PIT5od9WXafsDAkfew_Ix0ThFIcSmup4gHJyQ
+        - menu [ref=f128e85]:
+          - list [ref=f128e89]:
+            - listitem [ref=f128e90]
+            - listitem [ref=f128e91]
+            - listitem [ref=f128e92]:
+              - link "Ver destaque de Novidades" [ref=f128e95] [cursor=pointer]:
+                - /url: /stories/highlights/18077175566172738/
+                - button "Foto do story no destaque de meindica87 Novidades" [ref=f128e96]:
+                  - button [ref=f128e97]:
+                    - img "Foto do story no destaque de meindica87" [ref=f128e100]
+                  - generic [ref=f128e101]: Novidades
+            - listitem [ref=f128e104]:
+              - link "Ver destaque de AFILIADO 💵" [ref=f128e107] [cursor=pointer]:
+                - /url: /stories/highlights/17865355883900309/
+                - button "Foto do story no destaque de meindica87 AFILIADO 💵" [ref=f128e108]:
+                  - button [ref=f128e109]:
+                    - img "Foto do story no destaque de meindica87" [ref=f128e112]
+                  - generic [ref=f128e113]: AFILIADO 💵
+            - listitem [ref=f128e116]:
+              - link "Ver destaque de ACADEMIA 🚀" [ref=f128e119] [cursor=pointer]:
+                - /url: /stories/highlights/18011957875715512/
+                - button "Foto do story no destaque de meindica87 ACADEMIA 🚀" [ref=f128e120]:
+                  - button [ref=f128e121]:
+                    - img "Foto do story no destaque de meindica87" [ref=f128e124]
+                  - generic [ref=f128e125]: ACADEMIA 🚀
+            - listitem [ref=f128e128]:
+              - link "Ver destaque de VENDER NO M/S 💵" [ref=f128e131] [cursor=pointer]:
+                - /url: /stories/highlights/18234671446206542/
+                - button "Foto do story no destaque de meindica87 VENDER NO M/S 💵" [ref=f128e132]:
+                  - button [ref=f128e133]:
+                    - img "Foto do story no destaque de meindica87" [ref=f128e136]
+                  - generic [ref=f128e137]: VENDER NO M/S 💵
+            - listitem [ref=f128e140]:
+              - link "Ver destaque de OPORTUNIDADE 🤑" [ref=f128e143] [cursor=pointer]:
+                - /url: /stories/highlights/17972987936188699/
+                - button "Foto do story no destaque de meindica87 OPORTUNIDADE 🤑" [ref=f128e144]:
+                  - button [ref=f128e145]:
+                    - img "Foto do story no destaque de meindica87" [ref=f128e148]
+                  - generic [ref=f128e149]: OPORTUNIDADE 🤑
+      - generic [ref=f128e152]:
+        - tablist [ref=f128e153]:
+          - link [ref=f128e155] [cursor=pointer]:
+            - /url: /meindica87/
+            - img "Posts" [ref=f128e157]
+          - link [ref=f128e168] [cursor=pointer]:
+            - /url: "#"
+            - img "Reels" [ref=f128e170]
+          - link [ref=f128e173] [cursor=pointer]:
+            - /url: "#"
+            - img "Marcados" [ref=f128e175]
+        - tabpanel
+      - generic [ref=f128e179]:
+        - generic [ref=f128e182]:
+          - generic [ref=f128e183]:
+            - link "Clipe" [ref=f128e185] [cursor=pointer]:
+              - /url: /meindica87/reel/DbtnmUuM9O3/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link [ref=f128e190] [cursor=pointer]:
+              - /url: /meindica87/p/DaoCAyeFJsN/
+            - link [ref=f128e195] [cursor=pointer]:
+              - /url: /meindica87/p/DaBcXv3FHOS/
+          - generic [ref=f128e199]:
+            - link "Clipe" [ref=f128e201] [cursor=pointer]:
+              - /url: /meindica87/reel/DZ-2igwMTnE/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link "Clipe" [ref=f128e206] [cursor=pointer]:
+              - /url: /meindica87/reel/DTBBifYjMay/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link "Clipe" [ref=f128e211] [cursor=pointer]:
+              - /url: /meindica87/reel/DTBAVwMEbSz/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+          - generic [ref=f128e215]:
+            - link [ref=f128e217] [cursor=pointer]:
+              - /url: /meindica87/p/DSsgU2pj6PD/
+            - link "Clipe" [ref=f128e222] [cursor=pointer]:
+              - /url: /meindica87/reel/DQy7EwlAEAg/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link "Clipe" [ref=f128e227] [cursor=pointer]:
+              - /url: /meindica87/reel/DQy68X_gPCa/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+          - generic [ref=f128e231]:
+            - link "Clipe" [ref=f128e233] [cursor=pointer]:
+              - /url: /meindica87/reel/DQy6pNqAMQ0/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link "Clipe" [ref=f128e238] [cursor=pointer]:
+              - /url: /meindica87/reel/DQSHk6SEhPO/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+            - link "Clipe" [ref=f128e243] [cursor=pointer]:
+              - /url: /meindica87/reel/DQSG3yKEk4q/
+              - generic:
+                - generic:
+                  - generic:
+                    - img "Clipe"
+        - button "Mostrar mais posts de meindica87" [ref=f128e247] [cursor=pointer]
+  - contentinfo [ref=f128e250]:
+    - generic [ref=f128e251]:
+      - generic [ref=f128e253]:
+        - link "Meta" [ref=f128e255] [cursor=pointer]:
+          - /url: https://about.meta.com/
+        - link "Sobre" [ref=f128e258] [cursor=pointer]:
+          - /url: https://about.instagram.com/
+        - link "Blog" [ref=f128e261] [cursor=pointer]:
+          - /url: https://about.instagram.com/blog/
+        - link "Carreiras" [ref=f128e264] [cursor=pointer]:
+          - /url: https://about.instagram.com/about-us/careers
+        - link "Ajuda" [ref=f128e267] [cursor=pointer]:
+          - /url: https://help.instagram.com/
+        - link "API" [ref=f128e270] [cursor=pointer]:
+          - /url: https://developers.facebook.com/docs/instagram
+        - link "Privacidade" [ref=f128e273] [cursor=pointer]:
+          - /url: /legal/privacy/
+        - link "Termos" [ref=f128e276] [cursor=pointer]:
+          - /url: /legal/terms/
+        - link "Localizações" [ref=f128e279] [cursor=pointer]:
+          - /url: /explore/locations/
+        - link "Popular" [ref=f128e282] [cursor=pointer]:
+          - /url: /popular/
+        - link "Instagram Lite" [ref=f128e285] [cursor=pointer]:
+          - /url: /web/lite/
+        - link "Meta AI" [ref=f128e288] [cursor=pointer]:
+          - /url: https://www.meta.ai/?utm_source=foa_web_footer
+        - link "Threads" [ref=f128e291] [cursor=pointer]:
+          - /url: https://www.threads.com/
+        - link "Upload de contatos e não usuários" [ref=f128e294] [cursor=pointer]:
+          - /url: https://www.facebook.com/help/instagram/261704639352628
+        - link "Meta Verified" [ref=f128e297] [cursor=pointer]:
+          - /url: /accounts/meta_verified/?entrypoint=web_footer
+      - generic [ref=f128e299]:
+        - generic [ref=f128e300] [cursor=pointer]:
+          - generic [ref=f128e301]:
+            - generic [ref=f128e302]: Português (Brasil)
+            - img "Ícone de seta para baixo" [ref=f128e305]
+          - combobox "Trocar idioma de exibição" [ref=f128e307]:
+            - option "Afrikaans"
+            - option "العربية"
+            - option "Čeština"
+            - option "Dansk"
+            - option "Deutsch"
+            - option "Ελληνικά"
+            - option "English"
+            - option "English (UK)"
+            - option "Español (España)"
+            - option "Español"
+            - option "فارسی"
+            - option "Suomi"
+            - option "Français"
+            - option "עברית"
+            - option "Bahasa Indonesia"
+            - option "Italiano"
+            - option "日本語"
+            - option "한국어"
+            - option "Bahasa Melayu"
+            - option "Norsk"
+            - option "Nederlands"
+            - option "Polski"
+            - option "Português (Brasil)" [selected]
+            - option "Português (Portugal)"
+            - option "Русский"
+            - option "Svenska"
+            - option "ภาษาไทย"
+            - option "Filipino"
+            - option "Türkçe"
+            - option "中文(简体)"
+            - option "中文(台灣)"
+            - option "বাংলা"
+            - option "ગુજરાતી"
+            - option "हिन्दी"
+            - option "Hrvatski"
+            - option "Magyar"
+            - option "ಕನ್ನಡ"
+            - option "മലയാളം"
+            - option "मराठी"
+            - option "नेपाली"
+            - option "ਪੰਜਾਬੀ"
+            - option "සිංහල"
+            - option "Slovenčina"
+            - option "தமிழ்"
+            - option "తెలుగు"
+            - option "اردو"
+            - option "Tiếng Việt"
+            - option "中文(香港)"
+            - option "Български"
+            - option "Français (Canada)"
+            - option "Română"
+            - option "Српски"
+            - option "Українська"
+        - generic [ref=f128e308]: © 2026 Instagram from Meta

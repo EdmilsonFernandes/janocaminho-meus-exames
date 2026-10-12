@@ -1,0 +1,505 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e4]:
+    - generic [ref=f3e5]:
+      - list [ref=f3e7]:
+        - listitem [ref=f3e8]:
+          - link "Ir para o conteúdo 1" [ref=f3e9] [cursor=pointer]:
+            - /url: "#inicioConteudo"
+        - listitem [ref=f3e10]:
+          - link "Ir para o menu 2" [ref=f3e11] [cursor=pointer]:
+            - /url: "#inicioMenu"
+        - listitem [ref=f3e12]:
+          - link "Ir para o rodapé 3" [ref=f3e13] [cursor=pointer]:
+            - /url: "#inicioRodape"
+      - generic [ref=f3e14]:
+        - banner [ref=f3e15]:
+          - generic [ref=f3e16]:
+            - list [ref=f3e19]:
+              - listitem [ref=f3e20]:
+                - link "Acessibilidade" [ref=f3e21] [cursor=pointer]:
+                  - /url: /acessoinformacao/politica_acessibilidade
+              - listitem [ref=f3e22]:
+                - link "Alto Contraste" [ref=f3e23] [cursor=pointer]:
+                  - /url: "#"
+              - listitem [ref=f3e24]:
+                - link [ref=f3e25] [cursor=pointer]:
+                  - /url: /en
+                  - emphasis [ref=f3e26]: English
+            - link "Banco Central do Brasil":
+              - /url: /
+              - img "Banco Central do Brasil" [ref=f3e27] [cursor=pointer]
+        - navigation [ref=f3e28]:
+          - list [ref=f3e35]:
+            - listitem [ref=f3e36]:
+              - button "Acesso à<br> informação" [ref=f3e37] [cursor=pointer]:
+                - generic [ref=f3e38]: Acesso à informação
+            - listitem [ref=f3e39]:
+              - button "Política<br> monetária" [ref=f3e40] [cursor=pointer]:
+                - generic [ref=f3e41]: Política monetária
+            - listitem [ref=f3e42]:
+              - button "Estabilidade<br> financeira" [ref=f3e43] [cursor=pointer]:
+                - generic [ref=f3e44]: Estabilidade financeira
+            - listitem [ref=f3e45]:
+              - button "Estatísticas" [ref=f3e46] [cursor=pointer]
+            - listitem [ref=f3e48]:
+              - button "Cédulas e<br> moedas" [ref=f3e49] [cursor=pointer]:
+                - generic [ref=f3e50]: Cédulas e moedas
+            - listitem [ref=f3e51]:
+              - button "Publicações e<br> pesquisa" [ref=f3e52] [cursor=pointer]:
+                - generic [ref=f3e53]: Publicações e pesquisa
+            - listitem [ref=f3e54]:
+              - button "Buscar no site" [ref=f3e55] [cursor=pointer]:
+                - generic [ref=f3e56]: search
+        - navigation "breadcrumb" [ref=f3e58]:
+          - list [ref=f3e59]:
+            - listitem [ref=f3e60]:
+              - link "Home" [ref=f3e61] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f3e62]:
+              - text: ">"
+              - link "Estabilidade financeira" [ref=f3e63] [cursor=pointer]:
+                - /url: /estabilidadefinanceira
+            - listitem [ref=f3e64]:
+              - text: ">"
+              - link "Sistema de Pagamentos Brasileiro (SPB)" [ref=f3e65] [cursor=pointer]:
+                - /url: /estabilidadefinanceira/spb
+            - listitem [ref=f3e66]:
+              - text: ">"
+              - link "Pix" [ref=f3e67] [cursor=pointer]:
+                - /url: /estabilidadefinanceira/pix
+            - listitem [ref=f3e68]:
+              - text: ">"
+              - link "Faça mais com o Pix" [ref=f3e69] [cursor=pointer]:
+                - /url: /estabilidadefinanceira/mais-com-pix
+            - listitem [ref=f3e70]: "> Pix Automático"
+      - main [ref=f3e71]:
+        - generic [ref=f3e353]:
+          - generic [ref=f3e354]:
+            - heading "Pix Automático" [level=1] [ref=f3e355]
+            - navigation [ref=f3e357]:
+              - list [ref=f3e359]:
+                - listitem [ref=f3e360]:
+                  - link "Pagadores" [ref=f3e361] [cursor=pointer]:
+                    - /url: /estabilidadefinanceira/pix-automatico-pagadores
+                - listitem [ref=f3e362]:
+                  - link "Recebedores" [ref=f3e363] [cursor=pointer]:
+                    - /url: /estabilidadefinanceira/pix-automatico-recebedores
+                - listitem [ref=f3e364]:
+                  - link "Participantes" [ref=f3e365] [cursor=pointer]:
+                    - /url: /estabilidadefinanceira/pix-automatico-participantes
+            - generic [ref=f3e367]:
+              - generic [ref=f3e368]:
+                - heading "O Pix oferece a flexibilidade que você precisa" [level=2] [ref=f3e369]
+                - generic [ref=f3e370]: Você pode pagar na hora ou agendar um pagamento, pagar pelo app do banco ou só aproximando o celular.
+                - link "Ir para a home do Pix chevron_left" [ref=f3e372] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/pix
+                  - text: Ir para a home do Pix
+                  - generic [ref=f3e373]: chevron_left
+              - link [ref=f3e375] [cursor=pointer]:
+                - /url: /estabilidadefinanceira/pix
+                - img "Rapaz mulato, sorridente, recebendo um Pix em seu comércio" [ref=f3e376]
+          - generic [ref=f3e377]:
+            - generic [ref=f3e379]:
+              - heading "O que é" [level=2] [ref=f3e380]
+              - paragraph [ref=f3e381]: Com o Pix Automático, você pode pagar suas contas recorrentes, como de energia, telefone, escolas, academias, condomínios, assinaturas, seguros, entre outras, de forma automática pelo Pix.
+              - generic [ref=f3e384]:
+                - generic [ref=f3e385]:
+                  - generic [ref=f3e386]:
+                    - button "Play video" [ref=f3e390] [cursor=pointer]
+                    - paragraph [ref=f3e394]:
+                      - strong [ref=f3e396]: Como funciona o Pix Automático e o que ele muda no dia a dia das empresas e pessoas?
+                      - text: "LiveBC #43"
+                  - generic [ref=f3e397]:
+                    - button "Play video" [ref=f3e401] [cursor=pointer]
+                    - paragraph [ref=f3e405]:
+                      - strong [ref=f3e407]: "Pix Automático, débito ou cartão de crédito: qual o melhor para sua conta?"
+                      - text: "BC te Explica #154"
+                  - generic [ref=f3e408]:
+                    - button "Play video" [ref=f3e412] [cursor=pointer]
+                    - paragraph [ref=f3e416]:
+                      - strong [ref=f3e418]: Como receber pagamentos com Pix Automático?
+                      - text: Como é que uma empresa pode passar a receber pagamentos por Pix Automático?
+                  - generic [ref=f3e419]:
+                    - button "Play video" [ref=f3e423] [cursor=pointer]
+                    - paragraph [ref=f3e427]:
+                      - strong [ref=f3e429]: Como funciona o Pix Automático para pagar contas?
+                      - text: O Pix Automático está chegando para facilitar a sua vida!
+                  - generic [ref=f3e430]:
+                    - button "Play video" [ref=f3e434] [cursor=pointer]
+                    - paragraph [ref=f3e438]:
+                      - strong [ref=f3e440]: Conexão Pix 3ª edição.
+                      - text: Confira como foi o evento em que o BC apresentou o Pix Automático com participação de empresas e especialistas do setor.
+                  - generic [ref=f3e441]:
+                    - button "Play video" [ref=f3e445] [cursor=pointer]
+                    - paragraph [ref=f3e449]:
+                      - strong [ref=f3e451]: "BC te Explica #131 - O que são o Pix automático e o agendamento recorrente?"
+                      - text: Agende pagamentos e transferências com praticidade.
+                - generic [ref=f3e452] [cursor=pointer]: chevron_right
+              - heading "Como funciona" [level=3] [ref=f3e454]
+              - paragraph [ref=f3e455]: O Pix Automático facilita a vida de quem usa, permitindo que pagamentos recorrentes sejam feitos de forma automática. O pagador precisa autorizar uma única vez a operação, sem precisar fazer um novo pagamento a cada nova cobrança. Mais praticidade e conveniência para o dia a dia.
+              - list [ref=f3e456]:
+                - listitem [ref=f3e457]: Empresa, que pode ser sua academia, a escola do seu filho, ou mesmo seu serviço de streaming favorito, oferece Pix Automático como forma de pagamento de seus produtos ou serviços.
+                - listitem [ref=f3e458]: Pagador autoriza o pagamento das cobranças por Pix Automático e define regras, como o valor máximo de cada pagamento e a possibilidade de utilizar linha de crédito caso não possua saldo suficiente no momento da cobrança.
+                - listitem [ref=f3e459]: Periodicamente, nos dias anteriores ao pagamento, a empresa envia cobrança ao banco do pagador.
+                - listitem [ref=f3e460]: O banco do pagador agenda o pagamento e notifica o pagador, que pode conferir, antes do pagamento e no app da sua conta, se está tudo certo.
+                - listitem [ref=f3e461]: No dia do pagamento, o banco do pagador efetiva o pagamento da cobrança de acordo com as regras definidas na autorização.
+              - heading "Quais os benefícios" [level=3] [ref=f3e462]
+              - generic [ref=f3e466]:
+                - paragraph
+                - list [ref=f3e467]:
+                  - listitem [ref=f3e468]: Inovador
+                  - listitem [ref=f3e469]: Prático
+                  - listitem [ref=f3e470]: Fácil de ser usado (para quem vai pagar e para quem vai receber)
+                  - listitem [ref=f3e471]: Barato e inclusivo (para pessoas, empresas e governos, ou seja, para todos)
+                - paragraph
+              - list [ref=f3e476]:
+                - listitem [ref=f3e477]: "Aumento da base de clientes: mais de 160 milhões de usuários Pix"
+                - listitem [ref=f3e478]: "Menor custo operacional: basta contratar um único participante do Pix"
+                - listitem [ref=f3e479]: "Diversificação de formas de pagamento: clientes que não usam cartão ou boleto podem pagar com Pix"
+                - listitem [ref=f3e480]: "Redução da inadimplência: a cobrança é automática"
+              - list [ref=f3e485]:
+                - listitem [ref=f3e486]: "Facilidade: simples de aderir"
+                - listitem [ref=f3e487]: "Conveniência: pagamentos feitos na data certa, automaticamente"
+                - listitem [ref=f3e488]: "Controle: gestão de autorização, pagamento e cancelamento direto no app da sua conta"
+                - listitem [ref=f3e489]: "Inclusão: não é necessário possuir cartão de crédito"
+                - listitem [ref=f3e490]: "Acesso ao serviço por meio de múltiplas opções: em bancos, cooperativas, instituições de pagamento, iniciadores de pagamento etc."
+              - generic [ref=f3e491]:
+                - strong [ref=f3e493]: É seguro!
+                - generic [ref=f3e494]:
+                  - img "Pix Automático Segurança" [ref=f3e496]
+                  - generic [ref=f3e497]:
+                    - paragraph [ref=f3e498]: A segurança é uma dos princípios fundamentais do Pix. O Banco Central trabalha continuamente para garantir que o Pix e suas funcionalidades, incluindo o Pix Automático, mantenham um elevado padrão de segurança.
+                    - paragraph [ref=f3e499]:
+                      - text: Se acontecer algum problema no uso do Pix Automático, você pode acionar o
+                      - button "Mecanismo Especial de Devolução (MED)" [ref=f3e501] [cursor=pointer]
+                      - text: através do banco onde tem conta.
+            - generic [ref=f3e505]:
+              - heading "Soluções para Cidadãos, Empresas e Participantes do Pix" [level=3] [ref=f3e506]
+              - list [ref=f3e508]:
+                - listitem [ref=f3e509]:
+                  - link [ref=f3e511] [cursor=pointer]:
+                    - /url: https://www.bcb.gov.br/estabilidadefinanceira/pix-automatico-pagadores
+                    - generic [ref=f3e512]: person
+                    - paragraph [ref=f3e515]: PagadoresSou cidadão ou empresa e quero pagar contas com Pix Automático.
+                - listitem [ref=f3e516]:
+                  - link [ref=f3e518] [cursor=pointer]:
+                    - /url: https://www.bcb.gov.br/estabilidadefinanceira/pix-automatico-recebedores
+                    - generic [ref=f3e519]: domain
+                    - paragraph [ref=f3e522]: RecebedoresSou uma empresa e quero receber pagamentos com Pix Automático.
+                - listitem [ref=f3e523]:
+                  - link [ref=f3e525] [cursor=pointer]:
+                    - /url: https://www.bcb.gov.br/estabilidadefinanceira/pix-automatico-participantes
+                    - generic [ref=f3e526]: account_balance
+                    - paragraph [ref=f3e529]: Partipantes do PixSou um Participante do Pix e vou disponibilizar Pix Automático.
+              - table [ref=f3e532]:
+                - rowgroup [ref=f3e533]:
+                  - row [ref=f3e534]:
+                    - columnheader "Perfil" [ref=f3e535]
+                    - columnheader "Tem tarifa ?" [ref=f3e536]
+                - rowgroup [ref=f3e537]:
+                  - row [ref=f3e538]:
+                    - cell "Pagadores pessoa física e pessoa jurídica" [ref=f3e539]
+                    - cell [ref=f3e540]:
+                      - strong [ref=f3e541]: Não
+                  - row [ref=f3e542]:
+                    - cell "Recebedores" [ref=f3e543]
+                    - cell [ref=f3e544]:
+                      - strong [ref=f3e545]: Sim
+                      - text: ", mas o prestador de serviço de pagamento deve ser consultado"
+                  - row [ref=f3e546]:
+                    - cell "Participantes do Pix" [ref=f3e547]
+                    - cell [ref=f3e548]:
+                      - strong [ref=f3e549]: Não
+                      - text: pode haver cobrança entre participantes que atendam pagadores e recebedores
+      - button "Vá para o topo" [ref=f3e76] [cursor=pointer]:
+        - generic [ref=f3e77]: expand_less
+      - contentinfo [ref=f3e78]:
+        - generic [ref=f3e82]:
+          - generic [ref=f3e83]: Siga o BC
+          - list [ref=f3e84]:
+            - listitem [ref=f3e85]:
+              - link "Instagram oficial do Banco Central do Brasil" [ref=f3e86] [cursor=pointer]:
+                - /url: http://www.instagram.com/bancocentraldobrasil/
+            - listitem [ref=f3e92]:
+              - link "Linkedin oficial do Banco Central do Brasil" [ref=f3e93] [cursor=pointer]:
+                - /url: http://br.linkedin.com/company/banco-central-do-brasil
+            - listitem [ref=f3e98]:
+              - link "X oficial do Banco Central do Brasil" [ref=f3e99] [cursor=pointer]:
+                - /url: http://twitter.com/bancocentralbr
+            - listitem [ref=f3e103]:
+              - link "Canal oficial do Banco Central do Brasil no WhatsApp" [ref=f3e104] [cursor=pointer]:
+                - /url: https://whatsapp.com/channel/0029VaB1KjR6BIEjJMs4HN1O
+            - listitem [ref=f3e109]:
+              - link "Canal oficial do Banco Central do Brasil no YouTube" [ref=f3e110] [cursor=pointer]:
+                - /url: http://www.youtube.com/user/BancoCentralBR
+            - listitem [ref=f3e114]:
+              - link "TikTok oficial do Banco Central do Brasil" [ref=f3e115] [cursor=pointer]:
+                - /url: https://www.tiktok.com/@bancocentraldobrasil
+            - listitem [ref=f3e119]:
+              - link "Facebook oficial do Banco Central do Brasil" [ref=f3e120] [cursor=pointer]:
+                - /url: http://pt-br.facebook.com/bancocentraldobrasil/
+            - listitem [ref=f3e124]:
+              - link "Threads oficial do Banco Central do Brasil" [ref=f3e125] [cursor=pointer]:
+                - /url: https://www.threads.net/@bancocentraldobrasil
+            - listitem [ref=f3e129]:
+              - link "Telegram oficial do Banco Central do Brasil" [ref=f3e130] [cursor=pointer]:
+                - /url: https://t.me/bancocentraloficial
+            - listitem [ref=f3e134]:
+              - link "Flickr oficial do Banco Central do Brasil" [ref=f3e135] [cursor=pointer]:
+                - /url: http://www.flickr.com/photos/134175749@N03/
+            - listitem [ref=f3e140]:
+              - link "Assinar notícias" [ref=f3e141] [cursor=pointer]:
+                - /url: /assinar-noticias
+            - listitem [ref=f3e151]:
+              - link "RSS - Feeds do BC" [ref=f3e152] [cursor=pointer]:
+                - /url: /acessoinformacao/rss
+            - listitem [ref=f3e158]:
+              - link "Calendário do Banco Central do Brasil" [ref=f3e159] [cursor=pointer]:
+                - /url: /acessoinformacao/calendariobc_ics
+        - generic [ref=f3e170]:
+          - generic [ref=f3e171]:
+            - paragraph [ref=f3e172]:
+              - strong [ref=f3e173]:
+                - link "Acesso à informação" [ref=f3e174] [cursor=pointer]:
+                  - /url: /acessoinformacao
+            - list [ref=f3e175]:
+              - listitem [ref=f3e176]:
+                - link "Institucional" [ref=f3e177] [cursor=pointer]:
+                  - /url: /acessoinformacao/institucional
+              - listitem [ref=f3e178]:
+                - link "Ações e programas" [ref=f3e179] [cursor=pointer]:
+                  - /url: /acessoinformacao/acoesprogramas
+              - listitem [ref=f3e180]:
+                - link "Participação social" [ref=f3e181] [cursor=pointer]:
+                  - /url: /acessoinformacao/participacaosocial
+              - listitem [ref=f3e182]:
+                - link "Auditorias" [ref=f3e183] [cursor=pointer]:
+                  - /url: /acessoinformacao/auditorias
+              - listitem [ref=f3e184]:
+                - link "Convênios e Transferências" [ref=f3e185] [cursor=pointer]:
+                  - /url: /acessoinformacao/convenios-e-transferencias
+              - listitem [ref=f3e186]:
+                - link "Receitas e despesas" [ref=f3e187] [cursor=pointer]:
+                  - /url: /acessoinformacao/receitas-e-despesas
+              - listitem [ref=f3e188]:
+                - link "Licitações e Contratos" [ref=f3e189] [cursor=pointer]:
+                  - /url: /acessoinformacao/licitacoes-e-contratos
+              - listitem [ref=f3e190]:
+                - link "Servidores" [ref=f3e191] [cursor=pointer]:
+                  - /url: /acessoinformacao/carreira
+              - listitem [ref=f3e192]:
+                - link "Informações classificadas" [ref=f3e193] [cursor=pointer]:
+                  - /url: /acessoinformacao/informacoesclassificadas
+              - listitem [ref=f3e194]:
+                - link "Serviço de Informações ao Cidadão (SIC)" [ref=f3e195] [cursor=pointer]:
+                  - /url: /acessoinformacao/sic
+              - listitem [ref=f3e196]:
+                - link "Perguntas frequentes" [ref=f3e197] [cursor=pointer]:
+                  - /url: /meubc/faqs
+              - listitem [ref=f3e198]:
+                - link "Dados Abertos" [ref=f3e199] [cursor=pointer]:
+                  - /url: /acessoinformacao/dadosabertos
+              - listitem [ref=f3e200]:
+                - link "Sanções Administrativas" [ref=f3e201] [cursor=pointer]:
+                  - /url: /acessoinformacao/sancoes-administrativas
+              - listitem [ref=f3e202]:
+                - link "Lei Geral de Proteção de Dados Pessoais (LGPD)" [ref=f3e203] [cursor=pointer]:
+                  - /url: /acessoinformacao/lgpd
+              - listitem [ref=f3e204]:
+                - link "Transparência e prestação de contas" [ref=f3e205] [cursor=pointer]:
+                  - /url: /acessoinformacao/transparencia-e-prestacao-de-contas
+          - generic [ref=f3e206]:
+            - paragraph [ref=f3e207]:
+              - strong [ref=f3e208]:
+                - link "Política monetária" [ref=f3e209] [cursor=pointer]:
+                  - /url: /controleinflacao
+            - list [ref=f3e210]:
+              - listitem [ref=f3e211]:
+                - link "Metas para a inflação" [ref=f3e212] [cursor=pointer]:
+                  - /url: /controleinflacao/metainflacao
+              - listitem [ref=f3e213]:
+                - link "O que é inflação" [ref=f3e214] [cursor=pointer]:
+                  - /url: /controleinflacao/oqueinflacao
+              - listitem [ref=f3e215]:
+                - link "Comitê de Política Monetária (Copom)" [ref=f3e216] [cursor=pointer]:
+                  - /url: /controleinflacao/copom
+              - listitem [ref=f3e217]:
+                - link "Comunicados do Copom" [ref=f3e218] [cursor=pointer]:
+                  - /url: /controleinflacao/comunicadoscopom
+              - listitem [ref=f3e219]:
+                - link "Atas do Copom" [ref=f3e220] [cursor=pointer]:
+                  - /url: /publicacoes/atascopom
+              - listitem [ref=f3e221]:
+                - link "Relatório de Política Monetária" [ref=f3e222] [cursor=pointer]:
+                  - /url: /publicacoes/rpm
+              - listitem [ref=f3e223]:
+                - link "Expectativas de mercado" [ref=f3e224] [cursor=pointer]:
+                  - /url: /controleinflacao/expectativasmercado
+          - generic [ref=f3e225]:
+            - paragraph [ref=f3e226]:
+              - strong [ref=f3e227]:
+                - link "Estabilidade financeira" [ref=f3e228] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira
+            - list [ref=f3e229]:
+              - listitem [ref=f3e230]:
+                - link "Normas" [ref=f3e231] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/regulacao
+              - listitem [ref=f3e232]:
+                - link "Supervisão" [ref=f3e233] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/supervisao
+              - listitem [ref=f3e234]:
+                - link "Sistema Financeiro Nacional" [ref=f3e235] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/sfn
+              - listitem [ref=f3e236]:
+                - link "Sistema de Pagamentos Brasileiro (SPB)" [ref=f3e237] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/spb
+              - listitem [ref=f3e238]:
+                - link "Câmbio e Capitais internacionais" [ref=f3e239] [cursor=pointer]:
+                  - /url: /estabilidadefinanceira/cambioecapitais
+              - listitem [ref=f3e240]:
+                - link "Comitê de Estabilidade Financeira (Comef)" [ref=f3e241] [cursor=pointer]:
+                  - /url: /acessoinformacao/comef
+              - listitem [ref=f3e242]:
+                - link "Relatório de Estabilidade Financeira" [ref=f3e243] [cursor=pointer]:
+                  - /url: /publicacoes/ref
+          - generic [ref=f3e244]:
+            - paragraph [ref=f3e245]:
+              - strong [ref=f3e246]:
+                - link "Estatísticas" [ref=f3e247] [cursor=pointer]:
+                  - /url: /estatisticas
+            - list [ref=f3e248]:
+              - listitem [ref=f3e249]:
+                - link "Taxas de Juros" [ref=f3e250] [cursor=pointer]:
+                  - /url: /estatisticas/txjuros
+              - listitem [ref=f3e251]:
+                - link "Notas econômico-financeiras" [ref=f3e252] [cursor=pointer]:
+                  - /url: /estatisticas/notaseconomicofinanceiras
+              - listitem [ref=f3e253]:
+                - link "Séries temporais (SGS)" [ref=f3e254] [cursor=pointer]:
+                  - /url: https://www3.bcb.gov.br/sgspub/
+              - listitem [ref=f3e255]:
+                - link "Tabelas especiais" [ref=f3e256] [cursor=pointer]:
+                  - /url: /estatisticas/tabelasespeciais
+              - listitem [ref=f3e257]:
+                - link "Indicadores Econômicos Selecionados" [ref=f3e258] [cursor=pointer]:
+                  - /url: /estatisticas/indicadoresselecionados
+              - listitem [ref=f3e259]:
+                - link "Poupança" [ref=f3e260] [cursor=pointer]:
+                  - /url: /estatisticas/poupanca
+              - listitem [ref=f3e261]:
+                - link "Mais estatísticas" [ref=f3e262] [cursor=pointer]:
+                  - /url: /estatisticas/maisestatisticas
+              - listitem [ref=f3e263]:
+                - link "Calendário de divulgação" [ref=f3e264] [cursor=pointer]:
+                  - /url: /estatisticas/notas_calendario
+          - generic [ref=f3e265]:
+            - paragraph [ref=f3e266]:
+              - strong [ref=f3e267]:
+                - link "Cédulas e moedas" [ref=f3e268] [cursor=pointer]:
+                  - /url: /cedulasemoedas
+            - list [ref=f3e269]:
+              - listitem [ref=f3e270]:
+                - link "Cédulas" [ref=f3e271] [cursor=pointer]:
+                  - /url: /cedulasemoedas/cedulas
+              - listitem [ref=f3e272]:
+                - link "Moedas" [ref=f3e273] [cursor=pointer]:
+                  - /url: /cedulasemoedas/moedas
+              - listitem [ref=f3e274]:
+                - link "Serviços" [ref=f3e275] [cursor=pointer]:
+                  - /url: /cedulasemoedas/servicoscedulasmoedas
+              - listitem [ref=f3e276]:
+                - link "Dinheiro em circulação" [ref=f3e277] [cursor=pointer]:
+                  - /url: https://www3.bcb.gov.br/mec-circulante/
+              - listitem [ref=f3e278]:
+                - link "O caminho do dinheiro" [ref=f3e279] [cursor=pointer]:
+                  - /url: /cedulasemoedas/caminhododinheiro
+          - generic [ref=f3e280]:
+            - paragraph [ref=f3e281]:
+              - strong [ref=f3e282]:
+                - link "Publicações e pesquisa" [ref=f3e283] [cursor=pointer]:
+                  - /url: /publicacoes
+            - list [ref=f3e284]:
+              - listitem [ref=f3e285]:
+                - link "Atas do Copom" [ref=f3e286] [cursor=pointer]:
+                  - /url: /publicacoes/atascopom
+              - listitem [ref=f3e287]:
+                - link "Relatório de Política Monetária" [ref=f3e288] [cursor=pointer]:
+                  - /url: /publicacoes/rpm
+              - listitem [ref=f3e289]:
+                - link "Relatório de Estabilidade Financeira" [ref=f3e290] [cursor=pointer]:
+                  - /url: /publicacoes/ref
+              - listitem [ref=f3e291]:
+                - link "Relatório Integrado do BC" [ref=f3e292] [cursor=pointer]:
+                  - /url: /publicacoes/relatoriointegrado
+              - listitem [ref=f3e293]:
+                - link "Estudos especiais do Banco Central" [ref=f3e294] [cursor=pointer]:
+                  - /url: /publicacoes/estudosespeciais
+              - listitem [ref=f3e295]:
+                - link "Sondagens do BC" [ref=f3e296] [cursor=pointer]:
+                  - /url: /publicacoes/sondagens-do-bc
+              - listitem [ref=f3e297]:
+                - link "Pesquisa no BC" [ref=f3e298] [cursor=pointer]:
+                  - /url: /publicacoes/pesquisa
+              - listitem [ref=f3e299]:
+                - link "Mais publicações" [ref=f3e300] [cursor=pointer]:
+                  - /url: /publicacoes/maispublicacoes
+        - generic [ref=f3e303]:
+          - generic [ref=f3e304]: Garantir a estabilidade de preços, zelar por um sistema financeiro sólido e eficiente, e fomentar o bem-estar econômico da sociedade.
+          - generic [ref=f3e305]:
+            - generic [ref=f3e306]: "Atendimento: 145 (custo de ligação local)"
+            - list [ref=f3e307]:
+              - listitem [ref=f3e308]:
+                - link "Fale conosco" [ref=f3e309] [cursor=pointer]:
+                  - /url: /acessoinformacao/faleconosco
+                - text: "|"
+              - listitem [ref=f3e310]:
+                - link "Política de privacidade" [ref=f3e311] [cursor=pointer]:
+                  - /url: /acessoinformacao/politicaprivacidade
+                - text: "|"
+              - listitem [ref=f3e312]:
+                - link "Política de acessibilidade" [ref=f3e313] [cursor=pointer]:
+                  - /url: /acessoinformacao/politica_acessibilidade
+            - generic [ref=f3e314]:
+              - text: © Banco Central do Brasil -
+              - link "Todos os direitos reservados" [ref=f3e315] [cursor=pointer]:
+                - /url: /acessoinformacao/direitosautorais
+    - generic [ref=f3e317]:
+      - link "Ir para o conteúdo" [ref=f3e319] [cursor=pointer]:
+        - /url: "#conteudo"
+      - generic [ref=f3e320]:
+        - link "GovBR" [ref=f3e321] [cursor=pointer]:
+          - /url: https://gov.br/
+        - navigation [ref=f3e322]:
+          - list [ref=f3e323]:
+            - listitem [ref=f3e324]
+            - listitem [ref=f3e325]:
+              - link "Acesso à informação" [ref=f3e326] [cursor=pointer]:
+                - /url: http://www.gov.br/acessoainformacao/
+            - listitem [ref=f3e327]
+            - listitem [ref=f3e328]:
+              - link "Participe" [ref=f3e329] [cursor=pointer]:
+                - /url: https://www.gov.br/pt-br/participacao-social/
+            - listitem [ref=f3e330]
+            - listitem [ref=f3e331]:
+              - link "Legislação" [ref=f3e332] [cursor=pointer]:
+                - /url: http://www4.planalto.gov.br/legislacao/
+            - listitem [ref=f3e333]
+            - listitem [ref=f3e334]:
+              - link "Órgãos do Governo" [ref=f3e335] [cursor=pointer]:
+                - /url: http://www.gov.br/pt-br/orgaos-do-governo
+    - generic [ref=f3e337]:
+      - paragraph [ref=f3e339]:
+        - text: Usamos cookies para melhorar sua experiência e oferecer serviços personalizados. Ao aceitar os cookies, todas as funcionalidades disponíveis no site serão ativadas. Você também pode rejeitar os não essenciais ou gerenciar suas preferências. Saiba mais na nossa
+        - link "Política de Privacidade e Termos de Uso" [ref=f3e340] [cursor=pointer]:
+          - /url: /acessoinformacao/politicaprivacidade
+        - text: .
+      - generic [ref=f3e341]:
+        - button "cookie Gerenciar cookies" [ref=f3e342] [cursor=pointer]:
+          - generic [ref=f3e343]: cookie
+          - generic [ref=f3e344]: Gerenciar cookies
+        - button "Rejeitar cookies" [ref=f3e345] [cursor=pointer]
+        - button "Aceitar cookies" [ref=f3e346] [cursor=pointer]
+  - generic [ref=f3e348] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e550]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e551]
+  - generic [ref=f3e350] [cursor=pointer]

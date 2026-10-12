@@ -1,0 +1,46 @@
+- generic [active] [ref=f22e18]:
+  - generic [ref=f22e19]:
+    - generic [ref=f22e20]:
+      - button "Pular para o conteúdo" [ref=f22e402] [cursor=pointer]
+      - generic [ref=f22e22]:
+        - banner [ref=f22e23]:
+          - generic [ref=f22e24]:
+            - button "Menu" [ref=f22e403] [cursor=pointer]:
+              - img [ref=f22e26]
+            - button "Voltar" [ref=f22e422] [cursor=pointer]:
+              - img [ref=f22e423]
+            - button "71" [ref=f22e404] [cursor=pointer]:
+              - img [ref=f22e29]
+              - generic [ref=f22e31]: "71"
+            - button "E" [ref=f22e405] [cursor=pointer]:
+              - generic [ref=f22e35]: E
+            - button "18" [ref=f22e406] [cursor=pointer]:
+              - generic [ref=f22e37]:
+                - img [ref=f22e38]
+                - generic [ref=f22e40]: "18"
+            - button "Mais opções" [ref=f22e407] [cursor=pointer]:
+              - img [ref=f22e42]
+            - button "Atualizar" [ref=f22e408] [cursor=pointer]:
+              - img [ref=f22e46]
+        - main [ref=f22e48]:
+          - progressbar [ref=f22e426]:
+            - img [ref=f22e427]
+    - navigation [ref=f22e370]:
+      - generic [ref=f22e371] [cursor=pointer]:
+        - generic [ref=f22e372]: 🏠
+        - paragraph [ref=f22e373]: Início
+      - generic [ref=f22e375] [cursor=pointer]:
+        - generic [ref=f22e376]: 📋
+        - paragraph [ref=f22e377]: Exames
+      - generic [ref=f22e378] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f22e419]
+        - paragraph [ref=f22e381]: Dr. Exame
+      - generic [ref=f22e382] [cursor=pointer]:
+        - generic [ref=f22e383]: 📈
+        - paragraph [ref=f22e384]: Evolução
+      - generic [ref=f22e385] [cursor=pointer]:
+        - generic [ref=f22e386]: ☰
+        - paragraph [ref=f22e387]: Mais
+  - generic [ref=f22e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e420]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e421]

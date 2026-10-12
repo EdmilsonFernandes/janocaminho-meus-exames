@@ -1,0 +1,190 @@
+- generic [ref=f20e3]:
+  - button "Pular para o conteúdo" [ref=f20e4] [cursor=pointer]
+  - generic [ref=f20e5]:
+    - banner [ref=f20e6]:
+      - generic [ref=f20e7]:
+        - heading [level=6]
+        - generic [ref=f20e8]:
+          - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f20e9] [cursor=pointer]:
+            - generic [ref=f20e12]: "15"
+          - button "Notificações" [ref=f20e13] [cursor=pointer]:
+            - generic [ref=f20e14]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f20e19] [cursor=pointer]:
+            - generic [ref=f20e20]: E
+            - generic [ref=f20e22]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f20e28] [cursor=pointer]
+    - main [ref=f20e31]:
+      - navigation [ref=f20e35]:
+        - generic [ref=f20e38]:
+          - generic [ref=f20e39]: E
+          - generic [ref=f20e41]:
+            - paragraph [ref=f20e42]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f20e43]:
+              - generic [ref=f20e44]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f20e46] [cursor=pointer]
+        - separator [ref=f20e48]
+        - button "Início" [ref=f20e49] [cursor=pointer]
+        - button "Exames" [ref=f20e56] [cursor=pointer]
+        - button "Cuidados" [ref=f20e67] [cursor=pointer]
+        - button "Pessoas" [ref=f20e77] [cursor=pointer]
+        - button "Conta" [ref=f20e87] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f20e96] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f20e102] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f20e108] [cursor=pointer]
+        - generic [ref=f20e115]:
+          - generic [ref=f20e117]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f20e118]: v2.7.223
+      - generic [ref=f20e120]:
+        - generic [ref=f20e122]:
+          - generic [ref=f20e123]:
+            - heading "Bom dia, Edmilson 👋" [level=1] [ref=f20e124]
+            - generic [ref=f20e125]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f20e126]: Sincronizado
+        - generic [ref=f20e131]:
+          - generic [ref=f20e132]: E
+          - generic [ref=f20e133]:
+            - paragraph [ref=f20e134]: Força & Hipertrofia
+            - generic [ref=f20e135]:
+              - heading "Edmilson Lopes Fernandes dos Santos, 41" [level=2] [ref=f20e136]
+              - generic [ref=f20e137]: Musculação/Hipertrofia
+              - generic [ref=f20e139]: 🏃 Modo Esporte
+            - paragraph [ref=f20e141]: 🎯 Eixo hormonal, recuperação muscular (CK) e articulações sob carga de treino.
+            - generic [ref=f20e142]:
+              - paragraph [ref=f20e143]:
+                - generic [ref=f20e144]: "Último exame:"
+                - text: 16/07 · Sabin · há 2 meses
+              - paragraph [ref=f20e145]:
+                - generic [ref=f20e146]: "Peso/altura:"
+                - text: 92,4 kg · 178 cm
+              - paragraph [ref=f20e147]:
+                - generic [ref=f20e148]: "Médico vinculado:"
+                - text: Dr. Teste QA · CRM 99999-SP
+            - generic [ref=f20e149]: "Foco: Hematócrito e HDL merecem acompanhamento"
+        - generic [ref=f20e157]:
+          - heading "6 marcadores pedem atenção — 1 importante" [level=2] [ref=f20e158]
+          - paragraph [ref=f20e159]: Os importantes merecem prioridade na próxima consulta — leve o painel esportivo ao seu médico.
+          - generic [ref=f20e160]:
+            - generic [ref=f20e161]: Hematócrito 51,8 % ↑
+            - generic [ref=f20e163]: HDL baixo · andrógeno declarado
+          - button "📚 contexto · Hematócrito 51,8%" [ref=f20e167] [cursor=pointer]
+          - generic [ref=f20e169]: ⏳ 16 marcador(es) não foram medidos há mais de 12 meses e não entram no score. Envie um exame recente pra uma leitura atualizada.
+          - button "Ver todos os alterados →" [ref=f20e172] [cursor=pointer]
+        - generic [ref=f20e173]:
+          - 'button "Testosterona: 680 ng/dL — ver" [ref=f20e174] [cursor=pointer]':
+            - generic [ref=f20e178]:
+              - paragraph [ref=f20e179]: Testosterona
+              - paragraph [ref=f20e180]: 680 ng/dL
+              - paragraph [ref=f20e181]: 🎯 Alvo atingido
+          - 'button "Hematócrito: 51,8 % — ver" [ref=f20e182] [cursor=pointer]':
+            - generic [ref=f20e186]:
+              - paragraph [ref=f20e187]: Hematócrito
+              - paragraph [ref=f20e188]: 51,8 %
+              - paragraph [ref=f20e189]: acima da referência
+          - 'button "HDL: 38 mg/dL — ver" [ref=f20e190] [cursor=pointer]':
+            - generic [ref=f20e194]:
+              - paragraph [ref=f20e195]: HDL
+              - paragraph [ref=f20e196]: 38 mg/dL
+              - paragraph [ref=f20e197]: abaixo da referência
+          - 'button "Alterados ativos: 11 — ver" [ref=f20e198] [cursor=pointer]':
+            - generic [ref=f20e202]:
+              - paragraph [ref=f20e203]: Alterados ativos
+              - paragraph [ref=f20e204]: "11"
+              - paragraph [ref=f20e205]: pedem atenção
+        - generic [ref=f20e206]:
+          - button "Todos (34)" [ref=f20e207] [cursor=pointer]
+          - button "Hormonal (1)" [pressed] [ref=f20e209] [cursor=pointer]
+          - button "Músculo-Fígado (3)" [ref=f20e211] [cursor=pointer]
+          - button "Cardio-Lipídios (5)" [ref=f20e213] [cursor=pointer]
+          - button "Hemograma (19)" [ref=f20e215] [cursor=pointer]
+          - button "Renal (1)" [ref=f20e217] [cursor=pointer]
+          - button "Outros (5)" [ref=f20e219] [cursor=pointer]
+        - 'button "Testosterona Total: 680 — Na referência. Ver tendência" [ref=f20e222] [cursor=pointer]':
+          - generic [ref=f20e224]:
+            - paragraph [ref=f20e225]: Testosterona Total
+            - generic [ref=f20e226]: 16/07/26
+          - generic [ref=f20e227]:
+            - paragraph [ref=f20e228]: "680"
+            - generic [ref=f20e229]:
+              - generic [ref=f20e230]: ng/dL
+              - button "O que significa ng/dL?" [ref=f20e231]
+            - generic [ref=f20e234]: Na referência
+          - 'img "Régua: referência do laboratório de 240 a 871, meta clínica 600 – 800 ng/dL. Na referência." [ref=f20e235]':
+            - generic [ref=f20e240]:
+              - generic [ref=f20e241]: "240"
+              - generic [ref=f20e242]: Ref. laboratório 240–871
+              - generic [ref=f20e243]: "871"
+          - generic [ref=f20e244]: 🎯 Meta 600 – 800 ng/dL — Dr. Dr Teste QA
+          - generic [ref=f20e246]: Dentro da meta clínica e da referência do laboratório.
+          - generic [ref=f20e247]:
+            - generic [ref=f20e248]: Régua do lab
+            - generic [ref=f20e251]: Meta do médico
+        - generic [ref=f20e255]:
+          - heading "Linha do tempo do atleta" [level=2] [ref=f20e256]
+          - generic [ref=f20e257]: Exames, substâncias declaradas — dos mais recentes.
+          - generic [ref=f20e258]:
+            - generic [ref=f20e260]:
+              - generic [ref=f20e266]:
+                - generic [ref=f20e267]:
+                  - paragraph [ref=f20e268]: PAINEL GRANDE
+                  - generic [ref=f20e269]: 16 de jul. de 2026
+                - generic [ref=f20e270]: 3 alterados
+              - generic [ref=f20e278]:
+                - generic [ref=f20e279]:
+                  - paragraph [ref=f20e280]: GLICEMIA DE JEJUM
+                  - generic [ref=f20e281]: 09 de jul. de 2026
+                - generic [ref=f20e282]: 2 alterados
+              - generic [ref=f20e290]:
+                - generic [ref=f20e291]:
+                  - paragraph [ref=f20e292]: PERFIL LIPÍDICO
+                  - generic [ref=f20e293]: 09 de jul. de 2026
+                - generic [ref=f20e294]: 4 alterados
+              - generic [ref=f20e303]:
+                - paragraph [ref=f20e304]: HEMOGRAMA
+                - generic [ref=f20e305]: 09 de jul. de 2026
+              - generic [ref=f20e312]:
+                - paragraph [ref=f20e313]: "Início: Testosterona (enantato)"
+                - generic [ref=f20e314]: Hormônio
+                - generic [ref=f20e315]: 31 de mai. de 2026
+              - generic [ref=f20e322]:
+                - paragraph [ref=f20e323]: ORFAO
+                - generic [ref=f20e324]: 05 de mai. de 2026
+              - generic [ref=f20e331]:
+                - paragraph [ref=f20e332]: HEMOGRAMA
+                - generic [ref=f20e333]: 14 de abr. de 2026
+              - generic [ref=f20e340]:
+                - paragraph [ref=f20e341]: ANUAL 2025
+                - generic [ref=f20e342]: 13 de abr. de 2026
+            - generic [ref=f20e343]: +1 eventos anteriores
+          - generic [ref=f20e344]: 📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
+        - generic [ref=f20e345]:
+          - generic [ref=f20e346]:
+            - heading "Perguntas para levar ao médico" [level=2] [ref=f20e350]
+            - generic [ref=f20e351]: Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+            - generic [ref=f20e352]:
+              - generic [ref=f20e353]:
+                - generic [ref=f20e354]: "1"
+                - generic [ref=f20e355]:
+                  - paragraph [ref=f20e356]: Ck Total fora da referência
+                  - paragraph [ref=f20e357]: "\"Doutor, meu ck total está em 1.420 U/L (referência 38–174 U/L) no contexto do meu treino. O que isso significa pra minha rotina?\""
+              - generic [ref=f20e358]:
+                - generic [ref=f20e359]: "2"
+                - generic [ref=f20e360]:
+                  - paragraph [ref=f20e361]: Conduta no hematócrito (51,8%)
+                  - paragraph [ref=f20e362]: "\"Doutor, com hematócrito de 51,8% (referência 40–50 %) e meu uso hormonal declarado, qual conduta o senhor recomenda — reavaliar em quanto tempo?\""
+              - generic [ref=f20e363]:
+                - generic [ref=f20e364]: "3"
+                - generic [ref=f20e365]:
+                  - paragraph [ref=f20e366]: HDL e cardioproteção
+                  - paragraph [ref=f20e367]: "\"Com andrógeno declarado, meu HDL veio em 38 mg/dL (referência a partir de 40 mg/dL). Quais medidas de cardioproteção devo adotar nessa fase?\""
+          - generic [ref=f20e368]:
+            - generic [ref=f20e369]:
+              - heading "Substâncias declaradas" [level=2] [ref=f20e370]
+              - generic [ref=f20e371]: Confidencial · Registro LGPD
+            - generic [ref=f20e372]: O que você declarou entra como CONTEXTO da análise — o app nunca sugere dose, ciclo ou substância.
+            - generic [ref=f20e379]:
+              - generic [ref=f20e380]:
+                - paragraph [ref=f20e381]: Testosterona (enantato)
+                - generic [ref=f20e382]: dose declarada
+              - generic [ref=f20e384]: Hormônio · 250mg/seg · desde mai. de 2026
+              - generic [ref=f20e385]: "Impacto nos exames: Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar."
+        - generic [ref=f20e386]: "*Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico. · 34 marcadores analisados."

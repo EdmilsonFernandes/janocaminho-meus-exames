@@ -1,0 +1,41 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e703]:
+    - button "Pular para o conteúdo" [ref=e704] [cursor=pointer]
+    - generic [ref=e705]:
+      - banner [ref=e706]:
+        - generic [ref=e707]:
+          - heading [level=6]
+          - button "Você tem 71 créditos. Toque para comprar mais." [ref=e711] [cursor=pointer]:
+            - generic [ref=e714]: "71"
+          - button "Notificações" [ref=e715] [cursor=pointer]:
+            - generic [ref=e716]: "0"
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e720] [cursor=pointer]:
+            - generic [ref=e721]: E
+            - generic [ref=e723]: Edmilson Lopes Fernandes dos Santos
+          - button "Atualizar" [ref=e729] [cursor=pointer]
+      - main [ref=e732]:
+        - navigation [ref=e736]:
+          - generic [ref=e737]:
+            - button "Exames" [expanded] [ref=e738] [cursor=pointer]
+            - generic [ref=e749]:
+              - button "Exames" [ref=e750] [cursor=pointer]
+              - button "Valores alterados" [ref=e756] [cursor=pointer]
+              - button "Evolução" [ref=e763] [cursor=pointer]
+              - button "Tendências" [ref=e770] [cursor=pointer]
+              - button "Linha do Tempo" [ref=e776] [cursor=pointer]
+              - button "Relatório completo" [ref=e782] [cursor=pointer]
+          - button "Cuidados" [ref=e789] [cursor=pointer]
+          - button "Pessoas" [ref=e799] [cursor=pointer]
+          - button "Conta" [ref=e809] [cursor=pointer]
+          - separator [ref=e817]
+          - button "Dúvidas frequentes" [ref=e818] [cursor=pointer]
+          - button "Como validamos" [ref=e824] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e830] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e836] [cursor=pointer]
+        - generic [ref=e995]:
+          - img "Dr. Exame" [ref=e1000]
+          - heading "Meus Exames" [level=4] [ref=e1001]
+          - paragraph [ref=e1002]: Seu assistente de saúde com IA
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e402]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e403]

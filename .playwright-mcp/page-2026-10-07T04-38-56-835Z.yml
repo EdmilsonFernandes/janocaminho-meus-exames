@@ -1,0 +1,50 @@
+- generic [ref=f4e1096]:
+  - button "Pular para o conteúdo" [ref=f4e1780] [cursor=pointer]
+  - generic [ref=f4e1098]:
+    - banner [ref=f4e1099]:
+      - generic [ref=f4e1100]:
+        - heading [level=6]
+        - generic [ref=f4e1101]:
+          - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f4e1865] [cursor=pointer]:
+            - generic [ref=f4e1105]: "15"
+          - button "Notificações" [ref=f4e1866] [cursor=pointer]:
+            - generic [ref=f4e1107]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f4e1867] [cursor=pointer]:
+            - generic [ref=f4e1113]: E
+            - generic [ref=f4e1115]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f4e1868] [cursor=pointer]
+    - main [ref=f4e1124]:
+      - navigation [ref=f4e1128]:
+        - generic [ref=f4e1131]:
+          - generic [ref=f4e1132]: E
+          - generic [ref=f4e1134]:
+            - paragraph [ref=f4e1135]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f4e1136]:
+              - generic [ref=f4e1137]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f4e1781] [cursor=pointer]
+        - separator [ref=f4e1141]
+        - button "Início" [ref=f4e1782] [cursor=pointer]
+        - button "Exames" [ref=f4e1783] [cursor=pointer]
+        - button "Cuidados" [ref=f4e1784] [cursor=pointer]
+        - button "Pessoas" [ref=f4e1785] [cursor=pointer]
+        - generic [ref=f4e1179]:
+          - button "Conta" [expanded] [ref=f4e1786] [cursor=pointer]
+          - generic [ref=f4e1550]:
+            - button "Meu perfil" [ref=f4e1787] [cursor=pointer]
+            - button "Carteira" [ref=f4e1788] [cursor=pointer]
+            - button "Indique e ganhe 🎁" [ref=f4e1789] [cursor=pointer]
+            - button "Segurança & senha" [ref=f4e1790] [cursor=pointer]
+            - button "Privacidade e termos" [ref=f4e1791] [cursor=pointer]
+            - button "Planos e Créditos" [ref=f4e1792] [cursor=pointer]
+            - button "Painel Admin" [ref=f4e1793] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f4e1794] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f4e1795] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f4e1796] [cursor=pointer]
+        - generic [ref=f4e1208]:
+          - generic [ref=f4e1210]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f4e1211]: v2.7.225
+      - generic [ref=f4e1924]:
+        - img "Dr. Exame" [ref=f4e1930]
+        - generic [ref=f4e1931]:
+          - heading "Dr. Exame" [level=3] [ref=f4e1932]
+          - paragraph [ref=f4e1935]: Seu assistente de saúde com IA

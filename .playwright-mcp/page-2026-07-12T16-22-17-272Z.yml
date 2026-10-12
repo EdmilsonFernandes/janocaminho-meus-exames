@@ -1,0 +1,28 @@
+- generic [active] [ref=f1e18]:
+  - generic [ref=f1e100]:
+    - generic [ref=f1e101]:
+      - generic [ref=f1e102]:
+        - generic [ref=f1e105]:
+          - paragraph [ref=f1e106]: Doutor Exame
+          - text: Otorrinolaringologista • CRM 12345-SP
+        - button [ref=f1e107] [cursor=pointer]
+      - generic [ref=f1e110]:
+        - heading "Pacientes (0)" [level=6] [ref=f1e112]
+        - generic [ref=f1e115]:
+          - generic [ref=f1e116]: 🩺
+          - paragraph [ref=f1e117]: Nenhum paciente ainda
+          - paragraph [ref=f1e118]: Quando um paciente compartilhar os exames com você, ele aparece aqui automaticamente.
+          - text: 💡 O paciente faz isso no app dele em "Meus Médicos → Compartilhar"
+    - navigation [ref=f1e119]:
+      - generic [ref=f1e120] [cursor=pointer]:
+        - generic [ref=f1e121]: 👥
+        - paragraph [ref=f1e122]: Pacientes
+      - generic [ref=f1e124] [cursor=pointer]:
+        - generic [ref=f1e125]: 👤
+        - paragraph [ref=f1e126]: Perfil
+      - generic [ref=f1e127] [cursor=pointer]:
+        - generic [ref=f1e128]: ☰
+        - paragraph [ref=f1e129]: Mais
+  - generic [ref=f1e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e17]

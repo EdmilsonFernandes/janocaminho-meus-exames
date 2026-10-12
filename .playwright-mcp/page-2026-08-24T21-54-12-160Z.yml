@@ -1,0 +1,88 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e3]:
+    - button [ref=f5e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f5e5]:
+      - banner [ref=f5e6]:
+        - generic [ref=f5e7]:
+          - button [ref=f5e8] [cursor=pointer]:
+            - generic [ref=f5e11]: "19"
+          - button [ref=f5e12] [cursor=pointer]:
+            - generic [ref=f5e13]: "4"
+          - button [ref=f5e18] [cursor=pointer]:
+            - generic [ref=f5e19]: E
+            - generic [ref=f5e21]:
+              - generic [ref=f5e22]: Ed teste 2
+              - generic [ref=f5e23]: Titular
+          - button [ref=f5e28] [cursor=pointer]
+      - main [ref=f5e31]:
+        - navigation [ref=f5e35]:
+          - button [ref=f5e37] [cursor=pointer]:
+            - generic [ref=f5e41]: Exames
+          - generic [ref=f5e45]:
+            - button [expanded] [ref=f5e46] [cursor=pointer]:
+              - generic [ref=f5e51]: Cuidados
+            - generic [ref=f5e58]:
+              - button [ref=f5e59] [cursor=pointer]:
+                - generic [ref=f5e64]: Medições
+              - button [ref=f5e66] [cursor=pointer]:
+                - generic [ref=f5e70]: Remédios
+              - button [ref=f5e72] [cursor=pointer]:
+                - generic [ref=f5e76]: Vacinas
+              - button [ref=f5e78] [cursor=pointer]:
+                - generic [ref=f5e82]: Lembretes
+              - button [ref=f5e84] [cursor=pointer]:
+                - generic [ref=f5e88]: Cartão de Emergência
+              - button [ref=f5e90] [cursor=pointer]:
+                - generic [ref=f5e94]: Conquistas
+          - button [ref=f5e97] [cursor=pointer]:
+            - generic [ref=f5e102]: Pessoas
+          - button [ref=f5e107] [cursor=pointer]:
+            - generic [ref=f5e111]: Conta
+          - separator [ref=f5e115]
+          - button [ref=f5e116] [cursor=pointer]:
+            - generic [ref=f5e120]: Dúvidas frequentes
+          - button [ref=f5e122] [cursor=pointer]:
+            - generic [ref=f5e126]: Como validamos
+          - menuitem [ref=f5e128] [cursor=pointer]:
+            - generic [ref=f5e132]: Sobre o app
+          - menuitem [ref=f5e134] [cursor=pointer]:
+            - generic [ref=f5e138]: Sair da conta
+        - generic [ref=f5e287]:
+          - heading [level=4] [ref=f5e293]: Meus Exames
+          - paragraph [ref=f5e294]: Seu assistente de saúde com IA
+  - button [ref=f5e260] [cursor=pointer]
+  - dialog [ref=f5e303]:
+    - heading [level=2] [ref=f5e304]: ✨ Novidades do Dr. Exame
+    - generic [ref=f5e266]:
+      - generic [ref=f5e267]: Versão 2.7.149
+      - generic [ref=f5e268]:
+        - generic [ref=f5e269]:
+          - generic [ref=f5e270]: 📱
+          - generic [ref=f5e271]:
+            - paragraph [ref=f5e272]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=f5e273]:
+          - generic [ref=f5e274]: 🔐
+          - generic [ref=f5e275]:
+            - paragraph [ref=f5e276]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=f5e277]:
+          - generic [ref=f5e278]: 🩺
+          - generic [ref=f5e279]:
+            - paragraph [ref=f5e280]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=f5e281]:
+          - generic [ref=f5e282]: 🚑
+          - generic [ref=f5e283]:
+            - paragraph [ref=f5e284]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=f5e305] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=f5e308]:
+    - heading [level=2] [ref=f5e309]:
+      - generic [ref=f5e310]:
+        - img "Dr. Exame" [ref=f5e311]
+        - paragraph [ref=f5e312]: 💡 Dica do Dr. Exame pra Ed
+    - paragraph [ref=f5e314]: "Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico."
+    - generic [ref=f5e315]:
+      - button "Depois" [ref=f5e316] [cursor=pointer]
+      - button "Ver notificações" [ref=f5e317] [cursor=pointer]

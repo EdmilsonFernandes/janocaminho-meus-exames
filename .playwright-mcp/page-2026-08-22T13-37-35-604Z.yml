@@ -1,0 +1,87 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e340] [cursor=pointer]
+      - main [ref=e51]:
+        - navigation [ref=e55]:
+          - button "Exames" [ref=e341] [cursor=pointer]
+          - button "Cuidados" [ref=e342] [cursor=pointer]
+          - button "Pessoas" [ref=e343] [cursor=pointer]
+          - button "Conta" [ref=e344] [cursor=pointer]
+          - separator [ref=e94]
+          - button "Dúvidas frequentes" [ref=e345] [cursor=pointer]
+          - button "Como validamos" [ref=e346] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e347] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e348] [cursor=pointer]
+        - generic [ref=e120]:
+          - generic [ref=e122]:
+            - img "Dr. Exame" [ref=e349]
+            - generic [ref=e125]:
+              - paragraph [ref=e126]: Central de ajuda
+              - paragraph [ref=e127]: Perguntas frequentes
+              - paragraph [ref=e128]: Exames, IA, planos e privacidade — direto ao ponto. Não achou? O suporte abre um chamado aqui mesmo, no app.
+          - generic [ref=e130]:
+            - 'textbox "Busque sua dúvida… (ex.: créditos, PDF, médico)" [ref=e350]'
+            - group
+          - generic [ref=e135]:
+            - button "Todas" [ref=e351] [cursor=pointer]
+            - button "Começando" [ref=e352] [cursor=pointer]
+            - button "Créditos & planos" [ref=e353] [cursor=pointer]
+            - button "Conta" [ref=e354] [cursor=pointer]
+            - button "Exames & IA" [ref=e355] [cursor=pointer]
+            - button "Médico" [ref=e356] [cursor=pointer]
+            - button "Privacidade" [ref=e357] [cursor=pointer]
+          - heading [level=3] [ref=e358]:
+            - button "O que é o Dr. Exame?" [ref=e359] [cursor=pointer]
+          - heading [level=3] [ref=e360]:
+            - button "Preciso pagar pra começar?" [ref=e361] [cursor=pointer]
+          - heading [level=3] [ref=e362]:
+            - button "Como envio meu exame?" [ref=e363] [cursor=pointer]
+          - heading [level=3] [ref=e364]:
+            - button "Como funcionam os créditos?" [ref=e365] [cursor=pointer]
+          - heading [level=3] [ref=e366]:
+            - button "O que muda com o plano mensal?" [ref=e367] [cursor=pointer]
+          - heading [level=3] [ref=e368]:
+            - button "Como funciona o programa de indicação?" [ref=e369] [cursor=pointer]
+          - heading [level=3] [ref=e370]:
+            - button "Esqueci minha senha, e agora?" [ref=e371] [cursor=pointer]
+          - heading [level=3] [ref=e372]:
+            - button "Posso entrar com o Google?" [ref=e373] [cursor=pointer]
+          - heading [level=3] [ref=e374]:
+            - button "Dá pra gerenciar exames de familiares?" [ref=e375] [cursor=pointer]
+          - heading [level=3] [ref=e376]:
+            - button "A IA dá diagnóstico?" [ref=e377] [cursor=pointer]
+          - heading [level=3] [ref=e378]:
+            - button "Como vocês validam a análise?" [ref=e379] [cursor=pointer]
+          - heading [level=3] [ref=e380]:
+            - button "A IA pode inventar valores?" [ref=e381] [cursor=pointer]
+          - heading [level=3] [ref=e382]:
+            - button "Funciona sem internet?" [ref=e383] [cursor=pointer]
+          - heading [level=3] [ref=e384]:
+            - button "Meu exame não foi adicionado (CPF divergente). E agora?" [ref=e385] [cursor=pointer]
+          - heading [level=3] [ref=e386]:
+            - button "Como compartilho meus exames com meu médico?" [ref=e387] [cursor=pointer]
+          - heading [level=3] [ref=e388]:
+            - button "O que o médico vê exatamente?" [ref=e389] [cursor=pointer]
+          - heading [level=3] [ref=e390]:
+            - button "Posso cancelar o compartilhamento?" [ref=e391] [cursor=pointer]
+          - heading [level=3] [ref=e392]:
+            - button "Meus dados de saúde estão seguros?" [ref=e393] [cursor=pointer]
+          - heading [level=3] [ref=e394]:
+            - button "Quem pode ver meus exames?" [ref=e395] [cursor=pointer]
+          - heading [level=3] [ref=e396]:
+            - button "Como excluo meus dados?" [ref=e397] [cursor=pointer]
+          - generic [ref=e290]:
+            - paragraph [ref=e296]: Ainda com dúvidas?
+            - paragraph [ref=e297]: Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação. Resposta em até 1 dia útil.
+            - button [ref=e398] [cursor=pointer]
+            - generic [ref=e302]:
+              - text: Prefere e-mail?
+              - link "contato@janocaminho.com.br" [ref=e399] [cursor=pointer]:
+                - /url: mailto:contato@janocaminho.com.br
+          - generic [ref=e304]: Meus Exames — análise educativa, não substitui avaliação médica.
+    - button "Pergunte ao Dr. Exame" [ref=e400] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e401]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e402]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e403]

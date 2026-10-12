@@ -1,0 +1,660 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e4]:
+      - generic [ref=f2e5]:
+        - generic [ref=f2e12]: Lojas
+        - generic [ref=f2e17]: Destinos
+        - generic [ref=f2e22]: Condomínios
+        - generic [ref=f2e27]: Entregas
+        - generic [ref=f2e44]: pedidosexperiências locais
+      - generic [ref=f2e52]:
+        - heading [level=1] [ref=f2e53]: Já no Caminho
+        - paragraph [ref=f2e54]: Sincronizando pedidos e entregas
+      - generic [ref=f2e55]: Conectando com segurança
+    - generic [ref=f2e57]:
+      - banner [ref=f2e58]:
+        - generic [ref=f2e60]:
+          - link [ref=f2e61] [cursor=pointer]:
+            - /url: https://www.janocaminho.com.br
+            - img "Já no Caminho" [ref=f2e63]
+            - generic [ref=f2e64]:
+              - paragraph [ref=f2e65]: Já no Caminho
+              - paragraph [ref=f2e66]: Sistema para vender, operar e entregar
+          - navigation [ref=f2e68]:
+            - button "Início" [ref=f2e69]
+            - button "Soluções" [ref=f2e74]
+            - button "Google Play" [ref=f2e80]
+          - generic [ref=f2e83]:
+            - link "Instagram oficial do Já no Caminho" [ref=f2e84] [cursor=pointer]:
+              - /url: https://www.instagram.com/janocaminho
+              - text: "@janocaminho"
+            - button "Entrar" [ref=f2e88]
+            - button "Criar loja grátis" [ref=f2e89]
+      - main [ref=f2e90]:
+        - generic [ref=f2e91]:
+          - generic [ref=f2e94]:
+            - generic [ref=f2e95]:
+              - generic [ref=f2e96]: 3 meses VIP para as 50 primeiras lojas
+              - generic [ref=f2e99]:
+                - heading "Seu negócio vendendo online sem comissão por pedido." [level=1] [ref=f2e100]: Seu negócio vendendo onlinesem comissão por pedido.
+                - paragraph [ref=f2e101]: Do cardápio à entrega, tudo num só app — para comida, varejo e serviço local. O cliente paga e o dinheiro cai direto no seu Mercado Pago. Planos a partir de R$ 69,90/mês.
+              - generic [ref=f2e102]:
+                - button "Criar minha loja" [ref=f2e103]
+                - link "Falar no WhatsApp" [ref=f2e106] [cursor=pointer]:
+                  - /url: https://wa.me/551239334979?text=Ol%C3%A1%2C%20quero%20garantir%20uma%20das%2050%20vagas%20com%203%20meses%20VIP%20no%20J%C3%A1%20no%20Caminho.
+              - generic [ref=f2e109]:
+                - generic [ref=f2e110]:
+                  - paragraph [ref=f2e115]: 3 meses VIP para as 50 primeiras
+                  - paragraph [ref=f2e116]: Campanha de lançamento para a loja testar com estrutura real.
+                - generic [ref=f2e117]:
+                  - paragraph [ref=f2e122]: Pedido pronto para produzir
+                  - paragraph [ref=f2e123]: Cardápio, checkout e impressão no mesmo fluxo.
+                - generic [ref=f2e124]:
+                  - paragraph [ref=f2e129]: Entrega conectada à loja
+                  - paragraph [ref=f2e130]: Entregador recebe oferta, aceita e atualiza o cliente.
+              - button "Já tenho conta de cliente →" [ref=f2e132]
+            - generic [ref=f2e138]:
+              - generic [ref=f2e140]:
+                - paragraph [ref=f2e141]: Checkout Unificado
+                - paragraph [ref=f2e142]: Pagamento Direto na sua Conta
+              - generic [ref=f2e144]:
+                - generic [ref=f2e145]:
+                  - generic [ref=f2e146]:
+                    - paragraph [ref=f2e147]: "Pedido #1027"
+                    - paragraph [ref=f2e148]: Combo Família VIP
+                  - generic [ref=f2e149]: Pago via Pix
+                - generic [ref=f2e150]:
+                  - generic [ref=f2e151]:
+                    - generic [ref=f2e152]: Gateway Seguro
+                    - generic [ref=f2e153]: Conexão Direta
+                  - generic [ref=f2e156]:
+                    - img "Mercado Pago Logo" [ref=f2e157]
+                    - generic [ref=f2e158]: ✓ Ativo
+                - generic [ref=f2e159]:
+                  - generic [ref=f2e160]:
+                    - generic [ref=f2e161]: Itens (Combo)
+                    - generic [ref=f2e162]: R$ 89,90
+                  - generic [ref=f2e163]:
+                    - generic [ref=f2e164]: Taxa de Entrega
+                    - generic [ref=f2e165]: R$ 6,00
+                  - generic [ref=f2e166]:
+                    - generic [ref=f2e167]: Total Recebido
+                    - generic [ref=f2e168]: R$ 95,90
+              - paragraph [ref=f2e169]: Dinheiro direto no seu Mercado Pago · Sem reter saldo
+          - generic [ref=f2e172]:
+            - generic [ref=f2e173]:
+              - generic [ref=f2e174]:
+                - generic [ref=f2e175]: Fluxo Orquestrado
+                - heading "Como funciona a mágica do Já no Caminho" [level=2] [ref=f2e176]
+                - paragraph [ref=f2e177]: Esqueça o improviso no WhatsApp. Um ecossistema completo que sincroniza as ações de todos em tempo real.
+              - generic [ref=f2e178]:
+                - button [ref=f2e179]:
+                  - generic [ref=f2e185]:
+                    - heading "1. Cliente Pede" [level=3] [ref=f2e186]
+                    - paragraph [ref=f2e187]: Cardápio digital moderno e checkout rápido em 3 cliques. Pagamento Pix integrado com aprovação instantânea.
+                - button [ref=f2e188]:
+                  - generic [ref=f2e193]:
+                    - heading "2. Loja Produz" [level=3] [ref=f2e194]
+                    - paragraph [ref=f2e195]: Painel gerencia os pedidos recebidos em tempo real. Impressão automática e envio direto para a cozinha.
+                - button [ref=f2e196]:
+                  - generic [ref=f2e201]:
+                    - heading "3. Entregador Leva" [level=3] [ref=f2e202]
+                    - paragraph [ref=f2e203]: O entregador aceita a corrida no app, coleta o pedido na loja e confirma a entrega com código de segurança PIN.
+            - generic [ref=f2e209]:
+              - generic [ref=f2e210]:
+                - generic [ref=f2e211]:
+                  - img "Logo" [ref=f2e213]
+                  - generic [ref=f2e214]:
+                    - paragraph [ref=f2e215]: Churrasco JNC
+                    - paragraph [ref=f2e216]: ● Aberto agora
+                - generic [ref=f2e217]: "Mesa #04"
+              - generic [ref=f2e218]:
+                - generic [ref=f2e219]:
+                  - generic [ref=f2e220]:
+                    - paragraph [ref=f2e221]: Sacola de Compras
+                    - generic [ref=f2e222]:
+                      - generic [ref=f2e223]: 🍢
+                      - generic [ref=f2e224]:
+                        - paragraph [ref=f2e225]: Espeto Alcatra Premium
+                        - paragraph [ref=f2e226]: "Quantidade: 2x"
+                      - generic [ref=f2e227]: R$ 29,80
+                    - generic [ref=f2e228]:
+                      - generic [ref=f2e229]: 🥤
+                      - generic [ref=f2e230]:
+                        - paragraph [ref=f2e231]: Guaraná Lata 350ml
+                        - paragraph [ref=f2e232]: "Quantidade: 1x"
+                      - generic [ref=f2e233]: R$ 6,00
+                    - generic [ref=f2e234]:
+                      - generic [ref=f2e235]:
+                        - generic [ref=f2e236]: Subtotal
+                        - generic [ref=f2e237]: R$ 35,80
+                      - generic [ref=f2e238]:
+                        - generic [ref=f2e239]: Taxa de Entrega
+                        - generic [ref=f2e240]: Grátis
+                      - generic [ref=f2e241]:
+                        - generic [ref=f2e242]: Total do Pedido
+                        - generic [ref=f2e243]: R$ 35,80
+                  - generic [ref=f2e244]:
+                    - generic [ref=f2e248]:
+                      - paragraph [ref=f2e249]: Pagamento via Pix
+                      - paragraph [ref=f2e250]: Código PIX Copia e Cola gerado
+                    - button "Finalizar e Pagar" [ref=f2e251]
+                - generic:
+                  - generic:
+                    - paragraph: Painel Operacional
+                    - generic:
+                      - generic:
+                        - paragraph: "PEDIDO RECEBIDO #1024"
+                        - paragraph: Aprovado e pago via PIX
+                    - generic:
+                      - generic:
+                        - generic: Status do Preparo
+                        - generic: Na grelha (70%)
+                    - generic:
+                      - generic: Impressão automática via Bluetooth
+                      - generic: "Vias impressas: 2 (Cozinha e Caixa)"
+                  - generic:
+                    - generic:
+                      - button "Recusar"
+                      - button "Pronto p/ Entrega"
+                - generic:
+                  - generic:
+                    - paragraph: App do Entregador
+                    - generic:
+                      - generic: Pedido Saiu para Entrega
+                      - paragraph: Entregador Carlos Silva coletou seu pedido e está a caminho.
+                    - generic:
+                      - generic: 🏠
+                      - generic: 🛵
+                      - generic: Chegada em 4 min
+                    - generic:
+                      - generic:
+                        - generic:
+                          - paragraph: Código de Segurança PIN
+                          - paragraph: Informe ao entregador na entrega
+                      - generic: "4821"
+                  - generic:
+                    - link "Falar com Entregador":
+                      - /url: https://wa.me/551239334979
+          - generic [ref=f2e252]:
+            - paragraph [ref=f2e254]: Lojas do portfólio ativas na plataforma
+            - generic [ref=f2e256]:
+              - generic [ref=f2e257]:
+                - paragraph [ref=f2e258]: Portfólio ativo
+                - heading "Lojas que já operam com a plataforma" [level=3] [ref=f2e259]
+              - generic [ref=f2e261]:
+                - link "Abrir catálogo da loja Adega do Thi" [ref=f2e262] [cursor=pointer]:
+                  - /url: /adega-th
+                  - img "Adega do Thi" [ref=f2e264]
+                  - generic [ref=f2e265]:
+                    - generic [ref=f2e266]: Adega do Thi
+                    - generic [ref=f2e269]: Loja online
+                  - generic [ref=f2e270]: Ver loja
+                - link "Abrir catálogo da loja Pesqueiro Bela Vista Monteiro Lobato" [ref=f2e271] [cursor=pointer]:
+                  - /url: /pesqueiro-bela-vista-monteiro-lobato
+                  - img "Pesqueiro Bela Vista Monteiro Lobato" [ref=f2e273]
+                  - generic [ref=f2e274]:
+                    - generic [ref=f2e275]: Pesqueiro Bela Vista Monteiro Lobato
+                    - generic [ref=f2e278]: Loja online
+                  - generic [ref=f2e279]: Ver loja
+                - link "Abrir catálogo da loja Espetinho Datony" [ref=f2e280] [cursor=pointer]:
+                  - /url: /edsertaneja
+                  - img "Espetinho Datony" [ref=f2e282]
+                  - generic [ref=f2e283]:
+                    - generic [ref=f2e284]: Espetinho Datony
+                    - generic [ref=f2e287]: Loja online
+                  - generic [ref=f2e288]: Ver loja
+                - link "Abrir catálogo da loja Gustavão Espetos" [ref=f2e289] [cursor=pointer]:
+                  - /url: /gustavao-espetos
+                  - img "Gustavão Espetos" [ref=f2e291]
+                  - generic [ref=f2e292]:
+                    - generic [ref=f2e293]: Gustavão Espetos
+                    - generic [ref=f2e296]: Loja online
+                  - generic [ref=f2e297]: Ver loja
+                - link "Abrir catálogo da loja teus espetinhos" [ref=f2e298] [cursor=pointer]:
+                  - /url: /teus-espetinhos
+                  - img "teus espetinhos" [ref=f2e300]
+                  - generic [ref=f2e301]:
+                    - generic [ref=f2e302]: teus espetinhos
+                    - generic [ref=f2e305]: Loja online
+                  - generic [ref=f2e306]: Ver loja
+                - link "Abrir catálogo da loja QUITUTES DA VÓ MARIA" [ref=f2e307] [cursor=pointer]:
+                  - /url: /quitutes-da-vo-maria
+                  - img "QUITUTES DA VÓ MARIA" [ref=f2e309]
+                  - generic [ref=f2e310]:
+                    - generic [ref=f2e311]: QUITUTES DA VÓ MARIA
+                    - generic [ref=f2e314]: Loja online
+                  - generic [ref=f2e315]: Ver loja
+                - link "Abrir catálogo da loja Acervo Musical do Vale Paraíba" [ref=f2e316] [cursor=pointer]:
+                  - /url: /acervo-musical-do-vale-paraiba
+                  - img "Acervo Musical do Vale Paraíba" [ref=f2e318]
+                  - generic [ref=f2e319]:
+                    - generic [ref=f2e320]: Acervo Musical do Vale Paraíba
+                    - generic [ref=f2e323]: Loja online
+                  - generic [ref=f2e324]: Ver loja
+                - link "Abrir catálogo da loja Espetinho da Cris" [ref=f2e325] [cursor=pointer]:
+                  - /url: /espetinho-da-cris
+                  - img "Espetinho da Cris" [ref=f2e327]
+                  - generic [ref=f2e328]:
+                    - generic [ref=f2e329]: Espetinho da Cris
+                    - generic [ref=f2e332]: Loja online
+                  - generic [ref=f2e333]: Ver loja
+                - link "Abrir catálogo da loja EV MANUTENÇÃO" [ref=f2e334] [cursor=pointer]:
+                  - /url: /ev-manutencao
+                  - img "EV MANUTENÇÃO" [ref=f2e336]
+                  - generic [ref=f2e337]:
+                    - generic [ref=f2e338]: EV MANUTENÇÃO
+                    - generic [ref=f2e341]: Loja online
+                  - generic [ref=f2e342]: Ver loja
+                - link "Abrir catálogo da loja Adega do Thi" [ref=f2e343] [cursor=pointer]:
+                  - /url: /adega-th
+                  - img "Adega do Thi" [ref=f2e345]
+                  - generic [ref=f2e346]:
+                    - generic [ref=f2e347]: Adega do Thi
+                    - generic [ref=f2e350]: Loja online
+                  - generic [ref=f2e351]: Ver loja
+                - link "Abrir catálogo da loja Pesqueiro Bela Vista Monteiro Lobato" [ref=f2e352] [cursor=pointer]:
+                  - /url: /pesqueiro-bela-vista-monteiro-lobato
+                  - img "Pesqueiro Bela Vista Monteiro Lobato" [ref=f2e354]
+                  - generic [ref=f2e355]:
+                    - generic [ref=f2e356]: Pesqueiro Bela Vista Monteiro Lobato
+                    - generic [ref=f2e359]: Loja online
+                  - generic [ref=f2e360]: Ver loja
+                - link "Abrir catálogo da loja Espetinho Datony" [ref=f2e361] [cursor=pointer]:
+                  - /url: /edsertaneja
+                  - img "Espetinho Datony" [ref=f2e363]
+                  - generic [ref=f2e364]:
+                    - generic [ref=f2e365]: Espetinho Datony
+                    - generic [ref=f2e368]: Loja online
+                  - generic [ref=f2e369]: Ver loja
+                - link "Abrir catálogo da loja Gustavão Espetos" [ref=f2e370] [cursor=pointer]:
+                  - /url: /gustavao-espetos
+                  - img "Gustavão Espetos" [ref=f2e372]
+                  - generic [ref=f2e373]:
+                    - generic [ref=f2e374]: Gustavão Espetos
+                    - generic [ref=f2e377]: Loja online
+                  - generic [ref=f2e378]: Ver loja
+                - link "Abrir catálogo da loja teus espetinhos" [ref=f2e379] [cursor=pointer]:
+                  - /url: /teus-espetinhos
+                  - img "teus espetinhos" [ref=f2e381]
+                  - generic [ref=f2e382]:
+                    - generic [ref=f2e383]: teus espetinhos
+                    - generic [ref=f2e386]: Loja online
+                  - generic [ref=f2e387]: Ver loja
+                - link "Abrir catálogo da loja QUITUTES DA VÓ MARIA" [ref=f2e388] [cursor=pointer]:
+                  - /url: /quitutes-da-vo-maria
+                  - img "QUITUTES DA VÓ MARIA" [ref=f2e390]
+                  - generic [ref=f2e391]:
+                    - generic [ref=f2e392]: QUITUTES DA VÓ MARIA
+                    - generic [ref=f2e395]: Loja online
+                  - generic [ref=f2e396]: Ver loja
+                - link "Abrir catálogo da loja Acervo Musical do Vale Paraíba" [ref=f2e397] [cursor=pointer]:
+                  - /url: /acervo-musical-do-vale-paraiba
+                  - img "Acervo Musical do Vale Paraíba" [ref=f2e399]
+                  - generic [ref=f2e400]:
+                    - generic [ref=f2e401]: Acervo Musical do Vale Paraíba
+                    - generic [ref=f2e404]: Loja online
+                  - generic [ref=f2e405]: Ver loja
+                - link "Abrir catálogo da loja Espetinho da Cris" [ref=f2e406] [cursor=pointer]:
+                  - /url: /espetinho-da-cris
+                  - img "Espetinho da Cris" [ref=f2e408]
+                  - generic [ref=f2e409]:
+                    - generic [ref=f2e410]: Espetinho da Cris
+                    - generic [ref=f2e413]: Loja online
+                  - generic [ref=f2e414]: Ver loja
+                - link "Abrir catálogo da loja EV MANUTENÇÃO" [ref=f2e415] [cursor=pointer]:
+                  - /url: /ev-manutencao
+                  - img "EV MANUTENÇÃO" [ref=f2e417]
+                  - generic [ref=f2e418]:
+                    - generic [ref=f2e419]: EV MANUTENÇÃO
+                    - generic [ref=f2e422]: Loja online
+                  - generic [ref=f2e423]: Ver loja
+          - generic [ref=f2e426]:
+            - generic [ref=f2e427]:
+              - generic [ref=f2e428]: Tudo Incluso no Hub
+              - heading "Tudo o que sua operação precisa em um único lugar" [level=2] [ref=f2e431]
+              - paragraph [ref=f2e432]: Sem ferramentas fragmentadas. Centralize seus pedidos, pagamentos, entregadores e captação de clientes locais.
+            - generic [ref=f2e433]:
+              - generic [ref=f2e434]:
+                - generic [ref=f2e435]: 0% Taxas por Pedido
+                - generic [ref=f2e441]:
+                  - heading "Cardápio Digital Inteligente" [level=3] [ref=f2e442]
+                  - paragraph [ref=f2e443]: Um link profissional pronto para WhatsApp e Instagram. Seus clientes pedem com facilidade, escolhem adicionais e finalizam em instantes, sem comissão por pedido.
+                - generic [ref=f2e444]:
+                  - generic [ref=f2e445]: ✓ Adicionais Condicionais
+                  - generic [ref=f2e446]: ✓ Horários Automáticos
+                  - generic [ref=f2e447]: ✓ Gestão de Estoque
+                  - generic [ref=f2e448]: ✓ Pedidos Balcão/Mesa
+              - generic [ref=f2e449]:
+                - generic [ref=f2e454]:
+                  - heading "Entregadores Conectados" [level=3] [ref=f2e455]
+                  - paragraph [ref=f2e456]: Vincule sua própria frota ou motoqueiros parceiros. O sistema gera a corrida, notifica os entregadores via app e faz a distribuição automática do pedido.
+                - generic [ref=f2e457]:
+                  - generic [ref=f2e458]: Rastreio de Localização
+                  - generic [ref=f2e459]: App Dedicado
+              - generic [ref=f2e460]:
+                - generic [ref=f2e461]: Mercado Pago Integrado
+                - generic [ref=f2e467]:
+                  - heading "Pagamento Direto na sua Conta" [level=3] [ref=f2e468]
+                  - paragraph [ref=f2e469]: Integração direta com o Mercado Pago da própria loja. O cliente paga via Pix, crédito ou débito no fluxo do checkout e o dinheiro cai na hora no seu saldo, sem intermediários ou atrasos.
+                - generic [ref=f2e470]:
+                  - generic [ref=f2e471]: ✓ Segurança SSL
+                  - generic [ref=f2e472]: ✓ Taxas Oficiais MP
+                  - generic [ref=f2e473]: ✓ Pix Pix Copia/Cola
+                  - generic [ref=f2e474]: ✓ Estorno em 1 clique
+              - generic [ref=f2e475]:
+                - generic [ref=f2e480]:
+                  - heading "PIN de Segurança" [level=3] [ref=f2e481]
+                  - paragraph [ref=f2e482]: Evite golpes e desentendimentos. O cliente gera um código PIN de 4 dígitos e fornece ao entregador, confirmando eletronicamente que o pedido foi entregue com sucesso.
+                - generic [ref=f2e483]:
+                  - generic [ref=f2e484]: Controle Antifraude
+                  - generic [ref=f2e485]: Validação Real
+              - generic [ref=f2e486]:
+                - generic [ref=f2e491]:
+                  - heading "Condomínios & Feiras" [level=3] [ref=f2e492]
+                  - paragraph [ref=f2e493]: Crie vitrines hiperlocais. O morador acessa a página do condomínio, faz o pedido nas barracas ou feiras participantes e agenda a retirada ou entrega de forma unificada.
+                - generic [ref=f2e494]:
+                  - generic [ref=f2e495]: Marketplace Fechado
+                  - generic [ref=f2e496]: Venda Hiperlocal
+              - generic [ref=f2e497]:
+                - generic [ref=f2e498]: Turismo & Guias Locais
+                - generic [ref=f2e504]:
+                  - heading "Chalés e Pousadas Inteligentes" [level=3] [ref=f2e505]
+                  - paragraph [ref=f2e506]: Disponibilize QR Codes nos chalés e recepções de pousadas. O hóspede escaneia, acessa o Já no Caminho e visualiza imediatamente quais estabelecimentos locais e entregadores atendem aquela região geográfica.
+                - generic [ref=f2e507]:
+                  - generic [ref=f2e508]: ✓ Indicação Geográfica
+                  - generic [ref=f2e509]: ✓ Cardápios do Entorno
+                  - generic [ref=f2e510]: ✓ Agendamento de Passeios
+                  - generic [ref=f2e511]: ✓ Fidelidade Turista
+              - generic [ref=f2e513]:
+                - generic [ref=f2e514]:
+                  - generic [ref=f2e515]: Novo · Reservas
+                  - generic [ref=f2e521]:
+                    - heading "Reservas com Horário" [level=3] [ref=f2e522]
+                    - paragraph [ref=f2e523]: O cliente escolhe o melhor horário e quantas pessoas vão. Você controla a capacidade por horário, prepara com antecedência e o pedido já está pronto quando ele chega — sem filas, sem overbooking.
+                - generic [ref=f2e524]:
+                  - generic [ref=f2e525]: ✓ Escolha de data e hora
+                  - generic [ref=f2e526]: ✓ Capacidade configurável
+                  - generic [ref=f2e527]: ✓ Pronto na chegada
+                  - generic [ref=f2e528]: ✓ Sem overbooking
+            - link "Falar com Consultor no WhatsApp →" [ref=f2e530] [cursor=pointer]:
+              - /url: https://wa.me/551239334979?text=Olá,%20quero%20saber%20mais%20sobre%20o%20Já%20no%20Caminho
+              - text: Falar com Consultor no WhatsApp
+              - generic [ref=f2e531]: →
+          - generic [ref=f2e533]:
+            - generic [ref=f2e534]:
+              - paragraph [ref=f2e535]: Ecossistema sem comissão
+              - heading "Veja como a plataforma vende por você" [level=2] [ref=f2e536]
+              - paragraph [ref=f2e537]: Um tour rápido pelo modelo que coloca seu negócio online — sem comissão por pedido, sem taxa de adesão, com 3 meses VIP grátis.
+            - region "Apresentação do ecossistema de vendas sem comissão" [ref=f2e538]:
+              - generic [ref=f2e540]:
+                - img "Slide 1 da apresentação" [ref=f2e542]
+                - img "Slide 2 da apresentação" [ref=f2e544]
+                - img "Slide 3 da apresentação" [ref=f2e546]
+                - img "Slide 4 da apresentação" [ref=f2e548]
+                - img "Slide 5 da apresentação" [ref=f2e550]
+                - img "Slide 6 da apresentação" [ref=f2e552]
+                - img "Slide 7 da apresentação" [ref=f2e554]
+                - img "Slide 8 da apresentação" [ref=f2e556]
+                - img "Slide 9 da apresentação" [ref=f2e558]
+                - img "Slide 10 da apresentação" [ref=f2e560]
+                - img "Slide 11 da apresentação" [ref=f2e562]
+              - button "Ver slide anterior" [ref=f2e563]
+              - button "Ver próximo slide" [ref=f2e566]
+              - generic [ref=f2e569]:
+                - button [ref=f2e570]
+                - button [ref=f2e571]
+                - button [ref=f2e572]
+                - button [ref=f2e573]
+                - button [ref=f2e574]
+                - button [ref=f2e575]
+                - button [ref=f2e576]
+                - button [ref=f2e577]
+                - button [ref=f2e578]
+                - button [ref=f2e579]
+                - button [ref=f2e580]
+              - generic [ref=f2e581]: 1/11
+            - generic [ref=f2e585]:
+              - button "Quero vender sem comissão" [ref=f2e586]
+              - paragraph [ref=f2e589]: Sem cartão no cadastro · 3 meses VIP grátis
+          - generic [ref=f2e590]:
+            - generic [ref=f2e591]:
+              - paragraph [ref=f2e592]: Planos
+              - heading "Preço fixo. Zero comissão por pedido." [level=2] [ref=f2e593]
+              - paragraph [ref=f2e594]: Você recebe 100% de cada pedido no seu Mercado Pago. Pague só a mensalidade abaixo.
+              - generic [ref=f2e595]:
+                - button "Mensal" [ref=f2e596]
+                - button "AnualEconomize 15%" [ref=f2e597]
+            - generic [ref=f2e598]:
+              - generic [ref=f2e599]:
+                - paragraph [ref=f2e600]: Plano Basic
+                - generic [ref=f2e601]:
+                  - generic [ref=f2e602]: R$ 69,90
+                  - generic [ref=f2e603]: /mês
+                - list [ref=f2e604]:
+                  - listitem [ref=f2e605]:
+                    - generic [ref=f2e608]: Site e vitrine online
+                  - listitem [ref=f2e609]:
+                    - generic [ref=f2e612]: Pedidos ilimitados
+                  - listitem [ref=f2e613]:
+                    - generic [ref=f2e616]: Retirada no balcão
+                  - listitem [ref=f2e617]:
+                    - generic [ref=f2e620]: Sem entregador próprio
+                  - listitem [ref=f2e621]:
+                    - generic [ref=f2e624]: Sem push promocional e destaques
+                - button "Começar agora" [ref=f2e625]
+              - generic [ref=f2e628]:
+                - generic [ref=f2e629]: Mais popular
+                - paragraph [ref=f2e630]: Plano Pro
+                - generic [ref=f2e631]:
+                  - generic [ref=f2e632]: R$ 119,90
+                  - generic [ref=f2e633]: /mês
+                - list [ref=f2e634]:
+                  - listitem [ref=f2e635]:
+                    - generic [ref=f2e638]: Tudo do Basic
+                  - listitem [ref=f2e639]:
+                    - generic [ref=f2e642]: Retirada no balcão
+                  - listitem [ref=f2e643]:
+                    - generic [ref=f2e646]: Gestão de entregadores
+                  - listitem [ref=f2e647]:
+                    - generic [ref=f2e650]: Push promocional
+                  - listitem [ref=f2e651]:
+                    - generic [ref=f2e654]: Destaques de produtos
+                - button "Começar agora" [ref=f2e655]
+            - paragraph [ref=f2e658]: Sem cartão no cadastro · 3 meses VIP grátis para as primeiras lojas · Cancele quando quiser
+          - generic [ref=f2e661]:
+            - generic [ref=f2e662]:
+              - generic [ref=f2e663]: Operação Real
+              - heading "Simule os recursos do seu negócio" [level=2] [ref=f2e664]
+              - paragraph [ref=f2e665]: Sem recursos inventados. Teste agora as ferramentas nativas que estão prontas no banco de dados e no código do sistema.
+            - generic [ref=f2e666]:
+              - button "Restaurantes & Lanches" [ref=f2e667]
+              - button "Lojas & Empórios" [ref=f2e672]
+              - button "Condomínios & Turismo" [ref=f2e676]
+            - generic [ref=f2e681]:
+              - generic [ref=f2e682]:
+                - heading "Tudo para o seu Delivery deslanchar" [level=3] [ref=f2e683]
+                - paragraph [ref=f2e684]: O sistema possui suporte a adicionais, combos por volume de compra e inteligência operacional para calcular tempos de preparo na cozinha.
+                - generic [ref=f2e685]:
+                  - generic [ref=f2e689]:
+                    - paragraph [ref=f2e690]: Preço Promocional em Lotes (Bundles)
+                    - paragraph [ref=f2e691]: Desconto progressivo automático no carrinho quando o cliente compra mais unidades.
+                  - generic [ref=f2e695]:
+                    - paragraph [ref=f2e696]: Personalizadores de Produtos (Modifiers)
+                    - paragraph [ref=f2e697]: Opções como ponto de carne, complementos e opcionais com preços dedicados.
+                  - generic [ref=f2e701]:
+                    - paragraph [ref=f2e702]: Pedidos presenciais em Mesa com Taxas
+                    - paragraph [ref=f2e703]: Lógica pronta para couvert e taxa de serviço opcional calculados por mesa.
+                  - generic [ref=f2e707]:
+                    - paragraph [ref=f2e708]: Fila de Cozinha e ETA Inteligente
+                    - paragraph [ref=f2e709]: Estimativa de entrega com base no preparo dos itens e quantidade de pedidos ativos.
+              - generic [ref=f2e711]:
+                - generic [ref=f2e712]:
+                  - paragraph [ref=f2e713]: Simulador de Cardápio
+                  - heading "🍢 Espeto Alcatra Premium" [level=4] [ref=f2e714]
+                  - paragraph [ref=f2e715]: "Escolha os opcionais e a quantidade abaixo:"
+                - generic [ref=f2e716]:
+                  - paragraph [ref=f2e717]: Adicionais (Modifiers)
+                  - generic [ref=f2e718] [cursor=pointer]:
+                    - generic [ref=f2e719]:
+                      - checkbox "Farofa Especial Caseira + R$ 3,00" [ref=f2e720]
+                      - generic [ref=f2e721]: Farofa Especial Caseira
+                    - generic [ref=f2e722]: + R$ 3,00
+                  - generic [ref=f2e723] [cursor=pointer]:
+                    - generic [ref=f2e724]:
+                      - checkbox "Queijo Coalha Derretido + R$ 4,50" [ref=f2e725]
+                      - generic [ref=f2e726]: Queijo Coalha Derretido
+                    - generic [ref=f2e727]: + R$ 4,50
+                - generic [ref=f2e728]:
+                  - generic [ref=f2e729]:
+                    - paragraph [ref=f2e730]: Quantidade
+                    - paragraph [ref=f2e731]: Leve 3+ por R$ 22,00/cada
+                  - generic [ref=f2e732]:
+                    - button "-" [ref=f2e733]
+                    - generic [ref=f2e734]: "1"
+                    - button "+" [ref=f2e735]
+                - generic [ref=f2e736]:
+                  - generic [ref=f2e737]:
+                    - paragraph [ref=f2e738]: Total da Simulação
+                    - paragraph [ref=f2e739]: (1x espeto + opcionais)
+                  - generic [ref=f2e740]: R$ 26,00
+          - generic [ref=f2e743]:
+            - generic [ref=f2e744]:
+              - generic [ref=f2e745]: Sem burocracia
+              - heading "Como funciona os 3 meses VIP?" [level=2] [ref=f2e746]
+              - paragraph [ref=f2e747]: A nossa campanha de lançamento quer que você valide a plataforma sem risco financeiro. Nós ajudamos no setup inicial e tiramos todas as suas dúvidas.
+            - generic [ref=f2e748]:
+              - generic [ref=f2e749]:
+                - paragraph [ref=f2e754]: Loja pronta
+                - paragraph [ref=f2e755]: Cardápio, vitrine digital, horários e links estruturados.
+              - generic [ref=f2e756]:
+                - paragraph [ref=f2e761]: Suporte Oficial
+                - paragraph [ref=f2e762]: Contato direto e atendimento via WhatsApp Business.
+              - generic [ref=f2e763]:
+                - paragraph [ref=f2e768]: Taxa Zero
+                - paragraph [ref=f2e769]: Teste sem taxas de adesão ou de intermediação.
+          - generic [ref=f2e771]:
+            - generic [ref=f2e772]:
+              - paragraph [ref=f2e773]: Praticidade
+              - heading "Crie e configure sua loja em minutos" [level=2] [ref=f2e774]
+              - paragraph [ref=f2e775]: Sem cadastros gigantescos ou necessidade de desenvolvedores. Gerencie tudo do celular ou computador.
+            - generic [ref=f2e776]:
+              - generic [ref=f2e782]:
+                - heading "1. Crie seu Login" [level=3] [ref=f2e783]
+                - paragraph [ref=f2e784]: Inscreva sua loja para garantir os 3 meses VIP de lançamento sem custos iniciais.
+              - generic [ref=f2e790]:
+                - heading "2. Insira o Cardápio" [level=3] [ref=f2e791]
+                - paragraph [ref=f2e792]: Adicione seus produtos, fotos, adicionais, configure as formas de pagamento e entrega.
+              - generic [ref=f2e798]:
+                - heading "3. Divulgue e Venda" [level=3] [ref=f2e799]
+                - paragraph [ref=f2e800]: Divulgue o link nos seus canais. O pedido cai direto no seu painel em tempo real.
+            - generic [ref=f2e801]:
+              - button "Garantir 3 Meses VIP Grátis" [ref=f2e802]
+              - paragraph [ref=f2e805]: Sem burocracias ou cartão no cadastro
+          - generic [ref=f2e807]:
+            - generic [ref=f2e808]:
+              - paragraph [ref=f2e809]: Outras soluções
+              - heading "Mais do que uma vitrine online" [level=3] [ref=f2e810]
+            - generic [ref=f2e811]:
+              - button [ref=f2e812]:
+                - heading "Condomínios e feiras" [level=4] [ref=f2e817]
+                - paragraph [ref=f2e818]: "Vitrine hiperlocal: moradores veem quem entrega na portaria."
+                - paragraph [ref=f2e819]: Entrar no condomínio
+              - button [ref=f2e822]:
+                - heading "Destinos e pousadas" [level=4] [ref=f2e827]
+                - paragraph [ref=f2e828]: Hóspede escaneia o QR e vê quem entrega no chalé.
+                - paragraph [ref=f2e829]: Ver destinos
+              - button [ref=f2e832]:
+                - heading "Sou parceiro de hospedagem" [level=4] [ref=f2e837]
+                - paragraph [ref=f2e838]: Cadastre seu chalé/pousada e conecte comércios do entorno.
+                - paragraph [ref=f2e839]: Cadastrar hospedagem
+          - generic [ref=f2e844]:
+            - generic [ref=f2e845]:
+              - generic [ref=f2e846]: Mobilidade Completa
+              - heading "Toda a experiência em suas mãos" [level=2] [ref=f2e847]
+              - paragraph [ref=f2e848]: Clientes pedem, entregadores entregam e lojistas gerenciam o painel de produção direto pelo nosso aplicativo oficial ou via Web.
+              - generic [ref=f2e849]:
+                - img "QR Code Google Play" [ref=f2e851]
+                - generic [ref=f2e852]:
+                  - paragraph [ref=f2e853]: Google Play Store
+                  - paragraph [ref=f2e854]: Escaneie o QR Code com a câmera do celular para baixar direto na loja oficial Android.
+              - generic [ref=f2e855]:
+                - link "Download Google Play" [ref=f2e856] [cursor=pointer]:
+                  - /url: https://play.google.com/store/apps/details?id=com.janocaminho.app
+                - button "Acessar App Web" [ref=f2e859]
+            - img "Já no Caminho App Playstore Mockup" [ref=f2e864]
+          - generic [ref=f2e866]:
+            - generic [ref=f2e867]: Lançamento Oficial VIP
+            - heading "Garanta sua vaga com 3 meses grátis." [level=2] [ref=f2e869]
+            - paragraph [ref=f2e870]: Inicie seu cardápio digital, receba pagamentos e despache entregas hoje mesmo. Sem compromissos, cancele a qualquer momento.
+            - generic [ref=f2e871]:
+              - button "Garantir Vaga VIP (3 Meses Grátis)" [ref=f2e872]
+              - link "Tirar Dúvidas no WhatsApp" [ref=f2e875] [cursor=pointer]:
+                - /url: https://wa.me/551239334979?text=Ol%C3%A1%2C%20quero%20garantir%20uma%20das%2050%20vagas%20com%203%20meses%20VIP%20no%20J%C3%A1%20no%20Caminho.
+            - paragraph [ref=f2e878]: Campanha exclusiva limitada para comerciantes locais do entorno.
+      - generic [ref=f2e880]:
+        - paragraph [ref=f2e881]: Usamos cookies essenciais para funcionamento e, com sua permissão, dados de navegação para melhorar aquisição e conversão.
+        - generic [ref=f2e882]:
+          - button "Ver política e LGPD" [ref=f2e883]
+          - generic [ref=f2e884]:
+            - button "Recusar" [ref=f2e885]
+            - button "Aceitar" [ref=f2e886]
+      - contentinfo [ref=f2e887]:
+        - generic [ref=f2e888]:
+          - generic [ref=f2e890]:
+            - generic [ref=f2e891]:
+              - paragraph [ref=f2e892]: Plataforma profissional
+              - heading "Pronto para estruturar seu delivery?" [level=3] [ref=f2e893]
+              - paragraph [ref=f2e894]: Ative seu ambiente em minutos e opere com mais controle.
+            - generic [ref=f2e895]:
+              - button "Começar teste grátis" [ref=f2e896]
+              - link "Falar pelo WhatsApp" [ref=f2e897] [cursor=pointer]:
+                - /url: https://wa.me/551239334979
+          - generic [ref=f2e900]:
+            - generic [ref=f2e901]:
+              - generic [ref=f2e902]:
+                - img "Já no Caminho" [ref=f2e904]
+                - generic [ref=f2e905]:
+                  - paragraph [ref=f2e906]: Já no Caminho
+                  - paragraph [ref=f2e907]: Gestão de pedidos
+              - paragraph [ref=f2e908]: Solução completa para pedidos, operação e entregas com experiência app-like.
+              - link "Instagram oficial do Já no Caminho" [ref=f2e909] [cursor=pointer]:
+                - /url: https://www.instagram.com/janocaminho
+                - text: "@janocaminho"
+            - generic [ref=f2e913]:
+              - heading "Links rápidos" [level=3] [ref=f2e914]
+              - generic [ref=f2e915]:
+                - button "Criar loja" [ref=f2e916]
+                - button "Ver demo" [ref=f2e917]
+                - button "Tecnologia" [ref=f2e918]
+                - button "Instalar app" [ref=f2e919]
+                - link "Termos e privacidade" [ref=f2e920] [cursor=pointer]:
+                  - /url: /terms
+                - link "Rastreamento" [ref=f2e921] [cursor=pointer]:
+                  - /url: https://www.siterastreio.com.br/
+            - generic [ref=f2e922]:
+              - heading "Suporte" [level=3] [ref=f2e923]
+              - generic [ref=f2e924]:
+                - link "contato@janocaminho.com.br" [ref=f2e925] [cursor=pointer]:
+                  - /url: mailto:contato@janocaminho.com.br
+                - link "Instagram @janocaminho" [ref=f2e926] [cursor=pointer]:
+                  - /url: https://www.instagram.com/janocaminho
+                - button "Entrar no app" [ref=f2e930]
+            - generic [ref=f2e931]:
+              - heading "Integrações" [level=3] [ref=f2e932]
+              - generic [ref=f2e933]:
+                - generic [ref=f2e934]:
+                  - img "Mercado Pago" [ref=f2e936]
+                  - generic [ref=f2e937]:
+                    - generic [ref=f2e938]: Pix
+                    - generic [ref=f2e942]: Crédito
+                    - generic [ref=f2e946]: Débito
+                - paragraph [ref=f2e950]: Pagamentos online opcionais
+                - paragraph [ref=f2e951]: O comerciante conecta a própria conta Mercado Pago e recebe Pix, crédito e débito direto no fluxo do pedido.
+                - generic [ref=f2e952]: Conexão segura
+          - generic [ref=f2e956]:
+            - paragraph [ref=f2e957]: Edmilson Tecnologia da Informação • CNPJ 44.771.427/0001-69
+            - paragraph [ref=f2e958]: © 2026 Já no Caminho. Todos os direitos reservados.
+  - contentinfo [ref=f2e959]:
+    - link "Rastreamento" [ref=f2e960] [cursor=pointer]:
+      - /url: https://www.siterastreio.com.br/

@@ -1,0 +1,6 @@
+id,title,severity,timestamp,file
+vuln-0001,sharp 0.32.6 processing untrusted uploads: bundled libvips/libheif/librsvg memory-corruption (CVE-2026-33327 et al.),HIGH,2026-10-08 13:13:03 UTC,vulnerabilities/vuln-0001.md
+vuln-0002,nodemailer 9.1.1 quadratic addressparser DoS via attacker-controlled recipients (CVE-2026-90776),HIGH,2026-10-08 13:13:22 UTC,vulnerabilities/vuln-0002.md
+vuln-0003,node-forge 1.4.0 (via firebase-admin) RSA PKCS#1 v1.5 signature-forgery vulnerability CVE-2026-85393,LOW,2026-10-08 13:13:37 UTC,vulnerabilities/vuln-0003.md
+vuln-0004,"deepmerge-ts 7.1.5 stack exhaustion on recursive object graphs (CVE-2026-40345) — transitive, not imported by app code",LOW,2026-10-08 13:13:51 UTC,vulnerabilities/vuln-0004.md
+vuln-0005,"uuid 10.0.0 out-of-bounds write with caller-provided buffers (CVE-2026-41907) — transitive, not imported",INFO,2026-10-08 13:14:02 UTC,vulnerabilities/vuln-0005.md

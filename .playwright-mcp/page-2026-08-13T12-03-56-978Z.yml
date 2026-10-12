@@ -1,0 +1,170 @@
+- generic [ref=f9e2]:
+  - banner [ref=f9e3]:
+    - generic [ref=f9e4]:
+      - generic [ref=f9e5]: v2.7.66 · build 305
+      - generic [ref=f9e6]: commit 65386ed · 13/ago/2026
+    - paragraph [ref=f9e7]: Changelog visual
+    - heading "O que mudou nas telas do Dr. Exame" [level=1] [ref=f9e8]
+    - paragraph [ref=f9e9]: "Esta versão consolida o design-system. A mudança mais visível: paciente e médico passam a compartilhar as mesmas primitivas — heros com two-tone teal+cobre e glow, SeverityBadge acessível em todos os marcadores, e o mesmo gráfico de tendências nas duas experiências."
+    - generic [ref=f9e10]:
+      - generic [ref=f9e11]:
+        - generic [ref=f9e12]: "6"
+        - text: primitivas de DS
+      - generic [ref=f9e13]:
+        - generic [ref=f9e14]: "9"
+        - text: telas mapeadas
+      - generic [ref=f9e15]:
+        - generic [ref=f9e16]: "43"
+        - text: arquivos (+504/−378)
+      - generic [ref=f9e17]:
+        - generic [ref=f9e18]: "259"
+        - text: Cards unificados
+  - generic [ref=f9e19]:
+    - paragraph [ref=f9e20]: A base
+    - heading "Primitivas do design-system" [level=2] [ref=f9e21]
+    - paragraph [ref=f9e22]: Os componentes novos que sustentam todas as telas abaixo.
+    - generic [ref=f9e23]:
+      - article [ref=f9e24]:
+        - generic [ref=f9e25]:
+          - generic [ref=f9e26]: Novo
+          - heading "AppCard" [level=3] [ref=f9e27]
+        - paragraph [ref=f9e28]:
+          - text: Primitiva de Card unificadora. 6 variantes — default, elevated, interactive, tinted, accent, outline. Substitui 259 Cards inline em 63 arquivos.
+          - emphasis [ref=f9e29]: tone
+          - text: +
+          - emphasis [ref=f9e30]: tone2
+          - text: (two-tone teal+cobre) e
+          - emphasis [ref=f9e31]: glow
+          - text: (sombra colorida).
+      - article [ref=f9e32]:
+        - generic [ref=f9e33]:
+          - generic [ref=f9e34]: Novo
+          - heading "GradientButton" [level=3] [ref=f9e35]
+        - paragraph [ref=f9e36]: Botão com gradiente teal de marca garantido. Elimina 13+ duplicações inline do containedPrimary.
+      - article [ref=f9e37]:
+        - generic [ref=f9e38]:
+          - generic [ref=f9e39]: Acessível
+          - heading "SeverityBadge" [level=3] [ref=f9e40]
+        - paragraph [ref=f9e41]: Severidade por emoji + texto + tom (🟠 Moderada, 🟡 Leve) — não só cor. Legível por contraste e leitor de tela.
+      - article [ref=f9e42]:
+        - generic [ref=f9e43]:
+          - generic [ref=f9e44]: Unificado
+          - heading "ExamMarker" [level=3] [ref=f9e45]
+        - paragraph [ref=f9e46]: "Item de marcador alterado compartilhado paciente↔médico: acento + badge + ref + valor + status + ValueBar. ~85% de código duplicado eliminado."
+      - article [ref=f9e47]:
+        - generic [ref=f9e48]:
+          - generic [ref=f9e49]: Unificado
+          - heading "TrendsChart" [level=3] [ref=f9e50]
+        - paragraph [ref=f9e51]: Gráfico de tendências extraído para primitiva única. Paciente e médico renderizam o MESMO gráfico.
+      - article [ref=f9e52]:
+        - generic [ref=f9e53]:
+          - generic [ref=f9e54]: Refinado
+          - heading "Cores & tipos" [level=3] [ref=f9e55]
+        - paragraph [ref=f9e56]: Vermelhos off-brand → error; roxos de IA/premium → indigo premium (26 ocorrências em 11 arquivos). fontSizes decimais → inteiros.
+  - generic [ref=f9e57]: 👤 Paciente
+  - generic [ref=f9e60]:
+    - article [ref=f9e61]:
+      - img "Landing" [ref=f9e63]
+      - generic [ref=f9e64]:
+        - heading "Landing" [level=3] [ref=f9e65]
+        - list [ref=f9e66]:
+          - listitem [ref=f9e67]:
+            - generic [ref=f9e68]: Refinado
+            - generic [ref=f9e69]: Cores de IA/premium unificadas (indigo consistente)
+          - listitem [ref=f9e70]:
+            - generic [ref=f9e71]: Novo
+            - generic [ref=f9e72]: Hero e cards de destaque com AppCard two-tone
+    - article [ref=f9e73]:
+      - img "Entrar / Login" [ref=f9e75]
+      - generic [ref=f9e76]:
+        - heading "Entrar / Login" [level=3] [ref=f9e77]
+        - list [ref=f9e78]:
+          - listitem [ref=f9e79]:
+            - generic [ref=f9e80]: Refinado
+            - generic [ref=f9e81]: Botão primário com GradientButton (gradiente teal de marca)
+          - listitem [ref=f9e82]:
+            - generic [ref=f9e83]: Refinado
+            - generic [ref=f9e84]: Layout e espaçamento refinados
+    - article [ref=f9e85]:
+      - img "Dashboard" [ref=f9e87]
+      - generic [ref=f9e88]:
+        - heading "Dashboard" [level=3] [ref=f9e89]
+        - list [ref=f9e90]:
+          - listitem [ref=f9e91]:
+            - generic [ref=f9e92]: Novo
+            - generic [ref=f9e93]: CurrentStateCard, HealthSummary e CreditsCard agora usam AppCard
+          - listitem [ref=f9e94]:
+            - generic [ref=f9e95]: Novo
+            - generic [ref=f9e96]: Hero de Score com glow; cards two-tone teal+cobre
+    - article [ref=f9e97]:
+      - img "Valores Alterados" [ref=f9e99]
+      - generic [ref=f9e100]:
+        - heading "Valores Alterados" [level=3] [ref=f9e101]
+        - list [ref=f9e102]:
+          - listitem [ref=f9e103]:
+            - generic [ref=f9e104]: Acessível
+            - generic [ref=f9e105]: SeverityBadge (🟠🟡 + Moderada/Leve) em cada marcador
+          - listitem [ref=f9e106]:
+            - generic [ref=f9e107]: Refinado
+            - generic [ref=f9e108]: Cards achatados — sem Card-in-Card
+          - listitem [ref=f9e109]:
+            - generic [ref=f9e110]: Acessível
+            - generic [ref=f9e111]: "Status em texto: “↑ Acima da ref.” / “↓ Abaixo”"
+          - listitem [ref=f9e112]:
+            - generic [ref=f9e113]: Unificado
+            - generic [ref=f9e114]: ExamMarker — mesma primitiva do médico
+    - article [ref=f9e115]:
+      - img "Tendências" [ref=f9e117]
+      - generic [ref=f9e118]:
+        - heading "Tendências" [level=3] [ref=f9e119]
+        - list [ref=f9e120]:
+          - listitem [ref=f9e121]:
+            - generic [ref=f9e122]: Unificado
+            - generic [ref=f9e123]: TrendsChart — mesmo gráfico do portal do médico
+    - article [ref=f9e124]:
+      - img "Relatório IA" [ref=f9e126]
+      - generic [ref=f9e127]:
+        - heading "Relatório IA" [level=3] [ref=f9e128]
+        - list [ref=f9e129]:
+          - listitem [ref=f9e130]:
+            - generic [ref=f9e131]: Novo
+            - generic [ref=f9e132]: ReportHero — cabeçalho hero two-tone teal+cobre
+          - listitem [ref=f9e133]:
+            - generic [ref=f9e134]: Refinado
+            - generic [ref=f9e135]: Tipografia e hierarquia refinadas
+  - generic [ref=f9e136]: 🩺 Médico
+  - generic [ref=f9e139]:
+    - article [ref=f9e140]:
+      - img "Portal · Pacientes" [ref=f9e142]
+      - generic [ref=f9e143]:
+        - heading "Portal · Pacientes" [level=3] [ref=f9e144]
+        - list [ref=f9e145]:
+          - listitem [ref=f9e146]:
+            - generic [ref=f9e147]: Refinado
+            - generic [ref=f9e148]: Lista de pacientes com selos de alerta por severidade
+    - article [ref=f9e149]:
+      - img "Médico · Alterados" [ref=f9e151]
+      - generic [ref=f9e152]:
+        - heading "Médico · Alterados" [level=3] [ref=f9e153]
+        - list [ref=f9e154]:
+          - listitem [ref=f9e155]:
+            - generic [ref=f9e156]: Unificado
+            - generic [ref=f9e157]: ExamMarker + SeverityBadge — IDÊNTICO ao app do paciente (−50 linhas)
+          - listitem [ref=f9e158]:
+            - generic [ref=f9e159]: Acessível
+            - generic [ref=f9e160]: Severidade por emoji + texto + tom
+    - article [ref=f9e161]:
+      - img "Médico · Tendências" [ref=f9e163]
+      - generic [ref=f9e164]:
+        - heading "Médico · Tendências" [level=3] [ref=f9e165]
+        - list [ref=f9e166]:
+          - listitem [ref=f9e167]:
+            - generic [ref=f9e168]: Unificado
+            - generic [ref=f9e169]: TrendsChart — IDÊNTICO ao app do paciente (−87 linhas)
+  - contentinfo [ref=f9e170]:
+    - text: "Como ler: cada card mostra a tela atual (build 305) e as mudanças visuais específicas desta versão, marcadas por tipo —"
+    - generic [ref=f9e171]: Novo
+    - generic [ref=f9e172]: Unificado
+    - generic [ref=f9e173]: Refinado
+    - generic [ref=f9e174]: Acessível
+    - text: . Screenshots capturados no app local (mobile 390px). Tema claro/escuro segue o seu sistema.

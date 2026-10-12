@@ -1,0 +1,50 @@
+- generic [ref=f20e1]:
+  - generic [aria-hidden] [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - button [ref=f20e4] [cursor=pointer]
+      - main [ref=f20e31]:
+        - generic [ref=f20e273]:
+          - heading [level=3] [ref=f20e274]: Dr. Exame
+          - paragraph [ref=f20e277]: Seu assistente de saúde com IA
+    - navigation [ref=f20e207]:
+      - button [ref=f20e208] [cursor=pointer]:
+        - paragraph [ref=f20e212]: Início
+      - button [ref=f20e213] [cursor=pointer]:
+        - paragraph [ref=f20e217]: Exames
+      - button [ref=f20e218] [cursor=pointer]:
+        - paragraph [ref=f20e221]: Dr. Exame
+      - button [ref=f20e222] [cursor=pointer]:
+        - paragraph [ref=f20e226]: Evolução
+      - button [ref=f20e227] [cursor=pointer]:
+        - paragraph [ref=f20e231]: Mais
+  - dialog [active] [ref=f20e235]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 2 Fechar" [level=2] [ref=f20e236]:
+      - generic [ref=f20e237]:
+        - paragraph [ref=f20e238]: Vamos preparar o Dr. Exame
+        - generic [ref=f20e239]: Passo 1 de 2
+      - button "Fechar" [ref=f20e240] [cursor=pointer]
+    - progressbar [ref=f20e243]
+    - generic [ref=f20e246]:
+      - paragraph [ref=f20e247]: Essas informações personalizam as faixas de referência dos seus exames e os cálculos de idade biológica e função renal.
+      - generic [ref=f20e248]:
+        - generic:
+          - text: Sexo
+          - generic [aria-hidden]: "*"
+        - generic [ref=f20e249]:
+          - combobox "Sexo" [ref=f20e250] [cursor=pointer]
+          - textbox [aria-hidden]
+          - group [aria-hidden]:
+            - generic: Sexo *
+      - generic [ref=f20e251]:
+        - generic [ref=f20e252]:
+          - generic [ref=f20e253]: Data de nascimento
+          - generic [ref=f20e254]:
+            - textbox "Data de nascimento" [ref=f20e255]:
+              - /placeholder: dd/mm/aaaa
+            - button "Abrir calendário" [ref=f20e257] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Data de nascimento
+        - textbox [aria-hidden]
+    - generic [ref=f20e260]:
+      - button "Agora não" [ref=f20e261] [cursor=pointer]
+      - button "Continuar" [disabled]

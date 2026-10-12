@@ -1,0 +1,41 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e1008]:
+      - button "Pular para o conteúdo" [ref=e1149] [cursor=pointer]
+      - generic [ref=e1010]:
+        - banner [ref=e1011]:
+          - generic [ref=e1012]:
+            - heading [level=6]
+            - button "Notificações" [ref=e1150] [cursor=pointer]:
+              - generic [ref=e1014]: "0"
+            - button "Selecionar" [ref=e1151] [cursor=pointer]
+            - button "Atualizar" [ref=e1152] [cursor=pointer]
+        - main [ref=e1032]:
+          - navigation [ref=e1036]:
+            - button "Exames" [ref=e1153] [cursor=pointer]
+            - generic [ref=e1046]:
+              - button "Cuidados" [expanded] [ref=e1154] [cursor=pointer]
+              - generic [ref=e1170]:
+                - button "Medições" [ref=e1171] [cursor=pointer]
+                - button "Remédios" [active] [ref=e1178] [cursor=pointer]
+                - button "Vacinas" [ref=e1184] [cursor=pointer]
+                - button "Lembretes" [ref=e1190] [cursor=pointer]
+                - button "Cartão de Emergência" [ref=e1196] [cursor=pointer]
+                - button "Conquistas" [ref=e1202] [cursor=pointer]
+            - button "Pessoas" [ref=e1155] [cursor=pointer]
+            - button "Conta" [ref=e1156] [cursor=pointer]
+            - separator [ref=e1075]
+            - button "Dúvidas frequentes" [ref=e1157] [cursor=pointer]
+            - button "Como validamos" [ref=e1158] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=e1159] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=e1160] [cursor=pointer]
+          - generic [ref=e1208]:
+            - generic [ref=e1213]:
+              - heading "Remédios" [level=5] [ref=e1214]
+              - paragraph [ref=e1215]: Busque, fotografe a receita ou toque nos comuns.
+            - generic [ref=e1216]:
+              - button [ref=e1217] [cursor=pointer]
+              - button [ref=e1221] [cursor=pointer]
+    - button "Pergunte ao Dr. Exame" [ref=e1164] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e1165]
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1166] [cursor=pointer]

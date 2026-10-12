@@ -1,0 +1,39 @@
+- generic [active] [ref=f4e20]:
+  - generic [ref=f4e23]:
+    - generic [ref=f4e24]:
+      - img "Dr. Exame" [ref=f4e26]
+      - generic [ref=f4e27]:
+        - heading "Meus Exames" [level=5] [ref=f4e28]
+        - paragraph [ref=f4e29]: Seu assistente de saúde com IA
+    - generic [ref=f4e30]:
+      - button [ref=f4e31] [cursor=pointer]
+      - button [ref=f4e36] [cursor=pointer]
+    - generic [ref=f4e42]:
+      - generic [ref=f4e44]:
+        - textbox "E-mail" [ref=f4e49]
+        - group
+      - generic [ref=f4e51]:
+        - textbox "Senha" [ref=f4e56]
+        - button "Mostrar senha" [ref=f4e58] [cursor=pointer]
+        - group
+      - button "Esqueci minha senha" [ref=f4e64] [cursor=pointer]
+      - button [ref=f4e65] [cursor=pointer]
+      - generic [ref=f4e69]: ou
+      - generic [ref=f4e73]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=f4e75] [cursor=pointer]:
+          - generic [ref=f4e77]: Continuar com o Google
+        - iframe
+      - generic [ref=f4e92]:
+        - paragraph [ref=f4e93]: Acesso seguro
+        - paragraph [ref=f4e94]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=f4e95]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=f4e96] [cursor=pointer]
+    - generic [ref=f4e97]:
+      - generic [ref=f4e98]: 🩺
+      - paragraph [ref=f4e99]:
+        - strong [ref=f4e100]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=f4e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e19]

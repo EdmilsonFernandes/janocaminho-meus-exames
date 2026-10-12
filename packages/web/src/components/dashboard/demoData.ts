@@ -51,6 +51,8 @@ export const DEMO_DASHBOARD = {
   bioKdm: null, // 2ª idade bio (KDM) no modo exemplo: card mostra só a principal (trata null)
   bioAvail: null,
   hsLoaded: true,
+  indices: [] as never[], // índices clínicos calculados: só com dado REAL (cards escondidos no demo)
+  bodyRegions: [] as never[],
 };
 
 /** Idade cronológica da persona (alimenta o diff do Idade Bio: 32a = "2a mais jovem"). */

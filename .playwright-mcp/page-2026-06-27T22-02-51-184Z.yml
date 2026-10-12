@@ -1,0 +1,111 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e279] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Close menu" [ref=e280] [cursor=pointer]:
+              - img [ref=e26]
+            - heading "Valores alterados" [level=6] [ref=e305]:
+              - generic [ref=e307]: Valores alterados
+            - button "79" [ref=e281] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "79"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e282] [cursor=pointer]:
+              - generic [ref=e35]: E
+              - generic [ref=e37]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e39]
+            - button "3" [ref=e283] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - generic [ref=e45]: "3"
+            - button "Mais opções" [ref=e284] [cursor=pointer]:
+              - img [ref=e47]
+            - button "Atualizar" [ref=e285] [cursor=pointer]:
+              - img [ref=e51]
+        - main [ref=e53]:
+          - navigation [ref=e57]:
+            - button "Início" [ref=e286] [cursor=pointer]:
+              - img [ref=e60]
+              - generic [ref=e63]: Início
+            - button "Exames" [ref=e287] [cursor=pointer]:
+              - img [ref=e66]
+              - generic [ref=e69]: Exames
+            - button "Dr. Exame (IA)" [ref=e288] [cursor=pointer]:
+              - img [ref=e72]
+              - generic [ref=e75]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e289] [cursor=pointer]:
+              - img [ref=e78]
+              - generic [ref=e81]: Relatório completo
+            - button "Evolução & Conquistas" [ref=e290] [cursor=pointer]:
+              - img [ref=e85]
+              - generic [ref=e89]: Evolução & Conquistas
+              - img [ref=e90]
+            - generic [ref=e92]:
+              - button "Minha Saúde" [ref=e291] [cursor=pointer]:
+                - img [ref=e95]
+                - generic [ref=e99]: Minha Saúde
+                - img [ref=e100]
+              - generic [ref=e310]:
+                - button "Valores alterados" [ref=e311] [cursor=pointer]:
+                  - img [ref=e313]
+                  - generic [ref=e317]: Valores alterados
+                - button "Tendências" [ref=e318] [cursor=pointer]:
+                  - img [ref=e320]
+                  - generic [ref=e323]: Tendências
+                - button "Linha do tempo" [ref=e324] [cursor=pointer]:
+                  - img [ref=e326]
+                  - generic [ref=e329]: Linha do tempo
+                - button "Medições" [ref=e330] [cursor=pointer]:
+                  - img [ref=e332]
+                  - generic [ref=e336]: Medições
+                - button "Vacinas" [ref=e337] [cursor=pointer]:
+                  - img [ref=e339]
+                  - generic [ref=e342]: Vacinas
+                - button "Lembretes" [ref=e343] [cursor=pointer]:
+                  - img [ref=e345]
+                  - generic [ref=e348]: Lembretes
+                - button "Cartão de emergência" [ref=e349] [cursor=pointer]:
+                  - img [ref=e351]
+                  - generic [ref=e354]: Cartão de emergência
+            - button "Família & Médicos" [ref=e292] [cursor=pointer]:
+              - img [ref=e105]
+              - generic [ref=e109]: Família & Médicos
+              - img [ref=e110]
+            - button "Conta" [ref=e293] [cursor=pointer]:
+              - img [ref=e115]
+              - generic [ref=e118]: Conta
+              - img [ref=e119]
+            - separator [ref=e121]
+            - menuitem "❓ Ajuda & Suporte" [ref=e294] [cursor=pointer]:
+              - generic [ref=e123]: ❓
+              - generic [ref=e125]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e295] [cursor=pointer]:
+              - generic [ref=e127]: ℹ️
+              - generic [ref=e129]: Sobre o app
+            - menuitem "Sair da conta" [ref=e296] [cursor=pointer]:
+              - img [ref=e132]
+              - generic [ref=e135]: Sair da conta
+            - generic [ref=e136]: Meus Exames · v0.1.0 (unknown)
+          - generic [ref=e355]:
+            - generic [ref=e356]:
+              - img [ref=e358]
+              - generic [ref=e361]:
+                - heading "Valores fora da faixa" [level=5] [ref=e362]
+                - paragraph [ref=e363]:
+                  - text: Ordenados por
+                  - strong [ref=e364]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e365]: Agendar
+                  - text: pro especialista.
+            - progressbar [ref=e367]:
+              - img [ref=e368]
+            - generic [ref=e370]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e371] [cursor=pointer]:
+      - generic [ref=e372]:
+        - img "Dr. Exame" [ref=e374]
+        - img [ref=e376]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e303]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e304]

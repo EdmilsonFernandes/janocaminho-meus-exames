@@ -1,0 +1,322 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - generic [ref=f5e6]:
+          - paragraph [ref=f5e10]: 01 Item
+          - text: 
+        - generic [ref=f5e11]: Adicionado à sua cesta
+      - link [ref=f5e12] [cursor=pointer]:
+        - /url: https://www.drogasil.com.br/checkout/cart
+        - button "Finalizar compra" [ref=f5e13]
+    - banner [ref=f5e15]:
+      - button "Drogasil O que deseja encontrar?   Meus Pedidos  Entrar Minha conta  0 / Cesta R$ 0,00" [ref=f5e240]:
+        - link [ref=f5e17] [cursor=pointer]:
+          - /url: /
+          - img "Drogasil" [ref=f5e18]
+        - generic [ref=f5e20]:
+          - searchbox "O que deseja encontrar?" [ref=f5e21]
+          - button "" [ref=f5e24] [cursor=pointer]
+        - button [ref=f5e26] [cursor=pointer]:
+          - button " Meus Pedidos" [ref=f5e27]:
+            - generic [ref=f5e28]:
+              - generic [ref=f5e29]: 
+              - paragraph [ref=f5e32]:
+                - generic [ref=f5e33]:
+                  - generic [ref=f5e34]: Meus
+                  - generic [ref=f5e35]: Pedidos
+        - generic "Entrar" [ref=f5e39] [cursor=pointer]:
+          - generic [ref=f5e40]: 
+          - generic [ref=f5e42]:
+            - generic [ref=f5e43]: Entrar
+            - paragraph [ref=f5e44]: Minha conta
+        - generic "0 / Cesta" [ref=f5e47] [cursor=pointer]:
+          - generic [ref=f5e48]: 
+          - generic [ref=f5e50]:
+            - generic [ref=f5e241]: 0 / Cesta
+            - paragraph [ref=f5e242]: R$ 0,00
+    - generic [ref=f5e56]:
+      - button " Insira o CEP" [ref=f5e58]:
+        - generic [ref=f5e59]: 
+        - generic [ref=f5e60]: Insira o CEP
+      - button [ref=f5e62] [cursor=pointer]
+      - button " Ativar descontos e benefícios " [ref=f5e67] [cursor=pointer]:
+        - generic [ref=f5e68]: 
+        - text: Ativar descontos e benefícios
+        - generic [ref=f5e69]: 
+    - main [ref=f5e70]:
+      - iframe [ref=f5e243]:
+        - generic [ref=f7e4]:
+          - banner:
+            - link "Pular para o conteúdo da página" [ref=f7e5] [cursor=pointer]:
+              - /url: javascript:void(0)
+          - main [ref=f7e6]:
+            - heading "Central de Atendimento - Drogasil" [level=1] [ref=f7e7]
+            - generic [ref=f7e15]:
+              - generic [ref=f7e17]:
+                - heading "Central de Atendimento" [level=2] [ref=f7e18]
+                - heading "Tire sua dúvida aqui" [level=2] [ref=f7e19]
+                - generic [ref=f7e20]:
+                  - textbox "Digite sua pergunta" [ref=f7e21]
+                  - button "" [ref=f7e22] [cursor=pointer]
+              - generic [ref=f7e24]:
+                - list [ref=f7e26]:
+                  - listitem [ref=f7e27]:
+                    - link "" [ref=f7e28] [cursor=pointer]:
+                      - /url: "?id=central_de_atendimento_drogasil"
+                  - listitem [ref=f7e30]:
+                    - text: 
+                    - link "Central de Atendimento" [ref=f7e31] [cursor=pointer]:
+                      - /url: javascript:void(0);
+                  - listitem [ref=f7e32]: 
+                - generic [ref=f7e33]:
+                  - heading "Tópicos mais buscados " [level=3] [ref=f7e34]:
+                    - text: Tópicos mais buscados
+                    - generic [ref=f7e35]: 
+                  - generic [ref=f7e36]:
+                    - button [ref=f7e37] [cursor=pointer]:
+                      - paragraph [ref=f7e38]: Farmacêutico
+                    - button [ref=f7e39] [cursor=pointer]:
+                      - paragraph [ref=f7e40]: LGPD
+                    - button [ref=f7e41] [cursor=pointer]:
+                      - paragraph [ref=f7e42]: Financeiro
+                    - button [ref=f7e43] [cursor=pointer]:
+                      - paragraph [ref=f7e44]: Troca
+                    - button [ref=f7e45] [cursor=pointer]:
+                      - paragraph [ref=f7e46]: Marketplace
+                    - button [ref=f7e47] [cursor=pointer]:
+                      - paragraph [ref=f7e48]: Entrega
+                    - button [ref=f7e49] [cursor=pointer]:
+                      - paragraph [ref=f7e50]: Devolução
+                    - button [ref=f7e51] [cursor=pointer]:
+                      - paragraph [ref=f7e52]: Promoção
+                    - button [ref=f7e53] [cursor=pointer]:
+                      - paragraph [ref=f7e54]: Desconto do laboratório
+                    - button [ref=f7e55] [cursor=pointer]:
+                      - paragraph [ref=f7e56]: Site
+                    - button [ref=f7e57] [cursor=pointer]:
+                      - paragraph [ref=f7e58]: Cancelamento
+                    - button [ref=f7e59] [cursor=pointer]:
+                      - paragraph [ref=f7e60]: Teste Covid
+                    - button [ref=f7e61] [cursor=pointer]:
+                      - paragraph [ref=f7e62]: Stix
+                    - button [ref=f7e63] [cursor=pointer]:
+                      - paragraph [ref=f7e64]: Loja
+                - generic [ref=f7e68]:
+                  - paragraph [ref=f7e69]: Tire suas dúvidas por Whatsapp
+                  - paragraph [ref=f7e70]: Atendimento 24 horas por dia, todos os dias.
+                  - paragraph [ref=f7e71]:
+                    - text: Atendentes disponíveis das
+                    - strong [ref=f7e72]: 07h às 23h.
+                  - link "Acessar Whatsapp" [ref=f7e73] [cursor=pointer]:
+                    - /url: https://wa.me/551130048007
+                - text:  
+    - contentinfo [ref=f5e74]:
+      - generic [ref=f5e75]:
+        - generic "Descubra nosso APP" [ref=f5e76]:
+          - generic [ref=f5e78]:
+            - generic [ref=f5e79]: Descubra nosso APP
+            - paragraph
+        - link [ref=f5e80] [cursor=pointer]:
+          - /url: https://play.google.com/store/apps/details?id=br.com.drogasil&hl=pt_BR
+          - img "Google Play - Drogasil" [ref=f5e82]
+        - link [ref=f5e83] [cursor=pointer]:
+          - /url: https://apps.apple.com/br/app/drogasil/id1328994276
+          - img "App Store - Drogasil" [ref=f5e85]
+      - generic [ref=f5e87]:
+        - generic [ref=f5e89]:
+          - generic [ref=f5e90]:
+            - strong [ref=f5e91]: Atendimento
+            - list [ref=f5e92]:
+              - listitem [ref=f5e93]:
+                - link "Central de Atendimento" [ref=f5e94] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento
+              - listitem [ref=f5e95]:
+                - link "Como comprar no site" [ref=f5e96] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=comprar
+              - listitem [ref=f5e97]:
+                - link "Formas de pagamento disponíveis" [ref=f5e98] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=formas
+              - listitem [ref=f5e99]:
+                - link "Prazo de entrega" [ref=f5e100] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=prazo
+              - listitem [ref=f5e101]:
+                - link "Reembolso" [ref=f5e102] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=reembolso
+              - listitem [ref=f5e103]:
+                - link "Troca" [ref=f5e104] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=troca
+              - listitem [ref=f5e105]:
+                - link "Devolução" [ref=f5e106] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/central-de-atendimento?ai=devolucao
+          - generic [ref=f5e107]:
+            - strong [ref=f5e108]: Serviços
+            - list [ref=f5e109]:
+              - listitem [ref=f5e110]:
+                - link "Farmacêutico Drogasil" [ref=f5e111] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/farmaceutico-drogasil
+              - listitem [ref=f5e112]:
+                - link "Programa Mais Saúde" [ref=f5e113] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/programamaissaude
+              - listitem [ref=f5e114]:
+                - link "Stix" [ref=f5e115] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/stix
+              - listitem [ref=f5e116]:
+                - link "Compre e Retire" [ref=f5e117] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/compre-retire
+              - listitem [ref=f5e118]:
+                - link "Serviços de Saúde" [ref=f5e119] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/suasaude
+              - listitem [ref=f5e120]:
+                - link "Fórmulas Manipuladas" [ref=f5e121] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/manipulacao
+              - listitem [ref=f5e122]:
+                - link "Univers" [ref=f5e123] [cursor=pointer]:
+                  - /url: https://www.univers-pbm.com.br/
+              - listitem [ref=f5e124]:
+                - link "Programa de Laboratório" [ref=f5e125] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/descontosexclusivos
+          - generic [ref=f5e126]:
+            - strong [ref=f5e127]: Institucional
+            - list [ref=f5e128]:
+              - listitem [ref=f5e129]:
+                - link "Nossa História" [ref=f5e130] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/nossa-historia
+              - listitem [ref=f5e131]:
+                - link "Nossas Lojas" [ref=f5e132] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/nossas-lojas
+              - listitem [ref=f5e133]:
+                - link "Sustentabilidade" [ref=f5e134] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/sustentabilidade
+              - listitem [ref=f5e135]:
+                - link "Ética e Compliance" [ref=f5e136] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/etica-compliance
+              - listitem [ref=f5e137]:
+                - link "Trabalhe Conosco" [ref=f5e138] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/trabalhe-conosco
+              - listitem [ref=f5e139]:
+                - link "Imprensa" [ref=f5e140] [cursor=pointer]:
+                  - /url: https://www.rd.com.br/imprensa/contato
+              - listitem [ref=f5e141]:
+                - link "Investidores" [ref=f5e142] [cursor=pointer]:
+                  - /url: https://ri.rd.com.br/
+              - listitem [ref=f5e143]:
+                - link "Blog" [ref=f5e144] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/blog
+              - listitem [ref=f5e145]:
+                - link "Vitat" [ref=f5e146] [cursor=pointer]:
+                  - /url: https://www.vitat.com.br
+              - listitem [ref=f5e147]:
+                - link "Mais Buscados" [ref=f5e148] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/mais-buscados
+              - listitem [ref=f5e149]:
+                - link "Bulas de A a Z" [ref=f5e150] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/bulas
+              - listitem [ref=f5e151]:
+                - link "Todas as Categorias" [ref=f5e152] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/categorias
+              - listitem [ref=f5e153]:
+                - link "Todas as Classes Terapêuticas" [ref=f5e154] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/classes-terapeuticas
+              - listitem [ref=f5e155]:
+                - link "Todos os Princípios Ativos" [ref=f5e156] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/todos-principios-ativos
+              - listitem [ref=f5e157]:
+                - link "Todas as Lojas Parceiras" [ref=f5e158] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/todas-lojas-parceiras
+              - listitem [ref=f5e159]:
+                - link "Todas as Marcas" [ref=f5e160] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/todas-marcas
+              - listitem [ref=f5e161]:
+                - link "Todas as Campanhas" [ref=f5e162] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/todas-campanhas
+          - generic [ref=f5e163]:
+            - strong [ref=f5e164]: Minha Conta
+            - list [ref=f5e165]:
+              - listitem [ref=f5e166]:
+                - link "Criar novo cadastro" [ref=f5e167] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/customer/account/create/
+              - listitem [ref=f5e168]:
+                - link "Alterar dados pessoais" [ref=f5e169] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/customer/account/edit/
+              - listitem [ref=f5e170]:
+                - link "Editar endereços" [ref=f5e171] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/customer/address/
+              - listitem [ref=f5e172]:
+                - link "Acompanhar um pedido" [ref=f5e173] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/sales/order/history/
+          - generic [ref=f5e174]:
+            - strong [ref=f5e175]: Privacidade de dados
+            - list [ref=f5e176]:
+              - listitem [ref=f5e177]:
+                - link "Como protegemos seus dados" [ref=f5e178] [cursor=pointer]:
+                  - /url: https://drogasil.com.br/politica-de-privacidade
+              - listitem [ref=f5e179]:
+                - link "Política de Privacidade" [ref=f5e180] [cursor=pointer]:
+                  - /url: https://rdsaude.com.br/wp-content/uploads/2026/01/Politica-de-Privacidade-Raia-Drogasil-S.A.pdf
+              - listitem [ref=f5e181]:
+                - link "Portal do Titular dos Dados" [ref=f5e182] [cursor=pointer]:
+                  - /url: https://rd.com.br/privacidade
+          - generic [ref=f5e183]:
+            - strong [ref=f5e184]: Marketplace
+            - list [ref=f5e185]:
+              - listitem [ref=f5e186]:
+                - link "Venda no site Drogasil" [ref=f5e187] [cursor=pointer]:
+                  - /url: https://www.rdmarketplace.com.br/?utm_source=SiteDrogasil&utm_medium=footer+marketplace
+        - generic [ref=f5e191]:
+          - generic [ref=f5e192]:
+            - img "sempre ao seu lado" [ref=f5e244]
+            - paragraph [ref=f5e193]
+          - img "drogasil.com" [ref=f5e246]
+          - link [ref=f5e248] [cursor=pointer]:
+            - /url: https://wa.me/551130048007
+            - img "atendimento@drogasil.com.br" [ref=f5e249]
+          - img "logo drogasil" [ref=f5e251]
+      - generic [ref=f5e197]:
+        - generic [ref=f5e198]:
+          - list [ref=f5e200]:
+            - listitem [ref=f5e201]:
+              - img "Visa" [ref=f5e202]
+            - listitem [ref=f5e203]:
+              - img "MasterCard" [ref=f5e204]
+            - listitem [ref=f5e205]:
+              - img "America Express" [ref=f5e206]
+            - listitem [ref=f5e207]:
+              - img "Dinners" [ref=f5e208]
+            - listitem [ref=f5e209]:
+              - img "Elo" [ref=f5e210]
+            - listitem [ref=f5e211]:
+              - img "Pix" [ref=f5e212]
+          - paragraph [ref=f5e218]:
+            - link [ref=f5e219] [cursor=pointer]:
+              - /url: https://selo.compreconfie.com.br/reputation/106354
+          - paragraph [ref=f5e222]
+        - generic [ref=f5e223]:
+          - generic [ref=f5e224]:
+            - link [ref=f5e225] [cursor=pointer]:
+              - /url: https://www.drogasil.com.br/
+              - img "Logo" [ref=f5e226]
+            - paragraph [ref=f5e228]: A Drogasil segue as determinações da
+          - paragraph [ref=f5e231]:
+            - text: Raia Drogasil SA | DROGASIL | 61.585.865/0240-93 | I.E. 116.756.280.113 | Av. Nsa. Sra. Assunção, 638 | Butantã | São Paulo (SP) | CEP 05359-001 | Para dúvidas, elogios e reclamações acesse nossa
+            - strong [ref=f5e232]:
+              - link "Central de Atendimento no Whatsapp" [ref=f5e233] [cursor=pointer]:
+                - /url: https://wa.me/551130048007
+            - text: "| Farmacêutico responsável: Gisele da Penha Barbosa | CRF 89453 | Polo Butantã (1714 e 1715 Raia e Drogasil) | AFE: 7.17094.5 | CMVS - 355030801-477-002443-1-7. As informações contidas neste site não devem ser usadas para automedicação e não substituem, em hipótese alguma, as orientações dadas pelo profissional da área médica. Somente o médico está apto a diagnosticar qualquer problema de saúde e prescrever o tratamento adequado. Ao persistirem os sintomas, um médico deverá ser consultado. Os preços e promoções divulgados no site são válidos apenas para compras feitas pela internet. Maiores esclarecimentos, consultar o site: www.anvisa.gov.br. A Raia Drogasil SA trabalha com as tecnologias mais avançadas de proteção de dados, para que você possa realizar suas compras com tranquilidade. A privacidade e a segurança dos clientes são compromissos da Raia Drogasil SA. Todos os pedidos efetuados estão sujeitos à confirmação da disponibilidade de produto em nosso estoque."
+        - paragraph [ref=f5e237]:
+          - link "Política de privacidade" [ref=f5e238] [cursor=pointer]:
+            - /url: /politica-de-privacidade
+          - text: "| © 2021 RD. Todos os direitos reservados."
+  - alert [ref=f5e239]
+  - region "Bandeira de biscoitos" [ref=f5e252]:
+    - dialog "Privacidade" [ref=f5e253]:
+      - generic [ref=f5e255]:
+        - generic [ref=f5e258]:
+          - text: "Durante sua navegação, podemos utilizar cookies para: confirmar sua identidade; personalizar seu acesso; e acompanhar a utilização de nossos websites, visando o aprimoramento de sua funcionalidade. Alguns cookies são essenciais para nossos serviços, outros opcionais. Você poderá gerenciar os cookies que utilizamos de acordo com suas preferências."
+          - link "Nossa Política de Privacidade, abre em uma nova guia" [active] [ref=f5e259] [cursor=pointer]:
+            - /url: https://rdsaude.com.br/wp-content/uploads/2025/10/Politica-de-Cookies.pdf
+            - text: Nossa Política de Privacidade e Cookies
+        - generic [ref=f5e261]:
+          - button "Definições de cookies, Abre a caixa de diálogo do centro de preferências" [ref=f5e262] [cursor=pointer]: Definições de cookies
+          - button "Rejeitar todos os cookies" [ref=f5e263] [cursor=pointer]
+          - button "Aceitar todos os cookies" [ref=f5e264] [cursor=pointer]

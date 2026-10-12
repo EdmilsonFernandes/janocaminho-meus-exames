@@ -1,0 +1,477 @@
+- generic [ref=f16e3]:
+  - button "Pular para o conteúdo" [ref=f16e4] [cursor=pointer]
+  - generic [ref=f16e5]:
+    - banner [ref=f16e6]:
+      - generic [ref=f16e7]:
+        - heading [level=6]
+        - generic [ref=f16e8]:
+          - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f16e9] [cursor=pointer]:
+            - generic [ref=f16e12]: "15"
+          - button "Notificações" [ref=f16e13] [cursor=pointer]:
+            - generic [ref=f16e14]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f16e19] [cursor=pointer]:
+            - generic [ref=f16e20]: E
+            - generic [ref=f16e22]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f16e28] [cursor=pointer]
+    - main [ref=f16e31]:
+      - navigation [ref=f16e35]:
+        - generic [ref=f16e38]:
+          - generic [ref=f16e39]: E
+          - generic [ref=f16e41]:
+            - paragraph [ref=f16e42]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f16e43]:
+              - generic [ref=f16e44]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f16e46] [cursor=pointer]
+        - separator [ref=f16e48]
+        - button "Início" [ref=f16e49] [cursor=pointer]
+        - button "Exames" [ref=f16e56] [cursor=pointer]
+        - button "Cuidados" [ref=f16e67] [cursor=pointer]
+        - button "Pessoas" [ref=f16e77] [cursor=pointer]
+        - button "Conta" [ref=f16e87] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f16e96] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f16e102] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f16e108] [cursor=pointer]
+        - generic [ref=f16e115]:
+          - generic [ref=f16e117]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f16e118]: v2.7.225
+      - generic [ref=f16e120]:
+        - generic [ref=f16e122]:
+          - generic [ref=f16e123]:
+            - heading "Bom dia, Edmilson 👋" [level=1] [ref=f16e124]
+            - generic [ref=f16e125]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f16e126]: Sincronizado
+        - generic [ref=f16e131]:
+          - generic [ref=f16e132]: E
+          - generic [ref=f16e133]:
+            - paragraph [ref=f16e134]: Resistência & Performance
+            - generic [ref=f16e135]:
+              - heading "Edmilson Lopes Fernandes dos Santos, 41" [level=2] [ref=f16e136]
+              - generic [ref=f16e137]: Corrida/Ciclismo
+              - generic [ref=f16e139]: 🏃 Modo Esporte
+            - paragraph [ref=f16e141]: "🎯 Base aeróbica: hemoglobina, hematócrito e ferro sustentam o consumo de oxigênio."
+            - generic [ref=f16e142]:
+              - paragraph [ref=f16e143]:
+                - generic [ref=f16e144]: "Último exame:"
+                - text: 16/07 · há 2 meses
+              - paragraph [ref=f16e145]:
+                - generic [ref=f16e146]: "Peso/altura:"
+                - text: 92,4 kg · 178 cm
+              - paragraph [ref=f16e147]:
+                - generic [ref=f16e148]: "Médico vinculado:"
+                - text: Dr. Teste QA · CRM 99999-SP
+            - generic [ref=f16e149]: "Foco: Estresse de impacto e hidratação em provas longas"
+        - generic [ref=f16e157]:
+          - heading "5 marcadores pedem atenção" [level=2] [ref=f16e158]
+          - paragraph [ref=f16e159]: Ajustes moderados — comente nas consultas e acompanhe a tendência.
+          - generic [ref=f16e160]: HDL baixo · andrógeno declarado
+          - generic [ref=f16e163]: ⏳ 17 marcador(es) não foram medidos há mais de 12 meses e não entram no score. Envie um exame recente pra uma leitura atualizada.
+          - button "Ver todos os alterados →" [ref=f16e166] [cursor=pointer]
+        - generic [ref=f16e167]:
+          - 'button "Hemoglobina: 14 g/dt — ver" [ref=f16e168] [cursor=pointer]':
+            - generic [ref=f16e172]:
+              - paragraph [ref=f16e173]: Hemoglobina
+              - paragraph [ref=f16e174]: 14 g/dt
+              - paragraph [ref=f16e175]: na referência
+          - 'button "Alterados ativos: 8 — ver" [ref=f16e176] [cursor=pointer]':
+            - generic [ref=f16e180]:
+              - paragraph [ref=f16e181]: Alterados ativos
+              - paragraph [ref=f16e182]: "8"
+              - paragraph [ref=f16e183]: pedem atenção
+        - generic [ref=f16e184]:
+          - button "Todos (30)" [ref=f16e185] [cursor=pointer]
+          - button "Hemograma (18)" [pressed] [ref=f16e187] [cursor=pointer]
+          - button "Cardio-Lipídios (5)" [ref=f16e189] [cursor=pointer]
+          - button "Renal (1)" [ref=f16e191] [cursor=pointer]
+          - button "Músculo-Fígado (2)" [ref=f16e193] [cursor=pointer]
+          - button "Hormonal (0)" [ref=f16e195] [cursor=pointer]
+          - button "Outros (4)" [ref=f16e197] [cursor=pointer]
+        - generic [ref=f16e199]:
+          - 'button "Hemoglobina Glicada: 5,7 — Fora da referência. Ver tendência" [ref=f16e200] [cursor=pointer]':
+            - generic [ref=f16e202]:
+              - paragraph [ref=f16e203]: Hemoglobina Glicada
+              - generic [ref=f16e204]: 09/07/26
+            - generic [ref=f16e205]:
+              - paragraph [ref=f16e206]: 5,7
+              - generic [ref=f16e207]:
+                - generic [ref=f16e208]: "%"
+                - button "O que significa %?" [ref=f16e209]
+              - generic [ref=f16e212]: Fora da referência
+            - generic [ref=f16e213]: Sem faixa de referência informada pelo laboratório.
+            - generic [ref=f16e214]:
+              - generic [ref=f16e215]: Régua do lab
+              - generic [ref=f16e218]: Meta do médico
+          - 'button "Vcm: 80,8 — ↓ Abaixo da referência. Ver tendência" [ref=f16e221] [cursor=pointer]':
+            - generic [ref=f16e223]:
+              - paragraph [ref=f16e224]: Vcm
+              - generic [ref=f16e225]: s/d
+            - generic [ref=f16e226]:
+              - paragraph [ref=f16e227]: 80,8
+              - generic [ref=f16e228]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 83 a 101. ↓ Abaixo da referência." [ref=f16e229]':
+              - generic [ref=f16e233]:
+                - generic [ref=f16e234]: "83"
+                - generic [ref=f16e235]: Ref. laboratório 83–101
+                - generic [ref=f16e236]: "101"
+            - generic [ref=f16e237]:
+              - generic [ref=f16e238]: Régua do lab
+              - generic [ref=f16e241]: Meta do médico
+          - 'button "Hemoglobina: 14 — Na referência. Ver tendência" [ref=f16e244] [cursor=pointer]':
+            - generic [ref=f16e245]:
+              - generic [ref=f16e246]:
+                - paragraph [ref=f16e247]: Hemoglobina
+                - generic [ref=f16e248]: 16/07/26 · 4 medições
+              - generic [ref=f16e249]: → -7%
+            - generic [ref=f16e250]:
+              - paragraph [ref=f16e251]: "14"
+              - generic [ref=f16e252]: g/dt
+              - generic [ref=f16e253]: Na referência
+            - 'img "Régua: referência do laboratório de 13,5 a 17,5. Na referência." [ref=f16e254]':
+              - generic [ref=f16e261]:
+                - generic [ref=f16e262]: 13,5
+                - generic [ref=f16e263]: Ref. laboratório 13,5–17,5
+                - generic [ref=f16e264]: 17,5
+            - generic [ref=f16e265]:
+              - generic [ref=f16e266]: Régua do lab
+              - generic [ref=f16e269]: Histórico (4)
+              - generic [ref=f16e272]: Meta do médico
+          - 'button "Plaquetas: 238.000 — Na referência. Ver tendência" [ref=f16e275] [cursor=pointer]':
+            - generic [ref=f16e276]:
+              - generic [ref=f16e277]:
+                - paragraph [ref=f16e278]: Plaquetas
+                - generic [ref=f16e279]: 09/07/26 · 3 medições
+              - generic [ref=f16e280]: → +105%
+            - generic [ref=f16e281]:
+              - paragraph [ref=f16e282]: "238.000"
+              - generic [ref=f16e283]:
+                - generic [ref=f16e284]: /mm³
+                - button "O que significa /mm³?" [ref=f16e285]
+              - generic [ref=f16e288]: Na referência
+            - 'img "Régua: referência do laboratório de 150.000 a 450.000. Na referência." [ref=f16e289]':
+              - generic [ref=f16e295]:
+                - generic [ref=f16e296]: "150.000"
+                - generic [ref=f16e297]: Ref. laboratório 150.000–450.000
+                - generic [ref=f16e298]: "450.000"
+            - generic [ref=f16e299]:
+              - generic [ref=f16e300]: Régua do lab
+              - generic [ref=f16e303]: Histórico (3)
+              - generic [ref=f16e306]: Meta do médico
+          - 'button "Leucócitos: 6.800 — Na referência. Ver tendência" [ref=f16e309] [cursor=pointer]':
+            - generic [ref=f16e310]:
+              - generic [ref=f16e311]:
+                - paragraph [ref=f16e312]: Leucócitos
+                - generic [ref=f16e313]: 09/07/26 · 2 medições
+              - generic [ref=f16e314]: ↓ -6%
+            - generic [ref=f16e315]:
+              - paragraph [ref=f16e316]: "6.800"
+              - generic [ref=f16e317]:
+                - generic [ref=f16e318]: /mm3
+                - button "O que significa /mm3?" [ref=f16e319]
+              - generic [ref=f16e322]: Na referência
+            - 'img "Régua: referência do laboratório de 4.000 a 11.000. Na referência." [ref=f16e323]':
+              - generic [ref=f16e328]:
+                - generic [ref=f16e329]: "4.000"
+                - generic [ref=f16e330]: Ref. laboratório 4.000–11.000
+                - generic [ref=f16e331]: "11.000"
+            - generic [ref=f16e332]:
+              - generic [ref=f16e333]: Régua do lab
+              - generic [ref=f16e336]: Histórico (2)
+              - generic [ref=f16e339]: Meta do médico
+          - 'button "Hemácias: 4,9 — Na referência. Ver tendência" [ref=f16e342] [cursor=pointer]':
+            - generic [ref=f16e343]:
+              - generic [ref=f16e344]:
+                - paragraph [ref=f16e345]: Hemácias
+                - generic [ref=f16e346]: 09/07/26 · 2 medições
+              - generic [ref=f16e347]: ↑ +7%
+            - generic [ref=f16e348]:
+              - paragraph [ref=f16e349]: 4,9
+              - generic [ref=f16e350]: milhões/mm3
+              - generic [ref=f16e351]: Na referência
+            - 'img "Régua: referência do laboratório de 4,5 a 5,9. Na referência." [ref=f16e352]':
+              - generic [ref=f16e357]:
+                - generic [ref=f16e358]: 4,5
+                - generic [ref=f16e359]: Ref. laboratório 4,5–5,9
+                - generic [ref=f16e360]: 5,9
+            - generic [ref=f16e361]:
+              - generic [ref=f16e362]: Régua do lab
+              - generic [ref=f16e365]: Histórico (2)
+              - generic [ref=f16e368]: Meta do médico
+          - 'button "Hematócrito: 44 — Na referência. Ver tendência" [ref=f16e371] [cursor=pointer]':
+            - generic [ref=f16e372]:
+              - generic [ref=f16e373]:
+                - paragraph [ref=f16e374]: Hematócrito
+                - generic [ref=f16e375]: 09/07/26 · 2 medições
+              - generic [ref=f16e376]: ↑ +5%
+            - generic [ref=f16e377]:
+              - paragraph [ref=f16e378]: "44"
+              - generic [ref=f16e379]:
+                - generic [ref=f16e380]: "%"
+                - button "O que significa %?" [ref=f16e381]
+              - generic [ref=f16e384]: Na referência
+            - 'img "Régua: referência do laboratório de 41 a 53, meta clínica 45 – 52 %. Na referência." [ref=f16e385]':
+              - generic [ref=f16e391]:
+                - generic [ref=f16e392]: "41"
+                - generic [ref=f16e393]: Ref. laboratório 41–53
+                - generic [ref=f16e394]: "53"
+            - generic [ref=f16e395]: 🎯 Meta 45 – 52 % — Dr. Dr Teste QA
+            - generic [ref=f16e397]: Está dentro da referência do laboratório, mas fora da meta clínica definida pelo médico.
+            - generic [ref=f16e398]:
+              - generic [ref=f16e399]: Régua do lab
+              - generic [ref=f16e402]: Histórico (2)
+              - generic [ref=f16e405]: Meta do médico
+          - 'button "Monocitos: 65 — ↓ Abaixo da referência. Ver tendência" [ref=f16e408] [cursor=pointer]':
+            - generic [ref=f16e410]:
+              - paragraph [ref=f16e411]: Monocitos
+              - generic [ref=f16e412]: s/d
+            - generic [ref=f16e413]:
+              - paragraph [ref=f16e414]: "65"
+              - generic [ref=f16e415]:
+                - generic [ref=f16e416]: "%"
+                - button "O que significa %?" [ref=f16e417]
+              - generic [ref=f16e420]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 80 a 800. ↓ Abaixo da referência." [ref=f16e421]':
+              - generic [ref=f16e425]:
+                - generic [ref=f16e426]: "80"
+                - generic [ref=f16e427]: Ref. laboratório 80–800
+                - generic [ref=f16e428]: "800"
+            - generic [ref=f16e429]:
+              - generic [ref=f16e430]: Régua do lab
+              - generic [ref=f16e433]: Meta do médico
+          - 'button "Hematocrito: 46,7 — Na referência. Ver tendência" [ref=f16e436] [cursor=pointer]':
+            - generic [ref=f16e438]:
+              - paragraph [ref=f16e439]: Hematocrito
+              - generic [ref=f16e440]: s/d
+            - generic [ref=f16e441]:
+              - paragraph [ref=f16e442]: 46,7
+              - generic [ref=f16e443]:
+                - generic [ref=f16e444]: "%"
+                - button "O que significa %?" [ref=f16e445]
+              - generic [ref=f16e448]: Na referência
+            - 'img "Régua: referência do laboratório de 40 a 50, meta clínica 45 – 52 %. Na referência." [ref=f16e449]':
+              - generic [ref=f16e454]:
+                - generic [ref=f16e455]: "40"
+                - generic [ref=f16e456]: Ref. laboratório 40–50
+                - generic [ref=f16e457]: "50"
+            - generic [ref=f16e458]: 🎯 Meta 45 – 52 % — Dr. Dr Teste QA
+            - generic [ref=f16e460]: Dentro da meta clínica e da referência do laboratório.
+            - generic [ref=f16e461]:
+              - generic [ref=f16e462]: Régua do lab
+              - generic [ref=f16e465]: Meta do médico
+          - 'button "Neutrofilos: 59,6 — ↓ Abaixo da referência. Ver tendência" [ref=f16e468] [cursor=pointer]':
+            - generic [ref=f16e470]:
+              - paragraph [ref=f16e471]: Neutrofilos
+              - generic [ref=f16e472]: s/d
+            - generic [ref=f16e473]:
+              - paragraph [ref=f16e474]: 59,6
+              - generic [ref=f16e475]:
+                - generic [ref=f16e476]: "%"
+                - button "O que significa %?" [ref=f16e477]
+              - generic [ref=f16e480]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 1.800 a 7.500. ↓ Abaixo da referência." [ref=f16e481]':
+              - generic [ref=f16e485]:
+                - generic [ref=f16e486]: "1.800"
+                - generic [ref=f16e487]: Ref. laboratório 1.800–7.500
+                - generic [ref=f16e488]: "7.500"
+            - generic [ref=f16e489]:
+              - generic [ref=f16e490]: Régua do lab
+              - generic [ref=f16e493]: Meta do médico
+          - 'button "Chcm: 32,1 — ↓ Abaixo da referência. Ver tendência" [ref=f16e496] [cursor=pointer]':
+            - generic [ref=f16e498]:
+              - paragraph [ref=f16e499]: Chcm
+              - generic [ref=f16e500]: s/d
+            - generic [ref=f16e501]:
+              - paragraph [ref=f16e502]: 32,1
+              - generic [ref=f16e503]: g/dt
+              - generic [ref=f16e504]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 315 a 345. ↓ Abaixo da referência." [ref=f16e505]':
+              - generic [ref=f16e509]:
+                - generic [ref=f16e510]: "315"
+                - generic [ref=f16e511]: Ref. laboratório 315–345
+                - generic [ref=f16e512]: "345"
+            - generic [ref=f16e513]:
+              - generic [ref=f16e514]: Régua do lab
+              - generic [ref=f16e517]: Meta do médico
+          - 'button "Hcm: 26 — ↓ Abaixo da referência. Ver tendência" [ref=f16e520] [cursor=pointer]':
+            - generic [ref=f16e522]:
+              - paragraph [ref=f16e523]: Hcm
+              - generic [ref=f16e524]: s/d
+            - generic [ref=f16e525]:
+              - paragraph [ref=f16e526]: "26"
+              - generic [ref=f16e527]:
+                - generic [ref=f16e528]: pg
+                - button "O que significa pg?" [ref=f16e529]
+              - generic [ref=f16e532]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 270 a 320. ↓ Abaixo da referência." [ref=f16e533]':
+              - generic [ref=f16e537]:
+                - generic [ref=f16e538]: "270"
+                - generic [ref=f16e539]: Ref. laboratório 270–320
+                - generic [ref=f16e540]: "320"
+            - generic [ref=f16e541]:
+              - generic [ref=f16e542]: Régua do lab
+              - generic [ref=f16e545]: Meta do médico
+          - 'button "Basofilos: 1,3 — Na referência. Ver tendência" [ref=f16e548] [cursor=pointer]':
+            - generic [ref=f16e550]:
+              - paragraph [ref=f16e551]: Basofilos
+              - generic [ref=f16e552]: s/d
+            - generic [ref=f16e553]:
+              - paragraph [ref=f16e554]: 1,3
+              - generic [ref=f16e555]:
+                - generic [ref=f16e556]: "%"
+                - button "O que significa %?" [ref=f16e557]
+              - generic [ref=f16e560]: Na referência
+            - 'img "Régua: referência do laboratório de 0 a 100. Na referência." [ref=f16e561]':
+              - generic [ref=f16e565]:
+                - generic [ref=f16e566]: "0"
+                - generic [ref=f16e567]: Ref. laboratório 0–100
+                - generic [ref=f16e568]: "100"
+            - generic [ref=f16e569]:
+              - generic [ref=f16e570]: Régua do lab
+              - generic [ref=f16e573]: Meta do médico
+          - 'button "Eosinofilos: 4 — Na referência. Ver tendência" [ref=f16e576] [cursor=pointer]':
+            - generic [ref=f16e578]:
+              - paragraph [ref=f16e579]: Eosinofilos
+              - generic [ref=f16e580]: s/d
+            - generic [ref=f16e581]:
+              - paragraph [ref=f16e582]: "4"
+              - generic [ref=f16e583]:
+                - generic [ref=f16e584]: "%"
+                - button "O que significa %?" [ref=f16e585]
+              - generic [ref=f16e588]: Na referência
+            - 'img "Régua: referência do laboratório de 0 a 450. Na referência." [ref=f16e589]':
+              - generic [ref=f16e593]:
+                - generic [ref=f16e594]: "0"
+                - generic [ref=f16e595]: Ref. laboratório 0–450
+                - generic [ref=f16e596]: "450"
+            - generic [ref=f16e597]:
+              - generic [ref=f16e598]: Régua do lab
+              - generic [ref=f16e601]: Meta do médico
+          - 'button "Leucocitos: 6.980 — Na referência. Ver tendência" [ref=f16e604] [cursor=pointer]':
+            - generic [ref=f16e606]:
+              - paragraph [ref=f16e607]: Leucocitos
+              - generic [ref=f16e608]: s/d
+            - generic [ref=f16e609]:
+              - paragraph [ref=f16e610]: "6.980"
+              - generic [ref=f16e611]:
+                - generic [ref=f16e612]: /mm³
+                - button "O que significa /mm³?" [ref=f16e613]
+              - generic [ref=f16e616]: Na referência
+            - 'img "Régua: referência do laboratório de 4.000 a 10.000. Na referência." [ref=f16e617]':
+              - generic [ref=f16e621]:
+                - generic [ref=f16e622]: "4.000"
+                - generic [ref=f16e623]: Ref. laboratório 4.000–10.000
+                - generic [ref=f16e624]: "10.000"
+            - generic [ref=f16e625]:
+              - generic [ref=f16e626]: Régua do lab
+              - generic [ref=f16e629]: Meta do médico
+          - 'button "Rdw: 11,6 — Na referência. Ver tendência" [ref=f16e632] [cursor=pointer]':
+            - generic [ref=f16e634]:
+              - paragraph [ref=f16e635]: Rdw
+              - generic [ref=f16e636]: s/d
+            - generic [ref=f16e637]:
+              - paragraph [ref=f16e638]: 11,6
+              - generic [ref=f16e639]:
+                - generic [ref=f16e640]: "%"
+                - button "O que significa %?" [ref=f16e641]
+              - generic [ref=f16e644]: Na referência
+            - 'img "Régua: referência do laboratório de 10 a 140. Na referência." [ref=f16e645]':
+              - generic [ref=f16e649]:
+                - generic [ref=f16e650]: "10"
+                - generic [ref=f16e651]: Ref. laboratório 10–140
+                - generic [ref=f16e652]: "140"
+            - generic [ref=f16e653]:
+              - generic [ref=f16e654]: Régua do lab
+              - generic [ref=f16e657]: Meta do médico
+          - 'button "Linfocitos: 0 — Na referência. Ver tendência" [ref=f16e660] [cursor=pointer]':
+            - generic [ref=f16e662]:
+              - paragraph [ref=f16e663]: Linfocitos
+              - generic [ref=f16e664]: s/d
+            - generic [ref=f16e665]:
+              - paragraph [ref=f16e666]: "0"
+              - generic [ref=f16e667]:
+                - generic [ref=f16e668]: "%"
+                - button "O que significa %?" [ref=f16e669]
+              - generic [ref=f16e672]: Na referência
+            - generic [ref=f16e673]: Sem faixa de referência informada pelo laboratório.
+            - generic [ref=f16e674]:
+              - generic [ref=f16e675]: Régua do lab
+              - generic [ref=f16e678]: Meta do médico
+          - 'button "Hemacias: 5,78 — ↓ Abaixo da referência. Ver tendência" [ref=f16e681] [cursor=pointer]':
+            - generic [ref=f16e683]:
+              - paragraph [ref=f16e684]: Hemacias
+              - generic [ref=f16e685]: s/d
+            - generic [ref=f16e686]:
+              - paragraph [ref=f16e687]: 5,78
+              - generic [ref=f16e688]: milhões/mm³
+              - generic [ref=f16e689]: ↓ Abaixo da referência
+            - 'img "Régua: referência do laboratório de 450 a 550. ↓ Abaixo da referência." [ref=f16e690]':
+              - generic [ref=f16e694]:
+                - generic [ref=f16e695]: "450"
+                - generic [ref=f16e696]: Ref. laboratório 450–550
+                - generic [ref=f16e697]: "550"
+            - generic [ref=f16e698]:
+              - generic [ref=f16e699]: Régua do lab
+              - generic [ref=f16e702]: Meta do médico
+        - generic [ref=f16e706]:
+          - heading "Linha do tempo do atleta" [level=2] [ref=f16e707]
+          - generic [ref=f16e708]: Exames, substâncias declaradas — dos mais recentes.
+          - generic [ref=f16e711]:
+            - generic [ref=f16e718]:
+              - paragraph [ref=f16e719]: PAINEL GRANDE
+              - generic [ref=f16e720]: 16 de jul. de 2026
+            - generic [ref=f16e726]:
+              - generic [ref=f16e727]:
+                - paragraph [ref=f16e728]: GLICEMIA DE JEJUM
+                - generic [ref=f16e729]: 09 de jul. de 2026
+              - generic [ref=f16e730]: 2 alterados
+            - generic [ref=f16e738]:
+              - generic [ref=f16e739]:
+                - paragraph [ref=f16e740]: PERFIL LIPÍDICO
+                - generic [ref=f16e741]: 09 de jul. de 2026
+              - generic [ref=f16e742]: 4 alterados
+            - generic [ref=f16e751]:
+              - paragraph [ref=f16e752]: HEMOGRAMA
+              - generic [ref=f16e753]: 09 de jul. de 2026
+            - generic [ref=f16e760]:
+              - paragraph [ref=f16e761]: ORFAO
+              - generic [ref=f16e762]: 05 de mai. de 2026
+            - generic [ref=f16e769]:
+              - paragraph [ref=f16e770]: HEMOGRAMA
+              - generic [ref=f16e771]: 14 de abr. de 2026
+            - generic [ref=f16e778]:
+              - paragraph [ref=f16e779]: ANUAL 2025
+              - generic [ref=f16e780]: 13 de abr. de 2026
+            - generic [ref=f16e787]:
+              - paragraph [ref=f16e788]: ANUAL 2026
+              - generic [ref=f16e789]: 10 de jan. de 2026
+          - generic [ref=f16e790]: 📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
+        - generic [ref=f16e791]:
+          - generic [ref=f16e792]:
+            - heading "Perguntas para levar ao médico" [level=2] [ref=f16e796]
+            - generic [ref=f16e797]: Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+            - generic [ref=f16e798]:
+              - generic [ref=f16e799]:
+                - generic [ref=f16e800]: "1"
+                - generic [ref=f16e801]:
+                  - paragraph [ref=f16e802]: Ldl Colesterol fora da referência
+                  - paragraph [ref=f16e803]: "\"Doutor, meu ldl colesterol está em 158 mg/dL — o laudo não traz a faixa de referência no contexto do meu treino. O que isso significa pra minha rotina?\""
+              - generic [ref=f16e804]:
+                - generic [ref=f16e805]: "2"
+                - generic [ref=f16e806]:
+                  - paragraph [ref=f16e807]: HDL e cardioproteção
+                  - paragraph [ref=f16e808]: "\"Com andrógeno declarado, meu HDL veio em 38 mg/dL (referência a partir de 40 mg/dL). Quais medidas de cardioproteção devo adotar nessa fase?\""
+              - generic [ref=f16e809]:
+                - generic [ref=f16e810]: "3"
+                - generic [ref=f16e811]:
+                  - paragraph [ref=f16e812]: Meta clínica não atingida
+                  - paragraph [ref=f16e813]: "\"A meta definida pelo(a) Dr. Dr Teste QA (CRM 99999-SP) para hematócrito é 45 – 52 % e meu valor está em 44 %. Como ajustar?\""
+          - generic [ref=f16e814]:
+            - generic [ref=f16e815]:
+              - heading "Substâncias declaradas" [level=2] [ref=f16e816]
+              - generic [ref=f16e817]: Confidencial · Registro LGPD
+            - generic [ref=f16e818]: O que você declarou entra como CONTEXTO da análise — o app nunca sugere dose, ciclo ou substância.
+            - generic [ref=f16e825]:
+              - generic [ref=f16e826]:
+                - paragraph [ref=f16e827]: Durateston
+                - generic [ref=f16e828]: dose declarada
+              - generic [ref=f16e830]: Hormônio · 250 mg a cada 21 dias
+              - generic [ref=f16e831]: "Impacto nos exames: Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar."
+        - generic [ref=f16e832]: "*Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico. · 30 marcadores analisados."

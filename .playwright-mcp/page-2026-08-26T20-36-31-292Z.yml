@@ -1,0 +1,57 @@
+- generic [ref=f14e1]:
+  - generic [ref=f14e3]:
+    - button [ref=f14e241] [cursor=pointer]: Pular para o conteúdo
+    - main [ref=f14e29]:
+      - navigation [ref=f14e245]:
+        - button [ref=f14e247] [cursor=pointer]:
+          - generic [ref=f14e251]: Exames
+        - generic [ref=f14e255]:
+          - button [expanded] [ref=f14e256] [cursor=pointer]:
+            - generic [ref=f14e261]: Cuidados
+          - generic [ref=f14e268]:
+            - button [ref=f14e269] [cursor=pointer]:
+              - generic [ref=f14e274]: Medições
+            - button [ref=f14e276] [cursor=pointer]:
+              - generic [ref=f14e280]: Remédios
+            - button [ref=f14e282] [cursor=pointer]:
+              - generic [ref=f14e286]: Vacinas
+            - button [ref=f14e288] [cursor=pointer]:
+              - generic [ref=f14e292]: Lembretes
+            - button [ref=f14e294] [cursor=pointer]:
+              - generic [ref=f14e298]: Cartão de Emergência
+            - button [ref=f14e300] [cursor=pointer]:
+              - generic [ref=f14e304]: Conquistas
+        - button [ref=f14e307] [cursor=pointer]:
+          - generic [ref=f14e312]: Pessoas
+        - button [ref=f14e317] [cursor=pointer]:
+          - generic [ref=f14e321]: Conta
+        - separator [ref=f14e325]
+        - button [ref=f14e326] [cursor=pointer]:
+          - generic [ref=f14e330]: Dúvidas frequentes
+        - button [ref=f14e332] [cursor=pointer]:
+          - generic [ref=f14e336]: Como validamos
+        - menuitem [ref=f14e338] [cursor=pointer]:
+          - generic [ref=f14e342]: Sobre o app
+        - menuitem [ref=f14e344] [cursor=pointer]:
+          - generic [ref=f14e348]: Sair da conta
+      - generic [ref=f14e350]:
+        - heading [level=4] [ref=f14e356]: Meus Exames
+        - paragraph [ref=f14e357]: Seu assistente de saúde com IA
+  - dialog [ref=f14e210]:
+    - generic [ref=f14e211]:
+      - button [ref=f14e212] [cursor=pointer]: Pular
+      - generic [ref=f14e213]:
+        - heading [level=4] [ref=f14e216]: Envie seu exame
+        - paragraph [ref=f14e217]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f14e218]:
+        - button [ref=f14e224] [cursor=pointer]: Próximo
+        - paragraph [ref=f14e228]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f14e231]:
+    - heading [level=2] [ref=f14e232]:
+      - generic [ref=f14e233]:
+        - img "Dr. Exame" [ref=f14e234]
+        - paragraph [ref=f14e235]: 💡 Dica do Dr. Exame pra Ed
+    - paragraph [ref=f14e237]: "Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico."
+    - generic [ref=f14e238]:
+      - button "Depois" [ref=f14e239] [cursor=pointer]
+      - button "Ver notificações" [ref=f14e240] [cursor=pointer]

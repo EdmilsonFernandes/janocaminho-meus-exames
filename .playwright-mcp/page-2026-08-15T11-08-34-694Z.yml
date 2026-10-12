@@ -1,0 +1,144 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e1394] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e1395] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e1398]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e1399] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e1400]
+            - button "Notificações" [ref=e1401] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e1402] [cursor=pointer]
+            - button "Atualizar" [ref=e1403] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e1404]:
+            - generic [ref=e1410]:
+              - heading "Valores fora da faixa" [level=5] [ref=e1411]
+              - paragraph [ref=e1412]:
+                - text: Ordenados por
+                - strong [ref=e1413]: prioridade de atenção
+                - text: (🔴→🟡). Toque num exame pra expandir e em
+                - strong [ref=e1414]: Agendar
+                - text: pro especialista.
+            - generic [ref=e1445]:
+              - generic [ref=e1446]:
+                - generic [ref=e1447]: 🔴 1 Importante
+                - generic [ref=e1448]: 🟠 0 Moderadas
+                - generic [ref=e1449]: 🟡 7 Leves
+              - generic [ref=e1450]:
+                - text: Os
+                - strong [ref=e1451]: 🔴 importantes
+                - text: "merecem prioridade — leve ao médico. 🟠 moderadas: comente na consulta. 🟡 leves: só acompanhe."
+            - generic [ref=e1452]:
+              - heading [level=3] [ref=e1454]:
+                - button "🟡 HEMOGRAMA COMPLETO 📅 05/11/2025 · há 9 meses 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS 3 alterado(s)" [ref=e1455] [cursor=pointer]:
+                  - generic [ref=e1457]:
+                    - generic [ref=e1458]: 🟡
+                    - generic [ref=e1459]:
+                      - paragraph [ref=e1460]: HEMOGRAMA COMPLETO
+                      - generic [ref=e1461]: 📅 05/11/2025 · há 9 meses
+                      - generic [ref=e1462]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                    - generic [ref=e1463]: 3 alterado(s)
+              - generic [ref=e1468]:
+                - heading [level=3] [ref=e1469]:
+                  - button "🔴 HEMOGRAMA COMPLETO 📅 07/02/2025 · há 1 ano ⏳ Exame antigo — considere renovar com seu médico 🩺 Dr. GISELLE R. MAXIMO 5 alterado(s)" [expanded] [active] [ref=e1470] [cursor=pointer]:
+                    - generic [ref=e1472]:
+                      - generic [ref=e1473]: 🔴
+                      - generic [ref=e1474]:
+                        - paragraph [ref=e1475]: HEMOGRAMA COMPLETO
+                        - generic [ref=e1476]: 📅 07/02/2025 · há 1 ano
+                        - generic [ref=e1477]: ⏳ Exame antigo — considere renovar com seu médico
+                        - generic [ref=e1478]: 🩺 Dr. GISELLE R. MAXIMO
+                      - generic [ref=e1479]: 5 alterado(s)
+                - region [ref=e1488]:
+                  - generic [ref=e1490]:
+                    - generic [ref=e1492]:
+                      - generic [ref=e1493]:
+                        - generic [ref=e1494]:
+                          - paragraph [ref=e1495]: HOMA IR
+                          - generic "Importante" [ref=e1496]: 🔴 Importante
+                          - button "O que é este exame?" [ref=e1498] [cursor=pointer]
+                        - text: "Ref: 0 - 2.7"
+                      - generic [ref=e1501]:
+                        - generic [ref=e1502]: 7,2
+                        - generic [ref=e1503]: ↑ Acima da ref.
+                      - 'img "Valor 7.2: faixa de referência de 0 a 2.7, fora da faixa." [ref=e1505]':
+                        - generic [ref=e1509]:
+                          - generic [ref=e1510]: ▲ 0
+                          - generic [ref=e1511]: 2.7 ▲
+                    - generic [ref=e1513]:
+                      - generic [ref=e1514]:
+                        - generic [ref=e1515]:
+                          - paragraph [ref=e1516]: GLICOSE
+                          - generic "Leve" [ref=e1517]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1519] [cursor=pointer]
+                        - text: "Ref: 70 - 99 mg/dL"
+                      - generic [ref=e1522]:
+                        - generic [ref=e1523]: 102 mg/dL
+                        - generic [ref=e1524]: ↑ Acima da ref.
+                      - 'img "Valor 102: faixa de referência de 70 a 99, fora da faixa." [ref=e1526]':
+                        - generic [ref=e1530]:
+                          - generic [ref=e1531]: ▲ 70
+                          - generic [ref=e1532]: 99 ▲
+                    - generic [ref=e1534]:
+                      - generic [ref=e1535]:
+                        - generic [ref=e1536]:
+                          - paragraph [ref=e1537]: INSULINA BASAL
+                          - generic "Leve" [ref=e1538]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1540] [cursor=pointer]
+                        - text: "Ref: 2.6 - 24.9 mU/mL"
+                      - generic [ref=e1543]:
+                        - generic [ref=e1544]: 28,70 mU/mL
+                        - generic [ref=e1545]: ↑ Acima da ref.
+                      - 'img "Valor 28.7: faixa de referência de 2.6 a 24.9, fora da faixa." [ref=e1547]':
+                        - generic [ref=e1551]:
+                          - generic [ref=e1552]: ▲ 2.6
+                          - generic [ref=e1553]: 24.9 ▲
+                    - generic [ref=e1555]:
+                      - generic [ref=e1556]:
+                        - generic [ref=e1557]:
+                          - paragraph [ref=e1558]: FSH - HORMÔNIO FOLÍCULO ESTIMULANTE
+                          - generic "Leve" [ref=e1559]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1561] [cursor=pointer]
+                        - text: "Ref: 3.5 - 12.5 mUI/mL"
+                      - generic [ref=e1564]:
+                        - generic [ref=e1565]: 2,0 mUI/mL
+                        - generic [ref=e1566]: ↓ Abaixo da ref.
+                      - 'img "Valor 2: faixa de referência de 3.5 a 12.5, fora da faixa." [ref=e1568]':
+                        - generic [ref=e1572]:
+                          - generic [ref=e1573]: ▲ 3.5
+                          - generic [ref=e1574]: 12.5 ▲
+                    - generic [ref=e1576]:
+                      - generic [ref=e1577]:
+                        - generic [ref=e1578]:
+                          - paragraph [ref=e1579]: ESTRADIOL
+                          - generic "Leve" [ref=e1580]: 🟡 Leve
+                          - button "O que é este exame?" [ref=e1582] [cursor=pointer]
+                        - text: "Ref: 30.9 - 90.4 pg/mL"
+                      - generic [ref=e1585]:
+                        - generic [ref=e1586]: 96,20 pg/mL
+                        - generic [ref=e1587]: ↑ Acima da ref.
+                      - 'img "Valor 96.2: faixa de referência de 30.9 a 90.4, fora da faixa." [ref=e1589]':
+                        - generic [ref=e1593]:
+                          - generic [ref=e1594]: ▲ 30.9
+                          - generic [ref=e1595]: 90.4 ▲
+            - generic [ref=e1431]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e1432] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e1435]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1441]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1442]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1443]

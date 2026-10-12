@@ -1,0 +1,34 @@
+- generic [active] [ref=f3e18]:
+  - generic [ref=f3e592]:
+    - generic [ref=f3e593]:
+      - img "Dr. Exame" [ref=f3e595]
+      - generic [ref=f3e596]:
+        - heading "Meus Exames" [level=5] [ref=f3e597]
+        - paragraph [ref=f3e598]: Seu assistente de saúde com IA
+    - generic [ref=f3e599]:
+      - button [ref=f3e600] [cursor=pointer]
+      - button [ref=f3e605] [cursor=pointer]
+    - generic [ref=f3e611]:
+      - generic [ref=f3e613]:
+        - textbox "E-mail" [ref=f3e618]
+        - group
+      - generic [ref=f3e620]:
+        - textbox "Senha" [ref=f3e625]
+        - button "Mostrar senha" [ref=f3e627] [cursor=pointer]
+        - group
+      - button "Esqueci minha senha" [ref=f3e633] [cursor=pointer]
+      - button [ref=f3e634] [cursor=pointer]
+      - generic [ref=f3e643]:
+        - paragraph [ref=f3e644]: Acesso seguro
+        - paragraph [ref=f3e645]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=f3e646]:
+        - text: Não tem conta?
+        - button "Criar agora" [ref=f3e647] [cursor=pointer]
+    - generic [ref=f3e648]:
+      - generic [ref=f3e649]: 🩺
+      - paragraph [ref=f3e650]:
+        - strong [ref=f3e651]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=f3e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e17]

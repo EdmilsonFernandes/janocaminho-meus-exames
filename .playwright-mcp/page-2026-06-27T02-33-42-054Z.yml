@@ -1,0 +1,100 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e258] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e259] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e277] [cursor=pointer]:
+              - img [ref=e278]
+            - button "99" [ref=e260] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "99"
+            - button "E" [ref=e261] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button "Modo escuro" [ref=e262] [cursor=pointer]:
+              - img [ref=e37]
+            - button "0" [ref=e263] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic: "0"
+            - button "Mais opções" [ref=e264] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Atualizar" [ref=e265] [cursor=pointer]:
+              - img [ref=e48]
+        - main [ref=e50]:
+          - generic [ref=e548]:
+            - generic [ref=e549]:
+              - button "←" [ref=e550] [cursor=pointer]
+              - img "Dr. Exame" [ref=e551]
+              - generic [ref=e552]:
+                - paragraph [ref=e553]: Dr. Exame
+                - paragraph [ref=e554]: Assistente de saúde
+              - button "Nova conversa" [ref=e555] [cursor=pointer]:
+                - img [ref=e556]
+              - button "0" [ref=e558] [cursor=pointer]:
+                - generic [ref=e559]:
+                  - img [ref=e560]
+                  - generic: "0"
+            - generic [ref=e563]:
+              - img "Dr. Exame" [ref=e565]
+              - paragraph [ref=e566]: Oi, Edmilson! 👋
+              - paragraph [ref=e567]:
+                - text: Sou o Dr. Exame. Pergunte sobre seus exames ou toque em
+                - strong [ref=e568]: +
+                - text: pra ver o que posso fazer.
+              - generic [ref=e569]:
+                - generic [ref=e570] [cursor=pointer]:
+                  - generic [ref=e571]: 📊
+                  - paragraph [ref=e572]: Resumo dos meus exames
+                - generic [ref=e573] [cursor=pointer]:
+                  - generic [ref=e574]: ⚠️
+                  - paragraph [ref=e575]: O que está alterado
+                - generic [ref=e576] [cursor=pointer]:
+                  - generic [ref=e577]: 📈
+                  - paragraph [ref=e578]: Minha evolução
+                - generic [ref=e579] [cursor=pointer]:
+                  - generic [ref=e580]: 🔄
+                  - paragraph [ref=e581]: Comparar exames
+                - generic [ref=e582] [cursor=pointer]:
+                  - generic [ref=e583]: 📖
+                  - paragraph [ref=e584]: Explicar termo médico
+                - generic [ref=e585] [cursor=pointer]:
+                  - generic [ref=e586]: 🔬
+                  - paragraph [ref=e587]: O que significa meu resultado
+                - generic [ref=e588] [cursor=pointer]:
+                  - generic [ref=e589]: 🎯
+                  - paragraph [ref=e590]: Minhas metas e referências
+                - generic [ref=e591] [cursor=pointer]:
+                  - generic [ref=e592]: 🚨
+                  - paragraph [ref=e593]: O que precisa de atenção urgente
+              - generic [ref=e595]:
+                - generic [ref=e596]: 💎
+                - generic [ref=e597]: 2 crédito por pergunta
+            - generic [ref=e598]:
+              - button "Ações rápidas" [ref=e599] [cursor=pointer]:
+                - img [ref=e600]
+              - textbox "Pergunte sobre seus exames…" [ref=e602]
+              - button [disabled]:
+                - img
+    - navigation [ref=e218]:
+      - generic [ref=e219] [cursor=pointer]:
+        - generic [ref=e220]: 🏠
+        - paragraph [ref=e221]: Início
+      - generic [ref=e223] [cursor=pointer]:
+        - generic [ref=e224]: 📋
+        - paragraph [ref=e225]: Exames
+      - generic [ref=e226] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e272]
+        - paragraph [ref=e229]: Dr. Exame
+      - generic [ref=e230] [cursor=pointer]:
+        - generic [ref=e231]: 📈
+        - paragraph [ref=e232]: Evolução
+      - generic [ref=e233] [cursor=pointer]:
+        - generic [ref=e234]: ☰
+        - paragraph [ref=e235]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e273]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e274]

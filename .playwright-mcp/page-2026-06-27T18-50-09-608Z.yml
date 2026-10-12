@@ -1,0 +1,57 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button "Pular para o conteúdo" [ref=e1043] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button "Menu" [ref=e1044] [cursor=pointer]:
+              - img [ref=e495]
+            - button "Voltar" [ref=e1045] [cursor=pointer]:
+              - img [ref=e766]
+            - button "79" [ref=e1046] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button "E" [ref=e1047] [cursor=pointer]:
+              - generic [ref=e504]: E
+            - button "3" [ref=e1048] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button "Mais opções" [ref=e1049] [cursor=pointer]:
+              - img [ref=e511]
+            - button "Atualizar" [ref=e1050] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - generic [ref=e1475]:
+            - heading "🧾 Relatório completo de saúde" [level=5] [ref=e1476]
+            - paragraph [ref=e1477]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - button "Gerar relatório completo" [ref=e1478] [cursor=pointer]:
+              - img [ref=e1480]
+              - text: Gerar relatório completo
+            - generic [ref=e1482]:
+              - generic [ref=e1483]: 💎
+              - generic [ref=e1484]: 20 créditos
+    - button "Pergunte ao Dr. Exame" [ref=e1092] [cursor=pointer]:
+      - generic [ref=e1093]:
+        - img "Dr. Exame" [ref=e1095]
+        - img [ref=e1097]
+    - navigation [ref=e636]:
+      - generic [ref=e637] [cursor=pointer]:
+        - generic [ref=e638]: 🏠
+        - paragraph [ref=e639]: Início
+      - generic [ref=e641] [cursor=pointer]:
+        - generic [ref=e642]: 📋
+        - paragraph [ref=e643]: Exames
+      - generic [ref=e644] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1074]
+        - paragraph [ref=e647]: Dr. Exame
+      - generic [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]: 📈
+        - paragraph [ref=e650]: Evolução
+      - generic [ref=e651] [cursor=pointer]:
+        - generic [ref=e652]: ☰
+        - paragraph [ref=e653]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1075]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1076]

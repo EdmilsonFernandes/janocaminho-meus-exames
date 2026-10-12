@@ -1,0 +1,113 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "19"
+              - button [ref=e38]
+            - button [ref=e41] [cursor=pointer]:
+              - generic [ref=e42]: "1"
+            - button [ref=e47] [cursor=pointer]:
+              - generic [ref=e48]: E
+            - button [ref=e54] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - paragraph [ref=e61]: Bom dia, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e62]:
+              - generic [ref=e64]:
+                - generic [ref=e65]:
+                  - paragraph [ref=e72]: de 100
+                  - generic [ref=e73]:
+                    - paragraph [ref=e74]: Sua saúde hoje
+                    - paragraph [ref=e75]: Em ótima forma
+                    - generic [ref=e76]:
+                      - paragraph [ref=e77]: ● Nada crítico no momento
+                      - paragraph [ref=e78]: · atualizado 11/11/2025
+                - button [ref=e79] [cursor=pointer]: Ver análise completa
+              - generic [ref=e84]:
+                - paragraph [ref=e85]: Desde seu último exame
+                - paragraph [ref=e87]: Carregando…
+                - button [ref=e89] [cursor=pointer]: Ver evolução completa
+            - button [ref=e98] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e102]:
+              - generic [ref=e109] [cursor=pointer]:
+                - paragraph [ref=e110]: Cardiometabólico
+                - paragraph [ref=e111]: —
+                - paragraph [ref=e112]: sem fatores
+              - generic [ref=e115] [cursor=pointer]:
+                - generic [ref=e116]: 🧬
+                - generic [ref=e117]:
+                  - paragraph [ref=e118]: Idade biológica
+                  - paragraph [ref=e119]: 49a
+                  - paragraph [ref=e120]: cadastre seu nascimento
+              - generic [ref=e127] [cursor=pointer]:
+                - paragraph [ref=e128]: Seus exames
+                - paragraph [ref=e129]: —
+                - paragraph [ref=e130]: 8 alterados
+              - generic [ref=e137] [cursor=pointer]:
+                - paragraph [ref=e138]: Evolução
+                - paragraph [ref=e139]: Tendências
+                - paragraph [ref=e140]: 89 resultados
+            - generic [ref=e142]:
+              - generic [ref=e143]: Enviar exame
+              - generic [ref=e150]: Evolução
+              - generic [ref=e157]: Família
+              - generic [ref=e165]: Relatório
+            - button [ref=e173] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e177]:
+      - paragraph [ref=e182] [cursor=pointer]: Início
+      - paragraph [ref=e188] [cursor=pointer]: Exames
+      - paragraph [ref=e192] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e197] [cursor=pointer]: Evolução
+      - paragraph [ref=e202] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e207]:
+    - navigation [ref=e208]:
+      - button [ref=e210] [cursor=pointer]:
+        - generic [ref=e214]: Exames
+      - button [ref=e219] [cursor=pointer]:
+        - generic [ref=e224]: Cuidados
+      - button [ref=e229] [cursor=pointer]:
+        - generic [ref=e234]: Pessoas
+      - button [ref=e239] [cursor=pointer]:
+        - generic [ref=e243]: Conta
+      - separator [ref=e247]
+      - button [ref=e248] [cursor=pointer]:
+        - generic [ref=e252]: Ajuda & Suporte
+      - menuitem [ref=e254] [cursor=pointer]:
+        - generic [ref=e258]: Sobre o app
+      - menuitem [ref=e260] [cursor=pointer]:
+        - generic [ref=e264]: Sair da conta
+  - dialog [ref=e268]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e269]
+    - generic [ref=e270]:
+      - generic [ref=e271]: Versão 2.7.70
+      - generic [ref=e272]:
+        - generic [ref=e273]:
+          - generic [ref=e274]: 📱
+          - generic [ref=e275]:
+            - paragraph [ref=e276]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e277]:
+          - generic [ref=e278]: 🔐
+          - generic [ref=e279]:
+            - paragraph [ref=e280]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e281]:
+          - generic [ref=e282]: 🩺
+          - generic [ref=e283]:
+            - paragraph [ref=e284]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e285]:
+          - generic [ref=e286]: 🚑
+          - generic [ref=e287]:
+            - paragraph [ref=e288]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button "Legal! →" [ref=e290] [cursor=pointer]

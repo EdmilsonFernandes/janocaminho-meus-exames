@@ -1,0 +1,70 @@
+- generic [ref=e20]:
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button [ref=e376] [cursor=pointer]
+        - button [ref=e377] [cursor=pointer]:
+          - generic [ref=e26]: D
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: E
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - paragraph [ref=e149]: Edmilson Lopes QA
+                - button [ref=e378] [cursor=pointer]: Trocar
+              - paragraph [ref=e154]: Masculino • Titular • Particular
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: Último exame
+              - paragraph [ref=e161]: 03/08
+              - text: há 12 dias
+            - button [ref=e379] [cursor=pointer]:
+              - generic [ref=e163]: Alterações
+              - paragraph [ref=e168]: "1"
+            - generic [ref=e169]:
+              - generic [ref=e170]: Pendências
+              - paragraph [ref=e174]: "0"
+            - generic [ref=e175]:
+              - generic [ref=e176]: Anotações
+              - paragraph [ref=e180]: "0"
+        - tablist [ref=e380]:
+          - tab [ref=e381] [cursor=pointer]:
+            - superscript [ref=e363]: "1"
+          - tab [ref=e382] [cursor=pointer]:
+            - superscript [ref=e239]: "1"
+          - tab [selected] [ref=e383] [cursor=pointer]:
+            - generic [ref=e364]: Tendências
+          - tab [ref=e384] [cursor=pointer]
+          - tab [ref=e385] [cursor=pointer]
+          - tab [ref=e386] [cursor=pointer]
+        - generic [ref=e366]:
+          - generic [ref=e368]:
+            - heading [level=5] [ref=e387]: 📈 Tendências
+            - paragraph [ref=e370]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=e372]:
+            - generic [ref=e373]: 📊
+            - heading [level=6] [ref=e388]: Sem marcadores com histórico suficiente
+            - paragraph [ref=e375]: Sem marcadores com histórico suficiente para tendências. São necessários pelo menos dois resultados do mesmo analito em datas diferentes para mostrar a evolução.
+    - navigation [ref=e105]:
+      - button [ref=e389] [cursor=pointer]:
+        - paragraph [ref=e111]: Início
+      - button [ref=e390] [cursor=pointer]:
+        - paragraph [ref=e118]: Pacientes
+      - button [ref=e391] [cursor=pointer]:
+        - paragraph [ref=e124]: Perguntas
+      - button [ref=e392] [cursor=pointer]:
+        - paragraph [ref=e130]: Perfil
+      - button [ref=e393] [cursor=pointer]:
+        - paragraph [ref=e136]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e398]:
+    - generic [ref=e400]:
+      - paragraph [ref=e401]: Selecionar paciente
+      - button "E Edmilson Lopes QA" [ref=e402] [cursor=pointer]:
+        - generic [ref=e403]: E
+        - generic [ref=e405]: Edmilson Lopes QA
+      - button "Fechar" [ref=e408] [cursor=pointer]

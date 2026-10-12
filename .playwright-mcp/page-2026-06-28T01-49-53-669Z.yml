@@ -1,0 +1,104 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e81]:
+      - button [ref=e82] [cursor=pointer]
+      - generic [ref=e83]:
+        - banner [ref=e84]:
+          - generic [ref=e85]:
+            - button [ref=e86] [cursor=pointer]:
+              - img [ref=e87]
+            - button [ref=e347] [cursor=pointer]:
+              - img [ref=e348]
+            - button [ref=e89] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e92]: "79"
+            - button [ref=e94] [cursor=pointer]:
+              - generic [ref=e96]: E
+            - button [ref=e97] [cursor=pointer]:
+              - generic [ref=e98]:
+                - img [ref=e99]
+                - generic [ref=e101]: "3"
+            - button [ref=e102] [cursor=pointer]:
+              - img [ref=e103]
+            - button [ref=e106] [cursor=pointer]:
+              - img [ref=e107]
+        - main [ref=e109]:
+          - generic [ref=e350]:
+            - generic [ref=e351]:
+              - img [ref=e353]
+              - generic [ref=e355]:
+                - heading [level=5] [ref=e356]: Evolução ao longo do tempo
+                - paragraph [ref=e357]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - generic [ref=e369]:
+              - generic [ref=e370]:
+                - generic [ref=e371]: 🟢 0 Melhoraram
+                - generic [ref=e372]: 🔴 0 Pioraram
+                - generic [ref=e373]: ✅ 20 Estáveis
+              - generic [ref=e374]:
+                - text: Tudo estável entre as coletas — mantenha o acompanhamento.
+                - strong [ref=e375]: ·
+                - text: Conteúdo educativo — a decisão final é do médico.
+            - generic [ref=e376]:
+              - button [ref=e378] [cursor=pointer]:
+                - generic [ref=e379]: 📋 Todos (20)
+              - button [ref=e381] [cursor=pointer]:
+                - generic [ref=e382]: 🔴 Fora da faixa (10)
+              - button [ref=e384] [cursor=pointer]:
+                - generic [ref=e385]: 🟠 Em mudança (0)
+              - button [ref=e387] [cursor=pointer]:
+                - generic [ref=e388]: ✅ Estável (10)
+            - generic [ref=e389]:
+              - img [ref=e390]
+              - textbox [ref=e393]:
+                - /placeholder: Buscar exame (TSH, glicose, colesterol…)
+            - generic [ref=e394]:
+              - generic [ref=e396] [cursor=pointer]:
+                - generic [ref=e397]: 🩸
+                - paragraph [ref=e398]: Hemograma
+                - generic [ref=e399]: 🔴
+                - generic [ref=e401]: "15"
+                - img [ref=e402]
+              - generic [ref=e405] [cursor=pointer]:
+                - generic [ref=e406]: 🫀
+                - paragraph [ref=e407]: Função Hepática
+                - generic [ref=e408]: ✅
+                - generic [ref=e410]: "2"
+                - img [ref=e411]
+              - generic [ref=e414] [cursor=pointer]:
+                - generic [ref=e415]: 📋
+                - paragraph [ref=e416]: Outros exames
+                - generic [ref=e417]: ✅
+                - generic [ref=e419]: "3"
+                - img [ref=e420]
+    - button [ref=e361] [cursor=pointer]:
+      - generic [ref=e362]:
+        - img [ref=e364]
+        - img [ref=e366]
+    - navigation [ref=e314]:
+      - generic [ref=e315] [cursor=pointer]:
+        - generic [ref=e316]: 🏠
+        - paragraph [ref=e317]: Início
+      - generic [ref=e319] [cursor=pointer]:
+        - generic [ref=e320]: 📋
+        - paragraph [ref=e321]: Exames
+      - generic [ref=e322] [cursor=pointer]:
+        - img [ref=e324]
+        - paragraph [ref=e325]: Dr. Exame
+      - generic [ref=e326] [cursor=pointer]:
+        - generic [ref=e327]: 📈
+        - paragraph [ref=e328]: Evolução
+      - generic [ref=e329] [cursor=pointer]:
+        - generic [ref=e330]: ☰
+        - paragraph [ref=e331]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e332]
+    - img [ref=e333]
+  - dialog [active] [ref=e337]:
+    - heading [level=2] [ref=e338]:
+      - generic [ref=e339]:
+        - img [ref=e340]
+        - paragraph [ref=e341]: "🎉 Conquista: Primeiro exame"
+    - paragraph [ref=e343]: Envie seu primeiro exame — resgate seu crédito!
+    - generic [ref=e344]:
+      - button [ref=e345] [cursor=pointer]: Depois
+      - button [ref=e346] [cursor=pointer]: Ver notificacoes

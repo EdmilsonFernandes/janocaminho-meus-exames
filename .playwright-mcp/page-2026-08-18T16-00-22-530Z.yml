@@ -1,0 +1,118 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button [ref=e280] [cursor=pointer]
+            - paragraph [ref=e286]: Dr. Exame
+            - button [ref=e287] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button [ref=e291] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button [ref=e297] [cursor=pointer]:
+              - generic [ref=e298]: E
+        - main [ref=e57]:
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - paragraph [ref=e61]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e70]:
+                  - paragraph [ref=e71]: "45"
+                  - paragraph [ref=e72]: de 100
+                - generic [ref=e73]:
+                  - paragraph [ref=e74]: Sua saúde hoje
+                  - paragraph [ref=e75]: Pede atenção
+                  - paragraph [ref=e77]:
+                    - generic [ref=e78]: ● 6 moderados
+              - button [ref=e79] [cursor=pointer]: Ver análise completa
+            - button [ref=e88] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e92]:
+              - generic [ref=e99] [cursor=pointer]:
+                - paragraph [ref=e100]: Cardiometabólico
+                - paragraph [ref=e101]: Em dia
+                - paragraph [ref=e102]: sem fatores
+              - generic [ref=e105] [cursor=pointer]:
+                - generic [ref=e106]: 🧬
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: Idade biológica
+                  - paragraph [ref=e109]: Em breve
+                  - paragraph [ref=e110]: estimativa c/ +exames
+              - generic [ref=e117] [cursor=pointer]:
+                - paragraph [ref=e118]: Seus exames
+                - paragraph [ref=e119]: "5"
+                - paragraph [ref=e120]: 8 alterados
+              - generic [ref=e127] [cursor=pointer]:
+                - paragraph [ref=e128]: Evolução
+                - paragraph [ref=e129]: Tendências
+                - paragraph [ref=e130]: 28 resultados
+            - generic [ref=e132]:
+              - generic [ref=e133]: Enviar exame
+              - generic [ref=e140]: Evolução
+              - generic [ref=e147]: Família
+              - generic [ref=e155]: Relatório
+            - generic [ref=e164]:
+              - generic [ref=e168]:
+                - paragraph [ref=e169]: "71"
+                - text: créditos disponíveis
+              - button [ref=e170] [cursor=pointer]: Comprar
+            - button [ref=e172] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - paragraph [ref=e191] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e205]:
+    - navigation [ref=e206]:
+      - button "Exames" [ref=e208] [cursor=pointer]
+      - button "Cuidados" [ref=e217] [cursor=pointer]
+      - button "Pessoas" [ref=e227] [cursor=pointer]
+      - button "Conta" [ref=e237] [cursor=pointer]
+      - separator [ref=e245]
+      - button "Ajuda & Suporte" [ref=e246] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e252] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e258] [cursor=pointer]
+  - generic: layout property animation
+  - generic: low contrast text, ✦ ai color palette
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e264] [cursor=pointer]
+        - button "›" [ref=e265] [cursor=pointer]
+      - generic: low contrast text
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e266] [cursor=pointer]
+        - button "›" [ref=e267] [cursor=pointer]
+      - generic: ✦ ai color palette
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e268] [cursor=pointer]
+        - button "›" [ref=e269] [cursor=pointer]
+      - generic: low contrast text
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: "transition: margin"
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic [ref=e270]:
+    - generic [ref=e271]:
+      - generic [ref=e272]: "✦ overused font: Primary font: inter (74% of text)"
+      - generic [ref=e273]: "layout property animation: transition: margin"
+      - generic [ref=e274]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e275]:
+      - button "◉" [ref=e276] [cursor=pointer]
+      - button "×" [ref=e277] [cursor=pointer]

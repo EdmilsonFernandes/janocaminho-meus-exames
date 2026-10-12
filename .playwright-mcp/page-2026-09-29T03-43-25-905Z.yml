@@ -1,0 +1,46 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e358]:
+    - generic [ref=f2e359]:
+      - img "Dr. Exame" [ref=f2e361]
+      - generic [ref=f2e362]:
+        - paragraph [ref=f2e363]: Meus Exames
+        - paragraph [ref=f2e364]: Seu assistente de saúde com IA
+    - generic [ref=f2e365]:
+      - button [ref=f2e366] [cursor=pointer]
+      - button [ref=f2e371] [cursor=pointer]
+    - generic [ref=f2e377]:
+      - generic [ref=f2e378]:
+        - generic [ref=f2e379]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=f2e380]: "*"
+        - generic [ref=f2e381]:
+          - textbox "E-mail" [ref=f2e386]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=f2e387]:
+        - generic [ref=f2e388]:
+          - text: Senha
+          - generic [aria-hidden] [ref=f2e389]: "*"
+        - generic [ref=f2e390]:
+          - textbox "Senha" [ref=f2e395]
+          - button "Mostrar senha" [ref=f2e397] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=f2e402] [cursor=pointer]
+      - button [ref=f2e403] [cursor=pointer]
+      - generic [ref=f2e407]: ou
+      - generic [ref=f2e411]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=f2e413] [cursor=pointer]:
+          - generic [ref=f2e415]: Continuar com o Google
+        - iframe
+      - paragraph [ref=f2e425]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=f2e426] [cursor=pointer]
+    - generic [ref=f2e427]:
+      - paragraph [ref=f2e433]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=f2e434]:
+        - strong [ref=f2e435]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=f2e103]:
+    - img "Acessível com VLibras" [ref=f2e104]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e105] [cursor=pointer]

@@ -1,0 +1,72 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button "Pular para o conteúdo" [ref=e1971] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button "Close menu" [ref=e1972] [cursor=pointer]:
+              - img [ref=e1973]
+            - heading "Exames" [level=6] [ref=e2064]:
+              - generic [ref=e2066]: Exames
+            - button "79" [ref=e1785] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e1975] [cursor=pointer]:
+              - generic [ref=e504]: E
+              - generic [ref=e1977]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e1979]
+            - button "3" [ref=e1787] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button "Mais opções" [ref=e1788] [cursor=pointer]:
+              - img [ref=e511]
+            - button "Atualizar" [ref=e1789] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - navigation [ref=e1984]:
+            - button "Início" [ref=e1985] [cursor=pointer]:
+              - img [ref=e1987]
+              - generic [ref=e1990]: Início
+            - button "Exames" [ref=e1991] [cursor=pointer]:
+              - img [ref=e1993]
+              - generic [ref=e1996]: Exames
+            - button "Dr. Exame (IA)" [ref=e1997] [cursor=pointer]:
+              - img [ref=e1999]
+              - generic [ref=e2002]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e2003] [cursor=pointer]:
+              - img [ref=e2005]
+              - generic [ref=e2008]: Relatório completo
+            - button "Evolução & Conquistas" [ref=e2010] [cursor=pointer]:
+              - img [ref=e2012]
+              - generic [ref=e2016]: Evolução & Conquistas
+              - img [ref=e2017]
+            - button "Minha Saúde" [ref=e2020] [cursor=pointer]:
+              - img [ref=e2022]
+              - generic [ref=e2026]: Minha Saúde
+              - img [ref=e2027]
+            - button "Família & Médicos" [ref=e2030] [cursor=pointer]:
+              - img [ref=e2032]
+              - generic [ref=e2036]: Família & Médicos
+              - img [ref=e2037]
+            - button "Conta" [ref=e2040] [cursor=pointer]:
+              - img [ref=e2042]
+              - generic [ref=e2045]: Conta
+              - img [ref=e2046]
+            - separator [ref=e2048]
+            - menuitem "❓ Ajuda & Suporte" [ref=e2049] [cursor=pointer]:
+              - generic [ref=e2050]: ❓
+              - generic [ref=e2052]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e2053] [cursor=pointer]:
+              - generic [ref=e2054]: ℹ️
+              - generic [ref=e2056]: Sobre o app
+            - menuitem "Sair da conta" [ref=e2057] [cursor=pointer]:
+              - img [ref=e2059]
+              - generic [ref=e2062]: Sair da conta
+            - generic [ref=e2063]: Meus Exames · v0.1.0 (unknown)
+    - button "Enviar exame" [ref=e2070] [cursor=pointer]:
+      - img [ref=e2071]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1797]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1798]

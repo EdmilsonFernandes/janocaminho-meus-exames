@@ -1,0 +1,93 @@
+- generic [ref=f15e5]:
+  - generic [ref=f15e6]:
+    - generic [ref=f15e86]:
+      - button [ref=f15e87] [cursor=pointer]
+      - generic [ref=f15e88]:
+        - banner [ref=f15e89]:
+          - generic [ref=f15e90]:
+            - button [ref=f15e91] [cursor=pointer]
+            - paragraph [ref=f15e97]: Dr. Exame
+            - generic [ref=f15e98]:
+              - button [ref=f15e99] [cursor=pointer]
+              - button [ref=f15e104] [cursor=pointer]:
+                - generic [ref=f15e105]: 👤
+                - generic [ref=f15e107]: Selecionar
+        - main [ref=f15e112]:
+          - generic [ref=f15e114]:
+            - generic [ref=f15e117]:
+              - paragraph [ref=f15e118]: Boa noite, tudo bem? 👋
+              - generic [ref=f15e119]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f15e120]:
+              - generic [ref=f15e122]:
+                - generic [ref=f15e123]:
+                  - paragraph [ref=f15e130]: de 100
+                  - generic [ref=f15e131]:
+                    - paragraph [ref=f15e132]: Sua saúde hoje
+                    - paragraph [ref=f15e133]: Começa com seu primeiro exame
+                    - paragraph [ref=f15e135]: Envie um exame pra começarmos a construir sua visão de saúde.
+                - button [ref=f15e136] [cursor=pointer]: Enviar primeiro exame
+              - generic [ref=f15e141]:
+                - paragraph [ref=f15e142]: O que mudou nos seus exames
+                - paragraph [ref=f15e144]: Carregando…
+                - button [ref=f15e146] [cursor=pointer]: Ver evolução completa
+            - generic [ref=f15e153]:
+              - generic [ref=f15e154]:
+                - paragraph [ref=f15e156]: ✨ Entenda seus exames com IA
+                - paragraph [ref=f15e157]: Tire dúvidas clínicas, compare referências e receba orientações personalizadas sobre seus marcadores em segundos.
+              - button [ref=f15e159] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f15e163]:
+              - generic [ref=f15e171] [cursor=pointer]:
+                - paragraph [ref=f15e172]: Cardiometabólico
+                - paragraph [ref=f15e173]: —
+              - generic [ref=f15e181] [cursor=pointer]:
+                - paragraph [ref=f15e182]: Idade biológica
+                - paragraph [ref=f15e183]: …
+              - generic [ref=f15e191] [cursor=pointer]:
+                - paragraph [ref=f15e192]: Seus exames
+                - paragraph [ref=f15e193]: —
+                - paragraph [ref=f15e194]: 0 alterados
+              - generic [ref=f15e202] [cursor=pointer]:
+                - paragraph [ref=f15e203]: Evolução
+                - paragraph [ref=f15e204]: —
+            - generic [ref=f15e206]:
+              - generic [ref=f15e207]: Enviar exame
+              - generic [ref=f15e214]: Evolução
+              - generic [ref=f15e221]: Família
+              - generic [ref=f15e229]: Relatório
+            - button [ref=f15e237] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f15e241]:
+      - paragraph [ref=f15e246] [cursor=pointer]: Início
+      - paragraph [ref=f15e252] [cursor=pointer]: Exames
+      - paragraph [ref=f15e256] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f15e261] [cursor=pointer]: Evolução
+      - paragraph [ref=f15e266] [cursor=pointer]: Mais
+  - button [ref=f15e267] [cursor=pointer]
+  - dialog [active] [ref=f15e270]:
+    - navigation [ref=f15e271]:
+      - button [ref=f15e273] [cursor=pointer]:
+        - generic [ref=f15e277]: Exames
+      - button [ref=f15e282] [cursor=pointer]:
+        - generic [ref=f15e287]: Cuidados
+      - button [ref=f15e292] [cursor=pointer]:
+        - generic [ref=f15e297]: Pessoas
+      - button [ref=f15e302] [cursor=pointer]:
+        - generic [ref=f15e306]: Conta
+      - separator [ref=f15e310]
+      - button [ref=f15e311] [cursor=pointer]:
+        - generic [ref=f15e315]: Dúvidas frequentes
+      - button [ref=f15e317] [cursor=pointer]:
+        - generic [ref=f15e321]: Como validamos
+      - menuitem [ref=f15e323] [cursor=pointer]:
+        - generic [ref=f15e327]: Sobre o app
+      - menuitem [ref=f15e329] [cursor=pointer]:
+        - generic [ref=f15e333]: Sair da conta
+  - dialog [ref=f15e337]:
+    - generic [ref=f15e338]:
+      - button "Pular" [ref=f15e339] [cursor=pointer]
+      - generic [ref=f15e340]:
+        - img "Dr. Exame" [ref=f15e342]
+        - heading "Envie seu exame" [level=4] [ref=f15e343]
+        - paragraph [ref=f15e344]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f15e345]:
+        - button [ref=f15e351] [cursor=pointer]
+        - paragraph [ref=f15e355]: Toque em Próximo para continuar →

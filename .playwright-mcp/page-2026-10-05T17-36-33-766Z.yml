@@ -1,0 +1,95 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - button "Pular para o conteúdo" [ref=f2e4] [cursor=pointer]
+      - generic [ref=f2e5]:
+        - banner [ref=f2e6]:
+          - generic [ref=f2e7]:
+            - button "Voltar" [ref=f2e8] [cursor=pointer]
+            - generic [ref=f2e11]:
+              - img "Dr. Exame" [ref=f2e13]
+              - paragraph [ref=f2e14]: Dr. Exame
+            - generic [ref=f2e15]:
+              - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f2e16] [cursor=pointer]:
+                - generic [ref=f2e19]: "15"
+              - button "Notificações" [ref=f2e20] [cursor=pointer]:
+                - generic [ref=f2e21]: 9+
+              - button "E" [ref=f2e26] [cursor=pointer]
+        - main [ref=f2e32]:
+          - generic [ref=f2e65]:
+            - generic [ref=f2e70]:
+              - heading "Planos e Créditos" [level=5] [ref=f2e71]
+              - paragraph [ref=f2e72]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=f2e73]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=f2e74]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=f2e75] [cursor=pointer]:
+              - paragraph [ref=f2e78]: 15 créditos
+              - paragraph [ref=f2e79]: Ver carteira →
+            - generic [ref=f2e80]:
+              - generic [ref=f2e81]:
+                - generic [ref=f2e86]:
+                  - paragraph [ref=f2e87]: PREMIUM
+                  - paragraph [ref=f2e88]: Dr. Exame sem limites
+                - generic [ref=f2e89]: Economize 55% vs avulso
+              - generic [ref=f2e90]:
+                - paragraph [ref=f2e94]: 250 créditos de IA todo mês
+                - paragraph [ref=f2e98]: Relatórios completos sem gastar créditos
+                - paragraph [ref=f2e102]: Histórico completo de exames
+                - paragraph [ref=f2e106]: Família até 10 perfis
+                - paragraph [ref=f2e110]: Créditos somam ao saldo e não expiram
+                - paragraph [ref=f2e114]: Envio de exames sem custo
+              - generic [ref=f2e116]:
+                - generic [ref=f2e117]:
+                  - generic [ref=f2e118]:
+                    - paragraph [ref=f2e119]: R$ 19,90
+                    - paragraph [ref=f2e120]: /mês
+                  - paragraph [ref=f2e121]: R$ 0,08 por crédito · sem fidelidade · cancele quando quiser
+                - button [ref=f2e122] [cursor=pointer]
+            - paragraph [ref=f2e127]: Ou compre créditos avulsos
+            - paragraph [ref=f2e129]: Pergunta no chat 2 · resumo do exame 10 · relatório completo 20 créditos. Enviar exame é grátis. Sem mensalidade.
+            - generic [ref=f2e130]:
+              - generic [ref=f2e132]:
+                - paragraph [ref=f2e136]: "50"
+                - paragraph [ref=f2e137]: créditos
+                - paragraph [ref=f2e138]: ~5 resumosou~25 perguntas
+                - paragraph [ref=f2e139]: R$ 9,90
+                - paragraph [ref=f2e140]: R$ 0,20 por crédito
+                - button "Comprar" [ref=f2e141] [cursor=pointer]
+              - generic [ref=f2e142]:
+                - generic [ref=f2e143]: ⭐ MAIS VENDIDO
+                - generic [ref=f2e144]:
+                  - paragraph [ref=f2e148]: "140"
+                  - paragraph [ref=f2e149]: créditos
+                  - paragraph [ref=f2e150]: ~14 resumosou~70 perguntas
+                  - paragraph [ref=f2e151]: R$ 24,90
+                  - paragraph [ref=f2e152]: R$ 0,18 por crédito
+                  - button [ref=f2e153] [cursor=pointer]
+              - generic [ref=f2e158]:
+                - paragraph [ref=f2e162]: "320"
+                - paragraph [ref=f2e163]: créditos
+                - paragraph [ref=f2e164]: ~32 resumosou~160 perguntas
+                - paragraph [ref=f2e165]: R$ 49,90
+                - paragraph [ref=f2e166]: R$ 0,16 por crédito
+                - button "Comprar" [ref=f2e167] [cursor=pointer]
+            - generic [ref=f2e168]:
+              - paragraph [ref=f2e172]: Pagamento seguro
+              - paragraph [ref=f2e176]: PIX cai na hora
+              - paragraph [ref=f2e180]: Créditos não expiram
+    - navigation [ref=f2e35]:
+      - button "Início" [ref=f2e36] [cursor=pointer]:
+        - paragraph [ref=f2e40]: Início
+      - button "Exames" [ref=f2e41] [cursor=pointer]:
+        - paragraph [ref=f2e45]: Exames
+      - button "Dr. Exame — conversar com a IA" [ref=f2e46] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f2e48]
+        - paragraph [ref=f2e49]: Dr. Exame
+      - button "Evolução" [ref=f2e50] [cursor=pointer]:
+        - paragraph [ref=f2e54]: Evolução
+      - button "Mais" [ref=f2e55] [cursor=pointer]:
+        - paragraph [ref=f2e59]: Mais
+  - generic [ref=f2e61]:
+    - img "Acessível com VLibras" [ref=f2e62]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e63] [cursor=pointer]

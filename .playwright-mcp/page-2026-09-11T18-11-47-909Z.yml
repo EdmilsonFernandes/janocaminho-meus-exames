@@ -1,0 +1,185 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e3]:
+    - generic [ref=f4e6]:
+      - generic [ref=f4e7] [cursor=pointer]
+      - generic [ref=f4e17]:
+        - generic:
+          - paragraph
+        - list [ref=f4e19]:
+          - listitem [ref=f4e20]:
+            - link "Navegar para Página 1" [ref=f4e21] [cursor=pointer]:
+              - /url: /api
+              - generic [ref=f4e22]: Catálogo de APIs
+          - listitem [ref=f4e23]:
+            - link "Navegar para Página 2" [ref=f4e24] [cursor=pointer]:
+              - /url: /suporte
+              - text: Suporte
+          - listitem "Solicitar Contato" [ref=f4e25] [cursor=pointer]:
+            - link "Navegar para Página 3" [ref=f4e26]:
+              - /url: /
+              - text: Fale Conosco
+      - generic [ref=f4e28]:
+        - button "Registrar" [ref=f4e29] [cursor=pointer]
+        - button "Acessar" [ref=f4e33] [cursor=pointer]
+    - generic [ref=f4e38]:
+      - generic [ref=f4e41]:
+        - heading "Portal do Desenvolvedor" [level=1] [ref=f4e42]
+        - paragraph [ref=f4e43]: Conheça nossas soluções e escolha o melhor para seu negócio!
+        - button "Conhecer nossas APIs" [ref=f4e44] [cursor=pointer]
+      - generic [ref=f4e46]:
+        - generic [ref=f4e47]:
+          - heading "Comece agora mesmo!" [level=2] [ref=f4e48]
+          - paragraph [ref=f4e49]: Siga as etapas a seguir para integrar sua empresa com as nossas APIs.
+        - list [ref=f4e50]:
+          - listitem [ref=f4e51]:
+            - generic [ref=f4e52]: PASSO 1
+            - generic [ref=f4e55]:
+              - generic [aria-hidden] [ref=f4e56]: search
+              - paragraph [ref=f4e57]: Escolha uma de nossas APIs
+          - listitem [ref=f4e58]:
+            - generic [ref=f4e59]: PASSO 2
+            - generic [ref=f4e62]:
+              - generic [aria-hidden] [ref=f4e63]: shopping_cart
+              - paragraph [ref=f4e64]: Solicite uma credencial
+          - listitem [ref=f4e65]:
+            - generic [ref=f4e66]: PASSO 3
+            - generic [ref=f4e69]:
+              - generic [aria-hidden] [ref=f4e70]: key
+              - paragraph [ref=f4e71]: Obtenha um token de segurança
+          - listitem [ref=f4e72]:
+            - generic [ref=f4e73]: PASSO 4
+            - generic [ref=f4e76]:
+              - generic [aria-hidden] [ref=f4e77]: playlist_add_check
+              - paragraph [ref=f4e78]: Faça sua primeira requisição
+      - generic [ref=f4e80]:
+        - generic [ref=f4e81]:
+          - heading "Somos a primeira e a maior Datatech do Brasil" [level=2] [ref=f4e82]
+          - paragraph [ref=f4e83]: Conheça as soluções digitais da Serasa Experian e transforme o seu negócio.
+        - generic [ref=f4e84]:
+          - button "Anterior" [ref=f4e85] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f4e86]: chevron_left
+          - generic [ref=f4e87]:
+            - article [ref=f4e90]:
+              - button "Adicionar aos favoritos" [ref=f4e91] [cursor=pointer]
+              - generic [ref=f4e96]:
+                - generic [aria-hidden] [ref=f4e97]: search
+                - generic [ref=f4e98]: Ascend Analytical
+              - paragraph [ref=f4e99]: API destinada para cálculo de Score a partir de modelos customizados.
+              - generic [ref=f4e100]:
+                - generic [ref=f4e101]:
+                  - status [ref=f4e102]: Api
+                  - status [ref=f4e103]: Score
+                - button "Saiba mais" [ref=f4e104] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e105]: arrow_forward
+            - article [ref=f4e108]:
+              - button "Adicionar aos favoritos" [ref=f4e109] [cursor=pointer]
+              - generic [ref=f4e114]:
+                - generic [aria-hidden] [ref=f4e115]: person_search
+                - generic [ref=f4e116]: Infomais RFO
+              - paragraph [ref=f4e117]: O Infomais RFO possibilita que você conheça mais o perfil de clientes sejam eles pessoas jurídicas ou fisicas de forma online na fonte de dados...
+              - generic [ref=f4e118]:
+                - status [ref=f4e120]: Marketing
+                - button "Saiba mais" [ref=f4e121] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e122]: arrow_forward
+            - article [ref=f4e125]:
+              - button "Adicionar aos favoritos" [ref=f4e126] [cursor=pointer]
+              - generic [ref=f4e131]:
+                - generic [aria-hidden] [ref=f4e132]: price_check
+                - generic [ref=f4e133]: Relatório Agrupe
+              - paragraph [ref=f4e134]: Esse serviço/produto, identifica se uma empresa faz parte de um Grupo Econômico e apresenta a composição do grupo.
+              - generic [ref=f4e135]:
+                - status [ref=f4e137]: Crédito
+                - button "Saiba mais" [ref=f4e138] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e139]: arrow_forward
+            - article [ref=f4e142]:
+              - button "Adicionar aos favoritos" [ref=f4e143] [cursor=pointer]
+              - generic [ref=f4e148]:
+                - generic [aria-hidden] [ref=f4e149]: request_quote
+                - generic [ref=f4e150]: Orientador de Chargeback
+              - paragraph [ref=f4e151]: O que é o chargeback e porque ele ocorre
+              - generic [ref=f4e152]:
+                - status [ref=f4e154]: Fraude
+                - button "Saiba mais" [ref=f4e155] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e156]: arrow_forward
+            - article [ref=f4e159]:
+              - button "Adicionar aos favoritos" [ref=f4e160] [cursor=pointer]
+              - generic [ref=f4e165]:
+                - generic [aria-hidden] [ref=f4e166]: check_circle
+                - generic [ref=f4e167]: Monitora
+              - paragraph [ref=f4e168]: Solução de gerenciamento de monitoramento que gera alertas em tempo real quando há alterações no perfil de risco de clientes, fornecedores e...
+              - generic [ref=f4e169]:
+                - generic [ref=f4e170]:
+                  - status [ref=f4e171]: Monitorame...
+                  - status [ref=f4e172]: Credit Ser...
+                - button "Saiba mais" [ref=f4e173] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e174]: arrow_forward
+            - article [ref=f4e177]:
+              - button "Adicionar aos favoritos" [ref=f4e178] [cursor=pointer]
+              - generic [ref=f4e183]:
+                - generic [aria-hidden] [ref=f4e184]: person_search
+                - generic [ref=f4e185]: Massa de dados para testes
+              - paragraph [ref=f4e186]: Massa de dados para teste das nossas APIs.
+              - generic [ref=f4e187]:
+                - status [ref=f4e189]: Marketing
+                - button "Saiba mais" [ref=f4e190] [cursor=pointer]:
+                  - text: Saiba mais
+                  - generic [aria-hidden] [ref=f4e191]: arrow_forward
+          - button "Próximo" [ref=f4e192] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f4e193]: chevron_right
+        - button "Catálogo de APIs" [ref=f4e195] [cursor=pointer]
+    - contentinfo [ref=f4e197]:
+      - generic [ref=f4e198]:
+        - generic [ref=f4e199]:
+          - generic [ref=f4e200]:
+            - navigation "Catálogo de APIs" [ref=f4e201]:
+              - list [ref=f4e202]:
+                - listitem [ref=f4e203]:
+                  - link "Catálogo de APIs" [ref=f4e204] [cursor=pointer]:
+                    - /url: /api
+                - listitem [ref=f4e205]:
+                  - link "Suporte" [ref=f4e206] [cursor=pointer]:
+                    - /url: /suporte
+                - listitem [ref=f4e207]:
+                  - button "Fale Conosco" [ref=f4e208] [cursor=pointer]
+            - navigation "Suporte" [ref=f4e209]:
+              - list [ref=f4e210]:
+                - listitem [ref=f4e211]:
+                  - link "Central de Ajuda" [ref=f4e212] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/central-de-atendimento/
+                - listitem [ref=f4e213]:
+                  - link "Política de Privacidade" [ref=f4e214] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/politica-de-transparencia-de-uso-e-coleta-de-dados-cadastro-positivo/
+                - listitem [ref=f4e215]:
+                  - link "Segurança da Informação" [ref=f4e216] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/cadastro-positivo-seguranca-da-informacao/
+          - link "Serasa Experian" [ref=f4e218] [cursor=pointer]:
+            - /url: /
+            - img "Logo da marca Serasa" [ref=f4e219]
+        - separator [ref=f4e220]
+        - list [ref=f4e222]:
+          - listitem [ref=f4e223]:
+            - link "Facebook" [ref=f4e224] [cursor=pointer]:
+              - /url: https://www.facebook.com/serasaexperian
+          - listitem [ref=f4e228]:
+            - link "Instagram" [ref=f4e229] [cursor=pointer]:
+              - /url: https://www.instagram.com/serasa_experian
+          - listitem [ref=f4e233]:
+            - link "YouTube" [ref=f4e234] [cursor=pointer]:
+              - /url: https://www.youtube.com/user/serasaexperian
+          - listitem [ref=f4e238]:
+            - link "LinkedIn" [ref=f4e239] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/serasa-experian
+  - dialog "Consentimento de cookies" [ref=f4e243]:
+    - generic [ref=f4e244]:
+      - generic [ref=f4e245]:
+        - paragraph [ref=f4e246]: Nós respeitamos sua privacidade
+        - paragraph [ref=f4e247]: Este portal utiliza cookies necessários para funcionar com segurança. Com sua autorização, também utilizamos cookies para lembrar suas preferências e analisar a utilização do portal, sempre com o objetivo de melhorar sua experiência. Não utilizamos cookies para publicidade. Você pode aceitar todos, aceitar apenas os necessários ou não usar cookies.
+      - generic [ref=f4e248]:
+        - button "Não usar cookies" [ref=f4e249] [cursor=pointer]
+        - button "Aceitar apenas necessários" [ref=f4e250] [cursor=pointer]
+        - button "Aceitar todos" [ref=f4e251] [cursor=pointer]

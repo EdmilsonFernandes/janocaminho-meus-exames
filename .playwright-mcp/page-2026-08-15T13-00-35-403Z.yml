@@ -1,0 +1,234 @@
+- generic [ref=e20]:
+  - generic [ref=e455]:
+    - generic [ref=e456]:
+      - generic [ref=e457]:
+        - button "Voltar" [ref=e458] [cursor=pointer]
+        - button "Menu do médico" [ref=e461] [cursor=pointer]
+        - generic [ref=e464]:
+          - paragraph [ref=e465]: Dr. Daniel Shirane
+          - text: Cirurgiao Geral • CRM 185642-SP
+      - generic [ref=e467]:
+        - generic [ref=e468]:
+          - generic [ref=e474]:
+            - generic [ref=e475]:
+              - paragraph [ref=e476]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e477] [cursor=pointer]: Trocar
+            - paragraph [ref=e481]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - generic [ref=e484]: Último exame
+              - paragraph [ref=e488]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e489] [cursor=pointer]:
+              - generic [ref=e490]: Alterações
+              - paragraph [ref=e495]: "40"
+            - generic [ref=e496]:
+              - generic [ref=e497]: Pendências
+              - paragraph [ref=e501]: "1"
+            - generic [ref=e502]:
+              - generic [ref=e503]: Anotações
+              - paragraph [ref=e507]: "0"
+        - tablist "Abas do paciente" [ref=e511]:
+          - tab "Exames" [active] [selected] [ref=e512] [cursor=pointer]:
+            - generic [ref=e833]:
+              - generic [ref=e834]: Exames
+              - superscript [ref=e835]: "13"
+          - tab "Alterados" [ref=e516] [cursor=pointer]:
+            - superscript [ref=e731]: "40"
+          - tab "Tendências" [ref=e523] [cursor=pointer]
+          - tab "Relatório" [ref=e526] [cursor=pointer]
+          - tab "Perguntas" [ref=e529] [cursor=pointer]:
+            - superscript [ref=e532]: "1"
+          - tab "Anotações" [ref=e533] [cursor=pointer]
+        - generic [ref=e836]:
+          - heading "Exames do seu paciente" [level=6] [ref=e837]
+          - generic [ref=e838]:
+            - generic [ref=e840]:
+              - textbox "Buscar por título ou laboratório…" [ref=e843]
+              - group
+            - group [ref=e844]:
+              - button "Por data" [pressed] [ref=e845] [cursor=pointer]
+              - button "Por categoria" [ref=e846] [cursor=pointer]
+            - generic [ref=e847]:
+              - button "Todos (13)" [ref=e848] [cursor=pointer]
+              - button "🩸 Hemograma (4)" [ref=e850] [cursor=pointer]
+              - button "🍩 Glicemia e Diabetes (3)" [ref=e852] [cursor=pointer]
+              - button "⚗️ Hormônios (3)" [ref=e854] [cursor=pointer]
+              - button "📋 Outros exames (2)" [ref=e856] [cursor=pointer]
+              - button "🛡️ Inflamação e Ferro (1)" [ref=e858] [cursor=pointer]
+          - generic [ref=e860]:
+            - heading [level=3] [ref=e861]:
+              - button "2026 2" [expanded] [ref=e862] [cursor=pointer]:
+                - generic [ref=e863]:
+                  - heading "2026" [level=6] [ref=e864]
+                  - generic [ref=e865]: "2"
+            - region [ref=e873]:
+              - generic [ref=e875]:
+                - generic [ref=e880] [cursor=pointer]:
+                  - generic [ref=e881]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e882]
+                    - button "O que é este exame?" [ref=e884]
+                  - generic [ref=e887]: 13 ago 2026 • há 2 dias
+                  - 'generic "Laboratório: Sabin" [ref=e892]':
+                    - img "Sabin" [ref=e893]
+                    - generic [ref=e894]: Sabin
+                  - generic [ref=e895]: Hormônios • 4 alterado(s)
+                - generic [ref=e900] [cursor=pointer]:
+                  - generic [ref=e901]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e902]
+                    - button "O que é este exame?" [ref=e904]
+                  - generic [ref=e907]: 07 abr 2026 • há 4 meses
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e912]':
+                    - img "Sabin" [ref=e913]
+                    - generic [ref=e914]: Sabin
+                  - generic [ref=e915]: Hormônios • 6 alterado(s)
+          - generic [ref=e916]:
+            - heading [level=3] [ref=e917]:
+              - button "2025 5" [expanded] [ref=e918] [cursor=pointer]:
+                - generic [ref=e919]:
+                  - heading "2025" [level=6] [ref=e920]
+                  - generic [ref=e921]: "5"
+            - region [ref=e929]:
+              - generic [ref=e931]:
+                - generic [ref=e936] [cursor=pointer]:
+                  - generic [ref=e937]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e938]
+                    - button "O que é este exame?" [ref=e940]
+                  - generic [ref=e943]: 04 nov 2025 • há 9 meses
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e948]':
+                    - img "Sabin" [ref=e949]
+                    - generic [ref=e950]: Sabin
+                  - generic [ref=e951]: Hemograma • 5 alterado(s)
+                - generic [ref=e956] [cursor=pointer]:
+                  - generic [ref=e957]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e958]
+                    - button "O que é este exame?" [ref=e960]
+                  - generic [ref=e963]: 17 jun 2025 • há 1 ano
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e968]':
+                    - img "Sabin" [ref=e969]
+                    - generic [ref=e970]: Sabin
+                  - generic [ref=e971]: Hemograma • 4 alterado(s)
+                - generic [ref=e976] [cursor=pointer]:
+                  - generic [ref=e977]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e978]
+                    - button "O que é este exame?" [ref=e980]
+                  - generic [ref=e983]: 17 jun 2025 • há 1 ano
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e988]':
+                    - img "Sabin" [ref=e989]
+                    - generic [ref=e990]: Sabin
+                  - generic [ref=e991]: Hemograma • 5 alterado(s)
+                - generic [ref=e996] [cursor=pointer]:
+                  - generic [ref=e997]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e998]
+                    - button "O que é este exame?" [ref=e1000]
+                  - generic [ref=e1003]: 20 mar 2025 • há 1 ano
+                  - 'generic "Laboratório: Sabin · unidade VILA ADYANNA" [ref=e1008]':
+                    - img "Sabin" [ref=e1009]
+                    - generic [ref=e1010]: Sabin
+                  - generic [ref=e1011]: Inflamação e Ferro • 7 alterado(s)
+                - generic [ref=e1016] [cursor=pointer]:
+                  - generic [ref=e1017]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e1018]
+                    - button "O que é este exame?" [ref=e1020]
+                  - generic [ref=e1023]: 06 fev 2025 • há 1 ano
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1028]':
+                    - img "Sabin" [ref=e1029]
+                    - generic [ref=e1030]: Sabin
+                  - generic [ref=e1031]: Glicemia e Diabetes • 5 alterado(s)
+          - generic [ref=e1032]:
+            - heading [level=3] [ref=e1033]:
+              - button "2024 2" [expanded] [ref=e1034] [cursor=pointer]:
+                - generic [ref=e1035]:
+                  - heading "2024" [level=6] [ref=e1036]
+                  - generic [ref=e1037]: "2"
+            - region [ref=e1045]:
+              - generic [ref=e1047]:
+                - generic [ref=e1052] [cursor=pointer]:
+                  - generic [ref=e1053]:
+                    - heading "LH - HORMONIO LUTEINIZANTE" [level=6] [ref=e1054]
+                    - button "O que é este exame?" [ref=e1056]
+                  - generic [ref=e1059]: 23 set 2024 • há 1 ano
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1064]':
+                    - img "Sabin" [ref=e1065]
+                    - generic [ref=e1066]: Sabin
+                  - generic [ref=e1067]: Hormônios • 2 alterado(s)
+                - generic [ref=e1072] [cursor=pointer]:
+                  - generic [ref=e1073]:
+                    - heading "ANTICORPOS ANTI-TRANSGLUTAMINASE TECIDUAL - IgG" [level=6] [ref=e1074]
+                    - button "O que é este exame?" [ref=e1076]
+                  - generic [ref=e1079]: 07 ago 2024 • há 2 anos
+                  - 'generic "Laboratório: Sabin · unidade VILA ADYANNA" [ref=e1084]':
+                    - img "Sabin" [ref=e1085]
+                    - generic [ref=e1086]: Sabin
+                  - text: Outros exames
+          - generic [ref=e1087]:
+            - heading [level=3] [ref=e1088]:
+              - button "2023 1" [expanded] [ref=e1089] [cursor=pointer]:
+                - generic [ref=e1090]:
+                  - heading "2023" [level=6] [ref=e1091]
+                  - generic [ref=e1092]: "1"
+            - region [ref=e1100]:
+              - generic [ref=e1107] [cursor=pointer]:
+                - generic [ref=e1108]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e1109]
+                  - button "O que é este exame?" [ref=e1111]
+                - generic [ref=e1114]: 03 abr 2023 • há 3 anos
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1119]':
+                  - img "Sabin" [ref=e1120]
+                  - generic [ref=e1121]: Sabin
+                - generic [ref=e1122]: Glicemia e Diabetes • 1 alterado(s)
+          - generic [ref=e1123]:
+            - heading [level=3] [ref=e1124]:
+              - button "2021 2" [expanded] [ref=e1125] [cursor=pointer]:
+                - generic [ref=e1126]:
+                  - heading "2021" [level=6] [ref=e1127]
+                  - generic [ref=e1128]: "2"
+            - region [ref=e1136]:
+              - generic [ref=e1138]:
+                - generic [ref=e1143] [cursor=pointer]:
+                  - generic [ref=e1144]:
+                    - heading "Painel Metabólico e Vitaminico" [level=6] [ref=e1145]
+                    - button "O que é este exame?" [ref=e1147]
+                  - generic [ref=e1150]: 24 set 2021 • há 4 anos
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1155]':
+                    - img "Sabin" [ref=e1156]
+                    - generic [ref=e1157]: Sabin
+                  - text: Outros exames
+                - generic [ref=e1162] [cursor=pointer]:
+                  - generic [ref=e1163]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e1164]
+                    - button "O que é este exame?" [ref=e1166]
+                  - generic [ref=e1169]: 24 set 2021 • há 4 anos
+                  - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1174]':
+                    - img "Sabin" [ref=e1175]
+                    - generic [ref=e1176]: Sabin
+                  - text: Hemograma
+          - generic [ref=e1177]:
+            - heading [level=3] [ref=e1178]:
+              - button "2020 1" [expanded] [ref=e1179] [cursor=pointer]:
+                - generic [ref=e1180]:
+                  - heading "2020" [level=6] [ref=e1181]
+                  - generic [ref=e1182]: "1"
+            - region [ref=e1190]:
+              - generic [ref=e1197] [cursor=pointer]:
+                - generic [ref=e1198]:
+                  - heading "METABOLICA, LIPIDICO, TIREOIDIANO, HBA1C" [level=6] [ref=e1199]
+                  - button "O que é este exame?" [ref=e1201]
+                - generic [ref=e1204]: 13 mar 2020 • há 6 anos
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e1209]':
+                  - img "Sabin" [ref=e1210]
+                  - generic [ref=e1211]: Sabin
+                - generic [ref=e1212]: Glicemia e Diabetes • 1 alterado(s)
+    - navigation [ref=e705]:
+      - button "Pacientes" [ref=e706] [cursor=pointer]:
+        - paragraph [ref=e711]: Pacientes
+      - button "Perguntas" [ref=e713] [cursor=pointer]:
+        - paragraph [ref=e718]: Perguntas
+      - button "Perfil" [ref=e719] [cursor=pointer]:
+        - paragraph [ref=e724]: Perfil
+      - button "Mais" [ref=e725] [cursor=pointer]:
+        - paragraph [ref=e730]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e339]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e340]
+  - generic [ref=e832]: "0"

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;800;900&family=Inter:wght@600;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; font-family: Inter, sans-serif; }
+  .slide { width: 1080px; height: 1920px; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 90px 70px; position: relative; }
+  .slide.on { display: flex; }
+  /* identidade Dr. Exame: teal #20b2aa / dark #0f1818 / cobre #d4a574 */
+  .bg-dark { background: radial-gradient(120% 90% at 50% 0%, #123232 0%, #0f1818 62%); color: #e8eef0; }
+  .bg-teal { background: linear-gradient(165deg, #20b2aa 0%, #178f89 100%); color: #fff; }
+  .kicker { font: 800 34px/1.2 Poppins; letter-spacing: .22em; text-transform: uppercase; color: #5fc9c3; margin-bottom: 46px; }
+  .bg-teal .kicker { color: rgba(255,255,255,.85); }
+  .h1 { font: 900 190px/1.02 Poppins; text-align: center; letter-spacing: -.01em; }
+  .h1 .hl { color: #20b2aa; }
+  .bg-teal .h1 .hl, .bg-teal .h1 { color: #fff; }
+  .sub { font: 600 60px/1.3 Inter; color: #9fc4c1; text-align: center; margin-top: 38px; max-width: 880px; }
+  .bg-teal .sub { color: rgba(255,255,255,.92); }
+  .robot { width: 360px; height: 360px; border-radius: 88px; object-fit: cover; box-shadow: 0 30px 80px rgba(32,178,170,.35); }
+  .s1 .robot { margin-top: 90px; }
+  .pill { display: inline-block; font: 800 44px/1 Poppins; padding: 26px 44px; border-radius: 999px; }
+  .row { display: flex; align-items: center; gap: 30px; width: 100%; background: rgba(255,255,255,.06); border: 2px solid rgba(95,201,195,.35); border-radius: 44px; padding: 44px 48px; }
+  .row .n { font: 900 64px/1 Poppins; color: #20b2aa; width: 84px; text-align: center; flex: 0 0 auto; }
+  .row .t { font: 600 52px/1.25 Inter; color: #e8eef0; }
+  .row .t b { font-weight: 800; color: #5fc9c3; }
+  .s2 .rows { display: flex; flex-direction: column; gap: 34px; width: 100%; margin-top: 60px; }
+  .s2 .h2 { font: 900 96px/1.08 Poppins; text-align: center; }
+  .s2 .h2 .hl { color: #20b2aa; }
+  .s2 .robot { width: 200px; height: 200px; border-radius: 48px; margin-top: 70px; box-shadow: 0 20px 60px rgba(32,178,170,.3); }
+  .url { font: 800 58px/1.1 Poppins; color: #fff; margin-top: 44px; letter-spacing: .01em; }
+  .disc { position: absolute; bottom: 70px; left: 0; right: 0; text-align: center; font: 600 33px/1.4 Inter; color: rgba(232,238,240,.62); padding: 0 90px; }
+  .spark { position: absolute; top: 100px; right: 100px; font-size: 88px; }
+</style>
+</head>
+<body>
+
+<section class="slide s1 bg-dark on" id="s1">
+  <div class="kicker">Seu exame explicado · #02</div>
+  <div class="h1">GLICOSE <span class="hl">110</span>?</div>
+  <div class="sub">Pré-diabetes? O que fazer AGORA.</div>
+  <img class="robot" src="robot.png" alt="Dr. Exame">
+  <div class="spark">✨</div>
+</section>
+
+<section class="slide s2 bg-dark" id="s2">
+  <div class="kicker">Seu exame explicado</div>
+  <div class="h2">110 = pré-<span class="hl">diabetes</span> — e dá pra reverter</div>
+  <div class="rows">
+    <div class="row"><div class="n">1</div><div class="t">Normal <b>até 99</b> · 100–125 pré · 126+ diabetes (2 exames)</div></div>
+    <div class="row"><div class="n">2</div><div class="t">Reverter: <b>−5-7% do peso</b> + caminhar 150 min/semana</div></div>
+    <div class="row"><div class="n">3</div><div class="t">Peça a <b>hemoglobina glicada</b> — média dos últimos 3 meses</div></div>
+  </div>
+  <img class="robot" src="robot.png" alt="Dr. Exame">
+</section>
+
+<section class="slide s3 bg-teal" id="s3">
+  <img class="robot" src="robot.png" alt="Dr. Exame">
+  <div class="h1" style="font-size:150px; margin-top:80px;">Cole seu<br>exame ✨</div>
+  <div class="sub" style="color:rgba(255,255,255,.95);">A IA explica o SEU caso e monta as perguntas pro seu médico.</div>
+  <div class="url">drexame.janocaminho.com.br</div>
+  <div class="disc">Conteúdo educativo · Não substitui consulta, diagnóstico ou tratamento médico</div>
+</section>
+
+<script>
+  const s = new URLSearchParams(location.search).get('s') || '1';
+  document.querySelectorAll('.slide').forEach(el => el.classList.remove('on'));
+  document.getElementById('s' + s)?.classList.add('on');
+</script>
+</body>
+</html>

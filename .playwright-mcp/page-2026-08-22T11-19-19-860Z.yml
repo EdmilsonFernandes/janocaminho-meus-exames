@@ -1,0 +1,72 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - button [ref=f5e4] [cursor=pointer]
+      - generic [ref=f5e5]:
+        - banner [ref=f5e6]:
+          - generic [ref=f5e7]:
+            - button [ref=f5e8] [cursor=pointer]
+            - paragraph [ref=f5e14]: Dr. Exame
+            - button [ref=f5e15] [cursor=pointer]:
+              - generic [ref=f5e18]: "71"
+            - button [ref=f5e19] [cursor=pointer]:
+              - generic [ref=f5e20]: 9+
+            - button [ref=f5e25] [cursor=pointer]:
+              - generic [ref=f5e26]: E
+        - main [ref=f5e28]:
+          - generic [ref=f5e541]:
+            - heading [level=5] [ref=f5e548]: Medições
+            - generic [ref=f5e550]:
+              - heading [level=6] [ref=f5e551]: ⚖️ Peso
+              - generic [ref=f5e552]:
+                - generic [ref=f5e553]: ⚖️
+                - paragraph [ref=f5e554]: Registre seu peso e acompanhe a tendência aqui.
+                - button [ref=f5e555] [cursor=pointer]: Registrar peso
+            - generic [ref=f5e557]:
+              - heading [level=6] [ref=f5e558]: Medições vitais
+              - generic [ref=f5e559]:
+                - generic [ref=f5e560]: 🩺
+                - paragraph [ref=f5e561]: Pressão, glicose e frequência cardíaca que você medir aparecem aqui.
+                - button [ref=f5e562] [cursor=pointer]: Registrar medição
+            - generic [ref=f5e564]:
+              - generic [ref=f5e565]:
+                - heading [level=6] [ref=f5e566]: Nova medição
+                - button [ref=f5e567] [cursor=pointer]: Registrar
+              - generic: Tipo
+              - generic: Valor
+              - generic: Data
+    - button [ref=f5e458] [cursor=pointer]
+    - navigation [ref=f5e167]:
+      - paragraph [ref=f5e172] [cursor=pointer]: Início
+      - paragraph [ref=f5e178] [cursor=pointer]: Exames
+      - paragraph [ref=f5e182] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e187] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e192] [cursor=pointer]: Mais
+  - generic [ref=f5e194] [cursor=pointer]
+  - dialog [active] [ref=f5e199]:
+    - navigation [ref=f5e200]:
+      - button "Exames" [ref=f5e321] [cursor=pointer]
+      - generic [ref=f5e210]:
+        - button "Cuidados" [expanded] [ref=f5e322] [cursor=pointer]
+        - generic [ref=f5e574]:
+          - button "Medições" [ref=f5e575] [cursor=pointer]
+          - button "Remédios" [ref=f5e582] [cursor=pointer]
+          - button "Vacinas" [ref=f5e588] [cursor=pointer]
+          - button "Lembretes" [ref=f5e594] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=f5e600] [cursor=pointer]
+          - button "Conquistas" [ref=f5e606] [cursor=pointer]
+      - button "Pessoas" [ref=f5e323] [cursor=pointer]
+      - generic [ref=f5e230]:
+        - button "Conta" [expanded] [ref=f5e324] [cursor=pointer]
+        - generic [ref=f5e470]:
+          - button "Meu perfil" [ref=f5e471] [cursor=pointer]
+          - button "Segurança & senha" [ref=f5e477] [cursor=pointer]
+          - button "Privacidade e termos" [ref=f5e483] [cursor=pointer]
+          - button "Planos e Créditos" [ref=f5e489] [cursor=pointer]
+          - button "Despesas Médicas" [ref=f5e495] [cursor=pointer]
+          - button "Painel Admin" [ref=f5e501] [cursor=pointer]
+      - separator [ref=f5e239]
+      - button "Dúvidas frequentes" [ref=f5e325] [cursor=pointer]
+      - button "Ajuda & Suporte" [ref=f5e326] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f5e327] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f5e328] [cursor=pointer]

@@ -1,0 +1,67 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e745]:
+      - button [ref=e746] [cursor=pointer]
+      - generic [ref=e747]:
+        - banner [ref=e748]:
+          - generic [ref=e749]:
+            - button [ref=e750] [cursor=pointer]
+            - paragraph [ref=e756]: Dr. Exame
+            - button [ref=e757] [cursor=pointer]
+            - button [ref=e762] [cursor=pointer]
+            - button [ref=e771] [cursor=pointer]
+        - main [ref=e774]:
+          - generic [ref=e776]:
+            - heading [level=4] [ref=e782]: Meus Exames
+            - paragraph [ref=e783]: Seu assistente de saúde com IA
+    - navigation [ref=e791]:
+      - paragraph [ref=e796] [cursor=pointer]: Início
+      - paragraph [ref=e802] [cursor=pointer]: Exames
+      - paragraph [ref=e806] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e811] [cursor=pointer]: Evolução
+      - paragraph [ref=e816] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic [ref=e703]: "0"
+  - dialog [active] [ref=e819]:
+    - navigation [ref=e820]:
+      - button [ref=e822] [cursor=pointer]:
+        - generic [ref=e826]: Exames
+      - button [ref=e831] [cursor=pointer]:
+        - generic [ref=e836]: Cuidados
+      - button [ref=e841] [cursor=pointer]:
+        - generic [ref=e846]: Pessoas
+      - button [ref=e851] [cursor=pointer]:
+        - generic [ref=e855]: Conta
+      - separator [ref=e859]
+      - button [ref=e860] [cursor=pointer]:
+        - generic [ref=e864]: Ajuda & Suporte
+      - menuitem [ref=e866] [cursor=pointer]:
+        - generic [ref=e870]: Sobre o app
+      - menuitem [ref=e872] [cursor=pointer]:
+        - generic [ref=e876]: Sair da conta
+  - dialog [ref=e880]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e881]
+    - generic [ref=e882]:
+      - generic [ref=e883]: Versão 2.7.76
+      - generic [ref=e884]:
+        - generic [ref=e885]:
+          - generic [ref=e886]: 📱
+          - generic [ref=e887]:
+            - paragraph [ref=e888]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e889]:
+          - generic [ref=e890]: 🔐
+          - generic [ref=e891]:
+            - paragraph [ref=e892]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e893]:
+          - generic [ref=e894]: 🩺
+          - generic [ref=e895]:
+            - paragraph [ref=e896]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e897]:
+          - generic [ref=e898]: 🚑
+          - generic [ref=e899]:
+            - paragraph [ref=e900]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button "Legal! →" [ref=e902] [cursor=pointer]

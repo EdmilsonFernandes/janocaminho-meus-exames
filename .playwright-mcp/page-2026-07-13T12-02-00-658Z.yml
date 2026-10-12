@@ -1,0 +1,33 @@
+- generic [active] [ref=f1e18]:
+  - generic [ref=f1e100]:
+    - generic [ref=f1e101]:
+      - generic [ref=f1e102]:
+        - generic [ref=f1e103]: D
+        - generic [ref=f1e105]:
+          - paragraph [ref=f1e106]: Doutor Exame
+          - text: Otorrinolaringologista • CRM 12345-SP
+        - button [ref=f1e107] [cursor=pointer]
+      - generic [ref=f1e110]:
+        - generic [ref=f1e260]:
+          - paragraph [ref=f1e261]: 💎 Dr. Exame Pro
+          - paragraph [ref=f1e262]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f1e263] [cursor=pointer]
+        - heading "Pacientes (0)" [level=6] [ref=f1e265]
+        - generic [ref=f1e268]:
+          - generic [ref=f1e269]: 🩺
+          - paragraph [ref=f1e270]: Nenhum paciente ainda
+          - paragraph [ref=f1e271]: Quando um paciente compartilhar os exames com você, ele aparece aqui automaticamente.
+          - text: 💡 O paciente faz isso no app dele em "Meus Médicos → Compartilhar"
+    - navigation [ref=f1e119]:
+      - generic [ref=f1e120] [cursor=pointer]:
+        - generic [ref=f1e121]: 👥
+        - paragraph [ref=f1e122]: Pacientes
+      - generic [ref=f1e124] [cursor=pointer]:
+        - generic [ref=f1e125]: 👤
+        - paragraph [ref=f1e126]: Perfil
+      - generic [ref=f1e127] [cursor=pointer]:
+        - generic [ref=f1e128]: ☰
+        - paragraph [ref=f1e129]: Mais
+  - generic [ref=f1e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e272]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e273]

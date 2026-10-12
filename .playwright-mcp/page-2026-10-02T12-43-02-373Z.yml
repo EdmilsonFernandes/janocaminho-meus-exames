@@ -1,0 +1,294 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e3]:
+    - link "Pular para o conteúdo" [ref=f7e4] [cursor=pointer]:
+      - /url: "#conteudo-rifa"
+    - banner [ref=f7e5]:
+      - generic [ref=f7e6]:
+        - generic [ref=f7e7]:
+          - link "PremioX — página inicial" [ref=f7e8] [cursor=pointer]:
+            - /url: /
+            - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f7e10]
+          - link "🎁 R$ 0,00 Ocultar saldo" [ref=f7e86] [cursor=pointer]:
+            - /url: /embaixador
+            - generic [ref=f7e87]: 🎁
+            - generic [ref=f7e88]: R$ 0,00
+            - button "Ocultar saldo" [ref=f7e89]:
+              - generic [ref=f7e90]: 👁
+        - navigation [ref=f7e11]:
+          - button "Mudar para tema escuro" [ref=f7e12] [cursor=pointer]
+          - button "S Sim" [ref=f7e92] [cursor=pointer]:
+            - generic [ref=f7e93]: S
+            - generic [ref=f7e94]: Sim
+    - main [ref=f7e15]:
+      - generic [ref=f7e97]:
+        - generic [ref=f7e98]:
+          - generic [ref=f7e100]:
+            - img "iPad Air (E2E · SORTEADO), foto 1" [ref=f7e106]
+            - generic:
+              - generic:
+                - generic [aria-hidden]: 👑
+                - text: Sorteado
+              - generic: Edição grátis
+          - generic [ref=f7e107]:
+            - generic [ref=f7e108]:
+              - generic [ref=f7e109]: Sorteio oficial
+              - link "Tech Premium (E2E) ✓" [ref=f7e112] [cursor=pointer]:
+                - /url: /loja/e2e-tech-premium
+                - generic [ref=f7e113]: Tech Premium (E2E)
+                - generic "Organizador Verificado" [ref=f7e114]: ✓
+            - heading "iPad Air (E2E · SORTEADO)" [level=1] [ref=f7e115]
+        - generic [ref=f7e117]:
+          - generic [ref=f7e118]:
+            - generic [ref=f7e119]:
+              - generic [ref=f7e120]:
+                - generic [aria-hidden] [ref=f7e122]: 👑
+                - generic [ref=f7e123]: Bilhetepremiado
+                - mark [ref=f7e124]: "07"
+              - generic [ref=f7e125]: Resultado Oficial Auditado
+            - link "Conferir resultado oficial ↗" [ref=f7e128] [cursor=pointer]:
+              - /url: https://loterias.caixa.gov.br/Paginas/Federal.aspx
+          - button "Compartilhar resultado no WhatsApp" [ref=f7e129] [cursor=pointer]
+          - generic [ref=f7e132]:
+            - generic [ref=f7e133]:
+              - generic [ref=f7e134]:
+                - generic [ref=f7e135]: 🎟️
+                - generic [ref=f7e136]:
+                  - generic [ref=f7e137]: Mapa de Cotas Auditável
+                  - generic [ref=f7e138]: Conferência pública de todas as 50 cotas
+              - generic [ref=f7e139]: 100% Auditável
+            - generic [ref=f7e140]:
+              - button "Todas (50)" [ref=f7e141] [cursor=pointer]
+              - button "🏆 Vencedora (Nº 07)" [ref=f7e142] [cursor=pointer]
+              - button "Vendidas (0)" [ref=f7e143] [cursor=pointer]
+              - button "Não vendidas (50)" [ref=f7e144] [cursor=pointer]
+            - generic [ref=f7e146]:
+              - button "LIVRE 00" [ref=f7e147] [cursor=pointer]:
+                - generic [ref=f7e148]: LIVRE
+                - generic [ref=f7e149]: "00"
+              - button "LIVRE 01" [ref=f7e150] [cursor=pointer]:
+                - generic [ref=f7e151]: LIVRE
+                - generic [ref=f7e152]: "01"
+              - button "LIVRE 02" [ref=f7e153] [cursor=pointer]:
+                - generic [ref=f7e154]: LIVRE
+                - generic [ref=f7e155]: "02"
+              - button "LIVRE 03" [ref=f7e156] [cursor=pointer]:
+                - generic [ref=f7e157]: LIVRE
+                - generic [ref=f7e158]: "03"
+              - button "LIVRE 04" [ref=f7e159] [cursor=pointer]:
+                - generic [ref=f7e160]: LIVRE
+                - generic [ref=f7e161]: "04"
+              - button "LIVRE 05" [ref=f7e162] [cursor=pointer]:
+                - generic [ref=f7e163]: LIVRE
+                - generic [ref=f7e164]: "05"
+              - button "LIVRE 06" [ref=f7e165] [cursor=pointer]:
+                - generic [ref=f7e166]: LIVRE
+                - generic [ref=f7e167]: "06"
+              - button "🏆 WIN 07" [ref=f7e168] [cursor=pointer]:
+                - generic [ref=f7e169]: 🏆 WIN
+                - generic [ref=f7e170]: "07"
+              - button "LIVRE 08" [ref=f7e171] [cursor=pointer]:
+                - generic [ref=f7e172]: LIVRE
+                - generic [ref=f7e173]: "08"
+              - button "LIVRE 09" [ref=f7e174] [cursor=pointer]:
+                - generic [ref=f7e175]: LIVRE
+                - generic [ref=f7e176]: "09"
+              - button "LIVRE 10" [ref=f7e177] [cursor=pointer]:
+                - generic [ref=f7e178]: LIVRE
+                - generic [ref=f7e179]: "10"
+              - button "LIVRE 11" [ref=f7e180] [cursor=pointer]:
+                - generic [ref=f7e181]: LIVRE
+                - generic [ref=f7e182]: "11"
+              - button "LIVRE 12" [ref=f7e183] [cursor=pointer]:
+                - generic [ref=f7e184]: LIVRE
+                - generic [ref=f7e185]: "12"
+              - button "LIVRE 13" [ref=f7e186] [cursor=pointer]:
+                - generic [ref=f7e187]: LIVRE
+                - generic [ref=f7e188]: "13"
+              - button "LIVRE 14" [ref=f7e189] [cursor=pointer]:
+                - generic [ref=f7e190]: LIVRE
+                - generic [ref=f7e191]: "14"
+              - button "LIVRE 15" [ref=f7e192] [cursor=pointer]:
+                - generic [ref=f7e193]: LIVRE
+                - generic [ref=f7e194]: "15"
+              - button "LIVRE 16" [ref=f7e195] [cursor=pointer]:
+                - generic [ref=f7e196]: LIVRE
+                - generic [ref=f7e197]: "16"
+              - button "LIVRE 17" [ref=f7e198] [cursor=pointer]:
+                - generic [ref=f7e199]: LIVRE
+                - generic [ref=f7e200]: "17"
+              - button "LIVRE 18" [ref=f7e201] [cursor=pointer]:
+                - generic [ref=f7e202]: LIVRE
+                - generic [ref=f7e203]: "18"
+              - button "LIVRE 19" [ref=f7e204] [cursor=pointer]:
+                - generic [ref=f7e205]: LIVRE
+                - generic [ref=f7e206]: "19"
+              - button "LIVRE 20" [ref=f7e207] [cursor=pointer]:
+                - generic [ref=f7e208]: LIVRE
+                - generic [ref=f7e209]: "20"
+              - button "LIVRE 21" [ref=f7e210] [cursor=pointer]:
+                - generic [ref=f7e211]: LIVRE
+                - generic [ref=f7e212]: "21"
+              - button "LIVRE 22" [ref=f7e213] [cursor=pointer]:
+                - generic [ref=f7e214]: LIVRE
+                - generic [ref=f7e215]: "22"
+              - button "LIVRE 23" [ref=f7e216] [cursor=pointer]:
+                - generic [ref=f7e217]: LIVRE
+                - generic [ref=f7e218]: "23"
+              - button "LIVRE 24" [ref=f7e219] [cursor=pointer]:
+                - generic [ref=f7e220]: LIVRE
+                - generic [ref=f7e221]: "24"
+              - button "LIVRE 25" [ref=f7e222] [cursor=pointer]:
+                - generic [ref=f7e223]: LIVRE
+                - generic [ref=f7e224]: "25"
+              - button "LIVRE 26" [ref=f7e225] [cursor=pointer]:
+                - generic [ref=f7e226]: LIVRE
+                - generic [ref=f7e227]: "26"
+              - button "LIVRE 27" [ref=f7e228] [cursor=pointer]:
+                - generic [ref=f7e229]: LIVRE
+                - generic [ref=f7e230]: "27"
+              - button "LIVRE 28" [ref=f7e231] [cursor=pointer]:
+                - generic [ref=f7e232]: LIVRE
+                - generic [ref=f7e233]: "28"
+              - button "LIVRE 29" [ref=f7e234] [cursor=pointer]:
+                - generic [ref=f7e235]: LIVRE
+                - generic [ref=f7e236]: "29"
+              - button "LIVRE 30" [ref=f7e237] [cursor=pointer]:
+                - generic [ref=f7e238]: LIVRE
+                - generic [ref=f7e239]: "30"
+              - button "LIVRE 31" [ref=f7e240] [cursor=pointer]:
+                - generic [ref=f7e241]: LIVRE
+                - generic [ref=f7e242]: "31"
+              - button "LIVRE 32" [ref=f7e243] [cursor=pointer]:
+                - generic [ref=f7e244]: LIVRE
+                - generic [ref=f7e245]: "32"
+              - button "LIVRE 33" [ref=f7e246] [cursor=pointer]:
+                - generic [ref=f7e247]: LIVRE
+                - generic [ref=f7e248]: "33"
+              - button "LIVRE 34" [ref=f7e249] [cursor=pointer]:
+                - generic [ref=f7e250]: LIVRE
+                - generic [ref=f7e251]: "34"
+              - button "LIVRE 35" [ref=f7e252] [cursor=pointer]:
+                - generic [ref=f7e253]: LIVRE
+                - generic [ref=f7e254]: "35"
+              - button "LIVRE 36" [ref=f7e255] [cursor=pointer]:
+                - generic [ref=f7e256]: LIVRE
+                - generic [ref=f7e257]: "36"
+              - button "LIVRE 37" [ref=f7e258] [cursor=pointer]:
+                - generic [ref=f7e259]: LIVRE
+                - generic [ref=f7e260]: "37"
+              - button "LIVRE 38" [ref=f7e261] [cursor=pointer]:
+                - generic [ref=f7e262]: LIVRE
+                - generic [ref=f7e263]: "38"
+              - button "LIVRE 39" [ref=f7e264] [cursor=pointer]:
+                - generic [ref=f7e265]: LIVRE
+                - generic [ref=f7e266]: "39"
+              - button "LIVRE 40" [ref=f7e267] [cursor=pointer]:
+                - generic [ref=f7e268]: LIVRE
+                - generic [ref=f7e269]: "40"
+              - button "LIVRE 41" [ref=f7e270] [cursor=pointer]:
+                - generic [ref=f7e271]: LIVRE
+                - generic [ref=f7e272]: "41"
+              - button "LIVRE 42" [ref=f7e273] [cursor=pointer]:
+                - generic [ref=f7e274]: LIVRE
+                - generic [ref=f7e275]: "42"
+              - button "LIVRE 43" [ref=f7e276] [cursor=pointer]:
+                - generic [ref=f7e277]: LIVRE
+                - generic [ref=f7e278]: "43"
+              - button "LIVRE 44" [ref=f7e279] [cursor=pointer]:
+                - generic [ref=f7e280]: LIVRE
+                - generic [ref=f7e281]: "44"
+              - button "LIVRE 45" [ref=f7e282] [cursor=pointer]:
+                - generic [ref=f7e283]: LIVRE
+                - generic [ref=f7e284]: "45"
+              - button "LIVRE 46" [ref=f7e285] [cursor=pointer]:
+                - generic [ref=f7e286]: LIVRE
+                - generic [ref=f7e287]: "46"
+              - button "LIVRE 47" [ref=f7e288] [cursor=pointer]:
+                - generic [ref=f7e289]: LIVRE
+                - generic [ref=f7e290]: "47"
+              - button "LIVRE 48" [ref=f7e291] [cursor=pointer]:
+                - generic [ref=f7e292]: LIVRE
+                - generic [ref=f7e293]: "48"
+              - button "LIVRE 49" [ref=f7e294] [cursor=pointer]:
+                - generic [ref=f7e295]: LIVRE
+                - generic [ref=f7e296]: "49"
+            - generic [ref=f7e298]:
+              - generic [ref=f7e299]: Cota Nº 07
+              - generic [ref=f7e300]: 🏆 Cota Vencedora Oficial (Ganhador)
+        - generic [ref=f7e302]:
+          - generic [ref=f7e303]:
+            - generic [ref=f7e304]: Informações & garantias do prêmio
+            - generic [ref=f7e310]:
+              - heading "Ficha técnica" [level=2] [ref=f7e311]:
+                - generic [aria-hidden] [ref=f7e312]: 📋
+                - text: Ficha técnica
+              - generic [ref=f7e313]:
+                - generic [ref=f7e314]:
+                  - generic [ref=f7e315]: Tipo
+                  - generic [ref=f7e316]: Tablet
+                - generic [ref=f7e317]:
+                  - generic [ref=f7e318]: Marca
+                  - generic [ref=f7e319]: Apple
+                - generic [ref=f7e320]:
+                  - generic [ref=f7e321]: Modelo
+                  - generic [ref=f7e322]: iPad Air
+                - generic [ref=f7e323]:
+                  - generic [ref=f7e324]: Armazenamento
+                  - generic [ref=f7e325]: 64GB
+          - group [ref=f7e327]:
+            - generic "📜 Regulamento & Termos ▾" [ref=f7e328] [cursor=pointer]:
+              - generic [ref=f7e329]: 📜 Regulamento & Termos
+              - generic [ref=f7e330]: ▾
+    - contentinfo [ref=f7e22]:
+      - generic [ref=f7e23]:
+        - generic [ref=f7e24]:
+          - generic [ref=f7e25]:
+            - generic [ref=f7e26]:
+              - generic [ref=f7e27]: P
+              - generic [ref=f7e28]: PremioX
+            - paragraph [ref=f7e29]: Plataforma de ofertas ao vivo com preço que cai em tempo real. Sorteios auditáveis, arremate em grupo e pagamento seguro via PIX.
+            - generic [ref=f7e30]:
+              - generic [ref=f7e31]: 🇧🇷 Empresa brasileira
+              - generic [ref=f7e32]: 📄 LGPD compliant
+          - generic [ref=f7e33]:
+            - generic [ref=f7e34]: Legal
+            - generic [ref=f7e35]:
+              - link "Como funciona" [ref=f7e36] [cursor=pointer]:
+                - /url: /ajuda
+              - link "Termos de Uso" [ref=f7e37] [cursor=pointer]:
+                - /url: /termos
+              - link "Política de Privacidade" [ref=f7e38] [cursor=pointer]:
+                - /url: /privacidade
+              - generic [ref=f7e39]: Em breve
+          - generic [ref=f7e40]:
+            - generic [ref=f7e41]: Pagamentos
+            - generic [ref=f7e42]:
+              - generic [ref=f7e43]:
+                - img "Mercado Pago" [ref=f7e44]
+                - generic [ref=f7e45]: ● ATIVO
+              - img "InfoPago" [ref=f7e47]
+              - img "PagSeguro" [ref=f7e49]
+            - paragraph [ref=f7e50]: Pagamentos processados por gateways certificados. Ambiente criptografado (TLS).
+        - generic [ref=f7e51]:
+          - paragraph [ref=f7e52]:
+            - text: © 2026 PremioX ·
+            - generic "Build local (sem deploy)" [ref=f7e53]: vdev
+          - generic [ref=f7e54]:
+            - generic [ref=f7e55]: 🔒 TLS/SSL
+            - generic [ref=f7e56]: ✓ LGPD
+            - generic [ref=f7e57]: ⚡ PIX
+  - navigation [ref=f7e58]:
+    - generic [ref=f7e61]:
+      - link "Ofertas" [ref=f7e331] [cursor=pointer]:
+        - /url: /
+      - link "Sorteios" [ref=f7e337] [cursor=pointer]:
+        - /url: /raffle
+      - link "Criar campanha" [ref=f7e342] [cursor=pointer]:
+        - /url: /admin
+        - generic [ref=f7e345]: Criar
+      - link "Painel" [ref=f7e346] [cursor=pointer]:
+        - /url: /admin
+      - link "Conta" [ref=f7e350] [cursor=pointer]:
+        - /url: /conta
+  - button "Open Next.js Dev Tools" [ref=f7e361] [cursor=pointer]
+  - alert [ref=f7e365]

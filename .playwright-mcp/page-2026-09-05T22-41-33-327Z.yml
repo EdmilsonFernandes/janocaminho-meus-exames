@@ -1,0 +1,124 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e710]:
+      - button [ref=e1739] [cursor=pointer]
+      - generic [ref=e712]:
+        - banner [ref=e713]:
+          - generic [ref=e714]:
+            - button [ref=e1740] [cursor=pointer]
+            - paragraph [ref=e1746]: Dr. Exame
+            - generic [ref=e715]:
+              - button [ref=e716] [cursor=pointer]:
+                - generic [ref=e719]: "69"
+              - button [ref=e720] [cursor=pointer]:
+                - generic [ref=e721]: 9+
+              - button [ref=e726] [cursor=pointer]:
+                - generic [ref=e727]: E
+        - main [ref=e738]:
+          - generic [ref=e1747]:
+            - generic [ref=e1750]:
+              - paragraph [ref=e1751]: Boa noite, Edmilson 👋
+              - generic [ref=e1752]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e1753]:
+              - generic [ref=e1755]:
+                - generic [ref=e1756]:
+                  - generic [ref=e1757]:
+                    - generic:
+                      - paragraph: "62"
+                      - paragraph: de 100
+                  - generic [ref=e1761]:
+                    - paragraph [ref=e1762]: Sua saúde hoje
+                    - paragraph [ref=e1763]: Em boa forma
+                    - paragraph [ref=e1765]:
+                      - generic [ref=e1937]: ● 5 moderados
+                - button [ref=e1766] [cursor=pointer]: Ver análise completa
+              - generic [ref=e1771]:
+                - paragraph [ref=e1772]: O que mudou nos seus exames
+                - generic [ref=e1773]: 1 melhorou
+                - generic [ref=e1943]:
+                  - paragraph [ref=e1944]: ↓GLICOSE
+                  - paragraph [ref=e1945]: 95 mg/dL
+                - button [ref=e1776] [cursor=pointer]: Ver evolução completa
+            - generic [ref=e1783]:
+              - generic [ref=e1787]:
+                - paragraph [ref=e1788]: ✨ Dica personalizada (IA)
+                - paragraph [ref=e1789]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=e1791] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e1795]:
+              - generic [ref=e1803] [cursor=pointer]:
+                - paragraph [ref=e1804]: Cardiometabólico
+                - paragraph [ref=e1805]: baixo
+                - paragraph [ref=e1946]: 1 fator de risco
+              - generic [ref=e1813] [cursor=pointer]:
+                - paragraph [ref=e1814]: Idade biológica
+                - paragraph [ref=e1815]: 42a
+                - paragraph [ref=e1947]: estimativa corporal
+              - generic [ref=e1823] [cursor=pointer]:
+                - paragraph [ref=e1824]: Seus exames
+                - paragraph [ref=e1825]: "9"
+                - paragraph [ref=e1826]: 8 alterados
+              - generic [ref=e1834] [cursor=pointer]:
+                - paragraph [ref=e1835]: Evolução
+                - paragraph [ref=e1836]: "34"
+                - paragraph [ref=e1837]: histórico de tendências
+            - generic [ref=e1850]:
+              - generic [ref=e1851]: Enviar exame
+              - generic [ref=e1858]: Evolução
+              - generic [ref=e1865]: Família
+              - generic [ref=e1873]: Relatório
+            - generic [ref=e1950]:
+              - generic [ref=e1954]:
+                - paragraph [ref=e1955]: "69"
+                - text: créditos disponíveis
+              - button [ref=e1956] [cursor=pointer]: Comprar
+            - generic [ref=e1882] [cursor=pointer]:
+              - generic [ref=e1884]:
+                - paragraph [ref=e1885]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e1888]:
+                - generic [ref=e1889]: 🎉
+                - generic [ref=e1891]: 📚
+                - generic [ref=e1893]: 🎓
+                - generic [ref=e1895]: 💚
+                - generic [ref=e1897]: 🔥
+              - generic [ref=e1899]: 2 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=e1901] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e1905]:
+      - paragraph [ref=e1910] [cursor=pointer]: Início
+      - paragraph [ref=e1915] [cursor=pointer]: Exames
+      - paragraph [ref=e1919] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e1924] [cursor=pointer]: Evolução
+      - paragraph [ref=e1929] [cursor=pointer]: Mais
+  - dialog [ref=e1007]:
+    - heading [level=2] [ref=e1008]: ✨ Novidades do Dr. Exame
+    - generic [ref=e985]:
+      - generic [ref=e986]: Versão 0.1.0
+      - generic [ref=e987]:
+        - generic [ref=e988]:
+          - generic [ref=e989]: 📱
+          - generic [ref=e990]:
+            - paragraph [ref=e991]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e992]:
+          - generic [ref=e993]: 🔐
+          - generic [ref=e994]:
+            - paragraph [ref=e995]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e996]:
+          - generic [ref=e997]: 🩺
+          - generic [ref=e998]:
+            - paragraph [ref=e999]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e1000]:
+          - generic [ref=e1001]: 🚑
+          - generic [ref=e1002]:
+            - paragraph [ref=e1003]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=e1009] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=e1932]:
+    - heading [level=2] [ref=e1933]:
+      - paragraph [ref=e1016]: 💡 Dica do Dr. Exame pra Theo
+    - paragraph [ref=e1018]: Que tal trocar um refrigerante por água hoje? Pequenas escolhas ajudam sua hidratação, seus rins e até seu humor no resto do dia.
+    - generic [ref=e1019]:
+      - button [ref=e1935] [cursor=pointer]: Depois
+      - button [ref=e1936] [cursor=pointer]: Ver notificações

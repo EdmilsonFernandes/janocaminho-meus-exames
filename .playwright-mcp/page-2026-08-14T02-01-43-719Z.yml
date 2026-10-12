@@ -1,0 +1,98 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e105]:
+      - button [ref=e106] [cursor=pointer]
+      - generic [ref=e107]:
+        - banner [ref=e108]:
+          - generic [ref=e109]:
+            - button [ref=e110] [cursor=pointer]
+            - paragraph [ref=e116]: Dr. Exame
+            - button [ref=e117] [cursor=pointer]
+            - button [ref=e122] [cursor=pointer]
+            - button [ref=e131] [cursor=pointer]
+        - main [ref=e134]:
+          - generic [ref=e136]:
+            - generic [ref=e137]:
+              - paragraph [ref=e138]: Boa noite, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e139]:
+              - generic [ref=e141]:
+                - generic [ref=e142]:
+                  - paragraph [ref=e149]: de 100
+                  - generic [ref=e150]:
+                    - paragraph [ref=e151]: Sua saúde hoje
+                    - paragraph [ref=e152]: Calculando…
+                    - paragraph [ref=e154]: ● Nada crítico no momento
+                - button [ref=e155] [cursor=pointer]: Ver análise completa
+              - generic [ref=e160]:
+                - paragraph [ref=e161]: Desde seu último exame
+                - paragraph [ref=e163]: Carregando…
+                - button [ref=e165] [cursor=pointer]: Ver evolução completa
+            - button [ref=e174] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e178]:
+              - generic [ref=e185] [cursor=pointer]:
+                - paragraph [ref=e186]: Cardiometabólico
+                - paragraph [ref=e187]: —
+                - paragraph [ref=e188]: sem fatores
+              - generic [ref=e191] [cursor=pointer]:
+                - generic [ref=e192]: 🧬
+                - generic [ref=e193]:
+                  - paragraph [ref=e194]: Idade biológica
+                  - paragraph [ref=e195]: Em breve
+                  - paragraph [ref=e196]: estimativa c/ +exames
+              - generic [ref=e203] [cursor=pointer]:
+                - paragraph [ref=e204]: Seus exames
+                - paragraph [ref=e205]: —
+                - paragraph [ref=e206]: 0 alterados
+              - generic [ref=e213] [cursor=pointer]:
+                - paragraph [ref=e214]: Evolução
+                - paragraph [ref=e215]: Tendências
+                - paragraph [ref=e216]: 0 resultados
+            - generic [ref=e218]:
+              - generic [ref=e219]: Enviar exame
+              - generic [ref=e226]: Evolução
+              - generic [ref=e233]: Família
+              - generic [ref=e241]: Relatório
+            - button [ref=e249] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e253]:
+      - paragraph [ref=e258] [cursor=pointer]: Início
+      - paragraph [ref=e264] [cursor=pointer]: Exames
+      - paragraph [ref=e268] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e273] [cursor=pointer]: Evolução
+      - paragraph [ref=e278] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e283]:
+    - navigation [ref=e284]:
+      - generic [ref=e285]:
+        - paragraph [ref=e290] [cursor=pointer]: Início
+        - paragraph [ref=e295] [cursor=pointer]: Exames
+        - paragraph [ref=e301] [cursor=pointer]: Valores alterados
+        - paragraph [ref=e307] [cursor=pointer]: Evolução da saúde
+        - paragraph [ref=e312] [cursor=pointer]: Tendências
+        - paragraph [ref=e317] [cursor=pointer]: Linha do Tempo
+        - paragraph [ref=e322] [cursor=pointer]: Relatório completo
+        - paragraph [ref=e327] [cursor=pointer]: Perguntas
+        - paragraph [ref=e333] [cursor=pointer]: Saúde da Família
+      - button [ref=e335] [cursor=pointer]:
+        - generic [ref=e340]: Minha saúde
+      - button [ref=e345] [cursor=pointer]:
+        - generic [ref=e350]: Família & médicos
+      - button [ref=e355] [cursor=pointer]:
+        - generic [ref=e359]: Conta
+      - separator [ref=e363]
+      - button [ref=e364] [cursor=pointer]:
+        - generic [ref=e368]: Ajuda & Suporte
+      - menuitem [ref=e370] [cursor=pointer]:
+        - generic [ref=e374]: Sobre o app
+      - menuitem [ref=e376] [cursor=pointer]:
+        - generic [ref=e380]: Sair da conta
+  - dialog [ref=e384]:
+    - generic [ref=e385]:
+      - button "Pular" [ref=e386] [cursor=pointer]
+      - generic [ref=e387]:
+        - img "Dr. Exame" [ref=e389]
+        - heading "Envie seu exame" [level=4] [ref=e390]
+        - paragraph [ref=e391]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e392]:
+        - button [ref=e398] [cursor=pointer]
+        - paragraph [ref=e402]: Toque em Próximo para continuar →

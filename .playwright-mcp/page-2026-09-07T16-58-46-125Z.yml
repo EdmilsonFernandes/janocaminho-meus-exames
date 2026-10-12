@@ -1,0 +1,121 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e110]:
+    - button "Pular para o conteúdo" [ref=f8e111] [cursor=pointer]
+    - generic [ref=f8e112]:
+      - banner [ref=f8e113]:
+        - generic [ref=f8e114]:
+          - heading [level=6]
+          - generic [ref=f8e115]:
+            - button "Você tem 69 créditos. Toque para comprar mais." [ref=f8e116] [cursor=pointer]:
+              - generic [ref=f8e119]: "69"
+            - button "Notificações" [ref=f8e120] [cursor=pointer]:
+              - generic [ref=f8e121]: 9+
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=f8e126] [cursor=pointer]:
+              - generic [ref=f8e127]: E
+              - generic [ref=f8e129]: Edmilson Lopes Fernandes dos Santos
+          - button "Atualizar" [ref=f8e135] [cursor=pointer]
+      - main [ref=f8e138]:
+        - navigation [ref=f8e142]:
+          - generic [ref=f8e145]:
+            - generic [ref=f8e146]: E
+            - generic [ref=f8e148]:
+              - paragraph [ref=f8e149]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f8e150]:
+                - generic [ref=f8e151]: Plano grátis
+                - button "⚡ 69 (+)" [ref=f8e153] [cursor=pointer]
+          - separator [ref=f8e155]
+          - button "Exames" [ref=f8e157] [cursor=pointer]
+          - button "Cuidados" [ref=f8e166] [cursor=pointer]
+          - button "Pessoas" [ref=f8e176] [cursor=pointer]
+          - button "Conta" [ref=f8e186] [cursor=pointer]
+          - button "Dúvidas frequentes" [ref=f8e195] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=f8e201] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=f8e207] [cursor=pointer]
+          - generic [ref=f8e213]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=f8e215]:
+          - generic [ref=f8e217]:
+            - generic [ref=f8e218]:
+              - paragraph [ref=f8e219]: Boa tarde, Edmilson 👋
+              - generic [ref=f8e220]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f8e221]: Sincronizado
+          - generic [ref=f8e225]:
+            - generic [ref=f8e227]:
+              - generic [ref=f8e228]:
+                - generic [ref=f8e229]:
+                  - generic:
+                    - paragraph: "62"
+                    - paragraph: de 100
+                - generic [ref=f8e233]:
+                  - paragraph [ref=f8e234]: Sua saúde hoje
+                  - paragraph [ref=f8e235]: Em boa forma
+                  - paragraph [ref=f8e237]:
+                    - generic [ref=f8e238]: ● 5 moderados
+              - button [ref=f8e239] [cursor=pointer]
+            - generic [ref=f8e244]:
+              - paragraph [ref=f8e245]: O que mudou nos seus exames
+              - generic [ref=f8e246]: 1 melhorou
+              - generic [ref=f8e252]:
+                - paragraph [ref=f8e253]: ↓GLICOSE
+                - paragraph [ref=f8e254]: 95 mg/dL
+              - button [ref=f8e256] [cursor=pointer]
+          - generic [ref=f8e267]:
+            - generic [ref=f8e268]:
+              - img "Dr. Exame" [ref=f8e270]
+              - generic [ref=f8e271]:
+                - paragraph [ref=f8e272]: ✨ Dica personalizada (IA)
+                - paragraph [ref=f8e273]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+            - button [ref=f8e275] [cursor=pointer]
+          - generic [ref=f8e280]:
+            - paragraph [ref=f8e286]: Seus indicadores
+            - generic [ref=f8e287]:
+              - button [ref=f8e289] [cursor=pointer]:
+                - generic [ref=f8e290]:
+                  - generic [ref=f8e296]:
+                    - paragraph [ref=f8e297]: Cardiometabólico
+                    - paragraph [ref=f8e298]: baixo
+                  - paragraph [ref=f8e302]: 1 fator de risco
+              - button [ref=f8e304] [cursor=pointer]:
+                - generic [ref=f8e310]:
+                  - paragraph [ref=f8e311]: Idade biológica
+                  - paragraph [ref=f8e312]: 42a
+                  - paragraph [ref=f8e313]: estimativa corporal
+              - button [ref=f8e315] [cursor=pointer]:
+                - generic [ref=f8e316]:
+                  - generic [ref=f8e322]:
+                    - paragraph [ref=f8e323]: Seus exames
+                    - paragraph [ref=f8e324]: "9"
+                  - paragraph [ref=f8e328]: 8 alterados
+              - button [ref=f8e330] [cursor=pointer]:
+                - generic [ref=f8e331]:
+                  - generic [ref=f8e337]:
+                    - paragraph [ref=f8e338]: Evolução
+                    - paragraph [ref=f8e339]: "34"
+                  - paragraph [ref=f8e340]: histórico de tendências
+          - paragraph [ref=f8e349]: Atividade física
+          - generic [ref=f8e351]:
+            - paragraph [ref=f8e357]: Ações rápidas
+            - generic [ref=f8e358]:
+              - generic [ref=f8e361] [cursor=pointer]:
+                - generic [ref=f8e362]: +
+                - generic [ref=f8e363]: Enviar exame
+              - generic [ref=f8e369]: Evolução
+              - generic [ref=f8e377]: Família
+              - generic [ref=f8e385]: Relatório
+          - generic [ref=f8e396]:
+            - generic [ref=f8e401]:
+              - paragraph [ref=f8e402]: "69"
+              - text: créditos disponíveis
+            - button "Comprar" [ref=f8e403] [cursor=pointer]
+          - generic [ref=f8e407] [cursor=pointer]:
+            - generic [ref=f8e409]:
+              - paragraph [ref=f8e410]: 🏆 Suas conquistas
+              - text: Resgate 1 crédito a cada meta atingida
+            - generic [ref=f8e413]:
+              - generic [ref=f8e414]: 🎉
+              - generic [ref=f8e416]: 📚
+              - generic [ref=f8e418]: 🎓
+              - generic [ref=f8e420]: 💚
+              - generic [ref=f8e422]: 🔥
+            - generic [ref=f8e426]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+          - button [ref=f8e429] [cursor=pointer]
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f8e93] [cursor=pointer]

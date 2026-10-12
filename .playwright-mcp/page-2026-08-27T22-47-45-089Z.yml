@@ -1,0 +1,99 @@
+- generic [ref=f15e5]:
+  - generic [ref=f15e6]:
+    - generic [ref=f15e86]:
+      - button "Pular para o conteúdo" [ref=f15e441] [cursor=pointer]
+      - generic [ref=f15e88]:
+        - banner [ref=f15e89]:
+          - generic [ref=f15e90]:
+            - button "Menu" [ref=f15e442] [cursor=pointer]
+            - generic [ref=f15e94]:
+              - img "Dr. Exame" [ref=f15e443]
+              - paragraph [ref=f15e97]: Dr. Exame
+            - generic [ref=f15e98]:
+              - button "Você tem 71 créditos. Toque para comprar mais." [ref=f15e444] [cursor=pointer]:
+                - generic [ref=f15e359]: "71"
+              - button "Notificações" [ref=f15e445] [cursor=pointer]:
+                - generic [ref=f15e100]: "2"
+              - button "E Edmilson Lopes Fernandes dos Santos" [ref=f15e446] [cursor=pointer]:
+                - generic [ref=f15e105]: E
+                - generic [ref=f15e107]: Edmilson Lopes Fernandes dos Santos
+        - main [ref=f15e112]:
+          - generic [ref=f15e114]:
+            - generic [ref=f15e117]:
+              - paragraph [ref=f15e118]: Boa noite, Edmilson 👋
+              - generic [ref=f15e119]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f15e120]:
+              - generic [ref=f15e122]:
+                - generic [ref=f15e123]:
+                  - generic [ref=f15e128]:
+                    - paragraph [ref=f15e361]: "80"
+                    - paragraph [ref=f15e130]: de 100
+                  - generic [ref=f15e131]:
+                    - paragraph [ref=f15e132]: Sua saúde hoje
+                    - paragraph [ref=f15e133]: Em ótima forma
+                    - paragraph [ref=f15e135]:
+                      - generic [ref=f15e362]: ● 5 moderados
+                - button [ref=f15e447] [cursor=pointer]
+              - generic [ref=f15e141]:
+                - paragraph [ref=f15e142]: O que mudou nos seus exames
+                - generic [ref=f15e143]: 2 melhoraram
+                - generic [ref=f15e367]:
+                  - generic [ref=f15e368]:
+                    - paragraph [ref=f15e369]: ↓Linfócitos Reativos
+                    - paragraph [ref=f15e370]: 0 %
+                  - generic [ref=f15e371]:
+                    - paragraph [ref=f15e372]: ↓GLICOSE
+                    - paragraph [ref=f15e373]: 95 mg/dL
+                - button [ref=f15e448] [cursor=pointer]
+            - generic [ref=f15e153]:
+              - generic [ref=f15e154]:
+                - paragraph [ref=f15e156]: ✨ Entenda seus exames com IA
+                - paragraph [ref=f15e157]: Tire dúvidas clínicas, compare referências e receba orientações personalizadas sobre seus marcadores em segundos.
+              - button [ref=f15e449] [cursor=pointer]
+            - generic [ref=f15e163]:
+              - generic [ref=f15e171] [cursor=pointer]:
+                - paragraph [ref=f15e172]: Cardiometabólico
+                - paragraph [ref=f15e173]: Sem dados
+                - paragraph [ref=f15e374]: sem colesterol, peso ou pressão
+              - generic [ref=f15e181] [cursor=pointer]:
+                - paragraph [ref=f15e182]: Idade biológica
+                - paragraph [ref=f15e183]: —
+                - paragraph [ref=f15e375]: precisa de mais marcadores
+              - generic [ref=f15e191] [cursor=pointer]:
+                - paragraph [ref=f15e192]: Seus exames
+                - paragraph [ref=f15e193]: "9"
+                - paragraph [ref=f15e194]: 8 alterados
+              - generic [ref=f15e202] [cursor=pointer]:
+                - paragraph [ref=f15e203]: Evolução
+                - paragraph [ref=f15e204]: "42"
+                - paragraph [ref=f15e376]: histórico de tendências
+            - generic [ref=f15e206]:
+              - generic [ref=f15e207]: Enviar exame
+              - generic [ref=f15e214]: Evolução
+              - generic [ref=f15e221]: Família
+              - generic [ref=f15e229]: Relatório
+            - generic [ref=f15e379]:
+              - generic [ref=f15e383]:
+                - paragraph [ref=f15e384]: "71"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=f15e450] [cursor=pointer]
+            - button [ref=f15e451] [cursor=pointer]
+    - navigation [ref=f15e241]:
+      - paragraph [ref=f15e246] [cursor=pointer]: Início
+      - paragraph [ref=f15e252] [cursor=pointer]: Exames
+      - generic [ref=f15e253] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f15e452]
+        - paragraph [ref=f15e256]: Dr. Exame
+      - paragraph [ref=f15e261] [cursor=pointer]: Evolução
+      - paragraph [ref=f15e266] [cursor=pointer]: Mais
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f15e453] [cursor=pointer]
+  - dialog [ref=f15e337]:
+    - generic [ref=f15e338]:
+      - button "Pular" [ref=f15e454] [cursor=pointer]
+      - generic [ref=f15e340]:
+        - img "Dr. Exame" [ref=f15e455]
+        - heading "Envie seu exame" [level=4] [ref=f15e456]
+        - paragraph [ref=f15e344]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f15e345]:
+        - button [ref=f15e457] [cursor=pointer]
+        - paragraph [ref=f15e355]: Toque em Próximo para continuar →

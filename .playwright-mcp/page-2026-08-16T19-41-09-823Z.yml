@@ -1,0 +1,79 @@
+- generic [active] [ref=f2e20]:
+  - generic [ref=f2e22]:
+    - generic [ref=f2e23]:
+      - generic [ref=f2e24]:
+        - button "Voltar" [ref=f2e137] [cursor=pointer]
+        - button "Menu do médico" [ref=f2e25] [cursor=pointer]:
+          - generic [ref=f2e26]: D
+        - generic [ref=f2e27]:
+          - paragraph [ref=f2e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=f2e141]:
+        - generic [ref=f2e142]:
+          - generic [ref=f2e143]:
+            - generic [ref=f2e144]: E
+            - generic [ref=f2e147]:
+              - generic [ref=f2e148]:
+                - paragraph [ref=f2e149]: Edmilson Lopes QA
+                - button "Trocar paciente" [ref=f2e150] [cursor=pointer]: Trocar
+              - paragraph [ref=f2e154]: Masculino • Titular • Particular
+          - generic [ref=f2e155]:
+            - generic [ref=f2e156]:
+              - generic [ref=f2e157]: Último exame
+              - paragraph [ref=f2e161]: 03/08
+              - text: há 12 dias
+            - button "Alterações 1" [ref=f2e162] [cursor=pointer]:
+              - generic [ref=f2e163]: Alterações
+              - paragraph [ref=f2e168]: "1"
+            - generic [ref=f2e169]:
+              - generic [ref=f2e170]: Pendências
+              - paragraph [ref=f2e174]: "0"
+            - generic [ref=f2e175]:
+              - generic [ref=f2e176]: Anotações
+              - paragraph [ref=f2e180]: "0"
+        - tablist "Abas do paciente" [ref=f2e184]:
+          - tab "Exames" [ref=f2e185] [cursor=pointer]:
+            - superscript [ref=f2e189]: "1"
+          - tab "Alterados" [selected] [ref=f2e190] [cursor=pointer]:
+            - generic [ref=f2e193]:
+              - generic [ref=f2e194]: Alterados
+              - superscript [ref=f2e195]: "1"
+          - tab "Tendências" [ref=f2e196] [cursor=pointer]
+          - tab "Relatório" [ref=f2e199] [cursor=pointer]
+          - tab "Perguntas" [ref=f2e202] [cursor=pointer]
+          - tab "Anotações" [ref=f2e205] [cursor=pointer]
+        - generic [ref=f2e209]:
+          - generic [ref=f2e211]:
+            - generic [ref=f2e212]:
+              - generic [ref=f2e213]: 🔴 0 Importantes
+              - generic [ref=f2e214]: 🟠 1 Moderada
+              - generic [ref=f2e215]: 🟡 0 Leves
+            - generic [ref=f2e216]:
+              - text: Nada crítico — os ajustes são
+              - strong [ref=f2e217]: 🟠 moderados
+              - text: ou
+              - strong [ref=f2e218]: 🟡 leves
+              - text: . Comente com seu paciente na próxima consulta.
+          - heading [level=3] [ref=f2e221]:
+            - button "🟠 Hemograma Completo 📅 03/08/2026 · há 12 dias 1 alterado(s)" [ref=f2e222] [cursor=pointer]:
+              - generic [ref=f2e224]:
+                - generic [ref=f2e225]: 🟠
+                - generic [ref=f2e226]:
+                  - heading "Hemograma Completo" [level=6] [ref=f2e227]
+                  - generic [ref=f2e228]: 📅 03/08/2026 · há 12 dias
+                - generic [ref=f2e229]: 1 alterado(s)
+          - generic [ref=f2e234]: "*Educativo. A interpretação final é sua."
+    - navigation [ref=f2e105]:
+      - button "Início" [ref=f2e106] [cursor=pointer]:
+        - paragraph [ref=f2e111]: Início
+      - button "Pacientes" [ref=f2e113] [cursor=pointer]:
+        - paragraph [ref=f2e118]: Pacientes
+      - button "Perguntas" [ref=f2e119] [cursor=pointer]:
+        - paragraph [ref=f2e124]: Perguntas
+      - button "Perfil" [ref=f2e125] [cursor=pointer]:
+        - paragraph [ref=f2e130]: Perfil
+      - button "Mais" [ref=f2e131] [cursor=pointer]:
+        - paragraph [ref=f2e136]: Mais
+  - generic [ref=f2e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e19]

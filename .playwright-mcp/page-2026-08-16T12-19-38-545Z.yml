@@ -1,0 +1,92 @@
+- generic [ref=f4e20]:
+  - generic [ref=f4e21]:
+    - generic [ref=f4e22]:
+      - button [ref=f4e23] [cursor=pointer]
+      - generic [ref=f4e24]:
+        - banner [ref=f4e25]:
+          - generic [ref=f4e26]:
+            - button [ref=f4e27] [cursor=pointer]
+            - paragraph [ref=f4e33]: Dr. Exame
+            - button [ref=f4e34] [cursor=pointer]:
+              - generic [ref=f4e37]: "71"
+              - button [ref=f4e38]
+            - button [ref=f4e41] [cursor=pointer]:
+              - generic [ref=f4e42]: "36"
+            - button [ref=f4e47] [cursor=pointer]:
+              - generic [ref=f4e48]: E
+            - button [ref=f4e54] [cursor=pointer]
+        - main [ref=f4e57]:
+          - generic [ref=f4e59]:
+            - generic [ref=f4e64]:
+              - heading [level=5] [ref=f4e65]: Evolução ao longo do tempo
+              - paragraph [ref=f4e66]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.
+            - generic [ref=f4e68]:
+              - generic [ref=f4e69]:
+                - generic [ref=f4e70]: 🟢 1 Melhoraram
+                - generic [ref=f4e71]: 🔴 0 Pioraram
+                - generic [ref=f4e72]: ✅ 27 Estáveis
+              - generic [ref=f4e73]:
+                - text: Seus marcadores estão evoluindo bem — continue assim. ✅
+                - strong [ref=f4e74]: ·
+                - text: Conteúdo educativo — a decisão final é do médico.
+            - generic [ref=f4e75]:
+              - button [ref=f4e77] [cursor=pointer]:
+                - generic [ref=f4e78]: 📋 Todos (28)
+              - button [ref=f4e80] [cursor=pointer]:
+                - generic [ref=f4e81]: 🔴 Fora da faixa (7)
+              - button [ref=f4e83] [cursor=pointer]:
+                - generic [ref=f4e84]: 🟠 Em mudança (3)
+              - button [ref=f4e86] [cursor=pointer]:
+                - generic [ref=f4e87]: ✅ Estável (18)
+            - generic [ref=f4e88]:
+              - text: 🟢 Melhorou · 🔴 Piorou · ✅ Estável ·
+              - strong [ref=f4e89]: 🟠 Em mudança
+              - text: = ainda dentro da faixa, mas subindo ou caindo em relação ao exame anterior — vale acompanhar.
+            - textbox [ref=f4e94]:
+              - /placeholder: Buscar exame (TSH, glicose, colesterol…)
+            - button [ref=f4e96] [cursor=pointer]: Gráfico por marcador (pontos por data) →
+            - generic [ref=f4e100]:
+              - generic [ref=f4e102] [cursor=pointer]:
+                - paragraph [ref=f4e106]: Glicemia e Diabetes
+                - generic [ref=f4e107]: 🔴
+                - generic [ref=f4e108]: 1 alterado
+              - generic [ref=f4e113] [cursor=pointer]:
+                - paragraph [ref=f4e117]: Hemograma
+                - generic [ref=f4e118]: 🔴
+                - generic [ref=f4e119]: 2 alterados
+              - generic [ref=f4e124] [cursor=pointer]:
+                - paragraph [ref=f4e128]: Lipídios e Colesterol
+                - generic [ref=f4e129]: 🔴
+                - generic [ref=f4e130]: 4 alterados
+              - generic [ref=f4e135] [cursor=pointer]:
+                - paragraph [ref=f4e139]: Função Hepática
+                - generic [ref=f4e140]: ✅
+              - generic [ref=f4e144] [cursor=pointer]:
+                - paragraph [ref=f4e148]: Outros exames
+                - generic [ref=f4e149]: ✅
+    - button [ref=f4e152] [cursor=pointer]
+    - navigation [ref=f4e159]:
+      - paragraph [ref=f4e164] [cursor=pointer]: Início
+      - paragraph [ref=f4e169] [cursor=pointer]: Exames
+      - paragraph [ref=f4e173] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f4e178] [cursor=pointer]: Evolução
+      - paragraph [ref=f4e184] [cursor=pointer]: Mais
+  - generic [ref=f4e17] [cursor=pointer]
+  - dialog [active] [ref=f4e189]:
+    - navigation [ref=f4e190]:
+      - generic [ref=f4e191]:
+        - button "Exames" [expanded] [ref=f4e302] [cursor=pointer]
+        - generic [ref=f4e203]:
+          - button "Exames" [ref=f4e303] [cursor=pointer]
+          - button "Valores alterados" [ref=f4e304] [cursor=pointer]
+          - button "Evolução" [ref=f4e305] [cursor=pointer]
+          - button "Tendências" [ref=f4e306] [cursor=pointer]
+          - button "Linha do Tempo" [ref=f4e307] [cursor=pointer]
+          - button "Relatório completo" [ref=f4e308] [cursor=pointer]
+      - button "Cuidados" [ref=f4e309] [cursor=pointer]
+      - button "Pessoas" [ref=f4e310] [cursor=pointer]
+      - button "Conta" [ref=f4e311] [cursor=pointer]
+      - separator [ref=f4e271]
+      - button "Ajuda & Suporte" [ref=f4e312] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f4e313] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f4e314] [cursor=pointer]

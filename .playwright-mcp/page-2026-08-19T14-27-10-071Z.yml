@@ -1,0 +1,96 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e90]:
+    - generic [ref=e150]:
+      - generic [ref=e151]:
+        - button "Voltar" [ref=e230] [cursor=pointer]
+        - button "Menu do médico" [ref=e413] [cursor=pointer]:
+          - generic [ref=e414]: D
+        - generic [ref=e415]:
+          - paragraph [ref=e416]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e281]:
+        - generic [ref=e282]:
+          - generic [ref=e283]:
+            - generic [ref=e284]: E
+            - generic [ref=e287]:
+              - generic [ref=e288]:
+                - paragraph [ref=e289]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=e290] [cursor=pointer]: Trocar
+              - paragraph [ref=e294]: Masculino • Particular
+          - generic [ref=e295]:
+            - generic [ref=e296]:
+              - generic [ref=e297]: Último exame
+              - paragraph [ref=e301]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=e302] [cursor=pointer]:
+              - generic [ref=e303]: Alterações
+              - paragraph [ref=e308]: "8"
+            - generic [ref=e309]:
+              - generic [ref=e310]: Pendências
+              - paragraph [ref=e314]: "0"
+            - generic [ref=e315]:
+              - generic [ref=e316]: Anotações
+              - paragraph [ref=e320]: "0"
+        - tablist "Abas do paciente" [ref=e324]:
+          - tab "Exames" [ref=e325] [cursor=pointer]:
+            - superscript [ref=e417]: "5"
+          - tab "Alterados" [selected] [ref=e332] [cursor=pointer]:
+            - generic [ref=e335]:
+              - generic [ref=e336]: Alterados
+              - superscript [ref=e337]: "8"
+          - tab "Tendências" [ref=e338] [cursor=pointer]
+          - tab "Relatório" [ref=e343] [cursor=pointer]
+          - tab "Perguntas" [ref=e348] [cursor=pointer]
+          - tab "Anotações" [ref=e353] [cursor=pointer]
+        - generic [ref=e359]:
+          - generic [ref=e361]:
+            - generic [ref=e362]:
+              - generic [ref=e363]: 🔴 0 Importantes
+              - generic [ref=e364]: 🟠 6 Moderadas
+              - generic [ref=e365]: 🟡 2 Leves
+            - generic [ref=e366]:
+              - text: Nada crítico — os ajustes são
+              - strong [ref=e367]: 🟠 moderados
+              - text: ou
+              - strong [ref=e368]: 🟡 leves
+              - text: . Comente com seu paciente na próxima consulta.
+          - generic [ref=e369]:
+            - heading [level=3] [ref=e371]:
+              - button "🟠 PERFIL LIPÍDICO 📅 09/07/2026 · há 1 mês 4 alterado(s)" [ref=e372] [cursor=pointer]:
+                - generic [ref=e374]:
+                  - generic [ref=e375]: 🟠
+                  - generic [ref=e376]:
+                    - heading "PERFIL LIPÍDICO" [level=6] [ref=e377]
+                    - generic [ref=e378]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=e379]: 4 alterado(s)
+            - heading [level=3] [ref=e385]:
+              - button "🟠 GLICEMIA DE JEJUM 📅 09/07/2026 · há 1 mês 2 alterado(s)" [ref=e386] [cursor=pointer]:
+                - generic [ref=e388]:
+                  - generic [ref=e389]: 🟠
+                  - generic [ref=e390]:
+                    - heading "GLICEMIA DE JEJUM" [level=6] [ref=e391]
+                    - generic [ref=e392]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=e393]: 2 alterado(s)
+            - heading [level=3] [ref=e399]:
+              - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [ref=e400] [cursor=pointer]:
+                - generic [ref=e402]:
+                  - generic [ref=e403]: 🟡
+                  - generic [ref=e404]:
+                    - heading "HEMOGRAMA" [level=6] [ref=e405]
+                    - generic [ref=e406]: 📅 s/d
+                  - generic [ref=e407]: 2 alterado(s)
+          - generic [ref=e412]: "*Educativo. A interpretação final é sua."
+    - navigation [ref=e418]:
+      - button "Início" [ref=e419] [cursor=pointer]:
+        - paragraph [ref=e424]: Início
+      - button "Pacientes" [ref=e425] [cursor=pointer]:
+        - paragraph [ref=e430]: Pacientes
+      - button "Perguntas" [ref=e432] [cursor=pointer]:
+        - paragraph [ref=e437]: Perguntas
+      - button "Perfil" [ref=e438] [cursor=pointer]:
+        - paragraph [ref=e443]: Perfil
+      - button "Mais" [ref=e444] [cursor=pointer]:
+        - paragraph [ref=e449]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

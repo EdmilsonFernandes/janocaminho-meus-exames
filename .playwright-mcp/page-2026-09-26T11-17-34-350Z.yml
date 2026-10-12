@@ -1,0 +1,34 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - button "Menu do médico" [ref=f4e6] [cursor=pointer]:
+        - generic [ref=f4e7]: D
+      - generic [ref=f4e8]:
+        - paragraph [ref=f4e9]: Dra. QA Teste
+        - text: Clínica Médica • CRM 999999-QA
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e10]: Acesso médico · leitura
+    - generic [ref=f4e14]:
+      - button "Fechar banner" [ref=f4e167] [cursor=pointer]:
+        - generic [aria-hidden] [ref=f4e168]: ×
+      - generic [ref=f4e170]:
+        - heading "Pacientes (1)" [level=6] [ref=f4e172]
+        - textbox "Buscar paciente" [ref=f4e178]:
+          - /placeholder: Buscar paciente pelo nome…
+        - button "Q QA Vazio Titular Particular" [ref=f4e180] [cursor=pointer]:
+          - generic [ref=f4e181]:
+            - generic [ref=f4e182]: Q
+            - generic [ref=f4e184]:
+              - paragraph [ref=f4e185]: QA Vazio
+              - generic [ref=f4e186]: Titular
+              - generic [ref=f4e187]: Particular
+  - navigation [ref=f4e134]:
+    - button "Início" [ref=f4e135] [cursor=pointer]:
+      - paragraph [ref=f4e140]: Início
+    - button "Pacientes" [active] [ref=f4e142] [cursor=pointer]:
+      - paragraph [ref=f4e147]: Pacientes
+    - button "Perguntas" [ref=f4e148] [cursor=pointer]:
+      - paragraph [ref=f4e153]: Perguntas
+    - button "Perfil" [ref=f4e154] [cursor=pointer]:
+      - paragraph [ref=f4e159]: Perfil
+    - button "Mais" [ref=f4e160] [cursor=pointer]:
+      - paragraph [ref=f4e165]: Mais

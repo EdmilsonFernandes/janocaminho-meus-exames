@@ -1,0 +1,85 @@
+- generic [ref=f4e3]:
+  - navigation [ref=f4e4]:
+    - generic [ref=f4e6]:
+      - button "Menu do médico" [ref=f4e7] [cursor=pointer]:
+        - generic [ref=f4e8]: D
+      - generic [ref=f4e9]:
+        - paragraph [ref=f4e10]: Dra. QA Teste
+        - generic [ref=f4e11]: Clínica Médica • CRM 999999-QA
+    - separator [ref=f4e12]
+    - generic [ref=f4e13]:
+      - generic [ref=f4e14]: PLANO
+      - paragraph [ref=f4e15]: Grátis (0/5 usados)
+      - generic [ref=f4e16]: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=f4e17]:
+      - button "Painel" [ref=f4e18] [cursor=pointer]
+      - button "Pacientes" [ref=f4e24] [cursor=pointer]
+      - button "Convites" [ref=f4e30] [cursor=pointer]
+      - button "Perguntas" [ref=f4e37] [cursor=pointer]
+      - button "Meu perfil" [ref=f4e44] [cursor=pointer]
+      - button "Trocar senha" [ref=f4e50] [cursor=pointer]
+      - separator [ref=f4e56]
+      - button "Sair" [ref=f4e57] [cursor=pointer]
+    - generic [ref=f4e63]: Dr. Exame • Portal do Médico 🩺
+  - generic [ref=f4e65]:
+    - generic [ref=f4e67]:
+      - paragraph [ref=f4e69]: Painel
+      - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e70]: Acesso médico · leitura
+    - generic [ref=f4e75]:
+      - generic [ref=f4e76]:
+        - heading "Boa tarde, Dr(a). QA 👋" [level=1] [ref=f4e77]
+        - paragraph [ref=f4e78]: Tudo em ordem — nenhum alerta crítico no momento ✅
+        - generic [ref=f4e79]: segunda-feira, 28 de setembro
+      - generic [ref=f4e80]:
+        - button "Pacientes Ativos 1 carteira acompanhada" [ref=f4e81] [cursor=pointer]:
+          - generic [ref=f4e83]:
+            - generic [ref=f4e84]: Pacientes Ativos
+            - paragraph [ref=f4e85]: "1"
+            - generic [ref=f4e86]: carteira acompanhada
+        - button "Com Alerta Clínico 0 0 requerem atenção" [ref=f4e90] [cursor=pointer]:
+          - generic [ref=f4e92]:
+            - generic [ref=f4e93]: Com Alerta Clínico
+            - paragraph [ref=f4e94]: "0"
+            - generic [ref=f4e95]: 0 requerem atenção
+        - button "Dúvidas de Pacientes 0 0 aguardando" [ref=f4e100] [cursor=pointer]:
+          - generic [ref=f4e102]:
+            - generic [ref=f4e103]: Dúvidas de Pacientes
+            - paragraph [ref=f4e104]: "0"
+            - generic [ref=f4e105]: 0 aguardando
+        - button "Convites Pendentes 0 0 aguardando" [ref=f4e109] [cursor=pointer]:
+          - generic [ref=f4e111]:
+            - generic [ref=f4e112]: Convites Pendentes
+            - paragraph [ref=f4e113]: "0"
+            - generic [ref=f4e114]: 0 aguardando
+      - generic [ref=f4e119]:
+        - generic [ref=f4e120]:
+          - generic [ref=f4e125]:
+            - heading "Panorama da Carteira" [level=2] [ref=f4e126]
+            - text: Distribuição clínica dos pacientes
+          - generic [ref=f4e127]:
+            - generic [ref=f4e128]:
+              - generic [ref=f4e129]:
+                - paragraph [ref=f4e130]: Exames em dia
+                - paragraph [ref=f4e131]: 1/1 (100%)
+              - progressbar [ref=f4e132]
+            - generic [ref=f4e134]:
+              - generic [ref=f4e135]:
+                - paragraph [ref=f4e136]: Valores alterados
+                - paragraph [ref=f4e137]: 0/1 (0%)
+              - progressbar [ref=f4e138]
+            - generic [ref=f4e140]:
+              - generic [ref=f4e141]:
+                - paragraph [ref=f4e142]: A renovar (>1 ano)
+                - paragraph [ref=f4e143]: 0/1 (0%)
+              - progressbar [ref=f4e144]
+          - generic [ref=f4e146]: 💡 Dados alimentados automaticamente pelos exames autorizados que os pacientes sobem no app.
+        - generic [ref=f4e147]:
+          - heading "Ações Rápidas" [level=2] [ref=f4e152]
+          - generic [ref=f4e153]:
+            - button [ref=f4e154] [cursor=pointer]
+            - button [ref=f4e158] [cursor=pointer]
+            - button [ref=f4e162] [cursor=pointer]
+        - generic [ref=f4e166]:
+          - paragraph [ref=f4e170]: Dr. Exame Pro
+          - paragraph [ref=f4e171]: 0 de 5 pré-consultas gratuitas usadas.
+          - button "Assinar R$29,90/mês" [ref=f4e172] [cursor=pointer]

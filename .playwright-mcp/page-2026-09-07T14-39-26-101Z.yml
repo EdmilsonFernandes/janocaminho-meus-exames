@@ -1,0 +1,120 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e110]:
+      - button [ref=e382] [cursor=pointer]
+      - generic [ref=e112]:
+        - banner [ref=e113]:
+          - generic [ref=e114]:
+            - button [ref=e383] [cursor=pointer]
+            - paragraph [ref=e121]: Dr. Exame
+            - generic [ref=e122]:
+              - button [ref=e385] [cursor=pointer]:
+                - generic [ref=e126]: "69"
+              - button [ref=e386] [cursor=pointer]:
+                - generic [ref=e128]: 9+
+              - button [ref=e387] [cursor=pointer]:
+                - generic [ref=e134]: E
+        - main [ref=e139]:
+          - generic [ref=e141]:
+            - generic [ref=e144]:
+              - paragraph [ref=e145]: Bom dia, Edmilson 👋
+              - generic [ref=e146]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e148]:
+              - generic [ref=e150]:
+                - generic [ref=e151]:
+                  - generic [ref=e152]:
+                    - generic:
+                      - paragraph: "62"
+                      - paragraph: de 100
+                  - generic [ref=e156]:
+                    - paragraph [ref=e157]: Sua saúde hoje
+                    - paragraph [ref=e158]: Em boa forma
+                    - paragraph [ref=e160]:
+                      - generic [ref=e161]: ● 5 moderados
+                - button [ref=e388] [cursor=pointer]: Ver análise completa
+              - generic [ref=e167]:
+                - paragraph [ref=e168]: O que mudou nos seus exames
+                - generic [ref=e169]: 1 melhorou
+                - generic [ref=e175]:
+                  - paragraph [ref=e176]: ↓GLICOSE
+                  - paragraph [ref=e177]: 95 mg/dL
+                - button [ref=e389] [cursor=pointer]: Ver evolução completa
+            - generic [ref=e190]:
+              - generic [ref=e194]:
+                - paragraph [ref=e195]: ✨ Dica personalizada (IA)
+                - paragraph [ref=e196]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=e391] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e203]:
+              - paragraph [ref=e209]: Seus indicadores
+              - generic [ref=e210]:
+                - button [ref=e392] [cursor=pointer]:
+                  - generic [ref=e213]:
+                    - generic [ref=e219]:
+                      - paragraph [ref=e220]: Cardiometabólico
+                      - paragraph [ref=e221]: baixo
+                    - paragraph [ref=e225]: 1 fator de risco
+                - button [ref=e393] [cursor=pointer]:
+                  - generic [ref=e233]:
+                    - paragraph [ref=e234]: Idade biológica
+                    - paragraph [ref=e235]: 42a
+                    - paragraph [ref=e236]: estimativa corporal
+                - button [ref=e394] [cursor=pointer]:
+                  - generic [ref=e239]:
+                    - generic [ref=e245]:
+                      - paragraph [ref=e246]: Seus exames
+                      - paragraph [ref=e247]: "9"
+                    - paragraph [ref=e251]: 8 alterados
+                - button [ref=e395] [cursor=pointer]:
+                  - generic [ref=e254]:
+                    - generic [ref=e260]:
+                      - paragraph [ref=e261]: Evolução
+                      - paragraph [ref=e262]: "34"
+                    - paragraph [ref=e263]: histórico de tendências
+            - paragraph [ref=e272]: Atividade física
+            - generic [ref=e274]:
+              - paragraph [ref=e280]: Ações rápidas
+              - generic [ref=e281]:
+                - generic [ref=e284] [cursor=pointer]:
+                  - generic [ref=e285]: +
+                  - generic [ref=e286]: Enviar exame
+                - generic [ref=e292]: Evolução
+                - generic [ref=e300]: Família
+                - generic [ref=e308]: Relatório
+            - generic [ref=e319]:
+              - generic [ref=e324]:
+                - paragraph [ref=e325]: "69"
+                - text: créditos disponíveis
+              - button [ref=e396] [cursor=pointer]: Comprar
+            - generic [ref=e330] [cursor=pointer]:
+              - generic [ref=e332]:
+                - paragraph [ref=e333]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e336]:
+                - generic [ref=e337]: 🎉
+                - generic [ref=e339]: 📚
+                - generic [ref=e341]: 🎓
+                - generic [ref=e343]: 💚
+                - generic [ref=e345]: 🔥
+              - generic [ref=e349]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=e397] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e356]:
+      - button [ref=e398] [cursor=pointer]:
+        - paragraph [ref=e361]: Início
+      - button [ref=e399] [cursor=pointer]:
+        - paragraph [ref=e367]: Exames
+      - button [ref=e400] [cursor=pointer]:
+        - paragraph [ref=e371]: Dr. Exame
+      - button [ref=e402] [cursor=pointer]:
+        - paragraph [ref=e376]: Evolução
+      - button [ref=e403] [cursor=pointer]:
+        - paragraph [ref=e381]: Mais
+  - button [ref=e404] [cursor=pointer]
+  - dialog [active] [ref=e407]:
+    - heading [level=2] [ref=e408]:
+      - generic [ref=e409]:
+        - img "Dr. Exame" [ref=e410]
+        - paragraph [ref=e411]: "🎉 Conquista: Constância"
+    - paragraph [ref=e413]: 3 dias seguidos no app — resgate seu crédito!
+    - generic [ref=e414]:
+      - button "Depois" [ref=e415] [cursor=pointer]
+      - button "Ver notificações" [ref=e416] [cursor=pointer]

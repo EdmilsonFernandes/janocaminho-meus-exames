@@ -1,0 +1,442 @@
+- generic [active] [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - navigation [ref=f11e3]:
+      - link [ref=f11e5] [cursor=pointer]:
+        - /url: /
+        - img "Sami Plano de Saúde Empresarial" [ref=f11e6]
+    - generic [ref=f11e7]:
+      - generic [ref=f11e8]:
+        - generic [ref=f11e13]:
+          - paragraph [ref=f11e16]:
+            - heading "ㅤ" [level=2] [ref=f11e17]
+            - paragraph [ref=f11e18]: ㅤ
+            - blockquote
+            - heading [level=2] [ref=f11e19]:
+              - strong [ref=f11e21]: Saúde de qualidade com preço justo em São Paulo e Região Metropolitana
+            - blockquote
+            - heading "Mais cuidado e saúde para você. Ofertas por tempo limitado em planos de saúde para PJ e PF!" [level=6] [ref=f11e22]
+          - paragraph [ref=f11e27]: Saiba valores, rede e prazos de carência
+        - heading [level=1] [ref=f11e44]:
+          - heading [level=2] [ref=f11e45]:
+            - strong [ref=f11e47]: Mais saúde, menos complicação
+        - generic [ref=f11e51]:
+          - paragraph [ref=f11e52]:
+            - paragraph
+            - img "undefined" [ref=f11e53]
+            - paragraph
+            - paragraph [ref=f11e54]:
+              - strong [ref=f11e56]: "Time de Saúde: cuidado coordenado"
+            - paragraph [ref=f11e57]: Com médicos e enfermeiros, seu Time de Saúde resolve a maior parte dos problemas de saúde de forma humanizada. As consultas não têm custo adicional e podem ser feitas do conforto da sua casa ou nas clínicas Sami.
+          - paragraph [ref=f11e58]:
+            - paragraph
+            - img "undefined" [ref=f11e59]
+            - paragraph
+            - paragraph [ref=f11e60]:
+              - strong [ref=f11e62]: Rede credenciada de referência
+            - paragraph [ref=f11e63]: "Do simples ao complexo, seu cuidado é completo. Tenha a tranquilidade de uma cobertura completa para consultas, exames, partos, internações e cirurgias: seguindo à risca o Rol da ANS."
+          - paragraph [ref=f11e64]:
+            - paragraph
+            - img "undefined" [ref=f11e65]
+            - paragraph
+            - paragraph [ref=f11e66]:
+              - strong [ref=f11e68]: Tecnologia em toda jornada
+            - paragraph [ref=f11e69]: "Facilitamos seu cuidado com a saúde: agendamento de consultas, teleconsultas, resultados de exames, histórico de atendimento, carteirinha digital e contato direto com nossa equipe através do app"
+          - paragraph [ref=f11e70]:
+            - paragraph
+            - img "undefined" [ref=f11e71]
+            - paragraph
+            - paragraph [ref=f11e72]:
+              - strong [ref=f11e74]: Incentivo a hábitos saudáveis
+            - heading "Seu bem-estar completo é nossa prioridade. Acesso ao Wellhub (antigo Gympass), com milhares de academias, apps de meditação, nutrição e vida saudável. E parceiros de referência como Conexa e Telavita para cuidar da sua saúde mental." [level=6] [ref=f11e75]
+        - generic [ref=f11e82]:
+          - paragraph [ref=f11e83]:
+            - heading "ㅤ" [level=6] [ref=f11e84]
+            - heading [level=6] [ref=f11e85]:
+              - strong [ref=f11e87]: Saúde preventiva para viver bem, e não apenas tratar a doença quando ela aparece.
+            - heading [level=6] [ref=f11e88]:
+              - strong [ref=f11e90]: ㅤ
+          - generic [ref=f11e91]:
+            - generic [ref=f11e93]:
+              - paragraph
+              - img "undefined" [ref=f11e94]
+              - paragraph [ref=f11e95]: ㅤ
+              - paragraph [ref=f11e96]:
+                - strong [ref=f11e98]: Wellhub (antigo Gympass)
+              - blockquote
+              - heading "Saúde vai muito além de acesso a médicos e hospitais. O maior benefício de vida saudável do mundo com acesso por nossa conta." [level=6] [ref=f11e99]
+            - generic [ref=f11e101]:
+              - paragraph
+              - img "undefined" [ref=f11e102]
+              - paragraph [ref=f11e103]: ㅤ
+              - heading [level=6] [ref=f11e104]:
+                - strong [ref=f11e106]: Conexa | Telavita
+              - blockquote
+              - heading "O cuidado que o seu corpo e mente precisam! Terapia online com psicólogos disponíveis 24h por dia sem precisar sair de casa." [level=6] [ref=f11e107]
+            - generic [ref=f11e109]:
+              - paragraph
+              - img "undefined" [ref=f11e110]
+              - paragraph [ref=f11e111]: ㅤ
+              - heading [level=6] [ref=f11e112]:
+                - strong [ref=f11e114]: Coris - Seguro-Viagem
+              - blockquote
+              - heading "E quando estou fora de São Paulo? Cobertura hospitalar nacional através do seguro viagem." [level=6] [ref=f11e115]
+              - paragraph [ref=f11e116]: ㅤ
+              - paragraph [ref=f11e117]: ㅤ
+              - paragraph
+            - generic [ref=f11e119]:
+              - paragraph
+              - paragraph
+              - img "undefined" [ref=f11e120]
+              - paragraph [ref=f11e121]: ㅤ
+              - heading [level=6] [ref=f11e122]:
+                - strong [ref=f11e124]: Medipreço
+              - blockquote
+              - heading "Acesso a mais de 90.000 farmácias com até 75% de desconto em medicamentos, cosméticos e muito mais!ㅤ" [level=6] [ref=f11e125]
+              - paragraph [ref=f11e126]: ㅤ
+              - paragraph
+        - generic [ref=f11e132]:
+          - paragraph [ref=f11e133]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e134]:
+              - strong [ref=f11e136]: "+500.000"
+            - paragraph [ref=f11e137]: check-ins através da Sami. Cuidado preventivo que dá certo.
+          - paragraph [ref=f11e138]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e139]:
+              - strong [ref=f11e141]: 1'
+            - paragraph [ref=f11e142]: para o primeiro contato de saúde, direto no app.
+          - paragraph [ref=f11e143]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e144]:
+              - strong [ref=f11e146]: 91%
+            - paragraph [ref=f11e147]: das questões de saúde resolvidas sem precisar sair de casa.
+          - paragraph [ref=f11e148]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e149]:
+              - strong [ref=f11e151]: 80%
+            - paragraph [ref=f11e152]: dos usuários ativos mensalmente no aplicativo.
+          - paragraph [ref=f11e153]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e154]:
+              - strong [ref=f11e156]: R$0
+            - paragraph [ref=f11e157]: sem custo adicional para consultas no app ou presencial nas Clínicas Sami.
+          - paragraph [ref=f11e158]:
+            - blockquote
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e159]:
+              - strong [ref=f11e161]: "8.9"
+            - paragraph [ref=f11e162]: é a nota para o atendimento do Time de Saúde da Sami.
+          - paragraph [ref=f11e163]:
+            - blockquote
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e164]:
+              - strong [ref=f11e166]: 80%
+            - paragraph [ref=f11e167]: os problemas de saúde solucionados por seu médico de família e equipe.
+          - paragraph [ref=f11e168]:
+            - blockquote
+            - img "undefined"
+            - blockquote
+            - paragraph [ref=f11e169]:
+              - strong [ref=f11e171]: 92%
+            - paragraph [ref=f11e172]: dos atendimentos realizados online, pelo app.
+        - generic [ref=f11e177]:
+          - img "3775" [ref=f11e179]
+          - generic [ref=f11e180]:
+            - heading [level=1] [ref=f11e181]:
+              - heading [level=2] [ref=f11e182]:
+                - strong [ref=f11e184]: Na Sami, a saúde vai muito além de 5 minutos de consulta
+            - paragraph [ref=f11e185]:
+              - paragraph [ref=f11e186]: ㅤ
+              - paragraph
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading "Quando você escolhe um profissional que não te conhece, ele entende as suas queixas como apenas a ponta o iceberg, ou seja, não avalia toda a dimensão da situação." [level=6] [ref=f11e187]
+              - heading [level=6]
+              - heading [level=6]
+              - paragraph [ref=f11e188]: ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading [level=6] [ref=f11e189]:
+                - strong [ref=f11e191]: O Time de Saúde te entende por inteiro. E sabe que você é mais do que as suas doenças. Você é sua história, seu contexto de vida, trabalho e família.
+              - heading [level=6]
+              - heading [level=6] [ref=f11e192]:
+                - strong [ref=f11e194]: ㅤ
+              - blockquote
+        - generic [ref=f11e199]:
+          - img "3780" [ref=f11e201]
+          - generic [ref=f11e202]:
+            - heading [level=1] [ref=f11e203]:
+              - heading "ㅤ" [level=2] [ref=f11e204]
+              - blockquote
+              - heading [level=2] [ref=f11e205]:
+                - strong [ref=f11e207]: Rede de Parceiros Clínicos
+            - paragraph [ref=f11e208]:
+              - heading "ㅤ" [level=6] [ref=f11e209]
+              - heading [level=6] [ref=f11e210]:
+                - generic [ref=f11e211]:
+                  - text: São os médicos, terapeutas, clínicas, laboratórios e hospitais
+                  - strong [ref=f11e212]: trabalhando em sintonia com Time de Saúde
+                  - text: ", compartilhando informações essenciais para diagnósticos precisos. Com informações essenciais compartilhadas, o resultado é um diagnóstico preciso e a certeza de que todos estão olhando para o mesmo objetivo:"
+                  - strong [ref=f11e213]: o seu bem-estar
+                  - text: .
+              - heading "ㅤ" [level=6] [ref=f11e214]
+              - heading [level=6] [ref=f11e215]:
+                - generic [ref=f11e216]:
+                  - text: É o fim das jornadas quebradas, onde você precisa repetir sua história a cada nova consulta.
+                  - strong [ref=f11e217]: Na Sami, isso se chama saúde coordenada.
+              - paragraph [ref=f11e218]:
+                - strong [ref=f11e220]: ㅤ
+        - generic [ref=f11e225]:
+          - paragraph:
+            - blockquote
+        - heading [level=1] [ref=f11e232]:
+          - heading [level=2] [ref=f11e233]:
+            - strong [ref=f11e235]: ㅤ
+          - heading [level=2] [ref=f11e236]:
+            - strong [ref=f11e238]: Mas o que a Sami resolve, na prática?
+          - heading [level=6] [ref=f11e239]:
+            - strong [ref=f11e241]: ㅤ
+          - paragraph
+          - img "undefined" [ref=f11e242]
+          - paragraph
+        - generic [ref=f11e249]:
+          - paragraph [ref=f11e250]:
+            - heading [level=2] [ref=f11e251]:
+              - strong [ref=f11e253]: "Experiência de cuidado mais ágil:"
+            - heading [level=6]
+          - generic [ref=f11e254]:
+            - generic [ref=f11e256]:
+              - heading "ㅤ" [level=2] [ref=f11e257]
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading "Time de Saúde disponível no app" [level=6] [ref=f11e258]
+              - heading "ㅤ" [level=6] [ref=f11e259]
+              - paragraph
+              - img "undefined"
+              - paragraph
+              - blockquote
+              - heading "Consultas de onde você estiver" [level=6] [ref=f11e260]
+            - generic [ref=f11e262]:
+              - heading "ㅤ" [level=6] [ref=f11e263]
+              - img "undefined"
+              - paragraph
+              - blockquote
+              - heading "Prescrição online" [level=6] [ref=f11e264]
+              - paragraph [ref=f11e265]: ㅤ
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading "Histórico do paciente no app" [level=6] [ref=f11e266]
+            - generic [ref=f11e268]:
+              - paragraph [ref=f11e269]: ㅤ
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading "Tempo de resposta do Time de Saúde de até 5 minutos" [level=6] [ref=f11e270]
+            - generic [ref=f11e272]:
+              - paragraph [ref=f11e273]: ㅤ
+              - paragraph
+              - img "undefined"
+              - blockquote
+              - heading "Pronto -Socorro Online. Prático, rápido e seguro." [level=6] [ref=f11e274]
+              - paragraph
+              - paragraph
+        - generic [ref=f11e279]:
+          - paragraph:
+            - blockquote
+        - generic [ref=f11e284]:
+          - paragraph:
+            - blockquote
+        - generic [ref=f11e291]:
+          - paragraph [ref=f11e292]:
+            - heading [level=2] [ref=f11e293]:
+              - strong [ref=f11e295]: ㅤ
+            - heading [level=2] [ref=f11e296]:
+              - strong [ref=f11e298]: Leve Sami para sua empresa e tenha facilidade em toda jornada de contratação
+            - blockquote [ref=f11e299]:
+              - strong [ref=f11e301]: ㅤ
+          - generic [ref=f11e302]:
+            - heading "➜ Aceitamos 100% da massa PJ (Pessoa Jurídica)" [level=6] [ref=f11e305]
+            - heading "➜ Traga seus colaboradores temporários e estagiários" [level=6] [ref=f11e308]
+            - generic [ref=f11e310]:
+              - heading "➜ Menor coparticipação do mercado e Time de Saúde sem coparticipação" [level=6] [ref=f11e311]
+              - blockquote
+            - generic [ref=f11e313]:
+              - heading "➜ Relatórios e acompanhamento com estratégias e plano de ação para melhora da saúde" [level=6] [ref=f11e314]
+              - paragraph [ref=f11e315]: ㅤ
+              - paragraph
+        - generic [ref=f11e320]:
+          - paragraph:
+            - blockquote
+        - generic [ref=f11e325]:
+          - paragraph:
+            - blockquote
+        - generic [ref=f11e333]:
+          - generic [ref=f11e335]:
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - heading "Tudo com o plano é rápido e fácil. É o melhor plano que eu já tive. Sempre sou muito bem atendida pelo Time de Saúde e pelo atendimento.\"" [level=6] [ref=f11e336]
+          - generic [ref=f11e338]:
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - heading "Acabei de passar em uma consulta online e venho agradecer a enfermeira maravilhosa e muito carismática. Gratidão por tudo e por tanto.\"" [level=6] [ref=f11e339]
+            - paragraph
+          - generic [ref=f11e341]:
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - heading "Toda vez que eu preciso de algum acompanhamento eu vou de novo no meu Time de Saúde e peço ajuda.”" [level=6] [ref=f11e342]
+          - generic [ref=f11e344]:
+            - paragraph
+            - img "undefined"
+            - blockquote
+            - heading "Tem muitos hospitais e laboratórios ótimos, além da equipe de saúde ser muito prestativa.\"" [level=6] [ref=f11e345]
+        - heading [level=1] [ref=f11e352]:
+          - heading "ㅤ" [level=2] [ref=f11e353]
+          - paragraph
+          - heading [level=2] [ref=f11e354]:
+            - strong [ref=f11e356]: Um Time que te conhece e te acompanha por inteiro
+          - heading [level=6] [ref=f11e357]:
+            - strong [ref=f11e359]: ㅤ
+          - heading "Estamos construindo uma nova forma de cuidar da saúde" [level=6] [ref=f11e360]
+        - generic [ref=f11e363]:
+          - paragraph [ref=f11e367]:
+            - heading [level=6] [ref=f11e368]:
+              - text: Ele quer que todo paulista tenha plano de saúde bom e barato — e já faturou R$ 100 milhões. ㅤ
+              - link [ref=f11e369] [cursor=pointer]:
+                - /url: https://exame.com/negocios/sami-saude-sao-paulo-negocios-em-expansao-neex-2024-24/
+                - strong [ref=f11e371]:
+                  - insertion [ref=f11e372]: Leia mais ⭢
+          - paragraph [ref=f11e376]:
+            - heading [level=6] [ref=f11e377]:
+              - text: Sami na Região Metropolitana de São Paulo..ㅤ
+              - link [ref=f11e378] [cursor=pointer]:
+                - /url: https://revistacobertura.com.br/noticias/saude-e-odonto-noticias/sami-amplia-atuacao-para-a-regiao-metropolitana-de-sao-paulo/#:~:text=Com%20uma%20nova%20frente%20de,regi%C3%A3o%20metropolitana%20de%20S%C3%A3o%20Paulo
+                - strong [ref=f11e380]:
+                  - insertion [ref=f11e381]: Leia mais ⭢
+          - paragraph [ref=f11e385]:
+            - heading [level=6] [ref=f11e386]:
+              - text: Sami lança planos sem obstetrícia e aposta em saúde suplementar mais personalizada.ㅤ
+              - link [ref=f11e387] [cursor=pointer]:
+                - /url: https://www.saudebusiness.com/operadoras/sami-lanca-planos-sem-obstetricia-e-aposta-em-saude-suplementar-mais-personalizada/
+                - strong [ref=f11e389]:
+                  - insertion [ref=f11e390]: Leia mais ⭢
+      - contentinfo [ref=f11e391]:
+        - generic [ref=f11e392]:
+          - generic [ref=f11e396]:
+            - list [ref=f11e398]:
+              - listitem [ref=f11e399]:
+                - link "Sobre nós" [ref=f11e400] [cursor=pointer]:
+                  - /url: https://www.samisaude.com.br/quem-somos/
+              - listitem [ref=f11e401]:
+                - link "Carreiras" [ref=f11e402] [cursor=pointer]:
+                  - /url: https://sami.gupy.io/
+              - listitem [ref=f11e403]:
+                - link "Empresas" [ref=f11e404] [cursor=pointer]:
+                  - /url: https://ocuidadoquevcmerece.samisaude.com.br/sami-para-empresas-1/?_gl=1*1bkpkrz*_gcl_au*MjQyMTE5MzY1LjE3NTM3OTk4NDE.*_ga*MTc0NTcyNjAyMS4xNzI2NTg3NjEx*_ga_05BMCPB6TV*czE3NTg1NjU2NzYkbzY5JGcwJHQxNzU4NTY1Njc2JGo2MCRsMCRoMA..
+              - listitem [ref=f11e405]:
+                - link "Acessibilidade" [ref=f11e406] [cursor=pointer]:
+                  - /url: https://www.samisaude.com.br/acessibilidade/
+            - list [ref=f11e408]:
+              - listitem [ref=f11e409]:
+                - link "Dúvidas" [ref=f11e410] [cursor=pointer]:
+                  - /url: https://zendesk.samisaude.com.br/
+              - listitem [ref=f11e411]:
+                - link "Contatos" [ref=f11e412] [cursor=pointer]:
+                  - /url: https://www.samisaude.com.br/fale-conosco/
+              - listitem [ref=f11e413]:
+                - link "Busca de Rede" [ref=f11e414] [cursor=pointer]:
+                  - /url: https://meuplano.samisaude.com.br/mvsaudeweb/#/guia-medico
+              - listitem [ref=f11e415]:
+                - link "Movimentação de Prestadores" [ref=f11e416] [cursor=pointer]:
+                  - /url: https://meuplano.samisaude.com.br/mvsaudeweb/#/rede-credenciada
+            - list [ref=f11e418]:
+              - listitem [ref=f11e419]:
+                - link "Aviso de Cookies" [ref=f11e420] [cursor=pointer]:
+                  - /url: https://institucional.samisaude.com.br/politica-de-cookies
+              - listitem [ref=f11e421]:
+                - link "Aviso de Privacidade" [ref=f11e422] [cursor=pointer]:
+                  - /url: https://institucional.samisaude.com.br/politica-de-privacidade
+              - listitem [ref=f11e423]:
+                - link "Termos de Uso e Condições" [ref=f11e424] [cursor=pointer]:
+                  - /url: https://institucional.samisaude.com.br/termos-de-uso-e-condicoes
+              - listitem [ref=f11e425]:
+                - link "Reajuste" [ref=f11e426] [cursor=pointer]:
+                  - /url: https://www.samisaude.com.br/reajuste/
+            - generic [ref=f11e427]:
+              - list [ref=f11e428]:
+                - listitem [ref=f11e429]:
+                  - link "Índice de Desempenho da Saúde Suplementar - IDSS" [ref=f11e430] [cursor=pointer]:
+                    - /url: https://www.samisaude.com.br/indice-de-desempenho-da-saude-suplementar-idss/
+                - listitem [ref=f11e431]:
+                  - link "Demonstrativos Financeiros" [ref=f11e432] [cursor=pointer]:
+                    - /url: https://www.samisaude.com.br/demonstrativos-financeiros/
+              - generic [ref=f11e433]:
+                - link "Instagram" [ref=f11e434] [cursor=pointer]:
+                  - /url: https://www.instagram.com/sami.saude/
+                  - generic [ref=f11e435]: 
+                - link "Facebook" [ref=f11e436] [cursor=pointer]:
+                  - /url: https://www.facebook.com/samisaudeoficial/
+                  - generic [ref=f11e437]: 
+                - link "LinkedIn" [ref=f11e438] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/samisaude
+                  - generic [ref=f11e439]: 
+                - link "YouTube" [ref=f11e440] [cursor=pointer]:
+                  - /url: https://www.youtube.com/@samisaude5184
+                  - generic [ref=f11e441]: 
+          - separator [ref=f11e442]
+          - generic [ref=f11e443]:
+            - generic [ref=f11e445]:
+              - link [ref=f11e446] [cursor=pointer]:
+                - /url: https://www.ans.gov.br/
+                - img "Logo ANS" [ref=f11e447]
+              - generic [ref=f11e448]: "ANS: 42.239-8"
+            - generic [ref=f11e450]:
+              - paragraph [ref=f11e451]: "Sami Assistência Médica Ltda. CNPJ: 36.567.721/0001-25"
+              - paragraph [ref=f11e452]: Alameda Vicente Pinzon, 54 Vila Olímpia | São Paulo, SP CEP 04547-130
+            - generic [ref=f11e454]:
+              - paragraph [ref=f11e455]: Baixe nosso app
+              - generic [ref=f11e456]:
+                - link [ref=f11e457] [cursor=pointer]:
+                  - /url: https://play.google.com/store/apps/details?id=com.sami.app
+                  - img "Play Store" [ref=f11e458]
+                - link [ref=f11e459] [cursor=pointer]:
+                  - /url: https://apps.apple.com/us/app/id1528523310
+                  - img "App Store" [ref=f11e460]
+            - generic [ref=f11e462]:
+              - paragraph [ref=f11e463]: Privacidade na Sami
+              - link [ref=f11e464] [cursor=pointer]:
+                - /url: https://www.privacidade.com.br/portal-de-privacidade?token=23877af6fd84fefd8c102bc8d5030c7a
+                - img "Privacidade Logo" [ref=f11e465]
+  - region [ref=f11e467]:
+    - heading "Controle sua privacidade" [level=2] [ref=f11e468]
+    - paragraph [ref=f11e469]: Para melhorar a sua experiência na plataforma e prover serviços personalizados, utilizamos cookies. Ao aceitar, você terá acesso a todas as funcionalidades do site. Se clicar em "Rejeitar todos", os cookies que não forem estritamente necessários serão desativados. Para escolher quais quer autorizar, clique em "Gerenciar cookies". Para maiores informações, consulte a nossa Política de Cookies.
+    - link "Atendimento ao titular de dados" [ref=f11e470] [cursor=pointer]:
+      - /url: https://www.privacidade.com.br/portal-de-privacidade?token=23877af6fd84fefd8c102bc8d5030c7a
+    - generic [ref=f11e471]:
+      - button "Gerenciar cookies" [ref=f11e472] [cursor=pointer]
+      - button "Rejeitar todos" [ref=f11e473] [cursor=pointer]
+      - button "Aceitar todos" [ref=f11e474] [cursor=pointer]

@@ -1,0 +1,46 @@
+- generic [ref=e55]:
+  - navigation [ref=e56]:
+    - generic [ref=e58]:
+      - button "Menu do médico" [ref=e59] [cursor=pointer]
+      - generic [ref=e62]:
+        - paragraph [ref=e63]: 🩺 Doutor Exame
+        - generic [ref=e64]: Otorrinolaringologista • CRM 12345-SP
+    - separator [ref=e65]
+    - generic [ref=e66]:
+      - generic [ref=e67]: PLANO
+      - paragraph [ref=e68]: Grátis (0/5 usados)
+      - text: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=e69]:
+      - button "Painel" [ref=e70] [cursor=pointer]
+      - button "Pacientes" [active] [ref=e76] [cursor=pointer]
+      - button "Convites" [ref=e82] [cursor=pointer]
+      - button "Perguntas" [ref=e89] [cursor=pointer]
+      - button "Meu perfil" [ref=e96] [cursor=pointer]
+      - button "Trocar senha" [ref=e102] [cursor=pointer]
+      - separator [ref=e108]
+      - button "Sair" [ref=e109] [cursor=pointer]
+    - generic [ref=e115]: Portal do Médico
+  - generic [ref=e116]:
+    - generic [ref=e118]:
+      - paragraph [ref=e120]: Pacientes
+      - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=e121]: 🩺 Acesso médico · leitura
+    - generic [ref=e123]:
+      - generic [ref=e187]:
+        - button "Fechar banner" [ref=e188] [cursor=pointer]:
+          - generic [ref=e189]: ×
+        - generic [ref=e190]:
+          - paragraph [ref=e191]: 💎 Dr. Exame Pro
+          - paragraph [ref=e192]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=e193] [cursor=pointer]
+      - generic [ref=e195]:
+        - generic [ref=e196]:
+          - heading "Pacientes (1)" [level=6] [ref=e197]
+          - generic [ref=e198]: 🔴 1 com alerta
+        - generic [ref=e200]:
+          - textbox "Buscar paciente" [ref=e205]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=e206] [cursor=pointer]
+        - generic [ref=e216] [cursor=pointer]:
+          - paragraph [ref=e217]: Edmilson Lopes
+          - generic [ref=e218]: 47a · M · Titular
+          - generic [ref=e219]: 🔴 alerta · 📋 23 exames · 📅 04/08/2026 · Particular

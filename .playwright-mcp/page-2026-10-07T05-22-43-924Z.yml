@@ -1,0 +1,225 @@
+- generic [ref=f20e1]:
+  - generic [aria-hidden] [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - button [ref=f20e4] [cursor=pointer]
+      - generic [ref=f20e5]:
+        - banner [ref=f20e6]:
+          - generic [ref=f20e7]:
+            - button [ref=f20e8] [cursor=pointer]
+            - paragraph [ref=f20e14]: Dr. Exame
+            - generic [ref=f20e15]:
+              - button [ref=f20e16] [cursor=pointer]:
+                - generic [ref=f20e19]: "0"
+              - button [ref=f20e20] [cursor=pointer]:
+                - generic [ref=f20e21]: 9+
+              - button [ref=f20e25] [cursor=pointer]:
+                - generic [ref=f20e26]: A
+        - main [ref=f20e31]:
+          - generic [ref=f20e988]:
+            - generic [ref=f20e993]:
+              - heading [level=5] [ref=f20e994]: Meu perfil
+              - paragraph [ref=f20e995]: Sua conta, dados e preferências
+            - generic [ref=f20e997]:
+              - generic [ref=f20e999]:
+                - generic [ref=f20e1000]: E
+                - button [ref=f20e1001] [cursor=pointer]
+              - generic [ref=f20e1005]:
+                - heading [level=5] [ref=f20e1006]: Edmilson Lopes Fernandes dos Santos
+                - paragraph [ref=f20e1007]: ✉️ edmilson@exemplo.com
+                - generic [ref=f20e1008]: Premium ativo
+                - generic [ref=f20e1011]: Toque na câmera da foto para trocar a imagem.
+            - generic [ref=f20e1013]:
+              - heading [level=6] [ref=f20e1014]: Dados e perfil clínico
+              - generic [ref=f20e1015]:
+                - generic [ref=f20e1016]:
+                  - generic [ref=f20e1160]: Nome completo
+                  - generic [ref=f20e1017]:
+                    - textbox [disabled] [ref=f20e1018]: Edmilson Lopes Fernandes dos Santos
+                    - group [aria-hidden]:
+                      - generic: Nome completo
+                  - paragraph [ref=f20e1161]: Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.
+                - generic [ref=f20e1019]:
+                  - generic [ref=f20e1162]: CPF
+                  - generic [ref=f20e1020]:
+                    - textbox [disabled] [ref=f20e1021]: "***.***.***-00"
+                    - group [aria-hidden]:
+                      - generic: CPF
+                  - paragraph [ref=f20e1022]: CPF verificado e mascarado. Correção somente via suporte auditado.
+                - generic [ref=f20e1023]:
+                  - generic: Telefone / WhatsApp
+                  - generic [ref=f20e1024]:
+                    - textbox [ref=f20e1025]
+                    - group [aria-hidden]:
+                      - generic: Telefone / WhatsApp
+                - generic [ref=f20e1026]:
+                  - generic [ref=f20e1163]: Sexo
+                  - generic [ref=f20e1027]:
+                    - combobox [ref=f20e1028] [cursor=pointer]: Masculino
+                    - textbox [aria-hidden]: male
+                    - group [aria-hidden]:
+                      - generic: Sexo
+                  - paragraph [ref=f20e1029]: Usamos a coluna de referência correspondente do laudo (Homens/Mulheres) e ajustamos IMC, eGFR e idade biológica.
+                - generic [ref=f20e1030]:
+                  - generic [ref=f20e1164]: Altura
+                  - generic [ref=f20e1031]:
+                    - textbox [ref=f20e1032]: "178"
+                    - group [aria-hidden]:
+                      - generic: Altura
+                  - paragraph [ref=f20e1033]: 1,78 m (178 cm)
+                - generic [ref=f20e1034]:
+                  - generic [ref=f20e1165]: Etnia (opcional)
+                  - generic [ref=f20e1035]:
+                    - combobox [ref=f20e1036] [cursor=pointer]: Parda
+                    - textbox [aria-hidden]: parda
+                    - group [aria-hidden]:
+                      - generic: Etnia (opcional)
+                  - paragraph [ref=f20e1037]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+                - generic [ref=f20e1038]:
+                  - generic [ref=f20e1039]:
+                    - generic [ref=f20e1040]: Data de nascimento
+                    - generic [ref=f20e1041]:
+                      - textbox [ref=f20e1042]:
+                        - /placeholder: dd/mm/aaaa
+                        - text: 15/03/1985
+                      - button [ref=f20e1044] [cursor=pointer]
+                      - group [aria-hidden]:
+                        - generic: Data de nascimento
+                    - paragraph [ref=f20e1047]: Usado pra calcular idade e ajustar faixas de referência.
+                  - textbox [aria-hidden]: 1985-03-15
+                - generic [ref=f20e1048]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+                  - generic [ref=f20e1049]:
+                    - textbox [ref=f20e1050]
+                    - group [aria-hidden]:
+                      - generic: Perfil clínico (condições, medicações, histórico)
+                  - paragraph [ref=f20e1051]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+              - button [ref=f20e1053] [cursor=pointer]: Salvar perfil
+            - generic [ref=f20e1059]:
+              - generic [ref=f20e1063]:
+                - heading [level=6] [ref=f20e1064]: Peso atual
+                - paragraph [ref=f20e1065]:
+                  - generic [ref=f20e1166]: 92,4 kg
+                  - text: · registrado em 22/08/2026
+              - button [ref=f20e1066] [cursor=pointer]: Novo peso
+            - generic [ref=f20e1068]:
+              - heading [level=6] [ref=f20e1069]: Preferências
+              - generic [ref=f20e1070] [cursor=pointer]:
+                - switch [ref=f20e1073]
+                - generic [ref=f20e1076]: 🔔 Avisar quando eu desbloquear uma conquista
+              - generic [ref=f20e1078]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+              - generic [ref=f20e1079] [cursor=pointer]:
+                - switch [ref=f20e1082]
+                - generic [ref=f20e1085]: ♿ Botão de tradução em Libras
+              - generic [ref=f20e1087] [cursor=pointer]:
+                - switch [ref=f20e1090]
+                - generic [ref=f20e1093]: 🔍 Aa Texto grande — amplia os textos do app
+              - generic [ref=f20e1095]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+              - generic [ref=f20e1096] [cursor=pointer]:
+                - switch [checked] [ref=f20e1099]
+                - generic [ref=f20e1102]: 🏃 Card de atividade física no início
+              - generic [ref=f20e1104]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+              - generic [ref=f20e1105] [cursor=pointer]:
+                - switch [ref=f20e1108]
+                - generic [ref=f20e1111]: 🙈 Modo privacidade — borra nomes de exames
+              - generic [ref=f20e1113]: "Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos."
+              - generic [ref=f20e1114]:
+                - generic [ref=f20e1167]:
+                  - generic [ref=f20e1171]:
+                    - paragraph [ref=f20e1172]: Saúde Esportiva
+                    - text: Organiza o que você declara (treino, substâncias, coleta) para contextualizar a análise — nunca esconde alterações.
+                  - switch [checked] [ref=f20e1176] [cursor=pointer]
+                - generic [ref=f20e1179]: ✓ Modo esportivo ativado
+                - generic [ref=f20e1181]: Seu painel dedicado está no Início — o esporte e o contexto hormonal abaixo mudam a LENTE de análise.
+                - generic [ref=f20e1182]:
+                  - generic [ref=f20e1183]:
+                    - paragraph [ref=f20e1184]: 1 · Seu esporte
+                    - generic [ref=f20e1185]: "Muda a lente do painel: ordem dos domínios e marcadores em destaque."
+                    - generic [ref=f20e1186]:
+                      - button [ref=f20e1187] [cursor=pointer]:
+                        - generic [ref=f20e1188]: Musculação/Hipertrofia
+                      - button [pressed] [ref=f20e1189] [cursor=pointer]:
+                        - generic [ref=f20e1190]: Corrida/Ciclismo
+                      - button [ref=f20e1191] [cursor=pointer]:
+                        - generic [ref=f20e1192]: CrossFit/Funcional
+                      - button [ref=f20e1193] [cursor=pointer]:
+                        - generic [ref=f20e1194]: Outro
+                  - generic [ref=f20e1195]:
+                    - paragraph [ref=f20e1196]: 2 · Seu nível
+                    - generic [ref=f20e1197]: Contexto de intensidade — ajuda a interpretar CK e recuperação.
+                    - generic [ref=f20e1198]:
+                      - button [ref=f20e1199] [cursor=pointer]:
+                        - generic [ref=f20e1200]: Recreativo
+                      - button [pressed] [ref=f20e1201] [cursor=pointer]:
+                        - generic [ref=f20e1202]: Amador competitivo
+                      - button [ref=f20e1203] [cursor=pointer]:
+                        - generic [ref=f20e1204]: Alta performance
+                  - generic [ref=f20e1205]:
+                    - paragraph [ref=f20e1206]: 3 · Contexto hormonal
+                    - generic [ref=f20e1207]: Independente do esporte. Reposição com prescrição ativa a lente de monitoramento (Hct, PSA, HDL).
+                    - generic [ref=f20e1208]:
+                      - button [pressed] [ref=f20e1209] [cursor=pointer]:
+                        - generic [ref=f20e1210]: Nenhum
+                      - button [ref=f20e1211] [cursor=pointer]:
+                        - generic [ref=f20e1212]: Reposição com prescrição (TRT)
+                      - button [ref=f20e1213] [cursor=pointer]:
+                        - generic [ref=f20e1214]: Uso declarado sem prescrição
+                      - button [ref=f20e1215] [cursor=pointer]:
+                        - generic [ref=f20e1216]: Prefiro não dizer
+                  - generic [ref=f20e1217]:
+                    - button [disabled]: Salvar perfil esportivo
+                - button [ref=f20e1218] [cursor=pointer]: Declarar substância
+              - button [ref=f20e1121] [cursor=pointer]: 📋 Enviar diagnóstico ao suporte
+              - generic [ref=f20e1122]: Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).
+              - button [ref=f20e1123] [cursor=pointer]: Avaliar o app na Play Store
+            - generic [ref=f20e1128]:
+              - generic [ref=f20e1133] [cursor=pointer]:
+                - paragraph [ref=f20e1134]: Segurança
+                - paragraph [ref=f20e1135]: Trocar senha, 2FA e biometria
+              - generic [ref=f20e1142] [cursor=pointer]:
+                - paragraph [ref=f20e1143]: Privacidade e dados
+                - paragraph [ref=f20e1144]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+              - generic [ref=f20e1151] [cursor=pointer]:
+                - paragraph [ref=f20e1152]: API para desenvolvedores
+                - paragraph [ref=f20e1153]: Integre preço de remédios e interações no seu produto
+    - navigation [ref=f20e207]:
+      - button [ref=f20e208] [cursor=pointer]:
+        - paragraph [ref=f20e212]: Início
+      - button [ref=f20e213] [cursor=pointer]:
+        - paragraph [ref=f20e217]: Exames
+      - button [ref=f20e218] [cursor=pointer]:
+        - paragraph [ref=f20e221]: Dr. Exame
+      - button [ref=f20e222] [cursor=pointer]:
+        - paragraph [ref=f20e226]: Evolução
+      - button [ref=f20e227] [cursor=pointer]:
+        - paragraph [ref=f20e231]: Mais
+  - dialog [active] [ref=f20e235]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 2 Fechar" [level=2] [ref=f20e236]:
+      - generic [ref=f20e237]:
+        - paragraph [ref=f20e238]: Vamos preparar o Dr. Exame
+        - generic [ref=f20e239]: Passo 1 de 2
+      - button "Fechar" [ref=f20e240] [cursor=pointer]
+    - progressbar [ref=f20e243]
+    - generic [ref=f20e246]:
+      - paragraph [ref=f20e247]: Essas informações personalizam as faixas de referência dos seus exames e os cálculos de idade biológica e função renal.
+      - generic [ref=f20e248]:
+        - generic:
+          - text: Sexo
+          - generic [aria-hidden]: "*"
+        - generic [ref=f20e249]:
+          - combobox "Sexo" [ref=f20e250] [cursor=pointer]
+          - textbox [aria-hidden]
+          - group [aria-hidden]:
+            - generic: Sexo *
+      - generic [ref=f20e251]:
+        - generic [ref=f20e252]:
+          - generic [ref=f20e253]: Data de nascimento
+          - generic [ref=f20e254]:
+            - textbox "Data de nascimento" [ref=f20e255]:
+              - /placeholder: dd/mm/aaaa
+            - button "Abrir calendário" [ref=f20e257] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Data de nascimento
+        - textbox [aria-hidden]
+    - generic [ref=f20e260]:
+      - button "Agora não" [ref=f20e261] [cursor=pointer]
+      - button "Continuar" [disabled]

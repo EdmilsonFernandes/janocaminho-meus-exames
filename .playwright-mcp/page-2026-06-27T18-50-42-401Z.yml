@@ -1,0 +1,140 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button [ref=e1721] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button [ref=e1722] [cursor=pointer]:
+              - img [ref=e495]
+            - button [ref=e1723] [cursor=pointer]:
+              - img [ref=e766]
+            - button [ref=e1724] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button [ref=e1725] [cursor=pointer]:
+              - generic [ref=e504]: E
+            - button [ref=e1726] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button [ref=e1727] [cursor=pointer]:
+              - img [ref=e511]
+            - button [ref=e1728] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - generic [ref=e1695]:
+            - generic [ref=e1696]:
+              - img [ref=e1698]
+              - generic [ref=e1700]:
+                - heading [level=5] [ref=e1729]: Meus Médicos
+                - paragraph [ref=e1702]: Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.
+              - button [ref=e1730] [cursor=pointer]:
+                - img [ref=e1706]
+                - text: Compartilhar
+            - generic [ref=e1713]:
+              - generic [ref=e1714]: 🩺
+              - heading [level=6] [ref=e1731]: Nenhum médico ainda?
+              - paragraph [ref=e1716]: Compartilhe seus exames com seu médico em segundos — ele recebe tudo organizado.
+              - button [ref=e1732] [cursor=pointer]:
+                - img [ref=e1719]
+                - text: Compartilhar agora →
+    - button [ref=e1733] [cursor=pointer]:
+      - generic [ref=e1093]:
+        - img [ref=e1734]
+        - img [ref=e1097]
+    - navigation [ref=e636]:
+      - generic [ref=e637] [cursor=pointer]:
+        - generic [ref=e638]: 🏠
+        - paragraph [ref=e639]: Início
+      - generic [ref=e641] [cursor=pointer]:
+        - generic [ref=e642]: 📋
+        - paragraph [ref=e643]: Exames
+      - generic [ref=e644] [cursor=pointer]:
+        - img [ref=e1735]
+        - paragraph [ref=e647]: Dr. Exame
+      - generic [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]: 📈
+        - paragraph [ref=e650]: Evolução
+      - generic [ref=e651] [cursor=pointer]:
+        - generic [ref=e652]: ☰
+        - paragraph [ref=e653]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e1736]
+    - img [ref=e1737]
+  - dialog "🩺 Compartilhar com médico" [active] [ref=e1740]:
+    - heading "🩺 Compartilhar com médico" [level=2] [ref=e1741]
+    - generic [ref=e1743]:
+      - generic [ref=e1744]:
+        - generic [ref=e1745]:
+          - generic:
+            - text: CRM (número)
+            - generic: "*"
+          - generic [ref=e1746]:
+            - textbox "CRM (número)" [ref=e1747]
+            - group:
+              - generic: CRM (número) *
+        - generic [ref=e1748]:
+          - generic:
+            - text: Estado (UF)
+            - generic: "*"
+          - generic [ref=e1749]:
+            - combobox "Estado (UF)" [ref=e1750] [cursor=pointer]
+            - textbox
+            - img
+            - group:
+              - generic: Estado (UF) *
+        - button "Buscar médico" [disabled]:
+          - generic:
+            - img
+          - text: Buscar médico
+      - generic [ref=e1751]:
+        - generic:
+          - text: Nome do médico
+          - generic: "*"
+        - generic [ref=e1752]:
+          - textbox "Nome do médico" [ref=e1753]:
+            - /placeholder: Use "Buscar" ou preencha
+          - group:
+            - generic: Nome do médico *
+      - generic [ref=e1754]:
+        - generic [ref=e1755]:
+          - generic: Especialidade
+          - generic [ref=e1756]:
+            - combobox "Especialidade" [ref=e1757] [cursor=pointer]
+            - textbox
+            - img
+            - group:
+              - generic: Especialidade
+        - generic [ref=e1758]:
+          - generic: E-mail (opcional)
+          - generic [ref=e1759]:
+            - textbox "E-mail (opcional)" [ref=e1760]
+            - group:
+              - generic: E-mail (opcional)
+      - generic [ref=e1761]:
+        - generic [ref=e1762]: Convênio
+        - generic [ref=e1763]:
+          - combobox "Convênio Particular" [ref=e1764] [cursor=pointer]: Particular
+          - textbox: Particular
+          - img
+          - group:
+            - generic: Convênio
+      - generic [ref=e1765]:
+        - generic [ref=e1766]: "O que ele pode ver:"
+        - generic [ref=e1767]:
+          - generic [ref=e1768] [cursor=pointer]:
+            - generic [ref=e1769]: 📋
+            - paragraph [ref=e1770]: Exames
+          - generic [ref=e1771] [cursor=pointer]:
+            - generic [ref=e1772]: 📈
+            - paragraph [ref=e1773]: Evolução
+          - generic [ref=e1774] [cursor=pointer]:
+            - generic [ref=e1775]: 🚨
+            - paragraph [ref=e1776]: Alertas
+          - generic [ref=e1777] [cursor=pointer]:
+            - generic [ref=e1778]: ✨
+            - paragraph [ref=e1779]: Resumos IA
+    - generic [ref=e1780]:
+      - button "Cancelar" [ref=e1781] [cursor=pointer]
+      - button "Compartilhar →" [disabled]

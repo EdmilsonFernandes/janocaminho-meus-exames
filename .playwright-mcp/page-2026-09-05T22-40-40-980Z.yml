@@ -1,0 +1,90 @@
+- generic [ref=e1]:
+  - generic [ref=e710]:
+    - button [ref=e711] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e712]:
+      - banner [ref=e713]:
+        - generic [ref=e714]:
+          - generic [ref=e715]:
+            - button [ref=e716] [cursor=pointer]:
+              - generic [ref=e719]: "69"
+            - button [ref=e720] [cursor=pointer]:
+              - generic [ref=e721]: 9+
+            - button [ref=e726] [cursor=pointer]:
+              - generic [ref=e727]: E
+              - generic [ref=e729]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=e735] [cursor=pointer]
+      - main [ref=e738]:
+        - navigation [ref=e742]:
+          - generic [ref=e745]:
+            - generic [ref=e746]: E
+            - generic [ref=e747]:
+              - paragraph [ref=e748]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e749]:
+                - generic [ref=e750]: Plano grátis
+                - button [ref=e752] [cursor=pointer]:
+                  - generic [ref=e753]: ⚡ 69 (+)
+          - separator [ref=e754]
+          - generic [ref=e755]:
+            - button [expanded] [ref=e756] [cursor=pointer]:
+              - generic [ref=e760]: Exames
+            - generic [ref=e1025]:
+              - button [ref=e1032] [cursor=pointer]:
+                - generic [ref=e1036]: Exames
+              - button [ref=e1038] [cursor=pointer]:
+                - generic [ref=e1043]: Valores alterados
+              - button [ref=e1045] [cursor=pointer]:
+                - generic [ref=e1050]: Evolução
+              - button [ref=e1052] [cursor=pointer]:
+                - generic [ref=e1056]: Tendências
+              - button [ref=e1058] [cursor=pointer]:
+                - generic [ref=e1062]: Linha do Tempo
+              - button [ref=e1064] [cursor=pointer]:
+                - generic [ref=e1068]: Relatório completo
+          - button [ref=e765] [cursor=pointer]:
+            - generic [ref=e770]: Cuidados
+          - button [ref=e775] [cursor=pointer]:
+            - generic [ref=e780]: Pessoas
+          - button [expanded] [ref=e785] [cursor=pointer]:
+            - generic [ref=e789]: Conta
+          - separator [ref=e793]
+          - button [ref=e794] [cursor=pointer]:
+            - generic [ref=e798]: Dúvidas frequentes
+          - menuitem [ref=e800] [cursor=pointer]:
+            - generic [ref=e804]: Sobre o app
+          - menuitem [ref=e806] [cursor=pointer]:
+            - generic [ref=e810]: Sair da conta
+  - dialog [ref=e1007]:
+    - heading [level=2] [ref=e1008]: ✨ Novidades do Dr. Exame
+    - generic [ref=e985]:
+      - generic [ref=e986]: Versão 0.1.0
+      - generic [ref=e987]:
+        - generic [ref=e988]:
+          - generic [ref=e989]: 📱
+          - generic [ref=e990]:
+            - paragraph [ref=e991]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e992]:
+          - generic [ref=e993]: 🔐
+          - generic [ref=e994]:
+            - paragraph [ref=e995]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e996]:
+          - generic [ref=e997]: 🩺
+          - generic [ref=e998]:
+            - paragraph [ref=e999]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e1000]:
+          - generic [ref=e1001]: 🚑
+          - generic [ref=e1002]:
+            - paragraph [ref=e1003]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=e1009] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=e1012]:
+    - heading [level=2] [ref=e1013]:
+      - generic [ref=e1014]:
+        - img "Dr. Exame" [ref=e1015]
+        - paragraph [ref=e1016]: 💡 Dica do Dr. Exame pra Theo
+    - paragraph [ref=e1018]: Que tal trocar um refrigerante por água hoje? Pequenas escolhas ajudam sua hidratação, seus rins e até seu humor no resto do dia.
+    - generic [ref=e1019]:
+      - button "Depois" [ref=e1020] [cursor=pointer]
+      - button "Ver notificações" [ref=e1021] [cursor=pointer]

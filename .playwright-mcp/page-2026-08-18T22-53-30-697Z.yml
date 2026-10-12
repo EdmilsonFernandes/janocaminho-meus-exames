@@ -1,0 +1,83 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e1934]:
+            - generic [ref=e1935]:
+              - heading [level=5] [ref=e1938]: CARTÃO DE EMERGÊNCIA
+              - paragraph [ref=e1939]: Meus Exames
+            - generic [ref=e1940]:
+              - heading [level=6] [ref=e1954]: Edmilson Lopes Fernandes dos Santos
+              - separator [ref=e1955]
+              - generic [ref=e1956]:
+                - paragraph [ref=e1957]: 🩸 Tipo Sanguíneo
+                - paragraph [ref=e1958]: Não informado — preencha no perfil
+              - generic [ref=e1959]:
+                - paragraph [ref=e1960]: 💊 Medicações
+                - paragraph [ref=e1961]: Não informado
+              - generic [ref=e1962]:
+                - paragraph [ref=e1963]: 📞 Contato de emergência
+                - paragraph [ref=e1964]: Não informado
+              - generic [ref=e1966]:
+                - paragraph [ref=e1967]: E
+                - text: ID emergencial
+              - button [ref=e1968] [cursor=pointer]: 🖨️ Imprimir carteirinha
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - generic [ref=e226]:
+        - button "Conta" [expanded] [ref=e227] [cursor=pointer]
+        - generic [ref=e1821]:
+          - button "Meu perfil" [ref=e1822] [cursor=pointer]
+          - button "Segurança & senha" [ref=e1828] [cursor=pointer]
+          - button "Privacidade e termos" [ref=e1834] [cursor=pointer]
+          - button "Planos e Créditos" [ref=e1840] [cursor=pointer]
+          - button "Despesas Médicas" [ref=e1846] [cursor=pointer]
+          - button "Painel Admin" [ref=e1852] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

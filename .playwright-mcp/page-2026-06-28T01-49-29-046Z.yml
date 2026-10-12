@@ -1,0 +1,45 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - img "Dr. Exame" [ref=e24]
+      - generic [ref=e25]:
+        - heading "Meus Exames" [level=5] [ref=e26]
+        - paragraph [ref=e27]: Seu assistente de saúde com IA
+    - generic [ref=e28]:
+      - button "Paciente" [ref=e29] [cursor=pointer]:
+        - img [ref=e31]
+        - text: Paciente
+      - button "Médico" [ref=e34] [cursor=pointer]:
+        - img [ref=e36]
+        - text: Médico
+    - generic [ref=e40]:
+      - generic [ref=e42]:
+        - img [ref=e44]
+        - textbox "E-mail" [ref=e47]: edmilson@exemplo.com
+        - group
+      - generic [ref=e49]:
+        - img [ref=e51]
+        - textbox "Senha" [ref=e54]: troque123
+        - button "Mostrar senha" [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+        - group
+      - button "Esqueci minha senha" [ref=e62] [cursor=pointer]
+      - button "Entrar" [ref=e63] [cursor=pointer]:
+        - text: Entrar
+        - img [ref=e65]
+      - generic [ref=e67]:
+        - img [ref=e69]
+        - generic [ref=e72]:
+          - paragraph [ref=e73]: Acesso seguro
+          - paragraph [ref=e74]: Seus dados são protegidos com criptografia e armazenados em servidores seguros.
+      - paragraph [ref=e75]:
+        - text: Não tem conta?
+        - button "Criar agora" [ref=e76] [cursor=pointer]
+    - generic [ref=e77]:
+      - generic [ref=e78]: 🩺
+      - paragraph [ref=e79]:
+        - strong [ref=e80]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e17]

@@ -1,0 +1,45 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e405]:
+            - heading [level=4] [ref=e411]: Meus Exames
+            - paragraph [ref=e412]: Seu assistente de saúde com IA
+    - navigation [ref=e193]:
+      - paragraph [ref=e198] [cursor=pointer]: Início
+      - paragraph [ref=e203] [cursor=pointer]: Exames
+      - paragraph [ref=e207] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e212] [cursor=pointer]: Evolução
+      - paragraph [ref=e217] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e222]:
+    - navigation [ref=e223]:
+      - generic [ref=e224]:
+        - button "Exames" [expanded] [ref=e225] [cursor=pointer]
+        - generic [ref=e236]:
+          - button "Exames" [ref=e237] [cursor=pointer]
+          - button "Valores alterados" [ref=e243] [cursor=pointer]
+          - button "Evolução" [ref=e250] [cursor=pointer]
+          - button "Tendências" [ref=e257] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e263] [cursor=pointer]
+          - button "Relatório completo" [ref=e269] [cursor=pointer]
+      - button "Cuidados" [ref=e276] [cursor=pointer]
+      - button "Pessoas" [ref=e286] [cursor=pointer]
+      - button "Conta" [ref=e296] [cursor=pointer]
+      - separator [ref=e304]
+      - button "Ajuda & Suporte" [ref=e305] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e311] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e317] [cursor=pointer]
+  - generic [ref=e323]: "0"

@@ -1,0 +1,109 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button "Pular para o conteúdo" [ref=e1782] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button "Menu" [ref=e1783] [cursor=pointer]:
+              - img [ref=e495]
+            - button "79" [ref=e1785] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button "E" [ref=e1786] [cursor=pointer]:
+              - generic [ref=e504]: E
+            - button "3" [ref=e1787] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button "Mais opções" [ref=e1788] [cursor=pointer]:
+              - img [ref=e511]
+            - button "Atualizar" [ref=e1789] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - generic [ref=e1799]:
+            - generic [ref=e1800]:
+              - heading "Boa tarde, tudo bem? 👋" [level=5] [ref=e1801]
+              - paragraph [ref=e1802]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e1803]:
+              - progressbar [ref=e1804]:
+                - img [ref=e1805]
+              - paragraph [ref=e1807]: Calculando seu score…
+            - generic [ref=e1808]:
+              - img
+              - generic [ref=e1810]:
+                - generic [ref=e1811]:
+                  - img "Dr. Exame" [ref=e1813]
+                  - generic [ref=e1814]:
+                    - paragraph [ref=e1815]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e1816]: Repita exames laboratoriais no mesmo laboratório quando possível — facilita comparar a evolução.
+                - button "Conversar com a IA" [ref=e1818] [cursor=pointer]:
+                  - img [ref=e1820]
+                  - text: Conversar com a IA
+            - generic [ref=e1822]:
+              - generic [ref=e1825] [cursor=pointer]:
+                - img [ref=e1827]
+                - paragraph [ref=e1829]: "0"
+                - generic [ref=e1830]: Exames enviados
+              - generic [ref=e1833] [cursor=pointer]:
+                - img [ref=e1835]
+                - paragraph [ref=e1838]: "0"
+                - generic [ref=e1839]: Valores alterados
+              - generic [ref=e1842] [cursor=pointer]:
+                - img [ref=e1844]
+                - paragraph [ref=e1847]: "0"
+                - generic [ref=e1848]: Dependentes
+              - generic [ref=e1851] [cursor=pointer]:
+                - img [ref=e1853]
+                - paragraph [ref=e1855]: —
+                - generic [ref=e1856]: Última atualização
+            - generic [ref=e1860]:
+              - heading "Distribuição dos valores" [level=6] [ref=e1861]
+              - paragraph [ref=e1862]: Últimos exames extraídos deste perfil.
+              - paragraph [ref=e1863]: Sem valores extraídos ainda. Envie um exame.
+            - generic [ref=e1864]:
+              - generic [ref=e1867] [cursor=pointer]:
+                - img [ref=e1869]
+                - generic [ref=e1871]: Enviar exame
+              - generic [ref=e1874] [cursor=pointer]:
+                - img [ref=e1876]
+                - generic [ref=e1878]: Evolução
+              - generic [ref=e1881] [cursor=pointer]:
+                - img [ref=e1883]
+                - generic [ref=e1886]: Família
+              - generic [ref=e1889] [cursor=pointer]:
+                - img [ref=e1891]
+                - generic [ref=e1893]: Relatório
+            - generic [ref=e1895]: Toque nos cards de contador para navegar.
+            - generic [ref=e1898] [cursor=pointer]:
+              - generic [ref=e1899]:
+                - generic [ref=e1900]:
+                  - paragraph [ref=e1901]: 🏆 Suas conquistas
+                  - text: Resgate 1 crédito a cada meta atingida
+                - img [ref=e1902]
+              - generic [ref=e1904]:
+                - generic [ref=e1906]: 🎉
+                - generic [ref=e1908]: 📚
+                - generic [ref=e1910]: 🎓
+                - generic [ref=e1912]: 💚
+                - generic [ref=e1914]: 🔥
+              - generic [ref=e1915]: 0 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=e636]:
+      - generic [ref=e637] [cursor=pointer]:
+        - generic [ref=e638]: 🏠
+        - paragraph [ref=e639]: Início
+      - generic [ref=e641] [cursor=pointer]:
+        - generic [ref=e642]: 📋
+        - paragraph [ref=e643]: Exames
+      - generic [ref=e644] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1796]
+        - paragraph [ref=e647]: Dr. Exame
+      - generic [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]: 📈
+        - paragraph [ref=e650]: Evolução
+      - generic [ref=e651] [cursor=pointer]:
+        - generic [ref=e652]: ☰
+        - paragraph [ref=e653]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1797]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1798]

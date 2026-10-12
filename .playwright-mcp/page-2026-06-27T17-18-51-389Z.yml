@@ -1,0 +1,85 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e159] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e160] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e161] [cursor=pointer]:
+              - img [ref=e29]
+            - button "79" [ref=e162] [cursor=pointer]:
+              - img [ref=e32]
+              - generic [ref=e34]: "79"
+            - button "E" [ref=e163] [cursor=pointer]:
+              - generic [ref=e38]: E
+            - button "3" [ref=e164] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic [ref=e43]: "3"
+            - button "Mais opções" [ref=e165] [cursor=pointer]:
+              - img [ref=e45]
+            - button "Atualizar" [ref=e166] [cursor=pointer]:
+              - img [ref=e49]
+        - main [ref=e51]:
+          - generic [ref=e309]:
+            - generic [ref=e310]:
+              - img [ref=e312]
+              - generic [ref=e314]:
+                - heading "Evolução ao longo do tempo" [level=5] [ref=e315]
+                - paragraph [ref=e316]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - generic [ref=e320]:
+              - button "📋 Todos (20)" [ref=e322] [cursor=pointer]:
+                - generic [ref=e323]: 📋 Todos (20)
+              - button "🔴 Fora da faixa (10)" [ref=e325] [cursor=pointer]:
+                - generic [ref=e326]: 🔴 Fora da faixa (10)
+              - button "🟠 Em mudança (0)" [ref=e328] [cursor=pointer]:
+                - generic [ref=e329]: 🟠 Em mudança (0)
+              - button "✅ Estável (10)" [ref=e331] [cursor=pointer]:
+                - generic [ref=e332]: ✅ Estável (10)
+            - generic [ref=e333]:
+              - img [ref=e334]
+              - textbox "Buscar exame (TSH, glicose, colesterol…)" [ref=e337]
+            - generic [ref=e338]:
+              - generic [ref=e340] [cursor=pointer]:
+                - generic [ref=e341]: 🩸
+                - paragraph [ref=e342]: Hemograma
+                - generic "Fora da faixa" [ref=e343]: 🔴
+                - generic [ref=e345]: "15"
+                - img [ref=e346]
+              - generic [ref=e349] [cursor=pointer]:
+                - generic [ref=e350]: 🫀
+                - paragraph [ref=e351]: Função Hepática
+                - generic "Estável" [ref=e352]: ✅
+                - generic [ref=e354]: "2"
+                - img [ref=e355]
+              - generic [ref=e358] [cursor=pointer]:
+                - generic [ref=e359]: 📋
+                - paragraph [ref=e360]: Outros exames
+                - generic "Estável" [ref=e361]: ✅
+                - generic [ref=e363]: "3"
+                - img [ref=e364]
+    - button "Pergunte ao Dr. Exame" [ref=e286] [cursor=pointer]:
+      - generic [ref=e287]:
+        - img "Dr. Exame" [ref=e289]
+        - img [ref=e291]
+    - navigation [ref=e103]:
+      - generic [ref=e104] [cursor=pointer]:
+        - generic [ref=e105]: 🏠
+        - paragraph [ref=e106]: Início
+      - generic [ref=e107] [cursor=pointer]:
+        - generic [ref=e108]: 📋
+        - paragraph [ref=e109]: Exames
+      - generic [ref=e111] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e174]
+        - paragraph [ref=e114]: Dr. Exame
+      - generic [ref=e115] [cursor=pointer]:
+        - generic [ref=e116]: 📈
+        - paragraph [ref=e117]: Evolução
+      - generic [ref=e118] [cursor=pointer]:
+        - generic [ref=e119]: ☰
+        - paragraph [ref=e120]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e175]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e176]

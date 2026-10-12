@@ -1,0 +1,4 @@
+- generic [active] [ref=f21e1]:
+  - link "Pular para conteúdo principal" [ref=f21e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - banner [ref=f21e7]

@@ -1,0 +1,471 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e2]:
+    - generic [ref=f8e3]:
+      - text: Este site utiliza cookies para melhorar sua experiência de navegação.
+      - link "Para mais detalhes,acesse a Lei Geral de Proteção de Dados Pessoais (LGPD)." [ref=f8e4] [cursor=pointer]:
+        - /url: https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm
+    - generic [ref=f8e5]:
+      - button "RECUSAR" [ref=f8e6] [cursor=pointer]
+      - button "PERMITIR" [ref=f8e7] [cursor=pointer]
+  - generic [ref=f8e8]:
+    - banner [ref=f8e9]:
+      - generic [ref=f8e14]:
+        - img [aria-hidden] [ref=f8e16]: 
+        - combobox [ref=f8e18]:
+          - option "Acesse o site do seu regional" [selected]
+          - option "FEDERAL"
+          - option "ACRE"
+          - option "ALAGOAS"
+          - option "AMAPA"
+          - option "AMAZONAS"
+          - option "BAHIA"
+          - option "CEARA"
+          - option "DISTRITO FEDERAL"
+          - option "ESPIRITO SANTO"
+          - option "GOIAS"
+          - option "MARANHÃO"
+          - option "MATO GROSSO"
+          - option "MATO GROSSO DO SUL"
+          - option "MINAS GERAIS"
+          - option "PARANA"
+          - option "PARAIBA"
+          - option "PARA"
+          - option "PERNAMBUCO"
+          - option "PIAUI"
+          - option "RIO DE JANEIRO"
+          - option "RIO GRANDE DO NORTE"
+          - option "RIO GRANDE DO SUL"
+          - option "RONDONIA"
+          - option "RORAIMA"
+          - option "SANTA CATARINA"
+          - option "SERGIPE"
+          - option "SÃO PAULO"
+          - option "TOCANTINS"
+      - generic [ref=f8e22]:
+        - link [ref=f8e24] [cursor=pointer]:
+          - /url: javascript:;
+          - img [aria-hidden] [ref=f8e25]: 
+        - link [ref=f8e28] [cursor=pointer]:
+          - /url: https://portal.cfm.org.br/
+          - img "CFM" [ref=f8e29]
+        - generic [ref=f8e30]:
+          - link [ref=f8e31] [cursor=pointer]:
+            - /url: javascript:;
+          - text: 
+      - generic [ref=f8e34]:
+        - link "fechar" [ref=f8e36] [cursor=pointer]:
+          - /url: javascript:;
+          - img [aria-hidden] [ref=f8e38]: 
+        - navigation [ref=f8e41]:
+          - generic [ref=f8e42]:
+            - text: 
+            - list [ref=f8e43]:
+              - listitem [ref=f8e44]:
+                - link "Institucional" [ref=f8e45] [cursor=pointer]:
+                  - /url: https://portal.cfm.org.br/institucional-2/
+                  - text: Institucional
+                  - generic [aria-hidden] [ref=f8e46]: 
+              - listitem [ref=f8e47]:
+                - generic [ref=f8e48] [cursor=pointer]:
+                  - text: Ética Médica
+                  - generic [aria-hidden] [ref=f8e49]: 
+              - listitem [ref=f8e50]:
+                - link "Comunicação" [ref=f8e51] [cursor=pointer]:
+                  - /url: "#"
+                  - text: Comunicação
+                  - generic [aria-hidden] [ref=f8e52]: 
+              - listitem [ref=f8e53]:
+                - link "Biblioteca" [ref=f8e54] [cursor=pointer]:
+                  - /url: https://portal.cfm.org.br/biblioteca
+              - listitem [ref=f8e55]:
+                - link "Educação" [ref=f8e56] [cursor=pointer]:
+                  - /url: "#"
+                  - text: Educação
+                  - generic [aria-hidden] [ref=f8e57]: 
+              - listitem [ref=f8e58]:
+                - button "Serviços" [ref=f8e59] [cursor=pointer]:
+                  - text: Serviços
+                  - generic [aria-hidden] [ref=f8e60]: 
+              - listitem [ref=f8e61]:
+                - link "Fale conosco" [ref=f8e62] [cursor=pointer]:
+                  - /url: /
+                  - text: Fale conosco
+                  - generic [aria-hidden] [ref=f8e63]: 
+      - generic [ref=f8e64]:
+        - link "Empresas" [ref=f8e65] [cursor=pointer]:
+          - /url: https://crmvirtual.cfm.org.br/BR/categoria/prestador-de-servicos-medico
+        - link "Médicos" [ref=f8e68] [cursor=pointer]:
+          - /url: https://crmvirtual.cfm.org.br/BR/categoria/servicos-aos-medicos
+        - link "Cidadão" [ref=f8e71] [cursor=pointer]:
+          - /url: https://crmvirtual.cfm.org.br/BR/categoria/servico-ao-cidadao
+    - generic [ref=f8e75]:
+      - generic [ref=f8e78]:
+        - generic [ref=f8e81]:
+          - heading "CRM VIRTUAL" [level=2] [ref=f8e83]
+          - link "Acesse" [ref=f8e84] [cursor=pointer]:
+            - /url: https://portalservicos.cfm.org.br/portal/
+        - generic [ref=f8e87]:
+          - heading "Prescrição Eletrônica" [level=2] [ref=f8e89]
+          - link "Acesse" [ref=f8e90] [cursor=pointer]:
+            - /url: https://prescricaoeletronica.cfm.org.br/
+      - generic [ref=f8e92]:
+        - generic [ref=f8e95]:
+          - link "Início" [ref=f8e97] [cursor=pointer]:
+            - /url: https://portal.cfm.org.br
+          - generic [ref=f8e98]: Busca por médicos
+        - generic [ref=f8e100]:
+          - heading "Busca por médicos" [level=2] [ref=f8e101]
+          - paragraph [ref=f8e102]: Nesta área, você pode realizar uma busca por médico a partir do preenchimento dos campos abaixo. Quanto maior o número de dados, mais fácil será encontrar o profissional que procura.
+          - list [ref=f8e103]:
+            - listitem [ref=f8e104]: "Entenda os números de CRM:"
+            - listitem [ref=f8e105]: "Número seguido da letra ‘P’: inscrição provisória realizada em atendimento a liminar."
+            - listitem [ref=f8e106]: "Número precedido da sigla ‘EME’: inscrição de estudante médico estrangeiro."
+            - listitem [ref=f8e107]: "Número precedido do número ‘300’: inscrição de médico estrangeiro com visto provisório."
+      - article [ref=f8e112]:
+        - heading "Encontre um médico" [level=5] [ref=f8e115]
+        - generic [ref=f8e120]:
+          - generic [ref=f8e121]: "(PELO MENOS UM DOS SEGUINTES CAMPOS DEVE SER PREENCHIDO: NOME DO MÉDICO, UF, CRM)"
+          - generic [ref=f8e123]:
+            - generic [ref=f8e125]:
+              - generic [ref=f8e126]: "Nome do médico:"
+              - textbox "Nome do médico:" [ref=f8e127]
+            - generic [ref=f8e129]:
+              - generic [ref=f8e130]: "UF:"
+              - combobox [ref=f8e131]:
+                - option "Selecione o Estado" [selected]
+                - option "AC"
+                - option "AL"
+                - option "AM"
+                - option "AP"
+                - option "BA"
+                - option "CE"
+                - option "DF"
+                - option "ES"
+                - option "GO"
+                - option "MA"
+                - option "MG"
+                - option "MT"
+                - option "MS"
+                - option "PA"
+                - option "PB"
+                - option "PE"
+                - option "PI"
+                - option "PR"
+                - option "RJ"
+                - option "RN"
+                - option "RS"
+                - option "RO"
+                - option "RR"
+                - option "SC"
+                - option "SP"
+                - option "SE"
+                - option "TO"
+            - generic [ref=f8e133]:
+              - generic [ref=f8e134]: "CRM:"
+              - textbox "Digite o CRM" [ref=f8e135]
+          - generic [ref=f8e136]:
+            - generic [ref=f8e138]:
+              - generic [ref=f8e139]: "Município:"
+              - combobox [ref=f8e140]:
+                - option "Selecione uma UF" [selected]
+            - generic [ref=f8e142]:
+              - generic [ref=f8e143]: "Tipo de Inscrição:"
+              - combobox [ref=f8e144]:
+                - option "Todas" [selected]
+                - option "Principal"
+                - option "Secundária"
+                - option "Provisória"
+                - option "Provisória Secundária"
+                - option "Estudante Médico Estrangeiro"
+            - generic [ref=f8e146]:
+              - generic [ref=f8e147]: "Situação:"
+              - combobox [ref=f8e148]:
+                - option "Todas" [selected]
+                - option "Ativo"
+                - option "Inativo"
+            - combobox [ref=f8e151]:
+              - option "Selecione uma situação" [selected]
+          - generic [ref=f8e152]:
+            - generic [ref=f8e154]:
+              - generic [ref=f8e155]: "Especialidade:"
+              - combobox [ref=f8e156]:
+                - option "Todas" [selected]
+                - option "ACUPUNTURA"
+                - option "ADMINISTRAÇÃO EM SAÚDE"
+                - option "ADMINISTRAÇÃO HOSPITALAR"
+                - option "ALERGIA E IMUNOLOGIA"
+                - option "ALERGIA E IMUNOPATOLOGIA"
+                - option "ANATOMIA PATOLÓGICA"
+                - option "ANESTESIOLOGIA"
+                - option "ANGIOLOGIA"
+                - option "ANGIOLOGIA E CIRURGIA VASCULAR"
+                - option "BRONCOESOFAGOLOGIA"
+                - option "CANCEROLOGIA"
+                - option "CANCEROLOGIA/CANCEROLOGIA CIRÚRGICA"
+                - option "CANCEROLOGIA/CANCEROLOGIA PEDIÁTRICA"
+                - option "CARDIOLOGIA"
+                - option "CIRURGIA CARDIOVASCULAR"
+                - option "CIRURGIA DA MÃO"
+                - option "CIRURGIA DE CABEÇA E PESCOÇO"
+                - option "CIRURGIA DIGESTIVA"
+                - option "CIRURGIA DO APARELHO DIGESTIVO"
+                - option "CIRURGIA DO TRAUMA"
+                - option "CIRURGIA GASTROENTEROLÓGICA"
+                - option "CIRURGIA GERAL"
+                - option "CIRURGIA ONCOLÓGICA"
+                - option "CIRURGIA PEDIÁTRICA"
+                - option "CIRURGIA PLÁSTICA"
+                - option "CIRURGIA TORÁCICA"
+                - option "CIRURGIA TORÁXICA"
+                - option "CIRURGIA VASCULAR"
+                - option "CIRURGIA VASCULAR PERIFÉRICA"
+                - option "CITOPATOLOGIA"
+                - option "CLÍNICA MÉDICA"
+                - option "COLOPROCTOLOGIA"
+                - option "DENSITOMETRIA ÓSSEA"
+                - option "DERMATOLOGIA"
+                - option "DIAGNÓSTICO POR IMAGEM"
+                - option "DOENÇAS INFECCIOSAS E PARASITÁRIAS"
+                - option "ELETROENCEFALOGRAFIA"
+                - option "ENDOCRINOLOGIA"
+                - option "ENDOCRINOLOGIA E METABOLOGIA"
+                - option "ENDOSCOPIA"
+                - option "ENDOSCOPIA DIGESTIVA"
+                - option "ENDOSCOPIA PERORAL"
+                - option "ENDOSCOPIA PERORAL VIAS AÉREAS"
+                - option "FISIATRIA"
+                - option "FONIATRIA"
+                - option "GASTROENTEROLOGIA"
+                - option "GENÉTICA CLÍNICA"
+                - option "GENÉTICA LABORATORIAL"
+                - option "GENÉTICA MÉDICA"
+                - option "GERIATRIA"
+                - option "GERIATRIA E GERONTOLOGIA"
+                - option "GINECOLOGIA"
+                - option "GINECOLOGIA E OBSTETRÍCIA"
+                - option "HANSENOLOGIA"
+                - option "HEMATOLOGIA"
+                - option "HEMATOLOGIA E HEMOTERAPIA"
+                - option "HEMOTERAPIA"
+                - option "HEPATOLOGIA"
+                - option "HOMEOPATIA"
+                - option "IMUNOLOGIA CLÍNICA"
+                - option "INFECTOLOGIA"
+                - option "INFORMÁTICA MÉDICA"
+                - option "MASTOLOGIA"
+                - option "MEDICINA DE EMERGÊNCIA"
+                - option "MEDICINA DE FAMÍLIA E COMUNIDADE"
+                - option "MEDICINA DO ADOLESCENTE"
+                - option "MEDICINA DO ESPORTE"
+                - option "MEDICINA DO TRABALHO"
+                - option "MEDICINA DO TRÁFEGO"
+                - option "MEDICINA ESPORTIVA"
+                - option "MEDICINA FÍSICA E REABILITAÇÃO"
+                - option "MEDICINA GERAL COMUNITÁRIA"
+                - option "MEDICINA INTENSIVA"
+                - option "MEDICINA INTERNA OU CLÍNICA MÉDICA"
+                - option "MEDICINA LEGAL"
+                - option "MEDICINA LEGAL E PERÍCIA MÉDICA"
+                - option "MEDICINA NUCLEAR"
+                - option "MEDICINA PREVENTIVA E SOCIAL"
+                - option "MEDICINA SANITÁRIA"
+                - option "NEFROLOGIA"
+                - option "NEUROCIRURGIA"
+                - option "NEUROFISIOLOGIA CLÍNICA"
+                - option "NEUROLOGIA"
+                - option "NEUROLOGIA PEDIÁTRICA"
+                - option "NEUROPEDIATRIA"
+                - option "NUTRIÇÃO PARENTERAL E ENTERAL"
+                - option "NUTROLOGIA"
+                - option "OBSTETRÍCIA"
+                - option "OFTALMOLOGIA"
+                - option "ONCOLOGIA"
+                - option "ONCOLOGIA CLÍNICA"
+                - option "ORTOPEDIA E TRAUMATOLOGIA"
+                - option "OTORRINOLARINGOLOGIA"
+                - option "PATOLOGIA"
+                - option "PATOLOGIA CLÍNICA"
+                - option "PATOLOGIA CLÍNICA/MEDICINA LABORATORIAL"
+                - option "PEDIATRIA"
+                - option "PNEUMOLOGIA"
+                - option "PNEUMOLOGIA E TISIOLOGIA"
+                - option "PROCTOLOGIA"
+                - option "PSIQUIATRIA"
+                - option "PSIQUIATRIA INFANTIL"
+                - option "RADIODIAGNÓSTICO"
+                - option "RADIOLOGIA"
+                - option "RADIOLOGIA E DIAGNÓSTICO POR IMAGEM"
+                - option "RADIOTERAPIA"
+                - option "REUMATOLOGIA"
+                - option "SEXOLOGIA"
+                - option "TERAPIA INTENSIVA"
+                - option "TERAPIA INTENSIVA PEDIÁTRICA"
+                - option "TISIOLOGIA"
+                - option "TOCO-GINECOLOGIA"
+                - option "ULTRASSONOGRAFIA"
+                - option "ULTRASSONOGRAFIA EM GINECOLOGIA E OBSTETRÍCIA"
+                - option "ULTRASSONOGRAFIA GERAL"
+                - option "UROLOGIA"
+              - button "Limpar" [ref=f8e157] [cursor=pointer]
+            - generic [ref=f8e159]:
+              - generic [ref=f8e160]: "Área de Atuação:"
+              - combobox [ref=f8e161]:
+                - option "Todas" [selected]
+                - option "Administração Hospitalar"
+                - option "Administração em Saúde"
+                - option "Adolescência"
+                - option "Alergia e Imunologia Pediátrica"
+                - option "Andrologia"
+                - option "Angiorradiologia e Cirurgia Endovascular"
+                - option "Atendimento ao Queimado"
+                - option "Auditoria Médica"
+                - option "Biologia Molecular"
+                - option "Bioquímica"
+                - option "Cardiologia Pediátrica"
+                - option "Cirurgia Bariátrica"
+                - option "Cirurgia Crânio-Maxilo-Facial"
+                - option "Cirurgia Dermatológica"
+                - option "Cirurgia Oncológica"
+                - option "Cirurgia Videolaparoscópica"
+                - option "Cirurgia da Coluna"
+                - option "Cirurgia da Mão"
+                - option "Cirurgia de Cabeça e Pescoço"
+                - option "Cirurgia do Joelho"
+                - option "Cirurgia do Ombro"
+                - option "Cirurgia do Pé"
+                - option "Cirurgia do Quadril"
+                - option "Cirurgia do Trauma"
+                - option "Citopatologia"
+                - option "Colonoscopia"
+                - option "Cosmiatria"
+                - option "Densitometria Óssea"
+                - option "Dor"
+                - option "Ecocardiografia"
+                - option "Ecocardiografia Pediátrica"
+                - option "Ecografia Vascular com DOPPLER"
+                - option "Eletrencefalografia"
+                - option "Eletrofisiologia Clínica Invasiva"
+                - option "Eletroneuromiografia"
+                - option "Emergência Pediátrica"
+                - option "Endocrinologia Pediátrica"
+                - option "Endoscopia Digestiva"
+                - option "Endoscopia Ginecológica"
+                - option "Endoscopia Respiratória"
+                - option "Epidemiologia"
+                - option "Ergometria"
+                - option "Estimulação Cardíaca Eletrônica Implantável"
+                - option "Foniatria"
+                - option "Gastroenterologia Pediátrica"
+                - option "Hansenologia"
+                - option "Hematologia e Hemoterapia Pediátrica"
+                - option "Hemodinâmica e Cardiologia Intervencionista"
+                - option "Hemodinâmica/Cardiol. Intervencionista Pediátrica"
+                - option "Hepatologia"
+                - option "Histeroscopia"
+                - option "Histopatologia"
+                - option "Infectologia Hospitalar"
+                - option "Infectologia Pediátrica"
+                - option "Laparoscopia"
+                - option "Mamografia"
+                - option "Medicina Aeroespacial"
+                - option "Medicina Fetal"
+                - option "Medicina Intensiva Neonatal"
+                - option "Medicina Intensiva Pediátrica"
+                - option "Medicina Paliativa"
+                - option "Medicina Sanitária"
+                - option "Medicina Tropical"
+                - option "Medicina de Urgência"
+                - option "Medicina do Adolescente"
+                - option "Medicina do Sono"
+                - option "Nefrologia Pediátrica"
+                - option "Neonatologia"
+                - option "Neurofisiologia Clínica"
+                - option "Neurologia Pediátrica"
+                - option "Neurorradiologia"
+                - option "Neurorradiologia Diagnóstica"
+                - option "Neurorradiologia Terapêutica"
+                - option "Nutrição Parenteral e Enteral"
+                - option "Nutrição Parenteral e Enteral Pediátrica"
+                - option "Nutrologia Pediátrica"
+                - option "Oncogenética"
+                - option "Oncologia Clínica"
+                - option "Oncologia Pediátrica"
+                - option "Ortopedia Pediátrica"
+                - option "Pediatria Preventiva e Social"
+                - option "Perícia Médica"
+                - option "Pneumologia Pediátrica"
+                - option "Polissonografia"
+                - option "Potenciais Evocados"
+                - option "Psicogeriatria"
+                - option "Psicoterapia"
+                - option "Psiquiatria Forense"
+                - option "Psiquiatria da Infância e Adolescência"
+                - option "Radiologia Intervencionista e Angiorradiologia"
+                - option "Reprodução Assistida"
+                - option "Reprodução Humana"
+                - option "Ressonância Magnética"
+                - option "Reumatologia Pediátrica"
+                - option "Sexologia"
+                - option "Toxicologia Médica"
+                - option "Transplante de medula óssea"
+                - option "Tratamento da Dor"
+                - option "Ultrassonografia"
+                - option "Ultrassonografia Geral"
+                - option "Ultrassonografia em ginecologia e obstetrícia"
+          - generic [ref=f8e162]:
+            - iframe [ref=f8e166]:
+              - generic [ref=f10e5]:
+                - generic [ref=f10e6]:
+                  - text: protegido por
+                  - strong [ref=f10e7]: reCAPTCHA
+                - generic [ref=f10e9]:
+                  - text: Este site está excedendo
+                  - link "a cota gratuita do reCAPTCHA Enterprise" [ref=f10e10] [cursor=pointer]:
+                    - /url: https://cloud.google.com/recaptcha/docs/billing-information
+                  - text: .
+            - button "ENVIAR" [ref=f8e168] [cursor=pointer]
+    - contentinfo [ref=f8e169]:
+      - img "CFM" [ref=f8e175]
+      - generic [ref=f8e180]:
+        - link [ref=f8e181] [cursor=pointer]:
+          - /url: https://www.flickr.com/photos/cfmimprensa
+          - img "Flickr" [ref=f8e182]
+        - link [ref=f8e183] [cursor=pointer]:
+          - /url: https://www.youtube.com/user/cfmedicina
+          - img "Youtube" [ref=f8e184]
+        - link [ref=f8e185] [cursor=pointer]:
+          - /url: https://twitter.com/Medicina_CFM
+          - img "Twitter" [ref=f8e186]
+        - link [ref=f8e187] [cursor=pointer]:
+          - /url: https://www.linkedin.com/company/conselhofederaldemedicina/
+          - img "LinkedIn" [ref=f8e188]
+        - link [ref=f8e189] [cursor=pointer]:
+          - /url: https://www.instagram.com/medicina_cfm/
+          - img "Instagram" [ref=f8e190]
+        - link [ref=f8e191] [cursor=pointer]:
+          - /url: https://www.facebook.com/conselhofederaldemedicina
+          - img "Facebook" [ref=f8e192]
+      - generic [ref=f8e196]:
+        - generic [ref=f8e197]:
+          - list [ref=f8e198]:
+            - listitem [ref=f8e199]: "Telefone: (61) 3445 5900"
+            - listitem [ref=f8e200]: "Email: cfm@portalmedico.org.br"
+          - generic [ref=f8e201]: "SGAS 616, Conjunto D, Lote 115, L2 Sul, Brasília/DF - CEP: 70200-760 - CNPJ: 33.583.550/0001-30Copyright CFM. Todos os direitos reservados."
+        - generic [ref=f8e202]:
+          - link "mapa do site" [ref=f8e203] [cursor=pointer]:
+            - /url: /mapa-do-site
+          - link "transparência e prestação de contas" [ref=f8e204] [cursor=pointer]:
+            - /url: http://transparencia.cfm.org.br
+    - text:  
+    - generic [ref=f8e205]:
+      - generic [ref=f8e206]:
+        - heading "Aviso de Privacidade" [level=5] [ref=f8e207]
+        - generic [ref=f8e208]:
+          - text: Nós usamos cookies para melhorar sua experiência de navegação no portal. Ao utilizar o Portal Médico, você concorda com a política de monitoramento de cookies. Para ter mais informações sobre como isso é feito, acesse
+          - link "Política de cookies" [ref=f8e209] [cursor=pointer]:
+            - /url: /politica-de-cookies
+          - text: . Se você concorda, clique em ACEITO.
+      - button "Aceito" [ref=f8e211] [cursor=pointer]
+  - generic [ref=f8e212]:
+    - img "Acessível com VLibras" [ref=f8e213]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f8e214] [cursor=pointer]

@@ -1,0 +1,48 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e7]:
+      - img "Dr. Exame" [ref=e13]
+      - generic [ref=e14]:
+        - heading "Dr. Exame" [level=3] [ref=e15]
+        - paragraph [ref=e18]: Iniciando o Dr. Exame…
+    - generic [ref=e28]:
+      - generic [ref=e29]:
+        - img "Dr. Exame" [ref=e31]
+        - generic [ref=e32]:
+          - paragraph [ref=e33]: Meus Exames
+          - paragraph [ref=e34]: Portal do Médico
+      - generic [ref=e35]:
+        - button [ref=e36] [cursor=pointer]
+        - button [ref=e41] [cursor=pointer]
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - generic [ref=e49]:
+            - text: E-mail ou CRM
+            - generic [aria-hidden] [ref=e50]: "*"
+          - generic [ref=e51]:
+            - textbox "E-mail ou CRM" [ref=e56]
+            - group [aria-hidden]:
+              - generic: E-mail ou CRM *
+          - paragraph [ref=e57]: "Ex.: seu@email.com ou seu CRM (número-UF)"
+        - generic [ref=e58]:
+          - generic [ref=e59]:
+            - text: Senha
+            - generic [aria-hidden] [ref=e60]: "*"
+          - generic [ref=e61]:
+            - textbox "Senha" [ref=e66]
+            - button "Mostrar senha" [ref=e68] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Senha *
+        - button "Esqueci minha senha" [ref=e73] [cursor=pointer]
+        - button [ref=e74] [cursor=pointer]
+        - paragraph [ref=e78]:
+          - text: Não tem conta?
+          - button "Criar conta" [ref=e79] [cursor=pointer]
+      - generic [ref=e80]:
+        - paragraph [ref=e86]: Seus dados de saúde são protegidos pela LGPD.
+        - paragraph [ref=e87]:
+          - strong [ref=e88]: Conteúdo educativo.
+          - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e89]:
+    - img "Acessível com VLibras" [ref=e90]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e91] [cursor=pointer]

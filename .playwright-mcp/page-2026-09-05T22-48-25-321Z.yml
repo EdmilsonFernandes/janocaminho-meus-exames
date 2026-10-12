@@ -1,0 +1,117 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1403]:
+      - button "Pular para o conteúdo" [ref=e2086] [cursor=pointer]
+      - generic [ref=e1405]:
+        - banner [ref=e1406]:
+          - generic [ref=e1407]:
+            - button "Voltar" [ref=e2103] [cursor=pointer]
+            - generic [ref=e1411]:
+              - img "Dr. Exame" [ref=e2088]
+              - paragraph [ref=e1414]: Dr. Exame
+            - generic [ref=e1415]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=e2089] [cursor=pointer]:
+                - generic [ref=e1490]: "69"
+              - button "Notificações" [ref=e2090] [cursor=pointer]:
+                - generic [ref=e1417]: 9+
+              - button "E" [ref=e2091] [cursor=pointer]
+        - main [ref=e1427]:
+          - generic [ref=e2434]:
+            - generic [ref=e2436]:
+              - generic [ref=e2437]:
+                - heading "GLICEMIA DE JEJUM" [level=1] [ref=e2438]
+                - generic [ref=e2439]: Pronto
+                - generic [ref=e2441]: Laboratorial
+                - generic [ref=e2443]: Hemograma
+              - generic [ref=e2447]:
+                - generic [ref=e2448]: 09 jul 2026
+                - 'generic "Laboratório: Fleury" [ref=e2453]':
+                  - generic [ref=e2454]: F
+                  - generic [ref=e2455]: Fleury
+              - button [ref=e2457] [cursor=pointer]
+            - generic [ref=e2462]:
+              - paragraph [ref=e2463]: 🚩 2 valor(es) fora da faixa de referência
+              - generic [ref=e2464]:
+                - button "↑ GLICEMIA:" [ref=e2465] [cursor=pointer]
+                - button "↑ HEMOGLOBINA GLICADA:" [ref=e2467] [cursor=pointer]
+            - generic [ref=e2469]:
+              - heading [level=3] [ref=e2470]:
+                - button "Glicídico 2 alterados 2 itens" [expanded] [ref=e2471] [cursor=pointer]:
+                  - generic [ref=e2472]:
+                    - paragraph [ref=e2473]: Glicídico
+                    - generic [ref=e2474]: 2 alterados
+                    - generic [ref=e2476]: 2 itens
+              - region [ref=e2484]:
+                - generic [ref=e2486]:
+                  - generic [ref=e2487]:
+                    - generic [ref=e2488]:
+                      - paragraph [ref=e2489]: GLICEMIA
+                      - button "O que é este exame?" [ref=e2490] [cursor=pointer]
+                      - generic [ref=e2493]: Acima
+                    - generic [ref=e2495]:
+                      - paragraph [ref=e2496] [cursor=pointer]: 108 ✏️
+                      - generic [ref=e2497]:
+                        - generic [ref=e2498]: mg/dL
+                        - button "O que significa mg/dL?" [ref=e2499] [cursor=pointer]
+                      - button "pág. 1" [ref=e2502] [cursor=pointer]
+                    - paragraph [ref=e2503]:
+                      - strong [ref=e2504]: "Referência:"
+                      - text: a 99 mg/dL
+                    - link [ref=e2506] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/endocrinologista?utm_source=meus-exames&utm_medium=app&utm_campaign=exame-alterado
+                  - separator [ref=e2510]
+                  - generic [ref=e2511]:
+                    - generic [ref=e2512]:
+                      - paragraph [ref=e2513]: HEMOGLOBINA GLICADA
+                      - button "O que é este exame?" [ref=e2514] [cursor=pointer]
+                      - generic [ref=e2517]: Acima
+                    - generic [ref=e2519]:
+                      - paragraph [ref=e2520] [cursor=pointer]: 5,7 ✏️
+                      - generic [ref=e2521]:
+                        - generic [ref=e2522]: "%"
+                        - button "O que significa %?" [ref=e2523] [cursor=pointer]
+                      - button "pág. 1" [ref=e2526] [cursor=pointer]
+                    - paragraph [ref=e2527]:
+                      - strong [ref=e2528]: "Referência:"
+                      - text: a 5.6 %
+                    - link [ref=e2530] [cursor=pointer]:
+                      - /url: https://www.doctoralia.com.br/hematologista?utm_source=meus-exames&utm_medium=app&utm_campaign=exame-alterado
+            - generic [ref=e2536]:
+              - heading "Análise de saúde" [level=6] [ref=e2537]
+              - paragraph [ref=e2538]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+              - button "Gerar resumo" [ref=e2539] [cursor=pointer]
+              - generic [ref=e2540]:
+                - generic [ref=e2541]: 💎
+                - generic [ref=e2542]: 10 créditos
+            - generic [ref=e2544]:
+              - generic [ref=e2545]:
+                - heading "📋 Preparar visita ao médico" [level=6] [ref=e2546]
+                - button "Gerar documento" [ref=e2547] [cursor=pointer]
+              - paragraph [ref=e2548]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+    - navigation [ref=e1432]:
+      - paragraph [ref=e1437] [cursor=pointer]: Início
+      - paragraph [ref=e1442] [cursor=pointer]: Exames
+      - generic [ref=e1444] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2098]
+        - paragraph [ref=e1447]: Dr. Exame
+      - paragraph [ref=e1452] [cursor=pointer]: Evolução
+      - paragraph [ref=e1457] [cursor=pointer]: Mais
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e2099] [cursor=pointer]
+      - button "×" [ref=e2100] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e2101] [cursor=pointer]
+      - button "×" [ref=e2102] [cursor=pointer]

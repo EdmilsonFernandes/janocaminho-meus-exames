@@ -25,6 +25,8 @@ import { RestingHeartCard } from './RestingHeartCard';
 import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
+import { ClinicalIndicesCard, type ClinicalIndexView } from './ClinicalIndicesCard';
+import { BodyMap, type BodyRegionView } from '../BodyMap';
 import { ShareHealthButton } from '../ShareHealthCard';
 import { ReviewPrompt, maybeRequestReview } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
@@ -112,6 +114,9 @@ function useDashboardData(pid: string | null) {
   const [bioKdm, setBioKdm] = useState<any>(null);
   const [bioAvail, setBioAvail] = useState<any>(null);
   const [hsLoaded, setHsLoaded] = useState(false);
+  // Índices clínicos calculados + mapa corporal (vêm no mesmo health do dashboard-summary).
+  const [indices, setIndices] = useState<ClinicalIndexView[] | null>(null);
+  const [bodyRegions, setBodyRegions] = useState<BodyRegionView[] | null>(null);
   // Honestidade de estados (auditoria 2026-08): o server diz POR QUE cada feature não calculou
   // (availability) — o cliente nunca mais infere estado positivo a partir de null.
   const [availability, setAvailability] = useState<any>(null);
@@ -184,6 +189,8 @@ function useDashboardData(pid: string | null) {
             setBio(hd.biologicalAge ?? null);
             setBioKdm(hd.biologicalAgeKdm ?? null);
             setBioAvail(hd.availability?.biologicalAge ?? null);
+            setIndices(Array.isArray(hd.clinicalIndices) ? hd.clinicalIndices : []);
+            setBodyRegions(Array.isArray(hd.bodyRegions) ? hd.bodyRegions : []);
             // "Pioraram" = trend PIOROU mesmo (worsening) — nunca topAttention (bug da Heloisa).
             setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
             setImproved(Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : []);
@@ -202,7 +209,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, bodyRegions };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -778,6 +785,11 @@ export const DashboardV2 = () => {
   // Navegação guardada: no demo, telas de DADO REAL abrem dialog de conversão em vez de
   // navegar pro vazio (quebraria a ilusão e confundiria).
   const go = (to: string) => (demo ? () => setDemoAsk(true) : () => navigate(to));
+  // Mapa corporal → Tendências do 1º marcador ALTERADO da região (sem alterado, o 1º da lista).
+  const openRegion = (r: BodyRegionView) => {
+    const target = r.markers.find((m) => m.level !== 'ok') ?? r.markers[0];
+    if (target) navigate(`/tendencias?select=${encodeURIComponent(target.nameCanonical)}`);
+  };
 
   // MEDIÇÃO do modo exemplo (R1): started = entrou; converted = clicou "Usar meu exame"
   // (1× por sessão de demo — banner e dialog apontam pro mesmo conversor).
@@ -1042,6 +1054,10 @@ export const DashboardV2 = () => {
               {/* O QUE MUDOU NO SEU ÚLTIMO EXAME */}
               <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/evolucao')} loaded={d.loaded} />
 
+              {/* ÍNDICES CLÍNICOS CALCULADOS (razões/fórmulas da literatura — zero IA).
+                  Escondido no demo: índice clínico fictício é dado de saúde falso. */}
+              {!demo && <ClinicalIndicesCard indices={d.indices} loaded={d.hsLoaded} />}
+
               {/* G2 — saúde mental: flui do "como estou" (exames) pro "como estou por
                   dentro". Dado real do paciente → JAMAIS no modo exemplo. */}
               {!demo && (
@@ -1077,6 +1093,10 @@ export const DashboardV2 = () => {
             <Stack spacing={2.5}>
               {/* PANORAMA DOS MARCADORES */}
               <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => (dest === 'alterados' ? go('/alterados') : go('/exams'))()} />
+
+              {/* MAPA CORPORAL — silhueta com regiões acesas pelo estado dos marcadores.
+                  Escondido no demo (dado fictício de saúde jamais "acende"). */}
+              {!demo && <BodyMap regions={d.bodyRegions} loaded={d.hsLoaded} onRegionClick={openRegion} />}
 
               {/* AÇÕES RÁPIDAS */}
               <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>

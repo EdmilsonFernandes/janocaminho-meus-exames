@@ -1,0 +1,107 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e2678]:
+            - generic [ref=e2679]:
+              - paragraph [ref=e2680]: Boa noite, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e2683]:
+              - generic [ref=e2684]:
+                - generic [ref=e2689]:
+                  - paragraph [ref=e2690]: "45"
+                  - paragraph [ref=e2691]: de 100
+                - generic [ref=e2692]:
+                  - paragraph [ref=e2693]: Sua saúde hoje
+                  - paragraph [ref=e2694]: Pede atenção
+                  - paragraph [ref=e2696]:
+                    - generic [ref=e2697]: ● 6 moderados
+              - button [ref=e2698] [cursor=pointer]: Ver análise completa
+            - button [ref=e2707] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e2711]:
+              - generic [ref=e2718] [cursor=pointer]:
+                - paragraph [ref=e2719]: Cardiometabólico
+                - paragraph [ref=e2720]: Em dia
+                - paragraph [ref=e2721]: sem fatores
+              - generic [ref=e2724] [cursor=pointer]:
+                - generic [ref=e2725]: 🧬
+                - generic [ref=e2726]:
+                  - paragraph [ref=e2727]: Idade biológica
+                  - paragraph [ref=e2728]: Em breve
+                  - paragraph [ref=e2729]: estimativa c/ +exames
+              - generic [ref=e2736] [cursor=pointer]:
+                - paragraph [ref=e2737]: Seus exames
+                - paragraph [ref=e2738]: "5"
+                - paragraph [ref=e2739]: 8 alterados
+              - generic [ref=e2746] [cursor=pointer]:
+                - paragraph [ref=e2747]: Evolução
+                - paragraph [ref=e2748]: Tendências
+                - paragraph [ref=e2749]: 28 resultados
+            - generic [ref=e2751]:
+              - generic [ref=e2752]: Enviar exame
+              - generic [ref=e2759]: Evolução
+              - generic [ref=e2766]: Família
+              - generic [ref=e2774]: Relatório
+            - generic [ref=e2783]:
+              - generic [ref=e2787]:
+                - paragraph [ref=e2788]: "71"
+                - text: créditos disponíveis
+              - button [ref=e2789] [cursor=pointer]: Comprar
+            - button [ref=e2791] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - generic [ref=e226]:
+        - button "Conta" [expanded] [ref=e227] [cursor=pointer]
+        - generic [ref=e1821]:
+          - button "Meu perfil" [ref=e1822] [cursor=pointer]
+          - button "Segurança & senha" [ref=e1828] [cursor=pointer]
+          - button "Privacidade e termos" [ref=e1834] [cursor=pointer]
+          - button "Planos e Créditos" [ref=e1840] [cursor=pointer]
+          - button "Despesas Médicas" [ref=e1846] [cursor=pointer]
+          - button "Painel Admin" [ref=e1852] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

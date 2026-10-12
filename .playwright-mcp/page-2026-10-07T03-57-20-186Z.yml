@@ -1,0 +1,226 @@
+- generic [ref=f18e1]:
+  - generic [aria-hidden] [ref=f18e2]:
+    - generic [ref=f18e3]:
+      - button [ref=f18e4] [cursor=pointer]
+      - generic [ref=f18e5]:
+        - banner [ref=f18e6]:
+          - generic [ref=f18e7]:
+            - button [ref=f18e8] [cursor=pointer]
+            - generic [ref=f18e14]:
+              - button [ref=f18e15] [cursor=pointer]:
+                - generic [ref=f18e18]: "15"
+              - button [ref=f18e19] [cursor=pointer]:
+                - generic [ref=f18e20]: 9+
+              - button [ref=f18e25] [cursor=pointer]:
+                - generic [ref=f18e26]: E
+        - main [ref=f18e31]:
+          - generic [ref=f18e33]:
+            - generic [ref=f18e36]:
+              - heading [level=1] [ref=f18e37]: Bom dia, Edmilson 👋
+              - generic [ref=f18e38]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f18e41]:
+              - generic [ref=f18e42]: E
+              - generic [ref=f18e43]:
+                - paragraph [ref=f18e44]: CrossFit & Alta Intensidade
+                - generic [ref=f18e45]:
+                  - heading [level=2] [ref=f18e46]: Edmilson Lopes Fernandes dos Santos, 41
+                  - generic [ref=f18e47]: CrossFit/Funcional
+                  - generic [ref=f18e49]: 🏃 Modo Esporte
+                - paragraph [ref=f18e51]: "🎯 Recuperação muscular: CK e enzimas sob treino intenso e frequente."
+                - generic [ref=f18e52]:
+                  - paragraph [ref=f18e53]:
+                    - generic [ref=f18e54]: "Último exame:"
+                    - text: 16/07 · Sabin · há 2 meses
+                  - paragraph [ref=f18e55]:
+                    - generic [ref=f18e56]: "Peso/altura:"
+                    - text: 92,4 kg · 178 cm
+                  - paragraph [ref=f18e57]:
+                    - generic [ref=f18e58]: "Médico vinculado:"
+                    - text: Dr. Teste QA · CRM 99999-SP
+                - generic [ref=f18e59]: "Foco: CK alto após treino intenso pode ser esperado — interpretar com médico"
+            - generic [ref=f18e67]:
+              - heading [level=2] [ref=f18e68]: 6 marcadores pedem atenção — 1 importante
+              - paragraph [ref=f18e69]: Os importantes merecem prioridade na próxima consulta — leve o painel esportivo ao seu médico.
+              - generic [ref=f18e70]:
+                - generic [ref=f18e71]: Hematócrito 51,8 % ↑
+                - generic [ref=f18e73]: HDL baixo · andrógeno declarado
+              - button [ref=f18e77] [cursor=pointer]:
+                - generic [ref=f18e78]: 📚 contexto · Hematócrito 51,8%
+              - generic [ref=f18e79]: ⏳ 16 marcador(es) não foram medidos há mais de 12 meses e não entram no score. Envie um exame recente pra uma leitura atualizada.
+              - button [ref=f18e82] [cursor=pointer]: Ver todos os alterados →
+            - generic [ref=f18e83]:
+              - button [ref=f18e84] [cursor=pointer]:
+                - generic [ref=f18e88]:
+                  - paragraph [ref=f18e89]: CK total
+                  - paragraph [ref=f18e90]: 1.420 U/L
+                  - paragraph [ref=f18e91]: acima da referência
+              - button [ref=f18e92] [cursor=pointer]:
+                - generic [ref=f18e96]:
+                  - paragraph [ref=f18e97]: Alterados ativos
+                  - paragraph [ref=f18e98]: "11"
+                  - paragraph [ref=f18e99]: pedem atenção
+            - generic [ref=f18e100]:
+              - button [ref=f18e101] [cursor=pointer]:
+                - generic [ref=f18e102]: Todos (34)
+              - button [pressed] [ref=f18e103] [cursor=pointer]:
+                - generic [ref=f18e104]: Músculo-Fígado (3)
+              - button [ref=f18e105] [cursor=pointer]:
+                - generic [ref=f18e106]: Hormonal (1)
+              - button [ref=f18e107] [cursor=pointer]:
+                - generic [ref=f18e108]: Cardio-Lipídios (5)
+              - button [ref=f18e109] [cursor=pointer]:
+                - generic [ref=f18e110]: Hemograma (19)
+              - button [ref=f18e111] [cursor=pointer]:
+                - generic [ref=f18e112]: Renal (1)
+              - button [ref=f18e113] [cursor=pointer]:
+                - generic [ref=f18e114]: Outros (5)
+            - generic [ref=f18e115]:
+              - button [ref=f18e116] [cursor=pointer]:
+                - generic [ref=f18e118]:
+                  - paragraph [ref=f18e119]: Ck Total
+                  - generic [ref=f18e120]: 16/07/26
+                - generic [ref=f18e121]:
+                  - paragraph [ref=f18e122]: "1.420"
+                  - generic [ref=f18e123]:
+                    - generic [ref=f18e124]: U/L
+                    - button [ref=f18e125]
+                  - generic [ref=f18e128]: ↑ Acima da referência
+                - img [ref=f18e129]:
+                  - generic [ref=f18e133]:
+                    - generic [ref=f18e134]: "38"
+                    - generic [ref=f18e135]: Ref. laboratório 38–174
+                    - generic [ref=f18e136]: "174"
+                - generic [ref=f18e137]:
+                  - generic [ref=f18e138]: Régua do lab
+                  - generic [ref=f18e141]: Meta do médico
+              - button [ref=f18e144] [cursor=pointer]:
+                - generic [ref=f18e146]:
+                  - paragraph [ref=f18e147]: Bastonetes
+                  - generic [ref=f18e148]: s/d
+                - generic [ref=f18e149]:
+                  - paragraph [ref=f18e150]: "0"
+                  - generic [ref=f18e151]:
+                    - generic [ref=f18e152]: "%"
+                    - button [ref=f18e153]
+                  - generic [ref=f18e156]: Na referência
+                - img [ref=f18e157]:
+                  - generic [ref=f18e161]:
+                    - generic [ref=f18e162]: "0"
+                    - generic [ref=f18e163]: Ref. laboratório 0–400
+                    - generic [ref=f18e164]: "400"
+                - generic [ref=f18e165]:
+                  - generic [ref=f18e166]: Régua do lab
+                  - generic [ref=f18e169]: Meta do médico
+              - button [ref=f18e172] [cursor=pointer]:
+                - generic [ref=f18e174]:
+                  - paragraph [ref=f18e175]: Blastos
+                  - generic [ref=f18e176]: s/d
+                - generic [ref=f18e177]:
+                  - paragraph [ref=f18e178]: "0"
+                  - generic [ref=f18e179]:
+                    - generic [ref=f18e180]: "%"
+                    - button [ref=f18e181]
+                  - generic [ref=f18e184]: Na referência
+                - generic [ref=f18e185]: Sem faixa de referência informada pelo laboratório.
+                - generic [ref=f18e186]:
+                  - generic [ref=f18e187]: Régua do lab
+                  - generic [ref=f18e190]: Meta do médico
+            - generic [ref=f18e194]:
+              - heading [level=2] [ref=f18e195]: Linha do tempo do atleta
+              - generic [ref=f18e196]: Exames, substâncias declaradas — dos mais recentes.
+              - generic [ref=f18e197]:
+                - generic [ref=f18e199]:
+                  - generic [ref=f18e205]:
+                    - generic [ref=f18e206]:
+                      - paragraph [ref=f18e207]: PAINEL GRANDE
+                      - generic [ref=f18e208]: 16 de jul. de 2026
+                    - generic [ref=f18e209]: 3 alterados
+                  - generic [ref=f18e217]:
+                    - generic [ref=f18e218]:
+                      - paragraph [ref=f18e219]: GLICEMIA DE JEJUM
+                      - generic [ref=f18e220]: 09 de jul. de 2026
+                    - generic [ref=f18e221]: 2 alterados
+                  - generic [ref=f18e229]:
+                    - generic [ref=f18e230]:
+                      - paragraph [ref=f18e231]: PERFIL LIPÍDICO
+                      - generic [ref=f18e232]: 09 de jul. de 2026
+                    - generic [ref=f18e233]: 4 alterados
+                  - generic [ref=f18e242]:
+                    - paragraph [ref=f18e243]: HEMOGRAMA
+                    - generic [ref=f18e244]: 09 de jul. de 2026
+                  - generic [ref=f18e251]:
+                    - paragraph [ref=f18e252]: "Início: Testosterona (enantato)"
+                    - generic [ref=f18e253]: Hormônio
+                    - generic [ref=f18e254]: 31 de mai. de 2026
+                  - generic [ref=f18e261]:
+                    - paragraph [ref=f18e262]: ORFAO
+                    - generic [ref=f18e263]: 05 de mai. de 2026
+                  - generic [ref=f18e270]:
+                    - paragraph [ref=f18e271]: HEMOGRAMA
+                    - generic [ref=f18e272]: 14 de abr. de 2026
+                  - generic [ref=f18e279]:
+                    - paragraph [ref=f18e280]: ANUAL 2025
+                    - generic [ref=f18e281]: 13 de abr. de 2026
+                - generic [ref=f18e282]: +1 eventos anteriores
+              - generic [ref=f18e283]: 📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
+            - generic [ref=f18e284]:
+              - generic [ref=f18e285]:
+                - heading [level=2] [ref=f18e289]: Perguntas para levar ao médico
+                - generic [ref=f18e290]: Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+                - generic [ref=f18e291]:
+                  - generic [ref=f18e292]:
+                    - generic [ref=f18e293]: "1"
+                    - generic [ref=f18e294]:
+                      - paragraph [ref=f18e295]: Ck Total fora da referência
+                      - paragraph [ref=f18e296]: "\"Doutor, meu ck total está em 1.420 U/L (referência 38–174 U/L) no contexto do meu treino. O que isso significa pra minha rotina?\""
+                  - generic [ref=f18e297]:
+                    - generic [ref=f18e298]: "2"
+                    - generic [ref=f18e299]:
+                      - paragraph [ref=f18e300]: CK após treino intenso
+                      - paragraph [ref=f18e301]: "\"Meu CK total está em 1.420 U/L (referência até 174) treinando em alta intensidade — é recuperação esperada ou devo investigar?\""
+                  - generic [ref=f18e302]:
+                    - generic [ref=f18e303]: "3"
+                    - generic [ref=f18e304]:
+                      - paragraph [ref=f18e305]: Conduta no hematócrito (51,8%)
+                      - paragraph [ref=f18e306]: "\"Doutor, com hematócrito de 51,8% (referência 40–50 %) e meu uso hormonal declarado, qual conduta o senhor recomenda — reavaliar em quanto tempo?\""
+                  - generic [ref=f18e307]:
+                    - generic [ref=f18e308]: "4"
+                    - generic [ref=f18e309]:
+                      - paragraph [ref=f18e310]: HDL e cardioproteção
+                      - paragraph [ref=f18e311]: "\"Com andrógeno declarado, meu HDL veio em 38 mg/dL (referência a partir de 40 mg/dL). Quais medidas de cardioproteção devo adotar nessa fase?\""
+              - generic [ref=f18e312]:
+                - generic [ref=f18e313]:
+                  - heading [level=2] [ref=f18e314]: Substâncias declaradas
+                  - generic [ref=f18e315]: Confidencial · Registro LGPD
+                - generic [ref=f18e316]: O que você declarou entra como CONTEXTO da análise — o app nunca sugere dose, ciclo ou substância.
+                - generic [ref=f18e323]:
+                  - generic [ref=f18e324]:
+                    - paragraph [ref=f18e325]: Testosterona (enantato)
+                    - generic [ref=f18e326]: dose declarada
+                  - generic [ref=f18e328]: Hormônio · 250mg/seg · desde mai. de 2026
+                  - generic [ref=f18e329]: "Impacto nos exames: Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar."
+            - generic [ref=f18e330]: "*Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico. · 34 marcadores analisados."
+    - navigation [ref=f18e331]:
+      - button [ref=f18e332] [cursor=pointer]:
+        - paragraph [ref=f18e336]: Início
+      - button [ref=f18e338] [cursor=pointer]:
+        - paragraph [ref=f18e342]: Exames
+      - button [ref=f18e343] [cursor=pointer]:
+        - paragraph [ref=f18e346]: Dr. Exame
+      - button [ref=f18e347] [cursor=pointer]:
+        - paragraph [ref=f18e351]: Evolução
+      - button [ref=f18e352] [cursor=pointer]:
+        - paragraph [ref=f18e356]: Mais
+  - dialog [active] [ref=f18e358]:
+    - navigation [ref=f18e359]:
+      - button "Início" [ref=f18e360] [cursor=pointer]
+      - button "Exames" [ref=f18e367] [cursor=pointer]
+      - button "Cuidados" [ref=f18e378] [cursor=pointer]
+      - button "Pessoas" [ref=f18e388] [cursor=pointer]
+      - button "Conta" [ref=f18e398] [cursor=pointer]
+      - button "Dúvidas frequentes" [ref=f18e407] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f18e413] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f18e419] [cursor=pointer]
+      - generic [ref=f18e426]:
+        - generic [ref=f18e428]: Dr. Exame · Saúde Inteligente
+        - generic [ref=f18e429]: v2.7.223

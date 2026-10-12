@@ -1,0 +1,89 @@
+- generic [active] [ref=f18e1]:
+  - generic [ref=f18e2]:
+    - generic [ref=f18e27]:
+      - button "Pular para o conteúdo" [ref=f18e28] [cursor=pointer]
+      - generic [ref=f18e29]:
+        - banner [ref=f18e30]:
+          - generic [ref=f18e31]:
+            - button "Menu" [ref=f18e32] [cursor=pointer]
+            - generic [ref=f18e35]:
+              - img "Dr. Exame" [ref=f18e37]
+              - paragraph [ref=f18e38]: Dr. Exame
+            - generic [ref=f18e39]:
+              - button "Você tem 71 créditos. Toque para comprar mais." [ref=f18e213] [cursor=pointer]:
+                - generic [ref=f18e216]: "71"
+              - button "Notificações" [ref=f18e40] [cursor=pointer]:
+                - generic [ref=f18e41]: "2"
+              - button "E Edmilson Lopes Fernandes dos Santos" [ref=f18e218] [cursor=pointer]:
+                - generic [ref=f18e46]: E
+                - generic [ref=f18e48]: Edmilson Lopes Fernandes dos Santos
+        - main [ref=f18e53]:
+          - generic [ref=f18e55]:
+            - generic [ref=f18e58]:
+              - paragraph [ref=f18e59]: Boa noite, Edmilson 👋
+              - generic [ref=f18e60]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f18e61]:
+              - generic [ref=f18e63]:
+                - generic [ref=f18e64]:
+                  - generic [ref=f18e69]:
+                    - paragraph [ref=f18e219]: "80"
+                    - paragraph [ref=f18e71]: de 100
+                  - generic [ref=f18e72]:
+                    - paragraph [ref=f18e73]: Sua saúde hoje
+                    - paragraph [ref=f18e74]: Em ótima forma
+                    - paragraph [ref=f18e76]:
+                      - generic [ref=f18e220]: ● 5 moderados
+                - button [ref=f18e77] [cursor=pointer]
+              - generic [ref=f18e82]:
+                - paragraph [ref=f18e83]: O que mudou nos seus exames
+                - generic [ref=f18e84]: 2 melhoraram
+                - generic [ref=f18e225]:
+                  - generic [ref=f18e226]:
+                    - paragraph [ref=f18e227]: ↓Linfócitos Reativos
+                    - paragraph [ref=f18e228]: 0 %
+                  - generic [ref=f18e229]:
+                    - paragraph [ref=f18e230]: ↓GLICOSE
+                    - paragraph [ref=f18e231]: 95 mg/dL
+                - button [ref=f18e87] [cursor=pointer]
+            - generic [ref=f18e94]:
+              - generic [ref=f18e95]:
+                - paragraph [ref=f18e97]: ✨ Entenda seus exames com IA
+                - paragraph [ref=f18e98]: Tire dúvidas clínicas, compare referências e receba orientações personalizadas sobre seus marcadores em segundos.
+              - button [ref=f18e100] [cursor=pointer]
+            - generic [ref=f18e104]:
+              - generic [ref=f18e112] [cursor=pointer]:
+                - paragraph [ref=f18e113]: Cardiometabólico
+                - paragraph [ref=f18e114]: Sem dados
+                - paragraph [ref=f18e232]: sem colesterol, peso ou pressão
+              - generic [ref=f18e122] [cursor=pointer]:
+                - paragraph [ref=f18e123]: Idade biológica
+                - paragraph [ref=f18e124]: —
+                - paragraph [ref=f18e233]: precisa de mais marcadores
+              - generic [ref=f18e132] [cursor=pointer]:
+                - paragraph [ref=f18e133]: Seus exames
+                - paragraph [ref=f18e134]: "9"
+                - paragraph [ref=f18e135]: 8 alterados
+              - generic [ref=f18e143] [cursor=pointer]:
+                - paragraph [ref=f18e144]: Evolução
+                - paragraph [ref=f18e145]: "42"
+                - paragraph [ref=f18e146]: histórico de tendências
+            - generic [ref=f18e148]:
+              - generic [ref=f18e149]: Enviar exame
+              - generic [ref=f18e156]: Evolução
+              - generic [ref=f18e163]: Família
+              - generic [ref=f18e171]: Relatório
+            - generic [ref=f18e236]:
+              - generic [ref=f18e240]:
+                - paragraph [ref=f18e241]: "71"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=f18e242] [cursor=pointer]
+            - button [ref=f18e179] [cursor=pointer]
+    - navigation [ref=f18e183]:
+      - paragraph [ref=f18e188] [cursor=pointer]: Início
+      - paragraph [ref=f18e194] [cursor=pointer]: Exames
+      - generic [ref=f18e195] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f18e197]
+        - paragraph [ref=f18e198]: Dr. Exame
+      - paragraph [ref=f18e203] [cursor=pointer]: Evolução
+      - paragraph [ref=f18e208] [cursor=pointer]: Mais
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f18e211] [cursor=pointer]

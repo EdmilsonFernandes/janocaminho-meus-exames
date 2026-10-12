@@ -1,0 +1,70 @@
+- generic [active] [ref=f6e18]:
+  - generic [ref=f6e19]:
+    - generic [ref=f6e388]:
+      - button "Pular para o conteúdo" [ref=f6e389] [cursor=pointer]
+      - generic [ref=f6e390]:
+        - banner [ref=f6e391]:
+          - generic [ref=f6e392]:
+            - button "Close menu" [ref=f6e393] [cursor=pointer]:
+              - img [ref=f6e394]
+            - heading [level=6]
+            - button "Selecionar" [ref=f6e397] [cursor=pointer]:
+              - img [ref=f6e400]
+              - generic [ref=f6e403]: Selecionar
+              - img [ref=f6e405]
+            - button "Notificações" [ref=f6e407] [cursor=pointer]:
+              - img [ref=f6e409]
+            - button "Mais opções" [ref=f6e411] [cursor=pointer]:
+              - img [ref=f6e412]
+            - button "Atualizar" [ref=f6e415] [cursor=pointer]:
+              - img [ref=f6e416]
+        - main [ref=f6e418]:
+          - navigation [ref=f6e422]:
+            - button "Início" [ref=f6e423] [cursor=pointer]:
+              - img [ref=f6e425]
+              - generic [ref=f6e428]: Início
+            - button "Exames" [ref=f6e429] [cursor=pointer]:
+              - img [ref=f6e431]
+              - generic [ref=f6e434]: Exames
+            - button "Dr. Exame (IA)" [ref=f6e435] [cursor=pointer]:
+              - img [ref=f6e437]
+              - generic [ref=f6e440]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=f6e441] [cursor=pointer]:
+              - img [ref=f6e443]
+              - generic [ref=f6e446]: Relatório completo
+            - button "Evolução & Conquistas" [ref=f6e448] [cursor=pointer]:
+              - img [ref=f6e450]
+              - generic [ref=f6e454]: Evolução & Conquistas
+              - img [ref=f6e455]
+            - button "Minha Saúde" [ref=f6e458] [cursor=pointer]:
+              - img [ref=f6e460]
+              - generic [ref=f6e464]: Minha Saúde
+              - img [ref=f6e465]
+            - button "Família & Médicos" [ref=f6e468] [cursor=pointer]:
+              - img [ref=f6e470]
+              - generic [ref=f6e474]: Família & Médicos
+              - img [ref=f6e475]
+            - button "Conta" [ref=f6e478] [cursor=pointer]:
+              - img [ref=f6e480]
+              - generic [ref=f6e483]: Conta
+              - img [ref=f6e484]
+            - separator [ref=f6e486]
+            - button "❓ Ajuda & Suporte" [ref=f6e487] [cursor=pointer]:
+              - generic [ref=f6e489]: ❓
+              - generic [ref=f6e491]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=f6e492] [cursor=pointer]:
+              - generic [ref=f6e493]: ℹ️
+              - generic [ref=f6e495]: Sobre o app
+            - menuitem "Sair da conta" [ref=f6e496] [cursor=pointer]:
+              - img [ref=f6e498]
+              - generic [ref=f6e501]: Sair da conta
+            - generic [ref=f6e502]: Meus Exames · v2.4.0.131 (04ff8c7)
+          - progressbar [ref=f6e505]:
+            - img [ref=f6e506]
+    - button "Pergunte ao Dr. Exame" [ref=f6e508] [cursor=pointer]:
+      - generic [ref=f6e509]:
+        - img "Dr. Exame" [ref=f6e511]
+        - img [ref=f6e513]
+  - generic [ref=f6e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e366]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e367]

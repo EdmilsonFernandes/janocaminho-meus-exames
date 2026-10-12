@@ -1,0 +1,57 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e12]: Lojas
+        - generic [ref=e17]: Destinos
+        - generic [ref=e22]: Condomínios
+        - generic [ref=e27]: Entregas
+        - generic [ref=e44]: pedidosexperiências locais
+      - generic [ref=e52]:
+        - heading [level=1] [ref=e53]: Já no Caminho
+        - paragraph [ref=e54]: Encontrando lojas por perto
+      - generic [ref=e55]: Conectando com segurança
+    - generic [ref=e57]:
+      - banner [ref=e58]:
+        - generic [ref=e60]:
+          - button "Voltar" [ref=e61]
+          - generic [ref=e64]:
+            - generic [ref=e65]:
+              - img "Já no Caminho" [ref=e66]
+              - paragraph [ref=e67]: Já no Caminho
+            - heading "Área do lojista" [level=1] [ref=e68]
+            - paragraph [ref=e69]: Painel, pedidos e operação
+      - generic [ref=e74]:
+        - generic [ref=e75]:
+          - button "Acesso seguro" [ref=e76]
+          - heading "Entrar no painel" [level=2] [ref=e80]
+          - paragraph [ref=e81]: Gerencie pedidos, cardápio e operação com sua conta cadastrada.
+        - button "Trocar tipo de acesso" [ref=e82]
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - textbox "E-mail ou usuário" [ref=e86]:
+                - /placeholder: " "
+              - generic: E-mail ou usuário
+            - generic [ref=e87]:
+              - textbox "Sua senha secreta" [ref=e88]:
+                - /placeholder: " "
+              - generic: Sua senha secreta
+              - button "Mostrar senha" [ref=e89]
+          - generic [ref=e93]: Ambiente Seguro & Criptografado
+          - generic [ref=e97]:
+            - generic [ref=e98] [cursor=pointer]:
+              - checkbox "Lembrar acesso" [checked] [ref=e100]
+              - generic [ref=e104]: Lembrar acesso
+            - button "Recuperar senha" [ref=e105]
+          - generic [ref=e106]:
+            - button "Acessar Painel" [ref=e107]
+            - button "Voltar ao início" [ref=e110]
+        - link "Precisa de ajuda? contato@janocaminho.com.br" [ref=e114] [cursor=pointer]:
+          - /url: mailto:contato@janocaminho.com.br
+      - generic [ref=e115]:
+        - img "Já no Caminho" [ref=e117]
+        - generic [ref=e118]: Versão v0.1.9.2466
+  - contentinfo [ref=e120]:
+    - link "Rastreamento" [ref=e121] [cursor=pointer]:
+      - /url: https://www.siterastreio.com.br/

@@ -1,0 +1,86 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e436]:
+      - button "Pular para o conteúdo" [ref=f2e437] [cursor=pointer]
+      - generic [ref=f2e438]:
+        - banner [ref=f2e439]:
+          - generic [ref=f2e440]:
+            - button "Voltar" [ref=f2e726] [cursor=pointer]
+            - generic [ref=f2e444]:
+              - img "Dr. Exame" [ref=f2e446]
+              - paragraph [ref=f2e447]: Dr. Exame
+            - generic [ref=f2e448]:
+              - button "Você tem 65 créditos. Toque para comprar mais." [ref=f2e449] [cursor=pointer]:
+                - generic [ref=f2e452]: "65"
+              - button "Notificações" [ref=f2e453] [cursor=pointer]:
+                - generic [ref=f2e454]: 9+
+              - button "E" [ref=f2e459] [cursor=pointer]
+        - main [ref=f2e465]:
+          - generic [ref=f2e865]:
+            - generic [ref=f2e867]:
+              - generic [ref=f2e869]:
+                - generic [ref=f2e870]:
+                  - generic [ref=f2e871]: "?"
+                  - button [ref=f2e872] [cursor=pointer]
+                - paragraph [ref=f2e877]: Clique na câmera para enviar/trocar a foto
+              - generic [ref=f2e878]:
+                - generic [ref=f2e879]: Nome completo
+                - generic [ref=f2e880]:
+                  - textbox "Nome completo" [disabled] [ref=f2e881]: Joao Teste Souza
+                  - group [aria-hidden]:
+                    - generic: Nome completo
+                - paragraph [ref=f2e882]: Nome bloqueado após verificação de CPF e e-mail.
+              - generic [ref=f2e883]:
+                - generic [ref=f2e884]: CPF
+                - generic [ref=f2e885]:
+                  - textbox "CPF" [disabled] [ref=f2e886]: "***.***.***-09"
+                  - group [aria-hidden]:
+                    - generic: CPF
+                - paragraph [ref=f2e887]: CPF verificado e mascarado. Correção somente via suporte auditado.
+              - generic [ref=f2e888]:
+                - generic [ref=f2e889]: Parentesco (Titular, Filha, Mãe...)
+                - generic [ref=f2e890]:
+                  - textbox "Parentesco (Titular, Filha, Mãe...)" [ref=f2e891]: Filho(a)
+                  - group [aria-hidden]:
+                    - generic: Parentesco (Titular, Filha, Mãe...)
+                - paragraph [ref=f2e892]
+              - generic [ref=f2e893]:
+                - generic: Telefone / WhatsApp
+                - generic [ref=f2e894]:
+                  - textbox "Telefone / WhatsApp" [ref=f2e895]
+                  - group [aria-hidden]:
+                    - generic: Telefone / WhatsApp
+                - paragraph [ref=f2e896]
+              - generic [ref=f2e897]:
+                - generic [ref=f2e898]: Data de nascimento
+                - generic [ref=f2e899]:
+                  - textbox "Data de nascimento" [ref=f2e900]
+                  - group [aria-hidden]:
+                    - generic: Data de nascimento
+                - paragraph [ref=f2e901]
+              - generic [ref=f2e902]:
+                - generic: Perfil clínico (condições, medicações, histórico relevante)
+                - generic [ref=f2e903]:
+                  - textbox "Perfil clínico (condições, medicações, histórico relevante)" [ref=f2e904]
+                  - group [aria-hidden]:
+                    - generic: Perfil clínico (condições, medicações, histórico relevante)
+                - paragraph [ref=f2e905]: "Ex.: 'Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro).' Essas informações alimentam a IA para contextualizar a análise (nunca para diagnosticar)."
+            - toolbar [ref=f2e906]:
+              - generic [ref=f2e907]:
+                - button "Salvar" [disabled]
+                - button "Excluir" [ref=f2e908] [cursor=pointer]
+    - navigation [ref=f2e700]:
+      - button "Início" [ref=f2e701] [cursor=pointer]:
+        - paragraph [ref=f2e705]: Início
+      - button "Exames" [ref=f2e707] [cursor=pointer]:
+        - paragraph [ref=f2e711]: Exames
+      - button "Dr. Exame — conversar com a IA" [ref=f2e712] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f2e714]
+        - paragraph [ref=f2e715]: Dr. Exame
+      - button "Evolução" [ref=f2e716] [cursor=pointer]:
+        - paragraph [ref=f2e720]: Evolução
+      - button "Mais" [ref=f2e721] [cursor=pointer]:
+        - paragraph [ref=f2e725]: Mais
+  - generic [ref=f2e103]:
+    - img "Acessível com VLibras" [ref=f2e104]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e105] [cursor=pointer]

@@ -1,0 +1,104 @@
+- generic [ref=f16e18]:
+  - generic [ref=f16e19]:
+    - generic [ref=f16e20]:
+      - button [ref=f16e21] [cursor=pointer]
+      - generic [ref=f16e22]:
+        - banner [ref=f16e23]:
+          - generic [ref=f16e24]:
+            - button [ref=f16e25] [cursor=pointer]:
+              - img [ref=f16e26]
+            - button [ref=f16e28] [cursor=pointer]:
+              - img [ref=f16e29]
+            - button [ref=f16e31] [cursor=pointer]:
+              - img [ref=f16e32]
+              - generic [ref=f16e34]: "71"
+            - button [ref=f16e36] [cursor=pointer]:
+              - generic [ref=f16e38]: E
+            - button [ref=f16e39] [cursor=pointer]:
+              - generic [ref=f16e40]:
+                - img [ref=f16e41]
+                - generic [ref=f16e43]: "18"
+            - button [ref=f16e44] [cursor=pointer]:
+              - img [ref=f16e45]
+            - button [ref=f16e48] [cursor=pointer]:
+              - img [ref=f16e49]
+        - main [ref=f16e51]:
+          - generic [ref=f16e53]:
+            - generic [ref=f16e54]:
+              - img [ref=f16e56]
+              - generic [ref=f16e58]:
+                - heading [level=5] [ref=f16e59]: Evolução ao longo do tempo
+                - paragraph [ref=f16e60]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - generic [ref=f16e62]:
+              - generic [ref=f16e63]:
+                - generic [ref=f16e64]: 🟢 0 Melhoraram
+                - generic [ref=f16e65]: 🔴 0 Pioraram
+                - generic [ref=f16e66]: ✅ 20 Estáveis
+              - generic [ref=f16e67]:
+                - text: Tudo estável entre as coletas — mantenha o acompanhamento.
+                - strong [ref=f16e68]: ·
+                - text: Conteúdo educativo — a decisão final é do médico.
+            - generic [ref=f16e69]:
+              - button [ref=f16e71] [cursor=pointer]:
+                - generic [ref=f16e72]: 📋 Todos (20)
+              - button [ref=f16e74] [cursor=pointer]:
+                - generic [ref=f16e75]: 🔴 Fora da faixa (10)
+              - button [ref=f16e77] [cursor=pointer]:
+                - generic [ref=f16e78]: 🟠 Em mudança (0)
+              - button [ref=f16e80] [cursor=pointer]:
+                - generic [ref=f16e81]: ✅ Estável (10)
+            - generic [ref=f16e82]:
+              - img [ref=f16e83]
+              - textbox [ref=f16e86]:
+                - /placeholder: Buscar exame (TSH, glicose, colesterol…)
+            - generic [ref=f16e87]:
+              - generic [ref=f16e89] [cursor=pointer]:
+                - generic [ref=f16e90]: 🩸
+                - paragraph [ref=f16e91]: Hemograma
+                - generic [ref=f16e92]: 🔴
+                - generic [ref=f16e94]: "15"
+                - img [ref=f16e95]
+              - generic [ref=f16e98] [cursor=pointer]:
+                - generic [ref=f16e99]: 🫀
+                - paragraph [ref=f16e100]: Função Hepática
+                - generic [ref=f16e101]: ✅
+                - generic [ref=f16e103]: "2"
+                - img [ref=f16e104]
+              - generic [ref=f16e107] [cursor=pointer]:
+                - generic [ref=f16e108]: 📋
+                - paragraph [ref=f16e109]: Outros exames
+                - generic [ref=f16e110]: ✅
+                - generic [ref=f16e112]: "3"
+                - img [ref=f16e113]
+    - button [ref=f16e115] [cursor=pointer]:
+      - generic [ref=f16e116]:
+        - img [ref=f16e118]
+        - img [ref=f16e120]
+    - navigation [ref=f16e122]:
+      - generic [ref=f16e123] [cursor=pointer]:
+        - generic [ref=f16e124]: 🏠
+        - paragraph [ref=f16e125]: Início
+      - generic [ref=f16e126] [cursor=pointer]:
+        - generic [ref=f16e127]: 📋
+        - paragraph [ref=f16e128]: Exames
+      - generic [ref=f16e129] [cursor=pointer]:
+        - img [ref=f16e131]
+        - paragraph [ref=f16e132]: Dr. Exame
+      - generic [ref=f16e133] [cursor=pointer]:
+        - generic [ref=f16e134]: 📈
+        - paragraph [ref=f16e135]: Evolução
+      - generic [ref=f16e137] [cursor=pointer]:
+        - generic [ref=f16e138]: ☰
+        - paragraph [ref=f16e139]: Mais
+  - generic [ref=f16e15] [cursor=pointer]:
+    - img [ref=f16e140]
+    - img [ref=f16e141]
+  - dialog "Dr. Exame Edmilson, um valor precisa de atenção" [active] [ref=f16e144]:
+    - heading "Dr. Exame Edmilson, um valor precisa de atenção" [level=2] [ref=f16e145]:
+      - generic [ref=f16e146]:
+        - img "Dr. Exame" [ref=f16e147]
+        - paragraph [ref=f16e148]: Edmilson, um valor precisa de atenção
+    - paragraph [ref=f16e150]: Seu VCM está fora da faixa em exame recente. Vale conversar com seu médico pra avaliar.
+    - generic [ref=f16e151]:
+      - button "Depois" [ref=f16e152] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f16e153] [cursor=pointer]

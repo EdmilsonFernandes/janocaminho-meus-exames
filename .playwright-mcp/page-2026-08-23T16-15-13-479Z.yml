@@ -1,0 +1,174 @@
+- generic [active] [ref=f7e20]:
+  - generic [ref=f7e280]:
+    - generic [ref=f7e281]:
+      - banner [ref=f7e282]:
+        - generic [ref=f7e283]:
+          - button [ref=f7e284] [cursor=pointer]
+          - paragraph [ref=f7e287]: Configurações
+          - generic [ref=f7e319]:
+            - generic [ref=f7e320]: 👤 4
+            - generic [ref=f7e322]: 📋 12
+            - generic [ref=f7e324]: 💰 R$ 0
+      - generic [ref=f7e418]:
+        - alert [ref=f7e419]:
+          - generic [ref=f7e421]:
+            - generic [ref=f7e422]: "Plano: R$ 0,00/mês · 0 créditos"
+            - generic [ref=f7e424]: Fundador desligado
+            - generic [ref=f7e426]: 0 pacotes avulsos
+            - generic [ref=f7e428]: Relatório custa créditos p/ todos
+        - generic [ref=f7e431]:
+          - heading "💎 Plano mensal" [level=6] [ref=f7e432]
+          - generic [ref=f7e433]: O preço que NOVOS assinantes pagam (cobranças já feitas mantêm o valor gravado — nada é alterado retroativamente). Os créditos entram no saldo do assinante todo mês e não expiram.
+          - generic [ref=f7e434]:
+            - generic [ref=f7e435]:
+              - generic [ref=f7e436]: Preço mensal (R$)
+              - generic [ref=f7e437]:
+                - spinbutton "Preço mensal (R$)" [ref=f7e438]: "0"
+                - group:
+                  - generic: Preço mensal (R$)
+            - generic [ref=f7e439]:
+              - generic [ref=f7e440]: Créditos por mês
+              - generic [ref=f7e441]:
+                - spinbutton "Créditos por mês" [ref=f7e442]: "0"
+                - group:
+                  - generic: Créditos por mês
+          - generic [ref=f7e443]:
+            - text: "📐 Regra resultante:"
+            - generic [ref=f7e444]: 0 créditos por R$ 0,00
+            - text: =
+            - generic [ref=f7e445]: 0.0 créditos/R$
+          - generic [ref=f7e446]:
+            - button "Salvar seção" [ref=f7e447] [cursor=pointer]
+            - generic [ref=f7e448]: ● não salvo
+        - generic [ref=f7e450]:
+          - heading "🎯 Promo Plano Fundador" [level=6] [ref=f7e451]
+          - generic [ref=f7e452]: Preço promocional para os primeiros assinantes (urgência real de lançamento). O contador de vagas é consumido a cada aprovação de pagamento no preço fundador; esgotado, o checkout volta ao preço cheio sozinho. Desligar a promo encerra novas vagas sem afetar quem já pagou.
+          - generic [ref=f7e453]:
+            - generic [ref=f7e454]:
+              - switch [ref=f7e457] [cursor=pointer]
+              - paragraph [ref=f7e460]: Desligada
+            - generic [ref=f7e461]:
+              - generic [ref=f7e462]: Preço fundador (R$)
+              - generic [ref=f7e463]:
+                - spinbutton "Preço fundador (R$)" [disabled] [ref=f7e464]: "0"
+                - group:
+                  - generic: Preço fundador (R$)
+            - generic [ref=f7e465]:
+              - generic [ref=f7e466]: Total de vagas
+              - generic [ref=f7e467]:
+                - spinbutton "Total de vagas" [disabled] [ref=f7e468]: "0"
+                - group:
+                  - generic: Total de vagas
+            - generic [ref=f7e469]: 0 usadas · restam 0
+          - generic [ref=f7e471]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e472]: salvo
+        - generic [ref=f7e474]:
+          - heading "🎁 Pacotes de créditos (avulsos)" [level=6] [ref=f7e475]
+          - generic [ref=f7e476]: "Compra pontual por PIX/cartão — sem mensalidade. Créditos são saldo: mudar pacotes NÃO invalida créditos já comprados. Mantenha o pacote mais caro com melhor custo por crédito; a assinatura deve vencer todos (veja o aviso na seção do plano)."
+          - button [ref=f7e478] [cursor=pointer]
+          - generic [ref=f7e482]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e483]: salvo
+        - generic [ref=f7e485]:
+          - heading "⭐ Benefícios do plano Premium (perks)" [level=6] [ref=f7e486]
+          - generic [ref=f7e487]: O que o assinante ganha ALÉM dos créditos. Ligar/desligar aqui muda na hora, para todos — sem estado órfão (leitura por uso).
+          - generic [ref=f7e488]:
+            - generic [ref=f7e489]:
+              - switch [ref=f7e492] [cursor=pointer]
+              - generic [ref=f7e495]:
+                - paragraph [ref=f7e496]: 📄 Relatório consolidado incluído no plano
+                - generic [ref=f7e497]: "Ligado: assinante gera sem gastar créditos. Desligado: paga 0 créditos como qualquer usuário."
+            - generic [ref=f7e498]:
+              - generic [ref=f7e499]:
+                - generic [ref=f7e500]: Limite de perfis da família (premium)
+                - generic [ref=f7e501]:
+                  - spinbutton "Limite de perfis da família (premium)" [ref=f7e502]: "0"
+                  - group:
+                    - generic: Limite de perfis da família (premium)
+              - generic [ref=f7e503]: Free continua com 4 perfis (extra custa créditos).
+          - generic [ref=f7e504]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e505]: salvo
+        - generic [ref=f7e507]:
+          - heading "📤 Envio de exames" [level=6] [ref=f7e508]
+          - generic [ref=f7e509]: Free paga créditos por envio. Premium tem uma cota mensal grátis por dependente — use 999 para 'praticamente ilimitado' (o custo real de envio é baixo; a IA de interpretação é cobrada à parte).
+          - generic [ref=f7e510]:
+            - generic [ref=f7e511]:
+              - generic [ref=f7e512]: "Free: créditos por envio"
+              - generic [ref=f7e513]:
+                - 'spinbutton "Free: créditos por envio" [ref=f7e514]': "0"
+                - group:
+                  - generic: "Free: créditos por envio"
+            - generic [ref=f7e515]:
+              - generic [ref=f7e516]: "Premium: envios grátis/mês"
+              - generic [ref=f7e517]:
+                - 'spinbutton "Premium: envios grátis/mês" [ref=f7e518]': "0"
+                - group:
+                  - generic: "Premium: envios grátis/mês"
+            - generic [ref=f7e519]:
+              - generic [ref=f7e520]: "Premium: créditos após a cota"
+              - generic [ref=f7e521]:
+                - 'spinbutton "Premium: créditos após a cota" [ref=f7e522]': "0"
+                - group:
+                  - generic: "Premium: créditos após a cota"
+          - generic [ref=f7e523]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e524]: salvo
+        - generic [ref=f7e526]:
+          - heading "🤖 Custos de IA (em créditos)" [level=6] [ref=f7e527]
+          - generic [ref=f7e528]: Quanto cada ação de IA debita do saldo. 0 = grátis. O app sincroniza esses valores sozinho.
+          - generic [ref=f7e529]:
+            - generic [ref=f7e530]:
+              - generic [ref=f7e531]: 💬 Chat (por pergunta)
+              - generic [ref=f7e532]:
+                - spinbutton "💬 Chat (por pergunta)" [ref=f7e533]: "0"
+                - group:
+                  - generic: 💬 Chat (por pergunta)
+            - generic [ref=f7e534]:
+              - generic [ref=f7e535]: 📄 Resumo do exame
+              - generic [ref=f7e536]:
+                - spinbutton "📄 Resumo do exame" [ref=f7e537]: "0"
+                - group:
+                  - generic: 📄 Resumo do exame
+            - generic [ref=f7e538]:
+              - generic [ref=f7e539]: 🧾 Relatório consolidado
+              - generic [ref=f7e540]:
+                - spinbutton "🧾 Relatório consolidado" [ref=f7e541]: "0"
+                - group:
+                  - generic: 🧾 Relatório consolidado
+            - generic [ref=f7e542]:
+              - generic [ref=f7e543]: 📤 Upload (0 = grátis)
+              - generic [ref=f7e544]:
+                - spinbutton "📤 Upload (0 = grátis)" [ref=f7e545]: "0"
+                - group:
+                  - generic: 📤 Upload (0 = grátis)
+          - generic [ref=f7e546]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e547]: salvo
+        - generic [ref=f7e549]:
+          - heading "🎁 Bônus do 1º exame" [level=6] [ref=f7e550]
+          - generic [ref=f7e551]: Créditos dados quando o usuário extrai o primeiro exame com CPF válido (anti-farm). É o 'grátis pra testar' da landing.
+          - generic [ref=f7e552]:
+            - generic [ref=f7e553]: Créditos do bônus
+            - generic [ref=f7e554]:
+              - spinbutton "Créditos do bônus" [ref=f7e555]: "0"
+              - group:
+                - generic: Créditos do bônus
+          - generic [ref=f7e556]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f7e557]: salvo
+        - separator [ref=f7e558]
+        - generic [ref=f7e560]:
+          - heading "🏆 Conquistas (gamificação)" [level=6] [ref=f7e561]
+          - generic [ref=f7e562]: Edite nomes, valores e dificuldade. Salva tudo de uma vez no banco.
+          - button "Salvar conquistas" [ref=f7e564] [cursor=pointer]
+    - contentinfo [ref=f7e295]:
+      - paragraph [ref=f7e299] [cursor=pointer]: Início
+      - paragraph [ref=f7e304] [cursor=pointer]: Usuários
+      - paragraph [ref=f7e308] [cursor=pointer]: Financ.
+      - paragraph [ref=f7e312] [cursor=pointer]: Config.
+      - paragraph [ref=f7e316] [cursor=pointer]: Mais
+  - generic [ref=f7e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f7e317]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f7e318]

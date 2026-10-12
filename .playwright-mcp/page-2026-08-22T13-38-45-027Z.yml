@@ -1,0 +1,46 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e625]:
+    - generic [ref=e626]:
+      - img "Dr. Exame" [ref=e628]
+      - generic [ref=e629]:
+        - paragraph [ref=e630]: Meus Exames
+        - paragraph [ref=e631]: Seu assistente de saúde com IA
+    - generic [ref=e632]:
+      - button [ref=e633] [cursor=pointer]
+      - button [ref=e638] [cursor=pointer]
+    - generic [ref=e644]:
+      - generic [ref=e645]:
+        - generic [ref=e646]:
+          - text: E-mail
+          - generic [ref=e647]: "*"
+        - generic [ref=e648]:
+          - textbox "E-mail" [ref=e653]
+          - group:
+            - generic: E-mail *
+      - generic [ref=e654]:
+        - generic [ref=e655]:
+          - text: Senha
+          - generic [ref=e656]: "*"
+        - generic [ref=e657]:
+          - textbox "Senha" [ref=e662]
+          - button "Mostrar senha" [ref=e664] [cursor=pointer]
+          - group:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e669] [cursor=pointer]
+      - button [ref=e670] [cursor=pointer]
+      - generic [ref=e674]: ou
+      - generic [ref=e678]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=e680] [cursor=pointer]:
+          - generic [ref=e682]: Continuar com o Google
+        - iframe
+      - paragraph [ref=e692]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e693] [cursor=pointer]
+    - generic [ref=e694]:
+      - paragraph [ref=e700]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e701]:
+        - strong [ref=e702]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e402]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e403]

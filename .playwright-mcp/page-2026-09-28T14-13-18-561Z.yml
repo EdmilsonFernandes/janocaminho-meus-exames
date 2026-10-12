@@ -1,0 +1,175 @@
+- generic [ref=f6e1]:
+  - generic [ref=f6e3]:
+    - button [ref=f6e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f6e5]:
+      - banner [ref=f6e6]:
+        - generic [ref=f6e7]:
+          - heading [level=6] [ref=f6e8]:
+            - generic [ref=f6e9]: Evolução da minha saúde
+          - generic [ref=f6e11]:
+            - button [ref=f6e12] [cursor=pointer]:
+              - generic [ref=f6e13]: 9+
+            - button [ref=f6e18] [cursor=pointer]:
+              - generic [ref=f6e19]: T
+              - generic [ref=f6e21]:
+                - generic [ref=f6e22]: Theo QA
+                - generic [ref=f6e23]: Filho(a)
+          - button [ref=f6e28] [cursor=pointer]
+      - main [ref=f6e31]:
+        - navigation [ref=f6e35]:
+          - generic [ref=f6e38]:
+            - generic [ref=f6e39]: E
+            - generic [ref=f6e41]:
+              - paragraph [ref=f6e42]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f6e43]:
+                - generic [ref=f6e44]: Plano grátis
+                - button [ref=f6e46] [cursor=pointer]:
+                  - generic [ref=f6e47]: ⚡ 69 (+)
+          - separator [ref=f6e48]
+          - generic [ref=f6e49]:
+            - button [expanded] [ref=f6e50] [cursor=pointer]:
+              - generic [ref=f6e54]: Exames
+            - generic [ref=f6e61]:
+              - button [ref=f6e62] [cursor=pointer]:
+                - generic [ref=f6e66]: Exames
+              - button [ref=f6e68] [cursor=pointer]:
+                - generic [ref=f6e73]: Valores alterados
+              - button [ref=f6e75] [cursor=pointer]:
+                - generic [ref=f6e80]: Evolução
+              - button [ref=f6e82] [cursor=pointer]:
+                - generic [ref=f6e86]: Tendências
+              - button [ref=f6e88] [cursor=pointer]:
+                - generic [ref=f6e92]: Linha do Tempo
+              - button [ref=f6e94] [cursor=pointer]:
+                - generic [ref=f6e98]: Relatório completo
+          - button [ref=f6e101] [cursor=pointer]:
+            - generic [ref=f6e106]: Cuidados
+          - button [ref=f6e111] [cursor=pointer]:
+            - generic [ref=f6e116]: Pessoas
+          - button [ref=f6e121] [cursor=pointer]:
+            - generic [ref=f6e125]: Conta
+          - button [ref=f6e130] [cursor=pointer]:
+            - generic [ref=f6e134]: Dúvidas frequentes
+          - menuitem [ref=f6e136] [cursor=pointer]:
+            - generic [ref=f6e140]: Sobre o app
+          - menuitem [ref=f6e142] [cursor=pointer]:
+            - generic [ref=f6e146]: Sair da conta
+          - generic [ref=f6e148]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=f6e150]:
+          - generic [ref=f6e155]:
+            - heading [level=5] [ref=f6e156]: Evolução ao longo do tempo
+            - paragraph [ref=f6e157]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.
+          - generic [ref=f6e159]:
+            - generic [ref=f6e160]:
+              - heading [level=2] [ref=f6e165]: Crescimento · 4a 4m
+              - paragraph [ref=f6e166]: Percentis OMS (0-19 anos)
+            - generic [ref=f6e167]:
+              - button [pressed] [ref=f6e168] [cursor=pointer]:
+                - generic [ref=f6e169]: Peso
+              - button [ref=f6e170] [cursor=pointer]:
+                - generic [ref=f6e171]: Altura
+              - button [ref=f6e172] [cursor=pointer]:
+                - generic [ref=f6e173]: IMC
+            - img [ref=f6e174]:
+              - application [ref=f6e177]:
+                - generic [ref=f6e212]:
+                  - generic [ref=f6e213]: "6"
+                  - generic [ref=f6e215]: "11"
+                  - generic [ref=f6e217]: "16"
+                  - generic [ref=f6e219]: "21"
+                  - generic [ref=f6e221]: "24"
+            - generic [ref=f6e223]:
+              - paragraph [ref=f6e226]: P3
+              - paragraph [ref=f6e229]: P15
+              - paragraph [ref=f6e232]: P50
+              - paragraph [ref=f6e235]: P85
+              - paragraph [ref=f6e238]: P97
+              - paragraph [ref=f6e241]: sua criança
+            - generic [ref=f6e242]:
+              - generic [ref=f6e243]:
+                - generic [ref=f6e244]: Data
+                - generic [ref=f6e245]:
+                  - textbox [ref=f6e246]: 2026-09-28
+                  - group [aria-hidden]:
+                    - generic: Data
+              - generic [ref=f6e247]:
+                - generic: Peso (kg)
+                - generic [ref=f6e248]:
+                  - textbox [ref=f6e249]:
+                    - /placeholder: 12,3
+                  - group [aria-hidden]:
+                    - generic: Peso (kg)
+              - generic [ref=f6e250]:
+                - generic: Altura (cm)
+                - generic [ref=f6e251]:
+                  - textbox [ref=f6e252]:
+                    - /placeholder: 87,5
+                  - group [aria-hidden]:
+                    - generic: Altura (cm)
+              - button [ref=f6e253] [cursor=pointer]: Registrar
+            - generic [ref=f6e257]:
+              - generic [ref=f6e258]:
+                - paragraph [ref=f6e259]: 10/05/2026
+                - paragraph [ref=f6e260]: 16,0 kg
+                - paragraph [ref=f6e261]: 103,0 cm
+                - paragraph [ref=f6e262]: IMC 15,1
+              - generic [ref=f6e263]:
+                - paragraph [ref=f6e264]: 10/05/2025
+                - paragraph [ref=f6e265]: 14,2 kg
+                - paragraph [ref=f6e266]: 95,0 cm
+                - paragraph [ref=f6e267]: IMC 15,7
+              - generic [ref=f6e268]:
+                - paragraph [ref=f6e269]: 10/05/2024
+                - paragraph [ref=f6e270]: 12,3 kg
+                - paragraph [ref=f6e271]: 87,0 cm
+                - paragraph [ref=f6e272]: IMC 16,3
+              - generic [ref=f6e273]:
+                - paragraph [ref=f6e274]: 10/11/2023
+                - paragraph [ref=f6e275]: 11,0 kg
+                - paragraph [ref=f6e276]: 83,0 cm
+                - paragraph [ref=f6e277]: IMC 16,0
+              - generic [ref=f6e278]:
+                - paragraph [ref=f6e279]: 10/05/2023
+                - paragraph [ref=f6e280]: 9,5 kg
+                - paragraph [ref=f6e281]: 75,0 cm
+                - paragraph [ref=f6e282]: IMC 16,9
+            - paragraph [ref=f6e286]:
+              - text: Curva para
+              - strong [ref=f6e287]: acompanhamento
+              - text: — compara com os percentis da OMS, mas quem interpreta o crescimento do seu filho(a) é o
+              - strong [ref=f6e288]: pediatra
+              - text: . Peso-para-idade é exibido até os 10 anos (limite das tabelas da OMS).
+          - generic [ref=f6e289]:
+            - generic [ref=f6e290]: 📈
+            - heading [level=6] [ref=f6e292]: Sem histórico para comparar ainda
+            - paragraph [ref=f6e293]: Envie ao menos 2 exames laboratoriais de datas diferentes pra acompanhar como cada exame evoluiu entre as coletas.
+            - button [ref=f6e294] [cursor=pointer]: Enviar exame
+  - dialog [active] [ref=f6e297]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 1 Fechar" [level=2] [ref=f6e298]:
+      - generic [ref=f6e299]:
+        - paragraph [ref=f6e300]: Vamos preparar o Dr. Exame
+        - generic [ref=f6e301]: Passo 1 de 1
+      - button "Fechar" [ref=f6e302] [cursor=pointer]
+    - progressbar [ref=f6e305]
+    - generic [ref=f6e308]:
+      - paragraph [ref=f6e309]: Altura e peso calculam seu IMC e entram na leitura de risco cardiometabólico.
+      - generic [ref=f6e310]:
+        - generic:
+          - text: Altura
+          - generic [aria-hidden]: "*"
+        - generic [ref=f6e311]:
+          - textbox "Altura" [ref=f6e312]
+          - group [aria-hidden]:
+            - generic: Altura *
+        - paragraph [ref=f6e313]: "Ex.: 1,72 ou 172 — convertemos pra você"
+      - generic [ref=f6e314]:
+        - generic [ref=f6e315]: Peso atual (kg)
+        - generic [ref=f6e316]:
+          - textbox "Peso atual (kg)" [ref=f6e317]: "16"
+          - group [aria-hidden]:
+            - generic: Peso atual (kg)
+        - paragraph [ref=f6e318]: "Aceita vírgula ou ponto (ex.: 70,5). Vai pras suas Medições — acompanhe a tendência por lá."
+    - generic [ref=f6e319]:
+      - button "Agora não" [ref=f6e320] [cursor=pointer]
+      - button "Concluir" [disabled]
+  - generic [aria-hidden] [ref=f6e321]: "6"

@@ -1,0 +1,130 @@
+- generic [ref=e20]:
+  - generic [ref=e105]:
+    - button [ref=e757] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e107]:
+      - banner [ref=e108]:
+        - generic [ref=e109]:
+          - heading [level=6] [ref=e958]:
+            - generic [ref=e959]: HEMOGRAMA
+          - button [ref=e110] [cursor=pointer]:
+            - generic [ref=e113]: "71"
+            - button [ref=e114]
+          - button [ref=e117] [cursor=pointer]:
+            - generic [ref=e118]: "34"
+          - button [ref=e123] [cursor=pointer]:
+            - generic [ref=e124]: E
+            - generic [ref=e126]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=e132] [cursor=pointer]
+      - main [ref=e135]:
+        - navigation [ref=e761]:
+          - generic [ref=e762]:
+            - paragraph [ref=e767] [cursor=pointer]: Início
+            - paragraph [ref=e772] [cursor=pointer]: Exames
+            - paragraph [ref=e778] [cursor=pointer]: Valores alterados
+            - paragraph [ref=e784] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=e789] [cursor=pointer]: Tendências
+            - paragraph [ref=e794] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=e799] [cursor=pointer]: Relatório completo
+            - paragraph [ref=e804] [cursor=pointer]: Perguntas
+            - paragraph [ref=e810] [cursor=pointer]: Saúde da Família
+          - button [ref=e812] [cursor=pointer]:
+            - generic [ref=e817]: Minha saúde
+          - button [ref=e822] [cursor=pointer]:
+            - generic [ref=e827]: Família & médicos
+          - button [ref=e832] [cursor=pointer]:
+            - generic [ref=e836]: Conta
+          - separator [ref=e840]
+          - button [ref=e841] [cursor=pointer]:
+            - generic [ref=e845]: Ajuda & Suporte
+          - menuitem [ref=e847] [cursor=pointer]:
+            - generic [ref=e851]: Sobre o app
+          - menuitem [ref=e853] [cursor=pointer]:
+            - generic [ref=e857]: Sair da conta
+        - generic [ref=e961]:
+          - generic [ref=e963]:
+            - generic [ref=e964]:
+              - heading [level=1] [ref=e965]: HEMOGRAMA
+              - generic [ref=e966]: Pronto
+              - generic [ref=e968]: 🩸 Hemograma
+              - generic [ref=e970]: conferir dados
+            - generic [ref=e972]:
+              - generic [ref=e973]: Data não identificada
+              - generic [ref=e974]:
+                - generic [ref=e975]:
+                  - generic [ref=e976]: V
+                  - generic [ref=e977]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                - generic [ref=e978]: 1 pág.
+            - button [ref=e980] [cursor=pointer]: Abrir laudo
+            - paragraph [ref=e984]: 👤 BIANCA) pr mpi
+            - alert [ref=e985]:
+              - generic [ref=e986]: Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
+          - generic [ref=e988]:
+            - paragraph [ref=e989]: ⚠️ Confirme o titular antes da análise
+            - paragraph [ref=e990]:
+              - text: O nome detectado no documento (
+              - strong [ref=e991]: BIANCA) pr mpi
+              - text: ) parece diferente do perfil selecionado (
+              - strong [ref=e992]: Edmilson Lopes Fernandes dos Santos
+              - text: ).
+            - generic [ref=e993]:
+              - generic [ref=e994]: Similaridade 0%
+              - generic [ref=e996]: Proteção de privacidade
+            - paragraph [ref=e998]: Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.
+            - generic [ref=e999]:
+              - button [ref=e1000] [cursor=pointer]: ✓ Confirmo que é deste paciente
+              - button [ref=e1001] [cursor=pointer]: ✕ Não é deste paciente (excluir)
+          - generic [ref=e1003]:
+            - paragraph [ref=e1004]: 🚩 2 valor(es) fora da faixa de referência
+            - generic [ref=e1005]:
+              - button [ref=e1006] [cursor=pointer]:
+                - generic [ref=e1007]: "↓ Plaquetas: 116.000/mm³"
+              - button [ref=e1008] [cursor=pointer]:
+                - generic [ref=e1009]: "↓ VCM: 80,8"
+          - heading [level=3] [ref=e1011]:
+            - button [ref=e1012] [cursor=pointer]:
+              - generic [ref=e1013]:
+                - paragraph [ref=e1014]: Leucograma
+                - generic [ref=e1015]: 12 itens
+          - heading [level=3] [ref=e1021]:
+            - button [ref=e1022] [cursor=pointer]:
+              - generic [ref=e1023]:
+                - paragraph [ref=e1024]: Plaquetas
+                - generic [ref=e1025]: 1 alterado
+                - generic [ref=e1027]: 1 itens
+          - heading [level=3] [ref=e1033]:
+            - button [ref=e1034] [cursor=pointer]:
+              - generic [ref=e1035]:
+                - paragraph [ref=e1036]: Série Vermelha
+                - generic [ref=e1037]: 1 alterado
+                - generic [ref=e1039]: 7 itens
+          - generic [ref=e1046]:
+            - heading [level=6] [ref=e1047]: Análise de saúde
+            - paragraph [ref=e1048]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+            - button [ref=e1049] [cursor=pointer]: Gerar resumo
+            - generic [ref=e1050]:
+              - generic [ref=e1051]: 💎
+              - generic [ref=e1052]: 10 créditos
+          - generic [ref=e1054]:
+            - generic [ref=e1055]:
+              - heading [level=6] [ref=e1056]: 📋 Preparar visita ao médico
+              - button [ref=e1057] [cursor=pointer]: Gerar documento
+            - paragraph [ref=e1058]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [ref=e352]:
+    - generic [ref=e353]:
+      - button [ref=e375] [cursor=pointer]: Pular
+      - generic [ref=e355]:
+        - heading [level=4] [ref=e377]: Envie seu exame
+        - paragraph [ref=e359]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e360]:
+        - button [ref=e378] [cursor=pointer]: Próximo
+        - paragraph [ref=e370]: Toque em Próximo para continuar →
+  - dialog [active] [ref=e953]:
+    - heading [level=2] [ref=e954]:
+      - generic [ref=e383]:
+        - img "Dr. Exame" [ref=e955]
+        - paragraph [ref=e385]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=e387]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=e388]:
+      - button "Depois" [ref=e956] [cursor=pointer]
+      - button "Ver notificações" [ref=e957] [cursor=pointer]

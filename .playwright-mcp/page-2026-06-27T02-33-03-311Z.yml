@@ -1,0 +1,48 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e258] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e259] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e277] [cursor=pointer]:
+              - img [ref=e278]
+            - button "99" [ref=e260] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "99"
+            - button "E" [ref=e261] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button "Modo escuro" [ref=e262] [cursor=pointer]:
+              - img [ref=e37]
+            - button "0" [ref=e263] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic: "0"
+            - button "Mais opções" [ref=e264] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Atualizar" [ref=e265] [cursor=pointer]:
+              - img [ref=e48]
+        - main [ref=e50]:
+          - progressbar [ref=e545]:
+            - img [ref=e546]
+    - navigation [ref=e218]:
+      - generic [ref=e219] [cursor=pointer]:
+        - generic [ref=e220]: 🏠
+        - paragraph [ref=e221]: Início
+      - generic [ref=e223] [cursor=pointer]:
+        - generic [ref=e224]: 📋
+        - paragraph [ref=e225]: Exames
+      - generic [ref=e226] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e272]
+        - paragraph [ref=e229]: Dr. Exame
+      - generic [ref=e230] [cursor=pointer]:
+        - generic [ref=e231]: 📈
+        - paragraph [ref=e232]: Evolução
+      - generic [ref=e233] [cursor=pointer]:
+        - generic [ref=e234]: ☰
+        - paragraph [ref=e235]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e273]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e274]

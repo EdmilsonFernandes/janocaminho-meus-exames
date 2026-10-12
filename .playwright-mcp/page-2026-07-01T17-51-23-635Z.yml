@@ -1,0 +1,180 @@
+- generic [active] [ref=f6e18]:
+  - generic [ref=f6e19]:
+    - generic [ref=f6e20]:
+      - button "Pular para o conteúdo" [ref=f6e21] [cursor=pointer]
+      - generic [ref=f6e22]:
+        - banner [ref=f6e23]:
+          - generic [ref=f6e24]:
+            - button "Menu" [ref=f6e25] [cursor=pointer]:
+              - img [ref=f6e26]
+            - button "79" [ref=f6e28] [cursor=pointer]:
+              - img [ref=f6e29]
+              - generic [ref=f6e31]: "79"
+            - button "E" [ref=f6e33] [cursor=pointer]:
+              - generic [ref=f6e35]: E
+            - button "17" [ref=f6e36] [cursor=pointer]:
+              - generic [ref=f6e37]:
+                - img [ref=f6e38]
+                - generic [ref=f6e40]: "17"
+            - button "Mais opções" [ref=f6e41] [cursor=pointer]:
+              - img [ref=f6e42]
+            - button "Atualizar" [ref=f6e45] [cursor=pointer]:
+              - img [ref=f6e46]
+        - main [ref=f6e48]:
+          - generic [ref=f6e50]:
+            - generic [ref=f6e51]:
+              - heading "Boa tarde, Edmilson 👋" [level=5] [ref=f6e52]
+              - paragraph [ref=f6e53]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f6e54]:
+              - img
+              - generic [ref=f6e56]:
+                - generic [ref=f6e57]:
+                  - img [ref=f6e58]
+                  - generic [ref=f6e61]:
+                    - paragraph [ref=f6e62]: "50"
+                    - generic [ref=f6e63]: de 100
+                - generic [ref=f6e64]:
+                  - generic [ref=f6e65]:
+                    - img [ref=f6e66]
+                    - generic [ref=f6e69]: Score de Saúde
+                  - generic [ref=f6e71]: Atenção
+                  - paragraph [ref=f6e72]: 10 valores fora da faixa de referência — vale revisar com seu médico.
+                  - generic [ref=f6e73]: "*Educativo. 10 alterado(s)."
+                  - button "Ver detalhes" [ref=f6e75] [cursor=pointer]
+            - generic [ref=f6e77]:
+              - generic [ref=f6e78]:
+                - img [ref=f6e79]
+                - paragraph [ref=f6e82]: Meu estado atual
+                - generic [ref=f6e84]: 50/100
+              - paragraph [ref=f6e85]: 10 de 20 marcadores fora da faixa — vale revisar com seu médico.
+              - generic [ref=f6e86]:
+                - generic [ref=f6e88]: 🔴 5 importantes
+                - generic [ref=f6e90]: 🟠 2 moderadas
+                - generic [ref=f6e92]: 🟡 3 leves
+                - generic [ref=f6e94]: ✅ 10 normais
+              - generic [ref=f6e95]:
+                - generic [ref=f6e96]:
+                  - generic [ref=f6e97]:
+                    - paragraph [ref=f6e98]: Hemácias
+                    - text: 1º exame
+                  - paragraph [ref=f6e99]: 5,78 milhões/mm*
+                - generic [ref=f6e100]:
+                  - generic [ref=f6e101]:
+                    - paragraph [ref=f6e102]: Hemoglobina
+                    - text: 1º exame
+                  - paragraph [ref=f6e103]: 15,0 g/dt.
+                - generic [ref=f6e104]:
+                  - generic [ref=f6e105]:
+                    - paragraph [ref=f6e106]: Hematócrito
+                    - text: 1º exame
+                  - paragraph [ref=f6e107]: 46,7 %
+              - button "Ver valores alterados" [ref=f6e108] [cursor=pointer]:
+                - text: Ver valores alterados
+                - img [ref=f6e110]
+              - generic [ref=f6e112]: "*Educativo. Sempre confirme com seu médico."
+            - generic [ref=f6e114]:
+              - generic [ref=f6e115]:
+                - img [ref=f6e116]
+                - paragraph: Leitura de risco
+                - generic [ref=f6e119]: 🟢 Baixo
+                - generic [ref=f6e121]: ↓ Risco caiu desde 11/06/2026
+                - button "Refazer análise" [ref=f6e122] [cursor=pointer]:
+                  - img [ref=f6e123]
+              - paragraph [ref=f6e125]: Sem alterações relevantes
+              - paragraph
+              - separator [ref=f6e126]
+              - button "Plano de ação do Dr. Exame · 8 créditos" [ref=f6e127] [cursor=pointer]:
+                - img [ref=f6e129]
+                - text: Plano de ação do Dr. Exame · 8 créditos
+              - generic [ref=f6e131]: Baseada em 2 marcadores.
+              - generic [ref=f6e132]: "*Educativo. Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico."
+            - generic [ref=f6e133]:
+              - img
+              - generic [ref=f6e135]:
+                - generic [ref=f6e136]:
+                  - img "Dr. Exame" [ref=f6e138]
+                  - generic [ref=f6e139]:
+                    - paragraph [ref=f6e140]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=f6e141]: Jejum de 8–12h antes de exames de sangue garante resultados mais precisos.
+                - button "Conversar com a IA" [ref=f6e143] [cursor=pointer]:
+                  - img [ref=f6e145]
+                  - text: Conversar com a IA
+            - generic [ref=f6e147]:
+              - generic [ref=f6e150] [cursor=pointer]:
+                - img [ref=f6e152]
+                - paragraph [ref=f6e154]: "1"
+                - generic [ref=f6e155]: Exames enviados
+              - generic [ref=f6e158] [cursor=pointer]:
+                - img [ref=f6e160]
+                - paragraph [ref=f6e163]: "10"
+                - generic [ref=f6e164]: Valores alterados
+              - generic [ref=f6e167] [cursor=pointer]:
+                - img [ref=f6e169]
+                - paragraph [ref=f6e172]: "1"
+                - generic [ref=f6e173]: Dependentes
+              - generic [ref=f6e176] [cursor=pointer]:
+                - img [ref=f6e178]
+                - paragraph [ref=f6e180]: —
+                - generic [ref=f6e181]: Última atualização
+            - generic [ref=f6e185]:
+              - heading "Distribuição dos valores" [level=6] [ref=f6e186]
+              - paragraph [ref=f6e187]: Últimos exames extraídos deste perfil.
+              - generic [ref=f6e188]:
+                - generic [ref=f6e189]:
+                  - application [ref=f6e191]
+                  - generic [ref=f6e192]:
+                    - paragraph [ref=f6e193]: "20"
+                    - generic [ref=f6e194]: valores
+                - generic [ref=f6e195]:
+                  - paragraph [ref=f6e198]:
+                    - strong [ref=f6e199]: "10"
+                    - text: Bons (na faixa) (50%)
+                  - paragraph [ref=f6e202]:
+                    - strong [ref=f6e203]: "10"
+                    - text: Alerta (abaixo) (50%)
+            - generic [ref=f6e204]:
+              - generic [ref=f6e207] [cursor=pointer]:
+                - img [ref=f6e209]
+                - generic [ref=f6e211]: Enviar exame
+              - generic [ref=f6e214] [cursor=pointer]:
+                - img [ref=f6e216]
+                - generic [ref=f6e218]: Evolução
+              - generic [ref=f6e221] [cursor=pointer]:
+                - img [ref=f6e223]
+                - generic [ref=f6e226]: Família
+              - generic [ref=f6e229] [cursor=pointer]:
+                - img [ref=f6e231]
+                - generic [ref=f6e233]: Relatório
+            - generic [ref=f6e235]: Toque nos cards de contador para navegar.
+            - generic [ref=f6e238] [cursor=pointer]:
+              - generic [ref=f6e239]:
+                - generic [ref=f6e240]:
+                  - paragraph [ref=f6e241]: 🏆 Suas conquistas
+                  - text: Resgate 1 crédito a cada meta atingida
+                - img [ref=f6e242]
+              - generic [ref=f6e244]:
+                - generic [ref=f6e246]: 🎉
+                - generic [ref=f6e248]: 📚
+                - generic [ref=f6e250]: 🎓
+                - generic [ref=f6e252]: 💚
+                - generic [ref=f6e254]: 🔥
+              - generic [ref=f6e255]: 1 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=f6e256]:
+      - generic [ref=f6e257] [cursor=pointer]:
+        - generic [ref=f6e258]: 🏠
+        - paragraph [ref=f6e259]: Início
+      - generic [ref=f6e261] [cursor=pointer]:
+        - generic [ref=f6e262]: 📋
+        - paragraph [ref=f6e263]: Exames
+      - generic [ref=f6e264] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f6e266]
+        - paragraph [ref=f6e267]: Dr. Exame
+      - generic [ref=f6e268] [cursor=pointer]:
+        - generic [ref=f6e269]: 📈
+        - paragraph [ref=f6e270]: Evolução
+      - generic [ref=f6e271] [cursor=pointer]:
+        - generic [ref=f6e272]: ☰
+        - paragraph [ref=f6e273]: Mais
+  - generic [ref=f6e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f6e17]

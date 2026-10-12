@@ -1,0 +1,114 @@
+- generic [ref=f13e106]:
+  - button "Pular para o conteúdo" [ref=f13e458] [cursor=pointer]
+  - generic [ref=f13e108]:
+    - banner [ref=f13e109]:
+      - generic [ref=f13e110]:
+        - heading [level=6]
+        - generic [ref=f13e111]:
+          - button "Você tem 69 créditos. Toque para comprar mais." [ref=f13e459] [cursor=pointer]:
+            - generic [ref=f13e115]: "69"
+          - button "Notificações" [ref=f13e460] [cursor=pointer]:
+            - generic [ref=f13e117]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f13e461] [cursor=pointer]:
+            - generic [ref=f13e123]: E
+            - generic [ref=f13e125]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f13e462] [cursor=pointer]
+    - main [ref=f13e134]:
+      - navigation [ref=f13e138]:
+        - generic [ref=f13e141]:
+          - generic [ref=f13e142]: E
+          - generic [ref=f13e144]:
+            - paragraph [ref=f13e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f13e146]:
+              - generic [ref=f13e147]: Plano grátis
+              - button "⚡ 69 (+)" [ref=f13e463] [cursor=pointer]
+        - separator [ref=f13e151]
+        - generic [ref=f13e152]:
+          - button "Exames" [expanded] [ref=f13e464] [cursor=pointer]
+          - generic [ref=f13e468]:
+            - button "Exames" [ref=f13e469] [cursor=pointer]
+            - button "Valores alterados" [ref=f13e475] [cursor=pointer]
+            - button "Evolução" [ref=f13e482] [cursor=pointer]
+            - button "Tendências" [ref=f13e489] [cursor=pointer]
+            - button "Linha do Tempo" [ref=f13e495] [cursor=pointer]
+            - button "Relatório completo" [ref=f13e501] [cursor=pointer]
+        - button "Cuidados" [ref=f13e507] [cursor=pointer]
+        - button "Pessoas" [ref=f13e508] [cursor=pointer]
+        - button "Conta" [ref=f13e509] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f13e510] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f13e511] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f13e512] [cursor=pointer]
+        - generic [ref=f13e209]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f13e513]:
+        - generic [ref=f13e515]:
+          - generic [ref=f13e516]:
+            - paragraph [ref=f13e517]: Boa tarde, tudo bem? 👋
+            - generic [ref=f13e518]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f13e519]: Sincronizado
+        - generic [ref=f13e523]:
+          - generic [ref=f13e524]:
+            - generic [ref=f13e525]:
+              - generic:
+                - paragraph: de 100
+            - generic [ref=f13e529]:
+              - paragraph [ref=f13e530]: Sua saúde hoje
+              - paragraph [ref=f13e531]: Em boa forma
+              - paragraph [ref=f13e533]: ● Nada crítico no momento
+          - generic [ref=f13e534]:
+            - button [ref=f13e535] [cursor=pointer]
+            - button [ref=f13e539] [cursor=pointer]
+        - generic [ref=f13e570]:
+          - generic [ref=f13e572]:
+            - generic [ref=f13e573]:
+              - paragraph [ref=f13e574]: O que mudou nos seus exames
+              - paragraph [ref=f13e576]: Carregando…
+              - button [ref=f13e578] [cursor=pointer]
+            - paragraph [ref=f13e589]: Atividade física • Health Connect
+            - generic [ref=f13e606]:
+              - generic [ref=f13e607]:
+                - img "Dr. Exame" [ref=f13e609]
+                - generic [ref=f13e610]:
+                  - paragraph [ref=f13e611]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=f13e612]: Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder.
+              - button [ref=f13e614] [cursor=pointer]
+          - generic [ref=f13e619]:
+            - generic [ref=f13e620]:
+              - generic [ref=f13e625]:
+                - paragraph [ref=f13e626]: Seus Marcadores
+                - paragraph [ref=f13e627]: Distribuição de 34 marcadores analisados
+              - generic [ref=f13e628]:
+                - 'button "Normais & Saudáveis: 26 de 34 (76%) — ver" [ref=f13e629] [cursor=pointer]':
+                  - generic [ref=f13e630]:
+                    - paragraph [ref=f13e631]: Normais & Saudáveis ver →
+                    - paragraph [ref=f13e632]: 26/34 (76%)
+                  - progressbar [ref=f13e633]
+                - 'button "Alteração Leve: 3 de 34 (9%) — ver" [ref=f13e635] [cursor=pointer]':
+                  - generic [ref=f13e636]:
+                    - paragraph [ref=f13e637]: Alteração Leve ver →
+                    - paragraph [ref=f13e638]: 3/34 (9%)
+                  - progressbar [ref=f13e639]
+                - 'button "Requerem Atenção: 5 de 34 (15%) — ver" [ref=f13e641] [cursor=pointer]':
+                  - generic [ref=f13e642]:
+                    - paragraph [ref=f13e643]: Requerem Atenção ver →
+                    - paragraph [ref=f13e644]: 5/34 (15%)
+                  - progressbar [ref=f13e645]
+              - paragraph [ref=f13e647]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+            - generic [ref=f13e648]:
+              - paragraph [ref=f13e654]: Ações rápidas
+              - generic [ref=f13e656]:
+                - generic [ref=f13e658] [cursor=pointer]:
+                  - generic [ref=f13e659]: +
+                  - generic [ref=f13e660]: Enviar exame
+                - generic [ref=f13e666]: Evolução
+                - generic [ref=f13e674]: Família
+                - generic [ref=f13e682]: Relatório
+            - generic [ref=f13e691] [cursor=pointer]:
+              - generic [ref=f13e692]: Resgate 1 crédito a cada meta atingida
+              - generic [ref=f13e696]:
+                - generic [ref=f13e697]: 🎉
+                - generic [ref=f13e699]: 📚
+                - generic [ref=f13e701]: 🎓
+                - generic [ref=f13e703]: 💚
+                - generic [ref=f13e705]: 🔥
+              - generic [ref=f13e709]: 0 de 5 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=f13e711] [cursor=pointer]

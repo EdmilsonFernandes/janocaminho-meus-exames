@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Dr. Exame — artes Meta Ads 20d</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #20b2aa; --teal-dark: #178f89; --teal-deep: #0f6e68;
+    --bg: #eef7f6; --ink: #16302d; --muted: #5b7470;
+    --card: #ffffff; --border: rgba(32,178,170,.25);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #22302e; font-family: Inter, sans-serif; display: flex; flex-direction: column; align-items: center; gap: 60px; padding: 60px 0; }
+  .art { position: relative; overflow: hidden; flex: none; }
+
+  /* ===== peças compartilhadas ===== */
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand .logo { width: 58px; height: 58px; border-radius: 16px; background: linear-gradient(135deg, #20b2aa, #178f89); display: grid; place-items: center; box-shadow: 0 6px 18px rgba(32,178,170,.35); }
+  .brand img { width: 46px; height: 46px; border-radius: 12px; }
+  .brand .name { font-family: Poppins; font-weight: 800; color: var(--teal-deep); font-size: 26px; letter-spacing: -.02em; }
+  .h { font-family: Poppins; font-weight: 800; color: var(--ink); letter-spacing: -.02em; line-height: 1.08; }
+  .cta { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #20b2aa, #178f89); color: #fff; font-family: Poppins; font-weight: 800; border-radius: 999px; padding: 20px 38px; font-size: 27px; box-shadow: 0 10px 26px rgba(32,178,170,.4); }
+  .disc { font-size: 17px; color: var(--muted); }
+  .blob { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(32,178,170,.16), transparent 68%); pointer-events: none; }
+
+  /* ===== A — laudo em outro idioma (1080×1080) ===== */
+  #ad-a { width: 1080px; height: 1080px; background: var(--bg); padding: 64px; display: flex; flex-direction: column; }
+  #ad-a .h { font-size: 74px; margin-top: 34px; }
+  #ad-a .h em { font-style: normal; color: var(--teal-dark); }
+  #ad-a .duo { display: flex; gap: 26px; margin-top: 46px; flex: 1; }
+  .laudo, .resumo { border-radius: 26px; padding: 34px; flex: 1; display: flex; flex-direction: column; gap: 18px; }
+  .laudo { background: #fff; border: 1px solid #e2eceb; transform: rotate(-1.4deg); box-shadow: 0 14px 34px rgba(15,61,58,.08); }
+  .laudo .t { font-family: 'Courier New', monospace; font-size: 20px; color: #9db3af; letter-spacing: .08em; }
+  .laudo .row { display: flex; justify-content: space-between; font-family: 'Courier New', monospace; font-size: 24px; color: #6e8885; border-bottom: 1px dashed #dfe9e8; padding-bottom: 12px; }
+  .laudo .q { color: #c0564f; font-weight: 700; }
+  .resumo { background: linear-gradient(160deg, #ffffff, #f2fbfa); border: 2px solid var(--border); box-shadow: 0 18px 40px rgba(32,178,170,.16); }
+  .resumo .item { background: rgba(32,178,170,.08); border-radius: 16px; padding: 18px 20px; }
+  .resumo .item .v { font-family: Poppins; font-weight: 800; font-size: 28px; color: var(--teal-deep); }
+  .resumo .item .w { font-size: 20px; color: var(--muted); margin-top: 4px; }
+  .resumo .ok { color: #0f8a63; font-weight: 700; font-size: 21px; }
+  #ad-a .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 44px; }
+
+  /* ===== A-story (1080×1920) ===== */
+  #ad-a-story { width: 1080px; height: 1920px; background: var(--bg); padding: 120px 72px; display: flex; flex-direction: column; }
+  #ad-a-story .h { font-size: 88px; margin-top: 44px; }
+  #ad-a-story .duo { flex-direction: column; margin-top: 56px; flex: 1; }
+  #ad-a-story .foot { flex-direction: column; gap: 26px; margin-top: 56px; align-items: stretch; }
+  #ad-a-story .cta { justify-content: center; font-size: 32px; }
+  #ad-a-story .disc { text-align: center; }
+
+  /* ===== B — consulta de 15 min (1080×1080) ===== */
+  #ad-b { width: 1080px; height: 1080px; background: linear-gradient(170deg, var(--bg), #e3f4f2); padding: 64px; display: flex; flex-direction: column; }
+  #ad-b .h { font-size: 70px; margin-top: 34px; }
+  #ad-b .kicker { display: inline-flex; align-self: flex-start; margin-top: 30px; background: #fff; border: 1px solid var(--border); color: var(--teal-deep); font-weight: 700; font-size: 23px; border-radius: 999px; padding: 12px 24px; }
+  #ad-b .card { margin-top: 44px; background: #fff; border-radius: 28px; border: 2px solid var(--border); box-shadow: 0 18px 44px rgba(15,61,58,.1); padding: 42px; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 30px; }
+  #ad-b .chk { display: flex; align-items: center; gap: 20px; }
+  #ad-b .chk .box { width: 52px; height: 52px; border-radius: 14px; background: rgba(32,178,170,.12); display: grid; place-items: center; flex: none; }
+  #ad-b .chk .tick { width: 24px; height: 24px; }
+  #ad-b .chk .tick circle, #ad-b .chk .tick path { stroke: var(--teal-dark); }
+  #ad-b .chk .txt { font-size: 29px; color: var(--ink); font-weight: 600; }
+  #ad-b .chk .txt b { color: var(--teal-deep); }
+  #ad-b .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 44px; }
+
+  /* ===== C — carrossel galeria→organizado (2 cartões 1080×1080) ===== */
+  .c { width: 1080px; height: 1080px; padding: 64px; display: flex; flex-direction: column; }
+  #ad-c1 { background: #f4f6f5; }
+  #ad-c1 .h { font-size: 66px; }
+  #ad-c1 .gal { flex: 1; position: relative; margin-top: 40px; }
+  #ad-c1 .ph { position: absolute; width: 380px; height: 480px; background: #fff; border: 1px solid #dde5e3; border-radius: 18px; box-shadow: 0 16px 30px rgba(15,61,58,.12); padding: 26px; display: flex; flex-direction: column; gap: 14px; }
+  #ad-c1 .ph .ln { height: 12px; background: #dfe7e5; border-radius: 6px; }
+  #ad-c1 .ph .ln.s { width: 55%; }
+  #ad-c1 .ph .stamp { margin-top: auto; font-size: 19px; color: #9fb1ae; font-weight: 600; }
+  #ad-c1 .foot { margin-top: 40px; display: flex; align-items: center; gap: 18px; font-size: 28px; font-weight: 700; color: #5b7470; }
+  #ad-c1 .arrow { font-size: 40px; color: var(--teal-dark); }
+  #ad-c2 { background: var(--bg); }
+  #ad-c2 .h { font-size: 66px; }
+  #ad-c2 .tl { flex: 1; margin-top: 46px; display: flex; flex-direction: column; justify-content: center; gap: 34px; padding-left: 26px; border-left: 4px solid rgba(32,178,170,.35); }
+  #ad-c2 .node { position: relative; background: #fff; border: 1px solid var(--border); border-radius: 18px; padding: 22px 28px; box-shadow: 0 10px 24px rgba(15,61,58,.07); }
+  #ad-c2 .node::before { content: ''; position: absolute; left: -41px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; background: var(--teal); border: 4px solid #fff; box-shadow: 0 0 0 2px rgba(32,178,170,.4); }
+  #ad-c2 .node .d { font-size: 20px; color: var(--muted); font-weight: 700; }
+  #ad-c2 .node .m { font-family: Poppins; font-weight: 800; font-size: 30px; color: var(--ink); margin-top: 4px; }
+  #ad-c2 .node .m span { color: var(--teal-deep); }
+  #ad-c2 .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 44px; }
+</style>
+</head>
+<body>
+
+  <!-- A — feed -->
+  <div class="art" id="ad-a">
+    <div class="blob" style="width:520px;height:520px;top:-160px;right:-140px;"></div>
+    <div class="brand"><div class="logo"><img src="app-icon.png" alt=""></div><div class="name">Dr. Exame</div></div>
+    <div class="h">Seu exame, explicado<br>em <em>1 minuto</em></div>
+    <div class="duo">
+      <div class="laudo">
+        <div class="t">RESULTADO LABORATORIAL</div>
+        <div class="row"><span>TSH</span><span class="q">4,82 μUI/mL</span></div>
+        <div class="row"><span>ALT</span><span>33 U/L</span></div>
+        <div class="row"><span>LDL-c</span><span class="q">162 mg/dL</span></div>
+        <div class="row"><span>TGL</span><span>148 mg/dL</span></div>
+        <div class="row"><span>Ac. úrico</span><span class="q">7,9 mg/dL</span></div>
+        <div class="t" style="margin-top:auto;">referência: 0,45–4,50 …</div>
+      </div>
+      <div class="resumo">
+        <div class="brand" style="gap:10px;"><div class="logo" style="width:44px;height:44px;border-radius:12px;"><img src="app-icon.png" style="width:34px;height:34px;border-radius:9px;" alt=""></div></div>
+        <div class="item"><div class="v">TSH 4,82</div><div class="ok">✓ fora da faixa — o que isso significa?</div></div>
+        <div class="item"><div class="v">LDL 162</div><div class="w">com a faixa do SEU laboratório</div></div>
+        <div class="item"><div class="w" style="margin:0;">+ o que perguntar ao médico</div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="cta">Cole seu exame — é grátis →</div>
+      <div class="disc">Educativo · não substitui seu médico</div>
+    </div>
+  </div>
+
+  <!-- A — story 9:16 -->
+  <div class="art" id="ad-a-story">
+    <div class="blob" style="width:700px;height:700px;top:-200px;left:-200px;"></div>
+    <div class="brand"><div class="logo"><img src="app-icon.png" alt=""></div><div class="name">Dr. Exame</div></div>
+    <div class="h">Seu exame,<br>explicado em<br><em>1 minuto</em></div>
+    <div class="duo">
+      <div class="laudo">
+        <div class="t">RESULTADO LABORATORIAL</div>
+        <div class="row"><span>TSH</span><span class="q">4,82 μUI/mL</span></div>
+        <div class="row"><span>LDL-c</span><span class="q">162 mg/dL</span></div>
+        <div class="row"><span>TGL</span><span>148 mg/dL</span></div>
+      </div>
+      <div class="resumo">
+        <div class="item"><div class="v">TSH 4,82</div><div class="ok">✓ explicado em português de gente</div></div>
+        <div class="item"><div class="w" style="margin:0;">+ o que perguntar ao médico</div></div>
+      </div>
+    </div>
+    <div class="foot">
+      <div class="cta">Cole seu exame — é grátis</div>
+      <div class="disc">Educativo · não substitui seu médico · drexame.janocaminho.com.br</div>
+    </div>
+  </div>
+
+  <!-- B — consulta -->
+  <div class="art" id="ad-b">
+    <div class="blob" style="width:480px;height:480px;bottom:-160px;left:-140px;"></div>
+    <div class="brand"><div class="logo"><img src="app-icon.png" alt=""></div><div class="name">Dr. Exame</div></div>
+    <div class="h">Chegue na consulta<br>com as <em style="font-style:normal;color:var(--teal-dark);">perguntas certas</em></div>
+    <div class="kicker">⏱️ O médico tem 15 minutos. Você tem 40 dúvidas.</div>
+    <div class="card">
+      <div class="chk"><div class="box"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div><div class="txt">Tudo que <b>mudou</b> desde o último exame</div></div>
+      <div class="chk"><div class="box"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div><div class="txt"><b>Perguntas prontas</b> pra levar ao médico</div></div>
+      <div class="chk"><div class="box"><svg class="tick" viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div><div class="txt"><b>Relatório de 1 página</b> pra mostrar na hora</div></div>
+    </div>
+    <div class="foot">
+      <div class="cta">Comece grátis →</div>
+      <div class="disc">Educativo · não substitui seu médico</div>
+    </div>
+  </div>
+
+  <!-- C1 — carrossel: antes -->
+  <div class="art c" id="ad-c1">
+    <div class="brand"><div class="logo"><img src="app-icon.png" alt=""></div><div class="name">Dr. Exame</div></div>
+    <div class="h" style="margin-top:34px;">Onde estão seus exames agora?</div>
+    <div class="gal">
+      <div class="ph" style="left:40px;top:10px;transform:rotate(-7deg);"><div class="ln"></div><div class="ln s"></div><div class="ln"></div><div class="ln s"></div><div class="stamp">IMG_20250412.jpg</div></div>
+      <div class="ph" style="left:330px;top:70px;transform:rotate(5deg);"><div class="ln s"></div><div class="ln"></div><div class="ln s"></div><div class="stamp">WhatsApp.jpg</div></div>
+      <div class="ph" style="left:600px;top:0;transform:rotate(9deg);"><div class="ln"></div><div class="ln"></div><div class="ln s"></div><div class="ln"></div><div class="stamp">exame_mae.pdf?</div></div>
+      <div class="ph" style="left:190px;top:300px;transform:rotate(-4deg);"><div class="ln s"></div><div class="ln"></div><div class="stamp">print_glicemia.png</div></div>
+      <div class="ph" style="left:560px;top:330px;transform:rotate(3deg);"><div class="ln"></div><div class="ln s"></div><div class="ln"></div><div class="stamp">Documento(4).pdf</div></div>
+    </div>
+    <div class="foot"><span>Na galeria, no e-mail, no papel…</span><span class="arrow">arrasta →</span></div>
+  </div>
+
+  <!-- C2 — carrossel: agora -->
+  <div class="art c" id="ad-c2">
+    <div class="blob" style="width:560px;height:560px;top:-180px;right:-160px;"></div>
+    <div class="brand"><div class="logo"><img src="app-icon.png" alt=""></div><div class="name">Dr. Exame</div></div>
+    <div class="h" style="margin-top:34px;">Tudo num lugar só —<br>e a <em style="font-style:normal;color:var(--teal-dark);">evolução</em> na tela</div>
+    <div class="tl">
+      <div class="node"><div class="d">MAIO 2026</div><div class="m">Glicose <span>112</span> · jejunada ✓</div></div>
+      <div class="node"><div class="d">JULHO 2026</div><div class="m">Glicose <span>106</span> · <span style="color:#0f8a63;">melhorando ↘</span></div></div>
+      <div class="node"><div class="d">SET 2026 — hoje</div><div class="m">Tudo organizado · <span>e a família também</span></div></div>
+    </div>
+    <div class="foot">
+      <div class="cta">Organize grátis →</div>
+      <div class="disc">Educativo · não substitui seu médico</div>
+    </div>
+  </div>
+
+</body>
+</html>

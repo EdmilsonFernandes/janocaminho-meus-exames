@@ -1,0 +1,261 @@
+- generic [active] [ref=f102e1]:
+  - generic [ref=f102e2]:
+    - generic [ref=f102e4]:
+      - generic [ref=f102e5]:
+        - generic [ref=f102e6]:
+          - link "DuckDuckGo home" [ref=f102e7] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f102e8]: DuckDuckGo
+          - generic [ref=f102e15]:
+            - combobox "Search privately" [ref=f102e17]: "\"Dr IA\" Meindica exames inteligência artificial"
+            - button "search" [ref=f102e19] [cursor=pointer]
+        - button "Open menu" [ref=f102e23] [cursor=pointer]
+      - navigation [ref=f102e31]:
+        - list [ref=f102e32]:
+          - listitem [ref=f102e33]:
+            - link "Todos" [ref=f102e34] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&ia=web
+          - listitem [ref=f102e37]:
+            - link "Imagens" [ref=f102e38] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&ia=images&iax=images
+          - listitem [ref=f102e39]:
+            - link "Vídeos" [ref=f102e40] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&ia=videos&iax=videos
+          - listitem [ref=f102e41]:
+            - link "Notícias" [ref=f102e42] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&ia=news&iar=news
+          - listitem [ref=f102e43]:
+            - link "Mapas" [ref=f102e44] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&iaxm=maps
+        - list [ref=f102e45]:
+          - listitem [ref=f102e46]:
+            - link "Duck.ai" [ref=f102e48] [cursor=pointer]:
+              - /url: /?q=%22Dr+IA%22+Meindica+exames+intelig%C3%AAncia+artificial&ia=chat
+          - listitem [ref=f102e52]:
+            - button "Search Settings ✀" [ref=f102e54] [cursor=pointer]:
+              - generic [ref=f102e57]: Search Settings
+              - generic [ref=f102e58]: ✀
+    - generic [ref=f102e65]:
+      - navigation [ref=f102e67]:
+        - generic [ref=f102e70] [cursor=pointer]:
+          - generic [ref=f102e71]: Protected
+          - img [ref=f102e79]: ▼
+        - generic [ref=f102e83] [cursor=pointer]:
+          - generic [ref=f102e86]:
+            - switch "✓" [ref=f102e87]
+            - generic [ref=f102e89]: Brasil
+          - img [ref=f102e90]: ▼
+        - generic [ref=f102e94] [cursor=pointer]:
+          - generic [ref=f102e95]: "Pesquisa segura: moderada"
+          - img [ref=f102e96]: ▼
+        - generic [ref=f102e100] [cursor=pointer]:
+          - generic [ref=f102e101]: Qualquer data
+          - img [ref=f102e102]: ▼
+      - generic [ref=f102e105]:
+        - list [ref=f102e106]:
+          - listitem [ref=f102e107]:
+            - article [ref=f102e108] [cursor=pointer]:
+              - button [ref=f102e110]
+              - link "Dasa https://nav.dasa.com.br › Delboni › Agendamento" [ref=f102e117]:
+                - /url: https://duckduckgo.com/y.js?ad_domain=dasa.com.br&ad_provider=bingv7aa&ad_type=txad&click_metadata=ywASmtxVFQhXVML48T0UNF%2DsViuquNoqa0ry_rRS%2DVQUnitAbc8nV85zqjRteCbZeFb9r5wcckzuOdSs5RCXwnix5nYQBwOO2jKTiiFmjQxmWTXcqd2KUjmEQTjZ1clk%2DDy2p58jbGYRlOC12XZtba%2D7a_7Q6UJfcs_0VzXRqS0.5I71drDwjqqu%2DXM0usVCZA&rut=91eb1c0f0084ff779b535caedb21c0fd378def2ee24d64805a43e42c71a8d841&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8NlbnK2Q%2Dq5PoBkdYLQWxkzVUCUx2O0CiJOC4wWNaem_BJiYuwk5fvuondxFCH0z18uqRKGwMIH0UYBrcUvwrZRGJouoSYWbnjT3oVVM9h0TeV0KRNEyjsiWGwuchymgsB3PovktBbVh%2DrG9J7i7IyOkya4DkcTb9WN286wFbCHD1A76TPWc38K7dpuaTzMDmB_VNniQlID6fFgqFsN8ZLjvRjnI%26u%3DaHR0cHMlM2ElMmYlMmZuYXYuZGFzYS5jb20uYnIlMmZsYWJvcmF0b3JpbyUyZmRlbGJvbmklM2Ztc2Nsa2lkJTNkOGFjM2U2OWI5ZTM1MTE1YzE5ZjI4YzEyODA5YzYzYTIlMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RiMDAyX2RlbGJvbmlfYmluZ19zZWFyY2hfYWdlbmRhbWVudG8tbm92YV9jb252ZXJzYW9fbmF2JTI2dXRtX3Rlcm0lM2RleGFtZXMlMjZ1dG1fY29udGVudCUzZEFkJTI1MjBHcm91cCUyNTIwMQ%26rlid%3D8ac3e69b9e35115c19f28c12809c63a2&vqd=4-128396144014726717086486401836893096206&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5036.1
+                - generic [ref=f102e121]:
+                  - paragraph [ref=f102e122]: Dasa
+                  - paragraph [ref=f102e123]:
+                    - generic [ref=f102e124]: https://nav.dasa.com.br
+                    - generic [ref=f102e125]: › Delboni › Agendamento
+              - heading [level=2] [ref=f102e127]:
+                - link "Agendamento de Exames Online - Exames Laboratoriais Delboni" [ref=f102e128]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=dasa.com.br&ad_provider=bingv7aa&ad_type=txad&click_metadata=ywASmtxVFQhXVML48T0UNF%2DsViuquNoqa0ry_rRS%2DVQUnitAbc8nV85zqjRteCbZeFb9r5wcckzuOdSs5RCXwnix5nYQBwOO2jKTiiFmjQxmWTXcqd2KUjmEQTjZ1clk%2DDy2p58jbGYRlOC12XZtba%2D7a_7Q6UJfcs_0VzXRqS0.5I71drDwjqqu%2DXM0usVCZA&rut=91eb1c0f0084ff779b535caedb21c0fd378def2ee24d64805a43e42c71a8d841&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8NlbnK2Q%2Dq5PoBkdYLQWxkzVUCUx2O0CiJOC4wWNaem_BJiYuwk5fvuondxFCH0z18uqRKGwMIH0UYBrcUvwrZRGJouoSYWbnjT3oVVM9h0TeV0KRNEyjsiWGwuchymgsB3PovktBbVh%2DrG9J7i7IyOkya4DkcTb9WN286wFbCHD1A76TPWc38K7dpuaTzMDmB_VNniQlID6fFgqFsN8ZLjvRjnI%26u%3DaHR0cHMlM2ElMmYlMmZuYXYuZGFzYS5jb20uYnIlMmZsYWJvcmF0b3JpbyUyZmRlbGJvbmklM2Ztc2Nsa2lkJTNkOGFjM2U2OWI5ZTM1MTE1YzE5ZjI4YzEyODA5YzYzYTIlMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RiMDAyX2RlbGJvbmlfYmluZ19zZWFyY2hfYWdlbmRhbWVudG8tbm92YV9jb252ZXJzYW9fbmF2JTI2dXRtX3Rlcm0lM2RleGFtZXMlMjZ1dG1fY29udGVudCUzZEFkJTI1MjBHcm91cCUyNTIwMQ%26rlid%3D8ac3e69b9e35115c19f28c12809c63a2&vqd=4-128396144014726717086486401836893096206&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5036.1
+                - button "Anúncio" [ref=f102e131]
+              - generic [ref=f102e134]:
+                - link "Exames de sangue, análises clínicas e imagem com agendamento online no Delboni. Check-up e exames com agendamento online simples e rápido no Delboni." [ref=f102e135]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=dasa.com.br&ad_provider=bingv7aa&ad_type=txad&click_metadata=ywASmtxVFQhXVML48T0UNF%2DsViuquNoqa0ry_rRS%2DVQUnitAbc8nV85zqjRteCbZeFb9r5wcckzuOdSs5RCXwnix5nYQBwOO2jKTiiFmjQxmWTXcqd2KUjmEQTjZ1clk%2DDy2p58jbGYRlOC12XZtba%2D7a_7Q6UJfcs_0VzXRqS0.5I71drDwjqqu%2DXM0usVCZA&rut=91eb1c0f0084ff779b535caedb21c0fd378def2ee24d64805a43e42c71a8d841&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8NlbnK2Q%2Dq5PoBkdYLQWxkzVUCUx2O0CiJOC4wWNaem_BJiYuwk5fvuondxFCH0z18uqRKGwMIH0UYBrcUvwrZRGJouoSYWbnjT3oVVM9h0TeV0KRNEyjsiWGwuchymgsB3PovktBbVh%2DrG9J7i7IyOkya4DkcTb9WN286wFbCHD1A76TPWc38K7dpuaTzMDmB_VNniQlID6fFgqFsN8ZLjvRjnI%26u%3DaHR0cHMlM2ElMmYlMmZuYXYuZGFzYS5jb20uYnIlMmZsYWJvcmF0b3JpbyUyZmRlbGJvbmklM2Ztc2Nsa2lkJTNkOGFjM2U2OWI5ZTM1MTE1YzE5ZjI4YzEyODA5YzYzYTIlMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RiMDAyX2RlbGJvbmlfYmluZ19zZWFyY2hfYWdlbmRhbWVudG8tbm92YV9jb252ZXJzYW9fbmF2JTI2dXRtX3Rlcm0lM2RleGFtZXMlMjZ1dG1fY29udGVudCUzZEFkJTI1MjBHcm91cCUyNTIwMQ%26rlid%3D8ac3e69b9e35115c19f28c12809c63a2&vqd=4-128396144014726717086486401836893096206&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5036.1
+                - link "Conveniência Digital · Diversos Exames · Agendamento Rápido" [ref=f102e138]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=dasa.com.br&ad_provider=bingv7aa&ad_type=txad&click_metadata=ywASmtxVFQhXVML48T0UNF%2DsViuquNoqa0ry_rRS%2DVQUnitAbc8nV85zqjRteCbZeFb9r5wcckzuOdSs5RCXwnix5nYQBwOO2jKTiiFmjQxmWTXcqd2KUjmEQTjZ1clk%2DDy2p58jbGYRlOC12XZtba%2D7a_7Q6UJfcs_0VzXRqS0.5I71drDwjqqu%2DXM0usVCZA&rut=91eb1c0f0084ff779b535caedb21c0fd378def2ee24d64805a43e42c71a8d841&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8NlbnK2Q%2Dq5PoBkdYLQWxkzVUCUx2O0CiJOC4wWNaem_BJiYuwk5fvuondxFCH0z18uqRKGwMIH0UYBrcUvwrZRGJouoSYWbnjT3oVVM9h0TeV0KRNEyjsiWGwuchymgsB3PovktBbVh%2DrG9J7i7IyOkya4DkcTb9WN286wFbCHD1A76TPWc38K7dpuaTzMDmB_VNniQlID6fFgqFsN8ZLjvRjnI%26u%3DaHR0cHMlM2ElMmYlMmZuYXYuZGFzYS5jb20uYnIlMmZsYWJvcmF0b3JpbyUyZmRlbGJvbmklM2Ztc2Nsa2lkJTNkOGFjM2U2OWI5ZTM1MTE1YzE5ZjI4YzEyODA5YzYzYTIlMjZ1dG1fc291cmNlJTNkYmluZyUyNnV0bV9tZWRpdW0lM2RjcGMlMjZ1dG1fY2FtcGFpZ24lM2RiMDAyX2RlbGJvbmlfYmluZ19zZWFyY2hfYWdlbmRhbWVudG8tbm92YV9jb252ZXJzYW9fbmF2JTI2dXRtX3Rlcm0lM2RleGFtZXMlMjZ1dG1fY29udGVudCUzZEFkJTI1MjBHcm91cCUyNTIwMQ%26rlid%3D8ac3e69b9e35115c19f28c12809c63a2&vqd=4-128396144014726717086486401836893096206&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5036.1
+          - listitem [ref=f102e139]:
+            - article [ref=f102e140] [cursor=pointer]:
+              - button [ref=f102e142]
+              - link "oreateai.com https://www.oreateai.com" [ref=f102e149]:
+                - /url: https://duckduckgo.com/y.js?ad_domain=oreateai.com&ad_provider=bingv7aa&ad_type=txad&click_metadata=PzT4fMefhjjQMsgkjlaUzOD8DA_jGFtGJJmtfoTgZkPvZcGizCzjatw2mWPmzVqRIoyqOVqf4NzJokleqxZs6qdr0aR5YOz%2Dvwt9mY3Ubbhc2pHycPHMndy1yalq0BlQ%2D_cIuLxznC0H4Nzw6R76%2DrCnc2v6jYCNoKfxDRYXJCU.zP1yLwEhj5leclpMM9s7zw&rut=104a891f65aa5985066399563dc1e07e39b35414df5662d9efa71e8969a995a6&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8VqfpzPLqd_acBBuc729g%2DzVUCUzZFff5yYVu3np9qH3icQx2ScjW9VST1lgmqIRwChD5Gvnu4o28YNa9IlDjq5DQDM%2DdwFg45mhRTQ0weEmqa2VEQl2WOZKkoTMu%2D_01Y8KTltKZWBdtoJO29rLRFGlCvlFZNOQpoAahtepYsVN2_oYO_GJmO%2DCNRo%2DvpeP%2DkkIV3jbdqy0p9DeFbtBRZgcuHWo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cub3JlYXRlYWkuY29tJTJmaG9tZSUyZnZlcnRpY2FsJTJmaHRtbFBQVCUzZmZyJTNkQklOR1NFTUhUTUwlMjZ1dG1fY2FtcGFpZ24lM2RCSU5HLU9yZWF0ZS1CcmFuZC1BTEwtMjAyNjA3MjglMjZ1dG1fY2FtcGFpZ25faWQlM2Q1NzE0NzExNjElMjZhZGdyb3VwX2lkJTNkMTE4MzA3NjgzNzEwNjc5NCUyNmtleXdvcmRfaWQlM2Rrd2QtNzM5NDMwMTQyNDEwNjYlMjZ1dG1fdGVybSUzZGlhJTI2b3JpZ2luYWxfbW9kdWxlJTNkYWQlMjZtc2Nsa2lkJTNkYjFjMWIwNTc0YTZkMWQ5YzIyZDNkYWRlNTRjNDQ1M2M%26rlid%3Db1c1b0574a6d1d9c22d3dade54c4453c&vqd=4-53890459284288745700475438499120467973&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5041.1
+                - generic [ref=f102e153]:
+                  - paragraph [ref=f102e154]: oreateai.com
+                  - paragraph [ref=f102e155]:
+                    - generic [ref=f102e156]: https://www.oreateai.com
+              - heading [level=2] [ref=f102e158]:
+                - link "AI Presentation Generator - Create PPTs in Minutes with AI" [ref=f102e159]:
+                  - /url: https://duckduckgo.com/y.js?ad_domain=oreateai.com&ad_provider=bingv7aa&ad_type=txad&click_metadata=PzT4fMefhjjQMsgkjlaUzOD8DA_jGFtGJJmtfoTgZkPvZcGizCzjatw2mWPmzVqRIoyqOVqf4NzJokleqxZs6qdr0aR5YOz%2Dvwt9mY3Ubbhc2pHycPHMndy1yalq0BlQ%2D_cIuLxznC0H4Nzw6R76%2DrCnc2v6jYCNoKfxDRYXJCU.zP1yLwEhj5leclpMM9s7zw&rut=104a891f65aa5985066399563dc1e07e39b35414df5662d9efa71e8969a995a6&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8VqfpzPLqd_acBBuc729g%2DzVUCUzZFff5yYVu3np9qH3icQx2ScjW9VST1lgmqIRwChD5Gvnu4o28YNa9IlDjq5DQDM%2DdwFg45mhRTQ0weEmqa2VEQl2WOZKkoTMu%2D_01Y8KTltKZWBdtoJO29rLRFGlCvlFZNOQpoAahtepYsVN2_oYO_GJmO%2DCNRo%2DvpeP%2DkkIV3jbdqy0p9DeFbtBRZgcuHWo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cub3JlYXRlYWkuY29tJTJmaG9tZSUyZnZlcnRpY2FsJTJmaHRtbFBQVCUzZmZyJTNkQklOR1NFTUhUTUwlMjZ1dG1fY2FtcGFpZ24lM2RCSU5HLU9yZWF0ZS1CcmFuZC1BTEwtMjAyNjA3MjglMjZ1dG1fY2FtcGFpZ25faWQlM2Q1NzE0NzExNjElMjZhZGdyb3VwX2lkJTNkMTE4MzA3NjgzNzEwNjc5NCUyNmtleXdvcmRfaWQlM2Rrd2QtNzM5NDMwMTQyNDEwNjYlMjZ1dG1fdGVybSUzZGlhJTI2b3JpZ2luYWxfbW9kdWxlJTNkYWQlMjZtc2Nsa2lkJTNkYjFjMWIwNTc0YTZkMWQ5YzIyZDNkYWRlNTRjNDQ1M2M%26rlid%3Db1c1b0574a6d1d9c22d3dade54c4453c&vqd=4-53890459284288745700475438499120467973&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5041.1
+                - button "Anúncio" [ref=f102e162]
+              - 'link "Oreate AI Slides — One AI workspace for slides writing visuals and presentation editing. Slides For Work: Create slides with AI models built for real presentation workflows." [ref=f102e166]':
+                - /url: https://duckduckgo.com/y.js?ad_domain=oreateai.com&ad_provider=bingv7aa&ad_type=txad&click_metadata=PzT4fMefhjjQMsgkjlaUzOD8DA_jGFtGJJmtfoTgZkPvZcGizCzjatw2mWPmzVqRIoyqOVqf4NzJokleqxZs6qdr0aR5YOz%2Dvwt9mY3Ubbhc2pHycPHMndy1yalq0BlQ%2D_cIuLxznC0H4Nzw6R76%2DrCnc2v6jYCNoKfxDRYXJCU.zP1yLwEhj5leclpMM9s7zw&rut=104a891f65aa5985066399563dc1e07e39b35414df5662d9efa71e8969a995a6&u3=https%3A%2F%2Fwww.bing.com%2Faclick%3Fld%3De8VqfpzPLqd_acBBuc729g%2DzVUCUzZFff5yYVu3np9qH3icQx2ScjW9VST1lgmqIRwChD5Gvnu4o28YNa9IlDjq5DQDM%2DdwFg45mhRTQ0weEmqa2VEQl2WOZKkoTMu%2D_01Y8KTltKZWBdtoJO29rLRFGlCvlFZNOQpoAahtepYsVN2_oYO_GJmO%2DCNRo%2DvpeP%2DkkIV3jbdqy0p9DeFbtBRZgcuHWo%26u%3DaHR0cHMlM2ElMmYlMmZ3d3cub3JlYXRlYWkuY29tJTJmaG9tZSUyZnZlcnRpY2FsJTJmaHRtbFBQVCUzZmZyJTNkQklOR1NFTUhUTUwlMjZ1dG1fY2FtcGFpZ24lM2RCSU5HLU9yZWF0ZS1CcmFuZC1BTEwtMjAyNjA3MjglMjZ1dG1fY2FtcGFpZ25faWQlM2Q1NzE0NzExNjElMjZhZGdyb3VwX2lkJTNkMTE4MzA3NjgzNzEwNjc5NCUyNmtleXdvcmRfaWQlM2Rrd2QtNzM5NDMwMTQyNDEwNjYlMjZ1dG1fdGVybSUzZGlhJTI2b3JpZ2luYWxfbW9kdWxlJTNkYWQlMjZtc2Nsa2lkJTNkYjFjMWIwNTc0YTZkMWQ5YzIyZDNkYWRlNTRjNDQ1M2M%26rlid%3Db1c1b0574a6d1d9c22d3dade54c4453c&vqd=4-53890459284288745700475438499120467973&iurl=%7B1%7DIG%3D89993F21975444219BB0DA97AF2D5C7C%26CID%3D057BEE53BF65671C2484F9EEBE696676%26ID%3DDevEx%2C5041.1
+          - listitem [ref=f102e167]:
+            - article [ref=f102e168] [cursor=pointer]:
+              - button [ref=f102e170]
+              - generic [ref=f102e175]:
+                - link "Procurar no domínio dr-ia.grupomeindica.com.br" [ref=f102e177]:
+                  - /url: /?q=%22Dr%20IA%22%20Meindica%20exames%20intelig%C3%AAncia%20artificial+site:dr-ia.grupomeindica.com.br
+                - generic [ref=f102e180]:
+                  - paragraph [ref=f102e181]: dr-ia.grupomeindica.com.br
+                  - link "https://dr-ia.grupomeindica.com.br" [ref=f102e182]:
+                    - /url: https://dr-ia.grupomeindica.com.br/
+                    - paragraph [ref=f102e184]:
+                      - generic [ref=f102e185]: https://dr-ia.grupomeindica.com.br
+              - heading [level=2] [ref=f102e187]:
+                - link "Dr IA - Sistema de Análise" [ref=f102e188]:
+                  - /url: https://dr-ia.grupomeindica.com.br/
+              - generic [ref=f102e190]: Sistema inteligente de análise médica com IA para análise de exames de imagem e sangue, com recomendações personalizadas e linguagem acessível
+        - button [disabled] [ref=f102e197]
+    - list [ref=f102e201]:
+      - button "Close menu" [ref=f102e202] [cursor=pointer]
+      - list [ref=f102e206]:
+        - listitem [ref=f102e207]: Busca
+        - listitem [ref=f102e208]:
+          - link "Homepage" [ref=f102e209] [cursor=pointer]:
+            - /url: https://start.duckduckgo.com/
+        - listitem [ref=f102e210]:
+          - link "Temas" [ref=f102e211] [cursor=pointer]:
+            - /url: /settings#appearance
+        - listitem [ref=f102e212]:
+          - link "Configurações" [ref=f102e213] [cursor=pointer]:
+            - /url: /settings
+      - list [ref=f102e214]:
+        - listitem [ref=f102e215]: Compartilhar comentários
+        - listitem [ref=f102e216]:
+          - generic [ref=f102e219]:
+            - button "Positive feedback" [ref=f102e220] [cursor=pointer]
+            - button "Negative feedback" [ref=f102e224] [cursor=pointer]
+      - list [ref=f102e228]:
+        - listitem [ref=f102e229]: Downloads
+        - listitem [ref=f102e230]:
+          - link "iOS Browser" [ref=f102e231] [cursor=pointer]:
+            - /url: https://apps.apple.com/app/duckduckgo-private-browser/id663592361?platform=iphone&pt=866401&mt=8&ct=serp-atb-serp
+        - listitem [ref=f102e232]:
+          - link "Android Browser" [ref=f102e233] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android&referrer=utm_campaign%3Dserp-atb-serp%26origin%3Dfunnel_playstore_searchresults
+        - listitem [ref=f102e234]:
+          - link "Mac Browser" [ref=f102e235] [cursor=pointer]:
+            - /url: /mac?origin=funnel_browser_searchresults
+        - listitem [ref=f102e236]:
+          - link "Windows Browser" [ref=f102e237] [cursor=pointer]:
+            - /url: /windows?origin=funnel_browser_searchresults
+        - listitem [ref=f102e238]: Browser Extensions
+      - list [ref=f102e239]:
+        - listitem [ref=f102e240]: More From DuckDuckGo
+        - listitem [ref=f102e241]:
+          - generic [ref=f102e244]:
+            - button "Dismiss promotion" [ref=f102e245] [cursor=pointer]
+            - generic [ref=f102e248]:
+              - paragraph [ref=f102e250]: Upgrade to our Private Browser
+              - paragraph [ref=f102e262]: Fast. Secure. Free.
+            - link "Download Browser" [ref=f102e263] [cursor=pointer]:
+              - /url: /windows
+        - listitem [ref=f102e266]:
+          - link "Duck.ai" [ref=f102e267] [cursor=pointer]:
+            - /url: https://duck.ai
+        - listitem [ref=f102e268]:
+          - link "Email Protection" [ref=f102e269] [cursor=pointer]:
+            - /url: /email
+        - listitem [ref=f102e270]:
+          - link "Newsletter" [ref=f102e271] [cursor=pointer]:
+            - /url: /newsletter
+        - listitem [ref=f102e272]:
+          - link "Blogue" [ref=f102e273] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f102e274]:
+          - link "Podcast" [ref=f102e275] [cursor=pointer]:
+            - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+        - listitem [ref=f102e276]:
+          - link "Collaborations" [ref=f102e277] [cursor=pointer]:
+            - /url: /collaborations
+      - list [ref=f102e278]:
+        - listitem [ref=f102e279]: Saiba mais
+        - listitem [ref=f102e280]:
+          - link "What’s New" [ref=f102e281] [cursor=pointer]:
+            - /url: /updates
+        - listitem [ref=f102e282]:
+          - link "Compare Privacy" [ref=f102e283] [cursor=pointer]:
+            - /url: /compare-privacy
+        - listitem [ref=f102e284]:
+          - link "About Our Browser" [ref=f102e285] [cursor=pointer]:
+            - /url: /app
+        - listitem [ref=f102e286]:
+          - link "Sobre o DuckDuckGo" [ref=f102e287] [cursor=pointer]:
+            - /url: /about
+      - list [ref=f102e288]:
+        - listitem [ref=f102e289]: Other Resources
+        - listitem [ref=f102e290]:
+          - link "Ajuda" [ref=f102e291] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages
+        - listitem [ref=f102e292]:
+          - link "Comunidade" [ref=f102e293] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/duckduckgo/
+        - listitem [ref=f102e294]:
+          - link "Carreiras" [ref=f102e295] [cursor=pointer]:
+            - /url: /careers
+        - listitem [ref=f102e296]:
+          - link "Política de privacidade" [ref=f102e297] [cursor=pointer]:
+            - /url: /privacy
+        - listitem [ref=f102e298]:
+          - link "Terms of Service" [ref=f102e299] [cursor=pointer]:
+            - /url: /terms
+        - listitem [ref=f102e300]:
+          - link "Pacote de imprensa" [ref=f102e301] [cursor=pointer]:
+            - /url: /press
+        - listitem [ref=f102e302]:
+          - link "Advertise on Search" [ref=f102e303] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages/company/advertise-on-duckduckgo-search
+  - generic [ref=f102e307]:
+    - generic [ref=f102e309]:
+      - generic [ref=f102e320]:
+        - heading "Introducing DuckDuckGo Collaborations" [level=3] [ref=f102e321]
+        - paragraph [ref=f102e322]: Expertly crafted products for people who give a duck about privacy.
+      - link "See More" [ref=f102e323] [cursor=pointer]:
+        - /url: https://duckduckgo.com/collaborations
+    - generic [ref=f102e325]:
+      - generic [ref=f102e326]:
+        - heading "Saiba mais" [level=3] [ref=f102e327]
+        - list [ref=f102e328]:
+          - listitem [ref=f102e329]:
+            - link "What's New" [ref=f102e330] [cursor=pointer]:
+              - /url: https://duckduckgo.com/updates
+          - listitem [ref=f102e331]:
+            - link "About Browser" [ref=f102e332] [cursor=pointer]:
+              - /url: https://duckduckgo.com/app
+          - listitem [ref=f102e333]:
+            - link "Compare Privacy" [ref=f102e334] [cursor=pointer]:
+              - /url: https://duckduckgo.com/compare-privacy
+          - listitem [ref=f102e335]:
+            - link "Help Pages" [ref=f102e336] [cursor=pointer]:
+              - /url: https://duckduckgo.com/duckduckgo-help-pages/
+      - generic [ref=f102e337]:
+        - heading "Get More" [level=3] [ref=f102e338]
+        - list [ref=f102e339]:
+          - listitem [ref=f102e340]:
+            - link "Email Protection" [ref=f102e341] [cursor=pointer]:
+              - /url: https://duckduckgo.com/email
+          - listitem [ref=f102e342]:
+            - generic [ref=f102e343]:
+              - link "Podcast" [ref=f102e345] [cursor=pointer]:
+                - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+              - generic [ref=f102e346]:
+                - text: "&"
+                - link "Newsletter" [ref=f102e347] [cursor=pointer]:
+                  - /url: https://duckduckgo.com/newsletter
+          - listitem [ref=f102e348]:
+            - link "Collaborations" [ref=f102e349] [cursor=pointer]:
+              - /url: https://duckduckgo.com/collaborations
+  - button "Compartilhar comentários" [ref=f102e354] [cursor=pointer]
+  - generic [ref=f102e355]:
+    - generic [ref=f102e357]:
+      - banner [ref=f102e358]:
+        - paragraph [ref=f102e360]: Upgrade to our browser.
+      - generic [ref=f102e361]:
+        - paragraph [ref=f102e367]:
+          - generic [ref=f102e368]:
+            - text: Try the
+            - strong [ref=f102e369]: DuckDuckGo Browser.
+            - text: Fast. Free. Private.
+        - link "Download Browser" [ref=f102e370] [cursor=pointer]:
+          - /url: https://duckduckgo.com/windows?origin=funnel_browser_searchresults__popover
+      - paragraph [ref=f102e376]:
+        - generic [ref=f102e377]: Free
+    - button [ref=f102e379] [cursor=pointer]

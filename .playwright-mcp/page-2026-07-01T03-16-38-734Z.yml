@@ -1,0 +1,99 @@
+- generic [active] [ref=f4e18]:
+  - generic [ref=f4e473]:
+    - navigation [ref=f4e474]:
+      - generic [ref=f4e476]:
+        - generic [ref=f4e477]: D
+        - generic [ref=f4e478]:
+          - paragraph [ref=f4e479]: 🩺 Dr. Teste Acesso
+          - generic [ref=f4e480]: Clínica Médica • CRM 99999-SP
+      - separator [ref=f4e481]
+      - generic [ref=f4e482]:
+        - generic [ref=f4e483]: PLANO
+        - paragraph [ref=f4e484]: ✅ Grátis (médico)
+        - text: "O portal do médico é gratuito por ora. Em breve: Premium do Médico."
+      - list [ref=f4e485]:
+        - button "Pacientes" [ref=f4e486] [cursor=pointer]:
+          - img [ref=f4e488]
+          - generic [ref=f4e491]: Pacientes
+        - button "Meu perfil" [ref=f4e492] [cursor=pointer]:
+          - img [ref=f4e494]
+          - generic [ref=f4e497]: Meu perfil
+        - button "Trocar senha" [ref=f4e498] [cursor=pointer]:
+          - img [ref=f4e500]
+          - generic [ref=f4e503]: Trocar senha
+        - separator [ref=f4e504]
+        - button "Sair" [ref=f4e505] [cursor=pointer]:
+          - img [ref=f4e507]
+          - generic [ref=f4e510]: Sair
+      - generic [ref=f4e511]: Portal do Médico
+    - generic [ref=f4e512]:
+      - generic [ref=f4e513]:
+        - button "←" [ref=f4e553] [cursor=pointer]
+        - generic [ref=f4e514]: D
+        - generic [ref=f4e515]:
+          - generic [ref=f4e516]:
+            - paragraph [ref=f4e517]: 🩺 Dr. Teste Acesso
+            - generic [ref=f4e519]: Profissional
+          - text: Clínica Médica • CRM 99999-SP
+      - generic [ref=f4e520]:
+        - generic [ref=f4e554]:
+          - generic [ref=f4e555]: E
+          - generic [ref=f4e556]:
+            - generic [ref=f4e557]:
+              - paragraph [ref=f4e558]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f4e560]: "#MC97"
+            - text: Particular
+        - generic [ref=f4e562]:
+          - generic [ref=f4e563]:
+            - generic [ref=f4e564]:
+              - text: RESUMO RÁPIDO
+              - paragraph [ref=f4e565]: 🔴 10 valor(es) alterado(s)
+              - generic [ref=f4e566]: HEMOGRAMA • s/d • 1 exame(s)
+            - button "📋 Copiar resumo" [ref=f4e567] [cursor=pointer]
+          - generic [ref=f4e568]:
+            - generic [ref=f4e570]: "Hemácias: 5,78 milhões/mm*"
+            - generic [ref=f4e572]: "Hemoglobina: 15,0 g/dt."
+            - generic [ref=f4e574]: "Hematócrito: 46,7 %"
+            - generic [ref=f4e576]: "VCM: 80,8"
+            - generic [ref=f4e578]: "HCM: 26,0 pg"
+            - generic [ref=f4e580]: "CHCM: 32,1 g/dt"
+            - generic [ref=f4e582]: "Segmentados: 59,6 %"
+            - generic [ref=f4e584]: "Linfócitos Típicos: 28,5 %"
+            - generic [ref=f4e586]: "Monócitos: 65%"
+            - generic [ref=f4e588]: "Plaquetas: 116.000/mm*"
+        - generic [ref=f4e589]:
+          - button "📋 Exames" [ref=f4e590] [cursor=pointer]:
+            - generic [ref=f4e591]: 📋 Exames
+          - button "🚨 Alertas" [ref=f4e592] [cursor=pointer]:
+            - generic [ref=f4e593]: 🚨 Alertas
+          - button "📈 Evolução" [ref=f4e594] [cursor=pointer]:
+            - generic [ref=f4e595]: 📈 Evolução
+          - button "🤖 Resumos IA" [ref=f4e596] [cursor=pointer]:
+            - generic [ref=f4e597]: 🤖 Resumos IA
+          - button "📝 Anotações" [ref=f4e598] [cursor=pointer]:
+            - generic [ref=f4e599]: 📝 Anotações
+        - generic [ref=f4e601]:
+          - heading "Sem data 1" [level=3] [ref=f4e602]:
+            - button "Sem data 1" [expanded] [ref=f4e603] [cursor=pointer]:
+              - generic [ref=f4e604]:
+                - paragraph [ref=f4e605]: Sem data
+                - generic [ref=f4e607]: "1"
+              - img [ref=f4e609]
+          - region [ref=f4e614]:
+            - generic [ref=f4e618] [cursor=pointer]:
+              - generic [ref=f4e619]:
+                - generic [ref=f4e620]:
+                  - paragraph [ref=f4e621]: HEMOGRAMA
+                  - generic [ref=f4e622]: s/d • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS • 20 itens
+                - generic [ref=f4e625]: 10 alterado
+              - generic [ref=f4e626]:
+                - generic [ref=f4e628]: "Hemácias: 5,78 milhões/mm*"
+                - generic [ref=f4e630]: "Hemoglobina: 15,0 g/dt."
+                - generic [ref=f4e632]: "Hematócrito: 46,7 %"
+                - generic [ref=f4e634]: "VCM: 80,8"
+                - generic [ref=f4e636]: "HCM: 26,0 pg"
+                - generic [ref=f4e638]: "CHCM: 32,1 g/dt"
+              - generic [ref=f4e639]: Toque para ver todos os itens →
+  - generic [ref=f4e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e17]

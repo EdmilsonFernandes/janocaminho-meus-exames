@@ -1,0 +1,99 @@
+- generic [ref=f12e1]:
+  - generic [ref=f12e7]:
+    - complementary [ref=f12e8]:
+      - generic [ref=f12e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e13]
+        - generic [ref=f12e14]: Admin
+      - navigation [ref=f12e15]:
+        - generic [ref=f12e16]: Operação
+        - link "Dashboard" [ref=f12e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f12e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f12e27] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f12e30] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f12e36] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f12e42] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f12e49]:
+        - generic [ref=f12e51]: Operação ao vivo
+        - paragraph [ref=f12e56]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f12e57]:
+        - link "Ver site público" [ref=f12e58] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f12e63]: © 2026 PremioX · Painel do operador
+    - generic [ref=f12e64]:
+      - banner [ref=f12e65]:
+        - button "Menu" [ref=f12e66] [cursor=pointer]
+        - heading "Painel" [level=2] [ref=f12e69]
+        - button "Atualizar" [ref=f12e70] [cursor=pointer]
+        - link "Ver site público" [ref=f12e424] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f12e82]:
+          - generic [ref=f12e83]: S
+          - generic "Online" [ref=f12e85]
+        - button "Sair" [ref=f12e86] [cursor=pointer]
+      - main [ref=f12e90]:
+        - generic [ref=f12e91]:
+          - complementary [ref=f12e92]:
+            - generic [ref=f12e93]:
+              - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e97]
+              - generic [ref=f12e98]: Admin
+            - navigation [ref=f12e99]:
+              - generic [ref=f12e100]: Operação
+              - link "Dashboard" [ref=f12e101] [cursor=pointer]:
+                - /url: /admin
+              - link "Campanhas" [ref=f12e107] [cursor=pointer]:
+                - /url: /admin/campanhas
+              - link "Nova campanha" [ref=f12e111] [cursor=pointer]:
+                - /url: /admin/campanhas/nova
+              - link "Parceiros" [ref=f12e114] [cursor=pointer]:
+                - /url: /admin/parceiros
+              - link "Usuários" [ref=f12e120] [cursor=pointer]:
+                - /url: /admin/usuarios
+              - link "Bloqueados" [ref=f12e126] [cursor=pointer]:
+                - /url: /admin/bloqueados
+            - generic [ref=f12e133]:
+              - generic [ref=f12e135]: Operação ao vivo
+              - paragraph [ref=f12e140]: Métricas atualizadas a cada poucos segundos.
+            - generic [ref=f12e141]:
+              - link "Ver site público" [ref=f12e142] [cursor=pointer]:
+                - /url: /
+              - paragraph [ref=f12e147]: © 2026 PremioX · Painel do operador
+          - generic [ref=f12e148]:
+            - generic [ref=f12e149]:
+              - button "Menu" [ref=f12e150] [cursor=pointer]
+              - heading "Painel" [level=2] [ref=f12e153]
+              - button "Atualizar" [ref=f12e154] [cursor=pointer]
+              - link "Ver site público" [ref=f12e425] [cursor=pointer]:
+                - /url: /
+              - generic [ref=f12e166]:
+                - generic [ref=f12e167]: S
+                - generic "Online" [ref=f12e169]
+              - button "Sair" [ref=f12e170] [cursor=pointer]
+            - main [ref=f12e174]:
+              - generic [ref=f12e175]:
+                - generic [ref=f12e176]:
+                  - heading "Usuários" [level=1] [ref=f12e177]
+                  - paragraph [ref=f12e178]: Busque, corrija contatos e gerencie contas.
+                - paragraph [ref=f12e179]: 1 usuário(s) · mostrando 1–1
+              - generic [ref=f12e180]:
+                - textbox "Buscar usuários" [ref=f12e182]:
+                  - /placeholder: Buscar por nome, telefone ou email…
+                - generic [ref=f12e183]:
+                  - button "Todos" [ref=f12e184] [cursor=pointer]
+                  - button "🟢 Ativos" [ref=f12e185] [cursor=pointer]
+                  - button "🔒 Bloqueados" [active] [pressed] [ref=f12e186] [cursor=pointer]
+              - generic [ref=f12e354]:
+                - generic [ref=f12e355]: B
+                - generic [ref=f12e356]:
+                  - link "Beto Calote" [ref=f12e357] [cursor=pointer]:
+                    - /url: /admin/usuarios/cmuqxqj5r000hdtukebrxog63
+                  - generic [ref=f12e358]: (11) 90000-6006 · beto.e2e@premiox.app
+                - generic [ref=f12e426]: Bloqueado
+                - button "✏️ Editar" [ref=f12e363] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f12e419] [cursor=pointer]
+  - alert [ref=f12e423]

@@ -1,0 +1,29 @@
+- generic [ref=e631]:
+  - button "Pular para o conteúdo" [ref=e632] [cursor=pointer]
+  - generic [ref=e633]:
+    - banner [ref=e634]:
+      - generic [ref=e635]:
+        - heading "Evolução da minha saúde" [level=6] [ref=e636]
+        - generic [ref=e639]:
+          - button "Notificações" [ref=e640] [cursor=pointer]
+          - button "👤 Selecionar" [ref=e645] [cursor=pointer]:
+            - generic [ref=e646]: 👤
+            - generic [ref=e648]: Selecionar
+        - button "Atualizar" [ref=e654] [cursor=pointer]
+    - main [ref=e657]:
+      - navigation [ref=e661]:
+        - generic [ref=e667]:
+          - paragraph [ref=e668]: Edmilson Lopes Fernandes dos Santos
+          - generic [ref=e669]: Plano grátis
+        - separator [ref=e672]
+        - button "Exames" [expanded] [ref=e674] [cursor=pointer]
+        - button "Cuidados" [ref=e687] [cursor=pointer]
+        - button "Pessoas" [ref=e697] [cursor=pointer]
+        - button "Conta" [ref=e707] [cursor=pointer]
+        - separator [ref=e715]
+        - button "Dúvidas frequentes" [ref=e716] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=e722] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=e728] [cursor=pointer]
+      - generic [ref=e740]:
+        - heading "Evolução ao longo do tempo" [level=5] [ref=e741]
+        - paragraph [ref=e742]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.

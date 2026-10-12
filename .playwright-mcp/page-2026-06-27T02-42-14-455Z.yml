@@ -1,0 +1,114 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e20]:
+    - button "Pular para o conteúdo" [ref=e787] [cursor=pointer]
+    - generic [ref=e22]:
+      - banner [ref=e23]:
+        - generic [ref=e24]:
+          - button "Close menu" [ref=e788] [cursor=pointer]:
+            - img [ref=e789]
+          - heading [level=6]
+          - button "99" [ref=e260] [cursor=pointer]:
+            - img [ref=e29]
+            - generic [ref=e31]: "99"
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e791] [cursor=pointer]:
+            - generic [ref=e35]: E
+            - generic [ref=e793]: Edmilson Lopes Fernandes dos Santos
+            - img [ref=e795]
+          - button "Modo escuro" [ref=e262] [cursor=pointer]:
+            - img [ref=e37]
+          - button "0" [ref=e263] [cursor=pointer]:
+            - generic [ref=e40]:
+              - img [ref=e41]
+              - generic: "0"
+          - button "Mais opções" [ref=e264] [cursor=pointer]:
+            - img [ref=e44]
+          - button "Atualizar" [ref=e265] [cursor=pointer]:
+            - img [ref=e48]
+      - main [ref=e50]:
+        - navigation [ref=e800]:
+          - button "Início" [ref=e801] [cursor=pointer]:
+            - img [ref=e803]
+            - generic [ref=e806]: Início
+          - button "Exames" [ref=e807] [cursor=pointer]:
+            - img [ref=e809]
+            - generic [ref=e812]: Exames
+          - paragraph [ref=e813]: Minha Saúde
+          - button "Valores alterados" [ref=e814] [cursor=pointer]:
+            - img [ref=e816]
+            - generic [ref=e820]: Valores alterados
+          - button "Tendências" [ref=e821] [cursor=pointer]:
+            - img [ref=e823]
+            - generic [ref=e826]: Tendências
+          - button "Linha do tempo" [ref=e827] [cursor=pointer]:
+            - img [ref=e829]
+            - generic [ref=e832]: Linha do tempo
+          - button "Medições" [ref=e833] [cursor=pointer]:
+            - img [ref=e835]
+            - generic [ref=e839]: Medições
+          - button "Vacinas" [ref=e840] [cursor=pointer]:
+            - img [ref=e842]
+            - generic [ref=e845]: Vacinas
+          - button "Lembretes" [ref=e846] [cursor=pointer]:
+            - img [ref=e848]
+            - generic [ref=e851]: Lembretes
+          - button "Cartão de emergência" [ref=e852] [cursor=pointer]:
+            - img [ref=e854]
+            - generic [ref=e857]: Cartão de emergência
+          - paragraph [ref=e858]: Inteligência Artificial
+          - button "Dr. Exame (IA)" [ref=e859] [cursor=pointer]:
+            - img [ref=e861]
+            - generic [ref=e864]: Dr. Exame (IA)
+          - button "Evolução" [ref=e865] [cursor=pointer]:
+            - img [ref=e867]
+            - generic [ref=e871]: Evolução
+          - button "Minhas conquistas" [ref=e872] [cursor=pointer]:
+            - img [ref=e874]
+            - generic [ref=e877]: Minhas conquistas
+          - paragraph [ref=e878]: Gerenciamento
+          - button "Família" [ref=e879] [cursor=pointer]:
+            - img [ref=e881]
+            - generic [ref=e885]: Família
+          - button "Dependentes" [ref=e886] [cursor=pointer]:
+            - img [ref=e888]
+            - generic [ref=e892]: Dependentes
+          - button "Meus Médicos" [ref=e893] [cursor=pointer]:
+            - img [ref=e895]
+            - generic [ref=e898]: Meus Médicos
+          - button "Relatório completo" [ref=e899] [cursor=pointer]:
+            - img [ref=e901]
+            - generic [ref=e904]: Relatório completo
+          - button "Despesas médicas" [ref=e905] [cursor=pointer]:
+            - img [ref=e907]
+            - generic [ref=e910]: Despesas médicas
+          - paragraph [ref=e911]: Conta
+          - button "Meu perfil" [ref=e912] [cursor=pointer]:
+            - img [ref=e914]
+            - generic [ref=e917]: Meu perfil
+          - button "Segurança" [ref=e918] [cursor=pointer]:
+            - img [ref=e920]
+            - generic [ref=e923]: Segurança
+          - button "Privacidade e termos" [ref=e924] [cursor=pointer]:
+            - img [ref=e926]
+            - generic [ref=e929]: Privacidade e termos
+          - button "Planos e créditos" [ref=e930] [cursor=pointer]:
+            - img [ref=e932]
+            - generic [ref=e935]: Planos e créditos
+          - separator [ref=e936]
+          - menuitem "❓ Ajuda & Suporte" [ref=e937] [cursor=pointer]:
+            - generic [ref=e938]: ❓
+            - generic [ref=e940]: Ajuda & Suporte
+          - menuitem "ℹ️ Sobre o app" [ref=e941] [cursor=pointer]:
+            - generic [ref=e942]: ℹ️
+            - generic [ref=e944]: Sobre o app
+          - menuitem "Sair da conta" [ref=e945] [cursor=pointer]:
+            - img [ref=e947]
+            - generic [ref=e950]: Sair da conta
+          - generic [ref=e951]: Meus Exames · v0.1.0 (unknown)
+        - generic [ref=e952]:
+          - img "Dr. Exame" [ref=e955]
+          - heading "Meus Exames" [level=4] [ref=e956]
+          - paragraph [ref=e957]: Seu assistente de saúde com IA
+          - img [ref=e959]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e273]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e274]

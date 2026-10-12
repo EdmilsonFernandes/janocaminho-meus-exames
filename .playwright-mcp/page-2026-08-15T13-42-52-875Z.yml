@@ -1,0 +1,142 @@
+- generic [active] [ref=f3e20]:
+  - generic [ref=f3e21]:
+    - generic [ref=f3e22]:
+      - button "Pular para o conteúdo" [ref=f3e23] [cursor=pointer]
+      - generic [ref=f3e24]:
+        - banner [ref=f3e25]:
+          - generic [ref=f3e26]:
+            - button "Voltar" [ref=f3e202] [cursor=pointer]
+            - generic [ref=f3e30]:
+              - img "Dr. Exame" [ref=f3e32]
+              - paragraph [ref=f3e33]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=f3e34] [cursor=pointer]:
+              - generic [ref=f3e37]: "19"
+              - button "Ocultar créditos" [ref=f3e38]
+            - button "Notificações" [ref=f3e41] [cursor=pointer]:
+              - generic [ref=f3e42]: "1"
+            - button "E" [ref=f3e47] [cursor=pointer]
+            - button "Atualizar" [ref=f3e54] [cursor=pointer]
+        - main [ref=f3e57]:
+          - generic [ref=f3e242]:
+            - heading "🧾 Relatório completo de saúde" [level=5] [ref=f3e243]
+            - paragraph [ref=f3e244]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - generic [ref=f3e295]:
+              - generic [ref=f3e297]:
+                - generic [ref=f3e298]:
+                  - img "Dr. Exame" [ref=f3e300]
+                  - generic [ref=f3e301]:
+                    - heading "Relatório consolidado 🩺" [level=6] [ref=f3e302]
+                    - paragraph [ref=f3e303]: Análise educativa — não substitui consulta médica
+                - generic [ref=f3e304]:
+                  - generic [ref=f3e306]:
+                    - paragraph [ref=f3e307]: "4"
+                    - text: Itens
+                  - generic [ref=f3e309]:
+                    - paragraph [ref=f3e310]: "2"
+                    - text: Atenção
+                  - generic [ref=f3e312]:
+                    - paragraph [ref=f3e313]: "4"
+                    - text: Positivos
+                - generic [ref=f3e314]:
+                  - button [ref=f3e315] [cursor=pointer]
+                  - button "Compartilhar" [ref=f3e320] [cursor=pointer]
+                  - button "Imprimir / PDF" [ref=f3e323] [cursor=pointer]
+                  - button [ref=f3e326] [cursor=pointer]
+                - paragraph [ref=f3e330]: Ed, esta análise considera principalmente os exames de. No quadro atual, seus níveis de Testosterona (Total e Livre) estão abaixo da faixa de referência, enquanto o LH está levemente acima. Por outro lado, observamos melhoras positivas na resistência à insulina (HOMA IR) e nos triglicerídeos ao longo do tempo.
+              - generic [ref=f3e331]:
+                - generic [ref=f3e333]:
+                  - paragraph [ref=f3e337]: Baseado nos exames
+                  - generic [ref=f3e338]: "3"
+                - generic [ref=f3e341]:
+                  - paragraph [ref=f3e343] [cursor=pointer]: 📄 CULTURA DE URINA — 11/11/2025 • Sabin
+                  - paragraph [ref=f3e345] [cursor=pointer]: 📄 HEMOGRAMA COMPLETO — 05/11/2025 • Sabin
+                  - paragraph [ref=f3e347] [cursor=pointer]: 📄 HEMOGRAMA COMPLETO — 07/02/2025 • Sabin
+              - generic [ref=f3e348]:
+                - generic [ref=f3e350]:
+                  - paragraph [ref=f3e355]: Itens em destaque
+                  - generic [ref=f3e356]: "4"
+                - generic [ref=f3e359]:
+                  - generic [ref=f3e362]:
+                    - generic [ref=f3e363]:
+                      - generic [ref=f3e364]: TESTOSTERONA TOTAL
+                      - generic [ref=f3e365]:
+                        - paragraph [ref=f3e366]: sem dado
+                        - paragraph [ref=f3e367]: →
+                        - paragraph [ref=f3e368]: 2,50 ng/dL
+                    - generic [ref=f3e369]:
+                      - generic [ref=f3e370]: Atenção
+                      - button "O que é este exame?" [ref=f3e372] [cursor=pointer]
+                  - generic [ref=f3e377]:
+                    - generic [ref=f3e378]:
+                      - generic [ref=f3e379]: TESTOSTERONA LIVRE
+                      - generic [ref=f3e380]:
+                        - paragraph [ref=f3e381]: sem dado
+                        - paragraph [ref=f3e382]: →
+                        - paragraph [ref=f3e383]: 0,35 pg/mL
+                    - generic [ref=f3e384]:
+                      - generic [ref=f3e385]: Atenção
+                      - button "O que é este exame?" [ref=f3e387] [cursor=pointer]
+                  - generic [ref=f3e392]:
+                    - generic [ref=f3e393]:
+                      - generic [ref=f3e394] [cursor=pointer]: LH - HORMONIO LUTEINIZANTE…mais
+                      - generic [ref=f3e395]:
+                        - paragraph [ref=f3e396]: sem dado
+                        - paragraph [ref=f3e397]: →
+                        - paragraph [ref=f3e398]: 12,70 mUI/mL
+                    - generic [ref=f3e399]:
+                      - generic [ref=f3e400]: Atenção
+                      - button "O que é este exame?" [ref=f3e402] [cursor=pointer]
+                  - generic [ref=f3e407]:
+                    - generic [ref=f3e408]:
+                      - generic [ref=f3e409]: HOMA IR
+                      - generic [ref=f3e410]:
+                        - paragraph [ref=f3e411]: sem dado
+                        - paragraph [ref=f3e412]: →
+                        - paragraph [ref=f3e413]: sem dado
+                    - generic [ref=f3e414]:
+                      - generic [ref=f3e415]: Melhorou
+                      - button "O que é este exame?" [ref=f3e417] [cursor=pointer]
+              - generic [ref=f3e420]:
+                - generic [ref=f3e422]:
+                  - paragraph [ref=f3e426]: Pontos de atenção
+                  - generic [ref=f3e427]: "2"
+                - generic [ref=f3e430]:
+                  - generic [ref=f3e431]:
+                    - paragraph [ref=f3e432]: 1. Testosterona Baixa
+                    - paragraph [ref=f3e433]: A Testosterona Total (2,50 ng/dL) e a Livre (0,35 pg/mL) estão abaixo do esperado. Isso pode estar relacionado à fadiga ou alterações de humor. Converse com seu médico.
+                  - generic [ref=f3e434]:
+                    - paragraph [ref=f3e435]: 2. LH Levemente Elevado
+                    - paragraph [ref=f3e436]: O LH (12,70 mUI/mL) está levemente acima da referência. Isso geralmente indica que o cérebro está estimulando mais os testículos para compensar a baixa produção de hormônios.
+              - heading [level=3] [ref=f3e438]:
+                - button "Pontos positivos 4" [ref=f3e439] [cursor=pointer]:
+                  - generic [ref=f3e441]:
+                    - paragraph [ref=f3e445]: Pontos positivos
+                    - generic [ref=f3e446]: "4"
+              - heading [level=3] [ref=f3e452]:
+                - button "Metas de saúde 2" [ref=f3e453] [cursor=pointer]:
+                  - generic [ref=f3e455]:
+                    - paragraph [ref=f3e459]: Metas de saúde
+                    - generic [ref=f3e460]: "2"
+              - generic [ref=f3e465]:
+                - generic [ref=f3e467]:
+                  - paragraph [ref=f3e471]: Perguntas para levar ao médico
+                  - generic [ref=f3e472]: "4"
+                - alert [ref=f3e476]:
+                  - generic [ref=f3e480]: Para enviar perguntas, compartilhe antes seus exames com um médico em “Meus Médicos”.
+              - generic [ref=f3e481]:
+                - paragraph [ref=f3e482]: 📌 Leitura final
+                - paragraph [ref=f3e483]: Ed, seu panorama mostra uma melhora clara no metabolismo (glicemia e gorduras no sangue), o que é ótimo. No entanto, a área hormonal carece de atenção, pois a testosterona baixa é um dado relevante. O fato de o LH estar elevado pode ser um sinal de que os testículos estão sendo estimulados, mas a resposta não está ideal. Leve esses resultados para seu médico para entender a causa.
+              - generic [ref=f3e484]: "Nota: Esta análise é educativa e não substitui consulta médica. Valores 'acima/abaixo da faixa' não indicam doença por si só. A faixa de referência depende do laboratório. Converse sempre com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=f3e233] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f3e236]
+    - navigation [ref=f3e176]:
+      - paragraph [ref=f3e181] [cursor=pointer]: Início
+      - paragraph [ref=f3e187] [cursor=pointer]: Exames
+      - generic [ref=f3e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f3e190]
+        - paragraph [ref=f3e191]: Dr. Exame
+      - paragraph [ref=f3e196] [cursor=pointer]: Evolução
+      - paragraph [ref=f3e201] [cursor=pointer]: Mais
+  - generic [ref=f3e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e19]

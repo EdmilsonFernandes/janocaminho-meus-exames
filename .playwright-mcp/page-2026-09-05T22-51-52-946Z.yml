@@ -1,0 +1,177 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1403]:
+      - button "Pular para o conteúdo" [ref=e2086] [cursor=pointer]
+      - generic [ref=e1405]:
+        - banner [ref=e1406]:
+          - generic [ref=e1407]:
+            - button "Menu" [ref=e2563] [cursor=pointer]
+            - generic [ref=e1411]:
+              - img "Dr. Exame" [ref=e2088]
+              - paragraph [ref=e1414]: Dr. Exame
+            - generic [ref=e1415]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=e2089] [cursor=pointer]:
+                - generic [ref=e1490]: "69"
+              - button "Notificações" [ref=e2090] [cursor=pointer]:
+                - generic [ref=e1417]: 9+
+              - button "E" [ref=e2091] [cursor=pointer]
+        - main [ref=e1427]:
+          - generic [ref=e2566]:
+            - generic [ref=e2569]:
+              - paragraph [ref=e2570]: Boa noite, Edmilson 👋
+              - generic [ref=e2571]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e2572]:
+              - generic [ref=e2574]:
+                - generic [ref=e2575]:
+                  - generic [ref=e2576]:
+                    - generic:
+                      - paragraph: "62"
+                      - paragraph: de 100
+                  - generic [ref=e2580]:
+                    - paragraph [ref=e2581]: Sua saúde hoje
+                    - paragraph [ref=e2582]: Em boa forma
+                    - paragraph [ref=e2584]:
+                      - generic [ref=e2585]: ● 5 moderados
+                - button [ref=e2586] [cursor=pointer]
+              - generic [ref=e2591]:
+                - paragraph [ref=e2592]: O que mudou nos seus exames
+                - generic [ref=e2593]: 1 melhorou
+                - generic [ref=e2599]:
+                  - paragraph [ref=e2600]: ↓GLICOSE
+                  - paragraph [ref=e2601]: 95 mg/dL
+                - button [ref=e2603] [cursor=pointer]
+            - generic [ref=e2610]:
+              - generic [ref=e2611]:
+                - img "Dr. Exame" [ref=e2613]
+                - generic [ref=e2614]:
+                  - paragraph [ref=e2615]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=e2616]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=e2618] [cursor=pointer]
+            - generic [ref=e2622]:
+              - generic [ref=e2630] [cursor=pointer]:
+                - paragraph [ref=e2631]: Cardiometabólico
+                - paragraph [ref=e2632]: baixo
+                - paragraph [ref=e2633]: 1 fator de risco
+              - generic [ref=e2641] [cursor=pointer]:
+                - paragraph [ref=e2642]: Idade biológica
+                - paragraph [ref=e2643]: 42a
+                - paragraph [ref=e2644]: estimativa corporal
+              - generic [ref=e2652] [cursor=pointer]:
+                - paragraph [ref=e2653]: Seus exames
+                - paragraph [ref=e2654]: "9"
+                - paragraph [ref=e2655]: 8 alterados
+              - generic [ref=e2663] [cursor=pointer]:
+                - paragraph [ref=e2664]: Evolução
+                - paragraph [ref=e2665]: "34"
+                - paragraph [ref=e2666]: histórico de tendências
+            - generic [ref=e2668]:
+              - generic [ref=e2669]: Enviar exame
+              - generic [ref=e2676]: Evolução
+              - generic [ref=e2683]: Família
+              - generic [ref=e2691]: Relatório
+            - generic [ref=e2700]:
+              - generic [ref=e2704]:
+                - paragraph [ref=e2705]: "69"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=e2706] [cursor=pointer]
+            - generic [ref=e2709] [cursor=pointer]:
+              - generic [ref=e2711]:
+                - paragraph [ref=e2712]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=e2715]:
+                - generic [ref=e2716]: 🎉
+                - generic [ref=e2718]: 📚
+                - generic [ref=e2720]: 🎓
+                - generic [ref=e2722]: 💚
+                - generic [ref=e2724]: 🔥
+              - generic [ref=e2726]: 2 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=e2728] [cursor=pointer]
+    - navigation [ref=e1432]:
+      - paragraph [ref=e1437] [cursor=pointer]: Início
+      - paragraph [ref=e1442] [cursor=pointer]: Exames
+      - generic [ref=e1444] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2098]
+        - paragraph [ref=e1447]: Dr. Exame
+      - paragraph [ref=e1452] [cursor=pointer]: Evolução
+      - paragraph [ref=e1457] [cursor=pointer]: Mais
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e2099] [cursor=pointer]
+      - button "×" [ref=e2100] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e2101] [cursor=pointer]
+      - button "×" [ref=e2102] [cursor=pointer]
+  - generic [ref=e2553]:
+    - generic [ref=e2554]:
+      - generic [ref=e2555]: "✦ overused font: Primary font: inter (62% of text)"
+      - generic [ref=e2556]: "skipped heading level: <h1> \"GLICEMIA DE JEJUM\" followed by <h3> \"Glicídico2 alterados2 itens\" (missing h2)"
+      - generic [ref=e2557]: "skipped heading level: <h3> \"Glicídico2 alterados2 itens\" followed by <h6> \"Análise de saúde\" (missing h4)"
+      - generic [ref=e2558]: "layout property animation: transition: height"
+      - generic [ref=e2559]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e2560]:
+      - button "◉" [ref=e2561] [cursor=pointer]
+      - button "×" [ref=e2562] [cursor=pointer]
+  - generic: ✦ ai color palette
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e2736] [cursor=pointer]
+        - button "›" [ref=e2737] [cursor=pointer]
+      - generic: undersized functional text
+  - generic: low contrast text, ✦ ai color palette
+  - generic: cramped padding
+  - generic: ✦ ai color palette
+  - generic: low contrast text
+  - generic: low contrast text, ✦ ai color palette
+  - generic: tiny body text
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e2738] [cursor=pointer]
+        - button "›" [ref=e2739] [cursor=pointer]
+      - generic: ✦ ai color palette
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e2740] [cursor=pointer]
+        - button "›" [ref=e2741] [cursor=pointer]
+      - generic: low contrast text
+  - generic: ✦ hairline border with wide shadow
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e2742] [cursor=pointer]
+        - button "›" [ref=e2743] [cursor=pointer]
+      - generic: low contrast text
+  - generic: ✦ glowing shadow accents
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic: ✦ ai color palette
+  - generic: undersized functional text
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic: text occluded by an overlapping element
+  - generic [ref=e2744]:
+    - generic [ref=e2745]:
+      - generic [ref=e2746]: "✦ overused font: Primary font: inter (64% of text)"
+      - generic [ref=e2747]: "layout property animation: transition: height"
+      - generic [ref=e2748]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e2749]:
+      - button "◉" [ref=e2750] [cursor=pointer]
+      - button "×" [ref=e2751] [cursor=pointer]

@@ -1,0 +1,98 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - generic [ref=f4e90]:
+      - button [ref=f4e91] [cursor=pointer]
+      - generic [ref=f4e92]:
+        - banner [ref=f4e93]:
+          - generic [ref=f4e94]:
+            - button [ref=f4e95] [cursor=pointer]
+            - paragraph [ref=f4e101]: Dr. Exame
+            - button [ref=f4e102] [cursor=pointer]:
+              - generic [ref=f4e105]: "71"
+              - button [ref=f4e106]
+            - button [ref=f4e109] [cursor=pointer]:
+              - generic [ref=f4e110]: "34"
+            - button [ref=f4e115] [cursor=pointer]:
+              - generic [ref=f4e116]: E
+            - button [ref=f4e122] [cursor=pointer]
+        - main [ref=f4e125]:
+          - generic [ref=f4e127]:
+            - generic [ref=f4e128]:
+              - paragraph [ref=f4e129]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f4e130]:
+              - generic [ref=f4e132]:
+                - generic [ref=f4e133]:
+                  - generic [ref=f4e138]:
+                    - paragraph [ref=f4e139]: "45"
+                    - paragraph [ref=f4e140]: de 100
+                  - generic [ref=f4e141]:
+                    - paragraph [ref=f4e142]: Sua saúde hoje
+                    - paragraph [ref=f4e143]: Pede atenção
+                    - paragraph [ref=f4e145]:
+                      - generic [ref=f4e146]: ● 6 moderados
+                - button [ref=f4e147] [cursor=pointer]: Ver análise completa
+              - generic [ref=f4e152]:
+                - paragraph [ref=f4e153]: Desde seu último exame
+                - generic [ref=f4e154]: 3 piorouram
+                - generic [ref=f4e159]:
+                  - generic [ref=f4e160]:
+                    - paragraph [ref=f4e161]: ↑COLESTEROL TOTAL
+                    - paragraph [ref=f4e162]: 232 mg/dL
+                  - generic [ref=f4e163]:
+                    - paragraph [ref=f4e164]: ↑LDL COLESTEROL
+                    - paragraph [ref=f4e165]: 158 mg/dL
+                  - generic [ref=f4e166]:
+                    - paragraph [ref=f4e167]: ↓HDL COLESTEROL
+                    - paragraph [ref=f4e168]: 38 mg/dL
+                - button [ref=f4e170] [cursor=pointer]: Ver evolução completa
+            - button [ref=f4e179] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f4e183]:
+              - generic [ref=f4e190] [cursor=pointer]:
+                - paragraph [ref=f4e191]: Cardiometabólico
+                - paragraph [ref=f4e192]: Em dia
+                - paragraph [ref=f4e193]: sem fatores
+              - generic [ref=f4e201] [cursor=pointer]:
+                - paragraph [ref=f4e202]: Seus exames
+                - paragraph [ref=f4e203]: "5"
+                - paragraph [ref=f4e204]: 8 alterados
+              - generic [ref=f4e211] [cursor=pointer]:
+                - paragraph [ref=f4e212]: Evolução
+                - paragraph [ref=f4e213]: Tendências
+                - paragraph [ref=f4e214]: 28 resultados
+            - generic [ref=f4e216]:
+              - generic [ref=f4e217]: Enviar exame
+              - generic [ref=f4e224]: Evolução
+              - generic [ref=f4e231]: Família
+              - generic [ref=f4e239]: Relatório
+            - generic [ref=f4e248]:
+              - generic [ref=f4e252]:
+                - paragraph [ref=f4e253]: "71"
+                - text: créditos disponíveis
+              - button [ref=f4e254] [cursor=pointer]: Comprar
+            - button [ref=f4e256] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f4e260]:
+      - paragraph [ref=f4e265] [cursor=pointer]: Início
+      - paragraph [ref=f4e271] [cursor=pointer]: Exames
+      - paragraph [ref=f4e275] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f4e280] [cursor=pointer]: Evolução
+      - paragraph [ref=f4e285] [cursor=pointer]: Mais
+  - generic [ref=f4e87] [cursor=pointer]
+  - dialog [ref=f4e291]:
+    - generic [ref=f4e292]:
+      - button [ref=f4e293] [cursor=pointer]: Pular
+      - generic [ref=f4e294]:
+        - heading [level=4] [ref=f4e297]: Envie seu exame
+        - paragraph [ref=f4e298]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f4e299]:
+        - button [ref=f4e305] [cursor=pointer]: Próximo
+        - paragraph [ref=f4e309]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f4e312]:
+    - heading [level=2] [ref=f4e313]:
+      - generic [ref=f4e314]:
+        - img "Dr. Exame" [ref=f4e315]
+        - paragraph [ref=f4e316]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f4e318]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=f4e319]:
+      - button "Depois" [ref=f4e320] [cursor=pointer]
+      - button "Ver notificações" [ref=f4e321] [cursor=pointer]

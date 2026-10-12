@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Dr. Exame — mockups</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --teal: #20b2aa; --teal-dark: #178f89; --teal-soft: #5fc9c3;
+    --copper: #d4a574; --copper-deep: #b9860f;
+    --bg-light: #eef7f6; --paper: #ffffff; --ink: #2d3748;
+    --bg-dark: #0f1818; --paper-dark: #1a2424; --ink-dark: #e8eef0;
+    --muted: #6b7f7d; --danger: #c2410c; --ok: #047857;
+  }
+  html, body { width: 840px; height: 1560px; overflow: hidden; font-family: Inter, sans-serif; }
+  .board { width: 840px; height: 1560px; display: none; align-items: center; justify-content: center;
+    background: radial-gradient(120% 100% at 50% 0%, #dff0ee 0%, #cfe8e5 55%, #bcdcd8 100%); position: relative; }
+  .board.on { display: flex; }
+  .board.dark { background: radial-gradient(130% 110% at 50% 0%, #14302e 0%, #0c1514 70%); }
+  /* ---- phone: Android premium, punch-hole, borda fina, margens uniformes ---- */
+  .phone { width: 700px; height: 1440px; border-radius: 44px; background: #0a0f0f;
+    padding: 12px; box-shadow: 0 60px 120px rgba(10, 40, 38, .45), 0 24px 48px rgba(10, 40, 38, .30), inset 0 0 0 2px #1e2a29; position: relative; }
+  .screen { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .light .screen { background: var(--bg-light); color: var(--ink); }
+  .dark .screen { background: var(--bg-dark); color: var(--ink-dark); }
+  /* status bar Android */
+  .status { height: 56px; flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; padding: 14px 34px 0; font: 600 19px Inter; position: relative; z-index: 5; }
+  .punch { width: 22px; height: 22px; border-radius: 50%; background: #0a0f0f; position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 6; }
+  .light .status { color: var(--ink); } .dark .status { color: var(--ink-dark); }
+  .body { flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+  h1, h2, h3 { font-family: Poppins, sans-serif; }
+  .cta { display: block; text-align: center; padding: 26px 0; border-radius: 18px; font: 800 26px Poppins; color: #fff;
+    background: linear-gradient(135deg, #20b2aa, #178f89); box-shadow: 0 12px 30px rgba(32, 178, 170, .35); }
+  .nav { flex: 0 0 auto; height: 118px; background: var(--paper); border-top: 2px solid #e2eeec; display: flex; align-items: center; justify-content: space-around; padding: 0 10px 16px; }
+  .nav .it { display: flex; flex-direction: column; align-items: center; gap: 6px; font: 700 17px Inter; color: #93a7a4; }
+  .nav .it.on { color: var(--teal-dark); }
+  .nav .ic { font-size: 30px; line-height: 1; }
+  .nav .dot { width: 40px; height: 5px; border-radius: 3px; background: transparent; }
+  .nav .it.on .dot { background: var(--copper); }
+  .card { background: var(--paper); border-radius: 22px; border: 2px solid #e4f0ee; }
+  .dark .card { background: var(--paper-dark); border-color: #243131; }
+</style>
+</head>
+<body>
+
+<!-- ============ S1 — WELCOME (dark, primeira tela limpa) ============ -->
+<section class="board dark on" id="b1">
+  <div class="phone dark">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="align-items: center; justify-content: center; padding: 0 64px; text-align: center;">
+        <div style="position: relative; margin-bottom: 64px;">
+          <div style="position: absolute; inset: -46px; border-radius: 50%; background: radial-gradient(circle, rgba(32,178,170,.35), transparent 70%);"></div>
+          <img src="robot.png" style="width: 260px; height: 260px; border-radius: 64px; position: relative; box-shadow: 0 30px 80px rgba(32,178,170,.35);">
+          <span style="position: absolute; top: -18px; right: -30px; font-size: 52px;">✨</span>
+        </div>
+        <h1 style="font-size: 58px; font-weight: 900; letter-spacing: -.01em;">Dr. Exame</h1>
+        <p style="font: 600 27px/1.45 Inter; color: #9fc4c1; margin-top: 22px; max-width: 480px;">Seus exames de laboratório, explicados em português claro.</p>
+        <div style="margin-top: 88px; width: 100%;">
+          <a class="cta">Começar grátis</a>
+          <p style="text-align: center; font: 700 22px Inter; color: var(--teal-soft); margin-top: 30px;">Já tenho conta</p>
+        </div>
+      </div>
+      <div style="flex: 0 0 auto; padding: 0 0 34px; text-align: center; font: 500 16px Inter; color: #5f7a77;">Conteúdo educativo · não substitui seu médico</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S2 — ONBOARDING: cole seu exame (light) ============ -->
+<section class="board" id="b2">
+  <div class="phone light">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="padding: 30px 48px 44px;">
+        <div style="display: flex; justify-content: flex-end; font: 700 21px Inter; color: var(--muted);">Pular</div>
+        <!-- visual: laudo → robô -->
+        <div style="display: flex; align-items: center; justify-content: center; gap: 26px; margin: 52px 0 56px;">
+          <div style="width: 216px; height: 272px; background: #fff; border-radius: 18px; border: 2px solid #dbeae8; box-shadow: 0 18px 40px rgba(20, 80, 76, .12); padding: 24px 20px; display: flex; flex-direction: column; gap: 13px; transform: rotate(-4deg);">
+            <div style="height: 12px; width: 70%; background: #cfe0de; border-radius: 6px;"></div>
+            <div style="height: 8px; width: 90%; background: #e2eeec; border-radius: 4px;"></div><div style="height: 8px; width: 82%; background: #e2eeec; border-radius: 4px;"></div><div style="height: 8px; width: 88%; background: #e2eeec; border-radius: 4px;"></div>
+            <div style="height: 34px; width: 100%; background: #fdf0e4; border-radius: 8px; display: flex; align-items: center; padding: 0 12px; font: 700 15px Inter; color: var(--copper-deep);">TSH 5,8 ↑</div>
+            <div style="height: 8px; width: 76%; background: #e2eeec; border-radius: 4px;"></div><div style="height: 8px; width: 84%; background: #e2eeec; border-radius: 4px;"></div>
+            <div style="height: 34px; width: 62%; background: #e7f6f3; border-radius: 8px; display: flex; align-items: center; padding: 0 12px; font: 700 15px Inter; color: var(--teal-dark);">LDL 190 ↑</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 6px;">
+            <span style="font-size: 42px; color: var(--teal);">→</span>
+          </div>
+          <div style="position: relative;">
+            <div style="position: absolute; inset: -26px; border-radius: 50%; background: radial-gradient(circle, rgba(32,178,170,.25), transparent 70%);"></div>
+            <img src="robot.png" style="width: 172px; height: 172px; border-radius: 44px; position: relative; box-shadow: 0 20px 48px rgba(32,178,170,.3);">
+            <span style="position: absolute; top: -24px; right: -26px; font-size: 44px;">✨</span>
+          </div>
+        </div>
+        <h2 style="font-size: 46px; font-weight: 800; line-height: 1.15;">Cole seu exame.<br>De graça, sem cadastro.</h2>
+        <div style="margin-top: 40px; display: flex; flex-direction: column; gap: 20px; font: 600 23px Inter; color: var(--ink);">
+          <div style="display: flex; gap: 16px; align-items: center;"><span style="width: 40px; height: 40px; border-radius: 12px; background: #e7f6f3; color: var(--teal-dark); display: grid; place-items: center; font: 800 20px Poppins;">1</span>Envie o PDF do laboratório</div>
+          <div style="display: flex; gap: 16px; align-items: center;"><span style="width: 40px; height: 40px; border-radius: 12px; background: #e7f6f3; color: var(--teal-dark); display: grid; place-items: center; font: 800 20px Poppins;">2</span>A IA organiza cada valor</div>
+          <div style="display: flex; gap: 16px; align-items: center;"><span style="width: 40px; height: 40px; border-radius: 12px; background: #e7f6f3; color: var(--teal-dark); display: grid; place-items: center; font: 800 20px Poppins;">3</span>Você sai com as perguntas pro médico</div>
+        </div>
+        <div style="flex: 1;"></div>
+        <a class="cta">Decifrar meu exame</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S3 — DASHBOARD (light, score hero) ============ -->
+<section class="board" id="b3">
+  <div class="phone light">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="padding: 26px 44px 0;">
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="width: 74px; height: 74px; border-radius: 50%; background: linear-gradient(135deg, #20b2aa33, #178f8922); display: grid; place-items: center; font: 800 30px Poppins; color: var(--teal-dark); box-shadow: inset 0 0 0 2px #20b2aa44;">E</div>
+          <div style="flex: 1;">
+            <p style="font: 700 20px Inter; color: var(--muted);">Boa noite, Ed 👋</p>
+            <h3 style="font-size: 31px; font-weight: 800;">Seu painel de saúde</h3>
+          </div>
+          <span style="font-size: 34px;">🔔</span>
+        </div>
+        <!-- score hero -->
+        <div class="card" style="margin-top: 34px; padding: 36px 40px; display: flex; align-items: center; gap: 36px; background: linear-gradient(135deg, #ffffff 55%, #f2fbfa);">
+          <div style="position: relative; width: 190px; height: 190px;">
+            <svg viewBox="0 0 120 120" style="width: 190px; height: 190px;">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#e2eeec" stroke-width="11"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#20b2aa" stroke-width="11" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="72" transform="rotate(-90 60 60)"/>
+            </svg>
+            <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <span style="font: 900 52px Poppins; color: var(--teal-dark);">78</span>
+              <span style="font: 700 17px Inter; color: var(--muted);">de 100</span>
+            </div>
+          </div>
+          <div>
+            <p style="font: 800 19px Inter; letter-spacing: .08em; color: var(--copper-deep);">SCORE DE SAÚDE</p>
+            <h3 style="font-size: 29px; font-weight: 800; margin: 8px 0 12px;">Subiu 6 pontos</h3>
+            <p style="font: 500 20px/1.5 Inter; color: var(--muted);">desde o último exame — colesterol e glicose melhoraram ✨</p>
+          </div>
+        </div>
+        <!-- tiles -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; margin-top: 26px;">
+          <div class="card" style="padding: 24px 20px;"><p style="font: 700 17px Inter; color: var(--muted);">ÚLTIMO EXAME</p><p style="font: 800 30px Poppins; margin-top: 8px;">04/08</p><p style="font: 600 17px Inter; color: var(--muted); margin-top: 4px;">há 27 dias</p></div>
+          <div class="card" style="padding: 24px 20px; border-color: #f3ddc2; background: #fffaf3;"><p style="font: 700 17px Inter; color: var(--copper-deep);">PRECISAM DE ATENÇÃO</p><p style="font: 800 30px Poppins; margin-top: 8px; color: var(--copper-deep);">2</p><p style="font: 600 17px Inter; color: var(--muted); margin-top: 4px;">tireoide · colesterol</p></div>
+          <div class="card" style="padding: 24px 20px;"><p style="font: 700 17px Inter; color: var(--muted);">PASSOS HOJE</p><p style="font: 800 30px Poppins; margin-top: 8px;">4.043</p><p style="font: 600 17px Inter; color: var(--muted); margin-top: 4px;">3,2 km · 310 kcal</p></div>
+        </div>
+        <!-- próximo exame -->
+        <div class="card" style="margin-top: 26px; padding: 28px 32px; display: flex; align-items: center; gap: 24px;">
+          <span style="font-size: 40px;">🗓️</span>
+          <div style="flex: 1;"><p style="font: 800 22px Poppins;">Renovar exames</p><p style="font: 500 19px Inter; color: var(--muted); margin-top: 4px;">TSH e colesterol vencem em 3 semanas</p></div>
+          <span style="color: var(--teal); font-size: 28px;">→</span>
+        </div>
+        <div style="flex: 1;"></div>
+      </div>
+      <div class="nav">
+        <div class="it on"><span class="ic">🏠</span>Início<div class="dot"></div></div>
+        <div class="it"><span class="ic">🧬</span>Exames<div class="dot"></div></div>
+        <div class="it"><span class="ic">💬</span>Perguntas<div class="dot"></div></div>
+        <div class="it"><span class="ic">👨‍👩‍👧</span>Família<div class="dot"></div></div>
+        <div class="it"><span class="ic">⚙️</span>Perfil<div class="dot"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S4 — EXAME DECIFRADO (light, flags) ============ -->
+<section class="board" id="b4">
+  <div class="phone light">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="padding: 26px 44px 40px;">
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-size: 30px; color: var(--ink);">←</span>
+          <div><h3 style="font-size: 27px; font-weight: 800;">Tireoideana</h3><p style="font: 600 18px Inter; color: var(--muted);">04/08/2026 · 2 alterados</p></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px; margin-top: 30px;">
+          <div class="card" style="padding: 26px 30px; display: flex; align-items: center;">
+            <div style="flex: 1;"><p style="font: 700 19px Inter; color: var(--muted);">TSH</p><p style="font: 800 26px Poppins; margin-top: 4px;">5,8 <span style="font: 600 18px Inter; color: var(--muted);">µUI/mL</span></p></div>
+            <div style="text-align: right;"><span style="background: #fdeae0; color: var(--danger); font: 800 18px Inter; padding: 10px 18px; border-radius: 999px;">↑ alto</span><p style="font: 600 16px Inter; color: var(--muted); margin-top: 8px;">ref. 0,4 – 4,0</p></div>
+          </div>
+          <div class="card" style="padding: 26px 30px; display: flex; align-items: center;">
+            <div style="flex: 1;"><p style="font: 700 19px Inter; color: var(--muted);">T4 livre</p><p style="font: 800 26px Poppins; margin-top: 4px;">1,1 <span style="font: 600 18px Inter; color: var(--muted);">ng/dL</span></p></div>
+            <div style="text-align: right;"><span style="background: #e5f4ee; color: var(--ok); font: 800 18px Inter; padding: 10px 18px; border-radius: 999px;">✓ normal</span><p style="font: 600 16px Inter; color: var(--muted); margin-top: 8px;">ref. 0,8 – 1,8</p></div>
+          </div>
+          <div class="card" style="padding: 26px 30px; display: flex; align-items: center;">
+            <div style="flex: 1;"><p style="font: 700 19px Inter; color: var(--muted);">Anticorpos anti-TPO</p><p style="font: 800 26px Poppins; margin-top: 4px;">12 <span style="font: 600 18px Inter; color: var(--muted);">UI/mL</span></p></div>
+            <div style="text-align: right;"><span style="background: #e5f4ee; color: var(--ok); font: 800 18px Inter; padding: 10px 18px; border-radius: 999px;">✓ normal</span><p style="font: 600 16px Inter; color: var(--muted); margin-top: 8px;">ref. &lt; 35</p></div>
+          </div>
+        </div>
+        <!-- explicação da IA -->
+        <div class="card" style="margin-top: 28px; padding: 32px; background: linear-gradient(160deg, #ffffff, #f0faf9); border-color: #cfe9e6;">
+          <div style="display: flex; align-items: center; gap: 14px;">
+            <img src="robot.png" style="width: 52px; height: 52px; border-radius: 16px;">
+            <p style="font: 800 21px Poppins;">Dr. Exame explica <span style="font-size: 22px;">✨</span></p>
+          </div>
+          <p style="font: 500 21px/1.55 Inter; color: var(--ink); margin-top: 18px;">A TSH alta com T4 normal sugere <b>hipotireoidismo subclínico</b> — a tireoide começando a desacelerar. É a fase em que conversar cedo com seu médico faz diferença.</p>
+        </div>
+        <div style="flex: 1;"></div>
+        <a class="cta" style="background: linear-gradient(135deg, #d4a574, #b9860f); box-shadow: 0 12px 30px rgba(185, 134, 15, .3);">Ver as 4 perguntas pro meu médico</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S5 — CHAT IA (light, conversa) ============ -->
+<section class="board" id="b5">
+  <div class="phone light">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="padding: 0;">
+        <div style="display: flex; align-items: center; gap: 16px; padding: 22px 44px; background: var(--paper); border-bottom: 2px solid #e4f0ee;">
+          <span style="font-size: 26px; color: var(--ink);">←</span>
+          <img src="robot.png" style="width: 58px; height: 58px; border-radius: 18px;">
+          <div style="flex: 1;"><p style="font: 800 23px Poppins;">Dr. Exame <span style="font-size: 20px;">✨</span></p><p style="font: 600 17px Inter; color: var(--teal-dark);">online · lê seus exames</p></div>
+        </div>
+        <div style="flex: 1; padding: 34px 40px; display: flex; flex-direction: column; gap: 22px; overflow: hidden;">
+          <div style="align-self: flex-end; max-width: 82%; background: var(--teal); color: #fff; padding: 22px 28px; border-radius: 22px 22px 6px 22px; font: 600 22px/1.45 Inter; box-shadow: 0 8px 22px rgba(32,178,170,.25);">Minha TSH tá 5,8… isso é grave?</div>
+          <div style="align-self: flex-start; max-width: 88%; background: var(--paper); border: 2px solid #e4f0ee; padding: 24px 28px; border-radius: 22px 22px 22px 6px; font: 500 22px/1.5 Inter; color: var(--ink);">
+            <b style="color: var(--teal-dark);">Não costuma ser, no seu padrão.</b><br><br>
+            TSH 5,8 com T4 livre normal indica <b>hipotireoidismo subclínico</b> — estágio inicial e geralmente silencioso. Cerca de <b>1 em cada 10 adultos</b> tem algo parecido.<br><br>
+            O que pesa a favor de observar com seu médico: anticorpos normais e sem sintomas relatados.
+          </div>
+          <div style="align-self: flex-start; background: #fffaf3; border: 2px solid #f3ddc2; padding: 20px 26px; border-radius: 20px; max-width: 88%;">
+            <p style="font: 800 18px Inter; color: var(--copper-deep);">PERGUNTA PRO MÉDICO ✨</p>
+            <p style="font: 500 20px/1.45 Inter; color: var(--ink); margin-top: 8px;">"Diante da TSH 5,8 e anticorpos normais, vale repetir em quanto tempo ou já avaliar tratamento?"</p>
+          </div>
+        </div>
+        <div style="flex: 0 0 auto; padding: 20px 36px 34px; background: var(--paper); border-top: 2px solid #e4f0ee; display: flex; gap: 16px; align-items: center;">
+          <div style="flex: 1; height: 66px; border-radius: 20px; background: var(--bg-light); display: flex; align-items: center; padding: 0 28px; font: 500 21px Inter; color: #93a7a4;">Pergunte sobre seus exames…</div>
+          <div style="width: 66px; height: 66px; border-radius: 20px; background: linear-gradient(135deg, #20b2aa, #178f89); display: grid; place-items: center; color: #fff; font-size: 26px;">➤</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ S6 — EVOLUÇÃO (light, gráfico) ============ -->
+<section class="board" id="b6">
+  <div class="phone light">
+    <div class="screen">
+      <div class="status"><span>20:31</span><span>▮▮▮ ⌁ 86%</span></div><div class="punch"></div>
+      <div class="body" style="padding: 26px 44px 40px;">
+        <div style="display: flex; align-items: center; gap: 18px;">
+          <span style="font-size: 30px;">←</span>
+          <div><h3 style="font-size: 27px; font-weight: 800;">Evolução · TSH</h3><p style="font: 600 18px Inter; color: var(--muted);">5 exames · mar 2025 → ago 2026</p></div>
+        </div>
+        <div class="card" style="margin-top: 30px; padding: 34px 30px 26px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <div><p style="font: 700 18px Inter; color: var(--muted);">ÚLTIMO VALOR</p><p style="font: 900 46px Poppins; color: var(--danger); margin-top: 4px;">5,8</p></div>
+            <span style="background: #fdeae0; color: var(--danger); font: 800 18px Inter; padding: 10px 18px; border-radius: 999px;">↑ de 4,9 pra 5,8</span>
+          </div>
+          <svg viewBox="0 0 620 260" style="width: 100%; margin-top: 22px;">
+            <rect x="0" y="104" width="620" height="34" fill="#20b2aa" opacity="0.08"/>
+            <text x="6" y="98" font-family="Inter" font-size="15" fill="#93a7a4">faixa normal até 4,0</text>
+            <polyline points="30,150 160,132 290,168 420,120 550,86" fill="none" stroke="#d4a574" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+            <polygon points="30,150 160,132 290,168 420,120 550,86 550,260 30,260" fill="#d4a574" opacity="0.08"/>
+            <circle cx="550" cy="86" r="11" fill="#d4a574"/><circle cx="550" cy="86" r="20" fill="#d4a574" opacity=".25"/>
+            <circle cx="30" cy="150" r="8" fill="#fff" stroke="#d4a574" stroke-width="5"/>
+            <circle cx="160" cy="132" r="8" fill="#fff" stroke="#d4a574" stroke-width="5"/>
+            <circle cx="290" cy="168" r="8" fill="#fff" stroke="#d4a574" stroke-width="5"/>
+            <circle cx="420" cy="120" r="8" fill="#fff" stroke="#d4a574" stroke-width="5"/>
+          </svg>
+          <div style="display: flex; justify-content: space-between; font: 600 16px Inter; color: var(--muted); padding: 0 6px;"><span>mar/25</span><span>jun/25</span><span>set/25</span><span>dez/25</span><span>ago/26</span></div>
+        </div>
+        <div class="card" style="margin-top: 26px; padding: 30px 32px; border-color: #f3ddc2; background: #fffaf3; display: flex; gap: 22px; align-items: flex-start;">
+          <span style="font-size: 38px;">📈</span>
+          <div>
+            <p style="font: 800 22px Poppins; color: var(--copper-deep);">Tendência de alta</p>
+            <p style="font: 500 21px/1.5 Inter; color: var(--ink); margin-top: 10px;">A TSH subiu em cada exame dos últimos 6 meses. Levar essa curva ao médico ajuda a decidir se já é hora de tratar.</p>
+          </div>
+        </div>
+        <div class="card" style="margin-top: 26px; padding: 28px 32px; display: flex; align-items: center; gap: 22px;">
+          <img src="robot.png" style="width: 56px; height: 56px; border-radius: 18px;">
+          <p style="flex: 1; font: 500 20px/1.45 Inter; color: var(--ink);"><b>Dr. Exame ✨</b> comparou os 5 exames — a curva completa vai no relatório pro seu médico.</p>
+        </div>
+        <div style="flex: 1;"></div>
+        <a class="cta">Gerar relatório da evolução</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const s = new URLSearchParams(location.search).get('s') || '1';
+  document.querySelectorAll('.board').forEach(el => el.classList.remove('on'));
+  document.getElementById('b' + s)?.classList.add('on');
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+- generic [ref=f5e20]:
+  - generic [ref=f5e21]:
+    - generic [ref=f5e83]:
+      - button [ref=f5e84] [cursor=pointer]
+      - generic [ref=f5e85]:
+        - banner [ref=f5e86]:
+          - generic [ref=f5e87]:
+            - button [ref=f5e88] [cursor=pointer]
+            - button [ref=f5e91] [cursor=pointer]:
+              - generic [ref=f5e94]: "59"
+            - button [ref=f5e96] [cursor=pointer]
+            - button [ref=f5e101] [cursor=pointer]
+            - button [ref=f5e105] [cursor=pointer]
+            - button [ref=f5e109] [cursor=pointer]
+        - main [ref=f5e112]:
+          - generic [ref=f5e114]:
+            - generic [ref=f5e115]:
+              - paragraph [ref=f5e116]: Boa noite, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f5e117]:
+              - progressbar [ref=f5e118]
+              - paragraph [ref=f5e121]: Calculando seu score…
+            - generic [ref=f5e124]:
+              - generic [ref=f5e128]:
+                - generic [ref=f5e129]: Organizando seus dados
+                - paragraph [ref=f5e131]: Montando sua prioridade de hoje
+                - paragraph [ref=f5e132]: Estamos cruzando exames, alertas e créditos para sugerir o melhor próximo passo.
+              - button [ref=f5e133] [cursor=pointer]: Ver exames →
+            - generic [ref=f5e134]:
+              - paragraph [ref=f5e141]: Suas leituras
+              - generic [ref=f5e142]:
+                - generic [ref=f5e144]:
+                  - progressbar [ref=f5e145]
+                  - paragraph [ref=f5e148]: Montando sua leitura de risco…
+                - generic [ref=f5e150]:
+                  - progressbar [ref=f5e151]
+                  - paragraph [ref=f5e154]: Montando seu estado atual…
+              - generic [ref=f5e155]:
+                - button [ref=f5e156] [cursor=pointer]: 📊 Tendências & Previsões →
+                - button [ref=f5e157] [cursor=pointer]: 🏆 Conquistas →
+            - generic [ref=f5e158]:
+              - paragraph [ref=f5e164]: Dr. Exame
+              - generic [ref=f5e167]:
+                - generic [ref=f5e171]:
+                  - paragraph [ref=f5e172]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=f5e173]: Leve sempre seus exames anteriores à consulta — a comparação entre valores vale mais que um número isolado.
+                - button [ref=f5e175] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f5e179]:
+              - paragraph [ref=f5e185]: Seus números
+              - generic [ref=f5e186]:
+                - generic [ref=f5e187]:
+                  - generic [ref=f5e190] [cursor=pointer]:
+                    - paragraph [ref=f5e194]: "0"
+                    - generic [ref=f5e195]: Exames enviados
+                  - generic [ref=f5e198] [cursor=pointer]:
+                    - paragraph [ref=f5e203]: "0"
+                    - generic [ref=f5e204]: Valores alterados
+                  - generic [ref=f5e207] [cursor=pointer]:
+                    - paragraph [ref=f5e212]: "0"
+                    - generic [ref=f5e213]: Dependentes
+                  - generic [ref=f5e216] [cursor=pointer]:
+                    - paragraph [ref=f5e220]: —
+                    - generic [ref=f5e221]: Última atualização
+                - generic [ref=f5e225]:
+                  - heading [level=6] [ref=f5e226]: Distribuição dos valores
+                  - paragraph [ref=f5e227]: Últimos exames extraídos deste perfil.
+                  - paragraph [ref=f5e228]: Sem valores extraídos ainda. Envie um exame.
+            - generic [ref=f5e229]:
+              - paragraph [ref=f5e235]: Ações rápidas
+              - generic [ref=f5e237]:
+                - generic [ref=f5e238]: Enviar exame
+                - generic [ref=f5e245]: Evolução
+                - generic [ref=f5e252]: Família
+                - generic [ref=f5e260]: Relatório
+            - button [ref=f5e268] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f5e272]:
+      - paragraph [ref=f5e277] [cursor=pointer]: Início
+      - paragraph [ref=f5e283] [cursor=pointer]: Exames
+      - paragraph [ref=f5e287] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e292] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e297] [cursor=pointer]: Mais
+  - dialog [active] [ref=f5e302]:
+    - generic [ref=f5e303]:
+      - button "Pular" [ref=f5e304] [cursor=pointer]
+      - generic [ref=f5e305]:
+        - generic [ref=f5e306]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=f5e307]
+        - paragraph [ref=f5e308]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f5e309]:
+        - button [ref=f5e315] [cursor=pointer]
+        - paragraph [ref=f5e319]: Toque em Próximo para continuar →

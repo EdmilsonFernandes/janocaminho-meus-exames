@@ -1,0 +1,75 @@
+- generic [active] [ref=f24e1]:
+  - generic [ref=f24e2]:
+    - generic [ref=f24e3]:
+      - button "Pular para o conteúdo" [ref=f24e4] [cursor=pointer]
+      - generic [ref=f24e5]:
+        - banner [ref=f24e6]:
+          - generic [ref=f24e7]:
+            - button "Voltar" [ref=f24e8] [cursor=pointer]
+            - generic [ref=f24e11]:
+              - img "Dr. Exame" [ref=f24e13]
+              - paragraph [ref=f24e14]: Dr. Exame
+            - generic [ref=f24e15]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=f24e123] [cursor=pointer]:
+                - generic [ref=f24e19]: "69"
+              - button "Notificações" [ref=f24e20] [cursor=pointer]:
+                - generic [ref=f24e21]: "2"
+              - button "E Edmilson Lopes Fernandes dos Santos" [ref=f24e26] [cursor=pointer]:
+                - generic [ref=f24e27]: E
+                - generic [ref=f24e29]: Edmilson Lopes Fernandes dos Santos
+        - main [ref=f24e34]:
+          - generic [ref=f24e67]:
+            - generic [ref=f24e68]:
+              - button "Voltar ao início" [ref=f24e69] [cursor=pointer]: ←
+              - img "Dr. Exame" [ref=f24e70]
+              - generic [ref=f24e71]:
+                - paragraph [ref=f24e72]: Dr. Exame
+                - paragraph [ref=f24e74]: Assistente de saúde com IA · Edmilson
+              - button "Histórico de conversas (2)" [ref=f24e124] [cursor=pointer]:
+                - generic [ref=f24e76]: "2"
+            - generic [ref=f24e178]:
+              - img "Dr. Exame" [ref=f24e181]
+              - generic [ref=f24e185]:
+                - paragraph [ref=f24e186]: Como posso te ajudar, Edmilson?
+                - paragraph [ref=f24e187]: Toque numa sugestão ou escreva sua dúvida sobre seus exames.
+              - generic [ref=f24e188]:
+                - generic [ref=f24e189] [cursor=pointer]:
+                  - generic [ref=f24e190]: 📊
+                  - paragraph [ref=f24e191]: Resumo dos meus exames
+                  - generic [ref=f24e192]: ›
+                - generic [ref=f24e193] [cursor=pointer]:
+                  - generic [ref=f24e194]: ⚠️
+                  - paragraph [ref=f24e195]: O que está alterado
+                  - generic [ref=f24e196]: ›
+                - generic [ref=f24e197] [cursor=pointer]:
+                  - generic [ref=f24e198]: 📈
+                  - paragraph [ref=f24e199]: Minha evolução
+                  - generic [ref=f24e200]: ›
+                - generic [ref=f24e201] [cursor=pointer]:
+                  - generic [ref=f24e202]: 🔄
+                  - paragraph [ref=f24e203]: Comparar exames
+                  - generic [ref=f24e204]: ›
+                - generic [ref=f24e205] [cursor=pointer]:
+                  - generic [ref=f24e206]: 📖
+                  - paragraph [ref=f24e207]: Explicar termo médico
+                  - generic [ref=f24e208]: ›
+                - generic [ref=f24e209] [cursor=pointer]:
+                  - generic [ref=f24e210]: 🔬
+                  - paragraph [ref=f24e211]: O que significa meu resultado
+                  - generic [ref=f24e212]: ›
+              - generic [ref=f24e213]: 2 créditos por pergunta · a IA não substitui seu médico
+            - generic [ref=f24e117]:
+              - button "Ações rápidas" [ref=f24e118] [cursor=pointer]
+              - textbox "Pergunte sobre seus exames…" [ref=f24e121]
+              - button "Enviar" [disabled]
+    - navigation [ref=f24e37]:
+      - paragraph [ref=f24e42] [cursor=pointer]: Início
+      - paragraph [ref=f24e48] [cursor=pointer]: Exames
+      - generic [ref=f24e49] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f24e51]
+        - paragraph [ref=f24e52]: Dr. Exame
+      - paragraph [ref=f24e57] [cursor=pointer]: Evolução
+      - paragraph [ref=f24e62] [cursor=pointer]: Mais
+    - alert [ref=f24e214]:
+      - generic [ref=f24e215]: A IA não respondeu agora. Seu crédito foi devolvido — tente de novo.
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f24e65] [cursor=pointer]

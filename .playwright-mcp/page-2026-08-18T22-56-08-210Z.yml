@@ -1,0 +1,105 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e2602]:
+            - generic [ref=e2603]:
+              - button [ref=e2604] [cursor=pointer]: ←
+              - generic [ref=e2606]:
+                - paragraph [ref=e2607]: Dr. Exame
+                - paragraph [ref=e2609]: Assistente de saúde com IA · Edmilson
+              - button [ref=e2610] [cursor=pointer]:
+                - generic [ref=e2611]: "1"
+            - generic [ref=e2616]:
+              - generic [ref=e2623]:
+                - paragraph [ref=e2624]: Como posso te ajudar, Edmilson?
+                - paragraph [ref=e2625]: Toque numa sugestão ou escreva sua dúvida sobre seus exames.
+              - generic [ref=e2626]:
+                - generic [ref=e2627] [cursor=pointer]:
+                  - generic [ref=e2628]: 📊
+                  - paragraph [ref=e2629]: Resumo dos meus exames
+                  - generic [ref=e2630]: ›
+                - generic [ref=e2631] [cursor=pointer]:
+                  - generic [ref=e2632]: ⚠️
+                  - paragraph [ref=e2633]: O que está alterado
+                  - generic [ref=e2634]: ›
+                - generic [ref=e2635] [cursor=pointer]:
+                  - generic [ref=e2636]: 📈
+                  - paragraph [ref=e2637]: Minha evolução
+                  - generic [ref=e2638]: ›
+                - generic [ref=e2639] [cursor=pointer]:
+                  - generic [ref=e2640]: 🔄
+                  - paragraph [ref=e2641]: Comparar exames
+                  - generic [ref=e2642]: ›
+                - generic [ref=e2643] [cursor=pointer]:
+                  - generic [ref=e2644]: 📖
+                  - paragraph [ref=e2645]: Explicar termo médico
+                  - generic [ref=e2646]: ›
+                - generic [ref=e2647] [cursor=pointer]:
+                  - generic [ref=e2648]: 🔬
+                  - paragraph [ref=e2649]: O que significa meu resultado
+                  - generic [ref=e2650]: ›
+              - generic [ref=e2651]: 2 créditos por pergunta · a IA não substitui seu médico
+            - generic [ref=e2652]:
+              - button [ref=e2653] [cursor=pointer]
+              - textbox [ref=e2656]:
+                - /placeholder: Pergunte sobre seus exames…
+              - button [disabled]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - generic [ref=e226]:
+        - button "Conta" [expanded] [ref=e227] [cursor=pointer]
+        - generic [ref=e1821]:
+          - button "Meu perfil" [ref=e1822] [cursor=pointer]
+          - button "Segurança & senha" [ref=e1828] [cursor=pointer]
+          - button "Privacidade e termos" [ref=e1834] [cursor=pointer]
+          - button "Planos e Créditos" [ref=e1840] [cursor=pointer]
+          - button "Despesas Médicas" [ref=e1846] [cursor=pointer]
+          - button "Painel Admin" [ref=e1852] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

@@ -1,0 +1,28 @@
+- generic [active] [ref=e1]:
+  - heading "Dr. Exame · Saúde Esportiva — 4 conceitos" [level=1] [ref=e2]
+  - paragraph [ref=e3]: Robô oficial intocado + elemento esportivo somando. Identidade teal preservada em todos.
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - heading "1 · Faixa de Atleta" [level=2] [ref=e6]
+      - text: "Faixa de testa teal + gota de suso (esforço). O mais universal: serve corredor, musculação, TRT."
+      - generic [ref=e8]: 48 / 28 px
+      - generic [ref=e12]: dark mode
+      - generic [ref=e15]: Saúde Esportiva
+    - generic [ref=e16]:
+      - heading "2 · Pulso" [level=2] [ref=e17]
+      - text: Linha de batimento atravessando o selo — esporte e clínica no mesmo traço. O mais sóbrio.
+      - generic [ref=e19]: 48 / 28 px
+      - generic [ref=e23]: dark mode
+      - generic [ref=e26]: Saúde Esportiva
+    - generic [ref=e27]:
+      - heading "3 · Halteres" [level=2] [ref=e28]
+      - text: "Dois crachás: cruz médica + halter. O mais literalmente \"musculação\"."
+      - generic [ref=e30]: 48 / 28 px
+      - generic [ref=e34]: dark mode
+      - generic [ref=e37]: Saúde Esportiva
+    - generic [ref=e38]:
+      - heading "4 · Faixa + Pulso" [level=2] [ref=e39]
+      - text: Combina os dois sinais — p/ hero do modo Saúde Esportiva. O mais rico.
+      - generic [ref=e41]: 48 / 28 px
+      - generic [ref=e45]: dark mode
+      - generic [ref=e48]: Saúde Esportiva

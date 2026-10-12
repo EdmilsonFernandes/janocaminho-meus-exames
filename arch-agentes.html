@@ -1,0 +1,210 @@
+<title>Arquitetura de Agentes</title>
+<style>
+/* Layout: documento-técnico de uma coluna; diagrama de camadas clicável como hero.
+   Paleta: papel-frio + índigo-blueprint; dark: azul-profundo. Mono = vernacular de engenharia. */
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --surface2:#eef1f6; --line:#d7dde8;
+  --fg:#1c2333; --fg2:#5a6478; --accent:#3b54d6; --accent-soft:#e6eafb;
+  --good:#0c8a5f; --warn:#b3670a; --bad:#c23a3a;
+  --font-d:"Sora",system-ui,sans-serif; --font-b:"IBM Plex Sans",system-ui,sans-serif; --font-m:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0d1220; --surface:#151c30; --surface2:#1c2440; --line:#2a3352;
+  --fg:#e8ecf6; --fg2:#9aa5c0; --accent:#8ea2ff; --accent-soft:#1f2a52;
+  --good:#4ad29b; --warn:#f0b35a; --bad:#ff8d8d; color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d1220; --surface:#151c30; --surface2:#1c2440; --line:#2a3352;
+  --fg:#e8ecf6; --fg2:#9aa5c0; --accent:#8ea2ff; --accent-soft:#1f2a52;
+  --good:#4ad29b; --warn:#f0b35a; --bad:#ff8d8d; color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-b);line-height:1.55}
+.wrap{max-width:980px;margin:0 auto;padding:40px 20px 80px}
+h1,h2,h3{font-family:var(--font-d);text-wrap:balance;line-height:1.2}
+h1{font-size:clamp(26px,4.5vw,38px);margin:6px 0 10px}
+h2{font-size:20px;margin:0 0 4px}
+.kicker{font-family:var(--font-m);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.lede{color:var(--fg2);font-size:16.5px;max-width:64ch}
+section{margin-top:52px}
+.sec-head{display:flex;gap:14px;align-items:baseline;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:18px}
+.sec-head .n{font-family:var(--font-m);font-size:13px;color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+/* ---------- Diagrama de camadas ---------- */
+.stack{display:flex;flex-direction:column;gap:8px;margin:18px 0 6px}
+.layer{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:stretch;
+  background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;
+  transition:border-color .15s, transform .15s}
+.layer:hover{border-color:var(--accent)}
+.layer.sel{border-color:var(--accent);background:var(--accent-soft)}
+.layer .tag{font-family:var(--font-m);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);
+  display:flex;flex-direction:column;justify-content:center;gap:2px}
+.layer.sel .tag{color:var(--accent)}
+.layer .tag b{color:inherit;font-size:12px}
+.layer .what{min-width:0}
+.layer .what .t{font-weight:600;font-size:14.5px}
+.layer .what .d{font-size:13.5px;color:var(--fg2)}
+.layer .who{font-family:var(--font-m);font-size:11.5px;color:var(--accent);white-space:nowrap;align-self:center}
+#detail{margin-top:12px;padding:14px 16px;border-left:3px solid var(--accent);background:var(--surface2);
+  border-radius:0 10px 10px 0;font-size:14.5px;min-height:64px}
+#detail b{font-family:var(--font-m);font-size:12px;display:block;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+/* ---------- Tabela mental model ---------- */
+.mm{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.mm .card h3{font-size:15px;margin:0 0 8px}
+.mm .card .role{font-family:var(--font-m);font-size:11px;color:var(--accent);margin-bottom:10px}
+.mm ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--fg2)}
+.mm li{margin:4px 0}
+.mm li b{color:var(--fg);font-weight:600}
+.cost{font-family:var(--font-m);font-size:11.5px;margin-top:10px;padding-top:8px;border-top:1px dashed var(--line);color:var(--fg2)}
+.cost b{color:var(--accent)}
+/* ---------- Diagnóstico ---------- */
+.diag{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px}
+.stat .v{font-family:var(--font-d);font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat .l{font-size:12.5px;color:var(--fg2);margin-top:2px}
+.stat .flag{font-family:var(--font-m);font-size:10.5px;margin-top:8px}
+.ok{color:var(--good)} .mid{color:var(--warn)} .bad{color:var(--bad)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{font-family:var(--font-m);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg2);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:none}
+td:first-child{font-weight:600;white-space:nowrap}
+.pill{display:inline-block;font-family:var(--font-m);font-size:10.5px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--fg2)}
+.pill.a{border-color:var(--accent);color:var(--accent)}
+.scrollx{overflow-x:auto}
+/* ---------- Plano ---------- */
+.plan{margin-top:14px;border-left:2px solid var(--line)}
+.step{position:relative;padding:0 0 20px 22px}
+.step::before{content:"";position:absolute;left:-6px;top:4px;width:10px;height:10px;border-radius:99px;background:var(--accent);border:2px solid var(--bg)}
+.step .w{font-family:var(--font-m);font-size:11px;color:var(--accent);letter-spacing:.1em;text-transform:uppercase}
+.step .h{font-weight:600;font-size:15px;margin:2px 0 4px}
+.step p{margin:0;font-size:13.5px;color:var(--fg2);max-width:72ch}
+.rule{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+.rule:last-child{border-bottom:none}
+.rule .rn{font-family:var(--font-m);color:var(--accent);font-size:13px;min-width:34px;padding-top:2px}
+.rule b{display:block}
+.rule span{color:var(--fg2);font-size:13.5px}
+.src{margin-top:40px;font-size:12px;color:var(--fg2);border-top:1px solid var(--line);padding-top:14px}
+.src a{color:var(--accent);text-decoration:none}
+.src a:hover{text-decoration:underline}
+@media (max-width:720px){
+  .mm{grid-template-columns:1fr}
+  .diag{grid-template-columns:1fr 1fr}
+  .layer{grid-template-columns:1fr}
+  .layer .who{order:-1}
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="wrap">
+
+<header>
+  <div class="kicker">Blueprint · ecossistema Claude</div>
+  <h1>Arquitetura de Agentes, Skills &amp; MCP</h1>
+  <p class="lede">Você tem 119 skills ativas, 461 agentes dormentes e ~15 servidores MCP globais carregando contexto em toda sessão. O problema não é quantidade — é que tudo paga imposto de contexto o tempo todo. Este é o plano de mercado para organizar em camadas, com orçamento de contexto explícito.</p>
+</header>
+
+<section>
+  <div class="sec-head"><span class="n">01</span><h2>O diagrama — cinco camadas, um orçamento</h2></div>
+  <p class="lede" style="font-size:14.5px">Clique numa camada para ver o papel, quem a ocupa hoje e a regra de uso.</p>
+  <div class="stack" id="stack"></div>
+  <div id="detail"></div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">02</span><h2>O modelo mental (consenso de mercado 2026)</h2></div>
+  <div class="mm">
+    <div class="card">
+      <h3>Skills</h3><div class="role">expertise · procedimento</div>
+      <ul>
+        <li><b>Só a descrição</b> carrega no boot (~40 tok cada)</li>
+        <li>Corpo entra <b>só quando invocada</b> — progressive disclosure</li>
+        <li>Portátil: serve pra qualquer repo</li>
+      </ul>
+      <div class="cost">custo: <b>~0</b> até o gatilho</div>
+    </div>
+    <div class="card">
+      <h3>MCP</h3><div class="role">acesso · ferramenta</div>
+      <ul>
+        <li>Expõe sistemas externos: <b>DB, GitHub, browser</b></li>
+        <li>Schema + instruções carregam em <b>todo turno</b></li>
+        <li>Substitui hallucination por dado real</li>
+      </ul>
+      <div class="cost">custo: <b>fixo</b> por sessão inteira</div>
+    </div>
+    <div class="card">
+      <h3>Subagents</h3><div class="role">isolamento · paralelismo</div>
+      <ul>
+        <li>Contexto <b>próprio</b> — não polui a thread principal</li>
+        <li>Rodam em <b>paralelo</b> (exploração, revisão)</li>
+        <li>Podem usar skills e MCP dentro deles</li>
+      </ul>
+      <div class="cost">custo: <b>0</b> na thread principal</div>
+    </div>
+  </div>
+  <p class="lede" style="font-size:13.5px;margin-top:12px">Não competem — <b>combinam</b>: MCP dá acesso, skill dá conhecimento, subagent dá mão de obra isolada. A orquestração hierárquica (arquiteto → verificador → executor) é o padrão <i>generator-verifier / orchestrator-subagent</i> da Anthropic.</p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">03</span><h2>Diagnóstico do seu ambiente</h2></div>
+  <div class="diag">
+    <div class="stat"><div class="v">119</div><div class="l">skills globais ativas (~4,9k tok/sessão só de descrições)</div><div class="flag mid">▲ meta: ~50</div></div>
+    <div class="stat"><div class="v">193</div><div class="l">arquivadas com catálogo — padrão saudável</div><div class="flag ok">✓ biblioteca sob demanda</div></div>
+    <div class="stat"><div class="v">461</div><div class="l">agents na library — dormentes, nunca flat</div><div class="flag ok">✓ ok como estoque</div></div>
+    <div class="stat"><div class="v">~15</div><div class="l">MCP servers GLOBAIS (wibx×10+, playwright, biomcp, planner…) pagos em qualquer repo</div><div class="flag bad">● maior custo oculto</div></div>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <div class="scrollx"><table>
+      <tr><th>Sintoma que você relatou</th><th>Causa estrutural</th><th>Correção</th></tr>
+      <tr><td>"tá tudo geral e jogado"</td><td>Skill global virou depósito default</td><td><span class="pill a">regra 2</span> global = cross-project; domínio = repo</td></tr>
+      <tr><td>sessões caras/lentas mesmo em tarefa pequena</td><td>MCP global carrega em todo boot</td><td><span class="pill a">regra 3</span> MCP por projeto (.mcp.json)</td></tr>
+      <tr><td>sem hierarquia arquiteto/gerente/dev</td><td>Revisores são skills (texto), não agentes</td><td><span class="pill a">regra 4</span> revisores → subagents do repo</td></tr>
+      <tr><td>qualidade depende de lembrar de checar</td><td>Verificação é opcional</td><td><span class="pill a">regra 5</span> generator→verifier obrigatório</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">04</span><h2>As seis regras da casa</h2></div>
+  <div class="card">
+    <div class="rule"><div class="rn">R1</div><div><b>Contexto é orçamento</b><span>No boot só entra o que serve a TODO projeto. Tudo else paga sob demanda — ou morre arquivado com catálogo.</span></div></div>
+    <div class="rule"><div class="rn">R2</div><div><b>Skill global = cross-project com gatilho claro</b><span>Segurança, docs Office, AWS, e-mail, dev-workflow núcleo. Skill de domínio (analyze-token, health-review…) vive no repo que a usa: <code>.claude/skills/</code>.</span></div></div>
+    <div class="rule"><div class="rn">R3</div><div><b>MCP global só o universal</b><span>github + context7 (e playwright, se usar em tudo). O resto — wibx-*, biomcp, planner, ui-expert, web_reader — vira <code>.mcp.json</code> do projeto dono. O repo de exames para de pagar pelos 10 Postgres do Wibx.</span></div></div>
+    <div class="rule"><div class="rn">R4</div><div><b>Revisor é subagent, não skill</b><span>ui-reviewer, a11y, security, perf do Dr. Exame viram <code>.claude/agents/*.md</code> do repo: contexto isolado, rodam paralelos, retornam veredito.</span></div></div>
+    <div class="rule"><div class="rn">R5</div><div><b>Generator → verifier sempre</b><span>Nada é "pronto" sem passar por um gate: /gate (UX 44 checks), code-review nativo, CI (o exemplo maduro que já funciona no seu deploy). O crítico adversarial (/critique) argumenta pela REJEIÇÃO.</span></div></div>
+    <div class="rule"><div class="rn">R6</div><div><b>Arquivo organizado é biblioteca</b><span>skills-archive + catálogo + agents-library como estoque: reativar por <code>mv</code> quando o trabalho pedir. Morto é o que carrega sem ser usado.</span></div></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="n">05</span><h2>Plano de 30 dias</h2></div>
+  <div class="plan">
+    <div class="step"><div class="w">Semana 1 · maior ganho</div><div class="h">MCP hygiene + poda de skills</div>
+      <p>Mover 10+ servers globais para .mcp.json dos projetos donos (wibx-* → repo wibx; biomcp → exames). Podar skills globais 119 → ~50 arquivando as de uso raro. Economia imediata em TODA sessão de TODO projeto.</p></div>
+    <div class="step"><div class="w">Semana 2</div><div class="h">Revisores viram subagents + gates no fluxo</div>
+      <p>Converter ui-ux-reviewer, accessibility-reviewer, security e perf do Dr. Exame em .claude/agents/. Instituir: todo PR passa dev → /gate + code-review antes do "pronto".</p></div>
+    <div class="step"><div class="w">Semana 3–4</div><div class="h">Pipelines determinísticos + medição</div>
+      <p>Workflows para rotinas repetitivas (review pipeline, release). Medir com /caveman-stats e rtk gain: tokens/sessão antes vs depois — o placar valida a arquitetura.</p></div>
+  </div>
+</section>
+
+<p class="src">Fontes: <a href="https://claude.com/blog/multi-agent-coordination-patterns" target="_blank" rel="noopener">Anthropic — multi-agent coordination patterns</a> · <a href="https://code.claude.com/docs/en/best-practices" target="_blank" rel="noopener">Claude Code best practices</a> · <a href="https://k21academy.com/claude/claude-code-skills-vs-sub-agents-vs-mcp" target="_blank" rel="noopener">Skills vs Subagents vs MCP</a> · <a href="https://code.claude.com/docs/en/sub-agents" target="_blank" rel="noopener">Subagents</a></p>
+</div>
+
+<script>
+const LAYERS=[
+ {tag:"L0 · kernel",t:"Contexto-base (sempre carregado)",d:"CLAUDE.md global enxuto (índice+gatilhos), memória, ~50 skills universais",who:"~4–6k tok",x:"<b>Kernel</b>É a única camada que paga imposto em 100% das sessões. Regra: se não serve a todo projeto, desce de camada. O índice de skills (SKILLS-CATALOG.md) é o mapa — o corpo só carrega sob demanda."},
+ {tag:"L1 · arquiteto",t:"Sessão principal — decide e planeja",d:"Você + o Claude Code: escopo, Graphify (impacto), plano, aprovação. Nunca faz trabalho bruto que dá pra delegar",who:"thread principal",x:"<b>Arquiteto</b>A sessão principal é o arquiteto: entende o problema, consulta o grafo de impacto, escreve o plano e escolhe quem executa. O que ela NÃO deve fazer: varrer arquivos (Explore faz), revisar em série (subagents fazem paralelo), carregar schema de DB (MCP do projeto faz)."},
+ {tag:"L2 · gerente",t:"Gates de qualidade — o verificador",d:"/gate (44 checks UX) · code-review nativo · design-critic adversarial · CI (seu gate maduro: test→build→deploy)",who:"generator→verifier",x:"<b>Gerente de qualidade</b>Todo trabalho passa por um verificador ANTES de 'pronto' — o padrão generator-verifier, o mais implantado no mercado. Seu CI já é o exemplo maduro (test gate antes do deploy). /gate e /critique trazem o mesmo rigor para UI. Sem gate, qualidade é sorte."},
+ {tag:"L3 · devs",t:"Subagents — execução isolada",d:"Agent tool (explore/general-purpose) + revisores do repo em .claude/agents/ · paralelos, contexto próprio, veredito de volta",who:"paralelo · isolado",x:"<b>Devs</b>Cada subagent tem um objetivo único, entrada/saída claras e handoff (o veredito volta, o lixo de contexto fica lá). Rondam em paralelo: um explora, outro revisa segurança, outro a11y. Single responsibility é a regra nº 1 de mercado."},
+ {tag:"L4 · ferramentas",t:"Skills + MCP — sob demanda",d:"Skills = expertise (carrega ao invocar) · MCP = acesso (schema carrega no boot — por isso vive no .mcp.json do projeto dono)",who:"payment per use",x:"<b>Ferramentas</b>Skill é conhecimento que entra na hora do uso (~0 custo antes). MCP é acesso a sistema externo — mas cada server paga contexto fixo em TODA sessão. Por isso a regra de ouro: MCP global só o universal (github, context7); o resto mora no projeto que usa."}
+];
+const stack=document.getElementById('stack'),det=document.getElementById('detail');
+LAYERS.forEach((L,i)=>{
+  const el=document.createElement('div');el.className='layer'+(i===0?' sel':'');
+  el.innerHTML=`<div class="tag"><b>${L.tag.split(' · ')[0]}</b>${L.tag.split(' · ')[1]}</div>
+    <div class="what"><div class="t">${L.t}</div><div class="d">${L.d}</div></div><div class="who">${L.who}</div>`;
+  el.onclick=()=>{document.querySelectorAll('.layer').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');det.innerHTML=L.x;};
+  stack.appendChild(el);
+});
+det.innerHTML=LAYERS[0].x;
+</script>

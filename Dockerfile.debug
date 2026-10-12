@@ -1,0 +1,10 @@
+FROM node:20-slim
+WORKDIR /app
+COPY package*.json ./
+COPY packages/server/package.json packages/server/
+COPY packages/web/package.json packages/web/
+COPY packages/shared/package.json packages/shared/
+COPY packages/mobile/package.json packages/mobile/
+RUN npm install --workspaces --include-workspace-root
+COPY . .
+RUN npm run typecheck --workspace packages/web

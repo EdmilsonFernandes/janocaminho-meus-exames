@@ -1,0 +1,93 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - generic [ref=e7] [cursor=pointer]
+      - generic [ref=e17]:
+        - generic:
+          - paragraph
+        - list [ref=e19]:
+          - listitem [ref=e20]:
+            - link "Navegar para Página 1" [ref=e21] [cursor=pointer]:
+              - /url: /api
+              - generic [ref=e22]: Catálogo de APIs
+          - listitem [ref=e23]:
+            - link "Navegar para Página 2" [ref=e24] [cursor=pointer]:
+              - /url: /suporte
+              - text: Suporte
+          - listitem "Solicitar Contato" [ref=e25] [cursor=pointer]:
+            - link "Navegar para Página 3" [ref=e26]:
+              - /url: /
+              - text: Fale Conosco
+      - generic [ref=e28]:
+        - button "Registrar" [ref=e29] [cursor=pointer]
+        - button "Acessar" [ref=e33] [cursor=pointer]
+    - generic [ref=e38]:
+      - navigation "breadcrumb" [ref=e39]:
+        - list [ref=e41]:
+          - listitem [ref=e42]:
+            - link "Home" [ref=e43] [cursor=pointer]:
+              - /url: /
+          - listitem [aria-hidden] [ref=e44]: /
+          - listitem [ref=e45]:
+            - link "Catálogo de APIs" [ref=e46] [cursor=pointer]:
+              - /url: /api
+          - listitem [aria-hidden] [ref=e47]: /
+          - listitem [ref=e48]: Data Verification for PF & PJ
+      - generic [ref=e54]:
+        - generic [ref=e55]:
+          - heading "Data Verification for PF & PJ" [level=4] [ref=e56]
+          - generic [ref=e57]:
+            - button "Fale Conosco" [ref=e58] [cursor=pointer]
+            - button "API Docs" [ref=e59] [cursor=pointer]
+        - separator [ref=e60]
+    - contentinfo [ref=e62]:
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - navigation "Catálogo de APIs" [ref=e66]:
+              - list [ref=e67]:
+                - listitem [ref=e68]:
+                  - link "Catálogo de APIs" [ref=e69] [cursor=pointer]:
+                    - /url: /api
+                - listitem [ref=e70]:
+                  - link "Suporte" [ref=e71] [cursor=pointer]:
+                    - /url: /suporte
+                - listitem [ref=e72]:
+                  - button "Fale Conosco" [ref=e73] [cursor=pointer]
+            - navigation "Suporte" [ref=e74]:
+              - list [ref=e75]:
+                - listitem [ref=e76]:
+                  - link "Central de Ajuda" [ref=e77] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/central-de-atendimento/
+                - listitem [ref=e78]:
+                  - link "Política de Privacidade" [ref=e79] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/politica-de-transparencia-de-uso-e-coleta-de-dados-cadastro-positivo/
+                - listitem [ref=e80]:
+                  - link "Segurança da Informação" [ref=e81] [cursor=pointer]:
+                    - /url: https://www.serasaexperian.com.br/cadastro-positivo-seguranca-da-informacao/
+          - link "Serasa Experian" [ref=e83] [cursor=pointer]:
+            - /url: /
+            - img "Logo da marca Serasa" [ref=e84]
+        - separator [ref=e85]
+        - list [ref=e87]:
+          - listitem [ref=e88]:
+            - link "Facebook" [ref=e89] [cursor=pointer]:
+              - /url: https://www.facebook.com/serasaexperian
+          - listitem [ref=e93]:
+            - link "Instagram" [ref=e94] [cursor=pointer]:
+              - /url: https://www.instagram.com/serasa_experian
+          - listitem [ref=e98]:
+            - link "YouTube" [ref=e99] [cursor=pointer]:
+              - /url: https://www.youtube.com/user/serasaexperian
+          - listitem [ref=e103]:
+            - link "LinkedIn" [ref=e104] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/serasa-experian
+  - dialog "Consentimento de cookies" [ref=e108]:
+    - generic [ref=e109]:
+      - generic [ref=e110]:
+        - paragraph [ref=e111]: Nós respeitamos sua privacidade
+        - paragraph [ref=e112]: Este portal utiliza cookies necessários para funcionar com segurança. Com sua autorização, também utilizamos cookies para lembrar suas preferências e analisar a utilização do portal, sempre com o objetivo de melhorar sua experiência. Não utilizamos cookies para publicidade. Você pode aceitar todos, aceitar apenas os necessários ou não usar cookies.
+      - generic [ref=e113]:
+        - button "Não usar cookies" [ref=e114] [cursor=pointer]
+        - button "Aceitar apenas necessários" [ref=e115] [cursor=pointer]
+        - button "Aceitar todos" [ref=e116] [cursor=pointer]

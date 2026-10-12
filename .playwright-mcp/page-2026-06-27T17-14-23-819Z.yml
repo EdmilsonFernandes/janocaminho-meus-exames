@@ -1,0 +1,116 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e492]:
+      - button [ref=e493] [cursor=pointer]
+      - generic [ref=e494]:
+        - banner [ref=e495]:
+          - generic [ref=e496]:
+            - button [ref=e497] [cursor=pointer]:
+              - img [ref=e498]
+            - button [ref=e501] [cursor=pointer]:
+              - generic [ref=e503]: E
+            - button [ref=e504] [cursor=pointer]:
+              - img [ref=e506]
+            - button [ref=e508] [cursor=pointer]:
+              - img [ref=e509]
+            - button [ref=e512] [cursor=pointer]:
+              - img [ref=e513]
+        - main [ref=e515]:
+          - generic [ref=e517]:
+            - generic [ref=e518]:
+              - heading [level=5] [ref=e519]: Boa tarde, tudo bem? 👋
+              - paragraph [ref=e520]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e521]:
+              - progressbar [ref=e522]:
+                - img [ref=e523]
+              - paragraph [ref=e525]: Calculando seu score…
+            - generic [ref=e526]:
+              - img
+              - generic [ref=e528]:
+                - generic [ref=e529]:
+                  - img [ref=e531]
+                  - generic [ref=e532]:
+                    - paragraph [ref=e533]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e534]: Repita exames laboratoriais no mesmo laboratório quando possível — facilita comparar a evolução.
+                - button [ref=e536] [cursor=pointer]:
+                  - img [ref=e538]
+                  - text: Conversar com a IA
+            - generic [ref=e540]:
+              - generic [ref=e543] [cursor=pointer]:
+                - img [ref=e545]
+                - paragraph [ref=e547]: "0"
+                - generic [ref=e548]: Exames enviados
+              - generic [ref=e551] [cursor=pointer]:
+                - img [ref=e553]
+                - paragraph [ref=e556]: "0"
+                - generic [ref=e557]: Valores alterados
+              - generic [ref=e560] [cursor=pointer]:
+                - img [ref=e562]
+                - paragraph [ref=e565]: "0"
+                - generic [ref=e566]: Dependentes
+              - generic [ref=e569] [cursor=pointer]:
+                - img [ref=e571]
+                - paragraph [ref=e573]: —
+                - generic [ref=e574]: Última atualização
+            - generic [ref=e578]:
+              - heading [level=6] [ref=e579]: Distribuição dos valores
+              - paragraph [ref=e580]: Últimos exames extraídos deste perfil.
+              - paragraph [ref=e581]: Sem valores extraídos ainda. Envie um exame.
+            - generic [ref=e582]:
+              - generic [ref=e585] [cursor=pointer]:
+                - img [ref=e587]
+                - generic [ref=e589]: Enviar exame
+              - generic [ref=e592] [cursor=pointer]:
+                - img [ref=e594]
+                - generic [ref=e596]: Evolução
+              - generic [ref=e599] [cursor=pointer]:
+                - img [ref=e601]
+                - generic [ref=e604]: Família
+              - generic [ref=e607] [cursor=pointer]:
+                - img [ref=e609]
+                - generic [ref=e611]: Relatório
+            - generic [ref=e613]: Toque nos cards de contador para navegar.
+            - generic [ref=e616] [cursor=pointer]:
+              - generic [ref=e617]:
+                - generic [ref=e618]:
+                  - paragraph [ref=e619]: 🏆 Suas conquistas
+                  - text: Resgate 1 crédito a cada meta atingida
+                - img [ref=e620]
+              - generic [ref=e622]:
+                - generic [ref=e624]: 🎉
+                - generic [ref=e626]: 📚
+                - generic [ref=e628]: 🎓
+                - generic [ref=e630]: 💚
+                - generic [ref=e632]: 🔥
+              - generic [ref=e633]: 0 desbloqueada(s) · toque para ver e resgatar →
+    - navigation [ref=e634]:
+      - generic [ref=e635] [cursor=pointer]:
+        - generic [ref=e636]: 🏠
+        - paragraph [ref=e637]: Início
+      - generic [ref=e639] [cursor=pointer]:
+        - generic [ref=e640]: 📋
+        - paragraph [ref=e641]: Exames
+      - generic [ref=e642] [cursor=pointer]:
+        - img [ref=e644]
+        - paragraph [ref=e645]: Dr. Exame
+      - generic [ref=e646] [cursor=pointer]:
+        - generic [ref=e647]: 📈
+        - paragraph [ref=e648]: Evolução
+      - generic [ref=e649] [cursor=pointer]:
+        - generic [ref=e650]: ☰
+        - paragraph [ref=e651]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e652]
+    - img [ref=e653]
+  - dialog [active] [ref=e656]:
+    - generic [ref=e657]:
+      - button "Pular" [ref=e658] [cursor=pointer]
+      - generic [ref=e659]:
+        - generic [ref=e660]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=e661]
+        - paragraph [ref=e662]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=e663]:
+        - button "Próximo" [ref=e669] [cursor=pointer]:
+          - text: Próximo
+          - img [ref=e671]
+        - paragraph [ref=e673]: Toque em Próximo para continuar →

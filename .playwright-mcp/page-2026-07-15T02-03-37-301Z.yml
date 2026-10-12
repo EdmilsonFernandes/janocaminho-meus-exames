@@ -1,0 +1,44 @@
+- generic [ref=f5e20]:
+  - generic [ref=f5e21]:
+    - generic [ref=f5e83]:
+      - button [ref=f5e84] [cursor=pointer]
+      - generic [ref=f5e85]:
+        - banner [ref=f5e86]:
+          - generic [ref=f5e87]:
+            - button [ref=f5e88] [cursor=pointer]
+            - button [ref=f5e91] [cursor=pointer]:
+              - generic [ref=f5e94]: "59"
+            - button [ref=f5e96] [cursor=pointer]:
+              - generic [ref=f5e97]: P
+            - button [ref=f5e101] [cursor=pointer]:
+              - generic [ref=f5e102]: "3"
+            - button [ref=f5e105] [cursor=pointer]
+            - button [ref=f5e109] [cursor=pointer]
+        - main [ref=f5e112]:
+          - progressbar [ref=f5e324]
+    - button [ref=f5e327] [cursor=pointer]
+    - navigation [ref=f5e272]:
+      - paragraph [ref=f5e277] [cursor=pointer]: Início
+      - paragraph [ref=f5e283] [cursor=pointer]: Exames
+      - paragraph [ref=f5e287] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e292] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e297] [cursor=pointer]: Mais
+  - dialog [ref=f5e302]:
+    - generic [ref=f5e303]:
+      - button [ref=f5e337] [cursor=pointer]: Pular
+      - generic [ref=f5e305]:
+        - generic [ref=f5e306]: 📋
+        - heading [level=4] [ref=f5e338]: Sua saúde centralizada
+        - paragraph [ref=f5e308]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f5e309]:
+        - button [ref=f5e339] [cursor=pointer]: Próximo
+        - paragraph [ref=f5e319]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f5e342]:
+    - heading [level=2] [ref=f5e343]:
+      - generic [ref=f5e344]:
+        - img "Dr. Exame" [ref=f5e345]
+        - paragraph [ref=f5e346]: Indique o Dr. Exame!
+    - paragraph [ref=f5e348]: Convide um amigo pra cuidar da saúde junto. Saúde fica mais fácil (e mais leve) em dupla. 💚
+    - generic [ref=f5e349]:
+      - button "Depois" [ref=f5e350] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f5e351] [cursor=pointer]

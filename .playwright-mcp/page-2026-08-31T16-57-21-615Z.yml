@@ -1,0 +1,38 @@
+- generic [ref=e28]:
+  - generic [ref=e29]:
+    - img "Dr. Exame" [ref=e31]
+    - generic [ref=e32]:
+      - paragraph [ref=e33]: Meus Exames
+      - paragraph [ref=e34]: Portal do Médico
+  - generic [ref=e35]:
+    - button [ref=e36] [cursor=pointer]
+    - button [active] [ref=e41] [cursor=pointer]
+  - generic [ref=e47]:
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - text: E-mail ou CRM
+        - generic [ref=e50]: "*"
+      - generic [ref=e51]:
+        - textbox "E-mail ou CRM" [ref=e91]
+        - group:
+          - generic: E-mail ou CRM *
+      - paragraph [ref=e92]: "Ex.: seu@email.com ou seu CRM (número-UF)"
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - text: Senha
+        - generic [ref=e59]: "*"
+      - generic [ref=e60]:
+        - textbox "Senha" [ref=e65]
+        - button "Mostrar senha" [ref=e67] [cursor=pointer]
+        - group:
+          - generic: Senha *
+    - button "Esqueci minha senha" [ref=e72] [cursor=pointer]
+    - button [ref=e73] [cursor=pointer]
+    - paragraph [ref=e80]:
+      - text: Não tem conta?
+      - button "Criar conta" [ref=e81] [cursor=pointer]
+  - generic [ref=e82]:
+    - paragraph [ref=e88]: Seus dados de saúde são protegidos pela LGPD.
+    - paragraph [ref=e89]:
+      - strong [ref=e90]: Conteúdo educativo.
+      - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.

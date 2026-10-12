@@ -1,0 +1,363 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - generic [ref=f7e3]:
+      - generic [ref=f7e4]:
+        - text: We use cookies to enhance your experience, analyze site usage, and deliver personalized content and ads. By continuing to use our site, you consent to our use of cookies as described in our
+        - link "Privacy Policy" [ref=f7e5] [cursor=pointer]:
+          - /url: /privacy-policy
+        - text: . You can update your preferences at any time.
+      - button "Manage preferences" [ref=f7e7] [cursor=pointer]
+      - generic [ref=f7e8] [cursor=pointer]
+    - main [ref=f7e11]:
+      - generic [ref=f7e12]:
+        - generic [ref=f7e17]:
+          - generic [ref=f7e18]:
+            - generic [ref=f7e21]:
+              - img "marek-health-logo" [ref=f7e23] [cursor=pointer]
+              - generic [ref=f7e24]:
+                - link "Treatments" [ref=f7e26] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "Diagnostic Labs" [ref=f7e28] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "Coaching" [ref=f7e30] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f7e32] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "FAQs" [ref=f7e34] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f7e36] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f7e38] [cursor=pointer]:
+                  - /url: /testosterone
+                - button "Start your journey" [ref=f7e39] [cursor=pointer]
+            - generic [ref=f7e42]:
+              - img "marek-health-logo" [ref=f7e44] [cursor=pointer]
+              - generic [ref=f7e45]:
+                - link "Treatments" [ref=f7e47] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "Diagnostic Labs" [ref=f7e49] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "Coaching" [ref=f7e51] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f7e53] [cursor=pointer]:
+                  - /url: /testosterone
+                - link "FAQs" [ref=f7e55] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f7e57] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f7e59] [cursor=pointer]:
+                  - /url: /testosterone
+                - button "Start your journey" [ref=f7e60] [cursor=pointer]
+          - generic [ref=f7e61]:
+            - generic [ref=f7e63]:
+              - generic [ref=f7e64]:
+                - heading "What are the benefits of TRT?" [level=2] [ref=f7e65]
+                - paragraph [ref=f7e66]: "Testosterone replacement therapy provides a reliable and effective method for restoring hormonal balance. Here are some of the potential benefits:"
+                - list [ref=f7e67]:
+                  - listitem [ref=f7e68]: Increased muscle mass
+                  - listitem [ref=f7e69]: Reduced body fat
+                  - listitem [ref=f7e70]: Increased energy
+                  - listitem [ref=f7e71]: Improved recovery
+              - generic [ref=f7e72]:
+                - generic [ref=f7e73]:
+                  - link "Testosterone Injections As our preferred route of administration of TRT, injections allow for highly-personalized dosing and steady hormone levels. Testosterone Injections Get started" [ref=f7e74] [cursor=pointer]:
+                    - /url: /sign-up
+                    - generic [ref=f7e75]:
+                      - generic [ref=f7e76]:
+                        - heading "Testosterone Injections" [level=3] [ref=f7e77]
+                        - paragraph [ref=f7e78]: As our preferred route of administration of TRT, injections allow for highly-personalized dosing and steady hormone levels.
+                      - img "Testosterone Injections" [ref=f7e79]
+                      - generic [ref=f7e80]: Get started
+                  - link "Topical Testosterone Cream Daily administration of topical testosterone cream allows for convenient, discreet, and needle-free optimization. Topical Testosterone Cream Get started" [ref=f7e81] [cursor=pointer]:
+                    - /url: /sign-up
+                    - generic [ref=f7e82]:
+                      - generic [ref=f7e83]:
+                        - heading "Topical Testosterone Cream" [level=3] [ref=f7e84]
+                        - paragraph [ref=f7e85]: Daily administration of topical testosterone cream allows for convenient, discreet, and needle-free optimization.
+                      - img "Topical Testosterone Cream" [ref=f7e86]
+                      - generic [ref=f7e87]: Get started
+                - button "Disclaimer" [ref=f7e89] [cursor=pointer]
+            - generic [ref=f7e91]:
+              - generic [ref=f7e92]:
+                - heading "Why Marek Health for TRT?" [level=2] [ref=f7e93]
+                - paragraph [ref=f7e94]: "Don't let your care be informed by cheap at home tests, cookie cutter protocols, and chatbots. Marek Health is your premium alternative to:"
+                - list [ref=f7e95]:
+                  - listitem [ref=f7e96]: Disinterested doctors
+                  - listitem [ref=f7e100]: Outdated treatment protocols
+                  - listitem [ref=f7e104]: Stubborn insurance companies
+                  - listitem [ref=f7e108]: Oversimplified lab value ranges
+                - link [ref=f7e112] [cursor=pointer]:
+                  - /url: /sign-up
+                  - button "Start treatment online" [ref=f7e113]
+              - img "background" [ref=f7e115]
+              - generic [ref=f7e117]:
+                - generic [ref=f7e119]:
+                  - paragraph [ref=f7e121]: Cognitive Enhancement
+                  - paragraph [ref=f7e123]: Better Mood
+                  - paragraph [ref=f7e125]: Increased Muscle Mass
+                  - paragraph [ref=f7e127]: Healthy Bone Density
+                  - paragraph [ref=f7e129]: Increased Libido
+                  - paragraph [ref=f7e131]: Cognitive Enhancement
+                  - paragraph [ref=f7e133]: Better Mood
+                  - paragraph [ref=f7e135]: Increased Muscle Mass
+                  - paragraph [ref=f7e137]: Healthy Bone Density
+                  - paragraph [ref=f7e139]: Increased Libido
+                - generic [ref=f7e140]:
+                  - paragraph [ref=f7e142]: Cognitive Enhancement
+                  - paragraph [ref=f7e144]: Better Mood
+                  - paragraph [ref=f7e146]: Increased Muscle Mass
+                  - paragraph [ref=f7e148]: Healthy Bone Density
+                  - paragraph [ref=f7e150]: Increased Libido
+                  - paragraph [ref=f7e152]: Cognitive Enhancement
+                  - paragraph [ref=f7e154]: Better Mood
+                  - paragraph [ref=f7e156]: Increased Muscle Mass
+                  - paragraph [ref=f7e158]: Healthy Bone Density
+                  - paragraph [ref=f7e160]: Increased Libido
+            - generic [ref=f7e162]:
+              - generic [ref=f7e163]:
+                - img "Testosterone" [ref=f7e165]
+                - generic [ref=f7e166]:
+                  - heading "Testosterone Replacement Therapy" [level=2] [ref=f7e167]
+                  - paragraph [ref=f7e168]: Take the first step and schedule your intake assessment with an Expert Health Coach. We'll curate a custom lab panel to analyze your testosterone levels and overall health status.
+                  - list [ref=f7e169]:
+                    - listitem [ref=f7e170]: "Personalized Assessment: Meet your expert Marek Health Coach to discuss your symptoms and goals. Unlock exclusive discounted pricing on advanced lab testing— minimum $450 lab panel purchase required."
+                    - listitem [ref=f7e171]: "In-Depth Lab Analysis: Receive a custom report with actionable recommendations based on your individual lab results."
+                    - listitem [ref=f7e172]: "Expert Medical Oversight: A 25-minute consultation with a licensed medical provider to discuss your health blueprint and prescription treatments."
+                    - listitem [ref=f7e173]: "Delivered To Your Door: Exclusive access to Marek Health’s FDA-approved pharmacies and supplement dispensaries."
+                    - listitem [ref=f7e174]: "Proactive Care: Monthly Marek Health Coach check-ins, treatment refills, follow-up lab work, and continuous support for health optimization."
+                  - generic [ref=f7e175]:
+                    - link [ref=f7e176] [cursor=pointer]:
+                      - /url: /sign-up
+                      - button "Start treatment online" [ref=f7e177]
+                    - paragraph [ref=f7e178]: $299
+              - generic [ref=f7e181]:
+                - heading "Masculinity is in crisis." [level=2] [ref=f7e182]
+                - paragraph [ref=f7e183]: We're not the men we used to be. Low testosterone is a growing epidemic across the nation, with more and more men of all age groups struggling with low testosterone levels. Marek Health was designed to streamline the process of getting you the highest-quality testing, treatment, and oversight.
+            - generic [ref=f7e185]:
+              - generic [ref=f7e186]: Featured On
+              - generic [ref=f7e187]:
+                - generic [ref=f7e189]:
+                  - img "logo-0" [ref=f7e191]
+                  - img "logo-1" [ref=f7e193]
+                  - img "logo-2" [ref=f7e195]
+                  - img "logo-3" [ref=f7e197]
+                  - img "logo-4" [ref=f7e199]
+                  - img "logo-5" [ref=f7e201]
+                  - img "logo-6" [ref=f7e203]
+                  - img "logo-7" [ref=f7e205]
+                  - img "logo-8" [ref=f7e207]
+                  - img "logo-9" [ref=f7e209]
+                  - img "logo-10" [ref=f7e211]
+                - generic [ref=f7e212]:
+                  - img "logo-0" [ref=f7e214]
+                  - img "logo-1" [ref=f7e216]
+                  - img "logo-2" [ref=f7e218]
+                  - img "logo-3" [ref=f7e220]
+                  - img "logo-4" [ref=f7e222]
+                  - img "logo-5" [ref=f7e224]
+                  - img "logo-6" [ref=f7e226]
+                  - img "logo-7" [ref=f7e228]
+                  - img "logo-8" [ref=f7e230]
+                  - img "logo-9" [ref=f7e232]
+                  - img "logo-10" [ref=f7e234]
+            - generic [ref=f7e236]:
+              - generic [ref=f7e238]:
+                - generic [ref=f7e239]:
+                  - heading "The battle against low testosterone." [level=2] [ref=f7e240]
+                  - paragraph [ref=f7e241]: While testosterone levels do decline naturally with age, leading research points towards a collective decline across all age groups.
+                  - paragraph [ref=f7e242]: The health implications of low testosterone extend far beyond losing muscle and struggling in the bedroom. A growing body of clinical literature indicates that men with lower testosterone may have a higher likelihood of heart disease, metabolic dysfunction, and depression.
+                  - link [ref=f7e243] [cursor=pointer]:
+                    - /url: /sign-up
+                    - button "Start treatment online" [ref=f7e244]
+                - generic [ref=f7e248]:
+                  - img "Chart"
+              - generic [ref=f7e249]:
+                - generic [ref=f7e250]:
+                  - heading "Do you have symptoms of low testosterone?" [level=2] [ref=f7e251]
+                  - generic [ref=f7e252]:
+                    - img "Chart" [ref=f7e254]
+                    - generic [ref=f7e255]:
+                      - paragraph [ref=f7e256]: Research shows that
+                      - heading "1 out of 4 men over age 30" [level=2] [ref=f7e257]
+                      - paragraph [ref=f7e258]: have low testosterone levels
+                - generic [ref=f7e259]:
+                  - heading "Low testosterone symptoms" [level=2] [ref=f7e260]
+                  - paragraph [ref=f7e261]:
+                    - img "Minus Icon" [ref=f7e262]
+                    - text: Fatigue
+                  - paragraph [ref=f7e263]:
+                    - img "Minus Icon" [ref=f7e264]
+                    - text: Mood swings
+                  - paragraph [ref=f7e265]:
+                    - img "Minus Icon" [ref=f7e266]
+                    - text: Irritability
+                  - paragraph [ref=f7e267]:
+                    - img "Minus Icon" [ref=f7e268]
+                    - text: Depression
+                  - paragraph [ref=f7e269]:
+                    - img "Minus Icon" [ref=f7e270]
+                    - text: Reduced muscle mass
+                  - paragraph [ref=f7e271]:
+                    - img "Minus Icon" [ref=f7e272]
+                    - text: Poor sleep quality
+                  - paragraph [ref=f7e273]:
+                    - img "Minus Icon" [ref=f7e274]
+                    - text: Increased body fat
+                  - paragraph [ref=f7e275]:
+                    - img "Minus Icon" [ref=f7e276]
+                    - text: Erectile dysfunction
+                  - paragraph [ref=f7e277]:
+                    - img "Minus Icon" [ref=f7e278]
+                    - text: Trouble focusing
+                  - paragraph [ref=f7e279]:
+                    - img "Minus Icon" [ref=f7e280]
+                    - text: Low libido
+              - generic [ref=f7e281]:
+                - generic [ref=f7e283]:
+                  - img "70 Percent" [ref=f7e285]
+                  - heading "70% of men with low testosterone report erectile dysfunction." [level=2] [ref=f7e287]
+                - generic [ref=f7e289]:
+                  - img "35 Percent" [ref=f7e291]
+                  - heading "Approximately 35% of men over the age of 45 have low testosterone." [level=2] [ref=f7e293]
+                - generic [ref=f7e295]:
+                  - generic:
+                    - img "USA Map"
+                  - heading "It\\'s estimated that more than 13 million American men have low testosterone." [level=2] [ref=f7e297]
+              - link [ref=f7e298] [cursor=pointer]:
+                - /url: /sign-up
+                - button "Explore treatment" [ref=f7e299]
+            - generic [ref=f7e303]:
+              - heading "Our client's experiences with TRT" [level=2] [ref=f7e304]
+              - paragraph [ref=f7e305]: We can tell you why Marek Health is the future of health optimization all day long, but we'd rather you hear it from our clients. You can read all of our 5 star reviews… but it's gonna take a while.
+            - generic [ref=f7e318]:
+              - generic [ref=f7e319]:
+                - heading "TRT Frequently Asked Questions" [level=2] [ref=f7e320]
+                - paragraph [ref=f7e321]: More questions and answers can be found on our FAQ page
+              - generic [ref=f7e322]:
+                - generic [ref=f7e323]:
+                  - generic [ref=f7e324] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f7e326]
+                    - paragraph [ref=f7e327]: What are the Symptoms of Low Testosterone?
+                  - generic:
+                    - paragraph [ref=f7e328]: "Common symptoms of low testosterone (Low T) include:"
+                    - list [ref=f7e330]:
+                      - listitem [ref=f7e331]:
+                        - paragraph [ref=f7e332]: Fatigue
+                      - listitem [ref=f7e333]:
+                        - paragraph [ref=f7e334]: Decreased libido or sexual performance
+                      - listitem [ref=f7e335]:
+                        - paragraph [ref=f7e336]: Mood changes, including irritability and depression
+                      - listitem [ref=f7e337]:
+                        - paragraph [ref=f7e338]: Loss of muscle mass or strength
+                      - listitem [ref=f7e339]:
+                        - paragraph [ref=f7e340]: Increased body fat
+                      - listitem [ref=f7e341]:
+                        - paragraph [ref=f7e342]: Difficulty concentrating or brain fog
+                - generic [ref=f7e343]:
+                  - generic [ref=f7e344] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f7e346]
+                    - paragraph [ref=f7e347]: How Do I Know if I'm a Candidate for TRT?
+                  - generic:
+                    - paragraph [ref=f7e348]: "An expert should guide this decision. To determine if you're a candidate for TRT, a healthcare provider will assess your:"
+                    - list [ref=f7e350]:
+                      - listitem [ref=f7e351]:
+                        - paragraph [ref=f7e352]: Blood biomarker levels (testosterone levels and related markers)
+                      - listitem [ref=f7e353]:
+                        - paragraph [ref=f7e354]: Symptoms of low testosterone
+                      - listitem [ref=f7e355]:
+                        - paragraph [ref=f7e356]: Risk factors and any contraindications They will also explore whether other conditions or factors may be contributing to your symptoms before considering TRT.
+                - generic [ref=f7e357]:
+                  - generic [ref=f7e358] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f7e360]
+                    - paragraph [ref=f7e361]: If I Start TRT, Do I Have to Be on It Forever?
+                  - paragraph [ref=f7e362]: It depends on the cause of your low testosterone. In most cases, men who start TRT have already explored and ruled out reversible causes of low testosterone. If natural methods and other therapies haven't worked, TRT may be a long-term solution. However, discussing this with your healthcare provider is crucial.
+                - generic [ref=f7e363]:
+                  - generic [ref=f7e364] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f7e366]
+                    - paragraph [ref=f7e367]: What Are the Risks Associated with TRT?
+                  - generic:
+                    - paragraph [ref=f7e368]: "Like any treatment, TRT comes with potential side effects. Some of the common risks include:"
+                    - list [ref=f7e370]:
+                      - listitem [ref=f7e371]:
+                        - paragraph [ref=f7e372]: Increased red blood cell count
+                      - listitem [ref=f7e373]:
+                        - paragraph [ref=f7e374]: Acne or oily skin
+                      - listitem [ref=f7e375]:
+                        - paragraph [ref=f7e376]: Fluid retention
+                      - listitem [ref=f7e377]:
+                        - paragraph [ref=f7e378]: Changes in cholesterol levels
+                      - listitem [ref=f7e379]:
+                        - paragraph [ref=f7e380]: Potential fertility issues (TRT can lower sperm production temporarily)
+                    - paragraph [ref=f7e381]: Your provider will monitor you regularly to manage these risks effectively.
+                - generic [ref=f7e382]:
+                  - generic [ref=f7e383] [cursor=pointer]:
+                    - img "Toggle Icon" [ref=f7e385]
+                    - paragraph [ref=f7e386]: Can Taking Testosterone Give You Prostate Cancer?
+                  - paragraph [ref=f7e387]: No, this is a common myth. There is no evidence that TRT causes prostate cancer. Studies show that men with low testosterone who develop prostate cancer tend to have worse outcomes than those with normal testosterone levels. However, TRT can slightly increase the size of the prostate due to an increase in DHT (dihydrotestosterone), but this generally doesn't lead to cancer. Regular check-ups and lab tests will help ensure prostate health during TRT.
+              - link "See more FAQs" [ref=f7e389] [cursor=pointer]:
+                - /url: /faqs
+            - generic [ref=f7e391]:
+              - heading "Explore Other Treatment Options." [level=2] [ref=f7e392]
+              - paragraph [ref=f7e393]: If Testosterone Replacement Therapy isn't the issue you're dealing with, here are some other services you can explore.
+            - generic [ref=f7e405]:
+              - img "Phone Conference" [ref=f7e407]
+              - generic [ref=f7e408]:
+                - generic [ref=f7e409]:
+                  - heading "Not sure what treatment is right for you?" [level=2] [ref=f7e410]
+                  - paragraph [ref=f7e411]: "The first step towards optimizing your health online is to book your intake assessment, which includes:"
+                - link [ref=f7e412] [cursor=pointer]:
+                  - /url: /dc/form/discovery-intro
+                  - button "Book a free call" [ref=f7e413]
+        - generic [ref=f7e417]:
+          - generic [ref=f7e419]:
+            - generic [ref=f7e420]:
+              - paragraph [ref=f7e421]: Contact Info
+              - generic [ref=f7e422]:
+                - link "Info@MarekHealth.com" [ref=f7e425] [cursor=pointer]:
+                  - /url: mailto:info@marekhealth.com
+                - generic [ref=f7e427]: "Phone: 1 (877) 572 2582"
+                - generic [ref=f7e430]: The fastest and most effective way to reach us is via email
+                - generic [ref=f7e433]: "Tracking the status of your med order? Please Contact:"
+                - generic [ref=f7e436]: Trackingmailbox@marekhealth.com
+                - generic [ref=f7e439]: Office hours
+                - generic [ref=f7e442]: "Mon-Fri: 9:00 am – 5:00 pm EST"
+            - generic [ref=f7e445]:
+              - generic [ref=f7e446]:
+                - paragraph [ref=f7e447]: More Info
+                - generic [ref=f7e448]:
+                  - link "Careers" [ref=f7e451] [cursor=pointer]:
+                    - /url: mailto:careers@marekhealth.com
+                  - generic [ref=f7e454]:
+                    - generic [ref=f7e455] [cursor=pointer]: Legal
+                    - generic [ref=f7e456] [cursor=pointer]
+                  - link "Cancellation & Refund Policy" [ref=f7e462] [cursor=pointer]:
+                    - /url: /cancellation-refund-policy
+                  - generic [ref=f7e464]: Do Not Share or Sell My Personal Information
+              - link [ref=f7e467] [cursor=pointer]:
+                - /url: https://www.legitscript.com/websites/?checker_keywords=marekhealth.com
+                - img "Verify Approval for www.marekhealth.com" [ref=f7e468]
+            - generic [ref=f7e469]:
+              - generic [ref=f7e470]:
+                - paragraph [ref=f7e471]: Services
+                - generic [ref=f7e472]:
+                  - link "Guided Optimization" [ref=f7e475] [cursor=pointer]:
+                    - /url: https://marekhealth.com/sign-up
+                  - link "Diagnostic Labs" [ref=f7e479] [cursor=pointer]:
+                    - /url: https://marekdiagnostics.com/
+                  - link "Partnership Program" [ref=f7e483] [cursor=pointer]:
+                    - /url: mailto:coaching@marekhealth.com
+              - generic [ref=f7e485]:
+                - paragraph [ref=f7e486]: Follow us
+                - generic [ref=f7e487]:
+                  - link "https://www.instagram.com/marekhealth/?hl=en" [ref=f7e488] [cursor=pointer]:
+                    - /url: https://www.instagram.com/marekhealth/?hl=en
+                  - link "https://twitter.com/marekhealth?s=20" [ref=f7e493] [cursor=pointer]:
+                    - /url: https://twitter.com/marekhealth?s=20
+                  - link "https://www.youtube.com/@marekhealth" [ref=f7e498] [cursor=pointer]:
+                    - /url: https://www.youtube.com/@marekhealth
+                  - link "https://www.facebook.com/marekhealth/" [ref=f7e503] [cursor=pointer]:
+                    - /url: https://www.facebook.com/marekhealth/
+                  - link "https://www.linkedin.com/company/marek-health" [ref=f7e508] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/marek-health
+          - generic [ref=f7e513]: Copyright 2026 | All Rights Reserved
+  - alert [ref=f7e518]

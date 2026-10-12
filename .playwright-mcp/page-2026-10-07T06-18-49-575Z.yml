@@ -1,0 +1,181 @@
+- generic [ref=f29e1]:
+  - generic [aria-hidden] [ref=f29e2]:
+    - generic [ref=f29e84]:
+      - button [ref=f29e85] [cursor=pointer]
+      - generic [ref=f29e86]:
+        - banner [ref=f29e87]:
+          - generic [ref=f29e88]:
+            - button [ref=f29e89] [cursor=pointer]
+            - generic [ref=f29e95]:
+              - button [ref=f29e96] [cursor=pointer]:
+                - generic [ref=f29e99]: "0"
+              - button [ref=f29e100] [cursor=pointer]
+              - button [ref=f29e105] [cursor=pointer]:
+                - generic [ref=f29e106]: Q
+        - main [ref=f29e111]:
+          - generic [ref=f29e113]:
+            - generic [ref=f29e116]:
+              - heading [level=1] [ref=f29e117]: Bom dia, QA 👋
+              - generic [ref=f29e118]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f29e120]:
+              - generic [ref=f29e121]:
+                - generic [ref=f29e122]:
+                  - generic:
+                    - paragraph: —
+                    - paragraph: de 100
+                - generic [ref=f29e126]:
+                  - paragraph [ref=f29e127]: Sua saúde hoje
+                  - paragraph [ref=f29e128]: Começa com seu primeiro exame
+                  - paragraph [ref=f29e130]: Envie um exame pra começarmos a construir sua visão de saúde.
+              - generic [ref=f29e131]:
+                - button [ref=f29e132] [cursor=pointer]: Enviar primeiro exame
+                - button [ref=f29e136] [cursor=pointer]: 👀 Ver com dados de exemplo
+            - generic [ref=f29e140]:
+              - generic [ref=f29e141]:
+                - paragraph [ref=f29e142]: Ative sua conta
+                - paragraph [ref=f29e143]: 0 de 3
+              - progressbar [ref=f29e144]
+              - generic [ref=f29e146]:
+                - generic [ref=f29e150]:
+                  - paragraph [ref=f29e151]: Envie seu 1º exame
+                  - paragraph [ref=f29e152]: PDF ou foto do laudo — a IA lê e explica cada valor
+                - button [ref=f29e153] [cursor=pointer]: Enviar agora
+              - generic [ref=f29e154]:
+                - generic [ref=f29e158]:
+                  - paragraph [ref=f29e159]: Converse com a IA
+                  - paragraph [ref=f29e160]: Pergunte qualquer coisa sobre seus exames ou saúde
+                - button [ref=f29e161] [cursor=pointer]: Perguntar
+              - generic [ref=f29e162]:
+                - generic [ref=f29e167]:
+                  - paragraph [ref=f29e168]: Convide seu médico
+                  - paragraph [ref=f29e169]: Ele acompanha sua evolução pelo portal dele
+                - button [ref=f29e170] [cursor=pointer]: Convidar
+            - generic [ref=f29e172]:
+              - generic [ref=f29e175]:
+                - paragraph [ref=f29e176]: Personalize o app em 30 segundos
+                - generic [ref=f29e177]:
+                  - generic [ref=f29e178]: ~30s
+                  - generic [ref=f29e180]: 3 perguntas
+                  - generic [ref=f29e182]: +5 créditos
+              - button [ref=f29e186] [cursor=pointer]: Começar
+            - generic [ref=f29e191]:
+              - button [ref=f29e192] [cursor=pointer]:
+                - generic [ref=f29e193]:
+                  - paragraph [ref=f29e194]: Alterados
+                  - paragraph [ref=f29e195]: "0"
+              - button [ref=f29e199] [cursor=pointer]:
+                - generic [ref=f29e200]:
+                  - paragraph [ref=f29e201]: Exames
+                  - paragraph [ref=f29e202]: "0"
+                  - paragraph [ref=f29e203]: envie o primeiro
+              - button [ref=f29e208] [cursor=pointer]:
+                - generic [ref=f29e209]:
+                  - paragraph [ref=f29e210]: Idade Bio
+                  - paragraph [ref=f29e211]: —
+                  - paragraph [ref=f29e212]: complete seu perfil
+              - button [ref=f29e217] [cursor=pointer]:
+                - generic [ref=f29e218]:
+                  - paragraph [ref=f29e219]: Cardiorrisco
+                  - paragraph [ref=f29e220]: Sem dados
+                  - paragraph [ref=f29e224]: envie um exame
+            - generic [ref=f29e230]:
+              - generic [ref=f29e232]:
+                - generic [ref=f29e233]:
+                  - generic [ref=f29e234]:
+                    - paragraph [ref=f29e235]: Vamos preparar o Dr. Exame
+                    - generic [ref=f29e236]: 20% do perfil
+                  - paragraph [ref=f29e237]: Leva menos de um minuto e destrava análises personalizadas pra você.
+                  - generic [ref=f29e238]:
+                    - paragraph [ref=f29e243]: Completar seu perfil
+                    - paragraph [ref=f29e248]: Enviar seu primeiro exame
+                  - button [ref=f29e249] [cursor=pointer]: Completar perfil
+                - generic [ref=f29e253]:
+                  - generic [aria-hidden] [ref=f29e254]: 🧠
+                  - generic [ref=f29e255]:
+                    - heading [level=2] [ref=f29e256]: Saúde mental
+                    - paragraph [ref=f29e257]: Saúde mental também é saúde — 2 minutos, questionário validado, grátis
+                  - button [ref=f29e258] [cursor=pointer]: Responder
+                  - button [ref=f29e259] [cursor=pointer]
+                - paragraph [ref=f29e269]: Atividade física • Health Connect
+                - generic [ref=f29e275]:
+                  - generic [ref=f29e279]:
+                    - paragraph [ref=f29e280]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=f29e281]: Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder.
+                  - button [ref=f29e283] [cursor=pointer]: Conversar com a IA
+              - generic [ref=f29e288]:
+                - generic [ref=f29e289]:
+                  - generic [ref=f29e294]:
+                    - heading [level=2] [ref=f29e295]: Seus Marcadores
+                    - paragraph [ref=f29e296]: Nenhum exame analisado ainda
+                  - generic [ref=f29e297]:
+                    - button [ref=f29e298] [cursor=pointer]:
+                      - generic [ref=f29e299]:
+                        - paragraph [ref=f29e300]: Normais & Saudáveis ver →
+                        - paragraph [ref=f29e301]: 0/0 (0%)
+                      - progressbar [ref=f29e302]
+                    - button [ref=f29e304] [cursor=pointer]:
+                      - generic [ref=f29e305]:
+                        - paragraph [ref=f29e306]: Alteração Leve ver →
+                        - paragraph [ref=f29e307]: 0/0 (0%)
+                      - progressbar [ref=f29e308]
+                    - button [ref=f29e310] [cursor=pointer]:
+                      - generic [ref=f29e311]:
+                        - paragraph [ref=f29e312]: Requerem Atenção ver →
+                        - paragraph [ref=f29e313]: 0/0 (0%)
+                      - progressbar [ref=f29e314]
+                  - paragraph [ref=f29e316]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+                - generic [ref=f29e317]:
+                  - paragraph [ref=f29e323]: Ações rápidas
+                  - generic [ref=f29e325]:
+                    - generic [ref=f29e327] [cursor=pointer]:
+                      - generic [ref=f29e328]: +
+                      - generic [ref=f29e329]: Enviar exame
+                    - generic [ref=f29e335]: Evolução
+                    - generic [ref=f29e343]: Família
+                    - generic [ref=f29e351]: Relatório
+                - generic [ref=f29e360]:
+                  - generic [ref=f29e365]:
+                    - paragraph [ref=f29e366]: "0"
+                    - text: créditos disponíveis
+                  - button [ref=f29e367] [cursor=pointer]: Comprar
+                - generic [ref=f29e369] [cursor=pointer]:
+                  - generic [ref=f29e371]:
+                    - paragraph [ref=f29e372]: 🏆 Suas conquistas
+                    - text: Resgate 1 crédito a cada meta atingida
+                  - generic [ref=f29e375]:
+                    - generic [ref=f29e376]: 🎉
+                    - generic [ref=f29e378]: 📚
+                    - generic [ref=f29e380]: 🎓
+                    - generic [ref=f29e382]: 💚
+                    - generic [ref=f29e384]: 🔥
+                  - generic [ref=f29e388]: 0 de 5 desbloqueada(s) · toque para ver e resgatar →
+                - button [ref=f29e390] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f29e394]:
+      - button [ref=f29e395] [cursor=pointer]:
+        - paragraph [ref=f29e399]: Início
+      - button [ref=f29e401] [cursor=pointer]:
+        - paragraph [ref=f29e405]: Exames
+      - button [ref=f29e406] [cursor=pointer]:
+        - paragraph [ref=f29e409]: Dr. Exame
+      - button [ref=f29e410] [cursor=pointer]:
+        - paragraph [ref=f29e414]: Evolução
+      - button [ref=f29e415] [cursor=pointer]:
+        - paragraph [ref=f29e419]: Mais
+  - dialog [active] [ref=f29e451]:
+    - heading "Dr. Exame O que você quer entender? Isso personaliza o app pra você · pergunta 1 de 3 Fechar" [level=2] [ref=f29e452]:
+      - img "Dr. Exame" [ref=f29e453]
+      - generic [ref=f29e454]:
+        - paragraph [ref=f29e455]: O que você quer entender?
+        - generic [ref=f29e456]: Isso personaliza o app pra você · pergunta 1 de 3
+      - button "Fechar" [ref=f29e457] [cursor=pointer]
+    - progressbar [ref=f29e461]
+    - generic [ref=f29e464]:
+      - button "🧬 Entender o que meus exames significam" [ref=f29e465] [cursor=pointer]
+      - button "📈 Acompanhar a evolução ao longo do tempo" [ref=f29e467] [cursor=pointer]
+      - button "⚠️ Ficar de olho em valores alterados" [ref=f29e469] [cursor=pointer]
+      - button "👨‍👩‍👧 Cuidar da saúde de um familiar" [ref=f29e471] [cursor=pointer]
+      - button "🩺 Chegar na consulta com perguntas prontas" [ref=f29e473] [cursor=pointer]
+      - button "🛡️ Prevenção e longevidade" [ref=f29e475] [cursor=pointer]
+    - generic [ref=f29e477]:
+      - button "Pular" [ref=f29e478] [cursor=pointer]
+      - button "Continuar" [disabled]

@@ -1,0 +1,134 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e822]:
+            - generic [ref=e824]:
+              - heading [level=5] [ref=e825]: 📈 Tendências
+              - paragraph [ref=e826]: Veja como seus resultados evoluíram ao longo do tempo.
+            - generic [ref=e836]:
+              - generic [ref=e837]:
+                - button [ref=e838] [cursor=pointer]:
+                  - generic [ref=e839]: Hemácias
+                - button [ref=e840] [cursor=pointer]:
+                  - generic [ref=e841]: Hematócrito
+                - button [ref=e842] [cursor=pointer]:
+                  - generic [ref=e843]: Hemoglobina
+                - button [ref=e844] [cursor=pointer]:
+                  - generic [ref=e845]: Leucócitos
+                - button [ref=e846] [cursor=pointer]:
+                  - generic [ref=e847]: Plaquetas
+              - generic [ref=e849]:
+                - combobox [ref=e850] [cursor=pointer]: Plaquetas (3 exames)
+                - textbox: PLAQUETAS
+                - group
+            - generic [ref=e852]:
+              - generic [ref=e853]:
+                - heading [level=6] [ref=e854]: Plaquetas
+                - button [ref=e855] [cursor=pointer]
+              - generic [ref=e858]:
+                - generic [ref=e859]:
+                  - paragraph [ref=e860]:
+                    - text: "238000"
+                    - generic [ref=e861]:
+                      - generic [ref=e862]: /mm3
+                      - button [ref=e863] [cursor=pointer]
+                  - paragraph [ref=e866]: ↑ 105%
+                - paragraph [ref=e867]: ↓ Tendência de queda · 3 medições
+                - paragraph [ref=e868]:
+                  - text: "Última medição:"
+                  - strong [ref=e869]: 09/07/26
+                - generic [ref=e870]: 150.000 – 450.000 /mm3
+              - application [ref=e876]:
+                - generic [ref=e897]:
+                  - generic [ref=e898]:
+                    - generic [ref=e899]: s/d
+                    - generic [ref=e901]: 14/04
+                    - generic [ref=e903]: 09/07
+                  - generic [ref=e905]:
+                    - generic [ref=e906]: "0"
+                    - generic [ref=e908]: "60000"
+                    - generic [ref=e910]: "120000"
+                    - generic [ref=e912]: "180000"
+                    - generic [ref=e914]: "240000"
+              - generic [ref=e916]:
+                - paragraph [ref=e917]: "📈 Tendência: caindo"
+                - paragraph [ref=e918]:
+                  - text: Neste ritmo, PLAQUETAS fica abaixo de a faixa em
+                  - strong [ref=e919]: ~2 meses
+                  - text: .
+              - generic [ref=e920]:
+                - heading [level=6] [ref=e921]: Histórico (do mais recente)
+                - generic [ref=e922]:
+                  - generic [ref=e923]:
+                    - generic [ref=e924]:
+                      - paragraph [ref=e925]: 09/07/26
+                      - generic [ref=e926]: HEMOGRAMA
+                    - generic [ref=e927]:
+                      - paragraph [ref=e928]:
+                        - text: "238000"
+                        - generic [ref=e929]:
+                          - generic [ref=e930]: /mm3
+                          - button [ref=e931] [cursor=pointer]
+                      - generic [ref=e934]: Normal
+                  - generic [ref=e936]:
+                    - generic [ref=e937]:
+                      - paragraph [ref=e938]: 14/04/26
+                      - generic [ref=e939]: HEMOGRAMA
+                    - generic [ref=e940]:
+                      - paragraph [ref=e941]:
+                        - text: "220000"
+                        - generic [ref=e942]:
+                          - generic [ref=e943]: /mm3
+                          - button [ref=e944] [cursor=pointer]
+                      - generic [ref=e947]: Normal
+                  - generic [ref=e949]:
+                    - generic [ref=e950]:
+                      - paragraph [ref=e951]: s/d
+                      - generic [ref=e952]: HEMOGRAMA
+                    - generic [ref=e953]:
+                      - paragraph [ref=e954]:
+                        - text: "116000"
+                        - generic [ref=e955]:
+                          - generic [ref=e956]: /mm3
+                          - button [ref=e957] [cursor=pointer]
+                      - generic [ref=e960]: Muito abaixo
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - button "Cuidados" [ref=e207] [cursor=pointer]
+      - button "Pessoas" [ref=e217] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

@@ -1,0 +1,88 @@
+- generic [ref=f10e27]:
+  - button "Pular para o conteúdo" [ref=f10e339] [cursor=pointer]
+  - generic [ref=f10e29]:
+    - banner [ref=f10e30]:
+      - generic [ref=f10e31]:
+        - heading [level=6]
+        - generic [ref=f10e32]:
+          - button "Você tem 19 créditos. Toque para comprar mais." [ref=f10e340] [cursor=pointer]:
+            - generic [ref=f10e158]: "19"
+          - button "Notificações" [ref=f10e341] [cursor=pointer]:
+            - generic [ref=f10e34]: "6"
+          - button "E Ed teste 2 Titular" [ref=f10e342] [cursor=pointer]:
+            - generic [ref=f10e39]: E
+            - generic [ref=f10e41]:
+              - generic [ref=f10e42]: Ed teste 2
+              - generic [ref=f10e162]: Titular
+        - button "Atualizar" [ref=f10e343] [cursor=pointer]
+    - main [ref=f10e50]:
+      - navigation [ref=f10e54]:
+        - generic [ref=f10e57]:
+          - generic [ref=f10e58]: E
+          - generic [ref=f10e60]:
+            - paragraph [ref=f10e61]: Ed teste 2
+            - generic [ref=f10e62]:
+              - generic [ref=f10e63]: Plano grátis
+              - button "⚡ 19 (+)" [ref=f10e344] [cursor=pointer]
+        - separator [ref=f10e65]
+        - button "Exames" [ref=f10e345] [cursor=pointer]
+        - button "Cuidados" [ref=f10e346] [cursor=pointer]
+        - button "Pessoas" [ref=f10e347] [cursor=pointer]
+        - button "Conta" [ref=f10e348] [cursor=pointer]
+        - separator [ref=f10e104]
+        - button "Dúvidas frequentes" [ref=f10e349] [cursor=pointer]
+        - button "Como validamos" [ref=f10e350] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f10e351] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f10e352] [cursor=pointer]
+      - generic [ref=f10e174]:
+        - generic [ref=f10e176]:
+          - generic [ref=f10e177]:
+            - paragraph [ref=f10e178]: Boa noite, Ed 👋
+            - generic [ref=f10e179]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f10e180]: ● Sincronizado
+        - alert [ref=f10e182]:
+          - generic [ref=f10e186]: 3 exames não foram adicionados — o CPF do documento é diferente do CPF da sua conta.
+          - button "Ver" [ref=f10e353] [cursor=pointer]
+        - generic [ref=f10e191]:
+          - generic [ref=f10e192]:
+            - generic [ref=f10e197]:
+              - paragraph [ref=f10e198]: —
+              - paragraph [ref=f10e199]: de 100
+            - generic [ref=f10e200]:
+              - paragraph [ref=f10e201]: Sua saúde hoje
+              - paragraph [ref=f10e202]: Score indisponível
+              - paragraph [ref=f10e204]: · atualizado 11/11/2025
+          - button [ref=f10e354] [cursor=pointer]
+        - generic [ref=f10e213]:
+          - generic [ref=f10e214]:
+            - paragraph [ref=f10e216]: ✨ Entenda seus exames com IA
+            - paragraph [ref=f10e217]: Tire dúvidas clínicas, compare referências e receba orientações personalizadas sobre seus marcadores em segundos.
+          - button [ref=f10e355] [cursor=pointer]
+        - generic [ref=f10e223]:
+          - generic [ref=f10e231] [cursor=pointer]:
+            - paragraph [ref=f10e232]: Cardiometabólico
+            - paragraph [ref=f10e233]: baixo
+            - paragraph [ref=f10e234]: 1 fator de risco
+          - generic [ref=f10e242] [cursor=pointer]:
+            - paragraph [ref=f10e243]: Idade biológica
+            - paragraph [ref=f10e244]: —
+            - paragraph [ref=f10e245]: após o 1º exame
+          - generic [ref=f10e253] [cursor=pointer]:
+            - paragraph [ref=f10e254]: Seus exames
+            - paragraph [ref=f10e255]: "3"
+            - paragraph [ref=f10e256]: 0 alterados
+          - generic [ref=f10e264] [cursor=pointer]:
+            - paragraph [ref=f10e265]: Evolução
+            - paragraph [ref=f10e266]: Sem dados
+            - paragraph [ref=f10e267]: após o 1º exame
+        - generic [ref=f10e269]:
+          - generic [ref=f10e270]: Enviar exame
+          - generic [ref=f10e277]: Evolução
+          - generic [ref=f10e284]: Família
+          - generic [ref=f10e292]: Relatório
+        - generic [ref=f10e301]:
+          - generic [ref=f10e305]:
+            - paragraph [ref=f10e306]: "19"
+            - text: créditos disponíveis
+          - button "Comprar" [ref=f10e356] [cursor=pointer]
+        - button [ref=f10e357] [cursor=pointer]

@@ -1,0 +1,685 @@
+- generic [ref=e2]:
+  - complementary "Announcement" [ref=e3]:
+    - paragraph [ref=e7]:
+      - text: Use your HSA/FSA funds to
+      - link "Join Function" [ref=e8] [cursor=pointer]:
+        - /url: https://my.functionhealth.com/signup?code=928AA4E1CD199B9D73A1A3B7DBC7F4F7&_saasquatch=_____&signup_variant=variantE
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - navigation "Primary" [ref=e14]:
+        - link "Function Health home" [ref=e15] [cursor=pointer]:
+          - /url: /
+          - img "Function Health" [ref=e16]
+        - list [ref=e17]:
+          - listitem [ref=e18]:
+            - link "How it works" [ref=e19] [cursor=pointer]:
+              - /url: /how-it-works
+          - listitem [ref=e20]:
+            - link "What we test" [ref=e21] [cursor=pointer]:
+              - /url: /what-we-test
+          - listitem [ref=e22]:
+            - link "Imaging" [ref=e23] [cursor=pointer]:
+              - /url: /imaging
+          - listitem [ref=e24]:
+            - link "FAQs" [ref=e25] [cursor=pointer]:
+              - /url: /faq
+          - listitem [ref=e26]:
+            - link "About" [ref=e27] [cursor=pointer]:
+              - /url: /about
+        - generic [ref=e28]:
+          - generic [ref=e29]:
+            - link "Log in" [ref=e30] [cursor=pointer]:
+              - /url: /login
+            - link "Start testing" [ref=e31] [cursor=pointer]:
+              - /url: https://my.functionhealth.com/signup?_saasquatch=_____
+          - generic [ref=e33]:
+            - button "Search" [ref=e34] [cursor=pointer]
+            - button "Open menu" [ref=e38] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic [ref=e45]:
+          - generic [ref=e46]: HSA/FSA Eligible
+          - generic [ref=e48]:
+            - generic [ref=e49]:
+              - heading "Check your health." [level=1] [ref=e50]
+              - generic [ref=e51]:
+                - paragraph [ref=e52]: Every year. Starting with 160+ lab tests detecting 1000+ conditions. Just $365 per year—$1 per day.
+                - link "Start testing" [ref=e53] [cursor=pointer]:
+                  - /url: https://my.functionhealth.com/signup?_saasquatch=_____
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - paragraph [ref=e58]: 160+ lab tests
+                - paragraph [ref=e59]: Total each year
+              - generic [ref=e61]:
+                - paragraph [ref=e62]: Whole body
+                - paragraph [ref=e63]: Tested 2x per year
+              - generic [ref=e65]:
+                - paragraph [ref=e66]: $1 per day
+                - paragraph [ref=e67]: $365 per year
+        - button "Pause hero motion" [ref=e68] [cursor=pointer]
+      - generic [ref=e74]:
+        - heading "Testing is easy" [level=2] [ref=e76]
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]: "01"
+            - generic [ref=e81]:
+              - heading "160+ lab tests" [level=3] [ref=e82]
+              - paragraph [ref=e83]: Test at 2,000+ labs or we'll come to you
+          - generic [ref=e404]:
+            - generic [ref=e405]: "02"
+            - generic [ref=e407]:
+              - heading "Results explained" [level=3] [ref=e408]
+              - paragraph [ref=e409]: By top doctors and 1000s of hours of research
+          - generic [ref=e602]:
+            - generic [ref=e603]: "03"
+            - generic [ref=e605]:
+              - heading "Follow your plan" [level=3] [ref=e606]
+              - paragraph [ref=e607]: Take action. Test again.
+        - generic [ref=e767]:
+          - link "Start testing" [ref=e768] [cursor=pointer]:
+            - /url: https://my.functionhealth.com/signup?_saasquatch=_____
+          - link "See how it works" [ref=e770] [cursor=pointer]:
+            - /url: /how-it-works
+      - generic [ref=e774]:
+        - generic [ref=e775]:
+          - heading "Monitor early indicators of 1000s of diseases" [level=2] [ref=e776]
+          - generic [ref=e777]:
+            - generic [ref=e778]: Establish your long-term baseline
+            - generic [ref=e783]: Tracked for life
+            - generic [ref=e788]: Monitor how your body changes
+        - generic [ref=e793]:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Anemia
+                  - generic: Gout
+                  - generic: Celiac disease
+                  - generic: Addison's disease
+                  - generic: Insulin resistance
+                  - generic: Fatty liver disease
+                  - generic: Pancreatic cancer
+                  - generic: Ovarian cancer
+                  - generic: Sickle cell disease
+                  - generic: Sjögren's syndrome
+                  - generic: Diabetes
+                  - generic: Rheumatoid arthritis
+                  - generic: Mold toxicity
+                - generic:
+                  - generic: Anemia
+                  - generic: Gout
+                  - generic: Celiac disease
+                  - generic: Addison's disease
+                  - generic: Insulin resistance
+                  - generic: Fatty liver disease
+                  - generic: Pancreatic cancer
+                  - generic: Ovarian cancer
+                  - generic: Sickle cell disease
+                  - generic: Sjögren's syndrome
+                  - generic: Diabetes
+                  - generic: Rheumatoid arthritis
+                  - generic: Mold toxicity
+                - generic:
+                  - generic: Anemia
+                  - generic: Gout
+                  - generic: Celiac disease
+                  - generic: Addison's disease
+                  - generic: Insulin resistance
+                  - generic: Fatty liver disease
+                  - generic: Pancreatic cancer
+                  - generic: Ovarian cancer
+                  - generic: Sickle cell disease
+                  - generic: Sjögren's syndrome
+                  - generic: Diabetes
+                  - generic: Rheumatoid arthritis
+                  - generic: Mold toxicity
+                - generic:
+                  - generic: Anemia
+                  - generic: Gout
+                  - generic: Celiac disease
+                  - generic: Addison's disease
+                  - generic: Insulin resistance
+                  - generic: Fatty liver disease
+                  - generic: Pancreatic cancer
+                  - generic: Ovarian cancer
+                  - generic: Sickle cell disease
+                  - generic: Sjögren's syndrome
+                  - generic: Diabetes
+                  - generic: Rheumatoid arthritis
+                  - generic: Mold toxicity
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Hypogonadism
+                  - generic: Lupus
+                  - generic: Coronary artery disease
+                  - generic: Hypothyroidism
+                  - generic: Alzheimer's disease
+                  - generic: Hemochromatosis
+                  - generic: PCOS
+                  - generic: Chronic kidney disease
+                  - generic: Hashimoto's thyroiditis
+                  - generic: Prostate cancer
+                  - generic: Lead toxicity
+                  - generic: Graves' disease
+                - generic:
+                  - generic: Hypogonadism
+                  - generic: Lupus
+                  - generic: Coronary artery disease
+                  - generic: Hypothyroidism
+                  - generic: Alzheimer's disease
+                  - generic: Hemochromatosis
+                  - generic: PCOS
+                  - generic: Chronic kidney disease
+                  - generic: Hashimoto's thyroiditis
+                  - generic: Prostate cancer
+                  - generic: Lead toxicity
+                  - generic: Graves' disease
+                - generic:
+                  - generic: Hypogonadism
+                  - generic: Lupus
+                  - generic: Coronary artery disease
+                  - generic: Hypothyroidism
+                  - generic: Alzheimer's disease
+                  - generic: Hemochromatosis
+                  - generic: PCOS
+                  - generic: Chronic kidney disease
+                  - generic: Hashimoto's thyroiditis
+                  - generic: Prostate cancer
+                  - generic: Lead toxicity
+                  - generic: Graves' disease
+                - generic:
+                  - generic: Hypogonadism
+                  - generic: Lupus
+                  - generic: Coronary artery disease
+                  - generic: Hypothyroidism
+                  - generic: Alzheimer's disease
+                  - generic: Hemochromatosis
+                  - generic: PCOS
+                  - generic: Chronic kidney disease
+                  - generic: Hashimoto's thyroiditis
+                  - generic: Prostate cancer
+                  - generic: Lead toxicity
+                  - generic: Graves' disease
+          - button "Pause motion" [ref=e959] [cursor=pointer]
+      - generic [ref=e966]:
+        - generic [ref=e967]:
+          - heading "160+ lab tests chosen by top doctors" [level=2] [ref=e968]
+          - generic [ref=e969]:
+            - blockquote [ref=e970]:
+              - paragraph [ref=e971]: “The most powerful approach I’ve seen in my career. Uncompromising depth with no shortcuts.”
+            - generic [ref=e972]:
+              - img "Mark Hyman, M.D." [ref=e974]
+              - generic [ref=e975]:
+                - generic [ref=e976]: Mark Hyman, M.D.
+                - paragraph [ref=e977]: Former Cleveland Clinic physician
+        - generic [ref=e978]:
+          - article [ref=e979]:
+            - generic [ref=e980]:
+              - heading "Hormones & thyroid" [level=3] [ref=e981]
+              - generic [ref=e982]: 16 Biomarkers
+            - list [ref=e987]:
+              - listitem [ref=e988]: Thyroxine (T4) Free
+              - listitem [ref=e989]: Thyroglobulin Antibodies (TgAb)
+              - listitem [ref=e990]: Testosterone, Total
+              - listitem [ref=e991]: Anti-Mullerian Hormone
+              - listitem [ref=e992]: Thyroid-Stimulating Hormone (TSH)
+          - article [ref=e993]:
+            - generic [ref=e994]:
+              - heading "Cancer & other silent risks" [level=3] [ref=e995]
+              - generic [ref=e996]: 34 Biomarkers
+            - list [ref=e1001]:
+              - listitem [ref=e1002]: Galleri® Multi-Cancer Test
+              - listitem [ref=e1003]: Prostate Specific Antigen (PSA), Total
+              - listitem [ref=e1004]: Rheumatoid Factor (RF)
+              - listitem [ref=e1005]: Mercury
+          - article [ref=e1006]:
+            - generic [ref=e1007]:
+              - heading "Heart & metabolic" [level=3] [ref=e1008]
+              - generic [ref=e1009]: 18 Biomarkers
+            - list [ref=e1014]:
+              - listitem [ref=e1015]: LDL Small
+              - listitem [ref=e1016]: Lipoprotein (a)
+              - listitem [ref=e1017]: Apolipoprotein B (ApoB)
+              - listitem [ref=e1018]: Omega-3 Total
+              - listitem [ref=e1019]: Insulin
+          - article [ref=e1020]:
+            - generic [ref=e1021]:
+              - heading "Aging" [level=3] [ref=e1022]
+              - generic [ref=e1023]: 34 Biomarkers
+            - list [ref=e1028]:
+              - listitem [ref=e1029]: Sex Hormone Binding Globulin (SHBG)
+              - listitem [ref=e1030]: DHEA-Sulfate
+              - listitem [ref=e1031]: Insulin-like Growth Factor (IGF-1)
+              - listitem [ref=e1032]: Homocysteine
+              - listitem [ref=e1033]: Vitamin D
+          - article [ref=e1034]:
+            - generic [ref=e1035]:
+              - heading "Mental health & focus" [level=3] [ref=e1036]
+              - generic [ref=e1037]: 20 Biomarkers
+            - list [ref=e1042]:
+              - listitem [ref=e1043]: Cortisol
+              - listitem [ref=e1044]: High-Sensitivity C-Reactive Protein (hs-CRP)
+              - listitem [ref=e1045]: Iron
+              - listitem [ref=e1046]: Ferritin
+              - listitem [ref=e1047]: Methylmalonic Acid (MMA) (B12 Proxy)
+          - complementary [ref=e1048]:
+            - generic [ref=e1049]:
+              - paragraph [ref=e1050]: +More
+              - paragraph [ref=e1051]: All-in-one lab testing
+            - link "See all tests" [ref=e1052] [cursor=pointer]:
+              - /url: /what-we-test
+        - generic [ref=e1055]:
+          - generic [ref=e1056]:
+            - heading "Plus, bring your results wherever you go" [level=3] [ref=e1057]
+            - paragraph [ref=e1058]: Share with your doctor or connect directly to AI.
+          - list [ref=e1060]:
+            - listitem [ref=e1061]:
+              - img "Your doctor"
+            - listitem [ref=e1062]:
+              - img "Claude"
+            - listitem [ref=e1063]:
+              - img "ChatGPT"
+            - listitem [ref=e1064]:
+              - img "Perplexity"
+      - generic [ref=e1067]:
+        - generic [ref=e1068]:
+          - heading "The new standard for health" [level=2] [ref=e1070]
+          - paragraph [ref=e1072]: Health for a new, discerning generation
+        - generic "Trusted by millions highlights" [ref=e1073]:
+          - generic [ref=e1074]:
+            - generic [ref=e1075]:
+              - img "TIME 100 Most Influential Companies"
+            - figure [ref=e1076]:
+              - img "Dr. Jen Ashton" [ref=e1077]
+              - generic [ref=e1078]:
+                - paragraph [ref=e1079]: "\"I recommend Function for every woman, every year of her life.\""
+                - paragraph [ref=e1080]: Dr. Jen Ashton
+          - generic [ref=e1081]:
+            - figure [ref=e1082]:
+              - img "Andrew Huberman" [ref=e1083]
+              - generic [ref=e1084]:
+                - paragraph [ref=e1085]: “I’ve been so impressed by Function.”
+                - paragraph [ref=e1086]: Andrew Huberman
+            - generic [ref=e1087]:
+              - img "Fast Company Most Innovative Companies 2024"
+          - generic [ref=e1088]:
+            - generic [ref=e1089]:
+              - img "Oprah Daily Self-Care O-Wards 2025"
+            - figure [ref=e1090]:
+              - img "Jay Shetty" [ref=e1091]
+              - generic [ref=e1092]:
+                - paragraph [ref=e1093]: "\"I deeply believe in Function's mission.\""
+                - paragraph [ref=e1094]: Jay Shetty
+          - generic [ref=e1095]:
+            - figure [ref=e1096]:
+              - img "Baya Voce" [ref=e1097]
+              - generic [ref=e1098]:
+                - paragraph [ref=e1099]: "\"Function helps me understand my own biology.\""
+                - paragraph [ref=e1100]: Baya Voce
+            - generic [ref=e1101]:
+              - img "2025 LinkedIn Top Startups"
+      - region "Featured in" [ref=e1102]:
+        - generic [ref=e1103]:
+          - generic [ref=e1106]:
+            - img "The Economist" [ref=e1107]
+            - img "The Wall Street Journal" [ref=e1108]
+            - img "The New York Times" [ref=e1109]
+            - img "Axios" [ref=e1110]
+            - img "Vogue" [ref=e1111]
+            - img "CNBC" [ref=e1112]
+            - img "People" [ref=e1113]
+            - img "Fortune" [ref=e1114]
+            - img "Forbes" [ref=e1115]
+          - button "Pause motion" [ref=e1126] [cursor=pointer]
+      - generic [ref=e1133]:
+        - heading "Real people. Real results." [level=2] [ref=e1136]
+        - generic [ref=e1137]:
+          - article [ref=e1138] [cursor=pointer]:
+            - generic [ref=e1140]:
+              - img "Function like Aimee" [ref=e1142]
+              - generic [ref=e1144]:
+                - paragraph [ref=e1145]: Function like Aimee
+                - paragraph [ref=e1146]: The cancer signals doctors missed
+            - button "Play Function like Aimee" [ref=e1147]
+            - generic:
+              - button "Unmute Function like Aimee" [pressed]
+              - button "Play Function like Aimee"
+              - button "Close Function like Aimee"
+              - slider "Seek Function like Aimee" [ref=e1151]: "0"
+          - article [ref=e1152] [cursor=pointer]:
+            - generic [ref=e1154]:
+              - img "Function like Alan" [ref=e1156]
+              - generic [ref=e1158]:
+                - paragraph [ref=e1159]: Function like Alan
+                - paragraph [ref=e1160]: From diabetes diagnosis to action
+            - button "Play Function like Alan" [ref=e1161]
+            - generic:
+              - button "Unmute Function like Alan" [pressed]
+              - button "Play Function like Alan"
+              - button "Close Function like Alan"
+              - slider "Seek Function like Alan" [ref=e1165]: "0"
+          - article [ref=e1166] [cursor=pointer]:
+            - generic [ref=e1168]:
+              - img "An image of Geoff talking to the camera." [ref=e1170]
+              - generic [ref=e1172]:
+                - paragraph [ref=e1173]: Function like Geoff
+                - paragraph [ref=e1174]: Finding prostate cancer after testing
+            - button "Play Function like Geoff" [ref=e1175]
+            - generic:
+              - button "Unmute Function like Geoff" [pressed]
+              - button "Play Function like Geoff"
+              - button "Close Function like Geoff"
+              - slider "Seek Function like Geoff" [ref=e1179]: "0"
+          - article [ref=e1180] [cursor=pointer]:
+            - generic [ref=e1182]:
+              - img "Function like Catherine" [ref=e1184]
+              - generic [ref=e1186]:
+                - paragraph [ref=e1187]: Function like Catherine
+                - paragraph [ref=e1188]: You can't diet or exercise this away
+            - button "Play Function like Catherine" [ref=e1189]
+            - generic:
+              - button "Unmute Function like Catherine" [pressed]
+              - button "Play Function like Catherine"
+              - button "Close Function like Catherine"
+              - slider "Seek Function like Catherine" [ref=e1193]: "0"
+      - generic [ref=e1196]:
+        - generic [ref=e1197]:
+          - generic [ref=e1198]:
+            - heading "Gold standard for lab testing" [level=2] [ref=e1199]
+            - generic [ref=e1200]:
+              - paragraph [ref=e1202]: Labs trusted by the medical community. Established partners. Consistent, reliable results.
+              - link "Explore testing options" [ref=e1203] [cursor=pointer]:
+                - /url: /lab-locations
+                - generic [ref=e1205]: →
+          - generic "Lab partners" [ref=e1206]:
+            - img "Quest Diagnostics" [ref=e1207]
+            - img "Getlabs" [ref=e1209]
+        - generic [ref=e1210]:
+          - article [ref=e1211]:
+            - paragraph [ref=e1212]: 2,000+ lab test locations across the US
+            - generic [ref=e1213]:
+              - generic:
+                - img "Illustrated map of the United States in the gold standard section."
+              - paragraph [ref=e1214]: 2,000+
+          - article [ref=e1215]:
+            - paragraph [ref=e1216]: Over 75 million results delivered to Function members
+            - generic [ref=e1217]:
+              - generic:
+                - img "Column chart showing results growth in the gold standard section."
+              - paragraph [ref=e1218]: 75M+
+      - generic [ref=e1221]:
+        - heading "Not your average checkup" [level=2] [ref=e1222]
+        - generic "Comparison chart" [ref=e1224]:
+          - generic [ref=e1226]:
+            - paragraph [ref=e1227]: Standard checkup
+            - generic [ref=e1228]:
+              - img "Function" [ref=e1230]
+              - generic [ref=e1231]: 160+
+            - generic [ref=e1293]:
+              - generic [ref=e1294]:
+                - paragraph [ref=e1295]: Lab tests annually
+                - generic [ref=e1296]: ~26
+              - paragraph [ref=e1299]: Personalized action plan
+              - paragraph [ref=e1305]: Upload past results
+              - paragraph [ref=e1311]: No insurance needed
+              - paragraph [ref=e1317]: Every 6 months
+              - paragraph [ref=e1323]: Hormones & fertility testing
+              - paragraph [ref=e1329]: Heavy metal & toxin testing
+              - paragraph [ref=e1335]: Metabolic & pancreatic testing
+              - paragraph [ref=e1341]: Heart testing beyond cholesterol
+              - paragraph [ref=e1347]: Nutrient/electrolyte testing
+              - paragraph [ref=e1353]: Autoimmunity testing
+              - paragraph [ref=e1359]: Thyroid testing
+              - paragraph [ref=e1365]: Access to MRI & CT
+              - paragraph [ref=e1371]: Access to Galleri® Multi-Cancer Test
+              - paragraph [ref=e1377]: Access to Alzheimers & brain testing
+              - paragraph [ref=e1383]: Access to mold reactivity testing
+      - generic [ref=e1390]:
+        - generic [ref=e1391]:
+          - heading "Built with the world's top doctors" [level=2] [ref=e1393]
+          - paragraph [ref=e1395]: Function’s Medical & Scientific Board
+        - generic [ref=e1396]:
+          - generic "Medical board members" [ref=e1398]:
+            - article [ref=e1400]:
+              - img "Mark Hyman" [ref=e1402]
+              - generic [ref=e1403]:
+                - paragraph [ref=e1404]: Mark Hyman, M.D.
+                - paragraph [ref=e1405]: Former Cleveland Clinic physician. CMO of Function Health.
+            - article [ref=e1407]:
+              - img "JoAnn E. Manson" [ref=e1409]
+              - generic [ref=e1410]:
+                - paragraph [ref=e1411]: JoAnn E. Manson, M.D., MPH, DrPH
+                - paragraph [ref=e1412]: Chief of Preventive Medicine at Brigham & Women's Hospital. Professor at Harvard.
+            - article [ref=e1414]:
+              - img "Andrew Huberman" [ref=e1416]
+              - generic [ref=e1417]:
+                - paragraph [ref=e1418]: Andrew Huberman, PhD
+                - paragraph [ref=e1419]: Professor of Neurobiology at Stanford School of Medicine.
+            - article [ref=e1421]:
+              - img "Toby Cosgrove" [ref=e1423]
+              - generic [ref=e1424]:
+                - paragraph [ref=e1425]: Toby Cosgrove, M.D.
+                - paragraph [ref=e1426]: Former CEO of Cleveland Clinic. Top heart surgeon.
+            - article [ref=e1428]:
+              - img "Daniel Sodickson" [ref=e1430]
+              - generic [ref=e1431]:
+                - paragraph [ref=e1432]: Daniel Sodickson, M.D., PhD
+                - paragraph [ref=e1433]: Chief of Innovation at NYU Langone. Pioneer of AI-driven MRI.
+            - article [ref=e1435]:
+              - img "Azra Raza" [ref=e1437]
+              - generic [ref=e1438]:
+                - paragraph [ref=e1439]: Azra Raza, M.D.
+                - paragraph [ref=e1440]: Top medical oncologist. Professor at Columbia University.
+            - article [ref=e1442]:
+              - img "Eddie Chang" [ref=e1444]
+              - generic [ref=e1445]:
+                - paragraph [ref=e1446]: Eddie Chang, M.D.
+                - paragraph [ref=e1447]: Professor & Chair of Neurological Surgery at UCSF.
+            - article [ref=e1449]:
+              - img "Luis A. Diaz" [ref=e1451]
+              - generic [ref=e1452]:
+                - paragraph [ref=e1453]: Luis A. Diaz, M.D.
+                - paragraph [ref=e1454]: Head of the Division of Solid Tumor Oncology at Memorial Sloan Kettering Cancer Center.
+          - button "Show previous medical board members" [disabled]
+          - button "Show more medical board members" [ref=e1455] [cursor=pointer]
+      - generic [ref=e1460]:
+        - generic [ref=e1461]:
+          - heading "What could cost you $15,000 is $365" [level=2] [ref=e1463]
+          - paragraph [ref=e1465]: Your health shouldn’t depend on insurance.
+        - generic [ref=e1466]:
+          - generic [ref=e1467]:
+            - generic [ref=e1468]:
+              - generic [ref=e1469]:
+                - generic [ref=e1470]: HSA/FSA Eligible
+                - heading "Function Membership" [level=3] [ref=e1475]
+              - generic [ref=e1476]:
+                - generic [ref=e1477]:
+                  - generic [ref=e1478]:
+                    - generic [ref=e1479]: $1
+                    - generic [ref=e1480]: /day
+                  - paragraph [ref=e1481]: Charged annually at $365
+                - link "Join Function" [ref=e1483] [cursor=pointer]:
+                  - /url: https://my.functionhealth.com/signup?_saasquatch=_____
+            - list [ref=e1487]:
+              - listitem [ref=e1488]:
+                - generic [ref=e1492]: 160+ lab tests annually
+              - listitem [ref=e1493]:
+                - generic [ref=e1497]: Testing 2x/year and on-demand
+              - listitem [ref=e1498]:
+                - generic [ref=e1502]: Insights from top doctors and researchers
+              - listitem [ref=e1503]:
+                - generic [ref=e1507]: All-in-one for your whole body
+              - listitem [ref=e1508]:
+                - generic [ref=e1512]: Tracked in one secure place
+              - listitem [ref=e1513]:
+                - generic [ref=e1517]: Clinicians review every result and flag issues
+              - listitem [ref=e1518]:
+                - generic [ref=e1522]: Personalized protocol for instant action
+              - listitem [ref=e1523]:
+                - generic [ref=e1527]: Add MRI and CT anytime
+              - listitem [ref=e1528]:
+                - generic [ref=e1532]: No insurance, transparent pricing
+          - generic [ref=e1533]:
+            - generic [ref=e1534]:
+              - generic "5 out of 5 stars" [ref=e1535]:
+                - generic [ref=e1536]: ★
+                - generic [ref=e1537]: ★
+                - generic [ref=e1538]: ★
+                - generic [ref=e1539]: ★
+                - generic [ref=e1540]: ★
+              - paragraph [ref=e1541]: Function blows my mind. The experience, price, and clinician notes are all phenomenal.
+            - generic [ref=e1542]:
+              - generic "5 out of 5 stars" [ref=e1543]:
+                - generic [ref=e1544]: ★
+                - generic [ref=e1545]: ★
+                - generic [ref=e1546]: ★
+                - generic [ref=e1547]: ★
+                - generic [ref=e1548]: ★
+              - paragraph [ref=e1549]: This is the most comprehensive lab testing I have ever had. I am thrilled to know more about my health and how to improve it.
+            - generic [ref=e1550]:
+              - generic "5 out of 5 stars" [ref=e1551]:
+                - generic [ref=e1552]: ★
+                - generic [ref=e1553]: ★
+                - generic [ref=e1554]: ★
+                - generic [ref=e1555]: ★
+                - generic [ref=e1556]: ★
+              - paragraph [ref=e1557]: Best money I have spent on healthcare.
+      - generic [ref=e1560]:
+        - heading "Frequently asked questions" [level=2] [ref=e1563]
+        - generic [ref=e1565]:
+          - generic [ref=e1566]:
+            - group [ref=e1567]:
+              - generic "What is Function?" [ref=e1568] [cursor=pointer]
+            - group [ref=e1573]:
+              - generic "Why was Function created?" [ref=e1574] [cursor=pointer]
+            - group [ref=e1579]:
+              - generic "Will my results include explanations?" [ref=e1580] [cursor=pointer]
+            - group [ref=e1585]:
+              - generic "Do biomarkers change over time?" [ref=e1586] [cursor=pointer]
+            - group [ref=e1591]:
+              - generic "How often do I test with Function?" [ref=e1592] [cursor=pointer]
+          - link "See all frequently asked questions" [ref=e1597] [cursor=pointer]:
+            - /url: /faq
+            - generic [ref=e1599]: →
+    - generic [ref=e1602]:
+      - generic [ref=e1603]:
+        - heading "Life is short?" [level=2] [ref=e1605]
+        - paragraph [ref=e1607]: We disagree.
+      - generic [ref=e1608]:
+        - link "Start testing" [ref=e1609] [cursor=pointer]:
+          - /url: https://my.functionhealth.com/signup?_saasquatch=_____
+        - link "What we test" [ref=e1611] [cursor=pointer]:
+          - /url: /what-we-test
+  - contentinfo [ref=e1613]:
+    - generic [ref=e1614]:
+      - generic [ref=e1615]:
+        - link "Function Health home" [ref=e1617] [cursor=pointer]:
+          - /url: /
+          - img "Function" [ref=e1618]
+        - generic [ref=e1619]:
+          - generic [ref=e1620]:
+            - generic [ref=e1621]:
+              - heading "Company" [level=3] [ref=e1622]
+              - list [ref=e1623]:
+                - listitem [ref=e1624]:
+                  - link "Join Function" [ref=e1625] [cursor=pointer]:
+                    - /url: https://my.functionhealth.com/signup
+                - listitem [ref=e1626]:
+                  - link "Login" [ref=e1627] [cursor=pointer]:
+                    - /url: https://my.functionhealth.com/login
+                - listitem [ref=e1628]:
+                  - link "Newsroom" [ref=e1629] [cursor=pointer]:
+                    - /url: /newsroom
+                - listitem [ref=e1630]:
+                  - link "Security" [ref=e1631] [cursor=pointer]:
+                    - /url: /security
+                - listitem [ref=e1632]:
+                  - link "Careers" [ref=e1633] [cursor=pointer]:
+                    - /url: /careers
+                - listitem [ref=e1634]:
+                  - link "Contact us" [ref=e1635] [cursor=pointer]:
+                    - /url: /contact-us
+            - generic [ref=e1636]:
+              - heading "Explore" [level=3] [ref=e1637]
+              - list [ref=e1638]:
+                - listitem [ref=e1639]:
+                  - link "What people say" [ref=e1640] [cursor=pointer]:
+                    - /url: /what-people-say
+                - listitem [ref=e1641]:
+                  - link "About" [ref=e1642] [cursor=pointer]:
+                    - /url: /about
+                - listitem [ref=e1643]:
+                  - link "MRI & CT" [ref=e1644] [cursor=pointer]:
+                    - /url: /imaging
+                - listitem [ref=e1645]:
+                  - link "Pricing" [ref=e1646] [cursor=pointer]:
+                    - /url: /pricing
+                - listitem [ref=e1647]:
+                  - link "Testing locations" [ref=e1648] [cursor=pointer]:
+                    - /url: /lab-locations
+            - generic [ref=e1649]:
+              - heading "Community" [level=3] [ref=e1650]
+              - list [ref=e1651]:
+                - listitem [ref=e1652]:
+                  - link "Gift Function" [ref=e1653] [cursor=pointer]:
+                    - /url: /gifthealth
+                - listitem [ref=e1654]:
+                  - link "For employers" [ref=e1655] [cursor=pointer]:
+                    - /url: /for-business
+                - listitem [ref=e1656]:
+                  - link "For practitioners" [ref=e1657] [cursor=pointer]:
+                    - /url: /practitioners-and-providers
+                - listitem [ref=e1658]:
+                  - link "For creators" [ref=e1659] [cursor=pointer]:
+                    - /url: /for-creators
+                - listitem [ref=e1660]:
+                  - link "Share your story" [ref=e1661] [cursor=pointer]:
+                    - /url: https://functionhealth.typeform.com/to/w5zitKAg
+          - generic [ref=e1665]:
+            - generic [ref=e1666]:
+              - heading "Subscribe and get 9 health guides for living 100 healthy years." [level=3] [ref=e1667]
+              - paragraph [ref=e1668]: Get the foundational guides for lifelong health. Built by top experts with decades of research.
+            - generic [ref=e1669]:
+              - textbox [ref=e1671]
+              - textbox "Email address" [ref=e1673]
+              - button "Submit" [ref=e1674] [cursor=pointer]
+          - generic [ref=e1675]:
+            - generic [ref=e1678]:
+              - link "Get it on Google Play" [ref=e1679] [cursor=pointer]:
+                - /url: https://play.google.com/store/apps/details?id=com.functionhealth&hl=en_US
+                - img "Get it on Google Play" [ref=e1680]
+              - link "Download on the App Store" [ref=e1681] [cursor=pointer]:
+                - /url: https://apps.apple.com/us/app/function-health/id6471280307
+                - img "Download on the App Store" [ref=e1682]
+            - generic [ref=e1683]:
+              - generic "Social links" [ref=e1684]:
+                - link "Instagram" [ref=e1685] [cursor=pointer]:
+                  - /url: https://www.instagram.com/function
+                - link "LinkedIn" [ref=e1689] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/functionhealth/
+                - link "Facebook" [ref=e1693] [cursor=pointer]:
+                  - /url: https://www.facebook.com/askfunction/
+                - link "X" [ref=e1697] [cursor=pointer]:
+                  - /url: https://x.com/function
+                - link "TikTok" [ref=e1701] [cursor=pointer]:
+                  - /url: https://www.tiktok.com/@function
+                - link "YouTube" [ref=e1705] [cursor=pointer]:
+                  - /url: https://www.youtube.com/@functionhealth
+              - generic [ref=e1709]:
+                - generic [ref=e1710]:
+                  - link "Privacy Policy" [ref=e1711] [cursor=pointer]:
+                    - /url: /legal/privacy-policy
+                  - link "Terms of Service" [ref=e1712] [cursor=pointer]:
+                    - /url: /legal/terms-of-service
+                - generic [ref=e1713]:
+                  - link "Do Not Sell or Share My Personal Information" [ref=e1714] [cursor=pointer]:
+                    - /url: https://functionhealth.typeform.com/to/tHsoGWwn
+                  - link "Privacy Choices" [ref=e1715] [cursor=pointer]:
+                    - /url: https://functionhealth.typeform.com/to/tHsoGWwn
+                  - link "Consumer Health Data Privacy Policy" [ref=e1716] [cursor=pointer]:
+                    - /url: /legal/consumer-health-data-privacy-policy
+      - generic [ref=e1717]:
+        - paragraph [ref=e1718]: "*Function's $365 first-year membership includes fully prepaid access to 160+ lab tests, with a leading nationwide provider, in all states except New York and New Jersey. Unless otherwise indicated all promotions apply to the first year of a Function Health membership and do not apply to Add-On Tests or Function Scans, other than the member pricing available for select MRI scans."
+        - paragraph [ref=e1719]: Function Health is a healthcare technology company and not a laboratory or medical provider. All laboratory and medical services are provided by independent third parties. These laboratory and medical service providers set their own pricing. Although Function Health may facilitate easy access to certain laboratory and medical service providers on your behalf, Function Health does not recommend or refer you to any healthcare providers, and you are free to choose any healthcare provider and to continue to use Function Health's services. Function Health does not offer medical advice, laboratory services, a diagnosis, medical treatment, or any form of medical opinion, through our services or otherwise. Function Health's services are not a substitute for medical care, medical advice, and/or a detailed discussion with your primary care physician or other licensed provider. If you have any questions regarding any laboratory results or other information that you access through Function Health, we recommend that you discuss those questions with a primary care physician or other licensed provider. All material, information, data, and content that Function Health provides is strictly for general information purposes. Function Health's membership pricing includes technology and service fees charged by Function Health, as well as access to limited prepaid laboratory and other services provided by third parties, and paid to such third parties on your behalf. Itemization of all fees is available upon request. Certain items and services require additional payment that are not included in standard membership pricing. For other important information regarding the services provided by Function Health, please see terms of service.
+        - paragraph [ref=e1720]: Function Health does not provide tax, legal, or financial advice. Please be aware that HSA/FSA eligibility, contribution amounts, rollover provisions, and other key features may change annually and differ between plans. We recommend consulting your plan administrator, HR department, or a qualified tax or financial advisor to understand how these accounts apply to your specific situation. We are not responsible for any errors or changes in regulations that may affect your FSA or HSA benefits. Ezra provides imaging services for screening and informational purposes only. Services are subject to eligibility requirements and may not be appropriate for all individuals. All scans are reviewed by board-certified radiologists. Results do not constitute a medical diagnosis, treatment plan, or substitute for care from your physician. You should consult your personal healthcare provider regarding any medical concerns or before making healthcare decisions. By providing your phone number, you agree to receive text messages from Function Health. Message and data rates may apply. Message frequency varies. Long live humans.
+        - paragraph [ref=e1721]: © 2026 Function Health. All rights reserved. 100 Healthy Years.

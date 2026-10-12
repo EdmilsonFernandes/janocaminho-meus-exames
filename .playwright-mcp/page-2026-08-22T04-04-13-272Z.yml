@@ -1,0 +1,219 @@
+- generic [ref=f126e3]:
+  - generic [ref=f126e5]:
+    - paragraph [ref=f126e9]:
+      - strong [ref=f126e10]: "Manutenção Temporária:"
+      - text: A funcionalidade de Análise de Exames está temporariamente indisponível enquanto realizamos melhorias importantes para tornar as análises mais precisas, completas e confiáveis. Nossa equipe está trabalhando para aprimorar a interpretação dos exames e oferecer resultados ainda melhores para você. Pedimos que retorne mais tarde para utilizar essa funcionalidade. Agradecemos sua compreensão! 💙
+      - strong [ref=f126e11]: "Status:"
+      - text: Em manutenção.
+      - strong [ref=f126e12]: "Previsão:"
+      - text: Disponível novamente em breve.
+    - button "Dismiss Announcement" [ref=f126e13]
+  - banner [ref=f126e17]:
+    - generic [ref=f126e18]:
+      - link "Dr IA Logo Dr IA Sistema de Análise" [ref=f126e19] [cursor=pointer]:
+        - /url: "#"
+        - img "Dr IA Logo" [ref=f126e20]
+        - generic [ref=f126e21]:
+          - generic [ref=f126e22]: Dr IA
+          - generic [ref=f126e23]: Sistema de Análise
+      - navigation [ref=f126e24]:
+        - link "Como Funciona" [ref=f126e25] [cursor=pointer]:
+          - /url: "#como-funciona"
+        - link "Funcionalidades" [ref=f126e26] [cursor=pointer]:
+          - /url: "#funcionalidades"
+        - link "Exames Suportados" [ref=f126e27] [cursor=pointer]:
+          - /url: "#exames"
+        - link "FAQ" [ref=f126e28] [cursor=pointer]:
+          - /url: "#faq"
+      - generic [ref=f126e29]:
+        - button "Entrar" [ref=f126e30]
+        - button "Cadastrar" [ref=f126e31] [cursor=pointer]
+  - generic [ref=f126e35]:
+    - generic [ref=f126e36]: Análise de Saúde Pessoal Inteligente
+    - heading "Dr IA — Sistema Inteligente de Análise Médica" [level=1] [ref=f126e38]
+    - paragraph [ref=f126e39]: Sistema inteligente de análise médica com IA para análise de exames de imagem e sangue, com recomendações personalizadas e linguagem acessível. Compreenda seus exames de forma simples, descomplicada e obtenha clareza sobre o seu bem-estar físico.
+    - button "Criar Minha Conta" [ref=f126e41] [cursor=pointer]
+  - generic [ref=f126e45]:
+    - generic [ref=f126e46]:
+      - heading "Como Funciona" [level=2] [ref=f126e47]
+      - paragraph [ref=f126e48]: Em apenas 3 passos simples, você obtém uma análise detalhada dos seus exames
+    - generic [ref=f126e49]:
+      - generic [ref=f126e50]:
+        - heading "1. Upload do Exame" [level=3] [ref=f126e55]
+        - paragraph [ref=f126e56]: Faça upload do seu exame de imagem ou sangue de forma 100% segura e confidencial.
+        - generic [ref=f126e57]: Menos de 1 minuto
+      - generic [ref=f126e58]:
+        - heading "2. Análise por IA" [level=3] [ref=f126e68]
+        - paragraph [ref=f126e69]: Nossa inteligência artificial de última geração traduz o vocabulário técnico para termos simples.
+        - generic [ref=f126e70]: 2-5 minutos
+      - generic [ref=f126e71]:
+        - heading "3. Resultados" [level=3] [ref=f126e75]
+        - paragraph [ref=f126e76]: Receba uma análise organizada por tópicos, além de conselhos e recomendações gerais de bem-estar.
+        - generic [ref=f126e77]: Instantâneo
+  - generic [ref=f126e79]:
+    - generic [ref=f126e80]:
+      - generic [ref=f126e81]: 🔥 Novas Funcionalidades
+      - heading "Ferramentas Exclusivas de Monitoramento" [level=2] [ref=f126e82]
+      - paragraph [ref=f126e83]: Recursos de última geração para apoiar sua jornada diária de bem-estar e cuidados.
+    - generic [ref=f126e84]:
+      - generic [ref=f126e85]:
+        - generic [ref=f126e87]:
+          - heading "Medicamentos" [level=3] [ref=f126e92]
+          - paragraph [ref=f126e93]: Acompanhe seus medicamentos! Nunca mais esqueça de tomar sua medicação corretamente. Configure seus horários e confirme a tomada diariamente para manter o controle absoluto de seu tratamento de forma visual.
+        - generic [ref=f126e94]:
+          - generic [ref=f126e95]: Múltiplos horários
+          - generic [ref=f126e99]: Calendário visual
+      - generic [ref=f126e102]:
+        - generic [ref=f126e104]:
+          - heading "Controle de Pressão" [level=3] [ref=f126e108]
+          - paragraph [ref=f126e109]: Registre suas medições de pressão arterial diariamente, visualize gráficos de evolução completos para detectar anomalias e baixe relatórios formatados in PDF para entregar diretamente ao seu médico!
+        - generic [ref=f126e110]:
+          - generic [ref=f126e111]: Gráficos de Evolução
+          - generic [ref=f126e113]: Exportar PDF
+      - generic [ref=f126e117]:
+        - generic [ref=f126e119]:
+          - heading "Calculadora de Calorias" [level=3] [ref=f126e123]
+          - paragraph [ref=f126e124]: Tire uma foto do seu prato de refeição e descubra instantaneamente o valor calórico aproximado! Realize análise nutricional completa com IA, separando proteínas, carboidratos e gorduras por porção.
+        - generic [ref=f126e125]:
+          - generic [ref=f126e126]: Foto do prato
+          - generic [ref=f126e129]: Histórico nutricional
+  - generic [ref=f126e133]:
+    - generic [ref=f126e134]:
+      - heading "Tipos de Exames Suportados" [level=2] [ref=f126e135]
+      - paragraph [ref=f126e136]: Nossa IA analisa diversos tipos de exames com alta precisão descritiva
+    - generic [ref=f126e137]:
+      - generic [ref=f126e142]:
+        - heading "Raio-X" [level=3] [ref=f126e143]
+        - paragraph [ref=f126e144]: Fraturas, pneumonia, problemas pulmonares, artrite e outras condições ósseas identificáveis.
+      - generic [ref=f126e155]:
+        - heading "Tomografia" [level=3] [ref=f126e156]
+        - paragraph [ref=f126e157]: Tumores, hemorragias internas, problemas vasculares e análise detalhada da densidade de órgãos.
+      - generic [ref=f126e162]:
+        - heading "Ressonância Magnética" [level=3] [ref=f126e163]
+        - paragraph [ref=f126e164]: Lesões de tecidos moles musculares, problemas neurológicos, cerebrais e articulações complexas.
+      - generic [ref=f126e170]:
+        - heading "Ultrassom" [level=3] [ref=f126e171]
+        - paragraph [ref=f126e172]: Acompanhamento pré-natal, visualização gestacional, problemas abdominais e análises vasculares.
+      - generic [ref=f126e178]:
+        - heading "Exames de Sangue" [level=3] [ref=f126e179]
+        - paragraph [ref=f126e180]: Hemogramas completos, glicemia, triglicérides, colesterol, taxas hormonais e avaliação da função hepática e renal.
+      - generic [ref=f126e185]:
+        - heading "Eletrocardiograma" [level=3] [ref=f126e186]
+        - paragraph [ref=f126e187]: Monitoramento e análise de arritmias, taquicardias, problemas cardíacos gerais e ritmo do batimento.
+  - generic [ref=f126e189]:
+    - generic [ref=f126e190]:
+      - generic [ref=f126e191]: 🎯 Público Ideal
+      - heading "Para Quem é Indicado?" [level=2] [ref=f126e192]
+      - paragraph [ref=f126e193]: O Dr IA é ideal para pessoas que buscam mais autonomia, clareza e acompanhamento contínuo da sua saúde.
+    - generic [ref=f126e194]:
+      - generic [ref=f126e195]:
+        - generic [ref=f126e196]: Exames Frequentes
+        - paragraph [ref=f126e199]: Pessoas que realizam exames de controle com frequência e desejam entender perfeitamente o vocabulário e histórico dos resultados de forma rápida.
+      - generic [ref=f126e200]:
+        - generic [ref=f126e201]: Busca Praticidade
+        - paragraph [ref=f126e204]: Quem valoriza a praticidade de poder analisar laudos digitais ou fotografias de exames impressos no celular com tradução imediata.
+      - generic [ref=f126e205]:
+        - generic [ref=f126e206]: Pressão Alta
+        - paragraph [ref=f126e209]: Pacientes que realizam a aferição regular da pressão arterial e desejam manter os históricos gerando relatórios precisos de acompanhamento.
+      - generic [ref=f126e210]:
+        - generic [ref=f126e211]: Familiares Cuidadores
+        - paragraph [ref=f126e217]: Filhos, pais ou cuidadores que realizam o acompanhamento de exames e receitas de pessoas queridas e querem um suporte educativo adicional.
+      - generic [ref=f126e218]:
+        - generic [ref=f126e219]: Longe de Centros Médicos
+        - paragraph [ref=f126e223]: Moradores de regiões periféricas ou de difícil acesso médico, que buscam uma triagem explicativa simplificada antes de se deslocarem.
+      - generic [ref=f126e224]:
+        - generic [ref=f126e225]: Autonomia em Saúde
+        - paragraph [ref=f126e230]: Pessoas focadas em medicina preventiva e autocuidado, que querem se manter informadas para fazer perguntas assertivas nas consultas.
+  - generic [ref=f126e232]:
+    - heading "Vantagens de usar o Dr IA" [level=2] [ref=f126e234]
+    - generic [ref=f126e235]:
+      - generic [ref=f126e236]:
+        - heading "Análise Rápida" [level=4] [ref=f126e240]
+        - paragraph [ref=f126e241]: Análise simplificada gerada por inteligência artificial avançada.
+      - generic [ref=f126e242]:
+        - heading "Acesso 24/7" [level=4] [ref=f126e246]
+        - paragraph [ref=f126e247]: Acesse a qualquer hora, de qualquer lugar, sem necessidade de agendamento.
+      - generic [ref=f126e248]:
+        - heading "Histórico Completo" [level=4] [ref=f126e252]
+        - paragraph [ref=f126e253]: Acompanhe evolução de pressões e exames com gráficos integrados.
+      - generic [ref=f126e254]:
+        - heading "Economia de Tempo" [level=4] [ref=f126e258]
+        - paragraph [ref=f126e259]: Esclarecimento de termos instantâneo no aconchego da sua casa.
+      - generic [ref=f126e260]:
+        - heading "Fácil de Usar" [level=4] [ref=f126e264]
+        - paragraph [ref=f126e265]: Interface ultra intuitiva, ideal para qualquer faixa de idade.
+  - generic [ref=f126e268]:
+    - generic [ref=f126e270]:
+      - 'heading "Atenção: Dr IA não substitui seu médico" [level=3] [ref=f126e274]'
+      - paragraph [ref=f126e275]: O Dr IA é uma ferramenta educativa e de apoio. Não fornece diagnósticos.
+    - generic [ref=f126e276]:
+      - paragraph [ref=f126e280]:
+        - strong [ref=f126e281]: O Dr IA é uma ferramenta de análise com base em inteligência artificial
+        - text: que fornece uma segunda opinião e explicações básicas, simplificando os termos contidos em exames.
+      - generic [ref=f126e282]:
+        - generic [ref=f126e283]: ✕
+        - paragraph [ref=f126e284]:
+          - strong [ref=f126e285]: Ele não substitui em nenhuma hipótese consultas médicas
+          - text: ", receitas, exames complementares físicos ou diagnósticos clínicos profissionais de saúde."
+      - generic [ref=f126e286]:
+        - generic [ref=f126e287]: ✓
+        - paragraph [ref=f126e288]:
+          - strong [ref=f126e289]: Sempre consulte um médico credenciado
+          - text: para obter diagnósticos definitivos, planos de tratamentos medicamentosos e exames preventivos periódicos.
+      - generic [ref=f126e290]: A inteligência artificial pode ajudar você a entender melhor seus resultados e gerenciar melhor o seu autocuidado, mas apenas um médico pode interpretar o seu quadro clínico completo de saúde com segurança e responsabilidade.
+    - link "Consulte um médico para uma avaliação completa" [ref=f126e292] [cursor=pointer]:
+      - /url: https://grupomeindica.com.br
+  - generic [ref=f126e294]:
+    - heading "Perguntas Frequentes" [level=2] [ref=f126e296]
+    - generic [ref=f126e297]:
+      - button "O Dr IA substitui uma consulta médica?" [ref=f126e299]
+      - button "Quão precisa é a análise da IA?" [ref=f126e304]
+      - button "Meus dados estão seguros?" [ref=f126e309]
+      - button "Quanto tempo demora para ter o resultado?" [ref=f126e314]
+      - button "O que acontece se eu não pagar a assinatura?" [ref=f126e319]
+      - button "Posso recuperar meus dados após a exclusão?" [ref=f126e324]
+  - generic [ref=f126e329]:
+    - heading "Comece sua análise médica hoje" [level=2] [ref=f126e330]
+    - paragraph [ref=f126e331]: 1 dia grátis • Sem compromisso • Análise em minutos • Resultados confiáveis
+    - button "Criar Conta Gratuita" [ref=f126e333] [cursor=pointer]
+  - contentinfo [ref=f126e334]:
+    - generic [ref=f126e335]:
+      - generic [ref=f126e336]:
+        - generic [ref=f126e337]:
+          - img "Dr IA Logo" [ref=f126e338]
+          - generic [ref=f126e339]:
+            - generic [ref=f126e340]: Dr IA – Sistema de Análise
+            - generic [ref=f126e341]: Plataforma rápida e segura com o Dr IA.
+        - generic [ref=f126e342]:
+          - link "Instagram" [ref=f126e343] [cursor=pointer]:
+            - /url: https://www.instagram.com/meindica87/
+          - link "Facebook" [ref=f126e346] [cursor=pointer]:
+            - /url: https://www.facebook.com/grupomeindica
+          - link "X (Twitter)" [ref=f126e349] [cursor=pointer]:
+            - /url: https://x.com/MeIndica87
+          - link "Pinterest" [ref=f126e352] [cursor=pointer]:
+            - /url: https://br.pinterest.com/meindicaoficial/
+      - generic [ref=f126e355]:
+        - generic [ref=f126e356]:
+          - paragraph [ref=f126e357]:
+            - text: "Dr IA - Desenvolvido por:"
+            - link "Grupo Me Indica" [ref=f126e358] [cursor=pointer]:
+              - /url: https://grupomeindica.com.br/
+          - paragraph [ref=f126e359]: © 2026 | Todos os direitos reservados
+        - generic [ref=f126e360]:
+          - link "Grupo Me Indica" [ref=f126e361] [cursor=pointer]:
+            - /url: https://grupomeindica.com.br/
+          - link "Política de Privacidade" [ref=f126e362] [cursor=pointer]:
+            - /url: https://grupomeindica.com.br/politica-de-privacidade-cinevault
+          - link "Termos de Uso" [ref=f126e363] [cursor=pointer]:
+            - /url: https://grupomeindica.com.br/termos-de-uso-cinevault
+      - paragraph [ref=f126e365]: Plataforma rápida e segura com o Dr IA.
+  - generic [ref=f126e366]:
+    - paragraph [ref=f126e368]:
+      - text: Nós utilizamos cookies e outras tecnologias semelhantes para melhorar a sua experiência em nossos serviços, personalizar publicidade e recomendar conteúdos de seu interesse de acordo com a nossa
+      - link "Política de Privacidade" [ref=f126e369] [cursor=pointer]:
+        - /url: https://grupomeindica.com.br/politica-de-privacidade-cinevault
+      - text: . Ao prosseguir, você concorda com este uso.
+    - generic [ref=f126e370]:
+      - button "Recusar" [ref=f126e371]
+      - button "Aceitar" [ref=f126e372]

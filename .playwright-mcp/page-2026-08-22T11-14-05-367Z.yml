@@ -1,0 +1,89 @@
+- generic [ref=f1e20]:
+  - generic [ref=f1e21]:
+    - generic [ref=f1e101]:
+      - button [ref=f1e102] [cursor=pointer]
+      - generic [ref=f1e103]:
+        - banner [ref=f1e104]:
+          - generic [ref=f1e105]:
+            - button [ref=f1e106] [cursor=pointer]
+            - paragraph [ref=f1e112]: Dr. Exame
+            - button [ref=f1e113] [cursor=pointer]:
+              - generic [ref=f1e116]: "71"
+            - button [ref=f1e117] [cursor=pointer]:
+              - generic [ref=f1e118]: 9+
+            - button [ref=f1e123] [cursor=pointer]:
+              - generic [ref=f1e124]: E
+        - main [ref=f1e126]:
+          - generic [ref=f1e128]:
+            - generic [ref=f1e129]:
+              - paragraph [ref=f1e130]: Bom dia, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f1e133]:
+              - generic [ref=f1e134]:
+                - generic [ref=f1e139]:
+                  - paragraph [ref=f1e391]: "45"
+                  - paragraph [ref=f1e141]: de 100
+                - generic [ref=f1e142]:
+                  - paragraph [ref=f1e143]: Sua saúde hoje
+                  - paragraph [ref=f1e144]: Pede atenção
+                  - paragraph [ref=f1e146]:
+                    - generic [ref=f1e147]: ● 6 moderados
+              - button [ref=f1e148] [cursor=pointer]: Ver análise completa
+            - generic [ref=f1e162]:
+              - generic [ref=f1e163]:
+                - paragraph [ref=f1e164]: Quase lá
+                - generic [ref=f1e165]: 40% do perfil
+              - paragraph [ref=f1e166]: Um passo pra destravar análises mais precisas.
+              - generic [ref=f1e167]:
+                - paragraph [ref=f1e172]: Completar seu perfil
+                - paragraph [ref=f1e177]: Enviar seu primeiro exame
+              - button [ref=f1e178] [cursor=pointer]: Completar perfil
+            - button [ref=f1e187] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f1e191]:
+              - generic [ref=f1e198] [cursor=pointer]:
+                - paragraph [ref=f1e199]: Cardiometabólico
+                - paragraph [ref=f1e200]: Sem dados
+                - paragraph [ref=f1e392]: sem colesterol, peso ou pressão
+              - generic [ref=f1e203] [cursor=pointer]:
+                - generic [ref=f1e204]: 🧬
+                - generic [ref=f1e205]:
+                  - paragraph [ref=f1e206]: Idade biológica
+                  - paragraph [ref=f1e207]: —
+                  - paragraph [ref=f1e208]: complete seu perfil
+              - generic [ref=f1e215] [cursor=pointer]:
+                - paragraph [ref=f1e216]: Seus exames
+                - paragraph [ref=f1e217]: "5"
+                - paragraph [ref=f1e218]: 8 alterados
+              - generic [ref=f1e225] [cursor=pointer]:
+                - paragraph [ref=f1e226]: Evolução
+                - paragraph [ref=f1e227]: Tendências
+                - paragraph [ref=f1e228]: 28 resultados
+            - generic [ref=f1e230]:
+              - generic [ref=f1e231]: Enviar exame
+              - generic [ref=f1e238]: Evolução
+              - generic [ref=f1e245]: Família
+              - generic [ref=f1e253]: Relatório
+            - generic [ref=f1e395]:
+              - generic [ref=f1e399]:
+                - paragraph [ref=f1e400]: "71"
+                - text: créditos disponíveis
+              - button [ref=f1e401] [cursor=pointer]: Comprar
+            - button [ref=f1e261] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f1e265]:
+      - paragraph [ref=f1e270] [cursor=pointer]: Início
+      - paragraph [ref=f1e276] [cursor=pointer]: Exames
+      - paragraph [ref=f1e280] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f1e285] [cursor=pointer]: Evolução
+      - paragraph [ref=f1e290] [cursor=pointer]: Mais
+  - generic [ref=f1e17] [cursor=pointer]
+  - dialog [active] [ref=f1e295]:
+    - navigation [ref=f1e296]:
+      - button "Exames" [ref=f1e428] [cursor=pointer]
+      - button "Cuidados" [ref=f1e429] [cursor=pointer]
+      - button "Pessoas" [ref=f1e430] [cursor=pointer]
+      - button "Conta" [ref=f1e431] [cursor=pointer]
+      - separator [ref=f1e335]
+      - button "Dúvidas frequentes" [ref=f1e432] [cursor=pointer]
+      - button "Ajuda & Suporte" [ref=f1e433] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f1e434] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f1e435] [cursor=pointer]

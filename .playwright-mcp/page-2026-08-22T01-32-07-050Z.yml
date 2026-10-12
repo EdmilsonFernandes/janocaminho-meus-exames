@@ -1,0 +1,52 @@
+- generic [active] [ref=f5e1]:
+  - navigation [ref=f5e3]:
+    - button [ref=f5e4] [cursor=pointer]
+    - generic [ref=f5e5]:
+      - button "Toggle theme" [ref=f5e6] [cursor=pointer]:
+        - generic [ref=f5e8]: ☀
+      - button "Settings" [ref=f5e10] [cursor=pointer]
+    - generic [ref=f5e11]:
+      - generic [ref=f5e12]: A consulta começa em instantes
+      - generic [ref=f5e13]: "-5:23"
+    - generic [ref=f5e20]:
+      - button "Painel" [ref=f5e21] [cursor=pointer]
+      - button "Salas" [ref=f5e22] [cursor=pointer]
+    - button [ref=f5e23] [cursor=pointer]
+  - generic [ref=f5e27]:
+    - generic [ref=f5e28]: Criar sala
+    - generic [ref=f5e32]:
+      - generic [ref=f5e34]:
+        - generic [ref=f5e35]: Discussão de casos clínicos
+        - generic [ref=f5e36]: Retrospectiva da semana
+      - generic [ref=f5e39]: "9"
+    - generic [ref=f5e42]: Insights da semana
+    - generic [ref=f5e113]:
+      - generic [ref=f5e115]:
+        - generic [ref=f5e116]: Estratégia de cuidado 2026
+        - generic [ref=f5e117]: Sem reuniões agendadas
+      - generic [ref=f5e122]: "32"
+    - generic [ref=f5e124]:
+      - generic [ref=f5e126]:
+        - generic [ref=f5e127]: Equipe de acolhimento
+        - generic [ref=f5e128]: Planejamento da sprint
+      - generic [ref=f5e133]: "3"
+    - generic [ref=f5e136]:
+      - generic [ref=f5e138]:
+        - generic [ref=f5e139]: Pesquisa com pacientes
+        - generic [ref=f5e140]: Sem reuniões agendadas
+      - generic [ref=f5e145]: "6"
+    - generic [ref=f5e147]:
+      - generic [ref=f5e149]:
+        - generic [ref=f5e150]: Núcleo clínico
+        - generic [ref=f5e151]: Núcleo clínico
+      - generic [ref=f5e155]: "2"
+    - generic [ref=f5e158]:
+      - generic [ref=f5e159]:
+        - generic [ref=f5e160]: Compartilhar tela
+        - generic [ref=f5e161]: 0:30
+      - generic [ref=f5e162]: Dra. Alice
+      - generic [ref=f5e169]: "8"
+  - generic [ref=f5e176]: "+17"
+  - generic [ref=f5e189]:
+    - button "Toggle video" [ref=f5e190] [cursor=pointer]
+    - button "Toggle mic" [ref=f5e194] [cursor=pointer]

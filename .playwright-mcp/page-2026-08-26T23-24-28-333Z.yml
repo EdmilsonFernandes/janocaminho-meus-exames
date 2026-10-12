@@ -1,0 +1,59 @@
+- generic [ref=f22e40]:
+  - generic [ref=f22e41]:
+    - generic [ref=f22e42]:
+      - button "Menu do médico" [ref=f22e43] [cursor=pointer]
+      - generic [ref=f22e46]:
+        - paragraph [ref=f22e47]: Doutor Exame
+        - text: Otorrinolaringologista • CRM 12345-SP
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f22e48]: 🩺 Acesso médico · leitura
+    - generic [ref=f22e50]:
+      - generic [ref=f22e51]:
+        - generic [ref=f22e52]:
+          - paragraph [ref=f22e53]: Boa noite, Dr. Doutor 👋
+          - paragraph [ref=f22e54]: 1 paciente com valores alterados · 1 pergunta em aberto
+          - generic [ref=f22e55]: quarta-feira, 26 de agosto
+        - generic [ref=f22e56]:
+          - generic [ref=f22e58] [cursor=pointer]:
+            - paragraph [ref=f22e63]: "1"
+            - text: Pacientes
+          - generic [ref=f22e65] [cursor=pointer]:
+            - paragraph [ref=f22e71]: "1"
+            - text: Com alerta
+          - generic [ref=f22e73] [cursor=pointer]:
+            - paragraph [ref=f22e78]: "2"
+            - text: Perguntas abertas
+          - generic [ref=f22e80] [cursor=pointer]:
+            - paragraph [ref=f22e85]: "0"
+            - text: Convites pendentes
+        - generic [ref=f22e86]:
+          - generic [ref=f22e87]:
+            - paragraph [ref=f22e88]: 🩺 Precisam de atenção agora
+            - button "Ver todos" [ref=f22e89] [cursor=pointer]
+          - generic [ref=f22e95] [cursor=pointer]:
+            - paragraph [ref=f22e96]: Edmilson Lopes
+            - generic [ref=f22e97]: 47a · M · 🔴 Prioridade alta · ❓ 2 · exame há 22 dias
+        - generic [ref=f22e100]:
+          - generic [ref=f22e101]:
+            - paragraph [ref=f22e102]: ❓ Perguntas aguardando você
+            - button "Inbox" [ref=f22e103] [cursor=pointer]
+          - generic [ref=f22e109] [cursor=pointer]:
+            - paragraph [ref=f22e110]: Edmilson Lopes
+            - generic [ref=f22e111]: 47a · M · ❓ 2 em aberto
+      - generic [ref=f22e114]:
+        - button "Fechar banner" [ref=f22e115] [cursor=pointer]:
+          - generic [ref=f22e116]: ×
+        - generic [ref=f22e117]:
+          - paragraph [ref=f22e118]: 💎 Dr. Exame Pro
+          - paragraph [ref=f22e119]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f22e120] [cursor=pointer]
+  - navigation [ref=f22e121]:
+    - button "Início" [ref=f22e122] [cursor=pointer]:
+      - paragraph [ref=f22e127]: Início
+    - button "Pacientes" [ref=f22e129] [cursor=pointer]:
+      - paragraph [ref=f22e134]: Pacientes
+    - button "Perguntas" [ref=f22e135] [cursor=pointer]:
+      - paragraph [ref=f22e140]: Perguntas
+    - button "Perfil" [ref=f22e141] [cursor=pointer]:
+      - paragraph [ref=f22e146]: Perfil
+    - button "Mais" [ref=f22e147] [cursor=pointer]:
+      - paragraph [ref=f22e152]: Mais

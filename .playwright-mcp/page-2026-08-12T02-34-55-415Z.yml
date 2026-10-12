@@ -1,0 +1,56 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e428]:
+    - navigation [ref=e504]:
+      - generic [ref=e506]:
+        - button "Menu do médico" [ref=e507] [cursor=pointer]:
+          - generic [ref=e508]: D
+        - generic [ref=e509]:
+          - paragraph [ref=e510]: 🩺 Dr Teste QA
+          - generic [ref=e511]: Clínico Geral • CRM 99999-SP
+      - separator [ref=e512]
+      - generic [ref=e513]:
+        - generic [ref=e514]: PLANO
+        - paragraph [ref=e515]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e516]:
+        - button "Pacientes" [ref=e517] [cursor=pointer]
+        - button "Convites" [ref=e523] [cursor=pointer]
+        - button "Perguntas" [ref=e530] [cursor=pointer]
+        - button "Meu perfil" [ref=e537] [cursor=pointer]
+        - button "Trocar senha" [ref=e543] [cursor=pointer]
+        - separator [ref=e549]
+        - button "Sair" [ref=e550] [cursor=pointer]
+      - generic [ref=e556]: Portal do Médico
+    - generic [ref=e429]:
+      - paragraph [ref=e558]: Pacientes
+      - generic [ref=e435]:
+        - generic [ref=e436]:
+          - button "Fechar banner" [ref=e437] [cursor=pointer]:
+            - generic [ref=e438]: ×
+          - generic [ref=e439]:
+            - paragraph [ref=e440]: 💎 Dr. Exame Pro
+            - paragraph [ref=e441]: 💡 0 de 5 pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=e442] [cursor=pointer]
+        - generic [ref=e443]:
+          - heading "Pacientes (2)" [level=6] [ref=e444]
+          - generic [ref=e445]: 🔴 1 com alerta
+        - generic [ref=e447]:
+          - textbox "Buscar paciente" [ref=e452]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=e453] [cursor=pointer]
+        - generic [ref=e456]:
+          - generic [ref=e458] [cursor=pointer]:
+            - generic [ref=e459]: E
+            - generic [ref=e462]:
+              - paragraph [ref=e463]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e464]: M
+              - generic [ref=e465]: 🔴 alerta · 📋 5 exames · 📅 09/07/2026 · Particular
+          - generic [ref=e469] [cursor=pointer]:
+            - generic [ref=e470]: U
+            - generic [ref=e472]:
+              - paragraph [ref=e473]: Usuário Teste
+              - generic [ref=e474]: Titular
+              - generic [ref=e475]: Particular
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

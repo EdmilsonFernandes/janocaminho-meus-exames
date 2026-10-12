@@ -1,0 +1,198 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - link "Pular para o conteúdo" [ref=e4] [cursor=pointer]:
+      - /url: "#conteudo-home"
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link "PremioX — página inicial" [ref=e8] [cursor=pointer]:
+          - /url: /
+          - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=e10]
+        - navigation [ref=e11]:
+          - button "Mudar para tema escuro" [ref=e12] [cursor=pointer]
+    - generic [ref=e21]:
+      - heading "Preço que Cai&Sorteios Oficiais" [level=1] [ref=e22]
+      - paragraph [ref=e23]: Arremate produtos desejados ao vivo com preço caindo em tempo real ou garanta suas cotas da sorte em prêmios 100% auditáveis via Loteria Federal.
+      - generic [ref=e24]:
+        - link "Ver ofertas ao vivo" [ref=e25] [cursor=pointer]:
+          - /url: "#campanhas"
+        - link "Explorar sorteios" [ref=e28] [cursor=pointer]:
+          - /url: "#campanhas"
+      - generic [ref=e31]:
+        - generic [ref=e32]: Auditado Loteria Federal
+        - generic [ref=e35]: PIX instantâneo
+        - generic [ref=e39]: Preço caindo ao vivo
+        - generic [ref=e42]: Arremate em grupo
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - heading "Vitrine Principal" [level=2] [ref=e53]
+          - paragraph [ref=e54]: Escolha a categoria e acompanhe os prêmios disponíveis
+        - generic [ref=e55]:
+          - button "🔥 Todos os Destaques 0" [ref=e56] [cursor=pointer]:
+            - generic [ref=e57]: 🔥 Todos os Destaques
+            - generic [ref=e58]: "0"
+          - button "⚡ Preço que Cai 0" [ref=e59] [cursor=pointer]:
+            - generic [ref=e60]: ⚡ Preço que Cai
+            - generic [ref=e61]: "0"
+          - button "🎟️ Sorteios 0" [ref=e62] [cursor=pointer]:
+            - generic [ref=e63]: 🎟️ Sorteios
+            - generic [ref=e64]: "0"
+      - generic [ref=e80]:
+        - generic [ref=e81]: "Como funciona:"
+        - generic [ref=e82]:
+          - generic [ref=e83]: 🎯
+          - text: Escolha
+          - generic [ref=e84]: →
+        - generic [ref=e85]:
+          - generic [ref=e86]: 💬
+          - text: Pague via PIX
+          - generic [ref=e87]: →
+        - generic [ref=e88]:
+          - generic [ref=e89]: ⏱
+          - text: Preço cai ao vivo
+          - generic [ref=e90]: →
+        - generic [ref=e91]:
+          - generic [ref=e92]: 🏆
+          - text: Primeiro leva
+      - generic [ref=e94]:
+        - generic [ref=e95]:
+          - generic [ref=e96]: 🔒
+          - generic [ref=e97]: Pagamento seguro
+          - generic [ref=e98]: Pix processado por gateways especializados.
+        - generic [ref=e99]:
+          - generic [ref=e100]: ✓
+          - generic [ref=e101]: Cadastro validado
+          - generic [ref=e102]: Telefone, e-mail e antifraude progressivo.
+        - generic [ref=e103]:
+          - generic [ref=e104]: 🛡
+          - generic [ref=e105]: Regras transparentes
+          - generic [ref=e106]: Caução, prazos e bloqueios claros.
+      - generic [ref=e107]:
+        - generic [ref=e108]:
+          - generic [ref=e109]: 🤝 Novidade
+          - 'heading "Arremate em grupo: rache o preço com os amigos" [level=2] [ref=e110]'
+          - paragraph [ref=e111]: Achou aquele carro ou moto incrível, mas tá caro pra um só? Crie um grupo, chame seus amigos e arrematem juntos. Cada um paga só a sua parte — direto no site, por PIX.
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - generic [ref=e114]: 👥
+            - generic [ref=e115]: Crie o grupo
+            - paragraph [ref=e116]: Escolha quantas cotas e convide pelo WhatsApp.
+          - generic [ref=e117]:
+            - generic [ref=e118]: 🤝
+            - generic [ref=e119]: Arrebatem juntos
+            - paragraph [ref=e120]: O líder clica "comprar" e o item congela pro grupo.
+          - generic [ref=e121]:
+            - generic [ref=e122]: 💸
+            - generic [ref=e123]: Cada um paga sua parte
+            - paragraph [ref=e124]: Dividido automaticamente por PIX. Simples.
+      - generic [ref=e125]:
+        - heading "Transforme sua audiência em uma experiência exclusiva" [level=2] [ref=e126]
+        - paragraph [ref=e127]: "Influenciadores e marcas: lancem produtos em campanhas ao vivo com a sua comunidade."
+        - link "Quero lançar um produto →" [ref=e128] [cursor=pointer]:
+          - /url: /parceiro
+      - generic [ref=e129]:
+        - generic [ref=e130]: 🎁
+        - heading "Indique amigos e ganhe dinheiro" [level=2] [ref=e131]
+        - paragraph [ref=e132]: Compartilhe seu link. Toda vez que alguém se cadastrar e comprar, você ganha uma comissão — na taxa de acesso, na caução e no arremate. Tudo rastreável, com saque via PIX.
+        - link "Quero ser embaixador →" [ref=e133] [cursor=pointer]:
+          - /url: /embaixador
+        - paragraph [ref=e134]: É grátis. Pegue seu link agora e comece a ganhar.
+      - generic [ref=e135]:
+        - generic [ref=e136]:
+          - generic [ref=e137]: Dúvidas frequentes
+          - heading "Perguntas frequentes" [level=2] [ref=e138]
+        - generic [ref=e139]:
+          - group [ref=e140]:
+            - generic "Como participo? +" [ref=e141] [cursor=pointer]:
+              - text: Como participo?
+              - generic [ref=e142]: +
+          - group [ref=e143]:
+            - generic "Preciso pagar para entrar? +" [ref=e144] [cursor=pointer]:
+              - text: Preciso pagar para entrar?
+              - generic [ref=e145]: +
+          - group [ref=e146]:
+            - generic "O que é a caução? +" [ref=e147] [cursor=pointer]:
+              - text: O que é a caução?
+              - generic [ref=e148]: +
+          - group [ref=e149]:
+            - generic "Quando minha vaga fica garantida? +" [ref=e150] [cursor=pointer]:
+              - text: Quando minha vaga fica garantida?
+              - generic [ref=e151]: +
+          - group [ref=e152]:
+            - generic "E se eu não pagar a caução? +" [ref=e153] [cursor=pointer]:
+              - text: E se eu não pagar a caução?
+              - generic [ref=e154]: +
+          - group [ref=e155]:
+            - generic "O pagamento é seguro? +" [ref=e156] [cursor=pointer]:
+              - text: O pagamento é seguro?
+              - generic [ref=e157]: +
+      - generic [ref=e158]:
+        - generic [ref=e159]:
+          - generic [ref=e160]: Meios de pagamento
+          - heading "Pagamentos & integrações" [level=2] [ref=e161]
+        - paragraph [ref=e162]: Pagamentos via PIX processados por gateways certificados. Rápido, seguro e com mais opções a caminho.
+        - generic [ref=e163]:
+          - generic [ref=e164]:
+            - img "Mercado Pago" [ref=e165]
+            - generic [ref=e166]: ● ATIVO
+          - generic [ref=e167]:
+            - img "InfoPago" [ref=e168]
+            - generic [ref=e169]: ⟳ EM BREVE
+          - generic [ref=e170]:
+            - img "PagSeguro" [ref=e171]
+            - generic [ref=e172]: ⟳ EM BREVE
+        - paragraph [ref=e173]: 🔒 Ambiente de pagamento seguro · Antifraude · Reembolso garantido
+    - contentinfo [ref=e174]:
+      - generic [ref=e175]:
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]: P
+              - generic [ref=e180]: PremioX
+            - paragraph [ref=e181]: Plataforma de ofertas ao vivo com preço que cai em tempo real. Sorteios auditáveis, arremate em grupo e pagamento seguro via PIX.
+            - generic [ref=e182]:
+              - generic [ref=e183]: 🇧🇷 Empresa brasileira
+              - generic [ref=e184]: 📄 LGPD compliant
+          - generic [ref=e185]:
+            - generic [ref=e186]: Legal
+            - generic [ref=e187]:
+              - link "Como funciona" [ref=e188] [cursor=pointer]:
+                - /url: /ajuda
+              - link "Termos de Uso" [ref=e189] [cursor=pointer]:
+                - /url: /termos
+              - link "Política de Privacidade" [ref=e190] [cursor=pointer]:
+                - /url: /privacidade
+              - generic [ref=e191]: Em breve
+          - generic [ref=e192]:
+            - generic [ref=e193]: Pagamentos
+            - generic [ref=e194]:
+              - generic [ref=e195]:
+                - img "Mercado Pago" [ref=e196]
+                - generic [ref=e197]: ● ATIVO
+              - img "InfoPago" [ref=e199]
+              - img "PagSeguro" [ref=e201]
+            - paragraph [ref=e202]: Pagamentos processados por gateways certificados. Ambiente criptografado (TLS).
+        - generic [ref=e203]:
+          - paragraph [ref=e204]:
+            - text: © 2026 PremioX ·
+            - link "v5b4d939" [ref=e205] [cursor=pointer]:
+              - /url: https://github.com/EdmilsonFernandes/premiax/commit/5b4d939
+          - generic [ref=e206]:
+            - generic [ref=e207]: 🔒 TLS/SSL
+            - generic [ref=e208]: ✓ LGPD
+            - generic [ref=e209]: ⚡ PIX
+  - navigation [aria-hidden] [ref=e210]:
+    - generic [ref=e213]:
+      - link [ref=e214] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e219]: Ofertas
+      - link [ref=e220] [cursor=pointer]:
+        - /url: /raffle
+        - generic [ref=e224]: Sorteios
+      - link [ref=e225] [cursor=pointer]:
+        - /url: /embaixador
+        - generic [ref=e231]: Ganhar
+      - link [ref=e232] [cursor=pointer]:
+        - /url: /conta
+        - generic [ref=e237]: Conta
+  - alert [ref=e238]

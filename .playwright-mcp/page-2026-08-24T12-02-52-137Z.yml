@@ -1,0 +1,495 @@
+- generic [active] [ref=f4e20]:
+  - generic [ref=f4e22]:
+    - generic [ref=f4e23]:
+      - banner [ref=f4e24]:
+        - generic [ref=f4e25]:
+          - button [ref=f4e26] [cursor=pointer]
+          - paragraph [ref=f4e29]: Configurações
+          - generic [ref=f4e32]:
+            - generic [ref=f4e33]: 👤 4
+            - generic [ref=f4e35]: 📋 12
+            - generic [ref=f4e37]: 💰 R$ 0
+      - generic [ref=f4e40]:
+        - alert [ref=f4e41]:
+          - generic [ref=f4e43]:
+            - generic [ref=f4e44]: "Plano: R$ 19,90/mês · 250 créditos"
+            - generic [ref=f4e46]: Fundador desligado
+            - generic [ref=f4e48]: 3 pacotes avulsos
+            - generic [ref=f4e50]: Relatório incluído no premium
+        - generic [ref=f4e53]:
+          - heading "💎 Plano mensal" [level=6] [ref=f4e54]
+          - generic [ref=f4e55]: O preço que NOVOS assinantes pagam (cobranças já feitas mantêm o valor gravado — nada é alterado retroativamente). Os créditos entram no saldo do assinante todo mês e não expiram.
+          - generic [ref=f4e56]:
+            - generic [ref=f4e57]:
+              - generic [ref=f4e58]: Preço mensal (R$)
+              - generic [ref=f4e59]:
+                - spinbutton "Preço mensal (R$)" [ref=f4e60]: "19.9"
+                - group:
+                  - generic: Preço mensal (R$)
+            - generic [ref=f4e61]:
+              - generic [ref=f4e62]: Créditos por mês
+              - generic [ref=f4e63]:
+                - spinbutton "Créditos por mês" [ref=f4e64]: "250"
+                - group:
+                  - generic: Créditos por mês
+          - generic [ref=f4e65]:
+            - text: "📐 Regra resultante:"
+            - generic [ref=f4e66]: 250 créditos por R$ 19,90
+            - text: =
+            - generic [ref=f4e67]: 12.6 créditos/R$
+            - text: "— melhor pacote avulso: 6.4 cr/R$ ✅ assinatura claramente melhor"
+          - generic [ref=f4e68]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e69]: salvo
+        - generic [ref=f4e71]:
+          - heading "🎯 Promo Plano Fundador" [level=6] [ref=f4e72]
+          - generic [ref=f4e73]: Preço promocional para os primeiros assinantes (urgência real de lançamento). O contador de vagas é consumido a cada aprovação de pagamento no preço fundador; esgotado, o checkout volta ao preço cheio sozinho. Desligar a promo encerra novas vagas sem afetar quem já pagou.
+          - generic [ref=f4e74]:
+            - generic [ref=f4e75]:
+              - switch [ref=f4e78] [cursor=pointer]
+              - paragraph [ref=f4e81]: Desligada
+            - generic [ref=f4e82]:
+              - generic [ref=f4e83]: Preço fundador (R$)
+              - generic [ref=f4e84]:
+                - spinbutton "Preço fundador (R$)" [disabled] [ref=f4e85]: "19.9"
+                - group:
+                  - generic: Preço fundador (R$)
+            - generic [ref=f4e86]:
+              - generic [ref=f4e87]: Total de vagas
+              - generic [ref=f4e88]:
+                - spinbutton "Total de vagas" [disabled] [ref=f4e89]: "100"
+                - group:
+                  - generic: Total de vagas
+            - generic [ref=f4e90]: 0 usadas · restam 100
+          - generic [ref=f4e92]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e93]: salvo
+        - generic [ref=f4e95]:
+          - heading "🎁 Pacotes de créditos (avulsos)" [level=6] [ref=f4e96]
+          - generic [ref=f4e97]: "Compra pontual por PIX/cartão — sem mensalidade. Créditos são saldo: mudar pacotes NÃO invalida créditos já comprados. Mantenha o pacote mais caro com melhor custo por crédito; a assinatura deve vencer todos (veja o aviso na seção do plano)."
+          - generic [ref=f4e98]:
+            - generic [ref=f4e100]:
+              - generic [ref=f4e101]:
+                - generic [ref=f4e102]: Créditos
+                - generic [ref=f4e103]:
+                  - spinbutton "Créditos" [ref=f4e104]: "50"
+                  - group:
+                    - generic: Créditos
+              - generic [ref=f4e105]:
+                - generic [ref=f4e106]: Preço (R$)
+                - generic [ref=f4e107]:
+                  - spinbutton "Preço (R$)" [ref=f4e108]: "9.9"
+                  - group:
+                    - generic: Preço (R$)
+              - generic [ref=f4e109]:
+                - generic [ref=f4e110]: Nome
+                - generic [ref=f4e111]:
+                  - textbox "Nome" [ref=f4e112]: Início
+                  - group:
+                    - generic: Nome
+              - generic [ref=f4e113]:
+                - switch [ref=f4e116] [cursor=pointer]
+                - generic [ref=f4e119]: Popular
+              - generic [ref=f4e120]: 5.1 cr/R$
+              - button [ref=f4e121] [cursor=pointer]
+            - generic [ref=f4e125]:
+              - generic [ref=f4e126]:
+                - generic [ref=f4e127]: Créditos
+                - generic [ref=f4e128]:
+                  - spinbutton "Créditos" [ref=f4e129]: "140"
+                  - group:
+                    - generic: Créditos
+              - generic [ref=f4e130]:
+                - generic [ref=f4e131]: Preço (R$)
+                - generic [ref=f4e132]:
+                  - spinbutton "Preço (R$)" [ref=f4e133]: "24.9"
+                  - group:
+                    - generic: Preço (R$)
+              - generic [ref=f4e134]:
+                - generic [ref=f4e135]: Nome
+                - generic [ref=f4e136]:
+                  - textbox "Nome" [ref=f4e137]: Popular
+                  - group:
+                    - generic: Nome
+              - generic [ref=f4e138]:
+                - switch [checked] [ref=f4e141] [cursor=pointer]
+                - generic [ref=f4e144]: Popular
+              - generic [ref=f4e145]: 5.6 cr/R$
+              - button [ref=f4e146] [cursor=pointer]
+            - generic [ref=f4e150]:
+              - generic [ref=f4e151]:
+                - generic [ref=f4e152]: Créditos
+                - generic [ref=f4e153]:
+                  - spinbutton "Créditos" [ref=f4e154]: "320"
+                  - group:
+                    - generic: Créditos
+              - generic [ref=f4e155]:
+                - generic [ref=f4e156]: Preço (R$)
+                - generic [ref=f4e157]:
+                  - spinbutton "Preço (R$)" [ref=f4e158]: "49.9"
+                  - group:
+                    - generic: Preço (R$)
+              - generic [ref=f4e159]:
+                - generic [ref=f4e160]: Nome
+                - generic [ref=f4e161]:
+                  - textbox "Nome" [ref=f4e162]: Bônus
+                  - group:
+                    - generic: Nome
+              - generic [ref=f4e163]:
+                - switch [ref=f4e166] [cursor=pointer]
+                - generic [ref=f4e169]: Popular
+              - generic [ref=f4e170]: 6.4 cr/R$
+              - button [ref=f4e171] [cursor=pointer]
+            - button [ref=f4e174] [cursor=pointer]
+          - generic [ref=f4e178]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e179]: salvo
+        - generic [ref=f4e181]:
+          - heading "⭐ Benefícios do plano Premium (perks)" [level=6] [ref=f4e182]
+          - generic [ref=f4e183]: O que o assinante ganha ALÉM dos créditos. Ligar/desligar aqui muda na hora, para todos — sem estado órfão (leitura por uso).
+          - generic [ref=f4e184]:
+            - generic [ref=f4e185]:
+              - switch [checked] [ref=f4e188] [cursor=pointer]
+              - generic [ref=f4e191]:
+                - paragraph [ref=f4e192]: 📄 Relatório consolidado incluído no plano
+                - generic [ref=f4e193]: "Ligado: assinante gera sem gastar créditos. Desligado: paga 20 créditos como qualquer usuário."
+            - generic [ref=f4e194]:
+              - generic [ref=f4e195]:
+                - generic [ref=f4e196]: Limite de perfis da família (premium)
+                - generic [ref=f4e197]:
+                  - spinbutton "Limite de perfis da família (premium)" [ref=f4e198]: "10"
+                  - group:
+                    - generic: Limite de perfis da família (premium)
+              - generic [ref=f4e199]: Free continua com 4 perfis (extra custa créditos).
+          - generic [ref=f4e200]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e201]: salvo
+        - generic [ref=f4e203]:
+          - heading "📤 Envio de exames" [level=6] [ref=f4e204]
+          - generic [ref=f4e205]: Free paga créditos por envio. Premium tem uma cota mensal grátis por dependente — use 999 para 'praticamente ilimitado' (o custo real de envio é baixo; a IA de interpretação é cobrada à parte).
+          - generic [ref=f4e206]:
+            - generic [ref=f4e207]:
+              - generic [ref=f4e208]: "Free: créditos por envio"
+              - generic [ref=f4e209]:
+                - 'spinbutton "Free: créditos por envio" [ref=f4e210]': "1"
+                - group:
+                  - generic: "Free: créditos por envio"
+            - generic [ref=f4e211]:
+              - generic [ref=f4e212]: "Premium: envios grátis/mês"
+              - generic [ref=f4e213]:
+                - 'spinbutton "Premium: envios grátis/mês" [ref=f4e214]': "6"
+                - group:
+                  - generic: "Premium: envios grátis/mês"
+            - generic [ref=f4e215]:
+              - generic [ref=f4e216]: "Premium: créditos após a cota"
+              - generic [ref=f4e217]:
+                - 'spinbutton "Premium: créditos após a cota" [ref=f4e218]': "5"
+                - group:
+                  - generic: "Premium: créditos após a cota"
+          - generic [ref=f4e219]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e220]: salvo
+        - generic [ref=f4e222]:
+          - heading "🤖 Custos de IA (em créditos)" [level=6] [ref=f4e223]
+          - generic [ref=f4e224]: Quanto cada ação de IA debita do saldo. 0 = grátis. O app sincroniza esses valores sozinho.
+          - generic [ref=f4e225]:
+            - generic [ref=f4e226]:
+              - generic [ref=f4e227]: 💬 Chat (por pergunta)
+              - generic [ref=f4e228]:
+                - spinbutton "💬 Chat (por pergunta)" [ref=f4e229]: "2"
+                - group:
+                  - generic: 💬 Chat (por pergunta)
+            - generic [ref=f4e230]:
+              - generic [ref=f4e231]: 📄 Resumo do exame
+              - generic [ref=f4e232]:
+                - spinbutton "📄 Resumo do exame" [ref=f4e233]: "10"
+                - group:
+                  - generic: 📄 Resumo do exame
+            - generic [ref=f4e234]:
+              - generic [ref=f4e235]: 🧾 Relatório consolidado
+              - generic [ref=f4e236]:
+                - spinbutton "🧾 Relatório consolidado" [ref=f4e237]: "20"
+                - group:
+                  - generic: 🧾 Relatório consolidado
+            - generic [ref=f4e238]:
+              - generic [ref=f4e239]: 📤 Upload (0 = grátis)
+              - generic [ref=f4e240]:
+                - spinbutton "📤 Upload (0 = grátis)" [ref=f4e241]: "0"
+                - group:
+                  - generic: 📤 Upload (0 = grátis)
+          - generic [ref=f4e242]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e243]: salvo
+        - generic [ref=f4e245]:
+          - heading "🎁 Bônus do 1º exame" [level=6] [ref=f4e246]
+          - generic [ref=f4e247]: Créditos dados quando o usuário extrai o primeiro exame com CPF válido (anti-farm). É o 'grátis pra testar' da landing.
+          - generic [ref=f4e248]:
+            - generic [ref=f4e249]: Créditos do bônus
+            - generic [ref=f4e250]:
+              - spinbutton "Créditos do bônus" [ref=f4e251]: "60"
+              - group:
+                - generic: Créditos do bônus
+          - generic [ref=f4e252]:
+            - button "Salvar seção" [disabled]
+            - generic [ref=f4e253]: salvo
+        - separator [ref=f4e254]
+        - generic [ref=f4e256]:
+          - heading "🏆 Conquistas (gamificação)" [level=6] [ref=f4e257]
+          - generic [ref=f4e258]: Edite nomes, valores e dificuldade. Salva tudo de uma vez no banco.
+          - generic [ref=f4e259]:
+            - generic [ref=f4e260]:
+              - generic [ref=f4e261]:
+                - generic [ref=f4e262]: Emoji
+                - generic [ref=f4e263]:
+                  - textbox "Emoji" [ref=f4e264]: 🎉
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e265]:
+                - generic [ref=f4e266]: Título
+                - generic [ref=f4e267]:
+                  - textbox "Título" [ref=f4e268]: Primeiro exame
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e269]:
+                - generic [ref=f4e270]: Descrição
+                - generic [ref=f4e271]:
+                  - textbox "Descrição" [ref=f4e272]: Envie seu primeiro exame
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e273]:
+                - generic [ref=f4e274]: Meta
+                - generic [ref=f4e275]:
+                  - spinbutton "Meta" [ref=f4e276]: "1"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e277]:
+                - generic [ref=f4e278]: 💎 Recompensa
+                - generic [ref=f4e279]:
+                  - spinbutton "💎 Recompensa" [ref=f4e280]: "2"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e281]:
+              - generic [ref=f4e282]:
+                - generic [ref=f4e283]: Emoji
+                - generic [ref=f4e284]:
+                  - textbox "Emoji" [ref=f4e285]: 📚
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e286]:
+                - generic [ref=f4e287]: Título
+                - generic [ref=f4e288]:
+                  - textbox "Título" [ref=f4e289]: Colecionador
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e290]:
+                - generic [ref=f4e291]: Descrição
+                - generic [ref=f4e292]:
+                  - textbox "Descrição" [ref=f4e293]: Acumule 5 exames
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e294]:
+                - generic [ref=f4e295]: Meta
+                - generic [ref=f4e296]:
+                  - spinbutton "Meta" [ref=f4e297]: "5"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e298]:
+                - generic [ref=f4e299]: 💎 Recompensa
+                - generic [ref=f4e300]:
+                  - spinbutton "💎 Recompensa" [ref=f4e301]: "3"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e302]:
+              - generic [ref=f4e303]:
+                - generic [ref=f4e304]: Emoji
+                - generic [ref=f4e305]:
+                  - textbox "Emoji" [ref=f4e306]: 🎓
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e307]:
+                - generic [ref=f4e308]: Título
+                - generic [ref=f4e309]:
+                  - textbox "Título" [ref=f4e310]: Estudioso
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e311]:
+                - generic [ref=f4e312]: Descrição
+                - generic [ref=f4e313]:
+                  - textbox "Descrição" [ref=f4e314]: Acumule 10 exames
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e315]:
+                - generic [ref=f4e316]: Meta
+                - generic [ref=f4e317]:
+                  - spinbutton "Meta" [ref=f4e318]: "10"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e319]:
+                - generic [ref=f4e320]: 💎 Recompensa
+                - generic [ref=f4e321]:
+                  - spinbutton "💎 Recompensa" [ref=f4e322]: "5"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e323]:
+              - generic [ref=f4e324]:
+                - generic [ref=f4e325]: Emoji
+                - generic [ref=f4e326]:
+                  - textbox "Emoji" [ref=f4e327]: 🗄️
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e328]:
+                - generic [ref=f4e329]: Título
+                - generic [ref=f4e330]:
+                  - textbox "Título" [ref=f4e331]: Arquivista
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e332]:
+                - generic [ref=f4e333]: Descrição
+                - generic [ref=f4e334]:
+                  - textbox "Descrição" [ref=f4e335]: Acumule 25 exames
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e336]:
+                - generic [ref=f4e337]: Meta
+                - generic [ref=f4e338]:
+                  - spinbutton "Meta" [ref=f4e339]: "25"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e340]:
+                - generic [ref=f4e341]: 💎 Recompensa
+                - generic [ref=f4e342]:
+                  - spinbutton "💎 Recompensa" [ref=f4e343]: "10"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e344]:
+              - generic [ref=f4e345]:
+                - generic [ref=f4e346]: Emoji
+                - generic [ref=f4e347]:
+                  - textbox "Emoji" [ref=f4e348]: 💚
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e349]:
+                - generic [ref=f4e350]: Título
+                - generic [ref=f4e351]:
+                  - textbox "Título" [ref=f4e352]: Saudável
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e353]:
+                - generic [ref=f4e354]: Descrição
+                - generic [ref=f4e355]:
+                  - textbox "Descrição" [ref=f4e356]: Score de saúde acima de 80
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e357]:
+                - generic [ref=f4e358]: Meta
+                - generic [ref=f4e359]:
+                  - spinbutton "Meta" [ref=f4e360]: "80"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e361]:
+                - generic [ref=f4e362]: 💎 Recompensa
+                - generic [ref=f4e363]:
+                  - spinbutton "💎 Recompensa" [ref=f4e364]: "5"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e365]:
+              - generic [ref=f4e366]:
+                - generic [ref=f4e367]: Emoji
+                - generic [ref=f4e368]:
+                  - textbox "Emoji" [ref=f4e369]: 🔥
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e370]:
+                - generic [ref=f4e371]: Título
+                - generic [ref=f4e372]:
+                  - textbox "Título" [ref=f4e373]: Constância
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e374]:
+                - generic [ref=f4e375]: Descrição
+                - generic [ref=f4e376]:
+                  - textbox "Descrição" [ref=f4e377]: 3 dias seguidos no app
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e378]:
+                - generic [ref=f4e379]: Meta
+                - generic [ref=f4e380]:
+                  - spinbutton "Meta" [ref=f4e381]: "3"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e382]:
+                - generic [ref=f4e383]: 💎 Recompensa
+                - generic [ref=f4e384]:
+                  - spinbutton "💎 Recompensa" [ref=f4e385]: "2"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e386]:
+              - generic [ref=f4e387]:
+                - generic [ref=f4e388]: Emoji
+                - generic [ref=f4e389]:
+                  - textbox "Emoji" [ref=f4e390]: ⚡
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e391]:
+                - generic [ref=f4e392]: Título
+                - generic [ref=f4e393]:
+                  - textbox "Título" [ref=f4e394]: Dedicado
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e395]:
+                - generic [ref=f4e396]: Descrição
+                - generic [ref=f4e397]:
+                  - textbox "Descrição" [ref=f4e398]: 7 dias seguidos no app
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e399]:
+                - generic [ref=f4e400]: Meta
+                - generic [ref=f4e401]:
+                  - spinbutton "Meta" [ref=f4e402]: "7"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e403]:
+                - generic [ref=f4e404]: 💎 Recompensa
+                - generic [ref=f4e405]:
+                  - spinbutton "💎 Recompensa" [ref=f4e406]: "5"
+                  - group:
+                    - generic: 💎 Recompensa
+            - generic [ref=f4e407]:
+              - generic [ref=f4e408]:
+                - generic [ref=f4e409]: Emoji
+                - generic [ref=f4e410]:
+                  - textbox "Emoji" [ref=f4e411]: 👑
+                  - group:
+                    - generic: Emoji
+              - generic [ref=f4e412]:
+                - generic [ref=f4e413]: Título
+                - generic [ref=f4e414]:
+                  - textbox "Título" [ref=f4e415]: Mestre da saúde
+                  - group:
+                    - generic: Título
+              - generic [ref=f4e416]:
+                - generic [ref=f4e417]: Descrição
+                - generic [ref=f4e418]:
+                  - textbox "Descrição" [ref=f4e419]: 30 dias seguidos no app
+                  - group:
+                    - generic: Descrição
+              - generic [ref=f4e420]:
+                - generic [ref=f4e421]: Meta
+                - generic [ref=f4e422]:
+                  - spinbutton "Meta" [ref=f4e423]: "30"
+                  - group:
+                    - generic: Meta
+              - generic [ref=f4e424]:
+                - generic [ref=f4e425]: 💎 Recompensa
+                - generic [ref=f4e426]:
+                  - spinbutton "💎 Recompensa" [ref=f4e427]: "20"
+                  - group:
+                    - generic: 💎 Recompensa
+          - button "Salvar conquistas" [ref=f4e429] [cursor=pointer]
+    - contentinfo [ref=f4e430]:
+      - paragraph [ref=f4e434] [cursor=pointer]: Início
+      - paragraph [ref=f4e438] [cursor=pointer]: Usuários
+      - paragraph [ref=f4e442] [cursor=pointer]: Financ.
+      - paragraph [ref=f4e446] [cursor=pointer]: Config.
+      - paragraph [ref=f4e451] [cursor=pointer]: Mais
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e18] [cursor=pointer]

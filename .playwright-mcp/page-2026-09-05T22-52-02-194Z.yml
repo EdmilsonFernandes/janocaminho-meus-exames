@@ -1,0 +1,126 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1403]:
+      - button "Pular para o conteúdo" [ref=e2086] [cursor=pointer]
+      - generic [ref=e1405]:
+        - banner [ref=e1406]:
+          - generic [ref=e1407]:
+            - button "Voltar" [ref=e2752] [cursor=pointer]
+            - generic [ref=e1411]:
+              - img "Dr. Exame" [ref=e2088]
+              - paragraph [ref=e1414]: Dr. Exame
+            - generic [ref=e1415]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=e2089] [cursor=pointer]:
+                - generic [ref=e1490]: "69"
+              - button "Notificações" [ref=e2090] [cursor=pointer]:
+                - generic [ref=e1417]: 9+
+              - button "E" [ref=e2091] [cursor=pointer]
+        - main [ref=e1427]:
+          - generic [ref=e2755]:
+            - generic [ref=e2756]:
+              - button "Voltar ao início" [ref=e2757] [cursor=pointer]: ←
+              - img "Dr. Exame" [ref=e2758]
+              - generic [ref=e2759]:
+                - paragraph [ref=e2760]: Dr. Exame
+                - paragraph [ref=e2762]: Assistente de saúde com IA · Edmilson
+              - button "Histórico de conversas (1)" [ref=e2763] [cursor=pointer]:
+                - generic [ref=e2764]: "1"
+            - generic [ref=e2769]:
+              - img "Dr. Exame" [ref=e2772]
+              - generic [ref=e2776]:
+                - paragraph [ref=e2777]: Como posso te ajudar, Edmilson?
+                - paragraph [ref=e2778]: Toque numa sugestão ou escreva sua dúvida sobre seus exames.
+              - generic [ref=e2779]:
+                - generic [ref=e2780] [cursor=pointer]:
+                  - generic [ref=e2781]: 📊
+                  - paragraph [ref=e2782]: Resumo dos meus exames
+                  - generic [ref=e2783]: ›
+                - generic [ref=e2784] [cursor=pointer]:
+                  - generic [ref=e2785]: ⚠️
+                  - paragraph [ref=e2786]: O que está alterado
+                  - generic [ref=e2787]: ›
+                - generic [ref=e2788] [cursor=pointer]:
+                  - generic [ref=e2789]: 📈
+                  - paragraph [ref=e2790]: Minha evolução
+                  - generic [ref=e2791]: ›
+                - generic [ref=e2792] [cursor=pointer]:
+                  - generic [ref=e2793]: 🔄
+                  - paragraph [ref=e2794]: Comparar exames
+                  - generic [ref=e2795]: ›
+                - generic [ref=e2796] [cursor=pointer]:
+                  - generic [ref=e2797]: 📖
+                  - paragraph [ref=e2798]: Explicar termo médico
+                  - generic [ref=e2799]: ›
+                - generic [ref=e2800] [cursor=pointer]:
+                  - generic [ref=e2801]: 🔬
+                  - paragraph [ref=e2802]: O que significa meu resultado
+                  - generic [ref=e2803]: ›
+              - generic [ref=e2804]: 2 créditos por pergunta · a IA não substitui seu médico
+            - generic [ref=e2805]:
+              - button "Ações rápidas" [ref=e2806] [cursor=pointer]
+              - textbox "Pergunte sobre seus exames…" [ref=e2809]
+              - button "Enviar" [disabled]
+    - navigation [ref=e1432]:
+      - paragraph [ref=e1437] [cursor=pointer]: Início
+      - paragraph [ref=e1442] [cursor=pointer]: Exames
+      - generic [ref=e1444] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2098]
+        - paragraph [ref=e1447]: Dr. Exame
+      - paragraph [ref=e1452] [cursor=pointer]: Evolução
+      - paragraph [ref=e1457] [cursor=pointer]: Mais
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e2099] [cursor=pointer]
+      - button "×" [ref=e2100] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e2101] [cursor=pointer]
+      - button "×" [ref=e2102] [cursor=pointer]
+  - generic [ref=e2553]:
+    - generic [ref=e2554]:
+      - generic [ref=e2555]: "✦ overused font: Primary font: inter (62% of text)"
+      - generic [ref=e2556]: "skipped heading level: <h1> \"GLICEMIA DE JEJUM\" followed by <h3> \"Glicídico2 alterados2 itens\" (missing h2)"
+      - generic [ref=e2557]: "skipped heading level: <h3> \"Glicídico2 alterados2 itens\" followed by <h6> \"Análise de saúde\" (missing h4)"
+      - generic [ref=e2558]: "layout property animation: transition: height"
+      - generic [ref=e2559]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e2560]:
+      - button "◉" [ref=e2561] [cursor=pointer]
+      - button "×" [ref=e2562] [cursor=pointer]
+  - generic: ✦ ai color palette
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: ✦ hairline border with wide shadow
+  - generic:
+    - generic:
+      - generic:
+        - button "‹" [ref=e2742] [cursor=pointer]
+        - button "›" [ref=e2743] [cursor=pointer]
+      - generic: low contrast text
+  - generic: ✦ glowing shadow accents
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic: ✦ ai color palette
+  - generic: 10px functional text "Dr. Exame" (below 11px floor)
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic: undersized functional text
+  - generic: ✦ glowing shadow accents
+  - generic [ref=e2744]:
+    - generic [ref=e2745]:
+      - generic [ref=e2746]: "✦ overused font: Primary font: inter (64% of text)"
+      - generic [ref=e2747]: "layout property animation: transition: height"
+      - generic [ref=e2748]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e2749]:
+      - button "◉" [ref=e2750] [cursor=pointer]
+      - button "×" [ref=e2751] [cursor=pointer]

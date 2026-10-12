@@ -1,0 +1,206 @@
+- generic [ref=f6e1]:
+  - generic [aria-hidden] [ref=f6e2]:
+    - generic [ref=f6e27]:
+      - button [ref=f6e603] [cursor=pointer]
+      - generic [ref=f6e29]:
+        - banner [ref=f6e30]:
+          - generic [ref=f6e31]:
+            - button [ref=f6e604] [cursor=pointer]
+            - paragraph [ref=f6e935]: Dr. Exame
+            - generic [ref=f6e32]:
+              - button [ref=f6e611] [cursor=pointer]:
+                - generic [ref=f6e137]: "69"
+              - button [ref=f6e612] [cursor=pointer]:
+                - generic [ref=f6e34]: 9+
+              - button [ref=f6e613] [cursor=pointer]:
+                - generic [ref=f6e39]: E
+        - main [ref=f6e50]:
+          - generic [ref=f6e939]:
+            - generic [ref=f6e944]:
+              - heading [level=5] [ref=f6e945]: Seus exames
+              - paragraph [ref=f6e946]: 9 no total • toque para ver detalhes
+            - generic [ref=f6e947]:
+              - generic [ref=f6e948]:
+                - generic [ref=f6e950]:
+                  - textbox [ref=f6e954]:
+                    - /placeholder: Buscar exame (TSH, glicose, hemograma…)
+                  - group [aria-hidden]
+                - group [ref=f6e955]:
+                  - button [pressed] [ref=f6e956] [cursor=pointer]: 📅 Data
+                  - button [ref=f6e957] [cursor=pointer]: 📁 Categoria
+              - generic [ref=f6e958]:
+                - button [ref=f6e959] [cursor=pointer]:
+                  - generic [ref=f6e960]: Todos (9)
+                - button [ref=f6e961] [cursor=pointer]:
+                  - generic [ref=f6e962]: ⏱️ Recentes (5)
+                - button [ref=f6e963] [cursor=pointer]:
+                  - generic [ref=f6e966]: Outros exames (4)
+                - button [ref=f6e967] [cursor=pointer]:
+                  - generic [ref=f6e970]: Hemograma (3)
+                - button [ref=f6e971] [cursor=pointer]:
+                  - generic [ref=f6e974]: Glicemia e Diabetes (1)
+                - button [ref=f6e975] [cursor=pointer]:
+                  - generic [ref=f6e978]: Lipídios e Colesterol (1)
+            - generic [ref=f6e979]:
+              - generic [ref=f6e980]:
+                - paragraph [ref=f6e981]: Último exame
+                - paragraph [ref=f6e982]: HEMOGRAMA
+                - generic [ref=f6e983]: Data não identificada no PDF
+                - generic [ref=f6e984]:
+                  - paragraph [ref=f6e985]: 20 resultados
+                  - generic [ref=f6e986]: Nada alterado
+                - generic [ref=f6e988]:
+                  - button [ref=f6e989] [cursor=pointer]: Ver análise
+                  - button [ref=f6e993] [cursor=pointer]: Abrir laudo
+              - generic [ref=f6e997]:
+                - paragraph [ref=f6e998]: O que mudou nos seus exames
+                - paragraph [ref=f6e1000]: Carregando…
+                - button [ref=f6e1002] [cursor=pointer]: Ver evolução completa
+            - generic [ref=f6e1006]:
+              - heading [level=3] [ref=f6e1007]:
+                - button [expanded] [ref=f6e1008] [cursor=pointer]:
+                  - generic [ref=f6e1009]:
+                    - paragraph [ref=f6e1010]: 📅 2026
+                    - generic [ref=f6e1011]: 9 exames
+              - region [ref=f6e1019]:
+                - generic [ref=f6e1020]:
+                  - generic [ref=f6e1022] [cursor=pointer]:
+                    - generic [ref=f6e1025]:
+                      - generic [ref=f6e1026]:
+                        - paragraph [ref=f6e1027]: HEMOGRAMA
+                        - button [ref=f6e1029]
+                      - generic [ref=f6e1032]: s/ data
+                      - generic [ref=f6e1034]:
+                        - generic [ref=f6e1035]: V
+                        - generic [ref=f6e1036]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                      - generic [ref=f6e1037]: 🏥 Laboratório em revisão
+                      - generic [ref=f6e1038]: Hemograma • 20 resultados
+                      - generic [ref=f6e1039]:
+                        - generic [ref=f6e1040]: Pronto
+                        - generic [ref=f6e1042]: Conferir dados
+                    - button [ref=f6e1044]
+                  - generic [ref=f6e1050] [cursor=pointer]:
+                    - generic [ref=f6e1053]:
+                      - generic [ref=f6e1054]:
+                        - paragraph [ref=f6e1055]: PAINEL GRANDE
+                        - button [ref=f6e1057]
+                      - generic [ref=f6e1061]:
+                        - text: 16 jul 2026
+                        - generic [ref=f6e1062]: · há 1 mês
+                      - generic [ref=f6e1063]: Outros exames • 4 resultados
+                      - generic [ref=f6e1064]: Pronto
+                    - button [ref=f6e1067]
+                  - generic [ref=f6e1073] [cursor=pointer]:
+                    - generic [ref=f6e1076]:
+                      - generic [ref=f6e1077]:
+                        - paragraph [ref=f6e1078]: GLICEMIA DE JEJUM
+                        - button [ref=f6e1080]
+                      - generic [ref=f6e1084]:
+                        - text: 09 jul 2026
+                        - generic [ref=f6e1085]: · há 2 meses
+                      - generic [ref=f6e1087]:
+                        - generic [ref=f6e1088]: F
+                        - generic [ref=f6e1089]: Fleury
+                      - generic [ref=f6e1090]: Glicemia e Diabetes • 2 resultados
+                      - generic [ref=f6e1091]: Pronto
+                    - button [ref=f6e1094]
+                  - generic [ref=f6e1100] [cursor=pointer]:
+                    - generic [ref=f6e1103]:
+                      - generic [ref=f6e1104]:
+                        - paragraph [ref=f6e1105]: PERFIL LIPÍDICO
+                        - button [ref=f6e1107]
+                      - generic [ref=f6e1111]:
+                        - text: 09 jul 2026
+                        - generic [ref=f6e1112]: · há 2 meses
+                      - generic [ref=f6e1114]:
+                        - generic [ref=f6e1115]: F
+                        - generic [ref=f6e1116]: Fleury
+                      - generic [ref=f6e1117]: Lipídios e Colesterol • 4 resultados
+                      - generic [ref=f6e1118]: Pronto
+                    - button [ref=f6e1121]
+                  - generic [ref=f6e1127] [cursor=pointer]:
+                    - generic [ref=f6e1130]:
+                      - generic [ref=f6e1131]:
+                        - paragraph [ref=f6e1132]: HEMOGRAMA
+                        - button [ref=f6e1134]
+                      - generic [ref=f6e1138]:
+                        - text: 09 jul 2026
+                        - generic [ref=f6e1139]: · há 2 meses
+                      - generic [ref=f6e1141]:
+                        - generic [ref=f6e1142]: L
+                        - generic [ref=f6e1143]: Laboratório Central
+                      - generic [ref=f6e1144]: Hemograma • 5 resultados
+                      - generic [ref=f6e1145]: Pronto
+                    - button [ref=f6e1148]
+                  - generic [ref=f6e1154] [cursor=pointer]:
+                    - generic [ref=f6e1157]:
+                      - generic [ref=f6e1158]:
+                        - paragraph [ref=f6e1159]: ORFAO
+                        - button [ref=f6e1161]
+                      - generic [ref=f6e1165]:
+                        - text: 05 mai 2026
+                        - generic [ref=f6e1166]: · há 4 meses
+                      - text: Outros exames
+                      - generic [ref=f6e1167]: Pronto
+                    - button [ref=f6e1170]
+                  - generic [ref=f6e1176] [cursor=pointer]:
+                    - generic [ref=f6e1179]:
+                      - generic [ref=f6e1180]:
+                        - paragraph [ref=f6e1181]: HEMOGRAMA
+                        - button [ref=f6e1183]
+                      - generic [ref=f6e1187]:
+                        - text: 14 abr 2026
+                        - generic [ref=f6e1188]: · há 5 meses
+                      - generic [ref=f6e1190]:
+                        - generic [ref=f6e1191]: L
+                        - generic [ref=f6e1192]: Laboratório Central
+                      - generic [ref=f6e1193]: Hemograma • 5 resultados
+                      - generic [ref=f6e1194]: Pronto
+                    - button [ref=f6e1197]
+                  - generic [ref=f6e1203] [cursor=pointer]:
+                    - generic [ref=f6e1206]:
+                      - generic [ref=f6e1207]:
+                        - paragraph [ref=f6e1208]: ANUAL 2025
+                        - button [ref=f6e1210]
+                      - generic [ref=f6e1214]:
+                        - text: 13 abr 2026
+                        - generic [ref=f6e1215]: · há 5 meses
+                      - generic [ref=f6e1216]: Outros exames • 1 resultado
+                      - generic [ref=f6e1217]: Pronto
+                    - button [ref=f6e1220]
+                  - generic [ref=f6e1226] [cursor=pointer]:
+                    - generic [ref=f6e1229]:
+                      - generic [ref=f6e1230]:
+                        - paragraph [ref=f6e1231]: ANUAL 2026
+                        - button [ref=f6e1233]
+                      - generic [ref=f6e1237]:
+                        - text: 10 jan 2026
+                        - generic [ref=f6e1238]: · há 8 meses
+                      - generic [ref=f6e1239]: Outros exames • 1 resultado
+                      - generic [ref=f6e1240]: Pronto
+                    - button [ref=f6e1243]
+    - button [ref=f6e1248] [cursor=pointer]
+    - navigation [ref=f6e638]:
+      - paragraph [ref=f6e643] [cursor=pointer]: Início
+      - paragraph [ref=f6e648] [cursor=pointer]: Exames
+      - paragraph [ref=f6e653] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f6e658] [cursor=pointer]: Evolução
+      - paragraph [ref=f6e663] [cursor=pointer]: Mais
+  - dialog [active] [ref=f6e665]:
+    - navigation [ref=f6e666]:
+      - generic [ref=f6e667]:
+        - button "Exames" [expanded] [ref=f6e668] [cursor=pointer]
+        - generic [ref=f6e679]:
+          - button "Exames" [ref=f6e680] [cursor=pointer]
+          - button "Valores alterados" [ref=f6e686] [cursor=pointer]
+          - button "Evolução" [ref=f6e693] [cursor=pointer]
+          - button "Tendências" [ref=f6e700] [cursor=pointer]
+          - button "Linha do Tempo" [ref=f6e706] [cursor=pointer]
+          - button "Relatório completo" [ref=f6e712] [cursor=pointer]
+      - button "Cuidados" [ref=f6e719] [cursor=pointer]
+      - button "Pessoas" [ref=f6e729] [cursor=pointer]
+      - button "Conta" [ref=f6e739] [cursor=pointer]
+      - separator [ref=f6e747]
+      - button "Dúvidas frequentes" [ref=f6e748] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f6e754] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f6e760] [cursor=pointer]

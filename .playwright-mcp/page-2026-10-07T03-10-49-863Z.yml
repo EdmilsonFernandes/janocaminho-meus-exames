@@ -1,0 +1,37 @@
+- generic [ref=e1369]:
+  - generic [ref=e1370]:
+    - img "Dr. Exame" [ref=e1375]
+    - paragraph [ref=e1376]: Meus Exames
+    - paragraph [ref=e1377]: Seu assistente de saúde com IA
+  - generic [ref=e1378]:
+    - generic [ref=e1379]:
+      - button [ref=e1380] [cursor=pointer]
+      - button [ref=e1385] [cursor=pointer]
+    - generic [ref=e1391]:
+      - generic [ref=e1392]:
+        - generic [ref=e1393]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=e1394]: "*"
+        - generic [ref=e1395]:
+          - textbox "E-mail" [ref=e1400]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=e1401]:
+        - generic [ref=e1402]:
+          - text: Senha
+          - generic [aria-hidden] [ref=e1403]: "*"
+        - generic [ref=e1404]:
+          - textbox "Senha" [ref=e1409]
+          - button "Mostrar senha" [ref=e1411] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=e1416] [cursor=pointer]
+      - button [ref=e1417] [cursor=pointer]
+      - paragraph [ref=e1421]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e1422] [cursor=pointer]
+    - generic [ref=e1423]:
+      - paragraph [ref=e1429]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e1430]:
+        - strong [ref=e1431]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.

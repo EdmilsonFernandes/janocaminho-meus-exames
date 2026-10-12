@@ -1,0 +1,71 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e572] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Close menu" [ref=e573] [cursor=pointer]:
+              - img [ref=e26]
+            - heading [level=6]
+            - button "71" [ref=e574] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "71"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e575] [cursor=pointer]:
+              - generic [ref=e35]: E
+              - generic [ref=e37]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e39]
+            - button "21" [ref=e576] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - generic [ref=e45]: "21"
+            - button "Mais opções" [ref=e577] [cursor=pointer]:
+              - img [ref=e47]
+            - button "Atualizar" [ref=e578] [cursor=pointer]:
+              - img [ref=e51]
+        - main [ref=e53]:
+          - navigation [ref=e491]:
+            - button "Início" [ref=e579] [cursor=pointer]:
+              - img [ref=e494]
+              - generic [ref=e497]: Início
+            - button "Exames" [ref=e580] [cursor=pointer]:
+              - img [ref=e500]
+              - generic [ref=e503]: Exames
+            - button "Dr. Exame (IA)" [ref=e581] [cursor=pointer]:
+              - img [ref=e506]
+              - generic [ref=e509]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e582] [cursor=pointer]:
+              - img [ref=e512]
+              - generic [ref=e515]: Relatório completo
+            - button "Evolução & Conquistas" [ref=e583] [cursor=pointer]:
+              - img [ref=e519]
+              - generic [ref=e523]: Evolução & Conquistas
+              - img [ref=e524]
+            - button "Minha Saúde" [ref=e584] [cursor=pointer]:
+              - img [ref=e529]
+              - generic [ref=e533]: Minha Saúde
+              - img [ref=e534]
+            - button "Família & Médicos" [ref=e585] [cursor=pointer]:
+              - img [ref=e539]
+              - generic [ref=e543]: Família & Médicos
+              - img [ref=e544]
+            - button "Conta" [ref=e586] [cursor=pointer]:
+              - img [ref=e549]
+              - generic [ref=e552]: Conta
+              - img [ref=e553]
+            - separator [ref=e555]
+            - button "❓ Ajuda & Suporte" [ref=e587] [cursor=pointer]:
+              - generic [ref=e558]: ❓
+              - generic [ref=e560]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e588] [cursor=pointer]:
+              - generic [ref=e562]: ℹ️
+              - generic [ref=e564]: Sobre o app
+            - menuitem "Sair da conta" [ref=e589] [cursor=pointer]:
+              - img [ref=e567]
+              - generic [ref=e570]: Sair da conta
+            - generic [ref=e571]: Meus Exames · v2.4.0.181 (b16361f)
+    - button "Enviar exame" [ref=e602] [cursor=pointer]:
+      - img [ref=e603]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e600]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e601]

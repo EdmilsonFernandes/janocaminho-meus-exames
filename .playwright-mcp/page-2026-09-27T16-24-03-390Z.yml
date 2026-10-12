@@ -1,0 +1,155 @@
+- generic [ref=f13e1]:
+  - generic [ref=f13e106]:
+    - button [ref=f13e107] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f13e108]:
+      - banner [ref=f13e109]:
+        - generic [ref=f13e110]:
+          - generic [ref=f13e111]:
+            - button [ref=f13e112] [cursor=pointer]:
+              - generic [ref=f13e115]: "69"
+            - button [ref=f13e116] [cursor=pointer]:
+              - generic [ref=f13e117]: 9+
+            - button [ref=f13e122] [cursor=pointer]:
+              - generic [ref=f13e123]: E
+              - generic [ref=f13e125]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=f13e131] [cursor=pointer]
+      - main [ref=f13e134]:
+        - navigation [ref=f13e138]:
+          - generic [ref=f13e141]:
+            - generic [ref=f13e142]: E
+            - generic [ref=f13e144]:
+              - paragraph [ref=f13e145]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f13e146]:
+                - generic [ref=f13e147]: Plano grátis
+                - button [ref=f13e149] [cursor=pointer]:
+                  - generic [ref=f13e150]: ⚡ 69 (+)
+          - separator [ref=f13e151]
+          - button [ref=f13e153] [cursor=pointer]:
+            - generic [ref=f13e157]: Exames
+          - button [ref=f13e162] [cursor=pointer]:
+            - generic [ref=f13e167]: Cuidados
+          - button [ref=f13e172] [cursor=pointer]:
+            - generic [ref=f13e177]: Pessoas
+          - button [ref=f13e182] [cursor=pointer]:
+            - generic [ref=f13e186]: Conta
+          - button [ref=f13e191] [cursor=pointer]:
+            - generic [ref=f13e195]: Dúvidas frequentes
+          - menuitem [ref=f13e197] [cursor=pointer]:
+            - generic [ref=f13e201]: Sobre o app
+          - menuitem [ref=f13e203] [cursor=pointer]:
+            - generic [ref=f13e207]: Sair da conta
+          - generic [ref=f13e209]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=f13e211]:
+          - generic [ref=f13e213]:
+            - generic [ref=f13e214]:
+              - paragraph [ref=f13e215]: Boa tarde, Edmilson 👋
+              - generic [ref=f13e216]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f13e217]: Sincronizado
+          - generic [ref=f13e221]:
+            - generic [ref=f13e222]:
+              - generic [ref=f13e223]:
+                - generic:
+                  - paragraph: "62"
+                  - paragraph: de 100
+              - generic [ref=f13e227]:
+                - paragraph [ref=f13e228]: Sua saúde hoje
+                - paragraph [ref=f13e229]: Em boa forma
+                - generic [ref=f13e230]:
+                  - paragraph [ref=f13e231]:
+                    - generic [ref=f13e232]: ● 5 moderados
+                  - paragraph [ref=f13e233]: ⏳ 17 marcador(es) não foram medidos há mais de 12 meses e não entram no score. Envie um exame recente pra uma leitura atualizada.
+            - generic [ref=f13e234]:
+              - button [ref=f13e235] [cursor=pointer]: Ver análise completa
+              - button [ref=f13e239] [cursor=pointer]: Tirar dúvida com IA
+          - generic [ref=f13e244]:
+            - button [ref=f13e245] [cursor=pointer]:
+              - generic [ref=f13e246]:
+                - paragraph [ref=f13e247]: Alterados
+                - paragraph [ref=f13e248]: "8"
+                - paragraph [ref=f13e252]: de 34 marcadores
+            - button [ref=f13e256] [cursor=pointer]:
+              - generic [ref=f13e257]:
+                - paragraph [ref=f13e258]: Exames
+                - paragraph [ref=f13e259]: "9"
+                - paragraph [ref=f13e260]: 8 alterados
+            - button [ref=f13e265] [cursor=pointer]:
+              - generic [ref=f13e266]:
+                - paragraph [ref=f13e267]: Idade Bio
+                - paragraph [ref=f13e268]: 42a
+                - paragraph [ref=f13e269]: estimativa corporal
+            - button [ref=f13e274] [cursor=pointer]:
+              - generic [ref=f13e275]:
+                - paragraph [ref=f13e276]: Cardiorrisco
+                - paragraph [ref=f13e277]: baixo
+                - paragraph [ref=f13e281]: 1 fator de risco
+          - generic [ref=f13e287]:
+            - generic [ref=f13e289]:
+              - generic [ref=f13e290]:
+                - paragraph [ref=f13e291]: O que mudou nos seus exames
+                - generic [ref=f13e292]: 1 melhorou
+                - generic [ref=f13e298]:
+                  - paragraph [ref=f13e299]: ↓GLICOSE
+                  - paragraph [ref=f13e300]: 95 mg/dL
+                - button [ref=f13e302] [cursor=pointer]: Ver evolução completa
+              - paragraph [ref=f13e313]: Atividade física • Health Connect
+              - generic [ref=f13e319]:
+                - generic [ref=f13e323]:
+                  - paragraph [ref=f13e324]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=f13e325]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+                - button [ref=f13e327] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f13e332]:
+              - generic [ref=f13e333]:
+                - generic [ref=f13e338]:
+                  - paragraph [ref=f13e339]: Seus Marcadores
+                  - paragraph [ref=f13e340]: Distribuição de 34 marcadores analisados
+                - generic [ref=f13e341]:
+                  - button [ref=f13e342] [cursor=pointer]:
+                    - generic [ref=f13e343]:
+                      - paragraph [ref=f13e344]: Normais & Saudáveis ver →
+                      - paragraph [ref=f13e345]: 26/34 (76%)
+                    - progressbar [ref=f13e346]
+                  - button [ref=f13e348] [cursor=pointer]:
+                    - generic [ref=f13e349]:
+                      - paragraph [ref=f13e350]: Alteração Leve ver →
+                      - paragraph [ref=f13e351]: 3/34 (9%)
+                    - progressbar [ref=f13e352]
+                  - button [ref=f13e354] [cursor=pointer]:
+                    - generic [ref=f13e355]:
+                      - paragraph [ref=f13e356]: Requerem Atenção ver →
+                      - paragraph [ref=f13e357]: 5/34 (15%)
+                    - progressbar [ref=f13e358]
+                - paragraph [ref=f13e360]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+              - generic [ref=f13e361]:
+                - paragraph [ref=f13e367]: Ações rápidas
+                - generic [ref=f13e369]:
+                  - generic [ref=f13e371] [cursor=pointer]:
+                    - generic [ref=f13e372]: +
+                    - generic [ref=f13e373]: Enviar exame
+                  - generic [ref=f13e379]: Evolução
+                  - generic [ref=f13e387]: Família
+                  - generic [ref=f13e395]: Relatório
+              - generic [ref=f13e404]:
+                - generic [ref=f13e409]:
+                  - paragraph [ref=f13e410]: "69"
+                  - text: créditos disponíveis
+                - button [ref=f13e411] [cursor=pointer]: Comprar
+              - generic [ref=f13e413] [cursor=pointer]:
+                - generic [ref=f13e414]: Resgate 1 crédito a cada meta atingida
+                - generic [ref=f13e418]:
+                  - generic [ref=f13e419]: 🎉
+                  - generic [ref=f13e421]: 📚
+                  - generic [ref=f13e423]: 🎓
+                  - generic [ref=f13e425]: 💚
+                  - generic [ref=f13e427]: 🔥
+                - generic [ref=f13e431]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+              - button [ref=f13e433] [cursor=pointer]: 📤 Compartilhar minha saúde
+  - dialog [active] [ref=f13e439]:
+    - generic [ref=f13e440]:
+      - button "Pular" [ref=f13e441] [cursor=pointer]
+      - generic [ref=f13e442]:
+        - img "Dr. Exame" [ref=f13e444]
+        - heading "Envie seu exame" [level=4] [ref=f13e445]
+        - paragraph [ref=f13e446]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f13e447]:
+        - button [ref=f13e453] [cursor=pointer]
+        - paragraph [ref=f13e457]: Toque em Próximo para continuar →

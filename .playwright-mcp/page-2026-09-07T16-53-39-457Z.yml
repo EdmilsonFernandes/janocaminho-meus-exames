@@ -1,0 +1,108 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e833]:
+    - button "Pular para o conteúdo" [ref=e1105] [cursor=pointer]
+    - main [ref=e862]:
+      - navigation [ref=e1109]:
+        - generic [ref=e1112]:
+          - generic [ref=e1113]: E
+          - generic [ref=e1115]:
+            - paragraph [ref=e1116]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=e1117]:
+              - generic [ref=e1118]: Plano grátis
+              - button "⚡ 69 (+)" [ref=e1120] [cursor=pointer]
+        - separator [ref=e1122]
+        - button "Exames" [ref=e1124] [cursor=pointer]
+        - button "Cuidados" [ref=e1133] [cursor=pointer]
+        - button "Pessoas" [ref=e1143] [cursor=pointer]
+        - button "Conta" [ref=e1153] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=e1162] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=e1168] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=e1174] [cursor=pointer]
+        - generic [ref=e1180]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=e864]:
+        - generic [ref=e866]:
+          - generic [ref=e867]:
+            - paragraph [ref=e868]: Boa tarde, Edmilson 👋
+            - generic [ref=e869]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e1181]: Sincronizado
+        - generic [ref=e871]:
+          - generic [ref=e873]:
+            - generic [ref=e874]:
+              - generic [ref=e875]:
+                - generic:
+                  - paragraph: "62"
+                  - paragraph: de 100
+              - generic [ref=e879]:
+                - paragraph [ref=e880]: Sua saúde hoje
+                - paragraph [ref=e881]: Em boa forma
+                - paragraph [ref=e883]:
+                  - generic [ref=e884]: ● 5 moderados
+            - button [ref=e885] [cursor=pointer]
+          - generic [ref=e890]:
+            - paragraph [ref=e891]: O que mudou nos seus exames
+            - generic [ref=e892]: 1 melhorou
+            - generic [ref=e898]:
+              - paragraph [ref=e899]: ↓GLICOSE
+              - paragraph [ref=e900]: 95 mg/dL
+            - button [ref=e902] [cursor=pointer]
+        - generic [ref=e913]:
+          - generic [ref=e914]:
+            - img "Dr. Exame" [ref=e916]
+            - generic [ref=e917]:
+              - paragraph [ref=e918]: ✨ Dica personalizada (IA)
+              - paragraph [ref=e919]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+          - button [ref=e921] [cursor=pointer]
+        - generic [ref=e926]:
+          - paragraph [ref=e932]: Seus indicadores
+          - generic [ref=e933]:
+            - button [ref=e935] [cursor=pointer]:
+              - generic [ref=e936]:
+                - generic [ref=e942]:
+                  - paragraph [ref=e943]: Cardiometabólico
+                  - paragraph [ref=e944]: baixo
+                - paragraph [ref=e948]: 1 fator de risco
+            - button [ref=e950] [cursor=pointer]:
+              - generic [ref=e956]:
+                - paragraph [ref=e957]: Idade biológica
+                - paragraph [ref=e958]: 42a
+                - paragraph [ref=e959]: estimativa corporal
+            - button [ref=e961] [cursor=pointer]:
+              - generic [ref=e962]:
+                - generic [ref=e968]:
+                  - paragraph [ref=e969]: Seus exames
+                  - paragraph [ref=e970]: "9"
+                - paragraph [ref=e974]: 8 alterados
+            - button [ref=e976] [cursor=pointer]:
+              - generic [ref=e977]:
+                - generic [ref=e983]:
+                  - paragraph [ref=e984]: Evolução
+                  - paragraph [ref=e985]: "34"
+                - paragraph [ref=e986]: histórico de tendências
+        - paragraph [ref=e995]: Atividade física
+        - generic [ref=e997]:
+          - paragraph [ref=e1003]: Ações rápidas
+          - generic [ref=e1004]:
+            - generic [ref=e1007] [cursor=pointer]:
+              - generic [ref=e1008]: +
+              - generic [ref=e1009]: Enviar exame
+            - generic [ref=e1015]: Evolução
+            - generic [ref=e1023]: Família
+            - generic [ref=e1031]: Relatório
+        - generic [ref=e1042]:
+          - generic [ref=e1047]:
+            - paragraph [ref=e1048]: "69"
+            - text: créditos disponíveis
+          - button "Comprar" [ref=e1049] [cursor=pointer]
+        - generic [ref=e1053] [cursor=pointer]:
+          - generic [ref=e1055]:
+            - paragraph [ref=e1056]: 🏆 Suas conquistas
+            - text: Resgate 1 crédito a cada meta atingida
+          - generic [ref=e1059]:
+            - generic [ref=e1060]: 🎉
+            - generic [ref=e1062]: 📚
+            - generic [ref=e1064]: 🎓
+            - generic [ref=e1066]: 💚
+            - generic [ref=e1068]: 🔥
+          - generic [ref=e1072]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+        - button [ref=e1075] [cursor=pointer]
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e832] [cursor=pointer]

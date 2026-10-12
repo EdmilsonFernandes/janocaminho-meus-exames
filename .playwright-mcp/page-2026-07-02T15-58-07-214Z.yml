@@ -1,0 +1,267 @@
+- generic [ref=f2e18]:
+  - generic [ref=f2e626]:
+    - button [ref=f2e627] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f2e628]:
+      - banner [ref=f2e629]:
+        - generic [ref=f2e630]:
+          - button [ref=f2e631] [cursor=pointer]:
+            - img [ref=f2e632]
+          - button [ref=f2e634] [cursor=pointer]:
+            - img [ref=f2e635]
+            - generic [ref=f2e637]: "71"
+          - button [ref=f2e639] [cursor=pointer]:
+            - generic [ref=f2e641]: E
+            - generic [ref=f2e643]: Edmilson Lopes Fernandes dos Santos
+            - img [ref=f2e645]
+          - button [ref=f2e647] [cursor=pointer]:
+            - generic [ref=f2e648]:
+              - img [ref=f2e649]
+              - generic [ref=f2e651]: "18"
+          - button [ref=f2e652] [cursor=pointer]:
+            - img [ref=f2e653]
+          - button [ref=f2e656] [cursor=pointer]:
+            - img [ref=f2e657]
+      - main [ref=f2e659]:
+        - navigation [ref=f2e663]:
+          - button [ref=f2e664] [cursor=pointer]:
+            - img [ref=f2e666]
+            - generic [ref=f2e669]: Início
+          - button [ref=f2e670] [cursor=pointer]:
+            - img [ref=f2e672]
+            - generic [ref=f2e675]: Exames
+          - button [ref=f2e676] [cursor=pointer]:
+            - img [ref=f2e678]
+            - generic [ref=f2e681]: Dr. Exame (IA)
+          - button [ref=f2e682] [cursor=pointer]:
+            - img [ref=f2e684]
+            - generic [ref=f2e687]: Relatório completo
+          - button [ref=f2e689] [cursor=pointer]:
+            - img [ref=f2e691]
+            - generic [ref=f2e695]: Evolução & Conquistas
+            - img [ref=f2e696]
+          - button [ref=f2e699] [cursor=pointer]:
+            - img [ref=f2e701]
+            - generic [ref=f2e705]: Minha Saúde
+            - img [ref=f2e706]
+          - button [ref=f2e709] [cursor=pointer]:
+            - img [ref=f2e711]
+            - generic [ref=f2e715]: Família & Médicos
+            - img [ref=f2e716]
+          - button [ref=f2e719] [cursor=pointer]:
+            - img [ref=f2e721]
+            - generic [ref=f2e724]: Conta
+            - img [ref=f2e725]
+          - separator [ref=f2e727]
+          - button [ref=f2e728] [cursor=pointer]:
+            - generic [ref=f2e730]: ❓
+            - generic [ref=f2e732]: Ajuda & Suporte
+          - menuitem [ref=f2e733] [cursor=pointer]:
+            - generic [ref=f2e734]: ℹ️
+            - generic [ref=f2e736]: Sobre o app
+          - menuitem [ref=f2e737] [cursor=pointer]:
+            - img [ref=f2e739]
+            - generic [ref=f2e742]: Sair da conta
+          - generic [ref=f2e743]: Meus Exames · v0.1.0 (unknown)
+        - generic [ref=f2e745]:
+          - generic [ref=f2e746]:
+            - heading [level=5] [ref=f2e747]: Boa tarde, Edmilson 👋
+            - paragraph [ref=f2e748]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f2e749]:
+            - img
+            - generic [ref=f2e751]:
+              - generic [ref=f2e752]:
+                - img [ref=f2e753]
+                - generic [ref=f2e756]:
+                  - paragraph [ref=f2e757]: "60"
+                  - generic [ref=f2e758]: de 100
+              - generic [ref=f2e759]:
+                - generic [ref=f2e760]:
+                  - img [ref=f2e761]
+                  - generic [ref=f2e764]: Score de Saúde
+                - generic [ref=f2e766]: Bom
+                - paragraph [ref=f2e767]: Alguns valores merecem atenção — comente com seu médico.
+                - generic [ref=f2e768]: "*Educativo. 10 alterado(s)."
+                - button [ref=f2e770] [cursor=pointer]: Ver detalhes
+          - generic [ref=f2e772]:
+            - generic [ref=f2e773]:
+              - img [ref=f2e774]
+              - paragraph [ref=f2e777]: Meu estado atual
+              - generic [ref=f2e779]: 60/100
+            - paragraph [ref=f2e780]: 10 de 25 marcadores fora da faixa — vale revisar com seu médico.
+            - generic [ref=f2e781]:
+              - generic [ref=f2e783]: 🔴 5 importantes
+              - generic [ref=f2e785]: 🟠 2 moderadas
+              - generic [ref=f2e787]: 🟡 3 leves
+              - generic [ref=f2e789]: ✅ 15 normais
+            - generic [ref=f2e790]:
+              - generic [ref=f2e791]:
+                - generic [ref=f2e792]:
+                  - paragraph [ref=f2e793]: Hemácias
+                  - text: 1º exame
+                - paragraph [ref=f2e794]: 5,78 milhões/mm*
+              - generic [ref=f2e795]:
+                - generic [ref=f2e796]:
+                  - paragraph [ref=f2e797]: Hemoglobina
+                  - text: 1º exame
+                - paragraph [ref=f2e798]: 15,0 g/dt.
+              - generic [ref=f2e799]:
+                - generic [ref=f2e800]:
+                  - paragraph [ref=f2e801]: Hematócrito
+                  - text: 1º exame
+                - paragraph [ref=f2e802]: 46,7 %
+            - button [ref=f2e803] [cursor=pointer]:
+              - text: Ver valores alterados
+              - img [ref=f2e805]
+            - generic [ref=f2e807]: "*Educativo. Sempre confirme com seu médico."
+          - generic [ref=f2e809]:
+            - generic [ref=f2e810]:
+              - img [ref=f2e811]
+              - paragraph [ref=f2e813]: Leitura de risco
+              - generic [ref=f2e815]: 🟢 Baixo
+              - button [ref=f2e816] [cursor=pointer]:
+                - img [ref=f2e817]
+            - paragraph [ref=f2e819]: Sem alterações relevantes
+            - paragraph [ref=f2e820]: Nos parâmetros analisados, não foram identificadas alterações relevantes. Isso não descarta a necessidade de acompanhamento médico de rotina. Esta análise não substitui uma consulta médica.
+            - button [ref=f2e821] [cursor=pointer]:
+              - img [ref=f2e823]
+              - text: Perguntas pra levar ao médico (1)
+              - img [ref=f2e826]
+            - separator [ref=f2e828]
+            - button [ref=f2e829] [cursor=pointer]:
+              - img [ref=f2e831]
+              - text: Plano de ação do Dr. Exame · 8 créditos
+            - generic [ref=f2e833]: Baseada em 4 marcadores (poucos dados — leitura parcial).
+            - generic [ref=f2e834]: "*Educativo. Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico."
+            - generic [ref=f2e835]:
+              - generic [ref=f2e836]: 🧪 Ajudar a IA a melhorar (dados anônimos)
+              - switch [ref=f2e839] [cursor=pointer]
+          - generic [ref=f2e843]:
+            - generic [ref=f2e844]:
+              - img [ref=f2e845]
+              - paragraph [ref=f2e847]: Score de Adesão
+              - generic [ref=f2e849]: 🥉 Bronze
+            - generic [ref=f2e850]:
+              - generic [ref=f2e851]:
+                - paragraph [ref=f2e852]: "20"
+                - text: /100
+              - generic [ref=f2e853]:
+                - generic [ref=f2e854]:
+                  - generic [ref=f2e855]: exams
+                  - progressbar [ref=f2e857]
+                  - generic [ref=f2e859]: "10"
+                - generic [ref=f2e860]:
+                  - generic [ref=f2e861]: measurements
+                  - progressbar [ref=f2e863]
+                  - generic [ref=f2e865]: "0"
+                - generic [ref=f2e866]:
+                  - generic [ref=f2e867]: feedback
+                  - progressbar [ref=f2e869]
+                  - generic [ref=f2e871]: "0"
+                - generic [ref=f2e872]:
+                  - generic [ref=f2e873]: consent
+                  - progressbar [ref=f2e875]
+                  - generic [ref=f2e877]: "0"
+                - generic [ref=f2e878]:
+                  - generic [ref=f2e879]: engagement
+                  - progressbar [ref=f2e881]
+                  - generic [ref=f2e883]: "0"
+                - generic [ref=f2e884]:
+                  - generic [ref=f2e885]: freshness
+                  - progressbar [ref=f2e887]
+                  - generic [ref=f2e889]: "10"
+            - generic [ref=f2e890]:
+              - generic [ref=f2e891]: 💡 Envie exames regularmente (1 a cada 4 meses maximiza seus pontos).
+              - generic [ref=f2e892]: 💡 Registre medições (pressão, peso) — 4 a cada 3 meses.
+              - generic [ref=f2e893]: 💡 Avalie os planos de ação (👍/👎) pra ajudar a IA a melhorar.
+          - generic [ref=f2e894]:
+            - img
+            - generic [ref=f2e896]:
+              - generic [ref=f2e897]:
+                - img [ref=f2e899]
+                - generic [ref=f2e900]:
+                  - paragraph [ref=f2e901]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=f2e902]: "Atenção: seu CHCM está baixo. Vale conversar com seu médico."
+              - button [ref=f2e904] [cursor=pointer]:
+                - img [ref=f2e906]
+                - text: Conversar com a IA
+          - generic [ref=f2e909]:
+            - img [ref=f2e911]
+            - generic [ref=f2e913]:
+              - paragraph [ref=f2e914]: "71"
+              - text: créditos disponíveis
+            - button [ref=f2e915] [cursor=pointer]: Comprar
+          - generic [ref=f2e916]:
+            - generic [ref=f2e919] [cursor=pointer]:
+              - img [ref=f2e921]
+              - paragraph [ref=f2e923]: "2"
+              - generic [ref=f2e924]: Exames enviados
+            - generic [ref=f2e927] [cursor=pointer]:
+              - img [ref=f2e929]
+              - paragraph [ref=f2e932]: "10"
+              - generic [ref=f2e933]: Valores alterados
+            - generic [ref=f2e936] [cursor=pointer]:
+              - img [ref=f2e938]
+              - paragraph [ref=f2e941]: "1"
+              - generic [ref=f2e942]: Dependentes
+            - generic [ref=f2e945] [cursor=pointer]:
+              - img [ref=f2e947]
+              - paragraph [ref=f2e949]: —
+              - generic [ref=f2e950]: Última atualização
+          - generic [ref=f2e954]:
+            - heading [level=6] [ref=f2e955]: Distribuição dos valores
+            - paragraph [ref=f2e956]: Últimos exames extraídos deste perfil.
+            - generic [ref=f2e957]:
+              - generic [ref=f2e958]:
+                - application [ref=f2e960]
+                - generic [ref=f2e961]:
+                  - paragraph [ref=f2e962]: "25"
+                  - generic [ref=f2e963]: valores
+              - generic [ref=f2e964]:
+                - paragraph [ref=f2e967]:
+                  - strong [ref=f2e968]: "15"
+                  - text: Bons (na faixa) (60%)
+                - paragraph [ref=f2e971]:
+                  - strong [ref=f2e972]: "10"
+                  - text: Alerta (abaixo) (40%)
+          - generic [ref=f2e973]:
+            - generic [ref=f2e976] [cursor=pointer]:
+              - img [ref=f2e978]
+              - generic [ref=f2e980]: Enviar exame
+            - generic [ref=f2e983] [cursor=pointer]:
+              - img [ref=f2e985]
+              - generic [ref=f2e987]: Evolução
+            - generic [ref=f2e990] [cursor=pointer]:
+              - img [ref=f2e992]
+              - generic [ref=f2e995]: Família
+            - generic [ref=f2e998] [cursor=pointer]:
+              - img [ref=f2e1000]
+              - generic [ref=f2e1002]: Relatório
+          - generic [ref=f2e1004]: Toque nos cards de contador para navegar.
+          - generic [ref=f2e1007] [cursor=pointer]:
+            - generic [ref=f2e1008]:
+              - generic [ref=f2e1009]:
+                - paragraph [ref=f2e1010]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - img [ref=f2e1011]
+            - generic [ref=f2e1013]:
+              - generic [ref=f2e1015]: 🎉
+              - generic [ref=f2e1017]: 📚
+              - generic [ref=f2e1019]: 🎓
+              - generic [ref=f2e1021]: 💚
+              - generic [ref=f2e1023]: 🔥
+            - generic [ref=f2e1024]: 1 desbloqueada(s) · toque para ver e resgatar →
+  - generic [ref=f2e15] [cursor=pointer]:
+    - img [ref=f2e1025]
+    - img [ref=f2e1026]
+  - dialog [active] [ref=f2e1029]:
+    - generic [ref=f2e1030]:
+      - button "Pular" [ref=f2e1031] [cursor=pointer]
+      - generic [ref=f2e1032]:
+        - generic [ref=f2e1033]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=f2e1034]
+        - paragraph [ref=f2e1035]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f2e1036]:
+        - button "Próximo" [ref=f2e1042] [cursor=pointer]:
+          - text: Próximo
+          - img [ref=f2e1044]
+        - paragraph [ref=f2e1046]: Toque em Próximo para continuar →

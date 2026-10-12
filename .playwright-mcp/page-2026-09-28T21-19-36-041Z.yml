@@ -1,0 +1,147 @@
+- generic [ref=f2e106]:
+  - button "Pular para o conteúdo" [ref=f2e107] [cursor=pointer]
+  - generic [ref=f2e108]:
+    - banner [ref=f2e109]:
+      - generic [ref=f2e110]:
+        - heading [level=6]
+        - generic [ref=f2e111]:
+          - button "Você tem 65 créditos. Toque para comprar mais." [ref=f2e112] [cursor=pointer]:
+            - generic [ref=f2e115]: "65"
+          - button "Notificações" [ref=f2e116] [cursor=pointer]:
+            - generic [ref=f2e117]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f2e122] [cursor=pointer]:
+            - generic [ref=f2e123]: E
+            - generic [ref=f2e125]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f2e131] [cursor=pointer]
+    - main [ref=f2e134]:
+      - navigation [ref=f2e138]:
+        - generic [ref=f2e141]:
+          - generic [ref=f2e142]: E
+          - generic [ref=f2e144]:
+            - paragraph [ref=f2e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e146]:
+              - generic [ref=f2e147]: Plano grátis
+              - button "⚡ 65 (+)" [ref=f2e149] [cursor=pointer]
+        - separator [ref=f2e151]
+        - button "Exames" [ref=f2e153] [cursor=pointer]
+        - button "Cuidados" [ref=f2e162] [cursor=pointer]
+        - button "Pessoas" [ref=f2e172] [cursor=pointer]
+        - button "Conta" [ref=f2e182] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f2e191] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f2e197] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f2e203] [cursor=pointer]
+        - generic [ref=f2e209]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f2e211]:
+        - generic [ref=f2e213]:
+          - generic [ref=f2e214]:
+            - heading "Boa noite, Edmilson 👋" [level=1] [ref=f2e215]
+            - generic [ref=f2e216]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f2e217]: Sincronizado
+        - generic [ref=f2e221]:
+          - generic [ref=f2e222]:
+            - generic [ref=f2e223]:
+              - generic:
+                - paragraph: "51"
+                - paragraph: de 100
+            - generic [ref=f2e227]:
+              - paragraph [ref=f2e228]: Sua saúde hoje
+              - paragraph [ref=f2e229]: Em boa forma
+              - generic [ref=f2e230]:
+                - paragraph [ref=f2e231]:
+                  - generic [ref=f2e232]: ● 5 moderados
+                - paragraph [ref=f2e233]: ⏳ 17 marcador(es) não foram medidos há mais de 12 meses e não entram no score. Envie um exame recente pra uma leitura atualizada.
+          - generic [ref=f2e234]:
+            - button [ref=f2e235] [cursor=pointer]
+            - button [ref=f2e239] [cursor=pointer]
+        - generic [ref=f2e244]:
+          - button [ref=f2e245] [cursor=pointer]:
+            - generic [ref=f2e246]:
+              - paragraph [ref=f2e247]: Alterados
+              - paragraph [ref=f2e248]: "8"
+              - paragraph [ref=f2e252]: de 34 marcadores
+          - button [ref=f2e256] [cursor=pointer]:
+            - generic [ref=f2e257]:
+              - paragraph [ref=f2e258]: Exames
+              - paragraph [ref=f2e259]: "9"
+              - paragraph [ref=f2e260]: 8 alterados
+          - button [ref=f2e265] [cursor=pointer]:
+            - generic [ref=f2e266]:
+              - paragraph [ref=f2e267]: Idade Bio
+              - paragraph [ref=f2e268]: 42a
+              - paragraph [ref=f2e269]: estimativa corporal
+          - button [ref=f2e274] [cursor=pointer]:
+            - generic [ref=f2e275]:
+              - paragraph [ref=f2e276]: Cardiorrisco
+              - paragraph [ref=f2e277]: baixo
+              - paragraph [ref=f2e281]: 1 fator de risco
+        - generic [ref=f2e287]:
+          - generic [ref=f2e289]:
+            - generic [ref=f2e290]:
+              - heading "O que mudou nos seus exames" [level=2] [ref=f2e291]
+              - generic [ref=f2e292]: 1 melhorou
+              - generic [ref=f2e298]:
+                - paragraph [ref=f2e299]: ↓GLICOSE
+                - paragraph [ref=f2e300]: 95 mg/dL
+              - button [ref=f2e302] [cursor=pointer]
+            - button "Saúde mental — ver rastreamentos" [ref=f2e306] [cursor=pointer]:
+              - generic [aria-hidden] [ref=f2e307]: 🧠
+              - generic [ref=f2e308]:
+                - heading "Saúde mental" [level=2] [ref=f2e309]
+                - paragraph [ref=f2e311]: PHQ-9 9 · leve
+                - paragraph [ref=f2e312]: 28/09 · próxima janela 12/10
+            - paragraph [ref=f2e322]: Atividade física • Health Connect
+            - generic [ref=f2e328]:
+              - generic [ref=f2e329]:
+                - img "Dr. Exame" [ref=f2e331]
+                - generic [ref=f2e332]:
+                  - paragraph [ref=f2e333]: ✨ Dica personalizada (IA)
+                  - paragraph [ref=f2e334]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+              - button [ref=f2e336] [cursor=pointer]
+          - generic [ref=f2e341]:
+            - generic [ref=f2e342]:
+              - generic [ref=f2e347]:
+                - heading "Seus Marcadores" [level=2] [ref=f2e348]
+                - paragraph [ref=f2e349]: Distribuição de 34 marcadores analisados
+              - generic [ref=f2e350]:
+                - 'button "Normais & Saudáveis: 26 de 34 (76%) — ver" [ref=f2e351] [cursor=pointer]':
+                  - generic [ref=f2e352]:
+                    - paragraph [ref=f2e353]: Normais & Saudáveis ver →
+                    - paragraph [ref=f2e354]: 26/34 (76%)
+                  - progressbar [ref=f2e355]
+                - 'button "Alteração Leve: 3 de 34 (9%) — ver" [ref=f2e357] [cursor=pointer]':
+                  - generic [ref=f2e358]:
+                    - paragraph [ref=f2e359]: Alteração Leve ver →
+                    - paragraph [ref=f2e360]: 3/34 (9%)
+                  - progressbar [ref=f2e361]
+                - 'button "Requerem Atenção: 5 de 34 (15%) — ver" [ref=f2e363] [cursor=pointer]':
+                  - generic [ref=f2e364]:
+                    - paragraph [ref=f2e365]: Requerem Atenção ver →
+                    - paragraph [ref=f2e366]: 5/34 (15%)
+                  - progressbar [ref=f2e367]
+              - paragraph [ref=f2e369]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+            - generic [ref=f2e370]:
+              - paragraph [ref=f2e376]: Ações rápidas
+              - generic [ref=f2e378]:
+                - generic [ref=f2e380] [cursor=pointer]:
+                  - generic [ref=f2e381]: +
+                  - generic [ref=f2e382]: Enviar exame
+                - generic [ref=f2e388]: Evolução
+                - generic [ref=f2e396]: Família
+                - generic [ref=f2e404]: Relatório
+            - generic [ref=f2e413]:
+              - generic [ref=f2e418]:
+                - paragraph [ref=f2e419]: "65"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=f2e420] [cursor=pointer]
+            - generic [ref=f2e422] [cursor=pointer]:
+              - generic [ref=f2e424]:
+                - paragraph [ref=f2e425]: 🏆 Suas conquistas
+                - text: Resgate 1 crédito a cada meta atingida
+              - generic [ref=f2e428]:
+                - generic [ref=f2e429]: 🎉
+                - generic [ref=f2e431]: 📚
+                - generic [ref=f2e433]: 🎓
+                - generic [ref=f2e435]: 💚
+                - generic [ref=f2e437]: 🔥
+              - generic [ref=f2e441]: 2 de 5 desbloqueada(s) · toque para ver e resgatar →
+            - button [ref=f2e443] [cursor=pointer]

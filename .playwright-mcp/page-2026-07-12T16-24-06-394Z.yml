@@ -1,0 +1,103 @@
+- generic [active] [ref=f1e18]:
+  - generic [ref=f1e100]:
+    - generic [ref=f1e101]:
+      - generic [ref=f1e102]:
+        - generic [ref=f1e103]: D
+        - generic [ref=f1e105]:
+          - paragraph [ref=f1e106]: Doutor Exame
+          - text: Otorrinolaringologista • CRM 12345-SP
+        - button [ref=f1e107] [cursor=pointer]
+      - generic [ref=f1e135]:
+        - generic [ref=f1e136]:
+          - button "← Voltar" [ref=f1e137] [cursor=pointer]
+          - paragraph [ref=f1e138]: Meu perfil
+        - generic [ref=f1e141]:
+          - generic [ref=f1e143]:
+            - generic [ref=f1e144]: "?"
+            - button [ref=f1e145] [cursor=pointer]
+          - generic [ref=f1e149]:
+            - paragraph [ref=f1e150]: Doutor Exame
+            - generic [ref=f1e151]: CRM 12345-SP • Otorrinolaringologista
+            - generic [ref=f1e152]: Toque na câmera pra trocar a foto.
+        - generic [ref=f1e155]:
+          - heading "🔐 Segurança (2FA)" [level=6] [ref=f1e157]
+          - paragraph [ref=f1e158]: Autenticação em 2 fatores (TOTP). Depois de ativar, todo login pede um código do app autenticador (Google Authenticator, Authy, 1Password).
+          - button "Ativar 2FA" [ref=f1e159] [cursor=pointer]
+        - generic [ref=f1e161]:
+          - heading "DADOS PROFISSIONAIS" [level=6] [ref=f1e162]
+          - generic [ref=f1e163]:
+            - generic [ref=f1e164]:
+              - generic [ref=f1e165]: Nome completo
+              - generic [ref=f1e166]:
+                - textbox "Nome completo" [ref=f1e167]: Doutor Exame
+                - group:
+                  - generic: Nome completo
+            - generic [ref=f1e168]:
+              - generic [ref=f1e169]: CPF
+              - generic [ref=f1e170]:
+                - textbox "CPF" [disabled] [ref=f1e171]: "***.***.***-58"
+                - group:
+                  - generic: CPF
+              - paragraph [ref=f1e172]: CPF fica bloqueado após verificação. Correção somente via suporte auditado.
+            - generic [ref=f1e173]:
+              - generic [ref=f1e174]: CRM
+              - generic [ref=f1e175]:
+                - textbox "CRM" [disabled] [ref=f1e176]: 12345-SP
+                - group:
+                  - generic: CRM
+              - paragraph [ref=f1e177]: O CRM não pode ser alterado (identidade profissional).
+            - generic [ref=f1e178]:
+              - generic [ref=f1e179]: Especialidade
+              - generic [ref=f1e180]:
+                - combobox "Especialidade Otorrinolaringologista" [ref=f1e181] [cursor=pointer]: Otorrinolaringologista
+                - textbox: Otorrinolaringologista
+                - group:
+                  - generic: Especialidade
+            - generic [ref=f1e182]:
+              - generic [ref=f1e183]: E-mail
+              - generic [ref=f1e184]:
+                - textbox "E-mail" [ref=f1e185]: inced1941@cuvox.de
+                - group:
+                  - generic: E-mail
+            - separator [ref=f1e186]:
+              - generic [ref=f1e187]: PERFIL PÚBLICO (visto pelo paciente)
+            - generic [ref=f1e188]:
+              - generic: Telefone / WhatsApp
+              - generic [ref=f1e189]:
+                - textbox "Telefone / WhatsApp" [ref=f1e190]
+                - group:
+                  - generic: Telefone / WhatsApp
+              - paragraph [ref=f1e191]: Vira o botão 'Agendar no WhatsApp' para o paciente.
+            - generic [ref=f1e192]:
+              - generic: Consultório / Clínica
+              - generic [ref=f1e193]:
+                - textbox "Consultório / Clínica" [ref=f1e194]
+                - group:
+                  - generic: Consultório / Clínica
+            - generic [ref=f1e195]:
+              - generic: Cidade - UF
+              - generic [ref=f1e196]:
+                - textbox "Cidade - UF" [ref=f1e197]:
+                  - /placeholder: "Ex.: São Paulo - SP"
+                - group:
+                  - generic: Cidade - UF
+            - generic [ref=f1e198]:
+              - generic: Apresentação / referências
+              - generic [ref=f1e199]:
+                - textbox "Apresentação / referências" [ref=f1e200]
+                - group:
+                  - generic: Apresentação / referências
+          - button "Salvar perfil" [ref=f1e201] [cursor=pointer]
+    - navigation [ref=f1e119]:
+      - generic [ref=f1e120] [cursor=pointer]:
+        - generic [ref=f1e121]: 👥
+        - paragraph [ref=f1e122]: Pacientes
+      - generic [ref=f1e124] [cursor=pointer]:
+        - generic [ref=f1e125]: 👤
+        - paragraph [ref=f1e126]: Perfil
+      - generic [ref=f1e127] [cursor=pointer]:
+        - generic [ref=f1e128]: ☰
+        - paragraph [ref=f1e129]: Mais
+  - generic [ref=f1e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e17]

@@ -1,0 +1,83 @@
+- generic [active] [ref=f3e18]:
+  - generic [ref=f3e19]:
+    - generic [ref=f3e81]:
+      - button "Pular para o conteúdo" [ref=f3e538] [cursor=pointer]
+      - main [ref=f3e109]:
+        - generic [ref=f3e487]:
+          - heading "Lembretes" [level=5] [ref=f3e539]
+          - generic [ref=f3e495]:
+            - heading "Novo lembrete" [level=6] [ref=f3e540]
+            - generic [ref=f3e497]:
+              - generic [ref=f3e498]:
+                - generic: "O que (ex.: Refazer hemograma)"
+                - generic [ref=f3e499]:
+                  - 'textbox "O que (ex.: Refazer hemograma)" [ref=f3e541]'
+                  - group:
+                    - generic: "O que (ex.: Refazer hemograma)"
+              - generic [ref=f3e501]:
+                - generic [ref=f3e502]: Data
+                - generic [ref=f3e503]:
+                  - textbox "Data" [ref=f3e542]
+                  - group:
+                    - generic: Data
+              - generic [ref=f3e505]:
+                - generic [ref=f3e506]: Hora
+                - generic [ref=f3e507]:
+                  - textbox "Hora" [ref=f3e543]: 09:00
+                  - group:
+                    - generic: Hora
+            - paragraph [ref=f3e512]: Quando avisar?
+            - generic [ref=f3e513]:
+              - button "1 semana antes" [ref=f3e544] [cursor=pointer]
+              - button "1 dia antes" [ref=f3e545] [cursor=pointer]
+              - button "12 h antes" [ref=f3e546] [cursor=pointer]
+              - button "5 h antes" [ref=f3e547] [cursor=pointer]
+              - button "1 hora antes" [ref=f3e548] [cursor=pointer]
+              - button "Na hora" [ref=f3e549] [cursor=pointer]
+            - generic [ref=f3e526]:
+              - text: Avisamos por
+              - strong [ref=f3e527]: notificação no app
+              - text: ","
+              - strong [ref=f3e528]: push
+              - text: e
+              - strong [ref=f3e529]: e-mail
+              - text: em cada antecedência escolhida.
+            - button "Adicionar" [disabled]
+          - generic [ref=f3e531]:
+            - generic [ref=f3e532]:
+              - text: Próximos lembretes
+              - generic [ref=f3e556]: "1"
+            - list [ref=f3e558]:
+              - listitem [ref=f3e559]:
+                - checkbox [ref=f3e562] [cursor=pointer]
+                - generic [ref=f3e565]:
+                  - generic [ref=f3e566]: Teste lembrete bug
+                  - paragraph [ref=f3e567]:
+                    - generic [ref=f3e568]: 25/12/2026, 09:00
+                    - generic [ref=f3e571]:
+                      - generic [ref=f3e572]: Na hora
+                      - generic [ref=f3e574]: 5 h antes
+                      - generic [ref=f3e576]: 1 dia antes
+                - button [ref=f3e578] [cursor=pointer]
+          - separator [ref=f3e534]
+    - button "Pergunte ao Dr. Exame" [ref=f3e551] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f3e552]
+    - navigation [ref=f3e433]:
+      - generic [ref=f3e434] [cursor=pointer]:
+        - generic [ref=f3e435]: 🏠
+        - paragraph [ref=f3e436]: Início
+      - generic [ref=f3e438] [cursor=pointer]:
+        - generic [ref=f3e439]: 📋
+        - paragraph [ref=f3e440]: Exames
+      - generic [ref=f3e441] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f3e553]
+        - paragraph [ref=f3e444]: Dr. Exame
+      - generic [ref=f3e445] [cursor=pointer]:
+        - generic [ref=f3e446]: 📈
+        - paragraph [ref=f3e447]: Evolução
+      - generic [ref=f3e448] [cursor=pointer]:
+        - generic [ref=f3e449]: ☰
+        - paragraph [ref=f3e450]: Mais
+  - generic [ref=f3e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e554]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e555]

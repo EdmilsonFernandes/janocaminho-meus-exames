@@ -1,0 +1,100 @@
+- generic [ref=e20]:
+  - generic [ref=e4316]:
+    - navigation [ref=e4959]:
+      - generic [ref=e4961]:
+        - button "Menu do médico" [ref=e4962] [cursor=pointer]
+        - generic [ref=e4965]:
+          - paragraph [ref=e4966]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e4967]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e4968]
+      - generic [ref=e4969]:
+        - generic [ref=e4970]: PLANO
+        - paragraph [ref=e4971]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e4972]:
+        - button "Pacientes" [ref=e4973] [cursor=pointer]
+        - button "Convites" [ref=e4979] [cursor=pointer]
+        - button "Perguntas" [ref=e4986] [cursor=pointer]
+        - button "Meu perfil" [ref=e4993] [cursor=pointer]
+        - button "Trocar senha" [ref=e4999] [cursor=pointer]
+        - separator [ref=e5005]
+        - button "Sair" [ref=e5006] [cursor=pointer]
+      - generic [ref=e5012]: Portal do Médico
+    - generic [ref=e4371]:
+      - generic [ref=e4372]:
+        - button "Voltar" [ref=e4421] [cursor=pointer]
+        - paragraph [ref=e5014]: Heloisa Cristina Fernandes
+      - generic [ref=e4424]:
+        - generic [ref=e4425]:
+          - generic [ref=e4431]:
+            - generic [ref=e4432]:
+              - paragraph [ref=e4433]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e4434] [cursor=pointer]: Trocar
+            - paragraph [ref=e4438]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e4439]:
+            - generic [ref=e4440]:
+              - generic [ref=e4441]: Último exame
+              - paragraph [ref=e4445]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e4446] [cursor=pointer]:
+              - generic [ref=e4447]: Alterações
+              - paragraph [ref=e4452]: "40"
+            - generic [ref=e4453]:
+              - generic [ref=e4454]: Pendências
+              - paragraph [ref=e4458]: "1"
+            - generic [ref=e4459]:
+              - generic [ref=e4460]: Anotações
+              - paragraph [ref=e4464]: "0"
+        - tablist "Abas do paciente" [ref=e4468]:
+          - tab "Exames" [ref=e4469] [cursor=pointer]:
+            - generic [ref=e5015]:
+              - generic [ref=e5016]: Exames
+              - superscript [ref=e5017]: "13"
+          - tab "Alterados" [ref=e4475] [cursor=pointer]:
+            - generic [ref=e5018]:
+              - generic [ref=e5019]: Alterados
+              - superscript [ref=e5020]: "40"
+          - tab "Tendências" [ref=e4482] [cursor=pointer]
+          - tab "Relatório" [ref=e4487] [cursor=pointer]
+          - tab "Perguntas" [active] [selected] [ref=e4492] [cursor=pointer]:
+            - generic [ref=e5023]:
+              - generic [ref=e5024]: Perguntas
+              - superscript [ref=e5025]: "1"
+          - tab "Anotações" [ref=e4498] [cursor=pointer]
+        - generic [ref=e5582]:
+          - generic [ref=e5583]:
+            - button "Todas" [ref=e5584] [cursor=pointer]
+            - button "Aguardando" [ref=e5586] [cursor=pointer]
+            - button "Respondidas" [ref=e5588] [cursor=pointer]
+          - generic [ref=e5591]:
+            - generic [ref=e5592]:
+              - paragraph [ref=e5593]: 💬 2 perguntas do relatório
+              - generic [ref=e5594]: Aguardando
+            - generic [ref=e5603]:
+              - generic [ref=e5604]: Heloisa Cristina Fernandes · 15/07, 22:16
+              - paragraph [ref=e5605]: • Minha Testosterona Livre está 91,26 pg/mL (ref até 9,52). Podemos reduzir a dose de Masteron de 0,5ml para evitar sobrecarga? • O Potássio está em 5,1 mEq/L (no limite superior). Preciso ajustar a dieta ou hidratação?
+            - generic [ref=e5606]:
+              - button "Recebido! Vou analisar seus exames com atenção e já te respondo." [ref=e5607] [cursor=pointer]
+              - button "Vamos conversar sobre isso na sua próxima consulta." [ref=e5609] [cursor=pointer]
+              - button "Por favor, marque uma consulta para avaliarmos juntos." [ref=e5611] [cursor=pointer]
+              - button "Preciso do exame completo/atual para concluir a análise." [ref=e5613] [cursor=pointer]
+            - generic [ref=e5616]:
+              - textbox "Escrever resposta…" [ref=e5617]
+              - group
+            - button "Responder" [disabled]
+          - generic [ref=e5619]:
+            - generic [ref=e5620]:
+              - paragraph [ref=e5621]: 💬 4 perguntas do relatório
+              - generic [ref=e5622]: Respondida
+            - generic [ref=e5626]:
+              - generic [ref=e5630]:
+                - generic [ref=e5631]: Heloisa Cristina Fernandes · 21/07, 19:19
+                - paragraph [ref=e5632]: • Minha Testosterona Livre está em 91,26 pg/mL (ref até 9,52). Podemos reduzir a dose de Masteron 0,5ml para normalizar? • O Estradiol subiu para 103,00 pg/mL (aumento de 136%). Preciso de medicação para baixá-lo ou apenas ajustar a testosterona? • Meus Leucócitos urinários estão em 7 /HPF (ref 0-5). Devo investigar infecção urinária ou repetir o exame? • A PCR melhorou para 7,61 mg/L (queda de 40%). Esse valor ainda se deve apenas ao treino pesado?
+              - generic [ref=e5633]: ✅ Recebido! Dr. Daniel Shirane vai analisar e responder em breve.
+              - generic [ref=e5636]:
+                - generic [ref=e5637]: Dr. Dr. Daniel Shirane · 21/07, 19:21
+                - paragraph [ref=e5638]: Recebido! Vou analisar seus exames com atenção e já te respondo.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

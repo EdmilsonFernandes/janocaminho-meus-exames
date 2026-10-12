@@ -1,0 +1,61 @@
+- generic [active] [ref=f4e18]:
+  - generic [ref=f4e473]:
+    - navigation [ref=f4e474]:
+      - generic [ref=f4e476]:
+        - generic [ref=f4e477]: D
+        - generic [ref=f4e478]:
+          - paragraph [ref=f4e479]: 🩺 Dr. Teste Acesso
+          - generic [ref=f4e480]: Clínica Médica • CRM 99999-SP
+      - separator [ref=f4e481]
+      - generic [ref=f4e482]:
+        - generic [ref=f4e483]: PLANO
+        - paragraph [ref=f4e484]: ✅ Grátis (médico)
+        - text: "O portal do médico é gratuito por ora. Em breve: Premium do Médico."
+      - list [ref=f4e485]:
+        - button "Pacientes" [ref=f4e486] [cursor=pointer]:
+          - img [ref=f4e488]
+          - generic [ref=f4e491]: Pacientes
+        - button "Meu perfil" [ref=f4e492] [cursor=pointer]:
+          - img [ref=f4e494]
+          - generic [ref=f4e497]: Meu perfil
+        - button "Trocar senha" [ref=f4e498] [cursor=pointer]:
+          - img [ref=f4e500]
+          - generic [ref=f4e503]: Trocar senha
+        - separator [ref=f4e504]
+        - button "Sair" [ref=f4e505] [cursor=pointer]:
+          - img [ref=f4e507]
+          - generic [ref=f4e510]: Sair
+      - generic [ref=f4e511]: Portal do Médico
+    - generic [ref=f4e512]:
+      - generic [ref=f4e513]:
+        - generic [ref=f4e514]: D
+        - generic [ref=f4e515]:
+          - generic [ref=f4e516]:
+            - paragraph [ref=f4e517]: 🩺 Dr. Teste Acesso
+            - generic [ref=f4e519]: Profissional
+          - text: Clínica Médica • CRM 99999-SP
+      - generic [ref=f4e520]:
+        - generic [ref=f4e521]:
+          - heading "Pacientes (1)" [level=6] [ref=f4e522]
+          - generic [ref=f4e524]: 🔴 1 com alerta
+        - generic [ref=f4e525]:
+          - generic [ref=f4e526]:
+            - img [ref=f4e527]
+            - textbox "Buscar paciente pelo nome…" [ref=f4e530]
+          - button "🔴 Só com alerta" [ref=f4e531] [cursor=pointer]:
+            - generic [ref=f4e532]: 🔴
+            - generic [ref=f4e533]: Só com alerta
+        - generic [ref=f4e536] [cursor=pointer]:
+          - generic [ref=f4e538]: E
+          - generic [ref=f4e540]:
+            - generic [ref=f4e541]:
+              - paragraph [ref=f4e542]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f4e544]: "#MC97"
+              - generic [ref=f4e546]: alerta
+            - generic [ref=f4e547]:
+              - generic [ref=f4e549]: 📋 1
+              - generic [ref=f4e551]: Particular
+          - paragraph [ref=f4e552]: ›
+  - generic [ref=f4e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e17]

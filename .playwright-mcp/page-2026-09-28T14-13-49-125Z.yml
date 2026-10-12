@@ -1,0 +1,84 @@
+- generic [ref=f6e1]:
+  - generic [ref=f6e3]:
+    - button [ref=f6e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f6e5]:
+      - banner [ref=f6e6]:
+        - generic [ref=f6e7]:
+          - generic [ref=f6e11]:
+            - button [ref=f6e12] [cursor=pointer]:
+              - generic [ref=f6e13]: 9+
+            - button [ref=f6e18] [cursor=pointer]:
+              - generic [ref=f6e19]: T
+              - generic [ref=f6e21]:
+                - generic [ref=f6e22]: Theo QA
+                - generic [ref=f6e23]: Filho(a)
+          - button [ref=f6e28] [cursor=pointer]
+      - main [ref=f6e31]:
+        - navigation [ref=f6e35]:
+          - generic [ref=f6e38]:
+            - generic [ref=f6e39]: E
+            - generic [ref=f6e41]:
+              - paragraph [ref=f6e42]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f6e43]:
+                - generic [ref=f6e44]: Plano grátis
+                - button [ref=f6e46] [cursor=pointer]:
+                  - generic [ref=f6e47]: ⚡ 69 (+)
+          - separator [ref=f6e48]
+          - generic [ref=f6e49]:
+            - button [expanded] [ref=f6e50] [cursor=pointer]:
+              - generic [ref=f6e54]: Exames
+            - generic [ref=f6e61]:
+              - button [ref=f6e62] [cursor=pointer]:
+                - generic [ref=f6e66]: Exames
+              - button [ref=f6e68] [cursor=pointer]:
+                - generic [ref=f6e73]: Valores alterados
+              - button [ref=f6e75] [cursor=pointer]:
+                - generic [ref=f6e80]: Evolução
+              - button [ref=f6e82] [cursor=pointer]:
+                - generic [ref=f6e86]: Tendências
+              - button [ref=f6e88] [cursor=pointer]:
+                - generic [ref=f6e92]: Linha do Tempo
+              - button [ref=f6e94] [cursor=pointer]:
+                - generic [ref=f6e98]: Relatório completo
+          - button [ref=f6e101] [cursor=pointer]:
+            - generic [ref=f6e106]: Cuidados
+          - button [ref=f6e111] [cursor=pointer]:
+            - generic [ref=f6e116]: Pessoas
+          - button [ref=f6e121] [cursor=pointer]:
+            - generic [ref=f6e125]: Conta
+          - button [ref=f6e130] [cursor=pointer]:
+            - generic [ref=f6e134]: Dúvidas frequentes
+          - menuitem [ref=f6e136] [cursor=pointer]:
+            - generic [ref=f6e140]: Sobre o app
+          - menuitem [ref=f6e142] [cursor=pointer]:
+            - generic [ref=f6e146]: Sair da conta
+          - generic [ref=f6e148]: Dr. Exame • Saúde Inteligente 🩺
+  - dialog [active] [ref=f6e297]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 1 Fechar" [level=2] [ref=f6e298]:
+      - generic [ref=f6e299]:
+        - paragraph [ref=f6e300]: Vamos preparar o Dr. Exame
+        - generic [ref=f6e301]: Passo 1 de 1
+      - button "Fechar" [ref=f6e302] [cursor=pointer]
+    - progressbar [ref=f6e305]
+    - generic [ref=f6e308]:
+      - paragraph [ref=f6e309]: Altura e peso calculam seu IMC e entram na leitura de risco cardiometabólico.
+      - generic [ref=f6e310]:
+        - generic:
+          - text: Altura
+          - generic [aria-hidden]: "*"
+        - generic [ref=f6e311]:
+          - textbox "Altura" [ref=f6e312]
+          - group [aria-hidden]:
+            - generic: Altura *
+        - paragraph [ref=f6e313]: "Ex.: 1,72 ou 172 — convertemos pra você"
+      - generic [ref=f6e314]:
+        - generic [ref=f6e315]: Peso atual (kg)
+        - generic [ref=f6e316]:
+          - textbox "Peso atual (kg)" [ref=f6e317]: "16"
+          - group [aria-hidden]:
+            - generic: Peso atual (kg)
+        - paragraph [ref=f6e318]: "Aceita vírgula ou ponto (ex.: 70,5). Vai pras suas Medições — acompanhe a tendência por lá."
+    - generic [ref=f6e319]:
+      - button "Agora não" [ref=f6e320] [cursor=pointer]
+      - button "Concluir" [disabled]
+  - generic [aria-hidden] [ref=f6e321]: "6"

@@ -1,0 +1,164 @@
+- generic [ref=f25e1]:
+  - generic [ref=f25e2]:
+    - generic [ref=f25e3]:
+      - button [ref=f25e4] [cursor=pointer]
+      - generic [ref=f25e5]:
+        - banner [ref=f25e6]:
+          - generic [ref=f25e7]:
+            - button [ref=f25e8] [cursor=pointer]
+            - paragraph [ref=f25e14]: Dr. Exame
+            - generic [ref=f25e15]:
+              - button [ref=f25e16] [cursor=pointer]:
+                - generic [ref=f25e19]: "19"
+              - button [ref=f25e20] [cursor=pointer]:
+                - generic [ref=f25e21]: "4"
+              - button [ref=f25e26] [cursor=pointer]:
+                - generic [ref=f25e27]: E
+        - main [ref=f25e29]:
+          - generic [ref=f25e31]:
+            - generic [ref=f25e36]:
+              - heading [level=5] [ref=f25e37]: Remédios
+              - paragraph [ref=f25e38]: Busque, fotografe a receita ou toque nos comuns.
+            - generic [ref=f25e39]:
+              - button [ref=f25e40] [cursor=pointer]: Buscar remédio
+              - button [ref=f25e44] [cursor=pointer]: Ler receita
+            - generic [ref=f25e49]:
+              - generic [ref=f25e51]:
+                - generic [ref=f25e53]:
+                  - paragraph [ref=f25e54]: Baristar Sabor Baunilha 30 Cápsulas
+                  - generic [ref=f25e55]: 1x ao dia
+                  - generic [ref=f25e56] [cursor=pointer]:
+                    - generic [ref=f25e57]:
+                      - generic [ref=f25e58]: R$
+                      - generic [ref=f25e59]: "62"
+                      - generic [ref=f25e60]: ",15"
+                    - generic [ref=f25e61]: +8 ofertas
+                - generic [ref=f25e62]:
+                  - button [ref=f25e63] [cursor=pointer]: Suspender
+                  - button [ref=f25e64] [cursor=pointer]
+              - generic [ref=f25e68]:
+                - generic [ref=f25e70]:
+                  - paragraph [ref=f25e71]: Cloridrato de Sibutramina Monoidratado 15mg
+                  - generic [ref=f25e72]: uso contínuo
+                  - generic [ref=f25e73] [cursor=pointer]:
+                    - generic [ref=f25e74]:
+                      - generic [ref=f25e75]: R$
+                      - generic [ref=f25e76]: "47"
+                      - generic [ref=f25e77]: ",34"
+                    - generic [ref=f25e78]: +3 ofertas
+                - generic [ref=f25e79]:
+                  - button [ref=f25e80] [cursor=pointer]: Suspender
+                  - button [ref=f25e81] [cursor=pointer]
+              - generic [ref=f25e85]:
+                - generic [ref=f25e87]:
+                  - paragraph [ref=f25e88]: Dorflex Analgésico e Relaxante Muscular 10 comprimidos
+                  - generic [ref=f25e89]: uso contínuo
+                  - generic [ref=f25e90] [cursor=pointer]:
+                    - generic [ref=f25e91]:
+                      - generic [ref=f25e92]: R$
+                      - generic [ref=f25e93]: "6"
+                      - generic [ref=f25e94]: ",45"
+                    - generic [ref=f25e95]: +8 ofertas
+                - generic [ref=f25e96]:
+                  - button [ref=f25e97] [cursor=pointer]: Suspender
+                  - button [ref=f25e98] [cursor=pointer]
+              - generic [ref=f25e102]:
+                - generic [ref=f25e104]:
+                  - paragraph [ref=f25e105]: Esomeprazol 20mg
+                  - generic [ref=f25e106]: uso contínuo
+                  - generic [ref=f25e107] [cursor=pointer]:
+                    - generic [ref=f25e108]:
+                      - generic [ref=f25e109]: R$
+                      - generic [ref=f25e110]: "20"
+                      - generic [ref=f25e111]: ",29"
+                    - generic [ref=f25e112]: +14 ofertas
+                - generic [ref=f25e113]:
+                  - button [ref=f25e114] [cursor=pointer]: Suspender
+                  - button [ref=f25e115] [cursor=pointer]
+              - generic [ref=f25e119]:
+                - generic [ref=f25e121]:
+                  - paragraph [ref=f25e122]: Levotiroxina 25mcg
+                  - generic [ref=f25e123]: 1x ao dia
+                  - generic [ref=f25e124] [cursor=pointer]:
+                    - generic [ref=f25e125]:
+                      - generic [ref=f25e126]: R$
+                      - generic [ref=f25e127]: "7"
+                      - generic [ref=f25e128]: ",65"
+                    - generic [ref=f25e129]: +11 ofertas
+                - generic [ref=f25e130]:
+                  - button [ref=f25e131] [cursor=pointer]: Suspender
+                  - button [ref=f25e132] [cursor=pointer]
+              - generic [ref=f25e136]:
+                - generic [ref=f25e138]:
+                  - paragraph [ref=f25e139]: Mounjaro 5mg
+                  - generic [ref=f25e140]: uso contínuo
+                  - generic [ref=f25e141] [cursor=pointer]:
+                    - generic [ref=f25e142]:
+                      - generic [ref=f25e143]: R$
+                      - generic [ref=f25e144]: "2.173"
+                      - generic [ref=f25e145]: ",99"
+                    - generic [ref=f25e146]: +2 ofertas
+                - generic [ref=f25e147]:
+                  - button [ref=f25e148] [cursor=pointer]: Suspender
+                  - button [ref=f25e149] [cursor=pointer]
+              - generic [ref=f25e153]:
+                - generic [ref=f25e155]:
+                  - paragraph [ref=f25e156]: Ozempic 0,25 e 0,5mg Semaglutida Injetável com 6 Agulhas
+                  - generic [ref=f25e157]: uso contínuo
+                  - generic [ref=f25e158] [cursor=pointer]:
+                    - generic [ref=f25e159]:
+                      - generic [ref=f25e160]: R$
+                      - generic [ref=f25e161]: "1.034"
+                      - generic [ref=f25e162]: ",03"
+                    - generic [ref=f25e163]: +4 ofertas
+                - generic [ref=f25e164]:
+                  - button [ref=f25e165] [cursor=pointer]: Suspender
+                  - button [ref=f25e166] [cursor=pointer]
+            - generic [ref=f25e170]:
+              - paragraph [ref=f25e174]: Seus remédios podem interagir?
+              - paragraph [ref=f25e175]:
+                - text: O Dr. Exame cruza seus
+                - strong [ref=f25e176]: remédios com seus exames
+                - text: "e responde em segundos: \"Posso tomar estes dois juntos?\" · \"Este exame mudou por causa do remédio?\" · \"O que perguntar ao médico?\""
+              - button [ref=f25e177] [cursor=pointer]: Descobrir agora (2 créditos)
+    - navigation [ref=f25e181]:
+      - paragraph [ref=f25e186] [cursor=pointer]: Início
+      - paragraph [ref=f25e191] [cursor=pointer]: Exames
+      - paragraph [ref=f25e195] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f25e200] [cursor=pointer]: Evolução
+      - paragraph [ref=f25e205] [cursor=pointer]: Mais
+  - dialog [ref=f25e210]:
+    - heading [level=2] [ref=f25e211]: ✨ Novidades do Dr. Exame
+    - generic [ref=f25e212]:
+      - generic [ref=f25e213]: Versão 2.7.149
+      - generic [ref=f25e214]:
+        - generic [ref=f25e215]:
+          - generic [ref=f25e216]: 📱
+          - generic [ref=f25e217]:
+            - paragraph [ref=f25e218]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=f25e219]:
+          - generic [ref=f25e220]: 🔐
+          - generic [ref=f25e221]:
+            - paragraph [ref=f25e222]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=f25e223]:
+          - generic [ref=f25e224]: 🩺
+          - generic [ref=f25e225]:
+            - paragraph [ref=f25e226]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=f25e227]:
+          - generic [ref=f25e228]: 🚑
+          - generic [ref=f25e229]:
+            - paragraph [ref=f25e230]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=f25e232] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=f25e235]:
+    - heading [level=2] [ref=f25e236]:
+      - generic [ref=f25e237]:
+        - img "Dr. Exame" [ref=f25e238]
+        - paragraph [ref=f25e239]: 💡 Dica do Dr. Exame pra Ed
+    - paragraph [ref=f25e241]: "Previnir é mais fácil que remediar: mantenha os exames de rotina em dia e leve cada dúvida ao seu médico."
+    - generic [ref=f25e242]:
+      - button "Depois" [ref=f25e243] [cursor=pointer]
+      - button "Ver notificações" [ref=f25e244] [cursor=pointer]

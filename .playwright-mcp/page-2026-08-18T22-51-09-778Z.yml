@@ -1,0 +1,94 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e1539]:
+            - generic [ref=e1540]:
+              - generic [ref=e1544]:
+                - heading [level=5] [ref=e1545]: Meus Médicos
+                - paragraph [ref=e1546]: Controle quem vê seus dados. Escolha o que compartilhar e revogue a qualquer momento.
+              - button [ref=e1548] [cursor=pointer]: Compartilhar
+            - generic [ref=e1573]:
+              - generic [ref=e1575]:
+                - textbox [ref=e1579]:
+                  - /placeholder: Buscar por nome ou CRM…
+                - group
+              - generic [ref=e1580]:
+                - generic [ref=e1581] [cursor=pointer]:
+                  - switch [ref=e1584]
+                  - paragraph [ref=e1587]: Só ativos
+                - generic [ref=e1588]: 1 médicos • 1 ativos
+            - generic [ref=e1590]:
+              - paragraph [ref=e1591]:
+                - text: Clínico Geral
+                - generic [ref=e1592]: "1"
+              - generic [ref=e1598] [cursor=pointer]:
+                - generic [ref=e1599]: D
+                - generic [ref=e1602]:
+                  - paragraph [ref=e1604]: Dr Teste QA
+                  - generic [ref=e1605]: CRM 99999-SP
+                  - generic [ref=e1606]:
+                    - generic [ref=e1607]:
+                      - generic [ref=e1608]: 📋
+                      - paragraph [ref=e1609]: Exames
+                    - generic [ref=e1611]:
+                      - generic [ref=e1612]: 📈
+                      - paragraph [ref=e1613]: Evol.
+                    - generic [ref=e1615]:
+                      - generic [ref=e1616]: 🚨
+                      - paragraph [ref=e1617]: Alertas
+                    - generic [ref=e1619]:
+                      - generic [ref=e1620]: ✨
+                      - paragraph [ref=e1621]: IA
+                - button [ref=e1623]
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

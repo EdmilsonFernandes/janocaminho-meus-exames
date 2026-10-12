@@ -1,0 +1,104 @@
+- generic [ref=f4e20]:
+  - generic [ref=f4e101]:
+    - button [ref=f4e102] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f4e103]:
+      - banner [ref=f4e104]:
+        - generic [ref=f4e105]:
+          - button [ref=f4e106] [cursor=pointer]
+          - button [ref=f4e109] [cursor=pointer]
+          - button [ref=f4e114] [cursor=pointer]:
+            - generic [ref=f4e119]: Selecionar
+          - button [ref=f4e125] [cursor=pointer]
+      - main [ref=f4e128]:
+        - navigation [ref=f4e132]:
+          - generic [ref=f4e133]:
+            - paragraph [ref=f4e138] [cursor=pointer]: Início
+            - paragraph [ref=f4e143] [cursor=pointer]: Exames
+            - paragraph [ref=f4e149] [cursor=pointer]: Valores alterados
+            - paragraph [ref=f4e155] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=f4e160] [cursor=pointer]: Tendências
+            - paragraph [ref=f4e165] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=f4e170] [cursor=pointer]: Relatório completo
+            - paragraph [ref=f4e175] [cursor=pointer]: Perguntas
+            - paragraph [ref=f4e181] [cursor=pointer]: Saúde da Família
+          - button [ref=f4e183] [cursor=pointer]:
+            - generic [ref=f4e188]: Minha saúde
+          - button [ref=f4e193] [cursor=pointer]:
+            - generic [ref=f4e198]: Família & médicos
+          - button [ref=f4e203] [cursor=pointer]:
+            - generic [ref=f4e207]: Conta
+          - separator [ref=f4e211]
+          - button [ref=f4e212] [cursor=pointer]:
+            - generic [ref=f4e213]: ❓
+            - generic [ref=f4e215]: Ajuda & Suporte
+          - menuitem [ref=f4e217] [cursor=pointer]:
+            - generic [ref=f4e218]: ℹ️
+            - generic [ref=f4e219]: Sobre o app
+          - menuitem [ref=f4e221] [cursor=pointer]:
+            - generic [ref=f4e225]: Sair da conta
+        - generic [ref=f4e228]:
+          - generic [ref=f4e229]:
+            - paragraph [ref=f4e230]: Bom dia, tudo bem? 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f4e231]:
+            - progressbar [ref=f4e232]
+            - paragraph [ref=f4e235]: Calculando seu score…
+          - generic [ref=f4e238]:
+            - generic [ref=f4e242]:
+              - generic [ref=f4e243]: Organizando seus dados
+              - paragraph [ref=f4e245]: Montando sua prioridade de hoje
+              - paragraph [ref=f4e246]: Estamos cruzando exames, alertas e créditos para sugerir o melhor próximo passo.
+            - button [ref=f4e247] [cursor=pointer]: Ver exames →
+          - generic [ref=f4e248]:
+            - paragraph [ref=f4e255]: Sua saúde agora
+            - generic [ref=f4e256]:
+              - progressbar [ref=f4e257]
+              - paragraph [ref=f4e260]: Montando sua leitura de risco…
+            - generic [ref=f4e261]:
+              - button [ref=f4e262] [cursor=pointer]: 📊 Tendências & Previsões →
+              - button [ref=f4e263] [cursor=pointer]: 🏆 Conquistas →
+          - generic [ref=f4e264]:
+            - paragraph [ref=f4e270]: Dr. Exame
+            - generic [ref=f4e273]:
+              - generic [ref=f4e277]:
+                - paragraph [ref=f4e278]: ✨ Dica personalizada (IA)
+                - paragraph [ref=f4e279]: Atividade física regular ajuda a reduzir colesterol, glicemia e pressão.
+              - button [ref=f4e281] [cursor=pointer]: Conversar com a IA
+          - heading [level=3] [ref=f4e286]:
+            - button [ref=f4e287] [cursor=pointer]:
+              - generic [ref=f4e292]:
+                - paragraph [ref=f4e293]: Análises detalhadas da sua saúde
+                - text: Estado atual, idade biológica, risco cardiometabólico e distribuição
+          - generic [ref=f4e297]:
+            - paragraph [ref=f4e303]: Seus números
+            - generic [ref=f4e304]:
+              - generic [ref=f4e307] [cursor=pointer]:
+                - paragraph [ref=f4e311]: "0"
+                - generic [ref=f4e312]: Exames enviados
+              - generic [ref=f4e315] [cursor=pointer]:
+                - paragraph [ref=f4e320]: "0"
+                - generic [ref=f4e321]: Valores alterados
+              - generic [ref=f4e324] [cursor=pointer]:
+                - paragraph [ref=f4e329]: "0"
+                - generic [ref=f4e330]: Dependentes
+              - generic [ref=f4e333] [cursor=pointer]:
+                - paragraph [ref=f4e337]: —
+                - generic [ref=f4e338]: Última atualização
+          - generic [ref=f4e339]:
+            - paragraph [ref=f4e345]: Ações rápidas
+            - generic [ref=f4e347]:
+              - generic [ref=f4e348]: Enviar exame
+              - generic [ref=f4e355]: Evolução
+              - generic [ref=f4e362]: Família
+              - generic [ref=f4e370]: Relatório
+          - button [ref=f4e378] [cursor=pointer]: 📤 Compartilhar minha saúde
+  - dialog [active] [ref=f4e386]:
+    - generic [ref=f4e387]:
+      - button "Pular" [ref=f4e388] [cursor=pointer]
+      - generic [ref=f4e389]:
+        - generic [ref=f4e390]: 📄
+        - heading "Envie seu exame" [level=4] [ref=f4e391]
+        - paragraph [ref=f4e392]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f4e393]:
+        - button [ref=f4e399] [cursor=pointer]
+        - paragraph [ref=f4e403]: Toque em Próximo para continuar →

@@ -1,0 +1,880 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-08 13:40:37 UTC",
+  "run_id": "server_232e",
+  "run_name": "server_232e",
+  "scope": {
+    "targets": [
+      {
+        "type": "local_code",
+        "details": {
+          "target_path": "C:\\Users\\esantos\\Desktop\\Exame Edmilson\\packages\\server",
+          "workspace_subdir": "server"
+        },
+        "original": "C:\\Users\\esantos\\Desktop\\Exame Edmilson\\packages\\server"
+      }
+    ],
+    "scan_mode": "standard",
+    "scope_mode": "auto",
+    "diff_scope": {
+      "active": false,
+      "mode": "auto"
+    },
+    "instruction": "Health app LGPD. Multi-tenant by user (patients ownerId). Focus: 1) BOLA/IDOR in patient/exam/subscription routes; 2) Billing webhook spoofing; 3) Admin routes without role check; 4) PII leaking in public endpoints; 5) SQL raw injection. JWT via requireAuth. Express 5 + Prisma 6 + PostgreSQL."
+  },
+  "summary": {
+    "surfaces_reviewed": 54,
+    "outcomes": {
+      "reported": 5,
+      "no_issue_found": 6,
+      "ruled_out": 32,
+      "not_applicable": 4,
+      "needs_follow_up": 7
+    },
+    "findings_filed": 5,
+    "gaps": 12
+  },
+  "machine_observed": {
+    "agents": [
+      {
+        "agent_id": "fc8c25e9",
+        "agent_name": "Admin Guard Auditor",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/broken_function_level_authorization"
+        ],
+        "task": "Audit admin role-check coverage in /workspace/server (call get_threat_model target /workspace/server first).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nKNOWN: src/routes/admin.routes.ts mounts under /api/admin with router.use(requireAuth) + router.use(requireAdmin) — appears solid, but audit INSIDE for routes that opt out or re-mount. src/routes/pharmacy.routes.ts mounts at /api/admin/pharmacies (app.ts line ~363) — UNVERIFIED whether it has its own admin guard. Also many privileged actions live OUTSIDE admin.routes.ts: settings mutations, push campaigns, credits, tickets management — find where they live and whether OWNER role can reach them.\n\nDO:\n1. Read pharmacy.routes.ts fully — does it apply requireAuth/requireAdmin? Any public routes under /api/admin/*?\n2. Enumerate ALL mounts in app.ts and classify each router: public / requireAuth only / requireAuth+requireAdmin / requireDoctor. Check doctor.routes.ts, doctor-share.routes.ts, doctor-question.routes.ts guards (doctor JWT type guard?), consulta.ts (public CRM consultation?), ticket.routes.ts (admin manage actions?).\n3. Check for role escalation paths: can an OWNER set role='ADMIN' via profile update / mass assignment (auth.routes.ts register/update, patient create, billing, data export/import)? Search schema.prisma for User.role default and any route that writes user.role.\n4. Check utils/settings.ts getSettings/saveSettings callers — who can mutate AppSettings (MOTD, premium perks, AI config)?\n5. Check audit-log/accessAudit middleware for bypasses (paths that skip audit).\n6. Static only. For each surface: record_coverage (surface e.g. 'pharmacy.routes.ts', risk 'BFLA/admin authorization') with honest outcome; note 'admin-guard-audit' (findings) with candidates file:line.\n7. Do NOT file reports — validation agents follow up.",
+        "is_root": false
+      },
+      {
+        "agent_id": "6cea10dd",
+        "agent_name": "BOLA Discovery Agent",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/idor",
+          "vulnerabilities/broken_function_level_authorization"
+        ],
+        "task": "White-box BOLA/IDOR discovery sweep over /workspace/server/src/routes/*.ts (Express 5 + Prisma; call get_threat_model target /workspace/server first).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nCONTEXT: Multi-tenant by `Patient.ownerId`. `requireAuth` only authenticates (injects req.userId); object scoping is per-handler. Helpers exist: `userPatientIds(userId)`, `firstPatientId(userId)`. Exams/items/analyses etc. link to patientId (or userId directly). CUID ids are non-enumerable but secrecy is not authorization.\n\nYOUR JOB — enumerate EVERY route handler in ALL ~45 route files and classify each param-taking data route as:\n- SAFE: scoped by ownerId/userId/patientIds in the where clause (name the file:line of the scoping)\n- VULNERABLE: fetches by bare id (prisma.X.findUnique({where:{id: req.params...}})) without ownership check → cross-tenant access to health data\n- UNCLEAR: needs dynamic check\nPay special attention to (user's stated focus): patient routes, exam routes (incl. file/photo serving), subscription/billing routes, and also sweep: items, analyses, chat, reminders, measurements, medications, vaccines, expenses, notifications, mental-screenings, risk, sports, achievements, tickets, devices, data (export!), doctor-share, doctor-question, doctor, labs, public-api v1.\n\nMETHOD: For each route file, map: route path → handler → prisma query where-clause → is req.userId (or derived patientIds) present? Use rg to find `findUnique`, `findFirst`, `update`, `delete` with `req.params` and check surrounding scope. The Exam→Patient→ownerId chain matters: a route scoped only by patientId WITHOUT verifying patient.ownerId===req.userId is vulnerable. Same for doctor-share tokens granting access to patient data.\n\nDELIVERABLES:\n1. A prioritized candidate table (note titled 'bola-candidates', category findings): endpoint, file:line, missing check, object/impact (health data LGPD), confidence.\n2. record_coverage per route-file swept (surface = route file, risk = 'BOLA/object-level authorization') with outcome reported/ruled_out/needs_follow_up — be honest, name the control for ruled_out.\n3. Do NOT file vulnerability reports and do NOT run dynamic tests — discovery only. A validation agent will PoC the top candidates.",
+        "is_root": false
+      },
+      {
+        "agent_id": "0e3b6a1b",
+        "agent_name": "BOLA Validation Agent",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/idor"
+        ],
+        "task": "Dynamically validate the three BOLA candidates found in /workspace/server (call get_threat_model target /workspace/server; read notes 'bola-candidates' 171e93 and 'test-harness' 4e09b7 first).\n\nSHELL QUIRK: exec_command default pipes swallow output — ALWAYS pass tty:true.\n\nHARNESS (ready): Postgres on 127.0.0.1:5433, DB meus_exames_test. Run tests from /workspace/server with `npx vitest run test/<file>`. Copy patterns from test/billing.test.ts + test/helpers.ts (resetDb, createUser, mintToken, api()). Do NOT run two vitest suites concurrently. First run ~200s (slow vite import). If postgres died, restart per note 4e09b7.\n\nVALIDATE (write one vitest file per candidate under test/, prefix poc-):\n1. POST /api/consulta/exams/:examId (src/routes/consulta.ts:10-27) — user A creates patient+exam (see how exam tests create exams; check test/helpers createExam or build prisma directly via `import { prisma } from '../src/prisma'`), then POST as user B with A's examId → expect 200 and A's patient name/clinical data in response. Negative control: GET /api/exams/<sameId> as B → 403/404 (proves sibling control works). If 200: CONFIRMED.\n2. GET /api/items?patientId= (src/routes/item.routes.ts:347-348) — create exam+items for A; as B GET /api/items?patientId=<A-patientId> → expect A's rows returned (200 + non-empty) vs sibling /api/items/abnormal?patientId=<A-pid> → empty. If rows returned: CONFIRMED.\n3. GET /api/patients/:id/photo?t=<any-valid-jwt> (app.ts:297 + middleware/auth.ts requirePhotoToken) — create patient with photo for A (storage is mocked: resolvePatientPhoto returns test.jpg file — check whether mocked storage lets the route reach res.sendFile; if the mock makes it 404, fall back to static-only assessment), as B request A's photo → 200 vs 404. If body serves: CONFIRMED; if mock-blocked: report as static-confirmed with dynamic gap.\n\nFor each CONFIRMED candidate: record_coverage update (use update_coverage on existing entries 60925f/7adb60/12eb9a → outcome 'reported' only after report exists; otherwise leave needs_follow_up and say PoC result). Write note 'bola-poc-results' (findings) with exact requests/responses (status, body excerpts), and the precise minimal fix per candidate mirroring sibling code (consulta → loadOwnedExam pattern; item LIST → same ternary as siblings; photo → bind subject). Do NOT create_vulnerability_report — the reporting agent files from your note.",
+        "is_root": false
+      },
+      {
+        "agent_id": "2e1a77be",
+        "agent_name": "PII Leak Auditor",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/information_disclosure"
+        ],
+        "task": "Audit PII leakage in public/unauthenticated endpoints of /workspace/server (call get_threat_model target /workspace/server first).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nCONTEXT: LGPD health app. Sensitive: CPF (encrypted+masked helpers exist), patient photos (facial), exam PDFs/lab results, clinical narratives, mental-health screenings. Public surface: /api/public/* (decifre, lead, v1 API, shared reports w/ token+6-digit PIN), /api/labs, /api/doctor/crm, /api/consulta, /api/patients/:id/photo (any-valid-JWT ?t=), /api/health, /api/app/*, /api/docs (swagger), /api/auth/*.\n\nDO:\n1. Map every route mounted BEFORE requireAuth or on public routers (app.ts + each routes file's own guard usage). Build the full unauthenticated-endpoint inventory.\n2. For each: what data does it return? Trace prisma selects — do any include cpfEncrypted/cpfLast4/fullName/birthDate/email/health data without auth? Check public-api.routes.ts (v1 API — API-key middleware? what PII?), decifre.routes.ts, lead.routes.ts (lead capture storing PII publicly?), labs.routes.ts, consulta.ts.\n3. Shared exam reports: /api/public/shared/:token (+PIN) — analyze token entropy (how generated? JWT? random?), PIN brute-force economics vs the 10/15min limiter, share-pin hashing (utils/crypto hashSharePin), what fields the shared view exposes (full CPF? photos? items?), and whether token can enumerate other patients' shares. Check doctor-share.routes.ts public access paths.\n4. /api/patients/:id/photo requirePhotoToken: accepts ANY valid JWT (patient or doctor) for ANY patient id. Assess: is the CUID guessable/leakable elsewhere (do any endpoints return other users' patient CUIDs — e.g. labs, shared reports, errors, logs)? If an attacker can obtain victim CUIDs, they get facial photos (LGPD biometric). Cross-check with BOLA findings note if present.\n5. Error messages: errorHandler.ts — do 500s leak stack/PII? Check a few catch blocks that res.json(e) raw.\n6. Auth endpoints: /api/auth/* — login/register/OTP responses: user enumeration (different errors for unknown email?), OTP brute force, google sign-in email verification bypass, response payload over-sharing.\n7. Swagger /api/docs — openapi.ts: does it expose internal endpoints or example PII?\n8. Static + (when test-harness note says DB up) dynamic spot-checks via supertest for the top 2-3 leaks.\n\nDELIVERABLES: note 'pii-leak-candidates' (findings) prioritized with file:line; record_coverage per surface ('public endpoints PII'); no create_vulnerability_report (reporting agents handle).",
+        "is_root": false
+      },
+      {
+        "agent_id": "2c5ad450",
+        "agent_name": "Root Agent",
+        "status": "running",
+        "skills": [],
+        "task": "\n\nLocal Codebases: - C:\\Users\\esantos\\Desktop\\Exame Edmilson\\packages\\server (available at: /workspace/server; this is the user's real directory, mounted live and writable — .git/.agents/.codex are read-only)\n\nSpecial instructions: Health app LGPD. Multi-tenant by user (patients ownerId). Focus: 1) BOLA/IDOR in patient/exam/subscription routes; 2) Billing webhook spoofing; 3) Admin routes without role check; 4) PII leaking in public endpoints; 5) SQL raw injection. JWT via requireAuth. Express 5 + Prisma 6 + PostgreSQL.",
+        "is_root": true
+      },
+      {
+        "agent_id": "1db79fb8",
+        "agent_name": "SQL Injection Auditor",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/sql_injection"
+        ],
+        "task": "Audit raw SQL and injection sinks in /workspace/server (call get_threat_model target /workspace/server first).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nDO:\n1. rg for '\\$queryRaw|\\$executeRaw|queryRawUnsafe|executeRawUnsafe' across src/ — for EACH hit, determine whether any part of the SQL string is built from user input (params, query strings, sort/order/filter fields, table names). Prisma tagged-template $queryRaw\\`...\\` is parameterized ONLY for interpolated VALUES via Prisma.sql/Prisma.join — string concatenation inside the template or $raw string args are injectable. Document each with file:line and attacker-controlled reachability (which route/param reaches it).\n2. utils/list.ts parseListParams: does sort/order flow into prisma orderBy as raw field name? Prisma orderBy is NOT SQL but unknown-field errors can leak schema; worse if any list route passes sort into raw SQL. Check setListHeaders and all callers of parseListParams.\n3. Check admin.routes.ts raw queries (metrics ~line 478) for interpolated filters (search terms from admin UI).\n4. Check prisma/seed.ts and scripts/ for injection only if reachable via app routes (skip otherwise).\n5. Non-SQL injection quick sweep while you're there: child_process usage (exec/execSync) with user input, path traversal in file serving (utils/storage.ts resolveExamFile/resolvePatientPhoto, admin upload endpoints, data.routes.ts export/import), template injection, command injection in extraction pipeline.\n6. For each candidate: trace source (route param/body) → sink. For non-obviously-reachable ones mark open gap. \n7. Dynamic validation when the 'test-harness' note says Postgres is up: build /workspace/server/test/poc-sqli.test.ts with supertest hitting the reachable sink with a benign marker payload (e.g. sort=id;SELECT or ' OR '1'='1 via -- where applicable; use time-based only if boolean not observable). Prove or refute. Use resetDb from test/helpers.\n\nDELIVERABLES: note 'sqli-injection-candidates' (findings) with file:line + reachability + PoC result; record_coverage per sink surface; NO create_vulnerability_report (reporting agents file).",
+        "is_root": false
+      },
+      {
+        "agent_id": "7355114b",
+        "agent_name": "Static Triage Agent",
+        "status": "completed",
+        "skills": [
+          "custom/source_aware_sast"
+        ],
+        "task": "Run the source-aware static triage bundle over /workspace/server (white-box scan; call get_threat_model target /workspace/server first for context).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nRepo: /workspace/server (Express 5 + Prisma 6 + TypeScript). EXCLUDE node_modules and dist. Artifacts to /workspace/.source-aware/.\n\nDO ALL OF:\n1. semgrep scan --config p/default --config p/typescript --config p/secrets --metrics=off --json --output /workspace/.source-aware/semgrep.json /workspace/server/src\n2. Build sg-targets.txt from semgrep.json scope (paths.scanned, fallback unique results[].path), then xargs sg run --pattern '$F($$$ARGS)' --json=stream > /workspace/.source-aware/ast-grep.json (bounded to src/).\n3. gitleaks detect --source /workspace/server --report-format json --report-path /workspace/.source-aware/gitleaks.json (note: .env and janocaminho-*-firebase-adminsdk-*.json at repo root are KNOWN suspected secrets — include them but verify if they look real vs placeholders; also check git history if .git exists — it may be read-only, that's fine).\n4. trufflehog filesystem --no-update --json --no-verification /workspace/server > /workspace/.source-aware/trufflehog.json\n5. trivy fs --scanners vuln,misconfig --timeout 30m --offline-scan --format json --output /workspace/.source-aware/trivy-fs.json /workspace/server\n6. Summarize: top semgrep findings by severity with file:line; secret hits classified real-vs-placeholder (real secrets = finding candidates); dependency CVEs that are exploitable in this codebase (check reachability: is the vulnerable code path imported? e.g. sharp 0.32.6 used in middleware/upload or extraction).\n\nREPORTING RULES:\n- Do NOT file create_vulnerability_report — this is triage. Write a note (category general, title 'static-triage-results') with the prioritized candidate list incl. file:line.\n- For each REAL hardcoded secret (not placeholder), record_coverage with outcome 'needs_follow_up' listing it, evidence 'verified real secret at file:line' — a validation agent will confirm.\n- For each known-CVE dependency finding with a verified advisory + installed version in range, file it directly with create_dependency_report (that is allowed for you) — verify advisory CVSS via web_search first; set reachability honestly (check imports in src/).\nKeep artifacts bounded: trim ast-grep.json to src/ hits if huge.",
+        "is_root": false
+      },
+      {
+        "agent_id": "53fe666f",
+        "agent_name": "Test Harness Engineer",
+        "status": "completed",
+        "skills": [
+          "tooling/python"
+        ],
+        "task": "Set up the dynamic-validation harness for the Express+Prisma app at /workspace/server (threat model: get_threat_model target /workspace/server).\n\nGOAL: PostgreSQL test DB running on 127.0.0.1:5433 with database `meus_exames_test`, user `meus_exames` / password `meus_exames_dev`, schema migrated via prisma, and a green subset of the vitest suite.\n\nSTEPS:\n1. IMPORTANT SHELL QUIRK: exec_command with default (non-TTY) pipes SWALLOWS output in this sandbox — ALWAYS pass tty:true to exec_command to see output.\n2. Check if postgres is installed (which psql/initdb/pg_ctl). If not, install: `sudo apt-get update && sudo apt-get install -y postgresql postgresql-contrib` (or download binaries). Docker is NOT available.\n3. Initdb + start postgres on port 5433 (listen 127.0.0.1). Use a data dir under /tmp or /workspace/.pgdata. Create role meus_exames with password meus_exames_dev (SUPERUSER for test simplicity) and DB meus_exames_test owned by it.\n4. cd /workspace/server && DATABASE_URL='postgresql://meus_exames:meus_exames_dev@127.0.0.1:5433/meus_exames_test?schema=public' npx prisma migrate deploy (or `prisma db push` if migrations are out of sync).\n5. Verify: run one fast test file, e.g. `npx vitest run test/auth.test.ts` from /workspace/server. Then run test/billing.test.ts and test/asaas-webhook.test.ts to confirm billing tests pass.\n6. If some tests fail for environment reasons, note which pass/fail — do not fix app bugs.\n\nDELIVERABLE: leave postgres RUNNING (do not stop it). create_note (category methodology) titled 'test-harness' with: how to start postgres again if it dies, the DATABASE_URL to export, which vitest files pass, and any quirks. Then agent_finish with a summary. Record coverage for surface 'test harness' / risk 'dynamic validation infrastructure' with outcome no_issue_found/needs_follow_up as appropriate.",
+        "is_root": false
+      },
+      {
+        "agent_id": "8ba11156",
+        "agent_name": "Webhook Billing Agent",
+        "status": "completed",
+        "skills": [
+          "vulnerabilities/business_logic"
+        ],
+        "task": "Analyze billing webhook spoofing in /workspace/server (call get_threat_model target /workspace/server first).\n\nSHELL QUIRK: exec_command default pipes swallow output — always pass tty:true.\n\nKNOWN (from root): webhooks POST /api/webhooks/openpix and /api/webhooks/asaas are public, NOT HMAC-signed. Approval requires (1) pending Subscription with mpPaymentId == correlationID/payment.id, (2) amount match, (3) PENDING status. Billing routes RETURN paymentId (mpPaymentId) to the client (billing.routes.ts lines ~252/258/324/768/907). OpenPix correlationID format is `plan_<subId>`/`credits_<subId>_<n>`/`api_<subId>_<calls>`. OpenPix handler: if status empty → skips COMPLETED check; Asaas accepts event startsWith PAYMENT_RECEIVED or status in RECEIVED set.\n\nANALYZE (static, then dynamic when DB ready):\n1. Read src/routes/openpix-webhook.routes.ts, asaas-webhook.routes.ts, utils/billingApproval.ts, utils/subscriptionCompat.ts, routes/billing.routes.ts end-to-end. Confirm exact approval path and what a spoofed webhook grants (premium days? credits? API pack?). Check whether value must equal sub.amount exactly, and whether an attacker who OWNS a subscription (their own sub, PENDING) can approve it themselves via the public webhook with a crafted payload.\n2. Check GET /api/billing/... routes that expose paymentId/mpPaymentId to the subscribing user (lines ~895-907, 933-996 area) — attacker story: register → POST billing/pix-plan (creates PENDING sub) → read paymentId from response → POST /api/webhooks/openpix with {charge:{correlationID:paymentId,status:'COMPLETED'},payment:{value:amountCents}} → premium activated without payment. Verify EVERY step statically (exact response fields).\n3. Also check /billing/pay-card inline card path and any webhook-simulation endpoints (e.g. POST /billing/simulate or approval by paymentId lookup at line ~940 where userId IS checked — compare).\n4. Check jobs/pix-expiry.ts for race windows (approve vs expire).\n5. When the 'test-harness' note (see list_notes) says Postgres 5433 is up: build a dynamic PoC as a vitest file /workspace/server/test/poc-webhook-spoof.test.ts following test/asaas-webhook.test.ts patterns (resetDb, createUser, api() supertest). Prove premium/credits granted by crafted webhook POST with NO provider involvement. Run: cd /workspace/server && npx vitest run test/poc-webhook-spoof.test.ts. If harness not ready, deliver the static trace + mark dynamic as open gap.\n6. Counterevidence: look hard for any IP allowlist, secret header check, or provider verification we missed.\n\nDELIVERABLES: note 'webhook-spoof-analysis' (findings) with the full chain + file:line refs + PoC result. record_coverage (surface 'billing webhooks openpix+asaas', risk 'webhook spoofing'). Do NOT create_vulnerability_report — a reporting agent will file from your evidence.",
+        "is_root": false
+      },
+      {
+        "agent_id": "a3a35245",
+        "agent_name": "XSS Validation Agent",
+        "status": "running",
+        "skills": [
+          "vulnerabilities/xss"
+        ],
+        "task": "Dynamically validate the stored-XSS candidates in /workspace/server (call get_threat_model target /workspace/server; read note 'static-triage-results' 0f1ced and 'test-harness' 4e09b7).\n\nSHELL QUIRK: exec_command default pipes swallow output — ALWAYS pass tty:true.\n\nHARNESS: vitest from /workspace/server, patterns in test/*.test.ts, helpers in test/helpers.ts. Never run two suites concurrently.\n\nCANDIDATES (from static triage):\n1. /api/public/shared/:token HTML rendering (app.ts ~440-470): unescaped patientName / exam.title / analysis content interpolated into public HTML page. Trace: how is a shared report created (POST /api/analyses/:id/share with sharePin?), what is the token, and which fields flow into the HTML template? Then PoC: create user+patient with fullName '<img src=x onerror=alert(1)>' (check validators — maybe patient create rejects; if so try exam title or item name), create analysis, share it, GET /api/public/shared/<token> (public, no auth) with PIN → assert payload appears unescaped in HTML.\n2. consulta.ts HTML (lines ~60-108): rawExtraction.patientName interpolated into rendered clinical HTML — attacker uploads a PDF whose extraction sets patientName; then any viewer of the consulta page gets stored XSS. Validate statically how patientName reaches the template and whether any escaping exists; dynamic if feasible.\n3. emailTemplate.ts / nudgeMail.ts — user-controlled name into HTML emails (check escaping; if unescaped, note as candidate; emails are HTML-rendered by clients).\n\nAlso assess CSP headers on these HTML responses (none likely).\n\nDELIVERABLE: note 'xss-poc-results' (findings) with: per candidate, the exact injection point (field + file:line), the request sequence, response excerpt showing unescaped payload, and the minimal fix (escape at interpolation site — identify the existing escape helper if any, e.g. check how app.ts escapes other fields). record_coverage for each surface (e.g. '/api/public/shared/:token HTML', risk 'stored XSS'). Do NOT create_vulnerability_report — reporting agent files. If a candidate fails validation (escaped/sanitized), mark ruled_out with the named control.",
+        "is_root": false
+      }
+    ],
+    "skills_exercised": [
+      "broken_function_level_authorization",
+      "business_logic",
+      "idor",
+      "information_disclosure",
+      "python",
+      "source_aware_sast",
+      "sql_injection",
+      "xss"
+    ],
+    "findings_filed": 5,
+    "source": "runtime"
+  },
+  "completeness": {
+    "complete": false,
+    "scan_status": "running",
+    "exit_reason": null,
+    "caveats": [
+      "The scan ended with status 'running' rather than completing, so coverage reflects only the work finished before it stopped.",
+      "5 agent(s) did not finish cleanly (BOLA Validation Agent, PII Leak Auditor, Root Agent, SQL Injection Auditor, XSS Validation Agent); any surface they held is under-covered."
+    ]
+  },
+  "entries": [
+    {
+      "surface": "pharmacy.routes.ts (mounted /api/admin/pharmacies, app.ts:363)",
+      "risk_area": "BFLA/admin authorization",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "pharmacy.routes.ts:13-20 defines its own inline requireAdmin (DB role check, fail-closed try/catch → 403) applied via router.use(requireAuth, requireAdmin) before all 4 routes (GET /, POST /, PATCH /:id, DELETE /:id). No routes declared before the guard, no nested re-mounts.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:02:46 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "admin.routes.ts (/api/admin, 62 routes)",
+      "risk_area": "BFLA/admin authorization (routes opting out / re-mounting inside admin router)",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "router.use(requireAuth) at line 25 + router.use(requireAdmin) at line 33 (DB role lookup, 403 on non-ADMIN, fail-closed on throw since findUnique error propagates to error handler). All 62 routes (pii/lookup, pii/reveal, users CRUD, credits/plan mutations, push broadcast, ai-config, labs CRUD, tickets admin, api-access approve, etc.) are declared AFTER the guards — no route opts out and no nested router mounts inside the file. Privileged actions listed in the task (settings, push campaigns, credits adjust, tickets manage, AI config, labs CRUD, block/unblock, reset-mfa) all live here behind the guard.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:03:01 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "app.ts mount table (33 routers)",
+      "risk_area": "BFLA — router-level guard classification across all app.ts mounts",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "All 33 mounts enumerated in app.ts:256-404. Classification: PUBLIC — /api/public/decifre, /api/public/lead, /api/public/v1 (API-key middleware), /api/docs (swagger), /api/webhooks/* (2 webhooks), /api/labs (list+logo only), /api/doctor/crm (rate-limited public CRM lookup), plus direct app.get routes (health, build-info, version, privacy/terms, notifications/unsubscribe with signed token, public/shared/:token with PIN+limiter, patients/:id/photo with requirePhotoToken). requireAuth only — patients, mental-screening, exams, items, analyses, chat, reminders, billing, measurements, medications (minus documented public /pharmacies GET), risk, vaccines, expenses, devices, notifications, consulta, data, achievements, tickets, sports. requireAuth+requireAdmin — /api/admin, /api/admin/pharmacies. requireDoctor (JWT type:'doctor' verification) — /api/doctor (with documented exceptions: /crm, /register, /google, /verify-email, /login, /mfa/verify public; /lookup & /specialties requireAuth; /photo/:id requirePhotoToken; /patients/:patientId/exams/:examId/file does INLINE doctor token verify + share scope check despite no requireDoctor arg — verified at doctor.routes.ts:571-589). doctor-shares & doctor-questions: requireAuth + userPatientIds (patient-side management of doctor shares).",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:03:14 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "user.role write paths (register / PATCH /me / patient create / billing / data import)",
+      "risk_area": "Role escalation via mass assignment (OWNER → ADMIN)",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "schema.prisma:19 role Role @default(OWNER). Searched all user.create call sites (auth.routes.ts:208,270 — role omitted, schema default applies) and all user.update call sites: auth.routes.ts PATCH /me uses explicit field allowlist (achievementAlerts, librasEnabled, name only — no spread of req.body); data.routes.ts /import creates user-scoped patients only, never touches User; billing routes only increment credits on self via transaction with dedup; no route in the codebase writes prisma.user role/planExpiresAt/blocked/tokenVersion outside admin.routes.ts (behind requireAdmin). No mass-assignment path to ADMIN found.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:03:23 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "utils/settings.ts saveSettings callers",
+      "risk_area": "AppSettings mutation by non-admin (MOTD, premium perks, AI config)",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "saveSettings (writes appSetting rows) is called ONLY from admin.routes.ts:232,255 (PATCH /config/costs, behind requireAuth+requireAdmin). getSettings callers are all read-only consumers. Other appSetting writers are benign: patient.routes.ts:31-35 /demo-event (requireAuth, only increments its own demoMetrics counters — cannot overwrite other keys), emailIngest job (cursor key), billingApproval.ts:68 (atomic claimed counter), blockedDomains.ts (called only from admin routes + a job). No OWNER-reachable path mutates MOTD/premium perks/AI config.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:03:37 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "accessAudit / auditLog middleware",
+      "risk_area": "Audit-log bypass (privileged paths skipping audit)",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "accessAudit.ts AREAS regex covers /api/admin(\\/|$) so all admin traffic is audited; it is allowlist-based by design (skips exams-less areas like tickets) but is a monitoring control, not an authorization one — skipping an area does not grant access. Sensitive admin actions additionally call audit() inline: LOOKUP_CPF/LOOKUP_PII_EMAIL (admin.routes.ts:78), REVEAL_CPF (:109), referrals award (:763+). auditLog.ts fallback only console-logs doctor actors (no Notification row) — a logging gap for doctor PII access, not a bypass. No middleware bypass (e.g. path trick) identified: guards are router.use-ordered, not path-conditional.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:03:45 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "consulta.ts POST /api/consulta/exams/:examId",
+      "risk_area": "BOLA — object-level authorization on exam lookup (cross-tenant health data)",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "consulta.ts:7 applies router.use(requireAuth) but the only route POST /api/consulta/exams/:examId (lines 10-19) does prisma.exam.findUnique({where:{id: req.params.examId}}) with NO ownerId/userPatientIds scoping — unlike sibling routes. It then renders patient name, age (from dateOfBirth), clinical profile, requesting doctor, and all abnormal exam values into an HTML response. Any authenticated OWNER supplying another user's examId (cuid, non-enumerable but exchanged in shares) gets another patient's health data. Needs dynamic validation by a BOLA validation agent.",
+      "recorded_by": "Admin Guard Auditor",
+      "recorded_at": "2026-10-08 13:04:00 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/consulta.ts (POST /api/consulta/exams/:examId)",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "consulta.ts:10-27 — POST /exams/:examId fetches prisma.exam.findUnique({where:{id:req.params.examId}}) with NO userPatientIds/ownerId check; handler returns patient name/age/clinicalProfile + abnormal lab values + prior-exam comparison. Only requireAuth applied.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:07:41 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/item.routes.ts (GET /api/items?patientId=)",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "item.routes.ts:347-348 — LIST where-clause {exam:{patientId:{in:pids}}} is OVERWRITTEN by raw q.patientId without pids.includes check (all sibling handlers validate it). Cross-tenant ExamItem listing.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:07:50 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "app.ts:297 GET /api/patients/:id/photo (requirePhotoToken)",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "patient photo route: requirePhotoToken (middleware/auth.ts:19-26) only verifies JWT signature — no tenant binding. Any authenticated user + patient CUID → facial photo. Cross-tenant read plausible; needs dynamic confirmation of response content.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:03 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/patient.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: every /:id handler (GET:282, PUT:323, DELETE:342, photo POST, health-score:123, health-summary:152, dashboard:166) calls userPatientIds and 403s unless pids.includes(id); LIST uses where ownerId=req.userId (:103). demo-event only mutates global counters.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:17 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/exam.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: loadOwnedExam helper (findUnique + pids.includes(exam.patientId), exam.routes.ts:33-45) guards GET /:id, /:id/file, DELETE, /reextract; attest replicates check; LIST scoped patientId in pids; upload validates patientId ∈ pids.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:23 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/analysis.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: loadOwnedAnalysis (analysis.routes.ts:18-31, resolves patientId incl. via exam lookup + pids check) guards GET/:id, POST/:id/chat, share create/revoke; LIST maps user exam ids and uses '__none__' sentinel for foreign examId.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:34 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/medication.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named controls: PATCH/:id:244-247, DELETE/:id:270-273, prices:556-559, event-signals:606-610, process-price:721-724 re-check pids.includes(m.patientId) post-fetch; lists/create derive pid from pids; checkPatient falls back to pids[0]. Observation (non-BOLA): POST /refresh-all:701 wipes global price snapshots with auth only — BFLA-adjacent.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:41 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/measurement.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named controls: DELETE/:id checks pids.includes(m.patientId) (:316-319); all GET/POST handlers derive pid via (q.patientId && pids.includes(q.patientId)) ?? pids[0]; where clauses always patientId-scoped.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:46 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/chat.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "GET/POST scoped patientId in pids + owner check on chat threads; POST /:id/chat charges req.userId. No object-by-id routes.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:50 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/reminder.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: PUT/DELETE check existing.ownerId !== req.userId → 404 (:54, :74).",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:53 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/vaccine.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: DELETE/:id checks pids.includes(v.patientId) → 403 (:38-40).",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:08:57 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/expense.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: LIST where ownerId=req.userId; CREATE requires patientId ∈ pids; DELETE checks exp.ownerId !== req.userId → 404 (:50).",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:02 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/notification.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "updateMany where {id, userId: req.userId} (:31) — object and owner bound in same clause.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:06 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/ticket.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "All handlers check ticket.userId !== req.userId → 404 (:59, :124, :147); attachment route re-verifies ticket ownership + msg.ticketId match (:147-151); exam prefill checks patient.ownerId === req.userId before embedding context.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:10 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/device.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "FCM token upsert binds userId=req.userId; no cross-user object reads.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:15 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/mental-screening.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "All 3 handlers (POST/:patientId/mental-screenings :49-51, history :89-91, latest :110-112) 403 unless pids.includes(pid).",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:19 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/risk.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Every patientId input (body/query) gated by pids.includes → 403 or 400 (assess:31, latest:47, adherence:61, predictions:71, feedback:86-87 resolves assessment.patientId, consent:98/107, action-plan:130). /sources reads static knowledge files only.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:25 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/sports.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Profile/clinical-goals derive pid from firstPatientId/userPatientIds; PUT /profile rejects wanted ∉ pids (:102); POST validates body against pids.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:29 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/achievement.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "All queries keyed by userId=req.userId (heartbeat, grants, claim).",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:09:53 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/data.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "gatherExportData scopes every table by userPatientIds(userId); import re-creates under ownerId=uid with fresh ids; export-all uses same gather.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:14 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/doctor-share.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "LIST/CREATE scoped by pids; PATCH/:id and DELETE/:id verify pids.includes(share.patientId) → 404. Observation: examIds array stored unvalidated, but doctor-side queries always re-scope by patientId so no cross-tenant read path.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:27 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/doctor-question.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "LIST filters patientId in pids (or selected pid ∈ pids); GET/:id findFirst {id, patientId in pids}; POST derives pid ∈ pids and requires active DoctorShare with the doctor.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:34 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/doctor.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Named control: every /patients/:patientId/* route requires active DoctorShare for req.doctorId (findFirst doctorId+patientId+active); most also check scopes.includes('exams') and examIds subset. Exam file route (:571, no middleware) manually verifies doctor token + share + scopes + examIds + patientId binding. Notes/goals/reviews additionally enforce req.params.doctorId === req.doctorId (requireGoalAccess/requireReviewAccess) and object re-binding by patientId.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:39 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/billing.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "User-facing reads scoped userId/pids (status:65-70, credits/history:169-178, pending-payment:882-889, pending/:id:922-926 with userId in where, payment-status:939-941 with userId in where). Side observation: payment-status MP-API fallback (:950) returns status for arbitrary payment ids — no PII. Webhook authenticity is a separate agent's scope.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:46 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/public-api.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "All API-key/ownership routes bind userId (access-request findFirst userId; keys count/list by userId; DELETE checks row.userId !== req.userId :379). Data endpoints (meds/prices/interactions/extract/interpret) act on client-supplied documents or global catalog — no per-user object reads.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:10:54 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/labs.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "not_applicable",
+      "outcome_label": "Not applicable",
+      "evidence": "Public directory data (active labs list, logo serving) — no tenant objects. findUnique by id returns only logoUrl of a public lab resource.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:06 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/pharmacy.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "CRUD behind router.use(requireAuth, requireAdmin) with role==='ADMIN' check (:17-24) — global config objects, no tenant scoping needed. BFLA agent should verify depth.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:12 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/decifre.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "not_applicable",
+      "outcome_label": "Not applicable",
+      "evidence": "Stateless public tool: no DB reads of tenant objects, in-memory cache keyed by content hash, nothing persisted (LGPD-by-design). No object references to abuse.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:19 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/lead.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "not_applicable",
+      "outcome_label": "Not applicable",
+      "evidence": "Lead creation only (email+source unique upsert); no object reads by id, no auth context to abuse.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:29 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/auth.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "No req.params object routes; all session-scoped via req.userId (me, tokens, OTP). Doctor-facing login routes authenticate then bind doctorId from token.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:40 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/openpix-webhook.routes.ts + asaas-webhook.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "not_applicable",
+      "outcome_label": "Not applicable",
+      "evidence": "Unauthenticated provider callbacks keyed by payload correlation/payment ids — no tenant object references; authenticity (spoofing) belongs to billing-webhook agent, not BOLA.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:11:46 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/admin.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "router.use(requireAuth, requireAdmin) at file top (admin.routes.ts:25-33, role==='ADMIN' check) covers all 1381 lines including backoffice reads. Deep per-route role audit belongs to the admin-routes/BFLA agent.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:12:06 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "src/routes/item.routes.ts",
+      "risk_area": "BOLA/object-level authorization",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "item.routes.ts LIST is the only unscoped handler (recorded separately as reported); all sibling handlers (PATCH/:id:50-53, timeseries:95-99, distinct-names:164-168, evolution:207-211, flag-summary:295-299, abnormal:328-332) enforce pids.includes. /explain pre-auth path exposes only global dictionary content by analyte name.",
+      "recorded_by": "BOLA Discovery Agent",
+      "recorded_at": "2026-10-08 13:12:26 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "/workspace/server/.env:22 APP_ENCRYPTION_KEY",
+      "risk_area": "Hardcoded cryptographic key (CWE-798)",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "verified real secret at /workspace/server/.env:22 — APP_ENCRYPTION_KEY is a live 64-hex-char AES-256 key (comment says generate with randomBytes(32)); .env is real config (not .env.example), NODE_ENV set, .gitignore does not exclude it. Validation agent should confirm usage in src/utils/crypto.ts encryptionKey() and assess rotation impact on encrypted CPFs.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:16:52 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "/workspace/server/janocaminho-minhasaude-firebase-adminsdk-fbsvc-a3865e8e4e.json:5",
+      "risk_area": "Committed service-account private key (CWE-798)",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "verified real secret at /workspace/server/janocaminho-minhasaude-firebase-adminsdk-fbsvc-a3865e8e4e.json:5 — full Firebase service-account RSA private key, corroborated by both gitleaks (private-key rule) and trufflehog (PrivateKey + GCP detectors). Real project ID janocaminho-minhasaude, matches firebase-admin usage in src. Validation agent should confirm FCM/push scope and whether key grants broader Firebase access.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:16:52 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "/workspace/server/.env:40,46,52,68,69,72 API tokens/credentials",
+      "risk_area": "Hardcoded API/OAuth credentials (CWE-798)",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "verified real secret at /workspace/server/.env:52 — ANTHROPIC_AUTH_TOKEN is a live proxy auth token (sk-style, non-placeholder format, absent from .env.example which only has AI_PROVIDER). Also .env:68 ML_CLIENT_SECRET and .env:69 ML_REFRESH_TOKEN (MercadoLivre OAuth live-looking values), .env:72 FIRECRAWL_API_KEY (fc-… format), .env:46 MP_ACCESS_TOKEN beginning APP_USR- (Mercado Pago PRODUCTION token — gitleaks generic rule missed this one; format is real), .env:40 SMTP_PASS. All absent from .gitignore exclusions. Validation agent to confirm which are active credentials vs dev leftovers.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:16:59 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /api/consulta/exams/:examId (src/routes/consulta.ts:11)",
+      "risk_area": "BOLA/IDOR — object-level authorization on exam data (LGPD sensitive)",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "Static trace: handler does prisma.exam.findUnique({where:{id}}) at src/routes/consulta.ts:11-25 with no userPatientIds/ownerId scoping — every sibling route file in src/routes/ uses pids.includes() but this one does not. Response (consulta.ts:60-108) embeds patient name, age, clinical profile, requesting doctor, lab and all abnormal analyte values. Needs dynamic PoC (create 2 users, user A requests user B's examId) to confirm before filing — I am a triage-only agent.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:04 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Admin mounts /api/admin and /api/admin/pharmacies",
+      "risk_area": "Admin routes without role check",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Verified by reading all mount sites: /api/admin (admin.routes.ts:25 router.use(requireAuth) + :33 router.use(requireAdmin)) and /api/admin/pharmacies (pharmacy.routes.ts:20 router.use(requireAuth, requireAdmin)) both run the role check before any route handler; no admin-performing route exists outside these two files. requireAdmin re-checks role==='ADMIN' against DB on every request.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:16 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "POST /api/webhooks/openpix + /api/webhooks/asaas",
+      "risk_area": "Billing webhook spoofing (unauthenticated approval)",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Both webhooks verify with the provider before approving: OpenPix (openpix-webhook.routes.ts:81-97) fails closed when OPENPIX_APP_ID missing and rejects unless GET /api/v1/charge/{correlationID} returns status COMPLETED; Asaas (asaas-webhook.routes.ts:97+) fails closed without ASAAS_API_KEY and confirms GET /v3/payments/{id} status RECEIVED*. Both also enforce PENDING status, exact amount match, and correlationID/payment.id existing in DB. A forged payload cannot mint approval without a real provider-side payment. Residual risk (provider outage → all treated as unconfirmed) is fail-closed, not exploitable.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:27 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Raw SQL surfaces (subscriptionCompat.ts, admin.routes.ts, orderBy params)",
+      "risk_area": "SQL injection via raw queries / orderBy",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "All raw SQL reviewed: admin.routes.ts raw $queryRaw templates are fully static strings; subscriptionCompat.ts $queryRawUnsafe calls (lines 101,137,183) pass values as positional parameters and interpolate only allowlisted column identifiers (allowedColumns set + DB column-support check). No string-concatenated user input reaches SQL. orderBy usages across routes are all literal fields.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:31 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Patient-scoped route files (exam/item/analysis/measurement/medication/reminder/vaccine/expense/mental-screening/risk/sports/chat/data/device/ticket)",
+      "risk_area": "BOLA/IDOR object-level authorization",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "Swept all ~30 route files for pids/ownerId scoping (exam, item, analysis, measurement, medication, reminder, vaccine, expense, mental-screening, risk, sports, chat, data, device, ticket, doctor, doctor-share, doctor-question, patient, notification, achievement, billing, labs). Every handler scopes via userPatientIds(req.userId).includes(...) or ownerId===req.userId before reading/writing; the sole exception (consulta.ts:11) is recorded separately as needs_follow_up. Doctor routes verify DoctorShare scopes+examIds per patient.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:36 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "GET /api/public/shared/:token (src/app.ts:452-462)",
+      "risk_area": "Stored XSS via unescaped HTML interpolation",
+      "outcome": "needs_follow_up",
+      "outcome_label": "Requires further review",
+      "evidence": "contentMd is escaped (& < replaced at app.ts:445-446) but patientName (exam.patient.fullName), exam.title, sourceLab and lab are interpolated unescaped into the public HTML at app.ts:452-462 — a patient who sets their own fullName to an XSS payload gets it rendered in the doctor's browser when the shared-report link is opened. fullName is user-controlled at registration (auth.routes.ts:211,273 String(name) with no HTML sanitization). Static trace complete; dynamic PoC (register with payload name, share, fetch public link with PIN) pending — deferred to a validation agent per triage scope.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:42 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Secret detection sweep /workspace/server",
+      "risk_area": "Secrets scanning (gitleaks + trufflehog worktree)",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "Both gitleaks (generic-api-key rule) and trufflehog flagged the same RSA private key + GCP credentials; gitleaks additionally flagged 6 .env entries (APP_ENCRYPTION_KEY, ANTHROPIC_AUTH_TOKEN, ML_CLIENT_SECRET, ML_REFRESH_TOKEN, FIRECRAWL_API_KEY) — all verified real-format against .env.example diff (none present in the example file, so not placeholders). MP_ACCESS_TOKEN/SMTP_PASS/CONSULTA_CRM_KEY are real-looking values gitleaks did not flag but manual review confirms. Secret findings handed to coverage entries 1e00ed/8a99d9/69f26b for validation.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:49 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "Dependency scan /workspace/server (synthetic lockfile from node_modules)",
+      "risk_area": "Dependency CVEs (SCA)",
+      "outcome": "reported",
+      "outcome_label": "Finding reported",
+      "evidence": "trivy fs on the repo found no lockfile (num=0 language files — monorepo lock not mounted). Reconstructed installed versions from node_modules into /workspace/.source-aware/synth-lock/package-lock.json (498 packages) and ran trivy against it (trivy-synth.json): 11 vulns across sharp 0.32.6, nodemailer 9.1.1, node-forge 1.4.0, deepmerge-ts 7.1.5, uuid 10.0.0. Reachability checked by import analysis; 5 filed as dependency reports (vuln-0001..0005). Note: archiver, pdf-parse, firebase-admin, bcryptjs, express-rate-limit, @anthropic-ai/sdk listed in package.json were NOT resolvable in node_modules at scan time (partial install) — their versions could not be verified.",
+      "recorded_by": "Static Triage Agent",
+      "recorded_at": "2026-10-08 13:17:54 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "billing webhooks openpix+asaas",
+      "risk_area": "webhook spoofing",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "Full static trace + 7/7 dynamic PoC tests (test/poc-webhook-spoof.test.ts). Forged COMPLETED/PAYMENT_RECEIVED payloads on own PENDING subs are rejected 400 by the server-side provider re-verification: openpix-webhook.routes.ts:81-95 (GET /api/v1/charge/<correlationID>, fail-closed without OPENPIX_APP_ID) and asaas-webhook.routes.ts:93-109 (GET /v3/payments/<id>, fail-closed without ASAAS_API_KEY). MP webhook has HMAC enforcement (billing.routes.ts:966-982) + provider status check (988/998). Control test proves the identical request grants +140 credits when provider confirms — so the provider check is the only and effective barrier. Residual: unsigned public endpoints allow provider-API spam (hardening, not spoof-grant).",
+      "recorded_by": "Webhook Billing Agent",
+      "recorded_at": "2026-10-08 13:36:38 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "billing pay-card inline approval + MP webhook",
+      "risk_area": "webhook spoofing / local approval bypass",
+      "outcome": "ruled_out",
+      "outcome_label": "Ruled out",
+      "evidence": "pay-card (billing.routes.ts:466-607) approves locally only when createAsaasCardCharge response status ∈ {CONFIRMED, RECEIVED, DETERMINED} (line 592) — status originates from the provider response, not client input. No webhook-simulation endpoint exists (checked all billing routes; /payment-status is GET-only, userId-scoped at line 938). MP webhook verified separately (HMAC + provider fetch).",
+      "recorded_by": "Webhook Billing Agent",
+      "recorded_at": "2026-10-08 13:36:45 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    },
+    {
+      "surface": "test harness",
+      "risk_area": "dynamic validation infrastructure",
+      "outcome": "no_issue_found",
+      "outcome_label": "No issue identified",
+      "evidence": "PostgreSQL 18.6 running on 127.0.0.1:5433 (data dir /workspace/.pgdata, left running), role meus_exames/meus_exames_dev SUPERUSER, DB meus_exames_test with 58 tables applied via `prisma db push --accept-data-loss` (migrate deploy fails: migrations reference users.credits before creation). node_modules repaired via npm install (temporarily stripped missing workspace dep @meus-exames/shared, then stubbed it locally — mental-health tests will fail on stub, everything else unaffected). Verified green: test/auth.test.ts 9/9, test/billing.test.ts 12/12, test/asaas-webhook.test.ts 9/9. Full details in methodology note 'test-harness' (id 4e09b7).",
+      "recorded_by": "Test Harness Engineer",
+      "recorded_at": "2026-10-08 13:39:23 UTC",
+      "updated_at": "",
+      "previous_outcomes": [],
+      "source": "agent_reported"
+    }
+  ],
+  "gaps": [
+    {
+      "kind": "needs_follow_up",
+      "surface": "consulta.ts POST /api/consulta/exams/:examId",
+      "risk_area": "BOLA — object-level authorization on exam lookup (cross-tenant health data)",
+      "detail": "consulta.ts:7 applies router.use(requireAuth) but the only route POST /api/consulta/exams/:examId (lines 10-19) does prisma.exam.findUnique({where:{id: req.params.examId}}) with NO ownerId/userPatientIds scoping — unlike sibling routes. It then renders patient name, age (from dateOfBirth), clinical profile, requesting doctor, and all abnormal exam values into an HTML response. Any authenticated OWNER supplying another user's examId (cuid, non-enumerable but exchanged in shares) gets another patient's health data. Needs dynamic validation by a BOLA validation agent."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "app.ts:297 GET /api/patients/:id/photo (requirePhotoToken)",
+      "risk_area": "BOLA/object-level authorization",
+      "detail": "patient photo route: requirePhotoToken (middleware/auth.ts:19-26) only verifies JWT signature — no tenant binding. Any authenticated user + patient CUID → facial photo. Cross-tenant read plausible; needs dynamic confirmation of response content."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "/workspace/server/.env:22 APP_ENCRYPTION_KEY",
+      "risk_area": "Hardcoded cryptographic key (CWE-798)",
+      "detail": "verified real secret at /workspace/server/.env:22 — APP_ENCRYPTION_KEY is a live 64-hex-char AES-256 key (comment says generate with randomBytes(32)); .env is real config (not .env.example), NODE_ENV set, .gitignore does not exclude it. Validation agent should confirm usage in src/utils/crypto.ts encryptionKey() and assess rotation impact on encrypted CPFs."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "/workspace/server/janocaminho-minhasaude-firebase-adminsdk-fbsvc-a3865e8e4e.json:5",
+      "risk_area": "Committed service-account private key (CWE-798)",
+      "detail": "verified real secret at /workspace/server/janocaminho-minhasaude-firebase-adminsdk-fbsvc-a3865e8e4e.json:5 — full Firebase service-account RSA private key, corroborated by both gitleaks (private-key rule) and trufflehog (PrivateKey + GCP detectors). Real project ID janocaminho-minhasaude, matches firebase-admin usage in src. Validation agent should confirm FCM/push scope and whether key grants broader Firebase access."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "/workspace/server/.env:40,46,52,68,69,72 API tokens/credentials",
+      "risk_area": "Hardcoded API/OAuth credentials (CWE-798)",
+      "detail": "verified real secret at /workspace/server/.env:52 — ANTHROPIC_AUTH_TOKEN is a live proxy auth token (sk-style, non-placeholder format, absent from .env.example which only has AI_PROVIDER). Also .env:68 ML_CLIENT_SECRET and .env:69 ML_REFRESH_TOKEN (MercadoLivre OAuth live-looking values), .env:72 FIRECRAWL_API_KEY (fc-… format), .env:46 MP_ACCESS_TOKEN beginning APP_USR- (Mercado Pago PRODUCTION token — gitleaks generic rule missed this one; format is real), .env:40 SMTP_PASS. All absent from .gitignore exclusions. Validation agent to confirm which are active credentials vs dev leftovers."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "POST /api/consulta/exams/:examId (src/routes/consulta.ts:11)",
+      "risk_area": "BOLA/IDOR — object-level authorization on exam data (LGPD sensitive)",
+      "detail": "Static trace: handler does prisma.exam.findUnique({where:{id}}) at src/routes/consulta.ts:11-25 with no userPatientIds/ownerId scoping — every sibling route file in src/routes/ uses pids.includes() but this one does not. Response (consulta.ts:60-108) embeds patient name, age, clinical profile, requesting doctor, lab and all abnormal analyte values. Needs dynamic PoC (create 2 users, user A requests user B's examId) to confirm before filing — I am a triage-only agent."
+    },
+    {
+      "kind": "needs_follow_up",
+      "surface": "GET /api/public/shared/:token (src/app.ts:452-462)",
+      "risk_area": "Stored XSS via unescaped HTML interpolation",
+      "detail": "contentMd is escaped (& < replaced at app.ts:445-446) but patientName (exam.patient.fullName), exam.title, sourceLab and lab are interpolated unescaped into the public HTML at app.ts:452-462 — a patient who sets their own fullName to an XSS payload gets it rendered in the doctor's browser when the shared-report link is opened. fullName is user-controlled at registration (auth.routes.ts:211,273 String(name) with no HTML sanitization). Static trace complete; dynamic PoC (register with payload name, share, fetch public link with PIN) pending — deferred to a validation agent per triage scope."
+    },
+    {
+      "kind": "unrecorded_risk_class",
+      "risk_area": "business logic",
+      "detail": "Agent(s) Webhook Billing Agent were assigned the 'business_logic' skill, but no coverage entry records this class being assessed. Treat it as unexamined, not as clean."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "BOLA Validation Agent",
+      "detail": "BOLA Validation Agent ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "PII Leak Auditor",
+      "detail": "PII Leak Auditor ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "SQL Injection Auditor",
+      "detail": "SQL Injection Auditor ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    },
+    {
+      "kind": "agent_recorded_no_coverage",
+      "agent_name": "XSS Validation Agent",
+      "detail": "XSS Validation Agent ran (status: running) without recording any coverage. Whatever it examined is absent from this record."
+    }
+  ]
+}

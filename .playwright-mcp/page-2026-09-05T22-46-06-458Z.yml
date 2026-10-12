@@ -1,0 +1,8 @@
+- generic [ref=e106]:
+  - generic [ref=e107]:
+    - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+    - generic [ref=e109]: "layout property animation: transition: height"
+    - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+  - generic [ref=e111]:
+    - button "◉" [ref=e437] [cursor=pointer]
+    - button "×" [ref=e438] [cursor=pointer]

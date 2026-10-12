@@ -1,0 +1,46 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e81]:
+      - button "Pular para o conteúdo" [ref=e479] [cursor=pointer]
+      - generic [ref=e83]:
+        - banner [ref=e84]:
+          - generic [ref=e85]:
+            - button "Menu" [ref=e480] [cursor=pointer]:
+              - img [ref=e349]
+            - button "Voltar" [ref=e481] [cursor=pointer]:
+              - img [ref=e413]
+            - button "79" [ref=e482] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e92]: "79"
+            - button "E" [ref=e483] [cursor=pointer]:
+              - generic [ref=e96]: E
+            - button "3" [ref=e484] [cursor=pointer]:
+              - generic [ref=e103]:
+                - img [ref=e104]
+                - generic [ref=e354]: "3"
+            - button "Mais opções" [ref=e485] [cursor=pointer]:
+              - img [ref=e107]
+            - button "Atualizar" [ref=e486] [cursor=pointer]:
+              - img [ref=e111]
+        - main [ref=e113]:
+          - progressbar [ref=e579]:
+            - img [ref=e580]
+    - navigation [ref=e379]:
+      - generic [ref=e380] [cursor=pointer]:
+        - generic [ref=e381]: 🏠
+        - paragraph [ref=e382]: Início
+      - generic [ref=e384] [cursor=pointer]:
+        - generic [ref=e385]: 📋
+        - paragraph [ref=e386]: Exames
+      - generic [ref=e387] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e497]
+        - paragraph [ref=e390]: Dr. Exame
+      - generic [ref=e391] [cursor=pointer]:
+        - generic [ref=e392]: 📈
+        - paragraph [ref=e393]: Evolução
+      - generic [ref=e394] [cursor=pointer]:
+        - generic [ref=e395]: ☰
+        - paragraph [ref=e396]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e498]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e499]

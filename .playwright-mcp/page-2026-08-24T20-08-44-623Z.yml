@@ -1,0 +1,53 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e1008]:
+      - button "Pular para o conteúdo" [ref=e1149] [cursor=pointer]
+      - generic [ref=e1010]:
+        - banner [ref=e1011]:
+          - generic [ref=e1012]:
+            - heading [level=6]
+            - button "Notificações" [ref=e1150] [cursor=pointer]:
+              - generic [ref=e1014]: "0"
+            - button "Selecionar" [ref=e1151] [cursor=pointer]
+            - button "Atualizar" [ref=e1152] [cursor=pointer]
+        - main [ref=e1032]:
+          - navigation [ref=e1036]:
+            - button "Exames" [ref=e1153] [cursor=pointer]
+            - generic [ref=e1046]:
+              - button "Cuidados" [expanded] [active] [ref=e1154] [cursor=pointer]
+              - generic [ref=e1170]:
+                - button "Medições" [ref=e1171] [cursor=pointer]
+                - button "Remédios" [ref=e1178] [cursor=pointer]
+                - button "Vacinas" [ref=e1184] [cursor=pointer]
+                - button "Lembretes" [ref=e1190] [cursor=pointer]
+                - button "Cartão de Emergência" [ref=e1196] [cursor=pointer]
+                - button "Conquistas" [ref=e1202] [cursor=pointer]
+            - button "Pessoas" [ref=e1155] [cursor=pointer]
+            - button "Conta" [ref=e1156] [cursor=pointer]
+            - separator [ref=e1075]
+            - button "Dúvidas frequentes" [ref=e1157] [cursor=pointer]
+            - button "Como validamos" [ref=e1158] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=e1159] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=e1160] [cursor=pointer]
+          - generic [ref=e1101]:
+            - img "Dr. Exame" [ref=e1161]
+            - heading "Página não encontrada" [level=4] [ref=e1162]
+            - paragraph [ref=e1104]: O endereço pode estar incorreto ou a página foi movida. Vamos te colocar de volta nos trilhos.
+            - button "← Voltar ao início" [ref=e1163] [cursor=pointer]
+            - generic [ref=e1106]: Tente por aqui
+            - generic [ref=e1107]:
+              - generic [ref=e1108] [cursor=pointer]:
+                - paragraph [ref=e1109]: Meus exames
+                - generic [ref=e1110]: Histórico e laudos
+              - generic [ref=e1111] [cursor=pointer]:
+                - paragraph [ref=e1112]: Evolução
+                - generic [ref=e1113]: Gráficos ao longo do tempo
+              - generic [ref=e1114] [cursor=pointer]:
+                - paragraph [ref=e1115]: Planos
+                - generic [ref=e1116]: Créditos e assinatura
+              - generic [ref=e1117] [cursor=pointer]:
+                - paragraph [ref=e1118]: Suporte
+                - generic [ref=e1119]: Abra um chamado
+    - button "Pergunte ao Dr. Exame" [ref=e1164] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e1165]
+  - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1166] [cursor=pointer]

@@ -1,0 +1,311 @@
+- generic [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - button [ref=f8e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f8e5]:
+      - banner [ref=f8e6]:
+        - generic [ref=f8e7]:
+          - button [ref=f8e8] [cursor=pointer]:
+            - generic [ref=f8e11]: "19"
+          - button [ref=f8e12] [cursor=pointer]:
+            - generic [ref=f8e13]: "4"
+          - button [ref=f8e18] [cursor=pointer]:
+            - generic [ref=f8e19]: E
+            - generic [ref=f8e21]:
+              - generic [ref=f8e22]: Ed teste 2
+              - generic [ref=f8e23]: Titular
+          - button [ref=f8e28] [cursor=pointer]
+      - main [ref=f8e31]:
+        - navigation [ref=f8e35]:
+          - button [ref=f8e37] [cursor=pointer]:
+            - generic [ref=f8e41]: Exames
+          - generic [ref=f8e45]:
+            - button [expanded] [ref=f8e46] [cursor=pointer]:
+              - generic [ref=f8e51]: Cuidados
+            - generic [ref=f8e58]:
+              - button [ref=f8e59] [cursor=pointer]:
+                - generic [ref=f8e64]: Medições
+              - button [ref=f8e66] [cursor=pointer]:
+                - generic [ref=f8e70]: Remédios
+              - button [ref=f8e72] [cursor=pointer]:
+                - generic [ref=f8e76]: Vacinas
+              - button [ref=f8e78] [cursor=pointer]:
+                - generic [ref=f8e82]: Lembretes
+              - button [ref=f8e84] [cursor=pointer]:
+                - generic [ref=f8e88]: Cartão de Emergência
+              - button [ref=f8e90] [cursor=pointer]:
+                - generic [ref=f8e94]: Conquistas
+          - button [ref=f8e97] [cursor=pointer]:
+            - generic [ref=f8e102]: Pessoas
+          - button [ref=f8e107] [cursor=pointer]:
+            - generic [ref=f8e111]: Conta
+          - separator [ref=f8e115]
+          - button [ref=f8e116] [cursor=pointer]:
+            - generic [ref=f8e120]: Dúvidas frequentes
+          - button [ref=f8e122] [cursor=pointer]:
+            - generic [ref=f8e126]: Como validamos
+          - menuitem [ref=f8e128] [cursor=pointer]:
+            - generic [ref=f8e132]: Sobre o app
+          - menuitem [ref=f8e134] [cursor=pointer]:
+            - generic [ref=f8e138]: Sair da conta
+        - generic [ref=f8e141]:
+          - generic [ref=f8e146]:
+            - heading [level=5] [ref=f8e147]: Remédios
+            - paragraph [ref=f8e148]: Busque, fotografe a receita ou toque nos comuns.
+          - generic [ref=f8e149]:
+            - button [ref=f8e150] [cursor=pointer]: Buscar remédio
+            - button [ref=f8e154] [cursor=pointer]: Ler receita
+          - generic [ref=f8e159]:
+            - generic [ref=f8e161]:
+              - generic [ref=f8e163]:
+                - paragraph [ref=f8e164]: Baristar Sabor Baunilha 30 Cápsulas
+                - generic [ref=f8e165]: 1x ao dia
+                - generic [ref=f8e166] [cursor=pointer]:
+                  - generic [ref=f8e167]:
+                    - generic [ref=f8e168]: R$
+                    - generic [ref=f8e169]: "62"
+                    - generic [ref=f8e170]: ",15"
+                  - generic [ref=f8e171]: Coop Drogaria
+                  - generic [ref=f8e174]: +6 ofertas
+              - generic [ref=f8e175]:
+                - button [ref=f8e176] [cursor=pointer]: Suspender
+                - button [ref=f8e177] [cursor=pointer]
+            - generic [ref=f8e181]:
+              - generic [ref=f8e183]:
+                - paragraph [ref=f8e184]: Cloridrato de Sibutramina Monoidratado 15mg
+                - generic [ref=f8e185]: uso contínuo
+                - generic [ref=f8e186] [cursor=pointer]:
+                  - generic [ref=f8e187]:
+                    - generic [ref=f8e188]: R$
+                    - generic [ref=f8e189]: "28"
+                    - generic [ref=f8e190]: ",59"
+                  - generic [ref=f8e191]: Coop Drogaria
+                  - generic [ref=f8e194]: +11 ofertas
+              - generic [ref=f8e195]:
+                - button [ref=f8e196] [cursor=pointer]: Suspender
+                - button [ref=f8e197] [cursor=pointer]
+            - generic [ref=f8e201]:
+              - generic [ref=f8e203]:
+                - paragraph [ref=f8e204]: Dorflex Analgésico e Relaxante Muscular 10 comprimidos
+                - generic [ref=f8e205]: uso contínuo
+                - generic [ref=f8e206] [cursor=pointer]:
+                  - generic [ref=f8e207]:
+                    - generic [ref=f8e208]: R$
+                    - generic [ref=f8e209]: "6"
+                    - generic [ref=f8e210]: ",45"
+                  - generic [ref=f8e211]: Coop Drogaria
+                  - generic [ref=f8e214]: +14 ofertas
+              - generic [ref=f8e215]:
+                - button [ref=f8e216] [cursor=pointer]: Suspender
+                - button [ref=f8e217] [cursor=pointer]
+            - generic [ref=f8e221]:
+              - generic [ref=f8e223]:
+                - paragraph [ref=f8e224]: Esomeprazol 20mg
+                - generic [ref=f8e225]: uso contínuo
+                - generic [ref=f8e226] [cursor=pointer]:
+                  - generic [ref=f8e227]:
+                    - generic [ref=f8e228]: R$
+                    - generic [ref=f8e229]: "19"
+                    - generic [ref=f8e230]: ",29"
+                  - generic [ref=f8e231]: Pague Menos
+                  - generic [ref=f8e234]: +14 ofertas
+              - generic [ref=f8e235]:
+                - button [ref=f8e236] [cursor=pointer]: Suspender
+                - button [ref=f8e237] [cursor=pointer]
+            - generic [ref=f8e241]:
+              - generic [ref=f8e243]:
+                - paragraph [ref=f8e244]: Levotiroxina 25mcg
+                - generic [ref=f8e245]: 1x ao dia
+                - generic [ref=f8e246] [cursor=pointer]:
+                  - generic [ref=f8e247]:
+                    - generic [ref=f8e248]: R$
+                    - generic [ref=f8e249]: "7"
+                    - generic [ref=f8e250]: ",65"
+                  - generic [ref=f8e251]: Coop Drogaria
+                  - generic [ref=f8e254]: +10 ofertas
+              - generic [ref=f8e255]:
+                - button [ref=f8e256] [cursor=pointer]: Suspender
+                - button [ref=f8e257] [cursor=pointer]
+            - generic [ref=f8e261]:
+              - generic [ref=f8e263]:
+                - paragraph [ref=f8e264]: Mounjaro 5mg
+                - generic [ref=f8e265]: uso contínuo
+                - generic [ref=f8e266] [cursor=pointer]:
+                  - generic [ref=f8e267]:
+                    - generic [ref=f8e268]: R$
+                    - generic [ref=f8e269]: "2.173"
+                    - generic [ref=f8e270]: ",99"
+                  - generic [ref=f8e273]: +2 ofertas
+              - generic [ref=f8e274]:
+                - button [ref=f8e275] [cursor=pointer]: Suspender
+                - button [ref=f8e276] [cursor=pointer]
+            - generic [ref=f8e280]:
+              - generic [ref=f8e282]:
+                - paragraph [ref=f8e283]: Ozempic 0,25 e 0,5mg Semaglutida Injetável com 6 Agulhas
+                - generic [ref=f8e284]: uso contínuo
+                - generic [ref=f8e285] [cursor=pointer]:
+                  - generic [ref=f8e286]:
+                    - generic [ref=f8e287]: R$
+                    - generic [ref=f8e288]: "1.034"
+                    - generic [ref=f8e289]: ",03"
+                  - generic [ref=f8e290]: Santa Lucia
+                  - generic [ref=f8e293]: +3 ofertas
+              - generic [ref=f8e294]:
+                - button [ref=f8e295] [cursor=pointer]: Suspender
+                - button [ref=f8e296] [cursor=pointer]
+          - generic [ref=f8e300]:
+            - paragraph [ref=f8e304]: Seus remédios podem interagir?
+            - paragraph [ref=f8e305]:
+              - text: O Dr. Exame cruza seus
+              - strong [ref=f8e306]: remédios com seus exames
+              - text: "e responde em segundos: \"Posso tomar estes dois juntos?\" · \"Este exame mudou por causa do remédio?\" · \"O que perguntar ao médico?\""
+            - button [ref=f8e307] [cursor=pointer]: Descobrir agora (2 créditos)
+  - dialog [ref=f8e314]:
+    - generic [ref=f8e315]:
+      - button [ref=f8e349] [cursor=pointer]: Pular
+      - generic [ref=f8e317]:
+        - heading [level=4] [ref=f8e351]: Envie seu exame
+        - paragraph [ref=f8e321]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f8e322]:
+        - button [ref=f8e352] [cursor=pointer]: Próximo
+        - paragraph [ref=f8e332]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f8e355]:
+    - generic [ref=f8e357]:
+      - img "Levotiroxina 25mcg" [ref=f8e358]
+      - generic [ref=f8e359]:
+        - paragraph [ref=f8e360]: Levotiroxina 25mcg
+        - generic [ref=f8e361]: 30 un.
+        - generic [ref=f8e362]:
+          - generic [ref=f8e363]: a partir de
+          - generic [ref=f8e364]: R$ 7,65
+        - generic [ref=f8e365]:
+          - img "Coop Drogaria" [ref=f8e366]
+          - generic [ref=f8e367]: Coop Drogaria
+      - generic [ref=f8e368]: 🏆 MELHOR
+    - generic [ref=f8e370]:
+      - generic [ref=f8e371] [cursor=pointer]:
+        - img "Levotiroxina Sódica Merck 25mg Com 30 Comprimidos Levotiroxina Sódica Genérico Merck 25mg | Com 30 Comprimidos" [ref=f8e372]
+        - generic [ref=f8e373]:
+          - paragraph [ref=f8e374]: Levotiroxina Sódica Merck 25mg Com 30 Comprimidos Levotiroxina Sódica Genérico Merck 25mg | Com 30 Comprimidos
+          - generic [ref=f8e375]:
+            - img "Coop Drogaria" [ref=f8e376]
+            - generic [ref=f8e377]: Coop Drogaria
+            - generic [ref=f8e378]: 🏆
+        - generic [ref=f8e380]:
+          - generic [ref=f8e381]:
+            - generic [ref=f8e382]: R$
+            - generic [ref=f8e383]: "7"
+            - generic [ref=f8e384]: ",65"
+          - generic [ref=f8e385]: MELHOR PREÇO
+      - generic [ref=f8e387] [cursor=pointer]:
+        - img "Levotiroxina Sódica 25mcg 30 Comprimidos Genérico Merck" [ref=f8e388]
+        - generic [ref=f8e389]:
+          - paragraph [ref=f8e390]: Levotiroxina Sódica 25mcg 30 Comprimidos Genérico Merck
+          - generic [ref=f8e391]:
+            - img "Pague Menos" [ref=f8e392]
+            - generic [ref=f8e393]: Pague Menos
+        - generic [ref=f8e395]:
+          - generic [ref=f8e396]: R$
+          - generic [ref=f8e397]: "9"
+          - generic [ref=f8e398]: ",49"
+      - generic [ref=f8e399] [cursor=pointer]:
+        - img "Levotiroxina Sódica 25mcg Genérico Merck S/A 30 Comprimidos" [ref=f8e400]
+        - generic [ref=f8e401]:
+          - paragraph [ref=f8e402]: Levotiroxina Sódica 25mcg Genérico Merck S/A 30 Comprimidos
+          - generic [ref=f8e403]:
+            - img "Drogaria Pacheco" [ref=f8e404]
+            - generic [ref=f8e405]: Drogaria Pacheco
+        - generic [ref=f8e407]:
+          - generic [ref=f8e408]: R$
+          - generic [ref=f8e409]: "9"
+          - generic [ref=f8e410]: ",59"
+      - generic [ref=f8e411] [cursor=pointer]:
+        - img "Levotiroxina Sódica 25mcg Genérico Merck S/A 30 Comprimidos" [ref=f8e412]
+        - generic [ref=f8e413]:
+          - paragraph [ref=f8e414]: Levotiroxina Sódica 25mcg Genérico Merck S/A 30 Comprimidos
+          - generic [ref=f8e415]:
+            - img "Drogaria São Paulo" [ref=f8e416]
+            - generic [ref=f8e417]: Drogaria São Paulo
+        - generic [ref=f8e419]:
+          - generic [ref=f8e420]: R$
+          - generic [ref=f8e421]: "9"
+          - generic [ref=f8e422]: ",59"
+      - generic [ref=f8e423] [cursor=pointer]:
+        - img "Levotiroxina Sódica 25mcg Merck Sharp & Dohme com 30 Comprimidos" [ref=f8e424]
+        - generic [ref=f8e425]:
+          - paragraph [ref=f8e426]: Levotiroxina Sódica 25mcg Merck Sharp & Dohme com 30 Comprimidos
+          - generic [ref=f8e427]:
+            - img "Farmais" [ref=f8e428]
+            - generic [ref=f8e429]: Farmais
+        - generic [ref=f8e431]:
+          - generic [ref=f8e432]: R$
+          - generic [ref=f8e433]: "11"
+          - generic [ref=f8e434]: ",13"
+      - generic [ref=f8e435] [cursor=pointer]:
+        - img "Levotiroxina Sod 25Mcg 30 Cprs - Mer (G)" [ref=f8e436]
+        - generic [ref=f8e437]:
+          - paragraph [ref=f8e438]: Levotiroxina Sod 25Mcg 30 Cprs - Mer (G)
+          - generic [ref=f8e439]:
+            - img "Santa Lucia" [ref=f8e440]
+            - generic [ref=f8e441]: Santa Lucia
+        - generic [ref=f8e443]:
+          - generic [ref=f8e444]: R$
+          - generic [ref=f8e445]: "12"
+          - generic [ref=f8e446]: ",11"
+      - generic [ref=f8e447] [cursor=pointer]:
+        - img "Levotiroxina Sódica 25mcg Merck com 30 comprimidos" [ref=f8e448]
+        - generic [ref=f8e449]:
+          - paragraph [ref=f8e450]: Levotiroxina Sódica 25mcg Merck com 30 comprimidos
+          - generic [ref=f8e451]:
+            - img "Farmais" [ref=f8e452]
+            - generic [ref=f8e453]: Farmais
+        - generic [ref=f8e455]:
+          - generic [ref=f8e456]: R$
+          - generic [ref=f8e457]: "12"
+          - generic [ref=f8e458]: ",19"
+      - generic [ref=f8e459] [cursor=pointer]:
+        - img "Puran T4 Levotiroxina Sódica 25mcg 30 Comprimidos" [ref=f8e460]
+        - generic [ref=f8e461]:
+          - paragraph [ref=f8e462]: Puran T4 Levotiroxina Sódica 25mcg 30 Comprimidos
+          - generic [ref=f8e463]:
+            - img "Drogaria Pacheco" [ref=f8e464]
+            - generic [ref=f8e465]: Drogaria Pacheco
+        - generic [ref=f8e467]:
+          - generic [ref=f8e468]: R$
+          - generic [ref=f8e469]: "17"
+          - generic [ref=f8e470]: ",56"
+      - generic [ref=f8e471] [cursor=pointer]:
+        - img "Puran T4 Levotiroxina Sódica 25mcg 30 Comprimidos" [ref=f8e472]
+        - generic [ref=f8e473]:
+          - paragraph [ref=f8e474]: Puran T4 Levotiroxina Sódica 25mcg 30 Comprimidos
+          - generic [ref=f8e475]:
+            - img "Drogaria São Paulo" [ref=f8e476]
+            - generic [ref=f8e477]: Drogaria São Paulo
+        - generic [ref=f8e479]:
+          - generic [ref=f8e480]: R$
+          - generic [ref=f8e481]: "17"
+          - generic [ref=f8e482]: ",56"
+      - generic [ref=f8e483] [cursor=pointer]:
+        - img "Synthroid Levotiroxina Sódica 25mcg 30 Cápsulas" [ref=f8e484]
+        - generic [ref=f8e485]:
+          - paragraph [ref=f8e486]: Synthroid Levotiroxina Sódica 25mcg 30 Cápsulas
+          - generic [ref=f8e487]:
+            - img "Drogaria Pacheco" [ref=f8e488]
+            - generic [ref=f8e489]: Drogaria Pacheco
+        - generic [ref=f8e491]:
+          - generic [ref=f8e492]: R$
+          - generic [ref=f8e493]: "40"
+          - generic [ref=f8e494]: ",59"
+      - generic [ref=f8e495] [cursor=pointer]:
+        - img "Synthroid Levotiroxina Sódica 25mcg 30 Cápsulas" [ref=f8e496]
+        - generic [ref=f8e497]:
+          - paragraph [ref=f8e498]: Synthroid Levotiroxina Sódica 25mcg 30 Cápsulas
+          - generic [ref=f8e499]:
+            - img "Drogaria São Paulo" [ref=f8e500]
+            - generic [ref=f8e501]: Drogaria São Paulo
+        - generic [ref=f8e503]:
+          - generic [ref=f8e504]: R$
+          - generic [ref=f8e505]: "40"
+          - generic [ref=f8e506]: ",59"
+    - generic [ref=f8e507]:
+      - generic [ref=f8e508]: Atualizado 24/08/2026 · Preços podem mudar no site da loja
+      - button "Fechar" [ref=f8e509] [cursor=pointer]

@@ -1,0 +1,12 @@
+data;nome;email;prioridade;status;obs
+2026-10-07;Rafael Pascucci;pascucci@camarasjc.sp.gov.br;l1;enviado;retry ECONNRESET ok na 2a tentativa
+2026-10-07;Rogério da Acasem;rogeriodaacasem@camarasjc.sp.gov.br;l1;enviado;
+2026-10-07;Sidney Campos;sidneycampos@camarasjc.sp.gov.br;l1;enviado;
+2026-10-07;Senna;sennavereador@camarasjc.sp.gov.br;l1;enviado;
+2026-10-07;Milton Vieira Filho;mvfilho@camarasjc.sp.gov.br;l1;enviado;
+2026-10-07;Sérgio Camargo;sergiocamargo@camarasjc.sp.gov.br;l1;enviado;
+2026-10-07;Claudio Apolinário;claudioapolinario@camarasjc.sp.gov.br;l2;enviado;estratégico;retry ECONNRESET ok
+2026-10-07;Juliana Fraga;julianafraga@camarasjc.sp.gov.br;l2;enviado;estratégico, 2ª VP da Mesa
+2026-10-07;Fernando Petiti;fernandopetiti@camarasjc.sp.gov.br;l2;enviado;estratégico, 1º VP da Mesa
+2026-10-07;Roberto do Eleven;robertodoeleven@camarasjc.sp.gov.br;l3;enviado;estratégico, PRESIDENTE da Câmara
+2026-10-07;Amélia Naomi;amelia@camarasjc.sp.gov.br;l3;enviado;estratégica, mais votada (8.679)

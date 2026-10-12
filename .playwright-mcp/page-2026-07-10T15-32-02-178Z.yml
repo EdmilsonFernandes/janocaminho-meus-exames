@@ -1,0 +1,57 @@
+- generic [ref=f3e18]:
+  - generic [ref=f3e594]:
+    - button [ref=f3e595] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f3e596]:
+      - banner [ref=f3e597]:
+        - generic [ref=f3e598]:
+          - button [ref=f3e599] [cursor=pointer]
+          - button [ref=f3e603] [cursor=pointer]:
+            - generic [ref=f3e608]: Selecionar
+          - button [ref=f3e613] [cursor=pointer]
+          - button [ref=f3e617] [cursor=pointer]
+          - button [ref=f3e621] [cursor=pointer]
+      - main [ref=f3e624]:
+        - navigation [ref=f3e628]:
+          - button [ref=f3e629] [cursor=pointer]:
+            - generic [ref=f3e633]: Início
+          - button [ref=f3e635] [cursor=pointer]:
+            - generic [ref=f3e639]: Exames
+          - button [ref=f3e641] [cursor=pointer]:
+            - generic [ref=f3e646]: Evolução
+          - button [ref=f3e648] [cursor=pointer]:
+            - generic [ref=f3e653]: Família
+          - button [ref=f3e655] [cursor=pointer]:
+            - generic [ref=f3e659]: Meu perfil
+          - button [ref=f3e661] [cursor=pointer]:
+            - generic [ref=f3e665]: Relatório completo
+          - button [ref=f3e668] [cursor=pointer]:
+            - generic [ref=f3e672]: Evolução & Conquistas
+          - button [ref=f3e677] [cursor=pointer]:
+            - generic [ref=f3e682]: Minha Saúde
+          - button [ref=f3e687] [cursor=pointer]:
+            - generic [ref=f3e692]: Família & Médicos
+          - button [ref=f3e697] [cursor=pointer]:
+            - generic [ref=f3e701]: Conta
+          - separator [ref=f3e705]
+          - button [ref=f3e706] [cursor=pointer]:
+            - generic [ref=f3e707]: ❓
+            - generic [ref=f3e709]: Ajuda & Suporte
+          - menuitem [ref=f3e711] [cursor=pointer]:
+            - generic [ref=f3e712]: ℹ️
+            - generic [ref=f3e713]: Sobre o app
+          - menuitem [ref=f3e715] [cursor=pointer]:
+            - generic [ref=f3e719]: Sair da conta
+          - generic [ref=f3e721]: Meus Exames · v2.4.0.198 (3ebbe86)
+        - generic [ref=f3e723]:
+          - heading [level=4] [ref=f3e727]: Meus Exames
+          - paragraph [ref=f3e728]: Seu assistente de saúde com IA
+  - dialog [active] [ref=f3e740]:
+    - generic [ref=f3e741]:
+      - button "Pular" [ref=f3e742] [cursor=pointer]
+      - generic [ref=f3e743]:
+        - generic [ref=f3e744]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=f3e745]
+        - paragraph [ref=f3e746]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f3e747]:
+        - button [ref=f3e753] [cursor=pointer]
+        - paragraph [ref=f3e757]: Toque em Próximo para continuar →

@@ -1,0 +1,47 @@
+- generic [ref=e20]:
+  - generic [ref=e23]:
+    - generic [ref=e24]:
+      - img "Dr. Exame" [ref=e26]
+      - generic [ref=e27]:
+        - paragraph [ref=e28]: Meus Exames
+        - paragraph [ref=e29]: Seu assistente de saúde com IA
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]:
+          - text: E-mail
+          - generic [ref=e33]: "*"
+        - generic [ref=e34]:
+          - textbox "E-mail" [ref=e39]: teste@exemplo.com
+          - group:
+            - generic: E-mail *
+      - generic [ref=e40]:
+        - generic [ref=e41]:
+          - text: Senha
+          - generic [ref=e42]: "*"
+        - generic [ref=e43]:
+          - textbox "Senha" [invalid] [ref=e48]
+          - button "Mostrar senha" [ref=e50] [cursor=pointer]
+          - group:
+            - generic: Senha *
+        - paragraph [ref=e105]:
+          - generic [ref=e116]: Digite sua senha.
+      - button "Esqueci minha senha" [ref=e55] [cursor=pointer]
+      - button [active] [ref=e56] [cursor=pointer]
+      - generic [ref=e60]: ou
+      - generic [ref=e64]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=e66] [cursor=pointer]:
+          - generic [ref=e68]: Continuar com o Google
+        - iframe
+      - paragraph [ref=e78]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=e79] [cursor=pointer]
+        - text: ·
+        - button "É médico? Acesse o portal" [ref=e80] [cursor=pointer]
+    - generic [ref=e81]:
+      - paragraph [ref=e87]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=e88]:
+        - strong [ref=e89]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

@@ -1,0 +1,293 @@
+- generic [ref=e55]:
+  - navigation [ref=e56]:
+    - generic [ref=e58]:
+      - button "Menu do médico" [ref=e59] [cursor=pointer]
+      - generic [ref=e62]:
+        - paragraph [ref=e63]: 🩺 Doutor Exame
+        - generic [ref=e64]: Otorrinolaringologista • CRM 12345-SP
+    - separator [ref=e65]
+    - generic [ref=e66]:
+      - generic [ref=e67]: PLANO
+      - paragraph [ref=e68]: Grátis (0/5 usados)
+      - text: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=e69]:
+      - button "Painel" [ref=e70] [cursor=pointer]
+      - button "Pacientes" [ref=e76] [cursor=pointer]
+      - button "Convites" [ref=e82] [cursor=pointer]
+      - button "Perguntas" [ref=e89] [cursor=pointer]
+      - button "Meu perfil" [ref=e96] [cursor=pointer]
+      - button "Trocar senha" [ref=e102] [cursor=pointer]
+      - separator [ref=e108]
+      - button "Sair" [ref=e109] [cursor=pointer]
+    - generic [ref=e115]: Portal do Médico
+  - generic [ref=e116]:
+    - generic [ref=e117]:
+      - button "Voltar" [ref=e222] [cursor=pointer]
+      - generic [ref=e118]:
+        - paragraph [ref=e120]: Edmilson Lopes
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=e121]: 🩺 Acesso médico · leitura
+    - generic [ref=e225]:
+      - button [ref=e226] [cursor=pointer]
+      - generic [ref=e230]:
+        - generic [ref=e236]:
+          - generic [ref=e237]: PACIENTE · PRONTUÁRIO COMPARTILHADO
+          - generic [ref=e238]:
+            - paragraph [ref=e239]: Edmilson Lopes
+            - button "Trocar paciente" [ref=e240] [cursor=pointer]: Trocar
+          - paragraph [ref=e244]: 47 anos • Masculino • Titular • Particular • 91 kg
+        - generic [ref=e245]:
+          - button "Abrir Último exame" [ref=e246] [cursor=pointer]:
+            - generic [ref=e247]: Último exame
+            - paragraph [ref=e253]: 04/08
+            - text: há 21 dias
+          - button "Abrir Alterações" [ref=e254] [cursor=pointer]:
+            - generic [ref=e255]: Alterações
+            - paragraph [ref=e262]: "72"
+            - text: 12 importantes
+          - button "Abrir Perguntas" [ref=e263] [cursor=pointer]:
+            - generic [ref=e264]: Perguntas
+            - paragraph [ref=e270]: "2"
+            - text: aguardando
+          - button "Abrir Anotações" [ref=e271] [cursor=pointer]:
+            - generic [ref=e272]: Anotações
+            - paragraph [ref=e278]: "0"
+          - button "Abrir Remédios" [ref=e279] [cursor=pointer]:
+            - generic [ref=e280]: Remédios
+            - paragraph [ref=e286]: "5"
+            - text: ativos
+      - tablist "Abas do paciente" [ref=e290]:
+        - tab "Exames" [selected] [ref=e291] [cursor=pointer]:
+          - generic [ref=e295]:
+            - generic [ref=e296]: Exames
+            - superscript [ref=e297]: "20"
+        - tab "Alterados" [ref=e298] [cursor=pointer]:
+          - generic [ref=e302]:
+            - generic [ref=e303]: Alterados
+            - superscript [ref=e304]: "72"
+        - tab "Tendências" [ref=e305] [cursor=pointer]
+        - tab "Relatório" [ref=e311] [cursor=pointer]
+      - generic [ref=e318]:
+        - heading "Exames do seu paciente" [level=6] [ref=e319]
+        - generic [ref=e320]:
+          - generic [ref=e322]:
+            - textbox "Buscar por título ou laboratório…" [ref=e325]
+            - group
+          - group [ref=e326]:
+            - button "Por data" [pressed] [ref=e327] [cursor=pointer]
+            - button "Por categoria" [ref=e328] [cursor=pointer]
+          - generic [ref=e329]:
+            - button "Todos (20)" [ref=e330] [cursor=pointer]
+            - button "Hormônios (9)" [ref=e332] [cursor=pointer]
+            - button "Imagem (6)" [ref=e336] [cursor=pointer]
+            - button "Outros exames (3)" [ref=e340] [cursor=pointer]
+            - button "Glicemia e Diabetes (1)" [ref=e344] [cursor=pointer]
+            - button "Vitaminas e Ácido Fólico (1)" [ref=e348] [cursor=pointer]
+        - generic [ref=e352]:
+          - heading [level=3] [ref=e353]:
+            - button "2026 10" [expanded] [ref=e354] [cursor=pointer]:
+              - generic [ref=e355]:
+                - heading "2026" [level=6] [ref=e356]
+                - generic [ref=e357]: "10"
+          - region [ref=e365]:
+            - generic [ref=e367]:
+              - generic [ref=e372] [cursor=pointer]:
+                - generic [ref=e373]:
+                  - heading "TIREOIDEANA (TSH, T4 LIVRE, ANTICORPOS, TIREOGLOBULINA)" [level=6] [ref=e374]
+                  - button "O que é este exame?" [ref=e376]
+                - generic [ref=e379]: 04 ago 2026 • há 21 dias
+                - 'generic "Laboratório: Sabin" [ref=e384]':
+                  - img "Sabin" [ref=e385]
+                  - generic [ref=e386]: Sabin
+                - generic [ref=e387]: Hormônios • 2 alterado(s)
+              - generic [ref=e392] [cursor=pointer]:
+                - generic [ref=e393]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e394]
+                  - button "O que é este exame?" [ref=e396]
+                - generic [ref=e399]: 04 ago 2026 • há 21 dias
+                - 'generic "Laboratório: Sabin" [ref=e404]':
+                  - img "Sabin" [ref=e405]
+                  - generic [ref=e406]: Sabin
+                - generic [ref=e407]: Hormônios • 9 alterado(s)
+              - generic [ref=e412] [cursor=pointer]:
+                - generic [ref=e413]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e414]
+                  - button "O que é este exame?" [ref=e416]
+                - generic [ref=e419]: 11 jun 2026 • há 2 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e424]':
+                  - img "Sabin" [ref=e425]
+                  - generic [ref=e426]: Sabin
+                - generic [ref=e427]: Hormônios • 8 alterado(s)
+              - generic [ref=e432] [cursor=pointer]:
+                - generic [ref=e433]:
+                  - heading "FUNÇÃO TIREOIDIANA" [level=6] [ref=e434]
+                  - button "O que é este exame?" [ref=e436]
+                - generic [ref=e439]: 12 mai 2026 • há 3 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e444]':
+                  - img "Sabin" [ref=e445]
+                  - generic [ref=e446]: Sabin
+                - generic [ref=e447]: Hormônios • 2 alterado(s)
+              - generic [ref=e452] [cursor=pointer]:
+                - generic [ref=e453]:
+                  - heading "Laudo de videocolonoscopia" [level=6] [ref=e454]
+                  - button "O que é este exame?" [ref=e456]
+                - generic [ref=e459]: 17 mar 2026 • há 5 meses
+                - text: Outros exames
+              - generic [ref=e467] [cursor=pointer]:
+                - generic [ref=e468]:
+                  - heading "Videoendoscopia" [level=6] [ref=e469]
+                  - button "O que é este exame?" [ref=e471]
+                - generic [ref=e474]: 17 mar 2026 • há 5 meses
+                - 'generic "Laboratório: Laudo Nº: 62298" [ref=e479]':
+                  - generic [ref=e480]: L
+                  - generic [ref=e481]: "Laudo Nº: 62298"
+                - text: Imagem
+              - generic [ref=e486] [cursor=pointer]:
+                - generic [ref=e487]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e488]
+                  - button "O que é este exame?" [ref=e490]
+                - generic [ref=e493]: 06 mar 2026 • há 5 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e498]':
+                  - img "Sabin" [ref=e499]
+                  - generic [ref=e500]: Sabin
+                - generic [ref=e501]: Hormônios • 13 alterado(s)
+              - generic [ref=e506] [cursor=pointer]:
+                - generic [ref=e507]:
+                  - heading "FUNÇÃO TIREOIDIANA" [level=6] [ref=e508]
+                  - button "O que é este exame?" [ref=e510]
+                - generic [ref=e513]: 05 mar 2026 • há 5 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e518]':
+                  - img "Sabin" [ref=e519]
+                  - generic [ref=e520]: Sabin
+                - generic [ref=e521]: Hormônios • 2 alterado(s)
+              - generic [ref=e526] [cursor=pointer]:
+                - generic [ref=e527]:
+                  - heading "TSH - TIREOESTIMULANTE / T4 LIVRE / ANTICORPOS ANTITIREOG…" [level=6] [ref=e528]
+                  - button "O que é este exame?" [ref=e530]
+                - generic [ref=e533]: 05 mar 2026 • há 5 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e538]':
+                  - img "Sabin" [ref=e539]
+                  - generic [ref=e540]: Sabin
+                - generic [ref=e541]: Hormônios • 2 alterado(s)
+              - generic [ref=e546] [cursor=pointer]:
+                - generic [ref=e547]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e548]
+                  - button "O que é este exame?" [ref=e550]
+                - generic [ref=e553]: 13 jan 2026 • há 7 meses
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e558]':
+                  - img "Sabin" [ref=e559]
+                  - generic [ref=e560]: Sabin
+                - generic [ref=e561]: Hormônios • 7 alterado(s)
+        - generic [ref=e562]:
+          - heading [level=3] [ref=e563]:
+            - button "2025 6" [expanded] [ref=e564] [cursor=pointer]:
+              - generic [ref=e565]:
+                - heading "2025" [level=6] [ref=e566]
+                - generic [ref=e567]: "6"
+          - region [ref=e575]:
+            - generic [ref=e577]:
+              - generic [ref=e582] [cursor=pointer]:
+                - generic [ref=e583]:
+                  - heading "TOMOGRAFIA COMPUTADORIZADA DO ABDOME SUPERIOR E PELVE" [level=6] [ref=e584]
+                  - button "O que é este exame?" [ref=e586]
+                - generic [ref=e589]: 23 out 2025 • há 10 meses
+                - 'generic "Laboratório: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP" [ref=e594]':
+                  - generic [ref=e595]: A
+                  - generic [ref=e596]: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP
+                - text: Imagem
+              - generic [ref=e601] [cursor=pointer]:
+                - generic [ref=e602]:
+                  - heading "TC ABDOME SUPERIOR E PELVE" [level=6] [ref=e603]
+                  - button "O que é este exame?" [ref=e605]
+                - generic [ref=e608]: 23 out 2025 • há 10 meses
+                - 'generic "Laboratório: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP" [ref=e613]':
+                  - generic [ref=e614]: A
+                  - generic [ref=e615]: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP
+                - text: Imagem
+              - generic [ref=e620] [cursor=pointer]:
+                - generic [ref=e621]:
+                  - heading "TC TORAX" [level=6] [ref=e622]
+                  - button "O que é este exame?" [ref=e624]
+                - generic [ref=e627]: 23 out 2025 • há 10 meses
+                - 'generic "Laboratório: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP, 12244-380" [ref=e632]':
+                  - generic [ref=e633]: A
+                  - generic [ref=e634]: Av. Linneu de Moura, 995 - Urbanova, São José dos Campos - SP, 12244-380
+                - text: Imagem
+              - generic [ref=e639] [cursor=pointer]:
+                - generic [ref=e640]:
+                  - heading "TC PESCOCO" [level=6] [ref=e641]
+                  - button "O que é este exame?" [ref=e643]
+                - generic [ref=e646]: 23 out 2025 • há 10 meses
+                - 'generic "Laboratório: Não informado" [ref=e651]':
+                  - generic [ref=e652]: "N"
+                  - generic [ref=e653]: Não informado
+                - text: Imagem
+              - generic [ref=e658] [cursor=pointer]:
+                - generic [ref=e659]:
+                  - heading "LAUDO DE PUNÇÃO TIREOIDIANA ORIENTADA POR ULTRASSONOGRAFIA" [level=6] [ref=e660]
+                  - button "O que é este exame?" [ref=e662]
+                - generic [ref=e665]: 29 mai 2025 • há 1 ano
+                - text: Imagem
+              - generic [ref=e673] [cursor=pointer]:
+                - generic [ref=e674]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e675]
+                  - button "O que é este exame?" [ref=e677]
+                - generic [ref=e680]: 05 mai 2025 • há 1 ano
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e685]':
+                  - img "Sabin" [ref=e686]
+                  - generic [ref=e687]: Sabin
+                - generic [ref=e688]: Hormônios • 3 alterado(s)
+        - generic [ref=e689]:
+          - heading [level=3] [ref=e690]:
+            - button "2024 1" [expanded] [ref=e691] [cursor=pointer]:
+              - generic [ref=e692]:
+                - heading "2024" [level=6] [ref=e693]
+                - generic [ref=e694]: "1"
+          - region [ref=e702]:
+            - generic [ref=e709] [cursor=pointer]:
+              - generic [ref=e710]:
+                - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e711]
+                - button "O que é este exame?" [ref=e713]
+              - generic [ref=e716]: 12 mar 2024 • há 2 anos
+              - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e721]':
+                - img "Sabin" [ref=e722]
+                - generic [ref=e723]: Sabin
+              - generic [ref=e724]: Glicemia e Diabetes • 6 alterado(s)
+        - generic [ref=e725]:
+          - heading [level=3] [ref=e726]:
+            - button "2023 2" [expanded] [ref=e727] [cursor=pointer]:
+              - generic [ref=e728]:
+                - heading "2023" [level=6] [ref=e729]
+                - generic [ref=e730]: "2"
+          - region [ref=e738]:
+            - generic [ref=e740]:
+              - generic [ref=e745] [cursor=pointer]:
+                - generic [ref=e746]:
+                  - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e747]
+                  - button "O que é este exame?" [ref=e749]
+                - generic [ref=e752]: 22 mai 2023 • há 3 anos
+                - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e757]':
+                  - img "Sabin" [ref=e758]
+                  - generic [ref=e759]: Sabin
+                - generic [ref=e760]: Outros exames • 5 alterado(s)
+              - generic [ref=e765] [cursor=pointer]:
+                - generic [ref=e766]:
+                  - heading "ULTRASSONOGRAFIA DE MAMAS E AXILAS" [level=6] [ref=e767]
+                  - button "O que é este exame?" [ref=e769]
+                - generic [ref=e772]: 09 mar 2023 • há 3 anos
+                - text: Outros exames
+        - generic [ref=e776]:
+          - heading [level=3] [ref=e777]:
+            - button "2021 1" [expanded] [ref=e778] [cursor=pointer]:
+              - generic [ref=e779]:
+                - heading "2021" [level=6] [ref=e780]
+                - generic [ref=e781]: "1"
+          - region [ref=e789]:
+            - generic [ref=e796] [cursor=pointer]:
+              - generic [ref=e797]:
+                - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e798]
+                - button "O que é este exame?" [ref=e800]
+              - generic [ref=e803]: 19 mai 2021 • há 5 anos
+              - 'generic "Laboratório: Sabin · unidade BACABAL" [ref=e808]':
+                - img "Sabin" [ref=e809]
+                - generic [ref=e810]: Sabin
+              - generic [ref=e811]: Vitaminas e Ácido Fólico • 5 alterado(s)

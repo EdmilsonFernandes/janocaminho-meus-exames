@@ -1,0 +1,77 @@
+- generic [active] [ref=f3e20]:
+  - generic [ref=f3e21]:
+    - generic [ref=f3e22]:
+      - button "Pular para o conteúdo" [ref=f3e23] [cursor=pointer]
+      - generic [ref=f3e24]:
+        - banner [ref=f3e25]:
+          - generic [ref=f3e26]:
+            - button "Menu" [ref=f3e27] [cursor=pointer]
+            - generic [ref=f3e30]:
+              - img "Dr. Exame" [ref=f3e32]
+              - paragraph [ref=f3e33]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=f3e34] [cursor=pointer]:
+              - generic [ref=f3e37]: "19"
+              - button "Ocultar créditos" [ref=f3e38]
+            - button "Notificações" [ref=f3e41] [cursor=pointer]:
+              - generic [ref=f3e42]: "1"
+            - button "E" [ref=f3e47] [cursor=pointer]
+            - button "Atualizar" [ref=f3e54] [cursor=pointer]
+        - main [ref=f3e57]:
+          - generic [ref=f3e59]:
+            - generic [ref=f3e60]:
+              - paragraph [ref=f3e61]: Bom dia, Ed 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f3e64]:
+              - generic [ref=f3e65]:
+                - generic [ref=f3e70]:
+                  - paragraph [ref=f3e71]: —
+                  - paragraph [ref=f3e72]: de 100
+                - generic [ref=f3e73]:
+                  - paragraph [ref=f3e74]: Sua saúde hoje
+                  - paragraph [ref=f3e75]: Calculando…
+                  - generic [ref=f3e76]:
+                    - paragraph [ref=f3e77]: ● Nada crítico no momento
+                    - paragraph [ref=f3e78]: · atualizado 11/11/2025
+              - button [ref=f3e79] [cursor=pointer]
+            - button [ref=f3e88] [cursor=pointer]
+            - generic [ref=f3e92]:
+              - generic [ref=f3e99] [cursor=pointer]:
+                - paragraph [ref=f3e100]: Cardiometabólico
+                - paragraph [ref=f3e101]: baixo
+                - paragraph [ref=f3e102]: 1 fator de risco
+              - generic [ref=f3e105] [cursor=pointer]:
+                - generic [ref=f3e106]: 🧬
+                - generic [ref=f3e107]:
+                  - paragraph [ref=f3e108]: Idade biológica
+                  - paragraph [ref=f3e109]: Em breve
+                  - paragraph [ref=f3e110]: estimativa c/ +exames
+              - generic [ref=f3e117] [cursor=pointer]:
+                - paragraph [ref=f3e118]: Seus exames
+                - paragraph [ref=f3e119]: "3"
+                - paragraph [ref=f3e120]: 0 alterados
+              - generic [ref=f3e127] [cursor=pointer]:
+                - paragraph [ref=f3e128]: Evolução
+                - paragraph [ref=f3e129]: Tendências
+                - paragraph [ref=f3e130]: 0 resultados
+            - generic [ref=f3e132]:
+              - generic [ref=f3e133]: Enviar exame
+              - generic [ref=f3e140]: Evolução
+              - generic [ref=f3e147]: Família
+              - generic [ref=f3e155]: Relatório
+            - generic [ref=f3e164]:
+              - generic [ref=f3e168]:
+                - paragraph [ref=f3e169]: "19"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=f3e170] [cursor=pointer]
+            - button [ref=f3e172] [cursor=pointer]
+    - navigation [ref=f3e176]:
+      - paragraph [ref=f3e181] [cursor=pointer]: Início
+      - paragraph [ref=f3e187] [cursor=pointer]: Exames
+      - generic [ref=f3e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f3e190]
+        - paragraph [ref=f3e191]: Dr. Exame
+      - paragraph [ref=f3e196] [cursor=pointer]: Evolução
+      - paragraph [ref=f3e201] [cursor=pointer]: Mais
+  - generic [ref=f3e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e19]

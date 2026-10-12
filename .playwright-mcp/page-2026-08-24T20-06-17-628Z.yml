@@ -1,0 +1,60 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e1008]:
+      - button [ref=e1009] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=e1010]:
+        - banner [ref=e1011]:
+          - generic [ref=e1012]:
+            - button [ref=e1013] [cursor=pointer]
+            - button [ref=e1018] [cursor=pointer]:
+              - generic [ref=e1023]: Selecionar
+            - button [ref=e1029] [cursor=pointer]
+        - main [ref=e1032]:
+          - navigation [ref=e1036]:
+            - button [ref=e1038] [cursor=pointer]:
+              - generic [ref=e1042]: Exames
+            - button [ref=e1047] [cursor=pointer]:
+              - generic [ref=e1052]: Cuidados
+            - button [ref=e1057] [cursor=pointer]:
+              - generic [ref=e1062]: Pessoas
+            - button [ref=e1067] [cursor=pointer]:
+              - generic [ref=e1071]: Conta
+            - separator [ref=e1075]
+            - button [ref=e1076] [cursor=pointer]:
+              - generic [ref=e1080]: Dúvidas frequentes
+            - button [ref=e1082] [cursor=pointer]:
+              - generic [ref=e1086]: Como validamos
+            - menuitem [ref=e1088] [cursor=pointer]:
+              - generic [ref=e1092]: Sobre o app
+            - menuitem [ref=e1094] [cursor=pointer]:
+              - generic [ref=e1098]: Sair da conta
+          - generic [ref=e1101]:
+            - heading [level=4] [ref=e1103]: Página não encontrada
+            - paragraph [ref=e1104]: O endereço pode estar incorreto ou a página foi movida. Vamos te colocar de volta nos trilhos.
+            - button [ref=e1105] [cursor=pointer]: ← Voltar ao início
+            - generic [ref=e1106]: Tente por aqui
+            - generic [ref=e1107]:
+              - generic [ref=e1108] [cursor=pointer]:
+                - paragraph [ref=e1109]: Meus exames
+                - generic [ref=e1110]: Histórico e laudos
+              - generic [ref=e1111] [cursor=pointer]:
+                - paragraph [ref=e1112]: Evolução
+                - generic [ref=e1113]: Gráficos ao longo do tempo
+              - generic [ref=e1114] [cursor=pointer]:
+                - paragraph [ref=e1115]: Planos
+                - generic [ref=e1116]: Créditos e assinatura
+              - generic [ref=e1117] [cursor=pointer]:
+                - paragraph [ref=e1118]: Suporte
+                - generic [ref=e1119]: Abra um chamado
+    - button [ref=e1120] [cursor=pointer]
+  - button [ref=e1127] [cursor=pointer]
+  - dialog [active] [ref=e1130]:
+    - generic [ref=e1131]:
+      - button "Pular" [ref=e1132] [cursor=pointer]
+      - generic [ref=e1133]:
+        - img "Dr. Exame" [ref=e1135]
+        - heading "Envie seu exame" [level=4] [ref=e1136]
+        - paragraph [ref=e1137]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e1138]:
+        - button [ref=e1144] [cursor=pointer]
+        - paragraph [ref=e1148]: Toque em Próximo para continuar →

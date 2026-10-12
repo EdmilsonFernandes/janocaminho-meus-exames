@@ -1,0 +1,125 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e110]:
+      - button [ref=e111] [cursor=pointer]
+      - generic [ref=e112]:
+        - banner [ref=e113]:
+          - generic [ref=e114]:
+            - button [ref=e115] [cursor=pointer]
+            - paragraph [ref=e121]: Dr. Exame
+            - generic [ref=e122]:
+              - button [ref=e123] [cursor=pointer]
+              - button [ref=e128] [cursor=pointer]:
+                - generic [ref=e129]: 👤
+        - main [ref=e134]:
+          - generic [ref=e136]:
+            - generic [ref=e139]:
+              - paragraph [ref=e140]: Boa tarde, tudo bem? 👋
+              - generic [ref=e141]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e143]:
+              - generic [ref=e144]:
+                - generic [ref=e145]:
+                  - generic:
+                    - paragraph: de 100
+                - generic [ref=e149]:
+                  - paragraph [ref=e150]: Sua saúde hoje
+                  - paragraph [ref=e151]: Começa com seu primeiro exame
+                  - paragraph [ref=e153]: Envie um exame pra começarmos a construir sua visão de saúde.
+              - generic [ref=e154]:
+                - button [ref=e155] [cursor=pointer]: Enviar primeiro exame
+                - button [ref=e159] [cursor=pointer]: 👀 Ver com dados de exemplo
+            - generic [ref=e161]:
+              - button [ref=e162] [cursor=pointer]:
+                - generic [ref=e163]:
+                  - paragraph [ref=e164]: Alterados
+                  - paragraph [ref=e165]: —
+              - button [ref=e169] [cursor=pointer]:
+                - generic [ref=e170]:
+                  - paragraph [ref=e171]: Exames
+                  - paragraph [ref=e172]: —
+                  - paragraph [ref=e173]: 0 alterados
+              - button [ref=e178] [cursor=pointer]:
+                - generic [ref=e179]:
+                  - paragraph [ref=e180]: Idade Bio
+                  - paragraph [ref=e181]: …
+              - button [ref=e186] [cursor=pointer]:
+                - generic [ref=e187]:
+                  - paragraph [ref=e188]: Cardiorrisco
+                  - paragraph [ref=e189]: —
+            - generic [ref=e198]:
+              - generic [ref=e200]:
+                - generic [ref=e201]:
+                  - paragraph [ref=e202]: O que mudou nos seus exames
+                  - paragraph [ref=e204]: Carregando…
+                  - button [ref=e206] [cursor=pointer]: Ver evolução completa
+                - paragraph [ref=e217]: Atividade física • Health Connect
+                - generic [ref=e234]:
+                  - generic [ref=e238]:
+                    - paragraph [ref=e239]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e240]: Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder.
+                  - button [ref=e242] [cursor=pointer]: Conversar com a IA
+              - generic [ref=e247]:
+                - generic [ref=e248]:
+                  - generic [ref=e253]:
+                    - paragraph [ref=e254]: Seus Marcadores
+                    - paragraph [ref=e255]: Nenhum exame analisado ainda
+                  - generic [ref=e256]:
+                    - generic [ref=e257]:
+                      - generic [ref=e258]:
+                        - paragraph [ref=e259]: Normais & Saudáveis
+                        - paragraph [ref=e260]: 0/0 (0%)
+                      - progressbar [ref=e261]
+                    - generic [ref=e263]:
+                      - generic [ref=e264]:
+                        - paragraph [ref=e265]: Alteração Leve
+                        - paragraph [ref=e266]: 0/0 (0%)
+                      - progressbar [ref=e267]
+                    - generic [ref=e269]:
+                      - generic [ref=e270]:
+                        - paragraph [ref=e271]: Requerem Atenção
+                        - paragraph [ref=e272]: 0/0 (0%)
+                      - progressbar [ref=e273]
+                  - paragraph [ref=e275]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+                - generic [ref=e276]:
+                  - paragraph [ref=e282]: Ações rápidas
+                  - generic [ref=e284]:
+                    - generic [ref=e286] [cursor=pointer]:
+                      - generic [ref=e287]: +
+                      - generic [ref=e288]: Enviar exame
+                    - generic [ref=e294]: Evolução
+                    - generic [ref=e302]: Família
+                    - generic [ref=e310]: Relatório
+                - generic [ref=e319] [cursor=pointer]:
+                  - generic [ref=e321]:
+                    - paragraph [ref=e322]: 🏆 Suas conquistas
+                    - text: Resgate 1 crédito a cada meta atingida
+                  - generic [ref=e325]:
+                    - generic [ref=e326]: 🎉
+                    - generic [ref=e328]: 📚
+                    - generic [ref=e330]: 🎓
+                    - generic [ref=e332]: 💚
+                    - generic [ref=e334]: 🔥
+                  - generic [ref=e338]: 0 de 5 desbloqueada(s) · toque para ver e resgatar →
+                - button [ref=e340] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e344]:
+      - button [ref=e345] [cursor=pointer]:
+        - paragraph [ref=e349]: Início
+      - button [ref=e351] [cursor=pointer]:
+        - paragraph [ref=e355]: Exames
+      - button [ref=e356] [cursor=pointer]:
+        - paragraph [ref=e359]: Dr. Exame
+      - button [ref=e360] [cursor=pointer]:
+        - paragraph [ref=e364]: Evolução
+      - button [ref=e365] [cursor=pointer]:
+        - paragraph [ref=e369]: Mais
+  - button [ref=e371] [cursor=pointer]
+  - dialog [active] [ref=e373]:
+    - navigation [ref=e374]:
+      - button "Exames" [ref=e376] [cursor=pointer]
+      - button "Cuidados" [ref=e385] [cursor=pointer]
+      - button "Pessoas" [ref=e395] [cursor=pointer]
+      - button "Conta" [ref=e405] [cursor=pointer]
+      - button "Dúvidas frequentes" [ref=e414] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e420] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e426] [cursor=pointer]
+      - generic [ref=e432]: Dr. Exame • Saúde Inteligente 🩺

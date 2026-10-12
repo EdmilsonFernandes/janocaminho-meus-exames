@@ -1,0 +1,71 @@
+- generic [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e81]:
+      - button [ref=e347] [cursor=pointer]
+      - generic [ref=e83]:
+        - banner [ref=e84]:
+          - generic [ref=e85]:
+            - button [ref=e348] [cursor=pointer]:
+              - img [ref=e349]
+            - button [ref=e410] [cursor=pointer]:
+              - img [ref=e411]
+            - button [ref=e351] [cursor=pointer]:
+              - img [ref=e90]
+              - generic [ref=e92]: "79"
+            - button [ref=e352] [cursor=pointer]:
+              - generic [ref=e96]: E
+            - button [ref=e353] [cursor=pointer]:
+              - generic [ref=e103]:
+                - img [ref=e104]
+                - generic [ref=e354]: "3"
+            - button [ref=e355] [cursor=pointer]:
+              - img [ref=e107]
+            - button [ref=e356] [cursor=pointer]:
+              - img [ref=e111]
+        - main [ref=e113]:
+          - generic [ref=e413]:
+            - generic [ref=e414]:
+              - img [ref=e416]
+              - generic [ref=e419]:
+                - heading [level=5] [ref=e420]: Valores fora da faixa
+                - paragraph [ref=e421]:
+                  - text: Ordenados por
+                  - strong [ref=e422]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e423]: Agendar
+                  - text: pro especialista.
+            - progressbar [ref=e425]:
+              - img [ref=e426]
+            - generic [ref=e428]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=e429] [cursor=pointer]:
+      - generic [ref=e430]:
+        - img [ref=e432]
+        - img [ref=e434]
+    - navigation [ref=e377]:
+      - generic [ref=e378] [cursor=pointer]:
+        - generic [ref=e379]: 🏠
+        - paragraph [ref=e380]: Início
+      - generic [ref=e382] [cursor=pointer]:
+        - generic [ref=e383]: 📋
+        - paragraph [ref=e384]: Exames
+      - generic [ref=e385] [cursor=pointer]:
+        - img [ref=e387]
+        - paragraph [ref=e388]: Dr. Exame
+      - generic [ref=e389] [cursor=pointer]:
+        - generic [ref=e390]: 📈
+        - paragraph [ref=e391]: Evolução
+      - generic [ref=e392] [cursor=pointer]:
+        - generic [ref=e393]: ☰
+        - paragraph [ref=e394]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img [ref=e395]
+    - img [ref=e396]
+  - dialog [active] [ref=e400]:
+    - heading [level=2] [ref=e401]:
+      - generic [ref=e402]:
+        - img [ref=e403]
+        - paragraph [ref=e404]: "🎉 Conquista: Primeiro exame"
+    - paragraph [ref=e406]: Envie seu primeiro exame — resgate seu crédito!
+    - generic [ref=e407]:
+      - button [ref=e408] [cursor=pointer]: Depois
+      - button [ref=e409] [cursor=pointer]: Ver notificacoes

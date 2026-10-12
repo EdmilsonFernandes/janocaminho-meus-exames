@@ -1,0 +1,87 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e68]:
+      - button [ref=e69] [cursor=pointer]
+      - generic [ref=e70]:
+        - banner [ref=e71]:
+          - generic [ref=e72]:
+            - button [ref=e73] [cursor=pointer]:
+              - img [ref=e74]
+            - button [ref=e297] [cursor=pointer]:
+              - img [ref=e298]
+            - button [ref=e76] [cursor=pointer]:
+              - img [ref=e77]
+              - generic [ref=e79]: "79"
+            - button [ref=e81] [cursor=pointer]:
+              - generic [ref=e83]: E
+            - button [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]:
+                - img [ref=e86]
+                - generic [ref=e88]: "3"
+            - button [ref=e89] [cursor=pointer]:
+              - img [ref=e90]
+            - button [ref=e93] [cursor=pointer]:
+              - img [ref=e94]
+        - main [ref=e96]:
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - img [ref=e303]
+              - generic [ref=e306]:
+                - heading [level=5] [ref=e307]: Valores fora da faixa
+                - paragraph [ref=e308]:
+                  - text: Ordenados por
+                  - strong [ref=e309]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e310]: Agendar
+                  - text: pro especialista.
+            - generic [ref=e324]:
+              - generic [ref=e325]:
+                - generic [ref=e326]: 🔴 5 Importantes
+                - generic [ref=e327]: 🟠 2 Moderadas
+                - generic [ref=e328]: 🟡 3 Leves
+              - generic [ref=e329]:
+                - text: Os
+                - strong [ref=e330]: 🔴 importantes
+                - text: "merecem prioridade — leve ao médico. 🟠 moderadas: comente na consulta. 🟡 leves: só acompanhe."
+            - heading [level=3] [ref=e333]:
+              - button [ref=e334] [cursor=pointer]:
+                - generic [ref=e336]:
+                  - generic [ref=e337]: 🔴
+                  - generic [ref=e338]:
+                    - paragraph [ref=e339]: HEMOGRAMA
+                    - generic [ref=e340]: 📅 s/d
+                  - generic [ref=e342]: 10 alterado(s)
+                - img [ref=e344]
+            - generic [ref=e315]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=e316] [cursor=pointer]:
+      - generic [ref=e317]:
+        - img [ref=e319]
+        - img [ref=e321]
+    - navigation [ref=e264]:
+      - generic [ref=e265] [cursor=pointer]:
+        - generic [ref=e266]: 🏠
+        - paragraph [ref=e267]: Início
+      - generic [ref=e269] [cursor=pointer]:
+        - generic [ref=e270]: 📋
+        - paragraph [ref=e271]: Exames
+      - generic [ref=e272] [cursor=pointer]:
+        - img [ref=e274]
+        - paragraph [ref=e275]: Dr. Exame
+      - generic [ref=e276] [cursor=pointer]:
+        - generic [ref=e277]: 📈
+        - paragraph [ref=e278]: Evolução
+      - generic [ref=e279] [cursor=pointer]:
+        - generic [ref=e280]: ☰
+        - paragraph [ref=e281]: Mais
+  - generic [ref=e65] [cursor=pointer]:
+    - img [ref=e282]
+    - img [ref=e283]
+  - dialog [active] [ref=e287]:
+    - heading [level=2] [ref=e288]:
+      - generic [ref=e289]:
+        - img [ref=e290]
+        - paragraph [ref=e291]: "🎉 Conquista: Primeiro exame"
+    - paragraph [ref=e293]: Envie seu primeiro exame — resgate seu crédito!
+    - generic [ref=e294]:
+      - button [ref=e295] [cursor=pointer]: Depois
+      - button [ref=e296] [cursor=pointer]: Ver notificacoes

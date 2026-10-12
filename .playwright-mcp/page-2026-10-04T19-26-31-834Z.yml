@@ -1,0 +1,177 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - button "Pular para o conteúdo" [ref=f6e4] [cursor=pointer]
+    - generic [ref=f6e5]:
+      - banner [ref=f6e6]:
+        - generic [ref=f6e7]:
+          - button "Voltar" [ref=f6e8] [cursor=pointer]
+          - generic [ref=f6e11]:
+            - img "Dr. Exame" [ref=f6e13]
+            - paragraph [ref=f6e14]: Dr. Exame
+          - generic [ref=f6e15]:
+            - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f6e16] [cursor=pointer]:
+              - generic [ref=f6e19]: "15"
+            - button "Notificações" [ref=f6e20] [cursor=pointer]:
+              - generic [ref=f6e21]: 9+
+            - button "E" [ref=f6e26] [cursor=pointer]
+      - main [ref=f6e32]:
+        - generic [ref=f6e34]:
+          - generic [ref=f6e39]:
+            - heading "Meu perfil" [level=5] [ref=f6e40]
+            - paragraph [ref=f6e41]: Sua conta, dados e preferências
+          - generic [ref=f6e43]:
+            - generic [ref=f6e45]:
+              - generic [ref=f6e46]: E
+              - button [ref=f6e47] [cursor=pointer]
+            - generic [ref=f6e51]:
+              - heading "Edmilson Lopes Fernandes dos Santos" [level=5] [ref=f6e52]
+              - paragraph [ref=f6e53]: ✉️ edmilson@exemplo.com
+              - generic [ref=f6e54]: Plano grátis
+              - generic [ref=f6e57]: Toque na câmera da foto para trocar a imagem.
+          - generic [ref=f6e59]:
+            - heading "Dados e perfil clínico" [level=6] [ref=f6e60]
+            - generic [ref=f6e61]:
+              - generic [ref=f6e62]:
+                - generic [ref=f6e63]: Nome completo
+                - generic [ref=f6e64]:
+                  - textbox "Nome completo" [disabled] [ref=f6e65]: Edmilson Lopes Fernandes dos Santos
+                  - group [aria-hidden]:
+                    - generic: Nome completo
+                - paragraph [ref=f6e66]: Nome bloqueado após verificação de CPF e e-mail. Correção somente via suporte.
+              - generic [ref=f6e67]:
+                - generic [ref=f6e68]: CPF
+                - generic [ref=f6e69]:
+                  - textbox "CPF" [disabled] [ref=f6e70]: "***.***.***-00"
+                  - group [aria-hidden]:
+                    - generic: CPF
+                - paragraph [ref=f6e71]: CPF verificado e mascarado. Correção somente via suporte auditado.
+              - generic [ref=f6e72]:
+                - generic: Telefone / WhatsApp
+                - generic [ref=f6e73]:
+                  - textbox "Telefone / WhatsApp" [ref=f6e74]
+                  - group [aria-hidden]:
+                    - generic: Telefone / WhatsApp
+              - generic [ref=f6e75]:
+                - generic [ref=f6e76]: Sexo
+                - generic [ref=f6e77]:
+                  - combobox "Sexo Masculino" [ref=f6e78] [cursor=pointer]: Masculino
+                  - textbox [aria-hidden]: male
+                  - group [aria-hidden]:
+                    - generic: Sexo
+                - paragraph [ref=f6e79]: Usamos a coluna de referência correspondente do laudo (Homens/Mulheres) e ajustamos IMC, eGFR e idade biológica.
+              - generic [ref=f6e80]:
+                - generic [ref=f6e81]: Altura
+                - generic [ref=f6e82]:
+                  - textbox "Altura" [ref=f6e83]: "178"
+                  - group [aria-hidden]:
+                    - generic: Altura
+                - paragraph [ref=f6e84]: 1,78 m (178 cm)
+              - generic [ref=f6e85]:
+                - generic [ref=f6e86]: Etnia (opcional)
+                - generic [ref=f6e87]:
+                  - combobox "Etnia (opcional) Parda" [ref=f6e88] [cursor=pointer]: Parda
+                  - textbox [aria-hidden]: parda
+                  - group [aria-hidden]:
+                    - generic: Etnia (opcional)
+                - paragraph [ref=f6e89]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+              - generic [ref=f6e90]:
+                - generic [ref=f6e91]:
+                  - generic [ref=f6e92]: Data de nascimento
+                  - generic [ref=f6e93]:
+                    - textbox "Data de nascimento" [ref=f6e94]:
+                      - /placeholder: dd/mm/aaaa
+                      - text: 15/03/1985
+                    - button "Abrir calendário" [ref=f6e96] [cursor=pointer]
+                    - group [aria-hidden]:
+                      - generic: Data de nascimento
+                  - paragraph [ref=f6e99]: Usado pra calcular idade e ajustar faixas de referência.
+                - textbox [aria-hidden]: 1985-03-15
+              - generic [ref=f6e100]:
+                - generic: Perfil clínico (condições, medicações, histórico)
+                - generic [ref=f6e101]:
+                  - textbox "Perfil clínico (condições, medicações, histórico)" [ref=f6e102]
+                  - group [aria-hidden]:
+                    - generic: Perfil clínico (condições, medicações, histórico)
+                - paragraph [ref=f6e103]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+            - button [ref=f6e105] [cursor=pointer]
+          - generic [ref=f6e111]:
+            - generic [ref=f6e115]:
+              - heading "Peso atual" [level=6] [ref=f6e116]
+              - paragraph [ref=f6e117]:
+                - generic [ref=f6e118]: 92,4 kg
+                - text: · registrado em 22/08/2026
+            - button "Novo peso" [ref=f6e119] [cursor=pointer]
+          - generic [ref=f6e121]:
+            - heading "Preferências" [level=6] [ref=f6e122]
+            - generic [ref=f6e123] [cursor=pointer]:
+              - switch "🔔 Avisar quando eu desbloquear uma conquista" [checked] [ref=f6e126]
+              - generic [ref=f6e129]: 🔔 Avisar quando eu desbloquear uma conquista
+            - generic [ref=f6e131]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=f6e132] [cursor=pointer]:
+              - switch "♿ Botão de tradução em Libras" [ref=f6e135]
+              - generic [ref=f6e138]: ♿ Botão de tradução em Libras
+            - generic [ref=f6e140] [cursor=pointer]:
+              - switch "🔍 Aa Texto grande — amplia os textos do app" [ref=f6e143]
+              - generic [ref=f6e146]: 🔍 Aa Texto grande — amplia os textos do app
+            - generic [ref=f6e148]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+            - generic [ref=f6e149] [cursor=pointer]:
+              - switch "🏃 Card de atividade física no início" [checked] [ref=f6e152]
+              - generic [ref=f6e155]: 🏃 Card de atividade física no início
+            - generic [ref=f6e157]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+            - button [ref=f6e158] [cursor=pointer]
+          - generic [ref=f6e163]:
+            - generic [ref=f6e168] [cursor=pointer]:
+              - paragraph [ref=f6e169]: Segurança
+              - paragraph [ref=f6e170]: Trocar senha, 2FA e biometria
+            - generic [ref=f6e177] [cursor=pointer]:
+              - paragraph [ref=f6e178]: Privacidade e dados
+              - paragraph [ref=f6e179]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+            - generic [ref=f6e186] [cursor=pointer]:
+              - paragraph [ref=f6e187]: API para desenvolvedores
+              - paragraph [ref=f6e188]: Integre preço de remédios e interações no seu produto
+          - generic [ref=f6e192]:
+            - heading "Indique e ganhe créditos" [level=6] [ref=f6e196]
+            - paragraph [ref=f6e197]:
+              - text: Cada amigo que se cadastrar com seu código ganha
+              - strong [ref=f6e198]: +10 créditos
+              - text: . Você também ganha
+              - strong [ref=f6e199]: "+10"
+              - text: "!"
+            - generic [ref=f6e200]:
+              - paragraph [ref=f6e202]: EDMILSON-DZLJ
+              - button [ref=f6e203] [cursor=pointer]
+            - button [ref=f6e207] [cursor=pointer]
+            - generic [ref=f6e211]:
+              - generic [ref=f6e212]:
+                - generic [ref=f6e213]: "1"
+                - paragraph [ref=f6e214]: Envie seu código ou link pra um amigo
+              - generic [ref=f6e215]:
+                - generic [ref=f6e216]: "2"
+                - paragraph [ref=f6e217]:
+                  - text: Ele se cadastra com o código —
+                  - strong [ref=f6e218]: ganha +10
+              - generic [ref=f6e219]:
+                - generic [ref=f6e220]: "3"
+                - paragraph [ref=f6e221]:
+                  - text: Você ganha
+                  - strong [ref=f6e222]: "+10"
+                  - text: quando ele ativar
+            - generic [ref=f6e223]:
+              - generic [ref=f6e224]:
+                - paragraph [ref=f6e225]: "0"
+                - text: amigos indicados
+              - generic [ref=f6e226]:
+                - paragraph [ref=f6e227]: "+0"
+                - text: créditos ganhos
+  - navigation [ref=f6e228]:
+    - button "Início" [ref=f6e229] [cursor=pointer]:
+      - paragraph [ref=f6e233]: Início
+    - button "Exames" [ref=f6e234] [cursor=pointer]:
+      - paragraph [ref=f6e238]: Exames
+    - button "Dr. Exame — conversar com a IA" [ref=f6e239] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f6e241]
+      - paragraph [ref=f6e242]: Dr. Exame
+    - button "Evolução" [ref=f6e243] [cursor=pointer]:
+      - paragraph [ref=f6e247]: Evolução
+    - button "Mais" [ref=f6e248] [cursor=pointer]:
+      - paragraph [ref=f6e252]: Mais

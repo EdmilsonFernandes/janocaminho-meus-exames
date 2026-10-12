@@ -1,0 +1,63 @@
+- generic [ref=f11e1]:
+  - generic [ref=f11e2]:
+    - generic [ref=f11e634]:
+      - button [ref=f11e635] [cursor=pointer]
+      - generic [ref=f11e636]:
+        - banner [ref=f11e637]:
+          - generic [ref=f11e638]:
+            - button [ref=f11e639] [cursor=pointer]
+            - paragraph [ref=f11e645]: Dr. Exame
+            - button [ref=f11e646] [cursor=pointer]
+            - button [ref=f11e651] [cursor=pointer]
+        - main [ref=f11e656]
+    - button [ref=f11e659] [cursor=pointer]
+    - navigation [ref=f11e666]:
+      - paragraph [ref=f11e671] [cursor=pointer]: Início
+      - paragraph [ref=f11e676] [cursor=pointer]: Exames
+      - paragraph [ref=f11e680] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f11e685] [cursor=pointer]: Evolução
+      - paragraph [ref=f11e690] [cursor=pointer]: Mais
+  - generic [ref=f11e431] [cursor=pointer]
+  - dialog [active] [ref=f11e696]:
+    - navigation [ref=f11e697]:
+      - button [ref=f11e699] [cursor=pointer]:
+        - generic [ref=f11e703]: Exames
+      - button [ref=f11e708] [cursor=pointer]:
+        - generic [ref=f11e713]: Cuidados
+      - button [ref=f11e718] [cursor=pointer]:
+        - generic [ref=f11e723]: Pessoas
+      - generic [ref=f11e727]:
+        - button [expanded] [ref=f11e728] [cursor=pointer]:
+          - generic [ref=f11e732]: Conta
+        - generic [ref=f11e739]:
+          - button [ref=f11e740] [cursor=pointer]:
+            - generic [ref=f11e744]: Meu perfil
+          - button [ref=f11e746] [cursor=pointer]:
+            - generic [ref=f11e750]: Segurança & senha
+          - button [ref=f11e752] [cursor=pointer]:
+            - generic [ref=f11e756]: Privacidade e termos
+          - button [ref=f11e758] [cursor=pointer]:
+            - generic [ref=f11e762]: Planos e Créditos
+          - button [ref=f11e764] [cursor=pointer]:
+            - generic [ref=f11e768]: Despesas Médicas
+          - button [ref=f11e770] [cursor=pointer]:
+            - generic [ref=f11e775]: Painel Admin
+      - separator [ref=f11e777]
+      - button [ref=f11e778] [cursor=pointer]:
+        - generic [ref=f11e782]: Dúvidas frequentes
+      - button [ref=f11e784] [cursor=pointer]:
+        - generic [ref=f11e788]: Como validamos
+      - menuitem [ref=f11e790] [cursor=pointer]:
+        - generic [ref=f11e794]: Sobre o app
+      - menuitem [ref=f11e796] [cursor=pointer]:
+        - generic [ref=f11e800]: Sair da conta
+  - dialog [ref=f11e804]:
+    - generic [ref=f11e805]:
+      - button "Pular" [ref=f11e806] [cursor=pointer]
+      - generic [ref=f11e807]:
+        - img "Dr. Exame" [ref=f11e809]
+        - heading "Envie seu exame" [level=4] [ref=f11e810]
+        - paragraph [ref=f11e811]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f11e812]:
+        - button [ref=f11e818] [cursor=pointer]
+        - paragraph [ref=f11e822]: Toque em Próximo para continuar →

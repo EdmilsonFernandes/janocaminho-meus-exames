@@ -1,0 +1,83 @@
+- generic [active] [ref=f2e18]:
+  - generic [ref=f2e19]:
+    - generic [ref=f2e20]:
+      - button "Pular para o conteúdo" [ref=f2e407] [cursor=pointer]
+      - generic [ref=f2e22]:
+        - banner [ref=f2e23]:
+          - generic [ref=f2e24]:
+            - button "Menu" [ref=f2e408] [cursor=pointer]:
+              - img [ref=f2e26]
+            - button "Voltar" [ref=f2e429] [cursor=pointer]:
+              - img [ref=f2e430]
+            - button "71" [ref=f2e409] [cursor=pointer]:
+              - img [ref=f2e29]
+              - generic [ref=f2e31]: "71"
+            - button "E" [ref=f2e410] [cursor=pointer]:
+              - generic [ref=f2e35]: E
+            - button "18" [ref=f2e411] [cursor=pointer]:
+              - generic [ref=f2e37]:
+                - img [ref=f2e38]
+                - generic [ref=f2e40]: "18"
+            - button "Mais opções" [ref=f2e412] [cursor=pointer]:
+              - img [ref=f2e42]
+            - button "Atualizar" [ref=f2e413] [cursor=pointer]:
+              - img [ref=f2e46]
+        - main [ref=f2e48]:
+          - generic [ref=f2e435]:
+            - generic [ref=f2e436]:
+              - img [ref=f2e438]
+              - generic [ref=f2e440]:
+                - heading "Seus exames" [level=5] [ref=f2e441]
+                - paragraph [ref=f2e442]: 1 exame no total • toque pra ver detalhes
+            - generic [ref=f2e443]:
+              - generic [ref=f2e445]:
+                - img [ref=f2e447]
+                - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=f2e449]
+                - group
+              - group [ref=f2e451]:
+                - button "📅 Por data" [pressed] [ref=f2e452] [cursor=pointer]
+                - button "🗂️ Por categoria" [ref=f2e453] [cursor=pointer]
+            - generic [ref=f2e454]:
+              - heading "📅 2026 1" [level=3] [ref=f2e455]:
+                - button "📅 2026 1" [expanded] [ref=f2e456] [cursor=pointer]:
+                  - generic [ref=f2e457]:
+                    - paragraph [ref=f2e458]: 📅 2026
+                    - generic [ref=f2e460]: "1"
+                  - img [ref=f2e462]
+              - region [ref=f2e467]:
+                - generic [ref=f2e470] [cursor=pointer]:
+                  - img [ref=f2e471]
+                  - generic [ref=f2e473]:
+                    - generic [ref=f2e474]:
+                      - paragraph [ref=f2e475]: HEMOGRAMA
+                      - button "O que é este exame?" [ref=f2e477]:
+                        - img [ref=f2e478]
+                    - generic "VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=f2e480]: 🏥 VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                    - generic [ref=f2e481]: Outro • s/d • 20 itens • Enviado 22/06/2026
+                    - generic [ref=f2e482]:
+                      - generic [ref=f2e484]: 🩸 Hemograma
+                      - generic [ref=f2e486]: Pronto
+                  - button "Excluir" [ref=f2e487]:
+                    - img [ref=f2e488]
+                  - img [ref=f2e490]
+    - button "Enviar exame" [ref=f2e492] [cursor=pointer]:
+      - img [ref=f2e493]
+    - navigation [ref=f2e375]:
+      - generic [ref=f2e376] [cursor=pointer]:
+        - generic [ref=f2e377]: 🏠
+        - paragraph [ref=f2e378]: Início
+      - generic [ref=f2e380] [cursor=pointer]:
+        - generic [ref=f2e381]: 📋
+        - paragraph [ref=f2e382]: Exames
+      - generic [ref=f2e383] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f2e425]
+        - paragraph [ref=f2e386]: Dr. Exame
+      - generic [ref=f2e387] [cursor=pointer]:
+        - generic [ref=f2e388]: 📈
+        - paragraph [ref=f2e389]: Evolução
+      - generic [ref=f2e390] [cursor=pointer]:
+        - generic [ref=f2e391]: ☰
+        - paragraph [ref=f2e392]: Mais
+  - generic [ref=f2e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e426]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e427]

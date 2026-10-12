@@ -1,0 +1,46 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e567]:
+    - generic [ref=f3e568]:
+      - img "Dr. Exame" [ref=f3e570]
+      - generic [ref=f3e571]:
+        - paragraph [ref=f3e572]: Meus Exames
+        - paragraph [ref=f3e573]: Seu assistente de saúde com IA
+    - generic [ref=f3e574]:
+      - button [ref=f3e575] [cursor=pointer]
+      - button [ref=f3e580] [cursor=pointer]
+    - generic [ref=f3e586]:
+      - generic [ref=f3e587]:
+        - generic [ref=f3e588]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=f3e589]: "*"
+        - generic [ref=f3e590]:
+          - textbox "E-mail" [ref=f3e595]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=f3e596]:
+        - generic [ref=f3e597]:
+          - text: Senha
+          - generic [aria-hidden] [ref=f3e598]: "*"
+        - generic [ref=f3e599]:
+          - textbox "Senha" [ref=f3e604]
+          - button "Mostrar senha" [ref=f3e606] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=f3e611] [cursor=pointer]
+      - button [ref=f3e612] [cursor=pointer]
+      - generic [ref=f3e616]: ou
+      - generic [ref=f3e620]:
+        - button "Continuar com o Google. Abre em uma nova guia" [ref=f3e622] [cursor=pointer]:
+          - generic [ref=f3e624]: Continuar com o Google
+        - iframe
+      - paragraph [ref=f3e634]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=f3e635] [cursor=pointer]
+    - generic [ref=f3e636]:
+      - paragraph [ref=f3e642]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=f3e643]:
+        - strong [ref=f3e644]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+  - generic [ref=f3e561]:
+    - img "Acessível com VLibras" [ref=f3e562]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e563] [cursor=pointer]

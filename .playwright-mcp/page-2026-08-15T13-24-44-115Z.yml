@@ -1,0 +1,31 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e1489]:
+      - button "Pular para o conteúdo" [ref=e1490] [cursor=pointer]
+      - generic [ref=e1491]:
+        - banner [ref=e1492]:
+          - generic [ref=e1493]:
+            - button "Menu" [ref=e1494] [cursor=pointer]
+            - generic [ref=e1497]:
+              - img "Dr. Exame" [ref=e1499]
+              - paragraph [ref=e1500]: Dr. Exame
+            - button "Notificações" [ref=e1501] [cursor=pointer]
+            - button [ref=e1506] [cursor=pointer]
+            - button "Atualizar" [ref=e1515] [cursor=pointer]
+        - main [ref=e1518]:
+          - generic [ref=e1520]:
+            - img "Dr. Exame" [ref=e1525]
+            - heading "Meus Exames" [level=4] [ref=e1526]
+            - paragraph [ref=e1527]: Seu assistente de saúde com IA
+    - navigation [ref=e1535]:
+      - paragraph [ref=e1540] [cursor=pointer]: Início
+      - paragraph [ref=e1546] [cursor=pointer]: Exames
+      - generic [ref=e1547] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1549]
+        - paragraph [ref=e1550]: Dr. Exame
+      - paragraph [ref=e1555] [cursor=pointer]: Evolução
+      - paragraph [ref=e1560] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e339]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e340]
+  - generic [ref=e832]: "0"

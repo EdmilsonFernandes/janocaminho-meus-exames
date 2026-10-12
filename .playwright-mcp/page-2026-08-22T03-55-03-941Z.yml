@@ -1,0 +1,211 @@
+- generic [ref=f88e1]:
+  - banner [ref=f88e2]:
+    - generic [ref=f88e4]:
+      - link [ref=f88e5] [cursor=pointer]:
+        - /url: https://levels.com
+        - img "Levels Support" [ref=f88e6]
+      - generic:
+        - navigation:
+          - list [ref=f88e7]:
+            - listitem [ref=f88e8]:
+              - link "Home" [ref=f88e9] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f88e11]:
+              - link "Getting Started" [ref=f88e12] [cursor=pointer]:
+                - /url: /collection/434-getting-started
+            - listitem [ref=f88e13]:
+              - link "Levels 101" [ref=f88e14] [cursor=pointer]:
+                - /url: /collection/6-levels-101
+            - listitem [ref=f88e15]:
+              - link "Glucose Monitoring" [ref=f88e16] [cursor=pointer]:
+                - /url: /collection/606-glucose-monitoring
+            - listitem [ref=f88e17]:
+              - link "Labs & Nutritionist" [ref=f88e18] [cursor=pointer]:
+                - /url: /collection/11-labs-nutritionist
+            - listitem [ref=f88e19]:
+              - link "My Account" [ref=f88e20] [cursor=pointer]:
+                - /url: /collection/22-my-account
+            - listitem [ref=f88e21]:
+              - link "Education & Community" [ref=f88e22] [cursor=pointer]:
+                - /url: /collection/712-education-community
+            - listitem [ref=f88e23]:
+              - link "Policies" [ref=f88e24] [cursor=pointer]:
+                - /url: /collection/689-policies
+            - listitem [ref=f88e25]:
+              - link "Contact" [ref=f88e26] [cursor=pointer]:
+                - /url: "#"
+  - generic [ref=f88e27]:
+    - heading "Live healthier, longer. How can we help? We're here to help you get the most out of Levels" [level=1] [ref=f88e28]
+    - generic [ref=f88e29]:
+      - textbox "Search the knowledge base" [active] [ref=f88e30]
+      - button "Search" [ref=f88e31] [cursor=pointer]:  Search
+  - generic [ref=f88e32]:
+    - generic [ref=f88e33]:
+      - heading [level=2] [ref=f88e34]:
+        - link "Getting Started" [ref=f88e35] [cursor=pointer]:
+          - /url: /collection/434-getting-started
+      - generic [ref=f88e36]:
+        - link [ref=f88e37] [cursor=pointer]:
+          - /url: /category/688-getting-started
+          - heading "About Levels" [level=3] [ref=f88e38]
+          - paragraph [ref=f88e39]: What Levels is and who its for
+          - paragraph [ref=f88e40]: 7 articles
+        - link [ref=f88e41] [cursor=pointer]:
+          - /url: /category/687-membership-cost-plans
+          - heading "Plans & Pricing" [level=3] [ref=f88e42]
+          - paragraph [ref=f88e43]: Cost, eligibility, and coverage
+          - paragraph [ref=f88e44]: 7 articles
+        - link [ref=f88e45] [cursor=pointer]:
+          - /url: /category/707-first-steps
+          - heading "First Steps" [level=3] [ref=f88e46]
+          - paragraph [ref=f88e47]: Setting up your account and app
+          - paragraph [ref=f88e48]: 5 articles
+    - generic [ref=f88e49]:
+      - heading [level=2] [ref=f88e50]:
+        - link "Levels 101" [ref=f88e51] [cursor=pointer]:
+          - /url: /collection/6-levels-101
+      - generic [ref=f88e52]:
+        - link [ref=f88e53] [cursor=pointer]:
+          - /url: /category/708-app-basics
+          - heading "App Basics" [level=3] [ref=f88e54]
+          - paragraph [ref=f88e55]: How to guides for the Levels app
+          - paragraph [ref=f88e56]: 20 articles
+        - link [ref=f88e57] [cursor=pointer]:
+          - /url: /category/710-reading-your-data
+          - heading "Reading Your Data" [level=3] [ref=f88e58]
+          - paragraph [ref=f88e59]: Interpret your glucose, meals, and trends
+          - paragraph [ref=f88e60]: 8 articles
+        - link [ref=f88e61] [cursor=pointer]:
+          - /url: /category/709-understanding-your-scores
+          - heading "Understanding Your Scores" [level=3] [ref=f88e62]
+          - paragraph [ref=f88e63]: Learn about Meal and Stability scores
+          - paragraph [ref=f88e64]: 7 articles
+    - generic [ref=f88e65]:
+      - heading [level=2] [ref=f88e66]:
+        - link "Glucose Monitoring" [ref=f88e67] [cursor=pointer]:
+          - /url: /collection/606-glucose-monitoring
+      - generic [ref=f88e68]:
+        - link [ref=f88e69] [cursor=pointer]:
+          - /url: /category/610-setting-up-stelo
+          - heading "Setting Up Your Sensor" [level=3] [ref=f88e70]
+          - paragraph [ref=f88e71]: Apply Stelo and connect it to Levels
+          - paragraph [ref=f88e72]: 7 articles
+        - link [ref=f88e73] [cursor=pointer]:
+          - /url: /category/728-using-your-sensor
+          - heading "Using Your Sensor" [level=3] [ref=f88e74]
+          - paragraph [ref=f88e75]: How to get the most out of Stelo
+          - paragraph [ref=f88e76]: 5 articles
+        - link [ref=f88e77] [cursor=pointer]:
+          - /url: /category/612-troubleshooting-stelo
+          - heading "Troubleshooting" [level=3] [ref=f88e78]
+          - paragraph [ref=f88e79]: Fix common sensor issues
+          - paragraph [ref=f88e80]: 8 articles
+    - generic [ref=f88e81]:
+      - heading [level=2] [ref=f88e82]:
+        - link "Labs & Nutritionist" [ref=f88e83] [cursor=pointer]:
+          - /url: /collection/11-labs-nutritionist
+      - generic [ref=f88e84]:
+        - link [ref=f88e85] [cursor=pointer]:
+          - /url: /category/667-levels-labs---quest
+          - heading "About Levels Labs" [level=3] [ref=f88e86]
+          - paragraph [ref=f88e87]: Cost, eligibility, and available tests
+          - paragraph [ref=f88e88]: 9 articles
+        - link [ref=f88e89] [cursor=pointer]:
+          - /url: /category/674-your-appointment
+          - heading "Scheduling Your Lab Appointment" [level=3] [ref=f88e90]
+          - paragraph [ref=f88e91]: How to book and where to go
+          - paragraph [ref=f88e92]: 5 articles
+        - link [ref=f88e93] [cursor=pointer]:
+          - /url: /category/729-preparing-for-your-lab-appointment
+          - heading "Lab Appointment Prep" [level=3] [ref=f88e94]
+          - paragraph [ref=f88e95]: What to expect and how to prep
+          - paragraph [ref=f88e96]: 9 articles
+        - link [ref=f88e97] [cursor=pointer]:
+          - /url: /category/668-resources
+          - heading "Understanding Your Lab Results" [level=3] [ref=f88e98]
+          - paragraph [ref=f88e99]: Accessing and interpreting lab results
+          - paragraph [ref=f88e100]: 9 articles
+        - link [ref=f88e101] [cursor=pointer]:
+          - /url: /category/666-dietitian-feature-season-health-levels
+          - heading "About Our Functional Nutritionist" [level=3] [ref=f88e102]
+          - paragraph [ref=f88e103]: What to expect, eligibility, cost, how to prepare and book
+          - paragraph [ref=f88e104]: 3 articles
+    - generic [ref=f88e105]:
+      - heading [level=2] [ref=f88e106]:
+        - link "My Account" [ref=f88e107] [cursor=pointer]:
+          - /url: /collection/22-my-account
+      - generic [ref=f88e108]:
+        - link [ref=f88e109] [cursor=pointer]:
+          - /url: /category/711-account-settings
+          - heading "Account Basics" [level=3] [ref=f88e110]
+          - paragraph [ref=f88e111]: Login, password, and member portal.
+          - paragraph [ref=f88e112]: 8 articles
+        - link [ref=f88e113] [cursor=pointer]:
+          - /url: /category/677-levels-membership
+          - heading "Membership, Billing, & Orders" [level=3] [ref=f88e114]
+          - paragraph [ref=f88e115]: How to manage your orders
+          - paragraph [ref=f88e116]: 9 articles
+        - link [ref=f88e117] [cursor=pointer]:
+          - /url: /category/678-resources
+          - heading "Data & Privacy" [level=3] [ref=f88e118]
+          - paragraph [ref=f88e119]: Manage and share your data
+          - paragraph [ref=f88e120]: 4 articles
+    - generic [ref=f88e121]:
+      - heading [level=2] [ref=f88e122]:
+        - link "Education & Community" [ref=f88e123] [cursor=pointer]:
+          - /url: /collection/712-education-community
+      - generic [ref=f88e124]:
+        - link [ref=f88e125] [cursor=pointer]:
+          - /url: /category/715-community-challenges
+          - heading "Community & Challenges" [level=3] [ref=f88e126]
+          - paragraph [ref=f88e127]: Participate in challenges and join Facebook
+          - paragraph [ref=f88e128]: 1 article
+        - link [ref=f88e129] [cursor=pointer]:
+          - /url: /category/717-educational-resources
+          - heading "Educational Resources" [level=3] [ref=f88e130]
+          - paragraph [ref=f88e131]: Check out our blog and podcast
+          - paragraph [ref=f88e132]: 3 articles
+        - link [ref=f88e133] [cursor=pointer]:
+          - /url: /category/716-referrals
+          - heading "Referrals" [level=3] [ref=f88e134]
+          - paragraph [ref=f88e135]: Share Levels with friends and family
+          - paragraph [ref=f88e136]: 2 articles
+    - generic [ref=f88e137]:
+      - heading [level=2] [ref=f88e138]:
+        - link "Policies" [ref=f88e139] [cursor=pointer]:
+          - /url: /collection/689-policies
+      - generic [ref=f88e140]:
+        - link [ref=f88e141] [cursor=pointer]:
+          - /url: /category/739-privacy-policy
+          - heading "Privacy Policy" [level=3] [ref=f88e142]
+          - paragraph [ref=f88e143]: Review our privacy policy
+          - paragraph [ref=f88e144]: 1 article
+        - link [ref=f88e145] [cursor=pointer]:
+          - /url: /category/740-refund-policy
+          - heading "Refund Policy" [level=3] [ref=f88e146]
+          - paragraph [ref=f88e147]: Review our refund policy
+          - paragraph [ref=f88e148]: 1 article
+        - link [ref=f88e149] [cursor=pointer]:
+          - /url: /category/741-replacement-policy
+          - heading "Replacement Policy" [level=3] [ref=f88e150]
+          - paragraph [ref=f88e151]: Understand our replacement guidelines
+          - paragraph [ref=f88e152]: 1 article
+    - generic [ref=f88e153]:
+      - strong [ref=f88e154]: Questions?
+      - text: "Contact us:"
+      - link "support@levels.com" [ref=f88e155] [cursor=pointer]:
+        - /url: mailto:support@levels.com
+    - paragraph [ref=f88e157]:
+      - text: ©
+      - link "Levels Health, Inc." [ref=f88e158] [cursor=pointer]:
+        - /url: https://levels.com
+      - text: "2026."
+      - generic [ref=f88e159]:
+        - text: Powered by
+        - link "Help Scout" [ref=f88e160] [cursor=pointer]:
+          - /url: https://www.helpscout.com/docs-refer/?co=Levels+Health%2C+Inc.&utm_source=docs&utm_medium=footerlink&utm_campaign=Docs+Branding
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - iframe

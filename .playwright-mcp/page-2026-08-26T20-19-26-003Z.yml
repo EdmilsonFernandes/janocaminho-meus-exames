@@ -1,0 +1,200 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - button "abrir menu de opções" [ref=e6] [cursor=pointer]
+      - link "Link para a home do cliquefarma" [ref=e8] [cursor=pointer]:
+        - /url: /
+      - textbox "Busque por produto" [ref=e37]
+      - generic [ref=e38]:
+        - button "Entrar" [ref=e40] [cursor=pointer]
+        - link "cesta de compras" [ref=e50] [cursor=pointer]:
+          - /url: /cesta-de-produtos
+  - generic [ref=e56]:
+    - generic [ref=e57]:
+      - button "Voltar" [ref=e58] [cursor=pointer]
+      - generic [ref=e63]: publicidade
+    - generic [ref=e68]:
+      - list [ref=e71]:
+        - listitem [ref=e72]:
+          - link "Home" [ref=e73] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=e74]: fale conosco
+      - generic [ref=e75]:
+        - link "Fale Conosco" [ref=e77] [cursor=pointer]:
+          - /url: /contato
+        - link "Perguntas Frequentes" [ref=e85] [cursor=pointer]:
+          - /url: /perguntas-frequentes
+        - link "Política de Privacidade" [ref=e92] [cursor=pointer]:
+          - /url: /privacidade
+        - link "Proteção de Dados" [ref=e99] [cursor=pointer]:
+          - /url: /protecao-de-dados
+        - link "Termos de Uso" [ref=e106] [cursor=pointer]:
+          - /url: /termos-de-uso
+        - link "Pedido do titular" [ref=e113] [cursor=pointer]:
+          - /url: /pedido-do-titular
+      - heading "fale conosco" [level=1] [ref=e122]
+  - contentinfo [ref=e124]:
+    - generic [ref=e125]:
+      - complementary [ref=e126]:
+        - list [ref=e163]:
+          - listitem [ref=e164]:
+            - link "facebook Cliquefarma (abre em nova aba)" [ref=e165] [cursor=pointer]:
+              - /url: https://www.facebook.com/cliquefarma/
+          - listitem [ref=e169]:
+            - link "youtube Cliquefarma (abre em nova aba)" [ref=e170] [cursor=pointer]:
+              - /url: https://www.youtube.com/channel/UC-RQSq-GveKUctCi9IcYlEg
+          - listitem [ref=e175]:
+            - link "tiktok Cliquefarma (abre em nova aba)" [ref=e176] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@cliquefarma/
+          - listitem [ref=e181]:
+            - link "instagram Cliquefarma (abre em nova aba)" [ref=e182] [cursor=pointer]:
+              - /url: https://www.instagram.com/cliquefarmaoficial/
+        - paragraph [ref=e203]: Brasil
+      - generic [ref=e204]:
+        - navigation [ref=e205]:
+          - link "Medicamentos" [ref=e206] [cursor=pointer]:
+            - /url: /medicamentos
+          - list [ref=e207]:
+            - listitem [ref=e208]:
+              - link "Medicamentos A-Z" [ref=e209] [cursor=pointer]:
+                - /url: /medicamentos/medicamentos-a-z
+            - listitem [ref=e210]:
+              - link "Medicamentos especiais" [ref=e211] [cursor=pointer]:
+                - /url: /medicamentos/especiais
+            - listitem [ref=e212]:
+              - link "Fitoterápicos" [ref=e213] [cursor=pointer]:
+                - /url: /medicamentos/fitoterapicos
+            - listitem [ref=e214]:
+              - link "Ginecologia e Reposição Hormonal" [ref=e215] [cursor=pointer]:
+                - /url: /medicamentos/medicamentos-a-z/anticoncepcional
+            - listitem [ref=e216]:
+              - link "Diabetes" [ref=e217] [cursor=pointer]:
+                - /url: /medicamentos/medicamentos-a-z/diabetes
+        - navigation [ref=e218]:
+          - link "Produtos e acessórios de saúde" [ref=e219] [cursor=pointer]:
+            - /url: /acessorios-de-saude
+          - list [ref=e220]:
+            - listitem [ref=e221]:
+              - link "Suporte para Diabéticos" [ref=e222] [cursor=pointer]:
+                - /url: /acessorios-de-saude/diabetes
+            - listitem [ref=e223]:
+              - link "Visão" [ref=e224] [cursor=pointer]:
+                - /url: /acessorios-de-saude/visao
+            - listitem [ref=e225]:
+              - link "Ortopedia e acessórios de saúde" [ref=e226] [cursor=pointer]:
+                - /url: /acessorios-de-saude/ortopedia
+            - listitem [ref=e227]:
+              - link "Primeiros Socorros" [ref=e228] [cursor=pointer]:
+                - /url: /acessorios-de-saude/primeiros-socorros
+            - listitem [ref=e229]:
+              - link "Suporte médico e Equipamentos" [ref=e230] [cursor=pointer]:
+                - /url: /acessorios-de-saude/suporte-medico-e-equipamentos
+            - listitem [ref=e231]:
+              - link "Testes e Diagnósticos" [ref=e232] [cursor=pointer]:
+                - /url: /acessorios-de-saude/testes-e-diagnosticos
+        - navigation [ref=e233]:
+          - link "Vitaminas e suplementos" [ref=e234] [cursor=pointer]:
+            - /url: /vitaminas-e-suplementos
+          - list [ref=e235]:
+            - listitem [ref=e236]:
+              - link "Suplemento Vitamínico" [ref=e237] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplemento-vitaminico
+            - listitem [ref=e238]:
+              - link "Suplementos e Alimentos Funcionais" [ref=e239] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplementos-funcionais
+            - listitem [ref=e240]:
+              - link "Proteínas" [ref=e241] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplementos-funcionais/proteinas
+            - listitem [ref=e242]:
+              - link "Multivitamínicos" [ref=e243] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplemento-vitaminico/multivitaminicos
+            - listitem [ref=e244]:
+              - link "Probióticos" [ref=e245] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplemento-vitaminico/probioticos
+            - listitem [ref=e246]:
+              - link "Dietas Especiais" [ref=e247] [cursor=pointer]:
+                - /url: /vitaminas-e-suplementos/suplementos-funcionais/dietas-especiais
+        - navigation [ref=e248]:
+          - link "Dermocosméticos" [ref=e249] [cursor=pointer]:
+            - /url: /dermocosmeticos
+          - list [ref=e250]:
+            - listitem [ref=e251]:
+              - link "Rosto e olhos" [ref=e252] [cursor=pointer]:
+                - /url: /dermocosmeticos/rosto-e-olhos
+            - listitem [ref=e253]:
+              - link "Corpo" [ref=e254] [cursor=pointer]:
+                - /url: /dermocosmeticos/corpo
+            - listitem [ref=e255]:
+              - link "Protetor Solar" [ref=e256] [cursor=pointer]:
+                - /url: /dermocosmeticos/protecao-solar-dermo
+            - listitem [ref=e257]:
+              - link "Nutricosméticos" [ref=e258] [cursor=pointer]:
+                - /url: /dermocosmeticos/nutricosmeticos
+            - listitem [ref=e259]:
+              - link "Tratamento Capilar Dermo" [ref=e260] [cursor=pointer]:
+                - /url: /dermocosmeticos/tratamento-capilar
+            - listitem [ref=e261]:
+              - link "Anti-idade" [ref=e262] [cursor=pointer]:
+                - /url: /dermocosmeticos/rosto-e-olhos/anti-idade
+        - navigation [ref=e263]:
+          - generic [ref=e264]: Índices
+          - list [ref=e265]:
+            - listitem [ref=e266]:
+              - link "Bulas A-Z" [ref=e267] [cursor=pointer]:
+                - /url: /bulas
+            - listitem [ref=e268]:
+              - link "Drogarias/Farmácias parceiras" [ref=e269] [cursor=pointer]:
+                - /url: /drogarias
+            - listitem [ref=e270]:
+              - link "Fabricantes A-Z" [ref=e271] [cursor=pointer]:
+                - /url: /fabricantes
+            - listitem [ref=e272]:
+              - link "Genéricos A-Z" [ref=e273] [cursor=pointer]:
+                - /url: /genericos
+            - listitem [ref=e274]:
+              - link "Princípios Ativos A-Z" [ref=e275] [cursor=pointer]:
+                - /url: /principios-ativos
+        - navigation [ref=e276]:
+          - generic [ref=e277]: Nossas políticas
+          - list [ref=e278]:
+            - listitem [ref=e279]:
+              - link "Termos de uso" [ref=e280] [cursor=pointer]:
+                - /url: /termos-de-uso
+            - listitem [ref=e281]:
+              - link "Política de privacidade" [ref=e282] [cursor=pointer]:
+                - /url: /privacidade
+            - listitem [ref=e283]:
+              - link "Política de proteção de dados" [ref=e284] [cursor=pointer]:
+                - /url: /protecao-de-dados
+            - listitem [ref=e285]:
+              - link "Pedido do Titular" [ref=e286] [cursor=pointer]:
+                - /url: /pedido-do-titular
+            - listitem [ref=e287]:
+              - button "Preferência de Cookies" [ref=e288] [cursor=pointer]
+        - navigation [ref=e289]:
+          - generic [ref=e290]: Sobre
+          - list [ref=e291]:
+            - listitem [ref=e292]:
+              - link "Quem somos" [ref=e293] [cursor=pointer]:
+                - /url: /quem-somos
+            - listitem [ref=e294]:
+              - link "Blog Cliquefarma" [ref=e295] [cursor=pointer]:
+                - /url: https://www.cliquefarma.com.br/blog/
+        - navigation [ref=e296]:
+          - link "Precisa de ajuda?" [ref=e297] [cursor=pointer]:
+            - /url: /ajuda
+          - list [ref=e298]:
+            - listitem [ref=e299]:
+              - link "Fale conosco" [ref=e300] [cursor=pointer]:
+                - /url: /contato
+            - listitem [ref=e301]:
+              - link "Perguntas frequentes" [ref=e302] [cursor=pointer]:
+                - /url: /perguntas-frequentes
+            - listitem [ref=e303]:
+              - link "Central de Ajuda" [ref=e304] [cursor=pointer]:
+                - /url: /ajuda
+    - separator [ref=e305]
+    - generic [ref=e306]:
+      - paragraph [ref=e307]: Todas as informações contidas neste site têm a intenção de informar e educar, não pretendendo, de forma alguma, substituir as orientações de um profissional médico ou servir como recomendação para qualquer tipo de tratamento. Decisões relacionadas a tratamento de pacientes devem ser tomadas por profissionais autorizados, considerando as características de cada paciente. Se persistirem os sintomas, o médico deverá ser consultado. Procure um médico e o farmacêutico. Leia a bula. Não comercializamos, não indicamos, não receitamos, nenhum tipo de medicamento essa função cabe exclusivamente a médicos e farmacêuticos. Não consuma qualquer tipo de medicamento sem consultar seu médico. Não somos uma loja ou marketplace, ou seja, não realizamos a venda de medicamentos, apenas contribuímos para que você encontre o preço mais barato, comparando os preços de produtos farmacêuticos. Contribuímos e damos auxílio para que sua experiência seja bem-sucedida, mas a finalização da compra acontece nos sites das nossas lojas parceiras.
+      - paragraph [ref=e308]: "© 2025 Afya Participações S.A. - todos os direitos reservados. Alameda Lorena, 269 - Jardim Paulista - São Paulo / SP - CEP.: 01424-001 - CNPJ 23.399.329/0002-53."
+  - alert [ref=e309]

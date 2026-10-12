@@ -1,0 +1,98 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e1048] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button [ref=e1049] [cursor=pointer]
+            - paragraph [ref=e300]: Dr. Exame
+            - button [ref=e1051] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button [ref=e1052] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button [ref=e1053] [cursor=pointer]:
+              - generic [ref=e298]: E
+        - main [ref=e57]:
+          - generic [ref=e857]:
+            - generic [ref=e858]:
+              - paragraph [ref=e859]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e862]:
+              - generic [ref=e863]:
+                - generic [ref=e868]:
+                  - paragraph [ref=e976]: "45"
+                  - paragraph [ref=e870]: de 100
+                - generic [ref=e871]:
+                  - paragraph [ref=e872]: Sua saúde hoje
+                  - paragraph [ref=e873]: Pede atenção
+                  - paragraph [ref=e875]:
+                    - generic [ref=e977]: ● 6 moderados
+              - button [ref=e1054] [cursor=pointer]: Ver análise completa
+            - button [ref=e1055] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e899]:
+              - generic [ref=e906] [cursor=pointer]:
+                - paragraph [ref=e907]: Cardiometabólico
+                - paragraph [ref=e908]: Em dia
+                - paragraph [ref=e909]: sem fatores
+              - generic [ref=e912] [cursor=pointer]:
+                - generic [ref=e913]: 🧬
+                - generic [ref=e914]:
+                  - paragraph [ref=e915]: Idade biológica
+                  - paragraph [ref=e916]: Em breve
+                  - paragraph [ref=e917]: estimativa c/ +exames
+              - generic [ref=e924] [cursor=pointer]:
+                - paragraph [ref=e925]: Seus exames
+                - paragraph [ref=e926]: "5"
+                - paragraph [ref=e927]: 8 alterados
+              - generic [ref=e934] [cursor=pointer]:
+                - paragraph [ref=e935]: Evolução
+                - paragraph [ref=e936]: Tendências
+                - paragraph [ref=e937]: 28 resultados
+            - generic [ref=e939]:
+              - generic [ref=e940]: Enviar exame
+              - generic [ref=e947]: Evolução
+              - generic [ref=e954]: Família
+              - generic [ref=e962]: Relatório
+            - generic [ref=e980]:
+              - generic [ref=e984]:
+                - paragraph [ref=e985]: "71"
+                - text: créditos disponíveis
+              - button [ref=e1056] [cursor=pointer]: Comprar
+            - button [ref=e1057] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - paragraph [ref=e191] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - dialog [active] [ref=e1062]:
+    - generic [ref=e1063]:
+      - button "Fechar" [ref=e1064] [cursor=pointer]
+      - generic [ref=e1067]:
+        - generic [ref=e1068]: E
+        - generic [ref=e1069]:
+          - paragraph [ref=e1070]: Edmilson Lopes Fernandes dos Santos
+          - paragraph [ref=e1071]: Plano grátis
+          - generic [ref=e1072]:
+            - paragraph [ref=e1073]: ⚡ 71 créditos
+            - button "(+ Recarregar)" [ref=e1074] [cursor=pointer]
+    - separator [ref=e1075]
+    - button [ref=e1077] [cursor=pointer]
+    - navigation [ref=e1082]:
+      - button "Exames" [ref=e1084] [cursor=pointer]
+      - button "Cuidados" [ref=e1093] [cursor=pointer]
+      - button "Pessoas" [ref=e1103] [cursor=pointer]
+      - button "Conta" [ref=e1113] [cursor=pointer]
+      - separator [ref=e1121]
+      - button "Ajuda & Suporte" [ref=e1122] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e1128] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e1134] [cursor=pointer]

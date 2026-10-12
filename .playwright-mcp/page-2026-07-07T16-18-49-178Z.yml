@@ -1,0 +1,133 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e572] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Close menu" [ref=e573] [cursor=pointer]:
+              - img [ref=e26]
+            - heading "Valores alterados" [level=6] [ref=e852]:
+              - generic [ref=e854]: Valores alterados
+            - button "71" [ref=e574] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "71"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e575] [cursor=pointer]:
+              - generic [ref=e35]: E
+              - generic [ref=e37]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e39]
+            - button "21" [ref=e576] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - generic [ref=e45]: "21"
+            - button "Mais opções" [ref=e577] [cursor=pointer]:
+              - img [ref=e47]
+            - button "Atualizar" [ref=e578] [cursor=pointer]:
+              - img [ref=e51]
+        - main [ref=e53]:
+          - navigation [ref=e491]:
+            - button "Início" [ref=e579] [cursor=pointer]:
+              - img [ref=e494]
+              - generic [ref=e497]: Início
+            - button "Exames" [ref=e580] [cursor=pointer]:
+              - img [ref=e500]
+              - generic [ref=e503]: Exames
+            - button "Dr. Exame (IA)" [ref=e581] [cursor=pointer]:
+              - img [ref=e506]
+              - generic [ref=e509]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e582] [cursor=pointer]:
+              - img [ref=e512]
+              - generic [ref=e515]: Relatório completo
+            - generic [ref=e516]:
+              - button "Evolução & Conquistas" [ref=e583] [cursor=pointer]:
+                - img [ref=e519]
+                - generic [ref=e523]: Evolução & Conquistas
+                - img [ref=e524]
+              - generic [ref=e673]:
+                - button "Evolução" [ref=e674] [cursor=pointer]:
+                  - img [ref=e676]
+                  - generic [ref=e680]: Evolução
+                - button "Minhas conquistas" [ref=e681] [cursor=pointer]:
+                  - img [ref=e683]
+                  - generic [ref=e686]: Minhas conquistas
+            - generic [ref=e526]:
+              - button "Minha Saúde" [ref=e584] [cursor=pointer]:
+                - img [ref=e529]
+                - generic [ref=e533]: Minha Saúde
+                - img [ref=e534]
+              - generic [ref=e857]:
+                - button "Valores alterados" [ref=e858] [cursor=pointer]:
+                  - img [ref=e860]
+                  - generic [ref=e864]: Valores alterados
+                - button "Tendências" [ref=e865] [cursor=pointer]:
+                  - img [ref=e867]
+                  - generic [ref=e870]: Tendências
+                - button "Linha do tempo" [ref=e871] [cursor=pointer]:
+                  - img [ref=e873]
+                  - generic [ref=e876]: Linha do tempo
+                - button "Medições" [ref=e877] [cursor=pointer]:
+                  - img [ref=e879]
+                  - generic [ref=e883]: Medições
+                - button "Vacinas" [ref=e884] [cursor=pointer]:
+                  - img [ref=e886]
+                  - generic [ref=e889]: Vacinas
+                - button "Lembretes" [ref=e890] [cursor=pointer]:
+                  - img [ref=e892]
+                  - generic [ref=e895]: Lembretes
+                - button "Cartão de emergência" [ref=e896] [cursor=pointer]:
+                  - img [ref=e898]
+                  - generic [ref=e901]: Cartão de emergência
+            - generic [ref=e536]:
+              - button "Família & Médicos" [ref=e585] [cursor=pointer]:
+                - img [ref=e539]
+                - generic [ref=e543]: Família & Médicos
+                - img [ref=e544]
+              - generic [ref=e755]:
+                - button "Família" [ref=e756] [cursor=pointer]:
+                  - img [ref=e758]
+                  - generic [ref=e762]: Família
+                - button "Dependentes" [ref=e763] [cursor=pointer]:
+                  - img [ref=e765]
+                  - generic [ref=e769]: Dependentes
+                - button "Meus Médicos" [ref=e770] [cursor=pointer]:
+                  - img [ref=e772]
+                  - generic [ref=e775]: Meus Médicos
+                - button "Despesas médicas" [ref=e776] [cursor=pointer]:
+                  - img [ref=e778]
+                  - generic [ref=e781]: Despesas médicas
+            - button "Conta" [ref=e586] [cursor=pointer]:
+              - img [ref=e549]
+              - generic [ref=e552]: Conta
+              - img [ref=e553]
+            - separator [ref=e555]
+            - button "❓ Ajuda & Suporte" [ref=e587] [cursor=pointer]:
+              - generic [ref=e558]: ❓
+              - generic [ref=e560]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e588] [cursor=pointer]:
+              - generic [ref=e562]: ℹ️
+              - generic [ref=e564]: Sobre o app
+            - menuitem "Sair da conta" [ref=e589] [cursor=pointer]:
+              - img [ref=e567]
+              - generic [ref=e570]: Sair da conta
+            - generic [ref=e571]: Meus Exames · v2.4.0.181 (b16361f)
+          - generic [ref=e902]:
+            - generic [ref=e903]:
+              - img [ref=e905]
+              - generic [ref=e908]:
+                - heading "Valores fora da faixa" [level=5] [ref=e909]
+                - paragraph [ref=e910]:
+                  - text: Ordenados por
+                  - strong [ref=e911]: prioridade de atenção
+                  - text: (🔴→🟡). Toque num exame pra expandir e em
+                  - strong [ref=e912]: Agendar
+                  - text: pro especialista.
+            - progressbar [ref=e914]:
+              - img [ref=e915]
+            - generic [ref=e917]: "*Educativo. Sempre confirme com seu médico."
+    - button "Pergunte ao Dr. Exame" [ref=e698] [cursor=pointer]:
+      - generic [ref=e699]:
+        - img "Dr. Exame" [ref=e701]
+        - img [ref=e703]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e600]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e601]

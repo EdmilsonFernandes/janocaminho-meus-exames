@@ -1,0 +1,103 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e572] [cursor=pointer]
+      - main [ref=e53]:
+        - navigation [ref=e491]:
+          - button "Início" [ref=e579] [cursor=pointer]:
+            - img [ref=e494]
+            - generic [ref=e497]: Início
+          - button "Exames" [ref=e580] [cursor=pointer]:
+            - img [ref=e500]
+            - generic [ref=e503]: Exames
+          - button "Dr. Exame (IA)" [ref=e581] [cursor=pointer]:
+            - img [ref=e506]
+            - generic [ref=e509]: Dr. Exame (IA)
+          - button "Relatório completo" [ref=e582] [cursor=pointer]:
+            - img [ref=e512]
+            - generic [ref=e515]: Relatório completo
+          - generic [ref=e516]:
+            - button "Evolução & Conquistas" [ref=e583] [cursor=pointer]:
+              - img [ref=e519]
+              - generic [ref=e523]: Evolução & Conquistas
+              - img [ref=e524]
+            - generic [ref=e673]:
+              - button "Evolução" [ref=e674] [cursor=pointer]:
+                - img [ref=e676]
+                - generic [ref=e680]: Evolução
+              - button "Minhas conquistas" [ref=e681] [cursor=pointer]:
+                - img [ref=e683]
+                - generic [ref=e686]: Minhas conquistas
+          - button "Minha Saúde" [ref=e584] [cursor=pointer]:
+            - img [ref=e529]
+            - generic [ref=e533]: Minha Saúde
+            - img [ref=e534]
+          - button "Família & Médicos" [ref=e585] [cursor=pointer]:
+            - img [ref=e539]
+            - generic [ref=e543]: Família & Médicos
+            - img [ref=e544]
+          - button "Conta" [ref=e586] [cursor=pointer]:
+            - img [ref=e549]
+            - generic [ref=e552]: Conta
+            - img [ref=e553]
+          - separator [ref=e555]
+          - button "❓ Ajuda & Suporte" [ref=e587] [cursor=pointer]:
+            - generic [ref=e558]: ❓
+            - generic [ref=e560]: Ajuda & Suporte
+          - menuitem "ℹ️ Sobre o app" [ref=e588] [cursor=pointer]:
+            - generic [ref=e562]: ℹ️
+            - generic [ref=e564]: Sobre o app
+          - menuitem "Sair da conta" [ref=e589] [cursor=pointer]:
+            - img [ref=e567]
+            - generic [ref=e570]: Sair da conta
+          - generic [ref=e571]: Meus Exames · v2.4.0.181 (b16361f)
+        - generic [ref=e687]:
+          - generic [ref=e688]:
+            - img [ref=e690]
+            - generic [ref=e692]:
+              - heading "Evolução ao longo do tempo" [level=5] [ref=e693]
+              - paragraph [ref=e694]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+          - generic [ref=e706]:
+            - generic [ref=e707]:
+              - generic [ref=e708]: 🟢 0 Melhoraram
+              - generic [ref=e709]: 🔴 0 Pioraram
+              - generic [ref=e710]: ✅ 19 Estáveis
+            - generic [ref=e711]:
+              - text: Tudo estável entre as coletas — mantenha o acompanhamento.
+              - strong [ref=e712]: ·
+              - text: Conteúdo educativo — a decisão final é do médico.
+          - generic [ref=e713]:
+            - button "📋 Todos (19)" [ref=e715] [cursor=pointer]:
+              - generic [ref=e716]: 📋 Todos (19)
+            - button "🔴 Fora da faixa (0)" [ref=e718] [cursor=pointer]:
+              - generic [ref=e719]: 🔴 Fora da faixa (0)
+            - button "🟠 Em mudança (0)" [ref=e721] [cursor=pointer]:
+              - generic [ref=e722]: 🟠 Em mudança (0)
+            - button "✅ Estável (19)" [ref=e724] [cursor=pointer]:
+              - generic [ref=e725]: ✅ Estável (19)
+          - generic [ref=e726]:
+            - img [ref=e727]
+            - textbox "Buscar exame (TSH, glicose, colesterol…)" [ref=e730]
+          - generic [ref=e731]:
+            - generic [ref=e733] [cursor=pointer]:
+              - generic [ref=e734]: 🩸
+              - paragraph [ref=e735]: Hemograma
+              - generic "Estável" [ref=e736]: ✅
+              - img [ref=e737]
+            - generic [ref=e740] [cursor=pointer]:
+              - generic [ref=e741]: 🫀
+              - paragraph [ref=e742]: Função Hepática
+              - generic "Estável" [ref=e743]: ✅
+              - img [ref=e744]
+            - generic [ref=e747] [cursor=pointer]:
+              - generic [ref=e748]: 📋
+              - paragraph [ref=e749]: Outros exames
+              - generic "Estável" [ref=e750]: ✅
+              - img [ref=e751]
+    - button "Pergunte ao Dr. Exame" [ref=e698] [cursor=pointer]:
+      - generic [ref=e699]:
+        - img "Dr. Exame" [ref=e701]
+        - img [ref=e703]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e600]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e601]

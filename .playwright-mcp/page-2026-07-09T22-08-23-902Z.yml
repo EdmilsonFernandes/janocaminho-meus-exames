@@ -1,0 +1,77 @@
+- generic [active] [ref=f2e3]:
+  - generic [ref=f2e44]:
+    - navigation [ref=f2e45]:
+      - generic [ref=f2e47]:
+        - generic [ref=f2e48]: D
+        - generic [ref=f2e49]:
+          - paragraph [ref=f2e50]: 🩺 Dr. Teste Acesso
+          - generic [ref=f2e51]: Clínica Médica • CRM 99999-SP
+      - separator [ref=f2e52]
+      - generic [ref=f2e53]:
+        - generic [ref=f2e54]: PLANO
+        - paragraph [ref=f2e55]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f2e56]:
+        - button "Pacientes" [ref=f2e57] [cursor=pointer]:
+          - img [ref=f2e59]
+          - generic [ref=f2e62]: Pacientes
+        - button "Meu perfil" [ref=f2e63] [cursor=pointer]:
+          - img [ref=f2e65]
+          - generic [ref=f2e68]: Meu perfil
+        - button "Trocar senha" [ref=f2e69] [cursor=pointer]:
+          - img [ref=f2e71]
+          - generic [ref=f2e74]: Trocar senha
+        - separator [ref=f2e75]
+        - button "Sair" [ref=f2e76] [cursor=pointer]:
+          - img [ref=f2e78]
+          - generic [ref=f2e81]: Sair
+      - generic [ref=f2e82]: Portal do Médico
+    - generic [ref=f2e83]:
+      - generic [ref=f2e84]:
+        - button "Voltar" [ref=f2e119] [cursor=pointer]:
+          - img [ref=f2e120]
+        - paragraph [ref=f2e86]: Edmilson Lopes Fernandes dos Santos
+      - generic [ref=f2e87]:
+        - generic [ref=f2e89]:
+          - paragraph [ref=f2e90]: 💎 Dr. Exame Pro
+          - paragraph [ref=f2e91]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f2e92] [cursor=pointer]
+        - generic [ref=f2e122]:
+          - generic [ref=f2e123]: E
+          - generic [ref=f2e124]:
+            - generic [ref=f2e125]:
+              - paragraph [ref=f2e126]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f2e128]: "#MC97"
+            - text: Masculino • Particular
+        - generic [ref=f2e130]:
+          - generic [ref=f2e131] [cursor=pointer]:
+            - generic [ref=f2e132]: 🛡️
+            - paragraph [ref=f2e133]: Risco
+            - generic [ref=f2e134]: "1"
+          - generic [ref=f2e135] [cursor=pointer]:
+            - generic [ref=f2e136]: ❓
+            - paragraph [ref=f2e137]: Perguntas
+          - generic [ref=f2e138] [cursor=pointer]:
+            - generic [ref=f2e139]: 📋
+            - paragraph [ref=f2e140]: Exames
+            - generic [ref=f2e141]: "1"
+          - generic [ref=f2e142] [cursor=pointer]:
+            - generic [ref=f2e143]: 🚨
+            - paragraph [ref=f2e144]: Alertas
+            - generic [ref=f2e145]: "2"
+          - generic [ref=f2e146] [cursor=pointer]:
+            - generic [ref=f2e147]: 📈
+            - paragraph [ref=f2e148]: Evolução
+          - generic [ref=f2e149] [cursor=pointer]:
+            - generic [ref=f2e150]: 🤖
+            - paragraph [ref=f2e151]: Resumos IA
+            - generic [ref=f2e152]: "1"
+          - generic [ref=f2e153] [cursor=pointer]:
+            - generic [ref=f2e154]: 📝
+            - paragraph [ref=f2e155]: Anotações
+        - generic [ref=f2e224]:
+          - generic [ref=f2e225]: ❓
+          - paragraph [ref=f2e226]: Nenhuma pergunta deste paciente ainda.
+  - generic [ref=f2e2] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e42]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e43]

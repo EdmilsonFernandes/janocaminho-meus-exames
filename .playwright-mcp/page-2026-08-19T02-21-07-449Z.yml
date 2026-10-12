@@ -1,0 +1,116 @@
+- generic [ref=f9e20]:
+  - generic [ref=f9e21]:
+    - generic [ref=f9e22]:
+      - button [ref=f9e23] [cursor=pointer]
+      - generic [ref=f9e24]:
+        - banner [ref=f9e25]:
+          - generic [ref=f9e26]:
+            - button [ref=f9e27] [cursor=pointer]
+            - paragraph [ref=f9e33]: Dr. Exame
+            - button [ref=f9e34] [cursor=pointer]:
+              - generic [ref=f9e37]: "71"
+            - button [ref=f9e38] [cursor=pointer]:
+              - generic [ref=f9e39]: 9+
+            - button [ref=f9e44] [cursor=pointer]:
+              - generic [ref=f9e45]: E
+        - main [ref=f9e47]:
+          - generic [ref=f9e661]:
+            - heading [level=5] [ref=f9e667]: Lembretes
+            - generic [ref=f9e669]:
+              - heading [level=6] [ref=f9e670]: Novo lembrete
+              - generic [ref=f9e671]:
+                - generic [ref=f9e672]:
+                  - generic: "O que (ex.: Refazer hemograma)"
+                  - generic [ref=f9e673]:
+                    - textbox [ref=f9e674]
+                    - group:
+                      - generic: "O que (ex.: Refazer hemograma)"
+                - generic [ref=f9e675]:
+                  - generic [ref=f9e676]: Data
+                  - generic [ref=f9e677]:
+                    - textbox [ref=f9e678]
+                    - group:
+                      - generic: Data
+                - generic [ref=f9e679]:
+                  - generic [ref=f9e680]: Hora
+                  - generic [ref=f9e681]:
+                    - textbox [ref=f9e682]: 09:00
+                    - group:
+                      - generic: Hora
+              - paragraph [ref=f9e686]: Quando avisar?
+              - generic [ref=f9e687]:
+                - button [ref=f9e688] [cursor=pointer]:
+                  - generic [ref=f9e689]: 1 semana antes
+                - button [pressed] [ref=f9e690] [cursor=pointer]:
+                  - generic [ref=f9e691]: 1 dia antes
+                - button [ref=f9e692] [cursor=pointer]:
+                  - generic [ref=f9e693]: 12 h antes
+                - button [pressed] [ref=f9e694] [cursor=pointer]:
+                  - generic [ref=f9e695]: 5 h antes
+                - button [ref=f9e696] [cursor=pointer]:
+                  - generic [ref=f9e697]: 1 hora antes
+                - button [pressed] [ref=f9e698] [cursor=pointer]:
+                  - generic [ref=f9e699]: Na hora
+              - generic [ref=f9e700]:
+                - text: Avisamos por
+                - strong [ref=f9e701]: notificação no app
+                - text: ","
+                - strong [ref=f9e702]: push
+                - text: e
+                - strong [ref=f9e703]: e-mail
+                - text: em cada antecedência escolhida.
+              - button [disabled]: Adicionar
+            - generic [ref=f9e705]:
+              - generic [ref=f9e706]:
+                - text: Próximos lembretes
+                - generic [ref=f9e708]: "1"
+              - list [ref=f9e710]:
+                - listitem [ref=f9e711]:
+                  - checkbox [ref=f9e714] [cursor=pointer]
+                  - generic [ref=f9e717]:
+                    - generic [ref=f9e718]: Teste lembrete bug
+                    - generic [ref=f9e719]:
+                      - generic [ref=f9e720]: 25/12/2026, 09:00
+                      - generic [ref=f9e723]:
+                        - generic [ref=f9e724]: Na hora
+                        - generic [ref=f9e726]: 5 h antes
+                        - generic [ref=f9e728]: 1 dia antes
+                  - button [ref=f9e730] [cursor=pointer]
+    - button [ref=f9e630] [cursor=pointer]
+    - navigation [ref=f9e166]:
+      - paragraph [ref=f9e171] [cursor=pointer]: Início
+      - paragraph [ref=f9e177] [cursor=pointer]: Exames
+      - paragraph [ref=f9e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f9e186] [cursor=pointer]: Evolução
+      - paragraph [ref=f9e191] [cursor=pointer]: Mais
+  - generic [ref=f9e17] [cursor=pointer]
+  - dialog [active] [ref=f9e195]:
+    - navigation [ref=f9e196]:
+      - generic [ref=f9e197]:
+        - button "Exames" [expanded] [ref=f9e770] [cursor=pointer]
+        - generic [ref=f9e343]:
+          - button "Exames" [ref=f9e771] [cursor=pointer]
+          - button "Valores alterados" [ref=f9e772] [cursor=pointer]
+          - button "Evolução" [ref=f9e773] [cursor=pointer]
+          - button "Tendências" [ref=f9e774] [cursor=pointer]
+          - button "Linha do Tempo" [ref=f9e775] [cursor=pointer]
+          - button "Relatório completo" [ref=f9e776] [cursor=pointer]
+      - generic [ref=f9e206]:
+        - button "Cuidados" [expanded] [ref=f9e777] [cursor=pointer]
+        - generic [ref=f9e269]:
+          - button "Medições" [ref=f9e778] [cursor=pointer]
+          - button "Vacinas" [ref=f9e779] [cursor=pointer]
+          - button "Lembretes" [ref=f9e780] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=f9e781] [cursor=pointer]
+          - button "Conquistas" [ref=f9e782] [cursor=pointer]
+      - generic [ref=f9e216]:
+        - button "Pessoas" [expanded] [ref=f9e783] [cursor=pointer]
+        - generic [ref=f9e641]:
+          - button "Família & dependentes" [ref=f9e784] [cursor=pointer]
+          - button "Meus Médicos" [ref=f9e785] [cursor=pointer]
+          - button "Perguntas" [ref=f9e786] [cursor=pointer]
+      - button "Conta" [ref=f9e787] [cursor=pointer]
+      - separator [ref=f9e235]
+      - button "Ajuda & Suporte" [ref=f9e788] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f9e789] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f9e790] [cursor=pointer]

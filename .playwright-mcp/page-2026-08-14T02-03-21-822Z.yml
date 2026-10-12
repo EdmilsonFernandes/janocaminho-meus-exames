@@ -1,0 +1,40 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e105]:
+      - button "Pular para o conteúdo" [ref=e449] [cursor=pointer]
+      - generic [ref=e107]:
+        - banner [ref=e108]:
+          - generic [ref=e109]:
+            - heading [level=6]
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e406] [cursor=pointer]:
+              - generic [ref=e409]: "71"
+              - button "Ocultar créditos" [ref=e410]
+            - button "Notificações" [ref=e413] [cursor=pointer]:
+              - generic [ref=e118]: "34"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e450] [cursor=pointer]:
+              - generic [ref=e123]: E
+              - generic [ref=e451]: Edmilson Lopes Fernandes dos Santos
+            - button "Atualizar" [ref=e416] [cursor=pointer]
+        - main [ref=e134]:
+          - navigation [ref=e456]:
+            - generic [ref=e457]:
+              - paragraph [ref=e462] [cursor=pointer]: Início
+              - paragraph [ref=e467] [cursor=pointer]: Exames
+              - paragraph [ref=e473] [cursor=pointer]: Valores alterados
+              - paragraph [ref=e479] [cursor=pointer]: Evolução da saúde
+              - paragraph [ref=e484] [cursor=pointer]: Tendências
+              - paragraph [ref=e489] [cursor=pointer]: Linha do Tempo
+              - paragraph [ref=e494] [cursor=pointer]: Relatório completo
+              - paragraph [ref=e499] [cursor=pointer]: Perguntas
+              - paragraph [ref=e505] [cursor=pointer]: Saúde da Família
+            - button "Minha saúde" [ref=e507] [cursor=pointer]
+            - button "Família & médicos" [ref=e517] [cursor=pointer]
+            - button "Conta" [ref=e527] [cursor=pointer]
+            - separator [ref=e535]
+            - button "Ajuda & Suporte" [ref=e536] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=e542] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=e548] [cursor=pointer]
+    - button "Enviar exame" [ref=e554] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e447]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e448]

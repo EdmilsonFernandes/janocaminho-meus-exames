@@ -1,0 +1,192 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e489]:
+      - button "Pular para o conteúdo" [ref=e1043] [cursor=pointer]
+      - generic [ref=e491]:
+        - banner [ref=e492]:
+          - generic [ref=e493]:
+            - button "Menu" [ref=e1044] [cursor=pointer]:
+              - img [ref=e495]
+            - button "Voltar" [ref=e1045] [cursor=pointer]:
+              - img [ref=e766]
+            - button "79" [ref=e1046] [cursor=pointer]:
+              - img [ref=e498]
+              - generic [ref=e500]: "79"
+            - button "E" [ref=e1047] [cursor=pointer]:
+              - generic [ref=e504]: E
+            - button "3" [ref=e1048] [cursor=pointer]:
+              - generic [ref=e506]:
+                - img [ref=e507]
+                - generic [ref=e509]: "3"
+            - button "Mais opções" [ref=e1049] [cursor=pointer]:
+              - img [ref=e511]
+            - button "Atualizar" [ref=e1050] [cursor=pointer]:
+              - img [ref=e515]
+        - main [ref=e517]:
+          - generic [ref=e1251]:
+            - generic [ref=e1252]:
+              - img [ref=e1254]
+              - generic [ref=e1256]:
+                - heading "Evolução ao longo do tempo" [level=5] [ref=e1257]
+                - paragraph [ref=e1258]: Como cada exame evoluiu entre as coletas. Toque pra ver o gráfico.
+            - generic [ref=e1262]:
+              - button "📋 Todos (20)" [ref=e1264] [cursor=pointer]:
+                - generic [ref=e1265]: 📋 Todos (20)
+              - button "🔴 Fora da faixa (10)" [ref=e1267] [cursor=pointer]:
+                - generic [ref=e1268]: 🔴 Fora da faixa (10)
+              - button "🟠 Em mudança (0)" [ref=e1270] [cursor=pointer]:
+                - generic [ref=e1271]: 🟠 Em mudança (0)
+              - button "✅ Estável (10)" [ref=e1273] [cursor=pointer]:
+                - generic [ref=e1274]: ✅ Estável (10)
+            - generic [ref=e1275]:
+              - img [ref=e1276]
+              - textbox "Buscar exame (TSH, glicose, colesterol…)" [ref=e1279]
+            - generic [ref=e1280]:
+              - generic [ref=e1281]:
+                - generic [ref=e1282] [cursor=pointer]:
+                  - generic [ref=e1283]: 🩸
+                  - paragraph [ref=e1284]: Hemograma
+                  - generic "Fora da faixa" [ref=e1285]: 🔴
+                  - generic [ref=e1287]: "15"
+                  - img [ref=e1288]
+                - generic [ref=e1309]:
+                  - heading "🔴 HEMACIAS 5.78 milhões/mm*" [level=3] [ref=e1311]:
+                    - button "🔴 HEMACIAS 5.78 milhões/mm*" [ref=e1312] [cursor=pointer]:
+                      - generic [ref=e1314]:
+                        - generic [ref=e1315]: 🔴
+                        - paragraph [ref=e1316]: HEMACIAS
+                        - paragraph [ref=e1317]: 5.78 milhões/mm*
+                      - img [ref=e1319]
+                  - heading "🔴 HEMOGLOBINA 15 g/dt" [level=3] [ref=e1322]:
+                    - button "🔴 HEMOGLOBINA 15 g/dt" [ref=e1323] [cursor=pointer]:
+                      - generic [ref=e1325]:
+                        - generic [ref=e1326]: 🔴
+                        - paragraph [ref=e1327]: HEMOGLOBINA
+                        - paragraph [ref=e1328]: 15 g/dt
+                      - img [ref=e1330]
+                  - heading "🔴 HEMATOCRITO 46.7 %" [level=3] [ref=e1333]:
+                    - button "🔴 HEMATOCRITO 46.7 %" [ref=e1334] [cursor=pointer]:
+                      - generic [ref=e1336]:
+                        - generic [ref=e1337]: 🔴
+                        - paragraph [ref=e1338]: HEMATOCRITO
+                        - paragraph [ref=e1339]: 46.7 %
+                      - img [ref=e1341]
+                  - heading "🔴 VCM 80.8" [level=3] [ref=e1344]:
+                    - button "🔴 VCM 80.8" [ref=e1345] [cursor=pointer]:
+                      - generic [ref=e1347]:
+                        - generic [ref=e1348]: 🔴
+                        - paragraph [ref=e1349]: VCM
+                        - paragraph [ref=e1350]: "80.8"
+                      - img [ref=e1352]
+                  - heading "🔴 HCM 26 pg" [level=3] [ref=e1355]:
+                    - button "🔴 HCM 26 pg" [ref=e1356] [cursor=pointer]:
+                      - generic [ref=e1358]:
+                        - generic [ref=e1359]: 🔴
+                        - paragraph [ref=e1360]: HCM
+                        - paragraph [ref=e1361]: 26 pg
+                      - img [ref=e1363]
+                  - heading "🔴 CHCM 32.1 g/dt" [level=3] [ref=e1366]:
+                    - button "🔴 CHCM 32.1 g/dt" [ref=e1367] [cursor=pointer]:
+                      - generic [ref=e1369]:
+                        - generic [ref=e1370]: 🔴
+                        - paragraph [ref=e1371]: CHCM
+                        - paragraph [ref=e1372]: 32.1 g/dt
+                      - img [ref=e1374]
+                  - heading "🔴 NEUTROFILOS 59.6 %" [level=3] [ref=e1377]:
+                    - button "🔴 NEUTROFILOS 59.6 %" [ref=e1378] [cursor=pointer]:
+                      - generic [ref=e1380]:
+                        - generic [ref=e1381]: 🔴
+                        - paragraph [ref=e1382]: NEUTROFILOS
+                        - paragraph [ref=e1383]: 59.6 %
+                      - img [ref=e1385]
+                  - heading "🔴 LINFOCITOS TIPICOS 28.5 %" [level=3] [ref=e1388]:
+                    - button "🔴 LINFOCITOS TIPICOS 28.5 %" [ref=e1389] [cursor=pointer]:
+                      - generic [ref=e1391]:
+                        - generic [ref=e1392]: 🔴
+                        - paragraph [ref=e1393]: LINFOCITOS TIPICOS
+                        - paragraph [ref=e1394]: 28.5 %
+                      - img [ref=e1396]
+                  - heading "🔴 MONOCITOS 65 %" [level=3] [ref=e1399]:
+                    - button "🔴 MONOCITOS 65 %" [ref=e1400] [cursor=pointer]:
+                      - generic [ref=e1402]:
+                        - generic [ref=e1403]: 🔴
+                        - paragraph [ref=e1404]: MONOCITOS
+                        - paragraph [ref=e1405]: 65 %
+                      - img [ref=e1407]
+                  - heading "🔴 PLAQUETAS 116000 /mm*" [level=3] [ref=e1410]:
+                    - button "🔴 PLAQUETAS 116000 /mm*" [ref=e1411] [cursor=pointer]:
+                      - generic [ref=e1413]:
+                        - generic [ref=e1414]: 🔴
+                        - paragraph [ref=e1415]: PLAQUETAS
+                        - paragraph [ref=e1416]: 116000 /mm*
+                      - img [ref=e1418]
+                  - heading "✅ RDW 11.6 %" [level=3] [ref=e1421]:
+                    - button "✅ RDW 11.6 %" [ref=e1422] [cursor=pointer]:
+                      - generic [ref=e1424]:
+                        - generic [ref=e1425]: ✅
+                        - paragraph [ref=e1426]: RDW
+                        - paragraph [ref=e1427]: 11.6 %
+                      - img [ref=e1429]
+                  - heading "✅ LEUCOCITOS 6980 /mm*" [level=3] [ref=e1432]:
+                    - button "✅ LEUCOCITOS 6980 /mm*" [ref=e1433] [cursor=pointer]:
+                      - generic [ref=e1435]:
+                        - generic [ref=e1436]: ✅
+                        - paragraph [ref=e1437]: LEUCOCITOS
+                        - paragraph [ref=e1438]: 6980 /mm*
+                      - img [ref=e1440]
+                  - heading "✅ EOSINOFILOS 4 %" [level=3] [ref=e1443]:
+                    - button "✅ EOSINOFILOS 4 %" [ref=e1444] [cursor=pointer]:
+                      - generic [ref=e1446]:
+                        - generic [ref=e1447]: ✅
+                        - paragraph [ref=e1448]: EOSINOFILOS
+                        - paragraph [ref=e1449]: 4 %
+                      - img [ref=e1451]
+                  - heading "✅ BASOFILOS 1.3 %" [level=3] [ref=e1454]:
+                    - button "✅ BASOFILOS 1.3 %" [ref=e1455] [cursor=pointer]:
+                      - generic [ref=e1457]:
+                        - generic [ref=e1458]: ✅
+                        - paragraph [ref=e1459]: BASOFILOS
+                        - paragraph [ref=e1460]: 1.3 %
+                      - img [ref=e1462]
+                  - heading "✅ LINFOCITOS REATIVOS 0 %" [level=3] [ref=e1465]:
+                    - button "✅ LINFOCITOS REATIVOS 0 %" [ref=e1466] [cursor=pointer]:
+                      - generic [ref=e1468]:
+                        - generic [ref=e1469]: ✅
+                        - paragraph [ref=e1470]: LINFOCITOS REATIVOS
+                        - paragraph [ref=e1471]: 0 %
+                      - img [ref=e1473]
+              - generic [ref=e1291] [cursor=pointer]:
+                - generic [ref=e1292]: 🫀
+                - paragraph [ref=e1293]: Função Hepática
+                - generic "Estável" [ref=e1294]: ✅
+                - generic [ref=e1296]: "2"
+                - img [ref=e1297]
+              - generic [ref=e1300] [cursor=pointer]:
+                - generic [ref=e1301]: 📋
+                - paragraph [ref=e1302]: Outros exames
+                - generic "Estável" [ref=e1303]: ✅
+                - generic [ref=e1305]: "3"
+                - img [ref=e1306]
+    - button "Pergunte ao Dr. Exame" [ref=e1092] [cursor=pointer]:
+      - generic [ref=e1093]:
+        - img "Dr. Exame" [ref=e1095]
+        - img [ref=e1097]
+    - navigation [ref=e636]:
+      - generic [ref=e637] [cursor=pointer]:
+        - generic [ref=e638]: 🏠
+        - paragraph [ref=e639]: Início
+      - generic [ref=e641] [cursor=pointer]:
+        - generic [ref=e642]: 📋
+        - paragraph [ref=e643]: Exames
+      - generic [ref=e644] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1074]
+        - paragraph [ref=e647]: Dr. Exame
+      - generic [ref=e648] [cursor=pointer]:
+        - generic [ref=e649]: 📈
+        - paragraph [ref=e650]: Evolução
+      - generic [ref=e651] [cursor=pointer]:
+        - generic [ref=e652]: ☰
+        - paragraph [ref=e653]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1075]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e1076]

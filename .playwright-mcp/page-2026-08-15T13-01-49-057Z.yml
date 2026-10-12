@@ -1,0 +1,158 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e455]:
+    - generic [ref=e456]:
+      - generic [ref=e457]:
+        - button "Voltar" [ref=e458] [cursor=pointer]
+        - button "Menu do médico" [ref=e461] [cursor=pointer]
+        - generic [ref=e464]:
+          - paragraph [ref=e465]: Dr. Daniel Shirane
+          - text: Cirurgiao Geral • CRM 185642-SP
+      - generic [ref=e467]:
+        - generic [ref=e468]:
+          - generic [ref=e474]:
+            - generic [ref=e475]:
+              - paragraph [ref=e476]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e477] [cursor=pointer]: Trocar
+            - paragraph [ref=e481]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e482]:
+            - generic [ref=e483]:
+              - generic [ref=e484]: Último exame
+              - paragraph [ref=e488]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e489] [cursor=pointer]:
+              - generic [ref=e490]: Alterações
+              - paragraph [ref=e495]: "40"
+            - generic [ref=e496]:
+              - generic [ref=e497]: Pendências
+              - paragraph [ref=e501]: "1"
+            - generic [ref=e502]:
+              - generic [ref=e503]: Anotações
+              - paragraph [ref=e507]: "0"
+        - tablist "Abas do paciente" [ref=e511]:
+          - tab "Exames" [selected] [ref=e512] [cursor=pointer]:
+            - generic [ref=e833]:
+              - generic [ref=e834]: Exames
+              - superscript [ref=e835]: "13"
+          - tab "Alterados" [ref=e516] [cursor=pointer]:
+            - superscript [ref=e731]: "40"
+          - tab "Tendências" [ref=e523] [cursor=pointer]
+          - tab "Relatório" [ref=e526] [cursor=pointer]
+          - tab "Perguntas" [ref=e529] [cursor=pointer]:
+            - superscript [ref=e532]: "1"
+          - tab "Anotações" [ref=e533] [cursor=pointer]
+        - generic [ref=e1213]:
+          - generic [ref=e1215]:
+            - button [ref=e1216] [cursor=pointer]
+            - generic:
+              - heading "HEMOGRAMA COMPLETO" [level=1]
+              - text: Laboratorial · 🩸 Hemograma
+            - generic [ref=e1220]: Concluído
+            - button [ref=e1222] [cursor=pointer]
+          - generic [ref=e1227]:
+            - generic [ref=e1228]:
+              - generic [ref=e1229]: 13 ago 2026
+              - generic [ref=e1233]:
+                - 'generic "Laboratório: Sabin" [ref=e1234]':
+                  - img "Sabin" [ref=e1235]
+                  - generic [ref=e1236]: Sabin
+                - generic [ref=e1237]: 31 pág.
+            - paragraph [ref=e1238]: 🩺 ENRICO DO AMARAL FONSECA
+          - generic [ref=e1240]:
+            - paragraph [ref=e1241]: 🚩 4 valor(es) fora da faixa de referência
+            - generic [ref=e1242]:
+              - generic [ref=e1243]: "PROLACTINA: 25,5 ng/mL"
+              - generic [ref=e1245]: "PROTEÍNAS TOTAIS: 6,3 g/dL"
+              - generic [ref=e1247]: "TESTOSTERONA LIVRE: 27,86 pg/mL"
+              - generic [ref=e1249]: "TESTOSTERONA TOTAL: 192,00 ng/dL"
+          - heading [level=3] [ref=e1252]:
+            - button "VITAMINAS 3 itens" [ref=e1253] [cursor=pointer]:
+              - generic [ref=e1254]:
+                - paragraph [ref=e1255]: VITAMINAS
+                - generic [ref=e1256]: 3 itens
+          - heading [level=3] [ref=e1261]:
+            - button "PROTEÍNAS 4 itens · 1 alterado" [ref=e1262] [cursor=pointer]:
+              - generic [ref=e1263]:
+                - paragraph [ref=e1264]: PROTEÍNAS
+                - generic [ref=e1265]:
+                  - text: 4 itens ·
+                  - generic [ref=e1266]: 1 alterado
+          - heading [level=3] [ref=e1271]:
+            - button "Leucograma 7 itens" [ref=e1272] [cursor=pointer]:
+              - generic [ref=e1273]:
+                - paragraph [ref=e1274]: Leucograma
+                - generic [ref=e1275]: 7 itens
+          - heading [level=3] [ref=e1280]:
+            - button "MINERAIS 3 itens" [ref=e1281] [cursor=pointer]:
+              - generic [ref=e1282]:
+                - paragraph [ref=e1283]: MINERAIS
+                - generic [ref=e1284]: 3 itens
+          - heading [level=3] [ref=e1289]:
+            - button "Eritrograma 7 itens" [ref=e1290] [cursor=pointer]:
+              - generic [ref=e1291]:
+                - paragraph [ref=e1292]: Eritrograma
+                - generic [ref=e1293]: 7 itens
+          - heading [level=3] [ref=e1298]:
+            - button "LIPÍDEOS 5 itens" [ref=e1299] [cursor=pointer]:
+              - generic [ref=e1300]:
+                - paragraph [ref=e1301]: LIPÍDEOS
+                - generic [ref=e1302]: 5 itens
+          - heading [level=3] [ref=e1307]:
+            - button "FUNÇÃO RENAL 3 itens" [ref=e1308] [cursor=pointer]:
+              - generic [ref=e1309]:
+                - paragraph [ref=e1310]: FUNÇÃO RENAL
+                - generic [ref=e1311]: 3 itens
+          - heading [level=3] [ref=e1316]:
+            - button "HORMÔNIOS 7 itens · 3 alterados" [ref=e1317] [cursor=pointer]:
+              - generic [ref=e1318]:
+                - paragraph [ref=e1319]: HORMÔNIOS
+                - generic [ref=e1320]:
+                  - text: 7 itens ·
+                  - generic [ref=e1321]: 3 alterados
+          - heading [level=3] [ref=e1326]:
+            - button "METABOLISMO DE FERRO 2 itens" [ref=e1327] [cursor=pointer]:
+              - generic [ref=e1328]:
+                - paragraph [ref=e1329]: METABOLISMO DE FERRO
+                - generic [ref=e1330]: 2 itens
+          - heading [level=3] [ref=e1335]:
+            - button "FUNÇÃO HEPÁTICA 4 itens" [ref=e1336] [cursor=pointer]:
+              - generic [ref=e1337]:
+                - paragraph [ref=e1338]: FUNÇÃO HEPÁTICA
+                - generic [ref=e1339]: 4 itens
+          - heading [level=3] [ref=e1344]:
+            - button "HEMOGLOBINA GLICADA 2 itens" [ref=e1345] [cursor=pointer]:
+              - generic [ref=e1346]:
+                - paragraph [ref=e1347]: HEMOGLOBINA GLICADA
+                - generic [ref=e1348]: 2 itens
+          - heading [level=3] [ref=e1353]:
+            - button "GLICOSE 1 itens" [ref=e1354] [cursor=pointer]:
+              - generic [ref=e1355]:
+                - paragraph [ref=e1356]: GLICOSE
+                - generic [ref=e1357]: 1 itens
+          - heading [level=3] [ref=e1362]:
+            - button "INSULINA E INDICES 3 itens" [ref=e1363] [cursor=pointer]:
+              - generic [ref=e1364]:
+                - paragraph [ref=e1365]: INSULINA E INDICES
+                - generic [ref=e1366]: 3 itens
+          - heading [level=3] [ref=e1371]:
+            - button "Série Plaquetária 2 itens" [ref=e1372] [cursor=pointer]:
+              - generic [ref=e1373]:
+                - paragraph [ref=e1374]: Série Plaquetária
+                - generic [ref=e1375]: 2 itens
+          - heading [level=3] [ref=e1380]:
+            - button "TIREOIDIANOS 2 itens" [ref=e1381] [cursor=pointer]:
+              - generic [ref=e1382]:
+                - paragraph [ref=e1383]: TIREOIDIANOS
+                - generic [ref=e1384]: 2 itens
+    - navigation [ref=e705]:
+      - button "Pacientes" [ref=e706] [cursor=pointer]:
+        - paragraph [ref=e711]: Pacientes
+      - button "Perguntas" [ref=e713] [cursor=pointer]:
+        - paragraph [ref=e718]: Perguntas
+      - button "Perfil" [ref=e719] [cursor=pointer]:
+        - paragraph [ref=e724]: Perfil
+      - button "Mais" [ref=e725] [cursor=pointer]:
+        - paragraph [ref=e730]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e339]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e340]
+  - generic [ref=e832]: "0"

@@ -1,0 +1,319 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e7]:
+    - complementary [ref=f12e8]:
+      - generic [ref=f12e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e13]
+        - generic [ref=f12e14]: Admin
+      - navigation [ref=f12e15]:
+        - generic [ref=f12e16]: Operação
+        - link "Dashboard" [ref=f12e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f12e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f12e27] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f12e30] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f12e36] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f12e42] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f12e49]:
+        - generic [ref=f12e51]: Operação ao vivo
+        - paragraph [ref=f12e56]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f12e57]:
+        - link "Ver site público" [ref=f12e58] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f12e63]: © 2026 PremioX · Painel do operador
+    - generic [ref=f12e64]:
+      - banner [ref=f12e65]:
+        - button "Menu" [ref=f12e66] [cursor=pointer]
+        - heading "Painel" [level=2] [ref=f12e69]
+        - button "Atualizar" [ref=f12e70] [cursor=pointer]
+        - link "Ver site" [ref=f12e76] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f12e82]:
+          - generic [ref=f12e83]: S
+          - generic [ref=f12e84]: Sim Admin E2E
+          - generic "Online" [ref=f12e85]
+        - button "Sair" [ref=f12e86] [cursor=pointer]
+      - main [ref=f12e90]:
+        - generic [ref=f12e91]:
+          - complementary [ref=f12e92]:
+            - generic [ref=f12e93]:
+              - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e97]
+              - generic [ref=f12e98]: Admin
+            - navigation [ref=f12e99]:
+              - generic [ref=f12e100]: Operação
+              - link "Dashboard" [ref=f12e101] [cursor=pointer]:
+                - /url: /admin
+              - link "Campanhas" [ref=f12e107] [cursor=pointer]:
+                - /url: /admin/campanhas
+              - link "Nova campanha" [ref=f12e111] [cursor=pointer]:
+                - /url: /admin/campanhas/nova
+              - link "Parceiros" [ref=f12e114] [cursor=pointer]:
+                - /url: /admin/parceiros
+              - link "Usuários" [ref=f12e120] [cursor=pointer]:
+                - /url: /admin/usuarios
+              - link "Bloqueados" [ref=f12e126] [cursor=pointer]:
+                - /url: /admin/bloqueados
+            - generic [ref=f12e133]:
+              - generic [ref=f12e135]: Operação ao vivo
+              - paragraph [ref=f12e140]: Métricas atualizadas a cada poucos segundos.
+            - generic [ref=f12e141]:
+              - link "Ver site público" [ref=f12e142] [cursor=pointer]:
+                - /url: /
+              - paragraph [ref=f12e147]: © 2026 PremioX · Painel do operador
+          - generic [ref=f12e148]:
+            - generic [ref=f12e149]:
+              - button "Menu" [ref=f12e150] [cursor=pointer]
+              - heading "Painel" [level=2] [ref=f12e153]
+              - button "Atualizar" [ref=f12e154] [cursor=pointer]
+              - link "Ver site" [ref=f12e160] [cursor=pointer]:
+                - /url: /
+              - generic [ref=f12e166]:
+                - generic [ref=f12e167]: S
+                - generic [ref=f12e168]: Sim Admin E2E
+                - generic "Online" [ref=f12e169]
+              - button "Sair" [ref=f12e170] [cursor=pointer]
+            - main [ref=f12e174]:
+              - generic [ref=f12e175]:
+                - generic [ref=f12e176]:
+                  - heading "Usuários" [level=1] [ref=f12e177]
+                  - paragraph [ref=f12e178]: Busque, corrija contatos e gerencie contas.
+                - paragraph [ref=f12e179]: 28 usuário(s) · mostrando 1–20
+              - generic [ref=f12e180]:
+                - textbox "Buscar usuários" [ref=f12e182]:
+                  - /placeholder: Buscar por nome, telefone ou email…
+                - generic [ref=f12e183]:
+                  - button "Todos" [pressed] [ref=f12e184] [cursor=pointer]
+                  - button "🟢 Ativos" [ref=f12e185] [cursor=pointer]
+                  - button "🔒 Bloqueados" [ref=f12e186] [cursor=pointer]
+              - generic [ref=f12e187]:
+                - generic [ref=f12e189]:
+                  - generic [ref=f12e190]: Q
+                  - generic [ref=f12e191]:
+                    - link "QA Usuario 15" [ref=f12e192] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-15
+                    - generic [ref=f12e193]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e194]:
+                    - generic [ref=f12e195]: Participante
+                    - generic [ref=f12e196]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e197]: 0 part.
+                  - button "✏️ Editar" [ref=f12e198] [cursor=pointer]
+                - generic [ref=f12e200]:
+                  - generic [ref=f12e201]: Q
+                  - generic [ref=f12e202]:
+                    - link "QA Usuario 2" [ref=f12e203] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-2
+                    - generic [ref=f12e204]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e205]:
+                    - generic [ref=f12e206]: Participante
+                    - generic [ref=f12e207]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e208]: 0 part.
+                  - button "✏️ Editar" [ref=f12e209] [cursor=pointer]
+                - generic [ref=f12e211]:
+                  - generic [ref=f12e212]: Q
+                  - generic [ref=f12e213]:
+                    - link "QA Usuario 3" [ref=f12e214] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-3
+                    - generic [ref=f12e215]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e216]:
+                    - generic [ref=f12e217]: Participante
+                    - generic [ref=f12e218]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e219]: 0 part.
+                  - button "✏️ Editar" [ref=f12e220] [cursor=pointer]
+                - generic [ref=f12e222]:
+                  - generic [ref=f12e223]: Q
+                  - generic [ref=f12e224]:
+                    - link "QA Usuario 4" [ref=f12e225] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-4
+                    - generic [ref=f12e226]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e227]:
+                    - generic [ref=f12e228]: Participante
+                    - generic [ref=f12e229]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e230]: 0 part.
+                  - button "✏️ Editar" [ref=f12e231] [cursor=pointer]
+                - generic [ref=f12e233]:
+                  - generic [ref=f12e234]: Q
+                  - generic [ref=f12e235]:
+                    - link "QA Usuario 5" [ref=f12e236] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-5
+                    - generic [ref=f12e237]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e238]:
+                    - generic [ref=f12e239]: Participante
+                    - generic [ref=f12e240]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e241]: 0 part.
+                  - button "✏️ Editar" [ref=f12e242] [cursor=pointer]
+                - generic [ref=f12e244]:
+                  - generic [ref=f12e245]: Q
+                  - generic [ref=f12e246]:
+                    - link "QA Usuario 6" [ref=f12e247] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-6
+                    - generic [ref=f12e248]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e249]:
+                    - generic [ref=f12e250]: Participante
+                    - generic [ref=f12e251]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e252]: 0 part.
+                  - button "✏️ Editar" [ref=f12e253] [cursor=pointer]
+                - generic [ref=f12e255]:
+                  - generic [ref=f12e256]: Q
+                  - generic [ref=f12e257]:
+                    - link "QA Usuario 7" [ref=f12e258] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-7
+                    - generic [ref=f12e259]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e260]:
+                    - generic [ref=f12e261]: Participante
+                    - generic [ref=f12e262]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e263]: 0 part.
+                  - button "✏️ Editar" [ref=f12e264] [cursor=pointer]
+                - generic [ref=f12e266]:
+                  - generic [ref=f12e267]: Q
+                  - generic [ref=f12e268]:
+                    - link "QA Usuario 8" [ref=f12e269] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-8
+                    - generic [ref=f12e270]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e271]:
+                    - generic [ref=f12e272]: Participante
+                    - generic [ref=f12e273]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e274]: 0 part.
+                  - button "✏️ Editar" [ref=f12e275] [cursor=pointer]
+                - generic [ref=f12e277]:
+                  - generic [ref=f12e278]: Q
+                  - generic [ref=f12e279]:
+                    - link "QA Usuario 9" [ref=f12e280] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-9
+                    - generic [ref=f12e281]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e282]:
+                    - generic [ref=f12e283]: Participante
+                    - generic [ref=f12e284]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e285]: 0 part.
+                  - button "✏️ Editar" [ref=f12e286] [cursor=pointer]
+                - generic [ref=f12e288]:
+                  - generic [ref=f12e289]: Q
+                  - generic [ref=f12e290]:
+                    - link "QA Usuario 10" [ref=f12e291] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-10
+                    - generic [ref=f12e292]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e293]:
+                    - generic [ref=f12e294]: Participante
+                    - generic [ref=f12e295]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e296]: 0 part.
+                  - button "✏️ Editar" [ref=f12e297] [cursor=pointer]
+                - generic [ref=f12e299]:
+                  - generic [ref=f12e300]: Q
+                  - generic [ref=f12e301]:
+                    - link "QA Usuario 11" [ref=f12e302] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-11
+                    - generic [ref=f12e303]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e304]:
+                    - generic [ref=f12e305]: Participante
+                    - generic [ref=f12e306]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e307]: 0 part.
+                  - button "✏️ Editar" [ref=f12e308] [cursor=pointer]
+                - generic [ref=f12e310]:
+                  - generic [ref=f12e311]: Q
+                  - generic [ref=f12e312]:
+                    - link "QA Usuario 12" [ref=f12e313] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-12
+                    - generic [ref=f12e314]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e315]:
+                    - generic [ref=f12e316]: Participante
+                    - generic [ref=f12e317]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e318]: 0 part.
+                  - button "✏️ Editar" [ref=f12e319] [cursor=pointer]
+                - generic [ref=f12e321]:
+                  - generic [ref=f12e322]: Q
+                  - generic [ref=f12e323]:
+                    - link "QA Usuario 13" [ref=f12e324] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-13
+                    - generic [ref=f12e325]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e326]:
+                    - generic [ref=f12e327]: Participante
+                    - generic [ref=f12e328]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e329]: 0 part.
+                  - button "✏️ Editar" [ref=f12e330] [cursor=pointer]
+                - generic [ref=f12e332]:
+                  - generic [ref=f12e333]: Q
+                  - generic [ref=f12e334]:
+                    - link "QA Usuario 14" [ref=f12e335] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-14
+                    - generic [ref=f12e336]: (11) 90100-0001 · sem email
+                  - generic [ref=f12e337]:
+                    - generic [ref=f12e338]: Participante
+                    - generic [ref=f12e339]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e340]: 0 part.
+                  - button "✏️ Editar" [ref=f12e341] [cursor=pointer]
+                - generic [ref=f12e343]:
+                  - generic [ref=f12e344]: Q
+                  - generic [ref=f12e345]:
+                    - link "QA Usuario 1" [ref=f12e346] [cursor=pointer]:
+                      - /url: /admin/usuarios/qa-user-1
+                    - generic [ref=f12e347]: (11) 90100-0000 · sem email
+                  - generic [ref=f12e348]:
+                    - generic [ref=f12e349]: Participante
+                    - generic [ref=f12e350]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e351]: 0 part.
+                  - button "✏️ Editar" [ref=f12e352] [cursor=pointer]
+                - generic [ref=f12e354]:
+                  - generic [ref=f12e355]: B
+                  - generic [ref=f12e356]:
+                    - link "Beto Calote" [ref=f12e357] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj5r000hdtukebrxog63
+                    - generic [ref=f12e358]: (11) 90000-6006 · beto.e2e@premiox.app
+                  - generic [ref=f12e359]:
+                    - generic [ref=f12e360]: Participante
+                    - generic [ref=f12e361]: Bloqueado
+                    - generic "1 participações · 0 arremates" [ref=f12e362]: 1 part.
+                  - button "✏️ Editar" [ref=f12e363] [cursor=pointer]
+                - generic [ref=f12e365]:
+                  - generic [ref=f12e366]: E
+                  - generic [ref=f12e367]:
+                    - link "Eva Teste" [ref=f12e368] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj5e000gdtuk6qns9ct7
+                    - generic [ref=f12e369]: (11) 90000-6005 · eva.e2e@premiox.app
+                  - generic [ref=f12e370]:
+                    - generic [ref=f12e371]: Participante
+                    - generic [ref=f12e372]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e373]: 0 part.
+                  - button "✏️ Editar" [ref=f12e374] [cursor=pointer]
+                - generic [ref=f12e376]:
+                  - generic [ref=f12e377]: D
+                  - generic [ref=f12e378]:
+                    - link "Diego Teste" [ref=f12e379] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj58000fdtukz0wu4ksy
+                    - generic [ref=f12e380]: (11) 90000-6004 · diego.e2e@premiox.app
+                  - generic [ref=f12e381]:
+                    - generic [ref=f12e382]: Participante
+                    - generic [ref=f12e383]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e384]: 0 part.
+                  - button "✏️ Editar" [ref=f12e385] [cursor=pointer]
+                - generic [ref=f12e387]:
+                  - generic [ref=f12e388]: C
+                  - generic [ref=f12e389]:
+                    - link "Carla Teste" [ref=f12e390] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj53000edtuk0i2ft3tl
+                    - generic [ref=f12e391]: (11) 90000-6003 · carla.e2e@premiox.app
+                  - generic [ref=f12e392]:
+                    - generic [ref=f12e393]: Participante
+                    - generic [ref=f12e394]: Ativo
+                    - generic "0 participações · 0 arremates" [ref=f12e395]: 0 part.
+                  - button "✏️ Editar" [ref=f12e396] [cursor=pointer]
+                - generic [ref=f12e398]:
+                  - generic [ref=f12e399]: B
+                  - generic [ref=f12e400]:
+                    - link "Bruno Embaixador" [ref=f12e401] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj4w000ddtuk8ef2iox4
+                    - generic [ref=f12e402]: (11) 90000-6002 · bruno.e2e@premiox.app
+                  - generic [ref=f12e403]:
+                    - generic [ref=f12e404]: Participante
+                    - generic [ref=f12e405]: Ativo
+                    - generic "1 participações · 1 arremates" [ref=f12e406]: 1 part.
+                  - button "✏️ Editar" [ref=f12e407] [cursor=pointer]
+              - navigation "Paginação" [ref=f12e409]:
+                - button "Página anterior" [disabled] [ref=f12e410]: ‹
+                - button "1" [ref=f12e411] [cursor=pointer]
+                - button "2" [ref=f12e412] [cursor=pointer]
+                - button "Próxima página" [ref=f12e413] [cursor=pointer]: ›
+  - button "Open Next.js Dev Tools" [ref=f12e419] [cursor=pointer]
+  - alert [ref=f12e423]

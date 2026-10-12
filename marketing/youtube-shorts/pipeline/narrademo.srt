@@ -1,0 +1,28 @@
+1
+00:00:00,100 --> 00:00:03,753
+Seu exame chegou do laboratório e você não entende nada?
+
+2
+00:00:03,703 --> 00:00:09,293
+No Dr. Exame é assim: você envia o PDF do laboratório, ou cola o texto.
+
+3
+00:00:09,293 --> 00:00:15,173
+A IA lê o laudo, encontra cada valor, e confere a faixa de referência.
+
+4
+00:00:15,173 --> 00:00:21,423
+Pronto: o que está alto, o que está baixo, o que está normal — tudo organizado na tela.
+
+5
+00:00:21,423 --> 00:00:29,953
+E depois ela explica em português simples o que aqueles números significam juntos, monta a leitura de risco e as perguntas certas pra levar pro seu médico.
+
+6
+00:00:29,953 --> 00:00:32,592
+Tudo em cerca de trinta segundos.
+
+7
+00:00:32,592 --> 00:00:41,770
+E pra testar, nem precisa de cadastro: cole seu exame no drexame ponto janocaminho ponto com ponto br. Conteúdo educativo, não substitui seu médico.
+

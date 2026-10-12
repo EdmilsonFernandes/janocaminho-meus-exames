@@ -1,0 +1,49 @@
+- generic [active] [ref=f10e1]:
+  - navigation [ref=f10e3]:
+    - button [ref=f10e4] [cursor=pointer]
+    - generic [ref=f10e5]:
+      - button "Toggle theme" [ref=f10e6] [cursor=pointer]:
+        - generic [ref=f10e8]: ☀
+      - button "Settings" [ref=f10e10] [cursor=pointer]
+    - generic [ref=f10e11]:
+      - button "Dashboard" [ref=f10e12] [cursor=pointer]
+      - button "Rooms" [ref=f10e13] [cursor=pointer]
+    - button [ref=f10e14] [cursor=pointer]
+  - generic [ref=f10e18]:
+    - generic [ref=f10e19]: Create a room
+    - generic [ref=f10e23]:
+      - generic [ref=f10e25]:
+        - generic [ref=f10e26]: Subscription Growth Experiments
+        - generic [ref=f10e27]: Sprint Retrospective
+      - generic [ref=f10e30]: "9"
+    - generic [ref=f10e33]: Weekly Insights
+    - generic [ref=f10e104]:
+      - generic [ref=f10e106]:
+        - generic [ref=f10e107]: Product Strategy 2023
+        - generic [ref=f10e108]: No upcoming meetings
+      - generic [ref=f10e113]: "32"
+    - generic [ref=f10e115]:
+      - generic [ref=f10e117]:
+        - generic [ref=f10e118]: User Onboarding Team
+        - generic [ref=f10e119]: Sprint Planning
+      - generic [ref=f10e124]: "3"
+    - generic [ref=f10e127]:
+      - generic [ref=f10e129]:
+        - generic [ref=f10e130]: User & Market Research
+        - generic [ref=f10e131]: No upcoming meetings
+      - generic [ref=f10e136]: "6"
+    - generic [ref=f10e138]:
+      - generic [ref=f10e140]:
+        - generic [ref=f10e141]: Core Product Team
+        - generic [ref=f10e142]: Core Product Team
+      - generic [ref=f10e146]: "2"
+    - generic [ref=f10e149]:
+      - generic [ref=f10e150]:
+        - generic [ref=f10e151]: Screen Share
+        - generic [ref=f10e152]: 0:30
+      - generic [ref=f10e153]: Alice
+      - generic [ref=f10e160]: "8"
+  - generic [ref=f10e167]: "+17"
+  - generic [ref=f10e180]:
+    - button "Toggle video" [ref=f10e181] [cursor=pointer]
+    - button "Toggle mic" [ref=f10e185] [cursor=pointer]

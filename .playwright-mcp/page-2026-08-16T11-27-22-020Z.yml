@@ -1,0 +1,155 @@
+- generic [ref=e20]:
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "Voltar" [ref=e448] [cursor=pointer]
+        - button "Menu do médico" [ref=e449] [cursor=pointer]:
+          - generic [ref=e26]: D
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: E
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - paragraph [ref=e149]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=e450] [cursor=pointer]: Trocar
+              - paragraph [ref=e154]: Masculino • Particular
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: Último exame
+              - paragraph [ref=e161]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=e451] [cursor=pointer]:
+              - generic [ref=e163]: Alterações
+              - paragraph [ref=e168]: "8"
+            - generic [ref=e169]:
+              - generic [ref=e170]: Pendências
+              - paragraph [ref=e174]: "0"
+            - generic [ref=e175]:
+              - generic [ref=e176]: Anotações
+              - paragraph [ref=e180]: "0"
+        - tablist "Abas do paciente" [ref=e452]:
+          - tab "Exames" [ref=e453] [cursor=pointer]:
+            - superscript [ref=e454]: "5"
+          - tab "Alterados" [selected] [ref=e455] [cursor=pointer]:
+            - generic [ref=e456]:
+              - generic [ref=e457]: Alterados
+              - superscript [ref=e458]: "8"
+          - tab "Tendências" [ref=e459] [cursor=pointer]
+          - tab "Relatório" [ref=e460] [cursor=pointer]
+          - tab "Perguntas" [ref=e461] [cursor=pointer]
+          - tab "Anotações" [ref=e462] [cursor=pointer]
+        - generic [ref=e463]:
+          - generic [ref=e465]:
+            - generic [ref=e466]:
+              - generic [ref=e467]: 🔴 0 Importantes
+              - generic [ref=e468]: 🟠 6 Moderadas
+              - generic [ref=e469]: 🟡 2 Leves
+            - generic [ref=e470]:
+              - text: Nada crítico — os ajustes são
+              - strong [ref=e471]: 🟠 moderados
+              - text: ou
+              - strong [ref=e472]: 🟡 leves
+              - text: . Comente com seu paciente na próxima consulta.
+          - generic [ref=e473]:
+            - generic [ref=e474]:
+              - heading [level=3] [ref=e475]:
+                - button "🟠 PERFIL LIPÍDICO 📅 09/07/2026 · há 1 mês 4 alterado(s)" [expanded] [active] [ref=e476] [cursor=pointer]:
+                  - generic [ref=e478]:
+                    - generic [ref=e479]: 🟠
+                    - generic [ref=e480]:
+                      - heading "PERFIL LIPÍDICO" [level=6] [ref=e481]
+                      - generic [ref=e482]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=e483]: 4 alterado(s)
+              - region [ref=e527]:
+                - generic [ref=e529]:
+                  - generic [ref=e531]:
+                    - generic [ref=e532]:
+                      - generic [ref=e533]:
+                        - paragraph [ref=e534]: COLESTEROL TOTAL
+                        - generic "Moderada" [ref=e535]: 🟠 Moderada
+                        - button "O que é este exame?" [ref=e537] [cursor=pointer]
+                      - text: "Ref: 200 mg/dL"
+                    - generic [ref=e540]:
+                      - generic [ref=e541]:
+                        - text: "232"
+                        - generic [ref=e543]:
+                          - generic [ref=e544]: mg/dL
+                          - button "O que significa mg/dL?" [ref=e545] [cursor=pointer]
+                      - generic [ref=e548]: ↑ Acima da ref.
+                  - generic [ref=e550]:
+                    - generic [ref=e551]:
+                      - generic [ref=e552]:
+                        - paragraph [ref=e553]: LDL COLESTEROL
+                        - generic "Moderada" [ref=e554]: 🟠 Moderada
+                        - button "O que é este exame?" [ref=e556] [cursor=pointer]
+                      - text: "Ref: 130 mg/dL"
+                    - generic [ref=e559]:
+                      - generic [ref=e560]:
+                        - text: "158"
+                        - generic [ref=e562]:
+                          - generic [ref=e563]: mg/dL
+                          - button "O que significa mg/dL?" [ref=e564] [cursor=pointer]
+                      - generic [ref=e567]: ↑ Acima da ref.
+                  - generic [ref=e569]:
+                    - generic [ref=e570]:
+                      - generic [ref=e571]:
+                        - paragraph [ref=e572]: HDL COLESTEROL
+                        - generic "Moderada" [ref=e573]: 🟠 Moderada
+                        - button "O que é este exame?" [ref=e575] [cursor=pointer]
+                      - text: "Ref: 40 mg/dL"
+                    - generic [ref=e578]:
+                      - generic [ref=e579]:
+                        - text: "38"
+                        - generic [ref=e581]:
+                          - generic [ref=e582]: mg/dL
+                          - button "O que significa mg/dL?" [ref=e583] [cursor=pointer]
+                      - generic [ref=e586]: ↓ Abaixo da ref.
+                  - generic [ref=e588]:
+                    - generic [ref=e589]:
+                      - generic [ref=e590]:
+                        - paragraph [ref=e591]: TRIGLICERÍDEOS
+                        - generic "Moderada" [ref=e592]: 🟠 Moderada
+                        - button "O que é este exame?" [ref=e594] [cursor=pointer]
+                      - text: "Ref: 150 mg/dL"
+                    - generic [ref=e597]:
+                      - generic [ref=e598]:
+                        - text: "185"
+                        - generic [ref=e600]:
+                          - generic [ref=e601]: mg/dL
+                          - button "O que significa mg/dL?" [ref=e602] [cursor=pointer]
+                      - generic [ref=e605]: ↑ Acima da ref.
+            - heading [level=3] [ref=e489]:
+              - button "🟠 GLICEMIA DE JEJUM 📅 09/07/2026 · há 1 mês 2 alterado(s)" [ref=e490] [cursor=pointer]:
+                - generic [ref=e492]:
+                  - generic [ref=e493]: 🟠
+                  - generic [ref=e494]:
+                    - heading "GLICEMIA DE JEJUM" [level=6] [ref=e495]
+                    - generic [ref=e496]: 📅 09/07/2026 · há 1 mês
+                  - generic [ref=e497]: 2 alterado(s)
+            - heading [level=3] [ref=e503]:
+              - button "🟡 HEMOGRAMA 📅 s/d 2 alterado(s)" [ref=e504] [cursor=pointer]:
+                - generic [ref=e506]:
+                  - generic [ref=e507]: 🟡
+                  - generic [ref=e508]:
+                    - heading "HEMOGRAMA" [level=6] [ref=e509]
+                    - generic [ref=e510]: 📅 s/d
+                  - generic [ref=e511]: 2 alterado(s)
+          - generic [ref=e516]: "*Educativo. A interpretação final é sua."
+    - navigation [ref=e105]:
+      - button "Início" [ref=e517] [cursor=pointer]:
+        - paragraph [ref=e111]: Início
+      - button "Pacientes" [ref=e518] [cursor=pointer]:
+        - paragraph [ref=e118]: Pacientes
+      - button "Perguntas" [ref=e519] [cursor=pointer]:
+        - paragraph [ref=e124]: Perguntas
+      - button "Perfil" [ref=e520] [cursor=pointer]:
+        - paragraph [ref=e130]: Perfil
+      - button "Mais" [ref=e521] [cursor=pointer]:
+        - paragraph [ref=e136]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e522]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e523]

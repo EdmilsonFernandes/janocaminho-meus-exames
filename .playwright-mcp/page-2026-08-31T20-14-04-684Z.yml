@@ -1,0 +1,2334 @@
+- generic [active] [ref=f31e1]:
+  - navigation [ref=f31e2]:
+    - generic [ref=f31e3]:
+      - link "redlib." [ref=f31e4] [cursor=pointer]:
+        - /url: /
+      - group [ref=f31e5]:
+        - generic "Feeds" [ref=f31e6]
+    - generic [ref=f31e7]:
+      - textbox "Search redlib" [ref=f31e8]:
+        - /placeholder: Search
+      - generic [ref=f31e9]:
+        - checkbox "in /r/SaaS" [checked] [ref=f31e10]
+        - generic "Restrict search to this subreddit" [ref=f31e11]: in /r/SaaS
+      - button [ref=f31e12] [cursor=pointer]:
+        - img [ref=f31e13]: →
+    - generic [ref=f31e15]:
+      - link [ref=f31e16] [cursor=pointer]:
+        - /url: "#popup"
+      - link "settings" [ref=f31e20] [cursor=pointer]:
+        - /url: /settings
+        - img "settings" [ref=f31e21]
+  - main [ref=f31e24]:
+    - generic [ref=f31e25]:
+      - generic [ref=f31e26]:
+        - paragraph [ref=f31e27]:
+          - link "r/SaaS" [ref=f31e28] [cursor=pointer]:
+            - /url: /r/SaaS
+          - text: •
+          - link "u/Responsible-Ad431" [ref=f31e29] [cursor=pointer]:
+            - /url: /user/Responsible-Ad431
+          - text: • Aug 11 '25
+        - heading "I analyzed 500 Product Hunt SaaS launches. 487 are dead." [level=1] [ref=f31e30]
+        - generic [ref=f31e32]:
+          - paragraph [ref=f31e33]:
+            - strong [ref=f31e34]: "TL;DR: Product Hunt has become a graveyard dressed as a celebration."
+          - paragraph [ref=f31e35]: "This year I got obsessed with a question: what happens AFTER the Product Hunt glory?"
+          - paragraph [ref=f31e36]: "So I tracked 500 launches from January-June 2024. 6-8 months later, here's the brutal truth:"
+          - heading "The Numbers Don't Lie" [level=1] [ref=f31e37]
+          - list [ref=f31e38]:
+            - listitem [ref=f31e39]:
+              - strong [ref=f31e40]: 487/500
+              - text: (97.4%) make less than $1,000 MRR
+            - listitem [ref=f31e41]:
+              - strong [ref=f31e42]: 456/500
+              - text: (91.2%) have <100 active users
+            - listitem [ref=f31e43]:
+              - strong [ref=f31e44]: 423/500
+              - text: (84.6%) haven't updated since launch month
+            - listitem [ref=f31e45]:
+              - strong [ref=f31e46]: Only 13
+              - text: are profitable enough to pay founder salary
+          - paragraph [ref=f31e47]:
+            - text: Yeah, you read that right.
+            - strong [ref=f31e48]: 97.4% failure rate.
+          - heading "The Pattern I Found in Every Dead Product" [level=1] [ref=f31e49]
+          - paragraph [ref=f31e50]: "Every zombie product had the same story:"
+          - list [ref=f31e51]:
+            - listitem [ref=f31e52]:
+              - strong [ref=f31e53]: "\"Cool idea\" phase"
+              - text: (6 months coding in isolation)
+            - listitem [ref=f31e54]:
+              - strong [ref=f31e55]: Product Hunt launch
+              - text: (1 day of fame + dopamine hit)
+            - listitem [ref=f31e56]:
+              - strong [ref=f31e57]: "\"Now let's find customers\" phase"
+              - text: (reality hits hard)
+            - listitem [ref=f31e58]:
+              - strong [ref=f31e59]: Slow death
+              - text: (founders quietly move on)
+          - heading "Here's What the 13 Survivors Did Differently" [level=1] [ref=f31e60]
+          - paragraph [ref=f31e61]:
+            - text: They
+            - strong [ref=f31e62]: started with paying customers BEFORE building anything.
+          - paragraph [ref=f31e63]:
+            - text: Not beta users. Not email signups.
+            - strong [ref=f31e64]: Paying customers.
+          - paragraph [ref=f31e65]:
+            - strong [ref=f31e66]: "Example:"
+            - text: One successful product had 47 people paying $50/month BEFORE they wrote a single line of code.
+          - paragraph [ref=f31e67]:
+            - strong [ref=f31e68]: How?
+            - text: They posted their problem in 15 Slack communities, asked "who else has this pain?" and collected pre-payments.
+          - paragraph [ref=f31e69]:
+            - strong [ref=f31e70]: "Result:"
+            - text: $2,350 MRR guaranteed before development started.
+          - heading "The Uncomfortable Truth About Product Hunt" [level=1] [ref=f31e71]
+          - paragraph [ref=f31e72]:
+            - strong [ref=f31e73]: Product Hunt rewards spectacle, not substance.
+          - list [ref=f31e74]:
+            - listitem [ref=f31e75]: 1,000 upvotes feels amazing
+            - listitem [ref=f31e76]: 10 customers paying $100/month IS amazing
+          - paragraph [ref=f31e77]: The real validation isn't hunters clicking a button. It's customers opening their wallets.
+          - heading "What This Means for Your SaaS" [level=1] [ref=f31e78]
+          - paragraph [ref=f31e79]: "If you're building something, ask yourself:"
+          - list [ref=f31e80]:
+            - listitem [ref=f31e81]:
+              - text: How many people have
+              - strong [ref=f31e82]: paid money
+              - text: for your solution to exist?
+            - listitem [ref=f31e83]:
+              - text: Not "would pay" -
+              - strong [ref=f31e84]: have paid.
+            - listitem [ref=f31e85]:
+              - text: Not "interested" -
+              - strong [ref=f31e86]: committed cash.
+          - paragraph [ref=f31e87]: If the answer is 0, you're building a hobby, not a business.
+          - heading "The Data Behind This Post" [level=1] [ref=f31e88]
+          - paragraph [ref=f31e89]: "I spent the last 3 months tracking these 2024 launches:"
+          - paragraph [ref=f31e90]:
+            - strong [ref=f31e91]: "Methodology:"
+          - list [ref=f31e92]:
+            - listitem [ref=f31e93]: Scraped all launches Jan-June 2024 with 100+ upvotes
+            - listitem [ref=f31e94]: Tracked website status, pricing pages, social activity over 6-8 months
+            - listitem [ref=f31e95]: Contacted founders directly (23% response rate)
+            - listitem [ref=f31e96]: Cross-referenced with public revenue data where available
+          - paragraph [ref=f31e97]:
+            - strong [ref=f31e98]: "Definition of \"dead\":"
+          - list [ref=f31e99]:
+            - listitem [ref=f31e100]: No product updates in 6+ months
+            - listitem [ref=f31e101]: Website down or abandoned
+            - listitem [ref=f31e102]: Founder moved to different project
+            - listitem [ref=f31e103]: <$1K MRR confirmed by founder
+          - heading "The Most Common Delusions" [level=1] [ref=f31e104]
+          - paragraph [ref=f31e105]:
+            - strong [ref=f31e106]: "\"We just need more features\""
+            - text: "- No, you need customers first"
+          - paragraph [ref=f31e107]:
+            - strong [ref=f31e108]: "\"We launched too early\""
+            - text: "- No, you validated too late"
+          - paragraph [ref=f31e109]:
+            - strong [ref=f31e110]: "\"Product Hunt didn't give us enough traffic\""
+            - text: "- Traffic ≠ customers"
+          - paragraph [ref=f31e111]:
+            - strong [ref=f31e112]: "\"We need better marketing\""
+            - text: "- No, you need product-market fit"
+          - heading "What This Makes Me Think" [level=1] [ref=f31e113]
+          - paragraph [ref=f31e114]: This analysis has me questioning everything about how we build products.
+          - paragraph [ref=f31e115]: What if the entire "build first, find customers later" model is fundamentally broken?
+          - paragraph [ref=f31e116]:
+            - text: What if instead of showcasing finished products, we showcased
+            - strong [ref=f31e117]: problems people are willing to pay to solve?
+          - paragraph [ref=f31e118]: "I keep thinking: there has to be a better way to validate demand before burning months of development time."
+          - heading [level=1] [ref=f31e119]:
+            - text: Questions for
+            - link "r/SaaS" [ref=f31e120] [cursor=pointer]:
+              - /url: /r/SaaS
+          - list [ref=f31e121]:
+            - listitem [ref=f31e122]:
+              - strong [ref=f31e123]: "For successful founders:"
+              - text: How many customers did you have BEFORE building?
+            - listitem [ref=f31e124]:
+              - strong [ref=f31e125]: "For failed founders:"
+              - text: Did you confuse interest with demand?
+            - listitem [ref=f31e126]:
+              - strong [ref=f31e127]: "For current builders:"
+              - text: How confident are you people will actually pay?
+            - listitem [ref=f31e128]:
+              - strong [ref=f31e129]: "For everyone:"
+              - text: What's the most money you've wasted building something nobody wanted?
+          - paragraph [ref=f31e130]: Be honest. The data suggests most of us are lying to ourselves.
+          - paragraph [ref=f31e131]: What do you think? Am I being too harsh on Product Hunt or is this the reality most founders ignore?
+          - paragraph [ref=f31e132]:
+            - strong [ref=f31e133]: P.S.
+            - text: "- I know some of you will say \"correlation ≠ causation\" and you're right. But 97.4% failure rate suggests the current model is fundamentally broken."
+          - paragraph [ref=f31e134]:
+            - strong [ref=f31e135]: P.P.S.
+            - text: "- This analysis has me seriously reconsidering how I approach my next project. Anyone else rethinking their strategy?"
+        - generic "521" [ref=f31e136]: ↑ •
+        - generic [ref=f31e137]:
+          - list [ref=f31e138]:
+            - listitem [ref=f31e139]:
+              - link "link" [ref=f31e140] [cursor=pointer]:
+                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/
+            - listitem [ref=f31e141]:
+              - link "dup es" [ref=f31e142] [cursor=pointer]:
+                - /url: /r/SaaS/duplicates/1mnc3nu
+            - listitem [ref=f31e143]:
+              - link "reddit" [ref=f31e144] [cursor=pointer]:
+                - /url: "#popup"
+          - paragraph [ref=f31e145]: 96%
+      - generic [ref=f31e146]:
+        - generic [ref=f31e147]:
+          - paragraph [ref=f31e148]: 285 comments sorted by
+          - combobox "Sort comments by" [ref=f31e149] [cursor=pointer]:
+            - option "Confidence" [selected]
+            - option "Top"
+            - option "New"
+            - option "Controversial"
+            - option "Old"
+          - button [ref=f31e150] [cursor=pointer]:
+            - img [ref=f31e151]: →
+        - searchbox "Search comments" [ref=f31e154]
+      - generic [ref=f31e156]:
+        - paragraph [ref=f31e158]: •
+        - group [ref=f31e160]:
+          - generic [ref=f31e161] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e162]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n847jbx/?context=3#n847jbx
+          - generic [ref=f31e164]:
+            - paragraph [ref=f31e165]: I don’t understand this “build it and they will come” crap. Who started this movement? It’s in direct violation of every principle we’ve learned in Lean Startup methodology.
+            - paragraph [ref=f31e166]: I’m absolutely zero percent surprised 97% of projects like that fail. You’re just building a SCIENCE PROJECT if you’re doing that. Has nothing to do with real entrepreneurship.
+            - paragraph [ref=f31e167]: Real entrepreneurship is 100% about looking for the problem first. Forget building, forget tooling, that is just the scotch tape and paint.
+            - paragraph [ref=f31e168]: The real starting point is being a hustler who notices the pain point and what’s missing in people’s workflow/playflow.
+            - paragraph [ref=f31e169]: That’s the only thing that matters.
+          - blockquote [ref=f31e170]:
+            - generic [ref=f31e171]:
+              - paragraph [ref=f31e173]: •
+              - group [ref=f31e175]:
+                - generic [ref=f31e176] [cursor=pointer]:
+                  - text: u/[deleted]
+                  - link "Aug 11 '25" [ref=f31e177]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n855ijr/?context=3#n855ijr
+                - generic [ref=f31e179]:
+                  - paragraph [ref=f31e180]: It’s human nature. And it’s why product management is a profession. People fall in love with their ideas, and become fixated on them. And unless they know the risks, and techniques to remove their own biases, and identify and test their underlying assumptions, any research they do will be tainted and reinforce their beliefs.
+                  - paragraph [ref=f31e181]: 70% of my career has been trying to talk executives out of pursuing their ideas for solutions to unvalidated market problems.
+                - blockquote [ref=f31e182]:
+                  - generic [ref=f31e183]:
+                    - paragraph [ref=f31e185]: •
+                    - group [ref=f31e187]:
+                      - generic [ref=f31e188] [cursor=pointer]:
+                        - link "u/maverickarchitect100" [ref=f31e189]:
+                          - /url: /user/maverickarchitect100
+                        - link "Aug 11 '25" [ref=f31e190]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8783xn/?context=3#n8783xn
+                      - paragraph [ref=f31e193]: It's tough to understand tho, how do you 'get paying customers' like OP mentioned before you've built the actual thing?
+                      - blockquote [ref=f31e194]:
+                        - generic [ref=f31e195]:
+                          - paragraph [ref=f31e197]: •
+                          - group [ref=f31e199]:
+                            - generic [ref=f31e200] [cursor=pointer]:
+                              - link "u/AnotherFeynmanFan" [ref=f31e201]:
+                                - /url: /user/AnotherFeynmanFan
+                              - link "Aug 13 '25" [ref=f31e202]:
+                                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8e9tzx/?context=3#n8e9tzx
+                            - paragraph [ref=f31e205]: You don't have to get them to actually pay, just to click the "Buy for x$". Button. It's a buying INTENT.
+                            - blockquote
+                        - link "→ More replies (1)" [ref=f31e206] [cursor=pointer]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8783xn
+                  - link "→ More replies (1)" [ref=f31e207] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n855ijr
+            - generic [ref=f31e208]:
+              - paragraph [ref=f31e210]: •
+              - group [ref=f31e212]:
+                - generic [ref=f31e213] [cursor=pointer]:
+                  - link "u/djone1248" [ref=f31e214]:
+                    - /url: /user/djone1248
+                  - link "Aug 11 '25" [ref=f31e215]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hs0k/?context=3#n85hs0k
+                - generic [ref=f31e217]:
+                  - paragraph [ref=f31e218]: Before cloud services and the lean startup methodology, every company would be started this way. I also think that people like Steve Jobs had an influence on perpetuating this "build it and they will come" mentality. For Steve Jobs, you should watch the interview of Kevin O'Leary on "The diary of CEO" podcast. He told Kevin "this is what they want" which is even more aggressive than build it and hope they'll come.
+                  - paragraph [ref=f31e219]: Not everybody has the same awareness, skill, luck, or situational advantage to pull off what Jobs did. I also think that there's a nuance where an entrepreneur can have a very solid understanding of the issues of the customer and solution, to solve it in a more elegant way than what the customer can imagine. Obviously, this makes more sense in an era where most people don't know computers or their potential.
+                  - paragraph [ref=f31e220]: But for the most part, I agree with your statements.
+                - blockquote [ref=f31e221]:
+                  - generic [ref=f31e222]:
+                    - paragraph [ref=f31e224]: •
+                    - group [ref=f31e226]:
+                      - generic [ref=f31e227] [cursor=pointer]:
+                        - link "u/Practical_Row_6459" [ref=f31e228]:
+                          - /url: /user/Practical_Row_6459
+                        - link "Aug 12 '25" [ref=f31e229]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89yx00/?context=3#n89yx00
+                      - paragraph [ref=f31e232]: I coundnt agree more. I am not sure if that was just a series of genius moves or right moment combined with market momentum
+                      - blockquote
+                  - generic [ref=f31e233]:
+                    - paragraph [ref=f31e235]: •
+                    - group [ref=f31e237]:
+                      - generic [ref=f31e238] [cursor=pointer]:
+                        - link "u/am3141" [ref=f31e239]:
+                          - /url: /user/am3141
+                        - link "Aug 12 '25" [ref=f31e240]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87nu6m/?context=3#n87nu6m
+                      - paragraph [ref=f31e243]: Not sure if this is relevant, but fyi Kevin Oleary is a piece of shit loser.
+                      - blockquote
+            - generic [ref=f31e244]:
+              - paragraph [ref=f31e246]: •
+              - group [ref=f31e248]:
+                - generic [ref=f31e249] [cursor=pointer]:
+                  - link "u/unitcodes" [ref=f31e250]:
+                    - /url: /user/unitcodes
+                  - link "Aug 11 '25" [ref=f31e251]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85iujy/?context=3#n85iujy
+                - paragraph [ref=f31e254]: amen.. i actually came across an article today written by sheldon bishop on morning brew success and there was a mention of how they went in person and collected their first users. absolutely crazy!
+                - blockquote
+            - generic [ref=f31e255]:
+              - paragraph [ref=f31e257]: •
+              - group [ref=f31e259]:
+                - generic [ref=f31e260] [cursor=pointer]:
+                  - link "u/7HawksAnd" [ref=f31e261]:
+                    - /url: /user/7HawksAnd
+                  - link "Aug 12 '25" [ref=f31e262]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87yi3j/?context=3#n87yi3j
+                - generic [ref=f31e264]:
+                  - blockquote [ref=f31e265]:
+                    - paragraph [ref=f31e266]: I don’t understand this … crap
+                  - paragraph [ref=f31e267]: It came from y2k era hackers who built big businesses doing that.
+                  - paragraph [ref=f31e268]: It’s sort of the romanticized definition/difference between startup founder vs entrepreneur
+                - blockquote
+            - generic [ref=f31e269]:
+              - paragraph [ref=f31e271]: •
+              - group [ref=f31e273]:
+                - generic [ref=f31e274] [cursor=pointer]:
+                  - link "u/Honey-Badger-9325" [ref=f31e275]:
+                    - /url: /user/Honey-Badger-9325
+                  - link "Aug 12 '25" [ref=f31e276]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8c34du/?context=3#n8c34du
+                - generic [ref=f31e278]:
+                  - blockquote [ref=f31e279]:
+                    - paragraph [ref=f31e280]: Who started this movement?
+                  - paragraph [ref=f31e281]: Devs that don’t understand product development
+                - blockquote
+            - generic [ref=f31e282]:
+              - paragraph [ref=f31e284]: •
+              - group [ref=f31e286]:
+                - generic [ref=f31e287] [cursor=pointer]:
+                  - link "u/kowdermesiter" [ref=f31e288]:
+                    - /url: /user/kowdermesiter
+                  - link "Aug 11 '25" [ref=f31e289]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86sgfl/?context=3#n86sgfl
+                - generic [ref=f31e291]:
+                  - blockquote [ref=f31e292]:
+                    - paragraph [ref=f31e293]: “build it and they will come” crap. Who started this movement?
+                  - paragraph [ref=f31e294]: I think it's from the era when the internet was gaining massive adoption and good products were rare. But also could be that it's simply taken from this movie :D
+                  - paragraph [ref=f31e295]:
+                    - link "https://www.youtube.com/watch?v=o3c_pJ_CLJQ" [ref=f31e296] [cursor=pointer]:
+                      - /url: https://www.youtube.com/watch?v=o3c_pJ_CLJQ
+                - blockquote
+            - link "→ More replies (12)" [ref=f31e297] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n847jbx
+      - generic [ref=f31e299]:
+        - paragraph [ref=f31e301]: •
+        - group [ref=f31e303]:
+          - generic [ref=f31e304] [cursor=pointer]:
+            - link "u/FineInstruction1397" [ref=f31e305]:
+              - /url: /user/FineInstruction1397
+            - link "Aug 11 '25" [ref=f31e306]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84l0hf/?context=3#n84l0hf
+          - generic [ref=f31e308]:
+            - paragraph [ref=f31e309]: i generally like your post, but the idea that "They posted their problem in 15 Slack communities, asked "who else has this pain?" and collected pre-payments." ... i do not think that it works.
+            - paragraph [ref=f31e310]: i mean who would pay for a non-existing product? knowing that it might never launch?
+          - blockquote [ref=f31e311]:
+            - generic [ref=f31e312]:
+              - paragraph [ref=f31e314]: •
+              - group [ref=f31e316]:
+                - generic [ref=f31e317] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e318]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e319]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8596zy/?context=3#n8596zy
+                - paragraph [ref=f31e322]: They don't pay directly; it's a pre-payment. If the product doesn't come to fruition, everyone gets their money back.
+                - blockquote [ref=f31e323]:
+                  - generic [ref=f31e324]:
+                    - paragraph [ref=f31e326]: •
+                    - group [ref=f31e328]:
+                      - generic [ref=f31e329] [cursor=pointer]:
+                        - link "u/rad-madlad" [ref=f31e330]:
+                          - /url: /user/rad-madlad
+                        - link "Aug 11 '25" [ref=f31e331]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86cgj6/?context=3#n86cgj6
+                      - paragraph [ref=f31e334]: how can you guarantee that in a reliable manner?
+                      - blockquote [ref=f31e335]:
+                        - generic [ref=f31e336]:
+                          - paragraph [ref=f31e338]: •
+                          - group [ref=f31e340]:
+                            - generic [ref=f31e341] [cursor=pointer]:
+                              - link "u/Responsible-Ad431" [ref=f31e342]:
+                                - /url: /user/Responsible-Ad431
+                              - link "Aug 11 '25" [ref=f31e343]:
+                                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86dcet/?context=3#n86dcet
+                            - generic [ref=f31e345]:
+                              - paragraph [ref=f31e346]: Fair point, that's the trust/escrow challenge.
+                              - paragraph [ref=f31e347]: Most successful cases I've seen use established payment platforms (Stripe, PayPal) that can hold funds and have dispute resolution.
+                            - blockquote [ref=f31e348]:
+                              - generic [ref=f31e349]:
+                                - paragraph [ref=f31e351]: •
+                                - group [ref=f31e353]:
+                                  - generic [ref=f31e354] [cursor=pointer]:
+                                    - link "u/angrathias" [ref=f31e355]:
+                                      - /url: /user/angrathias
+                                    - link "Aug 11 '25" [ref=f31e356]:
+                                      - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8792b4/?context=3#n8792b4
+                                  - generic [ref=f31e358]:
+                                    - paragraph [ref=f31e359]: Sounds like Kickstarter but for vapourware.
+                                    - paragraph [ref=f31e360]: Does your analysis include how many businesses tried this approach but also failed ?
+                                  - blockquote [ref=f31e361]:
+                                    - generic [ref=f31e362]:
+                                      - paragraph [ref=f31e364]: •
+                                      - group [ref=f31e366]:
+                                        - generic [ref=f31e367] [cursor=pointer]:
+                                          - link "u/gibrael_" [ref=f31e368]:
+                                            - /url: /user/gibrael_
+                                          - link "Aug 12 '25" [ref=f31e369]:
+                                            - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87x51g/?context=3#n87x51g
+                                        - generic [ref=f31e371]:
+                                          - blockquote [ref=f31e372]:
+                                            - paragraph [ref=f31e373]: Sounds like Kickstarter but for vapourware.
+                                          - paragraph [ref=f31e374]: So, Kickstarter.
+                                        - blockquote [ref=f31e375]:
+                                          - generic [ref=f31e376]:
+                                            - paragraph [ref=f31e378]: •
+                                            - group [ref=f31e380]:
+                                              - generic [ref=f31e381] [cursor=pointer]:
+                                                - link "u/rad-madlad" [ref=f31e382]:
+                                                  - /url: /user/rad-madlad
+                                                - link "Aug 12 '25" [ref=f31e383]:
+                                                  - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89563x/?context=3#n89563x
+                                              - paragraph [ref=f31e386]: never really seen software business in kickstarter though
+                                              - blockquote [ref=f31e387]:
+                                                - generic [ref=f31e388]:
+                                                  - paragraph [ref=f31e390]: •
+                                                  - group [ref=f31e392]:
+                                                    - generic [ref=f31e393] [cursor=pointer]:
+                                                      - link "u/Honey-Badger-9325" [ref=f31e394]:
+                                                        - /url: /user/Honey-Badger-9325
+                                                      - link "Aug 12 '25" [ref=f31e395]:
+                                                        - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8c7uv2/?context=3#n8c7uv2
+                                                    - paragraph [ref=f31e398]: Well that would be interesting, won’t it? Maybe someone can build a kickstarter but for software.
+                                                    - blockquote [ref=f31e399]:
+                                                      - link "→ More replies (2)" [ref=f31e400] [cursor=pointer]:
+                                                        - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8c7uv2
+                                          - link "→ More replies (1)" [ref=f31e401] [cursor=pointer]:
+                                            - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87x51g
+      - generic [ref=f31e403]:
+        - paragraph [ref=f31e405]: •
+        - group [ref=f31e407]:
+          - generic [ref=f31e408] [cursor=pointer]:
+            - link "u/Due_Cockroach_4184" [ref=f31e409]:
+              - /url: /user/Due_Cockroach_4184
+            - link "Aug 11 '25" [ref=f31e410]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85069n/?context=3#n85069n
+          - generic [ref=f31e412]:
+            - paragraph [ref=f31e413]: Great post.
+            - paragraph [ref=f31e414]: "Although I have some concerns about this method:"
+            - paragraph [ref=f31e415]: 1) I think it applies to B2B products, I do not see an individual paying upfront for an app;
+            - paragraph [ref=f31e416]: 2) Even the market research may have more to it, it all depends on the pitch, approach, the audience;
+            - paragraph [ref=f31e417]: What I mean is that things are not black and white, each situation is different and deserves a careful strategic approach.
+          - blockquote [ref=f31e418]:
+            - generic [ref=f31e419]:
+              - paragraph [ref=f31e421]: •
+              - group [ref=f31e423]:
+                - generic [ref=f31e424] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e425]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e426]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85biak/?context=3#n85biak
+                - paragraph [ref=f31e429]: Of course, this depends greatly on the context and the type of user.
+                - blockquote
+            - link "→ More replies (1)" [ref=f31e430] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85069n
+      - generic [ref=f31e432]:
+        - paragraph [ref=f31e434]: •
+        - group [ref=f31e436]:
+          - generic [ref=f31e437] [cursor=pointer]:
+            - link "u/_SeaCat_" [ref=f31e438]:
+              - /url: /user/_SeaCat_
+            - link "Aug 11 '25" [ref=f31e439]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84rzlc/?context=3#n84rzlc
+          - paragraph [ref=f31e442]: If you had only 23% responses, how the heck can you evaluate their income? And if you are talking only about those who disclose their income in some way, it's a typical "survivor bias" and very far from reliable numbers.
+          - blockquote [ref=f31e443]:
+            - generic [ref=f31e444]:
+              - paragraph [ref=f31e446]: •
+              - group [ref=f31e448]:
+                - generic [ref=f31e449] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e450]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e451]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85aeo3/?context=3#n85aeo3
+                - generic [ref=f31e453]:
+                  - paragraph [ref=f31e454]: Fair point - you caught a methodology flaw.
+                  - paragraph [ref=f31e455]: "For non-responders, I used proxy signals (website status, last updates, etc.) but you're right about survivor bias. Maybe it's 85%, maybe 99%. The core insight still holds: most PH launches don't build sustainable businesses."
+                  - paragraph [ref=f31e456]: Thanks for keeping me honest
+                - blockquote [ref=f31e457]:
+                  - generic [ref=f31e458]:
+                    - paragraph [ref=f31e460]: •
+                    - group [ref=f31e462]:
+                      - generic [ref=f31e463] [cursor=pointer]:
+                        - link "u/rrhoover" [ref=f31e464]:
+                          - /url: /user/rrhoover
+                        - link "Aug 12 '25" [ref=f31e465]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ai3ak/?context=3#n8ai3ak
+                      - generic [ref=f31e467]:
+                        - paragraph [ref=f31e468]: This is true for every project.
+                        - paragraph [ref=f31e469]: Product Hunt won’t make you successful—it can provide a bump and in some cases can lead to a windfall of serendipity and good things. But no sane person should expect a launch to have much of an outcome in a project or company’s long-term success.
+                      - blockquote
+      - generic [ref=f31e471]:
+        - paragraph [ref=f31e473]: •
+        - group [ref=f31e475]:
+          - generic [ref=f31e476] [cursor=pointer]:
+            - link "u/garyk1968" [ref=f31e477]:
+              - /url: /user/garyk1968
+            - link "Aug 11 '25" [ref=f31e478]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84h4p6/?context=3#n84h4p6
+          - generic [ref=f31e480]:
+            - paragraph [ref=f31e481]: Unsurprising as every builder starts with a product then tries to figure out the market second.
+            - paragraph [ref=f31e482]: It’s 1. Market 2. Product
+            - paragraph [ref=f31e483]: But builders gonna build right?
+          - blockquote [ref=f31e484]:
+            - generic [ref=f31e485]:
+              - paragraph [ref=f31e487]: •
+              - group [ref=f31e489]:
+                - generic [ref=f31e490] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e491]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e492]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n858e7x/?context=3#n858e7x
+                - paragraph [ref=f31e495]: Of course builders will build, but if we can avoid building in vain, that's even better.
+                - blockquote
+      - generic [ref=f31e497]:
+        - paragraph [ref=f31e499]: •
+        - group [ref=f31e501]:
+          - generic [ref=f31e502] [cursor=pointer]:
+            - link "u/OptimismNeeded" [ref=f31e503]:
+              - /url: /user/OptimismNeeded
+            - link "Aug 11 '25" [ref=f31e504]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n841c1z/?context=3#n841c1z
+          - generic [ref=f31e506]:
+            - paragraph [ref=f31e507]: Good post.
+            - paragraph [ref=f31e508]: "One note: you might want to check what the zombies do off Product Hunt."
+            - paragraph [ref=f31e509]: Many use the product hunt launch day for attention, then leverage it on X, LinkedIn etc, and using the badge on their website.
+            - paragraph [ref=f31e510]: The list serious guys don’t rely on PH for traffic or sales, it’s just a marketing boost.
+          - blockquote [ref=f31e511]:
+            - generic [ref=f31e512]:
+              - paragraph [ref=f31e514]: •
+              - group [ref=f31e516]:
+                - generic [ref=f31e517] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e518]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e519]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n842qfk/?context=3#n842qfk
+                - generic [ref=f31e521]:
+                  - paragraph [ref=f31e522]: You're absolutely right good point!
+                  - paragraph [ref=f31e523]: The smart ones definitely use PH as a marketing amplifier, not a customer acquisition channel.
+                  - paragraph [ref=f31e524]: "But here's what I found interesting: even the products that got massive social amplification from their PH launch (10K+ social shares, press coverage, etc.) still had the same ~97% failure rate."
+                  - paragraph [ref=f31e525]: The attention boost works great... if you already have product-market fit.
+                  - paragraph [ref=f31e526]: Without PMF, all that attention just accelerates the discovery that nobody wants to pay for your product.
+                  - paragraph [ref=f31e527]: I tracked a few that got TechCrunch coverage after their PH launch. Massive traffic spikes, thousands of signups, then... crickets when it came to converting to paid.
+                  - paragraph [ref=f31e528]: The fundamental issue isn't the marketing channel - it's building solutions to problems that aren't painful enough to pay for.
+                  - paragraph [ref=f31e529]: "Even the \"serious guys\" who use PH strategically still face the same validation problem: did they build something people actually want to buy?"
+                  - paragraph [ref=f31e530]: The attention is great, but it can't fix a product nobody needs.
+                  - paragraph [ref=f31e531]: That said, you're spot on about the badge/social proof value. For products that DO have PMF, PH can be rocket fuel.
+                - blockquote [ref=f31e532]:
+                  - link "→ More replies (1)" [ref=f31e533] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n842qfk
+      - generic [ref=f31e535]:
+        - paragraph [ref=f31e537]: •
+        - group [ref=f31e539]:
+          - generic [ref=f31e540] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e541]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n879w8q/?context=3#n879w8q
+          - paragraph [ref=f31e544]: "[deleted]"
+          - blockquote [ref=f31e545]:
+            - generic [ref=f31e546]:
+              - paragraph [ref=f31e548]: •
+              - group [ref=f31e550]:
+                - generic [ref=f31e551] [cursor=pointer]:
+                  - text: u/[deleted]
+                  - link "Aug 12 '25" [ref=f31e552]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88rrja/?context=3#n88rrja
+                - paragraph [ref=f31e555]:
+                  - text: "[removed] —"
+                  - link "view removed comment" [ref=f31e556] [cursor=pointer]:
+                    - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88rrja
+                - blockquote [ref=f31e557]:
+                  - link "→ More replies (1)" [ref=f31e558] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88rrja
+            - generic [ref=f31e559]:
+              - paragraph [ref=f31e561]: •
+              - group [ref=f31e563]:
+                - generic [ref=f31e564] [cursor=pointer]:
+                  - link "u/NeuralHijacker" [ref=f31e565]:
+                    - /url: /user/NeuralHijacker
+                  - link "Aug 12 '25" [ref=f31e566]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87hxt3/?context=3#n87hxt3
+                - paragraph [ref=f31e569]: Yeah I did it and it eventually drowned the business in tech debt because we spent so long scrambling to fulfill our promises we never had time to build anything properly.
+                - blockquote
+      - generic [ref=f31e571]:
+        - paragraph [ref=f31e573]: •
+        - group [ref=f31e575]:
+          - generic [ref=f31e576] [cursor=pointer]:
+            - link "u/Salty-Word4964" [ref=f31e577]:
+              - /url: /user/Salty-Word4964
+            - link "Aug 11 '25" [ref=f31e578]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n850ynt/?context=3#n850ynt
+          - generic [ref=f31e580]:
+            - paragraph [ref=f31e581]: You are spot on! My whole philosophy around my products is build to solve a problem. Then, find who is doing something similar and do it better.
+            - paragraph [ref=f31e582]: Thanks for the great read!
+          - blockquote [ref=f31e583]:
+            - generic [ref=f31e584]:
+              - paragraph [ref=f31e586]: •
+              - group [ref=f31e588]:
+                - generic [ref=f31e589] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e590]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e591]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85cexo/?context=3#n85cexo
+                - generic [ref=f31e593]:
+                  - paragraph [ref=f31e594]: Thanks! Love that philosophy - "build to solve a problem" is exactly right.
+                  - paragraph [ref=f31e595]: "Been thinking about flipping this even further: what if we found the problems FIRST, then matched them with builders?"
+                  - paragraph [ref=f31e596]: Like a marketplace where people post "I'll pay $X/month for someone to solve this specific problem" and makers can see guaranteed demand before coding anything.
+                  - paragraph [ref=f31e597]: Removes all the guesswork from "is this worth building?"
+                - blockquote [ref=f31e598]:
+                  - generic [ref=f31e599]:
+                    - paragraph [ref=f31e601]: •
+                    - group [ref=f31e603]:
+                      - generic [ref=f31e604] [cursor=pointer]:
+                        - link "u/Salty-Word4964" [ref=f31e605]:
+                          - /url: /user/Salty-Word4964
+                        - link "Aug 11 '25" [ref=f31e606]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85dlyw/?context=3#n85dlyw
+                      - paragraph [ref=f31e609]: Simple idea. Simple build. How would you monetize that though? Ads? Portion of the sale?
+                      - blockquote [ref=f31e610]:
+                        - link "→ More replies (1)" [ref=f31e611] [cursor=pointer]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85dlyw
+                  - link "→ More replies (1)" [ref=f31e612] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85cexo
+      - generic [ref=f31e614]:
+        - paragraph [ref=f31e616]: •
+        - group [ref=f31e618]:
+          - generic [ref=f31e619] [cursor=pointer]:
+            - link "u/SociableSociopath" [ref=f31e620]:
+              - /url: /user/SociableSociopath
+            - link "Aug 11 '25" [ref=f31e621]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n858kuh/?context=3#n858kuh
+          - paragraph [ref=f31e624]: Product Hunt has been garbage since day one and then to top it off half the businesses you see people starting in this and other saas subs are product hunt clones
+          - blockquote [ref=f31e625]:
+            - link "→ More replies (2)" [ref=f31e626] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n858kuh
+      - generic [ref=f31e628]:
+        - paragraph [ref=f31e630]: •
+        - group [ref=f31e632]:
+          - generic [ref=f31e633] [cursor=pointer]:
+            - link "u/prospectfly" [ref=f31e634]:
+              - /url: /user/prospectfly
+            - link "Aug 11 '25" [ref=f31e635]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hfhd/?context=3#n85hfhd
+          - generic [ref=f31e637]:
+            - paragraph [ref=f31e638]: interesting post
+            - paragraph [ref=f31e639]: the issue is its not that polarising
+            - paragraph [ref=f31e640]: its not 100% idea vs 100% execution
+            - paragraph [ref=f31e641]: its 50% idea - 50% execution right
+            - paragraph [ref=f31e642]: theres a to do app doing $200k a month i saw last week -supposedly
+            - paragraph [ref=f31e643]: really great execution - really great
+            - paragraph [ref=f31e644]: theres millions of to do apps. how many make money?
+            - paragraph [ref=f31e645]: you have to be really careful with the find the pain first thing too
+            - paragraph [ref=f31e646]: Steve Jobs said "We could have 1000 focus groups - none of them would have come up with the Iphone"
+            - paragraph [ref=f31e647]: theres a reason one of the biggest uses of chatgpt wrappers at start was SEO blog posts
+            - paragraph [ref=f31e648]: i could approach 100 people and they all want push button blog posts and say they would pay
+            - paragraph [ref=f31e649]: Ironically the chatgpt wrapper space became so saturated so quickly - people had to niche down the ICP to differentiate
+            - paragraph [ref=f31e650]: first to market is actually a bigger factor than people think
+            - paragraph [ref=f31e651]: what are these 97% is the more interesting question? are they super niche and unique products - that probably didnt have PMF on a really big ongoing pain? or TAM was too small?
+            - paragraph [ref=f31e652]: Or are they clones of say a blogging ai tool - complete feature parity with multiple competitors that are doing £10k pm?
+            - paragraph [ref=f31e653]: In which case the fact the idea was validated with paying customers wasnt the reason the project failed right?
+            - paragraph [ref=f31e654]: Theres also more to SAAS than meets the eye. eg stickiness.
+            - paragraph [ref=f31e655]: You can have a great product but founders dont understand getting stickiness
+            - paragraph [ref=f31e656]: Its similar concept to Adam P and 2008 book viral loops...
+            - paragraph [ref=f31e657]: "\"Viral Loop by Adam L. Penenberg explores how companies achieve explosive growth through viral expansion strategies. The book examines successful businesses like Hotmail, Facebook, and Twitter that built viral mechanisms into their products, enabling users to naturally spread adoption."
+            - paragraph [ref=f31e658]: Penenberg explains the mathematics behind viral coefficients, where each user brings in more than one additional user, creating exponential growth
+            - paragraph [ref=f31e659]: "He traces viral marketing from Tupperware parties to digital platforms, showing how reducing friction in sharing and leveraging network effects creates self-perpetuating growth cycles. The key insight: building virality into a product's core functionality, rather than treating it as an add-on marketing tactic, drives sustainable scaling.\""
+          - blockquote [ref=f31e660]:
+            - generic [ref=f31e661]:
+              - paragraph [ref=f31e663]: •
+              - group [ref=f31e665]:
+                - generic [ref=f31e666] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e667]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 12 '25" [ref=f31e668]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8a4gtr/?context=3#n8a4gtr
+                - generic [ref=f31e670]:
+                  - paragraph [ref=f31e671]: You're absolutely right - it's way more nuanced than my analysis suggests.
+                  - paragraph [ref=f31e672]: The to-do app doing $200K is the perfect example. Same crowded market, but exceptional execution wins.
+                  - paragraph [ref=f31e673]: My 97% failure rate probably includes tons of validated ideas that just got out-executed by better teams, launched too late, or couldn't crack distribution.
+                  - paragraph [ref=f31e674]: The iPhone point is spot on too. Sometimes you have to create demand for something people didn't know they needed.
+                  - paragraph [ref=f31e675]: I think my analysis caught the "obviously bad ideas" more than the "good ideas, poor execution" ones. The stickiness/viral loop stuff you mentioned is probably what separates the 3% winners.
+                  - paragraph [ref=f31e676]: Really good breakdown - thanks for adding the nuance I missed.
+                - blockquote
+            - link "→ More replies (2)" [ref=f31e677] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hfhd
+      - generic [ref=f31e679]:
+        - paragraph [ref=f31e681]: •
+        - group [ref=f31e683]:
+          - generic [ref=f31e684] [cursor=pointer]:
+            - link "u/Razzmatazz_Informal" [ref=f31e685]:
+              - /url: /user/Razzmatazz_Informal
+            - link "Aug 11 '25" [ref=f31e686]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83vfcy/?context=3#n83vfcy
+          - generic [ref=f31e688]:
+            - paragraph [ref=f31e689]: So a year or so I got working on an idea of an AI personal trainer. I figured it could txt you to remind you to work out, you could txt it with what you ate.... etc... But I wanted to verify there was interest... so I created a landing page with a signup button and ran an ad campaign. No one clicked the sign up button.
+            - paragraph [ref=f31e690]: I stopped working on it within a few days. I still think its a cool idea... and maybe someone can make it work
+          - blockquote [ref=f31e691]:
+            - generic [ref=f31e692]:
+              - paragraph [ref=f31e694]: •
+              - group [ref=f31e696]:
+                - generic [ref=f31e697] [cursor=pointer]:
+                  - link "u/Beneficial-Exam1447" [ref=f31e698]:
+                    - /url: /user/Beneficial-Exam1447
+                  - link "Aug 11 '25" [ref=f31e699]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85edx8/?context=3#n85edx8
+                - paragraph [ref=f31e702]: I'd say maybe you didn't find the right people to show your message too , I created a post about 3months now for an app I've been working on for quite sometime (tbh honest I created it for me to help me focus and amange my ideas on macos) and posted on subreddit for macusers I was overwhelmed with the amount of dms I got to the point that it made me stressed since now people are waiting lol
+                - blockquote [ref=f31e703]:
+                  - generic [ref=f31e704]:
+                    - paragraph [ref=f31e706]: •
+                    - group [ref=f31e708]:
+                      - generic [ref=f31e709] [cursor=pointer]:
+                        - text: u/[deleted]
+                        - link "Aug 12 '25" [ref=f31e710]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88d7cn/?context=3#n88d7cn
+                      - paragraph [ref=f31e713]:
+                        - text: "[removed] —"
+                        - link "view removed comment" [ref=f31e714] [cursor=pointer]:
+                          - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88d7cn
+                      - blockquote [ref=f31e715]:
+                        - generic [ref=f31e716]:
+                          - paragraph [ref=f31e718]: •
+                          - group [ref=f31e720]:
+                            - generic [ref=f31e721] [cursor=pointer]:
+                              - link "u/Beneficial-Exam1447" [ref=f31e722]:
+                                - /url: /user/Beneficial-Exam1447
+                              - link "Aug 12 '25" [ref=f31e723]:
+                                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89lpim/?context=3#n89lpim
+                            - paragraph [ref=f31e726]: "the good thing about building for your self first is that you build for your self lol if people buy it that's good if not then you got your self a tool to help with with whatever problem you had , and more often than not these projects are the ones that succeed because the attention to detail you give to something you care about is not the same as some mediocre product you're just trying to get rich from . the OP should take into account that most product on ProductHunt are mediocre and lack actual substance like the thing that makes people stick (eg: amazing ux , micro interactions ... etc)"
+                            - blockquote [ref=f31e727]:
+                              - link "→ More replies (3)" [ref=f31e728] [cursor=pointer]:
+                                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89lpim
+            - link "→ More replies (7)" [ref=f31e729] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83vfcy
+      - generic [ref=f31e731]:
+        - paragraph [ref=f31e733]: •
+        - group [ref=f31e735]:
+          - generic [ref=f31e736] [cursor=pointer]:
+            - link "u/Significant_Chain186" [ref=f31e737]:
+              - /url: /user/Significant_Chain186
+            - link "Aug 11 '25" [ref=f31e738]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83qfdo/?context=3#n83qfdo
+          - generic [ref=f31e740]:
+            - paragraph [ref=f31e741]: Brilliant. The "Now let's find customers" killed all my previous ideas, painfully, sooner or later, leaving me burnt out 🙄
+            - paragraph [ref=f31e742]:
+              - text: Instead of getting schizophrenic though I'm spinning up now
+              - link "https://www.vibe42.xyz/" [ref=f31e743] [cursor=pointer]:
+                - /url: https://www.vibe42.xyz/
+              - text: ", mass product video creation and distribution, to solve my own promotion issue. Let's see how it goes 🤷‍♂️"
+          - blockquote [ref=f31e744]:
+            - generic [ref=f31e745]:
+              - paragraph [ref=f31e747]: •
+              - group [ref=f31e749]:
+                - generic [ref=f31e750] [cursor=pointer]:
+                  - link "u/storyteller917" [ref=f31e751]:
+                    - /url: /user/storyteller917
+                  - link "Aug 11 '25" [ref=f31e752]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n844yu2/?context=3#n844yu2
+                - paragraph [ref=f31e755]: Opportunity in crisis
+                - blockquote [ref=f31e756]:
+                  - generic [ref=f31e757]:
+                    - paragraph [ref=f31e759]: •
+                    - group [ref=f31e761]:
+                      - generic [ref=f31e762] [cursor=pointer]:
+                        - link "u/Significant_Chain186" [ref=f31e763]:
+                          - /url: /user/Significant_Chain186
+                        - link "Aug 11 '25" [ref=f31e764]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n845x6m/?context=3#n845x6m
+                      - paragraph [ref=f31e767]: Don't even get me started mate :)
+                      - blockquote
+                  - link "→ More replies (1)" [ref=f31e768] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n844yu2
+            - generic [ref=f31e769]:
+              - paragraph [ref=f31e771]: •
+              - group [ref=f31e773]:
+                - generic [ref=f31e774] [cursor=pointer]:
+                  - text: u/[deleted]
+                  - link "Aug 11 '25" [ref=f31e775]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n856uyf/?context=3#n856uyf
+                - paragraph [ref=f31e778]: It looks like you’re doing it again. Your problem wasn’t promotion, it was identifying and derisking a market problem that actually needs solving, and that a lot of people would be willing to pay to solve.
+                - blockquote [ref=f31e779]:
+                  - generic [ref=f31e780]:
+                    - paragraph [ref=f31e782]: •
+                    - group [ref=f31e784]:
+                      - generic [ref=f31e785] [cursor=pointer]:
+                        - link "u/Significant_Chain186" [ref=f31e786]:
+                          - /url: /user/Significant_Chain186
+                        - link "Aug 11 '25" [ref=f31e787]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85igy3/?context=3#n85igy3
+                      - paragraph [ref=f31e790]:
+                        - link [ref=f31e791] [cursor=pointer]:
+                          - /url: https://giphy.com/gifs/17XAjPucc8Qda
+                      - blockquote
+            - generic [ref=f31e793]:
+              - paragraph [ref=f31e795]: •
+              - group [ref=f31e797]:
+                - generic [ref=f31e798] [cursor=pointer]:
+                  - link "u/jkettmann" [ref=f31e799]:
+                    - /url: /user/jkettmann
+                  - link "Aug 11 '25" [ref=f31e800]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86e2uo/?context=3#n86e2uo
+                - paragraph [ref=f31e803]: Just fyi I can’t play the example videos on my phone. The demo video/gif is way to fast and I have no clue what’s happening there. The claim “I launched my app Friday. Had 13K views on TikTok by Sunday via Vibe42.” sounds great but also fabricated especially because there’s no real name below. If this really works you should be able to show case videos that actually created traction.
+                - blockquote [ref=f31e804]:
+                  - generic [ref=f31e805]:
+                    - paragraph [ref=f31e807]: •
+                    - group [ref=f31e809]:
+                      - generic [ref=f31e810] [cursor=pointer]:
+                        - link "u/Significant_Chain186" [ref=f31e811]:
+                          - /url: /user/Significant_Chain186
+                        - link "Aug 11 '25" [ref=f31e812]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86ktr3/?context=3#n86ktr3
+                      - paragraph [ref=f31e815]: Thanks a lot, taken into consideration and will be fixed.
+                      - blockquote
+            - link "→ More replies (1)" [ref=f31e816] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83qfdo
+      - generic [ref=f31e818]:
+        - paragraph [ref=f31e820]: •
+        - group [ref=f31e822]:
+          - generic [ref=f31e823] [cursor=pointer]:
+            - link "u/adrianglazer" [ref=f31e824]:
+              - /url: /user/adrianglazer
+            - link "Aug 11 '25" [ref=f31e825]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8434jf/?context=3#n8434jf
+          - generic [ref=f31e827]:
+            - paragraph [ref=f31e828]: Great analysis! Thanks for that. Before building my tool for personal trainers I had one gym owner who was interested in. He uses the app for few years now. Problem is, I only attracted a few paying trainers. Small community and polish people mentality. They would like to use it for free, but a small price is too much for them. Most trainers uses free excel spreadsheets and they won’t give you a $5 for dedicated software with mobile app! I will try Spanish market next year as I’m moving there permanently in a month.
+            - paragraph [ref=f31e829]: Right now I’m working on a new idea, but this time I will for sure not start building anything before finding customers and ensure I will get a decent monthly income after delivering what has been promised. By building I mean a working solution for customers. I’m writing code, but only for myself now. I have a specific problem myself and trying to solve it. None of the available software doesn’t suit me. One was close but only on paper, and in reality it was another AI wrapper made on a lap.
+            - paragraph [ref=f31e830]: I bet with all this vibe coding we will be soon flooded by an even more crappy apps.
+          - blockquote [ref=f31e831]:
+            - generic [ref=f31e832]:
+              - paragraph [ref=f31e834]: •
+              - group [ref=f31e836]:
+                - generic [ref=f31e837] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e838]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e839]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n844gaz/?context=3#n844gaz
+                - generic [ref=f31e841]:
+                  - paragraph [ref=f31e842]: This is such a perfect case study of market validation vs. market willingness to pay!
+                  - paragraph [ref=f31e843]:
+                    - text: "You did everything \"right\" - found a gym owner who wanted it, built a solution that works, got real usage. But the brutal lesson:"
+                    - strong [ref=f31e844]: wanting a solution ≠ willing to pay for a solution.
+                  - paragraph [ref=f31e845]: The Poland/trainer market insight is gold - some markets just have a $0 willingness-to-pay ceiling no matter how good the solution is. Excel is "good enough" when budget is the constraint, not features.
+                  - paragraph [ref=f31e846]:
+                    - strong [ref=f31e847]: Spain pivot is smart.
+                    - text: Different market psychology around software spending could change everything. Same product, different customer segment.
+                  - paragraph [ref=f31e848]: "Love your new approach: \"solving my own problem first.\" That's actually the highest probability path to PMF. You're the perfect customer, you know the pain intimately, and you'll pay yourself (even if it's just time/effort)."
+                  - paragraph [ref=f31e849]:
+                    - strong [ref=f31e850]: "Re: AI wrapper flood"
+                    - text: "- 100% agree. We're about to see thousands more products that solve problems nobody has, just faster thanks to AI. The validation problem is about to get 10x worse."
+                  - paragraph [ref=f31e851]: "The irony: AI makes building easier, but it doesn't make finding real customers any easier. If anything, the noise will make genuine validation even more critical."
+                  - paragraph [ref=f31e852]: What's the problem you're solving for yourself? Sometimes the best businesses start with "I built this for me and accidentally others wanted it too."
+                - blockquote [ref=f31e853]:
+                  - link "→ More replies (3)" [ref=f31e854] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n844gaz
+            - link "→ More replies (2)" [ref=f31e855] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8434jf
+      - generic [ref=f31e857]:
+        - paragraph [ref=f31e859]: •
+        - group [ref=f31e861]:
+          - generic [ref=f31e862] [cursor=pointer]:
+            - link "u/Militop" [ref=f31e863]:
+              - /url: /user/Militop
+            - link "Aug 11 '25" [ref=f31e864]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84hw1f/?context=3#n84hw1f
+          - generic [ref=f31e866]:
+            - paragraph [ref=f31e867]: Awesome post, however, there is still the experience factor. You are doing something that makes you marketable. It's a partial loss as well as a partial win when it fails.
+            - paragraph [ref=f31e868]: With the economy slowing down, people will start looking for alternatives. Saas should be built around this fact. How can my product be beneficial to people in a struggling economy? All the bad press big companies are having should also make people reconsider their options. Ideas will get better.
+          - blockquote [ref=f31e869]:
+            - generic [ref=f31e870]:
+              - paragraph [ref=f31e872]: •
+              - group [ref=f31e874]:
+                - generic [ref=f31e875] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e876]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e877]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n858p0y/?context=3#n858p0y
+                - paragraph [ref=f31e880]: Of course, as I often say, there is no success without prior failure; otherwise, it's just luck.
+                - blockquote
+      - generic [ref=f31e882]:
+        - paragraph [ref=f31e884]: •
+        - group [ref=f31e886]:
+          - generic [ref=f31e887] [cursor=pointer]:
+            - link "u/storyteller917" [ref=f31e888]:
+              - /url: /user/storyteller917
+            - link "Aug 11 '25" [ref=f31e889]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8451o9/?context=3#n8451o9
+          - paragraph [ref=f31e892]: Brother, this is very insightful. Thanks
+          - blockquote
+      - generic [ref=f31e894]:
+        - paragraph [ref=f31e896]: •
+        - group [ref=f31e898]:
+          - generic [ref=f31e899] [cursor=pointer]:
+            - link "u/ElevatorFriendly648" [ref=f31e900]:
+              - /url: /user/ElevatorFriendly648
+            - link "Aug 11 '25" [ref=f31e901]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n845kff/?context=3#n845kff
+          - paragraph [ref=f31e904]: Sounds interesting, but I wish you didn't write it up with his AI fluff. I need AI now to give me a tldr
+          - blockquote
+      - generic [ref=f31e906]:
+        - paragraph [ref=f31e908]: •
+        - group [ref=f31e910]:
+          - generic [ref=f31e911] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e912]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84u8ot/?context=3#n84u8ot
+          - paragraph [ref=f31e915]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e916] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84u8ot
+          - blockquote [ref=f31e917]:
+            - link "→ More replies (1)" [ref=f31e918] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84u8ot
+      - generic [ref=f31e920]:
+        - paragraph [ref=f31e922]: •
+        - group [ref=f31e924]:
+          - generic [ref=f31e925] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e926]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8553id/?context=3#n8553id
+          - paragraph [ref=f31e929]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e930] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8553id
+          - blockquote [ref=f31e931]:
+            - generic [ref=f31e932]:
+              - paragraph [ref=f31e934]: •
+              - group [ref=f31e936]:
+                - generic [ref=f31e937] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e938]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e939]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85dpek/?context=3#n85dpek
+                - generic [ref=f31e941]:
+                  - paragraph [ref=f31e942]: Totally feel this! Subscription fatigue is real - everyone's cutting costs and being way more selective.
+                  - paragraph [ref=f31e943]: "But here's the thing: people will still pay for solutions that solve genuine pain. The difference is they want EXACTLY what they need, not 50 features they'll never use."
+                  - paragraph [ref=f31e944]: This is actually making me think about a different model - what if multiple people pooled money for a maker to build exactly what they need? Custom solutions at shared cost.
+                  - paragraph [ref=f31e945]: Might be the future when everyone's cutting bloated subscriptions.
+                - blockquote
+      - generic [ref=f31e947]:
+        - paragraph [ref=f31e949]: •
+        - group [ref=f31e951]:
+          - generic [ref=f31e952] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e953]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8588ng/?context=3#n8588ng
+          - paragraph [ref=f31e956]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e957] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8588ng
+          - blockquote [ref=f31e958]:
+            - link "→ More replies (1)" [ref=f31e959] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8588ng
+      - generic [ref=f31e961]:
+        - paragraph [ref=f31e963]: •
+        - group [ref=f31e965]:
+          - generic [ref=f31e966] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e967]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85cx6v/?context=3#n85cx6v
+          - paragraph [ref=f31e970]: "[deleted]"
+          - blockquote [ref=f31e971]:
+            - link "→ More replies (1)" [ref=f31e972] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85cx6v
+      - generic [ref=f31e974]:
+        - paragraph [ref=f31e976]: •
+        - group [ref=f31e978]:
+          - generic [ref=f31e979] [cursor=pointer]:
+            - link "u/lalantop" [ref=f31e980]:
+              - /url: /user/lalantop
+            - link "Aug 11 '25" [ref=f31e981]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85lz4l/?context=3#n85lz4l
+          - paragraph [ref=f31e984]: Good informative post. Thanks
+          - blockquote
+      - generic [ref=f31e986]:
+        - paragraph [ref=f31e988]: •
+        - group [ref=f31e990]:
+          - generic [ref=f31e991] [cursor=pointer]:
+            - link "u/Noir_Chocolates" [ref=f31e992]:
+              - /url: /user/Noir_Chocolates
+            - link "Aug 11 '25" [ref=f31e993]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86vcn3/?context=3#n86vcn3
+          - paragraph [ref=f31e996]: Should’ve just made gpt wrapper
+          - blockquote
+      - generic [ref=f31e998]:
+        - paragraph [ref=f31e1000]: •
+        - group [ref=f31e1002]:
+          - generic [ref=f31e1003] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1004]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86yywf/?context=3#n86yywf
+          - paragraph [ref=f31e1007]: "[deleted]"
+          - blockquote [ref=f31e1008]:
+            - link "→ More replies (2)" [ref=f31e1009] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86yywf
+      - generic [ref=f31e1011]:
+        - paragraph [ref=f31e1013]: •
+        - group [ref=f31e1015]:
+          - generic [ref=f31e1016] [cursor=pointer]:
+            - link "u/philatmeed" [ref=f31e1017]:
+              - /url: /user/philatmeed
+            - link "Aug 12 '25" [ref=f31e1018]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87ts7w/?context=3#n87ts7w
+          - paragraph [ref=f31e1021]: I did an abysmal product hunt launch. Completely screwed it up. A drop of water landing on the ocean made a louder noise. Had no idea what I was doing. We’re far from dead and in fact growing but I learned some painful and valuable lessons.
+          - blockquote [ref=f31e1022]:
+            - link "→ More replies (1)" [ref=f31e1023] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87ts7w
+      - generic [ref=f31e1025]:
+        - paragraph [ref=f31e1027]: •
+        - group [ref=f31e1029]:
+          - generic [ref=f31e1030] [cursor=pointer]:
+            - link "u/ankitprakash" [ref=f31e1031]:
+              - /url: /user/ankitprakash
+            - link "Aug 12 '25" [ref=f31e1032]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88k9sc/?context=3#n88k9sc
+          - generic [ref=f31e1034]:
+            - paragraph [ref=f31e1035]: Yeah, 100% with you on this, Product Hunt is like that one-night-only spotlight at an open mic. Feels amazing while you are up there, but the moment the lights go out, you are back in your garage practicing alone.
+            - paragraph [ref=f31e1036]: From what I have seen, PH is fantastic for developers talking to developers. You get quick feedback, you spot bugs, maybe even a few collabs pop up. But real buyers….the kind who have budgets and urgency? They are not hanging out on PH refreshing the “Today” tab. They are in in industry Slack groups, on niche forums, or already locked into vendor relationships.
+            - paragraph [ref=f31e1037]: I made this mistake early on (long back), treated PH like the launch strategy. We got upvotes, we got “love what you are building” comments…but not one paying customer. It is like showing your shiny new drill at a party, people cheer 😆, but no one actually has wood to drill.
+            - paragraph [ref=f31e1038]: These days, if I use PH at all, it is later. More like a PR push after we already have paying users. For us, it is a dev visibility event, not a customer acquisition channel.
+            - paragraph [ref=f31e1039]: The actual paying users…we find them way earlier, long before writing a single line of code.
+          - blockquote
+      - generic [ref=f31e1041]:
+        - paragraph [ref=f31e1043]: •
+        - group [ref=f31e1045]:
+          - generic [ref=f31e1046] [cursor=pointer]:
+            - link "u/CalligrapherSharp824" [ref=f31e1047]:
+              - /url: /user/CalligrapherSharp824
+            - link "Aug 12 '25" [ref=f31e1048]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88mg9p/?context=3#n88mg9p
+          - generic [ref=f31e1050]:
+            - paragraph [ref=f31e1051]:
+              - text: This nails the real problem—Product Hunt isn’t broken, the
+              - emphasis [ref=f31e1052]: founder playbook
+              - text: is.
+            - paragraph [ref=f31e1053]: Most launches treat PH like the finish line when it should just be a marketing channel. You can’t “ship and pray” your way to revenue. If you’re not collecting money before you build, you’re just doing expensive user research for free. The survivors in your data didn’t have the best launches—they had customers before they had a product. That’s the part everyone ignores because it’s uncomfortable. It’s way easier to chase upvotes than to ask someone to pay you $50 for something that doesn’t exist yet.
+            - paragraph [ref=f31e1054]: If PH is a graveyard, it’s because most of the bodies walked in already dead.
+          - blockquote
+      - generic [ref=f31e1056]:
+        - paragraph [ref=f31e1058]: •
+        - group [ref=f31e1060]:
+          - generic [ref=f31e1061] [cursor=pointer]:
+            - link "u/s0l037" [ref=f31e1062]:
+              - /url: /user/s0l037
+            - link "Aug 12 '25" [ref=f31e1063]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8952ak/?context=3#n8952ak
+          - paragraph [ref=f31e1066]: The B2B SaaS product we built, has a customer first of 250k a year. And now we have 3 such customers on 250k , 150k and 75k a year for the next 3 years. No branding, no bs launches, no right swiping tinder teenager founders, no spending on ads, no social media presence, no GTM or launch day charade, looking for product market fit notion etc. It's totally niche and there is a huge market for it, that's why we built it as being in the industry for so long tells you what is needs. We are selling this based on our internal industry contacts that we have made over so many years.
+          - blockquote
+      - generic [ref=f31e1068]:
+        - paragraph [ref=f31e1070]: •
+        - group [ref=f31e1072]:
+          - generic [ref=f31e1073] [cursor=pointer]:
+            - link "u/Practical_Row_6459" [ref=f31e1074]:
+              - /url: /user/Practical_Row_6459
+            - link "Aug 12 '25" [ref=f31e1075]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89z295/?context=3#n89z295
+          - paragraph [ref=f31e1078]: 100% agree. With genAI the software barrier decreased so a lot of people are building without knowing for what - then reality comes
+          - blockquote
+      - generic [ref=f31e1080]:
+        - paragraph [ref=f31e1082]: •
+        - group [ref=f31e1084]:
+          - generic [ref=f31e1085] [cursor=pointer]:
+            - link "u/Just-Mail-8204" [ref=f31e1086]:
+              - /url: /user/Just-Mail-8204
+            - link "Aug 12 '25" [ref=f31e1087]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8c3lc3/?context=3#n8c3lc3
+          - paragraph [ref=f31e1090]: Read this post and the guy just hit me in different places. Like every word he wrote jut hit me hard
+          - blockquote
+      - generic [ref=f31e1092]:
+        - paragraph [ref=f31e1094]: •
+        - group [ref=f31e1096]:
+          - generic [ref=f31e1097] [cursor=pointer]:
+            - link "u/GolfnNSkiing" [ref=f31e1098]:
+              - /url: /user/GolfnNSkiing
+            - link "Aug 13 '25" [ref=f31e1099]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dt4zn/?context=3#n8dt4zn
+          - paragraph [ref=f31e1102]: Great research! While you've provided some common ways that folks have been successful in that 3%, would you mind sharing the 13 companies that were able to provide a founder salary?
+          - blockquote [ref=f31e1103]:
+            - link "→ More replies (1)" [ref=f31e1104] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dt4zn
+      - generic [ref=f31e1106]:
+        - paragraph [ref=f31e1108]: •
+        - group [ref=f31e1110]:
+          - generic [ref=f31e1111] [cursor=pointer]:
+            - link "u/Ambitious_Car_7118" [ref=f31e1112]:
+              - /url: /user/Ambitious_Car_7118
+            - link "Aug 13 '25" [ref=f31e1113]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8fzfcd/?context=3#n8fzfcd
+          - paragraph [ref=f31e1116]:
+            - text: This is a brutal but accurate teardown of
+            - emphasis [ref=f31e1117]: spectacle-led GTM,
+            - text: "and it nails the core Anishek lens: systems > sizzle, demand > dopamine. Strong opportunity to jump in with a focused, founder-first POV:"
+          - blockquote
+      - generic [ref=f31e1119]:
+        - paragraph [ref=f31e1121]: •
+        - group [ref=f31e1123]:
+          - generic [ref=f31e1124] [cursor=pointer]:
+            - link "u/ingeekwetrust" [ref=f31e1125]:
+              - /url: /user/ingeekwetrust
+            - link "Aug 13 '25" [ref=f31e1126]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ghe1e/?context=3#n8ghe1e
+          - paragraph [ref=f31e1129]: Brutal but true, if a startup hasn’t hit PMF within a few months, it's essentially on life support.
+          - blockquote
+      - generic [ref=f31e1131]:
+        - paragraph [ref=f31e1133]: •
+        - group [ref=f31e1135]:
+          - generic [ref=f31e1136] [cursor=pointer]:
+            - link "u/Ok_Structure_2396" [ref=f31e1137]:
+              - /url: /user/Ok_Structure_2396
+            - link "Aug 13 '25" [ref=f31e1138]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8hampv/?context=3#n8hampv
+          - paragraph [ref=f31e1141]: Great read. Agree that we need to re-define success and high-status from "I launched with 1000 upvotes!" to "I earned 10 paying customers!"
+          - blockquote
+      - generic [ref=f31e1143]:
+        - paragraph [ref=f31e1145]: •
+        - group [ref=f31e1147]:
+          - generic [ref=f31e1148] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1149]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83yclb/?context=3#n83yclb
+          - paragraph [ref=f31e1152]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1153] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83yclb
+          - blockquote [ref=f31e1154]:
+            - generic [ref=f31e1155]:
+              - paragraph [ref=f31e1157]: •
+              - group [ref=f31e1159]:
+                - generic [ref=f31e1160] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1161]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1162]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83zelp/?context=3#n83zelp
+                - generic [ref=f31e1164]:
+                  - paragraph [ref=f31e1165]: You just saved yourself months of potential heartbreak! 🙌
+                  - paragraph [ref=f31e1166]: "Here's your action plan before you write a single line of code:"
+                  - list [ref=f31e1167]:
+                    - listitem [ref=f31e1168]:
+                      - strong [ref=f31e1169]: Find 20 people with your exact problem
+                      - text: (not friends/family - real strangers)
+                    - listitem [ref=f31e1170]:
+                      - strong [ref=f31e1171]: Ask them what they currently do about it
+                      - text: (understand their pain level)
+                    - listitem [ref=f31e1172]:
+                      - strong [ref=f31e1173]: Ask what they'd pay monthly for a solution
+                      - text: (get specific numbers)
+                    - listitem [ref=f31e1174]:
+                      - strong [ref=f31e1175]: Collect $50+ from at least 10 of them
+                      - text: as pre-payment/deposit
+                  - paragraph [ref=f31e1176]: If you can't get 10 people to put down money, the market isn't there yet.
+                  - paragraph [ref=f31e1177]: If you CAN get 10+ people to pre-pay, congratulations - you just validated a real business before building anything.
+                  - paragraph [ref=f31e1178]: "The key insight: people lie in surveys, but money tells the truth."
+                  - paragraph [ref=f31e1179]: What's your project idea? Happy to help you think through the validation approach.
+                  - paragraph [ref=f31e1180]: (And seriously - seeing this mindset in a first-time builder gives me hope. Most people learn this lesson the expensive way 😅)
+                - blockquote [ref=f31e1181]:
+                  - generic [ref=f31e1182]:
+                    - paragraph [ref=f31e1184]: •
+                    - group [ref=f31e1186]:
+                      - generic [ref=f31e1187] [cursor=pointer]:
+                        - link "u/FineInstruction1397" [ref=f31e1188]:
+                          - /url: /user/FineInstruction1397
+                        - link "Aug 11 '25" [ref=f31e1189]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84m7q5/?context=3#n84m7q5
+                      - paragraph [ref=f31e1192]: "i wrote in another comment ... #4, did you try it? who pays for a non exisiting product?"
+                      - blockquote [ref=f31e1193]:
+                        - link "→ More replies (3)" [ref=f31e1194] [cursor=pointer]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84m7q5
+      - generic [ref=f31e1196]:
+        - paragraph [ref=f31e1198]: •
+        - group [ref=f31e1200]:
+          - generic [ref=f31e1201] [cursor=pointer]:
+            - link "u/Several-Edge-2056" [ref=f31e1202]:
+              - /url: /user/Several-Edge-2056
+            - link "Aug 11 '25" [ref=f31e1203]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84cbqb/?context=3#n84cbqb
+          - paragraph [ref=f31e1206]: AI
+          - blockquote
+      - generic [ref=f31e1208]:
+        - paragraph [ref=f31e1210]: •
+        - group [ref=f31e1212]:
+          - generic [ref=f31e1213] [cursor=pointer]:
+            - link "u/ImportantBid11" [ref=f31e1214]:
+              - /url: /user/ImportantBid11
+            - link "Aug 11 '25" [ref=f31e1215]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83xlt9/?context=3#n83xlt9
+          - generic [ref=f31e1217]:
+            - paragraph [ref=f31e1218]: Yeah, this matches what I’ve been seeing too!
+            - paragraph [ref=f31e1219]: So many founders jump straight into “build mode” without actually knowing if anyone will pay for what they’re making.
+            - paragraph [ref=f31e1220]: It’s why I’ve been spending a lot more time up front with founders, helping them stress-test ideas, score them against real-world signals, and plan out the tech side before they commit months of building.
+            - paragraph [ref=f31e1221]: Even a tiny bit of early validation saves so much wasted time (and cash), so I recommend everyone make it their first step before writing a single line of code.
+          - blockquote [ref=f31e1222]:
+            - generic [ref=f31e1223]:
+              - paragraph [ref=f31e1225]: •
+              - group [ref=f31e1227]:
+                - generic [ref=f31e1228] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1229]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1230]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n83ya3i/?context=3#n83ya3i
+                - generic [ref=f31e1232]:
+                  - paragraph [ref=f31e1233]: 100% this! You're doing the lord's work helping founders avoid the "6 months in a cave" trap.
+                  - paragraph [ref=f31e1234]: What's the most common validation blind spot you see? In my analysis, it was founders confusing "people say they're interested" with "people willing to pay."
+                  - paragraph [ref=f31e1235]: The number of times I heard "everyone I talked to loved the idea" followed by "but no one signed up when we launched" was depressing.
+                  - paragraph [ref=f31e1236]: Curious what's your go-to stress test for separating real demand from polite interest? I've started pushing founders to collect actual money (even $20-50) before building anything, but wondering what other real-world signals you use.
+                  - paragraph [ref=f31e1237]: The founders who survive seem to be obsessed with customer wallets, not customer opinions.
+                - blockquote [ref=f31e1238]:
+                  - generic [ref=f31e1239]:
+                    - paragraph [ref=f31e1241]: •
+                    - group [ref=f31e1243]:
+                      - generic [ref=f31e1244] [cursor=pointer]:
+                        - link "u/ImportantBid11" [ref=f31e1245]:
+                          - /url: /user/ImportantBid11
+                        - link "Aug 11 '25" [ref=f31e1246]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n841s8q/?context=3#n841s8q
+                      - generic [ref=f31e1248]:
+                        - paragraph [ref=f31e1249]: I always tell founders that if you can get someone to put in time or money before you’ve built a thing, you’re onto something.
+                        - paragraph [ref=f31e1250]: "That might be:"
+                        - paragraph [ref=f31e1251]: "- Pre-selling a “founder price” slot"
+                        - paragraph [ref=f31e1252]: "- Charging for a deep-dive prototype walkthrough"
+                        - paragraph [ref=f31e1253]: "- Booking them into an onboarding session (that maybe event doesn’t exist yet)"
+                        - paragraph [ref=f31e1254]: Way stronger signal than “sounds cool, keep me posted.”
+                        - paragraph [ref=f31e1255]: I'm curious to learn what venture you are focusing on next?
+                      - blockquote [ref=f31e1256]:
+                        - generic [ref=f31e1257]:
+                          - paragraph [ref=f31e1259]: •
+                          - group [ref=f31e1261]:
+                            - generic [ref=f31e1262] [cursor=pointer]:
+                              - link "u/Responsible-Ad431" [ref=f31e1263]:
+                                - /url: /user/Responsible-Ad431
+                              - link "Aug 11 '25" [ref=f31e1264]:
+                                - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n843dr1/?context=3#n843dr1
+                            - generic [ref=f31e1266]:
+                              - paragraph [ref=f31e1267]: Exactly! Time and money are the only honest signals.
+                              - paragraph [ref=f31e1268]: Love the "onboarding session that doesn't exist yet" tactic - that's brilliant. If they won't block calendar time for a solution, they definitely won't pay for it.
+                              - paragraph [ref=f31e1269]: The "sounds cool, keep me posted" responses are the kiss of death. I learned to translate that as "I'm being polite but would never actually use this."
+                              - paragraph [ref=f31e1270]:
+                                - strong [ref=f31e1271]: "Re: next venture"
+                                - text: "- This whole analysis has me obsessing over a different approach entirely."
+                              - paragraph [ref=f31e1272]: What if instead of founders building solutions looking for problems, we flipped it? A platform where people post problems they're willing to pay to solve, others add bounties, and makers only build when there's proven demand.
+                              - paragraph [ref=f31e1273]: Like "here's my business problem, I'll pay $200/month for a solution" instead of "here's my finished product, please vote."
+                              - paragraph [ref=f31e1274]: "Still in the thinking/validation phase though. Trying to avoid becoming statistic #488 in my own dataset 😅"
+                              - paragraph [ref=f31e1275]: The irony would be building an anti-Product Hunt without validating it first.
+                              - paragraph [ref=f31e1276]: What validation method has given you the strongest signal? Curious if you've found anything better than the pre-payment test.
+                            - blockquote [ref=f31e1277]:
+                              - generic [ref=f31e1278]:
+                                - paragraph [ref=f31e1280]: •
+                                - group [ref=f31e1282]:
+                                  - generic [ref=f31e1283] [cursor=pointer]:
+                                    - link "u/azchristine" [ref=f31e1284]:
+                                      - /url: /user/azchristine
+                                    - link "Aug 11 '25" [ref=f31e1285]:
+                                      - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n850hnp/?context=3#n850hnp
+                                  - paragraph [ref=f31e1288]: Basically product bounty, I like the idea! You could essentially crowd fund a bounty for a SaaS for a really specific use case that others might have that you wouldn’t have connected with otherwise.
+                                  - blockquote [ref=f31e1289]:
+                                    - generic [ref=f31e1290]:
+                                      - paragraph [ref=f31e1292]: •
+                                      - group [ref=f31e1294]:
+                                        - generic [ref=f31e1295] [cursor=pointer]:
+                                          - link "u/Responsible-Ad431" [ref=f31e1296]:
+                                            - /url: /user/Responsible-Ad431
+                                          - link "Aug 11 '25" [ref=f31e1297]:
+                                            - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85bvgi/?context=3#n85bvgi
+                                        - generic [ref=f31e1299]:
+                                          - paragraph [ref=f31e1300]: "Exactly! The crowd-funded bounty model solves the biggest SaaS problems:"
+                                          - list [ref=f31e1301]:
+                                            - listitem [ref=f31e1302]:
+                                              - strong [ref=f31e1303]: Makers get guaranteed customers
+                                              - text: before writing code
+                                            - listitem [ref=f31e1304]:
+                                              - strong [ref=f31e1305]: Problem owners get custom solutions
+                                              - text: at shared cost
+                                            - listitem [ref=f31e1306]:
+                                              - strong [ref=f31e1307]: No wasted effort
+                                              - text: on products nobody wants
+                                          - paragraph [ref=f31e1308]: The "wouldn't have connected otherwise" part is huge. Right now there's probably 50 people struggling with the same obscure workflow issue, each thinking they're alone.
+                                          - paragraph [ref=f31e1309]: Been thinking about this approach since my analysis. The traditional model is clearly broken.
+                                        - blockquote
+      - generic [ref=f31e1311]:
+        - paragraph [ref=f31e1313]: •
+        - group [ref=f31e1315]:
+          - generic [ref=f31e1316] [cursor=pointer]:
+            - link "u/Loud-Beginning-3191" [ref=f31e1317]:
+              - /url: /user/Loud-Beginning-3191
+            - link "Aug 11 '25" [ref=f31e1318]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n840v96/?context=3#n840v96
+          - generic [ref=f31e1320]:
+            - paragraph [ref=f31e1321]: This is real but before build who will pay for it? Is that will be recurring or one time? What if the similar product already exists and why would starangers make pre payment.
+            - paragraph [ref=f31e1322]: I am interested to know and if there is any guide or community link that would be great. I am still exploring. Currently i am building a social media engagement automation platform name RepliBee which able to generate human like comments and messages reply and reply automatically.
+            - paragraph [ref=f31e1323]: I posted in x and reddit and found good amount of people are interested. But i am not sure how can i ask to make them pay first though my product is ready to test in production. If you have any suggestions for me.
+          - blockquote [ref=f31e1324]:
+            - link "→ More replies (6)" [ref=f31e1325] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n840v96
+      - generic [ref=f31e1327]:
+        - paragraph [ref=f31e1329]: •
+        - group [ref=f31e1331]:
+          - generic [ref=f31e1332] [cursor=pointer]:
+            - link "u/B_lintu" [ref=f31e1333]:
+              - /url: /user/B_lintu
+            - link "Aug 11 '25" [ref=f31e1334]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84gveq/?context=3#n84gveq
+          - paragraph [ref=f31e1337]: 84.6% haven't updated their website or their product hunt?
+          - blockquote [ref=f31e1338]:
+            - link "→ More replies (1)" [ref=f31e1339] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84gveq
+      - generic [ref=f31e1341]:
+        - paragraph [ref=f31e1343]: •
+        - group [ref=f31e1345]:
+          - generic [ref=f31e1346] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1347]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84kduj/?context=3#n84kduj
+          - paragraph [ref=f31e1350]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1351] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84kduj
+          - blockquote [ref=f31e1352]:
+            - link "→ More replies (1)" [ref=f31e1353] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84kduj
+      - generic [ref=f31e1355]:
+        - paragraph [ref=f31e1357]: •
+        - group [ref=f31e1359]:
+          - generic [ref=f31e1360] [cursor=pointer]:
+            - link "u/Loud_Percentage_1422" [ref=f31e1361]:
+              - /url: /user/Loud_Percentage_1422
+            - link "Aug 11 '25" [ref=f31e1362]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84l2ut/?context=3#n84l2ut
+          - paragraph [ref=f31e1365]: Thanks for this post, Truly needed it as we are in the Phase of Shipping.
+          - blockquote [ref=f31e1366]:
+            - link "→ More replies (1)" [ref=f31e1367] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84l2ut
+      - generic [ref=f31e1369]:
+        - paragraph [ref=f31e1371]: •
+        - group [ref=f31e1373]:
+          - generic [ref=f31e1374] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1375]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84mfpb/?context=3#n84mfpb
+            - text: edited Aug 11 '25
+          - paragraph [ref=f31e1378]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1379] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84mfpb
+          - blockquote [ref=f31e1380]:
+            - link "→ More replies (1)" [ref=f31e1381] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84mfpb
+      - generic [ref=f31e1383]:
+        - paragraph [ref=f31e1385]: •
+        - group [ref=f31e1387]:
+          - generic [ref=f31e1388] [cursor=pointer]:
+            - link "u/blakeyuk" [ref=f31e1389]:
+              - /url: /user/blakeyuk
+            - link "Aug 11 '25" [ref=f31e1390]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84u8fq/?context=3#n84u8fq
+          - generic [ref=f31e1392]:
+            - paragraph [ref=f31e1393]: I've often wondered about setting up a "what went into PH 6 months ago, and does the website still exist?" tool.
+            - paragraph [ref=f31e1394]: Thanks for confirming what I suspected.
+            - paragraph [ref=f31e1395]: In fact, it's worse than I expected.
+          - blockquote [ref=f31e1396]:
+            - generic [ref=f31e1397]:
+              - paragraph [ref=f31e1399]: •
+              - group [ref=f31e1401]:
+                - generic [ref=f31e1402] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1403]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1404]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85aic6/?context=3#n85aic6
+                - paragraph [ref=f31e1407]: Glad to have helped you.
+                - blockquote [ref=f31e1408]:
+                  - generic [ref=f31e1409]:
+                    - paragraph [ref=f31e1411]: •
+                    - group [ref=f31e1413]:
+                      - generic [ref=f31e1414] [cursor=pointer]:
+                        - link "u/blakeyuk" [ref=f31e1415]:
+                          - /url: /user/blakeyuk
+                        - link "Aug 11 '25" [ref=f31e1416]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85bqgw/?context=3#n85bqgw
+                      - generic [ref=f31e1418]:
+                        - paragraph [ref=f31e1419]: Regards rethinking strategy, PH is not a strategy. It's a thing to - maybe - generate a bit of buzz, but it's basically a popularity vote.
+                        - paragraph [ref=f31e1420]: Useful for a back link though!
+                      - blockquote
+      - generic [ref=f31e1422]:
+        - paragraph [ref=f31e1424]: •
+        - group [ref=f31e1426]:
+          - generic [ref=f31e1427] [cursor=pointer]:
+            - link "u/ConversationUsed7828" [ref=f31e1428]:
+              - /url: /user/ConversationUsed7828
+            - link "Aug 11 '25" [ref=f31e1429]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84vg7e/?context=3#n84vg7e
+          - paragraph [ref=f31e1432]: You’d save yourself months of coding headaches if you validated payment flows before the first commit. Nothing reveals tech priorities faster than knowing exactly what a paying user expects on day one.
+          - blockquote [ref=f31e1433]:
+            - link "→ More replies (1)" [ref=f31e1434] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84vg7e
+      - generic [ref=f31e1436]:
+        - paragraph [ref=f31e1438]: •
+        - group [ref=f31e1440]:
+          - generic [ref=f31e1441] [cursor=pointer]:
+            - link "u/fakehalo" [ref=f31e1442]:
+              - /url: /user/fakehalo
+            - link "Aug 11 '25" [ref=f31e1443]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n84ya0t/?context=3#n84ya0t
+          - paragraph [ref=f31e1446]: We're all a part of a scam economy to some extent.
+          - blockquote
+      - generic [ref=f31e1448]:
+        - paragraph [ref=f31e1450]: •
+        - group [ref=f31e1452]:
+          - generic [ref=f31e1453] [cursor=pointer]:
+            - link "u/Unlucky_Map_9783" [ref=f31e1454]:
+              - /url: /user/Unlucky_Map_9783
+            - link "Aug 11 '25" [ref=f31e1455]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85199w/?context=3#n85199w
+          - paragraph [ref=f31e1458]: Thanks for this post may share the sheets or data of product hunt .
+          - blockquote
+      - generic [ref=f31e1460]:
+        - paragraph [ref=f31e1462]: •
+        - group [ref=f31e1464]:
+          - generic [ref=f31e1465] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1466]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n852tkf/?context=3#n852tkf
+          - paragraph [ref=f31e1469]: "[deleted]"
+          - blockquote [ref=f31e1470]:
+            - link "→ More replies (8)" [ref=f31e1471] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n852tkf
+      - generic [ref=f31e1473]:
+        - paragraph [ref=f31e1475]: •
+        - group [ref=f31e1477]:
+          - generic [ref=f31e1478] [cursor=pointer]:
+            - link "u/NumberInteresting831" [ref=f31e1479]:
+              - /url: /user/NumberInteresting831
+            - link "Aug 11 '25" [ref=f31e1480]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n853oe9/?context=3#n853oe9
+          - generic [ref=f31e1482]:
+            - paragraph [ref=f31e1483]: This might help
+            - paragraph [ref=f31e1484]: There's ONE hidden reason why prospects understand your product but don't feel urgency to buy. Want to know what it is?
+            - paragraph [ref=f31e1485]:
+              - link "https://www.linkedin.com/posts/koganmarinamkt_theres-one-hidden-reason-why-prospects-understand-activity-7343295781384196098-el4P?utm_source=share&utm_medium=member_desktop&rcm=ACoAACEIsboBVFjqtNrbIEj1xtR6iwUjzjpi0_M" [ref=f31e1486] [cursor=pointer]:
+                - /url: https://www.linkedin.com/posts/koganmarinamkt_theres-one-hidden-reason-why-prospects-understand-activity-7343295781384196098-el4P?utm_source=share&utm_medium=member_desktop&rcm=ACoAACEIsboBVFjqtNrbIEj1xtR6iwUjzjpi0_M
+          - blockquote
+      - generic [ref=f31e1488]:
+        - paragraph [ref=f31e1490]: •
+        - group [ref=f31e1492]:
+          - generic [ref=f31e1493] [cursor=pointer]:
+            - link "u/fortnitenerd123_gay" [ref=f31e1494]:
+              - /url: /user/fortnitenerd123_gay
+            - link "Aug 11 '25" [ref=f31e1495]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n856zn1/?context=3#n856zn1
+          - paragraph [ref=f31e1498]: I hear you. It's crazy how many projects fade away after the initial buzz. When I was feeling stuck and needed a confidence boost, I spent time with my Hosa AI companion. It helped me practice conversations and build up my skills before launching anything.
+          - blockquote
+      - generic [ref=f31e1500]:
+        - paragraph [ref=f31e1502]: •
+        - group [ref=f31e1504]:
+          - generic [ref=f31e1505] [cursor=pointer]:
+            - link "u/kbigdelysh" [ref=f31e1506]:
+              - /url: /user/kbigdelysh
+            - link "Aug 11 '25" [ref=f31e1507]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85g0z3/?context=3#n85g0z3
+          - paragraph [ref=f31e1510]: Did you use AI tools to analyze that many products? How much automation did you use?
+          - blockquote [ref=f31e1511]:
+            - generic [ref=f31e1512]:
+              - paragraph [ref=f31e1514]: •
+              - group [ref=f31e1516]:
+                - generic [ref=f31e1517] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1518]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1519]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85gorv/?context=3#n85gorv
+                - generic [ref=f31e1521]:
+                  - paragraph [ref=f31e1522]: Mix of both - scraped URLs/updates with scripts, but manually verified revenue with founders.
+                  - paragraph [ref=f31e1523]: Still took weeks even with automation.
+                - blockquote [ref=f31e1524]:
+                  - generic [ref=f31e1525]:
+                    - paragraph [ref=f31e1527]: •
+                    - group [ref=f31e1529]:
+                      - generic [ref=f31e1530] [cursor=pointer]:
+                        - link "u/kbigdelysh" [ref=f31e1531]:
+                          - /url: /user/kbigdelysh
+                        - link "Aug 11 '25" [ref=f31e1532]:
+                          - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hzim/?context=3#n85hzim
+                      - paragraph [ref=f31e1535]: Great work. I didn't mean to belittle your work. It's actually more admirable that you use automation. It would be even more impressive if it was 100% automated and run the analysis periodically.
+                      - blockquote
+      - generic [ref=f31e1537]:
+        - paragraph [ref=f31e1539]: •
+        - group [ref=f31e1541]:
+          - generic [ref=f31e1542] [cursor=pointer]:
+            - link "u/Miserable_Current_25" [ref=f31e1543]:
+              - /url: /user/Miserable_Current_25
+            - link "Aug 11 '25" [ref=f31e1544]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hcnk/?context=3#n85hcnk
+          - paragraph [ref=f31e1547]: My friend spent 5 months 24/24 building his mvp of a very coool idea! I told him he needed validation first and study the process before implementing. But he was so convinced that even to go public with it, he needed a product to show! As someone who read The Lean Startup first, I knew it would fail badly, so, I let him go so he could learn with his mistakes (he was extremely stubborn and thought that his project was so revolutionary that it couldn’t fail) Well, 5 months later…guess what? 🤣🤣🤣
+          - blockquote [ref=f31e1548]:
+            - generic [ref=f31e1549]:
+              - paragraph [ref=f31e1551]: •
+              - group [ref=f31e1553]:
+                - generic [ref=f31e1554] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1555]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1556]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85iema/?context=3#n85iema
+                - generic [ref=f31e1558]:
+                  - paragraph [ref=f31e1559]: Classic case! We've all got that one friend who "knows" their idea is revolutionary 😅
+                  - paragraph [ref=f31e1560]: The stubborn ones are the hardest to save. Sometimes they need to feel the pain of building something nobody wants before they'll listen.
+                  - paragraph [ref=f31e1561]: 5 months is rough but could've been worse - I've seen people burn 2+ years on the "if I build it perfect enough, they will come" delusion.
+                  - paragraph [ref=f31e1562]: Did he at least learn from it or is he already cooking up the next "revolutionary" idea without validation?
+                - blockquote
+            - link "→ More replies (3)" [ref=f31e1563] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85hcnk
+      - generic [ref=f31e1565]:
+        - paragraph [ref=f31e1567]: •
+        - group [ref=f31e1569]:
+          - generic [ref=f31e1570] [cursor=pointer]:
+            - link "u/unitcodes" [ref=f31e1571]:
+              - /url: /user/unitcodes
+            - link "Aug 11 '25" [ref=f31e1572]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85ixet/?context=3#n85ixet
+          - paragraph [ref=f31e1575]: hey nice post. thanks. what are your rates to building/offering/wdy do?
+          - blockquote [ref=f31e1576]:
+            - link "→ More replies (1)" [ref=f31e1577] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85ixet
+      - generic [ref=f31e1579]:
+        - paragraph [ref=f31e1581]: •
+        - group [ref=f31e1583]:
+          - generic [ref=f31e1584] [cursor=pointer]:
+            - link "u/unitcodes" [ref=f31e1585]:
+              - /url: /user/unitcodes
+            - link "Aug 11 '25" [ref=f31e1586]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85j3cc/?context=3#n85j3cc
+          - paragraph [ref=f31e1589]: hey and can you explain more about slack groups and anything specific not to do when pitching in slack groups?
+          - blockquote [ref=f31e1590]:
+            - link "→ More replies (1)" [ref=f31e1591] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n85j3cc
+      - generic [ref=f31e1593]:
+        - paragraph [ref=f31e1595]: •
+        - group [ref=f31e1597]:
+          - generic [ref=f31e1598] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1599]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n862a9j/?context=3#n862a9j
+          - paragraph [ref=f31e1602]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1603] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n862a9j
+          - blockquote [ref=f31e1604]:
+            - generic [ref=f31e1605]:
+              - paragraph [ref=f31e1607]: •
+              - group [ref=f31e1609]:
+                - generic [ref=f31e1610] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1611]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1612]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n863fnn/?context=3#n863fnn
+                - generic [ref=f31e1614]:
+                  - paragraph [ref=f31e1615]: Honestly? I've been that founder who wasted months building something nobody wanted.
+                  - paragraph [ref=f31e1616]: Wanted to understand if it was just me being an idiot, or if there was a bigger pattern. Turns out it's a systemic problem.
+                  - paragraph [ref=f31e1617]: Now I'm obsessing over how to flip the whole model - what if people posted problems they'd pay to solve instead of products begging for votes?
+                - blockquote [ref=f31e1618]:
+                  - link "→ More replies (2)" [ref=f31e1619] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n863fnn
+      - generic [ref=f31e1621]:
+        - paragraph [ref=f31e1623]: •
+        - group [ref=f31e1625]:
+          - generic [ref=f31e1626] [cursor=pointer]:
+            - link "u/DollarAkshay" [ref=f31e1627]:
+              - /url: /user/DollarAkshay
+            - link "Aug 11 '25" [ref=f31e1628]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86340r/?context=3#n86340r
+          - generic [ref=f31e1630]:
+            - paragraph [ref=f31e1631]: "TL;DR: Product Hunt has become a graveyard dressed as a celebration."
+            - paragraph [ref=f31e1632]: No i think thats just the nature of startups
+          - blockquote [ref=f31e1633]:
+            - link "→ More replies (1)" [ref=f31e1634] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86340r
+      - generic [ref=f31e1636]:
+        - paragraph [ref=f31e1638]: •
+        - group [ref=f31e1640]:
+          - generic [ref=f31e1641] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1642]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n865dtc/?context=3#n865dtc
+          - generic [ref=f31e1644]:
+            - paragraph [ref=f31e1645]:
+              - text: "It’s never been easier to build a product, so I’m not surprised. But I think you’re missing a big piece of the puzzle:"
+              - strong [ref=f31e1646]: marketing
+              - text: .
+            - paragraph [ref=f31e1647]: Building a product today is almost turnkey. Marketing, on the other hand, is tricky, emotional, tedious, and requires a completely different skill set, one many founders don’t naturally have.
+            - paragraph [ref=f31e1648]: It makes me wonder how many of these products could have been winners with the right marketing strategy, guidance, and structure.
+          - blockquote
+      - generic [ref=f31e1650]:
+        - paragraph [ref=f31e1652]: •
+        - group [ref=f31e1654]:
+          - generic [ref=f31e1655] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1656]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n865ngd/?context=3#n865ngd
+          - paragraph [ref=f31e1659]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1660] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n865ngd
+          - blockquote [ref=f31e1661]:
+            - generic [ref=f31e1662]:
+              - paragraph [ref=f31e1664]: •
+              - group [ref=f31e1666]:
+                - generic [ref=f31e1667] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1668]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1669]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n867865/?context=3#n867865
+                - generic [ref=f31e1671]:
+                  - paragraph [ref=f31e1672]: Interesting concept! But why would users pay to rate startups? What's their incentive - do they get equity, early access, discounts?
+                  - paragraph [ref=f31e1673]: And how do you prevent fake reviews or founders gaming the system with paid ratings?
+                  - paragraph [ref=f31e1674]: Feels like the validation should happen before products exist, not after.
+                - blockquote
+      - generic [ref=f31e1676]:
+        - paragraph [ref=f31e1678]: •
+        - group [ref=f31e1680]:
+          - generic [ref=f31e1681] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 11 '25" [ref=f31e1682]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n865sf9/?context=3#n865sf9
+          - paragraph [ref=f31e1685]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1686] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n865sf9
+          - blockquote [ref=f31e1687]:
+            - generic [ref=f31e1688]:
+              - paragraph [ref=f31e1690]: •
+              - group [ref=f31e1692]:
+                - generic [ref=f31e1693] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1694]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1695]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n869gkg/?context=3#n869gkg
+                - generic [ref=f31e1697]:
+                  - paragraph [ref=f31e1698]: Yeah, I'm a founder. Built a subscription management tool a couple years back.
+                  - paragraph [ref=f31e1699]: Turns out most SMBs just wanted a simple spreadsheet solution, not enterprise-grade subscription handling. Classic case of solving a problem I thought existed.
+                  - paragraph [ref=f31e1700]: That failure is what got me obsessed with this whole validation thing.
+                - blockquote
+      - generic [ref=f31e1702]:
+        - paragraph [ref=f31e1704]: •
+        - group [ref=f31e1706]:
+          - generic [ref=f31e1707] [cursor=pointer]:
+            - link "u/PitifulAd865" [ref=f31e1708]:
+              - /url: /user/PitifulAd865
+            - link "Aug 11 '25" [ref=f31e1709]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8687wl/?context=3#n8687wl
+          - paragraph [ref=f31e1712]: Totally agree. It’s easy to get caught up in the excitement of upvotes and pre-launch signups. But real validation comes from people willing to open their wallets. If you haven’t sold your solution before building it, you might not have a product-market fit. Start with a list of paying customers and you're already ahead of 97% of the game.
+          - blockquote [ref=f31e1713]:
+            - link "→ More replies (1)" [ref=f31e1714] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8687wl
+      - generic [ref=f31e1716]:
+        - paragraph [ref=f31e1718]: •
+        - group [ref=f31e1720]:
+          - generic [ref=f31e1721] [cursor=pointer]:
+            - link "u/WildString3337" [ref=f31e1722]:
+              - /url: /user/WildString3337
+            - link "Aug 11 '25" [ref=f31e1723]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86ck29/?context=3#n86ck29
+          - paragraph [ref=f31e1726]: I find this hard to believe, unless my buddy is one of the lucky 13.
+          - blockquote
+      - generic [ref=f31e1728]:
+        - paragraph [ref=f31e1730]: •
+        - group [ref=f31e1732]:
+          - generic [ref=f31e1733] [cursor=pointer]:
+            - link "u/wiz_geek" [ref=f31e1734]:
+              - /url: /user/wiz_geek
+            - link "Aug 11 '25" [ref=f31e1735]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86w1oi/?context=3#n86w1oi
+          - paragraph [ref=f31e1738]: 9.3.
+          - blockquote
+      - generic [ref=f31e1740]:
+        - paragraph [ref=f31e1742]: •
+        - group [ref=f31e1744]:
+          - generic [ref=f31e1745] [cursor=pointer]:
+            - link "u/GhostInTheOrgChart" [ref=f31e1746]:
+              - /url: /user/GhostInTheOrgChart
+            - link "Aug 11 '25" [ref=f31e1747]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86wp7a/?context=3#n86wp7a
+          - generic [ref=f31e1749]:
+            - paragraph [ref=f31e1750]: Does it count if clients have paid for it in the consulting version? Lol. I’m basically recreating the workshops and consulting into the SaaS On demand version. Same problems, different formats.
+            - paragraph [ref=f31e1751]: But at least the frameworks have been proven and I get paid well for strategic alignment and values resetting.
+            - paragraph [ref=f31e1752]: My goal is to productize my work.
+          - blockquote [ref=f31e1753]:
+            - generic [ref=f31e1754]:
+              - paragraph [ref=f31e1756]: •
+              - group [ref=f31e1758]:
+                - generic [ref=f31e1759] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1760]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 11 '25" [ref=f31e1761]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86yfmj/?context=3#n86yfmj
+                - generic [ref=f31e1763]:
+                  - paragraph [ref=f31e1764]: That's actually perfect validation! You've already proven people will pay for the solution in consulting form.
+                  - paragraph [ref=f31e1765]: Productizing existing consulting work is one of the highest-probability paths to SaaS success. You know the pain points, you know the willingness to pay, and you have proven frameworks.
+                  - paragraph [ref=f31e1766]: Just make sure the self-serve version solves the same core problem your consulting does.
+                - blockquote [ref=f31e1767]:
+                  - link "→ More replies (1)" [ref=f31e1768] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n86yfmj
+      - generic [ref=f31e1770]:
+        - paragraph [ref=f31e1772]: •
+        - group [ref=f31e1774]:
+          - generic [ref=f31e1775] [cursor=pointer]:
+            - link "u/CleverBilling" [ref=f31e1776]:
+              - /url: /user/CleverBilling
+            - link "Aug 11 '25" [ref=f31e1777]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8765g3/?context=3#n8765g3
+          - paragraph [ref=f31e1780]: what about launches with less than 100 votes?
+          - blockquote
+      - generic [ref=f31e1782]:
+        - paragraph [ref=f31e1784]: •
+        - group [ref=f31e1786]:
+          - generic [ref=f31e1787] [cursor=pointer]:
+            - link "u/Stunning_Lie5048" [ref=f31e1788]:
+              - /url: /user/Stunning_Lie5048
+            - link "Aug 11 '25" [ref=f31e1789]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n879rlp/?context=3#n879rlp
+          - generic [ref=f31e1791]:
+            - paragraph [ref=f31e1792]: I am in no.3 and 4. It is harsh truth that most of product will not last for long time. I have always concern about paying user as you said.
+            - paragraph [ref=f31e1793]: So what I approach is if this product has actual needs. When I have idea, I search on google or chatgpt for similar products. If there are something that "survives" in that domains, I try to make product which has same needs, different concepts.
+            - paragraph [ref=f31e1794]: Or at least I make a product for my need. Anyway I will use that lol.
+          - blockquote
+      - generic [ref=f31e1796]:
+        - paragraph [ref=f31e1798]: •
+        - group [ref=f31e1800]:
+          - generic [ref=f31e1801] [cursor=pointer]:
+            - link "u/TheRealNalaLockspur" [ref=f31e1802]:
+              - /url: /user/TheRealNalaLockspur
+            - link "Aug 12 '25" [ref=f31e1803]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n87z0bi/?context=3#n87z0bi
+          - paragraph [ref=f31e1806]: This post and your responses SMELL of AI...
+          - blockquote
+      - generic [ref=f31e1808]:
+        - paragraph [ref=f31e1810]: •
+        - group [ref=f31e1812]:
+          - generic [ref=f31e1813] [cursor=pointer]:
+            - link "u/thecodingwhale" [ref=f31e1814]:
+              - /url: /user/thecodingwhale
+            - link "Aug 12 '25" [ref=f31e1815]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n883dpp/?context=3#n883dpp
+          - paragraph [ref=f31e1818]: i there for conclude we need to change it from "build first, find customers later" to "Secure paying customers first before building the solution."
+          - blockquote
+      - generic [ref=f31e1820]:
+        - paragraph [ref=f31e1822]: •
+        - group [ref=f31e1824]:
+          - generic [ref=f31e1825] [cursor=pointer]:
+            - link "u/petebytes" [ref=f31e1826]:
+              - /url: /user/petebytes
+            - link "Aug 12 '25" [ref=f31e1827]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8854jb/?context=3#n8854jb
+          - paragraph [ref=f31e1830]: Where is the data?
+          - blockquote
+      - generic [ref=f31e1832]:
+        - paragraph [ref=f31e1834]: •
+        - group [ref=f31e1836]:
+          - generic [ref=f31e1837] [cursor=pointer]:
+            - link "u/Cold_Revolutionary" [ref=f31e1838]:
+              - /url: /user/Cold_Revolutionary
+            - link "Aug 12 '25" [ref=f31e1839]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88cigy/?context=3#n88cigy
+          - paragraph [ref=f31e1842]: I found this thought-provoking, but I’m struggling to fully buy in. You’ve highlighted a problem well, but there’s no clear evidence or guidance on how to actually implement your solution. I got to the end feeling a bit let down that there wasn’t more of a roadmap to success.
+          - blockquote
+      - generic [ref=f31e1844]:
+        - paragraph [ref=f31e1846]: •
+        - group [ref=f31e1848]:
+          - generic [ref=f31e1849] [cursor=pointer]:
+            - link "u/gmandisco" [ref=f31e1850]:
+              - /url: /user/gmandisco
+            - link "Aug 12 '25" [ref=f31e1851]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88enr5/?context=3#n88enr5
+          - paragraph [ref=f31e1854]: A lot of this I think is why I don't end up pulling the trigger on projects I either go down a research rabbit hole for or even go so far as to build a mockup of something. Crazy
+          - blockquote
+      - generic [ref=f31e1856]:
+        - paragraph [ref=f31e1858]: •
+        - group [ref=f31e1860]:
+          - generic [ref=f31e1861] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 12 '25" [ref=f31e1862]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88nuad/?context=3#n88nuad
+          - paragraph [ref=f31e1865]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e1866] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88nuad
+          - blockquote [ref=f31e1867]:
+            - generic [ref=f31e1868]:
+              - paragraph [ref=f31e1870]: •
+              - group [ref=f31e1872]:
+                - generic [ref=f31e1873] [cursor=pointer]:
+                  - link "u/Responsible-Ad431" [ref=f31e1874]:
+                    - /url: /user/Responsible-Ad431
+                  - link "Aug 12 '25" [ref=f31e1875]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n890uqg/?context=3#n890uqg
+                - generic [ref=f31e1877]:
+                  - paragraph [ref=f31e1878]: Not delusional at all! This is exactly what I've been thinking about.
+                  - paragraph [ref=f31e1879]: A platform where people post problems, others validate through their networks, then builders can see proven demand before coding.
+                  - paragraph [ref=f31e1880]: Crowdsourced problem validation → guaranteed market fit.
+                - blockquote [ref=f31e1881]:
+                  - link "→ More replies (1)" [ref=f31e1882] [cursor=pointer]:
+                    - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n890uqg
+      - generic [ref=f31e1884]:
+        - paragraph [ref=f31e1886]: •
+        - group [ref=f31e1888]:
+          - generic [ref=f31e1889] [cursor=pointer]:
+            - link "u/Frequent_Archer_4775" [ref=f31e1890]:
+              - /url: /user/Frequent_Archer_4775
+            - link "Aug 12 '25" [ref=f31e1891]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88nyb3/?context=3#n88nyb3
+          - paragraph [ref=f31e1894]: Good
+          - blockquote
+      - generic [ref=f31e1896]:
+        - paragraph [ref=f31e1898]: •
+        - group [ref=f31e1900]:
+          - generic [ref=f31e1901] [cursor=pointer]:
+            - link "u/devmode_" [ref=f31e1902]:
+              - /url: /user/devmode_
+            - link "Aug 12 '25" [ref=f31e1903]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88qz3h/?context=3#n88qz3h
+          - paragraph [ref=f31e1906]: Conventionally, you would validate before building. You still can/should reach out to your ICP, but you can now build a quick MVP in a week. Then show that, get feedback, get early signups. Things definitely are changing, but talking to potential customers isn’t. If you don’t, you can waste a lot of time & money.
+          - blockquote
+      - generic [ref=f31e1908]:
+        - paragraph [ref=f31e1910]: •
+        - group [ref=f31e1912]:
+          - generic [ref=f31e1913] [cursor=pointer]:
+            - link "u/Hefty_Incident_9712" [ref=f31e1914]:
+              - /url: /user/Hefty_Incident_9712
+            - link "Aug 12 '25" [ref=f31e1915]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n88spdz/?context=3#n88spdz
+          - paragraph [ref=f31e1918]: This is true of all SaaS, not specific to product hunt, but you have found another corroborating data point!
+          - blockquote
+      - generic [ref=f31e1920]:
+        - paragraph [ref=f31e1922]: •
+        - group [ref=f31e1924]:
+          - generic [ref=f31e1925] [cursor=pointer]:
+            - link "u/Spiritual_Serve4985" [ref=f31e1926]:
+              - /url: /user/Spiritual_Serve4985
+            - link "Aug 12 '25" [ref=f31e1927]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8998j8/?context=3#n8998j8
+          - paragraph [ref=f31e1930]: Thank you very much for your analysis! I have just started coding a Shopify app and am trying to learn from how people succeed or operate, and your post has been very helpful. Do you still recommend launching your SaaS on Product Hunt?
+          - blockquote
+      - generic [ref=f31e1932]:
+        - paragraph [ref=f31e1934]: •
+        - group [ref=f31e1936]:
+          - generic [ref=f31e1937] [cursor=pointer]:
+            - link "u/socialize-experts" [ref=f31e1938]:
+              - /url: /user/socialize-experts
+            - link "Aug 12 '25" [ref=f31e1939]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89dctt/?context=3#n89dctt
+          - paragraph [ref=f31e1942]: that is brutal but not surprising - most SaaS ideas solve problems nobody actually has.
+          - blockquote
+      - generic [ref=f31e1944]:
+        - paragraph [ref=f31e1946]: •
+        - group [ref=f31e1948]:
+          - generic [ref=f31e1949] [cursor=pointer]:
+            - link "u/Artist-Banda" [ref=f31e1950]:
+              - /url: /user/Artist-Banda
+            - link "Aug 12 '25" [ref=f31e1951]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89djpi/?context=3#n89djpi
+          - generic [ref=f31e1953]:
+            - paragraph [ref=f31e1954]: For now, thank you so much for what you did it is an eye-opening fact. I have an Idea that in my mind and circle is Delta 5 but, I'll rethink its execution.
+            - paragraph [ref=f31e1955]: I am called 'As fast as AI' for product thinking, designing, and prototyping in my company. I design and prototype interactive products without writing a single line of code, these prototypes behave as an actual product for users, which helps validate the product with users.
+            - paragraph [ref=f31e1956]: Rn I have Kickstarter and some similar websites in mind to get funding only if my idea solves their pain.
+            - paragraph [ref=f31e1957]: If you know more and better ways to do it, if you wanna casually discuss ideas hit dm.
+          - blockquote
+      - generic [ref=f31e1959]:
+        - paragraph [ref=f31e1961]: •
+        - group [ref=f31e1963]:
+          - generic [ref=f31e1964] [cursor=pointer]:
+            - link "u/shyam-ra18" [ref=f31e1965]:
+              - /url: /user/shyam-ra18
+            - link "Aug 12 '25" [ref=f31e1966]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n89gnqp/?context=3#n89gnqp
+          - paragraph [ref=f31e1969]: Agree. I had a couple of SaaS ideas, but thorough research revealed that similar products already existed. Before even starting an MVP, I asked myself—would I personally pay for this feature? Would others? That question alone completely shifted my mindset.
+          - blockquote
+      - generic [ref=f31e1971]:
+        - paragraph [ref=f31e1973]: •
+        - group [ref=f31e1975]:
+          - generic [ref=f31e1976] [cursor=pointer]:
+            - link "u/myheadfelloff" [ref=f31e1977]:
+              - /url: /user/myheadfelloff
+            - link "Aug 12 '25" [ref=f31e1978]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8aevva/?context=3#n8aevva
+          - generic [ref=f31e1980]:
+            - paragraph [ref=f31e1981]: I had about 20 paying customers, with about $4k in sales, BEFORE I launched my product. This is my tenth startup or so, and I learned many lessons, including to validate heavily before building, which includes getting paid for your product.
+            - paragraph [ref=f31e1982]: If you're working on a solution for a problem so serious that people are willing to pay you to access it before you actually launch it, you're in a good place.
+            - paragraph [ref=f31e1983]: Product Hunt is post-peak for sure. Way post peak. Eight or ten years ago, doing betalist to build a waiting list and then Product Hunt to launch was a great way to get traction, (and I was able to do that), but now it's not really worth the time of posting there.
+          - blockquote
+      - generic [ref=f31e1985]:
+        - paragraph [ref=f31e1987]: •
+        - group [ref=f31e1989]:
+          - generic [ref=f31e1990] [cursor=pointer]:
+            - link "u/rrhoover" [ref=f31e1991]:
+              - /url: /user/rrhoover
+            - link "Aug 12 '25" [ref=f31e1992]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ah12m/?context=3#n8ah12m
+          - paragraph [ref=f31e1995]: Where did you get 500 projects’ revenue numbers?
+          - blockquote [ref=f31e1996]:
+            - link "→ More replies (2)" [ref=f31e1997] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ah12m
+      - generic [ref=f31e1999]:
+        - paragraph [ref=f31e2001]: •
+        - group [ref=f31e2003]:
+          - generic [ref=f31e2004] [cursor=pointer]:
+            - link "u/SupernovaJones" [ref=f31e2005]:
+              - /url: /user/SupernovaJones
+            - link "Aug 12 '25" [ref=f31e2006]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ansqg/?context=3#n8ansqg
+          - paragraph [ref=f31e2009]: Is there a kickstarter for SaaS products? Like a way to pitch your idea and then get buyers before really building?
+          - blockquote [ref=f31e2010]:
+            - link "→ More replies (1)" [ref=f31e2011] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ansqg
+      - generic [ref=f31e2013]:
+        - paragraph [ref=f31e2015]: •
+        - group [ref=f31e2017]:
+          - generic [ref=f31e2018] [cursor=pointer]:
+            - link "u/Loose_Ad_6396" [ref=f31e2019]:
+              - /url: /user/Loose_Ad_6396
+            - link "Aug 12 '25" [ref=f31e2020]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8az0f5/?context=3#n8az0f5
+          - paragraph [ref=f31e2023]: Bro just discovered product management
+          - blockquote
+      - generic [ref=f31e2025]:
+        - paragraph [ref=f31e2027]: •
+        - group [ref=f31e2029]:
+          - generic [ref=f31e2030] [cursor=pointer]:
+            - link "u/benny00100" [ref=f31e2031]:
+              - /url: /user/benny00100
+            - link "Aug 12 '25" [ref=f31e2032]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8b0guq/?context=3#n8b0guq
+          - generic [ref=f31e2034]:
+            - paragraph [ref=f31e2035]: Great post. Thanks for sharing.
+            - paragraph [ref=f31e2036]: Does it also count - if you are your first potential customer? At least I heard that several SaaS products exist, because their creators need a solution which solves their own problem.
+          - blockquote [ref=f31e2037]:
+            - link "→ More replies (1)" [ref=f31e2038] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8b0guq
+      - generic [ref=f31e2040]:
+        - paragraph [ref=f31e2042]: •
+        - group [ref=f31e2044]:
+          - generic [ref=f31e2045] [cursor=pointer]:
+            - link "u/Useful-Move5612" [ref=f31e2046]:
+              - /url: /user/Useful-Move5612
+            - link "Aug 12 '25" [ref=f31e2047]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8b7aso/?context=3#n8b7aso
+          - paragraph [ref=f31e2050]: Would really be interested in how you got to that. I have 2-3 products in that, still alive and 2 above your 1k MRR. But Not sure how you would know 🤷
+          - blockquote
+      - generic [ref=f31e2052]:
+        - paragraph [ref=f31e2054]: •
+        - group [ref=f31e2056]:
+          - generic [ref=f31e2057] [cursor=pointer]:
+            - link "u/getvetano" [ref=f31e2058]:
+              - /url: /user/getvetano
+            - link "Aug 12 '25" [ref=f31e2059]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8bkyby/?context=3#n8bkyby
+          - paragraph [ref=f31e2062]: Wow! 👀
+          - blockquote
+      - generic [ref=f31e2064]:
+        - paragraph [ref=f31e2066]: •
+        - group [ref=f31e2068]:
+          - generic [ref=f31e2069] [cursor=pointer]:
+            - link "u/nickshilov" [ref=f31e2070]:
+              - /url: /user/nickshilov
+            - link "Aug 12 '25" [ref=f31e2071]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8bye0w/?context=3#n8bye0w
+          - paragraph [ref=f31e2074]: PH is a create place to applaud to each other in comments but honestly, I haven’t seen any critics to improve products, just “congrats on the launch, pal!”
+          - blockquote
+      - generic [ref=f31e2076]:
+        - paragraph [ref=f31e2078]: •
+        - group [ref=f31e2080]:
+          - generic [ref=f31e2081] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 12 '25" [ref=f31e2082]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8cdroj/?context=3#n8cdroj
+          - paragraph [ref=f31e2085]:
+            - text: "[removed] —"
+            - link "view removed comment" [ref=f31e2086] [cursor=pointer]:
+              - /url: https://undelete.pullpush.io/r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8cdroj
+          - blockquote [ref=f31e2087]:
+            - link "→ More replies (1)" [ref=f31e2088] [cursor=pointer]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8cdroj
+      - generic [ref=f31e2090]:
+        - paragraph [ref=f31e2092]: •
+        - group [ref=f31e2094]:
+          - generic [ref=f31e2095] [cursor=pointer]:
+            - link "u/tshrjn" [ref=f31e2096]:
+              - /url: /user/tshrjn
+            - link "Aug 12 '25" [ref=f31e2097]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8cnuhf/?context=3#n8cnuhf
+          - paragraph [ref=f31e2100]: Who are the 13 surviving companies?
+          - blockquote
+      - generic [ref=f31e2102]:
+        - paragraph [ref=f31e2104]: •
+        - group [ref=f31e2106]:
+          - generic [ref=f31e2107] [cursor=pointer]:
+            - link "u/ThePayPipeguy" [ref=f31e2108]:
+              - /url: /user/ThePayPipeguy
+            - link "Aug 12 '25" [ref=f31e2109]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8d7m45/?context=3#n8d7m45
+          - paragraph [ref=f31e2112]: I mean, it is a fact that 99% of startups fail, so if you look at it from this perspective, 97% sounds promising! :)
+          - blockquote
+      - generic [ref=f31e2114]:
+        - paragraph [ref=f31e2116]: •
+        - group [ref=f31e2118]:
+          - generic [ref=f31e2119] [cursor=pointer]:
+            - link "u/cal-builder" [ref=f31e2120]:
+              - /url: /user/cal-builder
+            - link "Aug 12 '25" [ref=f31e2121]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dgzlh/?context=3#n8dgzlh
+          - generic [ref=f31e2123]:
+            - paragraph [ref=f31e2124]: I do get the perspective of market then product. One thing I would say is, especially in today’s world, ideas can easily be copied with how easy it has become to build apps. I feel like this definitely ways in to the equation ad to why people want to have a product first before telling the world about it.
+            - paragraph [ref=f31e2125]: Secondly is in a scenario I have where I have large media following from X accounts like memes and niche areas. Where you start with a large audience, then you’re trying to find something that will work with them. I’d rather have a MVP product to try sell to gage demand than ask a large audience to pay for something that doesn’t exist.
+          - blockquote
+      - generic [ref=f31e2127]:
+        - paragraph [ref=f31e2129]: •
+        - group [ref=f31e2131]:
+          - generic [ref=f31e2132] [cursor=pointer]:
+            - link "u/got-it-right" [ref=f31e2133]:
+              - /url: /user/got-it-right
+            - link "Aug 12 '25" [ref=f31e2134]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dnmxb/?context=3#n8dnmxb
+          - paragraph [ref=f31e2137]: Traffic ≠ customers is 100% true. Founders should focus on getting real users, not just cheerleaders. If those users turn into advocates, great… but at that point, do you really need Product Hunt?
+          - blockquote
+      - generic [ref=f31e2139]:
+        - paragraph [ref=f31e2141]: •
+        - group [ref=f31e2143]:
+          - generic [ref=f31e2144] [cursor=pointer]:
+            - link "u/bitclaw_" [ref=f31e2145]:
+              - /url: /user/bitclaw_
+            - link "Aug 12 '25" [ref=f31e2146]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dpjcj/?context=3#n8dpjcj
+          - paragraph [ref=f31e2149]: AI post
+          - blockquote
+      - generic [ref=f31e2151]:
+        - paragraph [ref=f31e2153]: •
+        - group [ref=f31e2155]:
+          - generic [ref=f31e2156] [cursor=pointer]:
+            - link "u/bitclaw_" [ref=f31e2157]:
+              - /url: /user/bitclaw_
+            - link "Aug 12 '25" [ref=f31e2158]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8dpjsy/?context=3#n8dpjsy
+          - paragraph [ref=f31e2161]: AI post
+          - blockquote
+      - generic [ref=f31e2163]:
+        - paragraph [ref=f31e2165]: •
+        - group [ref=f31e2167]:
+          - generic [ref=f31e2168] [cursor=pointer]:
+            - link "u/Dannyperks" [ref=f31e2169]:
+              - /url: /user/Dannyperks
+            - link "Aug 13 '25" [ref=f31e2170]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8gjgmi/?context=3#n8gjgmi
+          - paragraph [ref=f31e2173]: Great post!
+          - blockquote
+      - generic [ref=f31e2175]:
+        - paragraph [ref=f31e2177]: •
+        - group [ref=f31e2179]:
+          - generic [ref=f31e2180] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 13 '25" [ref=f31e2181]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8j5pyt/?context=3#n8j5pyt
+          - generic [ref=f31e2183]:
+            - paragraph [ref=f31e2184]: You've hit on the core point of the matter. I'd argue that Product Hunt isn't the problem at all; it's a great tool for founders, particularly for its SEO and visibility benefits.
+            - paragraph [ref=f31e2185]: In fact, I'd guess many founders use it as a deliberate strategy. It's an affordable and easy way to validate an idea with an MVP (Minimum Viable Product). If the launch gains traction and, more importantly, paying customers, they continue building. If it fails, they get a clear signal to move on to the next idea without having wasted months or years of development.
+            - paragraph [ref=f31e2186]: So, while your data shows a "graveyard," I think for many, that isn't a failure - it's a successful, cost-effective test. The distinction between "would pay" and "have paid" is still the most critical takeaway here, as it's the real metric that proves a test was a success.
+          - blockquote
+      - generic [ref=f31e2188]:
+        - paragraph [ref=f31e2190]: •
+        - group [ref=f31e2192]:
+          - generic [ref=f31e2193] [cursor=pointer]:
+            - link "u/WizardFish77" [ref=f31e2194]:
+              - /url: /user/WizardFish77
+            - link "Aug 14 '25" [ref=f31e2195]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8l6gz7/?context=3#n8l6gz7
+          - generic [ref=f31e2197]:
+            - paragraph [ref=f31e2198]: Marc Andreesson talks about this a lot--the most important thing for a startup is PRODUCT-MARKET fit ... if the market doesn't exist or the product doesn't actually solve the problem, nothing will happen!
+            - paragraph [ref=f31e2199]: That's why I think some of the best entrepreneurs in history were so successful despite not starting out with a "money-making" mindset--they were just solving problems and it worked out for them.
+          - blockquote
+      - generic [ref=f31e2201]:
+        - paragraph [ref=f31e2203]: •
+        - group [ref=f31e2205]:
+          - generic [ref=f31e2206] [cursor=pointer]:
+            - link "u/Signal-Shoe-6670" [ref=f31e2207]:
+              - /url: /user/Signal-Shoe-6670
+            - link "Aug 14 '25" [ref=f31e2208]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8l9ch2/?context=3#n8l9ch2
+          - paragraph [ref=f31e2211]: That 2.6% has to feel awesome though
+          - blockquote
+      - generic [ref=f31e2213]:
+        - paragraph [ref=f31e2215]: •
+        - group [ref=f31e2217]:
+          - generic [ref=f31e2218] [cursor=pointer]:
+            - link "u/charlottes9778" [ref=f31e2219]:
+              - /url: /user/charlottes9778
+            - link "Aug 14 '25" [ref=f31e2220]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8lein5/?context=3#n8lein5
+          - generic [ref=f31e2222]:
+            - paragraph [ref=f31e2223]: I honestly completely agree with you 100%. I've just launched a product on PH for the very first time and immediately I received a lot of messages from other founders asking me to upvote their product in return to their upvotes to my product. And that question me a lot, because TBH I do not need some random people upvote my product when they even don't use my product. So I then ignored all that kind of messages and I also don't care much about PH anymore.
+            - paragraph [ref=f31e2224]: This is my very first product on PH so I'm doing it mostly for experience, not for profit, I did it for myself firstly though. And now I found your post and it matches my recent thoughts perfectly!
+            - paragraph [ref=f31e2225]: Thanks a lot for your true valued research!
+          - blockquote
+      - generic [ref=f31e2227]:
+        - paragraph [ref=f31e2229]: •
+        - group [ref=f31e2231]:
+          - generic [ref=f31e2232] [cursor=pointer]:
+            - link "u/davidl002" [ref=f31e2233]:
+              - /url: /user/davidl002
+            - link "Aug 14 '25" [ref=f31e2234]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8ltnal/?context=3#n8ltnal
+          - generic [ref=f31e2236]:
+            - paragraph [ref=f31e2237]: The prepament part.....feels too idealistic.
+            - paragraph [ref=f31e2238]: If you are working with businesses that have some structure, don't expect pre-payments as business decisions are made very differently. No internal ambassador will risk his reputation applying for budgets for a non-existing, and a new vendor from nowhere.
+            - paragraph [ref=f31e2239]: Instead focus on your first few key piloting users and see if they are really using your product as you would imagined.
+          - blockquote
+      - generic [ref=f31e2241]:
+        - paragraph [ref=f31e2243]: •
+        - group [ref=f31e2245]:
+          - generic [ref=f31e2246] [cursor=pointer]:
+            - text: u/[deleted]
+            - link "Aug 15 '25" [ref=f31e2247]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n8x07pq/?context=3#n8x07pq
+          - paragraph [ref=f31e2250]: right
+          - blockquote
+      - generic [ref=f31e2252]:
+        - paragraph [ref=f31e2254]: •
+        - group [ref=f31e2256]:
+          - generic [ref=f31e2257] [cursor=pointer]:
+            - link "u/bawa_geek" [ref=f31e2258]:
+              - /url: /user/bawa_geek
+            - link "Aug 17 '25" [ref=f31e2259]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n94nms7/?context=3#n94nms7
+          - generic [ref=f31e2261]:
+            - paragraph [ref=f31e2262]: What you said is true my friend, I wasted almost like 3 years working on a project for which people just don't want to pay, It has like 4000 users, but people expect the service just for free, they are not willing to pay for it, Its very important to do the business validation in initial stages.
+            - paragraph [ref=f31e2263]: having 1 paying customer is better than additional 100 free customers in intial stages
+          - blockquote
+      - generic [ref=f31e2265]:
+        - paragraph [ref=f31e2267]: •
+        - group [ref=f31e2269]:
+          - generic [ref=f31e2270] [cursor=pointer]:
+            - link "u/69Tragic" [ref=f31e2271]:
+              - /url: /user/69Tragic
+            - link "Aug 17 '25" [ref=f31e2272]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n95w60s/?context=3#n95w60s
+          - paragraph [ref=f31e2275]: Super useful data and post, thanks for this.
+          - blockquote
+      - generic [ref=f31e2277]:
+        - paragraph [ref=f31e2279]: •
+        - group [ref=f31e2281]:
+          - generic [ref=f31e2282] [cursor=pointer]:
+            - link "u/Acrobatic_Chart_611" [ref=f31e2283]:
+              - /url: /user/Acrobatic_Chart_611
+            - link "Aug 17 '25" [ref=f31e2284]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n96q92d/?context=3#n96q92d
+          - generic [ref=f31e2286]:
+            - paragraph [ref=f31e2287]: If your data is true, 97% spent their time failing in love with their idea/product
+            - paragraph [ref=f31e2288]: Only 3% folks spending their time helping others to improve their lives.
+            - paragraph [ref=f31e2289]: I am saying this again and said this from other thread, find where the problem is, that has hungry buyers, then solve their problems using your tool.
+          - blockquote
+      - generic [ref=f31e2291]:
+        - paragraph [ref=f31e2293]: •
+        - group [ref=f31e2295]:
+          - generic [ref=f31e2296] [cursor=pointer]:
+            - link "u/FireBird871" [ref=f31e2297]:
+              - /url: /user/FireBird871
+            - link "Aug 17 '25" [ref=f31e2298]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n96s2zm/?context=3#n96s2zm
+          - paragraph [ref=f31e2301]: Lovely post :)
+          - blockquote
+      - generic [ref=f31e2303]:
+        - paragraph [ref=f31e2305]: •
+        - group [ref=f31e2307]:
+          - generic [ref=f31e2308] [cursor=pointer]:
+            - link "u/Forward_Border599" [ref=f31e2309]:
+              - /url: /user/Forward_Border599
+            - link "Aug 18 '25" [ref=f31e2310]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n9blwz9/?context=3#n9blwz9
+          - paragraph [ref=f31e2313]: Product Hunt gives you applause, but paying customers give you survival.
+          - blockquote
+      - generic [ref=f31e2315]:
+        - paragraph [ref=f31e2317]: •
+        - group [ref=f31e2319]:
+          - generic [ref=f31e2320] [cursor=pointer]:
+            - link "u/Boring-Judgment2513" [ref=f31e2321]:
+              - /url: /user/Boring-Judgment2513
+            - link "Aug 18 '25" [ref=f31e2322]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n9elcf4/?context=3#n9elcf4
+          - paragraph [ref=f31e2325]: Who are the ones who thrived? It would be interesting to see what they posted and how they asked customers to prepay, approached distribution, product iteration, etc
+          - blockquote
+      - generic [ref=f31e2327]:
+        - paragraph [ref=f31e2329]: •
+        - group [ref=f31e2331]:
+          - generic [ref=f31e2332] [cursor=pointer]:
+            - link "u/s0wl_" [ref=f31e2333]:
+              - /url: /user/s0wl_
+            - link "Aug 19 '25" [ref=f31e2334]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/n9i49ty/?context=3#n9i49ty
+          - generic [ref=f31e2336]:
+            - paragraph [ref=f31e2337]: I launched two products on Product Hunt, thinking I'd get users overnight. I tried marketing them everywhere—social networks, ads, and everything else you can think of. But that illusion that someone actually needs your product can absolutely destroy you. I think a lot of us who are hoping for that overnight success fall into the same trap.
+            - paragraph [ref=f31e2338]: "Disclaimer: Both products are dead."
+          - blockquote
+      - generic [ref=f31e2340]:
+        - paragraph [ref=f31e2342]: •
+        - group [ref=f31e2344]:
+          - generic [ref=f31e2345] [cursor=pointer]:
+            - link "u/MilesOfMotion" [ref=f31e2346]:
+              - /url: /user/MilesOfMotion
+            - link "Aug 25 '25" [ref=f31e2347]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nanwgza/?context=3#nanwgza
+          - generic [ref=f31e2349]:
+            - paragraph [ref=f31e2350]: You aren't being too harsh. The data is not lying. I'd hypothesise that this is mainly due to the "build fast" movement.
+            - paragraph [ref=f31e2351]: With AI tools, it is so easy to build quickly, but validation will always require understanding of people.
+            - paragraph [ref=f31e2352]: I'd like to add, "build it and they will come" was actually done by individuals who intimately understood their INITIAL markets and users (even if it was tiny). Let's take Jobs and Wozniak when they were creating Apple I/II. They used a tiny "focus" group, the Homebrew Computer Club. That was their source of pre-orders, early feedback etc.
+          - blockquote
+      - generic [ref=f31e2354]:
+        - paragraph [ref=f31e2356]: •
+        - group [ref=f31e2358]:
+          - generic [ref=f31e2359] [cursor=pointer]:
+            - link "u/BestAge6698" [ref=f31e2360]:
+              - /url: /user/BestAge6698
+            - link "Sep 03 '25" [ref=f31e2361]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nc7mf4p/?context=3#nc7mf4p
+          - generic [ref=f31e2363]:
+            - paragraph [ref=f31e2364]: "A lot of us fall into the trap of polishing features because it feels productive, but what we’re really doing is delaying the scary part: asking someone to pay."
+            - paragraph [ref=f31e2365]: The way you framed it on Product Hunt, rewarding spectacle, not substance, makes sense. Upvotes are a dopamine hit, but they don’t mean product-market fit. Maybe the launch culture should be less about showcasing finished products and more about showcasing validated problems. If we celebrated people proving real demand half as much as we celebrate shiny launches, the success rate might look very different.
+          - blockquote
+      - generic [ref=f31e2367]:
+        - paragraph [ref=f31e2369]: •
+        - group [ref=f31e2371]:
+          - generic [ref=f31e2372] [cursor=pointer]:
+            - link "u/f1xie" [ref=f31e2373]:
+              - /url: /user/f1xie
+            - link "Sep 05 '25" [ref=f31e2374]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/ncn9cg2/?context=3#ncn9cg2
+          - paragraph [ref=f31e2377]: this is wild, I feel like this could be a saas of its own
+          - blockquote
+      - generic [ref=f31e2379]:
+        - paragraph [ref=f31e2381]: •
+        - group [ref=f31e2383]:
+          - generic [ref=f31e2384] [cursor=pointer]:
+            - link "u/Coffeewriter011" [ref=f31e2385]:
+              - /url: /user/Coffeewriter011
+            - link "Sep 10 '25" [ref=f31e2386]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/ndic0iz/?context=3#ndic0iz
+          - paragraph [ref=f31e2389]: Hey all! This is a bit off-topic and I know you guys hate marketing - but this is not it, I promise. I want to talk to a few founders about using Reddit, building in public, Slack communities, micro influencers, and affiliate programs as customer acquisition channels. I'm a content writer and I'm building an article on using "alternative" acquisition channels instead of waiting for a year for SEO to work. I always want to include original content and quotes in my articles, so it'd be helpful to hear from someone who used these channels I mentioned (and you'd get a link to your product, of course). Thank you in advance!
+          - blockquote
+      - generic [ref=f31e2391]:
+        - paragraph [ref=f31e2393]: •
+        - group [ref=f31e2395]:
+          - generic [ref=f31e2396] [cursor=pointer]:
+            - link "u/MaleficentBoat3092" [ref=f31e2397]:
+              - /url: /user/MaleficentBoat3092
+            - link "Sep 12 '25" [ref=f31e2398]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/ndqoq7q/?context=3#ndqoq7q
+          - paragraph [ref=f31e2401]: I have already failed in seven projects. I am indeed very surprised by this data... But my mindset is now well-adjusted. I won’t have overly high expectations for my next product... I just hope to improve step by step each time, whether it’s in the product itself, promotion, advertising, or other aspects.
+          - blockquote
+      - generic [ref=f31e2403]:
+        - paragraph [ref=f31e2405]: •
+        - group [ref=f31e2407]:
+          - generic [ref=f31e2408] [cursor=pointer]:
+            - link "u/Forward_Type7214" [ref=f31e2409]:
+              - /url: /user/Forward_Type7214
+            - link "Sep 13 '25" [ref=f31e2410]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/ndx6vdb/?context=3#ndx6vdb
+          - generic [ref=f31e2412]:
+            - paragraph [ref=f31e2413]: Ten years ago, in the era of mobile apps boom, the failure rate is the same. Nothing changed, it's just the data is becoming more transparent.
+            - paragraph [ref=f31e2414]: The truth is 'most ideas are not for Real Pain Points. no user will pay for just being cool'.
+          - blockquote
+      - generic [ref=f31e2416]:
+        - paragraph [ref=f31e2418]: •
+        - group [ref=f31e2420]:
+          - generic [ref=f31e2421] [cursor=pointer]:
+            - link "u/AcesUp3D" [ref=f31e2422]:
+              - /url: /user/AcesUp3D
+            - link "Sep 18 '25" [ref=f31e2423]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/neugugp/?context=3#neugugp
+          - generic [ref=f31e2425]:
+            - paragraph [ref=f31e2426]: Totally agree with your views on PH being good only for a backlink and minor credibility, and a honeypot for spammers and scammers who could easily steal your idea and just bury you with ad spend.
+            - paragraph [ref=f31e2427]: “97.4% of apps make < 1k MRR” - isn’t this the norm for SaaS apps in general, not just ph launches? I think it’s something close to that, at least in the mobile space where I build most
+          - blockquote
+      - generic [ref=f31e2429]:
+        - paragraph [ref=f31e2431]: •
+        - group [ref=f31e2433]:
+          - generic [ref=f31e2434] [cursor=pointer]:
+            - link "u/vape2023" [ref=f31e2435]:
+              - /url: /user/vape2023
+            - link "Sep 22 '25" [ref=f31e2436]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nfkowt4/?context=3#nfkowt4
+          - paragraph [ref=f31e2439]: How do you track payment status and website status?
+          - blockquote
+      - generic [ref=f31e2441]:
+        - paragraph [ref=f31e2443]: •
+        - group [ref=f31e2445]:
+          - generic [ref=f31e2446] [cursor=pointer]:
+            - link "u/EithirielDeMere" [ref=f31e2447]:
+              - /url: /user/EithirielDeMere
+            - link "Sep 26 '25" [ref=f31e2448]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/ngddlad/?context=3#ngddlad
+          - generic [ref=f31e2450]:
+            - paragraph [ref=f31e2451]: Product Hunt doesn’t create momentum. It broadcasts it. If there’s nothing to pick up, the microphone carries silence.
+            - paragraph [ref=f31e2452]: That’s why 97% of launches stall. Not because Product Hunt is broken, but because we confuse applause with adoption.
+            - paragraph [ref=f31e2453]: Upvotes feel good. Invoices pay the bills.
+            - paragraph [ref=f31e2454]: "The thirteen you found shared one thing: revenue before reveal. Paying customers, not “interested” signups. Proof before launch."
+            - paragraph [ref=f31e2455]: "If you’re about to ship, ask one question: Is anyone already paying for this to exist?"
+            - paragraph [ref=f31e2456]: If the answer is no, Product Hunt won’t save you. It will just turn up the volume on the silence.
+            - paragraph [ref=f31e2457]: "If that’s you, fix it first: sell one two-week paid pilot this week, then launch."
+          - blockquote
+      - generic [ref=f31e2459]:
+        - paragraph [ref=f31e2461]: •
+        - group [ref=f31e2463]:
+          - generic [ref=f31e2464] [cursor=pointer]:
+            - link "u/Wise_Housing5427" [ref=f31e2465]:
+              - /url: /user/Wise_Housing5427
+            - link "Nov 02 '25" [ref=f31e2466]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nmsli4a/?context=3#nmsli4a
+          - generic [ref=f31e2468]:
+            - paragraph [ref=f31e2469]:
+              - link "u/Responsible-Ad431" [ref=f31e2470] [cursor=pointer]:
+                - /url: /u/Responsible-Ad431
+              - text: Great post! Can you point us to some good launches that attracted pre-purchase/paid committment to the product before the SaaS was made available? Would love to see how they approached it?
+            - paragraph [ref=f31e2471]: I'm aware of Demo-Sell-Build approach, but trying to muster up how to present the pre-payment proposition, particularly in sometihng like Product Hunt. Any links?
+          - blockquote
+      - generic [ref=f31e2473]:
+        - paragraph [ref=f31e2475]: •
+        - group [ref=f31e2477]:
+          - generic [ref=f31e2478] [cursor=pointer]:
+            - link "u/Rishi_Uttam" [ref=f31e2479]:
+              - /url: /user/Rishi_Uttam
+            - link "Nov 04 '25" [ref=f31e2480]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nmzo9t9/?context=3#nmzo9t9
+          - generic [ref=f31e2482]:
+            - paragraph [ref=f31e2483]: "Wholeheartedly agree with this take product hunt basically a hype machine that rewards upvotes over real biz. We launched today, snagged #14 outta 350, with 800 lifetime paying customers (skin in the game!) + a few monthly subs. Bootstrapped, no VC cash, no fancy offices, no 10k followers—just building stuff people actually paid for."
+            - paragraph [ref=f31e2484]: "But top spots? Grabbed by VC darlings with insider access, fake(who knows) vote squads. It's a total riot: PH hypes gimmicks while burying indies like us who're profitable AF. —but good luck without gaming the system. I dont understand the hunters that upvote every single product without trying them, it doesn't make any sense.. Atleast with platforms like AS you need to be a user of the product or have bought it to leave a review. Post launch there is hardly any feedback from all the nice people leaving you feedback, there isn't much value add here apart form the DR backlink."
+            - paragraph [ref=f31e2485]: PH could fix it by spotlighting revenue, real users, testimonials over buzz. Till then, echo chamber for the elite.
+          - blockquote
+      - generic [ref=f31e2487]:
+        - paragraph [ref=f31e2489]: •
+        - group [ref=f31e2491]:
+          - generic [ref=f31e2492] [cursor=pointer]:
+            - link "u/AlpsZealousideal3227" [ref=f31e2493]:
+              - /url: /user/AlpsZealousideal3227
+            - link "Nov 04 '25" [ref=f31e2494]:
+              - /url: /r/SaaS/comments/1mnc3nu/i_analyzed_500_product_hunt_saas_launches_487_are/nmzwy9e/?context=3#nmzwy9e
+          - paragraph [ref=f31e2497]: "Founders: If Elon Musk can make it, then so can I."
+          - blockquote
+  - contentinfo [ref=f31e2498]:
+    - paragraph [ref=f31e2500] [cursor=pointer]:
+      - link "ⓘ View instance info" [ref=f31e2501]:
+        - /url: /info
+      - link "<> Code" [ref=f31e2502]:
+        - /url: https://github.com/redlib-org/redlib

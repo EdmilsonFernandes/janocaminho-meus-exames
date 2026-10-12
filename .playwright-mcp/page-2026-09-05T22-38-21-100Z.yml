@@ -1,0 +1,365 @@
+- generic [ref=e33]:
+  - generic [ref=e35]:
+    - generic [ref=e36] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e37]
+      - heading "Meus Exames" [level=6] [ref=e38]
+    - generic [ref=e39]:
+      - button "Como funciona" [ref=e40] [cursor=pointer]
+      - button "Remédios e preços" [ref=e41] [cursor=pointer]
+      - button "Planos" [ref=e42] [cursor=pointer]
+      - button "É médico?" [ref=e43] [cursor=pointer]
+      - button "Dúvidas" [ref=e44] [cursor=pointer]
+      - button "Entrar" [ref=e45] [cursor=pointer]
+      - button "Criar conta" [ref=e46] [cursor=pointer]
+  - generic [ref=e49]:
+    - generic [ref=e50]:
+      - heading "Entenda seus exames como nunca antes." [level=1] [ref=e51]:
+        - generic [ref=e52]: Entenda seus exames
+        - text: como nunca antes.
+      - paragraph [ref=e53]: Envie o exame. O Dr. Exame lê com IA, explica em português simples, mostra sua leitura de risco e monta um plano de ação pra levar ao médico — em cerca de 30 segundos.
+      - generic [ref=e54]: A IA não inventa números — vêm do seu laudo
+      - generic [ref=e59]:
+        - button "Começar grátis — com 60 créditos" [ref=e60] [cursor=pointer]
+        - link [ref=e61] [cursor=pointer]:
+          - /url: https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR
+      - paragraph [ref=e65]: Sem cartão pra começar · cancele quando quiser · dados protegidos (LGPD)
+      - button "Já tem conta? Entrar" [ref=e66] [cursor=pointer]
+    - generic [ref=e69]:
+      - img "Dr. Exame — seus exames com IA" [ref=e70]
+      - button "Assistir tour do Dr. Exame" [ref=e71] [cursor=pointer]
+  - generic [ref=e75]:
+    - generic [ref=e76]:
+      - paragraph [ref=e77]: Experimente agora
+      - heading "Cole seu exame. De graça, sem cadastro." [level=2] [ref=e78]
+      - paragraph [ref=e79]: A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.
+    - generic [ref=e80]:
+      - generic [ref=e85]:
+        - paragraph [ref=e86]: Decifre seu exame agora — de graça
+        - paragraph [ref=e87]: Envie o PDF do laboratório ou cole o texto. Sem cadastro.
+      - generic [ref=e88]:
+        - button "📄 PDF do exame" [ref=e89] [cursor=pointer]
+        - button "📝 Colar texto" [ref=e90] [cursor=pointer]
+        - button [ref=e91] [cursor=pointer]
+      - button [ref=e96] [cursor=pointer]:
+        - paragraph [ref=e100]: Toque aqui para escolher o PDF
+        - paragraph [ref=e101]: O arquivo do laboratório · até 8 MB · ou toque em “Colar texto”
+      - generic [ref=e102]:
+        - button "Decifrar grátis" [disabled]
+        - paragraph [ref=e106]: Não salvamos seu exame — processa e esquece (LGPD)
+    - generic [ref=e107]: Sem exame na mão? ver um exemplo animado de como funciona no app
+  - generic [ref=e111]:
+    - paragraph [ref=e115]: Conforme a LGPD
+    - paragraph [ref=e119]: Acessível em Libras
+    - paragraph [ref=e123]: Portal do Médico
+    - paragraph [ref=e127]: Sem cartão pra começar
+    - paragraph [ref=e132]: Lê o Health Connect do Google
+  - generic [ref=e135]:
+    - generic [ref=e136]:
+      - paragraph [ref=e137]:
+        - generic [ref=e138]: < 0s
+      - paragraph [ref=e139]: pra ler seu exame com IA
+    - generic [ref=e140]:
+      - paragraph [ref=e141]: "0"
+      - paragraph [ref=e142]: "riscos monitorados: diabetes, anemia, colesterol, renal…"
+    - generic [ref=e143]:
+      - paragraph [ref=e144]: "0"
+      - paragraph [ref=e145]: "índices que o laudo não dá: IMC, eGFR e HOMA-IR"
+    - generic [ref=e146]:
+      - paragraph [ref=e147]: "0"
+      - paragraph [ref=e148]: farmácias comparadas — menor preço do seu remédio
+  - generic [ref=e150]:
+    - generic [ref=e151]:
+      - generic [ref=e152]: ★
+      - generic [ref=e153]: ★
+      - generic [ref=e154]: ★
+      - generic [ref=e155]: ★
+      - generic [ref=e156]: ★
+      - paragraph [ref=e157]: 5,0 na Google Play
+    - generic [ref=e158]:
+      - generic [ref=e160]:
+        - paragraph [ref=e161]: "\"Finalmente entendi o que o meu exame significava. O plano de ação com as perguntas pro médico me salvou na consulta.\""
+        - generic [ref=e162]:
+          - generic [ref=e163]: M
+          - generic [ref=e164]:
+            - paragraph [ref=e165]: Maria A.
+            - generic [ref=e166]: usuário do Dr. Exame
+      - generic [ref=e168]:
+        - paragraph [ref=e169]: "\"Guardei todos os exames da família num lugar só. E o alerta de preço do remédio já compensou a assinatura.\""
+        - generic [ref=e170]:
+          - generic [ref=e171]: J
+          - generic [ref=e172]:
+            - paragraph [ref=e173]: João P.
+            - generic [ref=e174]: usuário do Dr. Exame
+      - generic [ref=e176]:
+        - paragraph [ref=e177]: "\"Minha mãe é diabética e eu cuido dela. Ver a evolução dela no app me deixa tranquila entre as consultas.\""
+        - generic [ref=e178]:
+          - generic [ref=e179]: R
+          - generic [ref=e180]:
+            - paragraph [ref=e181]: Rita de Cássia
+            - generic [ref=e182]: usuário do Dr. Exame
+  - generic [ref=e186]:
+    - generic [ref=e187]: Leitura de risco + plano de ação
+    - heading "Descubra seu risco — e o que fazer" [level=2] [ref=e192]
+    - paragraph [ref=e193]: "A IA cruza seus exames e aponta possíveis riscos (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um plano de ação personalizado: hábitos, quando refazer e perguntas pra levar ao médico."
+    - paragraph [ref=e197]: Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.
+    - paragraph [ref=e201]: "Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar."
+    - paragraph [ref=e205]: "Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo."
+    - paragraph [ref=e209]: "Sempre educativo: nunca diagnóstico. A decisão é do seu médico."
+    - button "Ver minha leitura de risco" [ref=e210] [cursor=pointer]
+  - generic [ref=e213]:
+    - generic [ref=e215]:
+      - generic [ref=e216]: Família de verdade
+      - heading "A saúde de quem você ama, no seu bolso" [level=2] [ref=e220]
+      - paragraph [ref=e221]: Os apps gringos de saúde são 18+ e single-user. Aqui, filho e avó vivem no mesmo lugar que você — cada um com o histórico próprio, e você no controle.
+    - generic [ref=e222]:
+      - generic [ref=e224]:
+        - generic [ref=e225]:
+          - generic [ref=e229]:
+            - paragraph [ref=e230]: "Theo: exame lido 🧬"
+            - paragraph [ref=e231]: 2 itens estavam fora da faixa — pra idade dele, 1 é normal.
+          - paragraph [ref=e232]: agora
+        - generic [ref=e233]:
+          - generic [ref=e234]:
+            - text: Você está cuidando de
+            - generic [ref=e237]: Theo · Filho
+          - generic [ref=e238]:
+            - paragraph [ref=e239]: HEMOGRAMA + BIOQUÍMICA · 01/08
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - paragraph [ref=e242]: Fosfatase Alcalina
+                - paragraph [ref=e243]: "300"
+                - generic [ref=e244]: ✓
+              - generic [ref=e246]:
+                - paragraph [ref=e247]: Referência 105–420
+                - generic [ref=e248]: Pediátrico · 2–6 anos
+            - generic [ref=e250]:
+              - generic [ref=e251]:
+                - paragraph [ref=e252]: Leucócitos
+                - paragraph [ref=e253]: "9.800"
+                - generic [ref=e254]: ✓
+              - generic [ref=e256]:
+                - paragraph [ref=e257]: Referência 5.000–15.000
+                - generic [ref=e258]: Pediátrico · 2–6 anos
+            - generic [ref=e260]:
+              - generic [ref=e261]:
+                - paragraph [ref=e262]: Glicose
+                - paragraph [ref=e263]: "92"
+                - generic [ref=e264]: ✓
+              - paragraph [ref=e267]: Referência 70–99
+            - paragraph [ref=e268]: Laudo dizia 40–130 (adulto) · régua da idade aplicada, com fonte.
+      - generic [ref=e269]:
+        - heading "Cuidador, sem confusão de perfil" [level=3] [ref=e270]
+        - paragraph [ref=e275]: "Modo cuidador — quando você está no perfil do seu filho, o app avisa: “Você está cuidando de Theo”. Exame e alerta errado de pessoa, nunca mais."
+        - paragraph [ref=e282]: Faixas pediátricas com fonte — criança não é adulto pequeno. Sem faixa da idade no laudo, aplicamos bandas por idade (Harriet Lane, 22ª ed.) e marcamos o item.
+        - paragraph [ref=e287]: Histórico próprio por pessoa — cada dependente tem exames, evolução e score dele. O do filho nunca mistura com o seu.
+        - paragraph [ref=e292]: O médico de cada um — compartilhe o perfil do dependente com o pediatra, e o seu com seu clínico. Escopos separados, revogáveis.
+        - button "Cadastrar minha família →" [ref=e293] [cursor=pointer]
+  - generic [ref=e296]:
+    - generic [ref=e297]:
+      - generic [ref=e298]: Economia de verdade
+      - heading "O mesmo remédio pode custar até 20× mais dependendo da farmácia." [level=2] [ref=e302]
+      - paragraph [ref=e303]: O Procon-SP já encontrou variação de até 2.400% no preço do mesmo medicamento. Você adiciona o remédio que toma — o Dr. Exame compara 9 farmácias online em segundos e mostra o menor preço, com foto do produto e o nome da farmácia.
+      - generic [ref=e304]:
+        - generic [ref=e309]:
+          - paragraph [ref=e310]: 1. Adicione o remédio que você toma
+          - paragraph [ref=e311]: Nome ou foto da receita — 1 toque. Uso contínuo fica salvo.
+        - generic [ref=e316]:
+          - paragraph [ref=e317]: 2. Comparamos 9 farmácias online
+          - paragraph [ref=e318]: Pague Menos, Pacheco, São Paulo, Drogasil e outras — preço, foto e link.
+        - generic [ref=e323]:
+          - paragraph [ref=e324]: 3. Menor preço na hora — e no bolso
+          - paragraph [ref=e325]: A diferença entre a farmácia mais cara e a mais barata fica no seu bolso, todo mês.
+      - link [ref=e326] [cursor=pointer]:
+        - /url: "#/registrar"
+      - generic [ref=e330]: "Fonte: Procon-SP — estudo de variação de preços de medicamentos. Preços dos produtos das farmácias parceiras, atualizados continuamente."
+    - generic [ref=e333]:
+      - generic [ref=e334]:
+        - generic [ref=e338]:
+          - paragraph [ref=e339]: Levotiroxina 25mcg
+          - text: uso contínuo · 30 un.
+          - generic [ref=e340]:
+            - generic [ref=e341]: a partir de
+            - paragraph [ref=e342]: R$ 7,65
+        - generic [ref=e343]: 🏆 11 ofertas
+      - generic [ref=e345]:
+        - generic [ref=e346]: CD
+        - generic [ref=e347]:
+          - paragraph [ref=e348]: Levotiroxina Sódica 25mcg 30cp
+          - text: Coop Drogaria
+        - generic [ref=e349]:
+          - paragraph [ref=e350]: R$ 7,65
+          - generic [ref=e351]: MELHOR PREÇO
+      - generic [ref=e353]: +8 farmácias comparadas em segundos
+      - generic [ref=e354]:
+        - paragraph [ref=e355]: Comparando agora · preços de hoje
+        - generic [ref=e356]:
+          - generic [ref=e357]:
+            - paragraph [ref=e358]: Alopurinol
+            - generic [ref=e359]:
+              - generic [ref=e360]: a partir de
+              - paragraph [ref=e361]: R$ 5,19
+            - generic [ref=e362]:
+              - generic [ref=e363]: Pague Menos
+              - generic [ref=e364]: · 8 ofertas
+          - generic [ref=e365]:
+            - paragraph [ref=e366]: Alprazolam
+            - generic [ref=e367]:
+              - generic [ref=e368]: a partir de
+              - paragraph [ref=e369]: R$ 2,99
+            - generic [ref=e370]:
+              - generic [ref=e371]: Pague Menos
+              - generic [ref=e372]: · 8 ofertas
+          - generic [ref=e373]:
+            - paragraph [ref=e374]: Amoxicilina
+            - generic [ref=e375]:
+              - generic [ref=e376]: a partir de
+              - paragraph [ref=e377]: R$ 10,79
+            - generic [ref=e378]:
+              - generic [ref=e379]: Pague Menos
+              - generic [ref=e380]: · 8 ofertas
+          - generic [ref=e381]:
+            - paragraph [ref=e382]: Apixabana
+            - generic [ref=e383]:
+              - generic [ref=e384]: a partir de
+              - paragraph [ref=e385]: R$ 43,79
+            - generic [ref=e386]:
+              - generic [ref=e387]: Pague Menos
+              - generic [ref=e388]: · 8 ofertas
+          - generic [ref=e389]:
+            - paragraph [ref=e390]: Atenolol
+            - generic [ref=e391]:
+              - generic [ref=e392]: a partir de
+              - paragraph [ref=e393]: R$ 2,29
+            - generic [ref=e394]:
+              - generic [ref=e395]: Pague Menos
+              - generic [ref=e396]: · 8 ofertas
+          - generic [ref=e397]:
+            - paragraph [ref=e398]: Atorvastatina
+            - generic [ref=e399]:
+              - generic [ref=e400]: a partir de
+              - paragraph [ref=e401]: R$ 13,79
+            - generic [ref=e402]:
+              - generic [ref=e403]: Pague Menos
+              - generic [ref=e404]: · 8 ofertas
+  - generic [ref=e406]:
+    - paragraph [ref=e407]: É médico? Receba o brief de pré-consulta de cada paciente.
+    - paragraph [ref=e408]: Top 3 mudanças, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Grátis pra começar.
+    - button "Conhecer o Portal do Médico →" [ref=e409] [cursor=pointer]
+  - generic [ref=e412]:
+    - heading "Planos simples e justos" [level=2] [ref=e413]
+    - paragraph [ref=e414]: Comece grátis. Assine quando precisar — ou pague só pelo que usar.
+    - generic [ref=e415]:
+      - generic [ref=e416]:
+        - generic [ref=e417]: "1"
+        - generic [ref=e418]:
+          - paragraph [ref=e419]: Baixe e teste grátis
+          - paragraph [ref=e420]: 60 créditos de presente no 1º exame — sem cartão
+      - generic [ref=e421]:
+        - generic [ref=e422]: "2"
+        - generic [ref=e423]:
+          - paragraph [ref=e424]: A IA usa créditos
+          - paragraph [ref=e425]: 1 resumo = 10 · 1 pergunta no chat = 2 · 1 envio = 1
+      - generic [ref=e426]:
+        - generic [ref=e427]: "3"
+        - generic [ref=e428]:
+          - paragraph [ref=e429]: Acabou? Você escolhe
+          - paragraph [ref=e430]: Assina o mensal (melhor custo + extras) ou compra pacotes
+    - generic [ref=e431]:
+      - generic [ref=e432]:
+        - heading "Grátis" [level=6] [ref=e433]
+        - paragraph [ref=e434]: R$ 0
+        - paragraph [ref=e440]: 60 créditos de presente (≈ 6 resumos)
+        - paragraph [ref=e445]: "Tudo funciona: envios, valores, tendências, família"
+        - paragraph [ref=e451]: Envie exames (PDF/foto)
+        - paragraph [ref=e457]: Score de Saúde
+        - button "Começar grátis →" [ref=e458] [cursor=pointer]
+      - generic [ref=e459]:
+        - generic [ref=e460]: RECOMENDADO
+        - heading "Mensal" [level=6] [ref=e462]
+        - paragraph [ref=e463]: R$ 19,90/mês
+        - paragraph [ref=e468]: 250 créditos de IA/mês (melhor custo)
+        - paragraph [ref=e474]: Relatórios completos incluídos
+        - paragraph [ref=e480]: Histórico de anos anteriores
+        - paragraph [ref=e486]: Família até 10 perfis
+        - paragraph [ref=e492]: Envios de exame sem custo
+        - button "Assinar mensal" [ref=e493] [cursor=pointer]
+      - generic [ref=e494]:
+        - heading "Créditos" [level=6] [ref=e495]
+        - paragraph [ref=e496]: a partir de R$ 9,90avulso
+        - paragraph [ref=e502]: PIX, cartão ou débito
+        - paragraph [ref=e508]: Pacotes flexíveis
+        - paragraph [ref=e514]: Cada análise consome créditos
+        - paragraph [ref=e520]: Sem mensalidade
+        - paragraph [ref=e526]: Use quando precisar — não expiram
+        - button "Ver pacotes" [ref=e527] [cursor=pointer]
+    - paragraph [ref=e528]:
+      - strong [ref=e529]: Não sabe qual escolher?
+      - text: Faz exame todo mês? O plano se paga sozinho (e vem com relatório ilimitado e histórico completo). Só tem exame de vez em quando? Compre créditos avulsos — sem mensalidade, e eles nunca expiram.
+    - paragraph [ref=e530]: "Sem surpresa: nenhuma taxa escondida — cancele quando quiser."
+  - generic [ref=e532]:
+    - generic [ref=e534]:
+      - paragraph [ref=e538]: Dúvidas frequentes
+      - heading "Tudo o que você precisa saber" [level=2] [ref=e539]
+      - paragraph [ref=e540]: "Saúde e IA geram perguntas: a gente responde direto ao ponto."
+    - generic [ref=e542]:
+      - heading [level=3] [ref=e544]:
+        - button [ref=e545] [cursor=pointer]:
+          - paragraph [ref=e547]: A IA do Dr. Exame substitui o médico?
+      - heading [level=3] [ref=e552]:
+        - button [ref=e553] [cursor=pointer]:
+          - paragraph [ref=e555]: A IA inventa os valores do meu exame?
+      - heading [level=3] [ref=e560]:
+        - button [ref=e561] [cursor=pointer]:
+          - paragraph [ref=e563]: Funciona com o exame do meu laboratório?
+      - heading [level=3] [ref=e568]:
+        - button [ref=e569] [cursor=pointer]:
+          - paragraph [ref=e571]: Meus dados estão seguros?
+      - heading [level=3] [ref=e576]:
+        - button [ref=e577] [cursor=pointer]:
+          - paragraph [ref=e579]: Preciso pagar para testar?
+      - heading [level=3] [ref=e584]:
+        - button [ref=e585] [cursor=pointer]:
+          - paragraph [ref=e587]: Isso é um diagnóstico?
+    - generic [ref=e592]:
+      - paragraph [ref=e593]: Ainda com dúvidas? Teste sem compromisso.
+      - button "Começar grátis →" [ref=e594] [cursor=pointer]
+  - generic [ref=e599]:
+    - heading "Pronto pra entender sua saúde?" [level=2] [ref=e600]
+    - paragraph [ref=e601]: Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.
+    - button "Começar grátis →" [ref=e602] [cursor=pointer]
+    - link [ref=e603] [cursor=pointer]:
+      - /url: https://play.google.com/store/apps/details?id=com.janocaminho.drexame&hl=pt_BR
+      - img "QR code para baixar o Dr. Exame na Play Store" [ref=e604]
+      - generic [ref=e605]:
+        - paragraph [ref=e606]: Dr. Exame no seu celular 📱
+        - paragraph [ref=e607]: Aponte a câmera do celular ou toque pra baixar.
+        - paragraph [ref=e608]: ★★★★★ 5,0 no Google Play
+        - img "Disponível no Google Play" [ref=e609]
+  - generic [ref=e611]:
+    - generic [ref=e612]:
+      - img "Dr. Exame" [ref=e613]
+      - paragraph [ref=e614]: Meus Exames
+    - paragraph [ref=e615]:
+      - text: © 2026 janocaminho.com.br •
+      - link "contato@janocaminho.com.br" [ref=e616] [cursor=pointer]:
+        - /url: mailto:contato@janocaminho.com.br
+    - paragraph [ref=e617]: "Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica."
+    - generic [ref=e618]:
+      - link "Fale com a gente no WhatsApp" [ref=e619] [cursor=pointer]:
+        - /url: https://wa.me/551239334979?text=Ol%C3%A1!%20Vim%20pelo%20site%20do%20Dr.%20Exame%20e%20quero%20saber%20mais.
+      - paragraph [ref=e622]: (12) 3933-4979 · seg-sex 8h-18h
+    - generic [ref=e623]:
+      - link "Portal do Médico" [ref=e624] [cursor=pointer]:
+        - /url: "#/doctor"
+      - link "Como validamos" [ref=e625] [cursor=pointer]:
+        - /url: "#/como-validamos"
+      - link "API para devs" [ref=e626] [cursor=pointer]:
+        - /url: "#/api-docs"
+      - link "Dúvidas frequentes" [ref=e627] [cursor=pointer]:
+        - /url: "#/faq"
+      - link "Termos e LGPD" [ref=e628] [cursor=pointer]:
+        - /url: "#/termos"
+      - link "Criar conta" [ref=e629] [cursor=pointer]:
+        - /url: "#/registrar"
+      - link "Entrar" [ref=e630] [cursor=pointer]:
+        - /url: "#/entrar"

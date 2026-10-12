@@ -1,0 +1,118 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e2136]:
+            - generic [ref=e2141]:
+              - heading [level=5] [ref=e2142]: Planos e Créditos
+              - paragraph [ref=e2143]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=e2144]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=e2145]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=e2147]:
+              - paragraph [ref=e2148]: Seus créditos
+              - paragraph [ref=e2149]: "71"
+              - generic [ref=e2150]: Sem assinatura — créditos custeiam a IA.
+            - generic [ref=e2153] [cursor=pointer]:
+              - heading [level=6] [ref=e2154]: Histórico de Uso
+              - generic [ref=e2155]: Ver histórico ▼
+            - heading [level=6] [ref=e2156]: Comprar créditos (PIX instantâneo)
+            - generic [ref=e2159]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+            - generic [ref=e2160]:
+              - generic [ref=e2162]:
+                - paragraph [ref=e2163]: "50"
+                - paragraph [ref=e2164]: créditos
+                - heading [level=5] [ref=e2165]: R$ 9,90
+                - button [ref=e2166] [cursor=pointer]: Comprar
+              - generic [ref=e2167]:
+                - generic [ref=e2168]: MAIS VENDIDO
+                - generic [ref=e2171]:
+                  - paragraph [ref=e2172]: "140"
+                  - paragraph [ref=e2173]: créditos
+                  - heading [level=5] [ref=e2174]: R$ 24,90
+                  - button [ref=e2175] [cursor=pointer]: Comprar
+              - generic [ref=e2177]:
+                - paragraph [ref=e2178]: "320"
+                - paragraph [ref=e2179]: créditos
+                - heading [level=5] [ref=e2180]: R$ 49,90
+                - button [ref=e2181] [cursor=pointer]: Comprar
+            - paragraph [ref=e2182]: — ou assine —
+            - generic [ref=e2184]:
+              - heading [level=6] [ref=e2185]: 💎 Premium Mensal
+              - paragraph [ref=e2186]:
+                - text: 250 créditos que
+                - strong [ref=e2187]: somam
+                - text: ao seu saldo. Válido 30 dias. Seus créditos
+                - strong [ref=e2188]: não expiram
+                - text: — você decide se renova.
+              - list [ref=e2189]:
+                - listitem [ref=e2190]: 250 créditos de IA por mês
+                - listitem [ref=e2191]: Exames + dependentes
+                - listitem [ref=e2192]: Relatório completo + impressão
+              - separator [ref=e2193]
+              - generic [ref=e2194]:
+                - generic [ref=e2195]:
+                  - heading [level=4] [ref=e2196]: R$ 19,90
+                  - paragraph [ref=e2197]: /mês · sem anual · sem fidelidade
+                - button [ref=e2198] [cursor=pointer]: Assinar mensal
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - generic [ref=e226]:
+        - button "Conta" [expanded] [ref=e227] [cursor=pointer]
+        - generic [ref=e1821]:
+          - button "Meu perfil" [ref=e1822] [cursor=pointer]
+          - button "Segurança & senha" [ref=e1828] [cursor=pointer]
+          - button "Privacidade e termos" [ref=e1834] [cursor=pointer]
+          - button "Planos e Créditos" [ref=e1840] [cursor=pointer]
+          - button "Despesas Médicas" [ref=e1846] [cursor=pointer]
+          - button "Painel Admin" [ref=e1852] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

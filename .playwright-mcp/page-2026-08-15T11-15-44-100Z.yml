@@ -1,0 +1,67 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button [ref=e2117] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button [ref=e2118] [cursor=pointer]
+            - paragraph [ref=e893]: Dr. Exame
+            - button [ref=e2120] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button [ref=e2121]
+            - button [ref=e2122] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button [ref=e2123] [cursor=pointer]:
+              - generic [ref=e908]: E
+            - button [ref=e2124] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e2046]:
+            - generic [ref=e2051]:
+              - heading [level=5] [ref=e2125]: Sua jornada de saúde
+              - paragraph [ref=e2053]: 3 exame(s) ao longo do tempo • 8 sinal(is) de atenção no total.
+            - generic [ref=e2062]:
+              - generic [ref=e2063]:
+                - generic [ref=e2064]: 📅 2025
+                - generic [ref=e2066]: 3 exame(s)
+              - generic [ref=e2069]:
+                - generic [ref=e2075] [cursor=pointer]:
+                  - generic [ref=e2076]:
+                    - generic [ref=e2077]:
+                      - paragraph [ref=e2078]: CULTURA DE URINA
+                      - text: 11 de novembro de 2025
+                    - generic [ref=e2079]: Laboratorial
+                  - generic [ref=e2082]: Tudo dentro da faixa
+                - generic [ref=e2092] [cursor=pointer]:
+                  - generic [ref=e2093]:
+                    - generic [ref=e2094]:
+                      - paragraph [ref=e2095]: HEMOGRAMA COMPLETO
+                      - text: 05 de novembro de 2025
+                    - generic [ref=e2096]: Laboratorial
+                  - generic [ref=e2099]: ⚠️ 3 valor(es) fora da faixa
+                - generic [ref=e2107] [cursor=pointer]:
+                  - generic [ref=e2108]:
+                    - generic [ref=e2109]:
+                      - paragraph [ref=e2110]: HEMOGRAMA COMPLETO
+                      - text: 07 de fevereiro de 2025
+                    - generic [ref=e2111]: Laboratorial
+                  - generic [ref=e2114]: ⚠️ 5 valor(es) fora da faixa
+    - button [ref=e2126] [cursor=pointer]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - paragraph [ref=e1053] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic [ref=e2045]: "0"
+  - dialog [active] [ref=e2133]:
+    - heading [level=2] [ref=e2134]:
+      - generic [ref=e2135]:
+        - paragraph [ref=e2136]: CULTURA DE URINA
+        - text: 11/11/2025
+      - button [ref=e2137] [cursor=pointer]
+    - generic [ref=e2140]:
+      - paragraph [ref=e2141]: Nenhum valor fora da faixa neste exame. Tudo dentro da referência. ✅
+      - generic [ref=e2142]: "*Educativo. A interpretação final é do seu médico."
+      - button [ref=e2143] [cursor=pointer]

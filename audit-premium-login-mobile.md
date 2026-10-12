@@ -1,0 +1,329 @@
+- generic [active] [ref=e18] [box=0,0,375,14282]:
+  - generic [ref=e20] [box=0,0,375,14282]:
+    - generic [ref=e22] [box=0,0,375,90]:
+      - generic [ref=e23] [cursor=pointer] [box=16,14,153,61]:
+        - img "Dr. Exame" [ref=e24] [box=16,26,32,38]
+        - heading "Meus Exames" [level=6] [ref=e25] [box=58,14,112,61]
+      - generic [ref=e26] [box=169,12,190,66]:
+        - button "Entrar" [ref=e27] [cursor=pointer] [box=181,23,72,45]
+        - button "Criar conta" [ref=e28] [cursor=pointer] [box=265,12,94,66]
+    - generic [ref=e31] [box=16,88,343,821]:
+      - generic [ref=e32] [box=16,88,343,614]:
+        - generic [ref=e33] [box=16,88,207,32]:
+          - img [ref=e34] [box=29,96,17,17]
+          - generic [ref=e36] [box=40,94,183,20]: IA de Saúde no seu bolso
+        - heading "Entenda seus exames como nunca antes." [level=1] [ref=e37] [box=16,144,343,159]:
+          - text: Entenda seus exames
+          - text: como nunca antes.
+        - paragraph [ref=e38] [box=16,323,343,106]: Envie o exame. O Dr. Exame lê com IA, explica em português simples, mostra sua leitura de risco e monta um plano de ação pra levar ao médico.
+        - generic [ref=e39] [box=16,461,343,123]:
+          - button "Começar grátis →" [ref=e40] [cursor=pointer] [box=16,461,343,53]
+          - button "Já tenho conta" [ref=e41] [cursor=pointer] [box=16,529,343,54]
+        - generic [ref=e42] [box=16,608,343,51]:
+          - generic [ref=e43] [box=16,608,95,22]
+          - generic [ref=e47] [box=131,608,136,22]
+          - generic [ref=e51] [box=16,638,122,22]
+          - generic [ref=e55] [box=158,638,57,22]
+        - paragraph [ref=e59] [box=16,679,343,22]: É médico? Acesse o Portal do Médico →
+      - img "Dr. Exame — seus exames com IA" [ref=e62] [box=16,742,343,168]
+    - generic [ref=e65] [box=16,966,343,174]:
+      - generic [ref=e66] [box=116,986,144,22]:
+        - img [ref=e67] [box=116,987,20,20]
+        - paragraph [ref=e69] [box=144,986,116,22]: Conforme a LGPD
+      - generic [ref=e70] [box=109,1023,158,22]:
+        - img [ref=e71] [box=109,1024,20,20]
+        - paragraph [ref=e73] [box=137,1023,130,22]: Acessível em Libras
+      - generic [ref=e74] [box=118,1061,138,22]:
+        - img [ref=e75] [box=118,1062,20,20]
+        - paragraph [ref=e77] [box=146,1061,110,22]: Portal do Médico
+      - generic [ref=e78] [box=94,1099,188,22]:
+        - img [ref=e79] [box=94,1099,20,20]
+        - paragraph [ref=e81] [box=122,1099,160,22]: Sem cartão pra começar
+    - generic [ref=e82] [box=0,1141,375,3943]:
+      - heading "Tudo que você precisa pra dominar sua saúde" [level=2] [ref=e83] [box=16,1205,343,109]
+      - paragraph [ref=e84] [box=16,1327,343,82]: Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
+      - generic [ref=e85] [box=16,1456,343,3564]:
+        - generic [ref=e86] [box=16,1456,343,260]:
+          - img [ref=e88] [box=52,1492,26,26]
+          - heading "Leitura de risco" [level=6] [ref=e90] [box=41,1545,294,26]
+          - paragraph [ref=e91] [box=41,1579,294,112]: Veja possíveis riscos (diabetes, anemia, hipertensão, colesterol, cardiovascular, renal, obesidade) a partir dos seus exames — sempre como "possível", e cada faixa cita a diretriz (ADA/SBC/OMS).
+        - generic [ref=e92] [box=16,1736,343,260]:
+          - img [ref=e94] [box=52,1772,26,26]
+          - heading "Leitura personalizada" [level=6] [ref=e96] [box=41,1825,294,26]
+          - paragraph [ref=e97] [box=41,1859,294,112]: "Complete seu perfil (sexo, altura, etnia) e a interpretação se ajusta a você — ex.: as faixas de anemia passam a usar o limiar certo pra homem ou mulher. Sem perfil, usa faixa conservadora."
+        - generic [ref=e98] [box=16,2016,343,260]:
+          - img [ref=e100] [box=52,2052,26,26]
+          - heading "Índices que o laudo não dá" [level=6] [ref=e102] [box=41,2105,294,26]
+          - paragraph [ref=e103] [box=41,2139,294,112]: "Calcula IMC, função renal (eGFR) e resistência insulínica (HOMA-IR) automaticamente. E mostra o valor IDEAL — não só o de referência (ex.: LDL ideal <100, não só <130)."
+        - generic [ref=e104] [box=16,2296,343,238]:
+          - img [ref=e106] [box=52,2332,26,26]
+          - heading "Plano de ação do Dr. Exame" [level=6] [ref=e108] [box=41,2385,294,26]
+          - paragraph [ref=e109] [box=41,2419,294,90]: "A IA monta um plano personalizado: o que fazer, quando refazer os exames e perguntas pra levar ao médico. Educativo, nunca diagnóstico."
+        - generic [ref=e110] [box=16,2554,343,238]:
+          - img [ref=e112] [box=52,2590,26,26]
+          - heading "Score de Adesão" [level=6] [ref=e115] [box=41,2643,294,26]
+          - paragraph [ref=e116] [box=41,2677,294,90]: "Gamificação: pontue por enviar exames no prazo, medir pressão e dar feedback. Suba de Bronze a Diamante e mantenha sua saúde em dia."
+        - generic [ref=e117] [box=16,2811,343,238]:
+          - img [ref=e119] [box=52,2847,26,26]
+          - heading "Alerta preditivo" [level=6] [ref=e121] [box=41,2900,294,26]
+          - paragraph [ref=e122] [box=41,2935,294,90]: A IA projeta a tendência dos seus marcadores e alerta ANTES que saiam da faixa — "seu LDL pode ultrapassar 100 em ~3 meses".
+        - generic [ref=e123] [box=16,3069,343,215]:
+          - img [ref=e125] [box=52,3105,26,26]
+          - heading "IA que lê seus exames" [level=6] [ref=e127] [box=41,3158,294,26]
+          - paragraph [ref=e128] [box=41,3192,294,67]: Envie o PDF ou foto. O Dr. Exame extrai todos os valores e explica em português simples — sem jargão.
+        - generic [ref=e129] [box=16,3304,343,215]:
+          - img [ref=e131] [box=52,3340,26,26]
+          - heading "Chat inteligente (economiza)" [level=6] [ref=e133] [box=41,3393,294,26]
+          - paragraph [ref=e134] [box=41,3427,294,67]: Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.
+        - generic [ref=e135] [box=16,3539,343,215]:
+          - img [ref=e137] [box=52,3575,26,26]
+          - heading "Comparativo visual" [level=6] [ref=e139] [box=41,3628,294,26]
+          - paragraph [ref=e140] [box=41,3663,294,67]: Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.
+        - generic [ref=e141] [box=16,3775,343,215]:
+          - img [ref=e143] [box=52,3810,26,26]
+          - heading "Evolução + Previsão" [level=6] [ref=e145] [box=41,3863,294,26]
+          - paragraph [ref=e146] [box=41,3898,294,67]: Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).
+        - generic [ref=e147] [box=16,4010,343,260]:
+          - img [ref=e149] [box=52,4046,26,26]
+          - heading "Portal do seu médico" [level=6] [ref=e151] [box=41,4099,294,26]
+          - paragraph [ref=e152] [box=41,4133,294,112]: "Indique pelo CRM e seu médico ganha um brief de pré-consulta: top 3 mudanças do dia, padrões por sistema (glicêmico, renal, lipídico) e exames de seguimento sugeridos — só o que você autorizar."
+        - generic [ref=e153] [box=16,4290,343,215]:
+          - img [ref=e155] [box=52,4326,26,26]
+          - heading "Toda a família" [level=6] [ref=e158] [box=41,4379,294,26]
+          - paragraph [ref=e159] [box=41,4413,294,67]: Gerencie exames de cada dependente. Score familiar + comparativo entre membros.
+        - generic [ref=e160] [box=16,4525,343,215]:
+          - img [ref=e162] [box=52,4561,26,26]
+          - heading "Pronto para o médico" [level=6] [ref=e164] [box=41,4614,294,26]
+          - paragraph [ref=e165] [box=41,4648,294,67]: Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.
+        - generic [ref=e166] [box=16,4760,343,260]:
+          - img [ref=e168] [box=52,4796,26,26]
+          - heading "Dados protegidos + Libras" [level=6] [ref=e170] [box=41,4849,294,26]
+          - paragraph [ref=e171] [box=41,4883,294,112]: Seus valores vêm do laudo — a IA não inventa números (extração determinística). Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.
+    - generic [ref=e173] [box=0,5149,375,398]:
+      - heading "Veja na prática" [level=2] [ref=e174] [box=16,5149,343,36]
+      - paragraph [ref=e175] [box=16,5197,343,82]: Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
+      - generic [ref=e177] [box=16,5327,343,193]:
+        - img "Meus Exames — slide 1" [ref=e178] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 2" [ref=e179] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 3" [ref=e180] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 4" [ref=e181] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 5" [ref=e182] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 6" [ref=e183] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 7" [ref=e184] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 8" [ref=e185] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 9" [ref=e186] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 10" [ref=e187] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 11" [ref=e188] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 12" [ref=e189] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 13" [ref=e190] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 14" [ref=e191] [cursor=pointer] [box=17,5328,342,191]
+        - img "Meus Exames — slide 15" [ref=e192] [cursor=pointer] [box=17,5328,342,191]
+    - generic [ref=e211] [box=16,5676,343,1025]:
+      - generic [ref=e213] [box=16,6341,343,359]:
+        - generic [ref=e214] [box=37,6362,302,26]:
+          - img [ref=e215] [box=37,6363,24,24]
+          - paragraph [ref=e217] [box=69,6362,160,26]: Leitura de risco
+          - generic [ref=e219] [box=237,6365,102,20]: 🟠 Moderado
+        - generic [ref=e222] [box=37,6401,175,20]: ↓ Risco caiu desde 11/06
+        - paragraph [ref=e223] [box=37,6434,302,26]: Possível risco de colesterol alto
+        - generic [ref=e224] [box=37,6469,302,92]:
+          - generic [ref=e225] [box=37,6469,302,27]
+          - generic [ref=e229] [box=37,6502,302,27]
+          - generic [ref=e233] [box=37,6534,302,27]
+        - generic [ref=e237] [box=37,6573,302,79]:
+          - paragraph [ref=e238] [box=47,6583,282,22]
+          - paragraph [ref=e241] [box=47,6607,282,35]: Reduza carnes vermelhas e frituras; mais aveia e azeite. Refazer perfil lipídico em 3 meses.
+        - generic [ref=e242] [box=37,6660,302,20]: "*Educativo. Não substitui consulta médica."
+      - generic [ref=e243] [box=16,5676,343,626]:
+        - generic [ref=e244] [box=16,5676,249,32]:
+          - img [ref=e245] [box=29,5683,17,17]
+          - generic [ref=e248] [box=40,5682,225,20]: Leitura de risco + plano de ação
+        - heading "Descubra seu risco — e o que fazer" [level=2] [ref=e249] [box=16,5732,343,69]
+        - paragraph [ref=e250] [box=16,5817,343,163]: "A IA cruza seus exames e aponta possíveis riscos (diabetes, pré-diabetes, anemia, hipertensão, colesterol e cardiovascular) — e monta um plano de ação personalizado: hábitos, quando refazer e perguntas pra levar ao médico."
+        - generic [ref=e251] [box=16,6008,343,45]:
+          - img [ref=e252] [box=16,6008,20,20]
+          - paragraph [ref=e254] [box=46,6008,313,45]: Detecta pré-diabetes — faixa que a maioria ignora e que é reversível.
+        - generic [ref=e255] [box=16,6067,343,45]:
+          - img [ref=e256] [box=16,6067,20,20]
+          - paragraph [ref=e258] [box=46,6067,313,45]: "Plano de ação gerado por IA: o que fazer, quando refazer, o que perguntar."
+        - generic [ref=e259] [box=16,6126,343,45]:
+          - img [ref=e260] [box=16,6126,20,20]
+          - paragraph [ref=e262] [box=46,6126,313,45]: "Tendência de risco: veja se seu risco caiu ou subiu ao longo do tempo."
+        - generic [ref=e263] [box=16,6185,343,45]:
+          - img [ref=e264] [box=16,6185,20,20]
+          - paragraph [ref=e266] [box=46,6185,313,45]: "Sempre educativo: nunca diagnóstico. A decisão é do seu médico."
+        - button "Ver minha leitura de risco" [ref=e267] [cursor=pointer] [box=16,6256,251,45]
+    - generic [ref=e270] [box=16,6828,343,1156]:
+      - generic [ref=e271] [box=16,6828,343,719]:
+        - generic [ref=e272] [box=16,6828,196,32]:
+          - img [ref=e273] [box=29,6836,17,17]
+          - generic [ref=e275] [box=40,6835,172,20]: Dr. Exame Pro (médico)
+        - heading "O médico acessa o prontuário e tem tudo pronto em 1 minuto" [level=2] [ref=e276] [box=16,6884,343,104]
+        - paragraph [ref=e277] [box=16,7004,343,163]: "Quando o paciente compartilha, o médico recebe um resumo clínico automático: principais mudanças, risco, o que investigar, e até as perguntas que o paciente fez no app. Economiza tempo de revisão de cada prontuário."
+        - generic [ref=e278] [box=16,7195,343,45]:
+          - img [ref=e279] [box=16,7195,20,20]
+          - paragraph [ref=e281] [box=46,7195,313,45]: 🩺 Top 3 mudanças desde a última visita — sem revisar prontuário inteiro.
+        - generic [ref=e282] [box=16,7254,343,45]:
+          - img [ref=e283] [box=16,7254,20,20]
+          - paragraph [ref=e285] [box=46,7254,313,45]: 🛡️ Risco + tendência + marcadores a investigar — num relance.
+        - generic [ref=e286] [box=16,7313,343,45]:
+          - img [ref=e287] [box=16,7313,20,20]
+          - paragraph [ref=e289] [box=46,7313,313,45]: 📝 SOAP rascunho gerado por IA (S/O/A/P) — o médico só revisa e edita.
+        - generic [ref=e290] [box=16,7372,343,45]:
+          - img [ref=e291] [box=16,7372,20,20]
+          - paragraph [ref=e293] [box=46,7372,313,45]: 💬 Perguntas que o paciente fez no app — leve direto pra consulta.
+        - generic [ref=e294] [box=16,7431,343,45]:
+          - img [ref=e295] [box=16,7431,20,20]
+          - paragraph [ref=e297] [box=46,7431,313,45]: 🏥 Exportar PES com CID-10 sugerido — copie direto pro prontuário.
+        - button "Conhecer o Portal do Médico →" [ref=e298] [cursor=pointer] [box=16,7502,284,45]
+      - generic [ref=e300] [box=16,7588,343,396]:
+        - paragraph [ref=e301] [box=38,7609,300,26]: 🩺 PRÉ-CONSULTA · desde 15/05
+        - text: ⚠️ TOP 3 PRA HOJE
+        - generic [ref=e302] [box=38,7676,300,73]:
+          - generic [ref=e303] [box=38,7676,300,22]
+          - generic [ref=e309] [box=38,7702,300,22]
+          - generic [ref=e315] [box=38,7728,300,22]
+        - paragraph [ref=e321] [box=38,7762,300,42]: "Risco: 🟠 Moderado (cardiovascular) · ↓ caiu"
+        - text: 🔬 INVESTIGAR
+        - paragraph [ref=e322] [box=38,7837,300,21]: • TGO/TGP · Microalbuminúria
+        - generic [ref=e323] [box=38,7866,300,96]:
+          - paragraph [ref=e324] [box=48,7876,280,22]: 📝 SOAP (rascunho IA)
+          - paragraph [ref=e325] [box=48,7900,280,52]: "S: Uso de Masteron... O: Creatinina 1,4 (↑22%)... A: Risco cardiovascular... P: Solicitar TGO/TGP..."
+    - generic [ref=e328] [box=16,8113,343,915]:
+      - generic [ref=e329] [box=16,8113,343,562]:
+        - generic [ref=e330] [box=16,8113,167,32]:
+          - img [ref=e331] [box=29,8120,17,17]
+          - generic [ref=e333] [box=40,8119,143,20]: Compartilhamento
+        - heading "Compartilhe com seu médico — você no controle" [level=2] [ref=e334] [box=16,8169,343,104]
+        - paragraph [ref=e335] [box=16,8288,343,109]: Escolha o que enviar, indique pelo CRM e seu médico é cadastrado sozinho. Revoga quando quiser — ele perde o acesso na hora.
+        - generic [ref=e336] [box=16,8425,343,48]:
+          - img [ref=e338] [box=24,8433,19,19]
+          - paragraph [ref=e340] [box=62,8425,297,48]: "Você escolhe os escopos: Exames, Evolução, Alertas e Resumos IA."
+        - generic [ref=e341] [box=16,8489,343,48]:
+          - img [ref=e343] [box=24,8497,19,19]
+          - paragraph [ref=e345] [box=62,8489,297,48]: Indica o médico pelo CRM — ele recebe um aviso por e-mail.
+        - generic [ref=e346] [box=16,8554,343,48]:
+          - img [ref=e348] [box=24,8561,19,19]
+          - paragraph [ref=e350] [box=62,8554,297,48]: Revoga o acesso a qualquer momento, com 1 toque.
+        - button "Começar grátis" [ref=e351] [cursor=pointer] [box=16,8630,177,45]
+      - generic [ref=e353] [box=16,8715,343,313]:
+        - paragraph [ref=e354] [box=41,8740,294,21]: "O que compartilhar:"
+        - generic [ref=e355] [box=41,8769,294,56]:
+          - generic [ref=e356] [box=41,8769,85,24]
+          - generic [ref=e360] [box=134,8769,94,24]
+          - generic [ref=e364] [box=236,8769,82,24]
+          - generic [ref=e369] [box=41,8801,111,24]
+        - generic [ref=e373] [box=41,8845,294,63]:
+          - paragraph [ref=e374] [box=54,8856,268,18]: CRM do médico
+          - paragraph [ref=e375] [box=54,8873,268,24]: 12345-SP • Dra. Helena Costa
+        - button "Compartilhar dados" [ref=e376] [cursor=pointer] [box=41,8928,294,45]
+        - paragraph [ref=e377] [box=41,8984,294,18]: 🔒 Você pode revogar a qualquer momento.
+    - generic [ref=e380] [box=16,9156,343,958]:
+      - generic [ref=e382] [box=16,9770,343,344]:
+        - generic [ref=e383] [box=41,9795,294,67]:
+          - img [ref=e385] [box=51,9818,22,22]
+          - generic [ref=e387] [box=94,9795,241,67]
+        - generic [ref=e390] [box=41,9878,294,127]:
+          - generic [ref=e391] [box=58,9895,260,59]
+          - generic [ref=e398] [box=58,9964,260,24]
+        - generic [ref=e412] [box=41,10017,294,73]:
+          - paragraph [ref=e413] [box=58,10034,260,21]: José Lima
+          - paragraph [ref=e414] [box=58,10055,260,18]: Unimed • 📋 Exames, 🤖 Resumos IA
+      - generic [ref=e415] [box=16,9156,343,574]:
+        - generic [ref=e416] [box=16,9156,223,32]:
+          - img [ref=e417] [box=29,9164,17,17]
+          - generic [ref=e419] [box=40,9163,199,20]: Para profissionais de saúde
+        - heading "O paciente chega pronto no seu consultório" [level=2] [ref=e420] [box=16,9212,343,104]
+        - paragraph [ref=e421] [box=16,9332,343,136]: Use o mesmo CRM que seu paciente informou no convite. Ele aparece automaticamente no seu painel — com exames, valores alterados, evolução e o PDF original.
+        - generic [ref=e422] [box=16,9496,343,45]:
+          - img [ref=e423] [box=16,9496,20,20]
+          - paragraph [ref=e425] [box=46,9496,313,45]: Pré-cadastro automático quando o paciente indica pelo CRM.
+        - generic [ref=e426] [box=16,9555,343,45]:
+          - img [ref=e427] [box=16,9555,20,20]
+          - paragraph [ref=e429] [box=46,9555,313,45]: Exames, Alertas, Evolução e Resumos IA — só o que o paciente autorizou.
+        - generic [ref=e430] [box=16,9614,343,45]:
+          - img [ref=e431] [box=16,9614,20,20]
+          - paragraph [ref=e433] [box=46,9614,313,45]: Valores alterados em destaque + PDF original do laboratório.
+        - button "Acessar o Portal do Médico →" [ref=e434] [cursor=pointer] [box=16,9685,273,45]
+    - generic [ref=e436] [box=0,10243,375,1063]:
+      - heading "Como funciona" [level=2] [ref=e437] [box=16,10243,343,36]
+      - paragraph [ref=e438] [box=16,10291,343,27]: 4 passos. Do exame ao médico.
+      - generic [ref=e439] [box=16,10366,343,939]:
+        - generic [ref=e440] [box=16,10366,343,205]:
+          - generic [ref=e441] [box=150,10366,76,76]
+          - heading "Envie o exame" [level=6] [ref=e446] [box=16,10462,343,29]
+          - paragraph [ref=e447] [box=43,10499,290,72]: PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.
+        - generic [ref=e448] [box=16,10603,343,229]:
+          - generic [ref=e449] [box=150,10603,76,76]
+          - heading "A IA lê e explica" [level=6] [ref=e454] [box=16,10699,343,29]
+          - paragraph [ref=e455] [box=43,10736,290,96]: O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.
+        - generic [ref=e456] [box=16,10864,343,205]:
+          - generic [ref=e457] [box=150,10864,76,76]
+          - heading "Indique seu médico" [level=6] [ref=e462] [box=16,10960,343,29]
+          - paragraph [ref=e463] [box=43,10997,290,72]: Informe o CRM. Seu médico é pré-cadastrado sozinho e recebe um aviso pra ativar o acesso.
+        - generic [ref=e464] [box=16,11101,343,205]:
+          - generic [ref=e465] [box=150,11101,76,76]
+          - heading "O médico vê tudo" [level=6] [ref=e470] [box=16,11197,343,29]
+          - paragraph [ref=e471] [box=43,11234,290,72]: Ele finaliza o cadastro com o mesmo CRM e você aparece no portal dele — só o que você autorizou.
+    - generic [ref=e473] [box=0,11434,375,1338]:
+      - heading "Planos simples e justos" [level=2] [ref=e474] [box=16,11434,343,73]
+      - paragraph [ref=e475] [box=16,11519,343,54]: Comece grátis. Assine quando precisar — ou pague só pelo que usar.
+      - generic [ref=e476] [box=16,11622,343,1150]:
+        - generic [ref=e477] [box=16,11622,343,356]:
+          - heading "Grátis" [level=6] [ref=e478] [box=41,11647,294,29]
+          - paragraph [ref=e479] [box=41,11683,294,35]: R$ 0
+          - generic [ref=e480] [box=41,11735,294,30]
+          - generic [ref=e484] [box=41,11765,294,30]
+          - generic [ref=e488] [box=41,11795,294,30]
+          - generic [ref=e492] [box=41,11826,294,30]
+          - generic [ref=e496] [box=41,11856,294,30]
+          - button "Começar grátis" [ref=e500] [cursor=pointer] [box=41,11907,294,46]
+        - generic [ref=e501] [box=16,12002,343,356]:
+          - generic [ref=e503] [box=136,11994,104,17]: RECOMENDADO
+          - heading "Mensal" [level=6] [ref=e504] [box=42,12027,292,29]
+          - paragraph [ref=e505] [box=42,12064,292,35]: R$ 19,90/mês
+          - generic [ref=e506] [box=42,12115,292,30]
+          - generic [ref=e510] [box=42,12146,292,30]
+          - generic [ref=e514] [box=42,12176,292,30]
+          - generic [ref=e518] [box=42,12206,292,30]
+          - generic [ref=e522] [box=42,12237,292,30]
+          - button "Assinar mensal" [ref=e526] [cursor=pointer] [box=42,12287,292,45]
+        - generic [ref=e527] [box=16,12381,343,391]:
+          - heading "Créditos" [level=6] [ref=e528] [box=41,12406,294,29]
+          - paragraph [ref=e529] [box=41,12443,294,70]: a partir de R$ 9,90avulso
+          - generic [ref=e530] [box=41,12529,294,30]
+          - generic [ref=e534] [box=41,12560,294,30]
+          - generic [ref=e538] [box=41,12590,294,30]
+          - generic [ref=e542] [box=41,12620,294,30]
+          - generic [ref=e546] [box=41,12651,294,30]
+          - button "Ver pacotes" [ref=e550] [cursor=pointer] [box=41,12701,294,46]
+    - generic [ref=e553] [box=16,12901,343,377]:
+      - generic [ref=e554] [box=149,12901,77,56]: 🎁
+      - generic [ref=e555] [box=16,12981,343,297]:
+        - heading "Indique e ganhe créditos" [level=2] [ref=e556] [box=16,12981,343,33]
+        - paragraph [ref=e557] [box=16,13022,343,109]: Compartilhe seu código com amigos. Quando alguém cria a conta com ele, vocês dois ganham +30 créditos — pra usar no Dr. Exame.
+        - generic [ref=e558] [box=16,13150,343,128]:
+          - generic [ref=e559] [box=80,13150,92,58]
+          - generic [ref=e562] [box=184,13150,111,58]
+          - generic [ref=e565] [box=126,13220,124,58]
+    - generic [ref=e572] [box=48,13439,279,459]:
+      - heading "Pronto pra entender sua saúde?" [level=2] [ref=e573] [box=48,13439,279,65]
+      - paragraph [ref=e574] [box=48,13520,279,82]: Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.
+      - button "Começar agora →" [ref=e575] [cursor=pointer] [box=70,13634,236,54]
+      - generic [ref=e576] [box=48,13720,279,179]:
+        - img "QR Code - Meus Exames" [ref=e577] [box=113,13720,150,150]
+        - paragraph [ref=e578] [box=72,13878,232,21]: 📱 Escaneie com a câmera do celular
+    - generic [ref=e580] [box=0,14035,375,208]:
+      - generic [ref=e581] [box=16,14035,343,30]:
+        - img "Dr. Exame" [ref=e582] [box=107,14035,30,30]
+        - paragraph [ref=e583] [box=147,14035,122,29]: Meus Exames
+      - paragraph [ref=e584] [box=16,14073,343,42]: © 2026 janocaminho.com.br • contato@janocaminho.com.br
+      - paragraph [ref=e585] [box=16,14122,343,38]: "Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica."
+      - generic [ref=e586] [box=16,14177,343,66]:
+        - generic [ref=e587] [cursor=pointer] [box=27,14177,107,21]: Portal do Médico
+        - generic [ref=e588] [cursor=pointer] [box=158,14177,96,21]: Termos e LGPD
+        - generic [ref=e589] [cursor=pointer] [box=278,14177,71,21]: Criar conta
+        - generic [ref=e590] [cursor=pointer] [box=168,14221,39,21]: Entrar
+  - generic [ref=e15] [cursor=pointer] [box=325,402,40,40]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e16] [box=325,402,40,40]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e17] [box=325,402,150,40]

@@ -1,0 +1,140 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e3977] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - heading "Exames" [level=6] [ref=e3978]
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e2151]
+            - button "Notificações" [ref=e2152] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E Ed teste 2 Titular" [ref=e3728] [cursor=pointer]:
+              - generic [ref=e908]: E
+              - generic [ref=e3729]:
+                - generic [ref=e3730]: Ed teste 2
+                - generic [ref=e3731]: Titular
+            - button "Atualizar" [ref=e2154] [cursor=pointer]
+        - main [ref=e919]:
+          - navigation [ref=e3984]:
+            - generic [ref=e3985]:
+              - paragraph [ref=e3990] [cursor=pointer]: Início
+              - paragraph [ref=e3995] [cursor=pointer]: Exames
+              - paragraph [ref=e4001] [cursor=pointer]: Valores alterados
+              - paragraph [ref=e4007] [cursor=pointer]: Evolução da saúde
+              - paragraph [ref=e4012] [cursor=pointer]: Tendências
+              - paragraph [ref=e4017] [cursor=pointer]: Linha do Tempo
+              - paragraph [ref=e4022] [cursor=pointer]: Relatório completo
+              - paragraph [ref=e4027] [cursor=pointer]: Perguntas
+              - paragraph [ref=e4033] [cursor=pointer]: Saúde da Família
+            - button "Minha saúde" [ref=e4035] [cursor=pointer]
+            - button "Família & médicos" [ref=e4045] [cursor=pointer]
+            - button "Conta" [ref=e4055] [cursor=pointer]
+            - separator [ref=e4063]
+            - button "Ajuda & Suporte" [ref=e4064] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=e4070] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=e4076] [cursor=pointer]
+          - generic [ref=e4085]:
+            - generic [ref=e4086]:
+              - generic [ref=e4091]:
+                - heading "Seus exames" [level=5] [ref=e4092]
+                - paragraph [ref=e4093]: 3 no total • toque para ver detalhes
+              - generic [ref=e4094]:
+                - generic [ref=e4096]:
+                  - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=e4100]
+                  - group
+                - generic [ref=e4101]:
+                  - group [ref=e4102]:
+                    - button "Todos" [pressed] [ref=e4103] [cursor=pointer]
+                    - button "Alterados" [ref=e4104] [cursor=pointer]
+                    - button "Recentes" [ref=e4105] [cursor=pointer]
+                  - group [ref=e4106]:
+                    - button "📅 Por data" [pressed] [ref=e4107] [cursor=pointer]
+                    - button "🗂️ Por categoria" [ref=e4108] [cursor=pointer]
+                - generic [ref=e4109]:
+                  - button "Todos (3)" [ref=e4110] [cursor=pointer]
+                  - button "🩸 Hemograma (2)" [ref=e4112] [cursor=pointer]
+                  - button "🚽 Urina (EAS) (1)" [ref=e4114] [cursor=pointer]
+              - generic [ref=e4116]:
+                - heading [level=3] [ref=e4117]:
+                  - button "📅 2025 3" [expanded] [ref=e4118] [cursor=pointer]:
+                    - generic [ref=e4119]:
+                      - paragraph [ref=e4120]: 📅 2025
+                      - generic [ref=e4121]: "3"
+                - region [ref=e4129]:
+                  - generic [ref=e4130]:
+                    - generic [ref=e4132] [cursor=pointer]:
+                      - generic [ref=e4135]:
+                        - generic [ref=e4136]:
+                          - paragraph [ref=e4137]: CULTURA DE URINA
+                          - button "O que é este exame?" [ref=e4139]
+                        - generic [ref=e4143]:
+                          - text: 11 nov 2025
+                          - generic [ref=e4144]: · há 9 meses
+                        - 'generic "Laboratório: Sabin" [ref=e4146]':
+                          - img "Sabin" [ref=e4147]
+                          - generic [ref=e4148]: Sabin
+                        - generic "Dr. ROMULO VICTOR DA SILVA MARTINS" [ref=e4149]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                        - generic [ref=e4150]: Urina (EAS) • 16 resultados
+                        - generic [ref=e4151]:
+                          - generic [ref=e4152]: 🆕 Novo
+                          - generic [ref=e4154]: Pronto
+                      - button "Excluir exame CULTURA DE URINA" [ref=e4156]
+                    - generic [ref=e4162] [cursor=pointer]:
+                      - generic [ref=e4165]:
+                        - generic [ref=e4166]:
+                          - paragraph [ref=e4167]: HEMOGRAMA COMPLETO
+                          - button "O que é este exame?" [ref=e4169]
+                        - generic [ref=e4173]:
+                          - text: 05 nov 2025
+                          - generic [ref=e4174]: · há 9 meses
+                        - 'generic "Laboratório: Sabin" [ref=e4176]':
+                          - img "Sabin" [ref=e4177]
+                          - generic [ref=e4178]: Sabin
+                        - generic "Dr. ROMULO VICTOR DA SILVA MARTINS" [ref=e4179]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                        - generic [ref=e4180]: Hemograma • 56 resultados
+                        - generic [ref=e4181]:
+                          - generic [ref=e4182]: 🆕 Novo
+                          - generic [ref=e4184]: Pronto
+                      - button "Excluir exame HEMOGRAMA COMPLETO" [ref=e4186]
+                    - generic [ref=e4192] [cursor=pointer]:
+                      - generic [ref=e4195]:
+                        - generic [ref=e4196]:
+                          - paragraph [ref=e4197]: HEMOGRAMA COMPLETO
+                          - button "O que é este exame?" [ref=e4199]
+                        - generic [ref=e4203]:
+                          - text: 07 fev 2025
+                          - generic [ref=e4204]: · há 1 ano
+                        - 'generic "Laboratório: Sabin" [ref=e4206]':
+                          - img "Sabin" [ref=e4207]
+                          - generic [ref=e4208]: Sabin
+                        - generic "Dr. GISELLE R. MAXIMO" [ref=e4209]: 🩺 Dr. GISELLE R. MAXIMO
+                        - generic [ref=e4210]: Hemograma • 44 resultados
+                        - generic [ref=e4211]:
+                          - generic [ref=e4212]: 🆕 Novo
+                          - generic [ref=e4214]: Pronto
+                      - button "Excluir exame HEMOGRAMA COMPLETO" [ref=e4216]
+            - generic [ref=e4222]:
+              - generic [ref=e4223]:
+                - paragraph [ref=e4224]: Último exame
+                - paragraph [ref=e4225]: CULTURA DE URINA
+                - generic [ref=e4227]:
+                  - text: 11 nov 2025
+                  - generic [ref=e4228]: · há 9 meses
+                - generic [ref=e4229]:
+                  - paragraph [ref=e4230]: 16 resultados
+                  - generic [ref=e4231]: Nada alterado
+                - generic [ref=e4233]:
+                  - button [ref=e4234] [cursor=pointer]
+                  - button [ref=e4238] [cursor=pointer]
+              - generic [ref=e4242]:
+                - paragraph [ref=e4243]: Desde seu último exame
+                - paragraph [ref=e4245]: Carregando…
+                - button [ref=e4247] [cursor=pointer]
+    - button "Enviar exame" [ref=e4251] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

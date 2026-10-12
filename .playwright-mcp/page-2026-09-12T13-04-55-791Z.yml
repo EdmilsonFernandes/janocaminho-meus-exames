@@ -1,0 +1,38 @@
+- generic [ref=e2]:
+  - generic [ref=e7]:
+    - img "Dr. Exame" [ref=e13]
+    - generic [ref=e14]:
+      - heading "Dr. Exame" [level=3] [ref=e15]
+      - paragraph [ref=e18]: Iniciando o Dr. Exame…
+  - generic [ref=e27]:
+    - button "Pular para o conteúdo" [ref=e28] [cursor=pointer]
+    - generic [ref=e29]:
+      - banner [ref=e30]:
+        - generic [ref=e31]:
+          - heading [level=6]
+          - generic [ref=e32]:
+            - button "Notificações" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: "0"
+            - button "👤 Selecionar" [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 👤
+              - generic [ref=e41]: Selecionar
+          - button "Atualizar" [ref=e47] [cursor=pointer]
+      - main [ref=e50]:
+        - navigation [ref=e54]:
+          - generic [ref=e60]:
+            - paragraph [ref=e61]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=e62]: Plano grátis
+          - separator [ref=e65]
+          - button "Exames" [ref=e67] [cursor=pointer]
+          - button "Cuidados" [ref=e76] [cursor=pointer]
+          - button "Pessoas" [ref=e86] [cursor=pointer]
+          - button "Conta" [ref=e96] [cursor=pointer]
+          - separator [ref=e104]
+          - button "Dúvidas frequentes" [ref=e105] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e111] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e117] [cursor=pointer]
+        - generic [ref=e128]:
+          - img "Dr. Exame" [ref=e134]
+          - generic [ref=e135]:
+            - heading "Dr. Exame" [level=3] [ref=e136]
+            - paragraph [ref=e139]: Seu assistente de saúde com IA

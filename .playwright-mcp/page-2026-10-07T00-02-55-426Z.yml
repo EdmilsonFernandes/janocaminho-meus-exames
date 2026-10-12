@@ -1,0 +1,52 @@
+- generic [ref=f2e25]:
+  - generic [ref=f2e870]:
+    - button [ref=f2e871] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f2e872]:
+      - banner [ref=f2e873]:
+        - generic [ref=f2e874]:
+          - generic [ref=f2e875]:
+            - button [ref=f2e876] [cursor=pointer]
+            - button [ref=f2e881] [cursor=pointer]:
+              - generic [ref=f2e882]: 👤
+              - generic [ref=f2e884]: Selecionar
+          - button [ref=f2e890] [cursor=pointer]
+      - main [ref=f2e893]:
+        - navigation [ref=f2e897]:
+          - generic [ref=f2e900]:
+            - generic [ref=f2e901]: U
+            - generic [ref=f2e903]:
+              - paragraph [ref=f2e904]: Usuário
+              - generic [ref=f2e905]: Plano grátis
+          - separator [ref=f2e908]
+          - button [ref=f2e909] [cursor=pointer]:
+            - generic [ref=f2e913]: Início
+          - button [ref=f2e916] [cursor=pointer]:
+            - generic [ref=f2e922]: Exames
+          - button [ref=f2e927] [cursor=pointer]:
+            - generic [ref=f2e932]: Cuidados
+          - button [ref=f2e937] [cursor=pointer]:
+            - generic [ref=f2e942]: Pessoas
+          - button [ref=f2e947] [cursor=pointer]:
+            - generic [ref=f2e951]: Conta
+          - button [ref=f2e956] [cursor=pointer]:
+            - generic [ref=f2e960]: Dúvidas frequentes
+          - menuitem [ref=f2e962] [cursor=pointer]:
+            - generic [ref=f2e966]: Sobre o app
+          - menuitem [ref=f2e968] [cursor=pointer]:
+            - generic [ref=f2e972]: Sair da conta
+          - generic [ref=f2e975]:
+            - generic [ref=f2e977]: Dr. Exame · Saúde Inteligente
+            - generic [ref=f2e978]: v2.7.223
+        - generic [ref=f2e991]:
+          - heading [level=3] [ref=f2e992]: Dr. Exame
+          - paragraph [ref=f2e995]: Seu assistente de saúde com IA
+  - dialog [active] [ref=f2e1006]:
+    - generic [ref=f2e1007]:
+      - button "Pular" [ref=f2e1008] [cursor=pointer]
+      - generic [ref=f2e1009]:
+        - img "Dr. Exame" [ref=f2e1011]
+        - heading "Envie seu exame" [level=4] [ref=f2e1012]
+        - paragraph [ref=f2e1013]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f2e1014]:
+        - button [ref=f2e1020] [cursor=pointer]
+        - paragraph [ref=f2e1024]: Toque em Próximo para continuar →

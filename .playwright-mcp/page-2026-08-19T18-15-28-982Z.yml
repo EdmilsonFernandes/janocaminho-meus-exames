@@ -1,0 +1,188 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e2]:
+    - generic [ref=f2e524]:
+      - button [ref=f2e525] [cursor=pointer]
+      - main [ref=f2e546]:
+        - generic [ref=f2e548]:
+          - generic [ref=f2e553]:
+            - heading [level=5] [ref=f2e554]: Meu perfil
+            - paragraph [ref=f2e555]: Sua conta, dados e preferências
+          - generic [ref=f2e557]:
+            - generic [ref=f2e559]:
+              - generic [ref=f2e560]: E
+              - button [ref=f2e561] [cursor=pointer]
+            - generic [ref=f2e565]:
+              - heading [level=5] [ref=f2e566]: Edmilson Lopes Fernandes dos Santos
+              - paragraph [ref=f2e567]: ✉️ edmilson@exemplo.com
+              - generic [ref=f2e568]: Plano grátis
+              - generic [ref=f2e571]: Toque na câmera da foto para trocar a imagem.
+          - generic [ref=f2e573]:
+            - heading [level=6] [ref=f2e574]: Dados e perfil clínico
+            - generic [ref=f2e575]:
+              - generic [ref=f2e576]:
+                - generic [ref=f2e819]: Nome completo
+                - generic [ref=f2e577]:
+                  - textbox [ref=f2e578]: Edmilson Lopes Fernandes dos Santos
+                  - group:
+                    - generic: Nome completo
+              - generic [ref=f2e579]:
+                - generic: CPF
+                - generic [ref=f2e580]:
+                  - textbox [ref=f2e581]
+                  - group:
+                    - generic: CPF
+                - paragraph [ref=f2e582]: Usado para confirmar que os exames pertencem a este perfil.
+              - generic [ref=f2e583]:
+                - generic: Telefone / WhatsApp
+                - generic [ref=f2e584]:
+                  - textbox [ref=f2e585]
+                  - group:
+                    - generic: Telefone / WhatsApp
+              - generic [ref=f2e586]:
+                - generic [ref=f2e820]: Sexo (define a faixa de referência dos exames)
+                - generic [ref=f2e587]:
+                  - combobox [ref=f2e588] [cursor=pointer]: Masculino
+                  - textbox: male
+                  - group:
+                    - generic: Sexo (define a faixa de referência dos exames)
+                - paragraph [ref=f2e589]: Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.
+              - generic [ref=f2e590]:
+                - generic [ref=f2e821]: Altura (cm)
+                - generic [ref=f2e591]:
+                  - spinbutton [ref=f2e592]: "178"
+                  - group:
+                    - generic: Altura (cm)
+                - paragraph [ref=f2e593]: "Em centímetros (ex.: 172). Aceita 1,72 m — convertemos pra você. Usada no IMC."
+              - generic [ref=f2e594]:
+                - generic [ref=f2e822]: Etnia (opcional)
+                - generic [ref=f2e595]:
+                  - combobox [ref=f2e596] [cursor=pointer]: Parda
+                  - textbox: parda
+                  - group:
+                    - generic: Etnia (opcional)
+                - paragraph [ref=f2e597]: Dados demográficos ajudam a refinar futuras análises.
+              - generic [ref=f2e598]:
+                - generic [ref=f2e599]:
+                  - generic [ref=f2e600]: Data de nascimento
+                  - generic [ref=f2e601]:
+                    - textbox [ref=f2e602]:
+                      - /placeholder: dd/mm/aaaa
+                    - button [ref=f2e604] [cursor=pointer]
+                    - group:
+                      - generic: Data de nascimento
+                  - paragraph [ref=f2e607]: Usado pra calcular idade e ajustar faixas de referência.
+                - textbox
+              - generic [ref=f2e608]:
+                - generic: Perfil clínico (condições, medicações, histórico)
+                - generic [ref=f2e609]:
+                  - textbox [ref=f2e610]
+                  - group:
+                    - generic: Perfil clínico (condições, medicações, histórico)
+                - paragraph [ref=f2e611]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+            - button [ref=f2e613] [cursor=pointer]: Salvar perfil
+          - generic [ref=f2e618]:
+            - heading [level=6] [ref=f2e619]: ⚖️ Peso atual
+            - generic [ref=f2e620]:
+              - generic [ref=f2e621]:
+                - generic: Peso (kg)
+                - generic [ref=f2e622]:
+                  - textbox [ref=f2e623]
+                  - group:
+                    - generic: Peso (kg)
+              - button [disabled]: Registrar peso
+            - generic [ref=f2e624]: Salva como medição — alimenta o IMC e o card de Risco Cardiometabólico. Histórico completo em Medições.
+          - generic [ref=f2e626]:
+            - heading [level=6] [ref=f2e627]: 🔔 Notificações
+            - generic [ref=f2e628] [cursor=pointer]:
+              - switch [checked] [ref=f2e631]
+              - generic [ref=f2e634]: Avisar quando eu desbloquear uma conquista
+            - generic [ref=f2e635]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+          - generic [ref=f2e637]:
+            - heading [level=6] [ref=f2e638]: ♿ Acessibilidade
+            - generic [ref=f2e639] [cursor=pointer]:
+              - switch [checked] [ref=f2e642]
+              - generic [ref=f2e645]: Botão de tradução em Libras
+            - generic [ref=f2e646]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+          - generic [ref=f2e648]:
+            - heading [level=6] [ref=f2e649]: Trocar senha
+            - generic [ref=f2e652]:
+              - generic [ref=f2e653]:
+                - generic: Senha atual
+                - generic [ref=f2e654]:
+                  - textbox [ref=f2e655]
+                  - group:
+                    - generic: Senha atual
+              - generic [ref=f2e656]:
+                - generic [ref=f2e657]:
+                  - generic: Nova senha
+                  - generic [ref=f2e658]:
+                    - textbox [ref=f2e659]
+                    - group:
+                      - generic: Nova senha
+                - generic [ref=f2e660]:
+                  - generic: Confirmar nova senha
+                  - generic [ref=f2e661]:
+                    - textbox [ref=f2e662]
+                    - group:
+                      - generic: Confirmar nova senha
+            - generic [ref=f2e663]:
+              - button [disabled]: Alterar senha
+          - generic [ref=f2e824]:
+            - heading [level=6] [ref=f2e828]: Indique e ganhe créditos
+            - paragraph [ref=f2e829]:
+              - text: Cada amigo que se cadastrar com seu código ganha
+              - strong [ref=f2e830]: +10 créditos
+              - text: . Você também ganha
+              - strong [ref=f2e831]: "+10"
+              - text: "!"
+            - generic [ref=f2e832]:
+              - paragraph [ref=f2e834]: EDMILSON-DZLJ
+              - button [ref=f2e835] [cursor=pointer]: Copiar
+            - button [ref=f2e839] [cursor=pointer]: Compartilhar link
+            - generic [ref=f2e843]:
+              - generic [ref=f2e844]:
+                - paragraph [ref=f2e845]: "0"
+                - text: amigos indicados
+              - generic [ref=f2e846]:
+                - paragraph [ref=f2e847]: "+0"
+                - text: créditos ganhos
+          - generic [ref=f2e665]:
+            - heading [level=6] [ref=f2e666]: Meus dados
+            - generic [ref=f2e667]:
+              - button [ref=f2e668] [cursor=pointer]: Excluir minha conta
+              - button [ref=f2e669] [cursor=pointer]: Exportar dados
+              - button [ref=f2e673] [cursor=pointer]: Importar dados
+            - generic [ref=f2e677]: A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".
+    - button [ref=f2e678] [cursor=pointer]
+    - navigation [ref=f2e685]:
+      - paragraph [ref=f2e690] [cursor=pointer]: Início
+      - paragraph [ref=f2e695] [cursor=pointer]: Exames
+      - paragraph [ref=f2e699] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f2e704] [cursor=pointer]: Evolução
+      - paragraph [ref=f2e709] [cursor=pointer]: Mais
+  - generic [ref=f2e91] [cursor=pointer]
+  - dialog [ref=f2e849]:
+    - navigation [ref=f2e850]:
+      - button "Exames" [ref=f2e852] [cursor=pointer]
+      - generic [ref=f2e860]:
+        - button "Cuidados" [expanded] [active] [ref=f2e861] [cursor=pointer]
+        - generic [ref=f2e952]:
+          - button "Medições" [ref=f2e953] [cursor=pointer]
+          - button "Vacinas" [ref=f2e960] [cursor=pointer]
+          - button "Lembretes" [ref=f2e966] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=f2e972] [cursor=pointer]
+          - button "Conquistas" [ref=f2e978] [cursor=pointer]
+      - button "Pessoas" [ref=f2e871] [cursor=pointer]
+      - generic [ref=f2e880]:
+        - button "Conta" [expanded] [ref=f2e881] [cursor=pointer]
+        - generic [ref=f2e892]:
+          - button "Meu perfil" [ref=f2e893] [cursor=pointer]
+          - button "Segurança & senha" [ref=f2e899] [cursor=pointer]
+          - button "Privacidade e termos" [ref=f2e905] [cursor=pointer]
+          - button "Planos e Créditos" [ref=f2e911] [cursor=pointer]
+          - button "Despesas Médicas" [ref=f2e917] [cursor=pointer]
+          - button "Painel Admin" [ref=f2e923] [cursor=pointer]
+      - separator [ref=f2e930]
+      - button "Ajuda & Suporte" [ref=f2e931] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f2e937] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f2e943] [cursor=pointer]

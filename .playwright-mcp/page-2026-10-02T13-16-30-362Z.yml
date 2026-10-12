@@ -1,0 +1,29 @@
+- generic [ref=f14e1]:
+  - generic [ref=f14e158]:
+    - generic [ref=f14e159]:
+      - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f14e161]
+      - generic [ref=f14e162]: Painel do operador
+    - paragraph [ref=f14e163]: Acesso restrito a administradores.
+    - generic [ref=f14e164]:
+      - paragraph [ref=f14e165]: Credenciais de demonstração (dev)
+      - paragraph [ref=f14e166]:
+        - text: "Admin:"
+        - code [ref=f14e167]: "+5511999990000"
+        - text: — o código aparece aqui depois de pedir (OTP_REVEAL).
+    - paragraph [ref=f14e179]: "Código enviado para s***@p***.app. (dev: 808493)"
+    - generic [ref=f14e180]: Código de acesso
+    - textbox "000000" [active] [ref=f14e181]
+    - button "Entrar" [disabled] [ref=f14e182]
+    - button "← usar outro telefone" [ref=f14e183] [cursor=pointer]
+    - link "← Voltar ao site" [ref=f14e178] [cursor=pointer]:
+      - /url: /
+  - generic [ref=f14e134] [cursor=pointer]:
+    - button "Open Next.js Dev Tools" [ref=f14e135]
+    - generic [ref=f14e184]:
+      - button "Open issues overlay" [ref=f14e185]:
+        - generic [ref=f14e186]:
+          - generic [aria-hidden] [ref=f14e187]: "0"
+          - generic [ref=f14e188]: "1"
+        - generic [ref=f14e189]: Issue
+      - button "Collapse issues badge" [ref=f14e190]
+  - alert [ref=f14e139]

@@ -1,0 +1,305 @@
+- generic [active] [ref=f65e1]:
+  - generic [ref=f65e7]:
+    - link "Levels" [ref=f65e8] [cursor=pointer]:
+      - /url: /
+    - link "Metabolic Insights" [ref=f65e12] [cursor=pointer]:
+      - /url: /blog
+  - generic [ref=f65e17]:
+    - generic [ref=f65e20]:
+      - generic [ref=f65e21]:
+        - link "Inside Levels ▼" [ref=f65e23] [cursor=pointer]:
+          - /url: /blog/category/inside-levels
+          - generic [ref=f65e24]: Inside Levels
+          - generic [ref=f65e25]: ▼
+        - link "Nutrition ▼" [ref=f65e27] [cursor=pointer]:
+          - /url: /blog/category/nutrition
+          - generic [ref=f65e28]: Nutrition
+          - generic [ref=f65e29]: ▼
+        - link "Health Topics ▼" [ref=f65e31] [cursor=pointer]:
+          - /url: /blog/category/health-topics
+          - generic [ref=f65e32]: Health Topics
+          - generic [ref=f65e33]: ▼
+        - link "Biomarkers ▼" [ref=f65e35] [cursor=pointer]:
+          - /url: /blog/category/biomarkers
+          - generic [ref=f65e36]: Biomarkers
+          - generic [ref=f65e37]: ▼
+        - link "Videos ▼" [ref=f65e39] [cursor=pointer]:
+          - /url: https://www.youtube.com/@levels/videos
+          - generic [ref=f65e40]: Videos
+          - generic [ref=f65e41]: ▼
+        - link "Podcasts" [ref=f65e43] [cursor=pointer]:
+          - /url: /podcasts
+      - link "Search" [ref=f65e45] [cursor=pointer]:
+        - /url: /blog/search
+    - generic [ref=f65e50]:
+      - article [ref=f65e51]:
+        - img "Levels is a health tracking app that helps you improve your biomarkers" [ref=f65e53]
+        - generic [ref=f65e54]:
+          - link "Inside Levels" [ref=f65e55] [cursor=pointer]:
+            - /url: /blog/category/inside-levels
+          - generic [ref=f65e56]: "|"
+          - link "Why Levels" [ref=f65e57] [cursor=pointer]:
+            - /url: /blog/article_types/why-levels
+        - 'heading "New data: 80% of Levels members improve key blood markers" [level=1] [ref=f65e58]'
+        - paragraph [ref=f65e59]: We recently dug into our member data to see what’s actually happening with people's lab results. What we found was pretty remarkable—real change is not only possible, it’s common.
+        - generic [ref=f65e60]:
+          - generic [ref=f65e61]:
+            - generic [ref=f65e62]: WRITTEN BY
+            - link "The Levels Team The Levels Team" [ref=f65e64] [cursor=pointer]:
+              - /url: /blog/author/levels-team
+              - generic [ref=f65e65]:
+                - img "The Levels Team" [ref=f65e67]
+                - generic [ref=f65e68]: The Levels Team
+          - generic [ref=f65e69]:
+            - generic [ref=f65e70]: REVIEWED BY
+            - link "Robert Lustig, MD Robert Lustig, MD" [ref=f65e72] [cursor=pointer]:
+              - /url: /blog/author/robertlustig
+              - generic [ref=f65e73]:
+                - img "Robert Lustig, MD" [ref=f65e75]
+                - generic [ref=f65e76]: Robert Lustig, MD
+          - generic [ref=f65e77]: "Updated: 08/03/2025|6 min read"
+        - paragraph [ref=f65e78]:
+          - text: Thousands of people have used Levels to improve their health---we get
+          - link "anecdotal stories" [ref=f65e79] [cursor=pointer]:
+            - /url: https://www.levels.com/blog/article_types/member-stories
+          - text: all the time about how their lives have changed---but anecdotes are not enough. Since many members do multiple blood draws with us through Levels Labs, we decided to dig into the data to see whether or not those stories correlated to real improvement in objective health biomarkers.
+        - paragraph [ref=f65e80]: This was not a clinical trial. There is no control group. The results are empirical and real-world. But they are eye-opening and encouraging, especially among those who needed improvement the most.
+        - paragraph [ref=f65e81]: For example, among members who demonstrated insulin resistance (fasting insulin > 18), nearly 80% saw significant improvements in their fasting insulin. Of those with HbA1c in the prediabetes range (5.7--6.4%), over 80% improved their level, some reversing their prediabetes. And for members with high levels of triglycerides (>150), 84% brought their numbers down---most by at least 30 mg/dL.
+        - img "HbA1c improvement data visualization" [ref=f65e83]
+        - paragraph [ref=f65e84]: These aren't minor tweaks. We're talking about changes that can move someone out of Type 2 diabetes, reduce their risk of the leading causes of death, and fundamentally alter their long-term health trajectory. What's most encouraging is that these improvements came from sustainable habit changes, proving that metabolic health responds remarkably well to consistent lifestyle modifications, and that self-monitoring can help maintain those habits.
+        - paragraph [ref=f65e85]: "\"How do you solve a problem like 'Metabolic Health'? With data, of course,\" says Levels advisor Dr. Rob Lustig. \"Our prospective cohort data shows improvements in metabolic health across the board; even better, the people who did the best are those who needed it the most.\""
+        - paragraph [ref=f65e86]: Lustig continues, "Turns out metabolic health is easily improved with simple behavior changes. The problem is sticking to those changes. Everyone needs continued encouragement, to know that what they're doing is actually working. That's what we built Levels for. "
+        - paragraph [ref=f65e87]: Here's more on three of the most improved biomarkers, and how you can replicate these kinds of changes.
+        - 'heading "HbA1c: The Three-Month Report Card" [level=2] [ref=f65e88]'
+        - paragraph [ref=f65e89]:
+          - link "HbA1c" [ref=f65e90] [cursor=pointer]:
+            - /url: https://www.levels.com/blog/hba1c-testing
+          - text: reveals what your blood sugar has been doing for the past three months, making it a useful marker for your current glucose status. Unlike fasting glucose, which is just a point in time, HbA1c gives you the bigger picture through a process called glycation---when glucose irreversibly bonds to the hemoglobin molecules in your red blood cells.
+        - paragraph [ref=f65e91]:
+          - text: But HbA1c isn't just a number on a lab report. An HbA1c of 6.5% or higher
+          - link "is Type 2 diabetes" [ref=f65e92] [cursor=pointer]:
+            - /url: https://diabetesjournals.org/care/article/47/Supplement_1/S20/153954/2-Diagnosis-and-Classification-of-Diabetes
+          - text: ", a condition that contributes to"
+          - link "heart disease" [ref=f65e93] [cursor=pointer]:
+            - /url: https://www.nejm.org/doi/full/10.1056/NEJMoa0908359
+          - text: ", stroke, kidney failure, amputation, and blindness. An HbA1c between 5.7% and 6.4% indicates prediabetes, putting you at high risk for developing full diabetes within years. The glycation process that drives up HbA1c happens"
+          - link "throughout your body" [ref=f65e94] [cursor=pointer]:
+            - /url: https://www.aginganddisease.org/EN/10.14336/AD.2017.1121
+          - text: "---in your arteries, organs, and tissues---causing the cellular damage that leads to these complications."
+        - heading "What Our Members Achieved" [level=3] [ref=f65e95]
+        - paragraph [ref=f65e96]: Among 894 members who started with HbA1c above 5.7% (the official prediabetes threshold), 81% saw their levels improve. The average drop was 0.44 percentage points (e.g., 5.7% to 5.3%). Nearly 12% of members dropped their HbA1c by 0.6 points or more. Remember, this occurred without medicine.
+        - img "HbA1c improvement data visualization" [ref=f65e98]
+        - img "HbA1c improvement data visualization" [ref=f65e100]
+        - heading "Key Habits that Move the Needle" [level=3] [ref=f65e101]
+        - paragraph [ref=f65e102]: Reducing refined carbs and added sugars directly addresses the root cause. When you eat refined carbohydrates, they break down quickly into glucose, causing blood glucose spikes. When you eat sugar, it breaks down into glucose and fructose, which causes the glycation that drives up HbA1c. Furthermore, whatever you don't burn for energy immediately, your body converts a small amount of the glucose (and fructose) into glycogen, and the rest is converted into fat. By choosing whole foods over processed ones loaded with damaging carbs, you can keep your blood sugar stable and reduce the fat your body makes.
+        - paragraph [ref=f65e103]: Regular exercise works through multiple mechanisms. During activity, your muscles consume glucose without needing insulin, immediately lowering your blood glucose. Over time, exercise increases insulin sensitivity, meaning your body needs less insulin to handle the same amount of glucose. This is especially true for both aerobic exercise and resistance training.
+        - paragraph [ref=f65e104]: Meal timing takes advantage of your body's natural rhythms. Most people are more insulin sensitive in the morning, so eating larger meals earlier and smaller meals later helps prevent the blood glucose swings that contribute to elevated HbA1c.
+        - paragraph [ref=f65e105]: Sleep and stress management might seem indirect, but they're crucial. Poor sleep makes you more insulin resistant the next day, while chronic stress elevates cortisol, which raises blood glucose. Both can undo the benefits of good nutrition and exercise.
+        - 'heading "Fasting Insulin: The Early Warning System" [level=2] [ref=f65e106]'
+        - paragraph [ref=f65e107]:
+          - link "Fasting insulin" [ref=f65e108] [cursor=pointer]:
+            - /url: https://www.levels.com/blog/what-are-normal-insulin-levels-and-why-dont-we-test-it-more/
+          - text: is arguably the most critical metabolic marker that most people don't know about until they're diabetic. Insulin levels often start rising years---sometimes over a decade---before blood sugar becomes obviously elevated. This makes fasting insulin your metabolic health early warning system.
+        - paragraph [ref=f65e109]: Chronically elevated insulin isn't just a sign of future diabetes---it actively drives the disease processes that kill most Americans. High insulin promotes fat storage (especially harmful visceral fat), increases inflammation, raises blood pressure, and accelerates cellular aging. It's a key driver of metabolic syndrome and contributes to heart disease, stroke, cancer, and Alzheimer's disease --- even if you're not frankly diabetic. When insulin stays elevated, it creates a cascade of problems that affect nearly every system in your body.
+        - heading "What Our Members Achieved" [level=3] [ref=f65e110]
+        - paragraph [ref=f65e111]: The improvements here were particularly impressive. Among 164 members starting with fasting insulin above 18.4 μU/mL (a level that suggests significant insulin resistance), 79% saw improvements, with an average drop of 11.9 μU/mL. Even in the broader group of 492 members with fasting insulin above 10 μU/mL, 73% improved, with an average reduction of 4.3 μU/mL.
+        - img "insulin improvement data visualization" [ref=f65e113]
+        - img "insulin improvement data visualization" [ref=f65e115]
+        - heading "Key Habits that Move the Needle" [level=3] [ref=f65e116]
+        - paragraph [ref=f65e117]: Reducing refined carbs and added sugars breaks the cycle of insulin spikes. Every time you eat foods that rapidly raise blood sugar, your pancreas has to pump out insulin to handle it. Over time, this constant demand can lead to both insulin resistance and chronically elevated insulin levels. By choosing foods that cause gentler blood sugar rises, you give your pancreas a break.
+        - paragraph [ref=f65e118]: Intermittent fasting or time-restricted eating allows insulin levels to drop during fasting periods. When you're not eating, insulin naturally falls to its baseline level, giving your cells a chance to regain sensitivity. Studies show that even a 12-hour eating window can improve insulin sensitivity compared to eating throughout the day.
+        - paragraph [ref=f65e119]: Regular exercise is particularly powerful for insulin because muscle contractions can trigger glucose uptake independent of insulin. This ability to absorb glucose from the bloodstream without insulin reduces the demand on the pancreas and improves insulin sensitivity for hours after exercise. Both aerobic exercise and resistance training are effective, but combining them may be optimal.
+        - paragraph [ref=f65e120]: Sleep and stress management directly affect hormones that influence insulin sensitivity. Poor sleep increases cortisol and growth hormone, both of which can make cells more resistant to insulin. Chronic stress has similar effects. Getting 7-8 hours of quality sleep and managing stress through techniques like meditation, deep breathing, or regular physical activity help maintain insulin sensitivity.
+        - link "How to reduce insulin Related Reading How to reduce insulin A step-by-step guide to reducing insulin levels through diet and lifestyle changes" [ref=f65e121] [cursor=pointer]:
+          - /url: https://www.levels.com/blog/how-to-reduce-insulin/
+          - img "How to reduce insulin" [ref=f65e123]
+          - generic [ref=f65e124]:
+            - generic [ref=f65e125]: Related Reading
+            - heading "How to reduce insulin" [level=3] [ref=f65e126]
+            - paragraph [ref=f65e127]: A step-by-step guide to reducing insulin levels through diet and lifestyle changes
+        - 'heading "Triglycerides: More Than Just Fat in Your Blood" [level=2] [ref=f65e128]'
+        - paragraph [ref=f65e129]:
+          - text: Most people think of
+          - link "triglycerides" [ref=f65e130] [cursor=pointer]:
+            - /url: https://www.levels.com/blog/why-are-triglycerides-so-important-to-metabolic-health/
+          - text: as just another "cholesterol number," but they're actually one of the most responsive markers of metabolic health. A level above 150 mg/dL signals that your liver is working overtime converting excess carbohydrates into fat---a sign of metabolic dysfunction that significantly increases your risk of heart disease, stroke, and fatty liver disease.
+        - paragraph [ref=f65e131]: High triglycerides don't just correlate with cardiovascular problems---they actively contribute. Elevated triglycerides promote the formation of small, dense LDL particles that easily penetrate artery walls, accelerating atherosclerosis. They're also a component of metabolic syndrome, a cluster of conditions that dramatically increases your risk of heart disease, diabetes, and early death.
+        - heading "What Our Members Achieved" [level=3] [ref=f65e132]
+        - paragraph [ref=f65e133]: Of 370 members who started with triglycerides above 150 mg/dL, 84% saw improvements. And 73% of members who improved saw reductions of at least 30 mg/dL, bringing most of them closer to the optimal range of less than 100 mg/dL.
+        - img "triglycerides improvement data visualization" [ref=f65e135]
+        - img "triglycerides improvement data visualization" [ref=f65e137]
+        - heading "Key Habits that Move the Needle" [level=3] [ref=f65e138]
+        - paragraph [ref=f65e139]: Cutting refined carbs and sugars is especially powerful for triglycerides because your liver directly converts excess glucose into triglycerides through a process called de novo lipogenesis. This is particularly true for fructose---found in table sugar, high-fructose corn syrup, and fruit juice. When you reduce these foods, you reduce the raw materials your liver uses to make triglycerides.
+        - paragraph [ref=f65e140]: Increasing fiber intake helps in multiple ways. Soluble and insoluble fiber together form a gel in your digestive tract that slows glucose absorption, preventing the spikes that trigger triglyceride production. Fiber also feeds beneficial gut bacteria, which produce compounds that can improve fat metabolism.
+        - paragraph [ref=f65e141]: "Adding omega-3 fatty acids from sources like fish, walnuts, and flaxseeds can reduce triglycerides through several mechanisms: they increase fat oxidation (burning), reduce liver production of new triglycerides, and may improve the activity of enzymes that help clear triglycerides from the blood."
+        - paragraph [ref=f65e142]: Staying active helps because exercise directly burns triglycerides as fuel. Even a 30-minute walk can lower triglycerides for up to 72 hours after exercise. Regular activity also improves insulin sensitivity, reducing the metabolic conditions that lead to high triglycerides in the first place.
+        - link "How to reduce triglycerides Related Reading How to reduce triglycerides A step-by-step guide to reducing triglyceride levels through diet and lifestyle changes" [ref=f65e143] [cursor=pointer]:
+          - /url: https://www.levels.com/blog/how-can-you-reduce-triglycerides/
+          - img "How to reduce triglycerides" [ref=f65e145]
+          - generic [ref=f65e146]:
+            - generic [ref=f65e147]: Related Reading
+            - heading "How to reduce triglycerides" [level=3] [ref=f65e148]
+            - paragraph [ref=f65e149]: A step-by-step guide to reducing triglyceride levels through diet and lifestyle changes
+        - heading "How Levels Helps You Make These Changes" [level=2] [ref=f65e150]
+        - paragraph [ref=f65e151]: "The members who achieved these improvements didn't do it through willpower alone---they used Levels' tools to build better habits and track their progress. Here's how Levels helps you create the same kind of lasting change:"
+        - list [ref=f65e152]:
+          - listitem [ref=f65e153]:
+            - strong [ref=f65e154]: "Levels Programs:"
+            - text: Our new Programs feature gives you detailed, daily guidance toward a specific goal, like improving cholesterol or lowering glucose. You'll get Habit Loops that matter for you, accountability to the key habits, and personalized feedback on your choices.
+          - listitem [ref=f65e155]:
+            - strong [ref=f65e156]: "Real-Time Feedback Through Glucose Monitoring:"
+            - text: When you wear a glucose biosensor with Levels, you see immediately how foods affect your blood sugar. That morning oatmeal that spikes you to 150 mg/dL? The app will suggest you try chia pudding instead. This instant feedback makes it much easier to identify and avoid the foods that drive up your HbA1c and insulin levels.
+          - listitem [ref=f65e157]:
+            - strong [ref=f65e158]: "AI-Powered Food Logging:"
+            - text: Our meal tracking makes it effortless to monitor the dietary changes that matter most for these markers. Simply describe what you ate or snap a photo, and you'll see right away if the net carbs or saturated fat in that meal were contributing to your goals or detracting from them.
+          - listitem [ref=f65e159]:
+            - strong [ref=f65e160]: "Habit Building Tools:"
+            - text: Habit Loops help you track the daily behaviors that drive long-term improvements---exercise, sleep, meal timing, and stress management. You can see at a glance how consistently you're hitting your goals and identify patterns that correlate with better biomarker results.
+          - listitem [ref=f65e161]:
+            - strong [ref=f65e162]: "Expert Guidance:"
+            - text: Get one-on-one coaching from registered dietitian nutritionists who can see your complete Levels data---lab results, food logs, and glucose responses. These sessions are covered by insurance for most members and provide personalized strategies for improving your specific markers.
+          - listitem [ref=f65e163]:
+            - strong [ref=f65e164]: "Comprehensive Lab Testing:"
+            - text: Through Levels Labs, you can track all these key markers---HbA1c, fasting insulin, triglycerides, and more---as often as you want. No waiting for annual physicals or navigating complex lab orders. You can test every few months to see how your changes are working, adjusting your approach based on real data.
+        - paragraph [ref=f65e165]: "The key insight is that sustainable metabolic health improvements require both knowing what to do and having systems that help you stick with it long enough to see results. Levels provides both: the data to understand what works for your body and the tools to build lasting habits around those insights."
+        - 'heading "The Real Story: Your Health Is In Your Hands" [level=2] [ref=f65e166]'
+        - paragraph [ref=f65e167]: Look, we're thrilled to see these numbers. But what makes these results so encouraging isn't just the data---it's the proof that your metabolic health is not out of your hands. These markers are incredibly responsive to lifestyle changes, often improving within weeks or months of building better habits.
+        - paragraph [ref=f65e168]: "The members who saw the biggest improvements weren't doing anything extreme. They were making sustainable changes: walking after meals, choosing whole foods over processed ones, managing stress, and getting better sleep. The key was having the feedback and tools to know what was working and stick with it long enough for their bodies to adapt. Monitoring is the key to improving behaviors, metabolism, and healthspan."
+        - generic [ref=f65e170]:
+          - img "Levels App" [ref=f65e172]
+          - generic [ref=f65e173]:
+            - heading "Start improving your biomarkers today" [level=3] [ref=f65e174]
+            - paragraph [ref=f65e175]:
+              - text: Levels pairs real-time glucose data and comprehensive lab testing with clinician analysis and personalized support—everything you need to turn insights into real health improvements.
+              - link "Click here to get started with Levels." [ref=f65e176] [cursor=pointer]:
+                - /url: https://app.levels.com/quiz?utm_source=blog&utm_medium=bottom_article_cta
+      - generic [ref=f65e177]:
+        - generic [ref=f65e178]:
+          - generic [ref=f65e179]: NEWSLETTER
+          - paragraph [ref=f65e180]: Get the latest health articles, exclusive discounts, updates and more
+          - textbox "your@email.com" [ref=f65e181]
+          - button "Subscribe →" [ref=f65e182] [cursor=pointer]
+          - paragraph [ref=f65e183]: No spam. Unsubscribe any time.
+        - link "Try LevelsAI search" [ref=f65e184] [cursor=pointer]:
+          - /url: /blog/ai-search
+          - generic [ref=f65e185]: LEVELSAI
+          - heading "Ask a question about this topic" [level=3] [ref=f65e186]
+          - paragraph [ref=f65e187]: Get instant answers to your health and nutrition questions with an AI Search powered by the full Levels blog.
+          - generic [ref=f65e190]:
+            - generic [ref=f65e191]: Example conversation
+            - generic [ref=f65e193]:
+              - paragraph [ref=f65e198]: LevelsAI Demo
+              - paragraph [ref=f65e205]: What food
+          - generic [ref=f65e216]: Try LevelsAI
+    - generic [ref=f65e220]:
+      - generic [ref=f65e221]:
+        - heading "The Latest From Levels" [level=3] [ref=f65e222]
+        - link "Show All →" [ref=f65e224] [cursor=pointer]:
+          - /url: "#all-articles"
+      - generic [ref=f65e225]:
+        - link "Expert Q&A Stylized illustration of a glowing DNA double helix surrounded by health icons for the heart, lungs, exercise, temperature, medicine, immunity, and biometrics. Sequencing a genome used to be the hard part. Now interpretation is catching up. The Levels Team · 9 min" [ref=f65e226] [cursor=pointer]:
+          - /url: /blog/genome-interpretation-ai-ashley
+          - generic [ref=f65e227]: Expert Q&A
+          - img "Stylized illustration of a glowing DNA double helix surrounded by health icons for the heart, lungs, exercise, temperature, medicine, immunity, and biometrics." [ref=f65e229]
+          - heading "Sequencing a genome used to be the hard part. Now interpretation is catching up." [level=3] [ref=f65e230]
+          - generic [ref=f65e231]: The Levels Team · 9 min
+        - link "Expert Q&A A wooden clock marked Eating and Fasting sits on a table between a glass of water and a plate of salmon, avocado, and greens, illustrating time-restricted eating. 6 things a fasting researcher wants you to know about when you eat The Levels Team · 9 min" [ref=f65e232] [cursor=pointer]:
+          - /url: /blog/meal-timing-intermittent-fasting-courtney-peterson
+          - generic [ref=f65e233]: Expert Q&A
+          - img "A wooden clock marked Eating and Fasting sits on a table between a glass of water and a plate of salmon, avocado, and greens, illustrating time-restricted eating." [ref=f65e235]
+          - heading "6 things a fasting researcher wants you to know about when you eat" [level=3] [ref=f65e236]
+          - generic [ref=f65e237]: The Levels Team · 9 min
+        - link "Expert Q&A Stylized illustration of a human silhouette surrounded by circular health metric icons for heart rate, sleep, activity, genomics, and other biometrics. The most measured man in medicine is still waiting for the system to catch up The Levels Team · 9 min" [ref=f65e238] [cursor=pointer]:
+          - /url: /blog/most-measured-man-personalized-health-snyder
+          - generic [ref=f65e239]: Expert Q&A
+          - img "Stylized illustration of a human silhouette surrounded by circular health metric icons for heart rate, sleep, activity, genomics, and other biometrics." [ref=f65e241]
+          - heading "The most measured man in medicine is still waiting for the system to catch up" [level=3] [ref=f65e242]
+          - generic [ref=f65e243]: The Levels Team · 9 min
+        - link "Expert Q&A A kitchen counter contrasting processed low-fat and fat-free packaged foods with whole foods like salmon, avocado, olive oil, nuts, and full-fat yogurt. What we got wrong about dietary fat The Levels Team · 7 min" [ref=f65e244] [cursor=pointer]:
+          - /url: /blog/dietary-fat-what-we-got-wrong-arne-astrup
+          - generic [ref=f65e245]: Expert Q&A
+          - img "A kitchen counter contrasting processed low-fat and fat-free packaged foods with whole foods like salmon, avocado, olive oil, nuts, and full-fat yogurt." [ref=f65e247]
+          - heading "What we got wrong about dietary fat" [level=3] [ref=f65e248]
+          - generic [ref=f65e249]: The Levels Team · 7 min
+    - generic [ref=f65e252]:
+      - generic [ref=f65e253]: Sign up for the Levels Newsletter
+      - generic [ref=f65e254]:
+        - textbox "Type your email" [ref=f65e255]
+        - button "Submit" [ref=f65e256] [cursor=pointer]
+  - contentinfo [ref=f65e258]:
+    - generic [ref=f65e259]:
+      - generic [ref=f65e260]:
+        - generic [ref=f65e261]:
+          - link [ref=f65e262] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f65e265]:
+            - link "Instagram" [ref=f65e266] [cursor=pointer]:
+              - /url: https://www.instagram.com/levels/?hl=en
+            - link "Youtube" [ref=f65e271] [cursor=pointer]:
+              - /url: https://www.youtube.com/@levels
+            - link "Podcasts" [ref=f65e274] [cursor=pointer]:
+              - /url: /podcasts
+            - link "X" [ref=f65e277] [cursor=pointer]:
+              - /url: https://x.com/Levels
+            - link "TikTok" [ref=f65e280] [cursor=pointer]:
+              - /url: https://www.tiktok.com/@levels?lang=en
+            - link "LinkedIn" [ref=f65e283] [cursor=pointer]:
+              - /url: https://www.linkedin.com/company/levels
+            - link "Facebook" [ref=f65e286] [cursor=pointer]:
+              - /url: https://www.facebook.com/Levels
+          - generic [ref=f65e289]:
+            - heading "Join our mailing list" [level=3] [ref=f65e290]
+            - paragraph [ref=f65e291]: Subscribe to get updates, articles, exclusive discounts, and more
+            - generic [ref=f65e292]:
+              - textbox "email@example.com" [ref=f65e293]
+              - button "Join" [ref=f65e294]
+        - navigation [ref=f65e295]:
+          - generic [ref=f65e296]:
+            - heading "Product" [level=4] [ref=f65e297]
+            - list [ref=f65e298]:
+              - listitem [ref=f65e299]:
+                - link "How It Works" [ref=f65e300] [cursor=pointer]:
+                  - /url: /how-it-works
+              - listitem [ref=f65e301]:
+                - link "What We Measure" [ref=f65e302] [cursor=pointer]:
+                  - /url: /what-we-measure
+          - generic [ref=f65e303]:
+            - heading "Company" [level=4] [ref=f65e304]
+            - list [ref=f65e305]:
+              - listitem [ref=f65e306]:
+                - link "Careers" [ref=f65e307] [cursor=pointer]:
+                  - /url: https://levelshealth.notion.site/Careers-at-Levels-3616891ed02d4c0787fd64227f9bc57a
+              - listitem [ref=f65e308]:
+                - link "Partner With Us" [ref=f65e309] [cursor=pointer]:
+                  - /url: https://levels.link/partner
+              - listitem [ref=f65e310]:
+                - link "Media & Creators" [ref=f65e311] [cursor=pointer]:
+                  - /url: https://levelshealth.notion.site/Levels-Assets-for-Media-Content-Creators-January-2022-f7e9b3066e2444cfae92dc786c2f8a32
+              - listitem [ref=f65e312]:
+                - link "Contact Us" [ref=f65e313] [cursor=pointer]:
+                  - /url: mailto:support@levels.com
+          - generic [ref=f65e314]:
+            - heading "Resources" [level=4] [ref=f65e315]
+            - list [ref=f65e316]:
+              - listitem [ref=f65e317]:
+                - link "Support" [ref=f65e318] [cursor=pointer]:
+                  - /url: https://support.levels.com/
+              - listitem [ref=f65e319]:
+                - link "Blog" [ref=f65e320] [cursor=pointer]:
+                  - /url: /blog
+              - listitem [ref=f65e321]:
+                - link "Gift Levels" [ref=f65e322] [cursor=pointer]:
+                  - /url: https://app.levels.com/gift-card
+              - listitem [ref=f65e323]:
+                - link "Refund Policy" [ref=f65e324] [cursor=pointer]:
+                  - /url: https://support.levels.com/article/651-refund-replacement-policies
+      - generic [ref=f65e325]:
+        - generic [ref=f65e326]:
+          - paragraph [ref=f65e327]: © 2025 Levels Health
+          - generic [ref=f65e328]:
+            - link "Legal" [ref=f65e329] [cursor=pointer]:
+              - /url: https://levelshealth.notion.site/Levels-Health-Inc-Privacy-Policy-6a8d24dc188a4a41ba8e1e5ba433cf70
+            - link "Terms of service" [ref=f65e330] [cursor=pointer]:
+              - /url: /terms-of-service
+        - paragraph [ref=f65e331]: The Levels program, products, and services are intended only for maintaining and encouraging a healthy lifestyle and are not to be used for the diagnosis, cure, management, prevention, or treatment of any disease or condition. The Levels app, products, and services should never be used for medication management or dosing decisions.
+  - alert [ref=f65e332]

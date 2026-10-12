@@ -1,0 +1,141 @@
+- generic [ref=f2e106]:
+  - button "Pular para o conteúdo" [ref=f2e491] [cursor=pointer]
+  - generic [ref=f2e108]:
+    - banner [ref=f2e109]:
+      - generic [ref=f2e110]:
+        - heading "Relatório completo" [level=6] [ref=f2e600]
+        - generic [ref=f2e111]:
+          - button "Você tem 65 créditos. Toque para comprar mais." [ref=f2e519] [cursor=pointer]:
+            - generic [ref=f2e115]: "65"
+          - button "Notificações" [ref=f2e520] [cursor=pointer]:
+            - generic [ref=f2e117]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f2e521] [cursor=pointer]:
+            - generic [ref=f2e123]: E
+            - generic [ref=f2e125]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f2e522] [cursor=pointer]
+    - main [ref=f2e134]:
+      - navigation [ref=f2e138]:
+        - generic [ref=f2e141]:
+          - generic [ref=f2e142]: E
+          - generic [ref=f2e144]:
+            - paragraph [ref=f2e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e146]:
+              - generic [ref=f2e147]: Plano grátis
+              - button "⚡ 65 (+)" [ref=f2e492] [cursor=pointer]
+        - separator [ref=f2e151]
+        - generic [ref=f2e606]:
+          - button "Exames" [ref=f2e664] [cursor=pointer]
+          - button "Valores alterados" [ref=f2e670] [cursor=pointer]
+          - button "Evolução" [ref=f2e677] [cursor=pointer]
+          - button "Tendências" [ref=f2e684] [cursor=pointer]
+          - button "Linha do Tempo" [ref=f2e690] [cursor=pointer]
+          - button "Relatório completo" [ref=f2e696] [cursor=pointer]
+        - button "Cuidados" [ref=f2e494] [cursor=pointer]
+        - button "Pessoas" [ref=f2e495] [cursor=pointer]
+        - button "Conta" [ref=f2e496] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f2e497] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f2e498] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f2e499] [cursor=pointer]
+        - generic [ref=f2e209]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f2e607]:
+        - generic [ref=f2e612]:
+          - heading "Relatório completo de saúde" [level=5] [ref=f2e613]
+          - paragraph [ref=f2e614]: A IA junta seus últimos exames, tendências e perguntas num documento único para consulta.
+        - generic [ref=f2e702]:
+          - generic [ref=f2e703]:
+            - generic [ref=f2e704]:
+              - img "Dr. Exame" [ref=f2e706]
+              - paragraph [ref=f2e708]: Análise educativa gerada pela IA— não substitui consulta médica
+            - generic [ref=f2e709]:
+              - generic [ref=f2e711]:
+                - paragraph [ref=f2e712]: "4"
+                - text: Itens
+              - generic [ref=f2e714]:
+                - paragraph [ref=f2e715]: "3"
+                - text: Atenção
+              - generic [ref=f2e717]:
+                - paragraph [ref=f2e718]: "2"
+                - text: Positivos
+            - generic [ref=f2e719]:
+              - generic [ref=f2e720]: "Baseado em 5 exames — toque para abrir:"
+              - generic [ref=f2e721]:
+                - button "HEMOGRAMA • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO …" [ref=f2e722] [cursor=pointer]:
+                  - generic [ref=f2e726]:
+                    - paragraph [ref=f2e727]: HEMOGRAMA
+                    - generic [ref=f2e728]: • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO …
+                - button "PAINEL GRANDE 16/07/2026" [ref=f2e729] [cursor=pointer]:
+                  - generic [ref=f2e733]:
+                    - paragraph [ref=f2e734]: PAINEL GRANDE
+                    - generic [ref=f2e735]: 16/07/2026
+                - button "GLICEMIA DE JEJUM 10/07/2026 • Fleury" [ref=f2e736] [cursor=pointer]:
+                  - generic [ref=f2e740]:
+                    - paragraph [ref=f2e741]: GLICEMIA DE JEJUM
+                    - generic [ref=f2e742]: 10/07/2026 • Fleury
+                - button "PERFIL LIPÍDICO 10/07/2026 • Fleury" [ref=f2e743] [cursor=pointer]:
+                  - generic [ref=f2e747]:
+                    - paragraph [ref=f2e748]: PERFIL LIPÍDICO
+                    - generic [ref=f2e749]: 10/07/2026 • Fleury
+                - button "HEMOGRAMA 10/07/2026 • Laboratório Central" [ref=f2e750] [cursor=pointer]:
+                  - generic [ref=f2e754]:
+                    - paragraph [ref=f2e755]: HEMOGRAMA
+                    - generic [ref=f2e756]: 10/07/2026 • Laboratório Central
+            - generic [ref=f2e757]:
+              - button [active] [ref=f2e885] [cursor=pointer]
+              - button "Compartilhar" [ref=f2e763] [cursor=pointer]
+              - button "Imprimir / PDF" [ref=f2e766] [cursor=pointer]
+              - button [ref=f2e769] [cursor=pointer]
+            - paragraph [ref=f2e773]: Edmilson, seu exame mais recente mostra alterações principalmente na parte do sangue (hemograma), especificamente no tamanho e na cor das hemácias (células vermelhas) e na contagem de plaquetas. O valor da hemoglobina (15,0) está dentro da faixa de referência, mas o tamanho das células (VCM e HCM) está um pouco reduzido.
+          - generic [ref=f2e774]:
+            - generic [ref=f2e776]:
+              - paragraph [ref=f2e780]: Pontos de atenção
+              - generic [ref=f2e781]: "3"
+            - generic [ref=f2e784]:
+              - generic [ref=f2e785]:
+                - paragraph [ref=f2e786]: 1. Contagem de Plaquetas
+                - paragraph [ref=f2e787]: O valor atual (116.000/mm³) está abaixo da faixa de referência (150.000-450.000). É importante discutir isso com o médico para entender a causa.
+              - generic [ref=f2e788]:
+                - paragraph [ref=f2e789]: 2. Índices Hematimétricos (VCM, HCM, CHCM)
+                - paragraph [ref=f2e790]: O VCM (80,8) e o HCM (26,0) estão ligeiramente abaixo do limite inferior. Isso sugere que as células sanguíneas podem estar microcíticas (pequenas), o que pode estar relacionado a questões nutricionais, como ferro.
+              - generic [ref=f2e791]:
+                - paragraph [ref=f2e792]: 3. Leucograma
+                - paragraph [ref=f2e793]: Há valores listados com 'flag' de baixo (Linfócitos, Segmentados, Monócitos), mas é fundamental saber se estes valores são absolutos (número) ou relativos (%). Se o valor total de leucócitos estiver normal, pequenas variações percentuais podem não ter significado clínico isolado.
+          - heading [level=3] [ref=f2e795]:
+            - button "Comparativo anterior → atual 4" [ref=f2e796] [cursor=pointer]:
+              - generic [ref=f2e798]:
+                - paragraph [ref=f2e803]: Comparativo anterior → atual
+                - generic [ref=f2e804]: "4"
+          - heading [level=3] [ref=f2e810]:
+            - button "Pontos positivos 2" [ref=f2e811] [cursor=pointer]:
+              - generic [ref=f2e813]:
+                - paragraph [ref=f2e817]: Pontos positivos
+                - generic [ref=f2e818]: "2"
+          - heading [level=3] [ref=f2e824]:
+            - button "Sugestões de nutrição 1" [ref=f2e825] [cursor=pointer]:
+              - generic [ref=f2e827]:
+                - paragraph [ref=f2e831]: Sugestões de nutrição
+                - generic [ref=f2e832]: "1"
+          - heading [level=3] [ref=f2e838]:
+            - button "Metas de saúde 2" [ref=f2e839] [cursor=pointer]:
+              - generic [ref=f2e841]:
+                - paragraph [ref=f2e845]: Metas de saúde
+                - generic [ref=f2e846]: "2"
+          - generic [ref=f2e851]:
+            - generic [ref=f2e853]:
+              - paragraph [ref=f2e857]: Perguntas para levar ao médico
+              - generic [ref=f2e858]: "3"
+            - generic [ref=f2e861]:
+              - generic [ref=f2e862]:
+                - checkbox [ref=f2e864] [cursor=pointer]
+                - paragraph [ref=f2e867]: Minhas plaquetas estão em 116.000/mm³, abaixo do referencial. O que pode ter causado isso e preciso repetir o exame?
+              - generic [ref=f2e868]:
+                - checkbox [ref=f2e870] [cursor=pointer]
+                - paragraph [ref=f2e873]: O VCM (80,8) e HCM (26,0) estão baixos, indicando células pequenas (microcitose). Isso pode ser falta de ferro ou outro motivo?
+              - generic [ref=f2e874]:
+                - checkbox [ref=f2e876] [cursor=pointer]
+                - paragraph [ref=f2e879]: Os valores de leucócitos (linfócitos, monócitos) estão alterados em porcentagem ou número absoluto? Isso indica infecção ou é variação normal?
+              - button "Enviar ao médico" [disabled]
+              - generic [ref=f2e880]: Marque as perguntas que quiser levar e toque em enviar. Seu médico recebe na área de perguntas dele no app e por e-mail.
+          - generic [ref=f2e881]:
+            - paragraph [ref=f2e882]: 📌 Leitura final
+            - paragraph [ref=f2e883]: Edmilson, seu hemograma mostra que a quantidade de hemoglobina (a parte que transporta oxigênio) está boa (15,0). Porém, o tamanho das suas células vermelhas (VCM 80,8) e a contagem de plaquetas (116.000) estão abaixo do esperado no laboratório. Isso geralmente pede uma avaliação clínica para verificar se há necessidade de ajustes na alimentação ou investigação adicional. Não se assuste, pois o médico saberá interpretar esses dados no contexto do seu histórico.
+          - generic [ref=f2e884]: "IMPORTANTE: Esta análise é educativa e serve para ajudar você a entender seus exames. Eu NÃO sou médico e NÃO substituo uma consulta. Alterações em exames podem ser variações de laboratório, erros de medição ou indicar condições que precisam de avaliação clínica. Leve este relatório ao seu médico responsável."

@@ -1,0 +1,49 @@
+- generic [ref=e20]:
+  - generic [ref=e59]:
+    - button [ref=e60] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e61]:
+      - banner [ref=e62]:
+        - generic [ref=e63]:
+          - button [ref=e64] [cursor=pointer]
+          - button [ref=e69] [cursor=pointer]:
+            - generic [ref=e74]: Selecionar
+          - button [ref=e80] [cursor=pointer]
+      - main [ref=e83]:
+        - navigation [ref=e87]:
+          - generic [ref=e88]:
+            - paragraph [ref=e93] [cursor=pointer]: Início
+            - paragraph [ref=e98] [cursor=pointer]: Exames
+            - paragraph [ref=e104] [cursor=pointer]: Valores alterados
+            - paragraph [ref=e110] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=e115] [cursor=pointer]: Tendências
+            - paragraph [ref=e120] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=e125] [cursor=pointer]: Relatório completo
+            - paragraph [ref=e130] [cursor=pointer]: Perguntas
+            - paragraph [ref=e136] [cursor=pointer]: Saúde da Família
+          - button [ref=e138] [cursor=pointer]:
+            - generic [ref=e143]: Minha saúde
+          - button [ref=e148] [cursor=pointer]:
+            - generic [ref=e153]: Família & médicos
+          - button [ref=e158] [cursor=pointer]:
+            - generic [ref=e162]: Conta
+          - separator [ref=e166]
+          - button [ref=e167] [cursor=pointer]:
+            - generic [ref=e171]: Ajuda & Suporte
+          - menuitem [ref=e173] [cursor=pointer]:
+            - generic [ref=e177]: Sobre o app
+          - menuitem [ref=e179] [cursor=pointer]:
+            - generic [ref=e183]: Sair da conta
+        - generic [ref=e186]:
+          - heading [level=4] [ref=e192]: Meus Exames
+          - paragraph [ref=e193]: Seu assistente de saúde com IA
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e205]:
+    - generic [ref=e206]:
+      - button "Pular" [ref=e207] [cursor=pointer]
+      - generic [ref=e208]:
+        - img "Dr. Exame" [ref=e210]
+        - heading "Envie seu exame" [level=4] [ref=e211]
+        - paragraph [ref=e212]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e213]:
+        - button [ref=e219] [cursor=pointer]
+        - paragraph [ref=e223]: Toque em Próximo para continuar →

@@ -1,0 +1,41 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e7]:
+      - img "Dr. Exame" [ref=f5e13]
+      - generic [ref=f5e14]:
+        - heading "Dr. Exame" [level=3] [ref=f5e15]
+        - paragraph [ref=f5e18]: Iniciando o Dr. Exame…
+    - generic [ref=f5e27]:
+      - button "Pular para o conteúdo" [ref=f5e28] [cursor=pointer]
+      - generic [ref=f5e29]:
+        - banner [ref=f5e30]:
+          - generic [ref=f5e31]:
+            - button "Menu" [ref=f5e32] [cursor=pointer]
+            - generic [ref=f5e35]:
+              - img "Dr. Exame" [ref=f5e37]
+              - paragraph [ref=f5e38]: Dr. Exame
+            - generic [ref=f5e39]:
+              - button "Notificações" [ref=f5e40] [cursor=pointer]:
+                - generic [ref=f5e41]: "0"
+              - button "👤" [ref=f5e45] [cursor=pointer]
+        - main [ref=f5e51]:
+          - generic [ref=f5e57]:
+            - img "Dr. Exame" [ref=f5e63]
+            - generic [ref=f5e64]:
+              - heading "Dr. Exame" [level=3] [ref=f5e65]
+              - paragraph [ref=f5e68]: Seu assistente de saúde com IA
+    - navigation [ref=f5e77]:
+      - button "Início" [ref=f5e78] [cursor=pointer]:
+        - paragraph [ref=f5e82]: Início
+      - button "Exames" [ref=f5e84] [cursor=pointer]:
+        - paragraph [ref=f5e88]: Exames
+      - button "Dr. Exame — conversar com a IA" [ref=f5e89] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f5e91]
+        - paragraph [ref=f5e92]: Dr. Exame
+      - button "Evolução" [ref=f5e93] [cursor=pointer]:
+        - paragraph [ref=f5e97]: Evolução
+      - button "Mais" [ref=f5e98] [cursor=pointer]:
+        - paragraph [ref=f5e102]: Mais
+  - generic [ref=f5e103]:
+    - img "Acessível com VLibras" [ref=f5e104]
+    - button "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f5e105] [cursor=pointer]

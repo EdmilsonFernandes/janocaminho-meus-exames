@@ -1,0 +1,179 @@
+- generic [ref=e1]:
+  - generic [ref=e1432]:
+    - button [ref=e1433] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e1434]:
+      - banner [ref=e1435]:
+        - generic [ref=e1436]:
+          - generic [ref=e1437]:
+            - button [ref=e1438] [cursor=pointer]:
+              - generic [ref=e1441]: "15"
+            - button [ref=e1442] [cursor=pointer]:
+              - generic [ref=e1443]: 9+
+            - button [ref=e1448] [cursor=pointer]:
+              - generic [ref=e1449]: E
+              - generic [ref=e1451]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=e1457] [cursor=pointer]
+      - main [ref=e1460]:
+        - navigation [ref=e1464]:
+          - generic [ref=e1467]:
+            - generic [ref=e1468]: E
+            - generic [ref=e1470]:
+              - paragraph [ref=e1471]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e1472]:
+                - generic [ref=e1473]: 👑 Premium
+                - button [ref=e1475] [cursor=pointer]:
+                  - generic [ref=e1476]: ⚡ 15 (+)
+          - separator [ref=e1477]
+          - button [ref=e1478] [cursor=pointer]:
+            - generic [ref=e1482]: Início
+          - button [ref=e1485] [cursor=pointer]:
+            - generic [ref=e1491]: Exames
+          - button [ref=e1496] [cursor=pointer]:
+            - generic [ref=e1501]: Cuidados
+          - button [ref=e1506] [cursor=pointer]:
+            - generic [ref=e1511]: Pessoas
+          - button [expanded] [ref=e1516] [cursor=pointer]:
+            - generic [ref=e1520]: Conta
+          - button [ref=e1525] [cursor=pointer]:
+            - generic [ref=e1529]: Dúvidas frequentes
+          - menuitem [ref=e1531] [cursor=pointer]:
+            - generic [ref=e1535]: Sobre o app
+          - menuitem [ref=e1537] [cursor=pointer]:
+            - generic [ref=e1541]: Sair da conta
+          - generic [ref=e1544]:
+            - generic [ref=e1546]: Dr. Exame · Saúde Inteligente
+            - generic [ref=e1547]: v2.7.223
+        - generic [ref=e1865]:
+          - generic [ref=e1870]:
+            - heading [level=5] [ref=e1871]: Meu perfil
+            - paragraph [ref=e1872]: Sua conta, dados e preferências
+          - generic [ref=e1874]:
+            - generic [ref=e1876]:
+              - generic [ref=e1877]: "?"
+              - button [ref=e1878] [cursor=pointer]
+            - generic [ref=e1882]:
+              - heading [level=5] [ref=e1883]: —
+              - paragraph [ref=e1884]: ✉️ —
+              - generic [ref=e1885]: Plano grátis
+              - generic [ref=e1888]: Toque na câmera da foto para trocar a imagem.
+          - generic [ref=e1890]:
+            - heading [level=6] [ref=e1891]: Dados e perfil clínico
+            - generic [ref=e1892]:
+              - generic [ref=e1893]:
+                - generic: Nome completo
+                - generic [ref=e1894]:
+                  - textbox [ref=e1895]
+                  - group [aria-hidden]:
+                    - generic: Nome completo
+              - generic [ref=e1896]:
+                - generic: CPF
+                - generic [ref=e1897]:
+                  - textbox [ref=e1898]
+                  - group [aria-hidden]:
+                    - generic: CPF
+                - paragraph [ref=e1899]: Usado para confirmar que os exames pertencem a este perfil.
+              - generic [ref=e1900]:
+                - generic: Telefone / WhatsApp
+                - generic [ref=e1901]:
+                  - textbox [ref=e1902]
+                  - group [aria-hidden]:
+                    - generic: Telefone / WhatsApp
+              - generic [ref=e1903]:
+                - generic: Sexo
+                - generic [ref=e1904]:
+                  - combobox [ref=e1905] [cursor=pointer]
+                  - textbox [aria-hidden]
+                  - group [aria-hidden]:
+                    - generic: Sexo
+                - paragraph [ref=e1906]: Sem sexo informado, os cálculos usam a referência masculina — informe para referências exatas.
+              - generic [ref=e1907]:
+                - generic: Altura
+                - generic [ref=e1908]:
+                  - textbox [ref=e1909]
+                  - group [aria-hidden]:
+                    - generic: Altura
+                - paragraph [ref=e1910]: "Ex.: 1,72 ou 172 — convertemos pra você. Usada no IMC."
+              - generic [ref=e1911]:
+                - generic: Etnia (opcional)
+                - generic [ref=e1912]:
+                  - combobox [ref=e1913] [cursor=pointer]
+                  - textbox [aria-hidden]
+                  - group [aria-hidden]:
+                    - generic: Etnia (opcional)
+                - paragraph [ref=e1914]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+              - generic [ref=e1915]:
+                - generic [ref=e1916]:
+                  - generic [ref=e1917]: Data de nascimento
+                  - generic [ref=e1918]:
+                    - textbox [ref=e1919]:
+                      - /placeholder: dd/mm/aaaa
+                    - button [ref=e1921] [cursor=pointer]
+                    - group [aria-hidden]:
+                      - generic: Data de nascimento
+                  - paragraph [ref=e1924]: Usado pra calcular idade e ajustar faixas de referência.
+                - textbox [aria-hidden]
+              - generic [ref=e1925]:
+                - generic: Perfil clínico (condições, medicações, histórico)
+                - generic [ref=e1926]:
+                  - textbox [ref=e1927]
+                  - group [aria-hidden]:
+                    - generic: Perfil clínico (condições, medicações, histórico)
+                - paragraph [ref=e1928]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+            - button [ref=e1930] [cursor=pointer]: Salvar perfil
+          - generic [ref=e1936]:
+            - generic [ref=e1940]:
+              - heading [level=6] [ref=e1941]: Peso atual
+              - paragraph [ref=e1942]: Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.
+            - button [ref=e1943] [cursor=pointer]: Registrar peso
+          - generic [ref=e1945]:
+            - heading [level=6] [ref=e1946]: Preferências
+            - generic [ref=e1947] [cursor=pointer]:
+              - switch [checked] [ref=e1950]
+              - generic [ref=e1953]: 🔔 Avisar quando eu desbloquear uma conquista
+            - generic [ref=e1955]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=e1956] [cursor=pointer]:
+              - switch [ref=e1959]
+              - generic [ref=e1962]: ♿ Botão de tradução em Libras
+            - generic [ref=e1964] [cursor=pointer]:
+              - switch [ref=e1967]
+              - generic [ref=e1970]: 🔍 Aa Texto grande — amplia os textos do app
+            - generic [ref=e1972]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+            - generic [ref=e1973] [cursor=pointer]:
+              - switch [checked] [ref=e1976]
+              - generic [ref=e1979]: 🏃 Card de atividade física no início
+            - generic [ref=e1981]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+            - generic [ref=e1982] [cursor=pointer]:
+              - switch [ref=e1985]
+              - generic [ref=e1988]: 🙈 Modo privacidade — borra nomes de exames
+            - generic [ref=e1990]: "Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos."
+            - button [ref=e1991] [cursor=pointer]: 📋 Enviar diagnóstico ao suporte
+            - generic [ref=e1992]: Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).
+            - button [ref=e1993] [cursor=pointer]: Avaliar o app na Play Store
+          - generic [ref=e1998]:
+            - generic [ref=e2003] [cursor=pointer]:
+              - paragraph [ref=e2004]: Segurança
+              - paragraph [ref=e2005]: Trocar senha, 2FA e biometria
+            - generic [ref=e2012] [cursor=pointer]:
+              - paragraph [ref=e2013]: Privacidade e dados
+              - paragraph [ref=e2014]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+            - generic [ref=e2021] [cursor=pointer]:
+              - paragraph [ref=e2022]: API para desenvolvedores
+              - paragraph [ref=e2023]: Integre preço de remédios e interações no seu produto
+  - dialog [ref=e1842]:
+    - generic [ref=e1843]:
+      - button [ref=e2027] [cursor=pointer]: Pular
+      - generic [ref=e1845]:
+        - heading [level=4] [ref=e2029]: Envie seu exame
+        - paragraph [ref=e1849]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e1850]:
+        - button [ref=e2030] [cursor=pointer]: Próximo
+        - paragraph [ref=e1860]: Toque em Próximo para continuar →
+  - dialog [active] [ref=e2033]:
+    - heading [level=2] [ref=e2034]:
+      - generic [ref=e2035]:
+        - img "Dr. Exame" [ref=e2037]
+        - paragraph [ref=e2038]: 💡 Dica do Dr. Exame pra Theo
+    - paragraph [ref=e2040]: "A mente também merece check-up, Theo: o rastreamento de humor e ansiedade do app leva 2 min, é validado e gratuito — o resultado rende uma conversa melhor na próxima consulta."
+    - generic [ref=e2041]:
+      - button "Ver depois" [ref=e2042] [cursor=pointer]
+      - button "Ver detalhes" [ref=e2043] [cursor=pointer]

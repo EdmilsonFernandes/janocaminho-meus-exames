@@ -1,0 +1,21 @@
+- generic [ref=f6e2]:
+  - generic [ref=f6e3]:
+    - button "Pular para o conteúdo" [ref=f6e4] [cursor=pointer]
+    - main [ref=f6e32]:
+      - generic [ref=f6e258]:
+        - img "Dr. Exame" [ref=f6e264]
+        - generic [ref=f6e265]:
+          - heading "Dr. Exame" [level=3] [ref=f6e266]
+          - paragraph [ref=f6e269]: Seu assistente de saúde com IA
+  - navigation [ref=f6e228]:
+    - button "Início" [ref=f6e229] [cursor=pointer]:
+      - paragraph [ref=f6e233]: Início
+    - button "Exames" [ref=f6e234] [cursor=pointer]:
+      - paragraph [ref=f6e238]: Exames
+    - button "Dr. Exame — conversar com a IA" [ref=f6e239] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f6e241]
+      - paragraph [ref=f6e242]: Dr. Exame
+    - button "Evolução" [ref=f6e243] [cursor=pointer]:
+      - paragraph [ref=f6e247]: Evolução
+    - button "Mais" [ref=f6e248] [cursor=pointer]:
+      - paragraph [ref=f6e252]: Mais

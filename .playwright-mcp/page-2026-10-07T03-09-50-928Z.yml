@@ -1,0 +1,41 @@
+- generic [ref=e2]:
+  - generic [ref=e7]:
+    - img "Dr. Exame" [ref=e13]
+    - generic [ref=e14]:
+      - heading "Dr. Exame" [level=3] [ref=e15]
+      - paragraph [ref=e18]: Iniciando o Dr. Exame…
+  - generic [ref=e27]:
+    - button "Pular para o conteúdo" [ref=e28] [cursor=pointer]
+    - generic [ref=e29]:
+      - banner [ref=e30]:
+        - generic [ref=e31]:
+          - heading [level=6]
+          - generic [ref=e32]:
+            - button "Notificações" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: "0"
+            - button "👤 Selecionar" [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 👤
+              - generic [ref=e41]: Selecionar
+          - button "Atualizar" [ref=e47] [cursor=pointer]
+      - main [ref=e50]:
+        - navigation [ref=e54]:
+          - generic [ref=e61]:
+            - paragraph [ref=e62]: QA Checklist
+            - generic [ref=e63]: Plano grátis
+          - separator [ref=e66]
+          - button "Início" [ref=e67] [cursor=pointer]
+          - button "Exames" [ref=e74] [cursor=pointer]
+          - button "Cuidados" [ref=e85] [cursor=pointer]
+          - button "Pessoas" [ref=e95] [cursor=pointer]
+          - button "Conta" [ref=e105] [cursor=pointer]
+          - button "Dúvidas frequentes" [ref=e114] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e120] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e126] [cursor=pointer]
+          - generic [ref=e133]:
+            - generic [ref=e135]: Dr. Exame · Saúde Inteligente
+            - generic [ref=e136]: v2.7.223
+        - generic [ref=e142]:
+          - img "Dr. Exame" [ref=e148]
+          - generic [ref=e149]:
+            - heading "Dr. Exame" [level=3] [ref=e150]
+            - paragraph [ref=e153]: Seu assistente de saúde com IA

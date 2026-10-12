@@ -1,0 +1,319 @@
+- generic [active] [ref=f19e1]:
+  - generic [ref=f19e2]:
+    - generic [ref=f19e3]:
+      - generic [ref=f19e4]:
+        - text: We use cookies to enhance your experience, analyze site usage, and deliver personalized content and ads. By continuing to use our site, you consent to our use of cookies as described in our
+        - link "Privacy Policy" [ref=f19e5] [cursor=pointer]:
+          - /url: /privacy-policy
+        - text: . You can update your preferences at any time.
+      - button "Manage preferences" [ref=f19e7] [cursor=pointer]
+      - generic [ref=f19e8] [cursor=pointer]
+    - main [ref=f19e11]:
+      - generic [ref=f19e12]:
+        - generic [ref=f19e13]:
+          - generic [ref=f19e14]:
+            - generic [ref=f19e17]:
+              - img "marek-health-logo" [ref=f19e19] [cursor=pointer]
+              - generic [ref=f19e20]:
+                - link "Treatments" [ref=f19e22] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Diagnostic Labs" [ref=f19e24] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Coaching" [ref=f19e26] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f19e28] [cursor=pointer]:
+                  - /url: /faqs
+                - link "FAQs" [ref=f19e30] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f19e32] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f19e34] [cursor=pointer]:
+                  - /url: /faqs
+                - button "Start your journey" [ref=f19e35] [cursor=pointer]
+            - generic [ref=f19e38]:
+              - img "marek-health-logo" [ref=f19e40] [cursor=pointer]
+              - generic [ref=f19e41]:
+                - link "Treatments" [ref=f19e43] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Diagnostic Labs" [ref=f19e45] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Coaching" [ref=f19e47] [cursor=pointer]:
+                  - /url: /team-marek
+                - link "Education" [ref=f19e49] [cursor=pointer]:
+                  - /url: /faqs
+                - link "FAQs" [ref=f19e51] [cursor=pointer]:
+                  - /url: /faqs
+                - link "Testimonials" [ref=f19e53] [cursor=pointer]:
+                  - /url: /testimonials
+                - link "Shop" [ref=f19e55] [cursor=pointer]:
+                  - /url: /faqs
+                - button "Start your journey" [ref=f19e56] [cursor=pointer]
+          - heading "FREQUENTLY ASKED QUESTIONS" [level=1] [ref=f19e64]
+          - generic [ref=f19e68]:
+            - generic [ref=f19e70]:
+              - listitem [ref=f19e71] [cursor=pointer]: All
+              - listitem [ref=f19e72] [cursor=pointer]: Eligibility
+              - listitem [ref=f19e73] [cursor=pointer]: General
+              - listitem [ref=f19e74] [cursor=pointer]: Program Requirements
+              - listitem [ref=f19e75] [cursor=pointer]: Shipping and Processing
+            - generic [ref=f19e77]:
+              - generic [ref=f19e78]:
+                - paragraph [ref=f19e81] [cursor=pointer]: I am NOT a United States Resident, can I still work with Marek?
+                - generic [ref=f19e86]:
+                  - paragraph [ref=f19e87]: We currently only work with U.S. based residents so unfortunately we aren’t able to service you right now.
+                  - paragraph [ref=f19e88]: "*If you’re an American Citizen working overseas with an APO box, we may be able to ship select items to you, please inquire with your Health Coach."
+              - generic [ref=f19e89]:
+                - paragraph [ref=f19e92] [cursor=pointer]: What qualifies for Hormone Replacement Therapy?
+                - generic [ref=f19e97]:
+                  - paragraph [ref=f19e98]: Well, that’s a tricky question.
+                  - paragraph [ref=f19e99]: Only because most other telehealth platforms are simply looking at estrogen and testosterone levels to determine whether or not a client is the right fit—but it’s not so cut and dry.
+                  - paragraph [ref=f19e100]: The ranges we have for hormone health changes between labs but they’re also largely arbitrary and don’t paint the whole picture of what’s going on.
+                  - paragraph [ref=f19e101]:
+                    - text: Like we said earlier, our bodies vary person to person
+                    - strong [ref=f19e102]: which means symptoms and “optimal” hormone levels do too.
+                  - paragraph [ref=f19e103]: Some people have markers suggesting they’re in desperate need of hormone replacement and yet they show no classic signs like fatigue, anxiety, or low libido. Others have impeccable markers suggesting that everything is fine yet they’re experiencing all the symptoms associated with it.
+                  - paragraph [ref=f19e104]: "That’s why the main Marek Health packages come with a provider consultation: not to just prescribe your hormone therapy, to make sure that your body is lining up with what the labs are saying."
+                  - paragraph [ref=f19e105]: It’s possible that you’re experiencing a thyroid issue or maybe you’re vitamin B12 deficient—but ultimately, we won’t find out until we dig deeper and look at your overall health versus just your hormone levels.
+                  - paragraph [ref=f19e106]: “If you’re not a candidate for TRT, they will still help you optimize your health and hormones in other ways.” – Nathan R.
+                  - paragraph [ref=f19e107]:
+                    - text: That being the case, we strongly recommend scheduling a consultation with our team to assess baseline diagnostic lab work and
+                    - strong [ref=f19e108]: consulting with one of our partnered medical providers.
+                  - paragraph [ref=f19e109]: Once you’ve got your lab work, they’ll be able to determine whether or not you’re eligible for TRT/HRT based on your lab markers, health history, symptoms, and goals.
+              - generic [ref=f19e110]:
+                - paragraph [ref=f19e113] [cursor=pointer]: What is Marek Health?
+                - generic [ref=f19e118]:
+                  - paragraph [ref=f19e119]: Marek is a telehealth platform built on streamlining health optimization. We use preventative medicine and evidence-based treatment plans to get our clients the results they want.
+                  - paragraph [ref=f19e120]: We’re not your typical telehealth service though. While we have an extensive catalog of prescription medications, we’re not here to write you a script and end the relationship. Most other companies would just diagnose and set you up with a monthly subscription plan without giving it a second thought.
+                  - paragraph [ref=f19e121]: But we don’t see health that way.
+                  - paragraph [ref=f19e122]: We know our bodies vary from person to person consisting of countless variables, which is why we take a comprehensive approach by evaluating your health as a whole.
+                  - paragraph [ref=f19e123]: What works for you won’t work for the next person. Hell, what works for you now may not work for you 3 months in the future. That’s why we don’t offer any set subscription plans and you can cancel whenever you want.
+                  - paragraph [ref=f19e124]: Our main focus is on the client, not the prescription.
+                  - paragraph [ref=f19e125]: Marek’s job is to connect clients interested in human optimization with pragmatic healthcare professionals who are dedicated to peak performance. Once you’ve been paired with one of our partnered physicians, the aim is to check off as many health goals as safely as possible in between check-ins.
+                  - paragraph [ref=f19e126]: We work flexibly to fit your needs as a client because with just a little more organizational work on our end, the overall quality of life is enhanced and your results are that much better.
+                  - paragraph [ref=f19e127]: "Note: Marek Health is not a healthcare clinic. We do not administer healthcare, nor do we prescribe treatments or medications. Instead, Marek Health is a platform that connects clients with highly specialized healthcare providers for their healthcare needs."
+              - generic [ref=f19e128]:
+                - paragraph [ref=f19e131] [cursor=pointer]: How long does it take for my lab results to come back?
+                - generic [ref=f19e136]:
+                  - paragraph [ref=f19e137]: How long does it take for my lab results to come back?
+                  - paragraph [ref=f19e138]:
+                    - text: Depending on the complexity of the panel you are having drawn, the time frames for results can vary greatly. We have most recently been seeing
+                    - strong [ref=f19e139]: 5-7+ day turn around on basic panels, and 10-14+ days for comprehensive panels.
+                  - paragraph [ref=f19e140]: Many of the tests included in our panels utilize complex testing methodologies that take a long time to process and result.
+                  - paragraph [ref=f19e141]: Unfortunately there is nothing we can do to speed up this process. While there are cheaper/quicker tests that could be substituted to achieve a quicker turn around time on results, they would not reflect the standard of care that Marek holds for its clients.
+                  - paragraph
+                  - paragraph [ref=f19e142]: We will continue to explore new testing methodologies as they become available to ensure we are always offering the best solutions to our clients.
+              - generic [ref=f19e143]:
+                - paragraph [ref=f19e146] [cursor=pointer]: Do you accept health insurance or other services?
+                - generic [ref=f19e151]:
+                  - paragraph [ref=f19e152]: Marek Health does not communicate with health insurance companies for any of our services; even though the overall health of our clients is tremendously enhanced and they experience a better quality of life. Many health insurance providers don’t see it this way and consider our services elective.
+                  - paragraph [ref=f19e153]: Many customers have had success using FSA or HSA means of payment. Marek Health can provide copies of invoices and lab requisitions as needed. Because we are direct pay, and do not seek reimbursement from insurance providers, we cannot provide procedure codes (CPT) or diagnostic codes (ICD-10).
+                  - paragraph [ref=f19e154]: Promotion details and disclaimers
+                  - paragraph [ref=f19e155]: Discount and promotion codes are one-time use only. Not valid on prior purchases. Offer may not be combined with any other sale, promotion, or discount code. Void where prohibited, taxed, or otherwise restricted. Customers are limited to one discount or promotion code in their lifetime. Promotions have no cash value. Marek Health has the right to modify any promotion at any time. Other restrictions may apply. Offers only apply to the United States unless otherwise noted.
+              - generic [ref=f19e156]:
+                - paragraph [ref=f19e159] [cursor=pointer]: I don’t have a PCP, where can I get a Physical Exam done?
+                - generic [ref=f19e164]:
+                  - paragraph [ref=f19e165]: If you do not have a primary care physician (PCP) you can get a physical by a MD, DO, PA, NP credentialed provider at an urgent care clinic or similar setting.
+                  - paragraph [ref=f19e166]:
+                    - text: Please find our physical exam form
+                    - link [ref=f19e167] [cursor=pointer]:
+                      - /url: /docs/PhysicalExamCover.pdf
+                      - strong [ref=f19e168]: here.
+              - generic [ref=f19e169]:
+                - paragraph [ref=f19e172] [cursor=pointer]: How long does it typically take to fulfill a medication order?
+                - generic [ref=f19e177]:
+                  - paragraph [ref=f19e178]: We know what you’re thinking…. “I can go to my local pharmacy with a script from my doctor, wait 15 minutes and walk out with my medications. What is taking so long?!!!!!”
+                  - paragraph [ref=f19e179]: "When your order is placed, a complex series of processes kicks off behind the scenes, involving multiple departments at multiple companies:"
+                  - list [ref=f19e181]:
+                    - listitem [ref=f19e182]:
+                      - paragraph [ref=f19e183]: First, Marek staff must manually review the order for accuracy, and submit it to the pharmacy via a manual process. If your order is being fulfilled with multiple pharmacies, our staff has to log into each pharmacy portal and submit the order.
+                    - listitem [ref=f19e184]:
+                      - paragraph [ref=f19e185]: Next, your physician must review your prescription and sign off for its release to you at the pharmacy. If your order is being fulfilled with multiple pharmacies, your physician has to log into each pharmacy portal and approve the orders. The physicians are also working with clients during the day and typically approve orders once per day.
+                    - listitem [ref=f19e186]:
+                      - paragraph [ref=f19e187]: Your order is finally being processed by the compounding pharmacy! Unlike the retail pharmacy down the street from you, a compounding pharmacy makes your medications on the spot when the order is placed. They cannot just grab an item off the shelf and fulfill the order. Depending on the size of your order, and the complexity of the compounding, it can take up to 48hours to make all your medications. Once your order is complete, it must be reviewed and signed off by the Pharmacist fulfilling the order. Lastly, your order undergoes another final inspection by the shipping department before it is boxed up and sent to you.
+                  - paragraph
+                  - paragraph [ref=f19e188]: We only use 503A/503B FDA Approved and Audited compounding pharmacies as our fulfillment partners. This allows us to customize the delivery routes, strength, and other characteristics of the medication to provide a more targeted and effective treatment.
+              - generic [ref=f19e189]:
+                - paragraph [ref=f19e192] [cursor=pointer]: What are the program requirements to be a Marek Health client?
+                - generic [ref=f19e197]:
+                  - paragraph [ref=f19e198]: In order to achieve the highest level of care possible, Marek has certain standards which are considered baseline requirements for being a client.
+                  - list [ref=f19e200]:
+                    - listitem [ref=f19e201]:
+                      - paragraph [ref=f19e202]: Physical Examination
+                      - list [ref=f19e203]:
+                        - listitem [ref=f19e204]:
+                          - paragraph [ref=f19e205]:
+                            - strong [ref=f19e206]: "Annual Physical (Every 12 Months):"
+                            - text: Since we are a telehealth provider, we need to ensure a qualified health professional (MD, DO, PA, NP) has seen you in person and attests to your physical health, thus ensuring legal compliance. You'll be required to send us a copy of your annual physical before starting and continuing treatment.
+                    - listitem [ref=f19e207]:
+                      - paragraph [ref=f19e208]: Medical Provider Consultations
+                      - list [ref=f19e209]:
+                        - listitem [ref=f19e210]:
+                          - paragraph [ref=f19e211]:
+                            - strong [ref=f19e212]: "Initial Consultation:"
+                            - text: Begin your treatment journey with an initial telehealth consultation with a medical provider.
+                        - listitem [ref=f19e213]:
+                          - paragraph [ref=f19e214]:
+                            - strong [ref=f19e215]: "Follow-Up (6-12 Weeks):"
+                            - text: After starting treatment, you'll have a follow-up visit within 6 to 12 weeks to evaluate your therapy response.
+                        - listitem [ref=f19e216]:
+                          - paragraph [ref=f19e217]:
+                            - strong [ref=f19e218]: "Routine Visits (Every 6 Months):"
+                            - text: Continue with routine provider visits every six months to monitor your progress.
+                        - listitem [ref=f19e219]:
+                          - paragraph [ref=f19e220]:
+                            - strong [ref=f19e221]: "Additional Visits:"
+                            - text: Additional consultations may be scheduled as needed, based on your medical provider's recommendations and your personal preference.
+                    - listitem [ref=f19e222]:
+                      - paragraph [ref=f19e223]: Diagnostic Lab Work
+                      - list [ref=f19e224]:
+                        - listitem [ref=f19e225]:
+                          - paragraph [ref=f19e226]:
+                            - strong [ref=f19e227]: "Initial Comprehensive Lab Work:"
+                            - text: Before your first consultation with a medical provider, you must complete bespoke comprehensive lab tests. Your medical team will help determine the appropriate testing during your intake evaluation meeting. The data from your initial diagnostic lab work, in conjunction with your health history and goals, helps us tailor the best treatment plan for you.
+                        - listitem [ref=f19e228]:
+                          - paragraph [ref=f19e229]:
+                            - strong [ref=f19e230]: "Follow-Up Basic Lab Work (6-12 Weeks):"
+                            - text: We require basic diagnostic lab work 6-12 weeks after starting treatment. This helps us monitor your response and allows us to make any necessary adjustments to your treatment plan.
+                        - listitem [ref=f19e231]:
+                          - paragraph [ref=f19e232]:
+                            - strong [ref=f19e233]: "Ongoing Basic Lab Work (Every 6 Months):"
+                            - text: After the initial follow-up, you will need to continue having basic lab tests every six months. These regular check-ins enable us to ensure the ongoing effectiveness and safety of your treatment.
+                        - listitem [ref=f19e234]:
+                          - paragraph [ref=f19e235]:
+                            - strong [ref=f19e236]: "Additional Diagnostics:"
+                            - text: Additional diagnostics may be scheduled as needed, based on your medical provider's recommendations and your personal preference.
+              - generic [ref=f19e237]:
+                - paragraph [ref=f19e240] [cursor=pointer]: Can I visit Marek Health in person?
+                - generic [ref=f19e245]:
+                  - paragraph [ref=f19e246]: At this time Marek Health is strictly an online service.
+                  - paragraph [ref=f19e247]: The physical locations we maintain are strictly for administrative purposes at this time. Neither physicians, nor health coaches are present at these offices and they are not open to the general public.
+              - generic [ref=f19e248]:
+                - paragraph [ref=f19e251] [cursor=pointer]: What should I do in the event of a medical emergency?
+                - generic [ref=f19e256]:
+                  - paragraph [ref=f19e257]: If you feel that you are having a medical emergency, dial 9-1-1 for medical assistance and/or visit the nearest emergency room. Once in a stable condition, notify Marek Health of your emergency, but DO NOT contact Marek Health first.
+                  - paragraph [ref=f19e258]:
+                    - strong [ref=f19e259]: A medical emergency is a sudden injury or serious illness that, if not treated right away, could cause death or serious harm to you. Marek Health is not equipped to practice emergency medicine.
+                    - text: Staff members will reply at their earliest convenience, but may not be immediately available to answer any questions regarding your care.
+                  - paragraph [ref=f19e260]:
+                    - text: If you are unsure if you are having a medical emergency, or are exhibiting symptoms which appear to be life threatening, default to the highest level of escalation and call 9-1-1 for medical assistance and/or visit the nearest emergency room.
+                    - strong [ref=f19e261]: DO NOT WAIT.
+                  - paragraph [ref=f19e262]:
+                    - text: If you are unsure where the nearest emergency room is located,
+                    - strong [ref=f19e263]: dial 9-1-1
+                    - text: to find one.
+              - generic [ref=f19e264]:
+                - paragraph [ref=f19e267] [cursor=pointer]: I am interested in ‘X’ medication, does Marek offer it?
+                - generic [ref=f19e272]:
+                  - paragraph [ref=f19e273]: Marek Health is leading the way in access to the latest treatments and pharmaceuticals.
+                  - paragraph [ref=f19e274]: If you are interested in discussing a specific medication, please contact one of our health coaches for more information on our products and services.
+              - generic [ref=f19e275]:
+                - paragraph [ref=f19e278] [cursor=pointer]: Why can’t you provide ‘X’ product / service / medication to me?
+                - generic [ref=f19e283]:
+                  - paragraph [ref=f19e284]: The regulatory landscape for pharmaceutical medications and health services varies greatly from state to state, and changes almost daily.
+                  - paragraph [ref=f19e285]: "Some states have imposed restrictions on:"
+                  - list [ref=f19e287]:
+                    - listitem [ref=f19e288]:
+                      - paragraph [ref=f19e289]: Restriction on Days Supply allowed per order
+                    - listitem [ref=f19e290]:
+                      - paragraph [ref=f19e291]: Restriction on import of specific medications out of state
+                    - listitem [ref=f19e292]:
+                      - paragraph [ref=f19e293]: Outright ban of certain medications
+                  - paragraph
+                  - paragraph [ref=f19e294]: Marek Health complies with all state and federal laws, and may not be able to provide certain products/services/medications based on your place of residence in order to ensure legal compliance.
+              - generic [ref=f19e295]:
+                - paragraph [ref=f19e298] [cursor=pointer]: Can you provide me with lab test codes?
+                - paragraph [ref=f19e304]: Marek Health offers affordable diagnostic lab tests directly to customers. As we are direct pay and do not seek reimbursement from insurance providers, we cannot provide you with diagnostic codes.
+              - generic [ref=f19e305]:
+                - paragraph [ref=f19e308] [cursor=pointer]: Can you provide me with ICD codes?
+                - paragraph [ref=f19e314]: As Marek Health’s services are elective, we do not provide diagnostic codes. Because we are direct pay and do not seek reimbursement from insurance providers, we cannot provide procedure codes (CPT) or diagnostic codes (ICD-10).
+              - generic [ref=f19e315]:
+                - paragraph [ref=f19e318] [cursor=pointer]: I have recent labwork, why can’t you accept it?
+                - generic [ref=f19e323]:
+                  - paragraph [ref=f19e324]: Marek Health’s guided optimization process includes thorough diagnostics that go far beyond what is typically included in an annual check-up with your PCP. Our team creates a customized lab panel based on your individual physiology. We believe in comprehensive testing and accurate results. That’s why we specifically seek out high-sensitivity and the most up-to-date testing. The detailed results of this additional testing, in combination with one-on-one counseling with the medical provider, will be used to develop a comprehensive lab report and your customized treatment plan.
+                  - paragraph [ref=f19e325]: We require, at a minimum, the comprehensive male/female panel to begin the guided optimization process.
+                  - paragraph [ref=f19e326]: We require all clients at Marek Health to complete thorough diagnostic lab work at least every 6 months.
+              - generic [ref=f19e327]:
+                - paragraph [ref=f19e330] [cursor=pointer]: I have a recent physical examination, can you accept it?
+                - paragraph [ref=f19e336]:
+                  - text: We accept
+                  - strong [ref=f19e337]: physical exams
+                  - text: that were completed
+                  - strong [ref=f19e338]: within the last 3 months
+                  - text: from your application date. Keep in mind, we require physical exams at 12 month intervals. If you apply with a physical exam that was done 6 months ago, you will be required to get another physical done in 6 months (when your 12 month period has expired for that physical.)
+              - generic [ref=f19e339]:
+                - paragraph [ref=f19e342] [cursor=pointer]: How should I communicate with my Marek Health Coach and Marek Health partnered licensed medical provider once they are in place?
+                - paragraph [ref=f19e348]:
+                  - text: Clients can communicate with their Proactive Care Team (Marek Health Coach and Marek Health partnered licensed medical provider) by emailing the Marek Health Coach directly using the email provided at the Intake Assessment. Another option is to email
+                  - strong [ref=f19e349]: info@marekhealth.com
+                  - text: to contact Marek Health's Customer Service Team for assistance transferring communication to the appropriate team member.
+              - generic [ref=f19e350]:
+                - paragraph [ref=f19e353] [cursor=pointer]: Is Marek Health available in my state?
+                - paragraph [ref=f19e359]:
+                  - text: Marek Health's Guided Optimization
+                  - superscript [ref=f19e360]: ®
+                  - text: program is available in all 50 states across the United States. However, specific treatments and diagnostics may be limited to certain states.
+              - generic [ref=f19e361]:
+                - paragraph [ref=f19e364] [cursor=pointer]: Can you provide me with a Letter of Medical Necessity?
+                - generic [ref=f19e369]:
+                  - paragraph [ref=f19e370]: Since our services are elective and provided on a cash-pay basis, we are unable to supply a Letter of Medical Necessity. Our telemedicine platform cannot complete, modify, or submit any forms or paperwork, including those required for insurance, disability, military, employment, or educational purposes. For assistance with these types of documentation, we recommend contacting your primary healthcare provider.
+                  - paragraph [ref=f19e371]: If needed, Marek Health can provide copies of invoices and lab requisitions for your records.
+        - generic [ref=f19e372]:
+          - generic [ref=f19e374]:
+            - generic [ref=f19e375]:
+              - paragraph [ref=f19e376]: Contact Info
+              - generic [ref=f19e377]:
+                - link "Info@MarekHealth.com" [ref=f19e380] [cursor=pointer]:
+                  - /url: mailto:info@marekhealth.com
+                - generic [ref=f19e382]: "Phone: 1 (877) 572 2582"
+                - generic [ref=f19e385]: The fastest and most effective way to reach us is via email
+                - generic [ref=f19e388]: "Tracking the status of your med order? Please Contact:"
+                - generic [ref=f19e391]: Trackingmailbox@marekhealth.com
+                - generic [ref=f19e394]: Office hours
+                - generic [ref=f19e397]: "Mon-Fri: 9:00 am – 5:00 pm EST"
+            - generic [ref=f19e400]:
+              - generic [ref=f19e401]:
+                - paragraph [ref=f19e402]: More Info
+                - generic [ref=f19e403]:
+                  - link "Careers" [ref=f19e406] [cursor=pointer]:
+                    - /url: mailto:careers@marekhealth.com
+                  - generic [ref=f19e409]:
+                    - generic [ref=f19e410] [cursor=pointer]: Legal
+                    - generic [ref=f19e411] [cursor=pointer]
+                  - link "Cancellation & Refund Policy" [ref=f19e417] [cursor=pointer]:
+                    - /url: /cancellation-refund-policy
+                  - generic [ref=f19e419]: Do Not Share or Sell My Personal Information
+              - link [ref=f19e422] [cursor=pointer]:
+                - /url: https://www.legitscript.com/websites/?checker_keywords=marekhealth.com
+                - img "Verify Approval for www.marekhealth.com" [ref=f19e423]
+            - generic [ref=f19e424]:
+              - generic [ref=f19e425]:
+                - paragraph [ref=f19e426]: Services
+                - generic [ref=f19e427]:
+                  - link "Guided Optimization" [ref=f19e430] [cursor=pointer]:
+                    - /url: https://marekhealth.com/sign-up
+                  - link "Diagnostic Labs" [ref=f19e434] [cursor=pointer]:
+                    - /url: https://marekdiagnostics.com/
+                  - link "Partnership Program" [ref=f19e438] [cursor=pointer]:
+                    - /url: mailto:coaching@marekhealth.com
+              - generic [ref=f19e440]:
+                - paragraph [ref=f19e441]: Follow us
+                - generic [ref=f19e442]:
+                  - link "https://www.instagram.com/marekhealth/?hl=en" [ref=f19e443] [cursor=pointer]:
+                    - /url: https://www.instagram.com/marekhealth/?hl=en
+                  - link "https://twitter.com/marekhealth?s=20" [ref=f19e448] [cursor=pointer]:
+                    - /url: https://twitter.com/marekhealth?s=20
+                  - link "https://www.youtube.com/@marekhealth" [ref=f19e453] [cursor=pointer]:
+                    - /url: https://www.youtube.com/@marekhealth
+                  - link "https://www.facebook.com/marekhealth/" [ref=f19e458] [cursor=pointer]:
+                    - /url: https://www.facebook.com/marekhealth/
+                  - link "https://www.linkedin.com/company/marek-health" [ref=f19e463] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/company/marek-health
+          - generic [ref=f19e468]: Copyright 2026 | All Rights Reserved
+  - alert [ref=f19e473]
+  - iframe [ref=f19e475]:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - button "Abrir widget":
+              - generic "Start-icon"

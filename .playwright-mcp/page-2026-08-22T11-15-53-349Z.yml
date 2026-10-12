@@ -1,0 +1,129 @@
+- generic [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - button [ref=f5e4] [cursor=pointer]
+      - generic [ref=f5e5]:
+        - banner [ref=f5e6]:
+          - generic [ref=f5e7]:
+            - button [ref=f5e8] [cursor=pointer]
+            - paragraph [ref=f5e14]: Dr. Exame
+            - button [ref=f5e15] [cursor=pointer]:
+              - generic [ref=f5e18]: "71"
+            - button [ref=f5e19] [cursor=pointer]:
+              - generic [ref=f5e20]: 9+
+            - button [ref=f5e25] [cursor=pointer]:
+              - generic [ref=f5e26]: E
+        - main [ref=f5e28]:
+          - generic [ref=f5e30]:
+            - generic [ref=f5e31]:
+              - paragraph [ref=f5e32]: Bom dia, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f5e35]:
+              - generic [ref=f5e36]:
+                - generic [ref=f5e41]:
+                  - paragraph [ref=f5e42]: "45"
+                  - paragraph [ref=f5e43]: de 100
+                - generic [ref=f5e44]:
+                  - paragraph [ref=f5e45]: Sua saúde hoje
+                  - paragraph [ref=f5e46]: Pede atenção
+                  - paragraph [ref=f5e48]:
+                    - generic [ref=f5e49]: ● 6 moderados
+              - button [ref=f5e50] [cursor=pointer]: Ver análise completa
+            - generic [ref=f5e54]:
+              - generic [ref=f5e55]:
+                - paragraph [ref=f5e56]: Quase lá
+                - generic [ref=f5e57]: 60% do perfil
+              - paragraph [ref=f5e58]: Um passo pra destravar análises mais precisas.
+              - generic [ref=f5e59]:
+                - paragraph [ref=f5e64]: Completar seu perfil
+                - paragraph [ref=f5e69]: Enviar seu primeiro exame
+              - button [ref=f5e70] [cursor=pointer]: Completar perfil
+            - button [ref=f5e79] [cursor=pointer]: Conversar com a IA
+            - generic [ref=f5e83]:
+              - generic [ref=f5e90] [cursor=pointer]:
+                - paragraph [ref=f5e91]: Cardiometabólico
+                - paragraph [ref=f5e92]: Sem dados
+                - paragraph [ref=f5e93]: sem colesterol, peso ou pressão
+              - generic [ref=f5e96] [cursor=pointer]:
+                - generic [ref=f5e97]: 🧬
+                - generic [ref=f5e98]:
+                  - paragraph [ref=f5e99]: Idade biológica
+                  - paragraph [ref=f5e100]: 44a
+                  - paragraph [ref=f5e101]: cadastre seu nascimento
+              - generic [ref=f5e108] [cursor=pointer]:
+                - paragraph [ref=f5e109]: Seus exames
+                - paragraph [ref=f5e110]: "5"
+                - paragraph [ref=f5e111]: 8 alterados
+              - generic [ref=f5e118] [cursor=pointer]:
+                - paragraph [ref=f5e119]: Evolução
+                - paragraph [ref=f5e120]: Tendências
+                - paragraph [ref=f5e121]: 28 resultados
+            - generic [ref=f5e123]:
+              - generic [ref=f5e124]: Enviar exame
+              - generic [ref=f5e131]: Evolução
+              - generic [ref=f5e138]: Família
+              - generic [ref=f5e146]: Relatório
+            - generic [ref=f5e155]:
+              - generic [ref=f5e159]:
+                - paragraph [ref=f5e160]: "71"
+                - text: créditos disponíveis
+              - button [ref=f5e161] [cursor=pointer]: Comprar
+            - button [ref=f5e163] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f5e167]:
+      - paragraph [ref=f5e172] [cursor=pointer]: Início
+      - paragraph [ref=f5e178] [cursor=pointer]: Exames
+      - paragraph [ref=f5e182] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e187] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e192] [cursor=pointer]: Mais
+  - generic [ref=f5e194] [cursor=pointer]
+  - dialog [active] [ref=f5e199]:
+    - navigation [ref=f5e200]:
+      - button [ref=f5e202] [cursor=pointer]:
+        - generic [ref=f5e206]: Exames
+      - button [ref=f5e211] [cursor=pointer]:
+        - generic [ref=f5e216]: Cuidados
+      - button [ref=f5e221] [cursor=pointer]:
+        - generic [ref=f5e226]: Pessoas
+      - button [ref=f5e231] [cursor=pointer]:
+        - generic [ref=f5e235]: Conta
+      - separator [ref=f5e239]
+      - button [ref=f5e240] [cursor=pointer]:
+        - generic [ref=f5e244]: Dúvidas frequentes
+      - button [ref=f5e246] [cursor=pointer]:
+        - generic [ref=f5e250]: Ajuda & Suporte
+      - menuitem [ref=f5e252] [cursor=pointer]:
+        - generic [ref=f5e256]: Sobre o app
+      - menuitem [ref=f5e258] [cursor=pointer]:
+        - generic [ref=f5e262]: Sair da conta
+  - dialog [ref=f5e266]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 3 Fechar" [level=2] [ref=f5e267]:
+      - generic [ref=f5e268]:
+        - paragraph [ref=f5e269]: Vamos preparar o Dr. Exame
+        - generic [ref=f5e270]: Passo 1 de 3
+      - button "Fechar" [ref=f5e271] [cursor=pointer]
+    - progressbar [ref=f5e274]
+    - generic [ref=f5e277]:
+      - paragraph [ref=f5e278]: Essas informações personalizam as faixas de referência dos seus exames e os cálculos de idade biológica e função renal.
+      - generic [ref=f5e279]:
+        - generic [ref=f5e280]:
+          - text: Sexo
+          - generic [ref=f5e281]: "*"
+        - generic [ref=f5e282]:
+          - combobox "Sexo Masculino" [ref=f5e283] [cursor=pointer]: Masculino
+          - textbox: male
+          - group:
+            - generic: Sexo *
+      - generic [ref=f5e284]:
+        - generic [ref=f5e285]:
+          - generic [ref=f5e286]: Data de nascimento
+          - generic [ref=f5e287]:
+            - textbox "Data de nascimento" [ref=f5e288]:
+              - /placeholder: dd/mm/aaaa
+              - text: 15/03/1985
+            - button "Abrir calendário" [ref=f5e290] [cursor=pointer]
+            - group:
+              - generic: Data de nascimento
+        - textbox: 1985-03-15
+    - generic [ref=f5e293]:
+      - button "Agora não" [ref=f5e294] [cursor=pointer]
+      - button [ref=f5e295] [cursor=pointer]

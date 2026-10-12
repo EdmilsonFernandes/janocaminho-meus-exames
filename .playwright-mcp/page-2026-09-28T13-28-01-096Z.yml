@@ -1,0 +1,52 @@
+- generic [ref=f1e1]:
+  - generic [aria-hidden] [ref=f1e2]:
+    - generic [ref=f1e91]:
+      - button [ref=f1e92] [cursor=pointer]
+      - generic [ref=f1e93]:
+        - banner [ref=f1e94]:
+          - generic [ref=f1e95]:
+            - button [ref=f1e96] [cursor=pointer]
+            - paragraph [ref=f1e102]: Dr. Exame
+            - generic [ref=f1e103]:
+              - button [ref=f1e104] [cursor=pointer]:
+                - generic [ref=f1e105]: 9+
+              - button [ref=f1e109] [cursor=pointer]:
+                - generic [ref=f1e110]: E
+        - main [ref=f1e115]
+    - navigation [ref=f1e141]:
+      - button [ref=f1e142] [cursor=pointer]:
+        - paragraph [ref=f1e146]: Início
+      - button [ref=f1e148] [cursor=pointer]:
+        - paragraph [ref=f1e152]: Exames
+      - button [ref=f1e153] [cursor=pointer]:
+        - paragraph [ref=f1e156]: Dr. Exame
+      - button [ref=f1e157] [cursor=pointer]:
+        - paragraph [ref=f1e161]: Evolução
+      - button [ref=f1e162] [cursor=pointer]:
+        - paragraph [ref=f1e166]: Mais
+  - dialog [active] [ref=f1e169]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=f1e170]
+    - generic [ref=f1e171]:
+      - generic [ref=f1e172]: Versão 2.7.193
+      - generic [ref=f1e173]:
+        - generic [ref=f1e174]:
+          - generic [ref=f1e175]: 📱
+          - generic [ref=f1e176]:
+            - paragraph [ref=f1e177]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=f1e178]:
+          - generic [ref=f1e179]: 🔐
+          - generic [ref=f1e180]:
+            - paragraph [ref=f1e181]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=f1e182]:
+          - generic [ref=f1e183]: 🩺
+          - generic [ref=f1e184]:
+            - paragraph [ref=f1e185]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=f1e186]:
+          - generic [ref=f1e187]: 🚑
+          - generic [ref=f1e188]:
+            - paragraph [ref=f1e189]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button "Legal! →" [ref=f1e191] [cursor=pointer]

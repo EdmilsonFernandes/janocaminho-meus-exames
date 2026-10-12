@@ -1,0 +1,84 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e2147] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e2148] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e2149]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e2151]
+            - button "Notificações" [ref=e2152] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e2153] [cursor=pointer]
+            - button "Atualizar" [ref=e2154] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e3606]:
+            - heading "🛡️ Privacidade e Termos" [level=5] [ref=e3607]
+            - paragraph [ref=e3608]: Como seus dados são tratados e seus direitos (LGPD).
+            - generic [ref=e3610]:
+              - heading "📋 Termos de Uso" [level=6] [ref=e3611]
+              - paragraph [ref=e3612]:
+                - text: O Meus Exames é um app de apoio à gestão de saúde pessoal. A análise gerada pela IA é
+                - strong [ref=e3613]: educativa
+                - text: e
+                - strong [ref=e3614]: não substitui
+                - text: consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.
+              - button "Ler termos completos →" [ref=e3615] [cursor=pointer]
+            - generic [ref=e3617]:
+              - heading "🧾 Antes de enviar um exame" [level=6] [ref=e3618]
+              - alert [ref=e3619]:
+                - generic [ref=e3623]: Ao enviar PDF, foto ou usar a câmera, o arquivo e os dados de saúde são enviados ao Meus Exames para extração e análise educativa com IA.
+              - generic [ref=e3624]:
+                - generic [ref=e3625]:
+                  - generic [ref=e3626]: "1"
+                  - paragraph [ref=e3627]: A IA ajuda a organizar e explicar seus exames, mas não diagnostica, não prescreve e não substitui consulta médica.
+                - generic [ref=e3628]:
+                  - generic [ref=e3629]: "2"
+                  - paragraph [ref=e3630]: O processamento pode usar operadores necessários, como Z.ai/GLM para IA, Firebase para notificações, Sentry para erros e Mercado Pago para pagamentos.
+                - generic [ref=e3631]:
+                  - generic [ref=e3632]: "3"
+                  - paragraph [ref=e3633]: Você controla o compartilhamento com médicos; links usam PIN, expiram em 12 horas e podem ser revogados.
+                - generic [ref=e3634]:
+                  - generic [ref=e3635]: "4"
+                  - paragraph [ref=e3636]: Você pode apagar exames, exportar seus dados ou excluir a conta pelo Perfil.
+            - generic [ref=e3638]:
+              - heading "🔐 LGPD (Lei Geral de Proteção de Dados)" [level=6] [ref=e3639]
+              - generic [ref=e3640]:
+                - generic [ref=e3641]:
+                  - generic [ref=e3642]: "1"
+                  - paragraph [ref=e3643]: Seus dados de saúde são tratados em ambiente controlado, com autenticação, HTTPS em produção e acesso restrito.
+                - generic [ref=e3644]:
+                  - generic [ref=e3645]: "2"
+                  - paragraph [ref=e3646]: Você controla quem acessa seus dados (compartilhamento com médicos é opcional e revogável).
+                - generic [ref=e3647]:
+                  - generic [ref=e3648]: "3"
+                  - paragraph [ref=e3649]: Você pode exportar todos os seus dados a qualquer momento (no Perfil).
+                - generic [ref=e3650]:
+                  - generic [ref=e3651]: "4"
+                  - paragraph [ref=e3652]: Você pode excluir sua conta e todos os dados permanentemente (no Perfil).
+                - generic [ref=e3653]:
+                  - generic [ref=e3654]: "5"
+                  - paragraph [ref=e3655]: Não vendemos seus dados; compartilhamos apenas com operadores necessários para IA, notificações, pagamentos, suporte e infraestrutura.
+            - generic [ref=e3657]:
+              - heading "⚙️ Gerenciar seus dados" [level=6] [ref=e3658]
+              - paragraph [ref=e3659]: Exportar ou excluir seus dados está disponível no seu Perfil.
+              - button "Ir para o Perfil →" [ref=e3660] [cursor=pointer]
+    - button "Pergunte ao Dr. Exame" [ref=e3661] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e3664]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2209]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

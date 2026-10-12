@@ -1,0 +1,279 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e572] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Close menu" [ref=e573] [cursor=pointer]:
+              - img [ref=e26]
+            - heading [level=6]
+            - button "71" [ref=e574] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "71"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e575] [cursor=pointer]:
+              - generic [ref=e35]: E
+              - generic [ref=e37]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e39]
+            - button "21" [ref=e576] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - generic [ref=e45]: "21"
+            - button "Mais opções" [ref=e577] [cursor=pointer]:
+              - img [ref=e47]
+            - button "Atualizar" [ref=e578] [cursor=pointer]:
+              - img [ref=e51]
+        - main [ref=e53]:
+          - navigation [ref=e491]:
+            - button "Início" [ref=e579] [cursor=pointer]:
+              - img [ref=e494]
+              - generic [ref=e497]: Início
+            - button "Exames" [ref=e580] [cursor=pointer]:
+              - img [ref=e500]
+              - generic [ref=e503]: Exames
+            - button "Dr. Exame (IA)" [ref=e581] [cursor=pointer]:
+              - img [ref=e506]
+              - generic [ref=e509]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e582] [cursor=pointer]:
+              - img [ref=e512]
+              - generic [ref=e515]: Relatório completo
+            - generic [ref=e516]:
+              - button "Evolução & Conquistas" [ref=e583] [cursor=pointer]:
+                - img [ref=e519]
+                - generic [ref=e523]: Evolução & Conquistas
+                - img [ref=e524]
+              - generic [ref=e673]:
+                - button "Evolução" [ref=e674] [cursor=pointer]:
+                  - img [ref=e676]
+                  - generic [ref=e680]: Evolução
+                - button "Minhas conquistas" [ref=e681] [cursor=pointer]:
+                  - img [ref=e683]
+                  - generic [ref=e686]: Minhas conquistas
+            - generic [ref=e526]:
+              - button "Minha Saúde" [ref=e584] [cursor=pointer]:
+                - img [ref=e529]
+                - generic [ref=e533]: Minha Saúde
+                - img [ref=e534]
+              - generic [ref=e857]:
+                - button "Valores alterados" [ref=e858] [cursor=pointer]:
+                  - img [ref=e860]
+                  - generic [ref=e864]: Valores alterados
+                - button "Tendências" [ref=e865] [cursor=pointer]:
+                  - img [ref=e867]
+                  - generic [ref=e870]: Tendências
+                - button "Linha do tempo" [ref=e871] [cursor=pointer]:
+                  - img [ref=e873]
+                  - generic [ref=e876]: Linha do tempo
+                - button "Medições" [ref=e877] [cursor=pointer]:
+                  - img [ref=e879]
+                  - generic [ref=e883]: Medições
+                - button "Vacinas" [ref=e884] [cursor=pointer]:
+                  - img [ref=e886]
+                  - generic [ref=e889]: Vacinas
+                - button "Lembretes" [ref=e890] [cursor=pointer]:
+                  - img [ref=e892]
+                  - generic [ref=e895]: Lembretes
+                - button "Cartão de emergência" [ref=e896] [cursor=pointer]:
+                  - img [ref=e898]
+                  - generic [ref=e901]: Cartão de emergência
+            - generic [ref=e536]:
+              - button "Família & Médicos" [ref=e585] [cursor=pointer]:
+                - img [ref=e539]
+                - generic [ref=e543]: Família & Médicos
+                - img [ref=e544]
+              - generic [ref=e755]:
+                - button "Família" [ref=e756] [cursor=pointer]:
+                  - img [ref=e758]
+                  - generic [ref=e762]: Família
+                - button "Dependentes" [ref=e763] [cursor=pointer]:
+                  - img [ref=e765]
+                  - generic [ref=e769]: Dependentes
+                - button "Meus Médicos" [ref=e770] [cursor=pointer]:
+                  - img [ref=e772]
+                  - generic [ref=e775]: Meus Médicos
+                - button "Despesas médicas" [ref=e776] [cursor=pointer]:
+                  - img [ref=e778]
+                  - generic [ref=e781]: Despesas médicas
+            - generic [ref=e546]:
+              - button "Conta" [ref=e586] [cursor=pointer]:
+                - img [ref=e549]
+                - generic [ref=e552]: Conta
+                - img [ref=e553]
+              - generic [ref=e944]:
+                - button "Meu perfil" [ref=e945] [cursor=pointer]:
+                  - img [ref=e947]
+                  - generic [ref=e950]: Meu perfil
+                - button "Segurança" [ref=e951] [cursor=pointer]:
+                  - img [ref=e953]
+                  - generic [ref=e956]: Segurança
+                - button "Privacidade e termos" [ref=e957] [cursor=pointer]:
+                  - img [ref=e959]
+                  - generic [ref=e962]: Privacidade e termos
+                - button "Planos e créditos" [ref=e963] [cursor=pointer]:
+                  - img [ref=e965]
+                  - generic [ref=e968]: Planos e créditos
+                - button "Painel Admin" [ref=e969] [cursor=pointer]:
+                  - img [ref=e971]
+                  - generic [ref=e975]: Painel Admin
+            - separator [ref=e555]
+            - button "❓ Ajuda & Suporte" [ref=e587] [cursor=pointer]:
+              - generic [ref=e558]: ❓
+              - generic [ref=e560]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e588] [cursor=pointer]:
+              - generic [ref=e562]: ℹ️
+              - generic [ref=e564]: Sobre o app
+            - menuitem "Sair da conta" [ref=e589] [cursor=pointer]:
+              - img [ref=e567]
+              - generic [ref=e570]: Sair da conta
+            - generic [ref=e571]: Meus Exames · v2.4.0.181 (b16361f)
+          - generic [ref=e976]:
+            - generic [ref=e977]:
+              - img [ref=e979]
+              - generic [ref=e981]:
+                - heading "Meu perfil" [level=5] [ref=e982]
+                - paragraph [ref=e983]: Sua conta, dados e preferências
+            - generic [ref=e985]:
+              - generic [ref=e987]:
+                - generic [ref=e988]: E
+                - button [ref=e989] [cursor=pointer]:
+                  - img [ref=e990]
+              - generic [ref=e993]:
+                - heading "Edmilson Lopes Fernandes dos Santos" [level=5] [ref=e1078]
+                - paragraph [ref=e995]: ✉️ edmilson@exemplo.com
+                - generic [ref=e998]: Plano grátis
+                - generic [ref=e999]: Toque na câmera da foto para trocar a imagem.
+            - generic [ref=e1001]:
+              - heading "Dados e perfil clínico" [level=6] [ref=e1002]
+              - generic [ref=e1003]:
+                - generic [ref=e1004]:
+                  - generic [ref=e1079]: Nome completo
+                  - generic [ref=e1005]:
+                    - textbox "Nome completo" [ref=e1006]: Edmilson Lopes Fernandes dos Santos
+                    - group:
+                      - generic: Nome completo
+                - generic [ref=e1007]:
+                  - generic: Telefone / WhatsApp
+                  - generic [ref=e1008]:
+                    - textbox "Telefone / WhatsApp" [ref=e1009]
+                    - group:
+                      - generic: Telefone / WhatsApp
+                - generic [ref=e1010]:
+                  - generic [ref=e1080]: Sexo (define a faixa de referência dos exames)
+                  - generic [ref=e1011]:
+                    - combobox "Sexo (define a faixa de referência dos exames) Masculino" [ref=e1081] [cursor=pointer]: Masculino
+                    - textbox: male
+                    - img
+                    - group:
+                      - generic: Sexo (define a faixa de referência dos exames)
+                  - paragraph [ref=e1013]: Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.
+                - generic [ref=e1014]:
+                  - generic [ref=e1082]: Altura (cm)
+                  - generic [ref=e1015]:
+                    - spinbutton "Altura (cm)" [ref=e1016]: "178"
+                    - group:
+                      - generic: Altura (cm)
+                  - paragraph [ref=e1017]: Usada pra calcular o IMC e contextualizar exames.
+                - generic [ref=e1018]:
+                  - generic [ref=e1083]: Etnia (opcional)
+                  - generic [ref=e1019]:
+                    - combobox "Etnia (opcional) Parda" [ref=e1084] [cursor=pointer]: Parda
+                    - textbox: parda
+                    - img
+                    - group:
+                      - generic: Etnia (opcional)
+                  - paragraph [ref=e1021]: Dados demográficos ajudam a refinar futuras análises.
+                - generic [ref=e1022]:
+                  - generic [ref=e1023]: Data de nascimento
+                  - generic [ref=e1024]:
+                    - textbox "Data de nascimento" [ref=e1025]
+                    - group:
+                      - generic: Data de nascimento
+                  - paragraph [ref=e1026]: Usado pra calcular idade e ajustar faixas de referência.
+                - generic [ref=e1027]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+                  - generic [ref=e1028]:
+                    - textbox "Perfil clínico (condições, medicações, histórico)" [ref=e1029]
+                    - group:
+                      - generic: Perfil clínico (condições, medicações, histórico)
+                  - paragraph [ref=e1030]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+              - button "Salvar perfil" [ref=e1032] [cursor=pointer]:
+                - img [ref=e1034]
+                - text: Salvar perfil
+            - generic [ref=e1037]:
+              - heading "🔔 Notificações" [level=6] [ref=e1038]
+              - generic [ref=e1039] [cursor=pointer]:
+                - switch "Avisar quando eu desbloquear uma conquista" [checked] [ref=e1042]
+                - generic [ref=e1045]: Avisar quando eu desbloquear uma conquista
+              - generic [ref=e1046]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=e1048]:
+              - heading "Trocar senha" [level=6] [ref=e1049]:
+                - img [ref=e1050]
+                - text: Trocar senha
+              - generic [ref=e1052]:
+                - generic [ref=e1053]:
+                  - generic: Senha atual
+                  - generic [ref=e1054]:
+                    - textbox "Senha atual" [ref=e1055]
+                    - group:
+                      - generic: Senha atual
+                - generic [ref=e1056]:
+                  - generic [ref=e1057]:
+                    - generic: Nova senha
+                    - generic [ref=e1058]:
+                      - textbox "Nova senha" [ref=e1059]
+                      - group:
+                        - generic: Nova senha
+                  - generic [ref=e1060]:
+                    - generic: Confirmar nova senha
+                    - generic [ref=e1061]:
+                      - textbox "Confirmar nova senha" [ref=e1062]
+                      - group:
+                        - generic: Confirmar nova senha
+              - generic [ref=e1063]:
+                - button "Alterar senha" [disabled]:
+                  - generic:
+                    - img
+                  - text: Alterar senha
+            - generic [ref=e1086]:
+              - generic [ref=e1087]:
+                - img [ref=e1088]
+                - heading "Indique e ganhe créditos" [level=6] [ref=e1090]
+              - paragraph [ref=e1091]:
+                - text: Cada amigo que se cadastrar com seu código ganha
+                - strong [ref=e1092]: +30 créditos
+                - text: . Você também ganha
+                - strong [ref=e1093]: "+30"
+                - text: "!"
+              - generic [ref=e1094]:
+                - paragraph [ref=e1096]: EDMILSON-DZLJ
+                - button "Copiar" [ref=e1097] [cursor=pointer]:
+                  - img [ref=e1099]
+                  - text: Copiar
+              - button "Compartilhar link" [ref=e1101] [cursor=pointer]:
+                - img [ref=e1103]
+                - text: Compartilhar link
+              - generic [ref=e1105]:
+                - generic [ref=e1106]:
+                  - paragraph [ref=e1107]: "0"
+                  - text: amigos indicados
+                - generic [ref=e1108]:
+                  - paragraph [ref=e1109]: "+0"
+                  - text: créditos ganhos
+            - generic [ref=e1065]:
+              - heading "Meus dados" [level=6] [ref=e1066]
+              - generic [ref=e1067]:
+                - button "Excluir minha conta" [ref=e1068] [cursor=pointer]
+                - button "Exportar dados" [ref=e1069] [cursor=pointer]:
+                  - img [ref=e1071]
+                  - text: Exportar dados
+                - button "Importar dados" [ref=e1073] [cursor=pointer]:
+                  - img [ref=e1075]
+                  - text: Importar dados
+              - generic [ref=e1077]: A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".
+    - button "Pergunte ao Dr. Exame" [ref=e698] [cursor=pointer]:
+      - generic [ref=e699]:
+        - img "Dr. Exame" [ref=e701]
+        - img [ref=e703]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e600]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e601]

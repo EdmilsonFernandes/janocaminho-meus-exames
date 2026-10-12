@@ -1,0 +1,158 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e2147] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e2148] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e2149]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e2151]
+            - button "Notificações" [ref=e2152] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e2153] [cursor=pointer]
+            - button "Atualizar" [ref=e2154] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e2806]:
+            - generic [ref=e2811]:
+              - heading "Meu perfil" [level=5] [ref=e2812]
+              - paragraph [ref=e2813]: Sua conta, dados e preferências
+            - generic [ref=e2815]:
+              - generic [ref=e2817]:
+                - generic [ref=e2818]: "?"
+                - button [ref=e2819] [cursor=pointer]
+              - generic [ref=e2823]:
+                - heading "—" [level=5] [ref=e2824]
+                - paragraph [ref=e2825]: ✉️ —
+                - generic [ref=e2826]: Plano grátis
+                - generic [ref=e2829]: Toque na câmera da foto para trocar a imagem.
+            - generic [ref=e2831]:
+              - heading "Dados e perfil clínico" [level=6] [ref=e2832]
+              - generic [ref=e2833]:
+                - generic [ref=e2834]:
+                  - generic: Nome completo
+                  - generic [ref=e2835]:
+                    - textbox "Nome completo" [ref=e2836]
+                    - group:
+                      - generic: Nome completo
+                - generic [ref=e2837]:
+                  - generic: CPF
+                  - generic [ref=e2838]:
+                    - textbox "CPF" [ref=e2839]
+                    - group:
+                      - generic: CPF
+                  - paragraph [ref=e2840]: Usado para confirmar que os exames pertencem a este perfil.
+                - generic [ref=e2841]:
+                  - generic: Telefone / WhatsApp
+                  - generic [ref=e2842]:
+                    - textbox "Telefone / WhatsApp" [ref=e2843]
+                    - group:
+                      - generic: Telefone / WhatsApp
+                - generic [ref=e2844]:
+                  - generic: Sexo (define a faixa de referência dos exames)
+                  - generic [ref=e2845]:
+                    - combobox "Sexo (define a faixa de referência dos exames)" [ref=e2846] [cursor=pointer]
+                    - textbox
+                    - group:
+                      - generic: Sexo (define a faixa de referência dos exames)
+                  - paragraph [ref=e2847]: Mulher usa a coluna 'Mulheres', homem a 'Homens' do laudo.
+                - generic [ref=e2848]:
+                  - generic: Altura (cm)
+                  - generic [ref=e2849]:
+                    - spinbutton "Altura (cm)" [ref=e2850]
+                    - group:
+                      - generic: Altura (cm)
+                  - paragraph [ref=e2851]: "Em centímetros (ex.: 172). Aceita 1,72 m — convertemos pra você. Usada no IMC."
+                - generic [ref=e2852]:
+                  - generic: Etnia (opcional)
+                  - generic [ref=e2853]:
+                    - combobox "Etnia (opcional)" [ref=e2854] [cursor=pointer]
+                    - textbox
+                    - group:
+                      - generic: Etnia (opcional)
+                  - paragraph [ref=e2855]: Dados demográficos ajudam a refinar futuras análises.
+                - generic [ref=e2856]:
+                  - generic [ref=e2857]:
+                    - generic [ref=e2858]: Data de nascimento
+                    - generic [ref=e2859]:
+                      - textbox "Data de nascimento" [ref=e2860]:
+                        - /placeholder: dd/mm/aaaa
+                      - button "Abrir calendário" [ref=e2862] [cursor=pointer]
+                      - group:
+                        - generic: Data de nascimento
+                    - paragraph [ref=e2865]: Usado pra calcular idade e ajustar faixas de referência.
+                  - textbox
+                - generic [ref=e2866]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+                  - generic [ref=e2867]:
+                    - textbox "Perfil clínico (condições, medicações, histórico)" [ref=e2868]
+                    - group:
+                      - generic: Perfil clínico (condições, medicações, histórico)
+                  - paragraph [ref=e2869]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+              - button [ref=e2871] [cursor=pointer]
+            - generic [ref=e2876]:
+              - heading "⚖️ Peso atual" [level=6] [ref=e2877]
+              - generic [ref=e2878]:
+                - generic [ref=e2879]:
+                  - generic: Peso (kg)
+                  - generic [ref=e2880]:
+                    - textbox "Peso (kg)" [ref=e2881]
+                    - group:
+                      - generic: Peso (kg)
+                - button "Registrar peso" [disabled]
+              - generic [ref=e2882]: Salva como medição — alimenta o IMC e o card de Risco Cardiometabólico. Histórico completo em Medições.
+            - generic [ref=e2884]:
+              - heading "🔔 Notificações" [level=6] [ref=e2885]
+              - generic [ref=e2886] [cursor=pointer]:
+                - switch "Avisar quando eu desbloquear uma conquista" [checked] [ref=e2889]
+                - generic [ref=e2892]: Avisar quando eu desbloquear uma conquista
+              - generic [ref=e2893]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+            - generic [ref=e2895]:
+              - heading "Trocar senha" [level=6] [ref=e2896]
+              - generic [ref=e2899]:
+                - generic [ref=e2900]:
+                  - generic: Senha atual
+                  - generic [ref=e2901]:
+                    - textbox "Senha atual" [ref=e2902]
+                    - group:
+                      - generic: Senha atual
+                - generic [ref=e2903]:
+                  - generic [ref=e2904]:
+                    - generic: Nova senha
+                    - generic [ref=e2905]:
+                      - textbox "Nova senha" [ref=e2906]
+                      - group:
+                        - generic: Nova senha
+                  - generic [ref=e2907]:
+                    - generic: Confirmar nova senha
+                    - generic [ref=e2908]:
+                      - textbox "Confirmar nova senha" [ref=e2909]
+                      - group:
+                        - generic: Confirmar nova senha
+              - generic [ref=e2910]:
+                - button "Alterar senha" [disabled]
+            - generic [ref=e2912]:
+              - heading "Meus dados" [level=6] [ref=e2913]
+              - generic [ref=e2914]:
+                - button "Excluir minha conta" [ref=e2915] [cursor=pointer]
+                - button [ref=e2916] [cursor=pointer]
+                - button [ref=e2920] [cursor=pointer]
+              - generic [ref=e2924]: A exclusão apaga definitivamente todos os exames, análises e dados. Termos e LGPD em "Privacidade".
+    - button "Pergunte ao Dr. Exame" [ref=e2207] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e2208]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2209]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

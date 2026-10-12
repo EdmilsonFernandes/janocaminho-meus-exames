@@ -1,0 +1,174 @@
+- generic [ref=f4e18]:
+  - generic [ref=f4e20]:
+    - button [ref=f4e21] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f4e22]:
+      - banner [ref=f4e23]:
+        - generic [ref=f4e24]:
+          - button [ref=f4e25] [cursor=pointer]:
+            - img [ref=f4e26]
+          - heading [level=6] [ref=f4e28]:
+            - generic [ref=f4e30]: PERFIL LIPÍDICO
+          - button [ref=f4e31] [cursor=pointer]:
+            - img [ref=f4e32]
+            - generic [ref=f4e34]: "71"
+          - button [ref=f4e36] [cursor=pointer]:
+            - generic [ref=f4e38]: E
+            - generic [ref=f4e40]: Edmilson Lopes Fernandes dos Santos
+            - img [ref=f4e42]
+          - button [ref=f4e44] [cursor=pointer]:
+            - generic [ref=f4e45]:
+              - img [ref=f4e46]
+              - generic [ref=f4e48]: "18"
+          - button [ref=f4e49] [cursor=pointer]:
+            - img [ref=f4e50]
+          - button [ref=f4e53] [cursor=pointer]:
+            - img [ref=f4e54]
+      - main [ref=f4e56]:
+        - navigation [ref=f4e60]:
+          - button [ref=f4e61] [cursor=pointer]:
+            - img [ref=f4e63]
+            - generic [ref=f4e66]: Início
+          - button [ref=f4e67] [cursor=pointer]:
+            - img [ref=f4e69]
+            - generic [ref=f4e72]: Exames
+          - button [ref=f4e73] [cursor=pointer]:
+            - img [ref=f4e75]
+            - generic [ref=f4e78]: Dr. Exame (IA)
+          - button [ref=f4e79] [cursor=pointer]:
+            - img [ref=f4e81]
+            - generic [ref=f4e84]: Relatório completo
+          - button [ref=f4e86] [cursor=pointer]:
+            - img [ref=f4e88]
+            - generic [ref=f4e92]: Evolução & Conquistas
+            - img [ref=f4e93]
+          - button [ref=f4e96] [cursor=pointer]:
+            - img [ref=f4e98]
+            - generic [ref=f4e102]: Minha Saúde
+            - img [ref=f4e103]
+          - button [ref=f4e106] [cursor=pointer]:
+            - img [ref=f4e108]
+            - generic [ref=f4e112]: Família & Médicos
+            - img [ref=f4e113]
+          - button [ref=f4e116] [cursor=pointer]:
+            - img [ref=f4e118]
+            - generic [ref=f4e121]: Conta
+            - img [ref=f4e122]
+          - separator [ref=f4e124]
+          - button [ref=f4e125] [cursor=pointer]:
+            - generic [ref=f4e127]: ❓
+            - generic [ref=f4e129]: Ajuda & Suporte
+          - menuitem [ref=f4e130] [cursor=pointer]:
+            - generic [ref=f4e131]: ℹ️
+            - generic [ref=f4e133]: Sobre o app
+          - menuitem [ref=f4e134] [cursor=pointer]:
+            - img [ref=f4e136]
+            - generic [ref=f4e139]: Sair da conta
+          - generic [ref=f4e140]: Meus Exames · v0.1.0 (unknown)
+        - generic [ref=f4e142]:
+          - generic [ref=f4e144]:
+            - generic [ref=f4e145]:
+              - heading [level=1] [ref=f4e146]: PERFIL LIPÍDICO
+              - generic [ref=f4e148]: Pronto
+              - generic [ref=f4e150]: 🧈 Lipídios e Colesterol
+            - paragraph [ref=f4e151]: 02/07/2026 • 1 pág.
+          - paragraph [ref=f4e154]: ✅ Todos os 5 valores estão dentro da faixa de referência.
+          - generic [ref=f4e155]:
+            - heading [level=3] [ref=f4e156]:
+              - button [expanded] [ref=f4e157] [cursor=pointer]:
+                - generic [ref=f4e158]:
+                  - paragraph [ref=f4e159]: Geral
+                  - generic [ref=f4e161]: 5 itens
+                - img [ref=f4e163]
+            - region [ref=f4e168]:
+              - generic [ref=f4e170]:
+                - generic [ref=f4e171]:
+                  - generic [ref=f4e172]:
+                    - paragraph [ref=f4e173]: COLESTEROL HDL
+                    - button [ref=f4e174] [cursor=pointer]:
+                      - img [ref=f4e175]
+                    - generic [ref=f4e178]: S/ referência
+                  - generic [ref=f4e179]:
+                    - paragraph [ref=f4e180] [cursor=pointer]: 62 mg/dL ✏️
+                    - button [ref=f4e181] [cursor=pointer]: pág. 1
+                  - paragraph [ref=f4e182]:
+                    - strong [ref=f4e183]: "Referência:"
+                    - text: não informada
+                - separator [ref=f4e184]
+                - generic [ref=f4e185]:
+                  - generic [ref=f4e186]:
+                    - paragraph [ref=f4e187]: COLESTEROL LDL
+                    - button [ref=f4e188] [cursor=pointer]:
+                      - img [ref=f4e189]
+                    - generic [ref=f4e192]: Contexto
+                  - generic [ref=f4e193]:
+                    - paragraph [ref=f4e194] [cursor=pointer]: 127 mg/dL ✏️
+                    - button [ref=f4e195] [cursor=pointer]: pág. 1
+                  - paragraph [ref=f4e196]:
+                    - strong [ref=f4e197]: "Referência:"
+                    - text: não informada
+                - separator [ref=f4e198]
+                - generic [ref=f4e199]:
+                  - generic [ref=f4e200]:
+                    - paragraph [ref=f4e201]: COLESTEROL NÃO HDL
+                    - button [ref=f4e202] [cursor=pointer]:
+                      - img [ref=f4e203]
+                    - generic [ref=f4e206]: Contexto
+                  - generic [ref=f4e207]:
+                    - paragraph [ref=f4e208] [cursor=pointer]: 144 mg/dL ✏️
+                    - button [ref=f4e209] [cursor=pointer]: pág. 1
+                  - paragraph [ref=f4e210]:
+                    - strong [ref=f4e211]: "Referência:"
+                    - text: não informada
+                - separator [ref=f4e212]
+                - generic [ref=f4e213]:
+                  - generic [ref=f4e214]:
+                    - paragraph [ref=f4e215]: COLESTEROL TOTAL
+                    - button [ref=f4e216] [cursor=pointer]:
+                      - img [ref=f4e217]
+                    - generic [ref=f4e220]: S/ referência
+                  - generic [ref=f4e221]:
+                    - paragraph [ref=f4e222] [cursor=pointer]: 206 mg/dL ✏️
+                    - button [ref=f4e223] [cursor=pointer]: pág. 1
+                  - paragraph [ref=f4e224]:
+                    - strong [ref=f4e225]: "Referência:"
+                    - text: não informada
+                - separator [ref=f4e226]
+                - generic [ref=f4e227]:
+                  - generic [ref=f4e228]:
+                    - paragraph [ref=f4e229]: TRIGLICERÍDEOS
+                    - button [ref=f4e230] [cursor=pointer]:
+                      - img [ref=f4e231]
+                    - generic [ref=f4e234]: S/ referência
+                  - generic [ref=f4e235]:
+                    - paragraph [ref=f4e236] [cursor=pointer]: 77 mg/dL ✏️
+                    - button [ref=f4e237] [cursor=pointer]: pág. 1
+                  - paragraph [ref=f4e238]:
+                    - strong [ref=f4e239]: "Referência:"
+                    - text: não informada
+          - generic [ref=f4e242]:
+            - heading [level=6] [ref=f4e243]: Análise de saúde
+            - paragraph [ref=f4e244]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+            - button [ref=f4e245] [cursor=pointer]: Gerar resumo
+            - generic [ref=f4e246]:
+              - generic [ref=f4e247]: 💎
+              - generic [ref=f4e248]: 10 créditos
+          - generic [ref=f4e250]:
+            - generic [ref=f4e251]:
+              - heading [level=6] [ref=f4e252]: 📋 Preparar visita ao médico
+              - button [ref=f4e253] [cursor=pointer]: Gerar documento
+            - paragraph [ref=f4e254]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+  - generic [ref=f4e15] [cursor=pointer]:
+    - img [ref=f4e255]
+    - img [ref=f4e256]
+  - dialog [active] [ref=f4e260]:
+    - generic [ref=f4e261]:
+      - button "Pular" [ref=f4e290] [cursor=pointer]
+      - generic [ref=f4e263]:
+        - generic [ref=f4e264]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=f4e291]
+        - paragraph [ref=f4e266]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f4e267]:
+        - button "Próximo" [ref=f4e292] [cursor=pointer]:
+          - text: Próximo
+          - img [ref=f4e275]
+        - paragraph [ref=f4e277]: Toque em Próximo para continuar →

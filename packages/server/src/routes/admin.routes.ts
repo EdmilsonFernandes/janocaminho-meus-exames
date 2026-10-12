@@ -7,8 +7,8 @@ import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from 
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
-import { sendPush, sendPushToUser, PUSH_TOPIC } from '../utils/push';
-import { parseAudienceFilter, resolveAudienceUserIds, dispatchCampaign } from '../utils/pushAudience';
+import { sendPushToUser, PUSH_TOPIC } from '../utils/push';
+import { parseAudienceFilter, resolveAudienceUserIds, dispatchCampaign, dispatchToUsers } from '../utils/pushAudience';
 import { sendEmail } from '../utils/mailer';
 import { ticketReplyEmail, webUrl } from '../utils/emailTemplate';
 import { upload } from '../middleware/upload';
@@ -867,26 +867,26 @@ router.post('/blocked-domains/sync', async (_req, res) => {
 });
 
 // PUSH GLOBAL — broadcast de engajamento pra TODOS os dispositivos com token cadastrado.
-// Body: { title, body, route? }. Só dispara o push (NÃO cria Notification por usuário —
-// broadcast leve e genérico; o engajamento personalizado fica no job healthNudges).
-// Firebase Admin precisa estar configurado (service account) — senão conta os tokens mas não entrega.
+// Body: { title, body, route? }. Merge fields {{nome}}/{{streak}}/{{passosOntem}} são
+// resolvidos POR USUÁRIO no dispatch (dispatchToUsers) — antes o template ia cru e o
+// usuário recebia "{{nome}}" literal (bug 10/26). Firebase Admin precisa estar
+// configurado (service account) — senão conta a audiência mas não entrega.
 router.post('/push/global', async (req: AuthedRequest, res, next) => {
   try {
     const title = String(req.body?.title ?? '').trim();
     const body = String(req.body?.body ?? '').trim();
     const route = req.body?.route ? String(req.body.route) : undefined;
     if (!title || !body) { res.status(400).json({ error: 'title e body são obrigatórios' }); return; }
-    const tokens = await prisma.deviceToken.findMany({ select: { token: true, userId: true } });
-    const list = tokens.map((t) => t.token);
-    // Notificação IN-APP pra cada usuário com dispositivo (aparece na central do app — sininho —
-    // além do push do sistema). Antes só mandava o push do sistema; a in-app não era criada.
-    const userIds = [...new Set(tokens.map((t) => t.userId))];
-    if (userIds.length) await prisma.notification.createMany({ data: userIds.map((uid) => ({ userId: uid, type: 'global', title, body, data: { type: 'global', ...(route ? { route } : {}) } })) }).catch(() => {});
-    await sendPush(list, title, body, { type: 'global', ...(route ? { route } : {}) });
+    // Broadcast deliberado (sem cap anti-spam), mas nunca pra conta bloqueada.
+    const tokens = await prisma.deviceToken.findMany({ select: { userId: true } });
+    const ids = [...new Set(tokens.map((t) => t.userId))];
+    // sendPushToUser (1-a-1) cria a Notification IN-APP (central/sino) E o push FCM,
+    // com o texto interpolado por usuário.
+    const { sent } = await dispatchToUsers(ids, { title, body, route, type: 'global' });
     // Registra como campanha (histórico no backoffice).
-    await prisma.pushCampaign.create({ data: { name: title.slice(0, 60), title, body, route: route ?? null, sentAt: new Date(), sentCount: list.length, createdBy: req.userId ?? null } }).catch(() => {});
-    console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${list.length} dispositivo(s)`);
-    res.json({ ok: true, sent: list.length, topic: PUSH_TOPIC });
+    await prisma.pushCampaign.create({ data: { name: title.slice(0, 60), title, body, route: route ?? null, sentAt: new Date(), sentCount: sent, createdBy: req.userId ?? null } }).catch(() => {});
+    console.log(`[admin] push global enviado por ${req.userId}: "${title}" → ${sent} usuário(s)`);
+    res.json({ ok: true, sent, topic: PUSH_TOPIC });
   } catch (e) { next(e); }
 });
 

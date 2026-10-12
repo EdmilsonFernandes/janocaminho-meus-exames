@@ -1,0 +1,57 @@
+- generic [active] [ref=f2e3]:
+  - generic [ref=f2e44]:
+    - navigation [ref=f2e45]:
+      - generic [ref=f2e47]:
+        - generic [ref=f2e48]: D
+        - generic [ref=f2e49]:
+          - paragraph [ref=f2e50]: 🩺 Dr. Teste Acesso
+          - generic [ref=f2e51]: Clínica Médica • CRM 99999-SP
+      - separator [ref=f2e52]
+      - generic [ref=f2e53]:
+        - generic [ref=f2e54]: PLANO
+        - paragraph [ref=f2e55]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f2e56]:
+        - button "Pacientes" [ref=f2e57] [cursor=pointer]:
+          - img [ref=f2e59]
+          - generic [ref=f2e62]: Pacientes
+        - button "Meu perfil" [ref=f2e63] [cursor=pointer]:
+          - img [ref=f2e65]
+          - generic [ref=f2e68]: Meu perfil
+        - button "Trocar senha" [ref=f2e69] [cursor=pointer]:
+          - img [ref=f2e71]
+          - generic [ref=f2e74]: Trocar senha
+        - separator [ref=f2e75]
+        - button "Sair" [ref=f2e76] [cursor=pointer]:
+          - img [ref=f2e78]
+          - generic [ref=f2e81]: Sair
+      - generic [ref=f2e82]: Portal do Médico
+    - generic [ref=f2e83]:
+      - paragraph [ref=f2e86]: Pacientes
+      - generic [ref=f2e87]:
+        - generic [ref=f2e89]:
+          - paragraph [ref=f2e90]: 💎 Dr. Exame Pro
+          - paragraph [ref=f2e91]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f2e92] [cursor=pointer]
+        - generic [ref=f2e93]:
+          - heading "Pacientes (1)" [level=6] [ref=f2e94]
+          - generic [ref=f2e96]: 🔴 1 com alerta
+        - generic [ref=f2e97]:
+          - generic [ref=f2e98]:
+            - img [ref=f2e99]
+            - textbox "Buscar paciente pelo nome…" [ref=f2e102]
+          - button "🔴 Só com alerta" [ref=f2e103] [cursor=pointer]:
+            - generic [ref=f2e104]: 🔴
+            - generic [ref=f2e105]: Só com alerta
+        - generic [ref=f2e108] [cursor=pointer]:
+          - generic [ref=f2e110]: E
+          - generic [ref=f2e112]:
+            - paragraph [ref=f2e113]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f2e114]:
+              - text: M
+              - generic [ref=f2e115]: "· #MC97"
+            - generic [ref=f2e116]: 🔴 alerta · 📋 1 exame · Particular
+          - img [ref=f2e117]
+  - generic [ref=f2e2] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e42]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e43]

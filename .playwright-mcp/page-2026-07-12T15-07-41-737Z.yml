@@ -1,0 +1,29 @@
+- table [ref=e2]:
+  - rowgroup [ref=e3]:
+    - row [ref=e4]:
+      - cell [ref=e5]:
+        - table [ref=e6]:
+          - rowgroup [ref=e7]:
+            - row [ref=e8]:
+              - cell [ref=e9]:
+                - img "Dr. Exame" [ref=e10]
+                - heading "Meus Exames" [level=1] [ref=e11]
+                - paragraph [ref=e12]: Seu assistente de saúde no bolso
+            - row [ref=e13]:
+              - cell [ref=e14]:
+                - paragraph [ref=e15]: "O suporte respondeu seu chamado #1234."
+                - paragraph [ref=e16]:
+                  - text: Olá,
+                  - strong [ref=e17]: Maria Silva
+                  - text: "!"
+                - paragraph [ref=e18]:
+                  - text: O suporte respondeu seu chamado
+                  - strong [ref=e19]: "#1234"
+                  - text: ":"
+                - paragraph [ref=e21]: Olá, Maria! Verificamos seu chamado sobre o exame de glicemia. Está tudo liberado na sua conta — abra o app e confira. Qualquer dúvida, responda por lá.
+                - link "Ver e responder no app" [ref=e23] [cursor=pointer]:
+                  - /url: https://janocaminho.com.br/minhasaude/#/suporte
+                - paragraph [ref=e24]: Abra o app → Ajuda & Suporte para continuar a conversa.
+            - row [ref=e25]:
+              - cell [ref=e26]:
+                - paragraph [ref=e27]: Meus Exames — análise educativa, não substitui consulta médica. Este e-mail foi enviado automaticamente. Não responda.

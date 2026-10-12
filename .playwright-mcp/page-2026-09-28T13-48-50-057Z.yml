@@ -1,0 +1,168 @@
+- generic [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - button [ref=f2e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f2e5]:
+      - banner [ref=f2e6]:
+        - generic [ref=f2e7]:
+          - heading [level=6] [ref=f2e8]:
+            - generic [ref=f2e9]: Evolução da minha saúde
+          - generic [ref=f2e11]:
+            - button [ref=f2e12] [cursor=pointer]:
+              - generic [ref=f2e13]: 9+
+            - button [ref=f2e18] [cursor=pointer]:
+              - generic [ref=f2e19]: T
+              - generic [ref=f2e21]:
+                - generic [ref=f2e22]: Theo QA
+                - generic [ref=f2e23]: Filho(a)
+          - button [ref=f2e28] [cursor=pointer]
+      - main [ref=f2e31]:
+        - navigation [ref=f2e35]:
+          - generic [ref=f2e38]:
+            - generic [ref=f2e39]: E
+            - generic [ref=f2e41]:
+              - paragraph [ref=f2e42]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f2e43]:
+                - generic [ref=f2e44]: Plano grátis
+                - button [ref=f2e46] [cursor=pointer]:
+                  - generic [ref=f2e47]: ⚡ 69 (+)
+          - separator [ref=f2e48]
+          - generic [ref=f2e49]:
+            - button [expanded] [ref=f2e50] [cursor=pointer]:
+              - generic [ref=f2e54]: Exames
+            - generic [ref=f2e61]:
+              - button [ref=f2e62] [cursor=pointer]:
+                - generic [ref=f2e66]: Exames
+              - button [ref=f2e68] [cursor=pointer]:
+                - generic [ref=f2e73]: Valores alterados
+              - button [ref=f2e75] [cursor=pointer]:
+                - generic [ref=f2e80]: Evolução
+              - button [ref=f2e82] [cursor=pointer]:
+                - generic [ref=f2e86]: Tendências
+              - button [ref=f2e88] [cursor=pointer]:
+                - generic [ref=f2e92]: Linha do Tempo
+              - button [ref=f2e94] [cursor=pointer]:
+                - generic [ref=f2e98]: Relatório completo
+          - button [ref=f2e101] [cursor=pointer]:
+            - generic [ref=f2e106]: Cuidados
+          - button [ref=f2e111] [cursor=pointer]:
+            - generic [ref=f2e116]: Pessoas
+          - button [ref=f2e121] [cursor=pointer]:
+            - generic [ref=f2e125]: Conta
+          - button [ref=f2e130] [cursor=pointer]:
+            - generic [ref=f2e134]: Dúvidas frequentes
+          - menuitem [ref=f2e136] [cursor=pointer]:
+            - generic [ref=f2e140]: Sobre o app
+          - menuitem [ref=f2e142] [cursor=pointer]:
+            - generic [ref=f2e146]: Sair da conta
+          - generic [ref=f2e148]: Dr. Exame • Saúde Inteligente 🩺
+        - generic [ref=f2e150]:
+          - generic [ref=f2e155]:
+            - heading [level=5] [ref=f2e156]: Evolução ao longo do tempo
+            - paragraph [ref=f2e157]: Como cada exame evoluiu entre as coletas. Toque para ver o gráfico.
+          - generic [ref=f2e159]:
+            - generic [ref=f2e160]:
+              - heading [level=2] [ref=f2e165]: Crescimento · 4a 4m
+              - paragraph [ref=f2e166]: Percentis OMS (0-19 anos)
+            - generic [ref=f2e167]:
+              - button [pressed] [ref=f2e168] [cursor=pointer]:
+                - generic [ref=f2e169]: Peso
+              - button [ref=f2e170] [cursor=pointer]:
+                - generic [ref=f2e171]: Altura
+              - button [ref=f2e172] [cursor=pointer]:
+                - generic [ref=f2e173]: IMC
+            - img [ref=f2e174]:
+              - paragraph [ref=f2e175]: Carregando curvas…
+            - generic [ref=f2e176]:
+              - paragraph [ref=f2e179]: P3
+              - paragraph [ref=f2e182]: P15
+              - paragraph [ref=f2e185]: P50
+              - paragraph [ref=f2e188]: P85
+              - paragraph [ref=f2e191]: P97
+              - paragraph [ref=f2e194]: sua criança
+            - generic [ref=f2e195]:
+              - generic [ref=f2e196]:
+                - generic [ref=f2e197]: Data
+                - generic [ref=f2e198]:
+                  - textbox [ref=f2e199]: 2026-09-28
+                  - group [aria-hidden]:
+                    - generic: Data
+              - generic [ref=f2e200]:
+                - generic: Peso (kg)
+                - generic [ref=f2e201]:
+                  - textbox [ref=f2e202]:
+                    - /placeholder: 12,3
+                  - group [aria-hidden]:
+                    - generic: Peso (kg)
+              - generic [ref=f2e203]:
+                - generic: Altura (cm)
+                - generic [ref=f2e204]:
+                  - textbox [ref=f2e205]:
+                    - /placeholder: 87,5
+                  - group [aria-hidden]:
+                    - generic: Altura (cm)
+              - button [ref=f2e206] [cursor=pointer]: Registrar
+            - generic [ref=f2e210]:
+              - generic [ref=f2e211]:
+                - paragraph [ref=f2e212]: 10/05/2026
+                - paragraph [ref=f2e213]: 16,0 kg
+                - paragraph [ref=f2e214]: 103,0 cm
+                - paragraph [ref=f2e215]: IMC 15,1
+              - generic [ref=f2e216]:
+                - paragraph [ref=f2e217]: 10/05/2025
+                - paragraph [ref=f2e218]: 14,2 kg
+                - paragraph [ref=f2e219]: 95,0 cm
+                - paragraph [ref=f2e220]: IMC 15,7
+              - generic [ref=f2e221]:
+                - paragraph [ref=f2e222]: 10/05/2024
+                - paragraph [ref=f2e223]: 12,3 kg
+                - paragraph [ref=f2e224]: 87,0 cm
+                - paragraph [ref=f2e225]: IMC 16,3
+              - generic [ref=f2e226]:
+                - paragraph [ref=f2e227]: 10/11/2023
+                - paragraph [ref=f2e228]: 11,0 kg
+                - paragraph [ref=f2e229]: 83,0 cm
+                - paragraph [ref=f2e230]: IMC 16,0
+              - generic [ref=f2e231]:
+                - paragraph [ref=f2e232]: 10/05/2023
+                - paragraph [ref=f2e233]: 9,5 kg
+                - paragraph [ref=f2e234]: 75,0 cm
+                - paragraph [ref=f2e235]: IMC 16,9
+            - paragraph [ref=f2e239]:
+              - text: Curva para
+              - strong [ref=f2e240]: acompanhamento
+              - text: — compara com os percentis da OMS, mas quem interpreta o crescimento do seu filho(a) é o
+              - strong [ref=f2e241]: pediatra
+              - text: . Peso-para-idade é exibido até os 10 anos (limite das tabelas da OMS).
+          - generic [ref=f2e242]:
+            - generic [ref=f2e243]: 📈
+            - heading [level=6] [ref=f2e245]: Sem histórico para comparar ainda
+            - paragraph [ref=f2e246]: Envie ao menos 2 exames laboratoriais de datas diferentes pra acompanhar como cada exame evoluiu entre as coletas.
+            - button [ref=f2e247] [cursor=pointer]: Enviar exame
+  - dialog [active] [ref=f2e250]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 1 Fechar" [level=2] [ref=f2e251]:
+      - generic [ref=f2e252]:
+        - paragraph [ref=f2e253]: Vamos preparar o Dr. Exame
+        - generic [ref=f2e254]: Passo 1 de 1
+      - button "Fechar" [ref=f2e255] [cursor=pointer]
+    - progressbar [ref=f2e258]
+    - generic [ref=f2e261]:
+      - paragraph [ref=f2e262]: Altura e peso calculam seu IMC e entram na leitura de risco cardiometabólico.
+      - generic [ref=f2e263]:
+        - generic:
+          - text: Altura
+          - generic [aria-hidden]: "*"
+        - generic [ref=f2e264]:
+          - textbox "Altura" [ref=f2e265]
+          - group [aria-hidden]:
+            - generic: Altura *
+        - paragraph [ref=f2e266]: "Ex.: 1,72 ou 172 — convertemos pra você"
+      - generic [ref=f2e267]:
+        - generic [ref=f2e268]: Peso atual (kg)
+        - generic [ref=f2e269]:
+          - textbox "Peso atual (kg)" [ref=f2e270]: "16"
+          - group [aria-hidden]:
+            - generic: Peso atual (kg)
+        - paragraph [ref=f2e271]: "Aceita vírgula ou ponto (ex.: 70,5). Vai pras suas Medições — acompanhe a tendência por lá."
+    - generic [ref=f2e272]:
+      - button "Agora não" [ref=f2e273] [cursor=pointer]
+      - button "Concluir" [disabled]

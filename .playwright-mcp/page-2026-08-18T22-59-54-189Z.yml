@@ -1,0 +1,80 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e22]:
+    - button "Pular para o conteúdo" [ref=e3179] [cursor=pointer]
+    - generic [ref=e24]:
+      - banner [ref=e25]:
+        - generic [ref=e26]:
+          - heading [level=6]
+          - button "Você tem 71 créditos. Toque para comprar mais." [ref=e3180] [cursor=pointer]:
+            - generic [ref=e37]: "71"
+          - button "Notificações" [ref=e3181] [cursor=pointer]:
+            - generic [ref=e39]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e3182] [cursor=pointer]:
+            - generic [ref=e45]: E
+            - generic [ref=e3183]: Edmilson Lopes Fernandes dos Santos
+          - button "Atualizar" [ref=e3189] [cursor=pointer]
+      - main [ref=e47]:
+        - navigation [ref=e3195]:
+          - generic [ref=e3196]:
+            - button "Exames" [expanded] [ref=e3197] [cursor=pointer]
+            - generic [ref=e3389]:
+              - button "Exames" [ref=e3390] [cursor=pointer]
+              - button "Valores alterados" [ref=e3396] [cursor=pointer]
+              - button "Evolução" [ref=e3403] [cursor=pointer]
+              - button "Tendências" [ref=e3410] [cursor=pointer]
+              - button "Linha do Tempo" [ref=e3416] [cursor=pointer]
+              - button "Relatório completo" [ref=e3422] [cursor=pointer]
+          - button "Cuidados" [ref=e3206] [cursor=pointer]
+          - button "Pessoas" [ref=e3216] [cursor=pointer]
+          - button "Conta" [ref=e3226] [cursor=pointer]
+          - separator [ref=e3234]
+          - button "Ajuda & Suporte" [ref=e3235] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=e3241] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=e3247] [cursor=pointer]
+        - generic [ref=e3652]:
+          - generic [ref=e3653]:
+            - paragraph [ref=e3654]: Boa noite, tudo bem? 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=e3655]:
+            - generic [ref=e3657]:
+              - generic [ref=e3658]:
+                - paragraph [ref=e3665]: de 100
+                - generic [ref=e3666]:
+                  - paragraph [ref=e3667]: Sua saúde hoje
+                  - paragraph [ref=e3668]: Pede atenção
+                  - paragraph [ref=e3670]: ● Nada crítico no momento
+              - button [ref=e3671] [cursor=pointer]
+            - generic [ref=e3676]:
+              - paragraph [ref=e3677]: Desde seu último exame
+              - paragraph [ref=e3679]: Carregando…
+              - button [ref=e3681] [cursor=pointer]
+          - button [ref=e3690] [cursor=pointer]
+          - generic [ref=e3694]:
+            - generic [ref=e3701] [cursor=pointer]:
+              - paragraph [ref=e3702]: Cardiometabólico
+              - paragraph [ref=e3703]: —
+              - paragraph [ref=e3704]: sem fatores
+            - generic [ref=e3707] [cursor=pointer]:
+              - generic [ref=e3708]: 🧬
+              - generic [ref=e3709]:
+                - paragraph [ref=e3710]: Idade biológica
+                - paragraph [ref=e3711]: Em breve
+                - paragraph [ref=e3712]: estimativa c/ +exames
+            - generic [ref=e3719] [cursor=pointer]:
+              - paragraph [ref=e3720]: Seus exames
+              - paragraph [ref=e3721]: —
+              - paragraph [ref=e3722]: 0 alterados
+            - generic [ref=e3729] [cursor=pointer]:
+              - paragraph [ref=e3730]: Evolução
+              - paragraph [ref=e3731]: Tendências
+              - paragraph [ref=e3732]: 28 resultados
+          - generic [ref=e3734]:
+            - generic [ref=e3735]: Enviar exame
+            - generic [ref=e3742]: Evolução
+            - generic [ref=e3749]: Família
+            - generic [ref=e3757]: Relatório
+          - button [ref=e3765] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e3370]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e3371]
+  - generic [ref=e962]: "0"

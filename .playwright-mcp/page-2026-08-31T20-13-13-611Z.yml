@@ -1,0 +1,1057 @@
+- generic [active] [ref=f15e1]:
+  - link "Pular para conteúdo principal" [ref=f15e2] [cursor=pointer]:
+    - /url: "#main-content"
+  - generic [ref=f15e6]:
+    - generic:
+      - generic: "A 1 month TikTok growth experiment - From 0 to 4.4M views and 10.2K followers : r/GrowthHacking"
+      - banner [ref=f15e10]:
+        - navigation [ref=f15e11]:
+          - generic [ref=f15e12]:
+            - button "Abrir menu" [ref=f15e16] [cursor=pointer]
+            - generic:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - link "Feed principal":
+                        - /url: https://www.reddit.com/
+          - search [ref=f15e31]:
+            - generic [ref=f15e33]:
+              - generic:
+                - generic:
+                  - textbox:
+                    - /placeholder: Buscar no Reddit
+              - generic: Buscar no Reddit
+          - generic [ref=f15e38]:
+            - button "Traduções habilitadas" [ref=f15e46] [cursor=pointer]
+            - link "Entrar" [ref=f15e54] [cursor=pointer]:
+              - /url: https://www.reddit.com/login/
+            - button "Expandir menu do usuário" [ref=f15e61] [cursor=pointer]
+      - generic [ref=f15e70]:
+        - main [ref=f15e71]:
+          - 'generic "A 1 month TikTok growth experiment - From 0 to 4.4M views and 10.2K followers : r/GrowthHacking"'
+          - generic [ref=f15e73]:
+            - generic [ref=f15e74]:
+              - generic [ref=f15e75]:
+                - link "Ir para o GrowthHacking" [ref=f15e78] [cursor=pointer]:
+                  - /url: https://www.reddit.com/r/GrowthHacking/
+                - group [ref=f15e83]:
+                  - generic [ref=f15e84]:
+                    - link "r/GrowthHacking" [ref=f15e88] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/
+                    - generic [ref=f15e89]: •
+                    - time [ref=f15e91]: há 4 anos
+                  - 'link "Autor(a): swedishtea" [ref=f15e97] [cursor=pointer]':
+                    - /url: https://www.reddit.com/user/swedishtea/
+                    - generic [ref=f15e98]: swedishtea
+              - generic [ref=f15e99]:
+                - img "Post arquivado" [ref=f15e103]
+                - button "Abrir ações de usuário" [ref=f15e107] [cursor=pointer]
+            - generic [ref=f15e113]:
+              - 'heading "Título do post: A 1 month TikTok growth experiment - From 0 to 4.4M views and 10.2K followers" [level=1] [ref=f15e114]': Um experimento de crescimento de 1 mês no TikTok - De 0 a 4,4 milhões de visualizações e 10,2 mil seguidores
+              - 'link "Flair: Question / Advice / Discussion" [ref=f15e117] [cursor=pointer]':
+                - /url: /r/GrowthHacking/?f=flair_name%3A%22Question%20%2F%20Advice%20%2F%20Discussion%22
+                - 'generic "Flair: Question / Advice / Discussion" [ref=f15e119]': Question / Advice / Discussion
+            - generic [ref=f15e124]:
+              - paragraph [ref=f15e125]: Acabei de fazer um experimento de crescimento de 1 mês no TikTok e queria compartilhar algumas das minhas experiências abaixo. Espero que isso possa ser um bom insight se você está procurando incluir o TikTok em sua própria estratégia de crescimento.
+              - paragraph [ref=f15e126]:
+                - strong [ref=f15e127]: "Contexto:"
+                - text: Sem experiência anterior ou usuário do TikTok. Eu tinha meu blog onde faço resumos de livros, então eu tinha a parte do conteúdo/nicho definido.
+              - paragraph [ref=f15e128]:
+                - strong [ref=f15e129]: "Experimento:"
+                - text: "Publicar 1-3 vídeos por dia. Testei vários formatos e tipos de conteúdo. Almejei a comunidade #booktok."
+              - paragraph [ref=f15e130]:
+                - strong [ref=f15e131]: "Resultado:"
+                - text: 4,4 milhões de visualizações, 10,2 mil seguidores. 1 vídeo realmente viral que impulsionou +90% do crescimento.
+              - paragraph [ref=f15e132]:
+                - strong [ref=f15e133]: "Aprendizados:"
+              - list [ref=f15e134]:
+                - listitem [ref=f15e135]:
+                  - paragraph [ref=f15e136]: Ganchos que engajam nos primeiros 4 segundos são críticos
+                - listitem [ref=f15e137]:
+                  - paragraph [ref=f15e138]: Crie um feed com conteúdo relevante e consistente para direcionar novos visitantes
+                - listitem [ref=f15e139]:
+                  - paragraph [ref=f15e140]: Use tendências populares e sons em alta
+                - listitem [ref=f15e141]:
+                  - paragraph [ref=f15e142]: Seja ativo dentro de suas subcomunidades-alvo
+                - listitem [ref=f15e143]:
+                  - paragraph [ref=f15e144]: Depois que o vídeo viral atingir - engaje para maximizar o crescimento - comente, produza respostas em vídeo, etc.
+                - listitem [ref=f15e145]:
+                  - paragraph [ref=f15e146]: Certifique-se de que seu perfil do TikTok tenha conteúdo relevante para o público que você almeja
+                - listitem [ref=f15e147]:
+                  - paragraph [ref=f15e148]: "Lembre-se: depois que o vídeo viral atingir, você está \"preso\" com esses seguidores"
+                - listitem [ref=f15e149]:
+                  - paragraph [ref=f15e150]: Dependendo do ICP, o TikTok pode ser um excelente canal de tração com alcance massivo em pouco tempo
+              - paragraph [ref=f15e151]:
+                - strong [ref=f15e152]: "Próximos passos:"
+                - text: Alcançar visualizações consistentes é algo que continuarei explorando.
+              - paragraph [ref=f15e153]: Estou curioso para saber se você já considerou o TikTok como um canal de crescimento e quais foram suas experiências?
+              - paragraph [ref=f15e154]: Também estou à disposição para responder a quaisquer perguntas!
+            - generic: Post arquivado. Não é possível votar ou comentar.
+            - generic "Ações disponíveis para o post" [ref=f15e162]:
+              - generic [ref=f15e165]:
+                - button "Upvote" [disabled]
+                - generic [ref=f15e166]: "92"
+                - button "Downvote" [disabled]
+              - button "51 Ir para os comentários" [ref=f15e168] [cursor=pointer]:
+                - generic [ref=f15e169]: "51"
+                - generic [ref=f15e175]: Ir para os comentários
+              - button "Compartilhar" [ref=f15e179] [cursor=pointer]
+          - generic "Master hero builds and synergies." [ref=f15e186]:
+            - generic [ref=f15e187]:
+              - 'link "Advertisement: Master hero builds and synergies." [ref=f15e188] [cursor=pointer]':
+                - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+              - generic [ref=f15e189]:
+                - generic [ref=f15e190]:
+                  - link "SwellGamesLLC" [ref=f15e193] [cursor=pointer]:
+                    - /url: /user/SwellGamesLLC/
+                    - img "Avatar de u/SwellGamesLLC" [ref=f15e196]
+                  - generic [ref=f15e198]: •
+                  - link "Anúncio" [ref=f15e200] [cursor=pointer]:
+                    - /url: /user/SwellGamesLLC/
+                  - link [ref=f15e202] [cursor=pointer]:
+                    - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+                - button "Abrir ações de usuário" [ref=f15e208] [cursor=pointer]
+              - generic [ref=f15e214]:
+                - generic [ref=f15e215]:
+                  - link "Master hero builds and synergies." [ref=f15e217] [cursor=pointer]:
+                    - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+                  - generic [ref=f15e218]:
+                    - link [ref=f15e219] [cursor=pointer]:
+                      - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+                    - generic [ref=f15e220]:
+                      - link "Baixar" [ref=f15e221] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+                      - link "store.steampowered.com" [ref=f15e225] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=h9omseWnf6BqdOrDWz083Oto-t1Wh-60aalKtHi3C8tZUkDL7xzWVcWV2q1V5fVUkB853OCOG-uhHcGIXxHPQ4TBAOxYN-Keal1mtYeHpC367KRGkAkWss1hy4y9omjtWjl1v-7pa30HkY5aTND48Xx3XLMeSvVoM4hQYUsIbh8XODqgAnWlREEl-Xw5vHuWj1hzS_W32Na8eVqnZn5cGBQMh5UA9OF4jEkpTL5fU1CmqBMoBOuoY6xbMkKtECpPARrb_w7I3kLQzBGurZwUwZLxQV6VeKjmtfa9qaNsVsyvcAoejXz5vZdb1jHuCvjCwmcGy7nXKU-ET0iuiOk1n32ZNsdkLrk5Y2s0vgZ22xPVCkA8T3ItVIg2mYmFtDhW2ZBmQ5hg_saaphGR2GCsS3hM1H-wFKgGLY2fGlAzxdE_XN6_SE-EHIabVraYLHOX8DHhwFadnO_7ESss5wVsa8e4dAU3vNNxli5YQXJ5cYKZIFd3VzbNjYHhky6gkwAHNOzteSF2fg7bXHUU1bg3Gmva1e2XsJcDUrPwMUgAU6TJkLB7ffHfs_WC1-fjiHRpnfzBqs6LpG9zDs1kot3k-5PT2NP22xZYDD7tCJFYX99hD0nLXxI0ICPMB9zKzNo6Jcipkh-bCm7C1u6UHZGnOs6MovHxNtHK1JBclVRhUDreWIBfeMwKryc1xVHOpUoR4LBcWR7NcnhH&zp=GRvK6ePk4dnJiLLJRR1Tyo6gdZbik6sUHd-yEOI6KOIVi2NNzEmevFm2l2HmhMQlo8WdDDIf9V-_vgIqnRaBlNfEjkLsOgcnJ6W0T9_WhyoS7Qk_-4IHc08j_Y4PkUgmphVA2_ffpfNbUDIKy4uo3GLsHQCSr2J_9R8JUY-e-dr9sHS51NPR3PeV5kxkE6nDj8mrhp_C5Ei8abD6ifRWAnzPPwbGxXLMonyg3ieqYlCbjAL78isaqQcwPCd_dvUyz6Iw4Zkym3d7t--pb86t2dCqgwzoywcmGQDP6RH-pB72k7c-zo7jjV7A
+                - generic [ref=f15e226] [cursor=pointer]:
+                  - 'img "Clickable image which will reveal the video player: Master hero builds and synergies." [ref=f15e227]'
+                  - button "Reproduzir vídeo" [ref=f15e228]
+              - generic:
+                - generic:
+                  - button "Esconder o reprodutor de vídeo" [ref=f15e231] [cursor=pointer]
+                  - generic [ref=f15e240]:
+                    - generic [ref=f15e241]:
+                      - button "Pausar/Reproduzir" [ref=f15e242] [cursor=pointer]
+                      - generic [ref=f15e245]: 0:00
+                      - button "Alterar tela cheia" [ref=f15e248] [cursor=pointer]
+                    - button "Ativar/Desativar o volume" [ref=f15e254] [cursor=pointer]
+          - generic [ref=f15e264]:
+            - generic [ref=f15e266]:
+              - generic [ref=f15e267]: "Ordenar por:"
+              - button "Ordenar por Mais votados (padrão)" [ref=f15e272] [cursor=pointer]:
+                - generic [ref=f15e273]: Mais votados (padrão)
+            - button "Buscar nos comentários Expandir a busca por comentários" [ref=f15e281] [cursor=pointer]:
+              - generic [ref=f15e282]: Buscar nos comentários
+              - generic [ref=f15e289]: Expandir a busca por comentários
+          - region "Comentários" [ref=f15e295]:
+            - heading "Seção de comentários" [level=1] [ref=f15e296]
+            - generic:
+              - article "Comentário de Secondprize7 há 4 anos" [ref=f15e298]:
+                - generic "Metadados do comentário de Secondprize7" [ref=f15e299]:
+                  - link "Perfil de Secondprize7 --- avatar" [ref=f15e305] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/Secondprize7/
+                  - generic [ref=f15e316]:
+                    - link "Perfil de Secondprize7" [ref=f15e320] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/Secondprize7/
+                      - text: Secondprize7
+                    - generic [ref=f15e321]: •
+                    - link [ref=f15e323] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iud6z8p/
+                      - time [ref=f15e325]: há 4 anos
+                - generic [ref=f15e326]:
+                  - generic [ref=f15e327] [cursor=pointer]
+                  - paragraph [ref=f15e335]: How did you create the videos? Did you film yourself? Or did you buy video content from a third party?
+                  - generic [ref=f15e340]:
+                    - generic [ref=f15e341]:
+                      - generic [ref=f15e342] [cursor=pointer]
+                      - generic [ref=f15e343] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e344] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iud6z8p/?force-legacy-sct=1
+              - article "Comentário de Sachimarketing há 4 anos" [ref=f15e351]:
+                - generic "Metadados do comentário de Sachimarketing" [ref=f15e352]:
+                  - link "Perfil de Sachimarketing --- avatar" [ref=f15e358] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/Sachimarketing/
+                    - img "Avatar de u/Sachimarketing" [ref=f15e361]
+                  - generic [ref=f15e366]:
+                    - link "Perfil de Sachimarketing" [ref=f15e370] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/Sachimarketing/
+                      - text: Sachimarketing
+                    - generic [ref=f15e371]: •
+                    - link [ref=f15e373] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iuf35x8/
+                      - time [ref=f15e375]: há 4 anos
+                - generic [ref=f15e376]:
+                  - generic [ref=f15e377] [cursor=pointer]
+                  - paragraph [ref=f15e385]: Based on your data, you published, on average, 60 videos in a month (assuming 2 a day). But 90% of the growth is from 1 video. That's kinda depressing. But not surprising as I've seen similar data from others who have said the same. Wish TT's algo wouldn't be so concentrated in the top 1% of videos and spread the love more.
+                  - generic [ref=f15e390]:
+                    - generic [ref=f15e391]:
+                      - generic [ref=f15e392] [cursor=pointer]
+                      - generic [ref=f15e393] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e394] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iuf35x8/?force-legacy-sct=1
+              - article "Comentário de investoom_com há 4 anos" [ref=f15e401]:
+                - generic "Metadados do comentário de investoom_com" [ref=f15e402]:
+                  - link "Perfil de investoom_com --- avatar" [ref=f15e408] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/investoom_com/
+                    - img "Avatar de u/investoom_com" [ref=f15e411]
+                  - generic [ref=f15e416]:
+                    - link "Perfil de investoom_com" [ref=f15e420] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/investoom_com/
+                      - text: investoom_com
+                    - generic [ref=f15e421]: •
+                    - link [ref=f15e423] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iw7nauo/
+                      - time [ref=f15e425]: há 4 anos
+                    - generic [ref=f15e426]: •
+                    - generic [ref=f15e427]:
+                      - text: Editado
+                      - time [ref=f15e429]: há 4 anos
+                - generic [ref=f15e430]:
+                  - generic [ref=f15e431] [cursor=pointer]
+                  - paragraph [ref=f15e439]: Thank you for sharing your experiences! I have also looked at TikTok as a growth channel for my FinTech startup. I have only applied points 3 & 6 for my channel till now. Other than this, I used trending Hashtags related to the content that I am posting and have pinned the most-viewed videos to attract followers. So far I have gained 10K+ followers, but the number of views are still lower than yours. I will try out the other points from your learnings and share my experiences :)
+                  - generic [ref=f15e444]:
+                    - generic [ref=f15e445]:
+                      - generic [ref=f15e446] [cursor=pointer]
+                      - generic [ref=f15e447] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e448] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iw7nauo/?force-legacy-sct=1
+              - generic "An incremental Auto Battler, Play the Free Demo on Steam!" [ref=f15e455]:
+                - generic [ref=f15e456]:
+                  - 'link "Advertisement: An incremental Auto Battler, Play the Free Demo on Steam!" [ref=f15e457] [cursor=pointer]':
+                    - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                  - generic [ref=f15e458]:
+                    - generic [ref=f15e459]:
+                      - link "u/RogueDuckNet" [ref=f15e462] [cursor=pointer]:
+                        - /url: /user/RogueDuckNet/
+                        - img "Avatar de u/RogueDuckNet" [ref=f15e465]
+                      - generic [ref=f15e467]: •
+                      - link "Anúncio" [ref=f15e469] [cursor=pointer]:
+                        - /url: /user/RogueDuckNet/
+                      - link [ref=f15e471] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                    - button "Abrir ações de usuário" [ref=f15e477] [cursor=pointer]
+                  - generic [ref=f15e483]:
+                    - generic [ref=f15e484]:
+                      - link "An incremental Auto Battler, Play the Free Demo on Steam!" [ref=f15e486] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                      - generic [ref=f15e487]:
+                        - link [ref=f15e488] [cursor=pointer]:
+                          - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                        - generic [ref=f15e489]:
+                          - link "Baixar" [ref=f15e490] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                          - link "store.steampowered.com" [ref=f15e494] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                    - link [ref=f15e496] [cursor=pointer]:
+                      - /url: https://alb.reddit.com/cr?za=ScNFKHxlFC4UJwmcGO9WxmGGLLgAlYTM0KnrUYjmZiiCje-3oenC_LdhPfYGHht8__x1Epki2in44VRdlXM_Yc6Hb1YPNIt2OeMDckxYsI0M9ngaCGKEli3L-goiEBhOEDmDDKswaMJVde0w-uqdtpBB7PHhhaaMzfPAD6XI8agYFSTqWKFKy4G6jKkpp0C6m_Kz1xkmSOBVrXThdFFsuHaERfJSa4QX_ON9Z8v9Q-XVBOv9fA1lbVAvGUMTR82ytnDE0drS7aIKcXCMlU4Ej9Wpx_-8kYrMscuiMbyynm0bu9qgdsGsVwDmdoKmQD4fg3WEhHYsKN_JO9gCIVzcM2O4JF7MJijnOZFfSCashtBVSzSlu4fPyQZ6oAaUIEJgcyV9psijOEU39d6dhdKEFE1hJwO89WkV71ZRUCHLBIbMFXs0SwySAzAGTiKs2uF_SXJYmmNTYLSZl-VJhAKGzt6Km5rTLFvQWb4vWkFh3qKSuIZgRL6jNxlPm0O2H0ShzXGrCAB37r_gg88zx-9kuO1o7mTHhFEPTZhqzsYVc3Xyj2PepvdKlGvAk08dUOYKd7RejoP1svtldzn2YyOdgVm61xVDphJCeJDc3JijeSJKM26avvDWNuaXiUYWDJT-V0GHMJiBNmMIA0V__jG1Cd5rycdNY0xLLRSnYSJ_1qmC0DMlCSPK3LJk0u5UG1QzHMfdE2ZsIJA-&zp=2-XPBsxyoWyTeq4P34wQKE-Ofho727gQHnB52nYN_X3oEEwP4ntoiei-pbIAVZPOWfCbGewU1mLWJS0OJcqle7fyaUNBaY-ff4ijFj8FgbWv2M4L9ktUifFnGPK1VEAwGabPvWEch6CKTeZoJpaT3BkOyU5DdbFzZqFPAcWSsMi19328JDgPBoznKJTBtP1PBfqhlqNO-Qr3CIH1yEmgDEW6iDjCkea09MeIIIXA5POzDfkMMHsc_Auf8ZymssIsMR508Ee1NcZZ_-tTL9-rChL2WwRVg9EKRUAgN0ky6omB9IjgZLYoccs_X-n8W7oFkrqlRLV7MLmGK2XN
+                      - 'img "Thumbnail image: An incremental Auto Battler, Play the Free Demo on Steam!" [ref=f15e497]'
+              - article "Comentário de Xtrapsp2 há 4 anos" [ref=f15e499]:
+                - generic "Metadados do comentário de Xtrapsp2" [ref=f15e500]:
+                  - link "Perfil de Xtrapsp2 --- avatar" [ref=f15e506] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/Xtrapsp2/
+                  - generic [ref=f15e523]:
+                    - link "Perfil de Xtrapsp2" [ref=f15e527] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/Xtrapsp2/
+                      - text: Xtrapsp2
+                    - generic [ref=f15e528]: •
+                    - link [ref=f15e530] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iudpy5y/
+                      - time [ref=f15e532]: há 4 anos
+                - paragraph [ref=f15e540]: I'm curious if you have a blueprint / example video you could supply? Doesn't even need to be yours. I've been thinking about doing tiktoks myself
+              - article "Comentário de GhostOfKickinRanch há 2 anos" [ref=f15e546]:
+                - generic "Metadados do comentário de GhostOfKickinRanch" [ref=f15e547]:
+                  - link "Perfil de GhostOfKickinRanch --- avatar" [ref=f15e553] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/GhostOfKickinRanch/
+                  - generic [ref=f15e570]:
+                    - link "Perfil de GhostOfKickinRanch" [ref=f15e574] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/GhostOfKickinRanch/
+                      - text: GhostOfKickinRanch
+                    - generic [ref=f15e575]: •
+                    - link [ref=f15e577] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/kwra1sz/
+                      - time [ref=f15e579]: há 2 anos
+                - paragraph [ref=f15e587]:
+                  - link "https://www.tiktok.com/@squigglepusstv?_t=8l1DdHJtEcc&_r=1" [ref=f15e588] [cursor=pointer]:
+                    - /url: https://www.tiktok.com/@squigglepusstv?_t=8l1DdHJtEcc&_r=1
+              - article "Comentário de AlexHumuZ há 4 anos" [ref=f15e594]:
+                - generic "Metadados do comentário de AlexHumuZ" [ref=f15e595]:
+                  - link "Perfil de AlexHumuZ --- avatar" [ref=f15e601] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/AlexHumuZ/
+                    - img "Avatar de u/AlexHumuZ" [ref=f15e604]
+                  - generic [ref=f15e609]:
+                    - link "Perfil de AlexHumuZ" [ref=f15e613] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/AlexHumuZ/
+                      - text: AlexHumuZ
+                    - generic [ref=f15e614]: •
+                    - link [ref=f15e616] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iud7x63/
+                      - time [ref=f15e618]: há 4 anos
+                - generic [ref=f15e619]:
+                  - generic [ref=f15e620] [cursor=pointer]
+                  - paragraph [ref=f15e628]: Is there a way to automate the process? Do you post manually every day or can you schedule your posts?
+                  - generic [ref=f15e633]:
+                    - generic [ref=f15e634]:
+                      - generic [ref=f15e635] [cursor=pointer]
+                      - generic [ref=f15e636] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e637] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iud7x63/?force-legacy-sct=1
+              - article "Comentário de falooda1 há 4 anos" [ref=f15e644]:
+                - generic "Metadados do comentário de falooda1" [ref=f15e645]:
+                  - link "Perfil de falooda1 --- avatar" [ref=f15e651] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/falooda1/
+                  - generic [ref=f15e662]:
+                    - link "Perfil de falooda1" [ref=f15e666] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/falooda1/
+                      - text: falooda1
+                    - generic [ref=f15e667]: •
+                    - link [ref=f15e669] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iudddzf/
+                      - time [ref=f15e671]: há 4 anos
+                - generic [ref=f15e672]:
+                  - generic [ref=f15e673] [cursor=pointer]
+                  - paragraph [ref=f15e681]: How did this increase your sales?
+                  - generic [ref=f15e686]:
+                    - generic [ref=f15e687]:
+                      - generic [ref=f15e688] [cursor=pointer]
+                      - generic [ref=f15e689] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e690] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iudddzf/?force-legacy-sct=1
+              - generic "Do you trust your AI agent?" [ref=f15e697]:
+                - generic [ref=f15e698]:
+                  - 'link "Advertisement: Do you trust your AI agent?" [ref=f15e699] [cursor=pointer]':
+                    - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                  - generic [ref=f15e700]:
+                    - generic [ref=f15e701]:
+                      - link "u/AlgorandFoundation" [ref=f15e704] [cursor=pointer]:
+                        - /url: /user/AlgorandFoundation/
+                        - img "Avatar de u/AlgorandFoundation" [ref=f15e707]
+                      - generic [ref=f15e709]: •
+                      - link "Anúncio" [ref=f15e711] [cursor=pointer]:
+                        - /url: /user/AlgorandFoundation/
+                      - link [ref=f15e713] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                    - button "Abrir ações de usuário" [ref=f15e719] [cursor=pointer]
+                  - generic [ref=f15e725]:
+                    - generic [ref=f15e726]:
+                      - link "Do you trust your AI agent?" [ref=f15e728] [cursor=pointer]:
+                        - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                      - generic [ref=f15e729]:
+                        - link [ref=f15e730] [cursor=pointer]:
+                          - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                        - generic [ref=f15e731]:
+                          - link "Baixar" [ref=f15e732] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                          - link "ac2protocol.org" [ref=f15e736] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                    - link [ref=f15e738] [cursor=pointer]:
+                      - /url: https://alb.reddit.com/cr?za=Cgn8tAUqeACXjjCdAhDjloadIPSKvmy5dBYb354G0VC3x1s0uQpoEbo5PPJK-7TeECva2X5C5sDhviKRQy6OTCZ63wPxXHNwxikMzyRtk3L8pgFSKwg1ovF7hnvdLjA6--hsSouiUAYJ1LBpxk7PW3gaqldx0fGI3SSamh8WEPaLU6Avufx4SwRljTxJIaM-5lhmozYRHv8X-zaXOg4ijXaFHoT2PvM_pAtnhFl67zb0xlWeEhlLQQ_biPdCa4zLNnvWJdi6EgO-iy0j1MPodcVQWpAlVEIb76fLlqOqpFTzhqHqE8NbtXzTPAfU1PmM7U_yAP6aV9DpXXTCgbTp0pZp7EyO8wrkc4tQSRhVO5pI-dnmz5UYhZljwpMAcDEYW-dMTGxbjYsbopoMFrh4s0Pdzg23l8ETa1vACncrkICcUenuwgdHr6F84gVAH-uMaCNy3J0mmNzXvEM7LvcADKxo0scacFHhCsbmy8sUduXT7YOiJWMV3XNjI6z82HAc9SQ-Nc8FV6ODEFg4pAMWhRM28AjeRluslgHW-7MYsfR0-yKD7jtigIdDcvshHO2alT42ujnQgNPAQ62VYPzaKpStFVqlXvf4TpZxI2GLjZG-sx0oCwbtz3F8efSKNv4NICaiameRzY7a2z5fiCopDbAbcljMz43fVMgtnh0dy3sFwHBH5_prsONpP8IJIR1Ph-yLKck&zp=gWo86xQQn4E9upheFPSlMVyyl-I8zixFXpBNLqWLdjPHgQb7cJQ0HAcegTwGb4oWQFx3XRqT2M7qWddW_hV2CP3V0jr1-4uMxqxPbnyOlbI1WVeea5t0VjEy3GU5RDYgx18TTOb1XA_oRr0WVzxV2jY-OvZdF2yt1q-sUt2B8LG1drt6a5BtyVafmAjp1Wx1UWzpEgkLPqQPSNQdghimuS-5L36pEj5Zv-kk0w1z8cDMxZGJ3d-8ir0YoBjGYAnTsurC2Wr8ZPT78gfPyQj5M0oEm0S_viJE5WkMMm-QEuAj0o7y5vVXkrxGJ2SqYpfjZseE5C8AhHvrL2WJdJgybBLCJrqL14CyhF2Njl3vovtmc3lCd1vVHt4P7QgfeTs
+                      - 'img "Thumbnail image: Do you trust your AI agent?" [ref=f15e739]'
+              - article "Comentário de SundayJan2017 há 4 anos" [ref=f15e741]:
+                - generic "Metadados do comentário de SundayJan2017" [ref=f15e742]:
+                  - link "Perfil de SundayJan2017 --- avatar" [ref=f15e748] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/SundayJan2017/
+                  - generic [ref=f15e765]:
+                    - link "Perfil de SundayJan2017" [ref=f15e769] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/SundayJan2017/
+                      - text: SundayJan2017
+                    - generic [ref=f15e770]: •
+                    - link [ref=f15e772] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iuhjofa/
+                      - time [ref=f15e774]: há 4 anos
+                - generic [ref=f15e775]:
+                  - generic [ref=f15e776] [cursor=pointer]
+                  - paragraph [ref=f15e784]: Would love to know how to grow followers on insta.
+                  - generic [ref=f15e789]:
+                    - generic [ref=f15e790]:
+                      - generic [ref=f15e791] [cursor=pointer]
+                      - generic [ref=f15e792] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e793] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iuhjofa/?force-legacy-sct=1
+              - article "Comentário de PrestigiousZombie531 há 4 anos" [ref=f15e800]:
+                - generic "Metadados do comentário de PrestigiousZombie531" [ref=f15e801]:
+                  - link "Perfil de PrestigiousZombie531 --- avatar" [ref=f15e807] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/PrestigiousZombie531/
+                  - generic [ref=f15e824]:
+                    - link "Perfil de PrestigiousZombie531" [ref=f15e828] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/PrestigiousZombie531/
+                      - text: PrestigiousZombie531
+                    - generic [ref=f15e829]: •
+                    - link [ref=f15e831] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/ium9whq/
+                      - time [ref=f15e833]: há 4 anos
+                - generic [ref=f15e834]:
+                  - generic [ref=f15e835] [cursor=pointer]
+                  - paragraph [ref=f15e843]: What type of content do you think a news aggregator can publish on tiktok or is it only for entertainment/ fitness niche?
+                  - generic [ref=f15e848]:
+                    - generic [ref=f15e849]:
+                      - generic [ref=f15e850] [cursor=pointer]
+                      - generic [ref=f15e851] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e852] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/ium9whq/?force-legacy-sct=1
+              - article "Comentário de rbp933 há 4 anos" [ref=f15e859]:
+                - generic "Metadados do comentário de rbp933" [ref=f15e860]:
+                  - link "Perfil de rbp933 --- avatar" [ref=f15e866] [cursor=pointer]:
+                    - /url: https://www.reddit.com/user/rbp933/
+                  - generic [ref=f15e877]:
+                    - link "Perfil de rbp933" [ref=f15e881] [cursor=pointer]:
+                      - /url: https://www.reddit.com/user/rbp933/
+                      - text: rbp933
+                    - generic [ref=f15e882]: •
+                    - link [ref=f15e884] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iuyrt49/
+                      - time [ref=f15e886]: há 4 anos
+                - generic [ref=f15e887]:
+                  - generic [ref=f15e888] [cursor=pointer]
+                  - paragraph [ref=f15e896]: Did you find that posting at a certain time made your views and growth better?
+                  - generic [ref=f15e901]:
+                    - generic [ref=f15e902]:
+                      - generic [ref=f15e903] [cursor=pointer]
+                      - generic [ref=f15e904] [cursor=pointer]
+                    - link "Mais respostas" [ref=f15e905] [cursor=pointer]:
+                      - /url: /r/GrowthHacking/comments/yhd6ru/comment/iuyrt49/?force-legacy-sct=1
+              - article "Comentário de [apagado] há 4 anos" [ref=f15e912]:
+                - generic "Metadados do comentário de [apagado]" [ref=f15e913]:
+                  - generic [ref=f15e928]:
+                    - generic [ref=f15e929]: "[apagado]"
+                    - generic [ref=f15e932]: •
+                    - link [ref=f15e934] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/GrowthHacking/comments/yhd6ru/comment/iw0qg0p/
+                      - time [ref=f15e936]: há 4 anos
+                - paragraph [ref=f15e944]:
+                  - text: Tiktok followers Sale. Cheap tiktok FOLLOWERS - LIKES - VIEWS. Check details here...
+                  - link "r/tiktokfollowerssale" [ref=f15e945] [cursor=pointer]:
+                    - /url: /r/tiktokfollowerssale/
+        - generic [ref=f15e953]:
+          - generic [ref=f15e954]:
+            - complementary "Seção de posts relacionados" [ref=f15e955]:
+              - heading "Seção de posts relacionados" [level=1] [ref=f15e956]: Outros posts que você pode gostar
+              - generic [ref=f15e957]: Posts relacionados
+              - list [ref=f15e967]:
+                - listitem [ref=f15e968]:
+                  - generic [ref=f15e969]:
+                    - generic [ref=f15e970]:
+                      - link "Tiktok girl" [ref=f15e971] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/Unexpected/comments/11ff5tb/tiktok_girl/
+                      - generic [ref=f15e973]:
+                        - generic [ref=f15e974]:
+                          - generic [ref=f15e977]:
+                            - link "r/Unexpected" [ref=f15e978] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/Unexpected/
+                            - generic [ref=f15e983]: •
+                            - time [ref=f15e985]: há 4 anos
+                          - link [ref=f15e987] [cursor=pointer]:
+                            - /url: /r/Unexpected/comments/11ff5tb/tiktok_girl/
+                            - heading "Post de item da lista - Tiktok girl" [level=3] [ref=f15e990]: Tiktok girl
+                        - generic [ref=f15e992]:
+                          - link "r/Unexpected - Tiktok girl" [ref=f15e993] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/Unexpected/comments/11ff5tb/tiktok_girl/
+                            - img "r/Unexpected - Tiktok girl" [ref=f15e994]
+                          - generic: 0:18
+                      - generic [ref=f15e996]:
+                        - generic [ref=f15e997]: 40 mil
+                        - text: upvotes ·
+                        - generic [ref=f15e998]: 2,8 mil
+                        - text: comentários
+                    - separator [ref=f15e999]
+                - listitem [ref=f15e1000]:
+                  - generic [ref=f15e1002]:
+                    - generic:
+                      - 'link "Advertisement: Build crazy skills and break the dungeon 🔧 Play The Free Demo on Steam!" [ref=f15e1003] [cursor=pointer]':
+                        - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                      - generic [ref=f15e1004]:
+                        - generic [ref=f15e1005]:
+                          - generic [ref=f15e1006]:
+                            - generic [ref=f15e1007]:
+                              - generic [ref=f15e1008]:
+                                - link "Avatar de u/RogueDuckNet RogueDuckNet" [ref=f15e1011] [cursor=pointer]:
+                                  - /url: /user/RogueDuckNet/
+                                  - img "Avatar de u/RogueDuckNet" [ref=f15e1014]
+                                  - generic [ref=f15e1015]: RogueDuckNet
+                                - generic [ref=f15e1016]: •
+                                - link "Anúncio" [ref=f15e1018] [cursor=pointer]:
+                                  - /url: /user/RogueDuckNet/
+                                - link:
+                                  - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                              - button "Abrir ações de usuário" [ref=f15e1025] [cursor=pointer]
+                            - link "Build crazy skills and break the dungeon 🔧 Play The Free Demo on Steam!" [ref=f15e1031] [cursor=pointer]:
+                              - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                          - link [ref=f15e1034] [cursor=pointer]:
+                            - /url: /user/RogueDuckNet/comments/1w1g60p/build_crazy_skills_and_break_the_dungeon_play_the/?p=1&impressionid=6008980573756855189
+                            - 'img "Thumbnail image: Build crazy skills and break the dungeon 🔧 Play The Free Demo on Steam!" [ref=f15e1035]'
+                            - generic "Reproduzir vídeo"
+                        - generic [ref=f15e1036]:
+                          - link [ref=f15e1037] [cursor=pointer]:
+                            - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                          - generic [ref=f15e1038]:
+                            - link "store.steampowered.com" [ref=f15e1040] [cursor=pointer]:
+                              - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                            - link "Baixar" [ref=f15e1041] [cursor=pointer]:
+                              - /url: https://alb.reddit.com/cr?za=mPzbkSFe6LfX2gkKBHm4wU3eW_a4jPHDWmgXMNDiEif40s79RrgYrPbV-JtTNVP9SMojNvRngHoIkGvED5adE_Gvn8jSPm2Tf_odBJBmOGGF2XttlKQPVC10PlOXNyRkwISIgWWmVaA6Dj0TG3jDDeia3Gr6XLtjfwWW3Jm-DN1ld7xVqJ5iQ50moH1lP7rhq2UHXXj_wPEE8YZj5ZJ_FV69oyrU0bzDKbcRR0mo_FR1nyGH7GvGGq9Gzg3hpHg_rb8CHp9i9conSnymrtWdnP7DH-oQBliK1Fheo7oesYWCNZVCgQuQBLH0DzKMuVgJwlNV8WOxZExkds3VVog7FeTjxOJ4Pkki1KzDHqfiqHK9aB-BOJjjErCOrbCqwbdkNMA3B7E9UMU_YaEVW8fHNdu52nbgVsmBkDkni6_24aWYRwfSpheJ1w1s7b-R11Jpt23giIPkhvv2YRdsdVuyWQFuwWwBB6EhAfYrXIlNzUQqbRXvkHmJlIjOOdhBZpxZDx-YCohgC_wBOAUXDwidfXuzHsCkpTZP1psDGYS7ZEZxr0jNe86UA2MKzdezxREh8PmEe3t6dmtQyTIkqh94_5T9yy3eM8-maHnJrNKljGCc0RamwUwxcOhfa2OCv2YndTyjwZ-bbH1UayKrbCU0i3b7Qmhb3wioCf7bqLXDKfKSNBSdT2BRnbA&zp=dML-v69msPuPIqZvjr9eWjDzUemFCdFd-Q8wvgkOW8C5lBfTYY9br-Uu8A5wQjxWMQmpPMiErUCbCE-OmS4lFnYeG4lVvzamdhBO-177fhHEFhr1g4g71ZrhBRKi4sPtqtM2LIoIJM0N8hYTDvd6M2-lKfSlpNx4gRfSvG_M3CnwjhtaMWOf3I8fePB7k7tHhXkGiJXYUilFClhHANNCgHoGYcL2dzPyDd7HxLXbZOohfFOO_SRgKEpBy-IEINshg66w1uCFB4nNBBrbBfJobJqkkqWnqowgCbJzBBWb3q1oO5JgqP4QNowFk-4R1BmwagE8-s3bHgc
+                  - separator [ref=f15e1044]
+                - listitem [ref=f15e1045]:
+                  - generic [ref=f15e1046]:
+                    - generic [ref=f15e1047]:
+                      - link "A 1-Month TikTok Growth Experiment From 0 to 4.4M Views and 10.2K Followers" [ref=f15e1048] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/GrowthHacking/comments/1qu1bys/a_1month_tiktok_growth_experiment_from_0_to_44m/
+                      - generic [ref=f15e1051]:
+                        - generic [ref=f15e1054]:
+                          - link "r/GrowthHacking" [ref=f15e1055] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/GrowthHacking/
+                          - generic [ref=f15e1060]: •
+                          - time [ref=f15e1062]: há 7 meses
+                        - link [ref=f15e1064] [cursor=pointer]:
+                          - /url: /r/GrowthHacking/comments/1qu1bys/a_1month_tiktok_growth_experiment_from_0_to_44m/
+                          - heading "Post de item da lista - A 1-Month TikTok Growth Experiment From 0 to 4.4M Views and..." [level=3] [ref=f15e1067]: A 1-Month TikTok Growth Experiment From 0 to 4.4M Views and 10.2K Followers
+                      - generic [ref=f15e1069]:
+                        - generic [ref=f15e1070]: "6"
+                        - text: upvotes ·
+                        - generic [ref=f15e1071]: "18"
+                        - text: comentários
+                    - separator [ref=f15e1072]
+                - listitem [ref=f15e1073]:
+                  - generic [ref=f15e1074]:
+                    - generic [ref=f15e1075]:
+                      - link "Bought a promotion on Tiktok to get more followers... and it kinda worked? A little?" [ref=f15e1076] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/socialmedia/comments/1qclxln/bought_a_promotion_on_tiktok_to_get_more/
+                      - generic [ref=f15e1079]:
+                        - generic [ref=f15e1082]:
+                          - link "r/socialmedia" [ref=f15e1083] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/socialmedia/
+                          - generic [ref=f15e1088]: •
+                          - time [ref=f15e1090]: há 8 meses
+                        - link [ref=f15e1092] [cursor=pointer]:
+                          - /url: /r/socialmedia/comments/1qclxln/bought_a_promotion_on_tiktok_to_get_more/
+                          - heading "Post de item da lista - Bought a promotion on Tiktok to get more followers... and i..." [level=3] [ref=f15e1095]: Bought a promotion on Tiktok to get more followers... and it kinda worked? A little?
+                      - generic [ref=f15e1097]:
+                        - generic [ref=f15e1098]: "26"
+                        - text: upvotes ·
+                        - generic [ref=f15e1099]: "64"
+                        - text: comentários
+                    - separator [ref=f15e1100]
+                - listitem
+                - listitem [ref=f15e1101]:
+                  - generic [ref=f15e1102]:
+                    - generic [ref=f15e1103]:
+                      - link "Here is what I learned after getting 10k+ follower and 1.6million views on tiktok in 51 days" [ref=f15e1104] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/content_marketing/comments/1na44pc/here_is_what_i_learned_after_getting_10k_follower/
+                      - generic [ref=f15e1107]:
+                        - generic [ref=f15e1110]:
+                          - link "r/content_marketing" [ref=f15e1111] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/content_marketing/
+                          - generic [ref=f15e1116]: •
+                          - time [ref=f15e1118]: há 1 ano
+                        - link [ref=f15e1120] [cursor=pointer]:
+                          - /url: /r/content_marketing/comments/1na44pc/here_is_what_i_learned_after_getting_10k_follower/
+                          - heading "Post de item da lista - Here is what I learned after getting 10k+ follower and 1.6m..." [level=3] [ref=f15e1123]: Here is what I learned after getting 10k+ follower and 1.6million views on tiktok in 51 days
+                      - generic [ref=f15e1125]:
+                        - generic [ref=f15e1126]: "5"
+                        - text: upvotes ·
+                        - generic [ref=f15e1127]: "20"
+                        - text: comentários
+                    - separator [ref=f15e1128]
+                - listitem [ref=f15e1129]:
+                  - generic [ref=f15e1130]:
+                    - generic [ref=f15e1131]:
+                      - link "I tried and tested posting everyday on tiktok to organically grow my account" [ref=f15e1132] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/socialmedia/comments/1n9z02k/i_tried_and_tested_posting_everyday_on_tiktok_to/
+                      - generic [ref=f15e1135]:
+                        - generic [ref=f15e1138]:
+                          - link "r/socialmedia" [ref=f15e1139] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/socialmedia/
+                          - generic [ref=f15e1144]: •
+                          - time [ref=f15e1146]: há 1 ano
+                        - link [ref=f15e1148] [cursor=pointer]:
+                          - /url: /r/socialmedia/comments/1n9z02k/i_tried_and_tested_posting_everyday_on_tiktok_to/
+                          - heading "Post de item da lista - I tried and tested posting everyday on tiktok to organicall..." [level=3] [ref=f15e1151]: I tried and tested posting everyday on tiktok to organically grow my account
+                      - generic [ref=f15e1153]:
+                        - generic [ref=f15e1154]: "15"
+                        - text: upvotes ·
+                        - generic [ref=f15e1155]: "30"
+                        - text: comentários
+                    - separator [ref=f15e1156]
+                - listitem [ref=f15e1157]:
+                  - generic [ref=f15e1158]:
+                    - generic [ref=f15e1159]:
+                      - link "Anybody have any tips on growing a following on TikTok?" [ref=f15e1160] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/socialmedia/comments/1qfo8wt/anybody_have_any_tips_on_growing_a_following_on/
+                      - generic [ref=f15e1163]:
+                        - generic [ref=f15e1166]:
+                          - link "r/socialmedia" [ref=f15e1167] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/socialmedia/
+                          - generic [ref=f15e1172]: •
+                          - time [ref=f15e1174]: há 8 meses
+                        - link [ref=f15e1176] [cursor=pointer]:
+                          - /url: /r/socialmedia/comments/1qfo8wt/anybody_have_any_tips_on_growing_a_following_on/
+                          - heading "Post de item da lista - Anybody have any tips on growing a following on TikTok?" [level=3] [ref=f15e1179]: Anybody have any tips on growing a following on TikTok?
+                      - generic [ref=f15e1181]:
+                        - generic [ref=f15e1182]: "14"
+                        - text: upvotes ·
+                        - generic [ref=f15e1183]: "76"
+                        - text: comentários
+                    - separator [ref=f15e1184]
+                - listitem [ref=f15e1185]:
+                  - generic [ref=f15e1186]:
+                    - generic [ref=f15e1187]:
+                      - link "Went from at least 1k views a video to my last three doing this" [ref=f15e1188] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/YouTubeCreators/comments/1um6let/went_from_at_least_1k_views_a_video_to_my_last/
+                      - generic [ref=f15e1190]:
+                        - generic [ref=f15e1191]:
+                          - generic [ref=f15e1194]:
+                            - link "r/YouTubeCreators" [ref=f15e1195] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/YouTubeCreators/
+                            - generic [ref=f15e1200]: •
+                            - time [ref=f15e1202]: há 2 meses
+                          - link [ref=f15e1204] [cursor=pointer]:
+                            - /url: /r/YouTubeCreators/comments/1um6let/went_from_at_least_1k_views_a_video_to_my_last/
+                            - heading "Post de item da lista - Went from at least 1k views a video to my last three doing ..." [level=3] [ref=f15e1207]: Went from at least 1k views a video to my last three doing this
+                        - link "r/YouTubeCreators - Went from at least 1k views a video to my last three doing this" [ref=f15e1210] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/YouTubeCreators/comments/1um6let/went_from_at_least_1k_views_a_video_to_my_last/
+                          - img "r/YouTubeCreators - Went from at least 1k views a video to my last three doing this" [ref=f15e1211]
+                      - generic [ref=f15e1213]:
+                        - generic [ref=f15e1214]: "35"
+                        - text: upvotes ·
+                        - generic [ref=f15e1215]: "32"
+                        - text: comentários
+                    - separator [ref=f15e1216]
+                - listitem [ref=f15e1217]:
+                  - generic [ref=f15e1218]:
+                    - generic [ref=f15e1219]:
+                      - link "Detailed breakdown of a TikTok growth strategy that drove massive views and downloads for a fitness app (from a recent X thread)" [ref=f15e1220] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/Entrepreneur/comments/1pin982/detailed_breakdown_of_a_tiktok_growth_strategy/
+                      - generic [ref=f15e1223]:
+                        - generic [ref=f15e1226]:
+                          - link "r/Entrepreneur" [ref=f15e1227] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/Entrepreneur/
+                          - generic [ref=f15e1232]: •
+                          - time [ref=f15e1234]: há 9 meses
+                        - link [ref=f15e1236] [cursor=pointer]:
+                          - /url: /r/Entrepreneur/comments/1pin982/detailed_breakdown_of_a_tiktok_growth_strategy/
+                          - heading "Post de item da lista - Detailed breakdown of a TikTok growth strategy that drove m..." [level=3] [ref=f15e1239]: Detailed breakdown of a TikTok growth strategy that drove massive views and downloads for a fitness app (from a recent X thread)
+                      - generic [ref=f15e1241]:
+                        - generic [ref=f15e1242]: "16"
+                        - text: upvotes ·
+                        - generic [ref=f15e1243]: "23"
+                        - text: comentários
+                    - separator [ref=f15e1244]
+                - listitem
+                - listitem [ref=f15e1245]:
+                  - generic [ref=f15e1246]:
+                    - generic [ref=f15e1247]:
+                      - link "Fighting TikTok content thieves - it is slow, but worth it" [ref=f15e1248] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/PartneredYoutube/comments/1pi2n35/fighting_tiktok_content_thieves_it_is_slow_but/
+                      - generic [ref=f15e1251]:
+                        - generic [ref=f15e1254]:
+                          - link "r/PartneredYoutube" [ref=f15e1255] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/PartneredYoutube/
+                          - generic [ref=f15e1260]: •
+                          - time [ref=f15e1262]: há 9 meses
+                        - link [ref=f15e1264] [cursor=pointer]:
+                          - /url: /r/PartneredYoutube/comments/1pi2n35/fighting_tiktok_content_thieves_it_is_slow_but/
+                          - heading "Post de item da lista - Fighting TikTok content thieves - it is slow, but worth it" [level=3] [ref=f15e1267]: Fighting TikTok content thieves - it is slow, but worth it
+                      - generic [ref=f15e1269]:
+                        - generic [ref=f15e1270]: "70"
+                        - text: upvotes ·
+                        - generic [ref=f15e1271]: "54"
+                        - text: comentários
+                    - separator [ref=f15e1272]
+                - listitem [ref=f15e1273]:
+                  - generic [ref=f15e1274]:
+                    - generic [ref=f15e1275]:
+                      - link "Consistent 1K views per day, on only 4K subscribers. The YouTube dream." [ref=f15e1276] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/YouTubeCreators/comments/1ubcv95/consistent_1k_views_per_day_on_only_4k/
+                      - generic [ref=f15e1278]:
+                        - generic [ref=f15e1279]:
+                          - generic [ref=f15e1282]:
+                            - link "r/YouTubeCreators" [ref=f15e1283] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/YouTubeCreators/
+                            - generic [ref=f15e1288]: •
+                            - time [ref=f15e1290]: há 2 meses
+                          - link [ref=f15e1292] [cursor=pointer]:
+                            - /url: /r/YouTubeCreators/comments/1ubcv95/consistent_1k_views_per_day_on_only_4k/
+                            - heading "Post de item da lista - Consistent 1K views per day, on only 4K subscribers. The Yo..." [level=3] [ref=f15e1295]: Consistent 1K views per day, on only 4K subscribers. The YouTube dream.
+                        - link "r/YouTubeCreators - Consistent 1K views per day, on only 4K subscribers. The YouTube dream." [ref=f15e1298] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/YouTubeCreators/comments/1ubcv95/consistent_1k_views_per_day_on_only_4k/
+                          - img "r/YouTubeCreators - Consistent 1K views per day, on only 4K subscribers. The YouTube dream." [ref=f15e1299]
+                      - generic [ref=f15e1301]:
+                        - generic [ref=f15e1302]: "87"
+                        - text: upvotes ·
+                        - generic [ref=f15e1303]: "16"
+                        - text: comentários
+                    - separator [ref=f15e1304]
+                - listitem [ref=f15e1305]:
+                  - generic [ref=f15e1306]:
+                    - generic [ref=f15e1307]:
+                      - link "Anyone here tried ai tools for tiktok growth & creator targeting?" [ref=f15e1308] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/SocialMediaMarketing/comments/1o7u1y8/anyone_here_tried_ai_tools_for_tiktok_growth/
+                      - generic [ref=f15e1311]:
+                        - generic [ref=f15e1314]:
+                          - link "r/SocialMediaMarketing" [ref=f15e1315] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/SocialMediaMarketing/
+                          - generic [ref=f15e1322]: •
+                          - time [ref=f15e1324]: há 1 ano
+                        - link [ref=f15e1326] [cursor=pointer]:
+                          - /url: /r/SocialMediaMarketing/comments/1o7u1y8/anyone_here_tried_ai_tools_for_tiktok_growth/
+                          - heading "Post de item da lista - Anyone here tried ai tools for tiktok growth & creator targ..." [level=3] [ref=f15e1329]: Anyone here tried ai tools for tiktok growth & creator targeting?
+                      - generic [ref=f15e1331]:
+                        - generic [ref=f15e1332]: "20"
+                        - text: upvotes ·
+                        - generic [ref=f15e1333]: "26"
+                        - text: comentários
+                    - separator [ref=f15e1334]
+                - listitem [ref=f15e1335]:
+                  - generic [ref=f15e1336]:
+                    - generic [ref=f15e1337]:
+                      - link "How can I monetize my TikTok account?" [ref=f15e1338] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/content_marketing/comments/1n980us/how_can_i_monetize_my_tiktok_account/
+                      - generic [ref=f15e1341]:
+                        - generic [ref=f15e1344]:
+                          - link "r/content_marketing" [ref=f15e1345] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/content_marketing/
+                          - generic [ref=f15e1350]: •
+                          - time [ref=f15e1352]: há 1 ano
+                        - link [ref=f15e1354] [cursor=pointer]:
+                          - /url: /r/content_marketing/comments/1n980us/how_can_i_monetize_my_tiktok_account/
+                          - heading "Post de item da lista - How can I monetize my TikTok account?" [level=3] [ref=f15e1357]: How can I monetize my TikTok account?
+                      - generic [ref=f15e1359]:
+                        - generic [ref=f15e1360]: "7"
+                        - text: upvotes ·
+                        - generic [ref=f15e1361]: "23"
+                        - text: comentários
+                    - separator [ref=f15e1362]
+                - listitem [ref=f15e1363]:
+                  - generic [ref=f15e1364]:
+                    - generic [ref=f15e1365]:
+                      - link "So excited that my vids are finally getting a little traffic!📈 so grateful for my consistency. Don’t give up" [ref=f15e1366] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/YouTubeCreators/comments/1vvxily/so_excited_that_my_vids_are_finally_getting_a/
+                      - generic [ref=f15e1368]:
+                        - generic [ref=f15e1369]:
+                          - generic [ref=f15e1372]:
+                            - link "r/YouTubeCreators" [ref=f15e1373] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/YouTubeCreators/
+                            - generic [ref=f15e1378]: •
+                            - time [ref=f15e1380]: há 9 dias
+                          - link [ref=f15e1382] [cursor=pointer]:
+                            - /url: /r/YouTubeCreators/comments/1vvxily/so_excited_that_my_vids_are_finally_getting_a/
+                            - heading "Post de item da lista - So excited that my vids are finally getting a little traffi..." [level=3] [ref=f15e1385]: So excited that my vids are finally getting a little traffic!📈 so grateful for my consistency. Don’t give up
+                        - link "r/YouTubeCreators - So excited that my vids are finally getting a little traffic!📈 so grateful for my consistency. Don’t give up" [ref=f15e1388] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/YouTubeCreators/comments/1vvxily/so_excited_that_my_vids_are_finally_getting_a/
+                          - img "r/YouTubeCreators - So excited that my vids are finally getting a little traffic!📈 so grateful for my consistency. Don’t give up" [ref=f15e1389]
+                      - generic [ref=f15e1391]:
+                        - generic [ref=f15e1392]: "232"
+                        - text: upvotes ·
+                        - generic [ref=f15e1393]: "56"
+                        - text: comentários
+                    - separator [ref=f15e1394]
+                - listitem [ref=f15e1395]:
+                  - generic [ref=f15e1396]:
+                    - generic [ref=f15e1397]:
+                      - link "I got 1k views" [ref=f15e1398] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/YouTubeCreators/comments/1sceiiy/i_got_1k_views/
+                      - generic [ref=f15e1400]:
+                        - generic [ref=f15e1401]:
+                          - generic [ref=f15e1404]:
+                            - link "r/YouTubeCreators" [ref=f15e1405] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/YouTubeCreators/
+                            - generic [ref=f15e1410]: •
+                            - time [ref=f15e1412]: há 5 meses
+                          - link [ref=f15e1414] [cursor=pointer]:
+                            - /url: /r/YouTubeCreators/comments/1sceiiy/i_got_1k_views/
+                            - heading "Post de item da lista - I got 1k views" [level=3] [ref=f15e1417]: I got 1k views
+                        - link "r/YouTubeCreators - I got 1k views" [ref=f15e1420] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/YouTubeCreators/comments/1sceiiy/i_got_1k_views/
+                          - img "r/YouTubeCreators - I got 1k views" [ref=f15e1421]
+                      - generic [ref=f15e1423]:
+                        - generic [ref=f15e1424]: "83"
+                        - text: upvotes ·
+                        - generic [ref=f15e1425]: "29"
+                        - text: comentários
+                    - separator [ref=f15e1426]
+                - listitem [ref=f15e1427]:
+                  - generic [ref=f15e1428]:
+                    - generic [ref=f15e1429]:
+                      - link "Great growth hack for consumer businesses - TikTok" [ref=f15e1430] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/socialmedia/comments/1odg2q9/great_growth_hack_for_consumer_businesses_tiktok/
+                      - generic [ref=f15e1433]:
+                        - generic [ref=f15e1436]:
+                          - link "r/socialmedia" [ref=f15e1437] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/socialmedia/
+                          - generic [ref=f15e1442]: •
+                          - time [ref=f15e1444]: há 10 meses
+                        - link [ref=f15e1446] [cursor=pointer]:
+                          - /url: /r/socialmedia/comments/1odg2q9/great_growth_hack_for_consumer_businesses_tiktok/
+                          - heading "Post de item da lista - Great growth hack for consumer businesses - TikTok" [level=3] [ref=f15e1449]: Great growth hack for consumer businesses - TikTok
+                      - generic [ref=f15e1451]:
+                        - generic [ref=f15e1452]: "55"
+                        - text: upvotes ·
+                        - generic [ref=f15e1453]: "11"
+                        - text: comentários
+                    - separator [ref=f15e1454]
+                - listitem [ref=f15e1455]:
+                  - generic [ref=f15e1456]:
+                    - generic [ref=f15e1457]:
+                      - link "23F - I created an account after seeing a black pill video" [ref=f15e1458] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/Tinder/comments/xo3s6y/23f_i_created_an_account_after_seeing_a_black/
+                      - generic [ref=f15e1461]:
+                        - generic [ref=f15e1464]:
+                          - link "r/Tinder" [ref=f15e1465] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/Tinder/
+                          - generic [ref=f15e1470]: •
+                          - time [ref=f15e1472]: há 4 anos
+                        - link [ref=f15e1474] [cursor=pointer]:
+                          - /url: /r/Tinder/comments/xo3s6y/23f_i_created_an_account_after_seeing_a_black/
+                          - heading "Post de item da lista - 23F - I created an account after seeing a black pill video" [level=3] [ref=f15e1477]: 23F - I created an account after seeing a black pill video
+                      - generic [ref=f15e1479]:
+                        - generic [ref=f15e1480]: "10"
+                        - text: upvotes ·
+                        - generic [ref=f15e1481]: "10"
+                        - text: comentários
+                    - separator [ref=f15e1482]
+                - listitem [ref=f15e1483]:
+                  - generic [ref=f15e1484]:
+                    - generic [ref=f15e1485]:
+                      - link "My first long video to hit 1k views" [ref=f15e1486] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/YouTubeCreators/comments/1rciqsn/my_first_long_video_to_hit_1k_views/
+                      - generic [ref=f15e1488]:
+                        - generic [ref=f15e1489]:
+                          - generic [ref=f15e1492]:
+                            - link "r/YouTubeCreators" [ref=f15e1493] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/YouTubeCreators/
+                            - generic [ref=f15e1498]: •
+                            - time [ref=f15e1500]: há 6 meses
+                          - link [ref=f15e1502] [cursor=pointer]:
+                            - /url: /r/YouTubeCreators/comments/1rciqsn/my_first_long_video_to_hit_1k_views/
+                            - heading "Post de item da lista - My first long video to hit 1k views" [level=3] [ref=f15e1505]: My first long video to hit 1k views
+                        - link "r/YouTubeCreators - My first long video to hit 1k views" [ref=f15e1508] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/YouTubeCreators/comments/1rciqsn/my_first_long_video_to_hit_1k_views/
+                          - img "r/YouTubeCreators - My first long video to hit 1k views" [ref=f15e1509]
+                      - generic [ref=f15e1511]:
+                        - generic [ref=f15e1512]: "27"
+                        - text: upvotes ·
+                        - generic [ref=f15e1513]: "12"
+                        - text: comentários
+                    - separator [ref=f15e1514]
+                - listitem [ref=f15e1515]:
+                  - generic [ref=f15e1516]:
+                    - generic [ref=f15e1517]:
+                      - link "Growing a new TikTok & Instagram account from zero — what are the first 5 steps?" [ref=f15e1518] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/ContentCreators/comments/1qmo0su/growing_a_new_tiktok_instagram_account_from_zero/
+                      - generic [ref=f15e1521]:
+                        - generic [ref=f15e1524]:
+                          - link "r/ContentCreators" [ref=f15e1525] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/ContentCreators/
+                          - generic [ref=f15e1530]: •
+                          - time [ref=f15e1532]: há 7 meses
+                        - link [ref=f15e1534] [cursor=pointer]:
+                          - /url: /r/ContentCreators/comments/1qmo0su/growing_a_new_tiktok_instagram_account_from_zero/
+                          - heading "Post de item da lista - Growing a new TikTok & Instagram account from zero — what a..." [level=3] [ref=f15e1537]: Growing a new TikTok & Instagram account from zero — what are the first 5 steps?
+                      - generic [ref=f15e1539]:
+                        - generic [ref=f15e1540]: "15"
+                        - text: upvotes ·
+                        - generic [ref=f15e1541]: "14"
+                        - text: comentários
+                    - separator [ref=f15e1542]
+                - listitem [ref=f15e1543]:
+                  - generic [ref=f15e1544]:
+                    - generic [ref=f15e1545]:
+                      - link "YouTubers who got their channel monetized." [ref=f15e1546] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/youtubers/comments/xr1q1j/youtubers_who_got_their_channel_monetized/
+                      - generic [ref=f15e1549]:
+                        - generic [ref=f15e1552]:
+                          - link "r/youtubers" [ref=f15e1553] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/youtubers/
+                          - generic [ref=f15e1558]: •
+                          - time [ref=f15e1560]: há 4 anos
+                        - link [ref=f15e1562] [cursor=pointer]:
+                          - /url: /r/youtubers/comments/xr1q1j/youtubers_who_got_their_channel_monetized/
+                          - heading "Post de item da lista - YouTubers who got their channel monetized." [level=3] [ref=f15e1565]: YouTubers who got their channel monetized.
+                      - generic [ref=f15e1567]:
+                        - generic [ref=f15e1568]: "57"
+                        - text: upvotes ·
+                        - generic [ref=f15e1569]: "94"
+                        - text: comentários
+                    - separator [ref=f15e1570]
+                - listitem [ref=f15e1571]:
+                  - generic [ref=f15e1572]:
+                    - generic [ref=f15e1573]:
+                      - link "does turning blogs into tiktok shorts actually work for anyone? if so how??" [ref=f15e1574] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/content_marketing/comments/1qk1v3n/does_turning_blogs_into_tiktok_shorts_actually/
+                      - generic [ref=f15e1577]:
+                        - generic [ref=f15e1580]:
+                          - link "r/content_marketing" [ref=f15e1581] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/content_marketing/
+                          - generic [ref=f15e1586]: •
+                          - time [ref=f15e1588]: há 7 meses
+                        - link [ref=f15e1590] [cursor=pointer]:
+                          - /url: /r/content_marketing/comments/1qk1v3n/does_turning_blogs_into_tiktok_shorts_actually/
+                          - heading "Post de item da lista - does turning blogs into tiktok shorts actually work for any..." [level=3] [ref=f15e1593]: does turning blogs into tiktok shorts actually work for anyone? if so how??
+                      - generic [ref=f15e1595]:
+                        - generic [ref=f15e1596]: "36"
+                        - text: upvotes ·
+                        - generic [ref=f15e1597]: "16"
+                        - text: comentários
+                    - separator [ref=f15e1598]
+                - listitem [ref=f15e1599]:
+                  - generic [ref=f15e1600]:
+                    - generic [ref=f15e1601]:
+                      - link "2k subs 1m total views, loving my YT journey AMA" [ref=f15e1602] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/NewTubers/comments/ygzw8d/2k_subs_1m_total_views_loving_my_yt_journey_ama/
+                      - generic [ref=f15e1605]:
+                        - generic [ref=f15e1608]:
+                          - link "r/NewTubers" [ref=f15e1609] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/NewTubers/
+                          - generic [ref=f15e1614]: •
+                          - time [ref=f15e1616]: há 4 anos
+                        - link [ref=f15e1618] [cursor=pointer]:
+                          - /url: /r/NewTubers/comments/ygzw8d/2k_subs_1m_total_views_loving_my_yt_journey_ama/
+                          - heading "Post de item da lista - 2k subs 1m total views, loving my YT journey AMA" [level=3] [ref=f15e1621]: 2k subs 1m total views, loving my YT journey AMA
+                      - generic [ref=f15e1623]:
+                        - generic [ref=f15e1624]: "75"
+                        - text: upvotes ·
+                        - generic [ref=f15e1625]: "48"
+                        - text: comentários
+                    - separator [ref=f15e1626]
+                - listitem [ref=f15e1627]:
+                  - generic [ref=f15e1628]:
+                    - generic [ref=f15e1629]:
+                      - link "I spent 3 days reading 30+ Marketing Reports, Case-Studies and Here’s What I learned About TikTok, UGC and Social Media! -2" [ref=f15e1630] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/copywriting/comments/y6am9c/i_spent_3_days_reading_30_marketing_reports/
+                      - generic [ref=f15e1633]:
+                        - generic [ref=f15e1636]:
+                          - link "r/copywriting" [ref=f15e1637] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/copywriting/
+                          - generic [ref=f15e1644]: •
+                          - time [ref=f15e1646]: há 4 anos
+                        - link [ref=f15e1648] [cursor=pointer]:
+                          - /url: /r/copywriting/comments/y6am9c/i_spent_3_days_reading_30_marketing_reports/
+                          - heading "Post de item da lista - I spent 3 days reading 30+ Marketing Reports, Case-Studies ..." [level=3] [ref=f15e1651]: I spent 3 days reading 30+ Marketing Reports, Case-Studies and Here’s What I learned About TikTok, UGC and Social Media! -2
+                      - generic [ref=f15e1653]:
+                        - generic [ref=f15e1654]: "58"
+                        - text: upvotes ·
+                        - generic [ref=f15e1655]: "5"
+                        - text: comentários
+                    - separator [ref=f15e1656]
+                - listitem [ref=f15e1657]:
+                  - generic [ref=f15e1658]:
+                    - generic [ref=f15e1659]:
+                      - link "Struggling To Grow" [ref=f15e1660] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/NewYouTubeChannels/comments/1votun4/struggling_to_grow/
+                      - generic [ref=f15e1662]:
+                        - generic [ref=f15e1663]:
+                          - generic [ref=f15e1666]:
+                            - link "r/NewYouTubeChannels" [ref=f15e1667] [cursor=pointer]:
+                              - /url: https://www.reddit.com/r/NewYouTubeChannels/
+                            - generic [ref=f15e1672]: •
+                            - time [ref=f15e1674]: há 17 dias
+                          - link [ref=f15e1676] [cursor=pointer]:
+                            - /url: /r/NewYouTubeChannels/comments/1votun4/struggling_to_grow/
+                            - heading "Post de item da lista - Struggling To Grow" [level=3] [ref=f15e1679]: Struggling To Grow
+                        - link "r/NewYouTubeChannels - Struggling To Grow" [ref=f15e1682] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/NewYouTubeChannels/comments/1votun4/struggling_to_grow/
+                          - img "r/NewYouTubeChannels - Struggling To Grow" [ref=f15e1683]
+                      - generic [ref=f15e1685]:
+                        - generic [ref=f15e1686]: "4"
+                        - text: upvotes ·
+                        - generic [ref=f15e1687]: "49"
+                        - text: comentários
+                    - separator [ref=f15e1688]
+                - listitem [ref=f15e1689]:
+                  - generic [ref=f15e1690]:
+                    - generic [ref=f15e1691]:
+                      - link "Are there any platforms other than (TikTok, Instagram, Youtube, Facebook) worth posting on?" [ref=f15e1692] [cursor=pointer]:
+                        - /url: https://www.reddit.com/r/ContentCreators/comments/1uk5562/are_there_any_platforms_other_than_tiktok/
+                      - generic [ref=f15e1695]:
+                        - generic [ref=f15e1698]:
+                          - link "r/ContentCreators" [ref=f15e1699] [cursor=pointer]:
+                            - /url: https://www.reddit.com/r/ContentCreators/
+                          - generic [ref=f15e1704]: •
+                          - time [ref=f15e1706]: há 2 meses
+                        - link [ref=f15e1708] [cursor=pointer]:
+                          - /url: /r/ContentCreators/comments/1uk5562/are_there_any_platforms_other_than_tiktok/
+                          - heading "Post de item da lista - Are there any platforms other than (TikTok, Instagram, Yout..." [level=3] [ref=f15e1711]: Are there any platforms other than (TikTok, Instagram, Youtube, Facebook) worth posting on?
+                      - generic [ref=f15e1713]:
+                        - generic [ref=f15e1714]: "12"
+                        - text: upvotes ·
+                        - generic [ref=f15e1715]: "8"
+                        - text: comentários
+                    - separator [ref=f15e1716]
+                - listitem [ref=f15e1717]:
+                  - generic [ref=f15e1719]:
+                    - link "I grew my TikTok from 140 to 65k followers in 20 days and now want to monetize it." [ref=f15e1720] [cursor=pointer]:
+                      - /url: https://www.reddit.com/r/TikTokMonetizing/comments/1ngmvqr/i_grew_my_tiktok_from_140_to_65k_followers_in_20/
+                    - generic [ref=f15e1723]:
+                      - generic [ref=f15e1726]:
+                        - link "r/TikTokMonetizing" [ref=f15e1727] [cursor=pointer]:
+                          - /url: https://www.reddit.com/r/TikTokMonetizing/
+                        - generic [ref=f15e1732]: •
+                        - time [ref=f15e1734]: há 1 ano
+                      - link [ref=f15e1736] [cursor=pointer]:
+                        - /url: /r/TikTokMonetizing/comments/1ngmvqr/i_grew_my_tiktok_from_140_to_65k_followers_in_20/
+                        - heading "Post de item da lista - I grew my TikTok from 140 to 65k followers in 20 days and n..." [level=3] [ref=f15e1739]: I grew my TikTok from 140 to 65k followers in 20 days and now want to monetize it.
+                    - generic [ref=f15e1741]:
+                      - generic [ref=f15e1742]: "53"
+                      - text: upvotes ·
+                      - generic [ref=f15e1743]: "29"
+                      - text: comentários
+            - generic [ref=f15e1744]:
+              - heading "Ver o post em" [level=2] [ref=f15e1746]
+              - group [ref=f15e1749]:
+                - generic "Ver mais" [ref=f15e1750] [cursor=pointer]
+            - generic [ref=f15e1755]:
+              - heading "Posts mais votados" [level=2] [ref=f15e1756]
+              - list [ref=f15e1757]:
+                - listitem [ref=f15e1758]:
+                  - 'link "Reddit Rereddit: posts mais votados de 30 de outubro de 2022" [ref=f15e1759] [cursor=pointer]':
+                    - /url: https://www.reddit.com/posts/2022/october-30-1/global/
+                    - generic [ref=f15e1760]: Reddit
+                    - generic [ref=f15e1775]: "Rereddit: posts mais votados de 30 de outubro de 2022"
+                    - separator [ref=f15e1776]
+                - listitem [ref=f15e1777]:
+                  - 'link "Reddit Rereddit: posts mais votados de outubro de 2022" [ref=f15e1778] [cursor=pointer]':
+                    - /url: https://www.reddit.com/posts/2022/october/global/
+                    - generic [ref=f15e1779]: Reddit
+                    - generic [ref=f15e1794]: "Rereddit: posts mais votados de outubro de 2022"
+                    - separator [ref=f15e1795]
+                - listitem [ref=f15e1796]:
+                  - 'link "Reddit Rereddit: posts mais votados de 2022" [ref=f15e1797] [cursor=pointer]':
+                    - /url: https://www.reddit.com/posts/2022/global/
+                    - generic [ref=f15e1798]: Reddit
+                    - generic [ref=f15e1813]: "Rereddit: posts mais votados de 2022"
+                    - separator [ref=f15e1814]
+          - list [ref=f15e1816]:
+            - listitem [ref=f15e1817]:
+              - link "Feed principal" [ref=f15e1819] [cursor=pointer]:
+                - /url: /?feed=home
+            - listitem [ref=f15e1820]:
+              - link "Popular" [ref=f15e1822] [cursor=pointer]:
+                - /url: /r/popular/
+            - listitem [ref=f15e1823]:
+              - link "Notícias" [ref=f15e1825] [cursor=pointer]:
+                - /url: /news/
+            - listitem [ref=f15e1826]:
+              - link "Explorar" [ref=f15e1828] [cursor=pointer]:
+                - /url: /explore/
+            - listitem [ref=f15e1829]:
+              - link "O melhor do Reddit" [ref=f15e1831] [cursor=pointer]:
+                - /url: https://www.reddit.com/posts/2026/global/
+            - listitem [ref=f15e1832]:
+              - link "O melhor do Reddit em português" [ref=f15e1834] [cursor=pointer]:
+                - /url: https://www.reddit.com/posts/2026/tl-pt-BR/
+            - listitem [ref=f15e1835]:
+              - link "O melhor do Reddit em alemão" [ref=f15e1837] [cursor=pointer]:
+                - /url: https://www.reddit.com/posts/2026/tl-de/
+            - listitem [ref=f15e1838]:
+              - link "Regras do Reddit" [ref=f15e1840] [cursor=pointer]:
+                - /url: https://www.redditinc.com/policies/content-policy
+            - listitem [ref=f15e1841]:
+              - link "Política de Privacidade" [ref=f15e1843] [cursor=pointer]:
+                - /url: https://www.reddit.com/policies/privacy-policy
+            - listitem [ref=f15e1844]:
+              - link "Contrato de Usuário" [ref=f15e1846] [cursor=pointer]:
+                - /url: https://www.redditinc.com/policies/user-agreement
+            - listitem [ref=f15e1847]:
+              - link "Acessibilidade" [ref=f15e1849] [cursor=pointer]:
+                - /url: https://support.reddithelp.com/hc/sections/38303584022676-Accessibility
+            - listitem [ref=f15e1850]:
+              - link "Reddit, Inc. © 2026. Todos os direitos reservados." [ref=f15e1851] [cursor=pointer]:
+                - /url: https://redditinc.com

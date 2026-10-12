@@ -1,0 +1,5 @@
+- generic [ref=f24e5]:
+  - img "Dr. Exame" [ref=f24e11]
+  - generic [ref=f24e12]:
+    - heading "Dr. Exame" [level=3] [ref=f24e13]
+    - paragraph [ref=f24e16]: Iniciando o Dr. Exame…

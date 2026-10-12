@@ -1,0 +1,8 @@
+- generic [active]:
+  - generic [ref=f1e1]:
+    - img "Dr. Exame" [ref=f1e6]
+    - heading "Meus Exames" [level=4] [ref=f1e7]
+    - paragraph [ref=f1e8]: Iniciando o Dr. Exame…
+  - generic [ref=f1e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e19]

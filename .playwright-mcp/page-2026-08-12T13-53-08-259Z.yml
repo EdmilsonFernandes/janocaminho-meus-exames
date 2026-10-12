@@ -1,0 +1,39 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - navigation [ref=f8e4]:
+      - generic [ref=f8e6]:
+        - button "Menu do médico" [ref=f8e7] [cursor=pointer]
+        - paragraph [ref=f8e12]: 🩺 Médico
+      - separator [ref=f8e13]
+      - generic [ref=f8e14]:
+        - generic [ref=f8e15]: PLANO
+        - paragraph [ref=f8e16]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=f8e17]:
+        - button "Pacientes" [ref=f8e18] [cursor=pointer]
+        - button "Convites" [ref=f8e24] [cursor=pointer]
+        - button "Perguntas" [ref=f8e31] [cursor=pointer]
+        - button "Meu perfil" [ref=f8e38] [cursor=pointer]
+        - button "Trocar senha" [ref=f8e44] [cursor=pointer]
+        - separator [ref=f8e50]
+        - button "Sair" [ref=f8e51] [cursor=pointer]
+      - generic [ref=f8e57]: Portal do Médico
+    - generic [ref=f8e58]:
+      - paragraph [ref=f8e61]: Pacientes
+      - generic [ref=f8e62]:
+        - generic [ref=f8e63]:
+          - button "Fechar banner" [ref=f8e64] [cursor=pointer]:
+            - generic [ref=f8e65]: ×
+          - generic [ref=f8e66]:
+            - paragraph [ref=f8e67]: 💎 Dr. Exame Pro
+            - paragraph [ref=f8e68]: 💡 undefined de undefined pré-consultas grátis usadas.
+            - button "Assinar R$29,90/mês" [ref=f8e69] [cursor=pointer]
+        - heading "Pacientes (0)" [level=6] [ref=f8e71]
+        - generic [ref=f8e74]:
+          - generic [ref=f8e75]: 🩺
+          - paragraph [ref=f8e76]: Nenhum paciente ainda
+          - paragraph [ref=f8e77]: Quando um paciente compartilhar os exames com você, ele aparece aqui automaticamente.
+          - text: 💡 O paciente faz isso no app dele em "Meus Médicos → Compartilhar"
+  - generic [ref=f8e79] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f8e80]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f8e81]

@@ -1,0 +1,104 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e745]:
+      - button [ref=e746] [cursor=pointer]
+      - generic [ref=e747]:
+        - banner [ref=e748]:
+          - generic [ref=e749]:
+            - button [ref=e750] [cursor=pointer]
+            - paragraph [ref=e756]: Dr. Exame
+            - button [ref=e903] [cursor=pointer]:
+              - generic [ref=e906]: "71"
+              - button [ref=e907]
+            - button [ref=e757] [cursor=pointer]:
+              - generic [ref=e758]: "34"
+            - button [ref=e762] [cursor=pointer]:
+              - generic [ref=e763]: E
+            - button [ref=e771] [cursor=pointer]
+        - main [ref=e774]:
+          - generic [ref=e911]:
+            - generic [ref=e912]:
+              - paragraph [ref=e913]: Bom dia, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e914]:
+              - generic [ref=e916]:
+                - generic [ref=e917]:
+                  - generic [ref=e922]:
+                    - paragraph [ref=e923]: "45"
+                    - paragraph [ref=e924]: de 100
+                  - generic [ref=e925]:
+                    - paragraph [ref=e926]: Sua saúde hoje
+                    - paragraph [ref=e927]: Pede atenção
+                    - paragraph [ref=e929]:
+                      - generic [ref=e930]: ● 6 moderados
+                - button [ref=e931] [cursor=pointer]: Ver análise completa
+              - generic [ref=e936]:
+                - paragraph [ref=e937]: Desde seu último exame
+                - generic [ref=e938]: 3 pioraram
+                - generic [ref=e943]:
+                  - generic [ref=e944]:
+                    - paragraph [ref=e945]: ↑COLESTEROL TOTAL
+                    - paragraph [ref=e946]: 232 mg/dL
+                  - generic [ref=e947]:
+                    - paragraph [ref=e948]: ↑LDL COLESTEROL
+                    - paragraph [ref=e949]: 158 mg/dL
+                  - generic [ref=e950]:
+                    - paragraph [ref=e951]: ↓HDL COLESTEROL
+                    - paragraph [ref=e952]: 38 mg/dL
+                - button [ref=e954] [cursor=pointer]: Ver evolução completa
+            - button [ref=e963] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e967]:
+              - generic [ref=e974] [cursor=pointer]:
+                - paragraph [ref=e975]: Cardiometabólico
+                - paragraph [ref=e976]: Em dia
+                - paragraph [ref=e977]: sem fatores
+              - generic [ref=e980] [cursor=pointer]:
+                - generic [ref=e981]: 🧬
+                - generic [ref=e982]:
+                  - paragraph [ref=e983]: Idade biológica
+                  - paragraph [ref=e984]: Em breve
+                  - paragraph [ref=e985]: estimativa c/ +exames
+              - generic [ref=e992] [cursor=pointer]:
+                - paragraph [ref=e993]: Seus exames
+                - paragraph [ref=e994]: "5"
+                - paragraph [ref=e995]: 8 alterados
+              - generic [ref=e1002] [cursor=pointer]:
+                - paragraph [ref=e1003]: Evolução
+                - paragraph [ref=e1004]: Tendências
+                - paragraph [ref=e1005]: 28 resultados
+            - generic [ref=e1007]:
+              - generic [ref=e1008]: Enviar exame
+              - generic [ref=e1015]: Evolução
+              - generic [ref=e1022]: Família
+              - generic [ref=e1030]: Relatório
+            - generic [ref=e1039]:
+              - generic [ref=e1043]:
+                - paragraph [ref=e1044]: "71"
+                - text: créditos disponíveis
+              - button [ref=e1045] [cursor=pointer]: Comprar
+            - button [ref=e1047] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e791]:
+      - paragraph [ref=e796] [cursor=pointer]: Início
+      - paragraph [ref=e802] [cursor=pointer]: Exames
+      - paragraph [ref=e806] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e811] [cursor=pointer]: Evolução
+      - paragraph [ref=e816] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic [ref=e703]: "0"
+  - dialog [ref=e819]:
+    - navigation [ref=e820]:
+      - generic [ref=e821]:
+        - button "Exames" [expanded] [active] [ref=e1051] [cursor=pointer]
+        - generic [ref=e1061]:
+          - button "Exames" [ref=e1062] [cursor=pointer]
+          - button "Valores alterados" [ref=e1068] [cursor=pointer]
+          - button "Evolução & tendências" [ref=e1075] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e1082] [cursor=pointer]
+          - button "Relatório completo" [ref=e1088] [cursor=pointer]
+      - button "Cuidados" [ref=e1052] [cursor=pointer]
+      - button "Pessoas" [ref=e1053] [cursor=pointer]
+      - button "Conta" [ref=e1054] [cursor=pointer]
+      - separator [ref=e859]
+      - button "Ajuda & Suporte" [ref=e1055] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e1056] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e1057] [cursor=pointer]

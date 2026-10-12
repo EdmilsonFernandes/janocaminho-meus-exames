@@ -1,0 +1,93 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e267] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e268] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e270] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+              - button [ref=e271]
+            - button [ref=e272] [cursor=pointer]:
+              - generic [ref=e42]: "36"
+            - button [ref=e273] [cursor=pointer]:
+              - generic [ref=e48]: E
+            - button [ref=e274] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e59]:
+            - generic [ref=e60]:
+              - paragraph [ref=e61]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - generic [ref=e70]:
+                  - paragraph [ref=e71]: "45"
+                  - paragraph [ref=e72]: de 100
+                - generic [ref=e73]:
+                  - paragraph [ref=e74]: Sua saúde hoje
+                  - paragraph [ref=e75]: Pede atenção
+                  - paragraph [ref=e77]:
+                    - generic [ref=e78]: ● 6 moderados
+              - button [ref=e275] [cursor=pointer]: Ver análise completa
+            - button [ref=e276] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e92]:
+              - generic [ref=e99] [cursor=pointer]:
+                - paragraph [ref=e100]: Cardiometabólico
+                - paragraph [ref=e101]: Em dia
+                - paragraph [ref=e102]: sem fatores
+              - generic [ref=e105] [cursor=pointer]:
+                - generic [ref=e106]: 🧬
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: Idade biológica
+                  - paragraph [ref=e109]: Em breve
+                  - paragraph [ref=e110]: estimativa c/ +exames
+              - generic [ref=e117] [cursor=pointer]:
+                - paragraph [ref=e118]: Seus exames
+                - paragraph [ref=e119]: "5"
+                - paragraph [ref=e120]: 8 alterados
+              - generic [ref=e127] [cursor=pointer]:
+                - paragraph [ref=e128]: Evolução
+                - paragraph [ref=e129]: Tendências
+                - paragraph [ref=e130]: 28 resultados
+            - generic [ref=e132]:
+              - generic [ref=e133]: Enviar exame
+              - generic [ref=e140]: Evolução
+              - generic [ref=e147]: Família
+              - generic [ref=e155]: Relatório
+            - generic [ref=e164]:
+              - generic [ref=e168]:
+                - paragraph [ref=e169]: "71"
+                - text: créditos disponíveis
+              - button [ref=e277] [cursor=pointer]: Comprar
+            - button [ref=e278] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - paragraph [ref=e191] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e283]:
+    - generic [ref=e284]:
+      - button "Fechar" [ref=e285] [cursor=pointer]
+      - generic [ref=e288]:
+        - generic [ref=e289]: E
+        - generic [ref=e290]:
+          - paragraph [ref=e291]: Edmilson Lopes Fernandes dos Santos
+          - paragraph [ref=e292]: Plano grátis
+          - generic [ref=e293]:
+            - paragraph [ref=e294]: ⚡ 71 créditos
+            - button "(+ Recarregar)" [ref=e295] [cursor=pointer]
+    - separator [ref=e296]
+    - button [ref=e298] [cursor=pointer]
+    - navigation [ref=e303]:
+      - button "Exames" [ref=e305] [cursor=pointer]
+      - button "Cuidados" [ref=e314] [cursor=pointer]
+      - button "Pessoas" [ref=e324] [cursor=pointer]
+      - button "Conta" [ref=e334] [cursor=pointer]
+      - separator [ref=e342]
+      - button "Ajuda & Suporte" [ref=e343] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e349] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e355] [cursor=pointer]

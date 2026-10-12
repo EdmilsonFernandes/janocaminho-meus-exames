@@ -1,0 +1,2017 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>UaiID • Dashboard & Credenciais (Gentelella 2026 v4)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Dark Theme (Default) */
+      --bg-base: #0c121e;
+      --bg-surface: #141c2e;
+      --bg-card: #182238;
+      --bg-hover: #1f2c46;
+      --border-subtle: #24324f;
+      --border-strong: #334469;
+
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+
+      /* Brand UaiID + Gentelella Teal */
+      --primary: #2563eb;
+      --primary-light: #60a5fa;
+      --cyan: #00d2ff;
+      --teal: #1abb9c;
+      --teal-soft: rgba(26, 187, 156, 0.15);
+      --green: #10b981;
+      --green-soft: rgba(16, 185, 129, 0.15);
+      --amber: #f59e0b;
+      --amber-soft: rgba(245, 158, 11, 0.15);
+      --red: #ef4444;
+      --red-soft: rgba(239, 68, 68, 0.15);
+      --purple: #8b5cf6;
+      --purple-soft: rgba(139, 92, 246, 0.15);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+
+    [data-theme="light"] {
+      --bg-base: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-card: #ffffff;
+      --bg-hover: #f1f5f9;
+      --border-subtle: #e2e8f0;
+      --border-strong: #cbd5e1;
+
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --text-dim: #94a3b8;
+
+      --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-base);
+      color: var(--text-main);
+      display: flex;
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.25s ease, color 0.25s ease;
+      position: relative;
+    }
+
+    /* ─── SIDEBAR & MOBILE DRAWER ─── */
+    .sidebar {
+      width: 260px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      z-index: 90;
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(3px);
+      z-index: 85;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-100%);
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop.open {
+        display: block;
+        opacity: 1;
+      }
+    }
+
+    .brand {
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .brand-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #00d2ff, #2563eb);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+    }
+
+    .brand-title {
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .brand-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--teal-soft);
+      color: var(--teal);
+      text-transform: uppercase;
+    }
+
+    .sidebar-close-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px;
+    }
+
+    @media (max-width: 900px) {
+      .sidebar-close-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    }
+
+    .nav-section {
+      padding: 16px 14px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-dim);
+    }
+
+    .nav-list {
+      list-style: none;
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      min-height: 42px;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .nav-item.active {
+      background: rgba(37, 99, 235, 0.15);
+      color: var(--primary-light);
+      font-weight: 600;
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+      flex-shrink: 0;
+    }
+
+    .nav-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+    }
+
+    .nav-badge.blue { background: rgba(37, 99, 235, 0.2); color: #60a5fa; }
+    .nav-badge.amber { background: var(--amber-soft); color: var(--amber); }
+    .nav-badge.teal { background: var(--teal-soft); color: var(--teal); }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding: 16px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1abb9c, #0550a0);
+      color: #fff;
+      font-weight: 700;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-details {
+      line-height: 1.25;
+      overflow: hidden;
+    }
+
+    .user-name {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-plan {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      width: 100%;
+    }
+
+    /* Topbar */
+    .topbar {
+      height: 60px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 0 12px;
+      }
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mobile-menu-toggle {
+      display: none;
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-main);
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 900px) {
+      .mobile-menu-toggle {
+        display: flex;
+      }
+    }
+
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 500px) {
+      .breadcrumb span:first-child,
+      .breadcrumb span:nth-child(2) {
+        display: none;
+      }
+    }
+
+    .breadcrumb .active {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .search-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      padding: 7px 12px;
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      font-size: 12.5px;
+      cursor: pointer;
+      width: 260px;
+      transition: border-color 0.15s;
+    }
+
+    .search-trigger:hover {
+      border-color: var(--border-strong);
+    }
+
+    @media (max-width: 800px) {
+      .search-trigger {
+        width: auto;
+        padding: 8px;
+      }
+      .search-trigger span {
+        display: none;
+      }
+    }
+
+    .kbd {
+      margin-left: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .icon-btn .badge-dot {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--teal);
+      border: 2px solid var(--bg-card);
+    }
+
+    /* Page Container */
+    .page-container {
+      padding: 24px 20px;
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      .page-container {
+        padding: 16px 12px;
+      }
+    }
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    .page-title-box h1 {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .tab-pills {
+      display: flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 3px;
+      gap: 4px;
+    }
+
+    @media (max-width: 500px) {
+      .tab-pills {
+        width: 100%;
+      }
+      .tab-pill {
+        flex: 1;
+        text-align: center;
+      }
+    }
+
+    .tab-pill {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      transition: all 0.15s ease;
+      min-height: 38px;
+    }
+
+    .tab-pill.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    /* ─── CARDS & GRIDS (Gentelella v4 Style) ─── */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 1100px) {
+      .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 550px) {
+      .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--border-strong);
+    }
+
+    .stat-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .stat-icon-wrap {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-icon-wrap.blue { background: rgba(37, 99, 235, 0.15); color: #60a5fa; }
+    .stat-icon-wrap.teal { background: var(--teal-soft); color: var(--teal); }
+    .stat-icon-wrap.amber { background: var(--amber-soft); color: var(--amber); }
+    .stat-icon-wrap.red { background: var(--red-soft); color: var(--red); }
+
+    .stat-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .stat-change.up { background: var(--green-soft); color: var(--green); }
+    .stat-change.down { background: var(--red-soft); color: var(--red); }
+    .stat-change.neutral { background: var(--amber-soft); color: var(--amber); }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-main);
+      margin: 4px 0 8px;
+      letter-spacing: -0.02em;
+    }
+
+    /* Micro Sparklines */
+    .stat-spark {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 26px;
+      margin-top: 4px;
+    }
+
+    .stat-spark .bar {
+      flex: 1;
+      border-radius: 2px;
+      background: var(--primary);
+      opacity: 0.75;
+      transition: height 0.3s ease;
+    }
+
+    .stat-spark .bar:hover {
+      opacity: 1;
+    }
+
+    /* Grid 2-1 (8-4 Columns) */
+    .grid-8-4 {
+      display: grid;
+      grid-template-columns: 2fr 1.1fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 980px) {
+      .grid-8-4 { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .card-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .card-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+
+    .chart-tabs {
+      display: flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
+    }
+
+    .chart-tab {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .chart-tab.active {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .card-body {
+      padding: 18px 20px;
+    }
+
+    @media (max-width: 600px) {
+      .card-header, .card-body {
+        padding: 14px 16px;
+      }
+    }
+
+    /* Segmented Storage / Quota Bar */
+    .quota-bar-wrapper {
+      margin-top: 18px;
+    }
+
+    .quota-bar {
+      display: flex;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--bg-surface);
+      gap: 2px;
+    }
+
+    .quota-segment {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .quota-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .quota-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .quota-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .quota-val {
+      font-weight: 700;
+      color: var(--text-main);
+      margin-left: 2px;
+    }
+
+    /* Donut Chart with Center Metric */
+    .donut-container {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 6px 0;
+    }
+
+    @media (max-width: 500px) {
+      .donut-container {
+        flex-direction: column;
+        text-align: center;
+      }
+      .donut-legend-list {
+        width: 100%;
+      }
+    }
+
+    .donut-visual {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      flex-shrink: 0;
+    }
+
+    .donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .donut-center .num {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1;
+    }
+
+    .donut-center .sub {
+      font-size: 10.5px;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    .donut-legend-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .donut-legend-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+    }
+
+    /* Tables (Responsive & High Density) */
+    .table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      width: 100%;
+    }
+
+    table.data-table {
+      width: 100%;
+      min-width: 580px;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-dim);
+      border-bottom: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      white-space: nowrap;
+    }
+
+    table.data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      white-space: nowrap;
+    }
+
+    table.data-table tr:hover td {
+      background: var(--bg-hover);
+    }
+
+    .cell-mono {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      color: var(--primary-light);
+    }
+
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-status.approved { background: var(--green-soft); color: var(--green); }
+    .badge-status.review { background: var(--amber-soft); color: var(--amber); }
+    .badge-status.rejected { background: var(--red-soft); color: var(--red); }
+    .badge-status.active { background: var(--teal-soft); color: var(--teal); }
+    .badge-status.revoked { background: var(--red-soft); color: var(--red); }
+
+    /* ─── TELA /DASHBOARD/CHAVE ─── */
+    .banner-alert {
+      background: rgba(37, 99, 235, 0.1);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .banner-alert svg {
+      color: var(--primary-light);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .key-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--cyan);
+      word-break: break-all;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      min-height: 38px;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-primary:hover {
+      background: #1d4ed8;
+    }
+
+    .btn-teal {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    .btn-teal:hover {
+      background: #179b82;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      color: var(--text-main);
+    }
+
+    .btn-outline:hover {
+      background: var(--bg-hover);
+    }
+
+    .btn-danger-outline {
+      background: transparent;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: var(--red);
+    }
+
+    .btn-danger-outline:hover {
+      background: var(--red-soft);
+    }
+
+    .code-playbook {
+      background: #080d17;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-top: 20px;
+    }
+
+    .playbook-header {
+      background: #0f172a;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .playbook-tabs {
+      display: flex;
+      gap: 4px;
+    }
+
+    .playbook-tab {
+      padding: 6px 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    .playbook-tab.active {
+      color: var(--cyan);
+      background: rgba(0, 210, 255, 0.1);
+    }
+
+    .playbook-code {
+      padding: 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #e2e8f0;
+      line-height: 1.5;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Modal Backdrop & Dialog */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 460px;
+      padding: 22px;
+      box-shadow: var(--shadow-md);
+      animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes modalPop {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .modal-title {
+      font-size: 17px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .form-group {
+      margin: 16px 0;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      outline: none;
+      min-height: 40px;
+    }
+
+    .form-input:focus {
+      border-color: var(--primary);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    /* Command Palette Modal (⌘K) */
+    .cmd-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      transition: background 0.15s;
+    }
+    .cmd-item:hover {
+      background: var(--bg-hover);
+      color: var(--primary-light);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--teal);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      max-width: 90%;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar Backdrop (Mobile) -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleMobileSidebar()"></div>
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-left">
+        <div class="brand-logo">U</div>
+        <div class="brand-title">UaiID <span class="brand-badge">v4</span></div>
+      </div>
+      <button class="sidebar-close-btn" onclick="toggleMobileSidebar()" aria-label="Fechar menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="nav-section">Operação & Verificação</div>
+    <ul class="nav-list">
+      <li>
+        <a class="nav-item active" id="menu-overview" onclick="switchView('dashboard'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="4" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="10" width="7" height="11" rx="1.5"/></svg>
+            <span>Visão Geral</span>
+          </div>
+          <span class="nav-badge blue">124</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-item" id="menu-chaves" onclick="switchView('chaves'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 2l-2 2m-1.5 1.5L12 11l-4-4-5 5a3 3 0 000 4.24l2.76 2.76A3 3 0 0010 19l4.5-4.5M16.5 6.5l2 2"/></svg>
+            <span>Chaves de API</span>
+          </div>
+          <span class="nav-badge teal">2 ativas</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-item" onclick="showToast('Mesa de Revisão: 15 casos na zona cinzenta'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <span>Mesa de Revisão</span>
+          </div>
+          <span class="nav-badge amber">15</span>
+        </a>
+      </li>
+      <li>
+        <a class="nav-item" onclick="showToast('Webhooks: api.wiboo.io ativo e monitorado'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+            <span>Webhooks</span>
+          </div>
+        </a>
+      </li>
+      <li>
+        <a class="nav-item" onclick="showToast('Liveness 3D & Datavalid: 99.98% de disponibilidade'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span>Motores de Validação</span>
+          </div>
+        </a>
+      </li>
+    </ul>
+
+    <div class="nav-section">Conta & Licença</div>
+    <ul class="nav-list">
+      <li>
+        <a class="nav-item" onclick="showToast('Plano Startup: 124 / 500 validações consumidas'); closeSidebarIfMobile();">
+          <div class="nav-item-left">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+            <span>Créditos & Billing</span>
+          </div>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        <div class="user-info">
+          <div class="user-avatar">W</div>
+          <div class="user-details">
+            <div class="user-name">Wibx Company</div>
+            <div class="user-plan">Plano Startup • Admin</div>
+          </div>
+        </div>
+        <button class="icon-btn" style="width:28px;height:28px" title="Configurações MFA" onclick="showToast('MFA Ativo: Google Authenticator')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+    <!-- Topbar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <!-- Hamburger Menu Button (Gentelella Style) -->
+        <button class="mobile-menu-toggle" onclick="toggleMobileSidebar()" aria-label="Abrir menu lateral">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
+        <div class="breadcrumb">
+          <span>UaiID</span>
+          <span>›</span>
+          <span class="active" id="breadcrumb-title">Visão Geral</span>
+        </div>
+
+        <div class="search-trigger" onclick="openCmdPalette()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span>Buscar ou comando...</span>
+          <span class="kbd">⌘K</span>
+        </div>
+      </div>
+
+      <div class="topbar-right">
+        <button class="icon-btn" title="Alternar Tema Claro/Escuro" onclick="toggleTheme()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+        <button class="icon-btn" title="Notificações" onclick="showToast('Nenhum alerta crítico ativo')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <span class="badge-dot"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <div class="page-container">
+
+      <!-- View Selector Pills -->
+      <div class="page-header">
+        <div class="page-title-box">
+          <h1 id="view-title">Telemetria de Verificações</h1>
+          <div class="page-subtitle" id="view-subtitle">Monitoramento de conformidade, antifraude e liveness 3D em tempo real</div>
+        </div>
+
+        <div class="tab-pills">
+          <button class="tab-pill active" id="pill-dash" onclick="switchView('dashboard')">Visão Geral</button>
+          <button class="tab-pill" id="pill-chaves" onclick="switchView('chaves')">Chaves de API</button>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════ -->
+      <!-- ABA 1: VISÃO GERAL (DASHBOARD)                     -->
+      <!-- ═══════════════════════════════════════════════════ -->
+      <div id="view-dashboard-section">
+        <!-- 4 KPI Cards com Sparklines do Gentelella -->
+        <div class="grid-4">
+          <!-- Total Verificações -->
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap blue">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg>
+              </div>
+              <span class="stat-change up" id="kpi-total-trend">↑ 18%</span>
+            </div>
+            <div>
+              <div class="stat-label">Total de Verificações</div>
+              <div class="stat-value" id="kpi-total-val">124</div>
+            </div>
+            <div class="stat-spark" id="spark-total">
+              <div class="bar" style="height:35%"></div>
+              <div class="bar" style="height:48%"></div>
+              <div class="bar" style="height:40%"></div>
+              <div class="bar" style="height:62%"></div>
+              <div class="bar" style="height:55%"></div>
+              <div class="bar" style="height:70%"></div>
+              <div class="bar" style="height:85%"></div>
+              <div class="bar" style="height:100%"></div>
+            </div>
+          </div>
+
+          <!-- Aprovadas -->
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap teal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <span class="stat-change up" id="kpi-app-pct">50.8%</span>
+            </div>
+            <div>
+              <div class="stat-label">Aprovadas Automaticamente</div>
+              <div class="stat-value" id="kpi-app-val">63</div>
+            </div>
+            <div class="stat-spark" id="spark-app">
+              <div class="bar" style="height:40%;background:var(--teal)"></div>
+              <div class="bar" style="height:55%;background:var(--teal)"></div>
+              <div class="bar" style="height:65%;background:var(--teal)"></div>
+              <div class="bar" style="height:50%;background:var(--teal)"></div>
+              <div class="bar" style="height:70%;background:var(--teal)"></div>
+              <div class="bar" style="height:80%;background:var(--teal)"></div>
+              <div class="bar" style="height:75%;background:var(--teal)"></div>
+              <div class="bar" style="height:90%;background:var(--teal)"></div>
+            </div>
+          </div>
+
+          <!-- Mesa de Revisão -->
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap amber">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <span class="stat-change neutral" id="kpi-rev-pct">12.1%</span>
+            </div>
+            <div>
+              <div class="stat-label">Mesa de Análise (Zona Cinzenta)</div>
+              <div class="stat-value" id="kpi-rev-val">15</div>
+            </div>
+            <div class="stat-spark">
+              <div class="bar" style="height:20%;background:var(--amber)"></div>
+              <div class="bar" style="height:35%;background:var(--amber)"></div>
+              <div class="bar" style="height:40%;background:var(--amber)"></div>
+              <div class="bar" style="height:30%;background:var(--amber)"></div>
+              <div class="bar" style="height:60%;background:var(--amber)"></div>
+              <div class="bar" style="height:45%;background:var(--amber)"></div>
+              <div class="bar" style="height:50%;background:var(--amber)"></div>
+              <div class="bar" style="height:40%;background:var(--amber)"></div>
+            </div>
+          </div>
+
+          <!-- Fraudes / Rejeições -->
+          <div class="stat-card">
+            <div class="stat-top">
+              <div class="stat-icon-wrap red">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              </div>
+              <span class="stat-change down" id="kpi-rej-pct">8.0%</span>
+            </div>
+            <div>
+              <div class="stat-label">Fraudes & Rejeições Bloqueadas</div>
+              <div class="stat-value" id="kpi-rej-val">10</div>
+            </div>
+            <div class="stat-spark">
+              <div class="bar" style="height:60%;background:var(--red)"></div>
+              <div class="bar" style="height:40%;background:var(--red)"></div>
+              <div class="bar" style="height:30%;background:var(--red)"></div>
+              <div class="bar" style="height:20%;background:var(--red)"></div>
+              <div class="bar" style="height:15%;background:var(--red)"></div>
+              <div class="bar" style="height:25%;background:var(--red)"></div>
+              <div class="bar" style="height:15%;background:var(--red)"></div>
+              <div class="bar" style="height:10%;background:var(--red)"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 8-4 Grid: Gráfico de Tendência + Donut de Fatores -->
+        <div class="grid-8-4">
+          <!-- Gráfico com Abas Temporais 7d / 30d / 90d -->
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Evolução do Fluxo de Validação</div>
+                <div class="card-subtitle" id="chart-sub-period">Visualizando últimos 30 dias</div>
+              </div>
+              <div class="chart-tabs">
+                <button class="chart-tab" id="btn-7d" onclick="switchChartDays('7d', this)">7 dias</button>
+                <button class="chart-tab active" id="btn-30d" onclick="switchChartDays('30d', this)">30 dias</button>
+                <button class="chart-tab" id="btn-90d" onclick="switchChartDays('90d', this)">90 dias</button>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- SVG Visual Chart com Suporte a Mobile ViewBox -->
+              <svg width="100%" height="210" viewBox="0 0 600 210" preserveAspectRatio="none" style="overflow: visible;">
+                <defs>
+                  <linearGradient id="grad-blue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="grad-teal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1abb9c" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#1abb9c" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <!-- Grid Lines -->
+                <line x1="0" y1="35" x2="600" y2="35" stroke="var(--border-subtle)" stroke-dasharray="4"/>
+                <line x1="0" y1="90" x2="600" y2="90" stroke="var(--border-subtle)" stroke-dasharray="4"/>
+                <line x1="0" y1="145" x2="600" y2="145" stroke="var(--border-subtle)" stroke-dasharray="4"/>
+                <line x1="0" y1="195" x2="600" y2="195" stroke="var(--border-subtle)"/>
+
+                <!-- Area 1: Total Verifications -->
+                <path id="svg-curve-total" d="M 30,160 Q 120,120 200,85 T 360,65 T 480,40 T 570,25 L 570,195 L 30,195 Z" fill="url(#grad-blue)"/>
+                <path id="svg-line-total" d="M 30,160 Q 120,120 200,85 T 360,65 T 480,40 T 570,25" fill="none" stroke="#2563eb" stroke-width="3"/>
+
+                <!-- Area 2: Approved -->
+                <path id="svg-curve-app" d="M 30,180 Q 120,150 200,120 T 360,100 T 480,75 T 570,55 L 570,195 L 30,195 Z" fill="url(#grad-teal)"/>
+                <path id="svg-line-app" d="M 30,180 Q 120,150 200,120 T 360,100 T 480,75 T 570,55" fill="none" stroke="#1abb9c" stroke-width="2.5"/>
+
+                <!-- Dynamic Points -->
+                <circle cx="570" cy="25" r="4.5" fill="#2563eb"/>
+                <circle cx="570" cy="55" r="4.5" fill="#1abb9c"/>
+              </svg>
+
+              <!-- Quota Bar do Gentelella -->
+              <div class="quota-bar-wrapper">
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;flex-wrap:wrap;gap:4px">
+                  <span style="font-weight:600">Consumo da Franquia de Validações (Startup)</span>
+                  <span class="cell-mono">124 / 500 chamadas (24.8%)</span>
+                </div>
+                <div class="quota-bar">
+                  <div class="quota-segment" style="width: 12.6%; background: var(--teal);" title="Aprovadas"></div>
+                  <div class="quota-segment" style="width: 3.0%; background: var(--amber);" title="Mesa"></div>
+                  <div class="quota-segment" style="width: 2.0%; background: var(--red);" title="Fraude"></div>
+                  <div class="quota-segment" style="width: 3.4%; background: var(--primary);" title="Em andamento"></div>
+                  <div class="quota-segment" style="width: 79.0%; background: var(--border-subtle);" title="Disponível"></div>
+                </div>
+                <div class="quota-legend">
+                  <div class="quota-legend-item"><span class="quota-dot" style="background:var(--teal)"></span> Aprovadas <span class="quota-val">63</span></div>
+                  <div class="quota-legend-item"><span class="quota-dot" style="background:var(--amber)"></span> Mesa <span class="quota-val">15</span></div>
+                  <div class="quota-legend-item"><span class="quota-dot" style="background:var(--red)"></span> Rejeitadas <span class="quota-val">10</span></div>
+                  <div class="quota-legend-item"><span class="quota-dot" style="background:var(--primary)"></span> Em Curso <span class="quota-val">17</span></div>
+                  <div class="quota-legend-item"><span class="quota-dot" style="background:var(--border-strong)"></span> Saldo Livre <span class="quota-val">376</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Donut de Fatores de Rejeição -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Fatores de Rejeição (Anti-Fraude)</div>
+            </div>
+            <div class="card-body">
+              <div class="donut-container">
+                <div class="donut-visual">
+                  <svg width="130" height="130" viewBox="0 0 36 36">
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="var(--border-subtle)" stroke-width="4.5"/>
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="var(--red)" stroke-width="4.5" stroke-dasharray="40 100" stroke-dashoffset="25"/>
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="var(--amber)" stroke-width="4.5" stroke-dasharray="30 100" stroke-dashoffset="65"/>
+                    <circle cx="18" cy="18" r="14" fill="none" stroke="var(--purple)" stroke-width="4.5" stroke-dasharray="20 100" stroke-dashoffset="95"/>
+                  </svg>
+                  <div class="donut-center">
+                    <div class="num">10</div>
+                    <div class="sub">bloqueios</div>
+                  </div>
+                </div>
+
+                <div class="donut-legend-list">
+                  <div class="donut-legend-row">
+                    <span style="display:flex;align-items:center;gap:6px">
+                      <span class="quota-dot" style="background:var(--red)"></span>
+                      <span>Spoofing 3D</span>
+                    </span>
+                    <strong style="color:var(--text-main)">4 (40%)</strong>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span style="display:flex;align-items:center;gap:6px">
+                      <span class="quota-dot" style="background:var(--amber)"></span>
+                      <span>Falha OCR</span>
+                    </span>
+                    <strong style="color:var(--text-main)">3 (30%)</strong>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span style="display:flex;align-items:center;gap:6px">
+                      <span class="quota-dot" style="background:var(--purple)"></span>
+                      <span>Zona Cinzenta</span>
+                    </span>
+                    <strong style="color:var(--text-main)">2 (20%)</strong>
+                  </div>
+                  <div class="donut-legend-row">
+                    <span style="display:flex;align-items:center;gap:6px">
+                      <span class="quota-dot" style="background:var(--border-strong)"></span>
+                      <span>Doc Vencido</span>
+                    </span>
+                    <strong style="color:var(--text-main)">1 (10%)</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Velocidade do Motor -->
+              <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-subtle);display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-size:11px;color:var(--text-dim);font-weight:600">Tempo Médio</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--teal)">44.4s <span style="font-size:11px;font-weight:500;color:var(--green)">(-28%)</span></div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-size:11px;color:var(--text-dim);font-weight:600">Uptime Motores</div>
+                  <div style="font-size:15px;font-weight:800;color:var(--primary-light)">99.98%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Verificações Recentes -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Verificações Recentes ao Vivo</div>
+              <div class="card-subtitle">Transações reais processadas pelo gateway UaiID</div>
+            </div>
+            <button class="btn btn-outline" style="padding:4px 10px;font-size:11.5px" onclick="showToast('Exportando 124 registros em CSV...')">Exportar CSV</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID da Verificação</th>
+                  <th>CPF Mascarado</th>
+                  <th>Score Biométrico</th>
+                  <th>Similaridade Facial</th>
+                  <th>Status</th>
+                  <th>Tempo</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="cell-mono">2b089d4a...4d7f</td>
+                  <td><strong>294.***.***-00</strong></td>
+                  <td><span style="color:var(--green);font-weight:700">950</span> / 1000</td>
+                  <td class="cell-mono">0.7784 (Alta)</td>
+                  <td><span class="badge-status approved">● Aprovado</span></td>
+                  <td style="color:var(--text-dim)">há 4 min</td>
+                </tr>
+                <tr>
+                  <td class="cell-mono">e14f90ab...11c2</td>
+                  <td><strong>105.***.***-42</strong></td>
+                  <td><span style="color:var(--amber);font-weight:700">620</span> / 1000</td>
+                  <td class="cell-mono">0.5821 (Média)</td>
+                  <td><span class="badge-status review">● Em Revisão</span></td>
+                  <td style="color:var(--text-dim)">há 18 min</td>
+                </tr>
+                <tr>
+                  <td class="cell-mono">87ca12ff...39bb</td>
+                  <td><strong>044.***.***-91</strong></td>
+                  <td><span style="color:var(--red);font-weight:700">210</span> / 1000</td>
+                  <td class="cell-mono">0.3120 (Baixa)</td>
+                  <td><span class="badge-status rejected">● Spoofing 3D</span></td>
+                  <td style="color:var(--text-dim)">há 45 min</td>
+                </tr>
+                <tr>
+                  <td class="cell-mono">99cb2188...80aa</td>
+                  <td><strong>381.***.***-18</strong></td>
+                  <td><span style="color:var(--green);font-weight:700">890</span> / 1000</td>
+                  <td class="cell-mono">0.7410 (Alta)</td>
+                  <td><span class="badge-status approved">● Aprovado</span></td>
+                  <td style="color:var(--text-dim)">há 1 hora</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════════════════════════════════════ -->
+      <!-- ABA 2: CHAVES DE API (/dashboard/chave)             -->
+      <!-- ═══════════════════════════════════════════════════ -->
+      <div id="view-chaves-section" style="display:none;">
+        <!-- Banner de Segurança Alinhado com o UaiID -->
+        <div class="banner-alert">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <div style="flex:1;min-width:240px">
+            <strong style="color:var(--text-main);font-size:13.5px">Ambiente Seguro de Credenciais</strong>
+            <p style="font-size:12px;color:var(--text-muted);margin-top:3px">
+              A chave completa só é exibida <strong>UMA única vez</strong> no momento da criação ou rotação. Ao rotacionar uma chave, a anterior é revogada imediatamente para garantir a conformidade LGPD.
+            </p>
+          </div>
+          <button class="btn btn-teal" onclick="openModalCreateKey()">+ Criar Nova Key</button>
+        </div>
+
+        <!-- Card de Chave Recém-Criada (Exemplo Interativo) -->
+        <div class="card" id="new-key-banner" style="margin-bottom:18px;border-color:var(--teal);background:rgba(26,187,156,0.05)">
+          <div class="card-header" style="border-color:rgba(26,187,156,0.2)">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="badge-status active">✓ Nova chave gerada com sucesso</span>
+              <strong style="font-size:13px" id="new-key-title">"prod-core-api"</strong>
+            </div>
+            <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="document.getElementById('new-key-banner').style.display='none'">Fechar Aviso</button>
+          </div>
+          <div class="card-body">
+            <div class="key-box">
+              <span id="sample-key-text">jano_live_920f3acb810948b8981298410294819283918239</span>
+              <button class="btn btn-primary" style="padding:6px 12px;font-size:11.5px" onclick="copyKey('sample-key-text')">Copiar Chave</button>
+            </div>
+            <div style="font-size:11.5px;color:var(--amber);margin-top:8px;font-weight:600">
+              ⚠ Copie e armazene agora em seu cofre de senhas ou .env — nunca a enviamos por e-mail e não será exibida novamente.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tabela de Chaves Reais (dev e teste-gate-15-09) -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Chaves de API Cadastradas</div>
+              <div class="card-subtitle">Gerencie as credenciais com permissão para disparar validações no UaiID</div>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Identificador / Nome</th>
+                  <th>Prefixo do Token</th>
+                  <th>Ambiente</th>
+                  <th>Último Acesso Registrado</th>
+                  <th>Status</th>
+                  <th style="text-align:right">Ações de Segurança</th>
+                </tr>
+              </thead>
+              <tbody id="keys-table-body">
+                <!-- Chave 1: dev -->
+                <tr id="key-row-dev">
+                  <td>
+                    <strong>dev</strong>
+                    <div style="font-size:10.5px;color:var(--text-dim)">ID: 0df0d782-0d9d-488d-90b4-a90f2ca8f5ad</div>
+                  </td>
+                  <td><code class="cell-mono">jano_live_••••••••f5ad</code></td>
+                  <td><span class="nav-badge blue">Desenvolvimento</span></td>
+                  <td>13/09/2026 às 20:37 <span style="font-size:11px;color:var(--text-dim)">(há 16 dias)</span></td>
+                  <td><span class="badge-status active" id="badge-dev">Ativa</span></td>
+                  <td style="text-align:right">
+                    <button class="btn btn-outline" style="padding:4px 9px;font-size:11.5px" onclick="rotateKey('dev')">Rotacionar</button>
+                    <button class="btn btn-danger-outline" style="padding:4px 9px;font-size:11.5px" onclick="revokeKey('dev')">Revogar</button>
+                  </td>
+                </tr>
+
+                <!-- Chave 2: teste-gate-15-09 -->
+                <tr id="key-row-teste">
+                  <td>
+                    <strong>teste-gate-15-09</strong>
+                    <div style="font-size:10.5px;color:var(--text-dim)">ID: 3d7d544c-89e9-4a99-ba6a-1b013e50df24</div>
+                  </td>
+                  <td><code class="cell-mono">jano_live_••••••••df24</code></td>
+                  <td><span class="nav-badge teal">QA / Homologação</span></td>
+                  <td>18/09/2026 às 01:09 <span style="font-size:11px;color:var(--text-dim)">(há 11 dias)</span></td>
+                  <td><span class="badge-status active" id="badge-teste">Ativa</span></td>
+                  <td style="text-align:right">
+                    <button class="btn btn-outline" style="padding:4px 9px;font-size:11.5px" onclick="rotateKey('teste-gate-15-09')">Rotacionar</button>
+                    <button class="btn btn-danger-outline" style="padding:4px 9px;font-size:11.5px" onclick="revokeKey('teste-gate-15-09')">Revogar</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Code Playbook (Exemplo de Integração cURL / Node.js) -->
+        <div class="code-playbook">
+          <div class="playbook-header">
+            <div class="playbook-tabs">
+              <button class="playbook-tab active" onclick="switchSnippet('curl', this)">cURL</button>
+              <button class="playbook-tab" onclick="switchSnippet('node', this)">Node.js / TS</button>
+              <button class="playbook-tab" onclick="switchSnippet('python', this)">Python</button>
+            </div>
+            <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="copySnippet()">Copiar Snippet</button>
+          </div>
+          <pre class="playbook-code" id="snippet-container">curl -X POST https://api.uaiid.com.br/v1/verifications \
+  -H "Authorization: Bearer jano_live_SUA_CHAVE_AQUI" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "cpf": "123.456.789-00",
+    "name": "Nome do Candidato",
+    "callback_url": "https://api.wiboo.io/qa/v1/webhooks/uaiid/1/events"
+  }'</pre>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ─── MODAL CRIAR NOVA KEY ─── -->
+  <div class="modal-backdrop" id="modal-create-key">
+    <div class="modal-card">
+      <div class="modal-title">Criar Nova Chave de API</div>
+      <p style="font-size:12.5px;color:var(--text-muted)">Defina um identificador claro para saber qual sistema ou servidor utilizará esta credencial.</p>
+      
+      <div class="form-group">
+        <label class="form-label">Identificador (Label)</label>
+        <input type="text" class="form-input" id="input-key-label" placeholder="ex: backend-producao, app-mobile" value="">
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModalCreateKey()">Cancelar</button>
+        <button class="btn btn-primary" onclick="submitCreateKey()">Gerar Chave</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MODAL COMMAND PALETTE (⌘K) ─── -->
+  <div class="modal-backdrop" id="modal-cmd-palette">
+    <div class="modal-card" style="max-width:520px;padding:16px">
+      <div style="position:relative;margin-bottom:12px">
+        <input type="text" class="form-input" id="cmd-search-input" placeholder="Digite um comando ou busque CPF..." oninput="filterCmdList(this.value)">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto" id="cmd-list-items">
+        <div class="cmd-item" onclick="switchView('chaves'); closeCmdPalette();">
+          <span>🔑 Gerenciar Chaves de API</span>
+          <span class="kbd">Ir</span>
+        </div>
+        <div class="cmd-item" onclick="switchView('dashboard'); closeCmdPalette();">
+          <span>📊 Ver Telemetria Geral</span>
+          <span class="kbd">Ir</span>
+        </div>
+        <div class="cmd-item" onclick="openModalCreateKey(); closeCmdPalette();">
+          <span>➕ Criar Nova Chave de API</span>
+          <span class="kbd">Ação</span>
+        </div>
+        <div class="cmd-item" onclick="toggleTheme(); closeCmdPalette();">
+          <span>🌓 Alternar Tema Claro / Escuro</span>
+          <span class="kbd">Tema</span>
+        </div>
+        <div class="cmd-item" onclick="showToast('Auditando CPF 294.***.***-00: Score 950'); closeCmdPalette();">
+          <span>🔍 Buscar CPF 294.***.***-00</span>
+          <span class="kbd">CPF</span>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:10px">
+        <button class="btn btn-outline" style="padding:4px 10px;font-size:11px" onclick="closeCmdPalette()">Fechar (Esc)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">Ação concluída com sucesso!</div>
+
+  <script>
+    // Responsive Mobile Drawer
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      sidebar.classList.toggle('open');
+      backdrop.classList.toggle('open');
+    }
+
+    function closeSidebarIfMobile() {
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebar-backdrop').classList.remove('open');
+      }
+    }
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      showToast('Tema alterado para: ' + (next === 'dark' ? 'Modo Escuro' : 'Modo Claro'));
+    }
+
+    // View Switcher (Dashboard vs Chaves)
+    function switchView(view) {
+      const dashSec = document.getElementById('view-dashboard-section');
+      const chaveSec = document.getElementById('view-chaves-section');
+      const pillDash = document.getElementById('pill-dash');
+      const pillChaves = document.getElementById('pill-chaves');
+      const menuOver = document.getElementById('menu-overview');
+      const menuChaves = document.getElementById('menu-chaves');
+      const bTitle = document.getElementById('breadcrumb-title');
+      const vTitle = document.getElementById('view-title');
+      const vSub = document.getElementById('view-subtitle');
+
+      if (view === 'chaves') {
+        dashSec.style.display = 'none';
+        chaveSec.style.display = 'block';
+        pillDash.classList.remove('active');
+        pillChaves.classList.add('active');
+        menuOver.classList.remove('active');
+        menuChaves.classList.add('active');
+        bTitle.innerText = 'Chaves de API';
+        vTitle.innerText = 'Credenciais & Chaves de Acesso';
+        vSub.innerText = 'Gerenciamento de API Keys (jano_live_...) e conformidade de acesso aos motores de validação';
+      } else {
+        dashSec.style.display = 'block';
+        chaveSec.style.display = 'none';
+        pillDash.classList.add('active');
+        pillChaves.classList.remove('active');
+        menuOver.classList.add('active');
+        menuChaves.classList.remove('active');
+        bTitle.innerText = 'Visão Geral';
+        vTitle.innerText = 'Telemetria de Verificações';
+        vSub.innerText = 'Monitoramento de conformidade, antifraude e liveness 3D em tempo real';
+      }
+    }
+
+    // Modal Create Key
+    function openModalCreateKey() {
+      document.getElementById('modal-create-key').classList.add('open');
+      setTimeout(() => document.getElementById('input-key-label').focus(), 100);
+    }
+
+    function closeModalCreateKey() {
+      document.getElementById('modal-create-key').classList.remove('open');
+    }
+
+    function submitCreateKey() {
+      const label = document.getElementById('input-key-label').value.trim() || 'nova-chave-api';
+      closeModalCreateKey();
+      
+      const newKeyBanner = document.getElementById('new-key-banner');
+      newKeyBanner.style.display = 'block';
+      const randomHash = 'jano_live_' + Array.from({length: 32}, () => Math.floor(Math.random()*16).toString(16)).join('');
+      document.getElementById('sample-key-text').innerText = randomHash;
+      document.getElementById('new-key-title').innerText = '"' + label + '"';
+
+      // Prepend to table
+      const tbody = document.getElementById('keys-table-body');
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <strong>${label}</strong>
+          <div style="font-size:10.5px;color:var(--text-dim)">ID recém-criado</div>
+        </td>
+        <td><code class="cell-mono">${randomHash.slice(0, 18)}••••</code></td>
+        <td><span class="nav-badge teal">Produção</span></td>
+        <td>Agora mesmo</td>
+        <td><span class="badge-status active">Ativa</span></td>
+        <td style="text-align:right">
+          <button class="btn btn-outline" style="padding:4px 9px;font-size:11.5px" onclick="rotateKey('${label}')">Rotacionar</button>
+          <button class="btn btn-danger-outline" style="padding:4px 9px;font-size:11.5px" onclick="revokeKey('${label}')">Revogar</button>
+        </td>
+      `;
+      tbody.prepend(tr);
+      showToast('Chave "' + label + '" criada com sucesso!');
+    }
+
+    function copyKey(id) {
+      const text = document.getElementById(id).innerText;
+      navigator.clipboard.writeText(text);
+      showToast('✓ Chave copiada para a área de transferência!');
+    }
+
+    function rotateKey(label) {
+      if (confirm('Deseja realmente rotacionar a chave "' + label + '"? A chave antiga deixará de funcionar imediatamente.')) {
+        showToast('Chave "' + label + '" rotacionada com sucesso!');
+      }
+    }
+
+    function revokeKey(label) {
+      if (confirm('Atenção: Revogar a chave "' + label + '" bloqueará todas as chamadas de API feitas por ela.')) {
+        if (label === 'dev') {
+          const badge = document.getElementById('badge-dev');
+          if (badge) { badge.className = 'badge-status revoked'; badge.innerText = 'Revogada'; }
+        } else if (label === 'teste-gate-15-09') {
+          const badge = document.getElementById('badge-teste');
+          if (badge) { badge.className = 'badge-status revoked'; badge.innerText = 'Revogada'; }
+        }
+        showToast('Chave "' + label + '" revogada.');
+      }
+    }
+
+    // Dynamic Chart Days Switch (Gentelella style)
+    const periodData = {
+      '7d': { total: 5, app: 1, rev: 0, rej: 0, trend: '↑ 4%', appPct: '20.0%', revPct: '0.0%', rejPct: '0.0%', sub: 'Visualizando últimos 7 dias' },
+      '30d': { total: 124, app: 63, rev: 15, rej: 10, trend: '↑ 18%', appPct: '50.8%', revPct: '12.1%', rejPct: '8.0%', sub: 'Visualizando últimos 30 dias' },
+      '90d': { total: 318, app: 172, rev: 41, rej: 28, trend: '↑ 24%', appPct: '54.1%', revPct: '12.9%', rejPct: '8.8%', sub: 'Visualizando últimos 90 dias' }
+    };
+
+    function switchChartDays(period, btn) {
+      document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const d = periodData[period];
+      if (d) {
+        document.getElementById('kpi-total-val').innerText = d.total;
+        document.getElementById('kpi-total-trend').innerText = d.trend;
+        document.getElementById('kpi-app-val').innerText = d.app;
+        document.getElementById('kpi-app-pct').innerText = d.appPct;
+        document.getElementById('kpi-rev-val').innerText = d.rev;
+        document.getElementById('kpi-rev-pct').innerText = d.revPct;
+        document.getElementById('kpi-rej-val').innerText = d.rej;
+        document.getElementById('kpi-rej-pct').innerText = d.rejPct;
+        document.getElementById('chart-sub-period').innerText = d.sub;
+      }
+      showToast('Dados atualizados para: ' + period);
+    }
+
+    // Snippets Playbook
+    const snippets = {
+      curl: `curl -X POST https://api.uaiid.com.br/v1/verifications \\
+  -H "Authorization: Bearer jano_live_SUA_CHAVE_AQUI" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "cpf": "123.456.789-00",
+    "name": "Nome do Candidato",
+    "callback_url": "https://api.wiboo.io/qa/v1/webhooks/uaiid/1/events"
+  }'`,
+      node: `import fetch from 'node-fetch';
+
+const res = await fetch('https://api.uaiid.com.br/v1/verifications', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer jano_live_SUA_CHAVE_AQUI',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    cpf: '123.456.789-00',
+    name: 'Nome do Candidato',
+    callback_url: 'https://api.wiboo.io/qa/v1/webhooks/uaiid/1/events'
+  })
+});
+
+const data = await res.json();
+console.log('ID da Verificação:', data.id);`,
+      python: `import requests
+
+url = "https://api.uaiid.com.br/v1/verifications"
+headers = {
+    "Authorization": "Bearer jano_live_SUA_CHAVE_AQUI",
+    "Content-Type": "application/json"
+}
+payload = {
+    "cpf": "123.456.789-00",
+    "name": "Nome do Candidato",
+    "callback_url": "https://api.wiboo.io/qa/v1/webhooks/uaiid/1/events"
+}
+
+response = requests.post(url, json=payload, headers=headers)
+print(response.json())`
+    };
+
+    function switchSnippet(lang, btn) {
+      document.querySelectorAll('.playbook-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('snippet-container').innerText = snippets[lang];
+    }
+
+    function copySnippet() {
+      const code = document.getElementById('snippet-container').innerText;
+      navigator.clipboard.writeText(code);
+      showToast('✓ Snippet copiado!');
+    }
+
+    // Command Palette (⌘K)
+    function openCmdPalette() {
+      document.getElementById('modal-cmd-palette').classList.add('open');
+      setTimeout(() => document.getElementById('cmd-search-input').focus(), 100);
+    }
+
+    function closeCmdPalette() {
+      document.getElementById('modal-cmd-palette').classList.remove('open');
+    }
+
+    function filterCmdList(query) {
+      const items = document.querySelectorAll('.cmd-item');
+      const q = query.toLowerCase();
+      items.forEach(el => {
+        el.style.display = el.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+      });
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        openCmdPalette();
+      }
+      if (e.key === 'Escape') {
+        closeCmdPalette();
+        closeModalCreateKey();
+      }
+    });
+
+    // Toast
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+  </script>
+</body>
+</html>

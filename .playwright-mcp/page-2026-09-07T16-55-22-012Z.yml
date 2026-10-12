@@ -1,0 +1,43 @@
+- generic [ref=f5e28]:
+  - generic [ref=f5e29]:
+    - img "Dr. Exame" [ref=f5e31]
+    - generic [ref=f5e32]:
+      - paragraph [ref=f5e33]: Meus Exames
+      - paragraph [ref=f5e34]: Seu assistente de saúde com IA
+  - generic [ref=f5e35]:
+    - button [ref=f5e36] [cursor=pointer]
+    - button [ref=f5e41] [cursor=pointer]
+  - generic [ref=f5e47]:
+    - generic [ref=f5e48]:
+      - generic [ref=f5e49]:
+        - text: E-mail
+        - generic [aria-hidden] [ref=f5e50]: "*"
+      - generic [ref=f5e51]:
+        - textbox "E-mail" [ref=f5e56]: edmilson@exemplo.com
+        - group [aria-hidden]:
+          - generic: E-mail *
+    - generic [ref=f5e57]:
+      - generic [ref=f5e58]:
+        - text: Senha
+        - generic [aria-hidden] [ref=f5e59]: "*"
+      - generic [ref=f5e60]:
+        - textbox "Senha" [invalid] [ref=f5e65]: troque123
+        - button "Mostrar senha" [ref=f5e67] [cursor=pointer]
+        - group [aria-hidden]:
+          - generic: Senha *
+      - paragraph [ref=f5e106]: E-mail ou senha incorretos.
+    - button "Esqueci minha senha" [ref=f5e72] [cursor=pointer]
+    - button [ref=f5e73] [cursor=pointer]
+    - generic [ref=f5e77]: ou
+    - generic [ref=f5e92]:
+      - button "Continuar com o Google. Abre em uma nova guia" [ref=f5e94] [cursor=pointer]:
+        - generic [ref=f5e96]: Continuar com o Google
+      - iframe
+    - paragraph [ref=f5e80]:
+      - text: Não tem conta?
+      - button "Criar conta" [ref=f5e81] [cursor=pointer]
+  - generic [ref=f5e82]:
+    - paragraph [ref=f5e88]: Seus dados de saúde são protegidos pela LGPD.
+    - paragraph [ref=f5e89]:
+      - strong [ref=f5e90]: Conteúdo educativo.
+      - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.

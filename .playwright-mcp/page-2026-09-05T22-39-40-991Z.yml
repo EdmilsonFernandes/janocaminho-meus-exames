@@ -1,0 +1,146 @@
+- generic [ref=e1]:
+  - generic [ref=e710]:
+    - button [ref=e711] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=e712]:
+      - banner [ref=e713]:
+        - generic [ref=e714]:
+          - generic [ref=e715]:
+            - button [ref=e716] [cursor=pointer]:
+              - generic [ref=e719]: "69"
+            - button [ref=e720] [cursor=pointer]:
+              - generic [ref=e721]: 9+
+            - button [ref=e726] [cursor=pointer]:
+              - generic [ref=e727]: E
+              - generic [ref=e729]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=e735] [cursor=pointer]
+      - main [ref=e738]:
+        - navigation [ref=e742]:
+          - generic [ref=e745]:
+            - generic [ref=e746]: E
+            - generic [ref=e747]:
+              - paragraph [ref=e748]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=e749]:
+                - generic [ref=e750]: Plano grátis
+                - button [ref=e752] [cursor=pointer]:
+                  - generic [ref=e753]: ⚡ 69 (+)
+          - separator [ref=e754]
+          - button [ref=e756] [cursor=pointer]:
+            - generic [ref=e760]: Exames
+          - button [ref=e765] [cursor=pointer]:
+            - generic [ref=e770]: Cuidados
+          - button [ref=e775] [cursor=pointer]:
+            - generic [ref=e780]: Pessoas
+          - button [ref=e785] [cursor=pointer]:
+            - generic [ref=e789]: Conta
+          - separator [ref=e793]
+          - button [ref=e794] [cursor=pointer]:
+            - generic [ref=e798]: Dúvidas frequentes
+          - menuitem [ref=e800] [cursor=pointer]:
+            - generic [ref=e804]: Sobre o app
+          - menuitem [ref=e806] [cursor=pointer]:
+            - generic [ref=e810]: Sair da conta
+        - generic [ref=e813]:
+          - generic [ref=e815]:
+            - generic [ref=e816]:
+              - paragraph [ref=e817]: Boa noite, Edmilson 👋
+              - generic [ref=e818]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e819]: ● Sincronizado
+          - generic [ref=e821]:
+            - generic [ref=e823]:
+              - generic [ref=e824]:
+                - generic [ref=e825]:
+                  - generic:
+                    - paragraph: "62"
+                    - paragraph: de 100
+                - generic [ref=e829]:
+                  - paragraph [ref=e830]: Sua saúde hoje
+                  - paragraph [ref=e831]: Em boa forma
+                  - paragraph [ref=e833]:
+                    - generic [ref=e834]: ● 5 moderados
+              - button [ref=e835] [cursor=pointer]: Ver análise completa
+            - generic [ref=e840]:
+              - paragraph [ref=e841]: O que mudou nos seus exames
+              - generic [ref=e842]: 1 melhorou
+              - generic [ref=e848]:
+                - paragraph [ref=e849]: ↓GLICOSE
+                - paragraph [ref=e850]: 95 mg/dL
+              - button [ref=e852] [cursor=pointer]: Ver evolução completa
+          - generic [ref=e859]:
+            - generic [ref=e863]:
+              - paragraph [ref=e864]: ✨ Dica personalizada (IA)
+              - paragraph [ref=e865]: Edmilson, seu GLICOSE está ótimo (95 mg/dL)! Continue assim.
+            - button [ref=e867] [cursor=pointer]: Conversar com a IA
+          - generic [ref=e871]:
+            - generic [ref=e879] [cursor=pointer]:
+              - paragraph [ref=e880]: Cardiometabólico
+              - paragraph [ref=e881]: baixo
+              - paragraph [ref=e882]: 1 fator de risco
+            - generic [ref=e890] [cursor=pointer]:
+              - paragraph [ref=e891]: Idade biológica
+              - paragraph [ref=e892]: 42a
+              - paragraph [ref=e893]: estimativa corporal
+            - generic [ref=e901] [cursor=pointer]:
+              - paragraph [ref=e902]: Seus exames
+              - paragraph [ref=e903]: "9"
+              - paragraph [ref=e904]: 8 alterados
+            - generic [ref=e912] [cursor=pointer]:
+              - paragraph [ref=e913]: Evolução
+              - paragraph [ref=e914]: "34"
+              - paragraph [ref=e915]: histórico de tendências
+          - generic [ref=e917]:
+            - generic [ref=e918]: Enviar exame
+            - generic [ref=e925]: Evolução
+            - generic [ref=e932]: Família
+            - generic [ref=e940]: Relatório
+          - generic [ref=e949]:
+            - generic [ref=e953]:
+              - paragraph [ref=e954]: "69"
+              - text: créditos disponíveis
+            - button [ref=e955] [cursor=pointer]: Comprar
+          - generic [ref=e958] [cursor=pointer]:
+            - generic [ref=e960]:
+              - paragraph [ref=e961]: 🏆 Suas conquistas
+              - text: Resgate 1 crédito a cada meta atingida
+            - generic [ref=e964]:
+              - generic [ref=e965]: 🎉
+              - generic [ref=e967]: 📚
+              - generic [ref=e969]: 🎓
+              - generic [ref=e971]: 💚
+              - generic [ref=e973]: 🔥
+            - generic [ref=e975]: 2 desbloqueada(s) · toque para ver e resgatar →
+          - button [ref=e977] [cursor=pointer]: 📤 Compartilhar minha saúde
+  - dialog [ref=e1007]:
+    - heading [level=2] [ref=e1008]: ✨ Novidades do Dr. Exame
+    - generic [ref=e985]:
+      - generic [ref=e986]: Versão 0.1.0
+      - generic [ref=e987]:
+        - generic [ref=e988]:
+          - generic [ref=e989]: 📱
+          - generic [ref=e990]:
+            - paragraph [ref=e991]: Meus Exames V2
+            - text: "Lista redesenhada: último exame em destaque, filtros e datas relativas."
+        - generic [ref=e992]:
+          - generic [ref=e993]: 🔐
+          - generic [ref=e994]:
+            - paragraph [ref=e995]: Login com biometria
+            - text: Entre com a digital do aparelho — sem digitar senha.
+        - generic [ref=e996]:
+          - generic [ref=e997]: 🩺
+          - generic [ref=e998]:
+            - paragraph [ref=e999]: Portal do médico
+            - text: Seu médico vê seus exames, alterados e tendências num só lugar.
+        - generic [ref=e1000]:
+          - generic [ref=e1001]: 🚑
+          - generic [ref=e1002]:
+            - paragraph [ref=e1003]: Cartão de emergência
+            - text: Dados críticos e contato na hora que importam.
+    - button [ref=e1009] [cursor=pointer]: Legal! →
+  - dialog [active] [ref=e1012]:
+    - heading [level=2] [ref=e1013]:
+      - generic [ref=e1014]:
+        - img "Dr. Exame" [ref=e1015]
+        - paragraph [ref=e1016]: 💡 Dica do Dr. Exame pra Theo
+    - paragraph [ref=e1018]: Que tal trocar um refrigerante por água hoje? Pequenas escolhas ajudam sua hidratação, seus rins e até seu humor no resto do dia.
+    - generic [ref=e1019]:
+      - button "Depois" [ref=e1020] [cursor=pointer]
+      - button "Ver notificações" [ref=e1021] [cursor=pointer]

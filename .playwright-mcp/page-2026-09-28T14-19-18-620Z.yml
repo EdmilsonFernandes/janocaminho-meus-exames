@@ -1,0 +1,90 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e2]:
+    - generic [ref=f6e3]:
+      - button "Pular para o conteúdo" [ref=f6e376] [cursor=pointer]
+      - generic [ref=f6e5]:
+        - banner [ref=f6e6]:
+          - generic [ref=f6e7]:
+            - heading [level=6]
+            - generic [ref=f6e11]:
+              - button "Notificações" [ref=f6e377] [cursor=pointer]:
+                - generic [ref=f6e13]: 9+
+              - button "T Theo QA Filho(a)" [ref=f6e378] [cursor=pointer]:
+                - generic [ref=f6e19]: T
+                - generic [ref=f6e21]:
+                  - generic [ref=f6e22]: Theo QA
+                  - generic [ref=f6e23]: Filho(a)
+            - button "Atualizar" [ref=f6e379] [cursor=pointer]
+        - main [ref=f6e31]:
+          - navigation [ref=f6e35]:
+            - generic [ref=f6e38]:
+              - generic [ref=f6e39]: E
+              - generic [ref=f6e41]:
+                - paragraph [ref=f6e42]: Edmilson Lopes Fernandes dos Santos
+                - generic [ref=f6e43]:
+                  - generic [ref=f6e44]: Plano grátis
+                  - button "⚡ 69 (+)" [ref=f6e380] [cursor=pointer]
+            - separator [ref=f6e48]
+            - generic [ref=f6e49]:
+              - button "Exames" [expanded] [ref=f6e381] [cursor=pointer]
+              - generic [ref=f6e61]:
+                - button "Exames" [ref=f6e382] [cursor=pointer]
+                - button "Valores alterados" [ref=f6e383] [cursor=pointer]
+                - button "Evolução" [ref=f6e384] [cursor=pointer]
+                - button "Tendências" [ref=f6e385] [cursor=pointer]
+                - button "Linha do Tempo" [ref=f6e386] [cursor=pointer]
+                - button "Relatório completo" [ref=f6e387] [cursor=pointer]
+            - button "Cuidados" [ref=f6e388] [cursor=pointer]
+            - button "Pessoas" [ref=f6e389] [cursor=pointer]
+            - button "Conta" [ref=f6e390] [cursor=pointer]
+            - button "Dúvidas frequentes" [ref=f6e391] [cursor=pointer]
+            - menuitem "Sobre o app" [ref=f6e392] [cursor=pointer]
+            - menuitem "Sair da conta" [ref=f6e393] [cursor=pointer]
+            - generic [ref=f6e148]: Dr. Exame • Saúde Inteligente 🩺
+          - generic [ref=f6e323]:
+            - generic [ref=f6e324]:
+              - button "Voltar ao início" [ref=f6e394] [cursor=pointer]: ←
+              - img "Dr. Exame" [ref=f6e395]
+              - generic [ref=f6e327]:
+                - paragraph [ref=f6e328]: Dr. Exame
+                - paragraph [ref=f6e330]: Assistente de saúde com IA · Theo
+              - button "Histórico de conversas (0)" [ref=f6e396] [cursor=pointer]:
+                - generic [ref=f6e332]: "1"
+            - generic [ref=f6e474]:
+              - img "Dr. Exame" [ref=f6e477]
+              - generic [ref=f6e479]:
+                - paragraph [ref=f6e480]: Como posso te ajudar, Theo?
+                - paragraph [ref=f6e481]: Toque numa sugestão ou escreva sua dúvida sobre seus exames.
+              - generic [ref=f6e482]:
+                - button "📊 Resumo dos meus exames ›" [ref=f6e483] [cursor=pointer]:
+                  - generic [ref=f6e484]: 📊
+                  - paragraph [ref=f6e485]: Resumo dos meus exames
+                  - generic [ref=f6e486]: ›
+                - button "⚠️ O que está alterado ›" [ref=f6e487] [cursor=pointer]:
+                  - generic [ref=f6e488]: ⚠️
+                  - paragraph [ref=f6e489]: O que está alterado
+                  - generic [ref=f6e490]: ›
+                - button "📈 Minha evolução ›" [ref=f6e491] [cursor=pointer]:
+                  - generic [ref=f6e492]: 📈
+                  - paragraph [ref=f6e493]: Minha evolução
+                  - generic [ref=f6e494]: ›
+                - button "🔄 Comparar exames ›" [ref=f6e495] [cursor=pointer]:
+                  - generic [ref=f6e496]: 🔄
+                  - paragraph [ref=f6e497]: Comparar exames
+                  - generic [ref=f6e498]: ›
+                - button "📖 Explicar termo médico ›" [ref=f6e499] [cursor=pointer]:
+                  - generic [ref=f6e500]: 📖
+                  - paragraph [ref=f6e501]: Explicar termo médico
+                  - generic [ref=f6e502]: ›
+                - button "🔬 O que significa meu resultado ›" [ref=f6e503] [cursor=pointer]:
+                  - generic [ref=f6e504]: 🔬
+                  - paragraph [ref=f6e505]: O que significa meu resultado
+                  - generic [ref=f6e506]: ›
+              - generic [ref=f6e507]: 2 créditos por pergunta · a IA não substitui seu médico
+            - generic [ref=f6e370]:
+              - button "Ações rápidas" [ref=f6e431] [cursor=pointer]
+              - textbox "Pergunte sobre seus exames…" [ref=f6e432]
+              - button "Enviar" [disabled]
+    - alert [ref=f6e508]:
+      - generic [ref=f6e509]: A IA não respondeu agora. Seu crédito foi devolvido — tente novamente em instantes.
+  - generic [ref=f6e321]: "6"

@@ -1,0 +1,81 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e301] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button "Menu" [active] [ref=e385] [cursor=pointer]
+            - generic [ref=e283]:
+              - img "Dr. Exame" [ref=e305]
+              - paragraph [ref=e300]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [ref=e306] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button "Notificações" [ref=e307] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button "E" [ref=e308] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e388]:
+            - generic [ref=e389]:
+              - paragraph [ref=e390]: Boa tarde, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e393]:
+              - generic [ref=e394]:
+                - generic [ref=e399]:
+                  - paragraph [ref=e400]: "45"
+                  - paragraph [ref=e401]: de 100
+                - generic [ref=e402]:
+                  - paragraph [ref=e403]: Sua saúde hoje
+                  - paragraph [ref=e404]: Pede atenção
+                  - paragraph [ref=e406]:
+                    - generic [ref=e407]: ● 6 moderados
+              - button [ref=e408] [cursor=pointer]
+            - button [ref=e417] [cursor=pointer]
+            - generic [ref=e421]:
+              - generic [ref=e428] [cursor=pointer]:
+                - paragraph [ref=e429]: Cardiometabólico
+                - paragraph [ref=e430]: Em dia
+                - paragraph [ref=e431]: sem fatores
+              - generic [ref=e434] [cursor=pointer]:
+                - generic [ref=e435]: 🧬
+                - generic [ref=e436]:
+                  - paragraph [ref=e437]: Idade biológica
+                  - paragraph [ref=e438]: Em breve
+                  - paragraph [ref=e439]: estimativa c/ +exames
+              - generic [ref=e446] [cursor=pointer]:
+                - paragraph [ref=e447]: Seus exames
+                - paragraph [ref=e448]: "5"
+                - paragraph [ref=e449]: 8 alterados
+              - generic [ref=e456] [cursor=pointer]:
+                - paragraph [ref=e457]: Evolução
+                - paragraph [ref=e458]: Tendências
+                - paragraph [ref=e459]: 28 resultados
+            - generic [ref=e461]:
+              - generic [ref=e462]: Enviar exame
+              - generic [ref=e469]: Evolução
+              - generic [ref=e476]: Família
+              - generic [ref=e484]: Relatório
+            - generic [ref=e493]:
+              - generic [ref=e497]:
+                - paragraph [ref=e498]: "71"
+                - text: créditos disponíveis
+              - button "Comprar" [ref=e499] [cursor=pointer]
+            - button [ref=e501] [cursor=pointer]
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - generic [ref=e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e381]
+        - paragraph [ref=e191]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e383]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e384]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation

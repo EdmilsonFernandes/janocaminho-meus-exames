@@ -1,0 +1,86 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e616]:
+            - generic [ref=e622]:
+              - heading [level=5] [ref=e623]: Valores fora da faixa
+              - paragraph [ref=e624]:
+                - text: Ordenados por
+                - strong [ref=e625]: prioridade de atenção
+                - text: (🔴→🟡). Toque num exame pra expandir e ver os valores.
+            - generic [ref=e653]:
+              - generic [ref=e654]:
+                - generic [ref=e655]: 🔴 0 Importantes
+                - generic [ref=e656]: 🟠 6 Moderadas
+                - generic [ref=e657]: 🟡 2 Leves
+              - generic [ref=e658]:
+                - text: Nada crítico — os ajustes são
+                - strong [ref=e659]: 🟠 moderados
+                - text: ou
+                - strong [ref=e660]: 🟡 leves
+                - text: . Comente com seu médico na próxima consulta.
+            - generic [ref=e661]:
+              - heading [level=3] [ref=e663]:
+                - button [ref=e664] [cursor=pointer]:
+                  - generic [ref=e666]:
+                    - generic [ref=e667]: 🟠
+                    - generic [ref=e668]:
+                      - paragraph [ref=e669]: PERFIL LIPÍDICO
+                      - generic [ref=e670]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=e671]: 4 alterado(s)
+              - heading [level=3] [ref=e677]:
+                - button [ref=e678] [cursor=pointer]:
+                  - generic [ref=e680]:
+                    - generic [ref=e681]: 🟠
+                    - generic [ref=e682]:
+                      - paragraph [ref=e683]: GLICEMIA DE JEJUM
+                      - generic [ref=e684]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=e685]: 2 alterado(s)
+              - heading [level=3] [ref=e691]:
+                - button [ref=e692] [cursor=pointer]:
+                  - generic [ref=e694]:
+                    - generic [ref=e695]: 🟡
+                    - generic [ref=e696]:
+                      - paragraph [ref=e697]: HEMOGRAMA
+                      - generic [ref=e698]: 📅 s/d
+                    - generic [ref=e699]: 2 alterado(s)
+            - generic [ref=e642]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - button "Cuidados" [ref=e207] [cursor=pointer]
+      - button "Pessoas" [ref=e217] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]

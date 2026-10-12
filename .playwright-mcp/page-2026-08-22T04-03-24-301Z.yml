@@ -1,0 +1,391 @@
+- generic [active] [ref=f124e1]:
+  - generic [ref=f124e2]:
+    - generic [ref=f124e4]:
+      - generic [ref=f124e5]:
+        - generic [ref=f124e6]:
+          - link "DuckDuckGo home" [ref=f124e7] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f124e8]: DuckDuckGo
+          - generic [ref=f124e15]:
+            - combobox "Search privately" [ref=f124e17]: dr-ia grupomeindica assinatura preço plano
+            - button "search" [ref=f124e19] [cursor=pointer]
+        - button "Open menu" [ref=f124e23] [cursor=pointer]
+      - navigation [ref=f124e31]:
+        - list [ref=f124e32]:
+          - listitem [ref=f124e33]:
+            - link "Todos" [ref=f124e34] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&ia=web
+          - listitem [ref=f124e37]:
+            - link "Imagens" [ref=f124e38] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&ia=images&iax=images
+          - listitem [ref=f124e39]:
+            - link "Vídeos" [ref=f124e40] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&ia=videos&iax=videos
+          - listitem [ref=f124e41]:
+            - link "Notícias" [ref=f124e42] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&ia=news&iar=news
+          - listitem [ref=f124e43]:
+            - link "Mapas" [ref=f124e44] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&iaxm=maps
+        - list [ref=f124e45]:
+          - listitem [ref=f124e46]:
+            - link "Duck.ai" [ref=f124e48] [cursor=pointer]:
+              - /url: /?q=dr-ia+grupomeindica+assinatura+pre%C3%A7o+plano&ia=chat
+          - listitem [ref=f124e52]:
+            - button "Search Settings ✀" [ref=f124e54] [cursor=pointer]:
+              - generic [ref=f124e57]: Search Settings
+              - generic [ref=f124e58]: ✀
+    - generic [ref=f124e65]:
+      - navigation [ref=f124e67]:
+        - generic [ref=f124e70] [cursor=pointer]:
+          - generic [ref=f124e71]: Protected
+          - img [ref=f124e79]: ▼
+        - generic [ref=f124e83] [cursor=pointer]:
+          - generic [ref=f124e86]:
+            - switch "✓" [ref=f124e87]
+            - generic [ref=f124e89]: Brasil
+          - img [ref=f124e90]: ▼
+        - generic [ref=f124e94] [cursor=pointer]:
+          - generic [ref=f124e95]: "Pesquisa segura: moderada"
+          - img [ref=f124e96]: ▼
+        - generic [ref=f124e100] [cursor=pointer]:
+          - generic [ref=f124e101]: Qualquer data
+          - img [ref=f124e102]: ▼
+      - generic [ref=f124e105]:
+        - list [ref=f124e106]:
+          - listitem [ref=f124e107]:
+            - article [ref=f124e108] [cursor=pointer]:
+              - button [ref=f124e110]
+              - generic [ref=f124e115]:
+                - link "Procurar no domínio dr-ia.grupomeindica.com.br" [ref=f124e117]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:dr-ia.grupomeindica.com.br
+                - generic [ref=f124e120]:
+                  - paragraph [ref=f124e121]: dr-ia.grupomeindica.com.br
+                  - link "https://dr-ia.grupomeindica.com.br" [ref=f124e122]:
+                    - /url: https://dr-ia.grupomeindica.com.br/
+                    - paragraph [ref=f124e124]:
+                      - generic [ref=f124e125]: https://dr-ia.grupomeindica.com.br
+              - heading [level=2] [ref=f124e127]:
+                - link "Dr IA - Sistema de Análise" [ref=f124e128]:
+                  - /url: https://dr-ia.grupomeindica.com.br/
+              - generic [ref=f124e130]: O Dr IA é ideal para pessoas que buscam mais autonomia, clareza e acompanhamento contínuo da sua saúde. Pessoas que realizam exames de controle com frequência e desejam entender perfeitamente o vocabulário e histórico dos resultados de forma rápida.
+          - listitem [ref=f124e135]:
+            - article [ref=f124e136] [cursor=pointer]:
+              - button [ref=f124e138]
+              - generic [ref=f124e143]:
+                - link "Procurar no domínio canaltech.com.br" [ref=f124e145]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:canaltech.com.br
+                - generic [ref=f124e148]:
+                  - paragraph [ref=f124e149]: Canaltech
+                  - link "https://canaltech.com.br › apps › quanto-custa-assinar-todas-as-ias-no-brasil" [ref=f124e150]:
+                    - /url: https://canaltech.com.br/apps/quanto-custa-assinar-todas-as-ias-no-brasil/
+                    - paragraph [ref=f124e152]:
+                      - generic [ref=f124e153]: https://canaltech.com.br
+                      - generic [ref=f124e154]: › apps › quanto-custa-assinar-todas-as-ias-no-brasil
+              - heading [level=2] [ref=f124e156]:
+                - link "Quanto custa assinar todas as IAs no Brasil? - Canaltech" [ref=f124e157]:
+                  - /url: https://canaltech.com.br/apps/quanto-custa-assinar-todas-as-ias-no-brasil/
+              - generic [ref=f124e162]:
+                - text: 25 de set. de 2025·
+                - generic [ref=f124e163]: Qual é o valor das assinaturas das IA no Brasil? As assinaturas de inteligência artificial no Brasil variam de acordo com a plataforma e o plano escolhido.
+          - listitem [ref=f124e164]:
+            - article [ref=f124e165] [cursor=pointer]:
+              - button [ref=f124e167]
+              - generic [ref=f124e172]:
+                - link "Procurar no domínio pro.doctoralia.com.br" [ref=f124e174]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:pro.doctoralia.com.br
+                - generic [ref=f124e177]:
+                  - paragraph [ref=f124e178]: Doctoralia Pro
+                  - link "https://pro.doctoralia.com.br › preco" [ref=f124e179]:
+                    - /url: https://pro.doctoralia.com.br/preco
+                    - paragraph [ref=f124e181]:
+                      - generic [ref=f124e182]: https://pro.doctoralia.com.br
+                      - generic [ref=f124e183]: › preco
+              - heading [level=2] [ref=f124e185]:
+                - 'link "Preço: quanto custa a Agenda p/ médicos e clínicas? - Doctoralia" [ref=f124e186]':
+                  - /url: https://pro.doctoralia.com.br/preco
+              - generic [ref=f124e188]: "Preço da Agenda Doctoralia: veja quanto custa o sistema para médicos, profissionais da saúde e clínicas."
+          - listitem [ref=f124e193]:
+            - article [ref=f124e194] [cursor=pointer]:
+              - button [ref=f124e196]
+              - generic [ref=f124e201]:
+                - link "Procurar no domínio extra.globo.com" [ref=f124e203]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:extra.globo.com
+                - generic [ref=f124e206]:
+                  - paragraph [ref=f124e207]: EXTRA
+                  - link "https://extra.globo.com › economia › tecnologia › noticia › 2026 › 06 › vale-a-pena-pagar-por-inteligencia-artificial-veja-tabelas-interativas-com-precos-e-o-que-cada-plano-entrega.ghtml" [ref=f124e208]:
+                    - /url: https://extra.globo.com/economia/tecnologia/noticia/2026/06/vale-a-pena-pagar-por-inteligencia-artificial-veja-tabelas-interativas-com-precos-e-o-que-cada-plano-entrega.ghtml
+                    - paragraph [ref=f124e210]:
+                      - generic [ref=f124e211]: https://extra.globo.com
+                      - generic [ref=f124e212]: › economia › tecnologia › noticia › 2026 › 06 › vale-a-pena-pagar-por-inteligencia-artificial-veja-tabelas-interativas-com-precos-e-o-que-cada-plano-entrega.ghtml
+              - heading [level=2] [ref=f124e214]:
+                - link "Vale a pena pagar por inteligência artificial? Veja tabelas ... - Extra" [ref=f124e215]:
+                  - /url: https://extra.globo.com/economia/tecnologia/noticia/2026/06/vale-a-pena-pagar-por-inteligencia-artificial-veja-tabelas-interativas-com-precos-e-o-que-cada-plano-entrega.ghtml
+              - generic [ref=f124e220]:
+                - text: 28 de jun. de 2026·
+                - generic [ref=f124e221]: "Junto com a popularização da inteligência artificial, porém, veio uma nova dúvida para o bolso: vale pagar por um plano de IA ou a versão gratuita já resolve?"
+          - listitem [ref=f124e222]:
+            - article [ref=f124e223] [cursor=pointer]:
+              - button [ref=f124e225]
+              - generic [ref=f124e230]:
+                - link "Procurar no domínio innerai.com" [ref=f124e232]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:www.innerai.com
+                - generic [ref=f124e235]:
+                  - paragraph [ref=f124e236]: innerai.com
+                  - link "https://www.innerai.com › pt › nossos-planos" [ref=f124e237]:
+                    - /url: https://www.innerai.com/pt/nossos-planos
+                    - paragraph [ref=f124e239]:
+                      - generic [ref=f124e240]: https://www.innerai.com
+                      - generic [ref=f124e241]: › pt › nossos-planos
+              - heading [level=2] [ref=f124e243]:
+                - link "Nossos Planos | Inner AI" [ref=f124e244]:
+                  - /url: https://www.innerai.com/pt/nossos-planos
+              - generic [ref=f124e246]: O plano Pro disponibiliza 10.000 créditos mensais para esses recursos, renovados automaticamente a cada mês. Caso o consumo exceda os créditos disponíveis, o usuário pode adquirir créditos adicionais diretamente na plataforma. Garantia de 14 dias, se não gostar devolvemos o seu dinheiro.
+          - listitem [ref=f124e251]:
+            - article [ref=f124e252] [cursor=pointer]:
+              - button [ref=f124e254]
+              - generic [ref=f124e259]:
+                - link "Procurar no domínio luizmarcus.com" [ref=f124e261]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:luizmarcus.com
+                - generic [ref=f124e264]:
+                  - paragraph [ref=f124e265]: luizmarcus.com
+                  - link "https://luizmarcus.com › inovacao › comparativo-de-precos-entre-plataformas-de-ia" [ref=f124e266]:
+                    - /url: https://luizmarcus.com/inovacao/comparativo-de-precos-entre-plataformas-de-ia/
+                    - paragraph [ref=f124e268]:
+                      - generic [ref=f124e269]: https://luizmarcus.com
+                      - generic [ref=f124e270]: › inovacao › comparativo-de-precos-entre-plataformas-de-ia
+              - heading [level=2] [ref=f124e272]:
+                - link "Comparativo de Preços entre Plataformas de IA | Luiz Marcus" [ref=f124e273]:
+                  - /url: https://luizmarcus.com/inovacao/comparativo-de-precos-entre-plataformas-de-ia/
+              - generic [ref=f124e278]:
+                - text: 21 de abr. de 2025·
+                - generic [ref=f124e279]: Este post possui um comparativo de preços que pode te ajudar na escolha da plataforma de IA e na economia de custo
+          - listitem [ref=f124e280]:
+            - article [ref=f124e281] [cursor=pointer]:
+              - button [ref=f124e283]
+              - generic [ref=f124e288]:
+                - link "Procurar no domínio techtudo.com.br" [ref=f124e290]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:www.techtudo.com.br
+                - generic [ref=f124e293]:
+                  - paragraph [ref=f124e294]: TechTudo
+                  - link "https://www.techtudo.com.br › guia › 2026 › 07 › vale-a-pena-pagar-por-uma-ia-comparamos-os-planos-premium-mais-populares-edsoftwares.ghtml" [ref=f124e295]:
+                    - /url: https://www.techtudo.com.br/guia/2026/07/vale-a-pena-pagar-por-uma-ia-comparamos-os-planos-premium-mais-populares-edsoftwares.ghtml
+                    - paragraph [ref=f124e297]:
+                      - generic [ref=f124e298]: https://www.techtudo.com.br
+                      - generic [ref=f124e299]: › guia › 2026 › 07 › vale-a-pena-pagar-por-uma-ia-comparamos-os-planos-premium-mais-populares-edsoftwares.ghtml
+              - heading [level=2] [ref=f124e301]:
+                - link "Vale a pena pagar por uma IA? Comparamos os planos premium ... - TechTudo" [ref=f124e302]:
+                  - /url: https://www.techtudo.com.br/guia/2026/07/vale-a-pena-pagar-por-uma-ia-comparamos-os-planos-premium-mais-populares-edsoftwares.ghtml
+              - generic [ref=f124e307]:
+                - text: 6 de jul. de 2026·
+                - generic [ref=f124e308]: Com cada vez mais recursos exclusivos disponíveis apenas para assinantes, escolher um plano premium ficou mais difícil. Para descobrir se o investimento compensa, comparamos os principais serviços de IA pagos em 2026, incluindo ChatGPT Plus, Gemini Advanced, Claude Pro e Perplexity Pro.
+          - listitem [ref=f124e309]:
+            - article [ref=f124e310] [cursor=pointer]:
+              - button [ref=f124e312]
+              - generic [ref=f124e317]:
+                - link "Procurar no domínio hashtagtreinamentos.com" [ref=f124e319]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:www.hashtagtreinamentos.com
+                - generic [ref=f124e322]:
+                  - paragraph [ref=f124e323]: Hashtag Treinamentos
+                  - link "https://www.hashtagtreinamentos.com › ias-pagas-ia" [ref=f124e324]:
+                    - /url: https://www.hashtagtreinamentos.com/ias-pagas-ia
+                    - paragraph [ref=f124e326]:
+                      - generic [ref=f124e327]: https://www.hashtagtreinamentos.com
+                      - generic [ref=f124e328]: › ias-pagas-ia
+              - heading [level=2] [ref=f124e330]:
+                - 'link "IAs Pagas: 5 Que Valem a Pena e Como Escolher em 2026" [ref=f124e331]':
+                  - /url: https://www.hashtagtreinamentos.com/ias-pagas-ia
+              - generic [ref=f124e336]:
+                - text: 24 de nov. de 2025·
+                - generic [ref=f124e337]: Conheça os preços e as funcionalidades das principais IAs pagas e tenha um guia para te ajudar a decidir qual vale o investimento para o seu dia a dia.
+          - listitem [ref=f124e338]:
+            - article [ref=f124e339] [cursor=pointer]:
+              - button [ref=f124e341]
+              - generic [ref=f124e346]:
+                - link "Procurar no domínio claude.com" [ref=f124e348]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:claude.com
+                - generic [ref=f124e351]:
+                  - paragraph [ref=f124e352]: claude.com
+                  - link "https://claude.com" [ref=f124e353]:
+                    - /url: https://claude.com/
+                    - paragraph [ref=f124e355]:
+                      - generic [ref=f124e356]: https://claude.com
+              - heading [level=2] [ref=f124e358]:
+                - link "Claude" [ref=f124e359]:
+                  - /url: https://claude.com/
+              - generic [ref=f124e361]: Claude is a next generation AI assistant built by Anthropic and trained to be safe, accurate, and secure to help you do your best work.
+          - listitem [ref=f124e365]:
+            - article [ref=f124e366] [cursor=pointer]:
+              - button [ref=f124e368]
+              - generic [ref=f124e373]:
+                - link "Procurar no domínio sabertecnologias.com.br" [ref=f124e375]:
+                  - /url: /?q=dr%2Dia%20grupomeindica%20assinatura%20pre%C3%A7o%20plano+site:sabertecnologias.com.br
+                - generic [ref=f124e378]:
+                  - paragraph [ref=f124e379]: sabertecnologias.com.br
+                  - link "https://sabertecnologias.com.br › conteudo › tabela-de-preco-dr-consulta-valores-e-servicos-atualizados" [ref=f124e380]:
+                    - /url: https://sabertecnologias.com.br/conteudo/tabela-de-preco-dr-consulta-valores-e-servicos-atualizados
+                    - paragraph [ref=f124e382]:
+                      - generic [ref=f124e383]: https://sabertecnologias.com.br
+                      - generic [ref=f124e384]: › conteudo › tabela-de-preco-dr-consulta-valores-e-servicos-atualizados
+              - heading [level=2] [ref=f124e386]:
+                - 'link "Tabela de Preço Dr Consulta: Valores e Serviços Atualizados" [ref=f124e387]':
+                  - /url: https://sabertecnologias.com.br/conteudo/tabela-de-preco-dr-consulta-valores-e-servicos-atualizados
+              - generic [ref=f124e392]:
+                - text: 27 de abr. de 2026·
+                - generic [ref=f124e393]: A seguir, uma tabela comparativa resumida dos preços atualizados do dr.consulta, contrastando modalidades sem e com assinatura, além de opções online. Os valores são baseados em publicações oficiais de 2025-2026 e podem variar por unidade ou promoção.
+        - button "Mais resultados" [ref=f124e396] [cursor=pointer]
+    - list [ref=f124e399]:
+      - button "Close menu" [ref=f124e400] [cursor=pointer]
+      - list [ref=f124e404]:
+        - listitem [ref=f124e405]: Busca
+        - listitem [ref=f124e406]:
+          - link "Homepage" [ref=f124e407] [cursor=pointer]:
+            - /url: https://start.duckduckgo.com/
+        - listitem [ref=f124e408]:
+          - link "Temas" [ref=f124e409] [cursor=pointer]:
+            - /url: /settings#appearance
+        - listitem [ref=f124e410]:
+          - link "Configurações" [ref=f124e411] [cursor=pointer]:
+            - /url: /settings
+      - list [ref=f124e412]:
+        - listitem [ref=f124e413]: Compartilhar comentários
+        - listitem [ref=f124e414]:
+          - generic [ref=f124e417]:
+            - button "Positive feedback" [ref=f124e418] [cursor=pointer]
+            - button "Negative feedback" [ref=f124e422] [cursor=pointer]
+      - list [ref=f124e426]:
+        - listitem [ref=f124e427]: Downloads
+        - listitem [ref=f124e428]:
+          - link "iOS Browser" [ref=f124e429] [cursor=pointer]:
+            - /url: https://apps.apple.com/app/duckduckgo-private-browser/id663592361?platform=iphone&pt=866401&mt=8&ct=serp-atb-serp
+        - listitem [ref=f124e430]:
+          - link "Android Browser" [ref=f124e431] [cursor=pointer]:
+            - /url: https://play.google.com/store/apps/details?id=com.duckduckgo.mobile.android&referrer=utm_campaign%3Dserp-atb-serp%26origin%3Dfunnel_playstore_searchresults
+        - listitem [ref=f124e432]:
+          - link "Mac Browser" [ref=f124e433] [cursor=pointer]:
+            - /url: /mac?origin=funnel_browser_searchresults
+        - listitem [ref=f124e434]:
+          - link "Windows Browser" [ref=f124e435] [cursor=pointer]:
+            - /url: /windows?origin=funnel_browser_searchresults
+        - listitem [ref=f124e436]: Browser Extensions
+      - list [ref=f124e437]:
+        - listitem [ref=f124e438]: More From DuckDuckGo
+        - listitem [ref=f124e439]:
+          - generic [ref=f124e442]:
+            - button "Dismiss promotion" [ref=f124e443] [cursor=pointer]
+            - generic [ref=f124e446]:
+              - paragraph [ref=f124e448]: Upgrade to our Private Browser
+              - paragraph [ref=f124e460]: Fast. Secure. Free.
+            - link "Download Browser" [ref=f124e461] [cursor=pointer]:
+              - /url: /windows
+        - listitem [ref=f124e464]:
+          - link "Duck.ai" [ref=f124e465] [cursor=pointer]:
+            - /url: https://duck.ai
+        - listitem [ref=f124e466]:
+          - link "Email Protection" [ref=f124e467] [cursor=pointer]:
+            - /url: /email
+        - listitem [ref=f124e468]:
+          - link "Newsletter" [ref=f124e469] [cursor=pointer]:
+            - /url: /newsletter
+        - listitem [ref=f124e470]:
+          - link "Blogue" [ref=f124e471] [cursor=pointer]:
+            - /url: /blog
+        - listitem [ref=f124e472]:
+          - link "Podcast" [ref=f124e473] [cursor=pointer]:
+            - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+        - listitem [ref=f124e474]:
+          - link "Collaborations" [ref=f124e475] [cursor=pointer]:
+            - /url: /collaborations
+      - list [ref=f124e476]:
+        - listitem [ref=f124e477]: Saiba mais
+        - listitem [ref=f124e478]:
+          - link "What’s New" [ref=f124e479] [cursor=pointer]:
+            - /url: /updates
+        - listitem [ref=f124e480]:
+          - link "Compare Privacy" [ref=f124e481] [cursor=pointer]:
+            - /url: /compare-privacy
+        - listitem [ref=f124e482]:
+          - link "About Our Browser" [ref=f124e483] [cursor=pointer]:
+            - /url: /app
+        - listitem [ref=f124e484]:
+          - link "Sobre o DuckDuckGo" [ref=f124e485] [cursor=pointer]:
+            - /url: /about
+      - list [ref=f124e486]:
+        - listitem [ref=f124e487]: Other Resources
+        - listitem [ref=f124e488]:
+          - link "Ajuda" [ref=f124e489] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages
+        - listitem [ref=f124e490]:
+          - link "Comunidade" [ref=f124e491] [cursor=pointer]:
+            - /url: https://www.reddit.com/r/duckduckgo/
+        - listitem [ref=f124e492]:
+          - link "Carreiras" [ref=f124e493] [cursor=pointer]:
+            - /url: /careers
+        - listitem [ref=f124e494]:
+          - link "Política de privacidade" [ref=f124e495] [cursor=pointer]:
+            - /url: /privacy
+        - listitem [ref=f124e496]:
+          - link "Terms of Service" [ref=f124e497] [cursor=pointer]:
+            - /url: /terms
+        - listitem [ref=f124e498]:
+          - link "Pacote de imprensa" [ref=f124e499] [cursor=pointer]:
+            - /url: /press
+        - listitem [ref=f124e500]:
+          - link "Advertise on Search" [ref=f124e501] [cursor=pointer]:
+            - /url: /duckduckgo-help-pages/company/advertise-on-duckduckgo-search
+  - generic [ref=f124e505]:
+    - generic [ref=f124e507]:
+      - generic [ref=f124e518]:
+        - heading "Introducing DuckDuckGo Collaborations" [level=3] [ref=f124e519]
+        - paragraph [ref=f124e520]: Expertly crafted products for people who give a duck about privacy.
+      - link "See More" [ref=f124e521] [cursor=pointer]:
+        - /url: https://duckduckgo.com/collaborations
+    - generic [ref=f124e523]:
+      - generic [ref=f124e524]:
+        - heading "Saiba mais" [level=3] [ref=f124e525]
+        - list [ref=f124e526]:
+          - listitem [ref=f124e527]:
+            - link "What's New" [ref=f124e528] [cursor=pointer]:
+              - /url: https://duckduckgo.com/updates
+          - listitem [ref=f124e529]:
+            - link "About Browser" [ref=f124e530] [cursor=pointer]:
+              - /url: https://duckduckgo.com/app
+          - listitem [ref=f124e531]:
+            - link "Compare Privacy" [ref=f124e532] [cursor=pointer]:
+              - /url: https://duckduckgo.com/compare-privacy
+          - listitem [ref=f124e533]:
+            - link "Help Pages" [ref=f124e534] [cursor=pointer]:
+              - /url: https://duckduckgo.com/duckduckgo-help-pages/
+      - generic [ref=f124e535]:
+        - heading "Get More" [level=3] [ref=f124e536]
+        - list [ref=f124e537]:
+          - listitem [ref=f124e538]:
+            - link "Email Protection" [ref=f124e539] [cursor=pointer]:
+              - /url: https://duckduckgo.com/email
+          - listitem [ref=f124e540]:
+            - generic [ref=f124e541]:
+              - link "Podcast" [ref=f124e543] [cursor=pointer]:
+                - /url: https://insideduckduckgo.substack.com/?showWelcome=true
+              - generic [ref=f124e544]:
+                - text: "&"
+                - link "Newsletter" [ref=f124e545] [cursor=pointer]:
+                  - /url: https://duckduckgo.com/newsletter
+          - listitem [ref=f124e546]:
+            - link "Collaborations" [ref=f124e547] [cursor=pointer]:
+              - /url: https://duckduckgo.com/collaborations
+  - button "Compartilhar comentários" [ref=f124e552] [cursor=pointer]
+  - generic [ref=f124e553]:
+    - generic [ref=f124e555]:
+      - banner [ref=f124e556]:
+        - paragraph [ref=f124e558]: Upgrade to our browser.
+      - generic [ref=f124e559]:
+        - paragraph [ref=f124e565]:
+          - generic [ref=f124e566]:
+            - text: Try the
+            - strong [ref=f124e567]: DuckDuckGo Browser.
+            - text: Fast. Free. Private.
+        - link "Download Browser" [ref=f124e568] [cursor=pointer]:
+          - /url: https://duckduckgo.com/windows?origin=funnel_browser_searchresults__popover
+      - paragraph [ref=f124e574]:
+        - generic [ref=f124e575]: Free
+    - button [ref=f124e577] [cursor=pointer]

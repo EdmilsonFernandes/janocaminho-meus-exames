@@ -1,0 +1,90 @@
+- generic [ref=f2e20]:
+  - generic [ref=f2e21]:
+    - generic [ref=f2e886]:
+      - button [ref=f2e887] [cursor=pointer]
+      - generic [ref=f2e888]:
+        - banner [ref=f2e889]:
+          - generic [ref=f2e890]:
+            - button [ref=f2e891] [cursor=pointer]
+            - paragraph [ref=f2e897]: Dr. Exame
+            - button [ref=f2e898] [cursor=pointer]:
+              - generic [ref=f2e901]: "71"
+              - button [ref=f2e902]
+            - button [ref=f2e905] [cursor=pointer]:
+              - generic [ref=f2e906]: "34"
+            - button [ref=f2e911] [cursor=pointer]:
+              - generic [ref=f2e912]: E
+            - button [ref=f2e918] [cursor=pointer]
+        - main [ref=f2e921]:
+          - generic [ref=f2e1298]:
+            - generic [ref=f2e1304]:
+              - heading [level=5] [ref=f2e1305]: Valores fora da faixa
+              - paragraph [ref=f2e1306]:
+                - text: Ordenados por
+                - strong [ref=f2e1307]: prioridade de atenção
+                - text: (🔴→🟡). Toque num exame pra expandir e em
+                - strong [ref=f2e1308]: Agendar
+                - text: pro especialista.
+            - generic [ref=f2e1336]:
+              - generic [ref=f2e1337]:
+                - generic [ref=f2e1338]: 🔴 0 Importantes
+                - generic [ref=f2e1339]: 🟠 6 Moderadas
+                - generic [ref=f2e1340]: 🟡 2 Leves
+              - generic [ref=f2e1341]:
+                - text: Nada crítico — os ajustes são
+                - strong [ref=f2e1342]: 🟠 moderados
+                - text: ou
+                - strong [ref=f2e1343]: 🟡 leves
+                - text: . Comente com seu médico na próxima consulta.
+            - generic [ref=f2e1344]:
+              - heading [level=3] [ref=f2e1346]:
+                - button [ref=f2e1347] [cursor=pointer]:
+                  - generic [ref=f2e1349]:
+                    - generic [ref=f2e1350]: 🟠
+                    - generic [ref=f2e1351]:
+                      - paragraph [ref=f2e1352]: PERFIL LIPÍDICO
+                      - generic [ref=f2e1353]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=f2e1354]: 4 alterado(s)
+              - heading [level=3] [ref=f2e1360]:
+                - button [ref=f2e1361] [cursor=pointer]:
+                  - generic [ref=f2e1363]:
+                    - generic [ref=f2e1364]: 🟠
+                    - generic [ref=f2e1365]:
+                      - paragraph [ref=f2e1366]: GLICEMIA DE JEJUM
+                      - generic [ref=f2e1367]: 📅 09/07/2026 · há 1 mês
+                    - generic [ref=f2e1368]: 2 alterado(s)
+              - heading [level=3] [ref=f2e1374]:
+                - button [ref=f2e1375] [cursor=pointer]:
+                  - generic [ref=f2e1377]:
+                    - generic [ref=f2e1378]: 🟡
+                    - generic [ref=f2e1379]:
+                      - paragraph [ref=f2e1380]: HEMOGRAMA
+                      - generic [ref=f2e1381]: 📅 s/d
+                    - generic [ref=f2e1382]: 2 alterado(s)
+            - generic [ref=f2e1325]: "*Educativo. Sempre confirme com seu médico."
+    - button [ref=f2e1326] [cursor=pointer]
+    - navigation [ref=f2e1234]:
+      - paragraph [ref=f2e1239] [cursor=pointer]: Início
+      - paragraph [ref=f2e1245] [cursor=pointer]: Exames
+      - paragraph [ref=f2e1249] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f2e1254] [cursor=pointer]: Evolução
+      - paragraph [ref=f2e1259] [cursor=pointer]: Mais
+  - generic [ref=f2e17] [cursor=pointer]
+  - dialog [ref=f2e1265]:
+    - generic [ref=f2e1266]:
+      - button [ref=f2e1267] [cursor=pointer]: Pular
+      - generic [ref=f2e1268]:
+        - heading [level=4] [ref=f2e1271]: Envie seu exame
+        - paragraph [ref=f2e1272]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f2e1273]:
+        - button [ref=f2e1279] [cursor=pointer]: Próximo
+        - paragraph [ref=f2e1283]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f2e1286]:
+    - heading [level=2] [ref=f2e1287]:
+      - generic [ref=f2e1288]:
+        - img "Dr. Exame" [ref=f2e1289]
+        - paragraph [ref=f2e1290]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f2e1292]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=f2e1293]:
+      - button "Depois" [ref=f2e1294] [cursor=pointer]
+      - button "Ver notificações" [ref=f2e1295] [cursor=pointer]

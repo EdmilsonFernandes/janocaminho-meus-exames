@@ -1,0 +1,81 @@
+- generic [ref=e1003]:
+  - navigation [ref=e1004]:
+    - generic [ref=e1006]:
+      - button "Menu do médico" [ref=e1007] [cursor=pointer]:
+        - generic [ref=e1008]: D
+      - generic [ref=e1009]:
+        - paragraph [ref=e1010]: Dr Teste QA
+        - generic [ref=e1011]: Clínico Geral • CRM 99999-SP
+    - separator [ref=e1012]
+    - generic [ref=e1013]:
+      - generic [ref=e1014]: PLANO
+      - paragraph [ref=e1015]: Grátis (0/5 usados)
+      - text: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=e1016]:
+      - button "Painel" [ref=e1017] [cursor=pointer]
+      - button "Pacientes" [active] [ref=e1023] [cursor=pointer]
+      - button "Convites" [ref=e1029] [cursor=pointer]
+      - button "Perguntas" [ref=e1036] [cursor=pointer]
+      - button "Meu perfil" [ref=e1043] [cursor=pointer]
+      - button "Trocar senha" [ref=e1049] [cursor=pointer]
+      - separator [ref=e1055]
+      - button "Sair" [ref=e1056] [cursor=pointer]
+    - generic [ref=e1062]: Portal do Médico
+  - generic [ref=e1063]:
+    - generic [ref=e1065]:
+      - paragraph [ref=e1067]: Pacientes
+      - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=e1068]: Acesso médico · leitura
+    - generic [ref=e1072]:
+      - generic [ref=e1151]:
+        - button "Fechar banner" [ref=e1152] [cursor=pointer]:
+          - generic [aria-hidden] [ref=e1153]: ×
+        - generic [ref=e1154]:
+          - paragraph [ref=e1155]: Dr. Exame Pro
+          - paragraph [ref=e1158]: 💡 0 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=e1159] [cursor=pointer]
+      - generic [ref=e1161]:
+        - generic [ref=e1162]:
+          - heading "Pacientes (3)" [level=6] [ref=e1163]
+          - generic [ref=e1164]: 🔴 2 com alerta
+        - generic [ref=e1166]:
+          - textbox "Buscar paciente" [ref=e1171]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button "Só alerta" [ref=e1172] [cursor=pointer]
+        - generic [ref=e1175]:
+          - button "E Edmilson Lopes QA M · Titular alerta · 1 exame · 03/08/2026 · Particular" [ref=e1176] [cursor=pointer]:
+            - generic [ref=e1177]:
+              - generic [ref=e1178]: E
+              - generic [ref=e1181]:
+                - paragraph [ref=e1182]: Edmilson Lopes QA
+                - generic [ref=e1183]: M · Titular
+                - generic [ref=e1184]:
+                  - generic [ref=e1185]: alerta
+                  - generic [ref=e1188]:
+                    - text: ·
+                    - generic [ref=e1189]: 1 exame
+                  - generic [ref=e1193]:
+                    - text: ·
+                    - generic [ref=e1194]: 03/08/2026
+                  - generic [ref=e1198]: · Particular
+          - button "E Edmilson Lopes Fernandes dos Santos 41a · M alerta · 9 exames · 16/07/2026 · Particular" [ref=e1201] [cursor=pointer]:
+            - generic [ref=e1202]:
+              - generic [ref=e1203]: E
+              - generic [ref=e1206]:
+                - paragraph [ref=e1207]: Edmilson Lopes Fernandes dos Santos
+                - generic [ref=e1208]: 41a · M
+                - generic [ref=e1209]:
+                  - generic [ref=e1210]: alerta
+                  - generic [ref=e1213]:
+                    - text: ·
+                    - generic [ref=e1214]: 9 exames
+                  - generic [ref=e1218]:
+                    - text: ·
+                    - generic [ref=e1219]: 16/07/2026
+                  - generic [ref=e1223]: · Particular
+          - button "U Usuário Teste Titular Particular" [ref=e1226] [cursor=pointer]:
+            - generic [ref=e1227]:
+              - generic [ref=e1228]: U
+              - generic [ref=e1230]:
+                - paragraph [ref=e1231]: Usuário Teste
+                - generic [ref=e1232]: Titular
+                - generic [ref=e1233]: Particular

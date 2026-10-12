@@ -1,0 +1,92 @@
+- generic [ref=f14e1]:
+  - generic [ref=f14e7]:
+    - complementary [ref=f14e8]:
+      - generic [ref=f14e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f14e13]
+        - generic [ref=f14e14]: Admin
+      - navigation [ref=f14e15]:
+        - generic [ref=f14e16]: Operação
+        - link "Dashboard" [ref=f14e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f14e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f14e28] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f14e32] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f14e38] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f14e43] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f14e50]:
+        - generic [ref=f14e52]: Operação ao vivo
+        - paragraph [ref=f14e57]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f14e58]:
+        - link "Ver site público" [ref=f14e59] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f14e64]: © 2026 PremioX · Painel do operador
+    - generic [ref=f14e65]:
+      - banner [ref=f14e66]:
+        - generic [ref=f14e67]:
+          - searchbox "Buscar no painel…" [ref=f14e68]
+          - generic: ⌘K
+        - button "Atualizar" [ref=f14e69] [cursor=pointer]
+        - link "Ver site" [ref=f14e75] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f14e81]:
+          - generic [ref=f14e82]: S
+          - generic [ref=f14e83]: Sim Admin E2E
+          - generic "Online" [ref=f14e84]
+        - button "Sair" [ref=f14e85] [cursor=pointer]
+      - main [ref=f14e89]:
+        - generic [ref=f14e90]:
+          - generic [ref=f14e91]:
+            - generic [ref=f14e92]:
+              - heading "Nova campanha" [level=1] [ref=f14e93]
+              - paragraph [ref=f14e94]: Oferta ao vivo · Passo 2 de 4 · Mídia & ficha
+              - paragraph [ref=f14e95]: Fotos nítidas + ficha completa geram confiança pra entrar na oferta.
+            - button "trocar tipo" [ref=f14e96] [cursor=pointer]
+          - generic [ref=f14e97]:
+            - progressbar [ref=f14e98]
+            - generic "Etapas do formulário" [ref=f14e99]:
+              - list [ref=f14e100]:
+                - listitem [ref=f14e101]:
+                  - button "voltar para Produto" [ref=f14e141] [cursor=pointer]:
+                    - generic [ref=f14e142]: ✓
+                    - generic [ref=f14e143]: Produto
+                - listitem [ref=f14e106]:
+                  - generic [ref=f14e107]:
+                    - generic [ref=f14e108]: "2"
+                    - generic [ref=f14e109]: Mídia & ficha
+                - listitem [ref=f14e111]:
+                  - generic [ref=f14e112]:
+                    - generic [ref=f14e113]: "3"
+                    - generic [ref=f14e114]: Preços
+                - listitem [ref=f14e116]:
+                  - generic [ref=f14e117]:
+                    - generic [ref=f14e118]: "4"
+                    - generic [ref=f14e119]: Agendamento
+            - generic [ref=f14e144]:
+              - generic [ref=f14e145]:
+                - generic [ref=f14e146]: Fotos do produto
+                - generic [ref=f14e147] [cursor=pointer]: 📷 Selecionar fotos (várias)
+              - generic [ref=f14e148]:
+                - generic [ref=f14e149]: 📋 Detalhes do item
+                - generic [ref=f14e150]:
+                  - generic [ref=f14e151]:
+                    - generic [ref=f14e152]: Categoria
+                    - combobox [ref=f14e153]:
+                      - option "Selecione…" [selected]
+                      - option "Moto"
+                      - option "Carro"
+                      - option "Imóvel"
+                      - option "Eletrônico"
+                      - option "Outro"
+                  - generic [ref=f14e154]:
+                    - generic [ref=f14e155]: Observação
+                    - textbox "Veículo 0km, revisado…" [ref=f14e156]
+            - generic [ref=f14e127]:
+              - button "← Voltar" [ref=f14e128] [cursor=pointer]
+              - button "Continuar →" [active] [ref=f14e129] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f14e135] [cursor=pointer]
+  - alert [ref=f14e139]

@@ -1,0 +1,64 @@
+- generic [ref=e20]:
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "Voltar" [ref=e137] [cursor=pointer]
+        - button "Menu do médico" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: D
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: E
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - paragraph [ref=e149]: Edmilson Lopes QA
+                - button "Trocar paciente" [ref=e150] [cursor=pointer]: Trocar
+              - paragraph [ref=e154]: Masculino • Titular • Particular
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: Último exame
+              - paragraph [ref=e161]: 03/08
+              - text: há 12 dias
+            - button "Alterações 1" [ref=e162] [cursor=pointer]:
+              - generic [ref=e163]: Alterações
+              - paragraph [ref=e168]: "1"
+            - generic [ref=e169]:
+              - generic [ref=e170]: Pendências
+              - paragraph [ref=e174]: "0"
+            - generic [ref=e175]:
+              - generic [ref=e176]: Anotações
+              - paragraph [ref=e180]: "0"
+        - tablist "Abas do paciente" [ref=e184]:
+          - tab "Exames" [ref=e185] [cursor=pointer]:
+            - superscript [ref=e363]: "1"
+          - tab "Alterados" [ref=e190] [cursor=pointer]:
+            - superscript [ref=e239]: "1"
+          - tab "Tendências" [active] [selected] [ref=e196] [cursor=pointer]
+          - tab "Relatório" [ref=e199] [cursor=pointer]
+          - tab "Perguntas" [ref=e202] [cursor=pointer]
+          - tab "Anotações" [ref=e205] [cursor=pointer]
+        - generic [ref=e366]:
+          - generic [ref=e368]:
+            - heading "📈 Tendências" [level=5] [ref=e369]
+            - paragraph [ref=e370]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=e372]:
+            - generic [ref=e373]: 📊
+            - heading "Sem marcadores com histórico suficiente" [level=6] [ref=e374]
+            - paragraph [ref=e375]: Sem marcadores com histórico suficiente para tendências. São necessários pelo menos dois resultados do mesmo analito em datas diferentes para mostrar a evolução.
+    - navigation [ref=e105]:
+      - button "Início" [ref=e106] [cursor=pointer]:
+        - paragraph [ref=e111]: Início
+      - button "Pacientes" [ref=e113] [cursor=pointer]:
+        - paragraph [ref=e118]: Pacientes
+      - button "Perguntas" [ref=e119] [cursor=pointer]:
+        - paragraph [ref=e124]: Perguntas
+      - button "Perfil" [ref=e125] [cursor=pointer]:
+        - paragraph [ref=e130]: Perfil
+      - button "Mais" [ref=e131] [cursor=pointer]:
+        - paragraph [ref=e136]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

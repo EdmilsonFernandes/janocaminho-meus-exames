@@ -1,0 +1,67 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button "Pular para o conteúdo" [ref=e2147] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button "Voltar" [ref=e2148] [cursor=pointer]
+            - generic [ref=e890]:
+              - img "Dr. Exame" [ref=e2149]
+              - paragraph [ref=e893]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=e2150] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button "Ocultar créditos" [ref=e2151]
+            - button "Notificações" [ref=e2152] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button "E" [ref=e2153] [cursor=pointer]
+            - button "Atualizar" [ref=e2154] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e2520]:
+            - heading "Carteira de Vacinação" [level=5] [ref=e2526]
+            - generic [ref=e2528]:
+              - heading "Registrar vacina" [level=6] [ref=e2529]
+              - generic [ref=e2530]:
+                - generic [ref=e2531]:
+                  - generic: Vacina
+                  - generic [ref=e2532]:
+                    - textbox "Vacina" [ref=e2533]:
+                      - /placeholder: Influenza, COVID-19...
+                    - group:
+                      - generic: Vacina
+                - generic [ref=e2534]:
+                  - generic [ref=e2535]: Aplicada em
+                  - generic [ref=e2536]:
+                    - textbox "Aplicada em" [ref=e2537]: 2026-08-15
+                    - group:
+                      - generic: Aplicada em
+                - generic [ref=e2538]:
+                  - generic [ref=e2539]: Próxima dose
+                  - generic [ref=e2540]:
+                    - textbox "Próxima dose" [ref=e2541]
+                    - group:
+                      - generic: Próxima dose
+                - generic [ref=e2542]:
+                  - generic: Lote
+                  - generic [ref=e2543]:
+                    - textbox "Lote" [ref=e2544]
+                    - group:
+                      - generic: Lote
+                - button "Adicionar" [disabled]
+            - generic [ref=e2546]:
+              - heading "Histórico de vacinas" [level=6] [ref=e2547]
+              - paragraph [ref=e2548]: Nenhuma vacina registrada. Cadastre suas vacinas aqui.
+    - button "Pergunte ao Dr. Exame" [ref=e2207] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e2208]
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - generic [ref=e1050] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e2209]
+        - paragraph [ref=e1053]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

@@ -1,0 +1,14 @@
+import { chromium } from 'playwright';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 390, height: 844 } });
+await p.addInitScript(() => { localStorage.setItem('meus_exames_libras', '0'); });
+await p.goto('https://drexame.janocaminho.com.br/#/entrar', { waitUntil: 'domcontentloaded', timeout: 45000 });
+await p.waitForTimeout(6000);
+const libras = await p.evaluate(() => Array.from(document.querySelectorAll('[vw], [class*="vp-"], [class*="vw-"], [class*="vpw-"]')).filter((e) => { const cs = getComputedStyle(e); return cs.display !== 'none' && cs.visibility !== 'hidden' && e.getClientRects().length > 0; }).length);
+console.log('PROD libras invisível (opt-out):', libras === 0 ? '✓' : `FALHOU (${libras})`);
+const p2 = await b.newPage({ viewport: { width: 390, height: 844 } });
+await p2.goto('https://drexame.janocaminho.com.br/#/faq?q=cr%C3%A9ditos', { waitUntil: 'domcontentloaded', timeout: 45000 });
+await p2.waitForTimeout(4000);
+const faq = await p2.evaluate(() => ({ q: document.querySelector('input')?.value ?? '', body: document.body.innerText.slice(0, 400) }));
+console.log('PROD faq ?q pré-buscado:', faq.q.toLowerCase().includes('créditos') ? '✓' : `FALHOU ("${faq.q}")`);
+await b.close();

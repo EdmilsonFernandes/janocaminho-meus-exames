@@ -1,0 +1,144 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e3]:
+    - generic [ref=f1e42]:
+      - generic [ref=f1e43]:
+        - button "Voltar" [ref=f1e100] [cursor=pointer]:
+          - img [ref=f1e101]
+        - generic [ref=f1e82]: D
+        - generic [ref=f1e84]:
+          - paragraph [ref=f1e85]: Dr. Teste Acesso
+          - text: Clínica Médica • CRM 99999-SP
+        - button [ref=f1e86] [cursor=pointer]:
+          - img [ref=f1e87]
+      - generic [ref=f1e46]:
+        - generic [ref=f1e48]:
+          - paragraph [ref=f1e49]: 💎 Dr. Exame Pro
+          - paragraph [ref=f1e50]: 💡 1 de 5 pré-consultas grátis usadas.
+          - button "Assinar R$29,90/mês" [ref=f1e51] [cursor=pointer]
+        - generic [ref=f1e103]:
+          - generic [ref=f1e104]: E
+          - generic [ref=f1e105]:
+            - generic [ref=f1e106]:
+              - paragraph [ref=f1e107]: Edmilson Lopes Fernandes dos Santos
+              - generic [ref=f1e109]: "#MC97"
+            - text: Masculino • Particular
+        - generic [ref=f1e111]:
+          - generic [ref=f1e112] [cursor=pointer]:
+            - generic [ref=f1e113]: 🛡️
+            - paragraph [ref=f1e114]: Risco
+            - generic [ref=f1e115]: "1"
+          - generic [ref=f1e116] [cursor=pointer]:
+            - generic [ref=f1e117]: ❓
+            - paragraph [ref=f1e118]: Perguntas
+          - generic [ref=f1e119] [cursor=pointer]:
+            - generic [ref=f1e120]: 📋
+            - paragraph [ref=f1e121]: Exames
+            - generic [ref=f1e122]: "1"
+          - generic [ref=f1e123] [cursor=pointer]:
+            - generic [ref=f1e124]: 🚨
+            - paragraph [ref=f1e125]: Alertas
+            - generic [ref=f1e126]: "2"
+          - generic [ref=f1e127] [cursor=pointer]:
+            - generic [ref=f1e128]: 📈
+            - paragraph [ref=f1e129]: Evolução
+          - generic [ref=f1e130] [cursor=pointer]:
+            - generic [ref=f1e131]: 🤖
+            - paragraph [ref=f1e132]: Resumos IA
+            - generic [ref=f1e133]: "1"
+          - generic [ref=f1e134] [cursor=pointer]:
+            - generic [ref=f1e135]: 📝
+            - paragraph [ref=f1e136]: Anotações
+        - heading "🩺 PERFIL CLÍNICO — não cadastrado (toque p/ expandir)" [level=3] [ref=f1e138]:
+          - button "🩺 PERFIL CLÍNICO — não cadastrado (toque p/ expandir)" [ref=f1e139] [cursor=pointer]:
+            - generic [ref=f1e141]: 🩺 PERFIL CLÍNICO — não cadastrado (toque p/ expandir)
+            - img [ref=f1e143]
+        - heading "🩺 PRÉ-CONSULTA 🟢 Sem alterações relevantes Score 89/100 ⚠️ VCM" [level=3] [ref=f1e146]:
+          - button "🩺 PRÉ-CONSULTA 🟢 Sem alterações relevantes Score 89/100 ⚠️ VCM" [ref=f1e147] [cursor=pointer]:
+            - generic [ref=f1e149]:
+              - paragraph [ref=f1e150]: 🩺 PRÉ-CONSULTA
+              - generic [ref=f1e152]: 🟢 Sem alterações relevantes
+              - generic [ref=f1e154]: Score 89/100
+              - generic [ref=f1e156]: ⚠️ VCM
+            - img [ref=f1e158]
+        - generic [ref=f1e161]:
+          - generic [ref=f1e162]:
+            - paragraph [ref=f1e163]: 🔴 2 valor(es) alterado(s)
+            - generic [ref=f1e164]:
+              - button "📋 Copiar" [ref=f1e165] [cursor=pointer]
+              - button "🏥 PES" [ref=f1e166] [cursor=pointer]
+          - paragraph [ref=f1e167]: VCM, Plaquetas · HEMOGRAMA · s/d
+        - generic [ref=f1e168]:
+          - generic [ref=f1e170]:
+            - generic [ref=f1e171]:
+              - paragraph [ref=f1e172]: 🛡️ Leitura de risco 🟢 Baixa
+              - generic [ref=f1e174]: Sem alterações relevantes
+            - generic [ref=f1e175]: → Estável desde 09/07/2026
+            - text: "*Educativo. Não substitui avaliação médica."
+          - generic [ref=f1e177]:
+            - paragraph [ref=f1e178]: 📊 Mudanças ao longo do tempo
+            - generic [ref=f1e179]:
+              - generic [ref=f1e180]:
+                - paragraph [ref=f1e181]:
+                  - text: Sem alterações relevantes
+                  - generic [ref=f1e182]: · 09/07/2026
+                - generic [ref=f1e184]: Baixa
+              - generic [ref=f1e185]:
+                - paragraph [ref=f1e186]:
+                  - text: Possível sobrepeso/obesidade
+                  - generic [ref=f1e187]: · 03/07/2026
+                - generic [ref=f1e189]: Alta
+          - generic [ref=f1e191]:
+            - generic [ref=f1e192]:
+              - paragraph [ref=f1e193]: 📋 Plano de conduta (investigação + follow-up + diferenciais)
+              - button "🔄 Regenerar" [ref=f1e202] [cursor=pointer]
+            - generic [ref=f1e203]:
+              - code [ref=f1e205]: "### Plano de Conduta Clínico (Pré-Consulta) **Contexto e Achados** Paciente em monitoramento atual com parâmetros analíticos dentro da faixa de referência para os marcadores solicitados. Ausência de alterações agudas ou disfunções orgânicas evidentes nos exames disponíveis. Risk score atual classificado como baixo. Apesar da \"normalidade\" laboratorial, o paciente assintomático ou estável apresenta risco basal presumível dependendo da idade e histórico familiar. **Investigação Complementar** Considerando a ausência de alertas bioquímicos, a investigação deve focar em anamnese dirigida e rastreamento clínico: 1. **Anamnese:** Revisar hábitos de vida (tabagismo, etilismo, sedentarismo), histórico familiar de doenças cardiovasculares ou neoplásicas e adesão a vacinação. 2. **Rastreamento:** Confirmar se exames preventivos por idade/gênero (ex: rastreamento de câncer, monitoramento da glicemia/lipídio em jejum) estão dentro da periodicidade adequada, mesmo se os valores atuais estejam normais. 3. **Diferenciais:** Descartar queixas subclínicas não cobertas pelos marcadores atuais (ex: alterações tireoidianas se TSH não incluso, deficiências funcionais). **Follow-up e Monitoramento** * **Retorno:** Manutenção de rotina de check-up periódico (anual ou conforme protocolo de faixa etária). * **Sinais de Alerta:** Instruções para retorno imediato se surgirem sintomas \"bandeira\" (emagrecimento sem causa, sudorese noturna, dor torácica, alterações de hábito intestinal/gastrointestinal). **Notas para a Consulta** * Validar a percepção de saúde do paciente e reforçar a importância da manutenção de hábitos saudáveis como prevenção primária."
+              - paragraph [ref=f1e206]:
+                - emphasis [ref=f1e207]: Esta análise é apenas educativa e não substitui avaliação médica. Nenhum resultado aqui constitui diagnóstico.
+          - generic [ref=f1e197]:
+            - generic [ref=f1e198]:
+              - paragraph [ref=f1e199]: "📝 SOAP (nota clínica: Subjetivo/Objetivo/Avaliação/Plano)"
+              - button "🔄 Regenerar" [ref=f1e208] [cursor=pointer]
+            - generic [ref=f1e209]:
+              - heading "SOAP Clínico" [level=2] [ref=f1e210]
+              - heading "S (Subjetivo)" [level=2] [ref=f1e211]
+              - list [ref=f1e212]:
+                - listitem [ref=f1e213]: Paciente masculino, Edmilson Lopes Fernandes dos Santos, comparece para avaliação de resultados laboratoriais. Perfil clínico e queixas atuais não informados no contexto.
+              - heading "O (Objetivo)" [level=2] [ref=f1e214]
+              - list [ref=f1e215]:
+                - listitem [ref=f1e216]:
+                  - strong [ref=f1e217]: "Hemograma:"
+                  - list [ref=f1e218]:
+                    - listitem [ref=f1e219]:
+                      - text: "VCM (Volume Corpuscular Médio): 80,8 fL (Ref.: 83-101 fL) —"
+                      - strong [ref=f1e220]: Abaixo da referência
+                      - text: .
+                    - listitem [ref=f1e221]:
+                      - text: "Plaquetas: 116.000/mm³ (Ref.: 150.000-450.000/mm³) —"
+                      - strong [ref=f1e222]: Abaixo da referência
+                      - text: .
+                - listitem [ref=f1e223]:
+                  - strong [ref=f1e224]: "Tendências:"
+                  - text: Normalização de linfócitos reativos (melhora).
+              - heading "A (Avaliação)" [level=2] [ref=f1e225]
+              - list [ref=f1e226]:
+                - listitem [ref=f1e227]: Evidência laboratorial de microcitose eritrocitária (VCM reduzido) e trombocitopenia leve (plaquetas reduzidas), sem dados agudos de gravidade ou sangramento relatados. A tendência de normalização dos linfócitos sugere controle de processo inflamatório ou infeccioso prévio. Necessita investigação clínica para diferenciar entre anemia ferropriva, talassemia ou causa crônica.
+              - heading "P (Plano)" [level=2] [ref=f1e228]
+              - list [ref=f1e229]:
+                - listitem [ref=f1e230]: Revisão de anamnese completa (familiaridade com sangramentos, dieta, uso de medicações).
+                - listitem [ref=f1e231]: Investigar ferro, ferritina e transferrina para complementar avaliação da microcitose.
+                - listitem [ref=f1e232]: Contagem de plaquetas de controle (repetir em breve prazo para monitorar tendência).
+                - listitem [ref=f1e233]: Orientar paciente a manter acompanhamento para elucidação diagnóstica.
+    - navigation [ref=f1e89]:
+      - generic [ref=f1e90] [cursor=pointer]:
+        - generic [ref=f1e91]: 👥
+        - paragraph [ref=f1e92]: Pacientes
+      - generic [ref=f1e94] [cursor=pointer]:
+        - generic [ref=f1e95]: 👤
+        - paragraph [ref=f1e96]: Perfil
+      - generic [ref=f1e97] [cursor=pointer]:
+        - generic [ref=f1e98]: ☰
+        - paragraph [ref=f1e99]: Mais
+  - generic [ref=f1e79] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e80]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f1e81]

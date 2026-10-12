@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import { api, authHeader, createUser, createExam, createItem, resetDb, mintToken } from './helpers';
 import { prisma } from '../src/prisma';
 import { applyMergeFields, parseAudienceFilter, resolveAudienceUserIds } from '../src/utils/pushAudience';
+import { interpolateTemplate } from '../src/utils/template';
+import { loadSettings } from '../src/utils/settings';
 
 const DAY = 24 * 60 * 60 * 1000;
 let counter = 0;
@@ -140,6 +142,33 @@ describe('pushAudience — merge fields', () => {
     // sem dado de passos: placeholder degrada pra texto genérico (nunca "0" mentiroso)
     expect(applyMergeFields('Ontem: {{passosOntem}}', { name: 'Ana', streakDays: 0 })).toBe('Ontem: seus passos de ontem');
   });
+
+  it('aliases de merge field resolvem pro mesmo valor ({{first_name}}, {{patientName}}, {{streakDays}})', () => {
+    expect(applyMergeFields('{{first_name}}', { name: 'Maria Silva', streakDays: 3 })).toBe('Maria');
+    expect(applyMergeFields('{{patientName}}, {{streakDays}} dias', { name: 'João Souza', streakDays: 9 })).toBe('João, 9 dias');
+  });
+});
+
+describe('interpolateTemplate — central', () => {
+  it('tolera espaços e case na chave; valores com "$" não são interpretados', () => {
+    expect(interpolateTemplate('Olá {{ nome }} e {{NOME}}!', { nome: 'Ana' })).toBe('Olá Ana e Ana!');
+    expect(interpolateTemplate('Preço {{valor}}', { valor: 'R$ 1.000' })).toBe('Preço R$ 1.000');
+  });
+
+  it('NUNCA deixa {{...}} passar: conhecida sem valor → vazia; desconhecida → removida + avisa', () => {
+    const unknown: string[] = [];
+    // {{xpto}} desconhecida → some; {{credits}} conhecida sem valor no contexto → vazia
+    const out = interpolateTemplate('Ganhe {{xpto}} com {{credits}} créditos, {{nome}}!', { nome: 'Ana' }, { onUnknown: (k) => unknown.push(k) });
+    expect(out).toBe('Ganhe  com  créditos, Ana!');
+    expect(unknown).toEqual(['xpto']);
+    // chaves vazias e soltas também não sobrevivem
+    expect(interpolateTemplate('a {{}} b', {})).toBe('a  b');
+    expect(interpolateTemplate('[{{credits}}]', {})).toBe('[]');
+  });
+
+  it('null vira string vazia (fornecida); undefined é "não fornecida"', () => {
+    expect(interpolateTemplate('[{{credits}}]', { credits: null })).toBe('[]');
+  });
 });
 
 describe('pushAudience — parseAudienceFilter', () => {
@@ -207,5 +236,84 @@ describe('Admin push segmentado — rotas', () => {
     expect(camp?.scheduledAt?.toISOString()).toBe(at);
     // nada disparado ainda
     expect(await prisma.notification.count({ where: { type: 'manual_push' } })).toBe(0);
+  });
+});
+
+describe('Admin push GLOBAL — merge fields por usuário (bug do "{{nome}}" literal)', () => {
+  beforeEach(resetDb);
+
+  it('global interpola {{nome}} por usuário na Notification in-app (regressão)', async () => {
+    const a = await reachable({ name: 'Maria Silva' });
+    const b = await reachable({ name: 'João Souza' });
+    const admin = await createAdmin();
+
+    const r = await api().post('/api/admin/push/global').set(authHeader(admin.token)).send({
+      title: 'Olá {{nome}}!',
+      body: '{{nome}}, convide um amigo — saúde fica melhor em dupla. 💚',
+      route: '/indique',
+    });
+    expect(r.status).toBe(200);
+    expect(r.body.sent).toBe(2); // 1 por usuário (mesmo com 1 device cada)
+
+    // ANTES do fix: title/body vinham crus ("Olá {{nome}}!").
+    const na = await prisma.notification.findFirst({ where: { userId: a.user.id, type: 'global' } });
+    const nb = await prisma.notification.findFirst({ where: { userId: b.user.id, type: 'global' } });
+    expect(na?.title).toBe('Olá Maria!');
+    expect(nb?.title).toBe('Olá João!');
+    expect(na?.body).toBe('Maria, convide um amigo — saúde fica melhor em dupla. 💚');
+    expect((na?.data as any)?.route).toBe('/indique');
+
+    // registra no histórico de campanhas com o público-alvo contado
+    const camp = await prisma.pushCampaign.findFirst({ where: { title: 'Olá {{nome}}!' } });
+    expect(camp?.sentCount).toBe(2);
+    expect(camp?.sentAt).toBeTruthy();
+  });
+
+  it('global não alcança conta bloqueada (broadcast deliberado, mas nunca banido)', async () => {
+    const ok = await reachable();
+    const blocked = await reachable();
+    await prisma.user.update({ where: { id: blocked.user.id }, data: { blocked: true } });
+    const admin = await createAdmin();
+
+    const r = await api().post('/api/admin/push/global').set(authHeader(admin.token)).send({ title: 'T', body: 'B' });
+    expect(r.status).toBe(200);
+    expect(r.body.sent).toBe(1);
+    expect(await prisma.notification.count({ where: { type: 'global' } })).toBe(1); // só o ok
+  });
+
+  it('template com TODAS as variáveis conhecidas + desconhecida → NENHUMA {{}} chega no device', async () => {
+    const target = await reachable({ name: 'Maria Silva' });
+    const admin = await createAdmin();
+
+    const r = await api().post('/api/admin/push/global').set(authHeader(admin.token)).send({
+      title: '{{nome}} tem {{credits}} créditos',
+      body: 'Bônus {{bonus}} · link {{link}} · {{data}} · exame {{exam_name}} · dr. {{doctor_name}} · {{streak}}d · {{passosOntem}} · {{xpto}}',
+    });
+    expect(r.status).toBe(200);
+
+    const n = await prisma.notification.findFirst({ where: { userId: target.user.id, type: 'global' } });
+    // contexto do push só tem nome/streak/passos: as demais conhecidas → vazia; {{xpto}} → removida
+    expect(n?.title).toBe('Maria tem  créditos');
+    expect(n?.body).toBe('Bônus  · link  ·  · exame  · dr.  · 0d · seus passos de ontem · ');
+    expect(`${n?.title}${n?.body}`).not.toMatch(/\{\{/);
+  });
+});
+
+describe('Config pública — templates do banco (MOTD/share) nunca vazam {{}}', () => {
+  beforeEach(resetDb);
+
+  it('/api/public/config saneia MOTD e shareMessage com vars de contexto preenchidas', async () => {
+    await prisma.appSetting.create({ data: { key: 'referral', value: { shareMessage: 'Use meu código {code} e ganhe {{bonus}} créditos! {{nome}}' } as any } });
+    await prisma.appSetting.create({ data: { key: 'motd', value: { enabled: 1, title: 'Olá {{nome}}! {{xpto}}', message: 'Ganhe {{bonus}} créditos até {{data}}', ctaLabel: '', ctaRoute: '' } as any } });
+    await loadSettings();
+
+    const r = await api().get('/api/public/config');
+    expect(r.status).toBe(200);
+    // {{bonus}} preenchido (newUser default 10); {code} (chave simples) segue pro app resolver
+    expect(r.body.shareMessage).toBe('Use meu código {code} e ganhe 10 créditos! ');
+    // {{nome}} sem usuário no endpoint público → vazio; {{xpto}} desconhecida → removida
+    expect(r.body.motd.title).toBe('Olá ! ');
+    expect(r.body.motd.message).toMatch(/^Ganhe 10 créditos até \d{2}\/\d{2}\/\d{4}$/);
+    expect(JSON.stringify(r.body)).not.toContain('{{');
   });
 });

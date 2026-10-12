@@ -1,0 +1,63 @@
+- generic [ref=f3e1]:
+  - generic [ref=f3e295]:
+    - generic [ref=f3e296]:
+      - generic [ref=f3e297]:
+        - button "Voltar" [ref=f3e371] [cursor=pointer]
+        - button "Menu do médico" [ref=f3e298] [cursor=pointer]:
+          - generic [ref=f3e299]: D
+        - generic [ref=f3e300]:
+          - paragraph [ref=f3e301]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=f3e374]:
+        - generic [ref=f3e376]:
+          - generic [ref=f3e377]:
+            - generic [ref=f3e378]: E
+            - generic [ref=f3e381]:
+              - generic [ref=f3e382]:
+                - paragraph [ref=f3e383]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=f3e384] [cursor=pointer]: Trocar
+              - paragraph [ref=f3e388]: Masculino • Particular
+          - generic [ref=f3e389]:
+            - generic [ref=f3e390]:
+              - generic [ref=f3e391]: Último exame
+              - paragraph [ref=f3e395]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=f3e396] [cursor=pointer]:
+              - generic [ref=f3e397]: Alterações
+              - paragraph [ref=f3e402]: "8"
+            - generic [ref=f3e403]:
+              - generic [ref=f3e404]: Pendências
+              - paragraph [ref=f3e408]: "0"
+            - generic [ref=f3e409]:
+              - generic [ref=f3e410]: Anotações
+              - paragraph [ref=f3e414]: "0"
+        - generic [ref=f3e415]:
+          - tablist "Abas do paciente" [ref=f3e419]:
+            - tab "Exames" [ref=f3e420] [cursor=pointer]:
+              - superscript [ref=f3e423]: "5"
+            - tab "Alterados" [ref=f3e424] [cursor=pointer]:
+              - superscript [ref=f3e498]: "8"
+            - tab "Tendências" [active] [selected] [ref=f3e431] [cursor=pointer]
+            - tab "Relatório" [ref=f3e434] [cursor=pointer]
+            - tab "Perguntas" [ref=f3e437] [cursor=pointer]
+            - tab "Anotações" [ref=f3e440] [cursor=pointer]
+          - generic [ref=f3e501]:
+            - generic [ref=f3e503]:
+              - heading "📈 Tendências" [level=5] [ref=f3e504]
+              - paragraph [ref=f3e505]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+            - generic [ref=f3e507]:
+              - generic [ref=f3e508]: 📊
+              - heading "Sem marcadores com histórico suficiente" [level=6] [ref=f3e509]
+              - paragraph [ref=f3e510]: Sem marcadores com histórico suficiente para tendências. São necessários pelo menos dois resultados do mesmo analito em datas diferentes para mostrar a evolução.
+    - navigation [ref=f3e345]:
+      - button "Pacientes" [ref=f3e346] [cursor=pointer]:
+        - paragraph [ref=f3e351]: Pacientes
+      - button "Perguntas" [ref=f3e353] [cursor=pointer]:
+        - paragraph [ref=f3e358]: Perguntas
+      - button "Perfil" [ref=f3e359] [cursor=pointer]:
+        - paragraph [ref=f3e364]: Perfil
+      - button "Mais" [ref=f3e365] [cursor=pointer]:
+        - paragraph [ref=f3e370]: Mais
+  - generic [ref=f3e80] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e81]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e82]

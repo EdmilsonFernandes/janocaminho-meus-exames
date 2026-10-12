@@ -1,0 +1,112 @@
+- generic [ref=f6e18]:
+  - generic [ref=f6e19]:
+    - generic [ref=f6e388]:
+      - button [ref=f6e515] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=f6e390]:
+        - banner [ref=f6e391]:
+          - generic [ref=f6e392]:
+            - button [ref=f6e516] [cursor=pointer]:
+              - img [ref=f6e394]
+            - heading [level=6] [ref=f6e517]:
+              - generic [ref=f6e519]: "Chamado #1"
+            - button [ref=f6e520] [cursor=pointer]:
+              - img [ref=f6e521]
+              - generic [ref=f6e523]: "79"
+            - button [ref=f6e524] [cursor=pointer]:
+              - generic [ref=f6e399]: E
+              - generic [ref=f6e403]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=f6e405]
+            - button [ref=f6e525] [cursor=pointer]:
+              - generic [ref=f6e408]:
+                - img [ref=f6e409]
+                - generic [ref=f6e526]: "17"
+            - button [ref=f6e527] [cursor=pointer]:
+              - img [ref=f6e412]
+            - button [ref=f6e528] [cursor=pointer]:
+              - img [ref=f6e416]
+        - main [ref=f6e418]:
+          - navigation [ref=f6e422]:
+            - button [ref=f6e529] [cursor=pointer]:
+              - img [ref=f6e425]
+              - generic [ref=f6e428]: Início
+            - button [ref=f6e530] [cursor=pointer]:
+              - img [ref=f6e431]
+              - generic [ref=f6e434]: Exames
+            - button [ref=f6e531] [cursor=pointer]:
+              - img [ref=f6e437]
+              - generic [ref=f6e440]: Dr. Exame (IA)
+            - button [ref=f6e532] [cursor=pointer]:
+              - img [ref=f6e443]
+              - generic [ref=f6e446]: Relatório completo
+            - button [ref=f6e533] [cursor=pointer]:
+              - img [ref=f6e450]
+              - generic [ref=f6e454]: Evolução & Conquistas
+              - img [ref=f6e455]
+            - button [ref=f6e534] [cursor=pointer]:
+              - img [ref=f6e460]
+              - generic [ref=f6e464]: Minha Saúde
+              - img [ref=f6e465]
+            - button [ref=f6e535] [cursor=pointer]:
+              - img [ref=f6e470]
+              - generic [ref=f6e474]: Família & Médicos
+              - img [ref=f6e475]
+            - button [ref=f6e536] [cursor=pointer]:
+              - img [ref=f6e480]
+              - generic [ref=f6e483]: Conta
+              - img [ref=f6e484]
+            - separator [ref=f6e486]
+            - button [ref=f6e537] [cursor=pointer]:
+              - generic [ref=f6e489]: ❓
+              - generic [ref=f6e491]: Ajuda & Suporte
+            - menuitem [ref=f6e538] [cursor=pointer]:
+              - generic [ref=f6e493]: ℹ️
+              - generic [ref=f6e495]: Sobre o app
+            - menuitem [ref=f6e539] [cursor=pointer]:
+              - img [ref=f6e498]
+              - generic [ref=f6e501]: Sair da conta
+            - generic [ref=f6e502]: Meus Exames · v2.4.0.131 (04ff8c7)
+          - generic [ref=f6e504]:
+            - generic [ref=f6e540]:
+              - button [ref=f6e541] [cursor=pointer]:
+                - img [ref=f6e542]
+              - paragraph [ref=f6e544]: "#1"
+              - generic [ref=f6e546]: Aguardando você
+            - paragraph [ref=f6e547]: "E2E: tela de exames trava"
+            - generic [ref=f6e549]: Erro no app
+            - generic [ref=f6e550]:
+              - generic [ref=f6e552]:
+                - paragraph [ref=f6e553]: Quando abro o hemograma, a tela pisca e fecha. Teste automático.
+                - paragraph [ref=f6e554]: 30/06/26, 19:06
+              - generic [ref=f6e556]:
+                - paragraph [ref=f6e557]: Suporte
+                - paragraph [ref=f6e558]: Consegui reproduzir o bug. Pode me mandar um print da tela de exames? Estamos verificando.
+                - paragraph [ref=f6e559]: 30/06/26, 19:18
+            - generic [ref=f6e562]:
+              - generic [ref=f6e564]:
+                - textbox [ref=f6e565]:
+                  - /placeholder: Escreva uma mensagem…
+                - group
+              - generic [ref=f6e566]:
+                - button [ref=f6e567] [cursor=pointer]:
+                  - img [ref=f6e569]
+                  - text: Anexar (0/5)
+                - button [disabled]:
+                  - text: Enviar
+                  - generic:
+                    - img
+    - button [ref=f6e571] [cursor=pointer]:
+      - generic [ref=f6e509]:
+        - img [ref=f6e572]
+        - img [ref=f6e513]
+  - generic [ref=f6e15] [cursor=pointer]:
+    - img [ref=f6e573]
+    - img [ref=f6e574]
+  - 'dialog "Dr. Exame Chamado #1" [active] [ref=f6e577]':
+    - 'heading "Dr. Exame Chamado #1" [level=2] [ref=f6e578]':
+      - generic [ref=f6e579]:
+        - img "Dr. Exame" [ref=f6e580]
+        - paragraph [ref=f6e581]: "Chamado #1"
+    - paragraph [ref=f6e583]: Consegui reproduzir o bug. Pode me mandar um print da tela de exames? Estamos ve…
+    - generic [ref=f6e584]:
+      - button "Depois" [ref=f6e585] [cursor=pointer]
+      - button "Ver notificacoes" [ref=f6e586] [cursor=pointer]

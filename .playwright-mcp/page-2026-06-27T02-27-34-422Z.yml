@@ -1,0 +1,152 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e258] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e259] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e277] [cursor=pointer]:
+              - img [ref=e278]
+            - button "99" [ref=e260] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "99"
+            - button "E" [ref=e261] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button "Modo escuro" [ref=e262] [cursor=pointer]:
+              - img [ref=e37]
+            - button "0" [ref=e263] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic: "0"
+            - button "Mais opções" [ref=e264] [cursor=pointer]:
+              - img [ref=e44]
+            - button "Atualizar" [ref=e265] [cursor=pointer]:
+              - img [ref=e48]
+        - main [ref=e50]:
+          - generic [ref=e364]:
+            - heading "🧾 Relatório completo de saúde" [level=5] [ref=e365]
+            - paragraph [ref=e366]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - generic [ref=e387]:
+              - generic [ref=e388]:
+                - generic [ref=e389]:
+                  - heading "Relatório consolidado 🩺" [level=6] [ref=e390]
+                  - paragraph [ref=e391]: Análise educativa — não substitui consulta médica
+                - generic [ref=e392]:
+                  - button "🔊 Ouvir" [ref=e393] [cursor=pointer]
+                  - button "Compartilhar" [ref=e394] [cursor=pointer]:
+                    - img [ref=e395]
+                  - button "Imprimir / PDF" [ref=e397] [cursor=pointer]:
+                    - img [ref=e398]
+                  - button "↻ Atualizar" [ref=e400] [cursor=pointer]
+                  - generic [ref=e401]:
+                    - generic [ref=e402]: 💎
+                    - generic [ref=e403]: 20 créditos
+              - generic [ref=e404]:
+                - generic [ref=e405]:
+                  - paragraph [ref=e406]: "📊 Relatório baseado em 1 exame(s):"
+                  - paragraph [ref=e409] [cursor=pointer]: 📄 HEMOGRAMA • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                - paragraph [ref=e410]: Edmilson, seu exame mais recente mostra alterações principalmente na parte do sangue (hemograma), especificamente no tamanho e na cor das hemácias (células vermelhas) e na contagem de plaquetas. O valor da hemoglobina (15,0) está dentro da faixa de referência, mas o tamanho das células (VCM e HCM) está um pouco reduzido.
+                - heading "Itens em destaque" [level=6] [ref=e411]
+                - generic [ref=e412]:
+                  - generic [ref=e414]:
+                    - generic [ref=e415]:
+                      - generic [ref=e416] [cursor=pointer]: VCM (Volume Corpuscular Médio)…mais
+                      - paragraph [ref=e417]:
+                        - strong [ref=e418]: 80,8 fL
+                        - generic [ref=e419]: → Atenção
+                    - button "O que é este exame?" [ref=e420] [cursor=pointer]:
+                      - img [ref=e421]
+                  - generic [ref=e424]:
+                    - generic [ref=e425]:
+                      - generic [ref=e426]: Plaquetas
+                      - paragraph [ref=e427]:
+                        - strong [ref=e428]: 116.000/mm³
+                        - generic [ref=e429]: → Atenção
+                    - button "O que é este exame?" [ref=e430] [cursor=pointer]:
+                      - img [ref=e431]
+                  - generic [ref=e434]:
+                    - generic [ref=e435]:
+                      - generic [ref=e436] [cursor=pointer]: CHCM (Conc. Hemoglob. Corpuscular Média)…mais
+                      - paragraph [ref=e437]:
+                        - strong [ref=e438]: 32,1 g/dL
+                        - generic [ref=e439]: → Atenção
+                    - button "O que é este exame?" [ref=e440] [cursor=pointer]:
+                      - img [ref=e441]
+                  - generic [ref=e444]:
+                    - generic [ref=e445]:
+                      - generic [ref=e446]: Monócitos
+                      - paragraph [ref=e447]:
+                        - strong [ref=e448]: 6,5 %
+                        - generic [ref=e449]: → Estável
+                    - button "O que é este exame?" [ref=e450] [cursor=pointer]:
+                      - img [ref=e451]
+                - heading "🚩 Pontos de atenção" [level=6] [ref=e453]
+                - generic [ref=e454]:
+                  - paragraph [ref=e455]:
+                    - strong [ref=e456]: Contagem de Plaquetas
+                    - text: — O valor atual (116.000/mm³) está abaixo da faixa de referência (150.000-450.000). É importante discutir isso com o médico para entender a causa.
+                  - paragraph [ref=e457]:
+                    - strong [ref=e458]: Índices Hematimétricos (VCM, HCM, CHCM)
+                    - text: — O VCM (80,8) e o HCM (26,0) estão ligeiramente abaixo do limite inferior. Isso sugere que as células sanguíneas podem estar microcíticas (pequenas), o que pode estar relacionado a questões nutricionais, como ferro.
+                  - paragraph [ref=e459]:
+                    - strong [ref=e460]: Leucograma
+                    - text: — Há valores listados com 'flag' de baixo (Linfócitos, Segmentados, Monócitos), mas é fundamental saber se estes valores são absolutos (número) ou relativos (%). Se o valor total de leucócitos estiver normal, pequenas variações percentuais podem não ter significado clínico isolado.
+                - heading "✅ Pontos positivos" [level=6] [ref=e461]
+                - list [ref=e462]:
+                  - listitem [ref=e463]:
+                    - paragraph [ref=e464]: Hemoglobina dentro da faixa normal (15,0 g/dL).
+                  - listitem [ref=e465]:
+                    - paragraph [ref=e466]: Acompanhamento laboratorial realizado para monitorar a saúde.
+                - heading "💊 Interações com medicação" [level=6] [ref=e467]
+                - paragraph [ref=e469]:
+                  - strong
+                  - text: "× :"
+                - heading "🥗 Sugestões de nutrição" [level=6] [ref=e470]
+                - list [ref=e471]:
+                  - listitem [ref=e472]:
+                    - paragraph [ref=e473]: Como o VCM e HCM estão baixos, é comum associar a carências nutricionais (como ferro), embora apenas o médico possa confirmar. Manter uma alimentação rica em nutrientes (carnes, feijões, vegetais verde-escuros) é geralmente benéfico para a saúde do sangue.
+                - heading "🎯 Metas" [level=6] [ref=e474]
+                - generic [ref=e475]:
+                  - paragraph [ref=e476]:
+                    - strong [ref=e477]: Investigação Hematológica
+                    - text: ": Identificar a causa da microcitose e plaquetopenia (Na próxima consulta)"
+                  - paragraph [ref=e478]:
+                    - strong [ref=e479]: Saúde Nutricional
+                    - text: ": Revisar ingestão de ferro e vitaminas do complexo B (se aprovado pelo médico) (Curto prazo)"
+                - heading "Leitura final" [level=6] [ref=e480]
+                - paragraph [ref=e481]: Edmilson, seu hemograma mostra que a quantidade de hemoglobina (a parte que transporta oxigênio) está boa (15,0). Porém, o tamanho das suas células vermelhas (VCM 80,8) e a contagem de plaquetas (116.000) estão abaixo do esperado no laboratório. Isso geralmente pede uma avaliação clínica para verificar se há necessidade de ajustes na alimentação ou investigação adicional. Não se assuste, pois o médico saberá interpretar esses dados no contexto do seu histórico.
+                - heading "🩺 Perguntas para levar ao médico" [level=6] [ref=e482]
+                - list [ref=e483]:
+                  - listitem [ref=e484]:
+                    - paragraph [ref=e485]: Minhas plaquetas estão em 116.000/mm³, abaixo do referencial. O que pode ter causado isso e preciso repetir o exame?
+                  - listitem [ref=e486]:
+                    - paragraph [ref=e487]: O VCM (80,8) e HCM (26,0) estão baixos, indicando células pequenas (microcitose). Isso pode ser falta de ferro ou outro motivo?
+                  - listitem [ref=e488]:
+                    - paragraph [ref=e489]: Os valores de leucócitos (linfócitos, monócitos) estão alterados em porcentagem ou número absoluto? Isso indica infecção ou é variação normal?
+                - separator [ref=e490]
+                - text: "IMPORTANTE: Esta análise é educativa e serve para ajudar você a entender seus exames. Eu NÃO sou médico e NÃO substituo uma consulta. Alterações em exames podem ser variações de laboratório, erros de medição ou indicar condições que precisam de avaliação clínica. Leve este relatório ao seu médico responsável."
+    - button "Pergunte ao Dr. Exame" [ref=e341] [cursor=pointer]:
+      - generic [ref=e342]:
+        - img "Dr. Exame" [ref=e344]
+        - img [ref=e346]
+    - navigation [ref=e218]:
+      - generic [ref=e219] [cursor=pointer]:
+        - generic [ref=e220]: 🏠
+        - paragraph [ref=e221]: Início
+      - generic [ref=e223] [cursor=pointer]:
+        - generic [ref=e224]: 📋
+        - paragraph [ref=e225]: Exames
+      - generic [ref=e226] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e272]
+        - paragraph [ref=e229]: Dr. Exame
+      - generic [ref=e230] [cursor=pointer]:
+        - generic [ref=e231]: 📈
+        - paragraph [ref=e232]: Evolução
+      - generic [ref=e233] [cursor=pointer]:
+        - generic [ref=e234]: ☰
+        - paragraph [ref=e235]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e273]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e274]

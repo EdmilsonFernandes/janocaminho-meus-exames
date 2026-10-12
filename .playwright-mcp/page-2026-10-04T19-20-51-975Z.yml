@@ -1,0 +1,46 @@
+- generic [ref=f3e1]:
+  - generic [aria-hidden] [ref=f3e2]:
+    - generic [ref=f3e106]:
+      - button [ref=f3e107] [cursor=pointer]
+      - generic [ref=f3e108]:
+        - banner [ref=f3e109]:
+          - generic [ref=f3e110]:
+            - button [ref=f3e111] [cursor=pointer]
+            - paragraph [ref=f3e117]: Dr. Exame
+            - generic [ref=f3e118]:
+              - button [ref=f3e119] [cursor=pointer]:
+                - generic [ref=f3e122]: "15"
+              - button [ref=f3e123] [cursor=pointer]:
+                - generic [ref=f3e124]: 9+
+              - button [ref=f3e128] [cursor=pointer]:
+                - generic [ref=f3e129]: E
+        - main [ref=f3e134]
+    - navigation [ref=f3e333]:
+      - button [ref=f3e334] [cursor=pointer]:
+        - paragraph [ref=f3e338]: Início
+      - button [ref=f3e340] [cursor=pointer]:
+        - paragraph [ref=f3e344]: Exames
+      - button [ref=f3e345] [cursor=pointer]:
+        - paragraph [ref=f3e348]: Dr. Exame
+      - button [ref=f3e349] [cursor=pointer]:
+        - paragraph [ref=f3e353]: Evolução
+      - button [ref=f3e354] [cursor=pointer]:
+        - paragraph [ref=f3e358]: Mais
+  - dialog [ref=f3e361]:
+    - generic [ref=f3e362]:
+      - button [ref=f3e387] [cursor=pointer]: Pular
+      - generic [ref=f3e364]:
+        - heading [level=4] [ref=f3e389]: Envie seu exame
+        - paragraph [ref=f3e368]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f3e369]:
+        - button [ref=f3e390] [cursor=pointer]: Próximo
+        - paragraph [ref=f3e379]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f3e393]:
+    - heading [level=2] [ref=f3e394]:
+      - generic [ref=f3e395]:
+        - img "Dr. Exame" [ref=f3e396]
+        - paragraph [ref=f3e397]: ⏰ Seu PIX expirou
+    - paragraph [ref=f3e399]: O pagamento de R$ 24,90 não foi concluído a tempo. Toque para gerar um novo.
+    - generic [ref=f3e400]:
+      - button "Depois" [ref=f3e401] [cursor=pointer]
+      - button "Ver notificações" [ref=f3e402] [cursor=pointer]

@@ -1,0 +1,71 @@
+- generic [ref=e20]:
+  - generic [ref=e22]:
+    - navigation [ref=e23]:
+      - generic [ref=e28]:
+        - paragraph [ref=e29]: 🩺 Dr Enrico de Amaral
+        - generic [ref=e30]: Endocrinologista • CRM 116739-SP
+      - separator [ref=e31]
+      - generic [ref=e32]:
+        - generic [ref=e33]: PLANO
+        - paragraph [ref=e34]: 💎 Dr. Exame Pro
+        - generic [ref=e35]: SOAP e planos ilimitados. Até 08/08/2026.
+      - list [ref=e36]:
+        - button [ref=e130] [cursor=pointer]:
+          - generic [ref=e41]: Pacientes
+        - button [ref=e131] [cursor=pointer]:
+          - generic [ref=e47]: Meu perfil
+        - button [ref=e132] [cursor=pointer]:
+          - generic [ref=e53]: Trocar senha
+        - separator [ref=e55]
+        - button [ref=e133] [cursor=pointer]:
+          - generic [ref=e60]: Sair
+      - generic [ref=e62]: Portal do Médico
+    - generic [ref=e63]:
+      - generic [ref=e65]:
+        - paragraph [ref=e66]: Pacientes
+        - generic [ref=e67]: 💎 Pro
+      - generic [ref=e69]:
+        - generic [ref=e70]: 💎 Dr. Exame Pro ativo
+        - generic [ref=e72]:
+          - heading [level=6] [ref=e134]: Pacientes (3)
+          - generic [ref=e74]:
+            - generic [ref=e75]: 🔴 3 com alerta
+            - button [ref=e135] [cursor=pointer]: Convidar
+        - button [ref=e162]:
+          - generic [ref=e163]: 📨 Paciente Teste Funil (convite enviado)
+        - generic [ref=e81]:
+          - textbox [ref=e136]:
+            - /placeholder: Buscar paciente pelo nome…
+          - button [ref=e137] [cursor=pointer]:
+            - generic [ref=e88]: 🔴
+            - generic [ref=e89]: Só com alerta
+        - generic [ref=e90]:
+          - generic [ref=e97] [cursor=pointer]:
+            - paragraph [ref=e98]: Edmilson Lopes
+            - generic [ref=e99]:
+              - text: 47a · M · Titular
+              - generic [ref=e100]: "· #76NM"
+            - generic [ref=e101]: 🔴 alerta · 📋 19 exames · 📅 11/06/2026 · Amil
+          - generic [ref=e110] [cursor=pointer]:
+            - paragraph [ref=e111]: Heloisa Cristina Fernandes
+            - generic [ref=e112]:
+              - text: "48a · F · Cônjuge · titular: Edmilson"
+              - generic [ref=e113]: "· #IPO2"
+            - generic [ref=e114]: 🔴 alerta · 📋 8 exames · 📅 07/04/2026 · Particular
+          - generic [ref=e123] [cursor=pointer]:
+            - paragraph [ref=e124]: Paciente 3
+            - generic [ref=e125]:
+              - text: 41a · M · Titular
+              - generic [ref=e126]: "· #299T"
+            - generic [ref=e127]: 🔴 alerta · 📋 2 exames · 📅 19/05/2021 · Particular
+  - dialog [ref=e142]:
+    - heading "Convidar paciente" [level=2] [ref=e143]
+    - generic [ref=e166]:
+      - paragraph [ref=e167]: Convite pronto pra Paciente Teste Funil! 🎉
+      - paragraph [ref=e168]: Toque pra enviar no WhatsApp — o paciente instala o app e você já fica conectado aos exames dele.
+      - link [ref=e169] [cursor=pointer]:
+        - /url: https://wa.me/5511988887777?text=Ol%C3%A1%20Paciente!%20Aqui%20%C3%A9%20Dr%20Enrico%20de%20Amaral.%20Cadastre-se%20no%20app%20Meus%20Exames%20pra%20eu%20acompanhar%20seus%20exames%20(leva%201%20minuto)%3A%20https%3A%2F%2Fjanocaminho.com.br%2Fminhasaude%2F%23%2Fconvite%2Fddc806be002d4cbf94b4694f1a80c011ace9a93e
+      - button "Copiar link" [ref=e173] [cursor=pointer]
+    - generic [ref=e156]:
+      - button "Fechar" [ref=e174] [cursor=pointer]
+      - button "Novo convite" [ref=e175] [cursor=pointer]

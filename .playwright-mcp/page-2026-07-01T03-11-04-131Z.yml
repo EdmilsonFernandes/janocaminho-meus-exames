@@ -1,0 +1,30 @@
+- generic [active] [ref=f4e18]:
+  - generic [ref=f4e437]:
+    - button "← Voltar ao app" [ref=f4e439] [cursor=pointer]
+    - generic [ref=f4e440]:
+      - img "Dr. Exame" [ref=f4e442]
+      - heading "Portal do Médico" [level=5] [ref=f4e443]
+      - generic [ref=f4e444]: Acesso restrito a profissionais
+    - generic [ref=f4e445]:
+      - generic [ref=f4e447]:
+        - img [ref=f4e449]
+        - textbox "E-mail ou CRM" [ref=f4e452]
+        - group
+      - generic [ref=f4e454]:
+        - img [ref=f4e456]
+        - textbox "Senha (mín. 6 caracteres)" [ref=f4e459]
+        - button [ref=f4e461] [cursor=pointer]:
+          - img [ref=f4e462]
+        - group
+      - button "Entrar" [ref=f4e466] [cursor=pointer]
+    - paragraph [ref=f4e467]:
+      - text: Primeiro acesso?
+      - button "Cadastrar" [ref=f4e468] [cursor=pointer]
+    - generic [ref=f4e469]:
+      - generic [ref=f4e470]: 🩺
+      - paragraph [ref=f4e471]:
+        - strong [ref=f4e472]: Conteúdo educativo.
+        - text: O paciente controla o que compartilha. Você vê apenas os exames e dados autorizados.
+  - generic [ref=f4e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e17]

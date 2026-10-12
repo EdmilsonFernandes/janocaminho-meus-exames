@@ -1,0 +1,207 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e1403]:
+      - button "Pular para o conteúdo" [ref=e1813] [cursor=pointer]
+      - generic [ref=e1405]:
+        - banner [ref=e1406]:
+          - generic [ref=e1407]:
+            - button "Voltar" [ref=e1814] [cursor=pointer]
+            - generic [ref=e1411]:
+              - img "Dr. Exame" [ref=e1815]
+              - paragraph [ref=e1414]: Dr. Exame
+            - generic [ref=e1415]:
+              - button "Você tem 69 créditos. Toque para comprar mais." [ref=e1816] [cursor=pointer]:
+                - generic [ref=e1490]: "69"
+              - button "Notificações" [ref=e1817] [cursor=pointer]:
+                - generic [ref=e1417]: 9+
+              - button "E" [ref=e1818] [cursor=pointer]
+        - main [ref=e1427]:
+          - generic [ref=e1495]:
+            - generic [ref=e1500]:
+              - heading "Seus exames" [level=5] [ref=e1819]
+              - paragraph [ref=e1502]: 9 no total • toque para ver detalhes
+            - generic [ref=e1503]:
+              - generic [ref=e1504]:
+                - generic [ref=e1506]:
+                  - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=e1820]
+                  - group [aria-hidden]
+                - group [ref=e1511]:
+                  - button "📅 Data" [pressed] [ref=e1821] [cursor=pointer]
+                  - button "📁 Categoria" [ref=e1822] [cursor=pointer]
+              - generic [ref=e1514]:
+                - button "Todos (9)" [ref=e1823] [cursor=pointer]
+                - button "⚠️ Alterados (3)" [ref=e1824] [cursor=pointer]
+                - button "⏱️ Recentes (5)" [ref=e1825] [cursor=pointer]
+                - button "Outros exames (4)" [ref=e1826] [cursor=pointer]
+                - button "Hemograma (3)" [ref=e1827] [cursor=pointer]
+                - button "Glicemia e Diabetes (1)" [ref=e1828] [cursor=pointer]
+                - button "Lipídios e Colesterol (1)" [ref=e1829] [cursor=pointer]
+            - generic [ref=e1537]:
+              - generic [ref=e1538]:
+                - paragraph [ref=e1539]: Último exame
+                - paragraph [ref=e1540]: HEMOGRAMA
+                - generic [ref=e1541]: Data não identificada no PDF
+                - generic [ref=e1542]:
+                  - paragraph [ref=e1543]: 20 resultados
+                  - generic [ref=e1544]: 2 alterados
+                - generic [ref=e1546]:
+                  - button [ref=e1830] [cursor=pointer]
+                  - button [ref=e1831] [cursor=pointer]
+              - generic [ref=e1555]:
+                - paragraph [ref=e1556]: O que mudou nos seus exames
+                - generic [ref=e1557]: 1 melhorou
+                - generic [ref=e1563]:
+                  - paragraph [ref=e1564]: ↓GLICOSE
+                  - paragraph [ref=e1565]: 95 mg/dL
+                - button [ref=e1832] [cursor=pointer]
+            - generic [ref=e1571]:
+              - heading [level=3] [ref=e1833]:
+                - button "📅 2026 9 exames" [expanded] [ref=e1834] [cursor=pointer]:
+                  - generic [ref=e1574]:
+                    - paragraph [ref=e1575]: 📅 2026
+                    - generic [ref=e1576]: 9 exames
+              - region [ref=e1584]:
+                - generic [ref=e1585]:
+                  - generic [ref=e1587] [cursor=pointer]:
+                    - generic [ref=e1590]:
+                      - generic [ref=e1591]:
+                        - paragraph [ref=e1592]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e1835]
+                      - generic [ref=e1597]: s/ data
+                      - 'generic "Laboratório: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=e1836]':
+                        - generic [ref=e1600]: V
+                        - generic [ref=e1601]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                      - generic [ref=e1602]: 🏥 Laboratório em revisão
+                      - generic [ref=e1603]: Hemograma • 20 resultados • 2 alterados
+                      - generic [ref=e1604]:
+                        - generic [ref=e1605]: Pronto
+                        - generic [ref=e1607]: Conferir dados
+                    - button "Excluir exame HEMOGRAMA" [ref=e1837]
+                  - generic [ref=e1615] [cursor=pointer]:
+                    - generic [ref=e1618]:
+                      - generic [ref=e1619]:
+                        - paragraph [ref=e1620]: PAINEL GRANDE
+                        - button "O que é este exame?" [ref=e1838]
+                      - generic [ref=e1626]:
+                        - text: 16 jul 2026
+                        - generic [ref=e1627]: · há 1 mês
+                      - generic [ref=e1628]: Outros exames • 4 resultados
+                      - generic [ref=e1629]: Pronto
+                    - button "Excluir exame PAINEL GRANDE" [ref=e1839]
+                  - generic [ref=e1638] [cursor=pointer]:
+                    - generic [ref=e1641]:
+                      - generic [ref=e1642]:
+                        - paragraph [ref=e1643]: GLICEMIA DE JEJUM
+                        - button "O que é este exame?" [ref=e1840]
+                      - generic [ref=e1649]:
+                        - text: 09 jul 2026
+                        - generic [ref=e1650]: · há 1 mês
+                      - 'generic "Laboratório: Fleury" [ref=e1841]':
+                        - generic [ref=e1653]: F
+                        - generic [ref=e1654]: Fleury
+                      - generic [ref=e1655]: Glicemia e Diabetes • 2 resultados • 2 alterados
+                      - generic [ref=e1656]: Pronto
+                    - button "Excluir exame GLICEMIA DE JEJUM" [ref=e1842]
+                  - generic [ref=e1665] [cursor=pointer]:
+                    - generic [ref=e1668]:
+                      - generic [ref=e1669]:
+                        - paragraph [ref=e1670]: PERFIL LIPÍDICO
+                        - button "O que é este exame?" [ref=e1843]
+                      - generic [ref=e1676]:
+                        - text: 09 jul 2026
+                        - generic [ref=e1677]: · há 1 mês
+                      - 'generic "Laboratório: Fleury" [ref=e1844]':
+                        - generic [ref=e1680]: F
+                        - generic [ref=e1681]: Fleury
+                      - generic [ref=e1682]: Lipídios e Colesterol • 4 resultados • 4 alterados
+                      - generic [ref=e1683]: Pronto
+                    - button "Excluir exame PERFIL LIPÍDICO" [ref=e1845]
+                  - generic [ref=e1692] [cursor=pointer]:
+                    - generic [ref=e1695]:
+                      - generic [ref=e1696]:
+                        - paragraph [ref=e1697]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e1846]
+                      - generic [ref=e1703]:
+                        - text: 09 jul 2026
+                        - generic [ref=e1704]: · há 1 mês
+                      - 'generic "Laboratório: Laboratório Central" [ref=e1847]':
+                        - generic [ref=e1707]: L
+                        - generic [ref=e1708]: Laboratório Central
+                      - generic [ref=e1709]: Hemograma • 5 resultados
+                      - generic [ref=e1710]: Pronto
+                    - button "Excluir exame HEMOGRAMA" [ref=e1848]
+                  - generic [ref=e1719] [cursor=pointer]:
+                    - generic [ref=e1722]:
+                      - generic [ref=e1723]:
+                        - paragraph [ref=e1724]: ORFAO
+                        - button "O que é este exame?" [ref=e1849]
+                      - generic [ref=e1730]:
+                        - text: 05 mai 2026
+                        - generic [ref=e1731]: · há 4 meses
+                      - text: Outros exames
+                      - generic [ref=e1732]: Pronto
+                    - button "Excluir exame ORFAO" [ref=e1850]
+                  - generic [ref=e1741] [cursor=pointer]:
+                    - generic [ref=e1744]:
+                      - generic [ref=e1745]:
+                        - paragraph [ref=e1746]: HEMOGRAMA
+                        - button "O que é este exame?" [ref=e1851]
+                      - generic [ref=e1752]:
+                        - text: 14 abr 2026
+                        - generic [ref=e1753]: · há 4 meses
+                      - 'generic "Laboratório: Laboratório Central" [ref=e1852]':
+                        - generic [ref=e1756]: L
+                        - generic [ref=e1757]: Laboratório Central
+                      - generic [ref=e1758]: Hemograma • 5 resultados
+                      - generic [ref=e1759]: Pronto
+                    - button "Excluir exame HEMOGRAMA" [ref=e1853]
+                  - generic [ref=e1768] [cursor=pointer]:
+                    - generic [ref=e1771]:
+                      - generic [ref=e1772]:
+                        - paragraph [ref=e1773]: ANUAL 2025
+                        - button "O que é este exame?" [ref=e1854]
+                      - generic [ref=e1779]:
+                        - text: 13 abr 2026
+                        - generic [ref=e1780]: · há 4 meses
+                      - generic [ref=e1781]: Outros exames • 1 resultado
+                      - generic [ref=e1782]: Pronto
+                    - button "Excluir exame ANUAL 2025" [ref=e1855]
+                  - generic [ref=e1791] [cursor=pointer]:
+                    - generic [ref=e1794]:
+                      - generic [ref=e1795]:
+                        - paragraph [ref=e1796]: ANUAL 2026
+                        - button "O que é este exame?" [ref=e1856]
+                      - generic [ref=e1802]:
+                        - text: 10 jan 2026
+                        - generic [ref=e1803]: · há 7 meses
+                      - generic [ref=e1804]: Outros exames • 1 resultado
+                      - generic [ref=e1805]: Pronto
+                    - button "Excluir exame ANUAL 2026" [ref=e1857]
+    - button "Enviar exame" [ref=e1858] [cursor=pointer]
+    - navigation [ref=e1432]:
+      - paragraph [ref=e1437] [cursor=pointer]: Início
+      - paragraph [ref=e1442] [cursor=pointer]: Exames
+      - generic [ref=e1444] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e1859]
+        - paragraph [ref=e1447]: Dr. Exame
+      - paragraph [ref=e1452] [cursor=pointer]: Evolução
+      - paragraph [ref=e1457] [cursor=pointer]: Mais
+  - generic [ref=e106]:
+    - generic [ref=e107]:
+      - generic [ref=e108]: "✦ overused font: Primary font: inter (67% of text)"
+      - generic [ref=e109]: "layout property animation: transition: height"
+      - generic [ref=e110]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e111]:
+      - button "◉" [ref=e1860] [cursor=pointer]
+      - button "×" [ref=e1861] [cursor=pointer]
+  - generic [ref=e1041]:
+    - generic [ref=e1042]:
+      - generic [ref=e1043]: "✦ overused font: Primary font: inter (72% of text)"
+      - generic [ref=e1044]: "✦ kicker / eyebrow label above heading: kicker \"Experimente agora\" above h2 \"Cole seu exame. De graça, sem cadastro.\""
+      - generic [ref=e1045]: "✦ em-dash overuse: 27 em-dashes in body text"
+      - generic [ref=e1046]: "skipped heading level: <h2> \"Planos simples e justos\" followed by <h6> \"Grátis\" (missing h3)"
+      - generic [ref=e1047]: "layout property animation: transition: height"
+      - generic [ref=e1048]: "✦ glowing shadow accents: Colored box-shadow glow (#20b2aa) on dark page"
+    - generic [ref=e1049]:
+      - button "◉" [ref=e1862] [cursor=pointer]
+      - button "×" [ref=e1863] [cursor=pointer]

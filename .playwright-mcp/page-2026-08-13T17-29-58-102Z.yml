@@ -1,0 +1,114 @@
+- generic [ref=f10e1]:
+  - generic [ref=f10e3]:
+    - button [ref=f10e4] [cursor=pointer]: Pular para o conteúdo
+    - generic [ref=f10e5]:
+      - banner [ref=f10e6]:
+        - generic [ref=f10e7]:
+          - button [ref=f10e8] [cursor=pointer]:
+            - generic [ref=f10e11]: "71"
+            - button [ref=f10e12]
+          - button [ref=f10e15] [cursor=pointer]:
+            - generic [ref=f10e16]: "34"
+          - button [ref=f10e21] [cursor=pointer]:
+            - generic [ref=f10e22]: E
+            - generic [ref=f10e24]: Edmilson Lopes Fernandes dos Santos
+          - button [ref=f10e30] [cursor=pointer]
+      - main [ref=f10e33]:
+        - navigation [ref=f10e37]:
+          - generic [ref=f10e38]:
+            - paragraph [ref=f10e43] [cursor=pointer]: Início
+            - paragraph [ref=f10e48] [cursor=pointer]: Exames
+            - paragraph [ref=f10e54] [cursor=pointer]: Valores alterados
+            - paragraph [ref=f10e60] [cursor=pointer]: Evolução da saúde
+            - paragraph [ref=f10e65] [cursor=pointer]: Tendências
+            - paragraph [ref=f10e70] [cursor=pointer]: Linha do Tempo
+            - paragraph [ref=f10e75] [cursor=pointer]: Relatório completo
+            - paragraph [ref=f10e80] [cursor=pointer]: Perguntas
+            - paragraph [ref=f10e86] [cursor=pointer]: Saúde da Família
+          - button [ref=f10e88] [cursor=pointer]:
+            - generic [ref=f10e93]: Minha saúde
+          - button [ref=f10e98] [cursor=pointer]:
+            - generic [ref=f10e103]: Família & médicos
+          - button [ref=f10e108] [cursor=pointer]:
+            - generic [ref=f10e112]: Conta
+          - separator [ref=f10e116]
+          - button [ref=f10e117] [cursor=pointer]:
+            - generic [ref=f10e121]: Ajuda & Suporte
+          - menuitem [ref=f10e123] [cursor=pointer]:
+            - generic [ref=f10e127]: Sobre o app
+          - menuitem [ref=f10e129] [cursor=pointer]:
+            - generic [ref=f10e133]: Sair da conta
+        - generic [ref=f10e136]:
+          - generic [ref=f10e137]:
+            - paragraph [ref=f10e138]: Boa tarde, Edmilson 👋
+            - text: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f10e139]:
+            - generic [ref=f10e141]:
+              - generic [ref=f10e142]:
+                - generic [ref=f10e147]:
+                  - paragraph [ref=f10e148]: "45"
+                  - paragraph [ref=f10e149]: de 100
+                - generic [ref=f10e150]:
+                  - paragraph [ref=f10e151]: Sua saúde hoje
+                  - paragraph [ref=f10e152]: Pede atenção
+                  - paragraph [ref=f10e154]:
+                    - generic [ref=f10e155]: ● 6 moderados
+              - button [ref=f10e156] [cursor=pointer]: Ver análise completa
+            - generic [ref=f10e161]:
+              - paragraph [ref=f10e162]: Desde seu último exame
+              - generic [ref=f10e163]: 3 piorouram
+              - generic [ref=f10e168]:
+                - generic [ref=f10e169]:
+                  - paragraph [ref=f10e170]: ↑COLESTEROL TOTAL
+                  - paragraph [ref=f10e171]: 232 mg/dL
+                - generic [ref=f10e172]:
+                  - paragraph [ref=f10e173]: ↑LDL COLESTEROL
+                  - paragraph [ref=f10e174]: 158 mg/dL
+                - generic [ref=f10e175]:
+                  - paragraph [ref=f10e176]: ↓HDL COLESTEROL
+                  - paragraph [ref=f10e177]: 38 mg/dL
+              - button [ref=f10e179] [cursor=pointer]: Ver evolução completa
+          - button [ref=f10e188] [cursor=pointer]: Conversar com a IA
+          - generic [ref=f10e192]:
+            - generic [ref=f10e199] [cursor=pointer]:
+              - paragraph [ref=f10e200]: Cardiometabólico
+              - paragraph [ref=f10e201]: Em dia
+              - paragraph [ref=f10e202]: sem fatores
+            - generic [ref=f10e210] [cursor=pointer]:
+              - paragraph [ref=f10e211]: Seus exames
+              - paragraph [ref=f10e212]: "5"
+              - paragraph [ref=f10e213]: 8 alterados
+            - generic [ref=f10e220] [cursor=pointer]:
+              - paragraph [ref=f10e221]: Evolução
+              - paragraph [ref=f10e222]: Tendências
+              - paragraph [ref=f10e223]: 28 resultados
+          - generic [ref=f10e225]:
+            - generic [ref=f10e226]: Enviar exame
+            - generic [ref=f10e233]: Evolução
+            - generic [ref=f10e240]: Família
+            - generic [ref=f10e248]: Relatório
+          - generic [ref=f10e257]:
+            - generic [ref=f10e261]:
+              - paragraph [ref=f10e262]: "71"
+              - text: créditos disponíveis
+            - button [ref=f10e263] [cursor=pointer]: Comprar
+          - button [ref=f10e265] [cursor=pointer]: 📤 Compartilhar minha saúde
+  - generic [ref=f10e270] [cursor=pointer]
+  - dialog [ref=f10e276]:
+    - generic [ref=f10e277]:
+      - button [ref=f10e278] [cursor=pointer]: Pular
+      - generic [ref=f10e279]:
+        - heading [level=4] [ref=f10e282]: Envie seu exame
+        - paragraph [ref=f10e283]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f10e284]:
+        - button [ref=f10e290] [cursor=pointer]: Próximo
+        - paragraph [ref=f10e294]: Toque em Próximo para continuar →
+  - dialog [active] [ref=f10e297]:
+    - heading [level=2] [ref=f10e298]:
+      - generic [ref=f10e299]:
+        - img "Dr. Exame" [ref=f10e300]
+        - paragraph [ref=f10e301]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=f10e303]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=f10e304]:
+      - button "Depois" [ref=f10e305] [cursor=pointer]
+      - button "Ver notificações" [ref=f10e306] [cursor=pointer]

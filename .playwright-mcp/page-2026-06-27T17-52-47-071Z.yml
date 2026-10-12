@@ -1,0 +1,83 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e248] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Menu" [ref=e249] [cursor=pointer]:
+              - img [ref=e26]
+            - button "Voltar" [ref=e264] [cursor=pointer]:
+              - img [ref=e265]
+            - button "79" [ref=e250] [cursor=pointer]:
+              - img [ref=e29]
+              - generic [ref=e31]: "79"
+            - button "E" [ref=e251] [cursor=pointer]:
+              - generic [ref=e35]: E
+            - button "3" [ref=e252] [cursor=pointer]:
+              - generic [ref=e37]:
+                - img [ref=e38]
+                - generic [ref=e40]: "3"
+            - button "Mais opções" [ref=e253] [cursor=pointer]:
+              - img [ref=e42]
+            - button "Atualizar" [ref=e254] [cursor=pointer]:
+              - img [ref=e46]
+        - main [ref=e48]:
+          - generic [ref=e270]:
+            - generic [ref=e271]:
+              - img [ref=e273]
+              - generic [ref=e275]:
+                - heading "Seus exames" [level=5] [ref=e276]
+                - paragraph [ref=e277]: 1 exame no total • toque pra ver detalhes
+            - generic [ref=e278]:
+              - generic [ref=e280]:
+                - img [ref=e282]
+                - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=e284]
+                - group
+              - group [ref=e286]:
+                - button "📅 Por data" [pressed] [ref=e287] [cursor=pointer]
+                - button "🗂️ Por categoria" [ref=e288] [cursor=pointer]
+            - generic [ref=e289]:
+              - heading "📅 2026 1" [level=3] [ref=e290]:
+                - button "📅 2026 1" [expanded] [ref=e291] [cursor=pointer]:
+                  - generic [ref=e292]:
+                    - paragraph [ref=e293]: 📅 2026
+                    - generic [ref=e295]: "1"
+                  - img [ref=e297]
+              - region [ref=e302]:
+                - generic [ref=e305] [cursor=pointer]:
+                  - img [ref=e306]
+                  - generic [ref=e308]:
+                    - generic [ref=e309]:
+                      - paragraph [ref=e310]: HEMOGRAMA
+                      - button "O que é este exame?" [ref=e312]:
+                        - img [ref=e313]
+                    - generic "VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=e315]: 🏥 VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                    - generic [ref=e316]: Outro • s/d • 20 itens • Enviado 22/06/2026
+                    - generic [ref=e317]:
+                      - generic [ref=e319]: 🩸 Hemograma
+                      - generic [ref=e321]: Pronto
+                  - button "Excluir" [ref=e322]:
+                    - img [ref=e323]
+                  - img [ref=e325]
+    - button "Enviar exame" [ref=e327] [cursor=pointer]:
+      - img [ref=e328]
+    - navigation [ref=e216]:
+      - generic [ref=e217] [cursor=pointer]:
+        - generic [ref=e218]: 🏠
+        - paragraph [ref=e219]: Início
+      - generic [ref=e221] [cursor=pointer]:
+        - generic [ref=e222]: 📋
+        - paragraph [ref=e223]: Exames
+      - generic [ref=e224] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e261]
+        - paragraph [ref=e227]: Dr. Exame
+      - generic [ref=e228] [cursor=pointer]:
+        - generic [ref=e229]: 📈
+        - paragraph [ref=e230]: Evolução
+      - generic [ref=e231] [cursor=pointer]:
+        - generic [ref=e232]: ☰
+        - paragraph [ref=e233]: Mais
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e262]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e263]

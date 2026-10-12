@@ -1,0 +1,113 @@
+- generic [active] [ref=e18]:
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - button "Pular para o conteúdo" [ref=e393] [cursor=pointer]
+      - generic [ref=e22]:
+        - banner [ref=e23]:
+          - generic [ref=e24]:
+            - button "Close menu" [ref=e394] [cursor=pointer]:
+              - img [ref=e395]
+            - heading "Exames" [level=6] [ref=e515]:
+              - generic [ref=e517]: Exames
+            - button "79" [ref=e162] [cursor=pointer]:
+              - img [ref=e32]
+              - generic [ref=e34]: "79"
+            - button "E Edmilson Lopes Fernandes dos Santos" [ref=e397] [cursor=pointer]:
+              - generic [ref=e38]: E
+              - generic [ref=e399]: Edmilson Lopes Fernandes dos Santos
+              - img [ref=e401]
+            - button "3" [ref=e164] [cursor=pointer]:
+              - generic [ref=e40]:
+                - img [ref=e41]
+                - generic [ref=e43]: "3"
+            - button "Mais opções" [ref=e165] [cursor=pointer]:
+              - img [ref=e45]
+            - button "Atualizar" [ref=e166] [cursor=pointer]:
+              - img [ref=e49]
+        - main [ref=e51]:
+          - navigation [ref=e406]:
+            - button "Início" [ref=e407] [cursor=pointer]:
+              - img [ref=e409]
+              - generic [ref=e412]: Início
+            - button "Exames" [ref=e413] [cursor=pointer]:
+              - img [ref=e415]
+              - generic [ref=e418]: Exames
+            - button "Dr. Exame (IA)" [ref=e419] [cursor=pointer]:
+              - img [ref=e421]
+              - generic [ref=e424]: Dr. Exame (IA)
+            - button "Relatório completo" [ref=e425] [cursor=pointer]:
+              - img [ref=e427]
+              - generic [ref=e430]: Relatório completo
+            - button "Evolução & Conquistas" [ref=e432] [cursor=pointer]:
+              - img [ref=e434]
+              - generic [ref=e438]: Evolução & Conquistas
+              - img [ref=e439]
+            - button "Minha Saúde" [ref=e442] [cursor=pointer]:
+              - img [ref=e444]
+              - generic [ref=e448]: Minha Saúde
+              - img [ref=e449]
+            - generic [ref=e451]:
+              - button "Família & Médicos" [ref=e452] [cursor=pointer]:
+                - img [ref=e454]
+                - generic [ref=e458]: Família & Médicos
+                - img [ref=e459]
+              - generic [ref=e463]:
+                - button "Família" [ref=e464] [cursor=pointer]:
+                  - img [ref=e466]
+                  - generic [ref=e470]: Família
+                - button "Dependentes" [ref=e471] [cursor=pointer]:
+                  - img [ref=e473]
+                  - generic [ref=e477]: Dependentes
+                - button "Meus Médicos" [ref=e478] [cursor=pointer]:
+                  - img [ref=e480]
+                  - generic [ref=e483]: Meus Médicos
+                - button "Despesas médicas" [ref=e484] [cursor=pointer]:
+                  - img [ref=e486]
+                  - generic [ref=e489]: Despesas médicas
+            - button "Conta" [ref=e491] [cursor=pointer]:
+              - img [ref=e493]
+              - generic [ref=e496]: Conta
+              - img [ref=e497]
+            - separator [ref=e499]
+            - menuitem "❓ Ajuda & Suporte" [ref=e500] [cursor=pointer]:
+              - generic [ref=e501]: ❓
+              - generic [ref=e503]: Ajuda & Suporte
+            - menuitem "ℹ️ Sobre o app" [ref=e504] [cursor=pointer]:
+              - generic [ref=e505]: ℹ️
+              - generic [ref=e507]: Sobre o app
+            - menuitem "Sair da conta" [ref=e508] [cursor=pointer]:
+              - img [ref=e510]
+              - generic [ref=e513]: Sair da conta
+            - generic [ref=e514]: Meus Exames · v2.4.0.123 (2a4a1d9)
+          - generic [ref=e521]:
+            - generic [ref=e522]:
+              - img [ref=e524]
+              - generic [ref=e526]:
+                - heading "Seus exames" [level=5] [ref=e527]
+                - paragraph [ref=e528]: 1 exame no total • toque pra ver detalhes
+            - generic [ref=e529]:
+              - heading "📅 2026 1" [level=3] [ref=e530]:
+                - button "📅 2026 1" [expanded] [ref=e531] [cursor=pointer]:
+                  - generic [ref=e532]:
+                    - paragraph [ref=e533]: 📅 2026
+                    - generic [ref=e535]: "1"
+                  - img [ref=e537]
+              - region [ref=e542]:
+                - generic [ref=e545] [cursor=pointer]:
+                  - img [ref=e546]
+                  - generic [ref=e548]:
+                    - generic [ref=e549]:
+                      - paragraph [ref=e550]: HEMOGRAMA
+                      - button "O que é este exame?" [ref=e552]:
+                        - img [ref=e553]
+                    - generic "VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=e555]: 🏥 VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                    - generic [ref=e556]: Outro • s/d • 20 itens • Enviado 22/06/2026
+                    - generic [ref=e559]: Pronto
+                  - button "Excluir" [ref=e560]:
+                    - img [ref=e561]
+                  - img [ref=e563]
+    - button "Enviar exame" [ref=e565] [cursor=pointer]:
+      - img [ref=e566]
+  - generic [ref=e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e175]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e176]

@@ -1,0 +1,62 @@
+- generic [active] [ref=f3e20]:
+  - generic [ref=f3e21]:
+    - generic [ref=f3e22]:
+      - button "Pular para o conteúdo" [ref=f3e23] [cursor=pointer]
+      - generic [ref=f3e24]:
+        - banner [ref=f3e25]:
+          - generic [ref=f3e26]:
+            - button "Voltar" [ref=f3e202] [cursor=pointer]
+            - generic [ref=f3e30]:
+              - img "Dr. Exame" [ref=f3e32]
+              - paragraph [ref=f3e33]: Dr. Exame
+            - button "Você tem 19 créditos. Toque para comprar mais." [ref=f3e34] [cursor=pointer]:
+              - generic [ref=f3e37]: "19"
+              - button "Ocultar créditos" [ref=f3e38]
+            - button "Notificações" [ref=f3e41] [cursor=pointer]:
+              - generic [ref=f3e42]: "1"
+            - button "E" [ref=f3e47] [cursor=pointer]
+            - button "Atualizar" [ref=f3e54] [cursor=pointer]
+        - main [ref=f3e57]:
+          - generic [ref=f3e242]:
+            - heading "🧾 Relatório completo de saúde" [level=5] [ref=f3e243]
+            - paragraph [ref=f3e244]: A IA junta seus últimos exames (sangue, imagem e laudo) num documento único — ótimo para levar ao médico ou pedir segunda opinião documental.
+            - generic [ref=f3e245]:
+              - generic [ref=f3e246]:
+                - generic [ref=f3e247]:
+                  - generic [ref=f3e248]: Preview do relatório
+                  - paragraph [ref=f3e250]: Um resumo pronto para consulta, antes de abrir exame por exame
+                  - paragraph [ref=f3e251]: O Dr. Exame consolida seu histórico em linguagem simples, com prioridades, contexto e perguntas para discutir com o profissional de saúde.
+                - generic [ref=f3e252]:
+                  - button [ref=f3e253] [cursor=pointer]
+                  - generic [ref=f3e258]:
+                    - generic [ref=f3e259]: 💎
+                    - generic [ref=f3e260]: 20 créditos
+              - generic [ref=f3e261]:
+                - generic [ref=f3e263]:
+                  - paragraph [ref=f3e267]: Prioridades clínicas
+                  - paragraph [ref=f3e268]: Valores alterados e pontos que merecem atenção.
+                - generic [ref=f3e270]:
+                  - paragraph [ref=f3e275]: Evolução dos exames
+                  - paragraph [ref=f3e276]: Comparação entre resultados anteriores e atuais.
+                - generic [ref=f3e278]:
+                  - paragraph [ref=f3e282]: Perguntas para o médico
+                  - paragraph [ref=f3e283]: Uma lista objetiva para levar na consulta.
+                - generic [ref=f3e285]:
+                  - paragraph [ref=f3e289]: Pontos positivos
+                  - paragraph [ref=f3e290]: O que está estável ou dentro da referência.
+              - generic [ref=f3e291]:
+                - generic [ref=f3e292]: Consome créditos somente ao gerar. Use quando quiser levar uma visão consolidada para consulta.
+                - button "Ver exames usados →" [ref=f3e293] [cursor=pointer]
+    - button "Pergunte ao Dr. Exame" [ref=f3e233] [cursor=pointer]:
+      - img "Dr. Exame" [ref=f3e236]
+    - navigation [ref=f3e176]:
+      - paragraph [ref=f3e181] [cursor=pointer]: Início
+      - paragraph [ref=f3e187] [cursor=pointer]: Exames
+      - generic [ref=f3e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f3e190]
+        - paragraph [ref=f3e191]: Dr. Exame
+      - paragraph [ref=f3e196] [cursor=pointer]: Evolução
+      - paragraph [ref=f3e201] [cursor=pointer]: Mais
+  - generic [ref=f3e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f3e19]

@@ -1,0 +1,43 @@
+- generic [ref=f2e1]:
+  - generic [aria-hidden] [ref=f2e2]:
+    - generic [ref=f2e106]:
+      - button [ref=f2e1191] [cursor=pointer]
+      - generic [ref=f2e108]:
+        - banner [ref=f2e109]:
+          - generic [ref=f2e110]:
+            - button [ref=f2e1192] [cursor=pointer]
+            - paragraph [ref=f2e1198]: Dr. Exame
+            - generic [ref=f2e111]:
+              - button [ref=f2e1199] [cursor=pointer]:
+                - generic [ref=f2e115]: "65"
+              - button [ref=f2e1200] [cursor=pointer]:
+                - generic [ref=f2e117]: 9+
+              - button [ref=f2e1201] [cursor=pointer]:
+                - generic [ref=f2e123]: E
+        - main [ref=f2e134]
+    - navigation [ref=f2e1221]:
+      - button [ref=f2e1222] [cursor=pointer]:
+        - paragraph [ref=f2e1226]: Início
+      - button [ref=f2e1227] [cursor=pointer]:
+        - paragraph [ref=f2e1231]: Exames
+      - button [ref=f2e1232] [cursor=pointer]:
+        - paragraph [ref=f2e1235]: Dr. Exame
+      - button [ref=f2e1236] [cursor=pointer]:
+        - paragraph [ref=f2e1240]: Evolução
+      - button [ref=f2e1241] [cursor=pointer]:
+        - paragraph [ref=f2e1245]: Mais
+  - dialog [ref=f2e1248]:
+    - navigation [ref=f2e1249]:
+      - generic [ref=f2e1254]:
+        - button "Exames" [ref=f2e1255] [cursor=pointer]
+        - button "Valores alterados" [ref=f2e1261] [cursor=pointer]
+        - button "Evolução" [ref=f2e1268] [cursor=pointer]
+        - button "Tendências" [ref=f2e1275] [cursor=pointer]
+        - button "Linha do Tempo" [ref=f2e1281] [cursor=pointer]
+        - button "Relatório completo" [ref=f2e1287] [cursor=pointer]
+      - button "Pessoas" [ref=f2e1304] [cursor=pointer]
+      - button "Conta" [ref=f2e1314] [cursor=pointer]
+      - button "Dúvidas frequentes" [ref=f2e1323] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f2e1329] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f2e1335] [cursor=pointer]
+      - generic [ref=f2e1341]: Dr. Exame • Saúde Inteligente 🩺

@@ -1,0 +1,123 @@
+- generic [active] [ref=f84e1]:
+  - banner [ref=f84e2]:
+    - generic [ref=f84e4]:
+      - link [ref=f84e5] [cursor=pointer]:
+        - /url: https://levels.com
+        - img "Levels Support" [ref=f84e6]
+      - generic:
+        - navigation:
+          - list [ref=f84e7]:
+            - listitem [ref=f84e8]:
+              - link "Home" [ref=f84e9] [cursor=pointer]:
+                - /url: /
+            - listitem [ref=f84e10]:
+              - link "Getting Started" [ref=f84e11] [cursor=pointer]:
+                - /url: /collection/434-getting-started
+            - listitem [ref=f84e12]:
+              - link "Levels 101" [ref=f84e13] [cursor=pointer]:
+                - /url: /collection/6-levels-101
+            - listitem [ref=f84e14]:
+              - link "Glucose Monitoring" [ref=f84e15] [cursor=pointer]:
+                - /url: /collection/606-glucose-monitoring
+            - listitem [ref=f84e16]:
+              - link "Labs & Nutritionist" [ref=f84e17] [cursor=pointer]:
+                - /url: /collection/11-labs-nutritionist
+            - listitem [ref=f84e18]:
+              - link "My Account" [ref=f84e19] [cursor=pointer]:
+                - /url: /collection/22-my-account
+            - listitem [ref=f84e21]:
+              - link "Education & Community" [ref=f84e22] [cursor=pointer]:
+                - /url: /collection/712-education-community
+            - listitem [ref=f84e23]:
+              - link "Policies" [ref=f84e24] [cursor=pointer]:
+                - /url: /collection/689-policies
+            - listitem [ref=f84e25]:
+              - link "Contact" [ref=f84e26] [cursor=pointer]:
+                - /url: "#"
+  - generic [ref=f84e27]:
+    - generic [ref=f84e28]:
+      - generic [ref=f84e29]:
+        - generic [ref=f84e30]:
+          - article [ref=f84e31]:
+            - heading "How to Share Levels Data With Your Doctor" [level=1] [ref=f84e32]
+            - link "Print this Article" [ref=f84e33] [cursor=pointer]:
+              - /url: javascript:window.print()
+              - generic [ref=f84e34]: 
+            - paragraph
+            - paragraph [ref=f84e35]: Share your Levels data with your doctor or care team from the Levels dashboard.
+            - iframe [ref=f84e37]
+            - heading "Share your Levels data" [level=3] [ref=f84e38]
+            - list [ref=f84e39]:
+              - listitem [ref=f84e40]:
+                - text: Log into your Levels member portal
+                - link "here" [ref=f84e41] [cursor=pointer]:
+                  - /url: https://app.levels.com/account/profile
+                - text: .
+              - listitem [ref=f84e42]:
+                - text: In the left sidebar, go to
+                - strong [ref=f84e43]: Data
+                - text: →
+                - strong [ref=f84e44]: Glucose
+                - text: .
+              - listitem [ref=f84e45]:
+                - text: In the upper-right corner, select
+                - strong [ref=f84e46]: Share Your Data
+                - text: .
+              - listitem [ref=f84e47]:
+                - text: Scroll to
+                - strong [ref=f84e48]: Share Your Health Data
+                - text: .
+              - listitem [ref=f84e49]: Enter the email address of the person you want to share your data with.
+              - listitem [ref=f84e50]:
+                - text: Select
+                - strong [ref=f84e51]: Grant Access
+                - text: .
+          - generic [ref=f84e52]:
+            - generic [ref=f84e53]: 
+            - paragraph [ref=f84e54]:
+              - text: Still need help?
+              - link "Contact Us" [ref=f84e55] [cursor=pointer]:
+                - /url: "#"
+        - generic [ref=f84e56]:
+          - heading "Related Articles" [level=3] [ref=f84e57]
+          - list [ref=f84e58]:
+            - listitem [ref=f84e59]:
+              - link "How to Export Your Data" [ref=f84e60] [cursor=pointer]:
+                - /url: /article/105-how-to-export-your-data
+                - generic [ref=f84e61]: 
+                - text: How to Export Your Data
+      - complementary [ref=f84e62]:
+        - generic [ref=f84e63]:
+          - textbox "Search" [ref=f84e64]
+          - button "Toggle Search " [ref=f84e65] [cursor=pointer]:
+            - generic [ref=f84e66]: Toggle Search
+            - generic [ref=f84e67]: 
+        - heading "Categories" [level=3] [ref=f84e68]
+        - list [ref=f84e69]:
+          - listitem [ref=f84e70]:
+            - link "Account Basics" [ref=f84e71] [cursor=pointer]:
+              - /url: /category/711-account-settings
+              - text: Account Basics 
+          - listitem [ref=f84e72]:
+            - link "Membership, Billing, & Orders" [ref=f84e73] [cursor=pointer]:
+              - /url: /category/677-levels-membership
+              - text: Membership, Billing, & Orders 
+          - listitem [ref=f84e74]:
+            - link "Data & Privacy " [ref=f84e75] [cursor=pointer]:
+              - /url: /category/678-resources
+              - text: Data & Privacy
+              - generic [ref=f84e76]: 
+    - generic [ref=f84e77]:
+      - strong [ref=f84e78]: Questions?
+      - text: "Contact us:"
+      - link "support@levels.com" [ref=f84e79] [cursor=pointer]:
+        - /url: mailto:support@levels.com
+    - paragraph [ref=f84e81]:
+      - text: ©
+      - link "Levels Health, Inc." [ref=f84e82] [cursor=pointer]:
+        - /url: https://levels.com
+      - text: "2026."
+      - generic [ref=f84e83]:
+        - text: Powered by
+        - link "Help Scout" [ref=f84e84] [cursor=pointer]:
+          - /url: https://www.helpscout.com/docs-refer/?co=Levels+Health%2C+Inc.&utm_source=docs&utm_medium=footerlink&utm_campaign=Docs+Branding

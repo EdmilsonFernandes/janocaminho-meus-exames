@@ -1,0 +1,83 @@
+- generic [active] [ref=f22e18]:
+  - generic [ref=f22e19]:
+    - generic [ref=f22e20]:
+      - button "Pular para o conteúdo" [ref=f22e402] [cursor=pointer]
+      - generic [ref=f22e22]:
+        - banner [ref=f22e23]:
+          - generic [ref=f22e24]:
+            - button "Menu" [ref=f22e403] [cursor=pointer]:
+              - img [ref=f22e26]
+            - button "Voltar" [ref=f22e422] [cursor=pointer]:
+              - img [ref=f22e423]
+            - button "71" [ref=f22e404] [cursor=pointer]:
+              - img [ref=f22e29]
+              - generic [ref=f22e31]: "71"
+            - button "E" [ref=f22e405] [cursor=pointer]:
+              - generic [ref=f22e35]: E
+            - button "18" [ref=f22e406] [cursor=pointer]:
+              - generic [ref=f22e37]:
+                - img [ref=f22e38]
+                - generic [ref=f22e40]: "18"
+            - button "Mais opções" [ref=f22e407] [cursor=pointer]:
+              - img [ref=f22e42]
+            - button "Atualizar" [ref=f22e408] [cursor=pointer]:
+              - img [ref=f22e46]
+        - main [ref=f22e48]:
+          - generic [ref=f22e513]:
+            - generic [ref=f22e514]:
+              - img [ref=f22e516]
+              - generic [ref=f22e518]:
+                - heading "Seus exames" [level=5] [ref=f22e519]
+                - paragraph [ref=f22e520]: 1 exame no total • toque pra ver detalhes
+            - generic [ref=f22e521]:
+              - generic [ref=f22e523]:
+                - img [ref=f22e525]
+                - textbox "Buscar exame (TSH, glicose, hemograma…)" [ref=f22e527]
+                - group
+              - group [ref=f22e529]:
+                - button "📅 Por data" [pressed] [ref=f22e530] [cursor=pointer]
+                - button "🗂️ Por categoria" [ref=f22e531] [cursor=pointer]
+            - generic [ref=f22e532]:
+              - heading "📅 2026 1" [level=3] [ref=f22e533]:
+                - button "📅 2026 1" [expanded] [ref=f22e534] [cursor=pointer]:
+                  - generic [ref=f22e535]:
+                    - paragraph [ref=f22e536]: 📅 2026
+                    - generic [ref=f22e538]: "1"
+                  - img [ref=f22e540]
+              - region [ref=f22e545]:
+                - generic [ref=f22e548] [cursor=pointer]:
+                  - img [ref=f22e549]
+                  - generic [ref=f22e551]:
+                    - generic [ref=f22e552]:
+                      - paragraph [ref=f22e553]: HEMOGRAMA
+                      - button "O que é este exame?" [ref=f22e555]:
+                        - img [ref=f22e556]
+                    - generic "VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS" [ref=f22e558]: 🏥 VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                    - generic [ref=f22e559]: Hemograma • s/d • 20 itens • Enviado 22/06/2026
+                    - generic [ref=f22e560]:
+                      - generic [ref=f22e562]: 🩸 Hemograma
+                      - generic [ref=f22e564]: Pronto
+                  - button "Excluir" [ref=f22e565]:
+                    - img [ref=f22e566]
+                  - img [ref=f22e568]
+    - button "Enviar exame" [ref=f22e507] [cursor=pointer]:
+      - img [ref=f22e508]
+    - navigation [ref=f22e370]:
+      - generic [ref=f22e371] [cursor=pointer]:
+        - generic [ref=f22e372]: 🏠
+        - paragraph [ref=f22e373]: Início
+      - generic [ref=f22e375] [cursor=pointer]:
+        - generic [ref=f22e376]: 📋
+        - paragraph [ref=f22e377]: Exames
+      - generic [ref=f22e378] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f22e419]
+        - paragraph [ref=f22e381]: Dr. Exame
+      - generic [ref=f22e382] [cursor=pointer]:
+        - generic [ref=f22e383]: 📈
+        - paragraph [ref=f22e384]: Evolução
+      - generic [ref=f22e385] [cursor=pointer]:
+        - generic [ref=f22e386]: ☰
+        - paragraph [ref=f22e387]: Mais
+  - generic [ref=f22e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e420]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e421]

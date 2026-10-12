@@ -1,0 +1,46 @@
+- generic [ref=f4e3]:
+  - navigation [ref=f4e4]:
+    - generic [ref=f4e6]:
+      - button "Menu do médico" [ref=f4e7] [cursor=pointer]:
+        - generic [ref=f4e8]: D
+      - generic [ref=f4e9]:
+        - paragraph [ref=f4e10]: Dra. QA Teste
+        - generic [ref=f4e11]: Clínica Médica • CRM 999999-QA
+    - separator [ref=f4e12]
+    - generic [ref=f4e13]:
+      - generic [ref=f4e14]: PLANO
+      - paragraph [ref=f4e15]: Grátis (0/5 usados)
+      - generic [ref=f4e16]: 5 pré-consultas/SOAP grátis por mês.
+    - list [ref=f4e17]:
+      - button "Painel" [ref=f4e18] [cursor=pointer]
+      - button "Pacientes" [active] [ref=f4e24] [cursor=pointer]
+      - button "Convites" [ref=f4e30] [cursor=pointer]
+      - button "Perguntas" [ref=f4e37] [cursor=pointer]
+      - button "Meu perfil" [ref=f4e44] [cursor=pointer]
+      - button "Trocar senha" [ref=f4e50] [cursor=pointer]
+      - separator [ref=f4e56]
+      - button "Sair" [ref=f4e57] [cursor=pointer]
+    - generic [ref=f4e63]: Dr. Exame • Portal do Médico 🩺
+  - generic [ref=f4e65]:
+    - generic [ref=f4e67]:
+      - paragraph [ref=f4e69]: Pacientes
+      - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e70]: Acesso médico · leitura
+    - generic [ref=f4e74]:
+      - button "Fechar banner" [ref=f4e174] [cursor=pointer]:
+        - generic [aria-hidden] [ref=f4e175]: ×
+      - generic [ref=f4e177]:
+        - heading "Pacientes (1)" [level=6] [ref=f4e179]
+        - textbox "Buscar paciente" [ref=f4e185]:
+          - /placeholder: Buscar paciente pelo nome…
+        - button "Q QA Vazio Titular 1 exame · 21/09/2026 · Particular" [ref=f4e187] [cursor=pointer]:
+          - generic [ref=f4e188]:
+            - generic [ref=f4e189]: Q
+            - generic [ref=f4e191]:
+              - paragraph [ref=f4e192]: QA Vazio
+              - generic [ref=f4e193]: Titular
+              - generic [ref=f4e194]:
+                - generic [ref=f4e195]: 1 exame
+                - generic [ref=f4e200]:
+                  - text: ·
+                  - generic [ref=f4e201]: 21/09/2026
+                - generic [ref=f4e205]: · Particular

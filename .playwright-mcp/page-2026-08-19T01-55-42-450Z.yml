@@ -1,0 +1,41 @@
+- generic [ref=f9e20]:
+  - generic [ref=f9e21]:
+    - generic [ref=f9e22]:
+      - button [ref=f9e23] [cursor=pointer]
+      - generic [ref=f9e24]:
+        - banner [ref=f9e25]:
+          - generic [ref=f9e26]:
+            - button [ref=f9e27] [cursor=pointer]
+            - paragraph [ref=f9e33]: Dr. Exame
+            - button [ref=f9e34] [cursor=pointer]:
+              - generic [ref=f9e37]: "71"
+            - button [ref=f9e38] [cursor=pointer]:
+              - generic [ref=f9e39]: 9+
+            - button [ref=f9e44] [cursor=pointer]:
+              - generic [ref=f9e45]: E
+        - main [ref=f9e47]
+    - button [ref=f9e257] [cursor=pointer]
+    - navigation [ref=f9e166]:
+      - paragraph [ref=f9e171] [cursor=pointer]: Início
+      - paragraph [ref=f9e177] [cursor=pointer]: Exames
+      - paragraph [ref=f9e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f9e186] [cursor=pointer]: Evolução
+      - paragraph [ref=f9e191] [cursor=pointer]: Mais
+  - generic [ref=f9e17] [cursor=pointer]
+  - dialog [active] [ref=f9e195]:
+    - navigation [ref=f9e196]:
+      - button "Exames" [ref=f9e198] [cursor=pointer]
+      - generic [ref=f9e206]:
+        - button "Cuidados" [expanded] [ref=f9e207] [cursor=pointer]
+        - generic [ref=f9e269]:
+          - button "Medições" [ref=f9e270] [cursor=pointer]
+          - button "Vacinas" [ref=f9e277] [cursor=pointer]
+          - button "Lembretes" [ref=f9e283] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=f9e289] [cursor=pointer]
+          - button "Conquistas" [ref=f9e295] [cursor=pointer]
+      - button "Pessoas" [ref=f9e217] [cursor=pointer]
+      - button "Conta" [ref=f9e227] [cursor=pointer]
+      - separator [ref=f9e235]
+      - button "Ajuda & Suporte" [ref=f9e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=f9e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=f9e248] [cursor=pointer]

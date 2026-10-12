@@ -1,0 +1,18 @@
+- generic [active] [ref=f23e1]:
+  - generic [ref=f23e2]:
+    - banner [ref=f23e3]:
+      - generic [ref=f23e4]:
+        - generic [ref=f23e5]:
+          - img "Uai ID" [ref=f23e6]
+          - generic [ref=f23e7]:
+            - generic [ref=f23e8]: UaiID
+            - generic [ref=f23e9]: Identidade Digital
+        - generic [ref=f23e10]: 🔒 256-bit SSL
+    - main [ref=f23e11]:
+      - paragraph [ref=f23e15]: Carregando…
+    - contentinfo [ref=f23e16]:
+      - generic [ref=f23e20]:
+        - text: Ambiente Seguro & Criptografado ·
+        - strong [ref=f23e21]: Uai ID
+        - text: · LGPD Compliant
+  - alert [ref=f23e22]

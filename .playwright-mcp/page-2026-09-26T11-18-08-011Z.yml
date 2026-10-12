@@ -1,0 +1,66 @@
+- generic [ref=f4e3]:
+  - generic [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - button "Voltar" [ref=f4e191] [cursor=pointer]
+      - button "Menu do médico" [ref=f4e6] [cursor=pointer]:
+        - generic [ref=f4e7]: D
+      - generic [ref=f4e8]:
+        - paragraph [ref=f4e9]: Dra. QA Teste
+        - text: Clínica Médica • CRM 999999-QA
+        - generic "Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" [ref=f4e10]: Acesso médico · leitura
+    - generic [ref=f4e194]:
+      - generic [ref=f4e195]:
+        - generic [ref=f4e196]:
+          - generic [ref=f4e197]: Q
+          - generic [ref=f4e200]:
+            - generic [ref=f4e201]: PACIENTE · PRONTUÁRIO COMPARTILHADO
+            - generic [ref=f4e202]:
+              - paragraph [ref=f4e203]: QA Vazio
+              - button "Trocar paciente" [ref=f4e204] [cursor=pointer]: Trocar
+            - paragraph [ref=f4e208]: Titular • Particular
+        - generic [ref=f4e209]:
+          - button "Abrir Último exame" [ref=f4e210] [cursor=pointer]:
+            - generic [ref=f4e211]: Último exame
+            - paragraph [ref=f4e217]: Sem exames
+          - button "Abrir Alterações" [ref=f4e218] [cursor=pointer]:
+            - generic [ref=f4e219]: Alterações
+            - paragraph [ref=f4e226]: "0"
+          - button "Abrir Perguntas" [ref=f4e227] [cursor=pointer]:
+            - generic [ref=f4e228]: Perguntas
+            - paragraph [ref=f4e234]: "0"
+          - button "Abrir Anotações" [ref=f4e235] [cursor=pointer]:
+            - generic [ref=f4e236]: Anotações
+            - paragraph [ref=f4e242]: "0"
+          - button "Abrir Remédios" [ref=f4e243] [cursor=pointer]:
+            - generic [ref=f4e244]: Remédios
+            - paragraph [ref=f4e250]: "0"
+            - generic [ref=f4e251]: ativos
+      - tablist "Abas do paciente" [ref=f4e255]:
+        - tab "Exames" [selected] [ref=f4e256] [cursor=pointer]
+        - tab "Alterados" [ref=f4e262] [cursor=pointer]
+        - tab "Tendências" [ref=f4e268] [cursor=pointer]
+        - tab "Relatório" [ref=f4e274] [cursor=pointer]
+      - generic [ref=f4e281]:
+        - heading "Exames do seu paciente" [level=6] [ref=f4e282]
+        - generic [ref=f4e283]:
+          - generic [ref=f4e285]:
+            - textbox "Buscar por título ou laboratório…" [ref=f4e288]
+            - group [aria-hidden]
+          - group [ref=f4e289]:
+            - button "Por data" [pressed] [ref=f4e290] [cursor=pointer]
+            - button "Por categoria" [ref=f4e291] [cursor=pointer]
+        - generic [ref=f4e292]:
+          - generic [ref=f4e293]: 📄
+          - heading "Nenhum exame compartilhado" [level=6] [ref=f4e295]
+          - paragraph [ref=f4e296]: Este paciente ainda não compartilhou exames com você.
+  - navigation [ref=f4e134]:
+    - button "Início" [ref=f4e135] [cursor=pointer]:
+      - paragraph [ref=f4e140]: Início
+    - button "Pacientes" [ref=f4e142] [cursor=pointer]:
+      - paragraph [ref=f4e147]: Pacientes
+    - button "Perguntas" [ref=f4e148] [cursor=pointer]:
+      - paragraph [ref=f4e153]: Perguntas
+    - button "Perfil" [ref=f4e154] [cursor=pointer]:
+      - paragraph [ref=f4e159]: Perfil
+    - button "Mais" [ref=f4e160] [cursor=pointer]:
+      - paragraph [ref=f4e165]: Mais

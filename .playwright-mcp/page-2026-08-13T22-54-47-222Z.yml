@@ -1,0 +1,61 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e105]:
+      - button [ref=e106] [cursor=pointer]: Pular para o conteúdo
+      - generic [ref=e107]:
+        - banner [ref=e108]:
+          - generic [ref=e109]:
+            - button [ref=e110] [cursor=pointer]:
+              - generic [ref=e113]: "71"
+              - button [ref=e114]
+            - button [ref=e117] [cursor=pointer]:
+              - generic [ref=e118]: "34"
+            - button [ref=e123] [cursor=pointer]:
+              - generic [ref=e124]: E
+              - generic [ref=e126]: Edmilson Lopes Fernandes dos Santos
+            - button [ref=e132] [cursor=pointer]
+        - main [ref=e135]:
+          - navigation [ref=e139]:
+            - generic [ref=e140]:
+              - paragraph [ref=e145] [cursor=pointer]: Início
+              - paragraph [ref=e150] [cursor=pointer]: Exames
+              - paragraph [ref=e156] [cursor=pointer]: Valores alterados
+              - paragraph [ref=e162] [cursor=pointer]: Evolução da saúde
+              - paragraph [ref=e167] [cursor=pointer]: Tendências
+              - paragraph [ref=e172] [cursor=pointer]: Linha do Tempo
+              - paragraph [ref=e177] [cursor=pointer]: Relatório completo
+              - paragraph [ref=e182] [cursor=pointer]: Perguntas
+              - paragraph [ref=e188] [cursor=pointer]: Saúde da Família
+            - button [ref=e190] [cursor=pointer]:
+              - generic [ref=e195]: Minha saúde
+            - button [ref=e200] [cursor=pointer]:
+              - generic [ref=e205]: Família & médicos
+            - button [ref=e210] [cursor=pointer]:
+              - generic [ref=e214]: Conta
+            - separator [ref=e218]
+            - button [ref=e219] [cursor=pointer]:
+              - generic [ref=e223]: Ajuda & Suporte
+            - menuitem [ref=e225] [cursor=pointer]:
+              - generic [ref=e229]: Sobre o app
+            - menuitem [ref=e231] [cursor=pointer]:
+              - generic [ref=e235]: Sair da conta
+    - button [ref=e371] [cursor=pointer]
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [ref=e352]:
+    - generic [ref=e353]:
+      - button [ref=e375] [cursor=pointer]: Pular
+      - generic [ref=e355]:
+        - heading [level=4] [ref=e377]: Envie seu exame
+        - paragraph [ref=e359]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=e360]:
+        - button [ref=e378] [cursor=pointer]: Próximo
+        - paragraph [ref=e370]: Toque em Próximo para continuar →
+  - dialog [active] [ref=e381]:
+    - heading [level=2] [ref=e382]:
+      - generic [ref=e383]:
+        - img "Dr. Exame" [ref=e384]
+        - paragraph [ref=e385]: 💡 Dica do Dr. Exame pra Edmilson
+    - paragraph [ref=e387]: Beba um copo de água agora para melhorar o foco e a disposição. Manter o corpo hidratado é a base para tudo funcionar bem!
+    - generic [ref=e388]:
+      - button "Depois" [ref=e389] [cursor=pointer]
+      - button "Ver notificações" [ref=e390] [cursor=pointer]

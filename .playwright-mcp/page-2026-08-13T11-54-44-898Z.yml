@@ -1,0 +1,110 @@
+- generic [active] [ref=f2e20]:
+  - generic [ref=f2e1781]:
+    - generic [ref=f2e1782]:
+      - generic [ref=f2e1783]:
+        - button "Voltar" [ref=f2e1784] [cursor=pointer]
+        - button "Menu do médico" [ref=f2e1787] [cursor=pointer]:
+          - generic [ref=f2e1788]: D
+        - generic [ref=f2e1789]:
+          - paragraph [ref=f2e1790]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=f2e1792]:
+        - generic [ref=f2e1793]:
+          - generic [ref=f2e1794]:
+            - generic [ref=f2e1795]: E
+            - generic [ref=f2e1798]:
+              - generic [ref=f2e1799]:
+                - paragraph [ref=f2e1800]: Edmilson Lopes Fernandes dos Santos
+                - button "Trocar paciente" [ref=f2e1801] [cursor=pointer]: Trocar
+              - paragraph [ref=f2e1805]: Masculino • Particular
+          - generic [ref=f2e1806]:
+            - generic [ref=f2e1807]:
+              - generic [ref=f2e1808]: Último exame
+              - paragraph [ref=f2e1812]: 09/07
+              - text: há 1 mês
+            - button "Alterações 8" [ref=f2e1813] [cursor=pointer]:
+              - generic [ref=f2e1814]: Alterações
+              - paragraph [ref=f2e1819]: "8"
+            - generic [ref=f2e1820]:
+              - generic [ref=f2e1821]: Pendências
+              - paragraph [ref=f2e1825]: "0"
+            - generic [ref=f2e1826]:
+              - generic [ref=f2e1827]: Anotações
+              - paragraph [ref=f2e1831]: "0"
+        - tablist "Abas do paciente" [ref=f2e1835]:
+          - tab "Exames" [ref=f2e1836] [cursor=pointer]:
+            - superscript [ref=f2e1839]: "5"
+          - tab "Alterados" [ref=f2e1840] [cursor=pointer]:
+            - superscript [ref=f2e1940]: "8"
+          - tab "Tendências" [selected] [ref=f2e1847] [cursor=pointer]
+          - tab "Relatório" [ref=f2e1850] [cursor=pointer]
+          - tab "Perguntas" [ref=f2e1853] [cursor=pointer]
+          - tab "Anotações" [ref=f2e1856] [cursor=pointer]
+        - generic [ref=f2e1943]:
+          - generic [ref=f2e1945]:
+            - heading "📈 Tendências" [level=5] [ref=f2e1946]
+            - paragraph [ref=f2e1947]: Evolução dos marcadores laboratoriais do paciente ao longo do tempo.
+          - generic [ref=f2e1951]:
+            - combobox [ref=f2e1952] [cursor=pointer]: Hemácias (2 exames)
+            - textbox: HEMÁCIAS
+            - group
+          - generic [ref=f2e1954]:
+            - generic [ref=f2e1955]:
+              - heading "Hemácias" [level=6] [ref=f2e1956]
+              - button "O que é este exame?" [ref=f2e1957] [cursor=pointer]
+            - generic [ref=f2e1960]:
+              - generic [ref=f2e1961]:
+                - paragraph [ref=f2e1962]: 4,9 milhões/mm3
+                - paragraph [ref=f2e1963]: ↑ 7%
+              - paragraph [ref=f2e1964]: ↑ Tendência de alta · 2 medições
+              - paragraph [ref=f2e1965]:
+                - text: "Última medição:"
+                - strong [ref=f2e1966]: 09/07/26
+              - paragraph [ref=f2e1967]: "Referência: 4.5–5.9 milhões/mm3"
+            - application [ref=f2e1970]:
+              - generic [ref=f2e1993]:
+                - generic [ref=f2e1994]:
+                  - generic [ref=f2e1995]: 14/04
+                  - generic [ref=f2e1997]: 09/07
+                - generic [ref=f2e1999]:
+                  - generic [ref=f2e2000]: "0"
+                  - generic [ref=f2e2002]: "2"
+                  - generic [ref=f2e2004]: "4"
+                  - generic [ref=f2e2006]: "6"
+                  - generic [ref=f2e2008]: "8"
+            - generic [ref=f2e2010]:
+              - paragraph [ref=f2e2011]: "📈 Tendência: subindo"
+              - paragraph [ref=f2e2012]:
+                - text: Neste ritmo, HEMÁCIAS ultrapassa a faixa em
+                - strong [ref=f2e2013]: ~10 meses
+                - text: .
+            - generic [ref=f2e2014]:
+              - heading "Histórico (do mais recente)" [level=6] [ref=f2e2015]
+              - generic [ref=f2e2016]:
+                - generic [ref=f2e2017]:
+                  - generic [ref=f2e2018]:
+                    - paragraph [ref=f2e2019]: 09/07/26
+                    - generic "HEMOGRAMA" [ref=f2e2020]
+                  - generic [ref=f2e2021]:
+                    - paragraph [ref=f2e2022]: 4,9 milhões/mm3
+                    - generic "Dentro da referência" [ref=f2e2023]: Normal
+                - generic [ref=f2e2025]:
+                  - generic [ref=f2e2026]:
+                    - paragraph [ref=f2e2027]: 14/04/26
+                    - generic "HEMOGRAMA" [ref=f2e2028]
+                  - generic [ref=f2e2029]:
+                    - paragraph [ref=f2e2030]: 4,6 milhões/mm3
+                    - generic "Dentro da referência" [ref=f2e2031]: Normal
+    - navigation [ref=f2e1914]:
+      - button "Pacientes" [ref=f2e1915] [cursor=pointer]:
+        - paragraph [ref=f2e1920]: Pacientes
+      - button "Perguntas" [ref=f2e1922] [cursor=pointer]:
+        - paragraph [ref=f2e1927]: Perguntas
+      - button "Perfil" [ref=f2e1928] [cursor=pointer]:
+        - paragraph [ref=f2e1933]: Perfil
+      - button "Mais" [ref=f2e1934] [cursor=pointer]:
+        - paragraph [ref=f2e1939]: Mais
+  - generic [ref=f2e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e1779]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f2e1780]
+  - generic [ref=f2e1495]: "0"

@@ -1,0 +1,80 @@
+- generic [ref=e20]:
+  - generic [ref=e22]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - button "Voltar" [ref=e137] [cursor=pointer]
+        - button "Menu do médico" [ref=e25] [cursor=pointer]:
+          - generic [ref=e26]: D
+        - generic [ref=e27]:
+          - paragraph [ref=e28]: Dr Teste QA
+          - text: Clínico Geral • CRM 99999-SP
+      - generic [ref=e141]:
+        - generic [ref=e142]:
+          - generic [ref=e143]:
+            - generic [ref=e144]: E
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - paragraph [ref=e149]: Edmilson Lopes QA
+                - button "Trocar paciente" [ref=e150] [cursor=pointer]: Trocar
+              - paragraph [ref=e154]: Masculino • Titular • Particular
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - generic [ref=e157]: Último exame
+              - paragraph [ref=e161]: 03/08
+              - text: há 12 dias
+            - button "Alterações 1" [ref=e162] [cursor=pointer]:
+              - generic [ref=e163]: Alterações
+              - paragraph [ref=e168]: "1"
+            - generic [ref=e169]:
+              - generic [ref=e170]: Pendências
+              - paragraph [ref=e174]: "0"
+            - generic [ref=e175]:
+              - generic [ref=e176]: Anotações
+              - paragraph [ref=e180]: "0"
+        - tablist "Abas do paciente" [ref=e184]:
+          - tab "Exames" [active] [selected] [ref=e185] [cursor=pointer]:
+            - generic [ref=e236]:
+              - generic [ref=e237]: Exames
+              - superscript [ref=e238]: "1"
+          - tab "Alterados" [ref=e190] [cursor=pointer]:
+            - superscript [ref=e239]: "1"
+          - tab "Tendências" [ref=e196] [cursor=pointer]
+          - tab "Relatório" [ref=e199] [cursor=pointer]
+          - tab "Perguntas" [ref=e202] [cursor=pointer]
+          - tab "Anotações" [ref=e205] [cursor=pointer]
+        - generic [ref=e240]:
+          - heading "Exames do seu paciente" [level=6] [ref=e241]
+          - generic [ref=e242]:
+            - generic [ref=e244]:
+              - textbox "Buscar por título ou laboratório…" [ref=e247]
+              - group
+            - group [ref=e248]:
+              - button "Por data" [pressed] [ref=e249] [cursor=pointer]
+              - button "Por categoria" [ref=e250] [cursor=pointer]
+          - generic [ref=e251]:
+            - heading [level=3] [ref=e252]:
+              - button "2026 1" [expanded] [ref=e253] [cursor=pointer]:
+                - generic [ref=e254]:
+                  - heading "2026" [level=6] [ref=e255]
+                  - generic [ref=e256]: "1"
+            - region [ref=e264]:
+              - generic [ref=e271] [cursor=pointer]:
+                - generic [ref=e272]:
+                  - heading "Hemograma Completo" [level=6] [ref=e273]
+                  - button "O que é este exame?" [ref=e275]
+                - generic [ref=e278]: 03 ago 2026 • há 12 dias
+                - generic [ref=e282]: Glicemia e Diabetes • 1 alterado(s)
+    - navigation [ref=e105]:
+      - button "Início" [ref=e106] [cursor=pointer]:
+        - paragraph [ref=e111]: Início
+      - button "Pacientes" [ref=e113] [cursor=pointer]:
+        - paragraph [ref=e118]: Pacientes
+      - button "Perguntas" [ref=e119] [cursor=pointer]:
+        - paragraph [ref=e124]: Perguntas
+      - button "Perfil" [ref=e125] [cursor=pointer]:
+        - paragraph [ref=e130]: Perfil
+      - button "Mais" [ref=e131] [cursor=pointer]:
+        - paragraph [ref=e136]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

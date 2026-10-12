@@ -1,0 +1,54 @@
+- generic [ref=f8e2]:
+  - generic [ref=f8e7]:
+    - img "Dr. Exame" [ref=f8e13]
+    - generic [ref=f8e14]:
+      - heading "Dr. Exame" [level=3] [ref=f8e15]
+      - paragraph [ref=f8e18]: Iniciando o Dr. Exame…
+  - generic [ref=f8e27]:
+    - button "Pular para o conteúdo" [ref=f8e28] [cursor=pointer]
+    - generic [ref=f8e29]:
+      - banner [ref=f8e30]:
+        - generic [ref=f8e31]:
+          - heading [level=6]
+          - generic [ref=f8e32]:
+            - button "Notificações" [ref=f8e33] [cursor=pointer]:
+              - generic [ref=f8e34]: "0"
+            - button "👤 Selecionar" [ref=f8e38] [cursor=pointer]:
+              - generic [ref=f8e39]: 👤
+              - generic [ref=f8e41]: Selecionar
+          - button "Atualizar" [ref=f8e47] [cursor=pointer]
+      - main [ref=f8e50]:
+        - navigation [ref=f8e54]:
+          - generic [ref=f8e60]:
+            - paragraph [ref=f8e61]: Ed teste 2
+            - generic [ref=f8e62]: Plano grátis
+          - separator [ref=f8e65]
+          - button "Exames" [ref=f8e67] [cursor=pointer]
+          - button "Cuidados" [ref=f8e76] [cursor=pointer]
+          - button "Pessoas" [ref=f8e86] [cursor=pointer]
+          - button "Conta" [ref=f8e96] [cursor=pointer]
+          - separator [ref=f8e104]
+          - button "Dúvidas frequentes" [ref=f8e105] [cursor=pointer]
+          - button "Como validamos" [ref=f8e111] [cursor=pointer]
+          - menuitem "Sobre o app" [ref=f8e117] [cursor=pointer]
+          - menuitem "Sair da conta" [ref=f8e123] [cursor=pointer]
+        - generic [ref=f8e130]:
+          - img "Dr. Exame" [ref=f8e132]
+          - paragraph [ref=f8e133]: "404"
+          - heading "Página não encontrada" [level=5] [ref=f8e134]
+          - paragraph [ref=f8e135]: O endereço pode estar incorreto ou a página foi movida. Vamos te colocar de volta nos trilhos.
+          - button [ref=f8e136] [cursor=pointer]
+          - generic [ref=f8e140]: Ou tente por aqui
+          - generic [ref=f8e141]:
+            - generic [ref=f8e142] [cursor=pointer]:
+              - paragraph [ref=f8e146]: Meus exames
+              - generic [ref=f8e147]: Histórico e laudos
+            - generic [ref=f8e148] [cursor=pointer]:
+              - paragraph [ref=f8e152]: Evolução
+              - generic [ref=f8e153]: Gráficos ao longo do tempo
+            - generic [ref=f8e154] [cursor=pointer]:
+              - paragraph [ref=f8e158]: Planos
+              - generic [ref=f8e159]: Créditos e assinatura
+            - generic [ref=f8e160] [cursor=pointer]:
+              - paragraph [ref=f8e167]: Suporte
+              - generic [ref=f8e168]: Abra um chamado

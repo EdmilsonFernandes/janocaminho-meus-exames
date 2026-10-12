@@ -1,0 +1,52 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e35]: "28"
+            - button [ref=e40] [cursor=pointer]:
+              - generic [ref=e41]: E
+            - button [ref=e44] [cursor=pointer]
+        - main [ref=e47]
+    - navigation [ref=e274]:
+      - paragraph [ref=e279] [cursor=pointer]: Início
+      - paragraph [ref=e285] [cursor=pointer]: Exames
+      - paragraph [ref=e289] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e294] [cursor=pointer]: Evolução
+      - paragraph [ref=e299] [cursor=pointer]: Mais
+  - dialog [active] [ref=e304]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e305]
+    - generic [ref=e306]:
+      - generic [ref=e307]: Versão 1.4.4
+      - generic [ref=e308]:
+        - generic [ref=e309]:
+          - generic [ref=e310]: 🔑
+          - generic [ref=e311]:
+            - paragraph [ref=e312]: Login com Google
+            - text: Entre com 1 toque — sem digitar senha.
+        - generic [ref=e313]:
+          - generic [ref=e314]: 🤖
+          - generic [ref=e315]:
+            - paragraph [ref=e316]: Chat premium
+            - text: Renovado, mais limpo e rápido.
+        - generic [ref=e317]:
+          - generic [ref=e318]: 🌐
+          - generic [ref=e319]:
+            - paragraph [ref=e320]: Bilingue
+            - text: Português + inglês automático.
+        - generic [ref=e321]:
+          - generic [ref=e322]: 📊
+          - generic [ref=e323]:
+            - paragraph [ref=e324]: Dashboard premium
+            - text: Anel de score + detalhes em acordeão.
+        - generic [ref=e325]:
+          - generic [ref=e326]: 🔐
+          - generic [ref=e327]:
+            - paragraph [ref=e328]: MFA recovery
+            - text: Recupere seu acesso com suporte.
+    - button "Legal! →" [ref=e330] [cursor=pointer]

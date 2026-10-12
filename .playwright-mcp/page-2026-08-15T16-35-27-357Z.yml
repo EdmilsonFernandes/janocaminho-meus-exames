@@ -1,0 +1,228 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e22]:
+    - navigation [ref=e23]:
+      - generic [ref=e25]:
+        - button "Menu do médico" [ref=e26] [cursor=pointer]
+        - generic [ref=e29]:
+          - paragraph [ref=e30]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e31]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e32]
+      - generic [ref=e33]:
+        - generic [ref=e34]: PLANO
+        - paragraph [ref=e35]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e36]:
+        - button "Pacientes" [ref=e37] [cursor=pointer]
+        - button "Convites" [ref=e43] [cursor=pointer]
+        - button "Perguntas" [ref=e50] [cursor=pointer]
+        - button "Meu perfil" [ref=e57] [cursor=pointer]
+        - button "Trocar senha" [ref=e63] [cursor=pointer]
+        - separator [ref=e69]
+        - button "Sair" [ref=e70] [cursor=pointer]
+      - generic [ref=e76]: Portal do Médico
+    - generic [ref=e77]:
+      - generic [ref=e78]:
+        - button "Voltar" [ref=e129] [cursor=pointer]
+        - paragraph [ref=e80]: Edmilson Lopes
+      - generic [ref=e89]:
+        - generic [ref=e90]:
+          - generic [ref=e91]:
+            - heading "Pacientes (2)" [level=6] [ref=e92]
+            - generic [ref=e93]: 🔴 2 com alerta
+          - generic [ref=e95]:
+            - textbox "Buscar paciente" [ref=e100]:
+              - /placeholder: Buscar paciente pelo nome…
+            - button "Só alerta" [ref=e101] [cursor=pointer]
+          - generic [ref=e104]:
+            - generic [ref=e111] [cursor=pointer]:
+              - paragraph [ref=e112]: Heloisa Cristina Fernandes
+              - generic [ref=e113]: "48a · F · Cônjuge · titular: Edmilson"
+              - generic [ref=e114]: 🔴 alerta · 📋 13 exames · 📅 13/08/2026 · AMIL
+            - generic [ref=e123] [cursor=pointer]:
+              - paragraph [ref=e124]: Edmilson Lopes
+              - generic [ref=e125]: 47a · M · Titular
+              - generic [ref=e126]: 🔴 alerta · 📋 23 exames · 📅 04/08/2026 · AMIL
+        - generic [ref=e132]:
+          - generic [ref=e133]:
+            - generic [ref=e139]:
+              - generic [ref=e140]:
+                - paragraph [ref=e141]: Edmilson Lopes
+                - button "Trocar paciente" [ref=e142] [cursor=pointer]: Trocar
+              - paragraph [ref=e146]: 47 anos • Masculino • Titular • AMIL • 91 kg
+            - generic [ref=e147]:
+              - generic [ref=e148]:
+                - generic [ref=e149]: Último exame
+                - paragraph [ref=e153]: 04/08
+                - text: há 11 dias
+              - button "Alterações 64" [ref=e380] [cursor=pointer]:
+                - generic [ref=e155]: Alterações
+                - paragraph [ref=e160]: "64"
+              - generic [ref=e161]:
+                - generic [ref=e162]: Pendências
+                - paragraph [ref=e166]: "1"
+              - generic [ref=e167]:
+                - generic [ref=e168]: Anotações
+                - paragraph [ref=e172]: "0"
+          - tablist "Abas do paciente" [ref=e176]:
+            - tab "Exames" [ref=e177] [cursor=pointer]:
+              - generic [ref=e180]:
+                - generic [ref=e181]: Exames
+                - superscript [ref=e381]: "20"
+            - tab "Alterados" [selected] [ref=e183] [cursor=pointer]:
+              - generic [ref=e187]:
+                - generic [ref=e188]: Alterados
+                - superscript [ref=e382]: "64"
+            - tab "Tendências" [ref=e190] [cursor=pointer]
+            - tab "Relatório" [ref=e195] [cursor=pointer]
+            - tab "Perguntas" [ref=e200] [cursor=pointer]:
+              - generic [ref=e203]:
+                - generic [ref=e204]: Perguntas
+                - superscript [ref=e383]: "1"
+            - tab "Anotações" [ref=e206] [cursor=pointer]
+          - generic [ref=e384]:
+            - generic [ref=e386]:
+              - generic [ref=e387]:
+                - generic [ref=e388]: 🔴 12 Importantes
+                - generic [ref=e389]: 🟠 28 Moderadas
+                - generic [ref=e390]: 🟡 32 Leves
+              - generic [ref=e391]:
+                - text: Os
+                - strong [ref=e392]: 🔴 importantes
+                - text: "merecem prioridade — leve ao médico. 🟠 moderadas: comente na consulta. 🟡 leves: só acompanhe."
+            - generic [ref=e393]:
+              - heading [level=3] [ref=e395]:
+                - button "🔴 HEMOGRAMA COMPLETO 📅 04/08/2026 · há 11 dias 🩺 Dr. ENRICO DO AMARAL FONSECA 9 alterado(s)" [ref=e396] [cursor=pointer]:
+                  - generic [ref=e398]:
+                    - generic [ref=e399]: 🔴
+                    - generic [ref=e400]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e401]
+                      - generic [ref=e402]: 📅 04/08/2026 · há 11 dias
+                      - generic [ref=e403]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e404]: 9 alterado(s)
+              - heading [level=3] [ref=e410]:
+                - button "🔴 TIREOIDEANA (TSH, T4 LIVRE, ANTICORPOS, TIREOGLOBULINA) 📅 04/08/2026 · há 11 dias 🩺 Dr. DANIEL CESAR SHIRANE 2 alterado(s)" [ref=e411] [cursor=pointer]:
+                  - generic [ref=e413]:
+                    - generic [ref=e414]: 🔴
+                    - generic [ref=e415]:
+                      - heading "TIREOIDEANA (TSH, T4 LIVRE, ANTICORPOS, TIREOGLOBULINA)" [level=6] [ref=e416]
+                      - generic [ref=e417]: 📅 04/08/2026 · há 11 dias
+                      - generic [ref=e418]: 🩺 Dr. DANIEL CESAR SHIRANE
+                    - generic [ref=e419]: 2 alterado(s)
+              - heading [level=3] [ref=e425]:
+                - button "🔴 HEMOGRAMA COMPLETO 📅 11/06/2026 · há 2 meses 🩺 Dr. ENRICO DO AMARAL FONSECA 8 alterado(s)" [ref=e426] [cursor=pointer]:
+                  - generic [ref=e428]:
+                    - generic [ref=e429]: 🔴
+                    - generic [ref=e430]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e431]
+                      - generic [ref=e432]: 📅 11/06/2026 · há 2 meses
+                      - generic [ref=e433]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e434]: 8 alterado(s)
+              - heading [level=3] [ref=e440]:
+                - button "🔴 FUNÇÃO TIREOIDIANA 📅 12/05/2026 · há 3 meses 🩺 Dr. DANIEL CESAR SHIRANE 2 alterado(s)" [ref=e441] [cursor=pointer]:
+                  - generic [ref=e443]:
+                    - generic [ref=e444]: 🔴
+                    - generic [ref=e445]:
+                      - heading "FUNÇÃO TIREOIDIANA" [level=6] [ref=e446]
+                      - generic [ref=e447]: 📅 12/05/2026 · há 3 meses
+                      - generic [ref=e448]: 🩺 Dr. DANIEL CESAR SHIRANE
+                    - generic [ref=e449]: 2 alterado(s)
+              - heading [level=3] [ref=e455]:
+                - button "🔴 HEMOGRAMA COMPLETO 📅 06/03/2026 · há 5 meses 🩺 Dr. VIVIANE VARGAS DOS SANTOS 13 alterado(s)" [ref=e456] [cursor=pointer]:
+                  - generic [ref=e458]:
+                    - generic [ref=e459]: 🔴
+                    - generic [ref=e460]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e461]
+                      - generic [ref=e462]: 📅 06/03/2026 · há 5 meses
+                      - generic [ref=e463]: 🩺 Dr. VIVIANE VARGAS DOS SANTOS
+                    - generic [ref=e464]: 13 alterado(s)
+              - heading [level=3] [ref=e470]:
+                - button "🔴 HEMOGRAMA COMPLETO 📅 12/03/2024 · há 2 anos ⏳ Exame antigo — considere renovar 🩺 Dr. ENRICO DO AMARAL FONSECA 6 alterado(s)" [ref=e471] [cursor=pointer]:
+                  - generic [ref=e473]:
+                    - generic [ref=e474]: 🔴
+                    - generic [ref=e475]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e476]
+                      - generic [ref=e477]: 📅 12/03/2024 · há 2 anos
+                      - generic [ref=e478]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e479]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e480]: 6 alterado(s)
+              - heading [level=3] [ref=e486]:
+                - button "🟠 TSH - TIREOESTIMULANTE / T4 LIVRE / ANTICORPOS ANTITIREOGLOBULINA / TIREOGLOBULINA 📅 05/03/2026 · há 5 meses 🩺 Dr. DANIEL CESAR SHIRANE 2 alterado(s)" [ref=e487] [cursor=pointer]:
+                  - generic [ref=e489]:
+                    - generic [ref=e490]: 🟠
+                    - generic [ref=e491]:
+                      - heading "TSH - TIREOESTIMULANTE / T4 LIVRE / ANTICORPOS ANTITIREOGLOBULINA / TIREOGLOBULINA" [level=6] [ref=e492]
+                      - generic [ref=e493]: 📅 05/03/2026 · há 5 meses
+                      - generic [ref=e494]: 🩺 Dr. DANIEL CESAR SHIRANE
+                    - generic [ref=e495]: 2 alterado(s)
+              - heading [level=3] [ref=e501]:
+                - button "🟠 FUNÇÃO TIREOIDIANA 📅 05/03/2026 · há 5 meses 🩺 Dr. DANIEL CESAR SHIRANE 2 alterado(s)" [ref=e502] [cursor=pointer]:
+                  - generic [ref=e504]:
+                    - generic [ref=e505]: 🟠
+                    - generic [ref=e506]:
+                      - heading "FUNÇÃO TIREOIDIANA" [level=6] [ref=e507]
+                      - generic [ref=e508]: 📅 05/03/2026 · há 5 meses
+                      - generic [ref=e509]: 🩺 Dr. DANIEL CESAR SHIRANE
+                    - generic [ref=e510]: 2 alterado(s)
+              - heading [level=3] [ref=e516]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 13/01/2026 · há 7 meses 🩺 Dr. VIVIANE VARGAS DOS SANTOS 7 alterado(s)" [ref=e517] [cursor=pointer]:
+                  - generic [ref=e519]:
+                    - generic [ref=e520]: 🟠
+                    - generic [ref=e521]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e522]
+                      - generic [ref=e523]: 📅 13/01/2026 · há 7 meses
+                      - generic [ref=e524]: 🩺 Dr. VIVIANE VARGAS DOS SANTOS
+                    - generic [ref=e525]: 7 alterado(s)
+              - heading [level=3] [ref=e531]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 05/05/2025 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. VIVIANE VARGAS DOS SANTOS 3 alterado(s)" [ref=e532] [cursor=pointer]:
+                  - generic [ref=e534]:
+                    - generic [ref=e535]: 🟠
+                    - generic [ref=e536]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e537]
+                      - generic [ref=e538]: 📅 05/05/2025 · há 1 ano
+                      - generic [ref=e539]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e540]: 🩺 Dr. VIVIANE VARGAS DOS SANTOS
+                    - generic [ref=e541]: 3 alterado(s)
+              - heading [level=3] [ref=e547]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 22/05/2023 · há 3 anos ⏳ Exame antigo — considere renovar 🩺 Dr. ENRICO DO AMARAL FONSECA 5 alterado(s)" [ref=e548] [cursor=pointer]:
+                  - generic [ref=e550]:
+                    - generic [ref=e551]: 🟠
+                    - generic [ref=e552]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e553]
+                      - generic [ref=e554]: 📅 22/05/2023 · há 3 anos
+                      - generic [ref=e555]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e556]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e557]: 5 alterado(s)
+              - heading [level=3] [ref=e563]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 19/05/2021 · há 5 anos ⏳ Exame antigo — considere renovar 🩺 Dr. ENRICO DO AMARAL FONSECA 5 alterado(s)" [ref=e564] [cursor=pointer]:
+                  - generic [ref=e566]:
+                    - generic [ref=e567]: 🟠
+                    - generic [ref=e568]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e569]
+                      - generic [ref=e570]: 📅 19/05/2021 · há 5 anos
+                      - generic [ref=e571]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e572]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e573]: 5 alterado(s)
+              - heading [level=3] [ref=e579]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 29/10/2019 · há 6 anos ⏳ Exame antigo — considere renovar 🩺 Dr. ENRICO DO AMARAL FONSECA 4 alterado(s)" [ref=e580] [cursor=pointer]:
+                  - generic [ref=e582]:
+                    - generic [ref=e583]: 🟠
+                    - generic [ref=e584]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e585]
+                      - generic [ref=e586]: 📅 29/10/2019 · há 6 anos
+                      - generic [ref=e587]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e588]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e589]: 4 alterado(s)
+              - heading [level=3] [ref=e595]:
+                - button "🟠 HEMOGRAMA COMPLETO 📅 03/03/2018 · há 8 anos ⏳ Exame antigo — considere renovar 🩺 Dr. ENRICO DO AMARAL FONSECA 4 alterado(s)" [ref=e596] [cursor=pointer]:
+                  - generic [ref=e598]:
+                    - generic [ref=e599]: 🟠
+                    - generic [ref=e600]:
+                      - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e601]
+                      - generic [ref=e602]: 📅 03/03/2018 · há 8 anos
+                      - generic [ref=e603]: ⏳ Exame antigo — considere renovar
+                      - generic [ref=e604]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                    - generic [ref=e605]: 4 alterado(s)
+            - generic [ref=e610]: "*Educativo. A interpretação final é sua."
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]

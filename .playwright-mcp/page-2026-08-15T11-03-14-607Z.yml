@@ -1,0 +1,98 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e882]:
+      - button [ref=e883] [cursor=pointer]
+      - generic [ref=e884]:
+        - banner [ref=e885]:
+          - generic [ref=e886]:
+            - button [ref=e887] [cursor=pointer]
+            - paragraph [ref=e893]: Dr. Exame
+            - button [ref=e894] [cursor=pointer]:
+              - generic [ref=e897]: "19"
+              - button [ref=e898]
+            - button [ref=e901] [cursor=pointer]:
+              - generic [ref=e902]: "1"
+            - button [ref=e907] [cursor=pointer]
+            - button [ref=e916] [cursor=pointer]
+        - main [ref=e919]:
+          - generic [ref=e921]:
+            - generic [ref=e922]:
+              - paragraph [ref=e923]: Bom dia, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e924]:
+              - generic [ref=e926]:
+                - generic [ref=e927]:
+                  - paragraph [ref=e934]: de 100
+                  - generic [ref=e935]:
+                    - paragraph [ref=e936]: Sua saúde hoje
+                    - paragraph [ref=e937]: Calculando…
+                    - paragraph [ref=e939]: ● Nada crítico no momento
+                - button [ref=e940] [cursor=pointer]: Ver análise completa
+              - generic [ref=e945]:
+                - paragraph [ref=e946]: Desde seu último exame
+                - paragraph [ref=e948]: Carregando…
+                - button [ref=e950] [cursor=pointer]: Ver evolução completa
+            - button [ref=e959] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e963]:
+              - generic [ref=e970] [cursor=pointer]:
+                - paragraph [ref=e971]: Cardiometabólico
+                - paragraph [ref=e972]: —
+                - paragraph [ref=e973]: sem fatores
+              - generic [ref=e976] [cursor=pointer]:
+                - generic [ref=e977]: 🧬
+                - generic [ref=e978]:
+                  - paragraph [ref=e979]: Idade biológica
+                  - paragraph [ref=e980]: Em breve
+                  - paragraph [ref=e981]: estimativa c/ +exames
+              - generic [ref=e988] [cursor=pointer]:
+                - paragraph [ref=e989]: Seus exames
+                - paragraph [ref=e990]: —
+                - paragraph [ref=e991]: 0 alterados
+              - generic [ref=e998] [cursor=pointer]:
+                - paragraph [ref=e999]: Evolução
+                - paragraph [ref=e1000]: Tendências
+                - paragraph [ref=e1001]: 0 resultados
+            - generic [ref=e1003]:
+              - generic [ref=e1004]: Enviar exame
+              - generic [ref=e1011]: Evolução
+              - generic [ref=e1018]: Família
+              - generic [ref=e1026]: Relatório
+            - button [ref=e1034] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e1038]:
+      - paragraph [ref=e1043] [cursor=pointer]: Início
+      - paragraph [ref=e1049] [cursor=pointer]: Exames
+      - paragraph [ref=e1053] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e1058] [cursor=pointer]: Evolução
+      - paragraph [ref=e1063] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e1068]:
+    - heading "✨ Novidades do Dr. Exame" [level=2] [ref=e1069]
+    - generic [ref=e1070]:
+      - generic [ref=e1071]: Versão 1.4.4
+      - generic [ref=e1072]:
+        - generic [ref=e1073]:
+          - generic [ref=e1074]: 🔑
+          - generic [ref=e1075]:
+            - paragraph [ref=e1076]: Login com Google
+            - text: Entre com 1 toque — sem digitar senha.
+        - generic [ref=e1077]:
+          - generic [ref=e1078]: 🤖
+          - generic [ref=e1079]:
+            - paragraph [ref=e1080]: Chat premium
+            - text: Renovado, mais limpo e rápido.
+        - generic [ref=e1081]:
+          - generic [ref=e1082]: 🌐
+          - generic [ref=e1083]:
+            - paragraph [ref=e1084]: Bilingue
+            - text: Português + inglês automático.
+        - generic [ref=e1085]:
+          - generic [ref=e1086]: 📊
+          - generic [ref=e1087]:
+            - paragraph [ref=e1088]: Dashboard premium
+            - text: Anel de score + detalhes em acordeão.
+        - generic [ref=e1089]:
+          - generic [ref=e1090]: 🔐
+          - generic [ref=e1091]:
+            - paragraph [ref=e1092]: MFA recovery
+            - text: Recupere seu acesso com suporte.
+    - button "Legal! →" [ref=e1094] [cursor=pointer]

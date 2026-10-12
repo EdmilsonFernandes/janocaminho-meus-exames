@@ -1,0 +1,309 @@
+- generic [ref=f4e18]:
+  - generic [ref=f4e20]:
+    - generic [ref=f4e22]:
+      - generic [ref=f4e23] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f4e24]
+        - heading "Meus Exames" [level=6] [ref=f4e25]
+      - generic [ref=f4e26]:
+        - button "Recursos" [ref=f4e27] [cursor=pointer]
+        - button "Planos" [ref=f4e28] [cursor=pointer]
+        - button "🩺 Sou médico" [active] [ref=f4e29] [cursor=pointer]
+        - button "Entrar" [ref=f4e30] [cursor=pointer]
+        - button "Criar conta" [ref=f4e31] [cursor=pointer]
+    - generic [ref=f4e34]:
+      - generic [ref=f4e35]:
+        - generic [ref=f4e36]:
+          - img [ref=f4e37]
+          - generic [ref=f4e39]: IA de Saúde no seu bolso
+        - heading "Entenda seus exames como nunca antes." [level=1] [ref=f4e40]:
+          - text: Entenda seus exames
+          - text: como nunca antes.
+        - paragraph [ref=f4e41]: Envie o exame de sangue, imagem ou laudo. O Dr. Exame lê tudo com IA, explica em português simples e acompanha sua evolução.
+        - generic [ref=f4e42]:
+          - button "Começar grátis →" [ref=f4e43] [cursor=pointer]
+          - button "Já tenho conta" [ref=f4e44] [cursor=pointer]
+        - generic [ref=f4e45]:
+          - generic [ref=f4e46]:
+            - img [ref=f4e47]
+            - paragraph [ref=f4e49]: Sem cartão
+          - generic [ref=f4e50]:
+            - img [ref=f4e51]
+            - paragraph [ref=f4e53]: 60 créditos grátis
+          - generic [ref=f4e54]:
+            - img [ref=f4e55]
+            - paragraph [ref=f4e57]: LGPD
+        - paragraph [ref=f4e58]: É médico? Acesse o Portal do Médico →
+      - img "Dr. Exame — seus exames com IA" [ref=f4e61]
+    - generic [ref=f4e64]:
+      - generic [ref=f4e65]:
+        - img [ref=f4e66]
+        - paragraph [ref=f4e68]: Conforme a LGPD
+      - generic [ref=f4e69]:
+        - img [ref=f4e70]
+        - paragraph [ref=f4e72]: Acessível em Libras
+      - generic [ref=f4e73]:
+        - img [ref=f4e74]
+        - paragraph [ref=f4e76]: Portal do Médico
+      - generic [ref=f4e77]:
+        - img [ref=f4e78]
+        - paragraph [ref=f4e80]: Sem cartão pra começar
+    - generic [ref=f4e81]:
+      - heading "Tudo que você precisa pra dominar sua saúde" [level=2] [ref=f4e82]
+      - paragraph [ref=f4e83]: Não é só um leitor de PDF. É um assistente completo que entende, compara e prevê.
+      - generic [ref=f4e84]:
+        - generic [ref=f4e85]:
+          - img [ref=f4e87]
+          - heading "IA que lê seus exames" [level=6] [ref=f4e89]
+          - paragraph [ref=f4e90]: Envie o PDF ou foto. O Dr. Exame extrai todos os valores e explica em português simples — sem jargão.
+        - generic [ref=f4e91]:
+          - img [ref=f4e93]
+          - heading "Chat inteligente (economiza)" [level=6] [ref=f4e95]
+          - paragraph [ref=f4e96]: Perguntas simples ("qual meu último TSH?") são respondidas na hora e de graça. Só as complexas vão pra IA.
+        - generic [ref=f4e97]:
+          - img [ref=f4e99]
+          - heading "Comparativo visual" [level=6] [ref=f4e101]
+          - paragraph [ref=f4e102]: Veja o que mudou entre exames. Hemoglobina subiu? Colesterol caiu? Gráficos claros com faixa de referência.
+        - generic [ref=f4e103]:
+          - img [ref=f4e105]
+          - heading "Evolução + Previsão" [level=6] [ref=f4e107]
+          - paragraph [ref=f4e108]: Acompanhe tendências e saiba quando um valor pode sair da faixa (previsão exclusiva do Premium).
+        - generic [ref=f4e109]:
+          - img [ref=f4e111]
+          - heading "Portal do seu médico" [level=6] [ref=f4e113]
+          - paragraph [ref=f4e114]: "Indique pelo CRM e seu médico ganha um portal próprio — vê apenas o que você autorizar: exames, alertas e evolução."
+        - generic [ref=f4e115]:
+          - img [ref=f4e117]
+          - heading "Toda a família" [level=6] [ref=f4e120]
+          - paragraph [ref=f4e121]: Gerencie exames de cada dependente. Score familiar + comparativo entre membros.
+        - generic [ref=f4e122]:
+          - img [ref=f4e124]
+          - heading "Pronto para o médico" [level=6] [ref=f4e126]
+          - paragraph [ref=f4e127]: Relatório de 1 página com valores alterados + perfil clínico. Compartilhe por link seguro com PIN.
+        - generic [ref=f4e128]:
+          - img [ref=f4e130]
+          - heading "Dados protegidos + Libras" [level=6] [ref=f4e132]
+          - paragraph [ref=f4e133]: Criptografia, PIN de compartilhamento, exclusão a qualquer momento. LGPD completa e VLibras.
+    - generic [ref=f4e135]:
+      - heading "Veja na prática" [level=2] [ref=f4e136]
+      - paragraph [ref=f4e137]: Um passeio pela plataforma — do upload do exame ao relatório com IA. Passe o mouse pra pausar.
+      - generic [ref=f4e139]:
+        - img "Meus Exames — slide 1" [ref=f4e140] [cursor=pointer]
+        - img "Meus Exames — slide 2" [ref=f4e141] [cursor=pointer]
+        - img "Meus Exames — slide 3" [ref=f4e142] [cursor=pointer]
+        - img "Meus Exames — slide 4" [ref=f4e143] [cursor=pointer]
+        - img "Meus Exames — slide 5" [ref=f4e144] [cursor=pointer]
+        - img "Meus Exames — slide 6" [ref=f4e145] [cursor=pointer]
+        - img "Meus Exames — slide 7" [ref=f4e146] [cursor=pointer]
+        - img "Meus Exames — slide 8" [ref=f4e147] [cursor=pointer]
+        - img "Meus Exames — slide 9" [ref=f4e148] [cursor=pointer]
+        - img "Meus Exames — slide 10" [ref=f4e149] [cursor=pointer]
+        - img "Meus Exames — slide 11" [ref=f4e150] [cursor=pointer]
+        - img "Meus Exames — slide 12" [ref=f4e151] [cursor=pointer]
+        - img "Meus Exames — slide 13" [ref=f4e152] [cursor=pointer]
+        - img "Meus Exames — slide 14" [ref=f4e153] [cursor=pointer]
+        - img "Meus Exames — slide 15" [ref=f4e154] [cursor=pointer]
+    - generic [ref=f4e173]:
+      - generic [ref=f4e174]:
+        - generic [ref=f4e175]:
+          - img [ref=f4e176]
+          - generic [ref=f4e178]: Compartilhamento
+        - heading "Compartilhe com seu médico — você no controle" [level=2] [ref=f4e179]
+        - paragraph [ref=f4e180]: Escolha o que enviar, indique pelo CRM e seu médico é cadastrado sozinho. Revoga quando quiser — ele perde o acesso na hora.
+        - generic [ref=f4e181]:
+          - img [ref=f4e183]
+          - paragraph [ref=f4e185]: "Você escolhe os escopos: Exames, Evolução, Alertas e Resumos IA."
+        - generic [ref=f4e186]:
+          - img [ref=f4e188]
+          - paragraph [ref=f4e190]: Indica o médico pelo CRM — ele recebe um aviso por e-mail.
+        - generic [ref=f4e191]:
+          - img [ref=f4e193]
+          - paragraph [ref=f4e195]: Revoga o acesso a qualquer momento, com 1 toque.
+        - button "Começar grátis" [ref=f4e196] [cursor=pointer]
+      - generic [ref=f4e198]:
+        - paragraph [ref=f4e199]: "O que compartilhar:"
+        - generic [ref=f4e200]:
+          - generic [ref=f4e201]:
+            - img [ref=f4e202]
+            - generic [ref=f4e204]: Exames
+          - generic [ref=f4e205]:
+            - img [ref=f4e206]
+            - generic [ref=f4e208]: Evolução
+          - generic [ref=f4e209]:
+            - img [ref=f4e210]
+            - generic [ref=f4e213]: Alertas
+          - generic [ref=f4e214]:
+            - img [ref=f4e215]
+            - generic [ref=f4e217]: Resumos IA
+        - generic [ref=f4e218]:
+          - paragraph [ref=f4e219]: CRM do médico
+          - paragraph [ref=f4e220]: 12345-SP • Dra. Helena Costa
+        - button "Compartilhar dados" [ref=f4e221] [cursor=pointer]
+        - paragraph [ref=f4e222]: 🔒 Você pode revogar a qualquer momento.
+    - generic [ref=f4e225]:
+      - generic [ref=f4e227]:
+        - generic [ref=f4e228]:
+          - img [ref=f4e230]
+          - generic [ref=f4e232]:
+            - paragraph [ref=f4e233]: Portal do Médico
+            - paragraph [ref=f4e234]: Pacientes que compartilharam (3)
+        - generic [ref=f4e235]:
+          - generic [ref=f4e236]:
+            - generic [ref=f4e238]:
+              - paragraph [ref=f4e239]: Heloísa Santos
+              - paragraph [ref=f4e240]: Particular • desde jan/2026
+            - generic [ref=f4e242]: 2 alterados
+          - generic [ref=f4e243]:
+            - generic [ref=f4e244]:
+              - img [ref=f4e245]
+              - generic [ref=f4e247]: Exames
+            - generic [ref=f4e248]:
+              - img [ref=f4e249]
+              - generic [ref=f4e251]: Evolução
+            - generic [ref=f4e252]:
+              - img [ref=f4e253]
+              - generic [ref=f4e256]: Alertas
+        - generic [ref=f4e257]:
+          - paragraph [ref=f4e258]: José Lima
+          - paragraph [ref=f4e259]: Unimed • 📋 Exames, 🤖 Resumos IA
+      - generic [ref=f4e260]:
+        - generic [ref=f4e261]:
+          - img [ref=f4e262]
+          - generic [ref=f4e264]: Para profissionais de saúde
+        - heading "O paciente chega pronto no seu consultório" [level=2] [ref=f4e265]
+        - paragraph [ref=f4e266]: Use o mesmo CRM que seu paciente informou no convite. Ele aparece automaticamente no seu painel — com exames, valores alterados, evolução e o PDF original.
+        - generic [ref=f4e267]:
+          - img [ref=f4e268]
+          - paragraph [ref=f4e270]: Pré-cadastro automático quando o paciente indica pelo CRM.
+        - generic [ref=f4e271]:
+          - img [ref=f4e272]
+          - paragraph [ref=f4e274]: Exames, Alertas, Evolução e Resumos IA — só o que o paciente autorizou.
+        - generic [ref=f4e275]:
+          - img [ref=f4e276]
+          - paragraph [ref=f4e278]: Valores alterados em destaque + PDF original do laboratório.
+        - button "Acessar o Portal do Médico →" [ref=f4e279] [cursor=pointer]
+    - generic [ref=f4e281]:
+      - heading "Como funciona" [level=2] [ref=f4e282]
+      - paragraph [ref=f4e283]: 4 passos. Do exame ao médico.
+      - generic [ref=f4e284]:
+        - generic [ref=f4e285]:
+          - generic [ref=f4e286]:
+            - img [ref=f4e288]
+            - generic [ref=f4e290]: "1"
+          - heading "Envie o exame" [level=6] [ref=f4e291]
+          - paragraph [ref=f4e292]: PDF ou foto do exame de sangue, imagem ou laudo. A IA extrai todos os valores automaticamente.
+        - generic [ref=f4e293]:
+          - generic [ref=f4e294]:
+            - img [ref=f4e296]
+            - generic [ref=f4e298]: "2"
+          - heading "A IA lê e explica" [level=6] [ref=f4e299]
+          - paragraph [ref=f4e300]: O Dr. Exame explica cada valor em linguagem simples, compara com exames anteriores e destaca o que precisa de atenção.
+        - generic [ref=f4e301]:
+          - generic [ref=f4e302]:
+            - img [ref=f4e304]
+            - generic [ref=f4e306]: "3"
+          - heading "Indique seu médico" [level=6] [ref=f4e307]
+          - paragraph [ref=f4e308]: Informe o CRM. Seu médico é pré-cadastrado sozinho e recebe um aviso pra ativar o acesso.
+        - generic [ref=f4e309]:
+          - generic [ref=f4e310]:
+            - img [ref=f4e312]
+            - generic [ref=f4e314]: "4"
+          - heading "O médico vê tudo" [level=6] [ref=f4e315]
+          - paragraph [ref=f4e316]: Ele finaliza o cadastro com o mesmo CRM e você aparece no portal dele — só o que você autorizou.
+    - generic [ref=f4e318]:
+      - heading "Planos simples e justos" [level=2] [ref=f4e319]
+      - paragraph [ref=f4e320]: Comece grátis. Assine quando precisar — ou pague só pelo que usar.
+      - generic [ref=f4e321]:
+        - generic [ref=f4e322]:
+          - heading "Grátis" [level=6] [ref=f4e323]
+          - paragraph [ref=f4e324]: R$ 0
+          - generic [ref=f4e325]:
+            - img [ref=f4e326]
+            - paragraph [ref=f4e328]: 60 créditos pra testar
+          - generic [ref=f4e329]:
+            - img [ref=f4e330]
+            - paragraph [ref=f4e332]: Envie exames (PDF/foto)
+          - generic [ref=f4e333]:
+            - img [ref=f4e334]
+            - paragraph [ref=f4e336]: Valores + referência
+          - generic [ref=f4e337]:
+            - img [ref=f4e338]
+            - paragraph [ref=f4e340]: Score de Saúde
+          - generic [ref=f4e341]:
+            - img [ref=f4e342]
+            - paragraph [ref=f4e344]: Pergunte ao Dr. Exame
+          - button "Começar grátis" [ref=f4e345] [cursor=pointer]
+        - generic [ref=f4e346]:
+          - generic [ref=f4e348]: RECOMENDADO
+          - heading "Mensal" [level=6] [ref=f4e349]
+          - paragraph [ref=f4e350]: R$ 19,90/mês
+          - generic [ref=f4e351]:
+            - img [ref=f4e352]
+            - paragraph [ref=f4e354]: 250 créditos de IA/mês
+          - generic [ref=f4e355]:
+            - img [ref=f4e356]
+            - paragraph [ref=f4e358]: Exames + dependentes
+          - generic [ref=f4e359]:
+            - img [ref=f4e360]
+            - paragraph [ref=f4e362]: Comparativo + Tendências
+          - generic [ref=f4e363]:
+            - img [ref=f4e364]
+            - paragraph [ref=f4e366]: Relatório completo + PDF
+          - generic [ref=f4e367]:
+            - img [ref=f4e368]
+            - paragraph [ref=f4e370]: Chat com o Dr. Exame
+          - button "Assinar mensal" [ref=f4e371] [cursor=pointer]
+        - generic [ref=f4e372]:
+          - heading "Créditos" [level=6] [ref=f4e373]
+          - paragraph [ref=f4e374]: a partir de R$ 9,90avulso
+          - generic [ref=f4e375]:
+            - img [ref=f4e376]
+            - paragraph [ref=f4e378]: PIX, cartão ou débito
+          - generic [ref=f4e379]:
+            - img [ref=f4e380]
+            - paragraph [ref=f4e382]: Pacotes flexíveis
+          - generic [ref=f4e383]:
+            - img [ref=f4e384]
+            - paragraph [ref=f4e386]: Cada análise consome créditos
+          - generic [ref=f4e387]:
+            - img [ref=f4e388]
+            - paragraph [ref=f4e390]: Sem mensalidade
+          - generic [ref=f4e391]:
+            - img [ref=f4e392]
+            - paragraph [ref=f4e394]: Use quando precisar
+          - button "Ver pacotes" [ref=f4e395] [cursor=pointer]
+    - generic [ref=f4e398]:
+      - generic [ref=f4e399]: 🎁
+      - generic [ref=f4e400]:
+        - heading "Indique e ganhe créditos" [level=2] [ref=f4e401]
+        - paragraph [ref=f4e402]: Compartilhe seu código com amigos. Quando alguém cria a conta com ele, vocês dois ganham +30 créditos — pra usar no Dr. Exame.
+        - generic [ref=f4e403]:
+          - generic [ref=f4e404]:
+            - paragraph [ref=f4e405]: "+30"
+            - paragraph [ref=f4e406]: pra você
+          - generic [ref=f4e407]:
+            - paragraph [ref=f4e408]: "+30"
+            - paragraph [ref=f4e409]: pra seu amigo
+          - generic [ref=f4e410]:
+            - paragraph [ref=f4e411]: 10/mês
+            - paragraph [ref=f4e412]: limite anti-abuso
+    - generic [ref=f4e417]:
+      - heading "Pronto pra entender sua saúde?" [level=2] [ref=f4e418]
+      - paragraph [ref=f4e419]: Crie sua conta grátis e envie seu primeiro exame em menos de 1 minuto.
+      - button "Começar agora →" [ref=f4e420] [cursor=pointer]
+      - generic [ref=f4e421]:
+        - img "QR Code - Meus Exames" [ref=f4e422]
+        - paragraph [ref=f4e423]: 📱 Escaneie com a câmera do celular
+    - generic [ref=f4e425]:
+      - generic [ref=f4e426]:
+        - img "Dr. Exame" [ref=f4e427]
+        - paragraph [ref=f4e428]: Meus Exames
+      - paragraph [ref=f4e429]: © 2026 janocaminho.com.br • contato@janocaminho.com.br
+      - paragraph [ref=f4e430]: "Edmilson Fernandes • CNPJ: 44.771.427/0001-69 • Análise educativa, não substitui consulta médica."
+      - generic [ref=f4e431]:
+        - generic [ref=f4e432] [cursor=pointer]: Portal do Médico
+        - generic [ref=f4e433] [cursor=pointer]: Termos e LGPD
+        - generic [ref=f4e434] [cursor=pointer]: Criar conta
+        - generic [ref=f4e435] [cursor=pointer]: Entrar
+  - generic [ref=f4e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e16]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f4e17]

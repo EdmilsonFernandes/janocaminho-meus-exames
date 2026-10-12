@@ -1,0 +1,176 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e4316]:
+    - navigation [ref=e4317]:
+      - generic [ref=e4319]:
+        - button "Menu do médico" [ref=e4320] [cursor=pointer]
+        - generic [ref=e4323]:
+          - paragraph [ref=e4324]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e4325]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e4326]
+      - generic [ref=e4327]:
+        - generic [ref=e4328]: PLANO
+        - paragraph [ref=e4329]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e4330]:
+        - button "Pacientes" [ref=e4331] [cursor=pointer]
+        - button "Convites" [ref=e4337] [cursor=pointer]
+        - button "Perguntas" [ref=e4344] [cursor=pointer]
+        - button "Meu perfil" [ref=e4351] [cursor=pointer]
+        - button "Trocar senha" [ref=e4357] [cursor=pointer]
+        - separator [ref=e4363]
+        - button "Sair" [ref=e4364] [cursor=pointer]
+      - generic [ref=e4370]: Portal do Médico
+    - generic [ref=e4371]:
+      - generic [ref=e4372]:
+        - button "Voltar" [ref=e4421] [cursor=pointer]
+        - paragraph [ref=e4374]: Heloisa Cristina Fernandes
+      - generic [ref=e4424]:
+        - generic [ref=e4425]:
+          - generic [ref=e4431]:
+            - generic [ref=e4432]:
+              - paragraph [ref=e4433]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e4434] [cursor=pointer]: Trocar
+            - paragraph [ref=e4438]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e4439]:
+            - generic [ref=e4440]:
+              - generic [ref=e4441]: Último exame
+              - paragraph [ref=e4445]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e4446] [cursor=pointer]:
+              - generic [ref=e4447]: Alterações
+              - paragraph [ref=e4452]: "40"
+            - generic [ref=e4453]:
+              - generic [ref=e4454]: Pendências
+              - paragraph [ref=e4458]: "1"
+            - generic [ref=e4459]:
+              - generic [ref=e4460]: Anotações
+              - paragraph [ref=e4464]: "0"
+        - tablist "Abas do paciente" [ref=e4468]:
+          - tab "Exames" [ref=e4469] [cursor=pointer]:
+            - generic [ref=e4472]:
+              - generic [ref=e4473]: Exames
+              - superscript [ref=e4474]: "13"
+          - tab "Alterados" [selected] [ref=e4475] [cursor=pointer]:
+            - generic [ref=e4479]:
+              - generic [ref=e4480]: Alterados
+              - superscript [ref=e4481]: "40"
+          - tab "Tendências" [ref=e4482] [cursor=pointer]
+          - tab "Relatório" [ref=e4487] [cursor=pointer]
+          - tab "Perguntas" [ref=e4492] [cursor=pointer]:
+            - generic [ref=e4495]:
+              - generic [ref=e4496]: Perguntas
+              - superscript [ref=e4497]: "1"
+          - tab "Anotações" [ref=e4498] [cursor=pointer]
+        - generic [ref=e4504]:
+          - generic [ref=e4506]:
+            - generic [ref=e4507]:
+              - generic [ref=e4508]: 🔴 7 Importantes
+              - generic [ref=e4509]: 🟠 12 Moderadas
+              - generic [ref=e4510]: 🟡 21 Leves
+            - generic [ref=e4511]:
+              - text: Os
+              - strong [ref=e4512]: 🔴 importantes
+              - text: "merecem prioridade — leve ao médico. 🟠 moderadas: comente na consulta. 🟡 leves: só acompanhe."
+          - generic [ref=e4513]:
+            - heading [level=3] [ref=e4515]:
+              - button "🔴 HEMOGRAMA COMPLETO 📅 13/08/2026 · há 2 dias 🩺 Dr. ENRICO DO AMARAL FONSECA 4 alterado(s)" [ref=e4516] [cursor=pointer]:
+                - generic [ref=e4518]:
+                  - generic [ref=e4519]: 🔴
+                  - generic [ref=e4520]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e4521]
+                    - generic [ref=e4522]: 📅 13/08/2026 · há 2 dias
+                    - generic [ref=e4523]: 🩺 Dr. ENRICO DO AMARAL FONSECA
+                  - generic [ref=e4524]: 4 alterado(s)
+            - heading [level=3] [ref=e4530]:
+              - button "🔴 EXAMES LABORATORIAIS 📅 07/04/2026 · há 4 meses 🩺 Dr. FERNANDO CORTEZZI REIS 6 alterado(s)" [ref=e4531] [cursor=pointer]:
+                - generic [ref=e4533]:
+                  - generic [ref=e4534]: 🔴
+                  - generic [ref=e4535]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e4536]
+                    - generic [ref=e4537]: 📅 07/04/2026 · há 4 meses
+                    - generic [ref=e4538]: 🩺 Dr. FERNANDO CORTEZZI REIS
+                  - generic [ref=e4539]: 6 alterado(s)
+            - heading [level=3] [ref=e4545]:
+              - button "🔴 EXAMES LABORATORIAIS 📅 17/06/2025 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. ANDRE ZERAIK LIMA CHAMMAS 4 alterado(s)" [ref=e4546] [cursor=pointer]:
+                - generic [ref=e4548]:
+                  - generic [ref=e4549]: 🔴
+                  - generic [ref=e4550]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e4551]
+                    - generic [ref=e4552]: 📅 17/06/2025 · há 1 ano
+                    - generic [ref=e4553]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4554]: 🩺 Dr. ANDRE ZERAIK LIMA CHAMMAS
+                  - generic [ref=e4555]: 4 alterado(s)
+            - heading [level=3] [ref=e4561]:
+              - button "🟠 HEMOGRAMA COMPLETO 📅 17/06/2025 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS 5 alterado(s)" [ref=e4562] [cursor=pointer]:
+                - generic [ref=e4564]:
+                  - generic [ref=e4565]: 🟠
+                  - generic [ref=e4566]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e4567]
+                    - generic [ref=e4568]: 📅 17/06/2025 · há 1 ano
+                    - generic [ref=e4569]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4570]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                  - generic [ref=e4571]: 5 alterado(s)
+            - heading [level=3] [ref=e4577]:
+              - button "🟠 EXAMES LABORATORIAIS 📅 20/03/2025 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. VIVIANE VARGAS DOS SANTOS 7 alterado(s)" [ref=e4578] [cursor=pointer]:
+                - generic [ref=e4580]:
+                  - generic [ref=e4581]: 🟠
+                  - generic [ref=e4582]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e4583]
+                    - generic [ref=e4584]: 📅 20/03/2025 · há 1 ano
+                    - generic [ref=e4585]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4586]: 🩺 Dr. VIVIANE VARGAS DOS SANTOS
+                  - generic [ref=e4587]: 7 alterado(s)
+            - heading [level=3] [ref=e4593]:
+              - button "🟠 EXAMES LABORATORIAIS 📅 06/02/2025 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. GISELLE R. MAXIMO 5 alterado(s)" [ref=e4594] [cursor=pointer]:
+                - generic [ref=e4596]:
+                  - generic [ref=e4597]: 🟠
+                  - generic [ref=e4598]:
+                    - heading "EXAMES LABORATORIAIS" [level=6] [ref=e4599]
+                    - generic [ref=e4600]: 📅 06/02/2025 · há 1 ano
+                    - generic [ref=e4601]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4602]: 🩺 Dr. GISELLE R. MAXIMO
+                  - generic [ref=e4603]: 5 alterado(s)
+            - heading [level=3] [ref=e4609]:
+              - button "🟡 HEMOGRAMA COMPLETO 📅 04/11/2025 · há 9 meses 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS 5 alterado(s)" [ref=e4610] [cursor=pointer]:
+                - generic [ref=e4612]:
+                  - generic [ref=e4613]: 🟡
+                  - generic [ref=e4614]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e4615]
+                    - generic [ref=e4616]: 📅 04/11/2025 · há 9 meses
+                    - generic [ref=e4617]: 🩺 Dr. ROMULO VICTOR DA SILVA MARTINS
+                  - generic [ref=e4618]: 5 alterado(s)
+            - heading [level=3] [ref=e4624]:
+              - button "🟡 LH - HORMONIO LUTEINIZANTE 📅 23/09/2024 · há 1 ano ⏳ Exame antigo — considere renovar 🩺 Dr. GISELLE R. MAXIMO 2 alterado(s)" [ref=e4625] [cursor=pointer]:
+                - generic [ref=e4627]:
+                  - generic [ref=e4628]: 🟡
+                  - generic [ref=e4629]:
+                    - heading "LH - HORMONIO LUTEINIZANTE" [level=6] [ref=e4630]
+                    - generic [ref=e4631]: 📅 23/09/2024 · há 1 ano
+                    - generic [ref=e4632]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4633]: 🩺 Dr. GISELLE R. MAXIMO
+                  - generic [ref=e4634]: 2 alterado(s)
+            - heading [level=3] [ref=e4640]:
+              - button "🟡 HEMOGRAMA COMPLETO 📅 03/04/2023 · há 3 anos ⏳ Exame antigo — considere renovar 🩺 Dr. GISELLE R. MAXIMO 1 alterado(s)" [ref=e4641] [cursor=pointer]:
+                - generic [ref=e4643]:
+                  - generic [ref=e4644]: 🟡
+                  - generic [ref=e4645]:
+                    - heading "HEMOGRAMA COMPLETO" [level=6] [ref=e4646]
+                    - generic [ref=e4647]: 📅 03/04/2023 · há 3 anos
+                    - generic [ref=e4648]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4649]: 🩺 Dr. GISELLE R. MAXIMO
+                  - generic [ref=e4650]: 1 alterado(s)
+            - heading [level=3] [ref=e4656]:
+              - button "🟡 METABOLICA, LIPIDICO, TIREOIDIANO, HBA1C 📅 13/03/2020 · há 6 anos ⏳ Exame antigo — considere renovar 🩺 Dr. RAQUEL APARECIDA DE OLIVEIRA 1 alterado(s)" [ref=e4657] [cursor=pointer]:
+                - generic [ref=e4659]:
+                  - generic [ref=e4660]: 🟡
+                  - generic [ref=e4661]:
+                    - heading "METABOLICA, LIPIDICO, TIREOIDIANO, HBA1C" [level=6] [ref=e4662]
+                    - generic [ref=e4663]: 📅 13/03/2020 · há 6 anos
+                    - generic [ref=e4664]: ⏳ Exame antigo — considere renovar
+                    - generic [ref=e4665]: 🩺 Dr. RAQUEL APARECIDA DE OLIVEIRA
+                  - generic [ref=e4666]: 1 alterado(s)
+          - generic [ref=e4671]: "*Educativo. A interpretação final é sua."
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

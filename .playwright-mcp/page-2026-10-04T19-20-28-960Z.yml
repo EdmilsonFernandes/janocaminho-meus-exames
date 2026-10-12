@@ -1,0 +1,108 @@
+- generic [ref=f3e1]:
+  - generic [aria-hidden] [ref=f3e2]:
+    - generic [ref=f3e106]:
+      - button [ref=f3e107] [cursor=pointer]
+      - generic [ref=f3e108]:
+        - banner [ref=f3e109]:
+          - generic [ref=f3e110]:
+            - button [ref=f3e111] [cursor=pointer]
+            - paragraph [ref=f3e117]: Dr. Exame
+            - generic [ref=f3e118]:
+              - button [ref=f3e119] [cursor=pointer]:
+                - generic [ref=f3e122]: "15"
+              - button [ref=f3e123] [cursor=pointer]
+              - button [ref=f3e128] [cursor=pointer]:
+                - generic [ref=f3e129]: E
+        - main [ref=f3e134]:
+          - generic [ref=f3e136]:
+            - generic [ref=f3e139]:
+              - heading [level=1] [ref=f3e140]: Boa tarde, tudo bem? 👋
+              - generic [ref=f3e141]: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=f3e143]:
+              - generic [ref=f3e144]:
+                - generic [ref=f3e145]:
+                  - generic:
+                    - paragraph: de 100
+                - generic [ref=f3e149]:
+                  - paragraph [ref=f3e150]: Sua saúde hoje
+                  - paragraph [ref=f3e151]: Começa com seu primeiro exame
+                  - paragraph [ref=f3e153]: Envie um exame pra começarmos a construir sua visão de saúde.
+              - generic [ref=f3e154]:
+                - button [ref=f3e155] [cursor=pointer]: Enviar primeiro exame
+                - button [ref=f3e159] [cursor=pointer]: 👀 Ver com dados de exemplo
+            - generic [ref=f3e187]:
+              - generic [ref=f3e189]:
+                - generic [ref=f3e190]:
+                  - heading [level=2] [ref=f3e191]: O que mudou nos seus exames
+                  - paragraph [ref=f3e193]: Carregando…
+                  - button [ref=f3e195] [cursor=pointer]: Ver evolução completa
+                - paragraph [ref=f3e206]: Atividade física • Health Connect
+                - generic [ref=f3e223]:
+                  - generic [ref=f3e227]:
+                    - paragraph [ref=f3e228]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=f3e229]: Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder.
+                  - button [ref=f3e231] [cursor=pointer]: Conversar com a IA
+              - generic [ref=f3e236]:
+                - generic [ref=f3e237]:
+                  - generic [ref=f3e242]:
+                    - heading [level=2] [ref=f3e243]: Seus Marcadores
+                    - paragraph [ref=f3e244]: Nenhum exame analisado ainda
+                  - generic [ref=f3e245]:
+                    - button [ref=f3e246] [cursor=pointer]:
+                      - generic [ref=f3e247]:
+                        - paragraph [ref=f3e248]: Normais & Saudáveis ver →
+                        - paragraph [ref=f3e249]: 0/0 (0%)
+                      - progressbar [ref=f3e250]
+                    - button [ref=f3e252] [cursor=pointer]:
+                      - generic [ref=f3e253]:
+                        - paragraph [ref=f3e254]: Alteração Leve ver →
+                        - paragraph [ref=f3e255]: 0/0 (0%)
+                      - progressbar [ref=f3e256]
+                    - button [ref=f3e258] [cursor=pointer]:
+                      - generic [ref=f3e259]:
+                        - paragraph [ref=f3e260]: Requerem Atenção ver →
+                        - paragraph [ref=f3e261]: 0/0 (0%)
+                      - progressbar [ref=f3e262]
+                  - paragraph [ref=f3e264]: 💡 Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+                - generic [ref=f3e265]:
+                  - paragraph [ref=f3e271]: Ações rápidas
+                  - generic [ref=f3e273]:
+                    - generic [ref=f3e275] [cursor=pointer]:
+                      - generic [ref=f3e276]: +
+                      - generic [ref=f3e277]: Enviar exame
+                    - generic [ref=f3e283]: Evolução
+                    - generic [ref=f3e291]: Família
+                    - generic [ref=f3e299]: Relatório
+                - generic [ref=f3e308] [cursor=pointer]:
+                  - generic [ref=f3e310]:
+                    - paragraph [ref=f3e311]: 🏆 Suas conquistas
+                    - text: Resgate 1 crédito a cada meta atingida
+                  - generic [ref=f3e314]:
+                    - generic [ref=f3e315]: 🎉
+                    - generic [ref=f3e317]: 📚
+                    - generic [ref=f3e319]: 🎓
+                    - generic [ref=f3e321]: 💚
+                    - generic [ref=f3e323]: 🔥
+                  - generic [ref=f3e327]: 0 de 5 desbloqueada(s) · toque para ver e resgatar →
+                - button [ref=f3e329] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=f3e333]:
+      - button [ref=f3e334] [cursor=pointer]:
+        - paragraph [ref=f3e338]: Início
+      - button [ref=f3e340] [cursor=pointer]:
+        - paragraph [ref=f3e344]: Exames
+      - button [ref=f3e345] [cursor=pointer]:
+        - paragraph [ref=f3e348]: Dr. Exame
+      - button [ref=f3e349] [cursor=pointer]:
+        - paragraph [ref=f3e353]: Evolução
+      - button [ref=f3e354] [cursor=pointer]:
+        - paragraph [ref=f3e358]: Mais
+  - dialog [active] [ref=f3e361]:
+    - generic [ref=f3e362]:
+      - button "Pular" [ref=f3e363] [cursor=pointer]
+      - generic [ref=f3e364]:
+        - img "Dr. Exame" [ref=f3e366]
+        - heading "Envie seu exame" [level=4] [ref=f3e367]
+        - paragraph [ref=f3e368]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f3e369]:
+        - button [ref=f3e375] [cursor=pointer]
+        - paragraph [ref=f3e379]: Toque em Próximo para continuar →

@@ -1,0 +1,101 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e963]:
+            - generic [ref=e968]:
+              - heading [level=5] [ref=e969]: Sua jornada de saúde
+              - paragraph [ref=e970]: 5 exames • 0 medições • 0 vacinas • 8 sinais de atenção. Toque num exame para abri-lo.
+            - generic [ref=e971]:
+              - button [ref=e972] [cursor=pointer]:
+                - generic [ref=e973]: Tudo
+              - button [ref=e974] [cursor=pointer]:
+                - generic [ref=e975]: 🧪 Exames
+              - button [ref=e976] [cursor=pointer]:
+                - generic [ref=e977]: 💓 Medições
+              - button [ref=e978] [cursor=pointer]:
+                - generic [ref=e979]: 💉 Vacinas
+            - generic [ref=e987]:
+              - generic [ref=e988]:
+                - generic [ref=e989]:
+                  - generic [ref=e990]: 📅 2026
+                  - generic [ref=e992]: 4 exames
+                - generic [ref=e995]:
+                  - generic [ref=e1001] [cursor=pointer]:
+                    - generic [ref=e1002]:
+                      - generic [ref=e1003]:
+                        - paragraph [ref=e1004]: GLICEMIA DE JEJUM
+                        - text: 09 de julho de 2026
+                      - generic [ref=e1005]: Laboratorial
+                    - generic [ref=e1008]: ⚠️ 2 valor(es) fora da faixa
+                  - generic [ref=e1016] [cursor=pointer]:
+                    - generic [ref=e1017]:
+                      - generic [ref=e1018]:
+                        - paragraph [ref=e1019]: PERFIL LIPÍDICO
+                        - text: 09 de julho de 2026
+                      - generic [ref=e1020]: Laboratorial
+                    - generic [ref=e1023]: ⚠️ 4 valor(es) fora da faixa
+                  - generic [ref=e1031] [cursor=pointer]:
+                    - generic [ref=e1032]:
+                      - generic [ref=e1033]:
+                        - paragraph [ref=e1034]: HEMOGRAMA
+                        - text: 09 de julho de 2026
+                      - generic [ref=e1035]: Laboratorial
+                    - generic [ref=e1038]: Tudo dentro da faixa
+                  - generic [ref=e1048] [cursor=pointer]:
+                    - generic [ref=e1049]:
+                      - generic [ref=e1050]:
+                        - paragraph [ref=e1051]: HEMOGRAMA
+                        - text: 14 de abril de 2026
+                      - generic [ref=e1052]: Laboratorial
+                    - generic [ref=e1055]: Tudo dentro da faixa
+              - generic [ref=e1060]:
+                - generic [ref=e1061]:
+                  - generic [ref=e1062]: 📅 Sem data
+                  - generic [ref=e1064]: 1 exame
+                - generic [ref=e1073] [cursor=pointer]:
+                  - generic [ref=e1074]:
+                    - generic [ref=e1075]:
+                      - paragraph [ref=e1076]: HEMOGRAMA
+                      - text: Data não identificada
+                    - generic [ref=e1077]: Laboratorial
+                  - generic [ref=e1080]: ⚠️ 2 valor(es) fora da faixa
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - button "Cuidados" [ref=e207] [cursor=pointer]
+      - button "Pessoas" [ref=e217] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

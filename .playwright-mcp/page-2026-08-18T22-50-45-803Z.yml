@@ -1,0 +1,90 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e1448]:
+            - generic [ref=e1481]:
+              - heading [level=5] [ref=e1482]: Saúde da Família
+              - paragraph [ref=e1483]: Score de cada um e padrões que aparecem em mais de uma pessoa.
+            - button [ref=e1485] [cursor=pointer]: Gerenciar dependentes →
+            - button [ref=e1488] [cursor=pointer]:
+              - generic [ref=e1489]:
+                - generic [ref=e1490]: 🥇 Melhor score da família
+                - generic [ref=e1492]:
+                  - generic [ref=e1493]: E
+                  - heading [level=6] [ref=e1495]: Edmilson Lopes Fernandes dos Santos
+                  - generic [ref=e1496]:
+                    - heading [level=4] [ref=e1500]: "45"
+                    - text: /100
+                - paragraph [ref=e1503]: ⚠️ 6 relevante(s) agora
+                - generic [ref=e1504]:
+                  - generic [ref=e1505]: COLESTEROL TOTAL
+                  - generic [ref=e1507]: LDL COLESTEROL
+                  - generic [ref=e1509]: HDL COLESTEROL
+                  - generic [ref=e1511]: TRIGLICERÍDEOS
+                  - generic [ref=e1513]: GLICEMIA
+                  - generic [ref=e1515]: HEMOGLOBINA GLICADA
+                - generic [ref=e1517]: Ver painel
+            - generic [ref=e1521]: "*Score de cada um (últimos 12 meses) — o mesmo do seu painel e do portal do médico. Análise educativa, não substitui o médico."
+            - generic [ref=e1522]:
+              - heading [level=6] [ref=e1523]: 🧬 Comparativo por analito
+              - paragraph [ref=e1524]: Último valor de cada membro nos analitos em comum (verde = na faixa, vermelho = alterado).
+              - generic [ref=e1527]:
+                - generic [ref=e1528]:
+                  - generic [ref=e1529]: LINFOCITOS
+                  - generic [ref=e1530]: (%)
+                  - button [ref=e1531] [cursor=pointer]
+                - generic [ref=e1534]:
+                  - generic [ref=e1535]: "Edmilson: 0,0%"
+                  - generic [ref=e1537]: "Edmilson: 28,5 %"
+    - button [ref=e643] [cursor=pointer]
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - generic [ref=e206]:
+        - button "Cuidados" [expanded] [ref=e207] [cursor=pointer]
+        - generic [ref=e1110]:
+          - button "Medições" [ref=e1111] [cursor=pointer]
+          - button "Vacinas" [ref=e1118] [cursor=pointer]
+          - button "Lembretes" [ref=e1124] [cursor=pointer]
+          - button "Cartão de Emergência" [ref=e1130] [cursor=pointer]
+          - button "Conquistas" [ref=e1136] [cursor=pointer]
+      - generic [ref=e216]:
+        - button "Pessoas" [expanded] [ref=e217] [cursor=pointer]
+        - generic [ref=e1456]:
+          - button "Família & dependentes" [ref=e1457] [cursor=pointer]
+          - button "Meus Médicos" [ref=e1464] [cursor=pointer]
+          - button "Perguntas" [ref=e1470] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]
+  - generic [ref=e962]: "0"

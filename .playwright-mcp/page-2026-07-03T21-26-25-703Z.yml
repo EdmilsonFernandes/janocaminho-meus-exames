@@ -1,0 +1,103 @@
+- generic [active] [ref=f22e18]:
+  - generic [ref=f22e19]:
+    - generic [ref=f22e20]:
+      - button "Pular para o conteúdo" [ref=f22e402] [cursor=pointer]
+      - generic [ref=f22e22]:
+        - banner [ref=f22e23]:
+          - generic [ref=f22e24]:
+            - button "Menu" [ref=f22e403] [cursor=pointer]:
+              - img [ref=f22e26]
+            - button "Voltar" [ref=f22e422] [cursor=pointer]:
+              - img [ref=f22e423]
+            - button "71" [ref=f22e404] [cursor=pointer]:
+              - img [ref=f22e29]
+              - generic [ref=f22e31]: "71"
+            - button "E" [ref=f22e405] [cursor=pointer]:
+              - generic [ref=f22e35]: E
+            - button "18" [ref=f22e406] [cursor=pointer]:
+              - generic [ref=f22e37]:
+                - img [ref=f22e38]
+                - generic [ref=f22e40]: "18"
+            - button "Mais opções" [ref=f22e407] [cursor=pointer]:
+              - img [ref=f22e42]
+            - button "Atualizar" [ref=f22e408] [cursor=pointer]:
+              - img [ref=f22e46]
+        - main [ref=f22e48]:
+          - generic [ref=f22e425]:
+            - generic [ref=f22e430]:
+              - generic [ref=f22e431]:
+                - heading "HEMOGRAMA" [level=1] [ref=f22e432]
+                - generic [ref=f22e434]: Pronto
+                - generic [ref=f22e436]: 🩸 Hemograma
+              - paragraph [ref=f22e437]: Data não identificada • VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS • 1 pág.
+              - paragraph [ref=f22e438]: 👤 BIANCA) pr mpi
+            - generic [ref=f22e440]:
+              - paragraph [ref=f22e441]: ⚠️ Possível divergência de titularidade
+              - paragraph [ref=f22e442]:
+                - text: O nome no documento (
+                - strong [ref=f22e443]: BIANCA) pr mpi
+                - text: ) difere do perfil (
+                - strong [ref=f22e444]: Edmilson Lopes Fernandes dos Santos
+                - text: — similaridade 0%).
+              - paragraph [ref=f22e445]: Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua — não use dados de outra pessoa.
+              - generic [ref=f22e446]:
+                - button "✓ Confirmo que é deste paciente" [ref=f22e447] [cursor=pointer]
+                - button "✕ Não é deste paciente (excluir)" [ref=f22e448] [cursor=pointer]
+            - generic [ref=f22e450]:
+              - paragraph [ref=f22e451]: 🚩 2 valor(es) fora da faixa de referência
+              - generic [ref=f22e452]:
+                - 'button "Plaquetas: 116.000/mm³" [ref=f22e453] [cursor=pointer]':
+                  - generic [ref=f22e454]: "Plaquetas: 116.000/mm³"
+                - 'button "VCM: 80,8" [ref=f22e455] [cursor=pointer]':
+                  - generic [ref=f22e456]: "VCM: 80,8"
+            - heading "Leucograma 12 itens" [level=3] [ref=f22e458]:
+              - button "Leucograma 12 itens" [ref=f22e459] [cursor=pointer]:
+                - generic [ref=f22e460]:
+                  - paragraph [ref=f22e461]: Leucograma
+                  - generic [ref=f22e463]: 12 itens
+                - img [ref=f22e465]
+            - heading "Plaquetas 1 alterado 1 itens" [level=3] [ref=f22e468]:
+              - button "Plaquetas 1 alterado 1 itens" [ref=f22e469] [cursor=pointer]:
+                - generic [ref=f22e470]:
+                  - paragraph [ref=f22e471]: Plaquetas
+                  - generic [ref=f22e473]: 1 alterado
+                  - generic [ref=f22e475]: 1 itens
+                - img [ref=f22e477]
+            - heading "Série Vermelha 1 alterado 7 itens" [level=3] [ref=f22e480]:
+              - button "Série Vermelha 1 alterado 7 itens" [ref=f22e481] [cursor=pointer]:
+                - generic [ref=f22e482]:
+                  - paragraph [ref=f22e483]: Série Vermelha
+                  - generic [ref=f22e485]: 1 alterado
+                  - generic [ref=f22e487]: 7 itens
+                - img [ref=f22e489]
+            - generic [ref=f22e493]:
+              - heading "Análise de saúde" [level=6] [ref=f22e494]
+              - paragraph [ref=f22e495]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+              - button "Gerar resumo" [ref=f22e496] [cursor=pointer]
+              - generic [ref=f22e497]:
+                - generic [ref=f22e498]: 💎
+                - generic [ref=f22e499]: 10 créditos
+            - generic [ref=f22e501]:
+              - generic [ref=f22e502]:
+                - heading "📋 Preparar visita ao médico" [level=6] [ref=f22e503]
+                - button "Gerar documento" [ref=f22e504] [cursor=pointer]
+              - paragraph [ref=f22e505]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+    - navigation [ref=f22e370]:
+      - generic [ref=f22e371] [cursor=pointer]:
+        - generic [ref=f22e372]: 🏠
+        - paragraph [ref=f22e373]: Início
+      - generic [ref=f22e375] [cursor=pointer]:
+        - generic [ref=f22e376]: 📋
+        - paragraph [ref=f22e377]: Exames
+      - generic [ref=f22e378] [cursor=pointer]:
+        - img "Dr. Exame" [ref=f22e419]
+        - paragraph [ref=f22e381]: Dr. Exame
+      - generic [ref=f22e382] [cursor=pointer]:
+        - generic [ref=f22e383]: 📈
+        - paragraph [ref=f22e384]: Evolução
+      - generic [ref=f22e385] [cursor=pointer]:
+        - generic [ref=f22e386]: ☰
+        - paragraph [ref=f22e387]: Mais
+  - generic [ref=f22e15] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e420]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=f22e421]

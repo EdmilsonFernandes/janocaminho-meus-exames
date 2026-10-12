@@ -1,0 +1,161 @@
+- generic [active] [ref=f12e1]:
+  - generic [ref=f12e7]:
+    - complementary [ref=f12e8]:
+      - generic [ref=f12e9]:
+        - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e13]
+        - generic [ref=f12e14]: Admin
+      - navigation [ref=f12e15]:
+        - generic [ref=f12e16]: Operação
+        - link "Dashboard" [ref=f12e17] [cursor=pointer]:
+          - /url: /admin
+        - link "Campanhas" [ref=f12e23] [cursor=pointer]:
+          - /url: /admin/campanhas
+        - link "Nova campanha" [ref=f12e27] [cursor=pointer]:
+          - /url: /admin/campanhas/nova
+        - link "Parceiros" [ref=f12e30] [cursor=pointer]:
+          - /url: /admin/parceiros
+        - link "Usuários" [ref=f12e36] [cursor=pointer]:
+          - /url: /admin/usuarios
+        - link "Bloqueados" [ref=f12e42] [cursor=pointer]:
+          - /url: /admin/bloqueados
+      - generic [ref=f12e49]:
+        - generic [ref=f12e51]: Operação ao vivo
+        - paragraph [ref=f12e56]: Métricas atualizadas a cada poucos segundos.
+      - generic [ref=f12e57]:
+        - link "Ver site público" [ref=f12e58] [cursor=pointer]:
+          - /url: /
+        - paragraph [ref=f12e63]: © 2026 PremioX · Painel do operador
+    - generic [ref=f12e64]:
+      - banner [ref=f12e65]:
+        - button "Menu" [ref=f12e66] [cursor=pointer]
+        - heading "Painel" [level=2] [ref=f12e69]
+        - button "Atualizar" [ref=f12e70] [cursor=pointer]
+        - link "Ver site público" [ref=f12e424] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f12e82]:
+          - generic [ref=f12e83]: S
+          - generic "Online" [ref=f12e85]
+        - button "Sair" [ref=f12e86] [cursor=pointer]
+      - main [ref=f12e90]:
+        - generic [ref=f12e91]:
+          - complementary [ref=f12e92]:
+            - generic [ref=f12e93]:
+              - img "PremioX · Experiência ao vivo e ofertas premiadas" [ref=f12e97]
+              - generic [ref=f12e98]: Admin
+            - navigation [ref=f12e99]:
+              - generic [ref=f12e100]: Operação
+              - link "Dashboard" [ref=f12e101] [cursor=pointer]:
+                - /url: /admin
+              - link "Campanhas" [ref=f12e107] [cursor=pointer]:
+                - /url: /admin/campanhas
+              - link "Nova campanha" [ref=f12e111] [cursor=pointer]:
+                - /url: /admin/campanhas/nova
+              - link "Parceiros" [ref=f12e114] [cursor=pointer]:
+                - /url: /admin/parceiros
+              - link "Usuários" [ref=f12e120] [cursor=pointer]:
+                - /url: /admin/usuarios
+              - link "Bloqueados" [ref=f12e126] [cursor=pointer]:
+                - /url: /admin/bloqueados
+            - generic [ref=f12e133]:
+              - generic [ref=f12e135]: Operação ao vivo
+              - paragraph [ref=f12e140]: Métricas atualizadas a cada poucos segundos.
+            - generic [ref=f12e141]:
+              - link "Ver site público" [ref=f12e142] [cursor=pointer]:
+                - /url: /
+              - paragraph [ref=f12e147]: © 2026 PremioX · Painel do operador
+          - generic [ref=f12e148]:
+            - generic [ref=f12e149]:
+              - button "Menu" [ref=f12e150] [cursor=pointer]
+              - heading "Painel" [level=2] [ref=f12e153]
+              - button "Atualizar" [ref=f12e154] [cursor=pointer]
+              - link "Ver site público" [ref=f12e425] [cursor=pointer]:
+                - /url: /
+              - generic [ref=f12e166]:
+                - generic [ref=f12e167]: S
+                - generic "Online" [ref=f12e169]
+              - button "Sair" [ref=f12e170] [cursor=pointer]
+            - main [ref=f12e174]:
+              - generic [ref=f12e175]:
+                - generic [ref=f12e176]:
+                  - heading "Usuários" [level=1] [ref=f12e177]
+                  - paragraph [ref=f12e178]: Busque, corrija contatos e gerencie contas.
+                - paragraph [ref=f12e179]: 28 usuário(s) · mostrando 21–28
+              - generic [ref=f12e180]:
+                - textbox "Buscar usuários" [ref=f12e182]:
+                  - /placeholder: Buscar por nome, telefone ou email…
+                - generic [ref=f12e183]:
+                  - button "Todos" [pressed] [ref=f12e184] [cursor=pointer]
+                  - button "🟢 Ativos" [ref=f12e185] [cursor=pointer]
+                  - button "🔒 Bloqueados" [ref=f12e186] [cursor=pointer]
+              - generic [ref=f12e187]:
+                - generic [ref=f12e605]:
+                  - generic [ref=f12e606]: A
+                  - generic [ref=f12e607]:
+                    - link "Ana Teste" [ref=f12e608] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj4r000cdtukhqbzo6xs
+                    - generic [ref=f12e609]: (11) 90000-6001 · ana.e2e@premiox.app
+                  - generic [ref=f12e610]: Ativo
+                  - button "✏️ Editar" [ref=f12e612] [cursor=pointer]
+                - generic [ref=f12e614]:
+                  - generic [ref=f12e615]: T
+                  - generic [ref=f12e616]:
+                    - link "Tech Premium" [ref=f12e617] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj4l000bdtuki5gs1raz
+                    - generic [ref=f12e618]: (11) 90000-6776 · tech.e2e@techpremium.com.br
+                  - generic [ref=f12e619]: Ativo
+                  - button "✏️ Editar" [ref=f12e621] [cursor=pointer]
+                - generic [ref=f12e623]:
+                  - generic [ref=f12e624]: T
+                  - generic [ref=f12e625]:
+                    - link "Tiger Store" [ref=f12e626] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj4f0009dtuk514mqj7x
+                    - generic [ref=f12e627]: (11) 90000-6887 · tiger.e2e@tigerstore.com.br
+                  - generic [ref=f12e628]: Ativo
+                  - button "✏️ Editar" [ref=f12e630] [cursor=pointer]
+                - generic [ref=f12e632]:
+                  - generic [ref=f12e633]: T
+                  - generic [ref=f12e634]:
+                    - link "Thiago Motor" [ref=f12e635] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj460007dtukfpubo6rz
+                    - generic [ref=f12e636]: (11) 90000-6949 · thiago.e2e@motors.com.br
+                  - generic [ref=f12e637]: Ativo
+                  - button "✏️ Editar" [ref=f12e639] [cursor=pointer]
+                - generic [ref=f12e641]:
+                  - generic [ref=f12e642]: A
+                  - generic [ref=f12e643]:
+                    - link "Admin PremioX E2E" [ref=f12e644] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj3z0005dtukwvod5ddn
+                    - generic [ref=f12e645]: (11) 90000-6092 · admin.e2e@premiox.app
+                  - generic [ref=f12e646]: Ativo
+                  - button "✏️ Editar" [ref=f12e648] [cursor=pointer]
+                - generic [ref=f12e650]:
+                  - generic [ref=f12e651]: S
+                  - generic [ref=f12e652]:
+                    - link "Sim Admin E2E" [ref=f12e653] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqj3n0004dtuktjgpmz2i
+                    - generic [ref=f12e654]: (11) 90000-6091 · sim.admin.e2e@premiox.app
+                  - generic [ref=f12e655]: Ativo
+                  - button "✏️ Editar" [ref=f12e657] [cursor=pointer]
+                - generic [ref=f12e659]:
+                  - generic [ref=f12e660]: P
+                  - generic [ref=f12e661]:
+                    - link "Participante Demo" [ref=f12e662] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqh8a0001dteghrc5l2hq
+                    - generic [ref=f12e663]: (11) 98888-7777 · demo@premiox.app
+                  - generic [ref=f12e664]: Ativo
+                  - button "✏️ Editar" [ref=f12e666] [cursor=pointer]
+                - generic [ref=f12e668]:
+                  - generic [ref=f12e669]: A
+                  - generic [ref=f12e670]:
+                    - link "Admin PremioX" [ref=f12e671] [cursor=pointer]:
+                      - /url: /admin/usuarios/cmuqxqh7y0000dteg5iovjq9i
+                    - generic [ref=f12e672]: (11) 99999-0000 · admin@premiox.app
+                  - generic [ref=f12e673]: Ativo
+                  - button "✏️ Editar" [ref=f12e675] [cursor=pointer]
+              - navigation "Paginação" [ref=f12e599]:
+                - button "Página anterior" [ref=f12e600] [cursor=pointer]: ‹
+                - button "1" [ref=f12e601] [cursor=pointer]
+                - button "2" [ref=f12e602] [cursor=pointer]
+                - button "Próxima página" [disabled] [ref=f12e603]: ›
+  - button "Open Next.js Dev Tools" [ref=f12e419] [cursor=pointer]
+  - alert [ref=f12e423]

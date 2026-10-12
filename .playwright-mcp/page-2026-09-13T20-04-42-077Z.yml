@@ -1,0 +1,578 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - banner [ref=f1e3]:
+      - generic [ref=f1e4]:
+        - generic [ref=f1e5]:
+          - link "Uai ID UaiID" [ref=f1e6] [cursor=pointer]:
+            - /url: /dashboard
+            - generic [ref=f1e7]:
+              - img "Uai ID" [ref=f1e8]
+              - generic [ref=f1e9]: UaiID
+          - button "Mudar para tema escuro" [ref=f1e11] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f1e12]: ☾
+            - generic [aria-hidden] [ref=f1e13]: ☀
+            - generic [aria-hidden] [ref=f1e14]: ☾
+          - button "Wibx Company Wibx Company startup" [ref=f1e132] [cursor=pointer]:
+            - img "Wibx Company" [ref=f1e133]
+            - generic [ref=f1e18]: Wibx Company
+            - generic [ref=f1e19]: startup
+          - navigation [ref=f1e22]:
+            - link "Overview" [ref=f1e23] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Verificações" [ref=f1e31] [cursor=pointer]:
+              - /url: /dashboard/verifications
+            - link "Revisão Manual" [ref=f1e39] [cursor=pointer]:
+              - /url: /dashboard/review
+            - link "Motor" [ref=f1e46] [cursor=pointer]:
+              - /url: /dashboard/motor
+            - link "Faturamento" [ref=f1e50] [cursor=pointer]:
+              - /url: /dashboard/billing
+            - link "🔑 Chave de API" [ref=f1e55] [cursor=pointer]:
+              - /url: /dashboard/chave
+            - link "Webhooks" [ref=f1e60] [cursor=pointer]:
+              - /url: /dashboard/webhooks
+        - button "Sair" [ref=f1e66] [cursor=pointer]
+    - main [ref=f1e70]:
+      - generic [ref=f1e71]:
+        - generic [ref=f1e72]:
+          - generic [ref=f1e73]:
+            - heading "Verificações de Identidade" [level=1] [ref=f1e74]
+            - paragraph [ref=f1e75]: Histórico completo de auditoria biométrica, validação de documentos e consultas oficiais.
+          - generic [ref=f1e76]:
+            - button "Atualizar" [ref=f1e77] [cursor=pointer]
+            - button "+ Nova Verificação" [ref=f1e83] [cursor=pointer]
+        - generic [ref=f1e85]:
+          - textbox "Buscar por nome ou CPF..." [ref=f1e87]
+          - generic [ref=f1e88]:
+            - button "Todos 43" [ref=f1e134] [cursor=pointer]:
+              - generic [ref=f1e90]: Todos
+              - generic [ref=f1e91]: "43"
+            - button "Aprovados 20" [ref=f1e135] [cursor=pointer]:
+              - generic [ref=f1e93]: Aprovados
+              - generic [ref=f1e94]: "20"
+            - button "Em Revisão 2" [ref=f1e136] [cursor=pointer]:
+              - generic [ref=f1e96]: Em Revisão
+              - generic [ref=f1e97]: "2"
+            - button "Recusados 2" [ref=f1e137] [cursor=pointer]:
+              - generic [ref=f1e99]: Recusados
+              - generic [ref=f1e100]: "2"
+          - generic [ref=f1e101]:
+            - combobox [ref=f1e103]:
+              - option "Últimos 7 dias"
+              - option "Últimos 30 dias"
+              - option "Últimos 90 dias" [selected]
+              - option "Último ano"
+            - button "Aplicar" [ref=f1e104] [cursor=pointer]
+        - generic [ref=f1e105]:
+          - table [ref=f1e107]:
+            - rowgroup [ref=f1e108]:
+              - row [ref=f1e109]:
+                - columnheader "Pessoa / Biometria" [ref=f1e110]
+                - columnheader "Sessão" [ref=f1e111]
+                - columnheader "Status" [ref=f1e112]
+                - columnheader "Score de Confiança" [ref=f1e113]
+                - columnheader "Motivo / Veredito" [ref=f1e114]
+                - columnheader "Data & Timestamp Forense" [ref=f1e115]
+                - columnheader "Ação" [ref=f1e116]
+            - rowgroup [ref=f1e117]:
+              - row [ref=f1e138] [cursor=pointer]:
+                - cell "Biometria Edmilson Lopes Fernandes dos Santos 294.***.***-00 RFB RFB OK Captura Biométrica Ativa" [ref=f1e139]:
+                  - generic [ref=f1e140]:
+                    - img "Biometria" [ref=f1e142]
+                    - generic [ref=f1e144]:
+                      - generic [ref=f1e145]:
+                        - generic [ref=f1e146]: Edmilson Lopes Fernandes dos Santos
+                        - generic [ref=f1e147]: 294.***.***-00
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e148]:
+                          - img "RFB" [ref=f1e149]
+                          - text: RFB OK
+                      - generic [ref=f1e150]: Captura Biométrica Ativa
+                - cell [ref=f1e151]:
+                  - button "68086cb8 📋" [ref=f1e152]:
+                    - text: 68086cb8
+                    - generic [ref=f1e153]: 📋
+                - cell "✓ Aprovado" [ref=f1e154]:
+                  - generic [ref=f1e155]:
+                    - generic [ref=f1e156]: ✓
+                    - text: Aprovado
+                - cell "750 / 1000" [ref=f1e157]:
+                  - generic [ref=f1e159]:
+                    - generic [ref=f1e160]: "750"
+                    - generic [ref=f1e161]: / 1000
+                - cell "✓ Identidade verificada" [ref=f1e164]
+                - cell "13/09/2026 11:34:53 BRT há 5 h" [ref=f1e166]:
+                  - generic [ref=f1e167]:
+                    - generic [ref=f1e168]: 13/09/2026
+                    - generic [ref=f1e169]:
+                      - generic [ref=f1e170]: 11:34:53 BRT
+                      - generic [ref=f1e171]: há 5 h
+                - cell [ref=f1e172]:
+                  - button "Inspecionar ↗" [active] [ref=f1e174]
+              - row [ref=f1e175] [cursor=pointer]:
+                - cell "500.***.***-30 Aguardando Captura" [ref=f1e176]:
+                  - generic [ref=f1e184]:
+                    - generic [ref=f1e185]: 500.***.***-30
+                    - generic [ref=f1e187]: Aguardando Captura
+                - cell [ref=f1e188]:
+                  - button "eba6a2b9 📋" [ref=f1e189]:
+                    - text: eba6a2b9
+                    - generic [ref=f1e190]: 📋
+                - cell "📋 Consentimento" [ref=f1e191]:
+                  - generic [ref=f1e192]:
+                    - generic [ref=f1e193]: 📋
+                    - text: Consentimento
+                - cell "—" [ref=f1e194]
+                - cell "—" [ref=f1e195]
+                - cell "13/09/2026 11:28:09 BRT há 5 h" [ref=f1e196]:
+                  - generic [ref=f1e197]:
+                    - generic [ref=f1e198]: 13/09/2026
+                    - generic [ref=f1e199]:
+                      - generic [ref=f1e200]: 11:28:09 BRT
+                      - generic [ref=f1e201]: há 5 h
+                - cell [ref=f1e202]:
+                  - generic [ref=f1e203]:
+                    - button "Inspecionar ↗" [ref=f1e204]
+                    - button "🔗 Link" [ref=f1e205]
+                    - button "Cancelar" [ref=f1e206]
+              - row [ref=f1e207] [cursor=pointer]:
+                - cell "039.***.***-78 Aguardando Captura" [ref=f1e208]:
+                  - generic [ref=f1e216]:
+                    - generic [ref=f1e217]: 039.***.***-78
+                    - generic [ref=f1e219]: Aguardando Captura
+                - cell [ref=f1e220]:
+                  - button "0d058adf 📋" [ref=f1e221]:
+                    - text: 0d058adf
+                    - generic [ref=f1e222]: 📋
+                - cell "📋 Consentimento" [ref=f1e223]:
+                  - generic [ref=f1e224]:
+                    - generic [ref=f1e225]: 📋
+                    - text: Consentimento
+                - cell "—" [ref=f1e226]
+                - cell "—" [ref=f1e227]
+                - cell "13/09/2026 11:28:09 BRT há 5 h" [ref=f1e228]:
+                  - generic [ref=f1e229]:
+                    - generic [ref=f1e230]: 13/09/2026
+                    - generic [ref=f1e231]:
+                      - generic [ref=f1e232]: 11:28:09 BRT
+                      - generic [ref=f1e233]: há 5 h
+                - cell [ref=f1e234]:
+                  - generic [ref=f1e235]:
+                    - button "Inspecionar ↗" [ref=f1e236]
+                    - button "🔗 Link" [ref=f1e237]
+                    - button "Cancelar" [ref=f1e238]
+              - row [ref=f1e239] [cursor=pointer]:
+                - cell "294.***.***-00 Aguardando Captura" [ref=f1e240]:
+                  - generic [ref=f1e248]:
+                    - generic [ref=f1e249]: 294.***.***-00
+                    - generic [ref=f1e251]: Aguardando Captura
+                - cell [ref=f1e252]:
+                  - button "67ffb241 📋" [ref=f1e253]:
+                    - text: 67ffb241
+                    - generic [ref=f1e254]: 📋
+                - cell "📋 Consentimento" [ref=f1e255]:
+                  - generic [ref=f1e256]:
+                    - generic [ref=f1e257]: 📋
+                    - text: Consentimento
+                - cell "—" [ref=f1e258]
+                - cell "—" [ref=f1e259]
+                - cell "13/09/2026 11:28:08 BRT há 5 h" [ref=f1e260]:
+                  - generic [ref=f1e261]:
+                    - generic [ref=f1e262]: 13/09/2026
+                    - generic [ref=f1e263]:
+                      - generic [ref=f1e264]: 11:28:08 BRT
+                      - generic [ref=f1e265]: há 5 h
+                - cell [ref=f1e266]:
+                  - generic [ref=f1e267]:
+                    - button "Inspecionar ↗" [ref=f1e268]
+                    - button "🔗 Link" [ref=f1e269]
+                    - button "Cancelar" [ref=f1e270]
+              - row [ref=f1e271] [cursor=pointer]:
+                - cell "Biometria Natália Fernandes dos Santos 500.***.***-30 RFB RFB OK Captura Biométrica Ativa" [ref=f1e272]:
+                  - generic [ref=f1e273]:
+                    - img "Biometria" [ref=f1e275]
+                    - generic [ref=f1e277]:
+                      - generic [ref=f1e278]:
+                        - generic [ref=f1e279]: Natália Fernandes dos Santos
+                        - generic [ref=f1e280]: 500.***.***-30
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e281]:
+                          - img "RFB" [ref=f1e282]
+                          - text: RFB OK
+                      - generic [ref=f1e283]: Captura Biométrica Ativa
+                - cell [ref=f1e284]:
+                  - button "67a3f3b5 📋" [ref=f1e285]:
+                    - text: 67a3f3b5
+                    - generic [ref=f1e286]: 📋
+                - cell "⏱ Em Revisão" [ref=f1e287]:
+                  - generic [ref=f1e288]:
+                    - generic [ref=f1e289]: ⏱
+                    - text: Em Revisão
+                - cell "660 / 1000" [ref=f1e290]:
+                  - generic [ref=f1e292]:
+                    - generic [ref=f1e293]: "660"
+                    - generic [ref=f1e294]: / 1000
+                - cell "⚠️ Nome declarado ≠ documento" [ref=f1e297]:
+                  - generic "Nome declarado ≠ documento" [ref=f1e298]: ⚠️ Nome declarado ≠ documento
+                - cell "12/09/2026 18:58:43 BRT há 22 h" [ref=f1e299]:
+                  - generic [ref=f1e300]:
+                    - generic [ref=f1e301]: 12/09/2026
+                    - generic [ref=f1e302]:
+                      - generic [ref=f1e303]: 18:58:43 BRT
+                      - generic [ref=f1e304]: há 22 h
+                - cell [ref=f1e305]:
+                  - button "Inspecionar ↗" [ref=f1e307]
+              - row [ref=f1e308] [cursor=pointer]:
+                - cell "Biometria Luciano Maciel de Carvalho 219.***.***-61 RFB RFB OK Captura Biométrica Ativa" [ref=f1e309]:
+                  - generic [ref=f1e310]:
+                    - img "Biometria" [ref=f1e312]
+                    - generic [ref=f1e314]:
+                      - generic [ref=f1e315]:
+                        - generic [ref=f1e316]: Luciano Maciel de Carvalho
+                        - generic [ref=f1e317]: 219.***.***-61
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e318]:
+                          - img "RFB" [ref=f1e319]
+                          - text: RFB OK
+                      - generic [ref=f1e320]: Captura Biométrica Ativa
+                - cell [ref=f1e321]:
+                  - button "6b1c0216 📋" [ref=f1e322]:
+                    - text: 6b1c0216
+                    - generic [ref=f1e323]: 📋
+                - cell "✓ Aprovado" [ref=f1e324]:
+                  - generic [ref=f1e325]:
+                    - generic [ref=f1e326]: ✓
+                    - text: Aprovado
+                - cell "600 / 1000" [ref=f1e327]:
+                  - generic [ref=f1e329]:
+                    - generic [ref=f1e330]: "600"
+                    - generic [ref=f1e331]: / 1000
+                - cell "✓ Identidade verificada" [ref=f1e334]
+                - cell "12/09/2026 18:57:53 BRT há 22 h" [ref=f1e336]:
+                  - generic [ref=f1e337]:
+                    - generic [ref=f1e338]: 12/09/2026
+                    - generic [ref=f1e339]:
+                      - generic [ref=f1e340]: 18:57:53 BRT
+                      - generic [ref=f1e341]: há 22 h
+                - cell [ref=f1e342]:
+                  - button "Inspecionar ↗" [ref=f1e344]
+              - row [ref=f1e345] [cursor=pointer]:
+                - cell "Biometria Heloisa Cristina Fernandes 039.***.***-78 RFB RFB OK Captura Biométrica Ativa" [ref=f1e346]:
+                  - generic [ref=f1e347]:
+                    - img "Biometria" [ref=f1e349]
+                    - generic [ref=f1e351]:
+                      - generic [ref=f1e352]:
+                        - generic [ref=f1e353]: Heloisa Cristina Fernandes
+                        - generic [ref=f1e354]: 039.***.***-78
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e355]:
+                          - img "RFB" [ref=f1e356]
+                          - text: RFB OK
+                      - generic [ref=f1e357]: Captura Biométrica Ativa
+                - cell [ref=f1e358]:
+                  - button "bc3b0c27 📋" [ref=f1e359]:
+                    - text: bc3b0c27
+                    - generic [ref=f1e360]: 📋
+                - cell "✓ Aprovado" [ref=f1e361]:
+                  - generic [ref=f1e362]:
+                    - generic [ref=f1e363]: ✓
+                    - text: Aprovado
+                - cell "690 / 1000" [ref=f1e364]:
+                  - generic [ref=f1e366]:
+                    - generic [ref=f1e367]: "690"
+                    - generic [ref=f1e368]: / 1000
+                - cell "✓ Identidade verificada" [ref=f1e371]
+                - cell "12/09/2026 18:56:44 BRT há 22 h" [ref=f1e373]:
+                  - generic [ref=f1e374]:
+                    - generic [ref=f1e375]: 12/09/2026
+                    - generic [ref=f1e376]:
+                      - generic [ref=f1e377]: 18:56:44 BRT
+                      - generic [ref=f1e378]: há 22 h
+                - cell [ref=f1e379]:
+                  - button "Inspecionar ↗" [ref=f1e381]
+              - row [ref=f1e382] [cursor=pointer]:
+                - cell "Biometria Edmilson Lopes Fernandes dos Santos 294.***.***-00 RFB RFB OK Captura Biométrica Ativa" [ref=f1e383]:
+                  - generic [ref=f1e384]:
+                    - img "Biometria" [ref=f1e386]
+                    - generic [ref=f1e388]:
+                      - generic [ref=f1e389]:
+                        - generic [ref=f1e390]: Edmilson Lopes Fernandes dos Santos
+                        - generic [ref=f1e391]: 294.***.***-00
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e392]:
+                          - img "RFB" [ref=f1e393]
+                          - text: RFB OK
+                      - generic [ref=f1e394]: Captura Biométrica Ativa
+                - cell [ref=f1e395]:
+                  - button "cda3ee64 📋" [ref=f1e396]:
+                    - text: cda3ee64
+                    - generic [ref=f1e397]: 📋
+                - cell "✓ Aprovado" [ref=f1e398]:
+                  - generic [ref=f1e399]:
+                    - generic [ref=f1e400]: ✓
+                    - text: Aprovado
+                - cell "750 / 1000" [ref=f1e401]:
+                  - generic [ref=f1e403]:
+                    - generic [ref=f1e404]: "750"
+                    - generic [ref=f1e405]: / 1000
+                - cell "✓ Identidade verificada" [ref=f1e408]
+                - cell "12/09/2026 18:54:21 BRT há 22 h" [ref=f1e410]:
+                  - generic [ref=f1e411]:
+                    - generic [ref=f1e412]: 12/09/2026
+                    - generic [ref=f1e413]:
+                      - generic [ref=f1e414]: 18:54:21 BRT
+                      - generic [ref=f1e415]: há 22 h
+                - cell [ref=f1e416]:
+                  - button "Inspecionar ↗" [ref=f1e418]
+              - row [ref=f1e419] [cursor=pointer]:
+                - cell "Biometria 219.***.***-61 Captura Biométrica Ativa" [ref=f1e420]:
+                  - generic [ref=f1e421]:
+                    - img "Biometria" [ref=f1e423]
+                    - generic [ref=f1e425]:
+                      - generic [ref=f1e426]: 219.***.***-61
+                      - generic [ref=f1e428]: Captura Biométrica Ativa
+                - cell [ref=f1e429]:
+                  - button "fb1948a9 📋" [ref=f1e430]:
+                    - text: fb1948a9
+                    - generic [ref=f1e431]: 📋
+                - cell "🚫 Cancelada" [ref=f1e432]:
+                  - generic [ref=f1e433]:
+                    - generic [ref=f1e434]: 🚫
+                    - text: Cancelada
+                - cell "—" [ref=f1e435]
+                - cell "🚫 Cancelada pelo operador" [ref=f1e436]
+                - cell "12/09/2026 14:44:09 BRT ontem" [ref=f1e438]:
+                  - generic [ref=f1e439]:
+                    - generic [ref=f1e440]: 12/09/2026
+                    - generic [ref=f1e441]:
+                      - generic [ref=f1e442]: 14:44:09 BRT
+                      - generic [ref=f1e443]: ontem
+                - cell [ref=f1e444]:
+                  - button "Inspecionar ↗" [ref=f1e446]
+              - row [ref=f1e447] [cursor=pointer]:
+                - cell "Biometria Diogo dias Fernandes 050.***.***-99 RFB RFB OK Captura Biométrica Ativa" [ref=f1e448]:
+                  - generic [ref=f1e449]:
+                    - img "Biometria" [ref=f1e451]
+                    - generic [ref=f1e453]:
+                      - generic [ref=f1e454]:
+                        - generic [ref=f1e455]: Diogo dias Fernandes
+                        - generic [ref=f1e456]: 050.***.***-99
+                        - generic "CPF validado e regular na Receita Federal do Brasil (+100 no Score)" [ref=f1e457]:
+                          - img "RFB" [ref=f1e458]
+                          - text: RFB OK
+                      - generic [ref=f1e459]: Captura Biométrica Ativa
+                - cell [ref=f1e460]:
+                  - button "39a620ca 📋" [ref=f1e461]:
+                    - text: 39a620ca
+                    - generic [ref=f1e462]: 📋
+                - cell "⏱ Em Revisão" [ref=f1e463]:
+                  - generic [ref=f1e464]:
+                    - generic [ref=f1e465]: ⏱
+                    - text: Em Revisão
+                - cell "100 / 1000" [ref=f1e466]:
+                  - generic [ref=f1e468]:
+                    - generic [ref=f1e469]: "100"
+                    - generic [ref=f1e470]: / 1000
+                - cell "⚠️ Document Date Missing" [ref=f1e473]:
+                  - generic "Document Date Missing" [ref=f1e474]: ⚠️ Document Date Missing
+                - cell "12/09/2026 13:30:15 BRT ontem" [ref=f1e475]:
+                  - generic [ref=f1e476]:
+                    - generic [ref=f1e477]: 12/09/2026
+                    - generic [ref=f1e478]:
+                      - generic [ref=f1e479]: 13:30:15 BRT
+                      - generic [ref=f1e480]: ontem
+                - cell [ref=f1e481]:
+                  - button "Inspecionar ↗" [ref=f1e483]
+          - generic [ref=f1e124]:
+            - generic [ref=f1e125]:
+              - generic [ref=f1e126]:
+                - text: Mostrando
+                - generic [ref=f1e127]: 1–10
+                - text: de 43 verificações
+              - generic [ref=f1e128]:
+                - generic [ref=f1e129]: "Linhas por página:"
+                - combobox [ref=f1e130]:
+                  - option "10" [selected]
+                  - option "25"
+                  - option "50"
+                  - option "100"
+            - generic [ref=f1e484]:
+              - button "‹ Anterior" [disabled] [ref=f1e485]
+              - button "1" [ref=f1e486] [cursor=pointer]
+              - button "2" [ref=f1e487] [cursor=pointer]
+              - generic [ref=f1e488]: …
+              - button "5" [ref=f1e489] [cursor=pointer]
+              - button "Próximo ›" [ref=f1e490] [cursor=pointer]
+        - generic [ref=f1e492]:
+          - generic [ref=f1e493]:
+            - generic [ref=f1e501]:
+              - heading "Auditoria Forense da Verificação" [level=2] [ref=f1e502]
+              - generic [ref=f1e503]:
+                - text: "ID:"
+                - code [ref=f1e504]: 68086cb8-2546-4ef9-8712-3968d6cfc8b8
+            - button "✕" [ref=f1e505] [cursor=pointer]
+          - generic [ref=f1e506]:
+            - generic [ref=f1e507]:
+              - generic [ref=f1e508]: Aprovado
+              - generic [ref=f1e509]: CPF 294.***.***-00
+              - generic [ref=f1e510]: Edmilson Lopes Fernandes dos Santos · CNH
+              - 'generic "Data e Hora exata de criação pericial: 13/09/2026 às 11:34:53 BRT" [ref=f1e511]': "📅 Registrado: 13/09/2026 às 11:34:53 BRT (há 5 h)"
+              - 'generic "Timestamp pericial de finalização: 13/09/2026 às 11:39:15 BRT" [ref=f1e512]': "✓ Concluído: 13/09/2026 às 11:39:15 BRT"
+            - generic [ref=f1e513]:
+              - generic [ref=f1e514]:
+                - generic [ref=f1e515]:
+                  - heading "Comparação Biométrica Forense" [level=3] [ref=f1e516]
+                  - paragraph [ref=f1e517]: Validação facial 1:1 entre o documento de identificação e a prova de vida
+                - generic [ref=f1e518]:
+                  - generic [ref=f1e519]:
+                    - button "Enquadrar Tudo (Sem Cortes)" [ref=f1e520] [cursor=pointer]
+                    - button "Preencher" [ref=f1e521] [cursor=pointer]
+                  - generic [ref=f1e522]:
+                    - generic [ref=f1e523]: Similaridade Facial
+                    - generic [ref=f1e524]: 71.9%
+              - generic [ref=f1e525]:
+                - generic [ref=f1e526]:
+                  - generic [ref=f1e527]:
+                    - generic [ref=f1e528]: Documento (Frente)
+                    - button "🔍 Ampliar" [ref=f1e529] [cursor=pointer]
+                  - generic "Clique para ampliar em alta resolução" [ref=f1e530]:
+                    - img "Documento" [ref=f1e531]
+                    - generic: 🔍 Toque p/ ampliar
+                - generic [ref=f1e532]:
+                  - generic [ref=f1e533]:
+                    - generic [ref=f1e534]: "750"
+                    - generic [ref=f1e535]: de 1000
+                  - generic [ref=f1e536]: BIOMETRIA OK
+                - generic [ref=f1e537]:
+                  - generic [ref=f1e538]:
+                    - generic [ref=f1e539]: Selfie (Prova 3D)
+                    - button "🔍 Ampliar" [ref=f1e540] [cursor=pointer]
+                  - generic "Clique para ampliar em alta resolução" [ref=f1e541]:
+                    - img "Selfie" [ref=f1e542]
+                    - generic: 🔍 Toque p/ ampliar
+            - generic [ref=f1e543]:
+              - heading "Dados Extraídos do Documento (OCR)" [level=3] [ref=f1e544]
+              - generic [ref=f1e545]:
+                - generic [ref=f1e546]:
+                  - generic [ref=f1e547]: CPF
+                  - generic [ref=f1e548]: 294.015.328-00
+                - generic [ref=f1e549]:
+                  - generic [ref=f1e550]: Nome completo
+                  - generic [ref=f1e551]: Edmilson Lopes Fernandes dos Santos
+                - generic [ref=f1e552]:
+                  - generic [ref=f1e553]: Nascimento
+                  - generic [ref=f1e554]: 30/11/1978
+                - generic [ref=f1e555]:
+                  - generic [ref=f1e556]: Número do documento
+                  - generic [ref=f1e557]: "01593865303"
+                - generic [ref=f1e558]:
+                  - generic [ref=f1e559]: Validade
+                  - generic [ref=f1e560]: 05/11/2029
+            - generic [ref=f1e561]:
+              - generic [ref=f1e562]:
+                - generic [ref=f1e563]:
+                  - img "Receita Federal" [ref=f1e565]
+                  - generic [ref=f1e566]:
+                    - generic [ref=f1e567]:
+                      - heading "Secretaria da Receita Federal do Brasil" [level=3] [ref=f1e568]
+                      - generic [ref=f1e569]: Base Governamental Oficial
+                    - paragraph [ref=f1e570]: Consulta de Autenticidade Cadastral do CPF · Ministério da Fazenda
+                - generic [ref=f1e572]:
+                  - generic [ref=f1e573]: ⚡
+                  - text: Cache Autenticado de Alta Velocidade
+              - generic [ref=f1e574]:
+                - generic [ref=f1e575]:
+                  - generic [ref=f1e576]:
+                    - generic [ref=f1e577]: ✓
+                    - generic [ref=f1e578]:
+                      - generic [ref=f1e579]: "SITUAÇÃO CADASTRAL: REGULAR · ATIVO NA BASE RFB"
+                      - generic [ref=f1e580]: CPF apto perante a Fazenda Nacional, sem restrições fiscais, suspensões ou óbito registrado.
+                  - generic [ref=f1e581]: +100 PTS NO SCORE
+                - generic [ref=f1e583]:
+                  - generic [ref=f1e584]:
+                    - generic [ref=f1e585]:
+                      - generic [ref=f1e586]: Nome Civil Registrado (Base Oficial RFB)
+                      - generic [ref=f1e587]: ✓ 100% Compatível com o Documento
+                    - generic [ref=f1e588]: EDMILSON LOPES FERNANDES DOS SANTOS
+                  - generic [ref=f1e589]:
+                    - generic [ref=f1e590]: Situação Cadastral
+                    - generic [ref=f1e591]: ✓ Regular (Ativo)
+                  - generic [ref=f1e592]:
+                    - generic [ref=f1e593]: Timestamp Pericial da Consulta
+                    - generic [ref=f1e594]: 11/09/2026 às 16:39:38 BRT
+                  - generic [ref=f1e595]:
+                    - generic [ref=f1e596]: Conformidade Regulatória
+                    - generic [ref=f1e597]:
+                      - generic [ref=f1e598]: 🏛️
+                      - generic [ref=f1e599]: Bacen · CVM · LGPD Art. 7° II
+                - generic [ref=f1e600]:
+                  - generic [ref=f1e601]:
+                    - generic [ref=f1e602]: 🔒
+                    - generic [ref=f1e603]: Autenticidade cadastral confirmada diretamente nos registros da Fazenda Nacional.
+                  - generic [ref=f1e604]: "CPF Auditado: 294.***.***-00"
+            - generic [ref=f1e605]:
+              - heading "Composição do Score (750/1000)" [level=3] [ref=f1e606]
+              - generic [ref=f1e607]:
+                - generic [ref=f1e608]:
+                  - generic [ref=f1e609]: CPF regular na Receita
+                  - generic [ref=f1e610]: "+100"
+                - generic [ref=f1e611]:
+                  - generic [ref=f1e612]: Tempo de vida da identidade
+                  - generic [ref=f1e613]: "+0"
+                - generic [ref=f1e614]:
+                  - generic [ref=f1e615]: Documento válido + face match
+                  - generic [ref=f1e616]: "+500"
+                - generic [ref=f1e617]:
+                  - generic [ref=f1e618]: Histórico limpo de reuso
+                  - generic [ref=f1e619]: "+150"
+                - generic [ref=f1e620]:
+                  - generic [ref=f1e621]: Total
+                  - generic [ref=f1e622]: 750/1000
+            - generic [ref=f1e623]:
+              - heading "Trilha do Pipeline de Verificação" [level=3] [ref=f1e624]
+              - generic [ref=f1e625]:
+                - generic [ref=f1e626]:
+                  - generic [ref=f1e627]: ✓
+                  - generic [ref=f1e628]:
+                    - generic [ref=f1e629]: ocr
+                    - generic [ref=f1e630]: "Motor: uai-ocr-v0 · 13029ms"
+                  - generic [ref=f1e631]: Executado
+                - generic [ref=f1e632]:
+                  - generic [ref=f1e633]: ✓
+                  - generic [ref=f1e634]:
+                    - generic [ref=f1e635]: ocr.debug
+                    - generic [ref=f1e636]: "Motor: uai-ocr-v0 · 0ms"
+                  - generic [ref=f1e637]: Executado
+                - generic [ref=f1e638]:
+                  - generic [ref=f1e639]: ✓
+                  - generic [ref=f1e640]:
+                    - generic [ref=f1e641]: expiration
+                    - generic [ref=f1e642]: "Motor: uai-decision-v0 · 0ms"
+                  - generic [ref=f1e643]: Executado
+                - generic [ref=f1e644]:
+                  - generic [ref=f1e645]: ✓
+                  - generic [ref=f1e646]:
+                    - generic [ref=f1e647]: face
+                    - generic [ref=f1e648]: "Motor: uai-face-v1 · 4356ms"
+                  - generic [ref=f1e649]: Executado
+                - generic [ref=f1e650]:
+                  - generic [ref=f1e651]: ✓
+                  - generic [ref=f1e652]:
+                    - generic [ref=f1e653]: liveness
+                    - generic [ref=f1e654]: "Motor: uai-liveness-v0-seq · 460ms"
+                  - generic [ref=f1e655]: Executado
+                - generic [ref=f1e656]:
+                  - generic [ref=f1e657]: ✓
+                  - generic [ref=f1e658]:
+                    - generic [ref=f1e659]: receita
+                    - generic [ref=f1e660]: "Motor: infosimples · 0ms"
+                  - generic [ref=f1e661]: Executado
+                - generic [ref=f1e662]:
+                  - generic [ref=f1e663]: ✓
+                  - generic [ref=f1e664]:
+                    - generic [ref=f1e665]: crosscheck
+                    - generic [ref=f1e666]: "Motor: jano-crosscheck-v1 · 0ms"
+                  - generic [ref=f1e667]: Executado
+                - generic [ref=f1e668]:
+                  - generic [ref=f1e669]: ✓
+                  - generic [ref=f1e670]:
+                    - generic [ref=f1e671]: score
+                    - generic [ref=f1e672]: "Motor: jano-score-v1 · 0ms"
+                  - generic [ref=f1e673]: Executado
+            - generic [ref=f1e674]: 🔒 Esta sessão foi registrada em trilha imutável de auditoria (LGPD Art. 7 e 11). Imagens acessadas sob credencial autorizada do tenant.
+  - alert [ref=f1e131]

@@ -1,0 +1,736 @@
+[
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/",
+    "name": "dashboard",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 3,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/exams",
+    "name": "exams-list",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 10,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/alterados",
+    "name": "alterados",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/evolucao",
+    "name": "evolucao",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/tendencias",
+    "name": "tendencias",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/linha-do-tempo",
+    "name": "timeline",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/relatorio",
+    "name": "relatorio",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/medicoes",
+    "name": "medicoes",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/medicoes/historico/STEPS",
+    "name": "medicoes-hist",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/saude-mental",
+    "name": "saude-mental",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/medicamentos",
+    "name": "medicamentos",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/vacinas",
+    "name": "vacinas",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/lembretes",
+    "name": "lembretes",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/emergencia",
+    "name": "emergencia",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/conquistas",
+    "name": "conquistas",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 5,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/despesas",
+    "name": "despesas",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/familia",
+    "name": "familia",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/patients",
+    "name": "dependentes",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/medicos",
+    "name": "medicos",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/perguntas",
+    "name": "perguntas",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/perfil",
+    "name": "perfil",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/seguranca",
+    "name": "seguranca",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/privacidade",
+    "name": "privacidade",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/planos",
+    "name": "planos",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 1,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/faq",
+    "name": "faq",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/chat",
+    "name": "chat",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/notificacoes",
+    "name": "notificacoes",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/suporte",
+    "name": "suporte",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/api",
+    "name": "api-panel",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/exams/cmqpetsv90001nq20v84utyv9",
+    "name": "exam-detail",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 10,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [
+      "⏰ Seu PIX expirou",
+      "⏰ Seu PIX expirou"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/admin",
+    "name": "admin",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/entrar",
+    "name": "login",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+    ]
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/entrar/medico",
+    "name": "login-medico",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/registrar",
+    "name": "registrar",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+    ]
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/recuperar-senha",
+    "name": "recuperar-senha",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/landing",
+    "name": "landing",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 9,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/termos",
+    "name": "termos",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/como-validamos",
+    "name": "como-validamos",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/api-docs",
+    "name": "api-docs",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 10,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/convite/token-invalido-teste",
+    "name": "convite-invalido",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 (Not Found)"
+    ]
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/doctor",
+    "name": "doctor-portal",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": []
+  },
+  {
+    "engine": "webkit",
+    "width": 390,
+    "route": "/rota-que-nao-existe",
+    "name": "notfound",
+    "ok": true,
+    "docOverflowX": 0,
+    "bodyOverflowX": 0,
+    "offenders": [],
+    "containedOffenders": 0,
+    "coveredByNav": [],
+    "canReachBottom": true,
+    "dialogs": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 403 ()",
+      "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+    ]
+  }
+]

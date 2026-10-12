@@ -1,0 +1,72 @@
+- generic [ref=f5e20]:
+  - generic [ref=f5e21]:
+    - generic [ref=f5e83]:
+      - button [ref=f5e84] [cursor=pointer]
+      - main [ref=f5e112]:
+        - generic [ref=f5e352]:
+          - heading [level=5] [ref=f5e358]: Lembretes
+          - generic [ref=f5e360]:
+            - heading [level=6] [ref=f5e361]: Novo lembrete
+            - generic [ref=f5e362]:
+              - generic [ref=f5e363]:
+                - generic [ref=f5e401]: "O que (ex.: Refazer hemograma)"
+                - generic [ref=f5e364]:
+                  - textbox [ref=f5e365]: Teste lembrete prod
+                  - group:
+                    - generic: "O que (ex.: Refazer hemograma)"
+              - generic [ref=f5e366]:
+                - generic [ref=f5e367]: Data
+                - generic [ref=f5e368]:
+                  - textbox [ref=f5e369]: 2026-12-25
+                  - group:
+                    - generic: Data
+              - generic [ref=f5e370]:
+                - generic [ref=f5e371]: Hora
+                - generic [ref=f5e372]:
+                  - textbox [ref=f5e373]: 09:00
+                  - group:
+                    - generic: Hora
+            - paragraph [ref=f5e377]: Quando avisar?
+            - generic [ref=f5e378]:
+              - button [ref=f5e379] [cursor=pointer]:
+                - generic [ref=f5e380]: 1 semana antes
+              - button [ref=f5e381] [cursor=pointer]:
+                - generic [ref=f5e382]: 1 dia antes
+              - button [ref=f5e383] [cursor=pointer]:
+                - generic [ref=f5e384]: 12 h antes
+              - button [ref=f5e385] [cursor=pointer]:
+                - generic [ref=f5e386]: 5 h antes
+              - button [ref=f5e387] [cursor=pointer]:
+                - generic [ref=f5e388]: 1 hora antes
+              - button [ref=f5e389] [cursor=pointer]:
+                - generic [ref=f5e390]: Na hora
+            - generic [ref=f5e391]:
+              - text: Avisamos por
+              - strong [ref=f5e392]: notificação no app
+              - text: ","
+              - strong [ref=f5e393]: push
+              - text: e
+              - strong [ref=f5e394]: e-mail
+              - text: em cada antecedência escolhida.
+            - button [ref=f5e402] [cursor=pointer]: Adicionar
+          - generic [ref=f5e396]:
+            - generic [ref=f5e397]: Próximos lembretes
+            - paragraph [ref=f5e398]: "Nenhum lembrete agendado. Crie um acima (ex.: \"Refazer hemograma em 6 meses\")."
+          - separator [ref=f5e399]
+    - button [ref=f5e327] [cursor=pointer]
+    - navigation [ref=f5e272]:
+      - paragraph [ref=f5e277] [cursor=pointer]: Início
+      - paragraph [ref=f5e283] [cursor=pointer]: Exames
+      - paragraph [ref=f5e287] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=f5e292] [cursor=pointer]: Evolução
+      - paragraph [ref=f5e297] [cursor=pointer]: Mais
+  - dialog [active] [ref=f5e302]:
+    - generic [ref=f5e303]:
+      - button "Pular" [ref=f5e403] [cursor=pointer]
+      - generic [ref=f5e305]:
+        - generic [ref=f5e306]: 📋
+        - heading "Sua saúde centralizada" [level=4] [ref=f5e404]
+        - paragraph [ref=f5e308]: Todos os seus exames em um só lugar, organizados por data. Nunca mais perca um resultado.
+      - generic [ref=f5e309]:
+        - button [ref=f5e405] [cursor=pointer]
+        - paragraph [ref=f5e319]: Toque em Próximo para continuar →

@@ -1,0 +1,92 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button "Pular para o conteúdo" [ref=e301] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e278]:
+          - generic [ref=e279]:
+            - button "Voltar" [ref=e302] [cursor=pointer]
+            - generic [ref=e283]:
+              - img "Dr. Exame" [ref=e305]
+              - paragraph [ref=e300]: Dr. Exame
+            - button "Você tem 71 créditos. Toque para comprar mais." [active] [ref=e306] [cursor=pointer]:
+              - generic [ref=e290]: "71"
+            - button "Notificações" [ref=e307] [cursor=pointer]:
+              - generic [ref=e292]: 9+
+            - button "E" [ref=e308] [cursor=pointer]
+        - main [ref=e57]:
+          - generic [ref=e309]:
+            - generic [ref=e314]:
+              - heading "Planos e Créditos" [level=5] [ref=e315]
+              - paragraph [ref=e316]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=e317]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=e318]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=e320]:
+              - paragraph [ref=e321]: Seus créditos
+              - paragraph [ref=e322]: "71"
+              - generic [ref=e323]: Sem assinatura — créditos custeiam a IA.
+            - generic [ref=e326] [cursor=pointer]:
+              - heading "Histórico de Uso" [level=6] [ref=e327]
+              - generic [ref=e328]: Ver histórico ▼
+            - heading "Comprar créditos (PIX instantâneo)" [level=6] [ref=e329]
+            - generic [ref=e332]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+            - generic [ref=e333]:
+              - generic [ref=e335]:
+                - paragraph [ref=e336]: "50"
+                - paragraph [ref=e337]: créditos
+                - heading "R$ 9,90" [level=5] [ref=e338]
+                - button "Comprar" [ref=e339] [cursor=pointer]
+              - generic [ref=e340]:
+                - generic [ref=e341]: MAIS VENDIDO
+                - generic [ref=e344]:
+                  - paragraph [ref=e345]: "140"
+                  - paragraph [ref=e346]: créditos
+                  - heading "R$ 24,90" [level=5] [ref=e347]
+                  - button "Comprar" [ref=e348] [cursor=pointer]
+              - generic [ref=e350]:
+                - paragraph [ref=e351]: "320"
+                - paragraph [ref=e352]: créditos
+                - heading "R$ 49,90" [level=5] [ref=e353]
+                - button "Comprar" [ref=e354] [cursor=pointer]
+            - paragraph [ref=e355]: — ou assine —
+            - generic [ref=e357]:
+              - heading "💎 Premium Mensal" [level=6] [ref=e358]
+              - paragraph [ref=e359]:
+                - text: 250 créditos que
+                - strong [ref=e360]: somam
+                - text: ao seu saldo. Válido 30 dias. Seus créditos
+                - strong [ref=e361]: não expiram
+                - text: — você decide se renova.
+              - list [ref=e362]:
+                - listitem [ref=e363]: 250 créditos de IA por mês
+                - listitem [ref=e364]: Exames + dependentes
+                - listitem [ref=e365]: Relatório completo + impressão
+              - separator [ref=e366]
+              - generic [ref=e367]:
+                - generic [ref=e368]:
+                  - heading "R$ 19,90" [level=4] [ref=e369]
+                  - paragraph [ref=e370]: /mês · sem anual · sem fidelidade
+                - button "Assinar mensal" [ref=e371] [cursor=pointer]
+    - button "Pergunte ao Dr. Exame" [ref=e372] [cursor=pointer]:
+      - img "Dr. Exame" [ref=e375]
+    - navigation [ref=e176]:
+      - paragraph [ref=e181] [cursor=pointer]: Início
+      - paragraph [ref=e187] [cursor=pointer]: Exames
+      - generic [ref=e188] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e381]
+        - paragraph [ref=e191]: Dr. Exame
+      - paragraph [ref=e196] [cursor=pointer]: Evolução
+      - paragraph [ref=e201] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e383]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e384]
+  - generic: layout property animation
+  - generic: low contrast text
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation
+  - generic: layout property animation

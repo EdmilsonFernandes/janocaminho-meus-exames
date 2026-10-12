@@ -1,0 +1,110 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e23] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e27] [cursor=pointer]
+            - paragraph [ref=e33]: Dr. Exame
+            - button [ref=e34] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e38] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e44] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e516]:
+            - generic [ref=e518]:
+              - generic [ref=e519]:
+                - heading [level=1] [ref=e520]: HEMOGRAMA
+                - generic [ref=e521]: Pronto
+                - generic [ref=e523]: Hemograma
+                - generic [ref=e527]: conferir dados
+              - generic [ref=e529]:
+                - generic [ref=e530]: Data não identificada
+                - generic [ref=e531]:
+                  - generic [ref=e532]:
+                    - generic [ref=e533]: V
+                    - generic [ref=e534]: VOLPI ara Vol! Jnir BIANCARDI LABORATÓRIO DE ANÁLISES CLÍNICAS
+                  - generic [ref=e535]: 1 pág.
+              - button [ref=e537] [cursor=pointer]: Abrir laudo
+              - paragraph [ref=e541]: 👤 BIANCA) pr mpi
+              - alert [ref=e542]:
+                - generic [ref=e543]: Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
+            - generic [ref=e545]:
+              - paragraph [ref=e546]: ⚠️ Confirme o titular antes da análise
+              - paragraph [ref=e547]:
+                - text: O nome detectado no documento (
+                - strong [ref=e548]: BIANCA) pr mpi
+                - text: ) parece diferente do perfil selecionado (
+                - strong [ref=e549]: Edmilson Lopes Fernandes dos Santos
+                - text: ).
+              - generic [ref=e550]:
+                - generic [ref=e551]: Similaridade 0%
+                - generic [ref=e553]: Proteção de privacidade
+              - paragraph [ref=e555]: Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.
+              - generic [ref=e556]:
+                - button [ref=e557] [cursor=pointer]: ✓ Confirmo que é deste paciente
+                - button [ref=e558] [cursor=pointer]: ✕ Não é deste paciente (excluir)
+            - generic [ref=e560]:
+              - paragraph [ref=e561]: 🚩 2 valor(es) fora da faixa de referência
+              - generic [ref=e562]:
+                - button [ref=e563] [cursor=pointer]:
+                  - generic [ref=e564]: "↓ Plaquetas: 116.000/mm³"
+                - button [ref=e565] [cursor=pointer]:
+                  - generic [ref=e566]: "↓ VCM: 80,8"
+            - heading [level=3] [ref=e568]:
+              - button [ref=e569] [cursor=pointer]:
+                - generic [ref=e570]:
+                  - paragraph [ref=e571]: Leucograma
+                  - generic [ref=e572]: 12 itens
+            - heading [level=3] [ref=e578]:
+              - button [ref=e579] [cursor=pointer]:
+                - generic [ref=e580]:
+                  - paragraph [ref=e581]: Plaquetas
+                  - generic [ref=e582]: 1 alterado
+                  - generic [ref=e584]: 1 item
+            - heading [level=3] [ref=e590]:
+              - button [ref=e591] [cursor=pointer]:
+                - generic [ref=e592]:
+                  - paragraph [ref=e593]: Série Vermelha
+                  - generic [ref=e594]: 1 alterado
+                  - generic [ref=e596]: 7 itens
+            - generic [ref=e603]:
+              - heading [level=6] [ref=e604]: Análise de saúde
+              - paragraph [ref=e605]: Gera um resumo educativo comparando com o exame anterior e os pontos a levar ao médico.
+              - button [ref=e606] [cursor=pointer]: Gerar resumo
+              - generic [ref=e607]:
+                - generic [ref=e608]: 💎
+                - generic [ref=e609]: 10 créditos
+            - generic [ref=e611]:
+              - generic [ref=e612]:
+                - heading [level=6] [ref=e613]: 📋 Preparar visita ao médico
+                - button [ref=e614] [cursor=pointer]: Gerar documento
+              - paragraph [ref=e615]: 1 página com valores alterados + perfil clínico + comparação. Pronto para levar na consulta.
+    - navigation [ref=e166]:
+      - paragraph [ref=e171] [cursor=pointer]: Início
+      - paragraph [ref=e177] [cursor=pointer]: Exames
+      - paragraph [ref=e181] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e186] [cursor=pointer]: Evolução
+      - paragraph [ref=e191] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - dialog [active] [ref=e195]:
+    - navigation [ref=e196]:
+      - generic [ref=e197]:
+        - button "Exames" [expanded] [ref=e198] [cursor=pointer]
+        - generic [ref=e266]:
+          - button "Exames" [ref=e267] [cursor=pointer]
+          - button "Valores alterados" [ref=e273] [cursor=pointer]
+          - button "Evolução" [ref=e280] [cursor=pointer]
+          - button "Tendências" [ref=e287] [cursor=pointer]
+          - button "Linha do Tempo" [ref=e293] [cursor=pointer]
+          - button "Relatório completo" [ref=e299] [cursor=pointer]
+      - button "Cuidados" [ref=e207] [cursor=pointer]
+      - button "Pessoas" [ref=e217] [cursor=pointer]
+      - button "Conta" [ref=e227] [cursor=pointer]
+      - separator [ref=e235]
+      - button "Ajuda & Suporte" [ref=e236] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e242] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e248] [cursor=pointer]

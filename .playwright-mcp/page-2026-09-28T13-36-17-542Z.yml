@@ -1,0 +1,83 @@
+- generic [ref=e27]:
+  - button "Pular para o conteúdo" [ref=e181] [cursor=pointer]
+  - generic [ref=e29]:
+    - banner [ref=e30]:
+      - generic [ref=e31]:
+        - heading [level=6]
+        - generic [ref=e32]:
+          - button "Notificações" [ref=e182] [cursor=pointer]:
+            - generic [ref=e34]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=e183] [cursor=pointer]:
+            - generic [ref=e39]: E
+            - generic [ref=e41]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=e184] [cursor=pointer]
+    - main [ref=e50]:
+      - navigation [ref=e54]:
+        - generic [ref=e57]:
+          - generic [ref=e58]: E
+          - generic [ref=e61]:
+            - paragraph [ref=e62]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=e63]:
+              - generic [ref=e64]: Plano grátis
+              - button "⚡ 69 (+)" [ref=e185] [cursor=pointer]
+        - separator [ref=e66]
+        - button "Exames" [ref=e186] [cursor=pointer]
+        - button "Cuidados" [expanded] [ref=e187] [cursor=pointer]
+        - button "Pessoas" [ref=e188] [cursor=pointer]
+        - button "Conta" [ref=e189] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=e190] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=e191] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=e192] [cursor=pointer]
+        - generic [ref=e124]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=e222]:
+        - heading "Medições" [level=5] [ref=e229]
+        - generic [ref=e231]:
+          - heading "Peso" [level=6] [ref=e236]
+          - generic [ref=e237]:
+            - paragraph [ref=e238]: Nenhum registro ainda — registre e acompanhe sua tendência.
+            - button [ref=e239] [cursor=pointer]
+        - generic [ref=e243]:
+          - button "Ver histórico de Pressão arterial" [ref=e244] [cursor=pointer]:
+            - paragraph [ref=e250]: Pressão arterial
+            - paragraph [ref=e251]: —
+            - paragraph [ref=e252]: Nenhum registro
+          - button "Ver histórico de Altura" [ref=e254] [cursor=pointer]:
+            - paragraph [ref=e259]: Altura
+            - paragraph [ref=e260]: —
+            - paragraph [ref=e261]: Nenhum registro
+          - button "Ver histórico de Glicose" [ref=e263] [cursor=pointer]:
+            - paragraph [ref=e268]: Glicose
+            - paragraph [ref=e269]: —
+            - paragraph [ref=e270]: Nenhum registro
+          - button "Ver histórico de Freq. cardíaca" [ref=e272] [cursor=pointer]:
+            - paragraph [ref=e277]: Freq. cardíaca
+            - paragraph [ref=e278]: —
+            - paragraph [ref=e279]: Nenhum registro
+          - button "Ver histórico de Passos" [ref=e281] [cursor=pointer]:
+            - paragraph [ref=e286]: Passos
+            - paragraph [ref=e287]: —
+            - paragraph [ref=e288]: Nenhum registro
+          - button "Ver histórico de Calorias" [ref=e290] [cursor=pointer]:
+            - paragraph [ref=e296]: Calorias
+            - paragraph [ref=e297]: —
+            - paragraph [ref=e298]: Nenhum registro
+          - button "Ver histórico de Distância" [ref=e300] [cursor=pointer]:
+            - paragraph [ref=e305]: Distância
+            - paragraph [ref=e306]: —
+            - paragraph [ref=e307]: Nenhum registro
+          - button "Ver histórico de Exercício" [ref=e309] [cursor=pointer]:
+            - paragraph [ref=e314]: Exercício
+            - paragraph [ref=e315]: —
+            - paragraph [ref=e316]: Nenhum registro
+        - button "Abrir rastreamento de saúde mental (PHQ-9 e GAD-7)" [ref=e318] [cursor=pointer]:
+          - generic [ref=e323]:
+            - paragraph [ref=e324]: Saúde Mental — PHQ-9/GAD-7
+            - text: Questionários validados de depressão e ansiedade · 2 min
+          - generic [ref=e325]: Grátis
+        - generic [ref=e328]:
+          - generic [ref=e329]:
+            - heading "Nova medição" [level=6] [ref=e330]
+            - button [ref=e331] [cursor=pointer]
+          - generic: Tipo
+          - generic: Valor
+          - generic: Data

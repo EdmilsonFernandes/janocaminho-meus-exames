@@ -1,0 +1,321 @@
+- generic [ref=f2e2]:
+  - generic [ref=f2e4]:
+    - generic [ref=f2e5]:
+      - link "Homepage" [ref=f2e6] [cursor=pointer]:
+        - /url: https://medium.com/?source=---top_nav_layout_nav-----------------------------------------
+      - combobox "search" [ref=f2e14]
+    - button "Get the Medium app" [ref=f2e16] [cursor=pointer]:
+      - generic [ref=f2e20]: Get app
+    - link "Write" [ref=f2e23] [cursor=pointer]:
+      - /url: https://medium.com/m/signin?operation=register&redirect=https%3A%2F%2Fmedium.com%2Fnew-story&source=---top_nav_layout_nav-----------------------new_post_topnav------------------
+    - generic [ref=f2e29]:
+      - paragraph [ref=f2e30]:
+        - button "Sign up" [ref=f2e32]
+      - paragraph [ref=f2e34]:
+        - link "Sign in" [ref=f2e36] [cursor=pointer]:
+          - /url: https://medium.com/m/signin?operation=login&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&source=post_page---top_nav_layout_nav-----------------------global_nav------------------
+    - button "user options menu" [ref=f2e41] [cursor=pointer]:
+      - img "Unknown user" [ref=f2e43]
+  - generic [ref=f2e47]:
+    - generic:
+      - dialog
+    - navigation "Table of contents":
+      - button "Table of contents" [ref=f2e48] [cursor=pointer]
+    - article [ref=f2e60]:
+      - generic [ref=f2e64]:
+        - generic [ref=f2e68]:
+          - generic [ref=f2e69]:
+            - link "Responsive" [ref=f2e73] [cursor=pointer]:
+              - /url: https://medium.com/tag/responsive?source=post_page---header_tags--480d803ec79d---------------------------------------
+            - button "Follow Responsive" [ref=f2e75] [cursor=pointer]
+          - generic [ref=f2e78]:
+            - link "Datatables" [ref=f2e82] [cursor=pointer]:
+              - /url: https://medium.com/tag/datatables?source=post_page---header_tags--480d803ec79d---------------------------------------
+            - button "Follow Datatables" [ref=f2e84] [cursor=pointer]
+          - generic [ref=f2e87]:
+            - link "HTML" [ref=f2e91] [cursor=pointer]:
+              - /url: https://medium.com/tag/html?source=post_page---header_tags--480d803ec79d---------------------------------------
+            - button "Follow HTML" [ref=f2e93] [cursor=pointer]
+          - generic [ref=f2e96]:
+            - link "JavaScript" [ref=f2e100] [cursor=pointer]:
+              - /url: https://medium.com/tag/javascript?source=post_page---header_tags--480d803ec79d---------------------------------------
+            - button "Follow JavaScript" [ref=f2e102] [cursor=pointer]
+          - generic [ref=f2e105]:
+            - link "CSS" [ref=f2e109] [cursor=pointer]:
+              - /url: https://medium.com/tag/css?source=post_page---header_tags--480d803ec79d---------------------------------------
+            - button "Follow CSS" [ref=f2e111] [cursor=pointer]
+        - generic [ref=f2e114]:
+          - generic [ref=f2e116]:
+            - generic [ref=f2e117]:
+              - heading "Responsive table as a card with dynamic headers" [level=1] [ref=f2e118]
+              - generic [ref=f2e121]:
+                - generic [ref=f2e122]:
+                  - generic [ref=f2e123]:
+                    - link [ref=f2e127] [cursor=pointer]:
+                      - /url: /?source=post_page---byline--480d803ec79d---------------------------------------
+                      - img "Marco Troost" [ref=f2e130]
+                    - link "Marco Troost" [ref=f2e139] [cursor=pointer]:
+                      - /url: /?source=post_page---byline--480d803ec79d---------------------------------------
+                  - generic [ref=f2e142]:
+                    - generic [ref=f2e143]: 5 min read
+                    - generic [ref=f2e144]: ·
+                    - generic [ref=f2e146]: Jun 17, 2021
+                - generic [ref=f2e147]:
+                  - generic [ref=f2e149]:
+                    - generic [ref=f2e151]:
+                      - link [ref=f2e154] [cursor=pointer]:
+                        - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&user=Marco+Troost&userId=81d9def92997&source=---header_actions--480d803ec79d---------------------clap_footer------------------
+                        - generic [ref=f2e157]:
+                          - img "clap"
+                      - paragraph [ref=f2e159]: "--"
+                    - button "responses" [ref=f2e164] [cursor=pointer]
+                    - generic [ref=f2e167]:
+                      - link "Repost" [ref=f2e172] [cursor=pointer]:
+                        - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Frepost%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&user=Marco+Troost&userId=81d9def92997&source=---header_actions--480d803ec79d---------------------repost_header------------------
+                      - paragraph [ref=f2e179]: "--"
+                  - generic [ref=f2e180]:
+                    - link [ref=f2e186] [cursor=pointer]:
+                      - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&source=---header_actions--480d803ec79d---------------------bookmark_footer------------------
+                      - img "Add to list bookmark button" [ref=f2e188]
+                    - link [ref=f2e197] [cursor=pointer]:
+                      - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2Fplans%3Fdimension%3Dpost_audio_button%26postId%3D480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&source=---header_actions--480d803ec79d---------------------post_audio_button------------------
+                      - button "Listen" [ref=f2e201]
+                    - button "Share Post" [ref=f2e208] [cursor=pointer]
+            - paragraph [ref=f2e211]: Data tables are a great way to organise structured data, but they are really only meant for screens with lot’s of (horizontal) space. This document describes a solution where table rows are displayed as individual cards on mobile devices, featuring dynamic headers using a little javascript.
+          - figure "Table rows stacked as individual cards on mobile" [ref=f2e215]:
+            - button "Press enter or click to view image in full size" [ref=f2e216]
+          - generic [ref=f2e222]:
+            - paragraph [ref=f2e223]:
+              - emphasis [ref=f2e224]: "Premises:"
+            - list [ref=f2e225]:
+              - listitem [ref=f2e226]: The first table header (upper left), isn’t really necessary on mobile
+              - listitem [ref=f2e227]: Tables are generated using a regular CMS (like Umbraco), and editors can’t really change that much
+              - listitem [ref=f2e228]: Table header-data has to stem from the actual html
+        - separator [ref=f2e229]
+        - generic [ref=f2e235]:
+          - heading "A word before" [level=2] [ref=f2e236]
+          - paragraph [ref=f2e237]: I actually adore tables. They’re my first love as a frontend developer. Back in the day (before css really), I didn’t use tables to accommodate data, but I abused its unique, grid-like qualities as a layout-mechanism. Many of you will remember tables-in-tables-in-tables, just to position a rounded corner on an element.
+          - paragraph [ref=f2e238]: "Nowadays, tables are used for what they’re meant for: present data in a logical fashion."
+        - separator [ref=f2e239]
+        - generic [ref=f2e245]:
+          - heading "About the design" [level=2] [ref=f2e246]
+          - paragraph [ref=f2e247]: A data-table is basically a grid with rows that contain data related to a single entity¹. Headers describe the content displayed in columns.
+          - paragraph [ref=f2e248]: In order to gain insight from a table, users must be able to easily compare its values. A data-table is therefore by default not meant for small screens; there is simply not enough room to horizontally fit meaningful headers onscreen.
+          - paragraph [ref=f2e249]: An elegant way to compare values in a mobile table is to transform rows into individual cards and stack their column-data within (with corresponding descriptive headers).
+        - separator [ref=f2e250]
+        - generic [ref=f2e256]:
+          - heading "Wait a minute, isn’t this design supereasy to code?" [level=2] [ref=f2e257]
+          - paragraph [ref=f2e258]:
+            - text: "Short answer: yes. It is actually rather simple to achieve the desired result, as Chris Coyier has demonstrated in his article about"
+            - link "responsive tables" [ref=f2e259] [cursor=pointer]:
+              - /url: https://css-tricks.com/responsive-data-tables/
+            - text: .
+          - 'heading "Example #1: pseudoselectors" [level=3] [ref=f2e260]'
+          - paragraph [ref=f2e261]: We could for instance label every cell’s content (except the first one) using the :before pseudoselector.
+          - generic [ref=f2e262]:
+            - generic [ref=f2e263]: "tbody { td {"
+            - generic [ref=f2e264]: "&:nth-child(n+2) { &:before { color: #C0C0C0; display: inline-block; line-height: 24px; margin: 0 0 8px; @media (min-width: 800px) { display: none; } } } &:nth-child(2) { &:before { content: 'Internetsnelheid tot 1 juli' } } &:nth-child(3) { &:before { content: 'Internetsnelheid vanaf 1 juli' } } }}"
+          - paragraph [ref=f2e265]:
+            - link "Watch it on codepen" [ref=f2e266] [cursor=pointer]:
+              - /url: https://codepen.io/marco-troost/pen/bGqZvdw
+          - paragraph [ref=f2e267]: This approach will work excellently if there are a finite amount of columns, and that you are sure that headers won’t change over time.
+          - paragraph [ref=f2e268]: The downside of this technique is that u won’t know how many columns will be added, removed or edited in future html. The content in the CSS would then be out of sync with the actual DOM anyway.
+        - separator [ref=f2e269]
+        - generic [ref=f2e275]:
+          - 'heading "Example #2: Add a little html" [level=3] [ref=f2e276]'
+          - paragraph [ref=f2e277]: Another technique is to simply add extra span’s for every cell in the table, that u can hide using css.
+          - generic [ref=f2e278]: <tbody> <tr> <td>TV & Internet Budget</td> <td> <span>Internetsnelheid tot 1 juli</span> <ul> <li>50 Mbps downloadsnelheid</li> <li>5 Mbps uploadsnelheid</li> </ul> </td> <td> <span>Internetsnelheid tot 1 juli</span> <ul> <li>75 Mbps downloadsnelheid</li> <li>10 Mbps uploadsnelheid</li> </ul> </td> </tr></tbody>
+          - paragraph [ref=f2e280]:
+            - link "Watch it on codepen" [ref=f2e281] [cursor=pointer]:
+              - /url: https://codepen.io/marco-troost/pen/gOmEzYR
+          - paragraph [ref=f2e282]: This solution isn’t really viable. It will not only create a semantic mess, but it’ll introduce a world of pain trying to manage this table in a content management system.
+        - separator [ref=f2e283]
+        - generic [ref=f2e289]:
+          - heading "Shortcomings" [level=2] [ref=f2e290]
+          - paragraph [ref=f2e291]: The shortcoming of these approaches is that we would either have to add data to the css file (that cannot be redacted through a CMS), or we would have to manipulate the DOM to facilitate our needs.
+          - generic [ref=f2e292]:
+            - heading "Get Marco Troost’s stories in your inbox" [level=2] [ref=f2e294]
+            - paragraph [ref=f2e296]: Join Medium for free to get updates from this writer.
+            - generic [ref=f2e297]:
+              - textbox "Enter your email" [ref=f2e301]
+              - button "Subscribe" [ref=f2e304]
+            - generic [ref=f2e306]:
+              - generic [ref=f2e307]:
+                - checkbox "Remember me for faster sign in" [checked]
+                - generic [ref=f2e308] [cursor=pointer]
+              - paragraph [ref=f2e312]: Remember me for faster sign in
+          - paragraph [ref=f2e313]: We want a clean ‘n simple html table with up-to-date header info. That’s where javascript kicks in.
+        - separator [ref=f2e314]
+        - generic [ref=f2e320]:
+          - heading "Javascript for manipulating data" [level=2] [ref=f2e321]
+          - paragraph [ref=f2e322]: The idea is that we use javascript for collecting the table headers and that we repeatedly prepend them to the their corresponding data columns.
+          - paragraph [ref=f2e323]:
+            - link "Watch it on codepen" [ref=f2e324] [cursor=pointer]:
+              - /url: https://codepen.io/marco-troost/pen/rNyPqjz
+          - paragraph [ref=f2e325]:
+            - emphasis [ref=f2e326]: HTML
+          - generic [ref=f2e327]: <table class="responsive-table"> <thead> <tr> <th>Product of dienst</th> <th>Internetsnelheid tot 1 juli</th> <th>Internetsnelheid vanaf 1 juli</th> </tr> </thead> <tbody> <tr> <td>TV & Internet Budget</td> <td> <ul> <li>50 Mbps downloadsnelheid</li> <li>5 Mbps uploadsnelheid</li> </ul> </td> <td> <ul> <li>75 Mbps downloadsnelheid</li> <li>10 Mbps uploadsnelheid</li> </ul> </td> </tr> <tr> <td>TV & Internet Premium</td> <td> <ul> <li>100 Mbps downloadsnelheid</li> <li>10 Mbps uploadsnelheid</li> </ul> </td> <td> <ul> <li>150 Mbps downloadsnelheid</li> <li>15 Mbps uploadsnelheid</li> </ul> </td> </tr> </tbody></table>
+          - paragraph [ref=f2e329]:
+            - emphasis [ref=f2e330]: Javascript
+          - generic [ref=f2e332]:
+            - text: if(
+            - strong [ref=f2e333]:
+              - emphasis [ref=f2e334]: document
+            - text: ".querySelectorAll('.responsive-table')) {"
+            - strong [ref=f2e335]:
+              - emphasis [ref=f2e336]: document
+            - text: ".querySelectorAll('.responsive-table').forEach((el) => { let headerArr = []; el.querySelectorAll('thead th').forEach((th) => { headerArr.push(th.innerHTML); }); el.querySelectorAll('tbody tr').forEach((tr) => { let count = 0; tr.querySelectorAll('td').forEach((td) => { let p ="
+            - strong [ref=f2e337]:
+              - emphasis [ref=f2e338]: document
+            - text: ".createElement(\"p\"); p.classList.add('faux-th'); p.innerText = headerArr[count]; td.prepend(p); count++; }); }); });}"
+          - heading "Javascript explained" [level=2] [ref=f2e339]
+          - paragraph [ref=f2e340]: At first we loop through the document to see if there are any responsive tables. For the sake of this tutorial, these tables are given the class “.responsive-table”.
+          - generic [ref=f2e342]:
+            - text: if(
+            - strong [ref=f2e343]:
+              - emphasis [ref=f2e344]: document
+            - text: ".querySelectorAll('.responsive-table')) {"
+            - strong [ref=f2e345]:
+              - emphasis [ref=f2e346]: document
+            - text: ".querySelectorAll('.responsive-table').forEach((el) => { });}"
+          - paragraph [ref=f2e347]: Then we scan each of those tables and create an array filled with the table-headers that we can use later on.
+          - generic [ref=f2e348]: "let headerArr = [];el.querySelectorAll('thead th').forEach((th) => { headerArr.push(th.innerHTML);});"
+          - paragraph [ref=f2e350]: Now that we have the table headers, we can prepend them as a paragraph to the columns in the table body. Looping through each row, we use a counter to collect the correct index in the header-array.
+          - generic [ref=f2e352]:
+            - text: "el.querySelectorAll('tbody tr').forEach((tr) => { let count = 0; tr.querySelectorAll('td').forEach((td) => { let p ="
+            - strong [ref=f2e353]:
+              - emphasis [ref=f2e354]: document
+            - text: ".createElement(\"p\"); p.classList.add('faux-th'); p.innerText = headerArr[count]; td.prepend(p); count++; });});"
+        - separator [ref=f2e355]
+        - generic [ref=f2e361]:
+          - heading "Styling" [level=2] [ref=f2e362]
+          - paragraph [ref=f2e363]: Since every table header is prepended to each column, we need to hide them for larger screens. This can be done using javascript, but i thought it is easier (for readability purposes) to hide them using css. Each paragraph is therefore given a class ‘.faux-th’ that we can style to our liking.
+          - paragraph [ref=f2e364]: The table-rows themselves need to be given another display mode for mobile as well. We’ll transform the rows into flexboxes, with its direction set to ‘column’.
+          - paragraph [ref=f2e365]: SCSS
+          - generic [ref=f2e366]: ".responsive-table { width: 100%; border-collapse: collapse; th, td { text-align: left; @media (min-width: 800px) { border: 1px solid #C0C0C0; } } thead { tr { display: none; @media (min-width: 800px) { display: table-row; } } } tr { display: flex; flex-direction: column; margin: 0 0 16px; border: 1px solid #C0C0C0; @media (min-width: 800px) { display: table-row; border: 0; margin:0; } } th { padding: 12px; } td { border-top: 1px solid #C0C0C0; padding: 44px 12px 16px; position: relative; @media (min-width: 800px) { padding: 12px; border-top: 0; } &:first-child { font-weight: 700; border-top: 0; padding: 16px 12px; .faux-th { display: none; } } ul { margin:0; padding: 0 0 0 16px; } } .faux-th { height: 36px; display: flex; align-items: flex-end; position: absolute; top: 0; font-size: 15px; margin: 0; color: #C0C0C0; @media screen and (min-width: 800px) { display: none; } }}"
+        - separator [ref=f2e368]
+        - generic [ref=f2e374]:
+          - heading "Wrap up" [level=2] [ref=f2e375]
+          - paragraph [ref=f2e376]: There is no need anymore to (mis)use tables for layout purposes. In my view, tables do not really fit a mobile first approach either.
+          - paragraph [ref=f2e377]:
+            - text: One can’t discard tables however. Content editors will use them, and it is our job to make tables look good on any device. The solution presented here is one just one of many. Please checkout the examples given by
+            - link "Michał Jarosz" [ref=f2e378] [cursor=pointer]:
+              - /url: https://medium.com/@mjaroszcom
+            - text: for design inspiration.
+        - separator [ref=f2e379]
+        - generic [ref=f2e385]:
+          - paragraph [ref=f2e386]:
+            - emphasis [ref=f2e387]: "Sources:"
+          - link [ref=f2e389] [cursor=pointer]:
+            - /url: https://medium.com/appnroll-publication/5-practical-solutions-to-make-responsive-data-tables-ff031c48b122?source=post_page-----480d803ec79d---------------------------------------
+            - generic [ref=f2e391]:
+              - heading "5 Practical Solutions to Make Responsive Data Tables" [level=2] [ref=f2e392]
+              - heading "I work as Senior UI & UX Designer for App’n’roll — a Warsaw based venture building company." [level=3] [ref=f2e394]
+              - paragraph [ref=f2e396]: medium.com
+          - link [ref=f2e400] [cursor=pointer]:
+            - /url: https://css-tricks.com/responsive-data-tables/?source=post_page-----480d803ec79d---------------------------------------
+            - generic [ref=f2e402]:
+              - heading "Responsive Data Tables | CSS-Tricks" [level=2] [ref=f2e403]
+              - heading "Tables of data can only squish horizontally so far, so they can be a pain to browse on small screens (like mobile…" [level=3] [ref=f2e405]
+              - paragraph [ref=f2e407]: css-tricks.com
+          - paragraph [ref=f2e410]:
+            - strong [ref=f2e411]:
+              - emphasis [ref=f2e412]: References
+          - list [ref=f2e413]:
+            - listitem [ref=f2e414]:
+              - text: Google,
+              - link "Data tables" [ref=f2e415] [cursor=pointer]:
+                - /url: https://material.io/components/data-tables#usage
+              - text: ","
+              - emphasis [ref=f2e416]: Material Design Components
+              - text: ", retrieved 20 june 2021"
+    - generic [ref=f2e419]:
+      - generic [ref=f2e421]:
+        - link "Responsive" [ref=f2e425] [cursor=pointer]:
+          - /url: https://medium.com/tag/responsive?source=post_page---footer_tags--480d803ec79d---------------------------------------
+        - button "Follow Responsive" [ref=f2e427] [cursor=pointer]
+      - generic [ref=f2e431]:
+        - link "Datatables" [ref=f2e435] [cursor=pointer]:
+          - /url: https://medium.com/tag/datatables?source=post_page---footer_tags--480d803ec79d---------------------------------------
+        - button "Follow Datatables" [ref=f2e437] [cursor=pointer]
+      - generic [ref=f2e441]:
+        - link "HTML" [ref=f2e445] [cursor=pointer]:
+          - /url: https://medium.com/tag/html?source=post_page---footer_tags--480d803ec79d---------------------------------------
+        - button "Follow HTML" [ref=f2e447] [cursor=pointer]
+      - generic [ref=f2e451]:
+        - link "JavaScript" [ref=f2e455] [cursor=pointer]:
+          - /url: https://medium.com/tag/javascript?source=post_page---footer_tags--480d803ec79d---------------------------------------
+        - button "Follow JavaScript" [ref=f2e457] [cursor=pointer]
+      - generic [ref=f2e461]:
+        - link "CSS" [ref=f2e465] [cursor=pointer]:
+          - /url: https://medium.com/tag/css?source=post_page---footer_tags--480d803ec79d---------------------------------------
+        - button "Follow CSS" [ref=f2e467] [cursor=pointer]
+    - contentinfo [ref=f2e470]:
+      - generic [ref=f2e474]:
+        - generic [ref=f2e475]:
+          - generic [ref=f2e478]:
+            - link [ref=f2e481] [cursor=pointer]:
+              - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fvote%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&user=Marco+Troost&userId=81d9def92997&source=---footer_actions--480d803ec79d---------------------clap_footer------------------
+              - generic [ref=f2e484]:
+                - img "clap"
+            - paragraph [ref=f2e486]: "--"
+          - button "responses" [ref=f2e491] [cursor=pointer]
+          - generic [ref=f2e494]:
+            - link "Repost" [ref=f2e499] [cursor=pointer]:
+              - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Frepost%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&user=Marco+Troost&userId=81d9def92997&source=---footer_actions--480d803ec79d---------------------repost_footer------------------
+            - paragraph [ref=f2e506]: "--"
+        - generic [ref=f2e507]:
+          - link [ref=f2e514] [cursor=pointer]:
+            - /url: https://medium.com/m/signin?actionUrl=https%3A%2F%2Fmedium.com%2F_%2Fbookmark%2Fp%2F480d803ec79d&operation=register&redirect=https%3A%2F%2Fmarco-troost.medium.com%2Fresponsive-table-as-a-card-with-dynamic-headers-480d803ec79d&source=---footer_actions--480d803ec79d---------------------bookmark_footer------------------
+            - img "Add to list bookmark button" [ref=f2e516]
+          - button "Share Post" [ref=f2e524] [cursor=pointer]
+    - generic [ref=f2e530]:
+      - link [ref=f2e533] [cursor=pointer]:
+        - /url: /?source=post_page---post_author_info--480d803ec79d---------------------------------------
+        - img "Marco Troost" [ref=f2e535]
+      - generic [ref=f2e538]:
+        - link [ref=f2e539] [cursor=pointer]:
+          - /url: /?source=post_page---post_author_info--480d803ec79d---------------------------------------
+          - heading "Written by Marco Troost" [level=2] [ref=f2e540]
+        - generic [ref=f2e541]:
+          - link "2 followers" [ref=f2e544] [cursor=pointer]:
+            - /url: /followers?source=post_page---post_author_info--480d803ec79d---------------------------------------
+          - generic [ref=f2e545]:
+            - generic [ref=f2e546]: ·
+            - link "2 following" [ref=f2e547] [cursor=pointer]:
+              - /url: /following?source=post_page---post_author_info--480d803ec79d---------------------------------------
+        - paragraph [ref=f2e549]: I’m an experienced UX Designer / Front-end developer in the South West of Holland with over 20 years experience building websites.
+    - generic [ref=f2e611]:
+      - link [ref=f2e613] [cursor=pointer]:
+        - /url: https://help.medium.com/hc/en-us?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e614]: Help
+      - link [ref=f2e616] [cursor=pointer]:
+        - /url: https://status.medium.com/?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e617]: Status
+      - link [ref=f2e619] [cursor=pointer]:
+        - /url: https://medium.com/about?autoplay=1&source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e620]: About
+      - link [ref=f2e622] [cursor=pointer]:
+        - /url: https://medium.com/jobs-at-medium/work-at-medium-959d1a85284e?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e623]: Careers
+      - link [ref=f2e625] [cursor=pointer]:
+        - /url: mailto:pressinquiries@medium.com
+        - paragraph [ref=f2e626]: Press
+      - link [ref=f2e628] [cursor=pointer]:
+        - /url: https://blog.medium.com/?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e629]: Blog
+      - link [ref=f2e631] [cursor=pointer]:
+        - /url: https://medium.com/store
+        - paragraph [ref=f2e632]: Store
+      - link [ref=f2e634] [cursor=pointer]:
+        - /url: https://policy.medium.com/medium-privacy-policy-f03bf92035c9?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e635]: Privacy
+      - link [ref=f2e637] [cursor=pointer]:
+        - /url: https://policy.medium.com/medium-rules-30e5502c4eb4?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e638]: Rules
+      - link [ref=f2e640] [cursor=pointer]:
+        - /url: https://policy.medium.com/medium-terms-of-service-9db0094a1e0f?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e641]: Terms
+      - link [ref=f2e643] [cursor=pointer]:
+        - /url: https://speechify.com/medium?source=post_page-----480d803ec79d---------------------------------------
+        - paragraph [ref=f2e644]: Text to speech

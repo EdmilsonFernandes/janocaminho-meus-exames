@@ -1,0 +1,174 @@
+- generic [ref=e20]:
+  - generic [ref=e4316]:
+    - navigation [ref=e4317]:
+      - generic [ref=e4319]:
+        - button "Menu do médico" [ref=e4320] [cursor=pointer]
+        - generic [ref=e4323]:
+          - paragraph [ref=e4324]: 🩺 Dr. Daniel Shirane
+          - generic [ref=e4325]: Cirurgiao Geral • CRM 185642-SP
+      - separator [ref=e4326]
+      - generic [ref=e4327]:
+        - generic [ref=e4328]: PLANO
+        - paragraph [ref=e4329]: Grátis (0/5 usados)
+        - text: 5 pré-consultas/SOAP grátis por mês.
+      - list [ref=e4330]:
+        - button "Pacientes" [ref=e4331] [cursor=pointer]
+        - button "Convites" [ref=e4337] [cursor=pointer]
+        - button "Perguntas" [ref=e4344] [cursor=pointer]
+        - button "Meu perfil" [ref=e4351] [cursor=pointer]
+        - button "Trocar senha" [ref=e4357] [cursor=pointer]
+        - separator [ref=e4363]
+        - button "Sair" [ref=e4364] [cursor=pointer]
+      - generic [ref=e4370]: Portal do Médico
+    - generic [ref=e4371]:
+      - generic [ref=e4372]:
+        - button "Voltar" [ref=e4421] [cursor=pointer]
+        - paragraph [ref=e4374]: Heloisa Cristina Fernandes
+      - generic [ref=e4424]:
+        - generic [ref=e4425]:
+          - generic [ref=e4431]:
+            - generic [ref=e4432]:
+              - paragraph [ref=e4433]: Heloisa Cristina Fernandes
+              - button "Trocar paciente" [ref=e4434] [cursor=pointer]: Trocar
+            - paragraph [ref=e4438]: 48 anos • Feminino • Cônjuge • AMIL • 68 kg
+          - generic [ref=e4439]:
+            - generic [ref=e4440]:
+              - generic [ref=e4441]: Último exame
+              - paragraph [ref=e4445]: 13/08
+              - text: há 2 dias
+            - button "Alterações 40" [ref=e4446] [cursor=pointer]:
+              - generic [ref=e4447]: Alterações
+              - paragraph [ref=e4452]: "40"
+            - generic [ref=e4453]:
+              - generic [ref=e4454]: Pendências
+              - paragraph [ref=e4458]: "1"
+            - generic [ref=e4459]:
+              - generic [ref=e4460]: Anotações
+              - paragraph [ref=e4464]: "0"
+        - tablist "Abas do paciente" [ref=e4468]:
+          - tab "Exames" [ref=e4469] [cursor=pointer]:
+            - generic [ref=e4472]:
+              - generic [ref=e4473]: Exames
+              - superscript [ref=e4474]: "13"
+          - tab "Alterados" [ref=e4475] [cursor=pointer]:
+            - generic [ref=e4479]:
+              - generic [ref=e4480]: Alterados
+              - superscript [ref=e4481]: "40"
+          - tab "Tendências" [ref=e4482] [cursor=pointer]
+          - tab "Relatório" [active] [selected] [ref=e4487] [cursor=pointer]
+          - tab "Perguntas" [ref=e4492] [cursor=pointer]:
+            - generic [ref=e4495]:
+              - generic [ref=e4496]: Perguntas
+              - superscript [ref=e4497]: "1"
+          - tab "Anotações" [ref=e4498] [cursor=pointer]
+        - generic [ref=e4781]:
+          - generic [ref=e4782]:
+            - generic [ref=e4783]:
+              - heading "Relatório completo" [level=6] [ref=e4784]
+              - generic [ref=e4785]: Atualizado em 17 de julho de 2026 às 23:45
+            - generic [ref=e4786]:
+              - button [ref=e4787] [cursor=pointer]
+              - button [ref=e4792] [cursor=pointer]
+          - generic [ref=e4796]:
+            - generic [ref=e4797]:
+              - img "Dr. Exame" [ref=e4798]
+              - generic [ref=e4799]:
+                - heading "Resumo da análise" [level=6] [ref=e4800]
+                - text: Análise educativa — não substitui consulta médica
+            - paragraph [ref=e4801]: Paciente apresenta evidência laboratorial de uso de androgênios (Testosterona Livre muito acima da faixa), com elevação importante de Estradiol e inflamação sistêmica (PCR alta) em queda. Eletrólitos (Sódio/Potássio) estavam equilibrados na última verificação. Leucócitos na urina discretamente aumentados.
+          - generic [ref=e4802]:
+            - generic [ref=e4804]:
+              - paragraph [ref=e4808]: Exames base do relatório
+              - generic [ref=e4809]: "5"
+            - generic [ref=e4812]:
+              - paragraph [ref=e4814] [cursor=pointer]: 📄 HEMOGRAMA COMPLETO — 13/08/2026 • Sabin
+              - paragraph [ref=e4816] [cursor=pointer]: 📄 EXAMES LABORATORIAIS — 07/04/2026 • SJC - BACABAL
+              - paragraph [ref=e4818] [cursor=pointer]: 📄 HEMOGRAMA COMPLETO — 04/11/2025 • SJC - BACABAL
+              - paragraph [ref=e4820] [cursor=pointer]: 📄 HEMOGRAMA COMPLETO — 17/06/2025 • SJC - BACABAL
+              - paragraph [ref=e4822] [cursor=pointer]: 📄 EXAMES LABORATORIAIS — 17/06/2025 • SJC - BACABAL
+          - generic [ref=e4823]:
+            - generic [ref=e4825]:
+              - paragraph [ref=e4830]: Itens em destaque
+              - generic [ref=e4831]: "4"
+            - generic [ref=e4834]:
+              - generic [ref=e4837]:
+                - generic [ref=e4838]:
+                  - generic [ref=e4839]: Testosterona Livre
+                  - generic [ref=e4840]:
+                    - paragraph [ref=e4841]: 0,3167 nmol/L
+                    - paragraph [ref=e4842]: →
+                    - paragraph [ref=e4843]: 91,26 pg/mL
+                - generic [ref=e4844]:
+                  - generic [ref=e4845]: ↑ +90.94
+                  - button "O que é este exame?" [ref=e4847] [cursor=pointer]
+              - generic [ref=e4852]:
+                - generic [ref=e4853]:
+                  - generic [ref=e4854]: Estradiol
+                  - generic [ref=e4855]:
+                    - paragraph [ref=e4856]: 43,70 pg/mL
+                    - paragraph [ref=e4857]: →
+                    - paragraph [ref=e4858]: 103,00 pg/mL
+                - generic [ref=e4859]:
+                  - generic [ref=e4860]: ↑ +59.3
+                  - button "O que é este exame?" [ref=e4862] [cursor=pointer]
+              - generic [ref=e4867]:
+                - generic [ref=e4868]:
+                  - generic [ref=e4869]: PCR - Proteína C Reativa
+                  - generic [ref=e4870]:
+                    - paragraph [ref=e4871]: 12,74 mg/L
+                    - paragraph [ref=e4872]: →
+                    - paragraph [ref=e4873]: 7,61 mg/L
+                - generic [ref=e4874]:
+                  - generic [ref=e4875]: ↓ -5.13
+                  - button "O que é este exame?" [ref=e4877] [cursor=pointer]
+              - generic [ref=e4882]:
+                - generic [ref=e4883]:
+                  - generic [ref=e4884]: Leucócitos
+                  - generic [ref=e4885]:
+                    - paragraph [ref=e4886]: 6.110 /mm³
+                    - paragraph [ref=e4887]: →
+                    - paragraph [ref=e4888]: 7 /HPF
+                - generic [ref=e4889]:
+                  - generic [ref=e4890]: ↓ -6103
+                  - button "O que é este exame?" [ref=e4892] [cursor=pointer]
+          - generic [ref=e4895]:
+            - generic [ref=e4897]:
+              - paragraph [ref=e4901]: Pontos de atenção
+              - generic [ref=e4902]: "3"
+            - generic [ref=e4905]:
+              - generic [ref=e4906]:
+                - paragraph [ref=e4907]: 1. Supranível de Testosterona Livre
+                - paragraph [ref=e4908]: "Valor atual de 91,26 pg/mL (ref: até 9,52). Indica sobrecarga androgênica importante."
+              - generic [ref=e4909]:
+                - paragraph [ref=e4910]: 2. Aromatização elevada
+                - paragraph [ref=e4911]: "Estradiol em 103,00 pg/mL (ref: 30,9-90,4), com aumento de 136% em relação ao exame anterior. Requer avaliação de sintomas."
+              - generic [ref=e4912]:
+                - paragraph [ref=e4913]: 3. Leucocitúria
+                - paragraph [ref=e4914]: "Presença de 7 leucócitos/campo (ref: 0-5). Necessita investigar infecção urinária ou repetir exame."
+          - heading [level=3] [ref=e4916]:
+            - button "Pontos estáveis / dentro do esperado 2" [ref=e4917] [cursor=pointer]:
+              - generic [ref=e4919]:
+                - paragraph [ref=e4923]: Pontos estáveis / dentro do esperado
+                - generic [ref=e4924]: "2"
+          - heading [level=3] [ref=e4930]:
+            - button "Metas de saúde 2" [ref=e4931] [cursor=pointer]:
+              - generic [ref=e4933]:
+                - paragraph [ref=e4937]: Metas de saúde
+                - generic [ref=e4938]: "2"
+          - generic [ref=e4943]:
+            - generic [ref=e4944]: Leitura final
+            - list [ref=e4945]:
+              - listitem [ref=e4946]:
+                - generic [ref=e4947]: "1."
+                - generic [ref=e4948]: O quadro atual mostra uma melhora no processo inflamatório, mas os hormônios estão desregulados.
+              - listitem [ref=e4950]:
+                - generic [ref=e4951]: "2."
+                - generic [ref=e4952]: O uso do Masteron está impulsionando a Testosterona Livre a níveis muito acima do esperado e causando um aumento correspondente no Estradiol.
+              - listitem [ref=e4954]:
+                - generic [ref=e4955]: "3."
+                - generic [ref=e4956]: O foco da consulta deve ser o ajuste dessa medicação.
+            - generic [ref=e4958]: Este resumo foi gerado por inteligência artificial para auxiliar na pré-consulta. Não substitui avaliação médica.
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2210]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e2211]
+  - generic [ref=e2045]: "0"

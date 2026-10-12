@@ -1,0 +1,52 @@
+- generic [ref=f8e3]:
+  - button "Pular para o conteúdo" [ref=f8e561] [cursor=pointer]
+  - generic [ref=f8e5]:
+    - banner [ref=f8e6]:
+      - generic [ref=f8e7]:
+        - heading "Tendências" [level=6] [ref=f8e562]
+        - button "Você tem 19 créditos. Toque para comprar mais." [ref=f8e565] [cursor=pointer]:
+          - generic [ref=f8e11]: "19"
+        - button "Notificações" [ref=f8e566] [cursor=pointer]:
+          - generic [ref=f8e13]: "4"
+        - button "E Ed teste 2 Titular" [ref=f8e567] [cursor=pointer]:
+          - generic [ref=f8e19]: E
+          - generic [ref=f8e21]:
+            - generic [ref=f8e22]: Ed teste 2
+            - generic [ref=f8e23]: Titular
+        - button "Atualizar" [ref=f8e568] [cursor=pointer]
+    - main [ref=f8e31]:
+      - navigation [ref=f8e35]:
+        - generic [ref=f8e36]:
+          - button "Exames" [expanded] [ref=f8e569] [cursor=pointer]
+          - generic [ref=f8e573]:
+            - button "Exames" [ref=f8e574] [cursor=pointer]
+            - button "Valores alterados" [ref=f8e580] [cursor=pointer]
+            - button "Evolução" [ref=f8e587] [cursor=pointer]
+            - button "Tendências" [ref=f8e594] [cursor=pointer]
+            - button "Linha do Tempo" [ref=f8e600] [cursor=pointer]
+            - button "Relatório completo" [ref=f8e606] [cursor=pointer]
+        - generic [ref=f8e45]:
+          - button "Cuidados" [expanded] [ref=f8e612] [cursor=pointer]
+          - generic [ref=f8e58]:
+            - button "Medições" [ref=f8e613] [cursor=pointer]
+            - button "Remédios" [ref=f8e614] [cursor=pointer]
+            - button "Vacinas" [ref=f8e615] [cursor=pointer]
+            - button "Lembretes" [ref=f8e616] [cursor=pointer]
+            - button "Cartão de Emergência" [ref=f8e617] [cursor=pointer]
+            - button "Conquistas" [ref=f8e618] [cursor=pointer]
+        - button "Pessoas" [ref=f8e619] [cursor=pointer]
+        - button "Conta" [ref=f8e620] [cursor=pointer]
+        - separator [ref=f8e115]
+        - button "Dúvidas frequentes" [ref=f8e621] [cursor=pointer]
+        - button "Como validamos" [ref=f8e622] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f8e623] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f8e624] [cursor=pointer]
+      - generic [ref=f8e625]:
+        - generic [ref=f8e627]:
+          - heading "📈 Tendências" [level=5] [ref=f8e628]
+          - paragraph [ref=f8e629]: Veja como seus resultados evoluíram ao longo do tempo.
+        - generic [ref=f8e631]:
+          - generic [ref=f8e632]: 📊
+          - heading "Nada pra comparar ainda" [level=6] [ref=f8e633]
+          - paragraph [ref=f8e634]: Envie ao menos um exame laboratorial para começar a acompanhar suas tendências.
+          - button "Enviar exame" [ref=f8e635] [cursor=pointer]

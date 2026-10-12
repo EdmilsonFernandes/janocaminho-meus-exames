@@ -1,0 +1,115 @@
+- generic [ref=f4e1]:
+  - generic [ref=f4e106]:
+    - button [ref=f4e107] [cursor=pointer]: Pular para o conteúdo
+    - main [ref=f4e134]:
+      - navigation [ref=f4e138]:
+        - generic [ref=f4e141]:
+          - generic [ref=f4e142]: E
+          - generic [ref=f4e144]:
+            - paragraph [ref=f4e145]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f4e146]:
+              - generic [ref=f4e147]: Plano grátis
+              - button [ref=f4e149] [cursor=pointer]:
+                - generic [ref=f4e150]: ⚡ 15 (+)
+        - separator [ref=f4e151]
+        - button [ref=f4e152] [cursor=pointer]:
+          - generic [ref=f4e156]: Início
+        - button [ref=f4e159] [cursor=pointer]:
+          - generic [ref=f4e165]: Exames
+        - button [ref=f4e170] [cursor=pointer]:
+          - generic [ref=f4e175]: Cuidados
+        - button [ref=f4e180] [cursor=pointer]:
+          - generic [ref=f4e185]: Pessoas
+        - generic [ref=f4e189]:
+          - button [expanded] [ref=f4e190] [cursor=pointer]:
+            - generic [ref=f4e194]: Conta
+          - generic [ref=f4e479]:
+            - button [ref=f4e498] [cursor=pointer]:
+              - generic [ref=f4e503]: Meu perfil
+            - button [ref=f4e505] [cursor=pointer]:
+              - generic [ref=f4e509]: Segurança & senha
+            - button [ref=f4e511] [cursor=pointer]:
+              - generic [ref=f4e515]: Privacidade e termos
+            - button [ref=f4e517] [cursor=pointer]:
+              - generic [ref=f4e521]: Planos e Créditos
+            - button [ref=f4e523] [cursor=pointer]:
+              - generic [ref=f4e530]: Painel Admin
+        - button [ref=f4e199] [cursor=pointer]:
+          - generic [ref=f4e203]: Dúvidas frequentes
+        - menuitem [ref=f4e205] [cursor=pointer]:
+          - generic [ref=f4e209]: Sobre o app
+        - menuitem [ref=f4e211] [cursor=pointer]:
+          - generic [ref=f4e215]: Sair da conta
+        - generic [ref=f4e217]: Dr. Exame • Saúde Inteligente 🩺
+      - generic [ref=f4e532]:
+        - generic [ref=f4e537]:
+          - heading [level=5] [ref=f4e538]: Planos e Créditos
+          - paragraph [ref=f4e539]:
+            - text: "Use à vontade: assine o"
+            - strong [ref=f4e540]: mensal
+            - text: (250 créditos de IA por mês) ou compre
+            - strong [ref=f4e541]: créditos avulsos
+            - text: via PIX.
+        - generic [ref=f4e543]:
+          - paragraph [ref=f4e544]: Seus créditos
+          - paragraph [ref=f4e545]: "15"
+          - generic [ref=f4e546]: Sem assinatura — créditos custeiam a IA.
+        - generic [ref=f4e549] [cursor=pointer]:
+          - heading [level=6] [ref=f4e550]: Histórico de Uso
+          - generic [ref=f4e551]: Ver histórico ▼
+        - heading [level=6] [ref=f4e552]: Comprar créditos (PIX instantâneo)
+        - generic [ref=f4e555]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+        - generic [ref=f4e556]:
+          - generic [ref=f4e558]:
+            - paragraph [ref=f4e559]: "50"
+            - paragraph [ref=f4e560]: créditos
+            - heading [level=5] [ref=f4e561]: R$ 9,90
+            - button [ref=f4e562] [cursor=pointer]: Comprar
+          - generic [ref=f4e563]:
+            - generic [ref=f4e564]: MAIS VENDIDO
+            - generic [ref=f4e567]:
+              - paragraph [ref=f4e568]: "140"
+              - paragraph [ref=f4e569]: créditos
+              - heading [level=5] [ref=f4e570]: R$ 24,90
+              - button [ref=f4e571] [cursor=pointer]: Comprar
+          - generic [ref=f4e573]:
+            - paragraph [ref=f4e574]: "320"
+            - paragraph [ref=f4e575]: créditos
+            - heading [level=5] [ref=f4e576]: R$ 49,90
+            - button [ref=f4e577] [cursor=pointer]: Comprar
+        - paragraph [ref=f4e578]: — ou assine —
+        - generic [ref=f4e580]:
+          - heading [level=6] [ref=f4e582]: 💎 Premium Mensal
+          - paragraph [ref=f4e583]:
+            - text: 250 créditos que
+            - strong [ref=f4e584]: somam
+            - text: ao seu saldo e
+            - strong [ref=f4e585]: não expiram
+            - text: — o plano vale 30 dias e você decide se renova. Sem fidelidade.
+          - list [ref=f4e586]:
+            - listitem [ref=f4e587]:
+              - strong [ref=f4e588]: 250 créditos de IA
+              - text: por mês (melhor custo por crédito)
+            - listitem [ref=f4e589]:
+              - text: 📄 Relatórios completos
+              - strong [ref=f4e590]: incluídos
+              - text: — sem gastar créditos
+            - listitem [ref=f4e591]: 📅 Histórico completo (exames de anos anteriores)
+            - listitem [ref=f4e592]: 👨‍👩‍👧 Família até 10 perfis
+            - listitem [ref=f4e593]: 📤 Envios de exame sem custo
+          - separator [ref=f4e594]
+          - generic [ref=f4e595]:
+            - generic [ref=f4e596]:
+              - heading [level=4] [ref=f4e597]: R$ 19,90
+              - paragraph [ref=f4e598]: /mês · sem anual · sem fidelidade · PIX ou cartão
+            - button [ref=f4e599] [cursor=pointer]: Assinar mensal
+  - dialog [active] [ref=f4e457]:
+    - generic [ref=f4e458]:
+      - button "Pular" [ref=f4e600] [cursor=pointer]
+      - generic [ref=f4e460]:
+        - img "Dr. Exame" [ref=f4e601]
+        - heading "Envie seu exame" [level=4] [ref=f4e602]
+        - paragraph [ref=f4e464]: Mande o PDF ou foto do exame. O Dr. Exame extrai todos os valores automaticamente — em segundos.
+      - generic [ref=f4e465]:
+        - button [ref=f4e603] [cursor=pointer]
+        - paragraph [ref=f4e475]: Toque em Próximo para continuar →

@@ -1,0 +1,80 @@
+- generic [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e22]:
+      - button [ref=e3780] [cursor=pointer]
+      - generic [ref=e24]:
+        - banner [ref=e25]:
+          - generic [ref=e26]:
+            - button [ref=e3781] [cursor=pointer]
+            - paragraph [ref=e3787]: Dr. Exame
+            - button [ref=e3788] [cursor=pointer]:
+              - generic [ref=e37]: "71"
+            - button [ref=e3789] [cursor=pointer]:
+              - generic [ref=e39]: 9+
+            - button [ref=e3790] [cursor=pointer]:
+              - generic [ref=e45]: E
+        - main [ref=e47]:
+          - generic [ref=e3652]:
+            - generic [ref=e3653]:
+              - paragraph [ref=e3654]: Boa noite, Edmilson 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e3657]:
+              - generic [ref=e3658]:
+                - generic [ref=e3663]:
+                  - paragraph [ref=e3769]: "45"
+                  - paragraph [ref=e3665]: de 100
+                - generic [ref=e3666]:
+                  - paragraph [ref=e3667]: Sua saúde hoje
+                  - paragraph [ref=e3668]: Pede atenção
+                  - paragraph [ref=e3670]:
+                    - generic [ref=e3770]: ● 6 moderados
+              - button [ref=e3791] [cursor=pointer]: Ver análise completa
+            - button [ref=e3792] [cursor=pointer]: Conversar com a IA
+            - generic [ref=e3694]:
+              - generic [ref=e3701] [cursor=pointer]:
+                - paragraph [ref=e3702]: Cardiometabólico
+                - paragraph [ref=e3703]: Em dia
+                - paragraph [ref=e3704]: sem fatores
+              - generic [ref=e3707] [cursor=pointer]:
+                - generic [ref=e3708]: 🧬
+                - generic [ref=e3709]:
+                  - paragraph [ref=e3710]: Idade biológica
+                  - paragraph [ref=e3711]: Em breve
+                  - paragraph [ref=e3712]: estimativa c/ +exames
+              - generic [ref=e3719] [cursor=pointer]:
+                - paragraph [ref=e3720]: Seus exames
+                - paragraph [ref=e3721]: "5"
+                - paragraph [ref=e3722]: 8 alterados
+              - generic [ref=e3729] [cursor=pointer]:
+                - paragraph [ref=e3730]: Evolução
+                - paragraph [ref=e3731]: Tendências
+                - paragraph [ref=e3732]: 28 resultados
+            - generic [ref=e3734]:
+              - generic [ref=e3735]: Enviar exame
+              - generic [ref=e3742]: Evolução
+              - generic [ref=e3749]: Família
+              - generic [ref=e3757]: Relatório
+            - generic [ref=e3773]:
+              - generic [ref=e3777]:
+                - paragraph [ref=e3778]: "71"
+                - text: créditos disponíveis
+              - button [ref=e3793] [cursor=pointer]: Comprar
+            - button [ref=e3794] [cursor=pointer]: 📤 Compartilhar minha saúde
+    - navigation [ref=e3795]:
+      - paragraph [ref=e3800] [cursor=pointer]: Início
+      - paragraph [ref=e3806] [cursor=pointer]: Exames
+      - paragraph [ref=e3810] [cursor=pointer]: Dr. Exame
+      - paragraph [ref=e3815] [cursor=pointer]: Evolução
+      - paragraph [ref=e3820] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]
+  - generic [ref=e962]: "0"
+  - dialog [active] [ref=e3824]:
+    - navigation [ref=e3825]:
+      - button "Exames" [ref=e3827] [cursor=pointer]
+      - button "Cuidados" [ref=e3836] [cursor=pointer]
+      - button "Pessoas" [ref=e3846] [cursor=pointer]
+      - button "Conta" [ref=e3856] [cursor=pointer]
+      - separator [ref=e3864]
+      - button "Ajuda & Suporte" [ref=e3865] [cursor=pointer]
+      - menuitem "Sobre o app" [ref=e3871] [cursor=pointer]
+      - menuitem "Sair da conta" [ref=e3877] [cursor=pointer]

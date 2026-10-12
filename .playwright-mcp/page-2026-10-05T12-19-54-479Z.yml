@@ -1,0 +1,117 @@
+- generic [ref=e1]:
+  - generic [aria-hidden] [ref=e2]:
+    - generic [ref=e95]:
+      - button [ref=e148] [cursor=pointer]
+      - generic [ref=e97]:
+        - banner [ref=e98]:
+          - generic [ref=e99]:
+            - button [ref=e149] [cursor=pointer]
+            - paragraph [ref=e106]: Dr. Exame
+            - generic [ref=e107]:
+              - button [ref=e151] [cursor=pointer]:
+                - generic [ref=e154]: "15"
+              - button [ref=e155] [cursor=pointer]:
+                - generic [ref=e109]: 9+
+              - button [ref=e157] [cursor=pointer]:
+                - generic [ref=e114]: E
+        - main [ref=e119]:
+          - generic [ref=e158]:
+            - generic [ref=e163]:
+              - heading [level=5] [ref=e164]: Planos e Créditos
+              - paragraph [ref=e165]:
+                - text: "Use à vontade: assine o"
+                - strong [ref=e166]: mensal
+                - text: (250 créditos de IA por mês) ou compre
+                - strong [ref=e167]: créditos avulsos
+                - text: via PIX.
+            - generic [ref=e168] [cursor=pointer]:
+              - paragraph [ref=e171]: 15 créditos
+              - paragraph [ref=e172]: Ver carteira →
+            - heading [level=6] [ref=e173]: Comprar créditos (PIX instantâneo)
+            - generic [ref=e176]: "O que consome: 💬 pergunta no chat 2 · ✨ resumo do exame 10 · 🧾 relatório completo 20. Enviar exame é grátis."
+            - generic [ref=e177]:
+              - generic [ref=e179]:
+                - paragraph [ref=e180]: "50"
+                - paragraph [ref=e181]: créditos
+                - heading [level=5] [ref=e182]: R$ 9,90
+                - button [ref=e183] [cursor=pointer]: Comprar
+              - generic [ref=e184]:
+                - generic [ref=e185]: MAIS VENDIDO
+                - generic [ref=e188]:
+                  - paragraph [ref=e189]: "140"
+                  - paragraph [ref=e190]: créditos
+                  - heading [level=5] [ref=e191]: R$ 24,90
+                  - button [ref=e192] [cursor=pointer]: Comprar
+              - generic [ref=e194]:
+                - paragraph [ref=e195]: "320"
+                - paragraph [ref=e196]: créditos
+                - heading [level=5] [ref=e197]: R$ 49,90
+                - button [ref=e198] [cursor=pointer]: Comprar
+            - paragraph [ref=e199]: — ou assine —
+            - generic [ref=e201]:
+              - heading [level=6] [ref=e203]: 💎 Premium Mensal
+              - paragraph [ref=e204]:
+                - text: 250 créditos que
+                - strong [ref=e205]: somam
+                - text: ao seu saldo e
+                - strong [ref=e206]: não expiram
+                - text: — o plano vale 30 dias e você decide se renova. Sem fidelidade.
+              - list [ref=e207]:
+                - listitem [ref=e208]:
+                  - strong [ref=e209]: 250 créditos de IA
+                  - text: por mês (melhor custo por crédito)
+                - listitem [ref=e210]:
+                  - text: 📄 Relatórios completos
+                  - strong [ref=e211]: incluídos
+                  - text: — sem gastar créditos
+                - listitem [ref=e212]: 📅 Histórico completo (exames de anos anteriores)
+                - listitem [ref=e213]: 👨‍👩‍👧 Família até 10 perfis
+                - listitem [ref=e214]: 📤 Envios de exame sem custo
+              - separator [ref=e215]
+              - generic [ref=e216]:
+                - generic [ref=e217]:
+                  - heading [level=4] [ref=e218]: R$ 19,90
+                  - paragraph [ref=e219]: /mês · sem anual · sem fidelidade · PIX ou cartão
+                - button [ref=e220] [cursor=pointer]: Assinar mensal
+    - navigation [ref=e122]:
+      - button [ref=e221] [cursor=pointer]:
+        - paragraph [ref=e127]: Início
+      - button [ref=e222] [cursor=pointer]:
+        - paragraph [ref=e132]: Exames
+      - button [ref=e223] [cursor=pointer]:
+        - paragraph [ref=e136]: Dr. Exame
+      - button [ref=e225] [cursor=pointer]:
+        - paragraph [ref=e141]: Evolução
+      - button [ref=e226] [cursor=pointer]:
+        - paragraph [ref=e146]: Mais
+  - button [ref=e228] [cursor=pointer]
+  - dialog [active] [ref=e243]:
+    - heading [level=2] [ref=e244]:
+      - text: Forma de pagamento
+      - button [ref=e245] [cursor=pointer]
+    - generic [ref=e248]:
+      - paragraph [ref=e249]: 50 créditos • R$ 9,90
+      - generic [ref=e250]:
+        - button [ref=e251] [cursor=pointer]:
+          - generic [ref=e255]:
+            - paragraph [ref=e256]: PIX
+            - text: Instantâneo • aprovação em segundos
+        - button [ref=e257] [cursor=pointer]:
+          - generic [ref=e261]:
+            - paragraph [ref=e262]: Cartão de crédito
+            - text: À vista • processado com segurança
+        - button [ref=e263] [cursor=pointer]:
+          - generic [ref=e267]:
+            - paragraph [ref=e268]: Débito
+            - text: À vista • processado com segurança
+      - generic [ref=e269]:
+        - generic [ref=e270]:
+          - generic [ref=e271]: 🔒 Ambiente seguro
+          - generic [ref=e272]: ·
+          - generic [ref=e273]: Dr. Exame
+          - generic [ref=e274]: ·
+          - generic [ref=e275]: "Processado via:"
+        - generic [ref=e276]:
+          - img "OpenPix" [ref=e277]
+          - img "Asaas" [ref=e278]
+      - generic [ref=e279]: No extrato do cartão aparece o nome do recebedor registrado

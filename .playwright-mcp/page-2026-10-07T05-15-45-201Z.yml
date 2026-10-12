@@ -1,0 +1,181 @@
+- generic [ref=f20e1]:
+  - generic [aria-hidden] [ref=f20e2]:
+    - generic [ref=f20e3]:
+      - button [ref=f20e4] [cursor=pointer]
+      - generic [ref=f20e5]:
+        - banner [ref=f20e6]:
+          - generic [ref=f20e7]:
+            - button [ref=f20e8] [cursor=pointer]
+            - paragraph [ref=f20e14]: Dr. Exame
+            - generic [ref=f20e15]:
+              - button [ref=f20e16] [cursor=pointer]:
+                - generic [ref=f20e19]: "0"
+              - button [ref=f20e20] [cursor=pointer]
+              - button [ref=f20e25] [cursor=pointer]:
+                - generic [ref=f20e26]: A
+        - main [ref=f20e31]:
+          - generic [ref=f20e33]:
+            - generic [ref=f20e38]:
+              - heading [level=5] [ref=f20e39]: Meu perfil
+              - paragraph [ref=f20e40]: Sua conta, dados e preferências
+            - generic [ref=f20e42]:
+              - generic [ref=f20e44]:
+                - generic [ref=f20e45]: A
+                - button [ref=f20e46] [cursor=pointer]
+              - generic [ref=f20e50]:
+                - heading [level=5] [ref=f20e51]: Atleta Free Review
+                - paragraph [ref=f20e52]: ✉️ sportsfreereview@gmail.com
+                - generic [ref=f20e53]:
+                  - generic [ref=f20e54]: Titular
+                  - generic [ref=f20e56]: Plano grátis
+                  - generic [ref=f20e58]: Perfil 20%
+                - generic [ref=f20e60]: Toque na câmera da foto para trocar a imagem.
+            - generic [ref=f20e62]:
+              - heading [level=6] [ref=f20e63]: Dados e perfil clínico
+              - generic [ref=f20e64]:
+                - generic [ref=f20e65]:
+                  - generic [ref=f20e66]: Nome completo
+                  - generic [ref=f20e67]:
+                    - textbox [ref=f20e68]: Atleta Free Review
+                    - group [aria-hidden]:
+                      - generic: Nome completo
+                - generic [ref=f20e69]:
+                  - generic [ref=f20e70]: CPF
+                  - generic [ref=f20e71]:
+                    - textbox [disabled] [ref=f20e72]: "***.***.***-77"
+                    - group [aria-hidden]:
+                      - generic: CPF
+                  - paragraph [ref=f20e73]: CPF verificado e mascarado. Correção somente via suporte auditado.
+                - generic [ref=f20e74]:
+                  - generic: Telefone / WhatsApp
+                  - generic [ref=f20e75]:
+                    - textbox [ref=f20e76]
+                    - group [aria-hidden]:
+                      - generic: Telefone / WhatsApp
+                - generic [ref=f20e77]:
+                  - generic: Sexo
+                  - generic [ref=f20e78]:
+                    - combobox [ref=f20e79] [cursor=pointer]
+                    - textbox [aria-hidden]
+                    - group [aria-hidden]:
+                      - generic: Sexo
+                  - paragraph [ref=f20e80]: Sem sexo informado, os cálculos usam a referência masculina — informe para referências exatas.
+                - generic [ref=f20e81]:
+                  - generic: Altura
+                  - generic [ref=f20e82]:
+                    - textbox [ref=f20e83]
+                    - group [aria-hidden]:
+                      - generic: Altura
+                  - paragraph [ref=f20e84]: "Ex.: 1,72 ou 172 — convertemos pra você. Usada no IMC."
+                - generic [ref=f20e85]:
+                  - generic: Etnia (opcional)
+                  - generic [ref=f20e86]:
+                    - combobox [ref=f20e87] [cursor=pointer]
+                    - textbox [aria-hidden]
+                    - group [aria-hidden]:
+                      - generic: Etnia (opcional)
+                  - paragraph [ref=f20e88]: "Opcional de verdade: hoje nenhum cálculo usa etnia (nossas equações são race-free) — guardamos para pesquisas futuras."
+                - generic [ref=f20e89]:
+                  - generic [ref=f20e90]:
+                    - generic [ref=f20e91]: Data de nascimento
+                    - generic [ref=f20e92]:
+                      - textbox [ref=f20e93]:
+                        - /placeholder: dd/mm/aaaa
+                      - button [ref=f20e95] [cursor=pointer]
+                      - group [aria-hidden]:
+                        - generic: Data de nascimento
+                    - paragraph [ref=f20e98]: Usado pra calcular idade e ajustar faixas de referência.
+                  - textbox [aria-hidden]
+                - generic [ref=f20e99]:
+                  - generic: Perfil clínico (condições, medicações, histórico)
+                  - generic [ref=f20e100]:
+                    - textbox [ref=f20e101]
+                    - group [aria-hidden]:
+                      - generic: Perfil clínico (condições, medicações, histórico)
+                  - paragraph [ref=f20e102]: "Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+              - button [ref=f20e104] [cursor=pointer]: Salvar perfil
+            - generic [ref=f20e110]:
+              - generic [ref=f20e114]:
+                - heading [level=6] [ref=f20e115]: Peso atual
+                - paragraph [ref=f20e116]: Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.
+              - button [ref=f20e117] [cursor=pointer]: Registrar peso
+            - generic [ref=f20e119]:
+              - heading [level=6] [ref=f20e120]: Preferências
+              - generic [ref=f20e121] [cursor=pointer]:
+                - switch [checked] [ref=f20e124]
+                - generic [ref=f20e127]: 🔔 Avisar quando eu desbloquear uma conquista
+              - generic [ref=f20e129]: Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.
+              - generic [ref=f20e130] [cursor=pointer]:
+                - switch [ref=f20e133]
+                - generic [ref=f20e136]: ♿ Botão de tradução em Libras
+              - generic [ref=f20e138] [cursor=pointer]:
+                - switch [ref=f20e141]
+                - generic [ref=f20e144]: 🔍 Aa Texto grande — amplia os textos do app
+              - generic [ref=f20e146]: Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.
+              - generic [ref=f20e147] [cursor=pointer]:
+                - switch [checked] [ref=f20e150]
+                - generic [ref=f20e153]: 🏃 Card de atividade física no início
+              - generic [ref=f20e155]: Passos, calorias e distância (Health Connect do celular). Vale no app Android.
+              - generic [ref=f20e156] [cursor=pointer]:
+                - switch [ref=f20e159]
+                - generic [ref=f20e162]: 🙈 Modo privacidade — borra nomes de exames
+              - generic [ref=f20e164]: "Pra usar o app em público: nomes de exames sensíveis ficam borrados na lista — toque no nome pra ler por 5 segundos."
+              - generic [ref=f20e166]:
+                - paragraph [ref=f20e169]: Saúde Esportiva
+                - generic [ref=f20e170]: Interprete seus exames no contexto do treino e das substâncias declaradas — com as perguntas certas pro seu médico.
+                - button [ref=f20e171] [cursor=pointer]: Disponível no Premium
+              - button [ref=f20e172] [cursor=pointer]: 📋 Enviar diagnóstico ao suporte
+              - generic [ref=f20e173]: Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).
+              - button [ref=f20e174] [cursor=pointer]: Avaliar o app na Play Store
+            - generic [ref=f20e179]:
+              - generic [ref=f20e184] [cursor=pointer]:
+                - paragraph [ref=f20e185]: Segurança
+                - paragraph [ref=f20e186]: Trocar senha, 2FA e biometria
+              - generic [ref=f20e193] [cursor=pointer]:
+                - paragraph [ref=f20e194]: Privacidade e dados
+                - paragraph [ref=f20e195]: Baixar seus dados, importar, termos (LGPD) e excluir conta
+              - generic [ref=f20e202] [cursor=pointer]:
+                - paragraph [ref=f20e203]: API para desenvolvedores
+                - paragraph [ref=f20e204]: Integre preço de remédios e interações no seu produto
+    - navigation [ref=f20e207]:
+      - button [ref=f20e208] [cursor=pointer]:
+        - paragraph [ref=f20e212]: Início
+      - button [ref=f20e213] [cursor=pointer]:
+        - paragraph [ref=f20e217]: Exames
+      - button [ref=f20e218] [cursor=pointer]:
+        - paragraph [ref=f20e221]: Dr. Exame
+      - button [ref=f20e222] [cursor=pointer]:
+        - paragraph [ref=f20e226]: Evolução
+      - button [ref=f20e227] [cursor=pointer]:
+        - paragraph [ref=f20e231]: Mais
+  - dialog [active] [ref=f20e235]:
+    - heading "Vamos preparar o Dr. Exame Passo 1 de 2 Fechar" [level=2] [ref=f20e236]:
+      - generic [ref=f20e237]:
+        - paragraph [ref=f20e238]: Vamos preparar o Dr. Exame
+        - generic [ref=f20e239]: Passo 1 de 2
+      - button "Fechar" [ref=f20e240] [cursor=pointer]
+    - progressbar [ref=f20e243]
+    - generic [ref=f20e246]:
+      - paragraph [ref=f20e247]: Essas informações personalizam as faixas de referência dos seus exames e os cálculos de idade biológica e função renal.
+      - generic [ref=f20e248]:
+        - generic:
+          - text: Sexo
+          - generic [aria-hidden]: "*"
+        - generic [ref=f20e249]:
+          - combobox "Sexo" [ref=f20e250] [cursor=pointer]
+          - textbox [aria-hidden]
+          - group [aria-hidden]:
+            - generic: Sexo *
+      - generic [ref=f20e251]:
+        - generic [ref=f20e252]:
+          - generic [ref=f20e253]: Data de nascimento
+          - generic [ref=f20e254]:
+            - textbox "Data de nascimento" [ref=f20e255]:
+              - /placeholder: dd/mm/aaaa
+            - button "Abrir calendário" [ref=f20e257] [cursor=pointer]
+            - group [aria-hidden]:
+              - generic: Data de nascimento
+        - textbox [aria-hidden]
+    - generic [ref=f20e260]:
+      - button "Agora não" [ref=f20e261] [cursor=pointer]
+      - button "Continuar" [disabled]

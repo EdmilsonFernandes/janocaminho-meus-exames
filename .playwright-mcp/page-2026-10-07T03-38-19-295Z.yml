@@ -1,0 +1,146 @@
+- generic [ref=f8e3]:
+  - button "Pular para o conteúdo" [ref=f8e4] [cursor=pointer]
+  - generic [ref=f8e5]:
+    - banner [ref=f8e6]:
+      - generic [ref=f8e7]:
+        - heading [level=6]
+        - generic [ref=f8e8]:
+          - button "Você tem 15 créditos. Toque para ver a carteira." [ref=f8e9] [cursor=pointer]:
+            - generic [ref=f8e12]: "15"
+          - button "Notificações" [ref=f8e13] [cursor=pointer]:
+            - generic [ref=f8e14]: 9+
+          - button "E Edmilson Lopes Fernandes dos Santos" [ref=f8e19] [cursor=pointer]:
+            - generic [ref=f8e20]: E
+            - generic [ref=f8e22]: Edmilson Lopes Fernandes dos Santos
+        - button "Atualizar" [ref=f8e28] [cursor=pointer]
+    - main [ref=f8e31]:
+      - navigation [ref=f8e35]:
+        - generic [ref=f8e38]:
+          - generic [ref=f8e39]: E
+          - generic [ref=f8e41]:
+            - paragraph [ref=f8e42]: Edmilson Lopes Fernandes dos Santos
+            - generic [ref=f8e43]:
+              - generic [ref=f8e44]: 👑 Premium
+              - button "⚡ 15 (+)" [ref=f8e46] [cursor=pointer]
+        - separator [ref=f8e48]
+        - button "Início" [ref=f8e49] [cursor=pointer]
+        - button "Exames" [ref=f8e56] [cursor=pointer]
+        - button "Cuidados" [ref=f8e67] [cursor=pointer]
+        - button "Pessoas" [ref=f8e77] [cursor=pointer]
+        - button "Conta" [ref=f8e87] [cursor=pointer]
+        - button "Dúvidas frequentes" [ref=f8e96] [cursor=pointer]
+        - menuitem "Sobre o app" [ref=f8e102] [cursor=pointer]
+        - menuitem "Sair da conta" [ref=f8e108] [cursor=pointer]
+        - generic [ref=f8e115]:
+          - generic [ref=f8e117]: Dr. Exame · Saúde Inteligente
+          - generic [ref=f8e118]: v2.7.223
+      - generic [ref=f8e120]:
+        - generic [ref=f8e122]:
+          - generic [ref=f8e123]:
+            - heading "Bom dia, Edmilson 👋" [level=1] [ref=f8e124]
+            - generic [ref=f8e125]: Seu painel de saúde — educativo, não substitui o médico.
+          - generic [ref=f8e126]: Sincronizado
+        - generic [ref=f8e131]:
+          - generic [ref=f8e132]: E
+          - generic [ref=f8e133]:
+            - paragraph [ref=f8e134]: Reposição & Performance
+            - generic [ref=f8e135]:
+              - heading "Edmilson Lopes Fernandes dos Santos, 41" [level=2] [ref=f8e136]
+              - generic [ref=f8e137]: CrossFit/Funcional
+              - generic [ref=f8e139]: 🏃 Modo Esporte
+            - paragraph [ref=f8e141]: "🎯 Monitoramento da reposição prescrita: testosterona na meta, hematócrito, PSA e lipídios."
+            - generic [ref=f8e142]:
+              - paragraph [ref=f8e143]:
+                - generic [ref=f8e144]: "Último exame:"
+                - text: 16/07 · há 2 meses
+              - paragraph [ref=f8e145]:
+                - generic [ref=f8e146]: "Peso/altura:"
+                - text: 92,4 kg · 178 cm
+              - paragraph [ref=f8e147]:
+                - generic [ref=f8e148]: "Médico vinculado:"
+                - text: Dr(a). Dr Teste QA · CRM 99999-SP
+            - generic [ref=f8e149]: "Foco: Monitoramento periódico conforme diretriz de reposição"
+        - paragraph [ref=f8e156]: Nada crítico no momento
+        - generic [ref=f8e157]:
+          - 'button "Último exame: 16/07 — ver" [ref=f8e158] [cursor=pointer]':
+            - generic [ref=f8e162]:
+              - paragraph [ref=f8e163]: Último exame
+              - paragraph [ref=f8e164]: 16/07
+              - paragraph [ref=f8e165]: há 2 meses
+          - 'button "Exames no ano: 8 — ver" [ref=f8e166] [cursor=pointer]':
+            - generic [ref=f8e170]:
+              - paragraph [ref=f8e171]: Exames no ano
+              - paragraph [ref=f8e172]: "8"
+              - paragraph [ref=f8e173]: de 9 no total
+          - 'button "Alterados ativos: 8 — ver" [ref=f8e174] [cursor=pointer]':
+            - generic [ref=f8e178]:
+              - paragraph [ref=f8e179]: Alterados ativos
+              - paragraph [ref=f8e180]: "8"
+              - paragraph [ref=f8e181]: pedem atenção
+          - button [ref=f8e182] [cursor=pointer]:
+            - generic [ref=f8e183]:
+              - paragraph [ref=f8e184]: Idade Bio
+              - paragraph [ref=f8e185]: —
+        - generic [ref=f8e190]:
+          - button "Todos (0)" [pressed] [ref=f8e191] [cursor=pointer]
+          - button "Hormonal (0)" [ref=f8e193] [cursor=pointer]
+          - button "Cardio-Lipídios (0)" [ref=f8e195] [cursor=pointer]
+          - button "Hemograma (0)" [ref=f8e197] [cursor=pointer]
+          - button "Músculo-Fígado (0)" [ref=f8e199] [cursor=pointer]
+          - button "Renal (0)" [ref=f8e201] [cursor=pointer]
+        - generic [ref=f8e204]:
+          - generic [ref=f8e205]: 🔬
+          - heading "Nenhum marcador em domínio" [level=6] [ref=f8e207]
+          - paragraph [ref=f8e208]: Envie um exame com esta banca para o domínio aparecer aqui — ou volte para “Todos”.
+        - generic [ref=f8e210]:
+          - heading "Linha do tempo do atleta" [level=2] [ref=f8e211]
+          - generic [ref=f8e212]: Exames, substâncias declaradas — dos mais recentes.
+          - generic [ref=f8e213]:
+            - generic [ref=f8e215]:
+              - generic [ref=f8e222]:
+                - paragraph [ref=f8e223]: PAINEL GRANDE
+                - generic [ref=f8e224]: 16 de jul. de 2026
+              - generic [ref=f8e231]:
+                - paragraph [ref=f8e232]: GLICEMIA DE JEJUM
+                - generic [ref=f8e233]: 09 de jul. de 2026
+              - generic [ref=f8e240]:
+                - paragraph [ref=f8e241]: PERFIL LIPÍDICO
+                - generic [ref=f8e242]: 09 de jul. de 2026
+              - generic [ref=f8e249]:
+                - paragraph [ref=f8e250]: HEMOGRAMA
+                - generic [ref=f8e251]: 09 de jul. de 2026
+              - generic [ref=f8e258]:
+                - paragraph [ref=f8e259]: "Início: Testosterona (enantato)"
+                - generic [ref=f8e260]: Hormônio
+                - generic [ref=f8e261]: 31 de mai. de 2026
+              - generic [ref=f8e268]:
+                - paragraph [ref=f8e269]: ORFAO
+                - generic [ref=f8e270]: 05 de mai. de 2026
+              - generic [ref=f8e277]:
+                - paragraph [ref=f8e278]: HEMOGRAMA
+                - generic [ref=f8e279]: 14 de abr. de 2026
+              - generic [ref=f8e286]:
+                - paragraph [ref=f8e287]: ANUAL 2025
+                - generic [ref=f8e288]: 13 de abr. de 2026
+            - generic [ref=f8e289]: +1 eventos anteriores
+          - generic [ref=f8e290]: 📴 Sem dados de atividade — conecte o Health Connect no app para os treinos entrarem aqui.
+        - generic [ref=f8e291]:
+          - generic [ref=f8e292]:
+            - heading "Perguntas para levar ao médico" [level=2] [ref=f8e296]
+            - generic [ref=f8e297]: Geradas pelo Dr. Exame a partir dos seus exames e declarações — educativas, não substituem consulta.
+            - generic [ref=f8e298]:
+              - generic [ref=f8e299]: 🩺
+              - heading "Sem exames ainda" [level=6] [ref=f8e301]
+              - paragraph [ref=f8e302]: Envie um exame para o Dr. Exame preparar perguntas de consulta contextualizadas ao seu treino.
+          - generic [ref=f8e303]:
+            - generic [ref=f8e304]:
+              - heading "Substâncias declaradas" [level=2] [ref=f8e305]
+              - generic [ref=f8e306]: Confidencial · Registro LGPD
+            - generic [ref=f8e307]: O que você declarou entra como CONTEXTO da análise — o app nunca sugere dose, ciclo ou substância.
+            - generic [ref=f8e314]:
+              - generic [ref=f8e315]:
+                - paragraph [ref=f8e316]: Testosterona (enantato)
+                - generic [ref=f8e317]: dose declarada
+              - generic [ref=f8e319]: Hormônio · 250mg/seg · desde mai. de 2026
+              - generic [ref=f8e320]: "Impacto nos exames: Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar."
+        - generic [ref=f8e321]: "*Educativo. O Dr. Exame monitora e organiza seus exames — não prescreve, não sugere dose nem orienta uso de substâncias. A interpretação final é do seu médico."

@@ -1,0 +1,44 @@
+- generic [ref=f4e2]:
+  - generic [ref=f4e7]:
+    - img "Dr. Exame" [ref=f4e13]
+    - generic [ref=f4e14]:
+      - heading "Dr. Exame" [level=3] [ref=f4e15]
+      - paragraph [ref=f4e18]: Iniciando o Dr. Exame…
+  - generic [ref=f4e28]:
+    - generic [ref=f4e29]:
+      - img "Dr. Exame" [ref=f4e31]
+      - generic [ref=f4e32]:
+        - paragraph [ref=f4e33]: Meus Exames
+        - paragraph [ref=f4e34]: Seu assistente de saúde com IA
+    - generic [ref=f4e35]:
+      - button [ref=f4e36] [cursor=pointer]
+      - button [ref=f4e41] [cursor=pointer]
+    - generic [ref=f4e47]:
+      - generic [ref=f4e48]:
+        - generic [ref=f4e49]:
+          - text: E-mail
+          - generic [aria-hidden] [ref=f4e50]: "*"
+        - generic [ref=f4e51]:
+          - textbox "E-mail" [ref=f4e56]
+          - group [aria-hidden]:
+            - generic: E-mail *
+      - generic [ref=f4e57]:
+        - generic [ref=f4e58]:
+          - text: Senha
+          - generic [aria-hidden] [ref=f4e59]: "*"
+        - generic [ref=f4e60]:
+          - textbox "Senha" [ref=f4e65]
+          - button "Mostrar senha" [ref=f4e67] [cursor=pointer]
+          - group [aria-hidden]:
+            - generic: Senha *
+      - button "Esqueci minha senha" [ref=f4e72] [cursor=pointer]
+      - button [ref=f4e73] [cursor=pointer]
+      - generic [ref=f4e77]: ou
+      - paragraph [ref=f4e80]:
+        - text: Não tem conta?
+        - button "Criar conta" [ref=f4e81] [cursor=pointer]
+    - generic [ref=f4e82]:
+      - paragraph [ref=f4e88]: Seus dados de saúde são protegidos pela LGPD.
+      - paragraph [ref=f4e89]:
+        - strong [ref=f4e90]: Conteúdo educativo.
+        - text: Não substitui consulta, diagnóstico ou tratamento médico. Em urgências, procure um serviço de saúde.

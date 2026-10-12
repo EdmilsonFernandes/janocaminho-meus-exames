@@ -1,0 +1,86 @@
+- generic [active] [ref=e20]:
+  - generic [ref=e21]:
+    - generic [ref=e83]:
+      - button "Pular para o conteúdo" [ref=e84] [cursor=pointer]
+      - generic [ref=e85]:
+        - banner [ref=e86]:
+          - generic [ref=e87]:
+            - button "Menu" [ref=e88] [cursor=pointer]
+            - button [ref=e92] [cursor=pointer]
+            - button "Notificações" [ref=e97] [cursor=pointer]
+            - button "Mais opções" [ref=e101] [cursor=pointer]
+            - button "Atualizar" [ref=e105] [cursor=pointer]
+        - main [ref=e108]:
+          - generic [ref=e110]:
+            - generic [ref=e111]:
+              - paragraph [ref=e112]: Bom dia, tudo bem? 👋
+              - text: Seu painel de saúde — educativo, não substitui o médico.
+            - generic [ref=e113]:
+              - progressbar [ref=e114]
+              - paragraph [ref=e117]: Calculando seu score…
+            - generic [ref=e120]:
+              - generic [ref=e124]:
+                - generic [ref=e125]: Organizando seus dados
+                - paragraph [ref=e127]: Montando sua prioridade de hoje
+                - paragraph [ref=e128]: Estamos cruzando exames, alertas e créditos para sugerir o melhor próximo passo.
+              - button "Ver exames →" [ref=e129] [cursor=pointer]
+            - generic [ref=e130]:
+              - paragraph [ref=e137]: Suas leituras
+              - generic [ref=e138]:
+                - generic [ref=e140]:
+                  - progressbar [ref=e141]
+                  - paragraph [ref=e144]: Montando sua leitura de risco…
+                - generic [ref=e146]:
+                  - progressbar [ref=e147]
+                  - paragraph [ref=e150]: Montando seu estado atual…
+              - generic [ref=e151]:
+                - button "📊 Tendências & Previsões →" [ref=e152] [cursor=pointer]
+                - button "🏆 Conquistas →" [ref=e153] [cursor=pointer]
+            - generic [ref=e154]:
+              - paragraph [ref=e160]: Dr. Exame
+              - generic [ref=e163]:
+                - generic [ref=e164]:
+                  - img "Dr. Exame" [ref=e166]
+                  - generic [ref=e167]:
+                    - paragraph [ref=e168]: ✨ Dica personalizada (IA)
+                    - paragraph [ref=e169]: Jejum de 8–12h antes de exames de sangue garante resultados mais precisos.
+                - button [ref=e171] [cursor=pointer]
+            - generic [ref=e175]:
+              - paragraph [ref=e181]: Seus números
+              - generic [ref=e182]:
+                - generic [ref=e183]:
+                  - generic [ref=e186] [cursor=pointer]:
+                    - paragraph [ref=e190]: "0"
+                    - generic [ref=e191]: Exames enviados
+                  - generic [ref=e194] [cursor=pointer]:
+                    - paragraph [ref=e199]: "0"
+                    - generic [ref=e200]: Valores alterados
+                  - generic [ref=e203] [cursor=pointer]:
+                    - paragraph [ref=e208]: "0"
+                    - generic [ref=e209]: Dependentes
+                  - generic [ref=e212] [cursor=pointer]:
+                    - paragraph [ref=e216]: —
+                    - generic [ref=e217]: Última atualização
+                - generic [ref=e221]:
+                  - heading "Distribuição dos valores" [level=6] [ref=e222]
+                  - paragraph [ref=e223]: Últimos exames extraídos deste perfil.
+                  - paragraph [ref=e224]: Sem valores extraídos ainda. Envie um exame.
+            - generic [ref=e225]:
+              - paragraph [ref=e231]: Ações rápidas
+              - generic [ref=e233]:
+                - generic [ref=e234]: Enviar exame
+                - generic [ref=e241]: Evolução
+                - generic [ref=e248]: Família
+                - generic [ref=e256]: Relatório
+            - button [ref=e264] [cursor=pointer]
+    - navigation [ref=e268]:
+      - paragraph [ref=e273] [cursor=pointer]: Início
+      - paragraph [ref=e279] [cursor=pointer]: Exames
+      - generic [ref=e280] [cursor=pointer]:
+        - img "Dr. Exame" [ref=e282]
+        - paragraph [ref=e283]: Dr. Exame
+      - paragraph [ref=e288] [cursor=pointer]: Evolução
+      - paragraph [ref=e293] [cursor=pointer]: Mais
+  - generic [ref=e17] [cursor=pointer]:
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e18]
+    - img "Conteúdo acessível em Libras usando o VLibras Widget com opções dos Avatares Ícaro, Hosana ou Guga." [ref=e19]
