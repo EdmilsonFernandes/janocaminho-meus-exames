@@ -1,26 +1,54 @@
-import { Box, Stack, Tooltip, Typography, useTheme } from '@mui/material';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import {
+  Box,
+  Stack,
+  Typography,
+  Chip,
+  Button,
+  IconButton,
+  Tooltip,
+  useTheme,
+  Divider,
+} from '@mui/material';
 import { alpha } from '@mui/material/styles';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import PsychologyIcon from '@mui/icons-material/Psychology';
+import AirIcon from '@mui/icons-material/Air';
+import ScienceIcon from '@mui/icons-material/Science';
+import BoltIcon from '@mui/icons-material/Bolt';
+import WaterIcon from '@mui/icons-material/Water';
+import BloodtypeIcon from '@mui/icons-material/Bloodtype';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
+import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import BiotechIcon from '@mui/icons-material/Biotech';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import RemoveIcon from '@mui/icons-material/Remove';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import HistoryToggleOffIcon from '@mui/icons-material/HistoryToggleOff';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
+import type { ComponentType } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppCard } from './AppCard';
-import { SEM } from '../theme';
+import { SEM, tealText } from '../theme';
 
-/**
- * BodyMap — silhueta corporal com sistemas/regiões acendendo pelo estado dos marcadores.
- *
- * Dado vem pronto do server (`health.bodyRegions` — agregação honesta: pior nível dos
- * marcadores da região; sem marcador → 'sem_dados' em cinza, NUNCA verde). Clique na
- * região (silhueta ou lista) → Tendências do 1º marcador alterado da região.
- *
- * Layout: silhueta central (line-art teal) + lista de regiões abaixo — na lista cada
- * região mostra os marcadores no tooltip e leva a um toque de 44px (mobile-first).
- */
-
-export type RegionLevel = 'ok' | 'atencao' | 'alterado' | 'sem_dados';
+export type RegionLevel = 'ok' | 'atencao' | 'alterado' | 'sem_dados' | 'desatualizado';
+export type MarkerLevel = 'ok' | 'atencao' | 'alterado';
 
 export interface BodyRegionMarkerView {
   nameCanonical: string;
   name: string;
-  level: 'ok' | 'atencao' | 'alterado';
+  level: MarkerLevel;
   valueText: string | null;
+  unit: string | null;
+  refText: string | null;
+  performedAt: string | null;
+  prior: { valueText: string | null; performedAt: string | null } | null;
+  deltaPct: number | null;
+  trend: string | null;
+  examId: string | null;
+  historical: boolean;
 }
 
 export interface BodyRegionView {
@@ -31,199 +59,667 @@ export interface BodyRegionView {
   markers: BodyRegionMarkerView[];
 }
 
+export interface BodyMapProps {
+  regions: BodyRegionView[] | null;
+  loaded: boolean;
+  onRegionClick?: (r: BodyRegionView) => void;
+  onNavigateToTrend?: (canonical: string) => void;
+  onNavigateToExam?: (examId: string) => void;
+  onUploadExam?: () => void;
+}
+
 const LEVEL_LABEL: Record<RegionLevel, string> = {
-  ok: 'Em ordem',
+  ok: 'Dentro da referência',
   atencao: 'Atenção',
-  alterado: 'Alterado',
+  alterado: 'Fora da referência',
+  desatualizado: 'Exames > 1 ano',
   sem_dados: 'Sem dados',
 };
 
-/** Cor sólida da região pelo nível (adapta dark/light via SEM/text tokens). */
-const useLevelColor = () => {
+const SYSTEM_ICON: Record<string, ComponentType<any>> = {
+  cerebro: PsychologyIcon,
+  coracao: FavoriteIcon,
+  pulmoes: AirIcon,
+  figado: ScienceIcon,
+  pancreas: BoltIcon,
+  rins: WaterIcon,
+  sangue: BloodtypeIcon,
+  hormonios: BiotechIcon,
+  musculos: FitnessCenterIcon,
+  ossos: AccessibilityNewIcon,
+};
+
+// Coordenadas anatômicas no raio-x frontal (%)
+const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right' }> = {
+  cerebro: { x: 50, y: 9.5 },
+  pulmoes: { x: 42, y: 24.5 },
+  coracao: { x: 52, y: 28.5 },
+  sangue: { x: 34.5, y: 31.5, side: 'left' },
+  figado: { x: 44, y: 34.5, side: 'left' },
+  pancreas: { x: 53.5, y: 36.5 },
+  rins: { x: 58.5, y: 41.5, side: 'right' },
+  hormonios: { x: 50, y: 47 },
+  musculos: { x: 40, y: 60, side: 'left' },
+  ossos: { x: 58.5, y: 63, side: 'right' },
+};
+
+const formatDate = (isoString: string | null) => {
+  if (!isoString) return null;
+  try {
+    const d = new Date(isoString);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  } catch {
+    return null;
+  }
+};
+
+export const BodyMap = ({
+  regions,
+  loaded,
+  onRegionClick,
+  onNavigateToTrend,
+  onNavigateToExam,
+  onUploadExam,
+}: BodyMapProps) => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const dark = theme.palette.mode === 'dark';
-  return (level: RegionLevel): string => {
+
+  // Normalização defensiva: sem dados ou formato inesperado não crasha
+  const safeList: BodyRegionView[] = useMemo(() => {
+    if (!Array.isArray(regions)) return [];
+    return regions.map((r) => ({
+      key: r?.key || 'desconhecido',
+      label: r?.label || 'Sistema',
+      emoji: r?.emoji || '🩺',
+      level: (r?.level as RegionLevel) || 'sem_dados',
+      markers: Array.isArray(r?.markers)
+        ? r.markers.map((m) => ({
+            nameCanonical: m?.nameCanonical || '',
+            name: m?.name || 'Marcador',
+            level: (m?.level as MarkerLevel) || 'ok',
+            valueText: m?.valueText || '—',
+            unit: m?.unit || '',
+            refText: m?.refText || null,
+            performedAt: m?.performedAt || null,
+            prior: m?.prior || null,
+            deltaPct: typeof m?.deltaPct === 'number' ? m.deltaPct : null,
+            trend: m?.trend || null,
+            examId: m?.examId || null,
+            historical: !!m?.historical,
+          }))
+        : [],
+    }));
+  }, [regions]);
+
+  // Escolhe órgão inicial: primeiro com alteração, ou primeiro com dados, ou primeiro da lista
+  const [selectedKey, setSelectedKey] = useState<string>(() => {
+    const firstBad = safeList.find((r) => r.level === 'alterado');
+    if (firstBad) return firstBad.key;
+    const firstWarn = safeList.find((r) => r.level === 'atencao');
+    if (firstWarn) return firstWarn.key;
+    const firstWithData = safeList.find((r) => r.markers.length > 0);
+    if (firstWithData) return firstWithData.key;
+    return safeList[0]?.key || 'coracao';
+  });
+
+  // Atualiza seleção se safeList carregar depois
+  useEffect(() => {
+    if (safeList.length > 0 && !safeList.some((r) => r.key === selectedKey)) {
+      const best = safeList.find((r) => r.level === 'alterado') || safeList.find((r) => r.markers.length > 0) || safeList[0];
+      if (best) setSelectedKey(best.key);
+    }
+  }, [safeList, selectedKey]);
+
+  const activeRegion = useMemo(() => {
+    return safeList.find((r) => r.key === selectedKey) || safeList[0] || null;
+  }, [safeList, selectedKey]);
+
+  // Cores de status acessíveis com contraste AA
+  const getLevelColor = (level: RegionLevel): string => {
     if (level === 'sem_dados') return dark ? '#64748b' : '#94a3b8';
-    const tok = level === 'ok' ? SEM.ok : level === 'atencao' ? SEM.warn : SEM.bad;
-    return dark ? tok.dark : tok.light;
+    if (level === 'desatualizado') return dark ? '#cbd5e1' : '#64748b';
+    if (level === 'ok') return dark ? SEM.ok.dark : SEM.ok.light;
+    if (level === 'atencao') return dark ? SEM.warn.dark : SEM.warn.light;
+    return dark ? SEM.bad.dark : SEM.bad.light;
   };
-};
 
-const fmtMarkers = (r: BodyRegionView) =>
-  r.markers.length === 0
-    ? 'Sem dados desta região nos seus exames.'
-    : r.markers.map((m) => `${m.name}: ${m.valueText ?? '—'} (${LEVEL_LABEL[m.level]})`).join('\n');
+  const handleSelect = (key: string) => {
+    setSelectedKey(key);
+    const reg = safeList.find((r) => r.key === key);
+    if (reg && onRegionClick) {
+      onRegionClick(reg);
+    }
+  };
 
-/** Silhueta minimalista (line-art) + órgãos clicáveis. Cores por nível; cinza = sem dados. */
-const Silhouette = ({ regions, colorOf, onPick }: {
-  regions: BodyRegionView[];
-  colorOf: (l: RegionLevel) => string;
-  onPick: (r: BodyRegionView) => void;
-}) => {
-  const theme = useTheme();
-  const teal = theme.palette.primary.main;
-  const by = Object.fromEntries(regions.map((r) => [r.key, r]));
-  const lvl = (k: string): RegionLevel => by[k]?.level ?? 'sem_dados';
+  const handleGoTrend = (canonical: string) => {
+    if (onNavigateToTrend) {
+      onNavigateToTrend(canonical);
+    } else {
+      navigate(`/tendencias?select=${encodeURIComponent(canonical)}`);
+    }
+  };
 
-  /** Grupo interativo: tooltip + clique + alvo de toque ≥44px (círculo invisível).
-   *  Guard: região ausente (lista vazia / carregando) → não renderiza NADA — sem isto
-   *  o primeiro paint com regions=null crashava o dashboard inteiro ("Algo deu errado"). */
-  const Hit = ({ r, cx, cy, children }: { r?: BodyRegionView; cx?: number; cy?: number; children: React.ReactNode }) => {
-    if (!r) return null;
+  const handleGoExam = (examId: string) => {
+    if (onNavigateToExam) {
+      onNavigateToExam(examId);
+    } else {
+      navigate(`/exams/${examId}/show`);
+    }
+  };
+
+  const handleGoUpload = () => {
+    if (onUploadExam) {
+      onUploadExam();
+    } else {
+      navigate('/exams/create');
+    }
+  };
+
+  // Se não estiver carregado ou vazio, exibe fallback leve
+  if (loaded && safeList.length === 0) {
     return (
-      <Tooltip enterTouchDelay={0} title={<Box sx={{ whiteSpace: 'pre-line', fontSize: 12 }}><strong>{r.label}</strong>{'\n'}{fmtMarkers(r)}</Box>}>
-        <g
-          onClick={() => r.markers.length > 0 && onPick(r)}
-          role="button"
-          aria-label={`${r.label}: ${LEVEL_LABEL[r.level]}`}
-          style={{ cursor: r.markers.length > 0 ? 'pointer' : 'default' }}
-        >
-          {children}
-          {cx != null && cy != null && <circle cx={cx} cy={cy} r={20} fill="transparent" />}
-        </g>
-      </Tooltip>
-    );
-  };
-
-  const organFill = (k: string) => {
-    const c = colorOf(lvl(k));
-    return { fill: alpha(c, lvl(k) === 'sem_dados' ? 0.14 : 0.34), stroke: c, strokeWidth: 1.4 };
-  };
-
-  return (
-    <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-      <svg viewBox="0 0 220 500" width="100%" style={{ maxWidth: 232 }} role="img" aria-label="Mapa corporal dos seus exames">
-        {/* ── silhueta (line-art teal) ── */}
-        <g fill="none" stroke={alpha(teal, 0.55)} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx={110} cy={40} r={26} /> {/* cabeça */}
-          <path d="M78 78 Q110 68 142 78 Q158 84 160 104 Q162 150 154 200 Q150 240 152 268 Q110 286 68 268 Q70 240 66 200 Q58 150 60 104 Q62 84 78 78 Z" /> {/* tronco */}
-          <path d="M76 84 Q64 104 58 134 Q52 164 48 198 Q46 216 46 232" strokeWidth="13" /> {/* braço esq */}
-          <path d="M144 84 Q156 104 162 134 Q168 164 172 198 Q174 216 174 232" strokeWidth="13" /> {/* braço dir */}
-          <path d="M86 274 Q84 320 84 360 Q84 402 80 442 Q78 456 78 462" strokeWidth="21" /> {/* perna esq */}
-          <path d="M134 274 Q136 320 136 360 Q136 402 140 442 Q142 456 142 462" strokeWidth="21" /> {/* perna dir */}
-        </g>
-
-        {/* ── sangue: lavagem de fundo do tronco (sistêmico) ── */}
-        <Hit r={by.sangue} cx={110} cy={168}>
-          <ellipse cx={110} cy={168} rx={38} ry={64} {...organFill('sangue')} />
-        </Hit>
-
-        {/* ── pulmões (atrás do coração) ── */}
-        <Hit r={by.pulmoes} cx={91} cy={126}>
-          <ellipse cx={91} cy={126} rx={13} ry={23} {...organFill('pulmoes')} />
-          <circle cx={129} cy={126} r={15} fill="transparent" />
-          <ellipse cx={129} cy={126} rx={13} ry={23} {...organFill('pulmoes')} />
-        </Hit>
-
-        {/* ── fígado ── */}
-        <Hit r={by.figado} cx={92} cy={166}>
-          <ellipse cx={92} cy={166} rx={18} ry={11} {...organFill('figado')} />
-        </Hit>
-
-        {/* ── pâncreas ── */}
-        <Hit r={by.pancreas} cx={112} cy={181}>
-          <ellipse cx={112} cy={181} rx={13} ry={5.5} {...organFill('pancreas')} />
-        </Hit>
-
-        {/* ── rins ── */}
-        <Hit r={by.rins} cx={96} cy={203}>
-          <ellipse cx={96} cy={203} rx={7} ry={12} {...organFill('rins')} />
-          <circle cx={124} cy={203} r={15} fill="transparent" />
-          <ellipse cx={124} cy={203} rx={7} ry={12} {...organFill('rins')} />
-        </Hit>
-
-        {/* ── coração (sobre os pulmões) ── */}
-        <Hit r={by.coracao} cx={113} cy={132}>
-          <path d="M113 141 C 104 133 104 124 111 122 C 112.4 121.6 113.6 122 114.5 123 C 115.4 122 116.6 121.6 118 122 C 125 124 125 133 116 141 Z" {...organFill('coracao')} />
-        </Hit>
-
-        {/* ── cérebro (cabeça) ── */}
-        <Hit r={by.cerebro} cx={110} cy={36}>
-          <ellipse cx={110} cy={36} rx={17} ry={14} {...organFill('cerebro')} />
-        </Hit>
-
-        {/* ── músculos (braços) ── */}
-        <Hit r={by.musculos} cx={57} cy={148}>
-          <circle cx={57} cy={148} r={10} {...organFill('musculos')} />
-          <circle cx={163} cy={148} r={15} fill="transparent" />
-          <circle cx={163} cy={148} r={10} {...organFill('musculos')} />
-        </Hit>
-
-        {/* ── ossos: coluna + pelve ── */}
-        <Hit r={by.ossos} cx={110} cy={266}>
-          <line x1={110} y1={88} x2={110} y2={256} stroke={colorOf(lvl('ossos'))} strokeWidth={3} strokeDasharray="5 5" opacity={0.85} />
-          <ellipse cx={110} cy={266} rx={17} ry={10} {...organFill('ossos')} />
-        </Hit>
-      </svg>
-    </Box>
-  );
-};
-
-export const BodyMap = ({ regions, loaded, onRegionClick }: {
-  regions: BodyRegionView[] | null;
-  loaded: boolean;
-  onRegionClick: (r: BodyRegionView) => void;
-}) => {
-  const colorOf = useLevelColor();
-  const list = regions ?? [];
-  const withData = list.filter((r) => r.level !== 'sem_dados');
-  // Empty state honesto: sem NENHUM marcador mapeado o mapa seria 100% cinza — card
-  // inútil no dashboard vazio (que já tem CTA próprio). Some em vez de "acender nada".
-  if (loaded && withData.length === 0) return null;
-
-  return (
-    <AppCard>
-      <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 0.25 }}>🧍 Mapa do corpo</Typography>
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
-        Cada região acende conforme os marcadores dos seus exames. Toque para ver.
-      </Typography>
-
-      <Silhouette regions={list} colorOf={colorOf} onPick={onRegionClick} />
-
-      <Stack spacing={0.5} sx={{ mt: 1.5 }} data-testid="bodymap-regions">
-        {loaded && list.length === 0 && (
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem dados ainda</Typography>
-        )}
-        {list.map((r) => (
-          <Tooltip key={r.key} enterTouchDelay={0} title={<Box sx={{ whiteSpace: 'pre-line', fontSize: 12 }}><strong>{r.label}</strong>{'\n'}{fmtMarkers(r)}</Box>}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              onClick={() => r.markers.length > 0 && onRegionClick(r)}
-              sx={{
-                cursor: r.markers.length > 0 ? 'pointer' : 'default',
-                minHeight: 44,
-                px: 1,
-                borderRadius: '12px',
-                '&:hover': r.markers.length > 0 ? { bgcolor: (t) => alpha(t.palette.primary.main, 0.07) } : {},
-                '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-              }}
-              role="button"
-              tabIndex={0}
-              aria-label={`${r.label}: ${LEVEL_LABEL[r.level]}`}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (r.markers.length > 0) onRegionClick(r); } }}
-            >
-              <Box sx={{ fontSize: 16, lineHeight: 1 }}>{r.emoji}</Box>
-              <Typography sx={{ flex: 1, fontSize: 13, fontWeight: 700, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {r.label}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: colorOf(r.level), flexShrink: 0 }} />
-                <Typography sx={{ fontSize: 12, fontWeight: 700, color: colorOf(r.level), whiteSpace: 'nowrap' }}>
-                  {LEVEL_LABEL[r.level]}
-                </Typography>
-              </Box>
-            </Stack>
-          </Tooltip>
-        ))}
-      </Stack>
-
-      {loaded && withData.length > 0 && (
-        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1 }}>
-          Regiões em cinza ainda não têm exames correspondentes.
+      <AppCard>
+        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16 }}>
+          🩺 Mapa do seu Corpo
         </Typography>
-      )}
+        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+          Envie seu primeiro exame de sangue para visualizar a saúde de cada órgão de forma interativa.
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          onClick={handleGoUpload}
+          startIcon={<UploadFileIcon />}
+          sx={{ mt: 2, borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}
+        >
+          Enviar exame agora
+        </Button>
+      </AppCard>
+    );
+  }
+
+  const activeColor = activeRegion ? getLevelColor(activeRegion.level) : '#20b2aa';
+
+  return (
+    <AppCard
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Keyframes de pulso sutil e aceleração GPU */}
+      <style>{`
+        @keyframes subtleOrganPulse {
+          0%, 100% { transform: scale(1); opacity: 0.95; }
+          50% { transform: scale(1.18); opacity: 0.65; }
+        }
+        @keyframes organRingPing {
+          0% { transform: scale(0.8); opacity: 0.8; }
+          70%, 100% { transform: scale(2.2); opacity: 0; }
+        }
+        .organ-pulse-active {
+          animation: subtleOrganPulse 3s ease-in-out infinite;
+        }
+        .organ-ring-ping {
+          animation: organRingPing 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .organ-pulse-active, .organ-ring-ping {
+            animation: none !important;
+          }
+        }
+      `}</style>
+
+      {/* Cabeçalho do Card */}
+      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+        <Box>
+          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 17 }, display: 'flex', alignItems: 'center', gap: 1 }}>
+            🩺 Mapa do seu Corpo
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+            Toque em um órgão para ver os exames e a faixa de cada sistema.
+          </Typography>
+        </Box>
+        <Chip
+          size="small"
+          label="Visualização Anatômica"
+          sx={{
+            fontWeight: 700,
+            fontSize: 11,
+            bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+            color: 'primary.main',
+            borderRadius: '999px',
+          }}
+        />
+      </Box>
+
+      {/* Grade Principal: Corpo Anatômico + Detalhes do Órgão */}
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 320px) 1fr' },
+          gap: { xs: 2.5, md: 3 },
+          alignItems: 'start',
+        }}
+      >
+        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Box
+            sx={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: { xs: 260, sm: 290 },
+              aspectRatio: '720/964',
+              borderRadius: '18px',
+              overflow: 'hidden',
+              background: '#04101f',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.25), 0 0 0 1px rgba(95,201,195,0.2)',
+              userSelect: 'none',
+              touchAction: 'manipulation',
+            }}
+          >
+            {/* Imagem de base raio-x leve (WebP 24KB) */}
+            <Box
+              component="img"
+              src={`${import.meta.env.BASE_URL}body-xray.webp`}
+              alt="Ilustração anatômica do corpo humano"
+              loading="lazy"
+              decoding="async"
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+                opacity: 0.88,
+              }}
+            />
+
+            {/* Linha sutil de scanner clínico */}
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(2, 8, 20, 0.55))',
+                pointerEvents: 'none',
+              }}
+            />
+
+            {/* Hotspots dos Órgãos Posicionados com Precisão */}
+            {safeList.map((reg) => {
+              const spot = ANATOMICAL_HOTSPOTS[reg.key];
+              if (!spot) return null;
+
+              const isSelected = reg.key === selectedKey;
+              const col = getLevelColor(reg.level);
+              const hasAlert = reg.level === 'alterado' || reg.level === 'atencao';
+              const hasData = reg.level !== 'sem_dados';
+
+              return (
+                <Box
+                  key={reg.key}
+                  component="button"
+                  type="button"
+                  onClick={() => handleSelect(reg.key)}
+                  aria-label={`${reg.label}: ${LEVEL_LABEL[reg.level]}`}
+                  sx={{
+                    position: 'absolute',
+                    left: `${spot.x}%`,
+                    top: `${spot.y}%`,
+                    transform: 'translate(-50%, -50%)',
+                    width: isSelected ? 44 : 36,
+                    height: isSelected ? 44 : 36,
+                    border: 0,
+                    background: 'none',
+                    p: 0,
+                    cursor: 'pointer',
+                    zIndex: isSelected ? 10 : 4,
+                    display: 'grid',
+                    placeItems: 'center',
+                    transition: 'transform 0.2s ease, width 0.2s ease, height 0.2s ease',
+                    '&:focus-visible': {
+                      outline: `2px solid #5fc9c3`,
+                      outlineOffset: 3,
+                    },
+                  }}
+                >
+                  {/* Halo de pulso sutil em caso de alteração/atenção */}
+                  {hasAlert && (
+                    <Box
+                      className="organ-ring-ping"
+                      sx={{
+                        position: 'absolute',
+                        inset: 4,
+                        borderRadius: '50%',
+                        border: `2px solid ${col}`,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+
+                  {/* Núcleo do Hotspot */}
+                  <Box
+                    className={hasAlert ? 'organ-pulse-active' : undefined}
+                    sx={{
+                      width: isSelected ? 22 : 16,
+                      height: isSelected ? 22 : 16,
+                      borderRadius: '50%',
+                      bgcolor: col,
+                      boxShadow: isSelected
+                        ? `0 0 16px 4px ${col}, 0 0 28px ${alpha(col, 0.6)}`
+                        : hasData
+                        ? `0 0 10px 2px ${alpha(col, 0.8)}`
+                        : 'none',
+                      border: isSelected ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.7)',
+                      opacity: hasData ? 1 : 0.45,
+                      transition: 'all 0.2s ease',
+                    }}
+                  />
+                </Box>
+              );
+            })}
+          </Box>
+
+          {/* Legenda Resumida dos Status */}
+          <Stack direction="row" spacing={1.5} sx={{ mt: 1.5, flexWrap: 'wrap', justifyContent: 'center' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.bad.dark : SEM.bad.light }} />
+              Fora da faixa
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.warn.dark : SEM.warn.light }} />
+              Atenção
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.ok.dark : SEM.ok.light }} />
+              Normal
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
+              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? '#64748b' : '#94a3b8' }} />
+              Sem exames
+            </Box>
+          </Stack>
+        </Box>
+
+        {/* COLUNA 2: Detalhes Ricos do Órgão Selecionado */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {activeRegion ? (
+            <Box
+              sx={{
+                borderRadius: '16px',
+                p: { xs: 2, sm: 2.5 },
+                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.03)'),
+                border: '1px solid',
+                borderColor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.35 : 0.25),
+                boxShadow: (t) => `0 4px 20px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.12 : 0.06)}`,
+                transition: 'border-color 0.25s ease, box-shadow 0.25s ease',
+              }}
+            >
+              {/* Header do Sistema */}
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }}>
+                <Stack direction="row" alignItems="center" spacing={1.25}>
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: '12px',
+                      display: 'grid',
+                      placeItems: 'center',
+                      bgcolor: alpha(activeColor, 0.14),
+                      color: activeColor,
+                      fontSize: 22,
+                    }}
+                  >
+                    {(() => {
+                      const Icon = SYSTEM_ICON[activeRegion.key] || MedicalServicesIcon;
+                      return <Icon sx={{ fontSize: 22 }} />;
+                    })()}
+                  </Box>
+                  <Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>
+                      {activeRegion.emoji} {activeRegion.label}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {activeRegion.markers.length > 0
+                        ? `${activeRegion.markers.length} exame${activeRegion.markers.length > 1 ? 's' : ''} mapeado${activeRegion.markers.length > 1 ? 's' : ''}`
+                        : 'Nenhum exame relacionado no momento'}
+                    </Typography>
+                  </Box>
+                </Stack>
+
+                <Chip
+                  size="small"
+                  label={LEVEL_LABEL[activeRegion.level]}
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 12,
+                    bgcolor: alpha(activeColor, 0.12),
+                    color: activeColor,
+                    borderColor: alpha(activeColor, 0.35),
+                    borderWidth: 1,
+                    borderStyle: 'solid',
+                  }}
+                />
+              </Stack>
+
+              <Divider sx={{ my: 1.5, borderColor: alpha(activeColor, 0.15) }} />
+
+              {/* Lista de Marcadores Clínicos do Órgão */}
+              {activeRegion.markers.length > 0 ? (
+                <Stack spacing={1.5} sx={{ mt: 1.5, maxHeight: 380, overflowY: 'auto', pr: 0.5 }}>
+                  {activeRegion.markers.map((m) => {
+                    const mCol = getLevelColor(m.level);
+                    const isAbnormal = m.level === 'alterado' || m.level === 'atencao';
+                    const examDate = formatDate(m.performedAt);
+
+                    return (
+                      <Box
+                        key={m.nameCanonical || m.name}
+                        sx={{
+                          p: 1.5,
+                          borderRadius: '12px',
+                          bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
+                          border: '1px solid',
+                          borderColor: (t) => (isAbnormal ? alpha(mCol, 0.4) : t.palette.divider),
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                        }}
+                      >
+                        {/* Linha 1: Nome do Marcador e Resultado Atual */}
+                        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'text.primary' }}>
+                            {m.name}
+                          </Typography>
+                          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: 16, color: mCol, fontVariantNumeric: 'tabular-nums' }}>
+                              {m.valueText}
+                            </Typography>
+                            {m.unit && (
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                {m.unit}
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+
+                        {/* Linha 2: Faixa de Referência e Data */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, flexWrap: 'wrap', gap: 0.75 }}>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {m.refText ? `Referência: ${m.refText}` : 'Sem faixa de referência informada'}
+                          </Typography>
+                          {examDate && (
+                            <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85 }}>
+                              {examDate}
+                            </Typography>
+                          )}
+                        </Box>
+
+                        {/* Linha 3: Evolução em Relação ao Exame Anterior */}
+                        {m.prior && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 1,
+                              mt: 1,
+                              p: 0.75,
+                              borderRadius: '8px',
+                              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
+                              fontSize: 12,
+                            }}
+                          >
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              Anterior: {m.prior.valueText} {m.unit}
+                            </Typography>
+                            {m.deltaPct != null && (
+                              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, fontWeight: 700, color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light }}>
+                                {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
+                                {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
+                              </Box>
+                            )}
+                          </Box>
+                        )}
+
+                        {/* Linha 4: Ações Rápidas (Tendência e Exame Original) */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1, pt: 0.75, borderTop: '1px dashed', borderColor: 'divider' }}>
+                          {m.examId && (
+                            <Button
+                              size="small"
+                              variant="text"
+                              onClick={() => handleGoExam(m.examId!)}
+                              sx={{
+                                fontSize: 11.5,
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                color: 'text.secondary',
+                                py: 0.25,
+                                px: 1,
+                                minHeight: 28,
+                                '&:hover': { color: 'text.primary' },
+                              }}
+                            >
+                              Ver laudo original
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => handleGoTrend(m.nameCanonical)}
+                            endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                            sx={{
+                              fontSize: 11.5,
+                              fontWeight: 700,
+                              textTransform: 'none',
+                              color: 'primary.main',
+                              py: 0.25,
+                              px: 1,
+                              minHeight: 28,
+                            }}
+                          >
+                            Ver tendência
+                          </Button>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Stack>
+              ) : (
+                /* Estado sem exames para a região */
+                <Box sx={{ py: 3, textAlign: 'center' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 320, mx: 'auto', mb: 2 }}>
+                    Ainda não há exames cadastrados para o sistema <strong>{activeRegion.label}</strong>.
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleGoUpload}
+                    startIcon={<UploadFileIcon />}
+                    sx={{
+                      borderRadius: '999px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      borderColor: 'primary.main',
+                      color: 'primary.main',
+                    }}
+                  >
+                    Enviar exame deste sistema
+                  </Button>
+                </Box>
+              )}
+            </Box>
+          ) : null}
+        </Box>
+      </Box>
+
+      {/* Grade Sincronizada de Chips dos Sistemas (Toque Rápido) */}
+      <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 1.25 }}>
+          TODOS OS SISTEMAS (toque para alternar o órgão):
+        </Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 1,
+          }}
+        >
+          {safeList.map((reg) => {
+            const isSelected = reg.key === selectedKey;
+            const c = getLevelColor(reg.level);
+            return (
+              <Chip
+                key={reg.key}
+                clickable
+                onClick={() => handleSelect(reg.key)}
+                label={
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
+                    <Box component="span">{reg.emoji}</Box>
+                    <Box component="span" sx={{ fontWeight: isSelected ? 800 : 600 }}>
+                      {reg.label}
+                    </Box>
+                    {reg.level === 'alterado' && (
+                      <Box component="span" sx={{ color: c, fontWeight: 800 }}>
+                        !
+                      </Box>
+                    )}
+                  </Box>
+                }
+                sx={{
+                  borderRadius: '10px',
+                  bgcolor: isSelected
+                    ? alpha(c, dark ? 0.25 : 0.15)
+                    : (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
+                  border: '1px solid',
+                  borderColor: isSelected ? c : 'transparent',
+                  color: isSelected ? c : 'text.primary',
+                  fontWeight: 600,
+                  fontSize: 12.5,
+                  transition: 'all 0.15s ease',
+                  '&:hover': {
+                    bgcolor: alpha(c, 0.12),
+                  },
+                }}
+              />
+            );
+          })}
+        </Box>
+      </Box>
+
+      {/* Disclaimer de Responsabilidade Médica Conforme Diretriz */}
+      <Typography
+        variant="caption"
+        sx={{
+          display: 'block',
+          color: 'text.disabled',
+          textAlign: 'center',
+          mt: 2.5,
+          fontStyle: 'italic',
+          lineHeight: 1.4,
+        }}
+      >
+        * Os destaques mostram regiões relacionadas aos seus exames laboratoriais e não representam um diagnóstico clínico.
+      </Typography>
     </AppCard>
   );
 };

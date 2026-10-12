@@ -82,7 +82,10 @@ const ChipLevel = ({ idx }: { idx: ClinicalIndexView }) => {
 export const ClinicalIndicesCard = ({ indices, loaded }: { indices: ClinicalIndexView[] | null; loaded: boolean }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
-  const list = indices ?? [];
+  // Normalização defensiva: shape cru da API/cache offline jamais vaza pro render.
+  const list = (Array.isArray(indices) ? indices : []).filter(
+    (i) => i && typeof i === 'object' && typeof i.value === 'number',
+  );
   if (loaded && list.length === 0) return null; // sem insumo completo → sem card (empty state já existe no dashboard)
 
   const nOk = list.filter((i) => i.level === 'bom').length;

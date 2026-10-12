@@ -1076,9 +1076,25 @@ const DashboardV2Inner = () => {
               {/* O QUE MUDOU NO SEU ÚLTIMO EXAME */}
               <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/evolucao')} loaded={d.loaded} />
 
+              {/* MAPA CORPORAL INTERATIVO & SISTEMAS (Com Raio-X GPU Leve, blindado contra crash Web e APK) */}
+              <DashboardErrorBoundary>
+                <BodyMap
+                  regions={d.bodyRegions}
+                  loaded={d.loaded}
+                  onRegionClick={openRegion}
+                  onNavigateToTrend={(canonical) => navigate(`/tendencias?select=${encodeURIComponent(canonical)}`)}
+                  onNavigateToExam={(examId) => navigate(`/exams/${examId}`)}
+                  onUploadExam={go('/exams/create')}
+                />
+              </DashboardErrorBoundary>
+
               {/* ÍNDICES CLÍNICOS CALCULADOS (razões/fórmulas da literatura — zero IA).
                   Escondido no demo: índice clínico fictício é dado de saúde falso. */}
-              {/* HOTFIX: ClinicalIndicesCard removido temporariamente — investigando crash APK */}
+              {!demo && Array.isArray(d.indices) && d.indices.length > 0 && (
+                <DashboardErrorBoundary>
+                  <ClinicalIndicesCard indices={d.indices} />
+                </DashboardErrorBoundary>
+              )}
 
               {/* G2 — saúde mental: flui do "como estou" (exames) pro "como estou por
                   dentro". Dado real do paciente → JAMAIS no modo exemplo. */}
@@ -1115,11 +1131,6 @@ const DashboardV2Inner = () => {
             <Stack spacing={2.5}>
               {/* PANORAMA DOS MARCADORES */}
               <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => (dest === 'alterados' ? go('/alterados') : go('/exams'))()} />
-
-              {/* SAÚDE POR SISTEMA (ex-BodyMap) — a silhueta SVG crashava a WebView
-                  Android (AAB 480); redesenhado como grid de cards de sistema, sem
-                  SVG custom. Escondido no demo (dado fictício de saúde jamais "acende"). */}
-              {!demo && <BodyMap regions={d.bodyRegions} loaded={d.hsLoaded} onRegionClick={openRegion} />}
 
               {/* AÇÕES RÁPIDAS */}
               <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>
