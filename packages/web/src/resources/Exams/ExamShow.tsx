@@ -291,8 +291,12 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   };
 
   const inline = inlineId !== undefined;
+  // width:'100%' OBRIGATÓRIO no root: o RaLayout-content é flex-column e `mx:'auto'` sozinho
+  // desliga o stretch → o box era dimensionado por MAX-CONTENT (~521px com chips/régua sem
+  // quebrar) e estourava a viewport no mobile (clipado no web, EMPURRAVA tudo pra direita no
+  // APK). Mesmo padrão do PageContainer (width 100% + maxWidth + mx auto).
   return (
-    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
+    <Box sx={inline ? { p: { xs: 1.5, md: 2 } } : { width: '100%', maxWidth: 1080, mx: 'auto', p: { xs: 1, md: 2 } }}>
       {!inline && <Title title={titleInfo.text || exam.title} />}
 
       {/* Cabeçalho */}
