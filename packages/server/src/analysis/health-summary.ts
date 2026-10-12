@@ -11,6 +11,7 @@ import { guidelinesContext, extractSources } from './guidelines';
 import { guidelinesEnabled } from '../utils/settings';
 import { sportsContextBlocks } from './sports-context';
 import { getUrgencyDetail, type UrgencyItem } from './urgency';
+import { getPossibleCauses, buildCausesContext, type CausesContext } from './possibleCauses';
 
 /**
  * ANTI-ALUCINAÇÃO (resumo): a IA só pode comentar o que está EXPLICITAMENTE nos dados
@@ -213,6 +214,64 @@ export function attachUrgency(summary: HealthSummary, items: readonly UrgencyIte
   const u = getUrgencyDetail(items);
   if (u.level === 'NORMAL' || u.level === 'ACOMPANHAR') return summary;
   return { ...summary, urgency: u };
+}
+
+/** Item avaliável pelas hipóteses educacionais (compatível c/ ExamItem do Prisma). */
+export interface CausesItem {
+  name?: string | null;
+  nameCanonical: string;
+  valueNumeric?: number | null;
+  refLow?: number | null;
+  refHigh?: number | null;
+  flag?: string | null;
+  isAbnormal?: boolean | null;
+}
+
+/**
+ * HIPÓTESES EDUCACIONAIS (camada 2): para cada linha do comparativo que casa com um item
+ * ALTERADO, anexa `possibleCauses[]` da tabela determinística de analysis/possibleCauses.ts
+ * (contextualizada pelo que o paciente declarou — treino recente/hormônio). A IA NÃO escolhe
+ * as hipóteses; o front mostra o card "ℹ️ Possíveis explicações" com disclaimer. Função PURA.
+ */
+export function attachPossibleCauses(summary: HealthSummary, items: readonly CausesItem[], ctx: CausesContext): HealthSummary {
+  if (!Array.isArray(summary.comparativo) || !summary.comparativo.length) return summary;
+  const abnormal = items.filter((i) => i.isAbnormal);
+  if (!abnormal.length) return summary;
+  const directionOf = (i: CausesItem): 'high' | 'low' => {
+    if (i.flag === 'LOW') return 'low';
+    if (i.refLow != null && i.valueNumeric != null && i.valueNumeric < i.refLow) return 'low';
+    return 'high';
+  };
+  const comparativo = summary.comparativo.map((c) => {
+    const cn = normalizeKey(c.name ?? '');
+    if (!cn) return c;
+    // mesmo casamento do coerceComparativo: name/nameCanonical com includes bidirecional
+    const item = abnormal.find((it) => {
+      const a = normalizeKey(it.name ?? ''), b = normalizeKey(it.nameCanonical);
+      return cn === a || cn === b || (a && (a.includes(cn) || cn.includes(a))) || (b && (b.includes(cn) || cn.includes(b)));
+    });
+    if (!item) return c;
+    const causes = getPossibleCauses(item.nameCanonical, { ...ctx, direction: directionOf(item) });
+    return causes?.length ? { ...c, possibleCauses: causes } : c;
+  });
+  return { ...summary, comparativo };
+}
+
+/**
+ * Carrega o CONTEXTO DECLARADO pelo paciente p/ as hipóteses educacionais: SportsProfile
+ * (coleta <24h pós-treino, substâncias declaradas) + medicações ativas + perfil clínico.
+ * Degrada p/ contexto vazio em erro de rede/drift (nunca trava o resumo).
+ */
+async function loadCausesContext(patientId: string, clinicalProfile?: string | null): Promise<CausesContext> {
+  const [sportsProfile, meds] = await Promise.all([
+    prisma.sportsProfile
+      .findUnique({ where: { patientId }, select: { active: true, collectionContext: true, declaredSubstances: true } })
+      .catch(() => null),
+    prisma.medication
+      .findMany({ where: { patientId, active: true }, select: { name: true } })
+      .catch(() => [] as { name: string }[]),
+  ]);
+  return buildCausesContext({ clinicalProfile, sportsProfile, medications: meds.map((m) => m.name) });
 }
 
 /**
@@ -446,10 +505,10 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
   const urgencyExams = await prisma.exam.findMany({
     where: { patientId, status: 'EXTRACTED', performedAt: { gte: new Date(Date.now() - 365 * 86400000) } },
     orderBy: { performedAt: 'desc' },
-    select: { items: { select: { nameCanonical: true, name: true, valueNumeric: true, refLow: true, refHigh: true } } },
-  }).catch(() => [] as { items: UrgencyItem[] }[]);
+    select: { items: { select: { nameCanonical: true, name: true, valueNumeric: true, refLow: true, refHigh: true, flag: true, isAbnormal: true } } },
+  }).catch(() => [] as { items: Array<UrgencyItem & CausesItem> }[]);
   const seenCanon = new Set<string>();
-  const urgencyItems: UrgencyItem[] = [];
+  const urgencyItems: Array<UrgencyItem & CausesItem> = [];
   for (const e of urgencyExams) {
     for (const it of e.items) {
       if (seenCanon.has(it.nameCanonical)) continue;
@@ -458,6 +517,9 @@ export async function generateConsolidatedSummary(patientId: string, audience: '
     }
   }
   summary = attachUrgency(summary, urgencyItems);
+  // HIPÓTESES EDUCACIONAIS (camada 2): tabela determinística por analito alterado (última
+  // medição de 12m — mesma base do urgency acima), contextualizada pelo declarado do paciente.
+  summary = attachPossibleCauses(summary, urgencyItems, await loadCausesContext(patientId, perfil));
   // FEATURE C — fontes citadas: parse determinístico do texto BRUTO da IA (antes de qualquer
   // coerção — as citações [FONTE ANO] vêm inline no texto/JSON). Sobrescreve qualquer campo
   // `sources` que o modelo tenha inventado sozinho (fonte de verdade = o que ele ESCREVEU).
@@ -612,6 +674,8 @@ export async function generateHealthSummary(examId: string): Promise<{ summary: 
   summary = { ...summary, sources: extractSources(text, [...guidelineTopics, ...sports.topics]) };
   // TRIAGEM DE URGÊNCIA (camada 1): regras determinísticas sobre os itens DESTE exame.
   summary = attachUrgency(summary, exam.items);
+  // HIPÓTESES EDUCACIONAIS (camada 2): idem consolidado, sobre os itens alterados DESTE exame.
+  summary = attachPossibleCauses(summary, exam.items, await loadCausesContext(exam.patientId, profile));
 
   let contentMd = renderSummaryMd(summary);
   contentMd = diagnosticGuard(contentMd).text;

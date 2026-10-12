@@ -15,7 +15,7 @@ import { ShareDialog } from './ShareDialog';
 import { WhatIsThis } from './WhatIsThis';
 import { findIdealRange, isAboveIdeal } from '@meus-exames/shared';
 
-interface ComparativoRow { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null }
+interface ComparativoRow { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null; possibleCauses?: string[] }
 interface Summary {
   resumoGeral?: string;
   comparativo?: ComparativoRow[];
@@ -73,6 +73,35 @@ const IdealBadge = ({ name, atual }: { name: string; atual?: string | null }) =>
 };
 
 const asArr = (x: any): any[] => (Array.isArray(x) ? x : x == null ? [] : [x]);
+
+/** "ℹ️ Possíveis explicações (educativo)" — hipóteses determinísticas do server (camada 2):
+ *  causas comuns primeiro + disclaimer fixo. Colapsado por padrão (não compete com o resumo). */
+const CausesToggle = ({ causes }: { causes?: string[] }) => {
+  const [open, setOpen] = useState(false);
+  if (!causes?.length) return null;
+  return (
+    <Box sx={{ mt: 0.5 }}>
+      <Typography
+        component="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        sx={{ background: 'none', border: 'none', p: 0, m: 0, cursor: 'pointer', fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode), textAlign: 'left', display: 'block' }}
+      >
+        ℹ️ Possíveis explicações (educativo) {open ? '▲' : '▼'}
+      </Typography>
+      {open && (
+        <Box sx={{ mt: 0.5, pl: 1, borderLeft: '2px solid', borderColor: 'divider' }}>
+          {causes.map((c, i) => (
+            <Typography key={i} variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.5 }}>• {c}</Typography>
+          ))}
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.25, color: 'text.secondary' }}>
+            Não é diagnóstico — consulte seu médico.
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 /** Nome de exame: trunca em 2 linhas; se longo, clica e abre popover com o texto completo + "entenda". */
 export const NameToggle = ({ name, entenda }: { name: string; entenda?: string | null }) => {
@@ -233,6 +262,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                       <Typography sx={{ fontWeight: 800, wordBreak: 'break-word', color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e' }}>{c.atual || '—'}</Typography>
                       <IdealBadge name={c.name} atual={c.atual} />
                     </Stack>
+                    <CausesToggle causes={c.possibleCauses} />
                   </Box>
                 ))}
               </Stack>
@@ -250,7 +280,7 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
                   <TableBody>
                     {structured.comparativo.map((c, i) => (
                       <TableRow key={i} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,0.05)' }, '& td': { py: 1.2, fontSize: '0.95rem' } }}>
-                        <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /><IdealBadge name={c.name} atual={c.atual} /></TableCell>
+                        <TableCell sx={{ fontWeight: 600, maxWidth: 240 }}><NameToggle name={c.name} entenda={c.entenda} /><IdealBadge name={c.name} atual={c.atual} /><CausesToggle causes={c.possibleCauses} /></TableCell>
                         <TableCell align="center" sx={{ color: 'text.secondary' }}>{c.anterior || '—'}</TableCell>
                         <TableCell align="center" sx={{ fontWeight: 800, fontSize: '1.1rem !important' }}>{c.atual || '—'}</TableCell>
                         <TableCell align="center"><Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} /></TableCell>

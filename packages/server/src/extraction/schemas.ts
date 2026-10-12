@@ -74,6 +74,10 @@ export const HealthSummarySchema = z.object({
         atual: z.string().nullable().optional(),
         leitura: z.string().nullable().optional(),
         entenda: z.string().nullable().optional(),
+        // HIPÓTESES EDUCACIONAIS (camada 2): causas possíveis do valor alterado, preenchidas
+        // pelo BACKEND (analysis/possibleCauses.ts — tabela determinística) e NÃO pela IA.
+        // Opcional p/ não quebrar relatórios antigos (front antigo ignora).
+        possibleCauses: z.array(z.string()).optional(),
       }),
     )
     .default([]),
