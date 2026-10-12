@@ -79,7 +79,7 @@ const ChipLevel = ({ idx }: { idx: ClinicalIndexView }) => {
   );
 };
 
-export const ClinicalIndicesCard = ({ indices, loaded }: { indices: ClinicalIndexView[] | null; loaded: boolean }) => {
+export const ClinicalIndicesCard = ({ indices, loaded = true }: { indices: ClinicalIndexView[] | null; loaded?: boolean }) => {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   // Normalização defensiva: shape cru da API/cache offline jamais vaza pro render.
