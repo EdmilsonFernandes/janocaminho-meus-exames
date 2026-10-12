@@ -32,6 +32,12 @@ interface StructuredSummary {
   interacoesMedicamentos?: any[];
   sugestoesNutricao?: any[];
   metasSaude?: any[];
+  // CAMADA 3 — frescor (attachRecency no server): data-base + idade por marcador.
+  recency?: {
+    baseDate?: string | null;
+    allOutdated?: boolean | null;
+    markers?: { name: string; nameCanonical?: string | null; monthsSinceLast?: number | null; historical?: boolean | null }[];
+  };
   disclaimer?: string;
 }
 
@@ -80,6 +86,25 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
     : undefined;
   if (!s) return null;
 
+  // CAMADA 3 — frescor por marcador (mesma chave normalizada do ConsolidatedReport): o
+  // médico vê "há X meses" quando a medição passou de 6m — valor antigo não é quadro atual.
+  const normKey = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  const recencyMap = new Map<string, number | null>();
+  for (const rm of s.recency?.markers ?? []) {
+    for (const key of [rm.name, rm.nameCanonical ?? '']) {
+      if (key) recencyMap.set(normKey(key), rm.monthsSinceLast ?? null);
+    }
+  }
+  const recencyAge = (name: string): number | null => {
+    if (!recencyMap.size || !name) return null;
+    const cn = normKey(name);
+    if (recencyMap.has(cn)) return recencyMap.get(cn) ?? null;
+    for (const [k, v] of recencyMap) if ((k.length >= 3 && cn.length >= 3) && (k.includes(cn) || cn.includes(k))) return v ?? null;
+    return null;
+  };
+  // Data-base: recency (DB) com fallback pro 1º exame-base (relatórios antigos).
+  const baseDate = s.recency?.baseDate ?? (sourceExams[0]?.performedAt ? fmtDate(sourceExams[0].performedAt) : null);
+
   // Interações reais (objeto c/ medicamento/observação) — filtro igual ao ConsolidatedReport.
   const interacoes = (s.interacoesMedicamentos ?? []).filter(
     (m: any) => m && typeof m === 'object' && (String(m.medicamento || '').trim() || String(m.observacao || '').trim())
@@ -99,6 +124,19 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
 
   return (
     <>
+      {/* CAMADA 3 — âncora de frescor: relatório de 2024 não pode parecer leitura de hoje. */}
+      {baseDate && (
+        <Box sx={{ mb: 1.5, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+          <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
+            📅 Baseado no exame mais recente ({baseDate})
+          </Typography>
+          {!!s.recency?.allOutdated && (
+            <Typography variant="caption" sx={{ color: 'warning.main', fontWeight: 700 }}>
+              — exames com mais de 6 meses: valores podem ter mudado
+            </Typography>
+          )}
+        </Box>
+      )}
       {sourceExams.length > 0 && (
         <ReportSectionCard icon={<DescriptionIcon />} title="Exames base do relatório" accent={theme.palette.primary.main} count={sourceExams.length}>
           <Stack spacing={0.5} useFlexGap>
@@ -116,7 +154,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
       {s.comparativo && s.comparativo.length > 0 && (
         <ReportSectionCard icon={<InsightsIcon />} title="Itens em destaque" accent="#0369a1" count={s.comparativo.length}>
           <Grid container spacing={1.5}>
-            {s.comparativo.map((c: any, i: number) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
+            {s.comparativo.map((c: any, i: number) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} monthsSinceLast={recencyAge(String(c?.name ?? ''))} /></Grid>)}
           </Grid>
         </ReportSectionCard>
       )}

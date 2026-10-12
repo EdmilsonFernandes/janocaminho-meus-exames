@@ -33,7 +33,11 @@ const prettyName = (n: string) => {
   }).join(' ');
 };
 
-export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null } }) => (
+export const DestaqueCard = ({ c, monthsSinceLast }: { c: { name: string; anterior?: string | null; atual?: string | null; leitura?: string | null; entenda?: string | null }; monthsSinceLast?: number | null }) => {
+  // CAMADA 3 — medição envelhecida (>6m): chip CINZA "há X meses" substitui o badge de cor.
+  // Cor implicaria leitura atual; cinza comunica "isto é velho, valor pode ter mudado".
+  const aged = monthsSinceLast != null && monthsSinceLast > 6;
+  return (
   <Box sx={{ p: 1.75, height: '100%', borderRadius: '12px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', overflow: 'hidden' }}>
     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" gap={1}>
       <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -41,13 +45,20 @@ export const DestaqueCard = ({ c }: { c: { name: string; anterior?: string | nul
         <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ mt: 0.75 }} flexWrap="wrap" useFlexGap>
           <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.anterior || '—'}</Typography>
           <Typography sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>→</Typography>
-          <Typography sx={{ fontWeight: 800, color: '#0f6e68', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.atual || '—'}</Typography>
+          <Typography sx={{ fontWeight: 800, color: aged ? 'text.secondary' : '#0f6e68', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{c.atual || '—'}</Typography>
         </Stack>
       </Box>
       <Stack direction="column" alignItems="flex-end" spacing={0.5} sx={{ flexShrink: 0 }}>
-        <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
+        {aged ? (
+          <Box title={`Última medição há ${monthsSinceLast} ${monthsSinceLast === 1 ? 'mês' : 'meses'} — o valor pode ter mudado. Converse com seu médico sobre refazer.`}>
+            <Chip size="small" label={`há ${monthsSinceLast} ${monthsSinceLast === 1 ? 'mês' : 'meses'}`} sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />
+          </Box>
+        ) : (
+          <Variation anterior={c.anterior} atual={c.atual} leitura={c.leitura} />
+        )}
         <ExplainButton name={c.name} />
       </Stack>
     </Stack>
   </Box>
-);
+  );
+};

@@ -823,8 +823,7 @@ export function formatSnapshotContext(s: CurrentHealthSummary): string {
   };
   const hist = historical.slice(0, 15).map((m) => {
     const ha = m.latest.monthsSinceLast ?? (m.latest.ageMonths != null ? Math.round(m.latest.ageMonths) : null);
-    const sugere = ha != null && ha <= 24 ? ' — dosar novamente' : ' — contexto apenas';
-    return `  - ${fmtVal(m)} (há ${ha ?? '?'}m${sugere})`;
+    return `  - ${fmtVal(m)} (há ${ha ?? '?'}m — contexto apenas)`;
   });
 
   return [

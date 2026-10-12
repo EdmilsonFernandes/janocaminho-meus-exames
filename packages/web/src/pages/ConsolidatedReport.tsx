@@ -45,6 +45,13 @@ interface Summary {
   metasSaude?: { analito: string; meta: string; prazo?: string | null }[];
   // FEATURE C — diretrizes de sociedades médicas citadas na resposta (parse server-side).
   sources?: { label: string; topic: string }[];
+  // CAMADA 3 — frescor do relatório (attachRecency no server): data-base = exame mais
+  // recente; idade por marcador p/ chip "há X meses"; allOutdated = tudo >6m → banner.
+  recency?: {
+    baseDate?: string | null;
+    allOutdated?: boolean | null;
+    markers?: { name: string; nameCanonical?: string | null; monthsSinceLast?: number | null; historical?: boolean | null }[];
+  };
   disclaimer?: string;
 }
 import type { SourceExam } from '@meus-exames/shared';
@@ -342,6 +349,28 @@ export const ConsolidatedReportPage = () => {
   const s: Summary | undefined = sRaw ? scrub(sRaw) : undefined;
   const sourceExams: SourceExam[] = analysis?.sourceExams ?? [];
 
+  // CAMADA 3 — frescor por marcador: casa nome do comparativo (IA) com nome/canonical do
+  // snapshot (DB) via chave normalizada (sem acento/espaço/case). Chip cinza "há X meses"
+  // só faz sentido com >6m — medição recente não precisa de aviso.
+  const normKey = (x: string) => x.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '');
+  const recencyAge = useMemo(() => {
+    const map = new Map<string, number | null>();
+    for (const rm of s?.recency?.markers ?? []) {
+      for (const key of [rm.name, rm.nameCanonical ?? '']) {
+        if (key) map.set(normKey(key), rm.monthsSinceLast ?? null);
+      }
+    }
+    return (name: string): number | null => {
+      if (!map.size || !name) return null;
+      const cn = normKey(name);
+      if (map.has(cn)) return map.get(cn) ?? null;
+      for (const [k, v] of map) if ((k.length >= 3 && cn.length >= 3) && (k.includes(cn) || cn.includes(k))) return v ?? null;
+      return null;
+    };
+  }, [s?.recency]);
+  // Data-base do relatório: recency (DB) com fallback pro 1º sourceExam (relatórios antigos).
+  const baseDate = s?.recency?.baseDate ?? (sourceExams[0]?.performedAt ? fmtDate(sourceExams[0].performedAt) : null);
+
   /** Imprime/salva PDF premium — mostra num preview DENTRO do app (DocPreview),
    *  sem window.open (que é bloqueado no PWA mobile). HTML próprio, independente do React. */
   const [docHtml, setDocHtml] = useState('');
@@ -469,6 +498,12 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
         <Stack spacing={2} sx={{ mt: 2 }}>
           {/* CORRELAÇÕES hábito×exame (Fase 2): só aparece com dados de atividade */}
           <CorrelationSection patientId={pid ?? undefined} />
+          {/* CAMADA 3 — TUDO >6m: o relatório inteiro fala de um passado distante. */}
+          {!!s.recency?.allOutdated && (
+            <Alert severity="warning" sx={{ borderRadius: '14px', '& .MuiAlert-message': { fontSize: 14 } }}>
+              Seus exames têm mais de 6 meses — considere refazer para uma leitura atualizada da sua saúde.
+            </Alert>
+          )}
           <ReportHero
             resumo={s.resumoGeral}
             counts={counts}
@@ -479,6 +514,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             onPrint={printReport}
             onRegen={() => generate(true)}
             sourceExams={sourceExams}
+            baseDate={baseDate}
             onOpenExam={(id) => navigate(`/exams/${id}/show`)}
           />
 
@@ -501,7 +537,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
           {s.comparativo?.length ? (
             <ReportSectionCard icon={<InsightsIcon />} title="Comparativo anterior → atual" accent="#0369a1" count={s.comparativo.length} collapsible defaultExpanded={false}>
               <Grid container spacing={1.5}>
-                {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} /></Grid>)}
+                {s.comparativo.map((c, i) => <Grid key={i} size={{ xs: 12, md: 6 }}><DestaqueCard c={c} monthsSinceLast={recencyAge(c.name)} /></Grid>)}
               </Grid>
             </ReportSectionCard>
           ) : null}

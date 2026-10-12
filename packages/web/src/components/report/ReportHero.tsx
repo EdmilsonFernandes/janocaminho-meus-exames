@@ -25,12 +25,16 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
   </Box>
 );
 
-export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen, sourceExams, onOpenExam }: {
+export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen, sourceExams, baseDate, onOpenExam }: {
   resumo?: string; counts: { itens: number; atencao: number; positivos: number };
   speaking: boolean; loading: boolean; onSpeak: () => void; onShare: () => void; onPrint: () => void; onRegen: () => void;
   /** Exames que alimentaram a análise — rows compactas clicáveis (o título da página
    *  já diz "Relatório completo de saúde"; este card não repete outro título). */
-  sourceExams?: SourceExam[]; onOpenExam?: (id: string) => void;
+  sourceExams?: SourceExam[];
+  /** CAMADA 3 — data do exame MAIS RECENTE (dd/mm/aaaa, do DB): âncora de frescor no
+   *  topo do herói. Relatório de 2024 não pode parecer leitura de hoje. */
+  baseDate?: string | null;
+  onOpenExam?: (id: string) => void;
 }) => (
   <Box sx={(t) => ({
     position: 'relative', overflow: 'hidden', p: { xs: 2, sm: 2.5 }, borderRadius: '16px',
@@ -50,6 +54,18 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         <Typography sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600, lineHeight: 1.35 }}>Análise educativa gerada pela IA<br />— não substitui consulta médica</Typography>
       </Box>
     </Stack>
+
+    {/* CAMADA 3 — âncora de frescor: DE QUAL exame o relatório fala. Pill teal discreto
+        logo abaixo do cabeçalho; sem data conhecida, não renderiza (não inventa). */}
+    {baseDate && (
+      <Box sx={{ mt: 1.25, display: 'flex' }}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, px: 1.25, py: 0.5, borderRadius: '999px', bgcolor: alpha('#20b2aa', 0.08), border: '1px solid', borderColor: alpha('#20b2aa', 0.22) }}>
+          <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
+            📅 Baseado no exame de {baseDate}
+          </Typography>
+        </Box>
+      </Box>
+    )}
 
     <Grid container spacing={1.25} sx={{ mt: 1.5 }}>
       <Grid size={{ xs: 4 }}><StatTile value={counts.itens} label="Itens" accent="#0369a1" /></Grid>
