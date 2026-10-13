@@ -89,21 +89,21 @@ const SYSTEM_ICON: Record<string, ComponentType<any>> = {
   ossos: AccessibilityNewIcon,
 };
 
-// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13 (espaçamento anatômico amplo)
+// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13 (dentro do contorno do tronco)
 const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right'; num: number }> = {
   cerebro: { x: 50, y: 9.5, num: 1 },
   tireoide: { x: 50, y: 17.5, num: 2 },
-  pulmoes: { x: 36, y: 23.5, side: 'left', num: 3 },
-  coracao: { x: 58, y: 27.5, side: 'right', num: 4 },
-  figado: { x: 35, y: 34, side: 'left', num: 5 },
-  estomago: { x: 64, y: 35, side: 'right', num: 6 },
-  pancreas: { x: 50, y: 41, num: 7 },
-  rins: { x: 67, y: 45.5, side: 'right', num: 8 },
-  intestino: { x: 50, y: 49.5, num: 9 },
-  hormonios: { x: 50, y: 57, num: 10 },
-  sangue: { x: 24, y: 41, side: 'left', num: 11 },
-  musculos: { x: 41, y: 67, side: 'left', num: 12 },
-  ossos: { x: 59, y: 76, side: 'right', num: 13 },
+  pulmoes: { x: 38, y: 23.5, side: 'left', num: 3 },
+  coracao: { x: 56, y: 27.5, side: 'right', num: 4 },
+  figado: { x: 42, y: 34, side: 'left', num: 5 },       // Hipocôndrio direito dentro do tronco (longe do braço)
+  estomago: { x: 58, y: 34.5, side: 'right', num: 6 },   // Hipocôndrio esquerdo dentro do tronco
+  pancreas: { x: 50, y: 40.5, num: 7 },                 // Região epigástrica central
+  rins: { x: 58, y: 44.5, side: 'right', num: 8 },      // Flanco interno / loja renal (longe do braço/punho)
+  intestino: { x: 50, y: 49.5, num: 9 },                // Região umbilical/mesogástrica
+  hormonios: { x: 50, y: 57, num: 10 },                 // Pélvis e sistema endócrino
+  sangue: { x: 26, y: 41, side: 'left', num: 11 },      // Fossa cubital (veia do braço p/ punção laboratorial)
+  musculos: { x: 44, y: 67, side: 'left', num: 12 },    // Coxa / quadríceps
+  ossos: { x: 56, y: 76, side: 'right', num: 13 },      // Joelho / tíbia
 };
 
 const formatDate = (isoString: string | null) => {

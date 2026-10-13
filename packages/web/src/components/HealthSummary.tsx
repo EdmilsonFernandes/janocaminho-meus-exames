@@ -234,11 +234,11 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
           />
         </Box>
 
-        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1.5 }}>
-          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}>
+        <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" justifyContent={{ xs: 'flex-start', sm: 'flex-end' }} sx={{ mt: 1.5 }}>
+          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12, px: 1.5, borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode) }}>
             Compartilhar
           </Button>
-          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}>
+          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12, px: 1.5, borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode) }}>
             Imprimir / PDF
           </Button>
         </Stack>

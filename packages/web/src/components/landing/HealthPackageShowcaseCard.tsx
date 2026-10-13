@@ -34,7 +34,7 @@ export const HealthPackageShowcaseCard = ({
 
   const PILLARS = [
     {
-      icon: <HourglassEmptyIcon sx={{ fontSize: 18, color: '#8b5cf6' }} />,
+      icon: <HourglassEmptyIcon sx={{ fontSize: 18, color: '#0f766e' }} />,
       label: 'Idade Biológica no Sangue',
       tip: 'Algoritmo de longevidade PhenoAge',
     },
@@ -44,12 +44,12 @@ export const HealthPackageShowcaseCard = ({
       tip: 'Visualização interativa de órgãos',
     },
     {
-      icon: <HeadphonesIcon sx={{ fontSize: 18, color: '#ec4899' }} />,
+      icon: <HeadphonesIcon sx={{ fontSize: 18, color: '#14b8a6' }} />,
       label: 'Resumo Explicativo em Áudio',
       tip: 'Voz humanizada que explica em 1 min',
     },
     {
-      icon: <BiotechIcon sx={{ fontSize: 18, color: '#3b82f6' }} />,
+      icon: <BiotechIcon sx={{ fontSize: 18, color: '#0284c7' }} />,
       label: 'Tendências e Conexões dos Órgãos',
       tip: 'Gráficos comparativos com exames anteriores',
     },
@@ -113,55 +113,58 @@ export const HealthPackageShowcaseCard = ({
         </Box>
 
         <Chip
-          label="VIP60"
+          label="PLANO COMPLETO"
           size="small"
           sx={{
             fontFamily: 'Poppins, sans-serif',
             fontWeight: 800,
-            fontSize: 11,
-            color: '#8b5cf6',
-            bgcolor: 'rgba(139, 92, 246, 0.12)',
-            border: '1.5px dashed rgba(139, 92, 246, 0.5)',
+            fontSize: 10.5,
+            color: dark ? '#5fc9c3' : '#0f766e',
+            bgcolor: alpha('#20b2aa', 0.12),
+            border: '1.5px solid rgba(32, 178, 170, 0.35)',
             borderRadius: '999px',
-            letterSpacing: '0.05em',
+            letterSpacing: '0.04em',
           }}
         />
       </Box>
 
-      {/* Grid Superior: Mini Gauge Circular (12 biomarcadores monitorados) + Player de Áudio */}
+      {/* Destaque Superior: 13 Sistemas Mapeados + Player de Voz Dr. Exame de Alta Fidelidade */}
       <Box
         sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '100px 1fr' },
-          gap: 2,
-          alignItems: 'center',
           mb: 2.5,
-          p: 1.5,
+          p: { xs: 2, sm: 2.25 },
           borderRadius: '20px',
-          bgcolor: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+          bgcolor: dark ? 'rgba(32, 178, 170, 0.05)' : 'rgba(32, 178, 170, 0.04)',
+          border: '1px solid',
+          borderColor: dark ? 'rgba(95, 201, 195, 0.2)' : 'rgba(32, 178, 170, 0.18)',
         }}
       >
-        {/* Gauge Circular com segmentos nobres */}
+        {/* Linha com Gauge dos 13 Órgãos e chamada descritiva */}
         <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: 2,
+            mb: 2,
+            pb: 1.75,
+            borderBottom: '1px solid',
+            borderColor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(32, 178, 170, 0.12)',
           }}
         >
+          {/* Gauge Circular com segmentos Dr. Exame (Teal + Esmeralda) */}
           <Box
             sx={{
-              width: 78,
-              height: 78,
+              width: 58,
+              height: 58,
               borderRadius: '50%',
               display: 'grid',
               placeItems: 'center',
               position: 'relative',
+              flexShrink: 0,
               background: dark
-                ? 'radial-gradient(circle, #0b1a2e 58%, transparent 60%), conic-gradient(#8b5cf6 0deg 240deg, #ec4899 240deg 310deg, #20b2aa 310deg 360deg)'
-                : 'radial-gradient(circle, #ffffff 58%, transparent 60%), conic-gradient(#8b5cf6 0deg 240deg, #ec4899 240deg 310deg, #20b2aa 310deg 360deg)',
-              boxShadow: '0 6px 18px rgba(139, 92, 246, 0.25)',
+                ? 'radial-gradient(circle, #0b1a2e 58%, transparent 60%), conic-gradient(#20b2aa 0deg 240deg, #10b981 240deg 315deg, #14b8a6 315deg 360deg)'
+                : 'radial-gradient(circle, #ffffff 58%, transparent 60%), conic-gradient(#20b2aa 0deg 240deg, #10b981 240deg 315deg, #14b8a6 315deg 360deg)',
+              boxShadow: '0 4px 14px rgba(32, 178, 170, 0.25)',
             }}
           >
             <Box sx={{ textAlign: 'center' }}>
@@ -169,9 +172,9 @@ export const HealthPackageShowcaseCard = ({
                 sx={{
                   fontFamily: 'Poppins, sans-serif',
                   fontWeight: 900,
-                  fontSize: 22,
+                  fontSize: 18,
                   lineHeight: 1,
-                  color: 'text.primary',
+                  color: dark ? '#5fc9c3' : '#0f766e',
                 }}
               >
                 13
@@ -179,7 +182,7 @@ export const HealthPackageShowcaseCard = ({
               <Typography
                 variant="caption"
                 sx={{
-                  fontSize: 8.5,
+                  fontSize: 7.5,
                   fontWeight: 800,
                   color: 'text.secondary',
                   letterSpacing: '0.04em',
@@ -190,15 +193,41 @@ export const HealthPackageShowcaseCard = ({
               </Typography>
             </Box>
           </Box>
+
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: 13.5, sm: 14.5 },
+                color: 'text.primary',
+                fontFamily: 'Poppins, sans-serif',
+                lineHeight: 1.25,
+              }}
+            >
+              13 Sistemas e Órgãos Analisados
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                fontSize: 11.5,
+                display: 'block',
+                mt: 0.25,
+              }}
+            >
+              Cruzamento clínico inteligente entre exames atuais e histórico
+            </Typography>
+          </Box>
         </Box>
 
-        {/* Player de Voz Integrado no Card */}
-        <Box sx={{ minWidth: 0 }}>
+        {/* Player de Voz Oficial Dr. Exame com Largura Total (Sem cortes de texto!) */}
+        <Box sx={{ width: '100%', minWidth: 0 }}>
           <VoiceSummaryPlayer
             text={demoVoiceText}
             title="Resumo em Áudio com IA"
             subtitle="Toque no Play para ouvir amostra"
-            colorScheme="purple"
+            colorScheme="teal"
+            badgeLabel="Dr. Exame Voz"
             compact
           />
         </Box>

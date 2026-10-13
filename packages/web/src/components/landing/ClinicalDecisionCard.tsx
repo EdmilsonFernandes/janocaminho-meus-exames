@@ -283,9 +283,9 @@ export const ClinicalDecisionCard = () => {
           px: 1.5,
           py: 0.6,
           borderRadius: '999px',
-          bgcolor: dark ? 'rgba(139, 92, 246, 0.12)' : 'rgba(139, 92, 246, 0.08)',
-          border: '1px solid rgba(139, 92, 246, 0.25)',
-          color: '#8b5cf6',
+          bgcolor: dark ? 'rgba(32, 178, 170, 0.12)' : 'rgba(32, 178, 170, 0.08)',
+          border: '1px solid rgba(32, 178, 170, 0.25)',
+          color: dark ? '#5fc9c3' : '#0f766e',
           fontSize: 11.5,
           fontWeight: 700,
         }}

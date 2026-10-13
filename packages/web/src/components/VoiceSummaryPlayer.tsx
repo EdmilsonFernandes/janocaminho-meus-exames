@@ -37,8 +37,8 @@ export const VoiceSummaryPlayer = ({
   text,
   title = 'Resumo em Áudio com IA',
   subtitle = 'Ouça seu laudo em 1 minuto',
-  badgeLabel = 'Voz Médica',
-  colorScheme = 'purple',
+  badgeLabel = 'Dr. Exame Voz',
+  colorScheme = 'teal',
   compact = false,
   onPlayStateChange,
 }: VoiceSummaryPlayerProps) => {
@@ -165,28 +165,27 @@ export const VoiceSummaryPlayer = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          gap: { xs: 1.5, sm: 2 },
-          flexWrap: { xs: 'wrap', sm: 'nowrap' },
+          gap: { xs: 1.25, sm: 2 },
+          width: '100%',
         }}
       >
-        {/* Esquerda: Botão Play Circular Gradiente + Barras de Onda Sonora */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75 }}>
-          {/* Botão Play / Pause de Alta Fidelidade */}
+        {/* Esquerda: Botão Play Circular Gradiente */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 }, flexShrink: 0 }}>
           <IconButton
             onClick={handleTogglePlay}
             aria-label={playing ? 'Pausar áudio' : 'Ouvir resumo em áudio'}
             sx={{
-              width: compact ? 42 : 50,
-              height: compact ? 42 : 50,
+              width: compact ? 42 : 48,
+              height: compact ? 42 : 48,
               borderRadius: '50%',
               background: primaryGrad,
               color: '#ffffff',
-              boxShadow: playing ? glowShadow : '0 4px 14px rgba(0,0,0,0.15)',
+              boxShadow: playing ? glowShadow : '0 4px 14px rgba(32, 178, 170, 0.25)',
               animation: playing ? 'pulseGlow 2s ease-in-out infinite' : 'none',
               transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               flexShrink: 0,
               '&:hover': {
-                transform: 'scale(1.08)',
+                transform: 'scale(1.06)',
                 boxShadow: glowShadow,
               },
               '&:active': {
@@ -195,34 +194,35 @@ export const VoiceSummaryPlayer = ({
             }}
           >
             {playing ? (
-              <PauseIcon sx={{ fontSize: compact ? 22 : 26 }} />
+              <PauseIcon sx={{ fontSize: compact ? 22 : 25 }} />
             ) : (
-              <PlayArrowIcon sx={{ fontSize: compact ? 24 : 28, ml: 0.25 }} />
+              <PlayArrowIcon sx={{ fontSize: compact ? 24 : 27, ml: 0.25 }} />
             )}
           </IconButton>
 
-          {/* Equalizador de Ondas Sonoras (Soundwave) */}
+          {/* Equalizador de Ondas Sonoras (Soundwave) — 10 barras responsivas */}
           <Box
             sx={{
-              display: 'flex',
+              display: { xs: 'none', sm: 'flex' },
               alignItems: 'center',
-              gap: '3.5px',
-              height: 32,
+              gap: '3px',
+              height: 28,
               px: 0.5,
+              flexShrink: 0,
             }}
           >
-            {BAR_HEIGHTS.map((h, i) => {
+            {BAR_HEIGHTS.slice(0, 10).map((h, i) => {
               const delay = (i * 0.08).toFixed(2);
               return (
                 <Box
                   key={i}
                   sx={{
-                    width: 3.5,
-                    height: `${h}px`,
+                    width: 3,
+                    height: `${Math.round(h * 0.85)}px`,
                     borderRadius: '999px',
                     bgcolor: barColor,
                     transformOrigin: 'bottom center',
-                    opacity: playing ? 0.95 : 0.45,
+                    opacity: playing ? 0.95 : 0.4,
                     animation: playing
                       ? `soundwaveAnim 1.2s ease-in-out ${delay}s infinite`
                       : 'none',
@@ -234,71 +234,70 @@ export const VoiceSummaryPlayer = ({
           </Box>
         </Box>
 
-        {/* Centro / Direita: Textos e Controle de Velocidade */}
+        {/* Centro: Título e Subtítulo Flexíveis (Sem Cortes de Texto!) */}
         <Box
           sx={{
             display: 'flex',
             flexDirection: 'column',
             flex: 1,
-            minWidth: { xs: '100%', sm: 160 },
+            minWidth: 0,
+            px: { xs: 0.5, sm: 1 },
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-            <Box>
-              <Typography
-                sx={{
-                  fontWeight: 800,
-                  fontSize: compact ? 13.5 : 15,
-                  fontFamily: 'Poppins, sans-serif',
-                  color: 'text.primary',
-                  lineHeight: 1.2,
-                }}
-              >
-                {title}
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: playing ? (colorScheme === 'purple' ? '#c084fc' : '#20b2aa') : 'text.secondary',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  mt: 0.25,
-                }}
-              >
-                {playing ? '🔊 Narrando com voz humanizada...' : subtitle}
-              </Typography>
-            </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Typography
+              sx={{
+                fontWeight: 800,
+                fontSize: { xs: 13, sm: compact ? 13.5 : 14.5 },
+                fontFamily: 'Poppins, sans-serif',
+                color: 'text.primary',
+                lineHeight: 1.25,
+              }}
+            >
+              {title}
+            </Typography>
 
             {badgeLabel && (
               <Chip
                 size="small"
-                icon={<VolumeUpIcon style={{ fontSize: 13, color: 'inherit' }} />}
+                icon={<VolumeUpIcon style={{ fontSize: 12, color: 'inherit' }} />}
                 label={badgeLabel}
                 sx={{
-                  height: 22,
-                  fontSize: 10.5,
+                  height: 20,
+                  fontSize: 10,
                   fontWeight: 800,
                   borderRadius: '999px',
                   bgcolor: alpha(barColor, 0.12),
                   color: barColor,
                   border: `1px solid ${alpha(barColor, 0.25)}`,
-                  display: { xs: 'none', sm: 'inline-flex' },
+                  display: { xs: 'none', md: 'inline-flex' },
                 }}
               />
             )}
           </Box>
+
+          <Typography
+            variant="caption"
+            sx={{
+              color: playing ? (colorScheme === 'purple' ? '#c084fc' : '#0f766e') : 'text.secondary',
+              fontWeight: playing ? 700 : 500,
+              fontSize: { xs: 11, sm: 11.5 },
+              lineHeight: 1.3,
+              mt: 0.25,
+            }}
+          >
+            {playing ? '🔊 Dr. Exame narrando com voz médica...' : subtitle}
+          </Typography>
         </Box>
 
-        {/* Seletor de Velocidade (1.0x / 1.25x / 1.5x) */}
+        {/* Direita: Seletor de Velocidade (1.0x / 1.25x / 1.5x) */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
             gap: 0.5,
             bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            p: '3px',
+            p: '2px 4px',
             borderRadius: '999px',
             flexShrink: 0,
           }}
@@ -315,9 +314,9 @@ export const VoiceSummaryPlayer = ({
                   border: 0,
                   background: active ? (colorScheme === 'purple' ? '#8b5cf6' : '#20b2aa') : 'none',
                   color: active ? '#ffffff' : 'text.secondary',
-                  fontSize: 10.5,
+                  fontSize: 10,
                   fontWeight: 800,
-                  px: 1,
+                  px: { xs: 0.75, sm: 1 },
                   py: 0.35,
                   borderRadius: '999px',
                   cursor: 'pointer',

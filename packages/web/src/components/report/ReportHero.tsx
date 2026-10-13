@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { CardContent, Box, Stack, Typography, Button, CircularProgress, Grid } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ShareIcon from '@mui/icons-material/Share';
 import PrintIcon from '@mui/icons-material/Print';
 import DescriptionIcon from '@mui/icons-material/Description';
@@ -10,6 +9,7 @@ import type { SourceExam } from '@meus-exames/shared';
 import { DrExame } from '../DrExame';
 import { AppCard } from '../AppCard';
 import { tealText } from '../../theme';
+import { VoiceSummaryPlayer } from '../VoiceSummaryPlayer';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{
@@ -73,9 +73,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#059669" /></Grid>
     </Grid>
 
-    {/* "Baseado em N exames" — ANTES era uma seção própria com linhas body2 📄 (feia,
-        ocupava um bloco inteiro da tela). Agora é parte do herói: rows compactas
-        clicáveis (ícone + título + data·lab, ellipsis com title completo). */}
+    {/* "Baseado em N exames" — rows compactas clicáveis */}
     {sourceExams && sourceExams.length > 0 && onOpenExam && (
       <Box sx={{ mt: 1.75 }}>
         <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
@@ -116,30 +114,92 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       </Box>
     )}
 
-    <Stack direction="row" spacing={1} sx={{ mt: 2 }} useFlexGap flexWrap="wrap" alignItems="center">
-      <Button size="small" variant="contained" startIcon={<VolumeUpIcon />} onClick={onSpeak} disabled={!resumo}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2, bgcolor: 'primary.dark', boxShadow: 'none', '&:hover': { bgcolor: '#0f766e', boxShadow: 'none' } }}>
-        {speaking ? 'Parar' : 'Ouvir'}
-      </Button>
-      <Button size="small" variant="outlined" onClick={onShare} aria-label="Compartilhar"
-        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
-        <ShareIcon fontSize="small" />
-      </Button>
-      <Button size="small" variant="outlined" onClick={onPrint} aria-label="Imprimir / PDF"
-        sx={{ minWidth: 0, px: 1.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
-        <PrintIcon fontSize="small" />
-      </Button>
-      {/* "Atualizar" é ação primária do relatório — nunca pode virar só um ícone sem nome
-          (dono 09/10: usuário não sabia que o botão regenerava). xs mostra o texto CURTO
-          ("Atualizar"); sm+ o completo. */}
-      <Button size="small" variant="outlined" onClick={onRegen} disabled={loading} aria-label="Atualizar relatório" title="Atualizar relatório"
+    {/* Cápsula de Áudio Premium do Dr. Exame */}
+    {resumo && (
+      <Box sx={{ mt: 2.25 }}>
+        <VoiceSummaryPlayer
+          text={resumo}
+          title="Dr. Exame Explica em Áudio"
+          subtitle="Ouça a síntese clínica do relatório"
+          colorScheme="teal"
+          badgeLabel="Dr. Exame Voz"
+          compact
+        />
+      </Box>
+    )}
+
+    {/* Barra de Ações Rápidas (Atualizar, Compartilhar, Imprimir) */}
+    <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">
+      <Button
+        size="small"
+        variant="outlined"
+        onClick={onRegen}
+        disabled={loading}
+        aria-label="Atualizar relatório"
+        title="Atualizar relatório"
         startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: { xs: 1.5, sm: 1.75 }, borderColor: 'rgba(32,178,170,0.3)', color: (t) => tealText(t.palette.mode), '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' } }}>
+        sx={{
+          borderRadius: '999px',
+          textTransform: 'none',
+          fontWeight: 800,
+          px: { xs: 1.5, sm: 1.75 },
+          borderColor: 'rgba(32,178,170,0.3)',
+          color: (t) => tealText(t.palette.mode),
+          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+        }}
+      >
         <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>{loading ? 'Gerando…' : 'Atualizar'}</Box>
         <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{loading ? 'Gerando…' : 'Atualizar relatório'}</Box>
       </Button>
+
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<ShareIcon />}
+        onClick={onShare}
+        aria-label="Compartilhar"
+        sx={{
+          borderRadius: '999px',
+          textTransform: 'none',
+          fontWeight: 700,
+          fontSize: 12,
+          px: 1.5,
+          borderColor: 'rgba(32,178,170,0.3)',
+          color: (t) => tealText(t.palette.mode),
+          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+        }}
+      >
+        Compartilhar
+      </Button>
+
+      <Button
+        size="small"
+        variant="outlined"
+        startIcon={<PrintIcon />}
+        onClick={onPrint}
+        aria-label="Imprimir / PDF"
+        sx={{
+          borderRadius: '999px',
+          textTransform: 'none',
+          fontWeight: 700,
+          fontSize: 12,
+          px: 1.5,
+          borderColor: 'rgba(32,178,170,0.3)',
+          color: (t) => tealText(t.palette.mode),
+          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+        }}
+      >
+        Imprimir / PDF
+      </Button>
     </Stack>
 
-    {resumo && <Typography sx={{ mt: 2, fontSize: '0.98rem', lineHeight: 1.65, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>{resumo}</Typography>}
+    {/* Resumo Textual */}
+    {resumo && (
+      <Box sx={{ mt: 2, p: 2, borderRadius: '14px', bgcolor: (t) => alpha(t.palette.primary.main, 0.04), border: '1px solid', borderColor: alpha('#20b2aa', 0.12) }}>
+        <Typography sx={{ fontSize: '0.98rem', lineHeight: 1.65, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
+          {resumo}
+        </Typography>
+      </Box>
+    )}
   </Box>
 );
