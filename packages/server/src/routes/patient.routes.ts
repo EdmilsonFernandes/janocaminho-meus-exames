@@ -18,6 +18,25 @@ import { buildCurrentHealthSummary } from '../analysis/health-state';
 import { getCachedHealthSummary } from '../analysis/hs-cache';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { isCpfMismatch } from '../utils/examIdentity';
+import { sendEmail } from '../utils/mailer';
+
+/** Avisa o admin de cada dependente cadastrado — caso Napoleão 13/10: a esposa (Claiza)
+ *  era invisível no admin e no e-mail de cadastro, gerando falso "usuário sumido". */
+function notifyNewDependent(ownerId: string, dependentName: string, relationship: string | null) {
+  void (async () => {
+    try {
+      const owner = await prisma.user.findUnique({ where: { id: ownerId }, select: { name: true, email: true } });
+      if (!owner) return;
+      const admin = process.env.ADMIN_EMAIL || 'edmls2008@gmail.com';
+      await sendEmail({
+        to: admin,
+        subject: `Novo dependente no Meus Exames: ${dependentName}`,
+        html: `<div style="font-family:Segoe UI,Arial,sans-serif;color:#15233b"><h3 style="color:#178f89">Novo dependente 👨‍👩‍👧</h3><p><b>Dependente:</b> ${dependentName}${relationship ? ` (${relationship})` : ''}</p><p><b>Titular:</b> ${owner.name} — ${owner.email}</p><p style="color:#888;font-size:12px;margin-top:16px">Notificação automática — todo dependente cadastrado chega aqui.</p></div>`,
+      });
+      console.log(`[notifyNewDependent] aviso enviado p/ ${admin}: ${dependentName} (${owner.email})`);
+    } catch (e: any) { console.error('[notifyNewDependent] falhou:', e?.message); }
+  })();
+}
 
 const router = Router();
 router.use(requireAuth);
@@ -93,6 +112,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         identityLockedAt: new Date(),
       },
     });
+    notifyNewDependent(req.userId!, String(fullName), relationship ? String(relationship) : null); // fire-and-forget (não trava a resposta)
     res.status(201).json(serializePatient(p));
   } catch (e) { next(e); }
 });

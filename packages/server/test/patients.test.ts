@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, createPatient, getUserCredits, testCpf } from './helpers';
+import bcrypt from 'bcryptjs';
+import { api, authHeader, resetDb, createUser, createPatient, getUserCredits, testCpf, mintToken } from './helpers';
 import { prisma } from '../src/prisma';
 
 const EXTRA_COST = 50;
@@ -8,6 +9,12 @@ const FREE_LIMIT = 4; // titular + 3
 async function fillToLimit(ownerId: string) {
   // createUser já criou o titular (1); adiciona mais 3 p/ chegar a 4
   for (let i = 0; i < FREE_LIMIT - 1; i++) await createPatient(ownerId);
+}
+
+async function createAdmin() {
+  const passwordHash = await bcrypt.hash('senha123', 10);
+  const u = await prisma.user.create({ data: { email: `admin-${Date.now().toString(36)}@exemplo.com`, name: 'Admin Teste', passwordHash, role: 'ADMIN', credits: 0, emailVerified: true } });
+  return { id: u.id, token: mintToken(u.id) };
 }
 
 describe('pacientes: CRUD + limite de dependentes', () => {
@@ -23,6 +30,26 @@ describe('pacientes: CRUD + limite de dependentes', () => {
     const list = await api().get('/api/patients').set(authHeader(token));
     expect(list.body.length).toBeGreaterThanOrEqual(2); // titular + mãe
     expect(list.body.every((p: any) => p.ownerId === user.id)).toBe(true);
+  });
+
+  // 13/10 (caso "Claiza"): dependente invisível no admin = falso mistério de usuário
+  // sumido. Agora o GET /admin/users traz `dependents` e o cadastro notifica o dono
+  // por e-mail (fire-and-forget — nunca pode travar a resposta da criação).
+  it('dependente criado aparece em GET /admin/users (dependents) e a resposta não espera o e-mail', async () => {
+    const { user, token } = await createUser();
+    const r = await api().post('/api/patients').set(authHeader(token))
+      .send({ fullName: 'Claiza Beretta', cpf: testCpf(), relationship: 'Esposa' });
+    expect(r.status).toBe(201);
+
+    const admin = await createAdmin();
+    const list = await api().get(`/api/admin/users?q=${encodeURIComponent(user.email)}`).set(authHeader(admin.token));
+    expect(list.status).toBe(200);
+    const row = (list.body.users as any[]).find((u) => u.email === user.email);
+    expect(row.dependents).toHaveLength(1);
+    expect(row.dependents[0].fullName).toBe('Claiza Beretta');
+    expect(row.dependents[0].relationship).toBe('Esposa');
+    // titular (patients[0]) NÃO vaza pra lista de dependentes
+    expect(row.dependents.some((d: any) => d.relationship === 'Titular')).toBe(false);
   });
 
   it('5º dependente custa 50 créditos (não-premium com saldo)', async () => {

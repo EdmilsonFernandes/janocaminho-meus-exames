@@ -164,6 +164,13 @@ export const UsersTab = () => {
                     Criado em {new Date((u as any).createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </Typography>
                 )}
+                {/* 13/10 (dono): dependentes visíveis no admin — caso "Claiza": dependente
+                    invisível na lista = falso mistério de "usuário sumido". */}
+                {Array.isArray((u as any).dependents) && (u as any).dependents.length > 0 && (
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 11, color: 'text.secondary', mt: 0.25 }}>
+                    👨‍👩‍👧 {(u as any).dependents.map((d: any) => `${d.fullName}${d.relationship ? ` (${d.relationship})` : ''}`).join(' · ')}
+                  </Typography>
+                )}
               </Box>
               <Box sx={{ textAlign: 'center', minWidth: 56 }}>
                 <Typography sx={{ fontWeight: 800, fontSize: 16, fontVariantNumeric: 'tabular-nums', color: u.credits > 0 ? 'success.main' : 'text.disabled' }}>{u.credits}</Typography>

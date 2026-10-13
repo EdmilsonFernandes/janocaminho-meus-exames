@@ -123,14 +123,35 @@ router.get('/users', async (req, res, next) => {
     const limit = Math.min(100, Math.max(1, Number(req.query.limit ?? 20)));
     const where: any = q ? { OR: [{ email: { contains: q, mode: 'insensitive' } }, { name: { contains: q, mode: 'insensitive' } }] } : {};
     const [rows, total, examCount, subCount, approvedRevenue] = await Promise.all([
-      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, termsAcceptedAt: true, termsVersion: true, termsUrl: true, blocked: true, mfaEnabled: true, patients: { select: { id: true, photoUrl: true }, orderBy: { createdAt: 'asc' }, take: 1 } }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+      prisma.user.findMany({ where, select: { id: true, email: true, name: true, role: true, credits: true, planExpiresAt: true, createdAt: true, termsAcceptedAt: true, termsVersion: true, termsUrl: true, blocked: true, mfaEnabled: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
       prisma.user.count({ where }),
       prisma.exam.count(),
       prisma.subscription.count(),
       prisma.subscription.aggregate({ where: { status: 'APPROVED' }, _sum: { amount: true } }),
     ]);
-    // patientId/foto: admin mostra a foto do cadastro (patients[0] = perfil principal)
-    const users = rows.map(({ patients, ...u }) => ({ ...u, patientId: patients[0]?.id ?? null, hasPhoto: !!patients[0]?.photoUrl }));
+    // patientId/foto/dependentes: 1 query p/ todos os titulares da página (sem N+1).
+    // Dependentes visíveis no admin desde 13/10 — caso "Claiza": esposa-dependente
+    // invisível gerou falso mistério de usuário sumido. patients[0] = titular (createdAt asc).
+    const ownerIds = rows.map((u) => u.id);
+    const allPatients = ownerIds.length
+      ? await prisma.patient.findMany({ where: { ownerId: { in: ownerIds } }, select: { id: true, ownerId: true, fullName: true, relationship: true, photoUrl: true, createdAt: true }, orderBy: { createdAt: 'asc' } })
+      : [];
+    const byOwner = new Map<string, typeof allPatients>();
+    for (const p of allPatients) {
+      const list = byOwner.get(p.ownerId) ?? [];
+      list.push(p);
+      byOwner.set(p.ownerId, list);
+    }
+    const users = rows.map((u) => {
+      const fam = byOwner.get(u.id) ?? [];
+      const main = fam[0];
+      return {
+        ...u,
+        patientId: main?.id ?? null,
+        hasPhoto: !!main?.photoUrl,
+        dependents: fam.slice(1).map((d) => ({ fullName: d.fullName, relationship: d.relationship, createdAt: d.createdAt })),
+      };
+    });
     res.json({ users, total, page, limit, hasMore: page * limit < total, stats: { users: total, exams: examCount, subscriptions: subCount, revenue: approvedRevenue._sum.amount ?? 0 } });
   } catch (e) { next(e); }
 });
