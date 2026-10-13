@@ -807,10 +807,9 @@ const DashboardV2Inner = () => {
   const go = (to: string) => (demo ? () => setDemoAsk(true) : () => navigate(to));
   // Mapa corporal → Tendências do 1º marcador ALTERADO da região (sem alterado, o 1º da lista).
   // Guard: markers pode chegar ausente (cache offline de versão antiga / API velha).
-  const openRegion = (r: BodyRegionView) => {
-    const markers = Array.isArray(r?.markers) ? r.markers : [];
-    const target = markers.find((m) => m.level !== 'ok') ?? markers[0];
-    if (target?.nameCanonical) navigate(`/tendencias?select=${encodeURIComponent(target.nameCanonical)}`);
+  // Mapa corporal: selecionar a região no próprio dashboard e exibir os exames do órgão sem sair da tela.
+  const openRegion = (_r: BodyRegionView) => {
+    // Mantém o foco no próprio componente BodyMap no dashboard para exibir os valores dos exames locais
   };
 
   // MEDIÇÃO do modo exemplo (R1): started = entrou; converted = clicou "Usar meu exame"

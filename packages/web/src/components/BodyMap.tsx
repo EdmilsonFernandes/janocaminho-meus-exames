@@ -89,18 +89,21 @@ const SYSTEM_ICON: Record<string, ComponentType<any>> = {
   ossos: AccessibilityNewIcon,
 };
 
-// Coordenadas anatômicas no raio-x frontal (%)
-const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right' }> = {
-  cerebro: { x: 50, y: 9.5 },
-  pulmoes: { x: 42, y: 24.5 },
-  coracao: { x: 52, y: 28.5 },
-  sangue: { x: 34.5, y: 31.5, side: 'left' },
-  figado: { x: 44, y: 34.5, side: 'left' },
-  pancreas: { x: 53.5, y: 36.5 },
-  rins: { x: 58.5, y: 41.5, side: 'right' },
-  hormonios: { x: 50, y: 47 },
-  musculos: { x: 40, y: 60, side: 'left' },
-  ossos: { x: 58.5, y: 63, side: 'right' },
+// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13
+const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right'; num: number }> = {
+  cerebro: { x: 50, y: 10, num: 1 },
+  tireoide: { x: 50, y: 17.5, num: 2 },
+  pulmoes: { x: 42, y: 24, num: 3 },
+  coracao: { x: 53.5, y: 28, num: 4 },
+  figado: { x: 44, y: 34, side: 'left', num: 5 },
+  estomago: { x: 53, y: 35.5, num: 6 },
+  pancreas: { x: 49, y: 39, num: 7 },
+  rins: { x: 57.5, y: 42.5, side: 'right', num: 8 },
+  intestino: { x: 50, y: 46.5, num: 9 },
+  hormonios: { x: 50, y: 51, num: 10 },
+  sangue: { x: 34.5, y: 31.5, side: 'left', num: 11 },
+  musculos: { x: 39, y: 61, side: 'left', num: 12 },
+  ossos: { x: 60, y: 64, side: 'right', num: 13 },
 };
 
 const formatDate = (isoString: string | null) => {
@@ -333,6 +336,66 @@ export const BodyMap = ({
         />
       </Box>
 
+      {/* Seletor Rápido Horizontal de Chips das 13 Regiões Numeradas (Ganho de tela sem scroll excessivo) */}
+      <Box
+        sx={{
+          display: 'flex',
+          gap: 0.75,
+          overflowX: 'auto',
+          pb: 1,
+          mb: 1.5,
+          scrollbarWidth: 'thin',
+          '&::-webkit-scrollbar': { height: 4 },
+          '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 4 },
+        }}
+      >
+        {safeList.map((reg) => {
+          const spot = ANATOMICAL_HOTSPOTS[reg.key];
+          const isSelected = reg.key === selectedKey;
+          const col = getLevelColor(reg.level);
+          const num = spot?.num || 1;
+
+          return (
+            <Chip
+              key={reg.key}
+              clickable
+              size="small"
+              onClick={() => handleSelect(reg.key, true)}
+              avatar={
+                <Box
+                  sx={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    bgcolor: isSelected ? 'common.white' : col,
+                    color: isSelected ? 'text.primary' : 'common.white',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontFamily: 'Poppins, sans-serif',
+                  }}
+                >
+                  {num}
+                </Box>
+              }
+              label={reg.label.split('&')[0].trim()}
+              sx={{
+                fontWeight: 700,
+                fontSize: 11.5,
+                bgcolor: isSelected ? (dark ? '#0f2942' : '#0f172a') : (dark ? 'rgba(255,255,255,0.06)' : '#f8fafc'),
+                color: isSelected ? '#ffffff' : 'text.primary',
+                border: isSelected ? '1px solid #5fc9c3' : '1px solid',
+                borderColor: isSelected ? '#5fc9c3' : 'divider',
+                boxShadow: isSelected ? '0 2px 8px rgba(95,201,195,0.3)' : 'none',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }}
+            />
+          );
+        })}
+      </Box>
+
       {/* Grade Principal: Corpo Anatômico + Detalhes do Órgão */}
       <Box
         sx={{
@@ -519,24 +582,32 @@ export const BodyMap = ({
                       />
                     )}
 
-                    {/* Núcleo do Hotspot Colorido */}
+                    {/* Núcleo do Hotspot Colorido com Número do Órgão */}
                     <Box
                       className={hasAlert ? 'organ-pulse-active' : undefined}
                       sx={{
-                        width: isSelected ? 22 : 16,
-                        height: isSelected ? 22 : 16,
+                        width: isSelected ? 22 : 17,
+                        height: isSelected ? 22 : 17,
                         borderRadius: '50%',
                         bgcolor: col,
+                        color: '#ffffff',
+                        fontSize: isSelected ? 10.5 : 9,
+                        fontWeight: 800,
+                        fontFamily: 'Poppins, sans-serif',
+                        display: 'grid',
+                        placeItems: 'center',
                         boxShadow: isSelected
                           ? `0 0 18px 4px ${col}, 0 0 32px ${alpha(col, 0.7)}`
                           : hasData
                           ? `0 0 12px 2px ${alpha(col, 0.85)}`
                           : 'none',
-                        border: isSelected ? '2.5px solid #ffffff' : '1.5px solid rgba(255,255,255,0.75)',
-                        opacity: hasData ? 1 : 0.45,
+                        border: isSelected ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.85)',
+                        opacity: hasData ? 1 : 0.6,
                         transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}
-                    />
+                    >
+                      {spot.num}
+                    </Box>
                   </Box>
                 </Tooltip>
               );
