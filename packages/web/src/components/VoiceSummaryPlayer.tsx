@@ -160,17 +160,9 @@ export const VoiceSummaryPlayer = ({
         }
       `}</style>
 
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: { xs: 1.25, sm: 2 },
-          width: '100%',
-        }}
-      >
-        {/* Esquerda: Botão Play Circular Gradiente */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1.25, sm: 1.5 }, flexShrink: 0 }}>
+      {/* Linha 1: Play + Título/Subtítulo (layout independente da largura da viewport,
+          funciona igual em card estreito na landing ou largo no relatório) */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
           <IconButton
             onClick={handleTogglePlay}
             aria-label={playing ? 'Pausar áudio' : 'Ouvir resumo em áudio'}
@@ -200,55 +192,12 @@ export const VoiceSummaryPlayer = ({
             )}
           </IconButton>
 
-          {/* Equalizador de Ondas Sonoras (Soundwave) — 10 barras responsivas */}
-          <Box
-            sx={{
-              display: { xs: 'none', sm: 'flex' },
-              alignItems: 'center',
-              gap: '3px',
-              height: 28,
-              px: 0.5,
-              flexShrink: 0,
-            }}
-          >
-            {BAR_HEIGHTS.slice(0, 10).map((h, i) => {
-              const delay = (i * 0.08).toFixed(2);
-              return (
-                <Box
-                  key={i}
-                  sx={{
-                    width: 3,
-                    height: `${Math.round(h * 0.85)}px`,
-                    borderRadius: '999px',
-                    bgcolor: barColor,
-                    transformOrigin: 'bottom center',
-                    opacity: playing ? 0.95 : 0.4,
-                    animation: playing
-                      ? `soundwaveAnim 1.2s ease-in-out ${delay}s infinite`
-                      : 'none',
-                    transition: 'opacity 0.3s ease',
-                  }}
-                />
-              );
-            })}
-          </Box>
-        </Box>
-
-        {/* Centro: Título e Subtítulo Flexíveis (Sem Cortes de Texto!) */}
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            flex: 1,
-            minWidth: 0,
-            px: { xs: 0.5, sm: 1 },
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {/* Título + Subtítulo ocupam toda a largura restante — nunca espremidos */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minWidth: 0 }}>
             <Typography
               sx={{
                 fontWeight: 800,
-                fontSize: { xs: 13, sm: compact ? 13.5 : 14.5 },
+                fontSize: compact ? 14 : 15,
                 fontFamily: 'Poppins, sans-serif',
                 color: 'text.primary',
                 lineHeight: 1.25,
@@ -256,48 +205,87 @@ export const VoiceSummaryPlayer = ({
             >
               {title}
             </Typography>
+            <Typography
+              variant="caption"
+              sx={{
+                color: playing ? (colorScheme === 'purple' ? '#c084fc' : '#0f766e') : 'text.secondary',
+                fontWeight: playing ? 700 : 500,
+                fontSize: 12,
+                lineHeight: 1.35,
+                mt: 0.25,
+              }}
+            >
+              {playing ? 'Dr. Exame narrando com voz médica…' : subtitle}
+            </Typography>
+          </Box>
+      </Box>
 
-            {badgeLabel && (
-              <Chip
-                size="small"
-                icon={<VolumeUpIcon style={{ fontSize: 12, color: 'inherit' }} />}
-                label={badgeLabel}
-                sx={{
-                  height: 20,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  borderRadius: '999px',
-                  bgcolor: alpha(barColor, 0.12),
-                  color: barColor,
-                  border: `1px solid ${alpha(barColor, 0.25)}`,
-                  display: { xs: 'none', md: 'inline-flex' },
-                }}
-              />
-            )}
+      {/* Linha 2: Onda sonora + badge + seletor de velocidade */}
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: 1.5,
+          mt: 1.25,
+          pt: 1.25,
+          borderTop: '1px solid',
+          borderColor: dark ? 'rgba(255,255,255,0.06)' : alpha(barColor, 0.12),
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', height: 26, flexShrink: 0 }}>
+            {BAR_HEIGHTS.slice(0, 12).map((h, i) => {
+              const delay = (i * 0.08).toFixed(2);
+              return (
+                <Box
+                  key={i}
+                  sx={{
+                    width: 3,
+                    height: `${Math.round(h * 0.8)}px`,
+                    borderRadius: '999px',
+                    bgcolor: barColor,
+                    transformOrigin: 'center',
+                    opacity: playing ? 0.95 : 0.4,
+                    animation: playing
+                      ? `soundwaveAnim 1.2s ease-in-out ${delay}s infinite`
+                      : 'none',
+                    transition: 'opacity 0.3s ease',
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+                  }}
+                />
+              );
+            })}
           </Box>
 
-          <Typography
-            variant="caption"
-            sx={{
-              color: playing ? (colorScheme === 'purple' ? '#c084fc' : '#0f766e') : 'text.secondary',
-              fontWeight: playing ? 700 : 500,
-              fontSize: { xs: 11, sm: 11.5 },
-              lineHeight: 1.3,
-              mt: 0.25,
-            }}
-          >
-            {playing ? '🔊 Dr. Exame narrando com voz médica...' : subtitle}
-          </Typography>
+          {badgeLabel && (
+            <Chip
+              size="small"
+              icon={<VolumeUpIcon style={{ fontSize: 12, color: 'inherit' }} />}
+              label={badgeLabel}
+              sx={{
+                height: 22,
+                fontSize: 10.5,
+                fontWeight: 800,
+                borderRadius: '999px',
+                bgcolor: alpha(barColor, 0.12),
+                color: colorScheme === 'purple' ? barColor : '#0f766e',
+                border: `1px solid ${alpha(barColor, 0.25)}`,
+                minWidth: 0,
+                '& .MuiChip-label': { whiteSpace: 'nowrap' },
+              }}
+            />
+          )}
         </Box>
 
-        {/* Direita: Seletor de Velocidade (1.0x / 1.25x / 1.5x) */}
+        {/* Seletor de Velocidade (1x / 1.25x / 1.5x) */}
         <Box
           sx={{
             display: 'flex',
             alignItems: 'center',
-            gap: 0.5,
+            gap: 0.25,
             bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-            p: '2px 4px',
+            p: '3px',
             borderRadius: '999px',
             flexShrink: 0,
           }}
@@ -309,24 +297,28 @@ export const VoiceSummaryPlayer = ({
                 key={r}
                 component="button"
                 type="button"
+                aria-pressed={active}
+                aria-label={`Velocidade ${r}x`}
                 onClick={() => handleChangeRate(r)}
                 sx={{
                   border: 0,
                   background: active ? (colorScheme === 'purple' ? '#8b5cf6' : '#20b2aa') : 'none',
                   color: active ? '#ffffff' : 'text.secondary',
-                  fontSize: 10,
+                  fontSize: 10.5,
                   fontWeight: 800,
-                  px: { xs: 0.75, sm: 1 },
-                  py: 0.35,
+                  fontFamily: 'inherit',
+                  px: 1,
+                  py: 0.4,
                   borderRadius: '999px',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap',
+                  transition: 'background-color 0.15s ease, color 0.15s ease',
                   '&:hover': {
                     color: active ? '#ffffff' : 'text.primary',
                   },
                 }}
               >
-                {r.toFixed(1)}x
+                {r}x
               </Box>
             );
           })}

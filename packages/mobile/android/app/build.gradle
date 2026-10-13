@@ -8,8 +8,8 @@ android {
         applicationId "com.janocaminho.drexame"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 487
-        versionName "2.7.238"
+        versionCode 489
+        versionName "2.7.240"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
