@@ -18,6 +18,7 @@ import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
 import { AiCard } from './AiCard';
 import { AiTip } from './AiTip';
+import { VoiceSummaryPlayer } from '../VoiceSummaryPlayer';
 import { GamificationBadges } from '../GamificationBadges';
 import { QuickActions } from './QuickActions';
 import { ActivityCard } from './ActivityCard';
@@ -910,6 +911,28 @@ const DashboardV2Inner = () => {
   } : null);
   const tipNode = <AiTip firstName={firstName} tipData={{ abnormal: markerToTip(d.worsened[0]), good: markerToTip(d.improved[0]) }} fallbackTip="Toque e pergunte qualquer coisa sobre seus exames — eu leio seu histórico antes de responder." />;
 
+  // Síntese em áudio personalizada para o topo do Dashboard
+  const audioSummaryText = useMemo(() => {
+    const name = firstName || 'você';
+    const scoreVal = d.score != null ? `${d.score} pontos de 100` : null;
+    const abn = d.stats.abnormal;
+    const parts: string[] = [];
+    parts.push(`Olá ${name}! Bem-vindo ao Dr. Exame.`);
+    if (scoreVal) {
+      parts.push(`Seu Score de Saúde geral está em ${scoreVal}.`);
+    }
+    if (abn > 0) {
+      parts.push(`Identifiquei ${abn} marcador${abn > 1 ? 'es' : ''} que requer${abn > 1 ? 'em' : ''} atenção preventiva no seu histórico.`);
+    } else if (d.stats.exams > 0) {
+      parts.push(`Todos os seus marcadores analisados estão dentro das faixas saudáveis de referência.`);
+    }
+    if (d.bio?.age) {
+      parts.push(`Sua idade biológica celular estimada é de ${d.bio.age} anos.`);
+    }
+    parts.push(`Toque nos órgãos no mapa abaixo para explorar cada exame e recomendação.`);
+    return parts.join(' ');
+  }, [firstName, d.score, d.stats.abnormal, d.stats.exams, d.bio]);
+
   // Arc percentages para os indicator tiles (sem fetch novo — calcula dos dados que já existem).
   const cardioArc = cardioLevel === 'baixo' ? 20 : cardioLevel === 'moderado' ? 55 : cardioLevel === 'alto' ? 90 : 0;
   const cardioArcColor = cardioLevel === 'baixo' ? '#059669' : cardioLevel === 'moderado' ? '#f59e0b' : cardioLevel === 'alto' ? '#ef4444' : '#94a3b8';
@@ -961,7 +984,7 @@ const DashboardV2Inner = () => {
 
       {/* MODO EXEMPLO — banner sempre visível: dado fictício nunca pode passar por seu. */}
       {demo && (
-        <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: '14px', display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+        <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: '14px', display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
           <Typography sx={{ flex: 1, minWidth: 180, fontSize: 13, lineHeight: 1.45 }}>
             👀 <b>Modo exemplo</b> — tudo aqui é de uma pessoa fictícia. Seu app real ganha essa análise no 1º exame.
           </Typography>
@@ -970,6 +993,22 @@ const DashboardV2Inner = () => {
             <GradientButton onClick={convertDemo} sx={{ py: 0.9, px: 2.25, fontSize: 13 }}>Usar meu exame</GradientButton>
           </Stack>
         </AppCard>
+      )}
+
+      {/* 0. ÁUDIO EXECUTIVO DR. EXAME (NO TOPO DO DASHBOARD) */}
+      {(demo || (d.loaded && d.stats.exams > 0)) && (
+        <ScrollReveal>
+          <Box sx={{ mb: 2 }}>
+            <VoiceSummaryPlayer
+              text={demo ? 'Olá! No Dr. Exame eu analiso seus exames de sangue e conecto cada resultado ao órgão correspondente. Neste exemplo, o paciente fictício tem 32 marcadores analisados com Score de 84 de 100. Envie seu primeiro exame em PDF ou foto para gerar sua própria análise em áudio e 3D.' : audioSummaryText}
+              title="Resumo Clínico em Áudio"
+              subtitle="Ouça a síntese da sua saúde em 1 min"
+              colorScheme="teal"
+              badgeLabel="IA Dr. Exame"
+              compact
+            />
+          </Box>
+        </ScrollReveal>
       )}
 
       {/* 1. HERO HEALTH CARD (Score + Status + Ações em largura total) */}
