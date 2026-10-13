@@ -263,16 +263,13 @@
       gap: 6px;
       overflow-x: auto;
       padding-bottom: 4px;
-      scrollbar-width: thin;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
     }
 
     .organ-chips-bar::-webkit-scrollbar {
-      height: 4px;
-    }
-
-    .organ-chips-bar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 4px;
+      display: none;
     }
 
     .organ-chip {
@@ -373,11 +370,11 @@
       z-index: 2;
     }
 
-    /* HUD status */
+    /* HUD status no rodapé do corpo (desimpedindo a cabeça/cérebro) */
     .scanner-hud-status {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      bottom: 12px;
+      left: 12px;
       background: rgba(4, 16, 31, 0.85);
       backdrop-filter: blur(6px);
       border: 1px solid rgba(95, 201, 195, 0.4);
@@ -1379,7 +1376,10 @@
               <span>🫀</span>
               <span>Mapa do seu Corpo</span>
             </div>
-            <span class="bodymap-badge">13 Regiões Clínicas</span>
+            <span class="bodymap-badge">
+              <span class="hud-pulse-dot" style="display:inline-block;margin-right:4px;"></span>
+              Bio-Scan Clínico
+            </span>
           </div>
 
           <p style="font-size:12px;color:var(--text-sub);line-height:1.4;">
@@ -1393,12 +1393,6 @@
 
           <!-- VISUALIZADOR COMPACTO DO CORPO COM SCANNER LASER E HOTSPOTS -->
           <div class="body-scanner-viewport">
-            <!-- HUD Scanner -->
-            <div class="scanner-hud-status">
-              <span class="hud-pulse-dot"></span>
-              <span>BIO-SCAN ATIVO</span>
-            </div>
-
             <!-- Feixe Laser Holográfico Contínuo -->
             <div class="scan-beam"></div>
 
@@ -1425,15 +1419,10 @@
               <span class="status-pill p-bad" id="panel-badge">Fora da meta</span>
             </div>
 
-            <!-- Fórmula Literária -->
-            <div class="formula-block">
-              <span class="formula-tag">⚡ Cálculo Literário (Zero Alucinação)</span>
-              <div class="formula-val-line">
-                <span class="formula-name" id="calc-title">Índice de Castelli I (CT / HDL)</span>
-                <span class="formula-num" id="calc-num">4,6</span>
-              </div>
-              <span class="formula-desc" id="calc-desc">Razão aumentada; sugere atenção preventiva ao perfil
-                lipídico.</span>
+            <!-- Resumo Amigável para o Paciente (Linguagem Clara e Sem Jargões) -->
+            <div class="friendly-patient-note">
+              <span class="fpn-icon">💡</span>
+              <span class="fpn-text" id="calc-desc">Razão aumentada; sugere atenção preventiva ao perfil lipídico.</span>
             </div>
 
             <!-- Exames laboratoriais do órgão -->

@@ -327,6 +327,19 @@ export const BodyMap = ({
         </Box>
         <Chip
           size="small"
+          icon={
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                bgcolor: '#20b2aa',
+                boxShadow: '0 0 8px #20b2aa',
+                animation: 'subtleOrganPulse 2s infinite',
+                ml: '8px !important',
+              }}
+            />
+          }
           label="Bio-Scanner Clínico"
           sx={{
             fontWeight: 700,
@@ -338,17 +351,18 @@ export const BodyMap = ({
         />
       </Box>
 
-      {/* Seletor Rápido Horizontal de Chips das 13 Regiões Numeradas (Ganho de tela sem scroll excessivo) */}
+      {/* Seletor Rápido Horizontal de Chips das 13 Regiões Numeradas (Deslize suave sem scrollbar feia) */}
       <Box
         sx={{
           display: 'flex',
           gap: 0.75,
           overflowX: 'auto',
-          pb: 1,
+          pb: 0.5,
           mb: 1.5,
-          scrollbarWidth: 'thin',
-          '&::-webkit-scrollbar': { height: 4 },
-          '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 4 },
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+          WebkitOverflowScrolling: 'touch',
         }}
       >
         {safeList.map((reg) => {
@@ -409,45 +423,6 @@ export const BodyMap = ({
       >
         {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos e Bio-Scanner */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          {/* Seletor de Visão Anatômica: Órgãos Acesos 3D x Raio-X */}
-          <Box sx={{ display: 'flex', gap: 1, mb: 1.5, p: 0.5, bgcolor: dark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: '999px' }}>
-            <Button
-              size="small"
-              onClick={() => setViewMode('bioglow')}
-              sx={{
-                borderRadius: '999px',
-                py: 0.4,
-                px: 1.5,
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'none',
-                bgcolor: viewMode === 'bioglow' ? (dark ? '#5fc9c3' : '#0f172a') : 'transparent',
-                color: viewMode === 'bioglow' ? (dark ? '#04101f' : '#ffffff') : 'text.secondary',
-                boxShadow: viewMode === 'bioglow' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'bioglow' ? undefined : 'action.hover' },
-              }}
-            >
-              🧬 Órgãos Acesos
-            </Button>
-            <Button
-              size="small"
-              onClick={() => setViewMode('xray')}
-              sx={{
-                borderRadius: '999px',
-                py: 0.4,
-                px: 1.5,
-                fontSize: 11,
-                fontWeight: 700,
-                textTransform: 'none',
-                bgcolor: viewMode === 'xray' ? (dark ? '#5fc9c3' : '#0f172a') : 'transparent',
-                color: viewMode === 'xray' ? (dark ? '#04101f' : '#ffffff') : 'text.secondary',
-                boxShadow: viewMode === 'xray' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
-                '&:hover': { bgcolor: viewMode === 'xray' ? undefined : 'action.hover' },
-              }}
-            >
-              🩺 Raio-X Clínico
-            </Button>
-          </Box>
 
           <Box
             sx={{
@@ -463,55 +438,11 @@ export const BodyMap = ({
               touchAction: 'manipulation',
             }}
           >
-            {/* HUD Badge de Bio-Scan no topo do Raio-X */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 10,
-                left: 10,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                px: 1.2,
-                py: 0.45,
-                borderRadius: '999px',
-                background: 'rgba(4, 16, 31, 0.78)',
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(95, 201, 195, 0.35)',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                zIndex: 8,
-                pointerEvents: 'none',
-              }}
-            >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: '50%',
-                  bgcolor: '#5fc9c3',
-                  boxShadow: '0 0 8px #5fc9c3',
-                  animation: 'subtleOrganPulse 2s infinite',
-                }}
-              />
-              <Typography
-                component="span"
-                sx={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  letterSpacing: '0.06em',
-                  color: '#5fc9c3',
-                  textTransform: 'uppercase',
-                  fontFamily: 'Inter, sans-serif',
-                }}
-              >
-                Bio-Scan Ativo
-              </Typography>
-            </Box>
 
-            {/* Imagem anatômica (Órgãos Bioluminescentes ou Raio-X) */}
+            {/* Imagem anatômica (Raio-X Clínico em Alta Resolução) */}
             <Box
               component="img"
-              src={`${import.meta.env.BASE_URL}${viewMode === 'bioglow' ? 'body-organs-glow.png' : 'body-xray.webp'}`}
+              src={`${import.meta.env.BASE_URL}body-xray.webp`}
               alt="Ilustração anatômica do corpo humano"
               loading="lazy"
               decoding="async"
@@ -520,7 +451,7 @@ export const BodyMap = ({
                 height: '100%',
                 objectFit: 'cover',
                 display: 'block',
-                opacity: 0.92,
+                opacity: 0.94,
               }}
             />
 
@@ -820,9 +751,9 @@ export const BodyMap = ({
                   spacing={1.5}
                   sx={{
                     mt: 1.5,
-                    maxHeight: 380,
-                    overflowY: 'auto',
-                    pr: 0.5,
+                    maxHeight: { xs: 'none', md: 440 },
+                    overflowY: { xs: 'visible', md: 'auto' },
+                    pr: { xs: 0, md: 0.5 },
                     scrollbarWidth: 'none',
                     '&::-webkit-scrollbar': { display: 'none' },
                   }}
@@ -836,7 +767,7 @@ export const BodyMap = ({
                       <Box
                         key={m.nameCanonical || m.name}
                         sx={{
-                          p: 1.5,
+                          p: { xs: 1.25, sm: 1.5 },
                           borderRadius: '12px',
                           bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
                           border: '1px solid',
@@ -857,12 +788,12 @@ export const BodyMap = ({
                           </Typography>
                         </Box>
                         {/* Linha 1: Nome do Marcador e Resultado Atual */}
-                        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'text.primary' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: { xs: 13, sm: 14 }, color: 'text.primary', flex: 1, wordBreak: 'break-word' }}>
                             {m.name}
                           </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                            <Typography sx={{ fontWeight: 800, fontSize: 16, color: mCol, fontVariantNumeric: 'tabular-nums' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, flexShrink: 0 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, color: mCol, fontVariantNumeric: 'tabular-nums' }}>
                               {m.valueText}
                             </Typography>
                             {m.unit && (
@@ -979,60 +910,6 @@ export const BodyMap = ({
               )}
             </Box>
           ) : null}
-        </Box>
-      </Box>
-
-      {/* Grade Sincronizada de Chips dos Sistemas (Toque Rápido) */}
-      <Box sx={{ mt: 3, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, display: 'block', mb: 1.25 }}>
-          TODOS OS SISTEMAS (toque para alternar o órgão):
-        </Typography>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 1,
-          }}
-        >
-          {safeList.map((reg) => {
-            const isSelected = reg.key === selectedKey;
-            const c = getLevelColor(reg.level);
-            return (
-              <Chip
-                key={reg.key}
-                clickable
-                onClick={() => handleSelect(reg.key)}
-                label={
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6 }}>
-                    <Box component="span">{reg.emoji}</Box>
-                    <Box component="span" sx={{ fontWeight: isSelected ? 800 : 600 }}>
-                      {reg.label}
-                    </Box>
-                    {reg.level === 'alterado' && (
-                      <Box component="span" sx={{ color: c, fontWeight: 800 }}>
-                        !
-                      </Box>
-                    )}
-                  </Box>
-                }
-                sx={{
-                  borderRadius: '10px',
-                  bgcolor: isSelected
-                    ? alpha(c, dark ? 0.25 : 0.15)
-                    : (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)'),
-                  border: '1px solid',
-                  borderColor: isSelected ? c : 'transparent',
-                  color: isSelected ? c : 'text.primary',
-                  fontWeight: 600,
-                  fontSize: 12.5,
-                  transition: 'all 0.15s ease',
-                  '&:hover': {
-                    bgcolor: alpha(c, 0.12),
-                  },
-                }}
-              />
-            );
-          })}
         </Box>
       </Box>
 
