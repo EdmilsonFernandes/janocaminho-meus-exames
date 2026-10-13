@@ -89,21 +89,21 @@ const SYSTEM_ICON: Record<string, ComponentType<any>> = {
   ossos: AccessibilityNewIcon,
 };
 
-// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13
+// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13 (espaçamento anatômico amplo)
 const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right'; num: number }> = {
   cerebro: { x: 50, y: 9.5, num: 1 },
   tireoide: { x: 50, y: 17.5, num: 2 },
-  pulmoes: { x: 42.5, y: 24, num: 3 },
-  coracao: { x: 53.5, y: 28, num: 4 },
-  figado: { x: 44, y: 34.5, side: 'left', num: 5 },
-  estomago: { x: 53, y: 35.5, num: 6 },
-  pancreas: { x: 49, y: 39, num: 7 },
-  rins: { x: 57.5, y: 42.5, side: 'right', num: 8 },
-  intestino: { x: 50, y: 47, num: 9 },
-  hormonios: { x: 50, y: 52, num: 10 },
-  sangue: { x: 34.5, y: 31.5, side: 'left', num: 11 },
-  musculos: { x: 39, y: 61, side: 'left', num: 12 },
-  ossos: { x: 60, y: 64, side: 'right', num: 13 },
+  pulmoes: { x: 36, y: 23.5, side: 'left', num: 3 },
+  coracao: { x: 58, y: 27.5, side: 'right', num: 4 },
+  figado: { x: 35, y: 34, side: 'left', num: 5 },
+  estomago: { x: 64, y: 35, side: 'right', num: 6 },
+  pancreas: { x: 50, y: 41, num: 7 },
+  rins: { x: 67, y: 45.5, side: 'right', num: 8 },
+  intestino: { x: 50, y: 49.5, num: 9 },
+  hormonios: { x: 50, y: 57, num: 10 },
+  sangue: { x: 24, y: 41, side: 'left', num: 11 },
+  musculos: { x: 41, y: 67, side: 'left', num: 12 },
+  ossos: { x: 59, y: 76, side: 'right', num: 13 },
 };
 
 const formatDate = (isoString: string | null) => {
@@ -726,12 +726,45 @@ export const BodyMap = ({
                 borderRadius: '16px',
                 p: { xs: 2, sm: 2.5 },
                 bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.03)'),
-                border: '1px solid',
-                borderColor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.35 : 0.25),
-                boxShadow: (t) => `0 4px 20px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.12 : 0.06)}`,
+                border: '2px solid',
+                borderColor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.45 : 0.35),
+                boxShadow: (t) => `0 6px 24px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.18 : 0.09)}`,
                 transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
               }}
             >
+              {/* Banner Destacado: Órgão Selecionado no Mapa */}
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.8,
+                  px: 1.25,
+                  py: 0.45,
+                  mb: 1.5,
+                  borderRadius: '999px',
+                  bgcolor: alpha(activeColor, dark ? 0.22 : 0.12),
+                  border: '1px solid',
+                  borderColor: alpha(activeColor, 0.45),
+                  color: activeColor,
+                  fontWeight: 800,
+                  fontSize: 11,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                }}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    bgcolor: activeColor,
+                    boxShadow: `0 0 8px ${activeColor}`,
+                  }}
+                />
+                🎯 Exames do Órgão Selecionado: {activeRegion.label}
+              </Box>
+
               {/* Header do Sistema */}
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }}>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
@@ -783,7 +816,17 @@ export const BodyMap = ({
 
               {/* Lista de Marcadores Clínicos do Órgão */}
               {activeRegion.markers.length > 0 ? (
-                <Stack spacing={1.5} sx={{ mt: 1.5, maxHeight: 380, overflowY: 'auto', pr: 0.5 }}>
+                <Stack
+                  spacing={1.5}
+                  sx={{
+                    mt: 1.5,
+                    maxHeight: 380,
+                    overflowY: 'auto',
+                    pr: 0.5,
+                    scrollbarWidth: 'none',
+                    '&::-webkit-scrollbar': { display: 'none' },
+                  }}
+                >
                   {activeRegion.markers.map((m) => {
                     const mCol = getLevelColor(m.level);
                     const isAbnormal = m.level === 'alterado' || m.level === 'atencao';
@@ -798,9 +841,21 @@ export const BodyMap = ({
                           bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
                           border: '1px solid',
                           borderColor: (t) => (isAbnormal ? alpha(mCol, 0.4) : t.palette.divider),
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                          borderLeft: `5px solid ${activeColor}`,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                          transition: 'all 0.2s ease',
+                          '&:hover': {
+                            boxShadow: `0 4px 14px ${alpha(activeColor, 0.18)}`,
+                            transform: 'translateX(2px)',
+                          },
                         }}
                       >
+                        {/* Tag de Vínculo com o Órgão */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 800, fontSize: 10, color: activeColor, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                            {activeRegion.emoji} Vinculado a: {activeRegion.label}
+                          </Typography>
+                        </Box>
                         {/* Linha 1: Nome do Marcador e Resultado Atual */}
                         <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
                           <Typography sx={{ fontWeight: 700, fontSize: 14, color: 'text.primary' }}>
@@ -978,46 +1033,6 @@ export const BodyMap = ({
               />
             );
           })}
-        </Box>
-      </Box>
-
-      {/* Bloco Integrado: Tubos Coletados & Conexões Clínicas da IA */}
-      <Box
-        sx={{
-          mt: 3,
-          p: { xs: 2, sm: 2.5 },
-          borderRadius: '18px',
-          bgcolor: dark ? 'rgba(4, 16, 31, 0.65)' : '#f8fafc',
-          border: '1px solid',
-          borderColor: dark ? 'rgba(95, 201, 195, 0.25)' : '#e2e8f0',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 }, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-            🧪 Frações Coletadas & Conexões da IA
-          </Typography>
-          <Chip
-            size="small"
-            label="Análise Multipainel"
-            sx={{ fontWeight: 800, fontSize: 11, bgcolor: dark ? 'rgba(95,201,195,0.2)' : 'rgba(32,178,170,0.12)', color: dark ? '#5fc9c3' : '#0f766e' }}
-          />
-        </Box>
-        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 12.5, mb: 2, lineHeight: 1.5 }}>
-          Veja as frações sanguíneas analisadas e como a inteligência clínica cruza marcadores aos pares (ex: Ferritina × PCR, TSH × T4L, Glicose × HbA1c):
-        </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', overflow: 'hidden', borderRadius: '14px', bgcolor: dark ? '#020914' : '#ffffff', p: 1.5, border: '1px solid', borderColor: 'divider' }}>
-          <Box
-            component="img"
-            src={`${import.meta.env.BASE_URL}blood-test-network-tubes.png`}
-            alt="Tubos de coleta de laboratório e rede de biomarcadores da IA"
-            sx={{
-              maxWidth: { xs: '100%', sm: 440 },
-              width: '100%',
-              height: 'auto',
-              borderRadius: '12px',
-              display: 'block',
-            }}
-          />
         </Box>
       </Box>
 

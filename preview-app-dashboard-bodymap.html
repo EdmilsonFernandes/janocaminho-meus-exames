@@ -157,6 +157,16 @@
       display: flex;
       flex-direction: column;
       gap: 14px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .app-content::-webkit-scrollbar,
+    .phone-frame::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
     }
 
     .app-header {
@@ -610,30 +620,79 @@
       }
     }
 
-    /* PAINEL INSTANTÂNEO DE DETALHES DO ÓRGÃO (SEM NAVEGAR PARA TENDÊNCIAS) */
+    /* PAINEL INSTANTÂNEO DE DETALHES DO ÓRGÃO COM DESTAQUE VISUAL INTENSO */
     .organ-result-card {
       background: #f8fafc;
       border-radius: 16px;
-      border: 1px solid #e2e8f0;
+      border: 2px solid var(--panel-accent, #e2e8f0);
       padding: 14px;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      transition: all 0.3s;
+      transition: all 0.35s ease;
+      position: relative;
     }
 
     .organ-result-card.panel-flash {
-      animation: cardFlash 0.6s ease-out;
+      animation: cardFlash 1s ease-out;
     }
 
     @keyframes cardFlash {
       0% {
-        box-shadow: 0 0 0 3px rgba(95, 201, 195, 0.7);
+        transform: scale(0.985);
+        box-shadow: 0 0 0 6px var(--panel-accent, rgba(32, 178, 170, 0.4)), 0 10px 28px rgba(0,0,0,0.12);
       }
-
+      50% {
+        transform: scale(1.015);
+        box-shadow: 0 0 0 4px var(--panel-accent, rgba(32, 178, 170, 0.3)), 0 8px 24px rgba(0,0,0,0.08);
+      }
       100% {
-        box-shadow: none;
+        transform: scale(1);
+        box-shadow: 0 4px 14px rgba(0,0,0,0.06);
       }
+    }
+
+    /* BANNER DE DESTAQUE SUPERIOR: ÓRGÃO SELECIONADO NO MAPA */
+    .organ-selected-hud-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel-accent, var(--teal)) 14%, #ffffff);
+      border: 1px solid color-mix(in srgb, var(--panel-accent, var(--teal)) 40%, transparent);
+      color: var(--panel-accent, var(--teal-d));
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+      width: fit-content;
+      animation: hudPulse 2s infinite ease-in-out;
+    }
+
+    .organ-selected-hud-pill .hud-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--panel-accent, var(--teal));
+      box-shadow: 0 0 6px var(--panel-accent, var(--teal));
+    }
+
+    @keyframes hudPulse {
+      0%, 100% { opacity: 0.95; }
+      50% { opacity: 0.7; }
+    }
+
+    .marker-organ-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      color: var(--panel-accent, var(--teal-d));
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .panel-top-row {
@@ -732,11 +791,18 @@
     .marker-item {
       background: #ffffff;
       border: 1px solid #e2e8f0;
+      border-left: 4.5px solid var(--panel-accent, var(--teal));
       border-radius: 10px;
-      padding: 8px 10px;
+      padding: 9px 12px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .marker-item:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      transform: translateX(2px);
     }
 
     .marker-row-1 {
@@ -1348,6 +1414,9 @@
 
           <!-- PAINEL DE RESULTADOS DETALHADOS DO ÓRGÃO (PERMANECE NA TELA COM ROLAGEM SUAVE) -->
           <div class="organ-result-card" id="organ-detail-panel">
+            <div class="organ-selected-hud-pill" id="organ-selected-hud">
+              <span class="hud-dot"></span> 🎯 Órgão Selecionado no Mapa
+            </div>
             <div class="panel-top-row">
               <div class="panel-organ-title">
                 <span id="panel-emoji">❤️</span>
@@ -1558,7 +1627,7 @@
   </main>
 
   <script>
-    // BASE DAS 13 REGIÕES NUMERADAS DO CORPO HUMANO
+    // BASE DAS 13 REGIÕES NUMERADAS DO CORPO HUMANO (ESPAÇAMENTO ANATÔMICO SEM AGLOMERAÇÃO)
     const REGIONS_13 = [
       {
         num: 1,
@@ -1601,8 +1670,8 @@
         key: 'pulmoes',
         label: 'Pulmões & Respiração',
         emoji: '🫁',
-        topPct: 24,
-        leftPct: 42,
+        topPct: 23.5,
+        leftPct: 36,
         status: 'none',
         statusTag: 'Sem exames recentes',
         tagClass: 'p-none',
@@ -1618,8 +1687,8 @@
         key: 'coracao',
         label: 'Coração & Vasos',
         emoji: '❤️',
-        topPct: 28,
-        leftPct: 54,
+        topPct: 27.5,
+        leftPct: 58,
         status: 'bad',
         statusTag: 'Fora da meta',
         tagClass: 'p-bad',
@@ -1637,8 +1706,8 @@
         key: 'figado',
         label: 'Fígado & Enzimas',
         emoji: '🧪',
-        topPct: 35,
-        leftPct: 43,
+        topPct: 34,
+        leftPct: 35,
         status: 'ok',
         statusTag: 'Dentro da referência',
         tagClass: 'p-ok',
@@ -1656,8 +1725,8 @@
         key: 'estomago',
         label: 'Estômago & Digestão',
         emoji: '🥣',
-        topPct: 36,
-        leftPct: 52,
+        topPct: 35,
+        leftPct: 64,
         status: 'ok',
         statusTag: 'Dentro da referência',
         tagClass: 'p-ok',
@@ -1673,8 +1742,8 @@
         key: 'pancreas',
         label: 'Pâncreas & Metabolismo',
         emoji: '⚡',
-        topPct: 40,
-        leftPct: 48,
+        topPct: 41,
+        leftPct: 50,
         status: 'warn',
         statusTag: 'Atenção preventiva',
         tagClass: 'p-warn',
@@ -1692,8 +1761,8 @@
         key: 'rins',
         label: 'Rins & Filtração',
         emoji: '💧',
-        topPct: 43,
-        leftPct: 56,
+        topPct: 45.5,
+        leftPct: 67,
         status: 'ok',
         statusTag: 'Dentro da referência',
         tagClass: 'p-ok',
@@ -1711,7 +1780,7 @@
         key: 'intestino',
         label: 'Intestino & Microbioma',
         emoji: '🦠',
-        topPct: 47,
+        topPct: 49.5,
         leftPct: 50,
         status: 'ok',
         statusTag: 'Dentro da referência',
@@ -1728,7 +1797,7 @@
         key: 'hormonios',
         label: 'Hormônios & Reprodutor',
         emoji: '🧬',
-        topPct: 52,
+        topPct: 57,
         leftPct: 50,
         status: 'ok',
         statusTag: 'Dentro da referência',
@@ -1746,8 +1815,8 @@
         key: 'sangue',
         label: 'Sangue & Imunidade',
         emoji: '🩸',
-        topPct: 32,
-        leftPct: 35,
+        topPct: 41,
+        leftPct: 24,
         status: 'ok',
         statusTag: 'Dentro da referência',
         tagClass: 'p-ok',
@@ -1765,8 +1834,8 @@
         key: 'musculos',
         label: 'Músculos & Desempenho',
         emoji: '🏋️',
-        topPct: 62,
-        leftPct: 38,
+        topPct: 67,
+        leftPct: 41,
         status: 'ok',
         statusTag: 'Dentro da referência',
         tagClass: 'p-ok',
@@ -1782,8 +1851,8 @@
         key: 'ossos',
         label: 'Ossos & Articulações',
         emoji: '🦴',
-        topPct: 65,
-        leftPct: 60,
+        topPct: 76,
+        leftPct: 59,
         status: 'warn',
         statusTag: 'Atenção preventiva',
         tagClass: 'p-warn',
@@ -1847,45 +1916,60 @@
       }
       if (activeSpot) activeSpot.classList.add('active');
 
-    // Atualiza painel instantaneamente SEM navegar para tendências
-    document.getElementById('panel-emoji').innerText = reg.emoji;
-    document.getElementById('panel-title').innerText = `${reg.num}. ${reg.label}`;
+      const panel = document.getElementById('organ-detail-panel');
+      const accentColor = STATUS_COLOR[reg.status] || '#20b2aa';
 
-    const badge = document.getElementById('panel-badge');
-    badge.innerText = reg.statusTag;
-    badge.className = 'status-pill ' + reg.tagClass;
+      if (panel) {
+        panel.style.setProperty('--panel-accent', accentColor);
+      }
 
-    document.getElementById('calc-title').innerText = reg.calcTitle;
-    document.getElementById('calc-num').innerText = reg.calcNum;
-    document.getElementById('calc-desc').innerText = reg.calcDesc;
+      // Atualiza o banner de seleção no topo do painel com destaque evidente
+      const hudPill = document.getElementById('organ-selected-hud');
+      if (hudPill) {
+        hudPill.innerHTML = `<span class="hud-dot" style="background:${accentColor};box-shadow:0 0 8px ${accentColor}"></span> 🎯 EXAMES DO ÓRGÃO SELECIONADO: #${reg.num} ${reg.label.toUpperCase()}`;
+      }
 
-    const markersContainer = document.getElementById('markers-list-container');
-    markersContainer.innerHTML = reg.markers.map(m => `
-    <div class="marker-item">
-      <div class="marker-row-1">
-        <span class="m-name">${m.name}</span>
-        <span class="m-val">${m.val}</span>
-      </div>
-      <div class="marker-row-2">
-        <span>Referência: ${m.ref}</span>
-        <span class="${m.deltaClass}">${m.delta}</span>
-      </div>
-    </div>
-  `).join('');
+      // Atualiza painel instantaneamente SEM navegar para tendências
+      document.getElementById('panel-emoji').innerText = reg.emoji;
+      document.getElementById('panel-title').innerText = `${reg.num}. ${reg.label}`;
 
-    // Efeito de feedback suave e rolagem suave se for no celular
-    const panel = document.getElementById('organ-detail-panel');
-    if (panel) {
-      panel.classList.remove('panel-flash');
-      void panel.offsetWidth;
-      panel.classList.add('panel-flash');
-      if (shouldScroll) {
-        setTimeout(() => {
-          panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 50);
+      const badge = document.getElementById('panel-badge');
+      badge.innerText = reg.statusTag;
+      badge.className = 'status-pill ' + reg.tagClass;
+
+      document.getElementById('calc-title').innerText = reg.calcTitle;
+      document.getElementById('calc-num').innerText = reg.calcNum;
+      document.getElementById('calc-desc').innerText = reg.calcDesc;
+
+      const markersContainer = document.getElementById('markers-list-container');
+      markersContainer.innerHTML = reg.markers.map(m => `
+        <div class="marker-item" style="border-left-color:${accentColor}">
+          <div class="marker-organ-tag" style="color:${accentColor}">
+            <span>${reg.emoji}</span> Exame vinculado a: ${reg.label.split('&')[0].trim()}
+          </div>
+          <div class="marker-row-1">
+            <span class="m-name">${m.name}</span>
+            <span class="m-val" style="color:${accentColor}">${m.val}</span>
+          </div>
+          <div class="marker-row-2">
+            <span>Referência: ${m.ref}</span>
+            <span class="${m.deltaClass}">${m.delta}</span>
+          </div>
+        </div>
+      `).join('');
+
+      // Efeito de feedback com pulso luminoso no card
+      if (panel) {
+        panel.classList.remove('panel-flash');
+        void panel.offsetWidth;
+        panel.classList.add('panel-flash');
+        if (shouldScroll) {
+          setTimeout(() => {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }, 40);
+        }
       }
     }
-}
 
     // TOGGLE DE COBRANÇA (MENSAL X ANUAL)
     function setBilling(cycle) {
