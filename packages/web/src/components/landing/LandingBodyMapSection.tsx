@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Box,
   Container,
@@ -137,7 +137,17 @@ const ORGANS: OrganPreview[] = [
 export const LandingBodyMapSection = () => {
   const navigate = useNavigate();
   const [selectedKey, setSelectedKey] = useState<string>('coracao');
+  const detailCardRef = useRef<HTMLDivElement>(null);
   const activeOrgan = ORGANS.find((o) => o.key === selectedKey) || ORGANS[0];
+
+  const handleSelectOrgan = (key: string, shouldScroll = true) => {
+    setSelectedKey(key);
+    if (shouldScroll && typeof window !== 'undefined') {
+      setTimeout(() => {
+        detailCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+    }
+  };
 
   return (
     <Box
@@ -151,6 +161,18 @@ export const LandingBodyMapSection = () => {
         color: '#e8eef0',
       }}
     >
+      <style>{`
+        @keyframes landingLaserScan {
+          0% { top: 0%; opacity: 0; }
+          12% { opacity: 0.95; }
+          88% { opacity: 0.95; }
+          100% { top: 98%; opacity: 0; }
+        }
+        .landing-laser-scan {
+          animation: landingLaserScan 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+      `}</style>
+
       {/* Background Glow */}
       <Box
         sx={{
@@ -233,12 +255,52 @@ export const LandingBodyMapSection = () => {
               bgcolor: '#061428',
             }}
           >
+            {/* HUD Badge */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 12,
+                left: 12,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.25,
+                py: 0.4,
+                borderRadius: '999px',
+                background: 'rgba(4, 16, 31, 0.8)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(95, 201, 195, 0.35)',
+                zIndex: 8,
+                pointerEvents: 'none',
+              }}
+            >
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#5fc9c3', boxShadow: '0 0 8px #5fc9c3' }} />
+              <Typography sx={{ fontSize: 10, fontWeight: 800, color: '#5fc9c3', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Bio-Scan Clínico
+              </Typography>
+            </Box>
+
             {/* Raio-X Base Image */}
             <Box
               component="img"
               src={`${import.meta.env.BASE_URL}body-xray.webp`}
               alt="Ilustração Raio-X Anatômica"
               sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+
+            {/* Bio-scanner laser beam */}
+            <Box
+              className="landing-laser-scan"
+              sx={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.3) 15%, #ffffff 50%, rgba(95,201,195,0.3) 85%, transparent 100%)',
+                boxShadow: '0 0 16px 3px rgba(95,201,195,0.85)',
+                pointerEvents: 'none',
+                zIndex: 6,
+              }}
             />
 
             {/* Subtle Vignette */}
@@ -260,7 +322,7 @@ export const LandingBodyMapSection = () => {
                 <Box
                   key={organ.key}
                   component="button"
-                  onClick={() => setSelectedKey(organ.key)}
+                  onClick={() => handleSelectOrgan(organ.key, true)}
                   aria-label={`Ver ${organ.name}`}
                   sx={{
                     position: 'absolute',
@@ -348,6 +410,7 @@ export const LandingBodyMapSection = () => {
 
             {/* Selected Organ Detail Card */}
             <Box
+              ref={detailCardRef}
               sx={{
                 bgcolor: 'rgba(10, 34, 58, 0.85)',
                 backdropFilter: 'blur(20px)',
@@ -356,6 +419,7 @@ export const LandingBodyMapSection = () => {
                 borderRadius: '20px',
                 p: { xs: 2.5, md: 3 },
                 boxShadow: '0 20px 48px rgba(0,0,0,0.3)',
+                scrollMarginTop: { xs: 90, md: 30 },
               }}
             >
               {/* Header */}

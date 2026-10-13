@@ -176,6 +176,9 @@ export const BodyMap = ({
     return safeList.find((r) => r.key === selectedKey) || safeList[0] || null;
   }, [safeList, selectedKey]);
 
+  const detailPanelRef = useRef<HTMLDivElement>(null);
+  const [panelFlash, setPanelFlash] = useState(false);
+
   // Cores de status acessíveis com contraste AA
   const getLevelColor = (level: RegionLevel): string => {
     if (level === 'sem_dados') return dark ? '#64748b' : '#94a3b8';
@@ -185,11 +188,21 @@ export const BodyMap = ({
     return dark ? SEM.bad.dark : SEM.bad.light;
   };
 
-  const handleSelect = (key: string) => {
+  const handleSelect = (key: string, shouldScroll = true) => {
     setSelectedKey(key);
     const reg = safeList.find((r) => r.key === key);
     if (reg && onRegionClick) {
       onRegionClick(reg);
+    }
+    // Efeito de feedback tátil e foco no painel
+    setPanelFlash(true);
+    setTimeout(() => setPanelFlash(false), 800);
+
+    // Scroll suave automático direto para os resultados correspondentes abaixo
+    if (shouldScroll && typeof window !== 'undefined') {
+      setTimeout(() => {
+        detailPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
     }
   };
 
@@ -250,24 +263,48 @@ export const BodyMap = ({
         overflow: 'hidden',
       }}
     >
-      {/* Keyframes de pulso sutil e aceleração GPU */}
+      {/* Keyframes de pulso sutil, bio-scanner laser e aceleração GPU */}
       <style>{`
         @keyframes subtleOrganPulse {
           0%, 100% { transform: scale(1); opacity: 0.95; }
           50% { transform: scale(1.18); opacity: 0.65; }
         }
         @keyframes organRingPing {
-          0% { transform: scale(0.8); opacity: 0.8; }
-          70%, 100% { transform: scale(2.2); opacity: 0; }
+          0% { transform: scale(0.8); opacity: 0.85; }
+          70%, 100% { transform: scale(2.3); opacity: 0; }
+        }
+        @keyframes bioScanLaser {
+          0% { top: 0%; opacity: 0; }
+          10% { opacity: 0.95; }
+          90% { opacity: 0.95; }
+          100% { top: 98%; opacity: 0; }
+        }
+        @keyframes radarSpin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        @keyframes panelGlowFlash {
+          0% { transform: scale(0.99); box-shadow: 0 0 0 3px rgba(95,201,195,0.6); }
+          50% { transform: scale(1.008); box-shadow: 0 0 0 6px rgba(95,201,195,0.3); }
+          100% { transform: scale(1); }
         }
         .organ-pulse-active {
           animation: subtleOrganPulse 3s ease-in-out infinite;
         }
         .organ-ring-ping {
-          animation: organRingPing 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+          animation: organRingPing 2.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        .bio-scan-laser-beam {
+          animation: bioScanLaser 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+        }
+        .radar-reticle {
+          animation: radarSpin 12s linear infinite;
+        }
+        .panel-flash-glow {
+          animation: panelGlowFlash 0.7s ease-out;
         }
         @media (prefers-reduced-motion: reduce) {
-          .organ-pulse-active, .organ-ring-ping {
+          .organ-pulse-active, .organ-ring-ping, .bio-scan-laser-beam, .radar-reticle, .panel-flash-glow {
             animation: none !important;
           }
         }
@@ -280,12 +317,12 @@ export const BodyMap = ({
             🩺 Mapa do seu Corpo
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-            Toque em um órgão para ver os exames e a faixa de cada sistema.
+            Toque nos pontos brilhantes do corpo para rolar direto aos exames e laudos do órgão.
           </Typography>
         </Box>
         <Chip
           size="small"
-          label="Visualização Anatômica"
+          label="Bio-Scanner Clínico"
           sx={{
             fontWeight: 700,
             fontSize: 11,
@@ -305,7 +342,7 @@ export const BodyMap = ({
           alignItems: 'start',
         }}
       >
-        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos */}
+        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos e Bio-Scanner */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <Box
             sx={{
@@ -313,14 +350,59 @@ export const BodyMap = ({
               width: '100%',
               maxWidth: { xs: 260, sm: 290 },
               aspectRatio: '720/964',
-              borderRadius: '18px',
+              borderRadius: '20px',
               overflow: 'hidden',
               background: '#04101f',
-              boxShadow: '0 12px 36px rgba(0,0,0,0.25), 0 0 0 1px rgba(95,201,195,0.2)',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(95,201,195,0.25)',
               userSelect: 'none',
               touchAction: 'manipulation',
             }}
           >
+            {/* HUD Badge de Bio-Scan no topo do Raio-X */}
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 10,
+                left: 10,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.2,
+                py: 0.45,
+                borderRadius: '999px',
+                background: 'rgba(4, 16, 31, 0.78)',
+                backdropFilter: 'blur(8px)',
+                border: '1px solid rgba(95, 201, 195, 0.35)',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                zIndex: 8,
+                pointerEvents: 'none',
+              }}
+            >
+              <Box
+                sx={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: '50%',
+                  bgcolor: '#5fc9c3',
+                  boxShadow: '0 0 8px #5fc9c3',
+                  animation: 'subtleOrganPulse 2s infinite',
+                }}
+              />
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  letterSpacing: '0.06em',
+                  color: '#5fc9c3',
+                  textTransform: 'uppercase',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              >
+                Bio-Scan Ativo
+              </Typography>
+            </Box>
+
             {/* Imagem de base raio-x leve (WebP 24KB) */}
             <Box
               component="img"
@@ -337,17 +419,32 @@ export const BodyMap = ({
               }}
             />
 
-            {/* Linha sutil de scanner clínico */}
+            {/* Feixe Laser Bio-Scanner Animado que percorre o corpo */}
+            <Box
+              className="bio-scan-laser-beam"
+              sx={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                height: '2px',
+                background: 'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.25) 15%, #ffffff 50%, rgba(95,201,195,0.25) 85%, transparent 100%)',
+                boxShadow: '0 0 14px 3px rgba(95,201,195,0.85), 0 0 28px rgba(95,201,195,0.4)',
+                pointerEvents: 'none',
+                zIndex: 6,
+              }}
+            />
+
+            {/* Vinheta cônica/radial para visual de diagnóstico cibernético */}
             <Box
               sx={{
                 position: 'absolute',
                 inset: 0,
-                background: 'radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(2, 8, 20, 0.55))',
+                background: 'radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(2, 8, 20, 0.62))',
                 pointerEvents: 'none',
               }}
             />
 
-            {/* Hotspots dos Órgãos Posicionados com Precisão */}
+            {/* Hotspots dos Órgãos Posicionados com Precisão e Clicáveis */}
             {safeList.map((reg) => {
               const spot = ANATOMICAL_HOTSPOTS[reg.key];
               if (!spot) return null;
@@ -358,66 +455,90 @@ export const BodyMap = ({
               const hasData = reg.level !== 'sem_dados';
 
               return (
-                <Box
+                <Tooltip
                   key={reg.key}
-                  component="button"
-                  type="button"
-                  onClick={() => handleSelect(reg.key)}
-                  aria-label={`${reg.label}: ${LEVEL_LABEL[reg.level]}`}
-                  sx={{
-                    position: 'absolute',
-                    left: `${spot.x}%`,
-                    top: `${spot.y}%`,
-                    transform: 'translate(-50%, -50%)',
-                    width: isSelected ? 44 : 36,
-                    height: isSelected ? 44 : 36,
-                    border: 0,
-                    background: 'none',
-                    p: 0,
-                    cursor: 'pointer',
-                    zIndex: isSelected ? 10 : 4,
-                    display: 'grid',
-                    placeItems: 'center',
-                    transition: 'transform 0.2s ease, width 0.2s ease, height 0.2s ease',
-                    '&:focus-visible': {
-                      outline: `2px solid #5fc9c3`,
-                      outlineOffset: 3,
-                    },
-                  }}
+                  title={`${reg.emoji} ${reg.label} — ${LEVEL_LABEL[reg.level]} (toque para ver exames)`}
+                  arrow
+                  placement="top"
+                  enterTouchDelay={0}
                 >
-                  {/* Halo de pulso sutil em caso de alteração/atenção */}
-                  {hasAlert && (
+                  <Box
+                    component="button"
+                    type="button"
+                    onClick={() => handleSelect(reg.key, true)}
+                    aria-label={`${reg.label}: ${LEVEL_LABEL[reg.level]}`}
+                    sx={{
+                      position: 'absolute',
+                      left: `${spot.x}%`,
+                      top: `${spot.y}%`,
+                      transform: 'translate(-50%, -50%)',
+                      width: isSelected ? 46 : 38,
+                      height: isSelected ? 46 : 38,
+                      border: 0,
+                      background: 'none',
+                      p: 0,
+                      cursor: 'pointer',
+                      zIndex: isSelected ? 12 : 5,
+                      display: 'grid',
+                      placeItems: 'center',
+                      transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.2s ease, height 0.2s ease',
+                      '&:hover': {
+                        transform: 'translate(-50%, -50%) scale(1.15)',
+                      },
+                      '&:focus-visible': {
+                        outline: `2px solid #5fc9c3`,
+                        outlineOffset: 3,
+                      },
+                    }}
+                  >
+                    {/* Retícula/Mira cibernética giratória no órgão ativo */}
+                    {isSelected && (
+                      <Box
+                        className="radar-reticle"
+                        sx={{
+                          position: 'absolute',
+                          inset: 1,
+                          borderRadius: '50%',
+                          border: `1.5px dashed ${alpha(col, 0.85)}`,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
+
+                    {/* Halo de pulso sutil em caso de alteração/atenção */}
+                    {hasAlert && (
+                      <Box
+                        className="organ-ring-ping"
+                        sx={{
+                          position: 'absolute',
+                          inset: 4,
+                          borderRadius: '50%',
+                          border: `2px solid ${col}`,
+                          pointerEvents: 'none',
+                        }}
+                      />
+                    )}
+
+                    {/* Núcleo do Hotspot Colorido */}
                     <Box
-                      className="organ-ring-ping"
+                      className={hasAlert ? 'organ-pulse-active' : undefined}
                       sx={{
-                        position: 'absolute',
-                        inset: 4,
+                        width: isSelected ? 22 : 16,
+                        height: isSelected ? 22 : 16,
                         borderRadius: '50%',
-                        border: `2px solid ${col}`,
-                        pointerEvents: 'none',
+                        bgcolor: col,
+                        boxShadow: isSelected
+                          ? `0 0 18px 4px ${col}, 0 0 32px ${alpha(col, 0.7)}`
+                          : hasData
+                          ? `0 0 12px 2px ${alpha(col, 0.85)}`
+                          : 'none',
+                        border: isSelected ? '2.5px solid #ffffff' : '1.5px solid rgba(255,255,255,0.75)',
+                        opacity: hasData ? 1 : 0.45,
+                        transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}
                     />
-                  )}
-
-                  {/* Núcleo do Hotspot */}
-                  <Box
-                    className={hasAlert ? 'organ-pulse-active' : undefined}
-                    sx={{
-                      width: isSelected ? 22 : 16,
-                      height: isSelected ? 22 : 16,
-                      borderRadius: '50%',
-                      bgcolor: col,
-                      boxShadow: isSelected
-                        ? `0 0 16px 4px ${col}, 0 0 28px ${alpha(col, 0.6)}`
-                        : hasData
-                        ? `0 0 10px 2px ${alpha(col, 0.8)}`
-                        : 'none',
-                      border: isSelected ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.7)',
-                      opacity: hasData ? 1 : 0.45,
-                      transition: 'all 0.2s ease',
-                    }}
-                  />
-                </Box>
+                  </Box>
+                </Tooltip>
               );
             })}
           </Box>
@@ -435,6 +556,7 @@ export const BodyMap = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.ok.dark : SEM.ok.light }} />
               Normal
+
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? '#64748b' : '#94a3b8' }} />
@@ -444,9 +566,18 @@ export const BodyMap = ({
         </Box>
 
         {/* COLUNA 2: Detalhes Ricos do Órgão Selecionado */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        <Box
+          ref={detailPanelRef}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: 0,
+            scrollMarginTop: { xs: '84px', md: '24px' },
+          }}
+        >
           {activeRegion ? (
             <Box
+              className={panelFlash ? 'panel-flash-glow' : undefined}
               sx={{
                 borderRadius: '16px',
                 p: { xs: 2, sm: 2.5 },
@@ -454,7 +585,7 @@ export const BodyMap = ({
                 border: '1px solid',
                 borderColor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.35 : 0.25),
                 boxShadow: (t) => `0 4px 20px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.12 : 0.06)}`,
-                transition: 'border-color 0.25s ease, box-shadow 0.25s ease',
+                transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
               }}
             >
               {/* Header do Sistema */}
