@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Exame — Dashboard Completo de Produção (Todas as Funcionalidades Integradas)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #20b2aa;
+      --teal-d: #178f89;
+      --teal-neon: #5fc9c3;
+      --teal-deep: #0f5f5a;
+      
+      --bg-dark: #040c17;
+      --bg-app: #f4f8f8;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-sub: #64748b;
+      
+      --ok: #059669;
+      --ok-bg: rgba(5, 150, 105, 0.12);
+      --warn: #f59e0b;
+      --warn-bg: rgba(245, 158, 11, 0.15);
+      --bad: #ef4444;
+      --bad-bg: rgba(239, 68, 68, 0.12);
+      --neutral: #94a3b8;
+      
+      --border-light: rgba(15, 95, 90, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #040c17;
+      color: #f1f5f9;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOPBAR */
+    .preview-bar {
+      background: #07172b;
+      border-bottom: 1px solid rgba(95, 201, 195, 0.2);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+    }
+
+    .preview-brand {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 800;
+      font-size: 19px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .preview-brand span {
+      font-size: 11px;
+      background: linear-gradient(135deg, var(--teal), var(--teal-d));
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-top {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      color: #f8fafc;
+      padding: 7px 16px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-top:hover {
+      background: rgba(95, 201, 195, 0.18);
+      border-color: var(--teal-neon);
+      color: var(--teal-neon);
+    }
+
+    /* CANVAS CENTRALIZADO */
+    .mock-canvas {
+      flex: 1;
+      padding: 24px 16px 80px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      background: radial-gradient(circle at 50% 10%, rgba(32, 178, 170, 0.08) 0%, transparent 60%);
+    }
+
+    /* PHONE FRAME DE ALTA FIDELIDADE */
+    .phone-container {
+      width: 100%;
+      max-width: 440px;
+      background: var(--bg-app);
+      color: var(--text-main);
+      border-radius: 46px;
+      border: 12px solid #132237;
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.75), 0 0 0 2px rgba(95, 201, 195, 0.35);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 890px;
+    }
+
+    .phone-notch {
+      width: 130px;
+      height: 24px;
+      background: #132237;
+      border-radius: 0 0 16px 16px;
+      margin: 0 auto;
+      flex-shrink: 0;
+    }
+
+    .phone-scroll-body {
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scrollbar-width: none;
+    }
+    .phone-scroll-body::-webkit-scrollbar { display: none; }
+
+    /* 1. HEADER DO APP */
+    .app-header-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .user-greet-name {
+      font-family: 'Poppins', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .user-greet-sub {
+      font-size: 11.5px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .score-badge-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #ffffff;
+      padding: 5px 12px 5px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(15, 95, 90, 0.15);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+    }
+    .score-badge-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 900;
+      font-size: 14px;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.35);
+    }
+
+    /* 2. CÁPSULA DE ÁUDIO NO TOPO (Padrão Audio-First) */
+    .hero-audio-card {
+      background: linear-gradient(135deg, #f0fdfa 0%, #e6f7f6 60%, #ffffff 100%);
+      border: 1.5px solid rgba(32, 178, 170, 0.35);
+      border-radius: 18px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(32, 178, 170, 0.1);
+    }
+    .audio-row-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+    }
+    .btn-audio-play-circle {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #20b2aa 0%, #178f89 100%);
+      color: #fff;
+      border: none;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-shadow: 0 4px 12px rgba(32, 178, 170, 0.35);
+      transition: transform 0.2s;
+    }
+    .btn-audio-play-circle:hover { transform: scale(1.06); }
+    .audio-title-txt {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .audio-sub-txt {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 1px;
+    }
+    .audio-row-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(32, 178, 170, 0.15);
+    }
+    .soundwave-visualizer {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      height: 20px;
+    }
+    .sw-bar {
+      width: 3px;
+      background: var(--teal);
+      border-radius: 999px;
+      opacity: 0.45;
+      transition: height 0.2s ease;
+    }
+    .soundwave-visualizer.playing .sw-bar {
+      opacity: 1;
+      animation: soundwaveBeat 0.9s ease-in-out infinite alternate;
+    }
+    .sw-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
+    .sw-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+    .sw-bar:nth-child(3) { height: 18px; animation-delay: 0.3s; }
+    .sw-bar:nth-child(4) { height: 10px; animation-delay: 0.15s; }
+    .sw-bar:nth-child(5) { height: 20px; animation-delay: 0.25s; }
+    .sw-bar:nth-child(6) { height: 14px; animation-delay: 0.35s; }
+    .sw-bar:nth-child(7) { height: 8px; animation-delay: 0.05s; }
+    .sw-bar:nth-child(8) { height: 16px; animation-delay: 0.4s; }
+
+    @keyframes soundwaveBeat {
+      0% { transform: scaleY(0.4); }
+      100% { transform: scaleY(1.3); }
+    }
+
+    .spd-btn {
+      border: none;
+      background: none;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #64748b;
+      padding: 2px 6px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+    .spd-btn.active {
+      background: var(--teal);
+      color: #fff;
+    }
+
+    /* 3. HERO DE STATUS & AÇÃO */
+    .hero-summary-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 16px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .status-alert-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #b45309;
+      background: rgba(245, 158, 11, 0.12);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .hero-actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .btn-main-act {
+      flex: 1;
+      padding: 11px 16px;
+      background: linear-gradient(135deg, #20b2aa 0%, #178f89 100%);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(32, 178, 170, 0.3);
+      transition: all 0.2s ease;
+    }
+    .btn-sec-act {
+      padding: 11px 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: var(--teal-d);
+      font-size: 12.5px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+
+    /* 4. OS 4 KPIS OFICIAIS (Alterados, Exames, Idade Biológica, Cardiorrisco) */
+    .kpis-2x2-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .kpi-soft-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .kpi-soft-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--teal);
+    }
+    .kpi-title-txt {
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #64748b;
+    }
+    .kpi-number-txt {
+      font-family: 'Poppins', sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1.2;
+      margin-top: 1px;
+    }
+    .kpi-sub-txt {
+      font-size: 10.5px;
+      color: #94a3b8;
+    }
+    .kpi-mini-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    /* 5. MAPA DO CORPO 13 REGIÕES (SEMPRE PRESENTE NO CENTRO!) */
+    .bodymap-main-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    }
+    .bodymap-head-row {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    @media (min-width: 360px) {
+      .bodymap-head-row {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+    .bodymap-h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .reg-count-pill {
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--teal-d);
+      background: rgba(32, 178, 170, 0.12);
+      border: 1px solid rgba(32, 178, 170, 0.25);
+      padding: 2px 7px;
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+    .bodymap-badge {
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--teal-d);
+      background: rgba(32, 178, 170, 0.12);
+      border: 1px solid rgba(32, 178, 170, 0.3);
+      padding: 3px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .organ-chips-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+      scrollbar-width: none;
+    }
+    .organ-chips-scroll::-webkit-scrollbar { display: none; }
+    .org-chip-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+    .org-chip-item.active {
+      background: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+    .chip-mini-badge {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: #0f172a;
+      font-size: 9.5px;
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+    }
+
+    .bodymap-scanner-viewport {
+      position: relative;
+      width: 100%;
+      max-width: 290px;
+      aspect-ratio: 720/964;
+      margin: 0 auto;
+      background: radial-gradient(circle at 50% 40%, rgba(32, 178, 170, 0.14) 0%, rgba(15, 23, 42, 0.02) 75%);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(32, 178, 170, 0.2);
+    }
+    .bodymap-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: drop-shadow(0 0 12px rgba(32, 178, 170, 0.3));
+    }
+    .laser-beam-bar {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--teal-neon), transparent);
+      box-shadow: 0 0 12px var(--teal-neon);
+      animation: laserScroll 3.8s ease-in-out infinite;
+      z-index: 5;
+      pointer-events: none;
+    }
+    @keyframes laserScroll {
+      0% { top: 0%; opacity: 0; }
+      15% { opacity: 1; }
+      85% { opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+
+    .spot-btn {
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: #ffffff;
+      border: 2px solid var(--teal);
+      color: var(--teal-d);
+      font-family: 'Poppins', sans-serif;
+      font-size: 11px;
+      font-weight: 900;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+      z-index: 10;
+      transform: translate(-50%, -50%);
+      transition: all 0.2s ease;
+    }
+    .spot-btn.active {
+      transform: translate(-50%, -50%) scale(1.25);
+      background: var(--teal);
+      color: #ffffff;
+      box-shadow: 0 0 14px var(--teal-neon);
+      border-color: #ffffff;
+    }
+    .spot-btn.s-warn { border-color: var(--warn); color: #b45309; }
+    .spot-btn.s-warn.active { background: var(--warn); color: #fff; box-shadow: 0 0 14px var(--warn); }
+
+    .organ-info-card {
+      background: #f8fafc;
+      border: 1.5px solid var(--teal);
+      border-radius: 16px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .organ-info-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .organ-name-badge {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .organ-status-tag {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .organ-status-tag.ok { background: rgba(5, 150, 105, 0.12); color: #059669; }
+    .organ-status-tag.warn { background: rgba(245, 158, 11, 0.15); color: #b45309; }
+
+    /* 6. O QUE MUDOU NO SEU ÚLTIMO EXAME */
+    .section-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    }
+    .section-title-clean {
+      font-family: 'Poppins', sans-serif;
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .delta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+      font-size: 12px;
+    }
+
+    /* 7. DICA DA IA DR. EXAME */
+    .ai-tip-card {
+      background: linear-gradient(135deg, rgba(32, 178, 170, 0.1) 0%, rgba(15, 95, 90, 0.04) 100%);
+      border: 1px solid rgba(32, 178, 170, 0.25);
+      border-radius: 16px;
+      padding: 12px 14px;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    /* 8. ÍNDICES CLÍNICOS ESPECIAIS (HOMA-IR, FIB-4) */
+    .indices-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .index-mini-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    /* 9. SAÚDE MENTAL (PHQ-9 / GAD-7) */
+    .mental-row-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding: 8px 10px;
+      background: #f8fafc;
+      border-radius: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    .progress-bar-thin {
+      height: 5px;
+      border-radius: 999px;
+      background: #e2e8f0;
+      overflow: hidden;
+    }
+
+    /* 10. MÓDULO INTELIGENTE DO SMARTWATCH */
+    .smartwatch-smart-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sim-banner-box {
+      background: #f0fdfa;
+      border: 1px dashed var(--teal);
+      border-radius: 12px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--teal-d);
+    }
+    .sim-toggle-pill {
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--teal);
+      background: #fff;
+      font-weight: 800;
+      font-size: 10.5px;
+      cursor: pointer;
+      color: var(--teal-d);
+    }
+    .sim-toggle-pill.active { background: var(--teal-d); color: #fff; }
+
+    /* FOOTER */
+    .app-footer-credit {
+      text-align: center;
+      font-size: 11px;
+      color: #94a3b8;
+      padding: 12px 0 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="preview-bar">
+    <div class="preview-brand">
+      🩺 Dr. Exame <span>Todas as Funcionalidades Integradas</span>
+    </div>
+    <a href="preview-app-dashboard-bodymap.html" class="btn-top">
+      ← Voltar ao Mock Anterior
+    </a>
+  </header>
+
+  <main class="mock-canvas">
+    
+    <div class="phone-container">
+      <div class="phone-notch"></div>
+
+      <div class="phone-scroll-body">
+        
+        <!-- 1. HEADER DO APP -->
+        <div class="app-header-box">
+          <div>
+            <h2 class="user-greet-name">Olá, Edmilson 👋</h2>
+            <p class="user-greet-sub">Plano Anual Saúde Total · 3 laudos analisados</p>
+          </div>
+          <div class="score-badge-pill">
+            <div class="score-badge-circle">84</div>
+            <div>
+              <div style="font-size:9.5px; color:#64748b; font-weight:700;">SCORE</div>
+              <div style="font-size:11px; font-weight:800; color:#059669;">Excelente</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. CÁPSULA DE ÁUDIO NO TOPO (EXECUTIVE SUMMARY) -->
+        <section class="hero-audio-card">
+          <div class="audio-row-top">
+            <button class="btn-audio-play-circle" id="btnPlayVoice" onclick="toggleAudio()" aria-label="Ouvir laudo">
+              <span id="playIcon">▶</span>
+            </button>
+            <div style="flex:1; min-width:0;">
+              <div class="audio-title-txt">Dr. Exame Explica em Áudio</div>
+              <div class="audio-sub-txt" id="audioSubTxt">Toque para ouvir a síntese dos seus exames em 1 min</div>
+            </div>
+            <span style="font-size:10px; font-weight:800; color:var(--teal-d); background:rgba(32,178,170,0.14); padding:2px 7px; border-radius:999px;">
+              Voz IA
+            </span>
+          </div>
+
+          <div class="audio-row-bottom">
+            <div class="soundwave-visualizer" id="soundwaveBars">
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+              <span class="sw-bar"></span>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:3px;">
+              <button class="spd-btn active" onclick="setSpeed(1.0, this)">1.0x</button>
+              <button class="spd-btn" onclick="setSpeed(1.25, this)">1.25x</button>
+              <button class="spd-btn" onclick="setSpeed(1.5, this)">1.5x</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. HERO HEALTH: STATUS CLÍNICO & AÇÕES RÁPIDAS -->
+        <section class="hero-summary-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="status-alert-pill">
+              ● 1 marcador requer atenção moderada
+            </span>
+            <span style="font-size:11px; color:#64748b;">Exame de 29/09</span>
+          </div>
+          <p style="font-size:12px; color:#334155; line-height:1.4;">
+            Perfil lipídico e função hepática excelentes. Apenas a <b>Glicemia em jejum (104 mg/dL)</b> requer ajuste preventivo.
+          </p>
+          <div class="hero-actions-row">
+            <button class="btn-main-act" onclick="alert('Abrindo análise completa dos 32 marcadores...')">
+              Ver Análise Completa →
+            </button>
+            <button class="btn-sec-act" onclick="alert('Chat IA aberto com contexto dos seus exames!')">
+              💬 Dúvidas
+            </button>
+          </div>
+        </section>
+
+        <!-- 4. OS 4 KPIS OFICIAIS (Alterados, Exames, Idade Biológica, Cardiorrisco) -->
+        <div class="kpis-2x2-grid">
+          <div class="kpi-soft-card" onclick="alert('Marcadores fora da faixa: Glicemia (104 mg/dL)')">
+            <div>
+              <div class="kpi-title-txt">Alterados</div>
+              <div class="kpi-number-txt" style="color:#b45309;">1</div>
+              <div class="kpi-sub-txt">de 32 marcadores</div>
+            </div>
+            <div class="kpi-mini-icon" style="background:rgba(245, 158, 11, 0.12); color:#b45309;">⚠️</div>
+          </div>
+
+          <div class="kpi-soft-card" onclick="alert('3 laudos analisados no seu histórico.')">
+            <div>
+              <div class="kpi-title-txt">Exames</div>
+              <div class="kpi-number-txt" style="color:var(--teal-d);">3</div>
+              <div class="kpi-sub-txt">último há 14 dias</div>
+            </div>
+            <div class="kpi-mini-icon" style="background:rgba(32, 178, 170, 0.12); color:var(--teal-d);">📄</div>
+          </div>
+
+          <div class="kpi-soft-card" onclick="alert('Idade Biológica PhenoAge calculada por 9 biomarcadores.')">
+            <div>
+              <div class="kpi-title-txt">Idade Biológica</div>
+              <div class="kpi-number-txt" style="color:#059669;">31 anos</div>
+              <div class="kpi-sub-txt">3 anos mais jovem</div>
+            </div>
+            <div class="kpi-mini-icon" style="background:rgba(5, 150, 105, 0.12); color:#059669;">🧬</div>
+          </div>
+
+          <div class="kpi-soft-card" onclick="alert('Cardiorrisco Baixo baseado no Framingham Score.')">
+            <div>
+              <div class="kpi-title-txt">Cardiorrisco</div>
+              <div class="kpi-number-txt" style="color:#059669;">Baixo</div>
+              <div class="kpi-sub-txt">sem fatores críticos</div>
+            </div>
+            <div class="kpi-mini-icon" style="background:rgba(5, 150, 105, 0.12); color:#059669;">❤️</div>
+          </div>
+        </div>
+
+        <!-- 5. O MAPA DO CORPO (13 REGIÕES) — A ATRAÇÃO PRINCIPAL, NO CORAÇÃO DO APP! -->
+        <section class="bodymap-main-card">
+          <div class="bodymap-head-row">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-width:0;">
+              <h3 class="bodymap-h3">🫀 Mapa do seu Corpo</h3>
+              <span class="reg-count-pill">13 Regiões</span>
+            </div>
+            <span class="bodymap-badge">Bio-Scan Clínico</span>
+          </div>
+
+          <p style="font-size:11.5px; color:#64748b;">
+            Toque nos pontos ou nos nomes abaixo para ver os exames de cada órgão:
+          </p>
+
+          <!-- SELETOR HORIZONTAL RÁPIDO DOS 13 ÓRGÃOS -->
+          <div class="organ-chips-scroll" id="organChipsContainer"></div>
+
+          <!-- RAIO-X COM LASER E OS 13 HOTSPOTS ANATÔMICOS -->
+          <div class="bodymap-scanner-viewport">
+            <div class="laser-beam-bar"></div>
+            <img src="packages/web/public/body-xray.webp" class="bodymap-img" alt="Raio-X Anatômico 13 Regiões"
+                 onerror="this.src='https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&w=600&q=80'">
+            
+            <div class="spot-btn" style="top:12%; left:50%;" onclick="pickOrgan(1)">1</div>
+            <div class="spot-btn" style="top:19%; left:50%;" onclick="pickOrgan(2)">2</div>
+            <div class="spot-btn" style="top:27%; left:37%;" onclick="pickOrgan(3)">3</div>
+            <div class="spot-btn" style="top:28%; left:55%;" onclick="pickOrgan(4)">4</div>
+            <div class="spot-btn" style="top:35%; left:42%;" onclick="pickOrgan(5)">5</div>
+            <div class="spot-btn s-warn active" style="top:39%; left:52%;" onclick="pickOrgan(6)">6</div>
+            <div class="spot-btn" style="top:44%; left:39%;" onclick="pickOrgan(7)">7</div>
+            <div class="spot-btn" style="top:47%; left:50%;" onclick="pickOrgan(8)">8</div>
+            <div class="spot-btn" style="top:53%; left:50%;" onclick="pickOrgan(9)">9</div>
+            <div class="spot-btn" style="top:32%; left:22%;" onclick="pickOrgan(10)">10</div>
+            <div class="spot-btn" style="top:32%; left:78%;" onclick="pickOrgan(11)">11</div>
+            <div class="spot-btn" style="top:74%; left:38%;" onclick="pickOrgan(12)">12</div>
+            <div class="spot-btn" style="top:74%; left:62%;" onclick="pickOrgan(13)">13</div>
+          </div>
+
+          <!-- PAINEL DE RESULTADOS DO ÓRGÃO CLICADO -->
+          <div class="organ-info-card" id="organDetailBox">
+            <div class="organ-info-top">
+              <div class="organ-name-badge">
+                <span id="orgIcon">⚡</span>
+                <span id="orgTitle">6. Pâncreas & Metabolismo</span>
+              </div>
+              <span class="organ-status-tag warn" id="orgStatusTag">Atenção Preventiva</span>
+            </div>
+            <p style="font-size:12px; color:#475569; line-height:1.4;" id="orgDescText">
+              Glicemia de jejum em 104 mg/dL (limítrofe). Hemoglobina glicada normal em 5.4%. Sugere redução de carboidratos refinados no período noturno.
+            </p>
+            <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:6px; border-top:1px dashed #e2e8f0;">
+              <span>Exame: Glicemia em Jejum (104 mg/dL)</span>
+              <span style="font-weight:700; color:var(--teal-d); cursor:pointer;">Ver Gráfico →</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. O QUE MUDOU NO SEU ÚLTIMO EXAME (ChangesSinceExam) -->
+        <section class="section-card">
+          <div class="section-title-clean">
+            <span>📈 O que mudou desde o último exame</span>
+            <span style="font-size:11px; color:var(--teal-d); font-weight:700; cursor:pointer;">Ver evolução →</span>
+          </div>
+          <div class="delta-row">
+            <div>
+              <b style="font-size:12px;">Colesterol Total</b>
+              <span style="color:#64748b; font-size:10.5px; display:block;">198 mg/dL (era 216 mg/dL)</span>
+            </div>
+            <span style="color:#059669; font-weight:800; background:rgba(5, 150, 105, 0.12); padding:3px 7px; border-radius:6px; font-size:11px;">
+              ↓ -18 mg/dL (Melhorou)
+            </span>
+          </div>
+          <div class="delta-row">
+            <div>
+              <b style="font-size:12px;">Glicemia em Jejum</b>
+              <span style="color:#64748b; font-size:10.5px; display:block;">104 mg/dL (era 98 mg/dL)</span>
+            </div>
+            <span style="color:#b45309; font-weight:800; background:rgba(245, 158, 11, 0.12); padding:3px 7px; border-radius:6px; font-size:11px;">
+              ↑ +6 mg/dL (Atenção)
+            </span>
+          </div>
+        </section>
+
+        <!-- 7. DICA DA IA DR. EXAME (AiCard) -->
+        <div class="ai-tip-card">
+          <span style="font-size:22px;">🤖</span>
+          <div>
+            <b style="font-size:12.5px; color:var(--teal-deep); display:block; font-family:'Poppins',sans-serif;">Dica Personalizada da IA:</b>
+            <p style="font-size:11.5px; color:#334155; line-height:1.4; margin-top:2px;">
+              Sua queda no colesterol indica que seus hábitos recentes estão funcionando! Para apoiar o pâncreas na glicemia, experimente caminhadas leves de 15 min após o jantar.
+            </p>
+          </div>
+        </div>
+
+        <!-- 8. ÍNDICES CLÍNICOS ESPECIAIS (HOMA-IR, FIB-4, TG/HDL) -->
+        <section class="section-card">
+          <div class="section-title-clean">
+            <span>🔬 Índices Clínicos Especiais (Sem Alucinação)</span>
+          </div>
+          <div class="indices-grid">
+            <div class="index-mini-box">
+              <span style="font-size:9.5px; font-weight:700; color:#64748b; display:block;">HOMA-IR</span>
+              <b style="font-family:'Poppins',sans-serif; font-size:15px; color:#059669;">1.4</b>
+              <span style="font-size:9.5px; color:#64748b; display:block;">Normal</span>
+            </div>
+            <div class="index-mini-box">
+              <span style="font-size:9.5px; font-weight:700; color:#64748b; display:block;">TG / HDL</span>
+              <b style="font-family:'Poppins',sans-serif; font-size:15px; color:#059669;">1.8</b>
+              <span style="font-size:9.5px; color:#64748b; display:block;">Ótimo</span>
+            </div>
+            <div class="index-mini-box">
+              <span style="font-size:9.5px; font-weight:700; color:#64748b; display:block;">FIB-4 (Fígado)</span>
+              <b style="font-family:'Poppins',sans-serif; font-size:15px; color:#059669;">0.85</b>
+              <span style="font-size:9.5px; color:#64748b; display:block;">Baixo risco</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 9. RASTREAMENTO DE SAÚDE MENTAL (PHQ-9 / GAD-7) -->
+        <section class="section-card">
+          <div class="section-title-clean">
+            <span>🧠 Saúde Mental Integrada</span>
+            <span style="font-size:11px; color:var(--teal-d); font-weight:700; cursor:pointer;" onclick="alert('Iniciando triagem rápida...')">Refazer →</span>
+          </div>
+          <div class="mental-row-box">
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700;">
+              <span>PHQ-9 (Humor / Bem-Estar)</span>
+              <span style="color:#059669;">Score 3 / 27 (Mínimo)</span>
+            </div>
+            <div class="progress-bar-thin">
+              <div style="width:15%; height:100%; background:#059669;"></div>
+            </div>
+          </div>
+          <div class="mental-row-box">
+            <div style="display:flex; justify-content:space-between; font-size:11px; font-weight:700;">
+              <span>GAD-7 (Ansiedade)</span>
+              <span style="color:var(--teal-d);">Score 4 / 21 (Leve)</span>
+            </div>
+            <div class="progress-bar-thin">
+              <div style="width:20%; height:100%; background:var(--teal-d);"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 10. CARD INTELIGENTE DO SMARTWATCH / ATIVIDADE (A SOLUÇÃO PERFEITA!) -->
+        <div class="sim-banner-box">
+          <span>🧪 <b>Teste aqui o Relógio:</b></span>
+          <div style="display:flex; gap:6px;">
+            <button class="sim-toggle-pill active" id="btnSimRelogioOn" onclick="setWatchSim(true)">
+              ⌚ Conectado
+            </button>
+            <button class="sim-toggle-pill" id="btnSimRelogioOff" onclick="setWatchSim(false)">
+              ❌ Sem Relógio
+            </button>
+          </div>
+        </div>
+
+        <!-- SE CONECTADO: Card compacto que correlaciona passos aos exames -->
+        <section class="smartwatch-smart-card" id="watchConnectedBox">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:16px;">⌚</span>
+              <b style="font-size:13px; font-family:'Poppins',sans-serif;">Atividade Física (Smartwatch)</b>
+            </div>
+            <span style="font-size:10px; font-weight:800; color:#059669; background:rgba(5,150,105,0.12); padding:2px 8px; border-radius:999px;">
+              Sincronizado
+            </span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+              <span style="font-size:10px; color:#64748b; font-weight:700;">PASSOS HOJE</span>
+              <div style="font-family:'Poppins',sans-serif; font-size:16px; font-weight:800;">8.420</div>
+              <span style="font-size:9.5px; color:#059669; font-weight:700;">84% da meta</span>
+            </div>
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:8px 10px;">
+              <span style="font-size:10px; color:#64748b; font-weight:700;">FC EM REPOUSO</span>
+              <div style="font-family:'Poppins',sans-serif; font-size:16px; font-weight:800;">59 bpm</div>
+              <span style="font-size:9.5px; color:#059669; font-weight:700;">Condicionamento alto</span>
+            </div>
+          </div>
+          <p style="font-size:11px; color:#334155; line-height:1.35; padding:6px 8px; background:rgba(32,178,170,0.08); border-radius:8px;">
+            💡 <b>Cruzamento Clínico:</b> Sua média de passos está correlacionada à melhora do seu colesterol.
+          </p>
+        </section>
+
+        <!-- SE NÃO CONECTADO: Convite discreto de 1 linha (ZERO POLUIÇÃO VISUAL!) -->
+        <section class="smartwatch-smart-card" id="watchDisconnectedBox" style="display:none; text-align:center; padding:14px;">
+          <b style="font-size:12.5px;">Usa Smartwatch ou Google Fit?</b>
+          <p style="font-size:11px; color:#64748b; margin-top:2px; margin-bottom:8px;">
+            Você pode sincronizar seus passos para refinar sua Idade Biológica. (Opcional)
+          </p>
+          <button style="background:var(--teal-d); color:#fff; border:none; padding:6px 14px; border-radius:999px; font-size:11px; font-weight:700; cursor:pointer;" onclick="setWatchSim(true)">
+            Conectar Dispositivo
+          </button>
+        </section>
+
+        <!-- 11. PANORAMA DOS MARCADORES -->
+        <section class="section-card">
+          <div class="section-title-clean">
+            <span>📊 Distribuição dos 32 Marcadores</span>
+            <span style="font-size:11px; color:var(--teal-d); font-weight:700; cursor:pointer;">Ver todos →</span>
+          </div>
+          <div style="display:flex; gap:6px; height:8px; border-radius:4px; overflow:hidden; margin:4px 0;">
+            <div style="flex:28; background:#059669;" title="28 ideais"></div>
+            <div style="flex:3; background:#f59e0b;" title="3 em alerta"></div>
+            <div style="flex:1; background:#ef4444;" title="1 fora da meta"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:10.5px; color:#64748b;">
+            <span>✅ 28 Normais</span>
+            <span>⚠️ 3 Alertas</span>
+            <span>🚩 1 Fora da Meta</span>
+          </div>
+        </section>
+
+        <!-- 12. METAS & CONQUISTAS (Gamificação) -->
+        <section class="section-card">
+          <div class="section-title-clean">
+            <span>🎯 Metas & Conquistas</span>
+            <span style="font-size:11px; color:#059669; font-weight:800;">Nível 3 · 450 pts</span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px; text-align:center;">
+              <span style="font-size:18px;">🏅</span>
+              <div style="font-size:10.5px; font-weight:800; color:#0f172a;">Check-up em Dia</div>
+            </div>
+            <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px; text-align:center;">
+              <span style="font-size:18px;">🛡️</span>
+              <div style="font-size:10.5px; font-weight:800; color:#0f172a;">Fígado Saudável</div>
+            </div>
+            <div style="flex:1; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:8px; text-align:center;">
+              <span style="font-size:18px;">⚡</span>
+              <div style="font-size:10.5px; font-weight:800; color:#0f172a;">Glicemia em Foco</div>
+            </div>
+          </div>
+        </section>
+
+        <div class="app-footer-credit">
+          Dr. Exame v2.7 · Inteligência Médica Preventiva
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // DADOS DOS 13 ÓRGÃOS
+    const ORGANS = [
+      { id: 1, name: "1. Cérebro & Neuro", icon: "🧠", status: "ok", desc: "B12, Folato e marcadores cognitivos normais. Sem sinais de neuroinflamação." },
+      { id: 2, name: "2. Tireoide", icon: "🦋", status: "ok", desc: "TSH: 2.1 mUI/L, T4 Livre: 1.1 ng/dL. Função glandular perfeitamente balanceada." },
+      { id: 3, name: "3. Pulmões", icon: "🫁", status: "ok", desc: "Capacidade de oxigenação e trocas gasosas normais." },
+      { id: 4, name: "4. Coração & Vasos", icon: "❤️", status: "ok", desc: "Perfil lipídico ótimo: Colesterol total caiu para 198 mg/dL e PCR-us está baixa." },
+      { id: 5, name: "5. Fígado", icon: "🫀", status: "ok", desc: "TGO: 22 U/L, TGP: 26 U/L. Tecido hepático saudável sem sobrecarga de gordura." },
+      { id: 6, name: "6. Pâncreas & Metabolismo", icon: "⚡", status: "warn", desc: "Glicemia de jejum em 104 mg/dL (Atenção moderada). Hemoglobina glicada normal em 5.4%." },
+      { id: 7, name: "7. Rins", icon: "💧", status: "ok", desc: "Creatinina: 0.9 mg/dL, Ureia: 31 mg/dL, TFG > 90 mL/min." },
+      { id: 8, name: "8. Intestino", icon: "🦠", status: "ok", desc: "Absorção nutricional e trânsito intestinal regulares." },
+      { id: 9, name: "9. Imunológico", icon: "🛡️", status: "ok", desc: "Leucócitos e plaquetas em níveis ideais de defesa." },
+      { id: 10, name: "10. Membro Sup. Direito", icon: "💪", status: "ok", desc: "Tônus muscular e circulação periférica preservados." },
+      { id: 11, name: "11. Membro Sup. Esquerdo", icon: "💪", status: "ok", desc: "Tônus muscular e circulação periférica preservados." },
+      { id: 12, name: "12. Membro Inf. Direito", icon: "🦵", status: "ok", desc: "Retorno venoso e função articular normais." },
+      { id: 13, name: "13. Membro Inf. Esquerdo", icon: "🦵", status: "ok", desc: "Retorno venoso e função articular normais." }
+    ];
+
+    // CHIPS HORIZONTAIS
+    const chipsCont = document.getElementById('organChipsContainer');
+    ORGANS.forEach(org => {
+      const chip = document.createElement('div');
+      chip.className = 'org-chip-item' + (org.id === 6 ? ' active' : '');
+      chip.id = 'chip-' + org.id;
+      chip.innerHTML = `<span class="chip-mini-badge">${org.id}</span> ${org.name.split('. ')[1]}`;
+      chip.onclick = () => pickOrgan(org.id);
+      chipsCont.appendChild(chip);
+    });
+
+    function pickOrgan(id) {
+      const org = ORGANS.find(o => o.id === id);
+      if (!org) return;
+
+      document.querySelectorAll('.org-chip-item').forEach(c => c.classList.remove('active'));
+      const activeChip = document.getElementById('chip-' + id);
+      if (activeChip) activeChip.classList.add('active');
+
+      document.querySelectorAll('.spot-btn').forEach(s => s.classList.remove('active'));
+      const spots = document.querySelectorAll('.spot-btn');
+      if (spots[id - 1]) spots[id - 1].classList.add('active');
+
+      document.getElementById('orgIcon').innerText = org.icon;
+      document.getElementById('orgTitle').innerText = org.name;
+      document.getElementById('orgDescText').innerText = org.desc;
+      
+      const tag = document.getElementById('orgStatusTag');
+      if (org.status === 'warn') {
+        tag.className = 'organ-status-tag warn';
+        tag.innerText = 'Atenção Preventiva';
+      } else {
+        tag.className = 'organ-status-tag ok';
+        tag.innerText = 'Saudável / Normal';
+      }
+    }
+
+    // SIMULADOR DO RELÓGIO (CONECTADO X DESCONECTADO)
+    function setWatchSim(connected) {
+      const btnOn = document.getElementById('btnSimRelogioOn');
+      const btnOff = document.getElementById('btnSimRelogioOff');
+      const boxConn = document.getElementById('watchConnectedBox');
+      const boxDisconn = document.getElementById('watchDisconnectedBox');
+
+      if (connected) {
+        btnOn.classList.add('active');
+        btnOff.classList.remove('active');
+        boxConn.style.display = 'flex';
+        boxDisconn.style.display = 'none';
+      } else {
+        btnOn.classList.remove('active');
+        btnOff.classList.add('active');
+        boxConn.style.display = 'none';
+        boxDisconn.style.display = 'flex';
+      }
+    }
+
+    // ÁUDIO EXECUTIVO COM SÍNTESE
+    let isPlaying = false;
+    let playSpeed = 1.0;
+    const synth = window.speechSynthesis;
+    let utterance = null;
+
+    function toggleAudio() {
+      const playIcon = document.getElementById('playIcon');
+      const waves = document.getElementById('soundwaveBars');
+      const sub = document.getElementById('audioSubTxt');
+
+      if (!isPlaying) {
+        isPlaying = true;
+        playIcon.innerText = '❚❚';
+        waves.classList.add('playing');
+        sub.innerHTML = '<span style="color:var(--teal-d);font-weight:700;">🔊 Voz Médica tocando:</span> "Olá Edmilson! Analisei seus exames..."';
+
+        if (synth) {
+          synth.cancel();
+          utterance = new SpeechSynthesisUtterance('Olá Edmilson! Analisei seus exames de sangue mais recentes. Seus marcadores lipídicos e hepáticos estão excelentes, com queda no colesterol total. Recomendo apenas atenção preventiva na glicemia de jejum e manter sua hidratação.');
+          utterance.rate = playSpeed;
+          utterance.lang = 'pt-BR';
+          utterance.onend = stopAudio;
+          utterance.onerror = stopAudio;
+          synth.speak(utterance);
+        }
+      } else {
+        stopAudio();
+      }
+    }
+
+    function stopAudio() {
+      isPlaying = false;
+      document.getElementById('playIcon').innerText = '▶';
+      document.getElementById('soundwaveBars').classList.remove('playing');
+      document.getElementById('audioSubTxt').innerText = 'Toque para ouvir a síntese do seu laudo em 1 min';
+      if (synth) synth.cancel();
+    }
+
+    function setSpeed(spd, btn) {
+      playSpeed = spd;
+      document.querySelectorAll('.spd-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      if (isPlaying) {
+        synth.cancel();
+        toggleAudio();
+      }
+    }
+  </script>
+</body>
+</html>

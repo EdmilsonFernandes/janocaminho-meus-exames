@@ -315,14 +315,55 @@ export const BodyMap = ({
         }
       `}</style>
 
-      {/* Cabeçalho do Card */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-        <Box>
-          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 17 }, display: 'flex', alignItems: 'center', gap: 1 }}>
-            🩺 Mapa do seu Corpo
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
-            Toque nos pontos brilhantes do corpo para rolar direto aos exames e laudos do órgão.
+      {/* Cabeçalho do Card com layout 100% responsivo para mobile sem quebras */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          justifyContent: 'space-between',
+          mb: 2,
+          gap: { xs: 1.25, sm: 1.5 },
+        }}
+      >
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+            <Typography
+              component="h2"
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: 'clamp(15px, 4.2vw, 17.5px)', sm: 18 },
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                lineHeight: 1.2,
+                color: 'text.primary',
+              }}
+            >
+              <Box component="span" sx={{ fontSize: { xs: 18, sm: 20 }, lineHeight: 1 }}>🫀</Box>
+              Mapa do seu Corpo
+            </Typography>
+            <Box
+              component="span"
+              sx={{
+                fontSize: 11,
+                fontWeight: 800,
+                color: (t) => tealText(t.palette.mode),
+                bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+                border: '1px solid',
+                borderColor: (t) => alpha(t.palette.primary.main, 0.25),
+                px: 1,
+                py: 0.25,
+                borderRadius: '999px',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              13 Regiões
+            </Box>
+          </Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: { xs: 11.5, sm: 12 }, lineHeight: 1.35 }}>
+            Toque nos órgãos ou pontos brilhantes para rolar direto aos exames e laudos vinculados.
           </Typography>
         </Box>
         <Chip
@@ -340,13 +381,18 @@ export const BodyMap = ({
               }}
             />
           }
-          label="Bio-Scanner Clínico"
+          label="Bio-Scan Clínico"
           sx={{
-            fontWeight: 700,
+            fontWeight: 800,
             fontSize: 11,
-            bgcolor: (t) => alpha(t.palette.primary.main, 0.1),
+            bgcolor: (t) => alpha(t.palette.primary.main, 0.12),
             color: 'primary.main',
+            border: '1px solid',
+            borderColor: (t) => alpha(t.palette.primary.main, 0.3),
             borderRadius: '999px',
+            whiteSpace: 'nowrap',
+            flexShrink: 0,
+            alignSelf: { xs: 'flex-start', sm: 'center' },
           }}
         />
       </Box>

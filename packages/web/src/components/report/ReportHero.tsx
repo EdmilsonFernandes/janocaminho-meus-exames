@@ -67,6 +67,20 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       </Box>
     )}
 
+    {/* Cápsula de Áudio Premium do Dr. Exame NO TOPO (Executivo e Imediato) */}
+    {resumo && (
+      <Box sx={{ mt: 1.75 }}>
+        <VoiceSummaryPlayer
+          text={resumo}
+          title="Dr. Exame Explica em Áudio"
+          subtitle="Ouça a síntese clínica do laudo em 1 min"
+          colorScheme="teal"
+          badgeLabel="Dr. Exame Voz"
+          compact
+        />
+      </Box>
+    )}
+
     <Grid container spacing={1.25} sx={{ mt: 1.5 }}>
       <Grid size={{ xs: 4 }}><StatTile value={counts.itens} label="Itens" accent="#0369a1" /></Grid>
       <Grid size={{ xs: 4 }}><StatTile value={counts.atencao} label="Atenção" accent="#ef4444" /></Grid>
@@ -111,20 +125,6 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
             );
           })}
         </Stack>
-      </Box>
-    )}
-
-    {/* Cápsula de Áudio Premium do Dr. Exame */}
-    {resumo && (
-      <Box sx={{ mt: 2.25 }}>
-        <VoiceSummaryPlayer
-          text={resumo}
-          title="Dr. Exame Explica em Áudio"
-          subtitle="Ouça a síntese clínica do relatório"
-          colorScheme="teal"
-          badgeLabel="Dr. Exame Voz"
-          compact
-        />
       </Box>
     )}
 
