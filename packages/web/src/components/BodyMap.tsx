@@ -91,16 +91,16 @@ const SYSTEM_ICON: Record<string, ComponentType<any>> = {
 
 // Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13
 const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right'; num: number }> = {
-  cerebro: { x: 50, y: 10, num: 1 },
+  cerebro: { x: 50, y: 9.5, num: 1 },
   tireoide: { x: 50, y: 17.5, num: 2 },
-  pulmoes: { x: 42, y: 24, num: 3 },
+  pulmoes: { x: 42.5, y: 24, num: 3 },
   coracao: { x: 53.5, y: 28, num: 4 },
-  figado: { x: 44, y: 34, side: 'left', num: 5 },
+  figado: { x: 44, y: 34.5, side: 'left', num: 5 },
   estomago: { x: 53, y: 35.5, num: 6 },
   pancreas: { x: 49, y: 39, num: 7 },
   rins: { x: 57.5, y: 42.5, side: 'right', num: 8 },
-  intestino: { x: 50, y: 46.5, num: 9 },
-  hormonios: { x: 50, y: 51, num: 10 },
+  intestino: { x: 50, y: 47, num: 9 },
+  hormonios: { x: 50, y: 52, num: 10 },
   sangue: { x: 34.5, y: 31.5, side: 'left', num: 11 },
   musculos: { x: 39, y: 61, side: 'left', num: 12 },
   ossos: { x: 60, y: 64, side: 'right', num: 13 },
@@ -156,7 +156,6 @@ export const BodyMap = ({
     }));
   }, [regions]);
 
-  // Escolhe órgão inicial: primeiro com alteração, ou primeiro com dados, ou primeiro da lista
   const [selectedKey, setSelectedKey] = useState<string>(() => {
     const firstBad = safeList.find((r) => r.level === 'alterado');
     if (firstBad) return firstBad.key;
@@ -166,6 +165,9 @@ export const BodyMap = ({
     if (firstWithData) return firstWithData.key;
     return safeList[0]?.key || 'coracao';
   });
+
+  // Modo de visualização: Órgãos bioluminescentes 3D ou Raio-X espectral
+  const [viewMode, setViewMode] = useState<'bioglow' | 'xray'>('bioglow');
 
   // Atualiza seleção se safeList carregar depois
   useEffect(() => {
@@ -407,6 +409,46 @@ export const BodyMap = ({
       >
         {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos e Bio-Scanner */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {/* Seletor de Visão Anatômica: Órgãos Acesos 3D x Raio-X */}
+          <Box sx={{ display: 'flex', gap: 1, mb: 1.5, p: 0.5, bgcolor: dark ? 'rgba(255,255,255,0.05)' : '#f1f5f9', borderRadius: '999px' }}>
+            <Button
+              size="small"
+              onClick={() => setViewMode('bioglow')}
+              sx={{
+                borderRadius: '999px',
+                py: 0.4,
+                px: 1.5,
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'none',
+                bgcolor: viewMode === 'bioglow' ? (dark ? '#5fc9c3' : '#0f172a') : 'transparent',
+                color: viewMode === 'bioglow' ? (dark ? '#04101f' : '#ffffff') : 'text.secondary',
+                boxShadow: viewMode === 'bioglow' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
+                '&:hover': { bgcolor: viewMode === 'bioglow' ? undefined : 'action.hover' },
+              }}
+            >
+              🧬 Órgãos Acesos
+            </Button>
+            <Button
+              size="small"
+              onClick={() => setViewMode('xray')}
+              sx={{
+                borderRadius: '999px',
+                py: 0.4,
+                px: 1.5,
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'none',
+                bgcolor: viewMode === 'xray' ? (dark ? '#5fc9c3' : '#0f172a') : 'transparent',
+                color: viewMode === 'xray' ? (dark ? '#04101f' : '#ffffff') : 'text.secondary',
+                boxShadow: viewMode === 'xray' ? '0 2px 8px rgba(0,0,0,0.2)' : 'none',
+                '&:hover': { bgcolor: viewMode === 'xray' ? undefined : 'action.hover' },
+              }}
+            >
+              🩺 Raio-X Clínico
+            </Button>
+          </Box>
+
           <Box
             sx={{
               position: 'relative',
@@ -466,10 +508,10 @@ export const BodyMap = ({
               </Typography>
             </Box>
 
-            {/* Imagem de base raio-x leve (WebP 24KB) */}
+            {/* Imagem anatômica (Órgãos Bioluminescentes ou Raio-X) */}
             <Box
               component="img"
-              src={`${import.meta.env.BASE_URL}body-xray.webp`}
+              src={`${import.meta.env.BASE_URL}${viewMode === 'bioglow' ? 'body-organs-glow.png' : 'body-xray.webp'}`}
               alt="Ilustração anatômica do corpo humano"
               loading="lazy"
               decoding="async"
@@ -478,7 +520,7 @@ export const BodyMap = ({
                 height: '100%',
                 objectFit: 'cover',
                 display: 'block',
-                opacity: 0.88,
+                opacity: 0.92,
               }}
             />
 
@@ -582,31 +624,62 @@ export const BodyMap = ({
                       />
                     )}
 
-                    {/* Núcleo do Hotspot Colorido com Número do Órgão */}
+                    {/* Núcleo do Hotspot Colorido com Desenho Anatômico do Órgão e Badge com Número */}
                     <Box
                       className={hasAlert ? 'organ-pulse-active' : undefined}
                       sx={{
-                        width: isSelected ? 22 : 17,
-                        height: isSelected ? 22 : 17,
+                        position: 'relative',
+                        width: isSelected ? 34 : 28,
+                        height: isSelected ? 34 : 28,
                         borderRadius: '50%',
-                        bgcolor: col,
-                        color: '#ffffff',
-                        fontSize: isSelected ? 10.5 : 9,
-                        fontWeight: 800,
-                        fontFamily: 'Poppins, sans-serif',
+                        background: `radial-gradient(circle, ${alpha(col, 0.4)} 0%, #061428 100%)`,
+                        border: `1.5px solid ${col}`,
                         display: 'grid',
                         placeItems: 'center',
                         boxShadow: isSelected
-                          ? `0 0 18px 4px ${col}, 0 0 32px ${alpha(col, 0.7)}`
+                          ? `0 0 18px 4px ${col}, 0 0 32px ${alpha(col, 0.75)}`
                           : hasData
-                          ? `0 0 12px 2px ${alpha(col, 0.85)}`
+                          ? `0 0 10px 2px ${alpha(col, 0.65)}`
                           : 'none',
-                        border: isSelected ? '2px solid #ffffff' : '1.5px solid rgba(255,255,255,0.85)',
-                        opacity: hasData ? 1 : 0.6,
                         transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       }}
                     >
-                      {spot.num}
+                      {/* Desenho do Órgão com iluminação bioluminescente */}
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: isSelected ? 16 : 13,
+                          lineHeight: 1,
+                          filter: `drop-shadow(0 0 5px ${col})`,
+                          userSelect: 'none',
+                        }}
+                      >
+                        {reg.emoji}
+                      </Typography>
+
+                      {/* Badge Elegante com o Número 1 a 13 */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: -3,
+                          right: -3,
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          bgcolor: '#0f172a',
+                          border: `1.5px solid ${col}`,
+                          color: '#ffffff',
+                          fontFamily: 'Poppins, sans-serif',
+                          fontSize: 8.5,
+                          fontWeight: 800,
+                          display: 'grid',
+                          placeItems: 'center',
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.6)',
+                          zIndex: 3,
+                        }}
+                      >
+                        {spot.num}
+                      </Box>
                     </Box>
                   </Box>
                 </Tooltip>
@@ -905,6 +978,46 @@ export const BodyMap = ({
               />
             );
           })}
+        </Box>
+      </Box>
+
+      {/* Bloco Integrado: Tubos Coletados & Conexões Clínicas da IA */}
+      <Box
+        sx={{
+          mt: 3,
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '18px',
+          bgcolor: dark ? 'rgba(4, 16, 31, 0.65)' : '#f8fafc',
+          border: '1px solid',
+          borderColor: dark ? 'rgba(95, 201, 195, 0.25)' : '#e2e8f0',
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, flexWrap: 'wrap', gap: 1 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 }, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
+            🧪 Frações Coletadas & Conexões da IA
+          </Typography>
+          <Chip
+            size="small"
+            label="Análise Multipainel"
+            sx={{ fontWeight: 800, fontSize: 11, bgcolor: dark ? 'rgba(95,201,195,0.2)' : 'rgba(32,178,170,0.12)', color: dark ? '#5fc9c3' : '#0f766e' }}
+          />
+        </Box>
+        <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 12.5, mb: 2, lineHeight: 1.5 }}>
+          Veja as frações sanguíneas analisadas e como a inteligência clínica cruza marcadores aos pares (ex: Ferritina × PCR, TSH × T4L, Glicose × HbA1c):
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'center', overflow: 'hidden', borderRadius: '14px', bgcolor: dark ? '#020914' : '#ffffff', p: 1.5, border: '1px solid', borderColor: 'divider' }}>
+          <Box
+            component="img"
+            src={`${import.meta.env.BASE_URL}blood-test-network-tubes.png`}
+            alt="Tubos de coleta de laboratório e rede de biomarcadores da IA"
+            sx={{
+              maxWidth: { xs: '100%', sm: 440 },
+              width: '100%',
+              height: 'auto',
+              borderRadius: '12px',
+              display: 'block',
+            }}
+          />
         </Box>
       </Box>
 

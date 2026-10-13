@@ -402,7 +402,8 @@ const COL = {ok:'#059669',atencao:'#f59e0b',alterado:'#ef4444',sem_dados:'#94a3b
 const LBL = {ok:'Normal',atencao:'Atenção',alterado:'Alterado',sem_dados:'Sem dados'};
 // x,y em % da imagem; flip = rótulo à esquerda
 const REGIONS = [
-  {key:'cerebro', label:'Cérebro & tireoide', emoji:'🧠', level:'ok', x:50, y:9.5,  note:'TSH 2,1 mUI/L dentro da faixa', idx:[{n:'Razão LH/FSH',f:'LH ÷ FSH',v:1.1,u:'razão',lv:'ok'}]},
+  {key:'cerebro', label:'Cérebro & neuro', emoji:'🧠', level:'ok', x:50, y:9.5, note:'B12 e cognição dentro da faixa', idx:[{n:'Razão LH/FSH',f:'LH ÷ FSH',v:1.1,u:'razão',lv:'ok'}]},
+  {key:'tireoide', label:'Tireoide & metabolismo', emoji:'🦋', level:'ok', x:50, y:17.5, note:'TSH 2,1 mUI/L na faixa ideal', idx:[{n:'Relação T4L/TSH',f:'T4 Livre ÷ TSH',v:0.57,u:'razão',lv:'ok'}]},
   {key:'pulmoes', label:'Pulmões', emoji:'🫁', level:'sem_dados', x:42.5, y:24.5, note:'Sem analito de rotina no painel', idx:[]},
   {key:'coracao', label:'Coração & vasos', emoji:'❤️', level:'alterado', x:52, y:28.5, flip:false, note:'LDL 190 mg/dL acima da faixa', idx:[{n:'Castelli I',f:'Col. total ÷ HDL',v:5.4,u:'razão',lv:'alterado'},{n:'Colesterol não-HDL',f:'Col. total − HDL',v:215,u:'mg/dL',lv:'alterado'}]},
   {key:'figado', label:'Fígado', emoji:'🍽️', level:'ok', x:44, y:34.5, flip:true, note:'TGO e TGP dentro da faixa', idx:[{n:'FIB-4',f:'(idade × TGO) ÷ (plaq × √TGP)',v:0.9,u:'índice',lv:'ok'}]},

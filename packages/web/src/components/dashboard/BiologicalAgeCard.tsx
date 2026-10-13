@@ -146,18 +146,143 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
         <DialogContent>
           {data ? (
             <>
-              <Typography variant="h6" sx={{ fontWeight: 800, color: accent }}>{data.age} anos{chronoAge ? ` (você tem ${chronoAge})` : ''}</Typography>
-              {/* 28/09 (bug bash): honestidade da estimativa — 'baixa' (menos de 6 marcadores)
-                  não pode parecer cálculo forte. Diz quantos marcadores entraram na conta. */}
-              <Chip size="small" sx={{ mt: 0.5, mb: 0.5, height: 22, fontSize: 12, fontWeight: 700, bgcolor: (data.confidence === 'alta') ? 'rgba(5,150,105,.10)' : 'rgba(245,158,11,.12)', color: (data.confidence === 'alta') ? '#059669' : '#b45309' }}
-                label={data.confidence === 'alta'
-                  ? `estimativa com ${data.markersUsed ?? '?'} marcadores`
-                  : `estimativa FRACA — só ${data.markersUsed ?? '?'} marcador(es); envie mais exames pra afinar`} />
-              {diff !== null && diff !== 0 && (
-                <Typography variant="body2" sx={{ mt: 0.5, color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'], fontWeight: 700 }}>
-                  {diff < 0 ? `💚 Seu corpo está ${Math.abs(diff)}a mais jovem que sua idade` : `⚠️ Seu corpo está ${diff}a mais velho que sua idade`}
-                </Typography>
-              )}
+              {/* Card Destaque: Anel Circular da Idade do Sangue + Régua Comparativa */}
+              <Box
+                sx={{
+                  p: { xs: 2.5, sm: 3 },
+                  borderRadius: '20px',
+                  background: isDark
+                    ? 'radial-gradient(circle at 50% 30%, rgba(95,201,195,0.15) 0%, rgba(4,16,31,0.85) 100%)'
+                    : 'radial-gradient(circle at 50% 30%, rgba(192,132,252,0.12) 0%, rgba(248,250,252,0.95) 100%)',
+                  border: '1px solid',
+                  borderColor: isDark ? 'rgba(95,201,195,0.3)' : 'rgba(168,85,247,0.2)',
+                  textAlign: 'center',
+                  mb: 2.5,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
+                }}
+              >
+                {/* Anel Circular Luminoso */}
+                <Box
+                  sx={{
+                    width: 110,
+                    height: 110,
+                    borderRadius: '50%',
+                    mx: 'auto',
+                    mb: 2,
+                    p: '5px',
+                    background: 'conic-gradient(#3b82f6 0%, #a855f7 50%, #ec4899 100%)',
+                    boxShadow: '0 0 24px rgba(168,85,247,0.35)',
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: '100%',
+                      borderRadius: '50%',
+                      bgcolor: isDark ? '#06172d' : '#ffffff',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontFamily: 'Poppins, sans-serif',
+                        fontWeight: 900,
+                        fontSize: 34,
+                        lineHeight: 1,
+                        color: 'text.primary',
+                      }}
+                    >
+                      {data.age}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        mt: 0.25,
+                      }}
+                    >
+                      Idade do Sangue
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/* Régua Comparativa entre Idade Cronológica e Biológica */}
+                {chronoAge && (
+                  <Box sx={{ maxWidth: 320, mx: 'auto', mt: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, fontWeight: 700, color: 'text.secondary', mb: 0.5 }}>
+                      <span>Sua idade real: <b>{chronoAge} anos</b></span>
+                      <span>Sangue: <b>{data.age} anos</b></span>
+                    </Box>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        height: 8,
+                        borderRadius: 4,
+                        background: 'linear-gradient(90deg, #3b82f6 0%, #a855f7 50%, #ec4899 100%)',
+                        my: 1,
+                      }}
+                    >
+                      {/* Marcador da Idade */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: '50%',
+                          left: `${Math.max(10, Math.min(90, 50 + (diff ?? 0) * 3))}%`,
+                          transform: 'translate(-50%, -50%)',
+                          width: 16,
+                          height: 16,
+                          borderRadius: '50%',
+                          bgcolor: '#ffffff',
+                          border: '3px solid #a855f7',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                        }}
+                      />
+                    </Box>
+                  </Box>
+                )}
+
+                {diff !== null && diff !== 0 && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      mt: 1.5,
+                      fontWeight: 800,
+                      color: diff < 0 ? SEM.ok[isDark ? 'dark' : 'light'] : SEM.bad[isDark ? 'dark' : 'light'],
+                    }}
+                  >
+                    {diff < 0
+                      ? `💚 Seu organismo apresenta ritmo de envelhecimento ${Math.abs(diff)} anos mais jovem`
+                      : `⚠️ Seu organismo apresenta ritmo de envelhecimento ${diff} anos acima da idade cronológica`}
+                  </Typography>
+                )}
+              </Box>
+
+              {/* Tag de Confiança dos Marcadores */}
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Chip
+                  size="small"
+                  sx={{
+                    height: 24,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    bgcolor: data.confidence === 'alta' ? 'rgba(5,150,105,.12)' : 'rgba(245,158,11,.14)',
+                    color: data.confidence === 'alta' ? '#059669' : '#b45309',
+                  }}
+                  label={
+                    data.confidence === 'alta'
+                      ? `Fórmula PhenoAge calculada com ${data.markersUsed ?? '?'} marcadores`
+                      : `Estimativa preliminar com ${data.markersUsed ?? '?'} marcador(es) — envie mais laudos para calibrar`
+                  }
+                />
+              </Box>
               {/* F6 — 2º método independente (KDM) do mesmo health-summary: UMA linha.
                   Concordam (±3a) → convergem; divergem → frase honesta de estabilidade. */}
               {kdm && (

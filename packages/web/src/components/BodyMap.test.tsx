@@ -38,10 +38,10 @@ describe('BodyMap — Mapa Corporal Anatômico (Web & APK)', () => {
     expect(html).toContain('não representam um diagnóstico clínico');
   });
 
-  it('renderiza imagem de raio-x leve e hotspots percentuais calibrados', () => {
+  it('renderiza ilustração anatômica leve e hotspots percentuais calibrados', () => {
     const html = renderBodyMap({ regions: DEMO_BODY_REGIONS, loaded: true });
 
-    expect(html).toContain('body-xray.webp');
+    expect(html).toMatch(/body-(organs-glow\.png|xray\.webp)/);
     expect(html).toContain('Coração &amp; vasos: Fora da referência');
   });
 });
