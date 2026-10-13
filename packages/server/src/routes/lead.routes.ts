@@ -41,6 +41,9 @@ async function sendWelcome(email: string) {
       text: `Decifre seu exame de graça (cole o texto do laudo): ${decifreUrl} — ou crie sua conta grátis (1º resumo grátis, sem cartão): ${webUrl('/#/registrar')}. Responda "remover" para sair da lista (LGPD).`,
     });
     lastSent.set(email, Date.now());
+    // Sucesso também loga (mesmo padrão do notifyNewUser): sem isso o envio é cego —
+    // caso 13/10, não dava pra distinguir "saiu e caiu no spam" de "pendurou no SMTP".
+    console.log(`[lead] boas-vindas enviada p/ ${email.slice(0, 3)}***@${email.split('@')[1]}`);
   } catch (e: any) {
     console.error(`[lead] e-mail de boas-vindas FALHOU p/ ${email.slice(0, 3)}***@${email.split('@')[1]}:`, e?.message);
   }

@@ -25,6 +25,12 @@ function getTransport(): nodemailer.Transporter | null {
     port: Number(process.env.SMTP_PORT ?? 587),
     secure: process.env.SMTP_SECURE === 'true',
     auth: { user, pass },
+    // Timeouts explícitos (caso lead 13/10): sem eles, conexão Zoho morta deixa o
+    // sendMail pendurado por minutos — fire-and-forget fica MUDO (nem sucesso nem
+    // falha nos logs) e o e-mail simplesmente nunca sai.
+    connectionTimeout: 10_000,
+    greetingTimeout: 10_000,
+    socketTimeout: 20_000,
   });
   return _transport;
 }
