@@ -146,20 +146,16 @@ export const VoiceSummaryPlayer = ({
           : '0 8px 25px rgba(15, 95, 90, 0.06)',
         overflow: 'hidden',
         userSelect: 'none',
+        '@keyframes soundwaveAnim': {
+          '0%, 100%': { transform: 'scaleY(0.35)', opacity: 0.65 },
+          '50%': { transform: 'scaleY(1.35)', opacity: 1 },
+        },
+        '@keyframes pulseGlow': {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.06)' },
+        },
       }}
     >
-      {/* Keyframes de animação das ondas sonoras */}
-      <style>{`
-        @keyframes soundwaveAnim {
-          0%, 100% { transform: scaleY(0.35); opacity: 0.65; }
-          50% { transform: scaleY(1.35); opacity: 1; }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.06); }
-        }
-      `}</style>
-
       {/* Linha 1: Play + Título/Subtítulo (layout independente da largura da viewport,
           funciona igual em card estreito na landing ou largo no relatório) */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>

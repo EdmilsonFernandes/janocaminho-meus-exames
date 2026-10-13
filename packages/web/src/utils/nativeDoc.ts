@@ -79,13 +79,17 @@ export async function speakText(
 
 /** Para a fala (qualquer plataforma). */
 export async function stopSpeakText(): Promise<void> {
-  if (Capacitor.isNativePlatform()) {
-    try {
-      const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
-      await TextToSpeech.stop();
-    } catch { /* */ }
-  } else {
-    window.speechSynthesis?.cancel();
+  try {
+    if (Capacitor.isNativePlatform()) {
+      try {
+        const { TextToSpeech } = await import('@capacitor-community/text-to-speech');
+        await TextToSpeech.stop();
+      } catch { /* ignore */ }
+    } else {
+      window.speechSynthesis?.cancel();
+    }
+  } catch {
+    /* ignore */
   }
 }
 
