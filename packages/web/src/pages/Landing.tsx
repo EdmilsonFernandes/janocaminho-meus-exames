@@ -43,6 +43,9 @@ import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { LandingBodyMapSection } from '../components/landing/LandingBodyMapSection';
 import { ComparisonTable } from '../components/landing/ComparisonTable';
 import { TrustSection } from '../components/landing/TrustSection';
+import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
+import { HealthPackageShowcaseCard } from '../components/landing/HealthPackageShowcaseCard';
+import { ClinicalDecisionCard } from '../components/landing/ClinicalDecisionCard';
 import { DrExame } from '../components/DrExame';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
@@ -1177,14 +1180,43 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* SEGURANÇA & LGPD — dado de saúde pede confiança ANTES do preço (insight
-          concorrentes: seção de privacidade explícita). */}
+      {/* SEGURANÇA & LGPD — dado de saúde pede confiança ANTES do preço */}
       <ScrollReveal>
         <TrustSection />
       </ScrollReveal>
 
-      {/* PLANOS — modelo explicado antes dos preços: "como funciona" mata a confusão
-          créditos × avulso × assinatura (feedback do dono: travou 3× lendo os cards). */}
+      {/* SHOWCASE CLÍNICO KANTESTI STYLE: PACOTE DE SAÚDE COM PLAYER DE ÁUDIO & CARD DE DECISÃO CLÍNICA */}
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Container maxWidth="lg">
+          <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
+            <Chip
+              label="Tecnologia & Confiança Médica"
+              sx={{ bgcolor: 'rgba(32, 178, 170, 0.12)', color: TEAL_DARK, fontWeight: 800, mb: 1.5, fontSize: 12.5 }}
+            />
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+              Seus exames explicados com <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>precisão e voz humanizada</Box>
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 620, mx: 'auto' }}>
+              Experimente a síntese clínica do Dr. Exame: ouça o laudo em 1 minuto, navegue pelos órgãos e entenda as prioridades para a sua próxima consulta.
+            </Typography>
+          </Box>
+
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+              gap: { xs: 3.5, md: 4.5 },
+              alignItems: 'stretch',
+              justifyContent: 'center',
+            }}
+          >
+            <HealthPackageShowcaseCard onCtaClick={() => navigate('/registrar')} ctaText="Começar grátis agora" />
+            <ClinicalDecisionCard />
+          </Box>
+        </Container>
+      </Box>
+
+      {/* PLANOS — modelo explicado antes dos preços */}
       <ScrollReveal>
       <Box id="planos" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
@@ -1454,6 +1486,9 @@ export const LandingPage = () => {
           )}
         </Box>
       </Dialog>
+
+      {/* BOTÃO FLUTUANTE DO WHATSAPP OFICIAL (Kantesti pattern: suporte direto com micro-animação) */}
+      <FloatingWhatsAppButton />
     </Box>
   );
 };

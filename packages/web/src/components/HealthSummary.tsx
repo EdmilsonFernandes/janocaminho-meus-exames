@@ -7,6 +7,7 @@ import PrintIcon from '@mui/icons-material/Print';
 import { DrExame } from './DrExame';
 import { printDocument, speakText, stopSpeakText } from '../utils/nativeDoc';
 import { tealText } from '../theme';
+import { VoiceSummaryPlayer } from './VoiceSummaryPlayer';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/RecordVoiceOver';
 import ReactMarkdown from 'react-markdown';
@@ -222,19 +223,24 @@ export const HealthSummary = ({ analysis }: { analysis?: any }) => {
             <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>Resumo educativo — não substitui consulta médica</Typography>
           </Box>
         </Stack>
-        <Stack direction="row" spacing={1} sx={{ mt: 2, width: '100%', overflowX: 'auto', flexWrap: 'nowrap', '&::-webkit-scrollbar': { display: 'none' }, '& .MuiButton-root': { flexShrink: 0, whiteSpace: 'nowrap' } }} useFlexGap>
-          <Button size="small" variant="contained" startIcon={<DrExame size={20} />} onClick={speaking ? stopSpeak : () => speak()}>
-            {speaking ? '⏹ Parar' : '🔊 Dr. Exame fala'}
+        {/* Player de Voz com Ondas Sonoras e Ações Rápidas */}
+        <Box sx={{ mt: 2 }}>
+          <VoiceSummaryPlayer
+            text={[structured.resumoGeral, structured.leituraFinal].filter(Boolean).join('. ')}
+            title="Dr. Exame Explica em Áudio"
+            subtitle="Toque no Play para ouvir o resumo do laudo"
+            colorScheme="teal"
+            compact
+          />
+        </Box>
+
+        <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ mt: 1.5 }}>
+          <Button size="small" variant="outlined" startIcon={<ShareIcon />} onClick={() => setShareOpen(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}>
+            Compartilhar
           </Button>
-          {speaking && (
-            <>
-              <Button size="small" variant={rate === 1 ? 'contained' : 'outlined'} onClick={() => changeRate(1)} sx={{ minWidth: 40, px: 1 }}>1x</Button>
-              <Button size="small" variant={rate === 1.3 ? 'contained' : 'outlined'} onClick={() => changeRate(1.3)} sx={{ minWidth: 40, px: 1 }}>1.3x</Button>
-              <Button size="small" variant={rate === 1.5 ? 'contained' : 'outlined'} onClick={() => changeRate(1.5)} sx={{ minWidth: 40, px: 1 }}>1.5x</Button>
-            </>
-          )}
-          <Button size="small" variant="outlined" onClick={() => setShareOpen(true)} title="Compartilhar" sx={{ minWidth: 0, px: 1.25, py: 0.5 }}><ShareIcon /></Button>
-          <Button size="small" variant="outlined" onClick={printSummary} title="Imprimir / PDF" sx={{ minWidth: 0, px: 1.25, py: 0.5 }}><PrintIcon /></Button>
+          <Button size="small" variant="outlined" startIcon={<PrintIcon />} onClick={printSummary} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}>
+            Imprimir / PDF
+          </Button>
         </Stack>
       </Box>
 

@@ -949,6 +949,87 @@
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.2);
     }
 
+    /* VOICEMAP AUDIO CAPSULE (ESTILO KANTESTI) */
+    .voice-summary-capsule {
+      background: linear-gradient(135deg, rgba(32, 178, 170, 0.08) 0%, rgba(15, 95, 90, 0.12) 100%);
+      border: 1px solid rgba(32, 178, 170, 0.25);
+      border-radius: 18px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .voice-play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+      color: #fff;
+      border: none;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(139, 92, 246, 0.35);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .voice-play-btn:hover {
+      transform: scale(1.08);
+    }
+
+    .soundwave-bars {
+      display: flex;
+      align-items: center;
+      gap: 3.5px;
+      height: 28px;
+    }
+
+    .sw-bar {
+      width: 3.5px;
+      background: #a855f7;
+      border-radius: 99px;
+      animation: swAnim 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes swAnim {
+      0% { transform: scaleY(0.3); opacity: 0.5; }
+      100% { transform: scaleY(1.3); opacity: 1; }
+    }
+
+    /* BOTÃO FLUTUANTE WHATSAPP NO MOCK */
+    .mock-wa-float {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 10px 25px -5px rgba(37, 211, 102, 0.45);
+      z-index: 2000;
+      text-decoration: none;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      animation: waPulse 2.8s infinite;
+      transition: transform 0.2s;
+    }
+
+    .mock-wa-float:hover {
+      transform: scale(1.1);
+    }
+
+    @keyframes waPulse {
+      0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6); }
+      70% { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+    }
 
     /* ========================================================
    MOCK 2: VISÃO DA LANDING & CARDS DE PLANOS PREMIUM
@@ -1366,7 +1447,30 @@
               <div style="font-size:10px;color:var(--text-sub);font-weight:700;">SCORE</div>
               <div style="font-size:12px;font-weight:800;color:var(--ok);">Bom</div>
             </div>
+        <!-- PLAYER DE RESUMO DE VOZ KANTESTI STYLE -->
+        <div class="voice-summary-capsule">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button class="voice-play-btn" id="mock-voice-btn" onclick="toggleMockVoice()">
+              <span id="mock-voice-icon">▶</span>
+            </button>
+            <div class="soundwave-bars" id="mock-soundwave">
+              <span class="sw-bar" style="height:12px;animation-delay:0.1s;"></span>
+              <span class="sw-bar" style="height:22px;animation-delay:0.25s;"></span>
+              <span class="sw-bar" style="height:16px;animation-delay:0.15s;"></span>
+              <span class="sw-bar" style="height:26px;animation-delay:0.35s;"></span>
+              <span class="sw-bar" style="height:14px;animation-delay:0.05s;"></span>
+              <span class="sw-bar" style="height:24px;animation-delay:0.2s;"></span>
+              <span class="sw-bar" style="height:18px;animation-delay:0.3s;"></span>
+              <span class="sw-bar" style="height:10px;animation-delay:0.1s;"></span>
+            </div>
           </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12.5px;font-weight:800;color:var(--text-main);" id="mock-voice-title">Resumo em Áudio com IA</div>
+            <div style="font-size:11px;color:var(--text-sub);" id="mock-voice-sub">Ouça seu laudo em 1 minuto</div>
+          </div>
+          <span style="font-size:10px;font-weight:800;background:rgba(32,178,170,0.15);color:var(--teal-d);padding:3px 8px;border-radius:999px;">
+            Voz Médica
+          </span>
         </div>
 
         <!-- CARD COMPACTO DO MAPA CORPORAL: 13 REGIÕES NUMERADAS + SCANNER CONTÍNUO -->
@@ -2006,9 +2110,40 @@
       }
     }
 
+    // Tocar / Pausar Amostra de Voz
+    let mockVoicePlaying = false;
+    function toggleMockVoice() {
+      const btn = document.getElementById('mock-voice-btn');
+      const icon = document.getElementById('mock-voice-icon');
+      const title = document.getElementById('mock-voice-title');
+      const sub = document.getElementById('mock-voice-sub');
+      const waves = document.querySelectorAll('.sw-bar');
+
+      mockVoicePlaying = !mockVoicePlaying;
+      if (mockVoicePlaying) {
+        icon.innerText = '⏸';
+        title.innerText = 'Narrando laudo com IA...';
+        sub.innerText = 'Voz humanizada em reprodução';
+        waves.forEach(w => w.style.animationPlayState = 'running');
+      } else {
+        icon.innerText = '▶';
+        title.innerText = 'Resumo em Áudio com IA';
+        sub.innerText = 'Ouça seu laudo em 1 minuto';
+        waves.forEach(w => w.style.animationPlayState = 'paused');
+      }
+    }
+
     // Inicia
     initBodymapApp();
   </script>
+
+  <!-- BOTÃO FLUTUANTE OFICIAL DO WHATSAPP ESTILO KANTESTI -->
+  <a href="https://wa.me/551239334979?text=Ol%C3%A1!%20Gostaria%20de%20tirar%20d%C3%BAvidas%20sobre%20meus%20exames%20no%20Dr.%20Exame." 
+     target="_blank" rel="noopener noreferrer" class="mock-wa-float" title="Tire dúvidas no WhatsApp oficial">
+    <svg viewBox="0 0 24 24" fill="currentColor" style="width:30px;height:30px;">
+      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.52.149-.174.198-.298.297-.497.1-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+    </svg>
+  </a>
 </body>
 
 </html>
