@@ -1,7 +1,9 @@
 import { Box, Typography } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useCredits } from '../hooks/useCredits';
+import { CREDITS_INSUFFICIENT_EVENT } from '../utils/credits-events';
 
 /** Saldo de créditos no AppBar — chip TONAL discreto (o gradiente/sombra são assinatura da MARCA,
  *  não da carteira): ⚡ 97,2k compacto, toque → /planos. Número completo no aria-label/tooltip;
@@ -14,6 +16,14 @@ import { useCredits } from '../hooks/useCredits';
 export const CreditsChip = () => {
   const navigate = useNavigate();
   const { credits } = useCredits();
+  // SHAKE (14/10, pedido do dono): 402 de qualquer feature → chip TREME em vermelho ~1,5s
+  // (mesmo evento que abre o InsufficientCreditsDialog).
+  const [shaking, setShaking] = useState(false);
+  useEffect(() => {
+    const onInsufficient = () => { setShaking(true); setTimeout(() => setShaking(false), 1500); };
+    window.addEventListener(CREDITS_INSUFFICIENT_EVENT, onInsufficient);
+    return () => window.removeEventListener(CREDITS_INSUFFICIENT_EVENT, onInsufficient);
+  }, []);
   if (credits == null) return null;
   // Saldo exato até 999.999 (feedback do dono: "tem que fazer jus do que o usuário tem" —
   // "999.999" ainda cabe no chip). ≥1 milhão vira compacto pt-BR ("1,2 mi"): 7+ dígitos
@@ -52,6 +62,13 @@ export const CreditsChip = () => {
         },
         '&:active': { transform: 'scale(.96)' },
         '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+        ...(shaking ? {
+          animation: 'chipShake .45s ease-in-out 3',
+          '@keyframes chipShake': { '0%,100%': { transform: 'translateX(0)' }, '25%': { transform: 'translateX(-4px)' }, '75%': { transform: 'translateX(4px)' } },
+          background: 'rgba(239,68,68,.14)',
+          border: '1px solid rgba(239,68,68,.45)',
+          color: '#dc2626',
+        } : {}),
       })}
     >
       <BoltIcon sx={{ fontSize: 16, color: '#f59e0b', filter: 'drop-shadow(0 1px 2px rgba(245,158,11,0.35))' }} />

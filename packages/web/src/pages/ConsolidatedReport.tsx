@@ -55,6 +55,8 @@ interface Summary {
   disclaimer?: string;
 }
 import type { SourceExam } from '@meus-exames/shared';
+import { notifyInsufficientCredits } from '../utils/credits-events';
+import { CREDIT_COSTS } from '../components/CreditBadge';
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
@@ -203,6 +205,7 @@ export const ConsolidatedReportPage = () => {
         if (r.status === 402) {
           const d = await r.json().catch(() => ({}));
           stopped = { msg: d.message || 'Créditos insuficientes pra enviar agora.' };
+          notifyInsufficientCredits({ message: d.message, cost: CREDIT_COSTS.consolidated });
           break;
         }
         stopped = { msg: 'Não foi possível enviar agora. Tente novamente.' };

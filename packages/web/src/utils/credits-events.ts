@@ -20,3 +20,16 @@ export const bumpCredits = (): void => {
     /* sem window (SSR) — ignora */
   }
 };
+
+/**
+ * Créditos INSUFICIENTES (402 de qualquer feature de IA): dispara o dialog global
+ * InsufficientCreditsDialog (montado no AppBar) com a sugestão do pack MAIS BARATO —
+ * antes era só um toast estático e o usuário se perdia até achar a tela de planos.
+ */
+export const CREDITS_INSUFFICIENT_EVENT = 'creditsInsufficient';
+
+export function notifyInsufficientCredits(detail: { cost?: number; message?: string } = {}): void {
+  try {
+    window.dispatchEvent(new CustomEvent(CREDITS_INSUFFICIENT_EVENT, { detail }));
+  } catch { /* sem window — ignora */ }
+}

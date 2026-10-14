@@ -22,6 +22,7 @@ import { GradientButton } from '../components/GradientButton';
 import { RobotAnalysis } from '../components/RobotAnalysis';
 import { WhatIsThis } from '../components/WhatIsThis';
 import { useNotify } from 'react-admin';
+import { notifyInsufficientCredits } from '../utils/credits-events';
 
 /** Severidade → cor/label (tons 800 p/ AA). */
 const SEV: Record<string, { color: string; label: string; bg: string }> = {
@@ -457,7 +458,7 @@ export const MedicationsPage = () => {
     try {
       const r = await fetch(`${API_URL}/medications/check/full`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid }) });
       const d = await r.json().catch(() => ({}));
-      if (r.status === 402) { notify('Sem créditos — veja os planos', { type: 'warning' }); return; }
+      if (r.status === 402) { notifyInsufficientCredits({ message: 'Sem créditos — veja os planos' }); return; }
       if (!r.ok) { notify('Falha na análise', { type: 'error' }); return; }
       setFull(d);
     } finally { setFullLoading(false); }

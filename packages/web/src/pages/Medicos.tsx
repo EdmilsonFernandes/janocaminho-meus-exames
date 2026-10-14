@@ -17,6 +17,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { tealText } from '../theme';
+import { notifyInsufficientCredits } from '../utils/credits-events';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -103,7 +104,7 @@ export const MedicosPage = () => {
         body: JSON.stringify({ doctorId: detail.id, patientId: pid, subject: txt }),
       });
       const d = await r.json();
-      if (r.status === 402) { setPergMsg('Créditos insuficientes.'); return; }
+      if (r.status === 402) { setPergMsg('Créditos insuficientes.'); notifyInsufficientCredits({}); return; }
       if (!r.ok) throw new Error(d.error || 'Falha ao enviar');
       bumpCredits(); setPerg(''); setPergMsg(`✓ Pergunta enviada ao Dr. ${detail.name?.split(' ')[0] ?? ''}. Ele verá no próximo acesso.`);
     } catch (e: any) { setPergMsg(e.message || 'Falha ao enviar.'); } finally { setEnviando(false); }

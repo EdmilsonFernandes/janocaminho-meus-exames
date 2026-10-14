@@ -24,6 +24,8 @@ import { keyframes } from '@mui/material';
 import { tealText } from '../theme';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { useKeyboardInset } from '../hooks/useKeyboardInset';
+import { notifyInsufficientCredits } from '../utils/credits-events';
+import { CREDIT_COSTS } from '../components/CreditBadge';
 
 const TEAL = '#178f89';
 
@@ -214,7 +216,7 @@ export const ChatPage = () => {
       let gotDelta = false;
       const watchdog = setTimeout(() => { if (!gotDelta) ac.abort(); }, 45_000);
       const r = await fetch(`${API_URL}/chat`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ message, patientId: pid }), signal: ac.signal });
-      if (r.status === 402) { const e = await r.json().catch(() => ({})); notify(e.message || 'Sem créditos para conversar.', { type: 'warning' }); rollback(); return; }
+      if (r.status === 402) { const e = await r.json().catch(() => ({})); notifyInsufficientCredits({ message: e.message, cost: CREDIT_COSTS.chat }); rollback(); return; }
       if (!r.ok || !r.body) throw new Error('falha no chat');
       const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
       while (true) {

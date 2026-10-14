@@ -113,6 +113,7 @@ import { Motd } from './components/Motd';
 import { CreditRewardFx } from './components/CreditRewardFx';
 import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
+import { InsufficientCreditsDialog } from './components/InsufficientCreditsDialog';
 import { NotificationsPage } from './pages/Notifications';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
@@ -183,6 +184,8 @@ const CustomAppBar = (props: AppBarProps) => {
         <NotificationBell />
         <PatientSwitcher />
       </Stack>
+      {/* 402 de qualquer feature de IA → dialog animado com o pack mais barato (portal). */}
+      <InsufficientCreditsDialog />
     </AppBar>
   );
 };

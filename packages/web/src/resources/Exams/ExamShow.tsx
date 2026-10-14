@@ -39,6 +39,8 @@ import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '../../utils/clinicalGoals';
 import type { ClinicalGoalView } from '@meus-exames/shared';
+import { notifyInsufficientCredits } from '../../utils/credits-events';
+import { CREDIT_COSTS } from '../../components/CreditBadge';
 
 /** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
 const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {
@@ -211,7 +213,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         body: JSON.stringify({ examId: id, force }),
       });
       if (r.status === 402) {
-        notify('💎 Sem créditos. Compre um pacote (PIX) ou assine o mensal em “Planos e Créditos”.', { type: 'warning' });
+        notifyInsufficientCredits({ cost: CREDIT_COSTS.summary });
         setGenLoading(false);
         return;
       }
@@ -261,7 +263,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       const r = await fetch(`${API_URL}/exams/${id}/narrate`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
       if (r.status === 402) {
         const e = await r.json().catch(() => ({}));
-        notify(e.message || 'Sem créditos para ouvir o resumo.', { type: 'warning' });
+        notifyInsufficientCredits({ message: e.message, cost: CREDIT_COSTS.summary });
         window.dispatchEvent(new Event('creditsChanged'));
         return;
       }
@@ -312,7 +314,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({ message }),
       });
-      if (r.status === 402) { const e = await r.json().catch(() => ({})); notify(e.message || 'Sem créditos para conversar.', { type: 'warning' }); setChatMessages((m) => m.slice(0, -2)); setChatBusy(false); return; }
+      if (r.status === 402) { const e = await r.json().catch(() => ({})); notifyInsufficientCredits({ message: e.message, cost: CREDIT_COSTS.chat }); setChatMessages((m) => m.slice(0, -2)); setChatBusy(false); return; }
       if (!r.ok || !r.body) throw new Error('falha');
       const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
       while (true) {
