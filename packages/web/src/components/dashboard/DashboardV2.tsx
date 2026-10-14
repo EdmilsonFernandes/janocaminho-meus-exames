@@ -27,6 +27,7 @@ import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
 import { ClinicalIndicesCard, type ClinicalIndexView } from './ClinicalIndicesCard';
+import { ClinicalActionsCard, type ClinicalActionView } from './ClinicalActionsCard';
 import { BodyMap, type BodyRegionView } from '../BodyMap';
 import { ShareHealthButton } from '../ShareHealthCard';
 import { ReviewPrompt, maybeRequestReview } from '../ReviewPrompt';
@@ -119,6 +120,8 @@ function useDashboardData(pid: string | null) {
   const [hsLoaded, setHsLoaded] = useState(false);
   // Índices clínicos calculados + mapa corporal (vêm no mesmo health do dashboard-summary).
   const [indices, setIndices] = useState<ClinicalIndexView[] | null>(null);
+  // Perguntas pro médico (motor determinístico clinical-actions — promessa da landing).
+  const [actions, setActions] = useState<ClinicalActionView[] | null>(null);
   const [bodyRegions, setBodyRegions] = useState<BodyRegionView[] | null>(null);
   // Honestidade de estados (auditoria 2026-08): o server diz POR QUE cada feature não calculou
   // (availability) — o cliente nunca mais infere estado positivo a partir de null.
@@ -201,6 +204,7 @@ function useDashboardData(pid: string | null) {
             setBioKdm(hd.biologicalAgeKdm ?? null);
             setBioAvail(hd.availability?.biologicalAge ?? null);
             setIndices(Array.isArray(hd.clinicalIndices) ? hd.clinicalIndices : []);
+            setActions(Array.isArray(hd.clinicalActions) ? hd.clinicalActions : []);
             setBodyRegions(Array.isArray(hd.bodyRegions) ? hd.bodyRegions : []);
             // "Pioraram" = trend PIOROU mesmo (worsening) — nunca topAttention (bug da Heloisa).
             setWorsened(Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : []);
@@ -220,7 +224,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, bodyRegions };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, actions, bodyRegions };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -1138,6 +1142,15 @@ const DashboardV2Inner = () => {
               {!demo && Array.isArray(d.indices) && d.indices.length > 0 && (
                 <DashboardErrorBoundary>
                   <ClinicalIndicesCard indices={d.indices} loaded={d.hsLoaded} />
+                </DashboardErrorBoundary>
+              )}
+
+              {/* PERGUNTAS PRO MÉDICO (clinical-actions determinístico) — promessa da
+                  landing "Avaliação de Risco" sem cruzar fronteira SaMD: perguntas
+                  graduadas com fonte de diretriz BR. Escondido no demo (dado fictício). */}
+              {!demo && Array.isArray(d.actions) && d.actions.length > 0 && (
+                <DashboardErrorBoundary>
+                  <ClinicalActionsCard actions={d.actions} loaded={d.hsLoaded} />
                 </DashboardErrorBoundary>
               )}
 

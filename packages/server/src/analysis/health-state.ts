@@ -22,6 +22,7 @@ import { getSettings } from '../utils/settings';
 import { normalizeUnit, parseNumeric, normalizeKey } from '../utils/normalize';
 import { personalizedTargets as computePersonalizedTargets, type PersonalizedTarget } from './personalized-targets';
 import { computeClinicalIndices, computeBodyRegions, type ClinicalIndexResult, type BodyRegionState } from './clinical-indices';
+import { computeClinicalActions, type ClinicalAction } from './clinical-actions';
 // NOTA: trendVerdict canônico vive em @meus-exames/shared (consumido pelo web/vite).
 // O server (Node) não dá require em shared em runtime (shared é TS-source, sem build p/ JS),
 // então espelhamos a lógica aqui. Unificar quando shared ganhar build step (V1).
@@ -176,6 +177,9 @@ export interface CurrentHealthSummary {
   /** Índices clínicos CALCULADOS (determinísticos, zero IA — Castelli, AIP, HOMA-IR, TYG,
    *  FIB-4, eGFR, não-HDL, LH/FSH, FAI…). Só aparecem os com TODOS os marcadores exigidos. */
   clinicalIndices?: ClinicalIndexResult[];
+  /** Perguntas pra levar ao médico (motor determinístico clinical-actions.ts) —
+   *  promessa da landing "Avaliação de Risco" cumprida sem cruzar fronteira SaMD. */
+  clinicalActions?: ClinicalAction[];
   /** Mapa corporal: agregação dos marcadores por região anatômica (nível ok/atencao/
    *  alterado/sem_dados por região — alimenta o BodyMap do dashboard). */
   bodyRegions?: BodyRegionState[];
@@ -682,12 +686,14 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
   // Idade/sexo vêm do perfil (FIB-4, eGFR, LH/FSH e FAI são sexo/idade-dependentes);
   // sem perfil → esses índices simplesmente não aparecem (nunca se adivinha insumo).
   let clinicalIndices: ClinicalIndexResult[] = [];
+  let clinicalActions: ClinicalAction[] = [];
   let bodyRegions: BodyRegionState[] = [];
   try {
     const p = await prisma.patient.findUnique({ where: { id: patientId }, select: { gender: true, dateOfBirth: true } });
     const ageYears = p?.dateOfBirth ? Math.floor((Date.now() - new Date(p.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
     const sex: 'male' | 'female' | null = p?.gender === 'male' || p?.gender === 'female' ? p.gender : null;
     clinicalIndices = computeClinicalIndices(markers, { ageYears, sex });
+    clinicalActions = computeClinicalActions(markers, clinicalIndices);
     bodyRegions = computeBodyRegions(markers.map((m) => ({
       nameCanonical: m.nameCanonical,
       name: m.name,
@@ -763,6 +769,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     availability,
     personalizedTargets: pTargets,
     clinicalIndices,
+    clinicalActions,
     bodyRegions,
     // Camada 3 (consolidado): quebra por recência — corpo principal = marcadores do exame
     // mais recente; antigos viram tendência/contexto. Computado do MESMO conjunto `markers`
