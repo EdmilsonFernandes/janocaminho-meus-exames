@@ -38,9 +38,7 @@ import { DocPreview } from '../../components/DocPreview';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { useClinicalGoals } from '../../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText } from '../../utils/clinicalGoals';
-import type { ClinicalGoalView } from '@meus-exames/shared';
-import { notifyInsufficientCredits } from '../../utils/credits-events';
-import { CREDIT_COSTS } from '../../components/CreditBadge';
+
 
 /** Valor do item editável inline (corrigir erro de OCR). Salva via PATCH /items/:id. */
 const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onSaved: (u: any) => void }) => {

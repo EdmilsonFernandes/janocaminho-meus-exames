@@ -25,7 +25,6 @@ import { tealText } from '../theme';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { useKeyboardInset } from '../hooks/useKeyboardInset';
 import { notifyInsufficientCredits } from '../utils/credits-events';
-import { CREDIT_COSTS } from '../components/CreditBadge';
 
 const TEAL = '#178f89';
 

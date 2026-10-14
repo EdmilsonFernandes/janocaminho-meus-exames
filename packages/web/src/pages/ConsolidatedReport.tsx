@@ -54,9 +54,7 @@ interface Summary {
   };
   disclaimer?: string;
 }
-import type { SourceExam } from '@meus-exames/shared';
-import { notifyInsufficientCredits } from '../utils/credits-events';
-import { CREDIT_COSTS } from '../components/CreditBadge';
+
 
 const fmtDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : 's/d');
 
