@@ -34,6 +34,7 @@ import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { RobotAnalysis } from '../../components/RobotAnalysis';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { notifyInsufficientCredits } from '../../utils/credits-events';
+import type { ClinicalGoalView } from '@meus-exames/shared';
 import { ConfirmSpend } from '../../components/ConfirmSpend';
 import { DocPreview } from '../../components/DocPreview';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
