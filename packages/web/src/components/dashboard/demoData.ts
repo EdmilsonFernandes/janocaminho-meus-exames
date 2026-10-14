@@ -244,6 +244,7 @@ export const DEMO_DASHBOARD = {
   bioAvail: null,
   hsLoaded: true,
   indices: [] as never[], // índices clínicos calculados: só com dado REAL (cards escondidos no demo)
+  actions: [] as never[], // perguntas pro médico: só com dado REAL (card escondido no demo)
   bodyRegions: DEMO_BODY_REGIONS,
 };
 
