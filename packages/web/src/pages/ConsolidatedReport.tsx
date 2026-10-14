@@ -21,6 +21,8 @@ import { maybeRequestReview } from '../components/ReviewPrompt';
 import { ShareDialog } from '../components/ShareDialog';
 import { ReportGeneratingCard } from '../components/ReportGeneratingCard';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
+import type { SourceExam } from '@meus-exames/shared';
+import { notifyInsufficientCredits } from '../utils/credits-events';
 import { ConfirmSpend } from '../components/ConfirmSpend';
 import { DocPreview } from '../components/DocPreview';
 import { ReportHero } from '../components/report/ReportHero';
