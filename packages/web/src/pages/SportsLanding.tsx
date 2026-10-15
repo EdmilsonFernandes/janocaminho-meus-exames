@@ -12,6 +12,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ShieldIcon from '@mui/icons-material/Shield';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
+import { DrExame } from '../components/DrExame';
 
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -135,7 +136,7 @@ export const SportsLandingPage: React.FC = () => {
       }}>
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 36, height: 36, borderRadius: '14%' }} />
+            <DrExame size={36} sx={{ borderRadius: '14%' }} />
             <Box>
               <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', lineHeight: 1.1 }}>Dr. Exame</Typography>
               <Typography sx={{ fontSize: 10, fontWeight: 700, color: TEAL_DARK, letterSpacing: '0.04em' }}>MODO SAÚDE ESPORTIVA</Typography>
@@ -591,7 +592,7 @@ export const SportsLandingPage: React.FC = () => {
         <Container maxWidth="lg">
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} sx={{ mb: 3 }}>
             <Stack direction="row" spacing={1} alignItems="center">
-              <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 28, height: 28, borderRadius: '12%' }} />
+              <DrExame size={28} sx={{ borderRadius: '12%' }} />
               <Typography sx={{ color: '#ffffff', fontWeight: 800, fontSize: 15 }}>Dr. Exame</Typography>
             </Stack>
             <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ color: '#94a3b8', fontSize: 13 }}>

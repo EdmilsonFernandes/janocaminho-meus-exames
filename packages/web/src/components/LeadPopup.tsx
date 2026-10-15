@@ -3,6 +3,7 @@ import { Box, Button, IconButton, Paper, Slide, Stack, TextField, Typography } f
 import CloseIcon from '@mui/icons-material/Close';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL } from '../config';
+import { DrExame } from './DrExame';
 
 /**
  * Popup de captura de e-mail da landing (estratégia popup-cro aprovada).
@@ -126,7 +127,7 @@ export const LeadPopup = () => {
         ) : (
           <Stack spacing={1.5}>
             <Stack direction="row" spacing={1.25} alignItems="center">
-              <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '16%', flexShrink: 0 }} />
+              <DrExame size={34} sx={{ borderRadius: '16%', flexShrink: 0 }} />
               <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2, pr: 3 }}>
                 Seu exame de sangue vira <Box component="span" sx={{ color: TEAL_DARK, fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>português claro</Box>.
               </Typography>

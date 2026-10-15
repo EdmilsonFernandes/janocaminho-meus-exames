@@ -22,6 +22,7 @@ import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate } from 'react-router-dom';
+import { DrExame } from '../DrExame';
 
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -139,11 +140,9 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             sx={{ cursor: 'pointer', userSelect: 'none' }}
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            <Box
-              component="img"
-              src={`${import.meta.env.BASE_URL}app-icon.png`}
-              alt="Dr. Exame"
-              sx={{ width: 38, height: 38, borderRadius: '14px', objectFit: 'cover', boxShadow: '0 2px 8px rgba(32,178,170,0.2)' }}
+            <DrExame
+              size={38}
+              sx={{ borderRadius: '14px', boxShadow: '0 2px 8px rgba(32,178,170,0.2)' }}
             />
             <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 19, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>
               Dr. Exame
@@ -345,7 +344,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
         <Box>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
             <Stack direction="row" spacing={1.25} alignItems="center">
-              <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 32, height: 32, borderRadius: '10px' }} />
+              <DrExame size={32} sx={{ borderRadius: '10px' }} />
               <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: 'Poppins, sans-serif' }}>Dr. Exame</Typography>
             </Stack>
             <IconButton onClick={() => setMobileOpen(false)} aria-label="Fechar menu">

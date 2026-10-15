@@ -2,6 +2,7 @@ import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Co
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
+import { DrExame } from '../components/DrExame';
 
 // Ícones MUI (premium, no lugar dos emojis antigos)
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -46,7 +47,6 @@ import { TrustSection } from '../components/landing/TrustSection';
 import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
 import { HealthPackageShowcaseCard } from '../components/landing/HealthPackageShowcaseCard';
 import { ClinicalDecisionCard } from '../components/landing/ClinicalDecisionCard';
-import { DrExame } from '../components/DrExame';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { useHeroAb } from '../hooks/useHeroAb';
@@ -1377,7 +1377,7 @@ export const LandingPage = () => {
       }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Stack direction="row" spacing={1.25} alignItems="center" justifyContent="center" sx={{ mb: 1.5 }}>
-            <Box component="img" src={`${import.meta.env.BASE_URL}app-icon.png`} alt="Dr. Exame" sx={{ width: 34, height: 34, borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
+            <DrExame size={34} sx={{ borderRadius: '20%', border: '1px solid rgba(32,178,170,0.3)' }} />
             <Typography sx={{ fontWeight: 800, color: '#fff', fontSize: 19, fontFamily: 'Poppins, sans-serif' }}>Dr. Exame</Typography>
           </Stack>
           <Typography sx={{ fontSize: 14, mb: 1, color: '#a0c4c0' }}>© {new Date().getFullYear()} janocaminho.com.br • <Box component="a" href="mailto:contato@janocaminho.com.br" sx={{ color: '#a0c4c0', textDecoration: 'underline' }}>contato@janocaminho.com.br</Box></Typography>
