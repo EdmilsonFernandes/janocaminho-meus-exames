@@ -862,22 +862,21 @@
             <div class="spot-btn" style="top:74%; left:62%;" onclick="pickOrgan(13)">13</div>
           </div>
 
-          <!-- PAINEL DE RESULTADOS DO ÓRGÃO CLICADO -->
+          <!-- PAINEL DE RESULTADOS DO ÓRGÃO CLICADO COM PROGRESSIVE DISCLOSURE -->
           <div class="organ-info-card" id="organDetailBox">
             <div class="organ-info-top">
               <div class="organ-name-badge">
-                <span id="orgIcon">⚡</span>
-                <span id="orgTitle">6. Pâncreas & Metabolismo</span>
+                <span id="orgIcon">❤️</span>
+                <span id="orgTitle">4. Coração & Vasos</span>
               </div>
-              <span class="organ-status-tag warn" id="orgStatusTag">Atenção Preventiva</span>
+              <span class="organ-status-tag ok" id="orgStatusTag">Perfil Otimizado</span>
             </div>
             <p style="font-size:12px; color:#475569; line-height:1.4;" id="orgDescText">
-              Glicemia de jejum em 104 mg/dL (limítrofe). Hemoglobina glicada normal em 5.4%. Sugere redução de carboidratos refinados no período noturno.
+              Perfil lipídico cardiovascular e inflamatório acompanhado com 6 marcadores.
             </p>
-            <div style="display:flex; justify-content:space-between; font-size:11px; color:#64748b; padding-top:6px; border-top:1px dashed #e2e8f0;">
-              <span>Exame: Glicemia em Jejum (104 mg/dL)</span>
-              <span style="font-weight:700; color:var(--teal-d); cursor:pointer;">Ver Gráfico →</span>
-            </div>
+
+            <!-- LISTA COMPACTA CLÍNICA DE EXAMES COM 'VER MAIS' -->
+            <div id="organExamsList" style="display:flex; flex-direction:column; gap:6px; margin-top:4px;"></div>
           </div>
         </section>
 
@@ -1070,15 +1069,56 @@
   </main>
 
   <script>
-    // DADOS DOS 13 ÓRGÃOS
+    // DADOS DOS 13 ÓRGÃOS (Com Exames Relacionados)
     const ORGANS = [
-      { id: 1, name: "1. Cérebro & Neuro", icon: "🧠", status: "ok", desc: "B12, Folato e marcadores cognitivos normais. Sem sinais de neuroinflamação." },
-      { id: 2, name: "2. Tireoide", icon: "🦋", status: "ok", desc: "TSH: 2.1 mUI/L, T4 Livre: 1.1 ng/dL. Função glandular perfeitamente balanceada." },
-      { id: 3, name: "3. Pulmões", icon: "🫁", status: "ok", desc: "Capacidade de oxigenação e trocas gasosas normais." },
-      { id: 4, name: "4. Coração & Vasos", icon: "❤️", status: "ok", desc: "Perfil lipídico ótimo: Colesterol total caiu para 198 mg/dL e PCR-us está baixa." },
-      { id: 5, name: "5. Fígado", icon: "🫀", status: "ok", desc: "TGO: 22 U/L, TGP: 26 U/L. Tecido hepático saudável sem sobrecarga de gordura." },
-      { id: 6, name: "6. Pâncreas & Metabolismo", icon: "⚡", status: "warn", desc: "Glicemia de jejum em 104 mg/dL (Atenção moderada). Hemoglobina glicada normal em 5.4%." },
-      { id: 7, name: "7. Rins", icon: "💧", status: "ok", desc: "Creatinina: 0.9 mg/dL, Ureia: 31 mg/dL, TFG > 90 mL/min." },
+      { id: 1, name: "1. Cérebro & Neuro", icon: "🧠", status: "ok", desc: "B12, Folato e marcadores cognitivos normais.",
+        exams: [
+          { name: "Vitamina B12", val: "540 pg/mL", status: "ok", ref: "200 - 900 pg/mL", date: "15/10/2026", delta: "+8%" },
+          { name: "Ácido Fólico", val: "14.2 ng/mL", status: "ok", ref: "> 4.0 ng/mL", date: "15/10/2026" }
+        ]
+      },
+      { id: 2, name: "2. Tireoide", icon: "🦋", status: "ok", desc: "TSH e T4 Livre equilibrados.",
+        exams: [
+          { name: "TSH Ultra-sensível", val: "2.1 mUI/L", status: "ok", ref: "0.4 - 4.5 mUI/L", date: "15/10/2026" },
+          { name: "T4 Livre", val: "1.1 ng/dL", status: "ok", ref: "0.8 - 1.9 ng/dL", date: "15/10/2026" }
+        ]
+      },
+      { id: 3, name: "3. Pulmões", icon: "🫁", status: "ok", desc: "Capacidade de oxigenação e trocas gasosas normais.",
+        exams: [
+          { name: "Oximetria em Repouso", val: "98%", status: "ok", ref: "> 95%", date: "Hoje" },
+          { name: "Capacidade Vital Estimada", val: "Normal", status: "ok", ref: "Referência populacional", date: "Check-up" }
+        ]
+      },
+      { id: 4, name: "4. Coração & Vasos", icon: "❤️", status: "ok", desc: "Perfil lipídico completo com 6 exames mapeados.",
+        exams: [
+          { name: "LDL Colesterol", val: "142 mg/dL", status: "warn", ref: "< 130 mg/dL", date: "15/10/2026", delta: "+10%", prior: "128 mg/dL" },
+          { name: "Colesterol Total", val: "198 mg/dL", status: "ok", ref: "< 200 mg/dL", date: "15/10/2026", delta: "-8%", prior: "216 mg/dL" },
+          { name: "Triglicerídeos", val: "138 mg/dL", status: "ok", ref: "< 150 mg/dL", date: "15/10/2026", delta: "-4%" },
+          { name: "HDL Colesterol (Bom)", val: "52 mg/dL", status: "ok", ref: "> 40 mg/dL", date: "15/10/2026", delta: "+5%" },
+          { name: "VLDL Colesterol", val: "27 mg/dL", status: "ok", ref: "< 30 mg/dL", date: "15/10/2026" },
+          { name: "PCR Ultra-sensível", val: "0.8 mg/L", status: "ok", ref: "< 1.0 mg/L (Baixo Risco)", date: "15/10/2026" }
+        ]
+      },
+      { id: 5, name: "5. Fígado", icon: "🫀", status: "ok", desc: "Enzimas hepáticas perfeitamente preservadas.",
+        exams: [
+          { name: "TGO (AST)", val: "22 U/L", status: "ok", ref: "< 35 U/L", date: "15/10/2026" },
+          { name: "TGP (ALT)", val: "26 U/L", status: "ok", ref: "< 45 U/L", date: "15/10/2026" },
+          { name: "Gama-GT", val: "28 U/L", status: "ok", ref: "< 60 U/L", date: "15/10/2026" }
+        ]
+      },
+      { id: 6, name: "6. Pâncreas & Metabolismo", icon: "⚡", status: "warn", desc: "Glicemia de jejum em 104 mg/dL (Atenção moderada).",
+        exams: [
+          { name: "Glicemia em Jejum", val: "104 mg/dL", status: "warn", ref: "70 - 99 mg/dL", date: "15/10/2026", delta: "+6%", prior: "98 mg/dL" },
+          { name: "Hemoglobina Glicada (HbA1c)", val: "5.4%", status: "ok", ref: "< 5.7%", date: "15/10/2026" },
+          { name: "Insulina Basal", val: "8.2 uUI/mL", status: "ok", ref: "2.6 - 24.9 uUI/mL", date: "15/10/2026" }
+        ]
+      },
+      { id: 7, name: "7. Rins", icon: "💧", status: "ok", desc: "Filtração glomerular e escórias nitrogenadas excelentes.",
+        exams: [
+          { name: "Creatinina Sérica", val: "0.9 mg/dL", status: "ok", ref: "0.7 - 1.3 mg/dL", date: "15/10/2026" },
+          { name: "Ureia", val: "31 mg/dL", status: "ok", ref: "15 - 45 mg/dL", date: "15/10/2026" }
+        ]
+      },
       { id: 8, name: "8. Intestino", icon: "🦠", status: "ok", desc: "Absorção nutricional e trânsito intestinal regulares." },
       { id: 9, name: "9. Imunológico", icon: "🛡️", status: "ok", desc: "Leucócitos e plaquetas em níveis ideais de defesa." },
       { id: 10, name: "10. Membro Sup. Direito", icon: "💪", status: "ok", desc: "Tônus muscular e circulação periférica preservados." },
@@ -1087,18 +1127,111 @@
       { id: 13, name: "13. Membro Inf. Esquerdo", icon: "🦵", status: "ok", desc: "Retorno venoso e função articular normais." }
     ];
 
+    let currentExpandedState = false;
+    let currentOpenExamIndex = null;
+    let currentPickedId = 4; // Começa no Coração para demonstrar
+
     // CHIPS HORIZONTAIS
     const chipsCont = document.getElementById('organChipsContainer');
     ORGANS.forEach(org => {
       const chip = document.createElement('div');
-      chip.className = 'org-chip-item' + (org.id === 6 ? ' active' : '');
+      chip.className = 'org-chip-item' + (org.id === 4 ? ' active' : '');
       chip.id = 'chip-' + org.id;
       chip.innerHTML = `<span class="chip-mini-badge">${org.id}</span> ${org.name.split('. ')[1]}`;
       chip.onclick = () => pickOrgan(org.id);
       chipsCont.appendChild(chip);
     });
 
+    function toggleExamsExpanded() {
+      currentExpandedState = !currentExpandedState;
+      renderExamsList(ORGANS.find(o => o.id === currentPickedId));
+    }
+
+    function toggleExamDetail(index) {
+      currentOpenExamIndex = (currentOpenExamIndex === index ? null : index);
+      renderExamsList(ORGANS.find(o => o.id === currentPickedId));
+    }
+
+    function renderExamsList(org) {
+      const listCont = document.getElementById('organExamsList');
+      if (!listCont) return;
+      listCont.innerHTML = '';
+
+      const exams = org.exams || [
+        { name: "Avaliação Clínica Integrada", val: "Normal", status: "ok", ref: "Referência médica", date: "Check-up" }
+      ];
+
+      const visible = currentExpandedState ? exams : exams.slice(0, 3);
+      const hiddenCount = Math.max(0, exams.length - 3);
+
+      visible.forEach((ex, idx) => {
+        const isWarn = ex.status === 'warn';
+        const isExpanded = currentOpenExamIndex === idx;
+        const color = isWarn ? '#b45309' : '#059669';
+        const dotBg = isWarn ? '#f59e0b' : '#10b981';
+
+        const row = document.createElement('div');
+        row.style.cssText = `
+          background: #ffffff;
+          border: 1px solid ${isExpanded ? 'var(--teal)' : isWarn ? 'rgba(245, 158, 11, 0.4)' : '#e2e8f0'};
+          border-radius: 10px;
+          overflow: hidden;
+          transition: all 0.2s ease;
+        `;
+
+        row.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:9px 12px; cursor:pointer;" onclick="toggleExamDetail(${idx})">
+            <div style="display:flex; align-items:center; gap:8px; min-width:0; flex:1;">
+              <span style="width:8px; height:8px; border-radius:50%; background:${dotBg}; flex-shrink:0;"></span>
+              <span style="font-size:12.5px; font-weight:700; color:#0f172a; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${ex.name}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+              <b style="font-size:13px; color:${color}; font-family:'Poppins',sans-serif;">${ex.val}</b>
+              ${ex.delta ? `<span style="font-size:10px; font-weight:800; padding:2px 5px; border-radius:4px; background:${isWarn ? 'rgba(245,158,11,0.12)' : 'rgba(5,150,105,0.12)'}; color:${color};">${ex.delta}</span>` : ''}
+              <span style="font-size:11px; color:#94a3b8; transform:${isExpanded ? 'rotate(180deg)' : 'none'}; transition:transform 0.2s;">▼</span>
+            </div>
+          </div>
+          ${isExpanded ? `
+            <div style="padding:8px 12px 10px; background:rgba(32,178,170,0.03); border-top:1px dashed #e2e8f0; font-size:11px; color:#475569;">
+              <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                <span><b>Referência:</b> ${ex.ref}</span>
+                <span style="color:#64748b;">${ex.date}</span>
+              </div>
+              ${ex.prior ? `<div style="color:#64748b; margin-bottom:6px;">Exame anterior: ${ex.prior}</div>` : ''}
+              <div style="display:flex; justify-content:flex-end; gap:8px; padding-top:4px; border-top:1px solid rgba(0,0,0,0.04);">
+                <span style="color:var(--teal-d); font-weight:700; cursor:pointer;">Ver evolução →</span>
+              </div>
+            </div>
+          ` : ''}
+        `;
+        listCont.appendChild(row);
+      });
+
+      if (hiddenCount > 0) {
+        const btnMore = document.createElement('button');
+        btnMore.style.cssText = `
+          width: 100%;
+          background: rgba(32, 178, 170, 0.08);
+          border: 1px dashed rgba(32, 178, 170, 0.35);
+          color: var(--teal-d);
+          padding: 8px;
+          border-radius: 9px;
+          font-size: 11.5px;
+          font-weight: 800;
+          cursor: pointer;
+          transition: all 0.2s;
+        `;
+        btnMore.innerText = currentExpandedState ? "Mostrar menos exames ↑" : `Ver mais ${hiddenCount} exames normais ↓`;
+        btnMore.onclick = toggleExamsExpanded;
+        listCont.appendChild(btnMore);
+      }
+    }
+
     function pickOrgan(id) {
+      currentPickedId = id;
+      currentExpandedState = false;
+      currentOpenExamIndex = null;
+
       const org = ORGANS.find(o => o.id === id);
       if (!org) return;
 
@@ -1120,9 +1253,14 @@
         tag.innerText = 'Atenção Preventiva';
       } else {
         tag.className = 'organ-status-tag ok';
-        tag.innerText = 'Saudável / Normal';
+        tag.innerText = 'Perfil Otimizado';
       }
+
+      renderExamsList(org);
     }
+
+    // Inicializa renderizando Coração (id 4)
+    pickOrgan(4);
 
     // SIMULADOR DO RELÓGIO (CONECTADO X DESCONECTADO)
     function setWatchSim(connected) {

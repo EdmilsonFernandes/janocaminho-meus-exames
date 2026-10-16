@@ -1,5 +1,5 @@
 import { List, useListContext, Edit, Create, SimpleForm, TextInput, DateInput, useRecordContext, useNotify, useRefresh, CreateButton, TopToolbar, useInput, required } from 'react-admin';
-import { Box, Avatar, Typography, Chip, IconButton, Stack, Card, CardContent, TextField as MuiTextField } from '@mui/material';
+import { Box, Avatar, Typography, Chip, IconButton, Stack, Card, CardContent, Button, TextField as MuiTextField } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
@@ -64,32 +64,122 @@ const PatientCards = () => {
     const age = ageFrom(p.dateOfBirth);
     const sub = [age != null ? `${age} ano${age === 1 ? '' : 's'}` : null, p.phone].filter(Boolean).join(' • ');
     return (
-      <Card key={p.id} variant="outlined" onClick={() => navigate(`/patients/${p.id}`)}
-        sx={{ cursor: 'pointer', borderRadius: '12px', overflow: 'hidden',
-          border: titularStyle ? '1px solid #d8f4f2' : '1px solid',
-          borderColor: titularStyle ? undefined : 'divider',
-          background: titularStyle ? 'linear-gradient(135deg,#f1fafa,#ffffff)' : 'background.paper',
-          '&:hover': { boxShadow: '0 8px 22px rgba(32,178,170,.15)', transform: 'translateY(-1px)' },
-          transition: 'box-shadow .15s, transform .15s' }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Box sx={{ position: 'relative', flexShrink: 0 }}>
-            <Avatar src={p.photoUrl ? photoUrlFor(String(p.id)) : undefined} sx={{ width: 50, height: 50, bgcolor: titularStyle ? 'primary.main' : '#cfd8dc', color: titularStyle ? '#fff' : '#5a6b72', fontWeight: 800, fontSize: 20 }}>
-              {p.photoUrl ? '' : (p.fullName?.charAt(0)?.toUpperCase() || '?')}
-            </Avatar>
-            {titularStyle && <Box sx={{ position: 'absolute', bottom: -2, right: -2, width: 18, height: 18, borderRadius: '50%', bgcolor: '#d4a574', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}>★</Box>}
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2, wordBreak: 'break-word' }}>{p.fullName}</Typography>
-              <Chip size="small" label={titularStyle ? 'Titular' : (p.relationship || 'Dependente')} sx={{ height: 20, fontWeight: 700, bgcolor: titularStyle ? 'rgba(32,178,170,.14)' : 'rgba(212,165,116,.16)', color: titularStyle ? '#178f89' : '#b88a54' }} />
+      <Card
+        key={p.id}
+        variant="outlined"
+        sx={{
+          borderRadius: '18px',
+          overflow: 'hidden',
+          border: '1.5px solid',
+          borderColor: titularStyle ? 'rgba(32,178,170,0.45)' : 'rgba(212,165,116,0.35)',
+          background: (t) =>
+            t.palette.mode === 'dark'
+              ? titularStyle
+                ? 'linear-gradient(135deg, rgba(32,178,170,0.08) 0%, #101c27 100%)'
+                : 'linear-gradient(135deg, rgba(212,165,116,0.06) 0%, #101c27 100%)'
+              : titularStyle
+              ? 'linear-gradient(135deg, #f0fbfb 0%, #ffffff 100%)'
+              : 'linear-gradient(135deg, #fdfaf7 0%, #ffffff 100%)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+          transition: 'all 0.2s ease',
+          '&:hover': {
+            boxShadow: '0 8px 24px rgba(32,178,170,0.12)',
+            transform: 'translateY(-1px)',
+          },
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 2.25 }, '&:last-child': { pb: { xs: 2, sm: 2.25 } } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ position: 'relative', flexShrink: 0 }}>
+              <Avatar
+                src={p.photoUrl ? photoUrlFor(String(p.id)) : undefined}
+                sx={{
+                  width: 52,
+                  height: 52,
+                  bgcolor: titularStyle ? 'primary.main' : '#cfd8dc',
+                  color: titularStyle ? '#fff' : '#455a64',
+                  fontWeight: 800,
+                  fontSize: 20,
+                  border: titularStyle ? '2px solid #20b2aa' : '2px solid #d4a574',
+                }}
+              >
+                {p.photoUrl ? '' : p.fullName?.charAt(0)?.toUpperCase() || '?'}
+              </Avatar>
+              {titularStyle && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    bottom: -2,
+                    right: -2,
+                    width: 18,
+                    height: 18,
+                    borderRadius: '50%',
+                    bgcolor: '#d4a574',
+                    border: '2px solid #fff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: 11,
+                    color: '#fff',
+                    fontWeight: 900,
+                  }}
+                >
+                  ★
+                </Box>
+              )}
             </Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
-              {sub || 'Sem dados adicionais'}{p.clinicalProfile ? ' • perfil clínico ✓' : ''}
-            </Typography>
+
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2, wordBreak: 'break-word', color: 'text.primary' }}>
+                  {p.fullName}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={titularStyle ? 'Titular' : p.relationship || 'Dependente'}
+                  sx={{
+                    height: 20,
+                    fontWeight: 700,
+                    bgcolor: titularStyle ? 'rgba(32,178,170,.14)' : 'rgba(212,165,116,.18)',
+                    color: titularStyle ? '#178f89' : '#8c6031',
+                  }}
+                />
+              </Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.3 }}>
+                {sub || 'Sem dados adicionais'}
+                {p.clinicalProfile ? ' • perfil clínico preenchido ✓' : ''}
+              </Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
+              <IconButton size="small" onClick={() => navigate(`/patients/${p.id}`)} title="Editar cadastro" sx={{ color: 'text.secondary' }}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+              {!titularStyle && (
+                <IconButton
+                  size="small"
+                  color="error"
+                  disabled={deleting === p.id}
+                  onClick={() => handleDelete(p.id, p.fullName)}
+                  title="Excluir dependente"
+                >
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              )}
+            </Box>
           </Box>
-          <Box onClick={(e) => e.stopPropagation()} sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
-            <IconButton size="small" onClick={() => navigate(`/patients/${p.id}`)} title="Editar perfil" sx={{ color: '#5a6b72' }}><EditIcon fontSize="small" /></IconButton>
-            {!titularStyle && <IconButton size="small" color="error" disabled={deleting === p.id} onClick={() => handleDelete(p.id, p.fullName)} title="Excluir"><DeleteOutlineIcon fontSize="small" /></IconButton>}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1.5, pt: 1.25, borderTop: '1px dashed', borderColor: 'divider' }}>
+            <Button
+              size="small"
+              onClick={() => {
+                window.localStorage.setItem('selected_patient_id', String(p.id));
+                navigate('/');
+              }}
+              sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, color: '#178f89' }}
+            >
+              Acessar Painel de {p.fullName.split(' ')[0]} →
+            </Button>
           </Box>
         </CardContent>
       </Card>
@@ -97,30 +187,82 @@ const PatientCards = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 720, mx: 'auto', p: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Box sx={{ maxWidth: 740, mx: 'auto', p: { xs: 1.5, sm: 2.5 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      {/* Banner de navegação para a Visão Integrada da Família */}
+      <Card
+        variant="outlined"
+        onClick={() => navigate('/familia')}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: '16px',
+          p: 1.75,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          background: 'linear-gradient(135deg, rgba(32,178,170,0.1) 0%, rgba(15,95,90,0.04) 100%)',
+          borderColor: 'rgba(32,178,170,0.3)',
+          transition: 'all 0.2s',
+          '&:hover': { borderColor: '#20b2aa', transform: 'translateY(-1px)' },
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box sx={{ fontSize: 24 }}>👨‍👩‍👧</Box>
+          <Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+              Ver Painel Clínico Unificado da Família
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Compare scores, genética e tendências entre Edmilson e dependentes.
+            </Typography>
+          </Box>
+        </Box>
+        <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#178f89' }}>
+          Abrir →
+        </Typography>
+      </Card>
+
       {titular && (
         <>
-          <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', letterSpacing: '0.04em', textTransform: 'uppercase' }}>★ Titular</Typography>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: '#178f89', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            ★ Titular da Conta
+          </Typography>
           {renderItem(titular, true)}
         </>
       )}
+
       <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', textTransform: 'uppercase', mt: titular ? 0.5 : 0 }}>
-        {dependentes.length > 0 ? `Dependentes (${dependentes.length})` : 'Dependentes'}
+        {dependentes.length > 0 ? `Dependentes Monitorados (${dependentes.length})` : 'Dependentes'}
       </Typography>
+
       {dependentes.length > 0 && (
-        <Stack spacing={1.25}>{dependentes.map((p) => renderItem(p))}</Stack>
+        <Stack spacing={1.5}>{dependentes.map((p) => renderItem(p))}</Stack>
       )}
-      {/* Adicionar dependente — sempre logo abaixo da lista (ação agrupada com o conteúdo).
-          Antes, quando já havia dependente, o botão ficava só no topo (toolbar) e sobrava espaço
-          vazio embaixo. Agora o "+ dependente" aparece sempre, colado na lista. */}
-      <Card variant="outlined" onClick={() => navigate('/patients/create')} sx={{ cursor: 'pointer', borderRadius: '12px', border: '2px dashed', borderColor: 'divider', background: 'background.default', py: 2, textAlign: 'center', '&:hover': { background: 'action.hover' } }}>
-        <PersonAddIcon sx={{ color: '#20b2aa', mb: 0.5 }} />
-        <Typography sx={{ fontWeight: 700, color: '#178f89' }}>Adicionar um dependente</Typography>
-        <Typography variant="caption" color="text.secondary">Filho(a), cônjuge, pai/mãe… cada um com exames e análises próprios.</Typography>
+
+      <Card
+        variant="outlined"
+        onClick={() => navigate('/patients/create')}
+        sx={{
+          cursor: 'pointer',
+          borderRadius: '16px',
+          border: '2px dashed',
+          borderColor: 'rgba(32, 178, 170, 0.4)',
+          background: 'background.default',
+          py: 2.5,
+          textAlign: 'center',
+          transition: 'all 0.2s',
+          '&:hover': { background: 'action.hover', borderColor: '#20b2aa' },
+        }}
+      >
+        <PersonAddIcon sx={{ color: '#20b2aa', fontSize: 28, mb: 0.5 }} />
+        <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 15 }}>+ Adicionar um dependente</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
+          Filho(a), cônjuge, pai/mãe… histórico e exames 100% individualizados.
+        </Typography>
       </Card>
     </Box>
   );
 };
+
 
 const PhotoField = () => {
   const record = useRecordContext();

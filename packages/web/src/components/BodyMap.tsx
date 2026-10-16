@@ -9,7 +9,10 @@ import {
   Tooltip,
   useTheme,
   Divider,
+  Collapse,
 } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { alpha } from '@mui/material/styles';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import PsychologyIcon from '@mui/icons-material/Psychology';
@@ -28,6 +31,8 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import HistoryToggleOffIcon from '@mui/icons-material/HistoryToggleOff';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import LightbulbOutlinedIcon from '@mui/icons-material/LightbulbOutlined';
 import type { ComponentType } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppCard } from './AppCard';
@@ -117,6 +122,123 @@ const formatDate = (isoString: string | null) => {
   }
 };
 
+interface OrganClinicalAdvice {
+  exams: { name: string; type: string; purpose: string }[];
+  why: string;
+  recommendation: string;
+}
+
+const ORGAN_CLINICAL_GUIDE: Record<string, OrganClinicalAdvice> = {
+  coracao: {
+    exams: [
+      { name: 'Perfil Lipídico Completo', type: 'Sangue', purpose: 'Avalia Colesterol Total, LDL, HDL e Triglicerídeos' },
+      { name: 'Eletrocardiograma (ECG)', type: 'Cardiológico', purpose: 'Registra o ritmo e a condução elétrica cardíaca' },
+      { name: 'PCR Ultra-sensível', type: 'Sangue', purpose: 'Identifica inflamação subclínica nas artérias coronárias' },
+    ],
+    why: 'As doenças cardiovasculares são a principal causa de mortalidade e evoluem de forma silenciosa por anos. Monitorar o perfil lipídico e a inflamação permite prevenir o entupimento de artérias muito antes de qualquer dor ou sintoma.',
+    recommendation: 'Recomendado anualmente para adultos a partir dos 20 anos, ou antes se houver histórico na família.',
+  },
+  cerebro: {
+    exams: [
+      { name: 'Vitamina B12 & Ácido Fólico', type: 'Sangue', purpose: 'Proteção da bainha de mielina dos neurônios e síntese de neurotransmissores' },
+      { name: 'Homocisteína', type: 'Sangue', purpose: 'Marcador de estresse oxidativo e integridade neurovascular' },
+      { name: 'Ferritina Sérica', type: 'Sangue', purpose: 'Estoque de ferro essencial para oxigenação do cérebro' },
+    ],
+    why: 'Quedas em nutrientes vitais como B12 e folato causam lentidão de raciocínio, esquecimentos, fadiga e formigamentos que são 100% reversíveis se corrigidos a tempo.',
+    recommendation: 'Recomendado para quem sente cansaço constante, lapsos de memória ou segue dietas restritivas.',
+  },
+  tireoide: {
+    exams: [
+      { name: 'TSH Ultra-sensível', type: 'Sangue', purpose: 'Hormônio regulador do ritmo metabólico do organismo' },
+      { name: 'T4 Livre', type: 'Sangue', purpose: 'Hormônio tireoidiano ativo circulante nos tecidos' },
+      { name: 'Anti-TPO', type: 'Sangue', purpose: 'Investiga tendência a autoimunidade tireoidiana (Hashimoto)' },
+    ],
+    why: 'A tireoide é a bateria metabólica do corpo: controla peso, disposição, sono, queda de cabelo e temperatura corporal. Distúrbios leves passam despercebidos por anos.',
+    recommendation: 'Rotina anual em check-ups de rotina, especialmente com histórico de alterações de peso ou cansaço.',
+  },
+  pulmoes: {
+    exams: [
+      { name: 'Oximetria de Pulso', type: 'Não invasivo', purpose: 'Mede o percentual de oxigênio transportado no sangue' },
+      { name: 'Espirometria', type: 'Funcional', purpose: 'Avalia o volume e velocidade do ar nos pulmões' },
+      { name: 'Raio-X de Tórax', type: 'Imagem', purpose: 'Visualiza parênquima pulmonar, vasos e mediastino' },
+    ],
+    why: 'Garante que suas trocas gasosas estão em nível ideal para alimentar os músculos e o cérebro com oxigênio pleno.',
+    recommendation: 'Essencial para praticantes de atividade física, pessoas com cansaço ao subir escadas ou tosse recorrente.',
+  },
+  figado: {
+    exams: [
+      { name: 'TGO (AST) e TGP (ALT)', type: 'Sangue', purpose: 'Enzimas que indicam lesão ou sobrecarga nas células do fígado' },
+      { name: 'Gama-GT e Fosfatase Alcalina', type: 'Sangue', purpose: 'Avaliam fluxo biliar e resposta a medicamentos' },
+      { name: 'Ultrassom de Abdome', type: 'Imagem', purpose: 'Verifica textura hepática e presença de gordura (esteatose)' },
+    ],
+    why: 'O fígado processa toxinas, medicamentos e gorduras. A esteatose hepática (gordura no fígado) não dói, mas pode ser totalmente revertida com dieta quando detectada no início.',
+    recommendation: 'Recomendado anualmente para qualquer adulto em rotina preventiva.',
+  },
+  pancreas: {
+    exams: [
+      { name: 'Glicemia de Jejum', type: 'Sangue', purpose: 'Mede o nível imediato de açúcar no sangue' },
+      { name: 'Hemoglobina Glicada (HbA1c)', type: 'Sangue', purpose: 'Retrato fiel da média glicêmica dos últimos 3 meses' },
+      { name: 'Insulina Basal (HOMA-IR)', type: 'Sangue', purpose: 'Detecta resistência insulínica anos antes do diabetes' },
+    ],
+    why: 'A resistência à insulina começa muito antes da glicose subir. Descobrir cedo protege os vasos, a visão e a longevidade metabólica.',
+    recommendation: 'Check-up anual para adultos de todas as idades.',
+  },
+  rins: {
+    exams: [
+      { name: 'Creatinina Sérica com TFG', type: 'Sangue', purpose: 'Mede a velocidade exata de filtragem dos rins' },
+      { name: 'Ureia Sérica', type: 'Sangue', purpose: 'Avalia a excreção de compostos nitrogenados e hidratação' },
+      { name: 'EAS / Urina 1', type: 'Urina', purpose: 'Detecta micro-perda de proteínas, cristais e infecções' },
+    ],
+    why: 'Os rins filtram centenas de litros de sangue diariamente. A perda de função renal só dá sintomas em fases tardias, tornando exames preventivos simples fundamentais.',
+    recommendation: 'Anualmente em qualquer check-up, especialmente para quem pratica musculação ou usa suplementos.',
+  },
+  intestino: {
+    exams: [
+      { name: 'Sangue Oculto nas Fezes', type: 'Fezes', purpose: 'Rastreio precoce e preventivo de lesões na mucosa' },
+      { name: 'Parasitológico de Fezes', type: 'Fezes', purpose: 'Investiga presença de parasitas e absorção intestinal' },
+      { name: 'Calprotectina Fecal', type: 'Fezes', purpose: 'Detecta inflamação intestinal ativa' },
+    ],
+    why: 'O intestino abriga grande parte do sistema imune e absorve todos os nutrientes. Prevenir desequilíbrios digestivos garante energia e absorção das vitaminas.',
+    recommendation: 'A cada 1 a 2 anos, ou sempre que houver desconforto digestivo persistente.',
+  },
+  sangue: {
+    exams: [
+      { name: 'Hemograma Completo', type: 'Sangue', purpose: 'Contagem de glóbulos vermelhos, leucócitos e plaquetas' },
+      { name: 'Ferritina Sérica', type: 'Sangue', purpose: 'Verifica a reserva real de ferro no organismo' },
+      { name: 'Coagulograma Básico', type: 'Sangue', purpose: 'Avalia o tempo e equilíbrio da coagulação sanguínea' },
+    ],
+    why: 'O sangue transporta oxigênio para todos os órgãos. Pequenas anemias ou alterações de leucócitos causam sonolência, queda de imunidade e indisposição.',
+    recommendation: 'O exame mais fundamental da medicina, recomendado a cada 6 ou 12 meses.',
+  },
+  hormonios: {
+    exams: [
+      { name: 'Testosterona Total e Livre', type: 'Sangue', purpose: 'Vital para disposição, recuperação muscular e vitalidade' },
+      { name: 'Estradiol e Progesterona', type: 'Sangue', purpose: 'Equilíbrio hormonal, humor e densidade óssea' },
+      { name: 'Cortisol Basal', type: 'Sangue', purpose: 'Mede a resposta do corpo ao estresse diário' },
+    ],
+    why: 'Hormônios regulam humor, sono, composição corporal e foco mental. Ajustar déficits traz salto imediato na qualidade de vida.',
+    recommendation: 'Adultos que sentem cansaço crônico, alterações no sono ou queda no rendimento físico.',
+  },
+  musculos: {
+    exams: [
+      { name: 'CPK (Creatinofosfoquinase)', type: 'Sangue', purpose: 'Mede o desgaste e recuperação das fibras musculares' },
+      { name: 'Eletrólitos (Sódio, Potássio, Magnésio)', type: 'Sangue', purpose: 'Essenciais para contração muscular e evitar cãibras' },
+      { name: 'Vitamina D (25-OH)', type: 'Sangue', purpose: 'Regula força muscular e síntese de proteínas' },
+    ],
+    why: 'Massa muscular saudável é o maior escudo contra envelhecimento precoce e diabetes. Acompanhar a recuperação evita sobrecarga (overtraining).',
+    recommendation: 'Praticantes de esportes, musculação e adultos preservando mobilidade.',
+  },
+  ossos: {
+    exams: [
+      { name: 'Cálcio Total e Iônico', type: 'Sangue', purpose: 'Mineral fundamental da estrutura óssea e dentes' },
+      { name: 'Vitamina D (25-OH)', type: 'Sangue', purpose: 'Permite a absorção intestinal eficiente do cálcio' },
+      { name: 'Fósforo Sérico', type: 'Sangue', purpose: 'Trabalha junto ao cálcio na mineralização óssea' },
+    ],
+    why: 'A perda de densidade óssea não avisa até haver uma fratura. Manter níveis ideais de vitamina D e cálcio garante ossos fortes para a vida inteira.',
+    recommendation: 'Mulheres a partir dos 40 anos, homens a partir dos 50, ou qualquer pessoa com pouca exposição solar.',
+  },
+};
+
 export const BodyMap = ({
   regions,
   loaded,
@@ -183,6 +305,26 @@ export const BodyMap = ({
 
   const detailPanelRef = useRef<HTMLDivElement>(null);
   const [panelFlash, setPanelFlash] = useState(false);
+  const [showAllMarkers, setShowAllMarkers] = useState(false);
+  const [expandedMarker, setExpandedMarker] = useState<string | null>(null);
+
+  // Reset expansão ao trocar de órgão
+  useEffect(() => {
+    setShowAllMarkers(false);
+    setExpandedMarker(null);
+  }, [selectedKey]);
+
+  // Ordenação inteligente: marcadores fora da referência/atenção vêm no topo
+  const sortedMarkers = useMemo(() => {
+    if (!activeRegion?.markers) return [];
+    return [...activeRegion.markers].sort((a, b) => {
+      const rank = (lvl: MarkerLevel) => (lvl === 'alterado' ? 0 : lvl === 'atencao' ? 1 : 2);
+      return rank(a.level) - rank(b.level);
+    });
+  }, [activeRegion]);
+
+  const visibleMarkers = showAllMarkers ? sortedMarkers : sortedMarkers.slice(0, 3);
+  const hiddenCount = Math.max(0, sortedMarkers.length - 3);
 
   // Cores de status acessíveis com contraste AA
   const getLevelColor = (level: RegionLevel): string => {
@@ -791,168 +933,417 @@ export const BodyMap = ({
 
               <Divider sx={{ my: 1.5, borderColor: alpha(activeColor, 0.15) }} />
 
-              {/* Lista de Marcadores Clínicos do Órgão */}
-              {activeRegion.markers.length > 0 ? (
-                <Stack
-                  spacing={1.5}
-                  sx={{
-                    mt: 1.5,
-                    maxHeight: { xs: 'none', md: 440 },
-                    overflowY: { xs: 'visible', md: 'auto' },
-                    pr: { xs: 0, md: 0.5 },
-                    scrollbarWidth: 'none',
-                    '&::-webkit-scrollbar': { display: 'none' },
-                  }}
-                >
-                  {activeRegion.markers.map((m) => {
+              {/* Lista de Marcadores Clínicos do Órgão — Formato Compacto com Divulgação Progressiva */}
+              {sortedMarkers.length > 0 ? (
+                <Stack spacing={1} sx={{ mt: 1.5 }}>
+                  {visibleMarkers.map((m) => {
                     const mCol = getLevelColor(m.level);
                     const isAbnormal = m.level === 'alterado' || m.level === 'atencao';
                     const examDate = formatDate(m.performedAt);
+                    const mKey = m.nameCanonical || m.name;
+                    const isExpanded = expandedMarker === mKey;
 
                     return (
                       <Box
-                        key={m.nameCanonical || m.name}
+                        key={mKey}
                         sx={{
-                          p: { xs: 1.25, sm: 1.5 },
                           borderRadius: '12px',
                           bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
                           border: '1px solid',
-                          borderColor: (t) => (isAbnormal ? alpha(mCol, 0.4) : t.palette.divider),
-                          borderLeft: `5px solid ${activeColor}`,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                          transition: 'all 0.2s ease',
-                          '&:hover': {
-                            boxShadow: `0 4px 14px ${alpha(activeColor, 0.18)}`,
-                            transform: 'translateX(2px)',
-                          },
+                          borderColor: (t) =>
+                            isExpanded ? alpha(activeColor, 0.55) : isAbnormal ? alpha(mCol, 0.35) : t.palette.divider,
+                          boxShadow: isExpanded
+                            ? `0 4px 14px ${alpha(activeColor, 0.16)}`
+                            : '0 1px 4px rgba(0,0,0,0.03)',
+                          transition: 'all 0.18s ease',
+                          overflow: 'hidden',
                         }}
                       >
-                        {/* Tag de Vínculo com o Órgão */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-                          <Typography variant="caption" sx={{ fontWeight: 800, fontSize: 10, color: activeColor, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                            {activeRegion.emoji} Vinculado a: {activeRegion.label}
-                          </Typography>
-                        </Box>
-                        {/* Linha 1: Nome do Marcador e Resultado Atual */}
-                        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
-                          <Typography sx={{ fontWeight: 700, fontSize: { xs: 13, sm: 14 }, color: 'text.primary', flex: 1, wordBreak: 'break-word' }}>
-                            {m.name}
-                          </Typography>
-                          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, flexShrink: 0 }}>
-                            <Typography sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, color: mCol, fontVariantNumeric: 'tabular-nums' }}>
-                              {m.valueText}
-                            </Typography>
-                            {m.unit && (
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                                {m.unit}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-
-                        {/* Linha 2: Faixa de Referência e Data */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 0.5, flexWrap: 'wrap', gap: 0.75 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            {m.refText ? `Referência: ${m.refText}` : 'Sem faixa de referência informada'}
-                          </Typography>
-                          {examDate && (
-                            <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85 }}>
-                              {examDate}
-                            </Typography>
-                          )}
-                        </Box>
-
-                        {/* Linha 3: Evolução em Relação ao Exame Anterior */}
-                        {m.prior && (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 1,
-                              mt: 1,
-                              p: 0.75,
-                              borderRadius: '8px',
-                              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)'),
-                              fontSize: 12,
-                            }}
-                          >
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                              Anterior: {m.prior.valueText} {m.unit}
-                            </Typography>
-                            {m.deltaPct != null && (
-                              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, fontWeight: 700, color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light }}>
-                                {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
-                                {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
-                              </Box>
-                            )}
-                          </Box>
-                        )}
-
-                        {/* Linha 4: Ações Rápidas (Tendência e Exame Original) */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1, pt: 0.75, borderTop: '1px dashed', borderColor: 'divider' }}>
-                          {m.examId && (
-                            <Button
-                              size="small"
-                              variant="text"
-                              onClick={() => handleGoExam(m.examId!)}
+                        {/* Linha Compacta Clínica (clicável para expandir) */}
+                        <Box
+                          onClick={() => setExpandedMarker(isExpanded ? null : mKey)}
+                          role="button"
+                          tabIndex={0}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            p: { xs: '10px 12px', sm: '10px 14px' },
+                            cursor: 'pointer',
+                            gap: 1.25,
+                            '&:hover': {
+                              bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
+                            },
+                          }}
+                        >
+                          {/* Indicador de status + Nome */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0, flex: 1 }}>
+                            <Box
                               sx={{
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                textTransform: 'none',
-                                color: 'text.secondary',
-                                py: 0.25,
-                                px: 1,
-                                minHeight: 28,
-                                '&:hover': { color: 'text.primary' },
+                                width: 9,
+                                height: 9,
+                                borderRadius: '50%',
+                                bgcolor: mCol,
+                                flexShrink: 0,
+                                boxShadow: `0 0 6px ${alpha(mCol, 0.65)}`,
+                              }}
+                            />
+                            <Typography
+                              sx={{
+                                fontWeight: isAbnormal ? 800 : 700,
+                                fontSize: { xs: 13, sm: 13.5 },
+                                color: 'text.primary',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
                               }}
                             >
-                              Ver laudo original
-                            </Button>
-                          )}
-                          <Button
-                            size="small"
-                            variant="text"
-                            onClick={() => handleGoTrend(m.nameCanonical)}
-                            endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                              {m.name}
+                            </Typography>
+                          </Box>
+
+                          {/* Valor + Unidade + Variação + Seta */}
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                            <Box sx={{ textAlign: 'right' }}>
+                              <Typography
+                                sx={{
+                                  fontWeight: 800,
+                                  fontSize: { xs: 14.5, sm: 15.5 },
+                                  color: mCol,
+                                  fontVariantNumeric: 'tabular-nums',
+                                  lineHeight: 1.1,
+                                }}
+                              >
+                                {m.valueText}
+                                {m.unit && (
+                                  <Typography
+                                    component="span"
+                                    variant="caption"
+                                    sx={{ ml: 0.5, color: 'text.secondary', fontWeight: 600, fontSize: 11 }}
+                                  >
+                                    {m.unit}
+                                  </Typography>
+                                )}
+                              </Typography>
+                            </Box>
+
+                            {m.deltaPct != null && (
+                              <Chip
+                                size="small"
+                                label={`${m.deltaPct > 0 ? '+' : ''}${m.deltaPct.toFixed(0)}%`}
+                                sx={{
+                                  height: 20,
+                                  fontSize: 10.5,
+                                  fontWeight: 800,
+                                  bgcolor: m.deltaPct > 0 ? alpha(SEM.bad.light, 0.12) : alpha(SEM.ok.light, 0.12),
+                                  color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light,
+                                  px: 0.25,
+                                }}
+                              />
+                            )}
+
+                            <IconButton
+                              size="small"
+                              aria-label={isExpanded ? 'Recolher detalhes' : 'Ver detalhes'}
+                              sx={{
+                                p: 0.25,
+                                color: 'text.secondary',
+                                transform: isExpanded ? 'rotate(180deg)' : 'none',
+                                transition: 'transform 0.2s ease',
+                              }}
+                            >
+                              <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          </Box>
+                        </Box>
+
+                        {/* Detalhes Expansíveis sob Demanda */}
+                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                          <Box
                             sx={{
-                              fontSize: 11.5,
-                              fontWeight: 700,
-                              textTransform: 'none',
-                              color: 'primary.main',
-                              py: 0.25,
-                              px: 1,
-                              minHeight: 28,
+                              p: { xs: '10px 14px 12px', sm: '10px 16px 14px' },
+                              bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.05 : 0.025),
+                              borderTop: '1px solid',
+                              borderColor: (t) => alpha(activeColor, 0.12),
                             }}
                           >
-                            Ver tendência
-                          </Button>
-                        </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+                                <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
+                              </Typography>
+                              {examDate && (
+                                <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85 }}>
+                                  Data: {examDate}
+                                </Typography>
+                              )}
+                            </Box>
+
+                            {/* Variação em relação ao exame anterior */}
+                            {m.prior && (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  mt: 1,
+                                  p: '6px 10px',
+                                  borderRadius: '8px',
+                                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'),
+                                  fontSize: 12,
+                                }}
+                              >
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                                  Exame anterior: {m.prior.valueText} {m.unit}
+                                </Typography>
+                                {m.deltaPct != null && (
+                                  <Box
+                                    sx={{
+                                      display: 'inline-flex',
+                                      alignItems: 'center',
+                                      gap: 0.25,
+                                      fontWeight: 800,
+                                      fontSize: 11.5,
+                                      color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light,
+                                    }}
+                                  >
+                                    {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
+                                    {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
+                                  </Box>
+                                )}
+                              </Box>
+                            )}
+
+                            {/* Ações Rápidas */}
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1.25, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+                              {m.examId && (
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => handleGoExam(m.examId!)}
+                                  sx={{
+                                    fontSize: 11.5,
+                                    fontWeight: 700,
+                                    textTransform: 'none',
+                                    color: 'text.secondary',
+                                    py: 0.25,
+                                    px: 1,
+                                    minHeight: 28,
+                                    '&:hover': { color: 'text.primary' },
+                                  }}
+                                >
+                                  Ver laudo original
+                                </Button>
+                              )}
+                              <Button
+                                size="small"
+                                variant="text"
+                                onClick={() => handleGoTrend(m.nameCanonical)}
+                                endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                                sx={{
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  textTransform: 'none',
+                                  color: 'primary.main',
+                                  py: 0.25,
+                                  px: 1,
+                                  minHeight: 28,
+                                }}
+                              >
+                                Ver evolução
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Collapse>
                       </Box>
                     );
                   })}
+
+                  {/* Botão de Ver Mais / Menos para órgãos com 4 ou mais exames */}
+                  {hiddenCount > 0 && (
+                    <Button
+                      size="small"
+                      onClick={() => setShowAllMarkers(!showAllMarkers)}
+                      endIcon={showAllMarkers ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+                      sx={{
+                        mt: 0.75,
+                        py: 0.9,
+                        width: '100%',
+                        borderRadius: '10px',
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        color: activeColor,
+                        bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.12 : 0.07),
+                        border: '1px dashed',
+                        borderColor: alpha(activeColor, 0.35),
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.2 : 0.14),
+                          borderColor: activeColor,
+                        },
+                      }}
+                    >
+                      {showAllMarkers
+                        ? 'Mostrar menos exames ↑'
+                        : `Ver mais ${hiddenCount} exame${hiddenCount > 1 ? 's' : ''} normais deste órgão ↓`}
+                    </Button>
+                  )}
                 </Stack>
               ) : (
-                /* Estado sem exames para a região */
-                <Box sx={{ py: 3, textAlign: 'center' }}>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', maxWidth: 320, mx: 'auto', mb: 2 }}>
-                    Ainda não há exames cadastrados para o sistema <strong>{activeRegion.label}</strong>.
-                  </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={handleGoUpload}
-                    startIcon={<UploadFileIcon />}
-                    sx={{
-                      borderRadius: '999px',
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      borderColor: 'primary.main',
-                      color: 'primary.main',
-                    }}
-                  >
-                    Enviar exame deste sistema
-                  </Button>
-                </Box>
+                /* Estado sem exames para a região com Sugestões Clínicas Preventivas */
+                (() => {
+                  const advice = ORGAN_CLINICAL_GUIDE[activeRegion.key] || {
+                    exams: [
+                      { name: 'Check-up Laboratorial Geral', type: 'Sangue', purpose: 'Avaliação bioquímica e metabólica básica' },
+                    ],
+                    why: `Monitorar o sistema ${activeRegion.label} permite detectar variações precoces antes de qualquer sintoma clínico.`,
+                    recommendation: 'Converse com seu médico em sua próxima consulta de rotina.',
+                  };
+
+                  return (
+                    <Box sx={{ mt: 1.5 }}>
+                      <Box
+                        sx={{
+                          p: { xs: 1.75, sm: 2.25 },
+                          borderRadius: '16px',
+                          bgcolor: (t) => (t.palette.mode === 'dark' ? '#111c26' : '#ffffff'),
+                          border: '1px solid',
+                          borderColor: alpha(activeColor, 0.25),
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+                        }}
+                      >
+                        {/* Header da Sugestão com o Robô */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, mb: 1.5 }}>
+                          <Box
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              borderRadius: '10px',
+                              bgcolor: alpha(activeColor, 0.14),
+                              display: 'grid',
+                              placeItems: 'center',
+                              color: activeColor,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <LightbulbOutlinedIcon sx={{ fontSize: 20 }} />
+                          </Box>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', lineHeight: 1.2 }}>
+                              Você ainda não tem exames deste órgão
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              Veja quais exames avaliam o {activeRegion.label} e por quê
+                            </Typography>
+                          </Box>
+                        </Box>
+
+                        {/* O Porquê Clínico Preventivo */}
+                        <Box
+                          sx={{
+                            p: 1.25,
+                            borderRadius: '10px',
+                            bgcolor: alpha(activeColor, dark ? 0.08 : 0.04),
+                            border: '1px solid',
+                            borderColor: alpha(activeColor, 0.18),
+                            mb: 1.75,
+                          }}
+                        >
+                          <Typography variant="caption" sx={{ fontWeight: 800, color: activeColor, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 0.3 }}>
+                            💡 Por que é importante acompanhar?
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+                            {advice.why}
+                          </Typography>
+                        </Box>
+
+                        {/* Lista de Exames Sugeridos */}
+                        <Typography sx={{ fontWeight: 800, fontSize: 12.5, color: 'text.primary', mb: 1 }}>
+                          Exames mais pedidos pelos médicos para este sistema:
+                        </Typography>
+
+                        <Stack spacing={0.9} sx={{ mb: 2 }}>
+                          {advice.exams.map((ex, i) => (
+                            <Box
+                              key={i}
+                              sx={{
+                                p: '8px 12px',
+                                borderRadius: '10px',
+                                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc'),
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 1,
+                              }}
+                            >
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary', lineHeight: 1.2 }}>
+                                  {ex.name}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                                  {ex.purpose}
+                                </Typography>
+                              </Box>
+                              <Chip
+                                size="small"
+                                label={ex.type}
+                                sx={{
+                                  height: 20,
+                                  fontSize: 10.5,
+                                  fontWeight: 800,
+                                  bgcolor: alpha(activeColor, 0.12),
+                                  color: activeColor,
+                                  flexShrink: 0,
+                                }}
+                              />
+                            </Box>
+                          ))}
+                        </Stack>
+
+                        {/* Ações Práticas */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleGoUpload}
+                            startIcon={<UploadFileIcon sx={{ fontSize: 16 }} />}
+                            sx={{
+                              flex: 1,
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              fontSize: 12.5,
+                              py: 0.8,
+                              background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                              color: '#ffffff',
+                              boxShadow: 'none',
+                            }}
+                          >
+                            Já tenho este laudo (Enviar)
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => navigate('/reminders')}
+                            sx={{
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 700,
+                              fontSize: 12,
+                              py: 0.8,
+                              borderColor: 'divider',
+                              color: 'text.secondary',
+                            }}
+                          >
+                            Lembrar no check-up
+                          </Button>
+                        </Box>
+                      </Box>
+                    </Box>
+                  );
+                })()
               )}
             </Box>
           ) : null}
