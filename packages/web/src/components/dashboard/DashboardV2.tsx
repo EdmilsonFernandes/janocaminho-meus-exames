@@ -26,7 +26,7 @@ import { RestingHeartCard } from './RestingHeartCard';
 import { SinceExamCard } from './SinceExamCard';
 import { CreditsCard } from './CreditsCard';
 import { BiologicalAgeCard } from './BiologicalAgeCard';
-import { ClinicalIndicesCard, type ClinicalIndexView } from './ClinicalIndicesCard';
+import type { ClinicalIndexView } from './ClinicalIndicesCard';
 import { ClinicalActionsCard, type ClinicalActionView } from './ClinicalActionsCard';
 import { BodyMap, type BodyRegionView } from '../BodyMap';
 import { ShareHealthButton } from '../ShareHealthCard';
@@ -1136,14 +1136,6 @@ const DashboardV2Inner = () => {
                   onUploadExam={go('/exams/create')}
                 />
               </DashboardErrorBoundary>
-
-              {/* ÍNDICES CLÍNICOS CALCULADOS (razões/fórmulas da literatura — zero IA).
-                  Escondido no demo: índice clínico fictício é dado de saúde falso. */}
-              {!demo && Array.isArray(d.indices) && d.indices.length > 0 && (
-                <DashboardErrorBoundary>
-                  <ClinicalIndicesCard indices={d.indices} loaded={d.hsLoaded} />
-                </DashboardErrorBoundary>
-              )}
 
               {/* PERGUNTAS PRO MÉDICO (clinical-actions determinístico) — promessa da
                   landing "Avaliação de Risco" sem cruzar fronteira SaMD: perguntas
