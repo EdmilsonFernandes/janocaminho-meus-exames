@@ -57,6 +57,7 @@ import { DoctorConsolidatedReport } from '../components/doctors/DoctorConsolidat
 import { DoctorTrends } from '../components/doctors/DoctorTrends';
 import { SportsPanel } from '../components/doctors/portal/SportsPanel';
 import { PatientSummary } from '../components/doctors/PatientSummary';
+import { ClinicalRiskCard } from '../components/doctors/ClinicalRiskCard';
 
 const docKey = 'doctorToken';
 
@@ -967,6 +968,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Button onClick={() => setMedsOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
               </DialogActions>
             </Dialog>
+
+            {/* AVALIAÇÃO DE RISCO CLÍNICO — Estratificação imediata para o médico */}
+            <ClinicalRiskCard
+              patient={selected}
+              abnormalItems={abnormalItems}
+              abnormalStats={abnormalStats}
+              exams={exams}
+              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
+              criticalMeds={medsInfo?.critical?.length ?? 0}
+              onNavigateToAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
+              loading={detailLoading}
+            />
 
             {supportedTabs.length > 0 && (
               <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>

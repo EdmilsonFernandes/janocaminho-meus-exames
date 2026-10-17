@@ -10,8 +10,10 @@
 export const RADIUS = { sm: '8px', md: '12px', card: '20px', pill: '999px', button: '12px', tile: '12px', sectionCard: '12px' } as const;
 
 /** Cobre premium — assinatura do portal do médico (modo "viewer clínico"); no app do
- *  paciente o ativo continua teal. Espelha palette.secondary (D4A574/B88A54). */
-export const COPPER = { main: '#d4a574', deep: '#b88a54', textAA: '#8a5f2e', wash: 'rgba(212,165,116,.16)' } as const;
+ *  paciente o ativo continua teal. Espelha palette.secondary (D4A574/B88A54).
+ *  mid: bordas/lavagens no dark (par do deep); light: ícone/texto cobre legível no
+ *  dark (mesmo padrão AA do tealText — #5fc9c3 dark). */
+export const COPPER = { main: '#d4a574', deep: '#b88a54', mid: '#c69a67', light: '#e3bd8f', textAA: '#8a5f2e', wash: 'rgba(212,165,116,.16)' } as const;
 
 /** Estados SEMÂNTICOS com par DARK (auditoria DS P2): hex fixo foi a causa raiz dos
  *  surtos de contraste. Uso: sx={{ color: (t) => SEM.bad[t.palette.mode] }}.
