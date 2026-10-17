@@ -24,6 +24,9 @@ export interface ActivityDay {
   hrRest?: number;
   /** Minutos de exercício formal (esteira, corrida, etc) */
   exerciseMin?: number;
+  /** Minutos DORMIDOS atribuídos ao dia (noite que TERMINOU nesse dia — "ontem à noite").
+   *  0 = sem dado (relógio/app não escreve sono no HC) — NÃO significa "não dormiu". */
+  sleepMin?: number;
 }
 
 export type ActivityRange = 'today' | '7d' | '30d';
@@ -68,9 +71,11 @@ export interface ActivitySummary {
   exerciseMin: number;
   /** Total de exercício do período (soma bruta — hoje = exerciseMin). */
   totalExercise: number;
+  /** Sono (min): hoje = última noite; períodos = MÉDIA por noite (só noites com dado). */
+  sleepMin: number;
   /** Série p/ o sparkline (mais antigo → mais recente), já recortada ao range.
    *  kcal/km por dia alimentam o DETALHE ao tocar numa barra (gráfico interativo). */
-  series: { date: string; steps: number; kcal: number; kcalIsTotal: boolean; km: number }[];
+  series: { date: string; steps: number; kcal: number; kcalIsTotal: boolean; km: number; sleepMin: number }[];
   daysCounted: number;
   goalRatio: number;
 }
@@ -78,7 +83,7 @@ export interface ActivitySummary {
 /** Resumo do range a partir da série de dias (esperada em ordem DESC — mais recente primeiro). */
 export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySummary => {
   if (!days.length) {
-    return { steps: 0, kcal: 0, kcalIsTotal: false, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, hrRest: 0, exerciseMin: 0, totalExercise: 0, series: [], daysCounted: 0, goalRatio: 0 };
+    return { steps: 0, kcal: 0, kcalIsTotal: false, km: 0, totalSteps: 0, totalKcal: 0, totalKm: 0, avgSteps: 0, avgKcal: 0, avgKm: 0, hrAvg: 0, hrMax: 0, hrRest: 0, exerciseMin: 0, totalExercise: 0, sleepMin: 0, series: [], daysCounted: 0, goalRatio: 0 };
   }
   if (range === 'today') {
     const d = days[0];
@@ -88,7 +93,8 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
       avgSteps: d.steps, avgKcal: d.kcal, avgKm: d.km,
       hrAvg: d.hrAvg ?? 0, hrMax: d.hrMax ?? 0, hrRest: d.hrRest ?? 0,
       exerciseMin: d.exerciseMin ?? 0, totalExercise: d.exerciseMin ?? 0,
-      series: [{ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km }],
+      sleepMin: d.sleepMin ?? 0,
+      series: [{ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km, sleepMin: d.sleepMin ?? 0 }],
       daysCounted: 1,
       goalRatio: Math.min(1, d.steps / STEPS_GOAL),
     };
@@ -97,6 +103,8 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
   const slice = days.slice(0, n);
   const hrDays = slice.filter((d) => (d.hrAvg ?? 0) > 0);
   const hrRestDays = slice.filter((d) => (d.hrRest ?? 0) > 0);
+  // Sono: média só nas noites COM dado (0 = sem registro, não "não dormiu")
+  const sleepNights = slice.filter((d) => (d.sleepMin ?? 0) > 0);
   const totalSteps = slice.reduce((a, d) => a + d.steps, 0);
   const totalKcal = slice.reduce((a, d) => a + d.kcal, 0);
   const totalKm = Math.round(slice.reduce((a, d) => a + d.km, 0) * 10) / 10;
@@ -125,7 +133,8 @@ export const summarize = (days: ActivityDay[], range: ActivityRange): ActivitySu
       : hrDays.length ? Math.round(hrDays.reduce((t, d) => t + (d.hrAvg ?? 0), 0) / hrDays.length) : 0,
     exerciseMin: totalExercise, // períodos mostram o TOTAL (consistente com passos/km)
     totalExercise,
-    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km })),
+    sleepMin: sleepNights.length ? Math.round(sleepNights.reduce((t, d) => t + (d.sleepMin ?? 0), 0) / sleepNights.length) : 0,
+    series: [...slice].reverse().map((d) => ({ date: d.date, steps: d.steps, kcal: d.kcal, kcalIsTotal: !!d.kcalIsTotal, km: d.km, sleepMin: d.sleepMin ?? 0 })),
     daysCounted: slice.length,
     goalRatio: Math.min(1, avgSteps / STEPS_GOAL),
   };
@@ -141,6 +150,13 @@ export const fmtSteps = (steps: number): string =>
 export const fmtKm = (km: number): string => km.toFixed(1).replace('.', ',').replace(',0', ',0');
 
 export const fmtKcal = (kcal: number): string => Math.round(kcal).toLocaleString('pt-BR');
+
+/** 440 → "7h20" · 480 → "8h" · 95 → "1h35" (minutos → horas dormidas, linguagem Fitbit). */
+export const fmtSleep = (minutes: number): string => {
+  const h = Math.floor(minutes / 60);
+  const m = Math.round(minutes % 60);
+  return m ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
+};
 
 /** Altura relativa (0..1) da barra do sparkline p/ o valor, com mínimo visível. */
 export const barHeight = (value: number, max: number): number =>
@@ -181,6 +197,7 @@ export const normalizeDays = (raw: Array<Partial<ActivityDay>>): ActivityDay[] =
       hrMax: Math.max(0, Math.round(Number(r.hrMax ?? 0))),
       hrRest: Math.max(0, Math.round(Number(r.hrRest ?? 0))),
       exerciseMin: Math.max(0, Math.round(Number(r.exerciseMin ?? 0))),
+      sleepMin: Math.max(0, Math.round(Number(r.sleepMin ?? 0))),
     });
   }
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));

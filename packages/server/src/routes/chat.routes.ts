@@ -76,7 +76,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const hcActs = await prisma.measurement.findMany({
       where: {
         patientId: pid, note: 'Health Connect',
-        type: { in: ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES'] },
+        type: { in: ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES', 'SLEEP_MINUTES'] },
         measuredAt: { gte: new Date(Date.now() - 14 * 86400000) },
       },
       select: { type: true, value: true, measuredAt: true },
@@ -93,6 +93,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (hcActs.some((a) => a.type === 'DISTANCE')) activityLines.push(`   • Distância: ${(sumType('DISTANCE')).toFixed(1).replace('.', ',')} km em 7 dias`);
     const lastHr = hcActs.find((a) => a.type === 'HEART_RATE');
     if (lastHr) activityLines.push(`   • Frequência cardíaca de repouso mais recente: ${Math.round(lastHr.value)} bpm`);
+    if (hcActs.some((a) => a.type === 'SLEEP_MINUTES')) {
+      const nights = hcActs.filter((a) => a.type === 'SLEEP_MINUTES' && Date.now() - a.measuredAt.getTime() < 7 * 86400000);
+      if (nights.length) {
+        const avgMin = Math.round(nights.reduce((s, a) => s + a.value, 0) / nights.length);
+        activityLines.push(`   • Sono: média de ${Math.floor(avgMin / 60)}h${String(avgMin % 60).padStart(2, '0')} por noite (${nights.length} noites com registro)`);
+      }
+    }
     const activityBlock = activityLines.length
       ? `- ATIVIDADE FÍSICA (Health Connect do celular, últimos 7 dias — use quando a pergunta envolver rotina, atividade, peso, sono ou condicionamento; nunca invente números):\n${activityLines.join('\n')}\n`
       : '';

@@ -18,7 +18,7 @@ declare global {
       isAvailable(): boolean;
       hasAllPermissions(): boolean;
       requestPermissions(requestId: string): void;
-      aggregates(requestId: string, daysBack: number): void;
+      aggregates(requestId: string, daysBack: number, offsetDays: number): void;
     };
   }
 }
@@ -82,28 +82,52 @@ export const requestHealthPermissions = (): Promise<PermissionOutcome> => {
 };
 
 /**
- * Agregado diário dos últimos `days` dias (mais recente primeiro).
- * Retorna null quando indisponível (web/desktop, HC ausente) ou em erro — o widget
- * decide o que mostrar; o serviço nunca joga.
+ * Agregado diário dos últimos `days` dias (mais recente primeiro). `offsetDays` desloca
+ * a janela p/ o passado (backfill). Retorna null quando indisponível (web/desktop, HC
+ * ausente) ou em erro — o widget decide o que mostrar; o serviço nunca joga.
  */
-export const fetchActivityDays = async (days = 30): Promise<ActivityDay[] | null> => {
+export const fetchActivityDays = async (days = 30, offsetDays = 0): Promise<ActivityDay[] | null> => {
   if (!hasHealthPermissions()) return null;
-  const requestId = `agg-${Date.now()}`;
-  return waitFor<ActivityDay[] | null>('aggregates', requestId, () => window.DxHealth!.aggregates(requestId, days), (e) =>
+  const requestId = `agg-${Date.now()}-${offsetDays}`;
+  return waitFor<ActivityDay[] | null>('aggregates', requestId, () => window.DxHealth!.aggregates(requestId, days, offsetDays), (e) =>
     Array.isArray(e.detail?.days) ? normalizeDays(e.detail.days as Array<Partial<ActivityDay>>) : null,
   );
 };
 
 /**
+ * BACKFILL 90 dias (padrão Life Dashboard: histórico cheio no 1º connect). Lê em 3
+ * chunks de 30 (cap do bridge por chamada + quota de leitura do Health Connect espaçada)
+ * e mergeia por data. Um chunk que falha NÃO aborta os outros — devolve o que reuniu.
+ */
+export const backfillActivityDays = async (): Promise<ActivityDay[]> => {
+  const all = new Map<string, ActivityDay>();
+  for (const offset of [60, 30, 0]) {
+    const chunk = await fetchActivityDays(30, offset).catch(() => null);
+    if (!chunk) continue;
+    for (const d of chunk) all.set(d.date, d);
+  }
+  return [...all.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+};
+
+/**
  * Sincroniza os dias agregados com o motor do Dr. Exame (POST /measurements/activity-sync).
  * Grava como medições comuns → Linha do Tempo, Medições e Evolução enxergam o dado.
+ * Batching interno ≤30 dias/post (o server rejeita >31 de uma vez — backfill de 90 passa em 3 posts).
  */
 export const syncActivityToServer = async (days: ActivityDay[]): Promise<{ synced: number; days: number }> => {
-  const r = await fetch(`${API_URL}/measurements/activity-sync`, {
-    method: 'POST',
-    headers: apiHeaders(true),
-    body: JSON.stringify({ days: days.map((d) => ({ date: d.date, steps: d.steps, kcal: Math.round(d.kcal), km: d.km, hr: Math.round(d.hrRest ?? d.hrAvg ?? 0), exerciseMin: Math.max(0, Math.round(d.exerciseMin ?? 0)) })) }),
-  });
-  if (!r.ok) throw new Error(`Falha na sincronização (${r.status})`);
-  return r.json();
+  let synced = 0;
+  let counted = 0;
+  for (let i = 0; i < days.length; i += 30) {
+    const batch = days.slice(i, i + 30);
+    const r = await fetch(`${API_URL}/measurements/activity-sync`, {
+      method: 'POST',
+      headers: apiHeaders(true),
+      body: JSON.stringify({ days: batch.map((d) => ({ date: d.date, steps: d.steps, kcal: Math.round(d.kcal), km: d.km, hr: Math.round(d.hrRest ?? d.hrAvg ?? 0), exerciseMin: Math.max(0, Math.round(d.exerciseMin ?? 0)), sleepMin: Math.max(0, Math.round(d.sleepMin ?? 0)) })) }),
+    });
+    if (!r.ok) throw new Error(`Falha na sincronização (${r.status})`);
+    const j = await r.json();
+    synced += j.synced ?? 0;
+    counted += j.days ?? 0;
+  }
+  return { synced, days: counted };
 };

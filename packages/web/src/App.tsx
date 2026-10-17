@@ -73,6 +73,7 @@ import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
+const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.SinaisPage })));
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
@@ -989,6 +990,9 @@ export const App = () => {
       <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
       {/* Saúde mental (PHQ-9/GAD-7) — entra pelo card da página Medições (sem item de menu). */}
       <Route path="/saude-mental" element={<Suspense fallback={<PageSkeleton />}><SaudeMentalPage /></Suspense>} />
+      {/* Sinais Vitais (hub Health Connect) — PORTA pelo ActivityCard conectado: sem item
+          de menu de propósito (exclusiva de quem conecta o celular; sem dado → convite). */}
+      <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
       <Route path="/medicamentos" element={<MedicationsPage />} />
       <Route path="/vacinas" element={<VaccinesPage />} />
       <Route path="/despesas" element={<ExpensesPage />} />

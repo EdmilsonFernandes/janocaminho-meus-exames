@@ -30,8 +30,9 @@ export interface ActivitySummaryRemote {
     CALORIES: MetricSummary;
     DISTANCE: MetricSummary;
     HEART_RATE: MetricSummary;
-    /** Opcional: server anterior ao P2-j não devolve (fallback vazio no mapping). */
+    /** Opcionais: server anterior ao lote 16/10/26 não devolve (fallback vazio no mapping). */
     EXERCISE_MINUTES?: MetricSummary;
+    SLEEP_MINUTES?: MetricSummary;
   };
 }
 
@@ -61,6 +62,7 @@ export const summaryToDays = (s: ActivitySummaryRemote): ActivityDay[] => {
   for (const p of s.metrics.DISTANCE.series30) put(p.date, (d) => { d.km = p.value; });
   for (const p of s.metrics.HEART_RATE.series30) put(p.date, (d) => { d.hrRest = p.value; d.hrAvg = p.value; });
   for (const p of s.metrics.EXERCISE_MINUTES?.series30 ?? []) put(p.date, (d) => { d.exerciseMin = p.value; });
+  for (const p of s.metrics.SLEEP_MINUTES?.series30 ?? []) put(p.date, (d) => { d.sleepMin = p.value; });
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
 };
 

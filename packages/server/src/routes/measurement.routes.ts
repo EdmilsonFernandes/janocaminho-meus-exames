@@ -157,8 +157,11 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
       // Minutos de exercício formal (ExerciseSessionRecord) — o bridge já lia e o wrapper
       // descartava; agora entra no consolidado (tile "Exercício" + ActivityCard na web).
       const exerciseMin = Math.max(0, Math.round(Number(d.exerciseMin ?? 0)));
-      if ([steps, kcal, km, hr, exerciseMin].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
-      if (steps === 0 && kcal === 0 && km === 0 && hr === 0 && exerciseMin === 0) continue; // dia sem dados não gera ruído
+      // Minutos DORMIDOS na noite que terminou nesse dia (SleepSessionRecord, lote
+      // 16/10/26: hub Sinais Vitais + promessa da Landing "passos, sono e batimentos").
+      const sleepMin = Math.max(0, Math.round(Number(d.sleepMin ?? 0)));
+      if ([steps, kcal, km, hr, exerciseMin, sleepMin].some((v) => Number.isNaN(v))) { res.status(400).json({ error: `Valores inválidos em ${dateStr}.` }); return; }
+      if (steps === 0 && kcal === 0 && km === 0 && hr === 0 && exerciseMin === 0 && sleepMin === 0) continue; // dia sem dados não gera ruído
       const rows = [
         ...(steps > 0 ? [{ type: 'STEPS', value: steps, unit: 'passos', at }] : []),
         ...(kcal > 0 ? [{ type: 'CALORIES', value: Math.round(kcal), unit: 'kcal', at }] : []),
@@ -166,11 +169,15 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
         // FC média do dia (Health Connect) — alimenta o card de tendência de FC no Dashboard.
         ...(hr > 0 ? [{ type: 'HEART_RATE', value: hr, unit: 'bpm', at }] : []),
         ...(exerciseMin > 0 ? [{ type: 'EXERCISE_MINUTES', value: exerciseMin, unit: 'min', at }] : []),
+        ...(sleepMin > 0 ? [{ type: 'SLEEP_MINUTES', value: sleepMin, unit: 'min', at }] : []),
       ];
       parsed.push({ date: dateStr, rows });
     }
 
     let synced = 0;
+    // Timeout 30s: o default do Prisma p/ transação interativa é 5s — um post de 30 dias
+    // (backfill: ~200 queries delete+create) estourava com "Transaction not found" e o
+    // sync inteiro morria 500 (achado no QA do lote Sinais; t2.micro de prod é mais lento).
     await prisma.$transaction(async (tx) => {
       for (const { rows, date: dateStr } of parsed) {
         const dayStart = new Date(`${dateStr}T00:00:00`);
@@ -186,7 +193,7 @@ router.post('/activity-sync', async (req: AuthedRequest, res, next) => {
           synced++;
         }
       }
-    });
+    }, { timeout: 30_000 });
     res.status(201).json({ synced, days: parsed.length });
   } catch (e) { next(e); }
 });
@@ -199,7 +206,11 @@ router.get('/hr-trend', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const q = req.query as Record<string, string | undefined>;
-    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined) ?? pids[0];
+    // TITULAR default (mesma semântica do activity-sync): o celular que sincroniza é do
+    // titular — pids[0] podia ser dependente e a série vinha vazia.
+    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined)
+      ?? (await firstPatientId(req.userId!))
+      ?? pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
     const days = Math.min(90, Math.max(7, Number(q.days ?? 30) || 30));
     const since = new Date(Date.now() - days * 86400000);
@@ -230,7 +241,7 @@ router.get('/hr-trend', async (req: AuthedRequest, res, next) => {
 // dia → o createdAt da linha mais recente ≈ hora do último sync) — SEM
 // coluna nova/SEM migration.
 // ============================================================================
-const ACTIVITY_METRICS = ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES'] as const;
+const ACTIVITY_METRICS = ['STEPS', 'CALORIES', 'DISTANCE', 'HEART_RATE', 'EXERCISE_MINUTES', 'SLEEP_MINUTES'] as const;
 type ActivityMetric = (typeof ACTIVITY_METRICS)[number];
 /** Meta diária de passos — espelha STEPS_GOAL do web (utils/activityStats.ts). */
 const ACTIVITY_STEP_GOAL = 8000;
@@ -247,7 +258,12 @@ router.get('/activity-summary', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
     const q = req.query as Record<string, string | undefined>;
-    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined) ?? pids[0];
+    // TITULAR default (mesma semântica do activity-sync, que grava no titular): sem isto,
+    // contas com dependentes liam pids[0] (ordem de criação) e o consolidado vinha VAZIO
+    // na web/ActivityCard mesmo com o APK sincronizando — achado no QA do lote Sinais.
+    const pid = (q.patientId && pids.includes(q.patientId) ? q.patientId : undefined)
+      ?? (await firstPatientId(req.userId!))
+      ?? pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
     const days = Math.min(90, Math.max(7, Number(q.days ?? 30) || 30));
     const since = new Date(Date.now() - 2 * days * 86400000); // janela 2×: período atual + anterior
@@ -263,6 +279,7 @@ router.get('/activity-summary', async (req: AuthedRequest, res, next) => {
       DISTANCE: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
       HEART_RATE: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
       EXERCISE_MINUTES: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
+      SLEEP_MINUTES: { latest: null, latestDate: null, avg7: null, avg30: null, prevAvg30: null, deltaPct30: null, series7: [], series30: [] },
     });
     if (rows.length === 0) { res.json({ lastSyncAt: null, metrics: emptyMetrics() }); return; }
 

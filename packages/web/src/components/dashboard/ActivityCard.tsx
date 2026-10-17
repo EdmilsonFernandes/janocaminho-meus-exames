@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNotify } from 'react-admin';
+import { useNavigate } from 'react-router-dom';
 import { Box, Stack, Typography, Skeleton, ToggleButtonGroup, ToggleButton, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Alert, Chip, alpha, useTheme } from '@mui/material';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -11,14 +12,16 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import InsightsIcon from '@mui/icons-material/Insights';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import TimerIcon from '@mui/icons-material/Timer';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
 import { SEM } from '../../theme';
-import { fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
+import { backfillActivityDays, fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
-import { barHeight, fmtKcal, fmtKm, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
+import { barHeight, fmtKcal, fmtKm, fmtSleep, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
 import { celebrate } from '../../hooks/useCelebrate';
 
 /**
@@ -61,8 +64,12 @@ const maybeCelebrateGoal = (days: ActivityDay[] | null): void => {
   }
 };
 
+/** Backfill 90d roda UMA vez por aparelho (flag localStorage). v1 = lote sono/hub 16/10/26. */
+const BACKFILL_FLAG = 'dx-hc-backfill-v1';
+
 export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => {
   const notify = useNotify();
+  const navigate = useNavigate();
   const supported = useMemo(healthConnectSupported, []);
   const [hidden, setHidden] = useState(activityCardHidden);
   const [phase, setPhase] = useState<'loading' | 'denied' | 'data'>('loading');
@@ -111,6 +118,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
     void (async () => {
       const d = await load();
       if (supported && d?.length) await sync(d, true);
+      if (supported) await maybeBackfill();
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -136,6 +144,31 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
   const refresh = async (silent = false) => {
     const d = await load();
     if (supported && d?.length) await sync(d, silent); // cloud: só leitura (quem sincroniza é o APK)
+  };
+
+  /** BACKFILL 90 dias, 1× por aparelho (padrão Life Dashboard: histórico cheio já no
+   *  1º connect — o gráfico nasce populado). Flag marcada ANTES de rodar: falha de
+   *  rede não vira loop infinito de retry; o sync normal cobre o dia-a-dia dali em diante. */
+  const maybeBackfill = async () => {
+    try { if (localStorage.getItem(BACKFILL_FLAG) === '1') return; } catch { return; }
+    if (!hasHealthPermissions()) return;
+    try { localStorage.setItem(BACKFILL_FLAG, '1'); } catch { /* sem storage: segue sem flag (best-effort) */ }
+    try {
+      notify('Buscando seus últimos 90 dias no Health Connect…', { type: 'info' });
+      const bf = await backfillActivityDays();
+      if (bf.length) {
+        await syncActivityToServer(bf);
+        // Mergeia na view atual (dias antigos entram no sparkline de 30d sem re-load)
+        setDays((prev) => {
+          const byDate = new Map<string, ActivityDay>();
+          for (const d of [...(prev ?? []), ...bf]) byDate.set(d.date, d);
+          return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+        });
+        notify(`Histórico sincronizado — ${bf.length} dias agora fazem parte da sua evolução ✨`, { type: 'success' });
+      }
+    } catch {
+      notify('Não deu pra buscar o histórico antigo agora — seus dados novos continuam sincronizando.', { type: 'warning' });
+    }
   };
 
   const connect = async () => {
@@ -186,6 +219,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
   const loadAndSync = async () => {
     if (!hasHealthPermissions()) return;
     await refresh(true);
+    await maybeBackfill(); // 1º connect (ou re-conect pós-update): histórico 90d de uma vez
   };
 
   // ── Shell: no APK lê o Health Connect (fonte device); na WEB mostra o consolidado que
@@ -198,6 +232,7 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
       phase={phase}
       days={days}
       range={range}
+      onOpenVitals={() => navigate('/sinais')}
       onRange={(r) => { hapticLight(); setRange(r); }}
       syncing={syncing}
       updatedAt={updatedAt}
@@ -222,11 +257,13 @@ export const ActivityCard = ({ lastExamAt }: { lastExamAt?: string | null }) => 
  * Shell (estado/permissões/sync) fica no ActivityCard acima.
  */
 export const ActivityView = ({
-  phase, days, range, onRange, syncing, updatedAt, askOpen, asking, connectError, lastExamAt, onAskOpen, onAskClose, onConfirm, onSync, onHide, source = 'device', syncedAtISO,
+  phase, days, range, onOpenVitals, onRange, syncing, updatedAt, askOpen, asking, connectError, lastExamAt, onAskOpen, onAskClose, onConfirm, onSync, onHide, source = 'device', syncedAtISO,
 }: {
   phase: 'loading' | 'denied' | 'data';
   days: ActivityDay[] | null;
   range: ActivityRange;
+  /** Porta p/ a página Sinais Vitais (opcional — testes renderizam fases sem a porta). */
+  onOpenVitals?: () => void;
   onRange: (r: ActivityRange) => void;
   syncing: boolean;
   updatedAt: Date | null;
@@ -324,7 +361,7 @@ export const ActivityView = ({
               Seus passos podem entrar aqui
             </Typography>
             <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5, mt: 0.25 }}>
-              Passos, calorias e distância do seu celular entram junto com seus exames — o Dr. Exame conecta tudo.
+              Passos, calorias, distância e sono do seu celular entram junto com seus exames — o Dr. Exame conecta tudo.
             </Typography>
           </Box>
         </Stack>
@@ -378,11 +415,25 @@ export const ActivityView = ({
 
   return (
     <AppCard sx={{ p: 2 }}>
-      {/* Cabeçalho: título + range + sync */}
+      {/* Cabeçalho: título + range + sync. O título é PORTA p/ os Sinais Vitais (hub
+          estilo "Today": só existe pra quem conectou — sem conexão o card segue no estado
+          de convite, sem link morto). */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
-        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <DirectionsWalkIcon sx={{ fontSize: 19, color: 'primary.dark' }} /> Atividade física
-        </Typography>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={0.25}
+          component="button"
+          onClick={onOpenVitals}
+          aria-label="Ver Sinais Vitais (sono, frequência cardíaca e tendências)"
+          title="Sinais Vitais — detalhes e tendências"
+          sx={{ p: 0, border: 'none', bgcolor: 'transparent', cursor: 'pointer', textAlign: 'left', color: 'inherit', '&:hover .dx-vitals-title': { color: 'primary.dark' }, '&:active': { opacity: 0.7 } }}
+        >
+          <Typography className="dx-vitals-title" sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75, transition: 'color .15s ease' }}>
+            <DirectionsWalkIcon sx={{ fontSize: 19, color: 'primary.dark' }} /> Atividade física
+          </Typography>
+          <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
+        </Stack>
         <Stack direction="row" spacing={0.5} alignItems="center">
           {source === 'cloud' && syncedAtISO && (() => {
             const st = syncStamp(syncedAtISO);
@@ -465,6 +516,18 @@ export const ActivityView = ({
           {(s.hrRest ?? 0) > 0 && (
             <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
           )}
+          {/* Sono: hoje = última noite; períodos = média/noite (só noites com dado). Escondido
+              enquanto 0 — relógio/app que não escreve sono no HC não gera tile fantasma. */}
+          {(s.sleepMin ?? 0) > 0 && (
+            <MetricMini
+              icon={<BedtimeIcon sx={{ fontSize: 15 }} />}
+              tone={SEM.info[theme.palette.mode]}
+              label="Sono"
+              value={fmtSleep(s.sleepMin ?? 0)}
+              unit=""
+              contextLabel={range === 'today' ? 'última noite' : `média/noite · ${rangeLabel(range).toLowerCase()}`}
+            />
+          )}
           {/* Exercício: TOTAL do período (média/dia era rótulo mentiroso — "14min" era 98÷7).
               Corte de ruído: <10 min no período = fontes não registram sessões, não mostra. */}
           {(s.exerciseMin ?? 0) >= 10 && (
@@ -528,6 +591,9 @@ export const ActivityView = ({
               </Typography>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>🔥 {fmtKcal(sel.kcal)} kcal{sel.kcalIsTotal ? ' (total do dia)' : ''}</Typography>
               <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>📍 {fmtKm(sel.km)} km</Typography>
+              {(sel.sleepMin ?? 0) > 0 && (
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>😴 {fmtSleep(sel.sleepMin ?? 0)} de sono</Typography>
+              )}
               {sel.steps >= STEPS_GOAL && <Chip size="small" label="meta 🎉" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: alpha('#059669', 0.15), color: '#047857' }} />}
               {sel.steps >= 7000 && sel.steps < STEPS_GOAL && <Chip size="small" label="✨ 7k+" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark' }} />}
             </Stack>
@@ -588,7 +654,7 @@ export const ActivityView = ({
  */
 const RING_SIZE = 74;
 const RING_STROKE = 7;
-const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: boolean }) => {
+export const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: boolean }) => {
   const r = (RING_SIZE - RING_STROKE) / 2;
   const c = 2 * Math.PI * r;
   const dash = Math.max(0, Math.min(1, ratio)) * c;
@@ -627,7 +693,7 @@ const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number; done: 
 /** Métrica secundária — SEM clipe (regra CRITICAL): label e contexto fluem/quebram; só o
  *  par semântico valor+unidade é noWrap (curto por construção). No xs vive numa célula da
  *  grid auto-fit (~149px) — "Calorias totais"/"FC de repouso"/"15.234 kcal" cabem inteiros. */
-const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; labelTitle?: string; value: string; unit: string; contextLabel?: string }) => (
+export const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; labelTitle?: string; value: string; unit: string; contextLabel?: string }) => (
   <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
     <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
     <Box sx={{ minWidth: 0 }}>
@@ -671,7 +737,7 @@ export const PermissionRationaleContent = ({ onConfirm, onClose, asking, error }
     </DialogTitle>
     <DialogContent>
       <Typography sx={{ color: 'text.secondary', lineHeight: 1.6, fontSize: 14 }}>
-        O Dr. Exame pode ler <strong>passos, calorias e distância</strong> do Health Connect do seu celular — e mostrar a evolução junto com seus exames.
+        O Dr. Exame pode ler <strong>passos, calorias, distância e sono</strong> do Health Connect do seu celular — e mostrar a evolução junto com seus exames.
       </Typography>
       <Stack spacing={0.75} sx={{ mt: 1.5 }}>
         {[

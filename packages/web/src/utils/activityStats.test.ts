@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { barHeight, fmtKcal, fmtKm, fmtSteps, metersToKm, normalizeDays, STEPS_GOAL, summarize, weekOfExam, type ActivityDay } from './activityStats';
+import { barHeight, fmtKcal, fmtKm, fmtSleep, fmtSteps, metersToKm, normalizeDays, STEPS_GOAL, summarize, weekOfExam, type ActivityDay } from './activityStats';
 
 /** Fábrica de dias em ordem DESC (contrato do bridge — mais recente primeiro). */
 const day = (date: string, steps: number, kcal: number, km: number): ActivityDay => ({ date, steps, kcal, km });
@@ -186,5 +186,43 @@ describe('kcalIsTotal (fallback Samsung — TotalCaloriesBurned quando não há 
     ];
     expect(weekOfExam(days, '2026-08-18')!.kcalIsTotal).toBe(true);
     expect(weekOfExam(days.map((d) => ({ ...d, kcalIsTotal: false })), '2026-08-18')!.kcalIsTotal).toBe(false);
+  });
+});
+
+/** ── SONO (lote 16/10/26 — hub Sinais Vitais) ─────────────────────────────── */
+describe('sono: fmtSleep', () => {
+  it('formata minutos em "XhYY" (linguagem Fitbit)', () => {
+    expect(fmtSleep(440)).toBe('7h20');
+    expect(fmtSleep(480)).toBe('8h');
+    expect(fmtSleep(95)).toBe('1h35');
+    expect(fmtSleep(0)).toBe('0h');
+  });
+});
+
+describe('sono: summarize', () => {
+  it('hoje = última noite (day[0].sleepMin)', () => {
+    const days = [{ ...day('2026-10-16', 5000, 1800, 3), sleepMin: 432 }, { ...day('2026-10-15', 6000, 1900, 4), sleepMin: 390 }];
+    expect(summarize(days, 'today').sleepMin).toBe(432);
+    expect(summarize(days, 'today').series[0].sleepMin).toBe(432);
+  });
+  it('período = média SÓ das noites com dado (0 = sem registro, não "não dormiu")', () => {
+    const days = [
+      { ...day('2026-10-16', 5000, 1800, 3), sleepMin: 420 },
+      { ...day('2026-10-15', 6000, 1900, 4), sleepMin: 0 },   // sem registro
+      { ...day('2026-10-14', 4000, 1500, 2), sleepMin: 360 },
+    ];
+    expect(summarize(days, '7d').sleepMin).toBe(390); // (420+360)/2 — ignora a noite sem dado
+  });
+  it('sem NENHUMA noite com dado = 0 (tile some, sem fantasma)', () => {
+    const days = [day('2026-10-16', 5000, 1800, 3), day('2026-10-15', 6000, 1900, 4)];
+    expect(summarize(days, '7d').sleepMin).toBe(0);
+  });
+});
+
+describe('sono: normalizeDays', () => {
+  it('normaliza sleepMin do payload cru do bridge (clamp + round)', () => {
+    const out = normalizeDays([{ date: '2026-10-16', steps: 1, kcal: 1, km: 1, sleepMin: 431.6 }, { date: '2026-10-15', steps: 1, kcal: 1, km: 1, sleepMin: -5 }]);
+    expect(out[0].sleepMin).toBe(432);
+    expect(out[1].sleepMin).toBe(0);
   });
 });

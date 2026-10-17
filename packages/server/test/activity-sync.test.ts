@@ -123,6 +123,32 @@ describe('POST /api/measurements/activity-sync', () => {
     expect(hrs2.map((h) => h.value)).toEqual([70, 88]); // manual intacta, HC atualizada
   });
 
+  it('SONO (SLEEP_MINUTES): grava min dormidos, idempotente e sem ruído em noite sem dado', async () => {
+    // Lote 16/10/26 — hub Sinais Vitais: sleepMin por dia (noite que TERMINOU no dia).
+    const { token, patient } = await createUser();
+    const patientId = patient.id;
+    const r = await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId,
+      days: [
+        { date: '2026-10-16', steps: 5000, kcal: 1800, km: 3, hr: 62, exerciseMin: 0, sleepMin: 432 },
+        { date: '2026-10-15', steps: 6000, kcal: 1900, km: 4, hr: 60, exerciseMin: 30, sleepMin: 0 }, // noite sem registro
+      ],
+    });
+    expect(r.status).toBe(201);
+    const sleepRows = await prisma.measurement.findMany({ where: { patientId, type: 'SLEEP_MINUTES' } });
+    expect(sleepRows).toHaveLength(1); // noite zerada não gera linha
+    expect(sleepRows[0]).toMatchObject({ value: 432, unit: 'min', note: 'Health Connect' });
+    expect(sleepRows[0].measuredAt.toISOString().slice(0, 10)).toBe('2026-10-16');
+
+    // Re-sync do mesmo dia substitui a noite (aparelho corrigiu 7h12 → 7h40)
+    await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId, days: [{ date: '2026-10-16', steps: 5100, kcal: 1800, km: 3, hr: 62, exerciseMin: 0, sleepMin: 460 }],
+    });
+    const after = await prisma.measurement.findMany({ where: { patientId, type: 'SLEEP_MINUTES' } });
+    expect(after).toHaveLength(1);
+    expect(after[0].value).toBe(460);
+  });
+
   it('payload PARCIAL não apaga métrica ausente (anti-wipe de build bugado)', async () => {
     // Regressão real (403/404): bridge com bug de paginação mandava steps=0, km>0 —
     // o sync antigo apagava o DIA INTEIRO e regravava só a distância, ERUDINDO os

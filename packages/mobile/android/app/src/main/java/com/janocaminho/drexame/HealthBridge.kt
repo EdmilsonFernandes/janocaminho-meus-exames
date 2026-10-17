@@ -11,6 +11,7 @@ import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.DistanceRecord
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
+import androidx.health.connect.client.records.SleepSessionRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
@@ -36,7 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger
  * Contrato (ver packages/web/src/services/healthConnect.ts):
  *   isAvailable()                          -> Boolean (Health Connect instalado e suportado)
  *   checkPermissions(requestId)            -> event {type:"permissions", granted}
- *   aggregates(requestId, daysBack)        -> event {type:"aggregates", days:[{date,steps,kcal,kcalIsTotal,km}]}
+ *   aggregates(requestId, daysBack, offsetDays) -> event {type:"aggregates", days:[{date,steps,kcal,kcalIsTotal,km,sleepMin,hrAvg,hrRest,hrMax,exerciseMin}]}
+ *     offsetDays: desloca a janela p/ o PASSADO (backfill 90d = 3 chunks de 30 com offsets 60/30/0).
  *   (requestPermissions é lançado pela MainActivity via ActivityResultLauncher registrado lá —
  *    registerForActivityResult precisa acontecer antes de onStart, no ciclo da Activity.)
  */
@@ -51,12 +53,14 @@ class HealthBridge(private val activity: MainActivity) {
         fun hcSdkOk(): Boolean = android.os.Build.VERSION.SDK_INT >= 26
 
         /**
-         * CORE: o mínimo para o widget funcionar (passos + calorias + distância).
+         * CORE: o mínimo para o widget funcionar (passos + calorias + distância + sono).
          * TOTAL de calorias está no CORE (não no EXTENDED) porque o Samsung Health NÃO
          * publica ActiveCaloriesBurned no Health Connect — só TotalCaloriesBurned (e
          * apenas de treinos): sem essa permissão, aparelho Samsung fica SEM caloria de
-         * jeito nenhum. Custo: quem já estava conectado re-conecta (1 tap) para o gate
-         * exigir a permissão nova — popup do HC já vem com as antigas marcadas.
+         * jeito nenhum. SONO no CORE pelo mesmo precedente (16/10/26): é o sinal vital
+         * prometido na Landing e o centro do hub de Sinais Vitais — quem já estava
+         * conectado re-conecta (1 tap) e o popup do HC pede SÓ a permissão nova
+         * (as antigas já vêm marcadas).
          * EXTENDED: dados extras (FR, exercício) — se o usuário não conceder, o widget
          * funciona normalmente sem eles (não bloqueia a conexão).
          */
@@ -66,6 +70,7 @@ class HealthBridge(private val activity: MainActivity) {
                 HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(DistanceRecord::class),
+                HealthPermission.getReadPermission(SleepSessionRecord::class),
             )
         }
         val EXTENDED_PERMISSIONS: Set<String> by lazy {
@@ -211,10 +216,11 @@ class HealthBridge(private val activity: MainActivity) {
     }
 
     @JavascriptInterface
-    fun aggregates(requestId: String, daysBack: Int) {
-        android.util.Log.d("DxHealth", "aggregates(requestId=$requestId, days=$daysBack)")
+    fun aggregates(requestId: String, daysBack: Int, offsetDays: Int) {
+        android.util.Log.d("DxHealth", "aggregates(requestId=$requestId, days=$daysBack offset=$offsetDays)")
         val id = requestId.ifEmpty { "agg-${requestSeq.incrementAndGet()}" }
         val days = daysBack.coerceIn(1, 31)
+        val offset = offsetDays.coerceIn(0, 730)
         val client = clientOrNull()
         android.util.Log.d("DxHealth", "aggregates: client=${client != null}")
         if (client == null) { dispatch(errorPayload(id, "unavailable")); return }
@@ -223,8 +229,10 @@ class HealthBridge(private val activity: MainActivity) {
                 val zone: ZoneId = ZoneId.systemDefault()
                 val arr = JSONArray()
                 val today: LocalDate = LocalDate.now(zone)
-                val periodStart: Instant = today.minusDays((days - 1).toLong()).atStartOfDay(zone).toInstant()
-                val periodEnd: Instant = today.plusDays(1).atStartOfDay(zone).toInstant()
+                // Janela [today-offset-(days-1) .. today-offset]: offset=0 = comportamento
+                // legado (ontem..hoje). Backfill = offsets 60/30 → leituras em chunks.
+                val periodStart: Instant = today.minusDays((offset + days - 1).toLong()).atStartOfDay(zone).toInstant()
+                val periodEnd: Instant = today.minusDays(offset.toLong()).plusDays(1).atStartOfDay(zone).toInstant()
 
                 // DEDUP multi-fonte (Samsung Health + Google Fit + …): o aggregate global SOMA
                 // registros de apps diferentes — quando dois apps registram o MESMO passeio
@@ -238,6 +246,7 @@ class HealthBridge(private val activity: MainActivity) {
                 val kcalBy = HashMap<OriginDay, Double>()
                 val totalKcalBy = HashMap<OriginDay, Double>()
                 val kmBy = HashMap<OriginDay, Double>()
+                val sleepBy = HashMap<OriginDay, Long>()
                 val origins = LinkedHashSet<String>()
 
                 // PAGINAÇÃO OBRIGATÓRIA: o readRecords devolve no máx. 1000 registros por
@@ -306,6 +315,26 @@ class HealthBridge(private val activity: MainActivity) {
                     } while (token != null)
                     return out
                 }
+                // SONO: sessões (com estágios). Volume baixo (1-3/linha), 1 página quase
+                // sempre — paginação só por segurança. "Dormido" = soma dos estágios
+                // ASLEEP* (AWAKE/OUT_OF_BED saem); sessão sem estágios conta a duração
+                // inteira. Atribuição: data de ACORDAR (noite 23h→07h = dia do 07h —
+                // semântica "ontem à noite" do Fitbit/Samsung).
+                suspend fun readAllSleep(): List<SleepSessionRecord> {
+                    val out = ArrayList<SleepSessionRecord>(); var token: String? = null
+                    do {
+                        val resp = client.readRecords(
+                            androidx.health.connect.client.request.ReadRecordsRequest(
+                                recordType = SleepSessionRecord::class,
+                                timeRangeFilter = TimeRangeFilter.between(periodStart, periodEnd),
+                                pageSize = 1000,
+                                pageToken = token,
+                            )
+                        )
+                        out += resp.records; token = resp.pageToken
+                    } while (token != null)
+                    return out
+                }
 
                 try {
                     for (r in readAllSteps()) {
@@ -324,14 +353,30 @@ class HealthBridge(private val activity: MainActivity) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kmBy[k] = (kmBy[k] ?: 0.0) + r.distance.inKilometers
                     }
+                    for (r in readAllSleep()) {
+                        // SDK 1.1.0: stage é INT (@StageTypes). "Dormido" = SLEEPING/LIGHT/
+                        // DEEP/REM (+UNKNOWN, ambíguo); acordado/fora da cama NÃO conta.
+                        val awakeStages = setOf(
+                            SleepSessionRecord.STAGE_TYPE_AWAKE,
+                            SleepSessionRecord.STAGE_TYPE_OUT_OF_BED,
+                            SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED,
+                        )
+                        val asleepMin = r.stages
+                            .filter { it.stage !in awakeStages }
+                            .sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
+                            .let { if (it > 0) it else java.time.Duration.between(r.startTime, r.endTime).toMinutes() }
+                        if (asleepMin <= 0) continue
+                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                        origins.add(k.origin); sleepBy[k] = (sleepBy[k] ?: 0L) + asleepMin
+                    }
                 } catch (e: Exception) {
                     android.util.Log.w("DxHealth", "record read failed: ${e.message}")
                 }
                 android.util.Log.d("DxHealth", "dedup: ${origins.size} origem(ns) — ${origins.joinToString()}")
 
                 // Dia corrente primeiro (ordem DESC — o contrato do web espera mais recente primeiro).
-                for (offset in 0 until days) {
-                    val day: LocalDate = today.minusDays(offset.toLong())
+                for (i in 0 until days) {
+                    val day: LocalDate = today.minusDays((offset + i).toLong())
                     val start: Instant = day.atStartOfDay(zone).toInstant()
                     val end: Instant = day.plusDays(1).atStartOfDay(zone).toInstant()
 
@@ -339,11 +384,13 @@ class HealthBridge(private val activity: MainActivity) {
                     var kcal = 0.0
                     var totalKcal = 0.0
                     var km = 0.0
+                    var sleepMin = 0L
                     for (o in origins) {
                         steps = Math.max(steps, stepsBy[OriginDay(day, o)] ?: 0L)
                         kcal = Math.max(kcal, kcalBy[OriginDay(day, o)] ?: 0.0)
                         totalKcal = Math.max(totalKcal, totalKcalBy[OriginDay(day, o)] ?: 0.0)
                         km = Math.max(km, kmBy[OriginDay(day, o)] ?: 0.0)
+                        sleepMin = Math.max(sleepMin, sleepBy[OriginDay(day, o)] ?: 0L)
                     }
                     // MERGE caloria por dia: ATIVA é a semântica certa do card ("Calorias");
                     // TOTAL (ativa + metabolismo basal, ~1.3-1.8k kcal/dia) é FALLBACK —
@@ -400,6 +447,7 @@ class HealthBridge(private val activity: MainActivity) {
                             .put("kcal", Math.round(kcal).toDouble())
                             .put("kcalIsTotal", kcalIsTotal)
                             .put("km", Math.round(km * 100.0) / 100.0)
+                            .put("sleepMin", sleepMin.toDouble())
                             .put("hrAvg", hrAvg.toDouble())
                             .put("hrRest", hrRest.toDouble())
                             .put("hrMax", hrMax.toDouble())

@@ -14,6 +14,7 @@ import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import RouteIcon from '@mui/icons-material/Route';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import TimerIcon from '@mui/icons-material/Timer';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
 import AddIcon from '@mui/icons-material/Add';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +40,7 @@ export const TYPES = [
   { v: 'CALORIES', l: 'Calorias', u: 'kcal', color: '#9a3412', icon: <LocalFireDepartmentIcon sx={{ fontSize: 16 }} />, synced: true },
   { v: 'DISTANCE', l: 'Distância', u: 'km', color: '#047857', icon: <RouteIcon sx={{ fontSize: 16 }} />, synced: true },
   { v: 'EXERCISE_MINUTES', l: 'Exercício', u: 'min', color: '#6d28d9', icon: <TimerIcon sx={{ fontSize: 16 }} />, synced: true },
+  { v: 'SLEEP_MINUTES', l: 'Sono', u: 'min', color: '#1e3a8a', icon: <BedtimeIcon sx={{ fontSize: 16 }} />, synced: true },
   { v: 'OTHER', l: 'Outro', u: '', color: '#64748b', icon: <PushPinIcon sx={{ fontSize: 16 }} /> },
 ];
 /** Tiles da central de sinais (peso tem card próprio; OTHER segue só no form/histórico). */

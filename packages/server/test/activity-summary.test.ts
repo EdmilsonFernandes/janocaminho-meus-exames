@@ -119,4 +119,21 @@ describe('GET /api/measurements/activity-summary', () => {
     const s = await api().get('/api/measurements/activity-summary').set(H(token));
     expect(s.body.metrics.EXERCISE_MINUTES).toMatchObject({ latest: 45, latestDate: iso(-1) });
   });
+
+  it('SLEEP_MINUTES entra no sync e no consolidado (hub Sinais Vitais)', async () => {
+    // Lote 16/10/26: sleepMin (noite que terminou no dia) → série da web/ActivityCard.
+    const { token, patient } = await createUser();
+    const r = await api().post('/api/measurements/activity-sync').set(H(token)).send({
+      patientId: patient.id,
+      days: [
+        { date: iso(-1), steps: 3000, kcal: 100, km: 1, hr: 60, sleepMin: 432 },
+        { date: iso(-2), steps: 3000, kcal: 100, km: 1, hr: 60, sleepMin: 348 },
+      ],
+    });
+    expect(r.status).toBe(201);
+    const s = await api().get('/api/measurements/activity-summary').set(H(token));
+    expect(s.body.metrics.SLEEP_MINUTES).toMatchObject({ latest: 432, latestDate: iso(-1) });
+    expect(s.body.metrics.SLEEP_MINUTES.avg7).toBe(390); // (432+348)/2
+    expect(s.body.metrics.SLEEP_MINUTES.series7).toHaveLength(2);
+  });
 });
