@@ -43,6 +43,10 @@ export const PlansPage = () => {
   // Preço/perks dinâmicos (admin edita live). planInfo nulo = API indisponível → fallback visual.
   const planInfo = usePlanInfo();
   const crLabel = String(planInfo?.plan?.monthlyCredits ?? 250);
+  // Régua da linguagem de produto (18/10): 1 leitura = custo do resumo (settings). Packs e
+  // mensal falam em LEITURAS na vitrine; créditos 💎 seguem como detalhe (saldo nunca muda).
+  const rd = Math.max(1, Number(planInfo?.summaryCost) > 0 ? Number(planInfo.summaryCost) : 10);
+  const monthlyReads = Math.floor((Number(planInfo?.plan?.monthlyCredits) || 250) / rd);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
   const [chooserLabel, setChooserLabel] = useState('');
@@ -123,7 +127,7 @@ export const PlansPage = () => {
   return (
     <PageContainer width={860} sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<DiamondIcon />} title={translate('page.plans')}
-        subtitle={<>Use à vontade: assine o <strong>mensal</strong> ({crLabel} créditos de IA por mês) ou compre <strong>créditos avulsos</strong> via PIX.</>} />
+        subtitle={<>Use à vontade: assine o <strong>mensal</strong> ({monthlyReads} leituras por mês) ou compre <strong>leituras avulsas</strong> via PIX.</>} />
 
       {/* PIX PENDENTE (padrão gateway): banner discreto que retoma o mesmo QR/timer.
           Só aparece se o usuário gerou um PIX e saiu sem pagar — SEM criar ordem nova. */}
@@ -131,7 +135,7 @@ export const PlansPage = () => {
         <Alert severity="info" icon={<QrCode2Icon />} sx={{ mb: 2, borderRadius: '16px', alignItems: 'center' }}>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} justifyContent="space-between" sx={{ width: '100%' }}>
             <Typography sx={{ fontSize: 14 }}>
-              Você tem um PIX de <strong>{pendingPix.credits} créditos</strong> aguardando pagamento
+              Você tem um PIX de <strong>{Math.floor((pendingPix.credits ?? 0) / rd) || 1} leitura(s)</strong> aguardando pagamento
               {' '}({Math.max(0, Math.ceil((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 60000))} min restantes)
             </Typography>
             <Stack direction="row" spacing={1} flexShrink={0}>
@@ -161,7 +165,7 @@ export const PlansPage = () => {
       >
         <BoltIcon sx={{ color: '#20b2aa', fontSize: 20 }} />
         <Typography sx={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>
-          {status?.credits?.toLocaleString('pt-BR') ?? '—'} créditos
+          {status?.credits != null ? `${Math.floor(status.credits / rd) || 0} ${Math.floor(status.credits / rd) === 1 ? 'leitura' : 'leituras'} · ${status.credits.toLocaleString('pt-BR')} 💎` : '—'}
         </Typography>
         {status?.active && (
           <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>
@@ -203,7 +207,7 @@ export const PlansPage = () => {
           ? Math.round((1 - (plan.effectivePrice / planCredits) / (ref.price / ref.credits)) * 100) : 0;
         const scarce = plan?.founder && Number(plan.founderRemaining) < 20;
         const perks = [
-          `${crLabel} créditos de IA todo mês`,
+          `${Math.floor(planCredits / rd) || monthlyReads} leituras todo mês`,
           'Relatórios completos sem gastar créditos',
           'Histórico completo de exames',
           `Família até ${planInfo?.premiumPerks?.familyLimit ?? 10} perfis`,
@@ -263,7 +267,7 @@ export const PlansPage = () => {
                   )}
                 </Stack>
                 <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,.55)', mt: 0.75 }}>
-                  {plan && planCredits ? `${brl(plan.effectivePrice / planCredits)} por crédito · ` : ''}sem fidelidade · cancele quando quiser
+                  {plan && planCredits ? `${brl(plan.effectivePrice / (planCredits / rd))} por leitura · ` : ''}sem fidelidade · cancele quando quiser
                 </Typography>
               </Box>
               <Button
@@ -302,11 +306,11 @@ export const PlansPage = () => {
 
       {/* ══ CRÉDITOS AVULSOS — grid; popular em destaque (full-width no mobile). ══ */}
       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 0.75 }}>
-        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 17, whiteSpace: 'nowrap' }}>Ou compre créditos avulsos</Typography>
+        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 17, whiteSpace: 'nowrap' }}>Ou compre leituras avulsas</Typography>
         <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
       </Stack>
       <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2, lineHeight: 1.5 }}>
-        Pergunta no chat <b>2</b> · resumo do exame <b>10</b> · relatório completo <b>20</b> créditos. Enviar exame é <b>grátis</b>. Sem mensalidade.
+        Leitura de exame <b>1</b> · relatório completo <b>2</b> leituras · pergunta no chat <b>3</b> 💎. Enviar exame é <b>grátis</b>. Sem mensalidade.
       </Typography>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: `repeat(${Math.min(Math.max(packs.length, 1), 3)}, 1fr)` }, gap: 1.5, mb: 2, alignItems: 'stretch' }}>
         {packs.map((p, idx) => {
@@ -341,15 +345,15 @@ export const PlansPage = () => {
             <CardContent sx={{ textAlign: 'center', pt: 2.75, pb: '16px !important', px: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', flex: 1 }}>
               <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25}>
                 <BoltIcon sx={{ fontSize: hot ? 26 : 20, color: '#20b2aa' }} />
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: hot ? 34 : 28, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{p.credits}</Typography>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: hot ? 34 : 28, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{Math.max(1, Math.floor(p.credits / rd))}</Typography>
               </Stack>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>créditos</Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>{Math.max(1, Math.floor(p.credits / rd)) === 1 ? 'leitura' : 'leituras'}</Typography>
               <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1, lineHeight: 1.4 }}>
-                ~{Math.floor(p.credits / 10)} resumos<Box component="span" sx={{ mx: 0.5, opacity: 0.5 }}>ou</Box>~{Math.floor(p.credits / 2)} perguntas
+                ~{Math.floor(p.credits / 2)} perguntas no chat<Box component="span" sx={{ mx: 0.5, opacity: 0.5 }}>·</Box>entra como {p.credits} 💎
               </Typography>
               <Box sx={{ flex: 1 }} />
               <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 22, mt: 1.5, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{brl(p.price)}</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 1.5 }}>{brl(p.price / p.credits)} por crédito</Typography>
+              <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 1.5 }}>{brl(p.price / Math.max(1, Math.floor(p.credits / rd)))} por leitura</Typography>
               {isPending ? (
                 <Stack spacing={0.75}>
                   <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
@@ -371,7 +375,7 @@ export const PlansPage = () => {
                     '&:hover .MuiButton-endIcon': { transform: 'translateX(3px)' } }}
                   onClick={() => {
                   // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
-                  if (cardEnabled) { setChooserLabel(`${p.credits} créditos • ${brl(p.price)}`); setChooserPrice(p.price); setChooserPack(p.id); }
+                  if (cardEnabled) { setChooserLabel(`${Math.max(1, Math.floor(p.credits / rd))} leituras • ${brl(p.price)}`); setChooserPrice(p.price); setChooserPack(p.id); }
                   else setPixPack(p.id);
                 }}>Comprar</Button>
               )}

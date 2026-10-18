@@ -43,8 +43,8 @@ export const CreditsCard = ({ credits, onClick }: { credits: number | null; onCl
           <Typography sx={{
             fontWeight: 800, fontSize: 28, color: 'primary.dark', lineHeight: 1,
             fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif',
-          }}>{credits.toLocaleString('pt-BR')}</Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>créditos disponíveis</Typography>
+          }}>{Math.floor(credits / 10) || credits} {credits >= 10 ? (Math.floor(credits / 10) === 1 ? 'leitura' : 'leituras') : '💎'}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>{credits.toLocaleString('pt-BR')} 💎 disponíveis</Typography>
         </Box>
         <Button variant="contained" color="primary" size="small" onClick={onClick} sx={{
           borderRadius: '999px', textTransform: 'none', fontWeight: 800,

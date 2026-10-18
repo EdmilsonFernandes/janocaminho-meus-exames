@@ -7,6 +7,7 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
+import { readsOf } from '../utils/creditsLabel';
 import { bumpCredits } from '../utils/credits-events';
 import { celebrate } from '../hooks/useCelebrate';
 import { ConfettiCanvas } from './Celebration';
@@ -169,7 +170,7 @@ export const PixModal = ({ packId, plan, product, onClose, onApproved, existingP
           <Box>
             {/* Valor + créditos — herói do header (o que o usuário mais precisa confirmar) */}
             <Box sx={{ mb: 1.5 }}>
-              <Chip size="small" label={product === 'report' ? 'Relatório completo' : `${pix.credits} créditos`} sx={{ mb: 0.75, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
+              <Chip size="small" label={product === 'report' ? 'Relatório completo' : `${readsOf(pix.credits)} ${readsOf(pix.credits) === 1 ? 'leitura' : 'leituras'}`} sx={{ mb: 0.75, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
               <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 'clamp(2rem, 8vw, 2.5rem)', lineHeight: 1.05, letterSpacing: '-0.02em', color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
                 {price}
               </Typography>

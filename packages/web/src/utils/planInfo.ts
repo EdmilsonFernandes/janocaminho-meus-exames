@@ -24,6 +24,8 @@ export interface PlansPayload {
   premiumPerks: { consolidatedFree: boolean; familyLimit: number };
   // Relatório avulso (compra única, voucher) — o dialog 402 do consolidado oferece.
   reportPack?: { enabled: number; price: number; label: string };
+  // Custo do resumo em créditos — a RÉGUA da linguagem "leituras" (1 leitura = 1 resumo).
+  summaryCost: number;
 }
 
 // Cache módulo-level: várias telas na mesma sessão compartilham 1 fetch (fetch-cache do SW
@@ -55,6 +57,7 @@ export async function fetchPlans(force = false): Promise<PlansPayload | null> {
         reportPack: d.reportPack && Number(d.reportPack.enabled) === 1
           ? { enabled: 1, price: Number(d.reportPack.price) || 9.9, label: String(d.reportPack.label || 'Relatório completo') }
           : undefined,
+        summaryCost: Number(d.creditCosts?.summary) > 0 ? Number(d.creditCosts.summary) : 10,
       };
       cached = payload;
       return payload;

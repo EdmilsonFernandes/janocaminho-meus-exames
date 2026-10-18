@@ -8,6 +8,7 @@ import { PixModal } from './PixModal';
 import { useNotify } from 'react-admin';
 import { API_URL, token } from '../config';
 import { bumpCredits } from '../utils/credits-events';
+import { readsOf, costLabel, useReadsDivisor } from '../utils/creditsLabel';
 
 /**
  * Dialog global de CRÉDITOS INSUFICIENTES (402 de qualquer feature de IA).
@@ -28,6 +29,7 @@ export const InsufficientCreditsDialog = () => {
   const notify = useNotify();
   const { credits } = useCredits();
   const plans = usePlanInfo();
+  const divisor = useReadsDivisor();
   const [detail, setDetail] = useState<{ cost?: number; message?: string; feature?: string } | null>(null);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [pixReport, setPixReport] = useState(false);
@@ -88,12 +90,12 @@ export const InsufficientCreditsDialog = () => {
             '@keyframes insfShake': { '0%,100%': { transform: 'translateX(0)' }, '25%': { transform: 'translateX(-6px) rotate(-6deg)' }, '75%': { transform: 'translateX(6px) rotate(6deg)' } },
           }} aria-hidden="true">💎</Box>
           <Typography sx={{ fontFamily: '"Poppins", sans-serif', fontWeight: 800, fontSize: 18, mb: 0.5 }}>
-            Créditos insuficientes
+            {credits === 0 ? 'Suas leituras grátis acabaram' : 'Sem leituras suficientes'}
           </Typography>
           <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.5, mb: 2 }}>
             {detail?.cost != null && credits != null
-              ? <>Você tem <b>{credits}</b> · esta ação precisa de <b>{detail.cost}</b>.</>
-              : (detail?.message ?? 'Esta ação precisa de mais créditos.')}
+              ? <>Você tem <b>{credits > 0 ? `${readsOf(credits, divisor)} ${readsOf(credits, divisor) === 1 ? 'leitura' : 'leituras'}` : '0 leituras'}</b> · esta ação usa <b>{costLabel(detail.cost, divisor)}</b>.</>
+              : (detail?.message ?? 'Esta ação usa mais leituras do que você tem.')}
           </Typography>
 
           {/* 1) TRIAL DE RESGATE — quem já provou o valor ganha 7 dias, sem cartão. */}
@@ -146,11 +148,11 @@ export const InsufficientCreditsDialog = () => {
               bgcolor: theme.palette.mode === 'dark' ? 'rgba(32,178,170,.10)' : 'rgba(32,178,170,.06)',
               border: '1px solid rgba(32,178,170,.25)',
             }}>
-              <StackRow label={`${cheapest.credits} créditos`} chip={cheapest.popular ? 'mais vendido' : 'entrada mais barata'} />
+              <StackRow label={`${readsOf(cheapest.credits, divisor)} ${readsOf(cheapest.credits, divisor) === 1 ? 'leitura' : 'leituras'}`} chip={cheapest.popular ? 'mais vendido' : 'entrada mais barata'} />
               <Typography sx={{ fontWeight: 800, fontSize: 20, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
                 {fmtBRL(cheapest.price)}
                 <Typography component="span" sx={{ fontSize: 12, fontWeight: 600, color: 'text.disabled', ml: 0.75 }}>
-                  ≈ {fmtBRL(cheapest.price / cheapest.credits)}/crédito
+                  ≈ {fmtBRL(cheapest.price / Math.max(1, readsOf(cheapest.credits, divisor)))}/leitura
                 </Typography>
               </Typography>
               <Button
@@ -162,7 +164,7 @@ export const InsufficientCreditsDialog = () => {
                     : { background: 'linear-gradient(135deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(135deg,#178f89,#178f89)' } }),
                 }}
               >
-                Comprar {cheapest.credits} créditos · {fmtBRL(cheapest.price)}
+                Comprar {readsOf(cheapest.credits, divisor)} {readsOf(cheapest.credits, divisor) === 1 ? 'leitura' : 'leituras'} · {fmtBRL(cheapest.price)}
               </Button>
             </Box>
           )}
@@ -172,7 +174,7 @@ export const InsufficientCreditsDialog = () => {
             <>
               <Divider sx={{ my: 1.5 }} />
               <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5, mb: 0.75 }}>
-                Usa bastante? O <b>{monthly.label}</b> traz <b>{monthly.monthlyCredits} créditos</b>
+                Usa bastante? O <b>{monthly.label}</b> traz <b>{readsOf(monthly.monthlyCredits, divisor)} leituras todo mês</b>
                 {monthly.founder && <> por <b>{fmtBRL(monthly.effectivePrice)}</b> (Plano Fundador — restam {monthly.founderRemaining})</>}
                 {' '}+ família + uploads premium.
               </Typography>

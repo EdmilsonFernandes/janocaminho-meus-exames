@@ -33,10 +33,13 @@ const METHOD_ICON: Record<PayMethod, React.ReactNode> = {
   debit: <AccountBalanceIcon />,
 };
 
-/** Extrai créditos numéricos do packLabel ("140 créditos • R$ 24,90" → 140). */
+/** Extrai créditos numéricos do packLabel ("140 créditos • R$ 24,90" OU "14 leituras • R$ 24,90"
+ *  → 140 — leituras voltam pra créditos pela régua 1 leitura = 10 💎). */
 const extractCredits = (label: string): number => {
-  const m = label.match(/(\d+)\s*cr[eé]ditos?/i);
-  return m ? Number(m[1]) : 0;
+  const mCr = label.match(/(\d+)\s*cr[eé]ditos?/i);
+  if (mCr) return Number(mCr[1]);
+  const mRd = label.match(/(\d+)\s*leituras?/i);
+  return mRd ? Number(mRd[1]) * 10 : 0;
 };
 
 export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, onPix, onCardApproved }: {
@@ -120,11 +123,11 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontWeight: 700, fontSize: 14 }}>
-              {credits > 0 ? `${credits} créditos de IA` : packLabel}
+              {credits > 0 ? `${Math.floor(credits / 10)} ${Math.floor(credits / 10) === 1 ? 'leitura' : 'leituras'}` : packLabel}
             </Typography>
             {credits > 0 && (
               <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                ~{Math.floor(credits / 10)} resumos · ~{Math.floor(credits / 2)} perguntas
+                ~{Math.floor(credits / 2)} perguntas no chat · recebe como {credits} 💎
               </Typography>
             )}
           </Box>

@@ -4,18 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useCredits } from '../hooks/useCredits';
 import { CREDITS_INSUFFICIENT_EVENT } from '../utils/credits-events';
+import { readsOf, useReadsDivisor } from '../utils/creditsLabel';
 
-/** Saldo de créditos no AppBar — chip TONAL discreto (o gradiente/sombra são assinatura da MARCA,
- *  não da carteira): ⚡ 97,2k compacto, toque → /planos. Número completo no aria-label/tooltip;
- *  saldo detalhado segue no drawer e no card do Dashboard. Sem olho (privacidade de banco não se
- *  aplica a non-dinheiro e criava botão aninhado — alvo colado + inválido p/ leitores de tela).
+/** Saldo no AppBar em LINGUAGEM DE PRODUTO (18/10): "⚡ 4 leituras" em vez do número cru de
+ *  créditos — o usuário entende quanto pode USAR, não quanto de moeda tem. Os créditos
+ *  exatos seguem no tooltip/aria (e na carteira). Saldo < 1 leitura mostra os 💎 restantes
+ *  (sobra honesta que soma com os próximos ganhos). Chip TONAL discreto (o gradiente/sombra
+ *  são assinatura da MARCA, não da carteira); toque → /carteira.
  *
- * REATIVO (hooks/useCredits.ts): poll 30s + evento creditsChanged + foco na aba — qualquer
- * transação (compra PIX/cartão aprovada, chat, resumo, quiz, indicação paga pelo server)
- * reflete no chip sem reload. */
+ *  REATIVO (hooks/useCredits.ts): poll 30s + evento creditsChanged + foco na aba — qualquer
+ *  transação (compra PIX/cartão aprovada, chat, resumo, quiz, indicação paga pelo server)
+ *  reflete no chip sem reload. */
 export const CreditsChip = () => {
   const navigate = useNavigate();
   const { credits } = useCredits();
+  const divisor = useReadsDivisor();
   // SHAKE (14/10, pedido do dono): 402 de qualquer feature → chip TREME em vermelho ~1,5s
   // (mesmo evento que abre o InsufficientCreditsDialog).
   const [shaking, setShaking] = useState(false);
@@ -25,14 +28,10 @@ export const CreditsChip = () => {
     return () => window.removeEventListener(CREDITS_INSUFFICIENT_EVENT, onInsufficient);
   }, []);
   if (credits == null) return null;
-  // Saldo exato até 999.999 (feedback do dono: "tem que fazer jus do que o usuário tem" —
-  // "999.999" ainda cabe no chip). ≥1 milhão vira compacto pt-BR ("1,2 mi"): 7+ dígitos
-  // estouravam qualquer header ≤430px e empurravam sino/avatar pra fora da tela. O número
-  // COMPLETO segue sempre no aria-label/tooltip (e no drawer + card do Dashboard).
   const full = credits.toLocaleString('pt-BR');
-  const shown = credits >= 1_000_000
-    ? new Intl.NumberFormat('pt-BR', { notation: 'compact', maximumFractionDigits: 1 }).format(credits)
-    : full;
+  const reads = readsOf(credits, divisor);
+  // < 1 leitura: mostra a sobra em 💎 (a sobra soma com os próximos ganhos — nunca some).
+  const shown = reads > 0 ? `${reads} ${reads === 1 ? 'leitura' : 'leituras'}` : `${credits} 💎`;
   const open = () => navigate('/carteira');
   return (
     <Box
@@ -40,14 +39,13 @@ export const CreditsChip = () => {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } }}
       role="button"
       tabIndex={0}
-      aria-label={`Você tem ${full} créditos. Toque para ver a carteira.`}
-      title={`Você tem ${full} créditos — toque para ver a carteira`}
+      aria-label={`Você tem ${shown} (${full} créditos). Toque para ver a carteira.`}
+      title={`${full} créditos = ${shown} — toque para ver a carteira`}
       sx={(theme) => ({
         display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'pointer', userSelect: 'none', flexShrink: 0,
         px: 1.25, minHeight: 40, mr: 0.5, borderRadius: '999px',
-        // Cap de largura (P0 header): chip nunca cresce além disso nem empurra os irmãos;
-        // texto interno ellipsiza como última rede (não deveria ocorrer <1M).
-        maxWidth: { xs: 108, sm: 160 }, overflow: 'hidden',
+        // Cap de largura (P0 header): chip nunca cresce além disso nem empurra os irmãos.
+        maxWidth: { xs: 128, sm: 170 }, overflow: 'hidden',
         // TONAL (fundo teal translúcido + texto teal): o gradiente/sombra ficam reservados à MARCA.
         // Texto #0f766e (light ~5,5:1) / #5fc9c3 (dark ~5,4:1) — AA nos dois temas.
         background: theme.palette.mode === 'dark' ? 'rgba(32,178,170,0.14)' : 'rgba(32,178,170,0.10)',
@@ -74,7 +72,7 @@ export const CreditsChip = () => {
       <BoltIcon sx={{ fontSize: 16, color: '#f59e0b', filter: 'drop-shadow(0 1px 2px rgba(245,158,11,0.35))' }} />
       <Typography
         component="span"
-        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 13, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+        sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 12.5, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
       >
         {shown}
       </Typography>

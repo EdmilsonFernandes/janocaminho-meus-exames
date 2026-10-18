@@ -482,7 +482,7 @@ export const ExamCreate = () => {
             <Box sx={{ fontSize: 32, lineHeight: 1 }}>🎁</Box>
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif' }}>
-                Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{firstBonus} créditos</Box>!
+                Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{Math.max(1, Math.floor(firstBonus / 10))} leituras grátis</Box>!
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.25 }}>
                 Use para conversar com a IA sobre seu exame, gerar relatório e tirar dúvidas com o médico. É de graça: só enviar o laudo. ✨

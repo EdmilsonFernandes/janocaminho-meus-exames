@@ -1,15 +1,20 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, Box, Stack } from '@mui/material';
 import { CreditBadge } from './CreditBadge';
 import { tealText } from '../theme';
+import { costLabel, useReadsDivisor } from '../utils/creditsLabel';
 
 /**
- * Dialog premium de confirmação de gasto de créditos.
+ * Dialog premium de confirmação de gasto.
  * Substitui o window.confirm amador por um componente React moderno.
  * Uso: <ConfirmSpend open={...} onClose={...} onConfirm={...} credits={10} title="..." desc="..." />
+ * Linguagem de produto (18/10): custo em LEITURAS quando inteiro ("2 leituras"), 💎 para
+ * frações (chat/share) — nunca "0,3 leitura".
  */
 export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }: {
   open: boolean; onClose: () => void; onConfirm: () => void; credits: number; title: string; desc?: string;
-}) => (
+}) => {
+  const divisor = useReadsDivisor();
+  return (
   <Dialog open={open} onClose={onClose} PaperProps={{ sx: { borderRadius: '12px', maxWidth: 400, width: '100%' } }}>
     <DialogTitle sx={{ textAlign: 'center', pt: 3, pb: 1 }}>
       <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>{title}</Typography>
@@ -19,11 +24,12 @@ export const ConfirmSpend = ({ open, onClose, onConfirm, credits, title, desc }:
       <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
         <CreditBadge amount={credits} size="medium" />
       </Box>
-      <Typography variant="caption" color="text.secondary">serão debitados dos seus créditos</Typography>
+      <Typography variant="caption" color="text.secondary">usa {costLabel(credits, divisor)} do seu saldo</Typography>
     </DialogContent>
     <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'center', gap: 1 }}>
       <Button onClick={onClose} variant="outlined" sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.secondary' }}>Cancelar</Button>
       <Button onClick={onConfirm} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', '&:hover': { bgcolor: 'primary.dark' } }}>Confirmar</Button>
     </DialogActions>
   </Dialog>
-);
+  );
+};
