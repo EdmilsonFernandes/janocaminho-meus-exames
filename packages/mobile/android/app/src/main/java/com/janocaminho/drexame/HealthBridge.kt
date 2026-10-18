@@ -53,16 +53,16 @@ class HealthBridge(private val activity: MainActivity) {
         fun hcSdkOk(): Boolean = android.os.Build.VERSION.SDK_INT >= 26
 
         /**
-         * CORE: o mínimo para o widget funcionar (passos + calorias + distância + sono).
+         * CORE: o mínimo para o widget funcionar (passos + calorias + distância).
          * TOTAL de calorias está no CORE (não no EXTENDED) porque o Samsung Health NÃO
          * publica ActiveCaloriesBurned no Health Connect — só TotalCaloriesBurned (e
          * apenas de treinos): sem essa permissão, aparelho Samsung fica SEM caloria de
-         * jeito nenhum. SONO no CORE pelo mesmo precedente (16/10/26): é o sinal vital
-         * prometido na Landing e o centro do hub de Sinais Vitais — quem já estava
-         * conectado re-conecta (1 tap) e o popup do HC pede SÓ a permissão nova
-         * (as antigas já vêm marcadas).
-         * EXTENDED: dados extras (FR, exercício) — se o usuário não conceder, o widget
-         * funciona normalmente sem eles (não bloqueia a conexão).
+         * jeito nenhum.
+         * EXTENDED: dados extras (FR, exercício, SONO) — concessão OPCIONAL: o popup
+         * do HC vem com tudo ligado por padrão, mas desligar um toggle NÃO pode travar
+         * a conexão (reporte do dono 18/10: concedeu e "não conectava" — o gate antigo
+         * exigia TODAS). Sono nasceu no CORE (16/10) e VOLTOU pro EXTENDED: o custo do
+         * re-prompt 1-tap superava o benefício e endurecia o gate.
          */
         val CORE_PERMISSIONS: Set<String> by lazy {
             if (!hcSdkOk()) emptySet() else setOf(
@@ -70,13 +70,13 @@ class HealthBridge(private val activity: MainActivity) {
                 HealthPermission.getReadPermission(ActiveCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(TotalCaloriesBurnedRecord::class),
                 HealthPermission.getReadPermission(DistanceRecord::class),
-                HealthPermission.getReadPermission(SleepSessionRecord::class),
             )
         }
         val EXTENDED_PERMISSIONS: Set<String> by lazy {
             if (!hcSdkOk()) emptySet() else setOf(
                 HealthPermission.getReadPermission(HeartRateRecord::class),
                 HealthPermission.getReadPermission(ExerciseSessionRecord::class),
+                HealthPermission.getReadPermission(SleepSessionRecord::class),
             )
         }
         /** Pedimos todas de uma vez, mas o gate de "conectado" só exige as CORE. */
@@ -101,7 +101,10 @@ class HealthBridge(private val activity: MainActivity) {
             launcher = (activity as ComponentActivity).registerForActivityResult(
                 PermissionController.createRequestPermissionResultContract()
             ) { granted ->
-                val ok = granted != null && granted.containsAll(READ_PERMISSIONS)
+                // GATE = SÓ O CORE (reporte 18/10: exigir TODAS fazia "concedeu e não
+                // conectou" quando o usuário desligava qualquer toggle do EXTENDED —
+                // FR/exercício/sono são opcionais; o widget vive sem eles).
+                val ok = granted != null && granted.containsAll(CORE_PERMISSIONS)
                 onPermissionsResult(pendingRequestId, ok)
                 // Libera a flag do gate com folga (o resume dispara antes deste callback às vezes).
                 activity.evalJs("try{setTimeout(()=>{window.__dxNativeIntent=false},2500)}catch(e){}")
@@ -353,21 +356,28 @@ class HealthBridge(private val activity: MainActivity) {
                         val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
                         origins.add(k.origin); kmBy[k] = (kmBy[k] ?: 0.0) + r.distance.inKilometers
                     }
-                    for (r in readAllSleep()) {
-                        // SDK 1.1.0: stage é INT (@StageTypes). "Dormido" = SLEEPING/LIGHT/
-                        // DEEP/REM (+UNKNOWN, ambíguo); acordado/fora da cama NÃO conta.
-                        val awakeStages = setOf(
-                            SleepSessionRecord.STAGE_TYPE_AWAKE,
-                            SleepSessionRecord.STAGE_TYPE_OUT_OF_BED,
-                            SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED,
-                        )
-                        val asleepMin = r.stages
-                            .filter { it.stage !in awakeStages }
-                            .sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
-                            .let { if (it > 0) it else java.time.Duration.between(r.startTime, r.endTime).toMinutes() }
-                        if (asleepMin <= 0) continue
-                        val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
-                        origins.add(k.origin); sleepBy[k] = (sleepBy[k] ?: 0L) + asleepMin
+                    // Sono em try PRÓPRIO: permissão é EXTENDED (opcional desde 18/10) —
+                    // sem ela o read lança SecurityException e NÃO pode derrubar a
+                    // acumulação das métricas CORE que já rodaram acima.
+                    try {
+                        for (r in readAllSleep()) {
+                            // SDK 1.1.0: stage é INT (@StageTypes). "Dormido" = SLEEPING/LIGHT/
+                            // DEEP/REM (+UNKNOWN, ambíguo); acordado/fora da cama NÃO conta.
+                            val awakeStages = setOf(
+                                SleepSessionRecord.STAGE_TYPE_AWAKE,
+                                SleepSessionRecord.STAGE_TYPE_OUT_OF_BED,
+                                SleepSessionRecord.STAGE_TYPE_AWAKE_IN_BED,
+                            )
+                            val asleepMin = r.stages
+                                .filter { it.stage !in awakeStages }
+                                .sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
+                                .let { if (it > 0) it else java.time.Duration.between(r.startTime, r.endTime).toMinutes() }
+                            if (asleepMin <= 0) continue
+                            val k = OriginDay(r.endTime.atZone(zone).toLocalDate(), r.metadata.dataOrigin.packageName)
+                            origins.add(k.origin); sleepBy[k] = (sleepBy[k] ?: 0L) + asleepMin
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("DxHealth", "sleep read skipped: ${e.message}")
                     }
                 } catch (e: Exception) {
                     android.util.Log.w("DxHealth", "record read failed: ${e.message}")
@@ -404,40 +414,46 @@ class HealthBridge(private val activity: MainActivity) {
                     // hrRest = PERCENTIL 10 das amostras: o aparelho só grava FC durante
                     // atividade, então a média simples sai enviesada p/ cima (média de treino,
                     // não de repouso). O percentil baixo aproxima a FC de repouso do dia.
+                    // QUOTA: no BACKFILL (offset>0) estas leituras por-dia PULAM — 30 dias ×
+                    // 2 reads × 3 chunks = ~180 reads extras de uma vez estouravam a cota
+                    // diária de leitura do Health Connect (padrão Life Dashboard: backfill
+                    // enxuto; FR/exercício interessam só na janela viva).
                     var hrAvg = 0L; var hrMax = 0L; var hrRest = 0L; var exerciseMin = 0L
-                    try {
-                        android.util.Log.d("DxHealth", "Reading HR records for $day")
-                        val hrResponse = client.readRecords(
-                            androidx.health.connect.client.request.ReadRecordsRequest(
-                                recordType = HeartRateRecord::class,
-                                timeRangeFilter = TimeRangeFilter.between(start, end),
+                    if (offset == 0) {
+                        try {
+                            android.util.Log.d("DxHealth", "Reading HR records for $day")
+                            val hrResponse = client.readRecords(
+                                androidx.health.connect.client.request.ReadRecordsRequest(
+                                    recordType = HeartRateRecord::class,
+                                    timeRangeFilter = TimeRangeFilter.between(start, end),
+                                )
                             )
-                        )
-                        android.util.Log.d("DxHealth", "HR records: ${hrResponse.records.size}, samples: ${hrResponse.records.sumOf { it.samples.size }}")
-                        val allSamples = hrResponse.records.flatMap { it.samples }
-                        if (allSamples.isNotEmpty()) {
-                            val sorted = allSamples.map { it.beatsPerMinute }.sorted()
-                            hrAvg = Math.round(sorted.average())
-                            hrMax = sorted.last()
-                            hrRest = sorted[(sorted.size * 10 / 100).coerceAtMost(sorted.size - 1)]
-                            android.util.Log.d("DxHealth", "HR avg=$hrAvg rest=$hrRest max=$hrMax")
-                        } else {
-                            android.util.Log.w("DxHealth", "HR: no samples for $day")
+                            android.util.Log.d("DxHealth", "HR records: ${hrResponse.records.size}, samples: ${hrResponse.records.sumOf { it.samples.size }}")
+                            val allSamples = hrResponse.records.flatMap { it.samples }
+                            if (allSamples.isNotEmpty()) {
+                                val sorted = allSamples.map { it.beatsPerMinute }.sorted()
+                                hrAvg = Math.round(sorted.average())
+                                hrMax = sorted.last()
+                                hrRest = sorted[(sorted.size * 10 / 100).coerceAtMost(sorted.size - 1)]
+                                android.util.Log.d("DxHealth", "HR avg=$hrAvg rest=$hrRest max=$hrMax")
+                            } else {
+                                android.util.Log.w("DxHealth", "HR: no samples for $day")
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("DxHealth", "HR read FAILED: ${e.message}", e)
                         }
-                    } catch (e: Exception) {
-                        android.util.Log.e("DxHealth", "HR read FAILED: ${e.message}", e)
-                    }
-                    try {
-                        val exResponse = client.readRecords(
-                            androidx.health.connect.client.request.ReadRecordsRequest(
-                                recordType = ExerciseSessionRecord::class,
-                                timeRangeFilter = TimeRangeFilter.between(start, end),
+                        try {
+                            val exResponse = client.readRecords(
+                                androidx.health.connect.client.request.ReadRecordsRequest(
+                                    recordType = ExerciseSessionRecord::class,
+                                    timeRangeFilter = TimeRangeFilter.between(start, end),
+                                )
                             )
-                        )
-                        exerciseMin = exResponse.records.sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
-                        android.util.Log.d("DxHealth", "Exercise records: ${exResponse.records.size}, total min: $exerciseMin")
-                    } catch (e: Exception) {
-                        android.util.Log.e("DxHealth", "Exercise read FAILED: ${e.message}", e)
+                            exerciseMin = exResponse.records.sumOf { java.time.Duration.between(it.startTime, it.endTime).toMinutes() }
+                            android.util.Log.d("DxHealth", "Exercise records: ${exResponse.records.size}, total min: $exerciseMin")
+                        } catch (e: Exception) {
+                            android.util.Log.e("DxHealth", "Exercise read FAILED: ${e.message}", e)
+                        }
                     }
 
                     arr.put(
