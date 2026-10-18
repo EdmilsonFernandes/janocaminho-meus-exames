@@ -18,6 +18,9 @@ import { otpEmail } from '../utils/emailTemplate';
 import { config } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
+import { sendPushToUser } from '../utils/push';
+import { hasMeetConfig, meetAuthUrl, meetRedirectUri, exchangeMeetCode, createMeetSpace } from '../utils/meet';
+import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
 import { lookupCfm } from '../utils/cfm';
@@ -934,6 +937,87 @@ router.post('/patients/:patientId/notes', requireDoctor, async (req: any, res, n
     const note = await prisma.doctorNote.create({ data: { doctorId: req.doctorId, patientId: req.params.patientId, content, category } });
     res.status(201).json({ note });
   } catch (e) { next(e); }
+});
+
+// AGENDAR TELECONSULTA (lote "estilo Teams" 18/10/26) — o médico marca data/hora e cola
+// o link EXTERNO (Meet/Teams/WhatsApp); cai como lembrete type=teleconsulta na conta do
+// paciente, com push imediato + antecedências normais do job. Sem agenda/disponibilidade:
+// o encontro foi combinado por fora; aqui só se registra e o paciente é avisado.
+// O consentimento (Art. 15, Res. CFM 2.314/2022) é dado PELO PACIENTE no app antes de entrar.
+// createMeet: com a conta Google conectada, o link é GERADO (Meet API) — nada de colar.
+router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const dueDate = new Date(String(req.body?.dueDate ?? ''));
+    let linkUrl = String(req.body?.linkUrl ?? '').trim();
+    const title = String(req.body?.title ?? '').trim() || 'Teleconsulta';
+    const recurrence = ['diario', 'semanal', 'mensal', 'semestral', 'anual'].includes(req.body?.recurrence) ? String(req.body.recurrence) : null;
+    if (Number.isNaN(dueDate.getTime())) { res.status(400).json({ error: 'Data/hora inválida.' }); return; }
+
+    // Sala Meet automática: refresh do médico → space → linkUrl gerado.
+    if (req.body?.createMeet) {
+      const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { googleRefreshTokenEnc: true, googleRefreshTokenIv: true } });
+      const refresh = doc?.googleRefreshTokenEnc && doc.googleRefreshTokenIv ? decryptPII(doc.googleRefreshTokenEnc, doc.googleRefreshTokenIv) : null;
+      if (!refresh) { res.status(400).json({ error: 'Conecte sua conta Google antes de gerar salas Meet (ou cole o link manualmente).' }); return; }
+      try {
+        const space = await createMeetSpace(refresh);
+        linkUrl = space.uri;
+      } catch (e: any) {
+        res.status(502).json({ error: `Não deu pra criar a sala Meet (${String(e?.message ?? '').slice(0, 80)}). Cole o link manualmente e tente de novo.` }); return;
+      }
+    }
+
+    if (!/^https?:\/\//i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
+    const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true } } } });
+    if (!patient?.ownerId) { res.status(404).json({ error: 'Paciente sem conta vinculada.' }); return; }
+    const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
+    const r = await prisma.reminder.create({
+      data: {
+        ownerId: patient.ownerId, patientId: pid, title, dueDate,
+        type: 'teleconsulta', linkUrl: linkUrl.slice(0, 500), recurrence,
+        createdByDoctorId: req.doctorId,
+        notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
+      },
+    });
+    // Push imediato: o paciente fica sabendo AGORA (não só na 1ª antecedência).
+    const dateStr = dueDate.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    void sendPushToUser(patient.ownerId, `📋 Teleconsulta agendada${doctor?.name ? ` com ${doctor.name}` : ''}`, `${dateStr} — toque para autorizar e entrar na hora.`, { type: 'reminder', reminderId: r.id }).catch(() => {});
+    res.status(201).json({ reminder: r });
+  } catch (e) { next(e); }
+});
+
+// ── Google Meet OAuth (conectar 1x p/ gerar salas) ─────────────────────────────
+// GET /google/status  → o portal sabe se mostra o toggle "gerar sala Meet".
+router.get('/google/status', requireDoctor, async (req: any, res) => {
+  const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { googleRefreshTokenEnc: true } });
+  res.json({ configured: hasMeetConfig(), connected: !!doc?.googleRefreshTokenEnc });
+});
+
+// GET /google/auth → devolve a URL de consentimento (o portal navega; link de browser
+// não carrega header Authorization). state = JWT curto do médico.
+router.get('/google/auth', requireDoctor, (req: any, res) => {
+  if (!hasMeetConfig()) { res.status(501).json({ error: 'Meet automático não configurado neste servidor (GOOGLE_CLIENT_SECRET).' }); return; }
+  const state = jwt.sign({ type: 'doctor-meet', doctorId: req.doctorId }, config.jwtSecret, { expiresIn: '10m' });
+  res.json({ url: meetAuthUrl(state) });
+});
+
+// GET /google/callback → troca code, guarda refresh CRIPTOGRAFADO, volta pro portal.
+// Sem requireDoctor: quem chama é o Google (browser), a autenticação vem no state JWT.
+router.get('/google/callback', async (req: any, res) => {
+  try {
+    const payload: any = jwt.verify(String(req.query.state ?? ''), config.jwtSecret);
+    if (payload?.type !== 'doctor-meet' || !payload.doctorId) throw new Error('state');
+    if (!hasMeetConfig()) { res.status(501).json({ error: 'não configurado' }); return; }
+    const { refresh } = await exchangeMeetCode(String(req.query.code ?? ''));
+    if (!refresh) throw new Error('sem refresh_token (consentimento repetido?)');
+    const enc = encryptPII(refresh);
+    if (!enc) throw new Error('criptografia indisponível (APP_ENCRYPTION_KEY)');
+    await prisma.doctor.update({ where: { id: payload.doctorId }, data: { googleRefreshTokenEnc: enc.enc, googleRefreshTokenIv: enc.iv } });
+    res.redirect(`${(process.env.WEB_ORIGIN || 'http://localhost:5173').replace(/\/$/, '')}/#/para-medicos?meet=ok`);
+  } catch {
+    res.redirect(`${(process.env.WEB_ORIGIN || 'http://localhost:5173').replace(/\/$/, '')}/#/para-medicos?meet=erro`);
+  }
 });
 
 // EDITAR anotação

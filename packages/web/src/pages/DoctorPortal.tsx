@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, FormControlLabel, Switch } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -39,6 +39,7 @@ import { premiumText, badDot } from '../components/doctors/portal/shared';
 import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import { DrExame } from '../components/DrExame';
 import { OtpInput } from '../components/OtpInput';
 import { DoctorProfileForm } from '../components/doctors/portal/DoctorProfileForm';
@@ -325,6 +326,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [medsOpen, setMedsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
+  // TELECONSULTA (lote "estilo Teams" 18/10): o médico marca data/hora + cola o link
+  // externo (Meet/Teams/WhatsApp) → vira lembrete no app do paciente com push + consentimento.
+  const [teleOpen, setTeleOpen] = useState(false);
+  const [teleBusy, setTeleBusy] = useState(false);
+  const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
+  // Meet automático (lote Teams 18/10): status da integração + preferência do diálogo.
+  const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean } | null>(null);
+  const [createMeet, setCreateMeet] = useState(true);
+
+  useEffect(() => {
+    if (!teleOpen || meetStatus) return;
+    fetch(`${API_URL}/doctor/google/status`, { headers: h }).then((r) => r.ok ? r.json() : null).then((s) => setMeetStatus(s)).catch(() => setMeetStatus({ configured: false, connected: false }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teleOpen]);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
   const [doctor, setDoctor] = useState<any>(null);
   const [view, setView] = useState<'overview' | 'patients' | 'invites' | 'questions' | 'profile' | 'password'>('overview');
@@ -550,6 +565,32 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   };
 
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
+
+  /** Agenda a teleconsulta (POST /doctor/patients/:id/teleconsulta) — cria o lembrete
+   *  na conta do paciente (push imediato + antecedências 1d/1h/na hora). */
+  const scheduleTele = async () => {
+    if (!selected || !tele.date || !/^https?:\/\//i.test(tele.link.trim())) return;
+    setTeleBusy(true);
+    try {
+      const due = new Date(`${tele.date}T${tele.time || '14:00'}`).toISOString();
+      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/teleconsulta`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          dueDate: due,
+          ...(createMeet && meetStatus?.connected ? { createMeet: true } : {}),
+          ...(!(createMeet && meetStatus?.connected) ? { linkUrl: tele.link.trim() } : {}),
+          title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
+          recurrence: tele.recurrence || undefined,
+        }),
+      });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || 'Falha ao agendar.');
+      snackbar({ message: 'Teleconsulta agendada — o paciente já foi avisado por push 📋', severity: 'success' });
+      setTeleOpen(false);
+      setTele({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
+    } catch (e: any) {
+      snackbar({ message: e?.message || 'Falha ao agendar.', severity: 'error' });
+    } finally { setTeleBusy(false); }
+  };
 
   // Gesto de voltar do Android (Capacitor): fecha detalhe do exame → fecha paciente → volta à lista → sai.
   // O App.tsx ignora o back na rota /doctor; este listener é o dono da navegação aqui.
@@ -902,6 +943,57 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 Voltar aos pacientes
               </Button>
             )}
+            {/* AGENDAR TELECONSULTA (estilo Teams — data/hora + link externo; sem agenda de
+                disponibilidade). O paciente recebe push, autoriza (Art. 15) e entra pelo link. */}
+            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => setTeleOpen(true)}
+              sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, borderRadius: '999px', px: 2, color: 'secondary.dark', borderColor: 'rgba(212,165,116,.5)', '&:hover': { borderColor: 'secondary.dark', bgcolor: 'rgba(212,165,116,.08)' } }}>
+              Agendar teleconsulta
+            </Button>
+            <Dialog open={teleOpen} onClose={() => setTeleOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+              <DialogTitle sx={{ pb: 0.5, fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <VideocamIcon sx={{ fontSize: 20, color: 'secondary.dark' }} /> Agendar teleconsulta
+              </DialogTitle>
+              <DialogContent>
+                <Typography sx={{ color: 'text.secondary', fontSize: 13, lineHeight: 1.55, mb: 1.5 }}>
+                  Marque data e hora e cole o link da chamada (Meet, Teams, WhatsApp…). O paciente recebe push na hora, lembretes antes e autoriza a telemedicina no app antes de entrar.
+                </Typography>
+                <Stack spacing={1.5}>
+                  <Stack direction="row" spacing={1}>
+                    <TextField type="date" label="Data" value={tele.date} onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} size="small" />
+                    <TextField type="time" label="Hora" value={tele.time} onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} size="small" />
+                  </Stack>
+                  {/* SALA MEET AUTOMÁTICA — médico conecta o Google 1x (OAuth escopo único de
+                      criar salas); aí o link é GERADO na hora de agendar. Sem conexão: cola manual. */}
+                  {meetStatus?.connected ? (
+                    <FormControlLabel control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />} label={<Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>Criar sala Google Meet automaticamente <Chip size="small" label="✨" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(212,165,116,.18)' }} /></Typography>} sx={{ m: 0 }} />
+                  ) : meetStatus?.configured ? (
+                    <Button size="small" variant="outlined" onClick={async () => {
+                      const r = await fetch(`${API_URL}/doctor/google/auth`, { headers: h });
+                      const d = await r.json().catch(() => ({}));
+                      if (r.ok && d.url) window.location.href = d.url; else snackbar({ message: d.error || 'Não deu pra iniciar a conexão com o Google.', severity: 'error' });
+                    }} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px', alignSelf: 'flex-start' }}>
+                      Conectar conta Google p/ gerar salas Meet
+                    </Button>
+                  ) : null}
+                  {!(createMeet && meetStatus?.connected) && (
+                    <TextField label="Link da chamada" placeholder="https://meet.google.com/…" value={tele.link} onChange={(e) => setTele((t) => ({ ...t, link: e.target.value }))} size="small" fullWidth helperText={meetStatus?.connected ? 'Desligue o Meet automático para colar um link manual.' : 'Meet, Teams, WhatsApp… o paciente entra por aqui.'} />
+                  )}
+                  <TextField label="Título (opcional)" placeholder={`Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'você'}`} value={tele.title} onChange={(e) => setTele((t) => ({ ...t, title: e.target.value }))} size="small" fullWidth />
+                  <TextField select SelectProps={{ native: true }} label="Repetir" value={tele.recurrence} onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))} size="small" fullWidth>
+                    {[['', 'Não repete'], ['semanal', 'Semanal'], ['mensal', 'Mensal'], ['semestral', 'Semestral'], ['anual', 'Anual']].map(([v, l]) => (
+                      <option key={v} value={v}>{l}</option>
+                    ))}
+                  </TextField>
+                </Stack>
+              </DialogContent>
+              <DialogActions sx={{ px: 3, pb: 2.5 }}>
+                <Button onClick={() => setTeleOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+                <Button variant="contained" onClick={() => void scheduleTele()} disabled={teleBusy || !tele.date || (!(createMeet && meetStatus?.connected) && !/^https?:\/\//i.test(tele.link.trim()))}
+                  sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: 'secondary.dark', '&:hover': { bgcolor: 'secondary.main' } }}>
+                  {teleBusy ? 'Agendando…' : 'Agendar e avisar paciente'}
+                </Button>
+              </DialogActions>
+            </Dialog>
             <PatientSummary
               patient={selected}
               loading={detailLoading}

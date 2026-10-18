@@ -785,6 +785,13 @@ model Reminder {
   notifyOffsetsMin Int[] @default([1440, 300, 0])
   // Offsets (em min) JÁ disparados — dedup persistente (sobrevive a restart/deploy; substitui o Set em memória).
   sentOffsets      Int[] @default([])
+  // ── Lote "encontro estilo Teams" (18/10/26): tipo, link externo, recorrência (linha
+  //    que ROLA p/ a próxima data), consentimento Art.15 (teleconsulta) e origem médica.
+  type              String?    // 'exame' | 'consulta' | 'medicamento' | 'teleconsulta'
+  linkUrl           String?    // link externo do encontro (Meet/Teams/WhatsApp) — nunca hospedamos
+  recurrence        String?    // 'diario' | 'semanal' | 'mensal' | 'semestral' | 'anual'
+  consentAt         DateTime?  // aceite do paciente p/ telemedicina (Art. 15, Res. CFM 2.314/2022)
+  createdByDoctorId String?    // médico que agendou (vazio = criado pelo próprio paciente)
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])
@@ -888,6 +895,11 @@ model Doctor {
   cpfHash      String?   @unique // HMAC-SHA256 do CPF normalizado para busca/duplicidade sem expor CPF
   cpfLast4     String?
   identityLockedAt DateTime? // após e-mail + CPF verificados, identidade não muda por self-service
+  // Teleconsulta (lote "estilo Teams" 18/10/26): refresh token OAuth do Google p/ CRIAR
+  // salas Meet automaticamente (escopo meetings.space.created). Credencial → mesma
+  // criptografia da PII (AES-256-GCM com APP_ENCRYPTION_KEY).
+  googleRefreshTokenEnc String?
+  googleRefreshTokenIv   String?
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
   notes        DoctorNote[]

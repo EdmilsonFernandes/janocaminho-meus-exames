@@ -32,6 +32,52 @@ function offsetLabel(o: number): string {
  * Offset > 0 ("X antes")  dispara quando now >= dueDate - offset, e só enquanto dueDate > now.
  * Offset = 0 ("na hora")  dispara quando now >= dueDate, com tolerância de 24h (não dispara p/ lembretes antigos).
  */
+/** Intervalo da recorrência em passos de data (lote "estilo Teams" 18/10/26). */
+const RECURRENCE_STEP: Record<string, (d: Date) => Date> = {
+  diario: (d) => new Date(d.getTime() + MS_DAY),
+  semanal: (d) => new Date(d.getTime() + 7 * MS_DAY),
+  mensal: (d) => addMonths(d, 1),
+  semestral: (d) => addMonths(d, 6),
+  anual: (d) => addMonths(d, 12),
+};
+function addMonths(d: Date, n: number): Date {
+  const out = new Date(d);
+  const day = out.getDate();
+  out.setMonth(out.getMonth() + n);
+  // 31/jan +1m → 3/mar (JS estoura o mês): clampa pro último dia do mês-alvo (31/28-29).
+  if (out.getDate() < day) out.setDate(0);
+  return out;
+}
+
+/**
+ * ROLL de recorrência (linha que ROLA, não duplica — padrão "série" do Teams):
+ * quando o lembrete recorrente é marcado FEITO, ou fica >24h atrasado, avança a
+ * dueDate p/ a próxima ocorrência (sempre à frente de now), rearma os disparos
+ * (sentOffsets=[]) e renova o consentimento (cada teleconsulta pede aceite próprio).
+ * Mantém UMA linha limpa por série — a lista nunca vira cemitério de ocorrências.
+ */
+export async function rollRecurringReminders(now: number): Promise<void> {
+  const stale = await prisma.reminder.findMany({
+    where: {
+      recurrence: { not: null },
+      OR: [{ done: true }, { done: false, dueDate: { lt: new Date(now - 24 * MS_HOUR) } }],
+    },
+    take: 200,
+  });
+  for (const r of stale) {
+    const step = RECURRENCE_STEP[r.recurrence!];
+    if (!step) continue;
+    let next = step(new Date(r.dueDate));
+    // Catch-up: atraso maior que 1 intervalo (ex.: app parado 3 meses) avança até o futuro.
+    let guard = 0;
+    while (next.getTime() <= now && guard++ < 120) next = step(next);
+    await prisma.reminder.update({
+      where: { id: r.id },
+      data: { dueDate: next, sentOffsets: [], done: false, consentAt: null },
+    }).catch((e) => console.error('[reminders] roll falhou:', r.id, e?.message));
+  }
+}
+
 export function startReminderEmailJob(): void {
   const check = async () => {
     try {
@@ -82,6 +128,11 @@ export function startReminderEmailJob(): void {
       }
     } catch (e) {
       console.error('[reminders] job error:', (e as Error).message);
+    }
+    try {
+      await rollRecurringReminders(Date.now());
+    } catch (e) {
+      console.error('[reminders] roll error:', (e as Error).message);
     }
   };
 
