@@ -19,6 +19,7 @@ import { generateActionPlan } from '../analysis/risk-action-plan';
 import { sourcesFor } from '../analysis/knowledge';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { computeAdherenceScore, computePredictions } from '../analysis/insights';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -136,6 +137,7 @@ router.post('/action-plan', async (req: AuthedRequest, res, next) => {
     // DÉBITO ATÔMICO ANTES da IA (anti-race — antes gate-read + charge depois, com warn silencioso se falhava).
     const charged = await chargeCredits(req.userId!, CREDIT_COSTS.actionPlan, 'risk_action_plan', 'Plano de ação (Dr. Exame)');
     if (!charged) {
+      void logPaywallHit(req.userId!, 'ACTION_PLAN');
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o plano de ação.' });
       return;
     }

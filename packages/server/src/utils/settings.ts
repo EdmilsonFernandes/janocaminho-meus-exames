@@ -8,17 +8,24 @@ import { BADGES as DEFAULT_BADGES } from './achievements';
 export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
-  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5, mentalScreening: 3 },
+  grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5, mentalScreening: 3, monthlyClaimCap: 150, trialCredits: 100 },
   // ===== Estratégia de pricing (2026-08-23) — tudo editável no Admin, sem deploy =====
   // Preço do plano mensal (era hardcode em 7 lugares). Os créditos do mensal continuam em
   // grants.monthly (fonte única). periodDays/label aqui só p/ a API expor.
   plans: { monthly: { price: 19.9, periodDays: 30, label: 'Mensal' } },
   // Pacotes de créditos avulsos (mesma moeda/saldo — mudar NÃO invalida créditos já comprados).
+  // p30 = PRIMEIRA COMPRA (auditoria 18/10): quebrar a barreira do 1º pagamento vale mais
+  // que a margem do pack — o dialog 402 sugere o mais barato em 1 toque PIX.
   creditPacks: [
+    { id: 'p30', credits: 30, price: 4.9, label: 'Primeira compra', popular: false },
     { id: 'p50', credits: 50, price: 9.9, label: 'Início', popular: false },
     { id: 'p140', credits: 140, price: 24.9, label: 'Popular', popular: true },
     { id: 'p320', credits: 320, price: 49.9, label: 'Bônus', popular: false },
   ],
+  // RELATÓRIO AVULSO (auditoria 18/10, item 8): compra única R$9,90 = 1 relatório
+  // completo (voucher), sem pensar em créditos — o consolidado é o produto mais consumido.
+  // Kill-switch: enabled 0 esconde do dialog 402 e recusa a compra no billing.
+  reportPack: { enabled: 1, price: 9.9, label: 'Relatório completo' },
   // Perks premium (além dos créditos mensais): relatório consolidado sem débito e limite
   // familiar maior. Upload grátis usa o knob já existente uploadRules.premiumFreeQuota
   // (subir p/ 999 no admin = "ilimitado"). Leitura por uso — desligar volta a cobrar, sem

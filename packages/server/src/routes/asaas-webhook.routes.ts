@@ -109,16 +109,19 @@ router.post('/asaas', async (req, res) => {
     }
 
     // Kind derivado da PRÓPRIA Subscription (payload Asaas NÃO traz correlationID):
-    //   mpPreferenceId='api_pack' → pacote de CHAMADAS; periodDays>0 → plano mensal;
-    //   senão → pacote de CRÉDITOS (pixCredits gravado na compra; sem a coluna o helper
-    //   aprova NADA — approvePendingSubscription recusa credits/calls <= 0, sem crédito errado).
+    //   mpPreferenceId='api_pack' → pacote de CHAMADAS; 'report_pack' → RELATÓRIO avulso
+    //   (voucher); periodDays>0 → plano mensal; senão → pacote de CRÉDITOS (pixCredits
+    //   gravado na compra; sem a coluna o helper aprova NADA — approvePendingSubscription
+    //   recusa credits/calls <= 0, sem crédito errado).
     const pixCredits = (sub as any).pixCredits ?? null;
     const kind =
       sub.mpPreferenceId === 'api_pack'
         ? { type: 'api' as const, calls: pixCredits ?? 0 }
-        : sub.periodDays > 0
-          ? { type: 'plan' as const }
-          : { type: 'credits' as const, credits: pixCredits ?? 0 };
+        : sub.mpPreferenceId === 'report_pack'
+          ? { type: 'report' as const, vouchers: pixCredits ?? 1 }
+          : sub.periodDays > 0
+            ? { type: 'plan' as const }
+            : { type: 'credits' as const, credits: pixCredits ?? 0 };
 
     const approved = await approvePendingSubscription(sub.id, kind, paymentId);
     console.log(`[asaas-webhook] ${approved ? 'aprovado' : 'não aprovado (sem efeito)'} — ${paymentId} → sub ${sub.id} (${kind.type})`);

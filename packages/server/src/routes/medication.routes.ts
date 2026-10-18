@@ -14,6 +14,7 @@ import {
   faersSearchTerm, faersCacheKey, buildFaersUrl, parseFaersEvents, faersCandidates,
   type FaersCacheData, type FaersEvent, type FaersMode,
 } from '../utils/faers';
+import { logPaywallHit } from '../utils/paywall';
 
 /**
  * Remédios do paciente + checagem de interações A–X.
@@ -321,6 +322,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
 
     // Débito atômico ANTES (padrão do chat); falha de IA → reembolso.
     const charged = await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'med_interaction', 'Checagem completa de interações');
+    void logPaywallHit(req.userId!, 'MED_INTERACTION');
     if (!charged) { res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para a análise completa. Compre um pacote de créditos.' }); return; }
 
     let contextual: string | null = null;

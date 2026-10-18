@@ -12,6 +12,7 @@ import { guidelinesEnabled, sportsModeEnabled } from '../utils/settings';
 import { sportsContextBlocks } from '../analysis/sports-context';
 import { personalizedTargets, formatTarget } from '../analysis/personalized-targets';
 import { medicationsContextBlock } from '../analysis/medications-context';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -255,6 +256,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // Se a IA falhar depois do débito → reembolso (refundCredits).
     const charged = await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'ai_chat', 'Chat com a IA');
     if (!charged) {
+      void logPaywallHit(req.userId!, 'CHAT');
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para conversar. Compre um pacote de créditos.' });
       return;
     }

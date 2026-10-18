@@ -52,6 +52,8 @@ router.get('/plans', (_req, res) => {
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
     shares: getSettings().shares, // custo por escopo ao compartilhar c/ médico (pré-visualização no app)
+    // Relatório avulso (compra única, voucher): o dialog 402 do consolidado oferece.
+    reportPack: (getSettings() as any).reportPack,
     // Perks do plano (o que o premium libera além dos créditos) — landing/plans honestos.
     premiumPerks: getPremiumPerks(),
     // Fundador público (contagem p/ "restam X vagas"); se desligado, founder: false.
@@ -62,8 +64,15 @@ router.get('/plans', (_req, res) => {
 // Status: plano + créditos + consumo aproximado de IA (tokens)
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true, trialUsedAt: true, reportVouchers: true } });
     const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
+    // TRIAL DE RESGATE (auditoria 18/10): 1x na vida p/ quem já provou o valor (≥3 usos
+    // de IA) e não é premium — o dialog 402 oferece no lugar do pack. Sem cartão.
+    let trialAvailable = false;
+    if (!active && !user?.trialUsedAt) {
+      const aiUses = await prisma.creditTransaction.count({ where: { userId: req.userId!, delta: { lt: 0 }, kind: { in: ['ai_chat', 'ai_summary', 'ai_consolidated', 'question'] } } });
+      trialAvailable = aiUses >= 3;
+    }
     const pids = await userPatientIds(req.userId!);
     const examsCount = await prisma.exam.count({ where: { patientId: { in: pids } } });
     const analyses = await prisma.aiAnalysis.findMany({
@@ -74,7 +83,32 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       const u: any = a.tokenUsage;
       return s + (Number(u?.input_tokens ?? 0) + Number(u?.output_tokens ?? 0));
     }, 0);
-    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed });
+    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed, trialAvailable, reportVouchers: user?.reportVouchers ?? 0 });
+  } catch (e) { next(e); }
+});
+
+// TRIAL PREMIUM DE RESGATE (auditoria 18/10 — ponte "esgotou → pagou"): quem já usou IA
+// 3+ vezes e bateu no 402 ganha 7 dias de Premium + créditos de cortesia, UMA vez na
+// vida, sem cartão. É o momento de máxima intenção (não no cadastro) — criar o hábito do
+// tudo-liberado e cobrar no dia 8. Gates server-side: premium ativo / já usou / <3 usos.
+router.post('/trial', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const userId = req.userId!;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { planExpiresAt: true, trialUsedAt: true, credits: true } });
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+    if (user.planExpiresAt && user.planExpiresAt > new Date()) { res.status(409).json({ error: 'Você já é Premium.' }); return; }
+    if (user.trialUsedAt) { res.status(409).json({ error: 'Trial já utilizado nesta conta.' }); return; }
+    const aiUses = await prisma.creditTransaction.count({ where: { userId, delta: { lt: 0 }, kind: { in: ['ai_chat', 'ai_summary', 'ai_consolidated', 'question'] } } });
+    if (aiUses < 3) { res.status(403).json({ error: 'trial_not_eligible' }); return; }
+    const days = 7;
+    const bonus = Math.max(0, Number(getSettings().grants?.trialCredits ?? 100));
+    const expires = new Date(Date.now() + days * 86400000);
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: userId }, data: { planExpiresAt: expires, trialUsedAt: new Date(), ...(bonus > 0 ? { credits: { increment: bonus } } : {}) } }),
+      prisma.creditTransaction.create({ data: { userId, delta: bonus, kind: 'trial_premium', label: `Trial Premium ${days} dias` } }),
+    ]);
+    console.log(`[billing] trial ${days}d ativado p/ user ${userId} (+${bonus} créditos)`);
+    res.json({ ok: true, planExpiresAt: expires.toISOString(), credits: (user.credits ?? 0) + bonus });
   } catch (e) { next(e); }
 });
 
@@ -304,7 +338,15 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 
     // Fluxo de PACKS de créditos: daqui pra frente o body PRECISA ter um pack válido
     // (plano mensal já retornou acima — mesmo bypass do /pay-card).
-    const pack = packById(String(req.body?.pack ?? ''));
+    // RELATÓRIO AVULSO (18/10): product='report' = compra única de 1 voucher — vira um
+    // "pack virtual" que reaproveita TODO o fluxo abaixo (lock, PIX, retomada); só o
+    // external_reference muda (`sub|1|REPORT`) p/ o webhook creditar voucher, não créditos.
+    const reportCfg = (getSettings() as any).reportPack as { enabled: number; price: number; label: string } | undefined;
+    const isReport = req.body?.product === 'report';
+    if (isReport && Number(reportCfg?.enabled) !== 1) { res.status(400).json({ error: 'Relatório avulso indisponível.' }); return; }
+    const pack = isReport
+      ? { id: 'report', credits: 1, price: Number(reportCfg?.price) > 0 ? Number(reportCfg?.price) : 9.9, label: String(reportCfg?.label || 'Relatório completo'), popular: false }
+      : packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
 
     // ===== LOCK (PIX de créditos): 1 PIX pendente por vez — vale p/ QUALQUER método =====
@@ -358,7 +400,10 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 
     // registro p/ idempotência no webhook (periodDays=0 marca "pacote de créditos")
     const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
-    const externalReference = `${sub.id}|${pack.credits}`; // webhook diferencia pacote de mensal pelo "|"
+    // TAG da ordem de RELATÓRIO (mesmo padrão do 'api_pack'): os webhooks Asaas/OpenPix
+    // derivam o kind pela PRÓPRIA Subscription — sem a tag creditariam CRÉDITOS errados.
+    if (isReport) await updateSubscriptionCompat(sub.id, { mpPreferenceId: 'report_pack' });
+    const externalReference = isReport ? `${sub.id}|1|REPORT` : `${sub.id}|${pack.credits}`; // webhook diferencia pacote de mensal pelo "|"
     const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
     const base = (process.env.WEB_BASE_PATH ?? '').replace(/\/$/, '');
     const origin = process.env.WEB_ORIGIN || '';
@@ -399,14 +444,14 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     // PIX — QR Code inline (copia-cola + countdown). Provider abstraído em
     // payments/pix-provider (env PAYMENT_PROVIDER: 'mp' default | 'openpix' — toggle
     // da suspensão do MP 02/10). Cartão/débito seguem no MP acima (OpenPix é PIX-only).
-    const correlationID = `credits_${sub.id}_${pack.credits}`; // webhook OpenPix casa por mpPaymentId
+    const correlationID = isReport ? `report_${sub.id}` : `credits_${sub.id}_${pack.credits}`; // webhook OpenPix casa por mpPaymentId
     let charge: PixChargeResult;
     try {
       charge = await createPixCharge({
         amountBrlCents: Math.round(pack.price * 100),
         correlationID,
-        externalReference, // MP: subId|credits — webhook MP depende deste formato
-        description: `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
+        externalReference, // MP: subId|credits[|REPORT] — webhook MP depende deste formato
+        description: isReport ? 'Dr. Exame — Relatório completo avulso' : `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
         payerEmail: user.email,
         payerFirstName: (user.name || 'Cliente').split(' ')[0],
         userId: user.id, // Asaas: cache de customer (cus_*) por usuário
@@ -444,6 +489,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       expiresAt: expires.toISOString(),
       credits: pack.credits,
       price: pack.price,
+      report: isReport || undefined, // front: chip "1 relatório completo" em vez de créditos
     });
   } catch (e) { next(e); }
 });
@@ -1015,9 +1061,11 @@ router.post('/webhook', async (req, res) => {
           const [subId, creditsStr, marker] = String(pay.external_reference).split('|');
           const kind: ApprovalKind = marker === 'API' && creditsStr
             ? { type: 'api', calls: Number(creditsStr) }
-            : creditsStr
-              ? { type: 'credits', credits: Number(creditsStr) }
-              : { type: 'plan' };
+            : marker === 'REPORT' && creditsStr
+              ? { type: 'report', vouchers: Number(creditsStr) }
+              : creditsStr
+                ? { type: 'credits', credits: Number(creditsStr) }
+                : { type: 'plan' };
           await approvePendingSubscription(subId, kind, String(paymentId));
         }
       }

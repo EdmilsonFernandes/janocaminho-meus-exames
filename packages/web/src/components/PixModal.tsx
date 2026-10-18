@@ -19,8 +19,10 @@ type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
  *  ao aprovar, credita automaticamente (via webhook) e avisa o pai. */
 /** `plan` (05/10): cobra o PLANO MENSAL ({plan:'monthly'}) em vez de pack de créditos —
  *  o redirect do MP saiu do ar. packId continua sendo o gatilho de abertura (use
- *  '__plan__' como sentinel no caller). */
-export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { packId: string | null; plan?: boolean; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
+ *  '__plan__' como sentinel no caller).
+ *  `product='report'` (18/10): RELATÓRIO AVULSO — compra única de 1 voucher, não é pack
+ *  de créditos. Mesmo fluxo PIX/lock; chip e confirmação falam "relatório". */
+export const PixModal = ({ packId, plan, product, onClose, onApproved, existingPix }: { packId: string | null; plan?: boolean; product?: 'report'; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
   const [pix, setPix] = useState<any>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [errMsg, setErrMsg] = useState('');
@@ -65,7 +67,7 @@ export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { p
       try {
         const r = await fetch(`${API_URL}/billing/buy-credits`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify(plan ? { plan: 'monthly' } : { pack: packId }),
+          body: JSON.stringify(product === 'report' ? { product: 'report' } : plan ? { plan: 'monthly' } : { pack: packId }),
         });
         const d = await r.json();
         if (cancelled) return;
@@ -167,7 +169,7 @@ export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { p
           <Box>
             {/* Valor + créditos — herói do header (o que o usuário mais precisa confirmar) */}
             <Box sx={{ mb: 1.5 }}>
-              <Chip size="small" label={`${pix.credits} créditos`} sx={{ mb: 0.75, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
+              <Chip size="small" label={product === 'report' ? 'Relatório completo' : `${pix.credits} créditos`} sx={{ mb: 0.75, fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: (t) => tealText(t.palette.mode) }} />
               <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 'clamp(2rem, 8vw, 2.5rem)', lineHeight: 1.05, letterSpacing: '-0.02em', color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
                 {price}
               </Typography>
@@ -235,7 +237,7 @@ export const PixModal = ({ packId, plan, onClose, onApproved, existingPix }: { p
             }}>
               <CheckCircleIcon sx={{ fontSize: 64, color: 'success.main' }} />
               <Typography variant="h6" sx={{ mt: 1, fontWeight: 800 }}>Pagamento aprovado!</Typography>
-              <Typography color="text.secondary">{plan ? '👑 Premium ativo por 30 dias!' : `+${pix?.credits ?? ''} créditos adicionados. 🎉`}</Typography>
+              <Typography color="text.secondary">{plan ? '👑 Premium ativo por 30 dias!' : product === 'report' ? '📄 Relatório completo liberado! Volte e gere novamente. 🎉' : `+${pix?.credits ?? ''} créditos adicionados. 🎉`}</Typography>
             </Box>
           </Box>
         )}

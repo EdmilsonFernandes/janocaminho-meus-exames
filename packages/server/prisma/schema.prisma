@@ -40,6 +40,16 @@ model User {
   // ganha o bônus, DELETA (volta a 0 exames) e envia de novo, NÃO ganha de novo. Grant atômico
   // via updateMany(where: { firstExamBonusGranted: false }) → 1x só por usuário, nunca mais.
   firstExamBonusGranted Boolean @default(false)
+  // ===== Monitoramento/monetização (auditoria 18/10/2026) =====
+  // Contas de teste/equipe do dono: EXCLUÍDAS das métricas do admin (o maior "usuário de
+  // IA" era o próprio dono distorcendo funil/receita). Default false.
+  isTest             Boolean  @default(false)
+  // Origem do cadastro (utm_source/campaign ou referrer capturado no front no signup).
+  acquisitionSource  String?
+  // Trial Premium de resgate (7d) oferecido no 402 p/ quem já usa IA — 1x na vida.
+  trialUsedAt        DateTime?
+  // Vouchers do "Relatório completo avulso" (compra única R$9,90, sem pack de créditos).
+  reportVouchers     Int      @default(0)
   referralCode String?  @unique  // código de indicação (ex: EDMILSON-A1B2) — vira bônus pra ambos
   referredBy   String?            // código de quem indicou este usuário
   deviceId     String?            // ID estável do aparelho (ANDROID_ID) — 1 bônus de boas-vindas por dispositivo
@@ -120,6 +130,22 @@ model CreditTransaction {
 
   @@index([userId, createdAt])
   @@map("credit_transactions")
+}
+
+// PAYWALL HITS (auditoria de monetização 18/10/2026): toda tentativa de uso travada por
+// saldo insuficiente (402 de qualquer feature de IA). É o sinal nº1 de disposição a pagar
+// — antes disto o bloqueio era 100% invisível pro admin. Sem FK de propósito (mesmo padrão
+// do AiUsageLog): a linha sobrevive à deleção da conta e não custa join nas agregações.
+model PaywallHit {
+  id        String   @id @default(cuid())
+  userId    String
+  feature   String   // CHAT | SUMMARY | CONSOLIDATED | ACTION_PLAN | SHARE | DOCTOR_QUESTION | MED_INTERACTION
+  balance   Int      // saldo no momento do bloqueio
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("paywall_hits")
 }
 
 // QUIZ RESUMÍVEL (05/10): participação persistida do quiz de boas-vindas — o usuário

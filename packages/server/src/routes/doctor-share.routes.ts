@@ -6,6 +6,7 @@ import { doctorInviteEmail, webUrl } from '../utils/emailTemplate';
 import { getSettings } from '../utils/settings';
 import { chargeCredits } from '../utils/credits';
 import { normalizeCrmKey } from './doctor.routes';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -71,7 +72,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const shareCost = selectedScopes.reduce((sum: number, k: string) => sum + ((getSettings().shares as Record<string, number>)[k] ?? 0), 0);
     if (shareCost > 0) {
       const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { credits: true } });
+      void logPaywallHit(req.userId!, 'SHARE');
       if ((me?.credits ?? 0) < shareCost) { res.status(402).json({ error: 'insufficient_credits', message: `Compartilhar custa ${shareCost} créditos.` }); return; }
+      void logPaywallHit(req.userId!, 'SHARE');
       if (!(await chargeCredits(req.userId!, shareCost, 'share', 'Compartilhamento com médico'))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
     }
     const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost, examIds: Array.isArray(examIds) ? examIds : [] } });

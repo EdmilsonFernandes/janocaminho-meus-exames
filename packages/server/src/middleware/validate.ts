@@ -27,6 +27,8 @@ export const schemas = {
     referral: z.string().optional(),
     deviceId: z.string().optional(),
     inviteToken: z.string().optional(),
+    // Origem do cadastro (UTM/referrer — auditoria 18/10). Server sanitiza de novo no handler.
+    source: z.string().max(120).optional(),
   }),
 
   login: z.object({

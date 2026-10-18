@@ -96,15 +96,17 @@ router.post('/openpix', async (req, res) => {
       return;
     }
 
-    // correlationID: credits_<subId>_<n> | api_<subId>_<n> — count é fallback se pixCredits faltar
+    // correlationID: credits_<subId>_<n> | api_<subId>_<n> | report_<subId> — count é fallback se pixCredits faltar
     const countFromCorrelation = Number(String(correlationID).split('_')[2] ?? 0);
     const pixCredits = (sub as any).pixCredits ?? null;
     const kind =
       sub.mpPreferenceId === 'api_pack'
         ? { type: 'api' as const, calls: pixCredits ?? countFromCorrelation }
-        : sub.periodDays > 0
-          ? { type: 'plan' as const }
-          : { type: 'credits' as const, credits: pixCredits ?? countFromCorrelation };
+        : sub.mpPreferenceId === 'report_pack'
+          ? { type: 'report' as const, vouchers: pixCredits ?? 1 }
+          : sub.periodDays > 0
+            ? { type: 'plan' as const }
+            : { type: 'credits' as const, credits: pixCredits ?? countFromCorrelation };
 
     const approved = await approvePendingSubscription(sub.id, kind, correlationID);
     console.log(`[openpix-webhook] ${approved ? 'aprovado' : 'não aprovado (sem efeito)'} — ${correlationID} → sub ${sub.id} (${kind.type})`);

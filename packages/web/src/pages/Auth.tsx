@@ -7,6 +7,7 @@ import { keyframes } from '@mui/material/styles';
 import { DrExame } from '../components/DrExame';
 import { MascotPulse } from '../components/MascotPulse';
 import { API_URL, fetchPublicConfig } from '../config';
+import { signupSource } from '../utils/signupSource';
 import { Capacitor } from '@capacitor/core';
 import { nativeGoogleLogin } from '../utils/nativeGoogleAuth';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
@@ -482,7 +483,7 @@ export const RegisterPage = () => {
     try {
       const r = await fetch(`${API_URL}/auth/register`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, inviteToken: invite || undefined, deviceId: getDeviceId() }),
+        body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, inviteToken: invite || undefined, deviceId: getDeviceId(), source: signupSource() || undefined }),
       });
       const d = await r.json();
       if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }

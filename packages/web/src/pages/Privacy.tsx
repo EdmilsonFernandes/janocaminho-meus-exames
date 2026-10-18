@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent, Alert } from '@mui/material';
+import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent, Alert, RadioGroup, FormControlLabel, Radio, DialogActions } from '@mui/material';
 import { Title, useNotify, useRefresh } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -18,6 +18,11 @@ export const PrivacyPage = () => {
   const refresh = useRefresh();
   const [termsOpen, setTermsOpen] = useState(false);
   const [zipLoading, setZipLoading] = useState(false);
+  // Motivo da exclusão (18/10): antes a conta sumia sem deixar NADA — nem sinal de que
+  // existiu. O motivo (1 clique, opcional) vai pro audit_logs e o dono passa a saber
+  // POR QUE as pessoas vão embora ("coloca e exclui" deixa de ser fantasma).
+  const [deleteReasonOpen, setDeleteReasonOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('nao-era-o-que-esperava');
 
   const exportData = async () => {
     const r = await fetch(`${API_URL}/data/export`, { headers: { Authorization: `Bearer ${token()}` } });
@@ -56,9 +61,10 @@ export const PrivacyPage = () => {
     } catch { notify('Arquivo inválido', { type: 'error' }); }
     e.target.value = '';
   };
-  const delAccount = async () => {
-    if (!(await confirmDialog({ title: 'Excluir minha conta', message: 'ATENÇÃO: isso apaga TODOS os seus dados (exames, análises, perfil, fotos) definitivamente. NÃO dá pra desfazer.', confirmLabel: 'Excluir conta' }))) return;
-    const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+  const delAccount = () => setDeleteReasonOpen(true);
+  const confirmDeleteAccount = async () => {
+    setDeleteReasonOpen(false);
+    const r = await fetch(`${API_URL}/auth/account`, { method: 'DELETE', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ reason: deleteReason || 'unspecified' }) });
     if (r.ok) { localStorage.clear(); navigate('/landing', { replace: true }); }
     else notify('Falha ao excluir conta. Tente novamente.', { type: 'error' });
   };
@@ -177,6 +183,37 @@ export const PrivacyPage = () => {
         <DialogContent sx={{ '& p, & li': { fontSize: 14, lineHeight: 1.6 } }}>
           <TermsPage />
         </DialogContent>
+      </Dialog>
+
+      {/* Exclusão com MOTIVO (18/10): aviso grave + 1 clique opcional de "por quê" —
+          alimenta o audit ACCOUNT_DELETED e o dono passa a enxergar o churn de exclusão. */}
+      <Dialog open={deleteReasonOpen} onClose={() => setDeleteReasonOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ fontWeight: 800 }}>Excluir minha conta</DialogTitle>
+        <DialogContent>
+          <Alert severity="warning" sx={{ mb: 1.5, fontSize: 13.5 }}>
+            Isso apaga <b>todos os seus dados</b> (exames, análises, perfil, fotos) definitivamente. <b>Não dá pra desfazer.</b>
+          </Alert>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>Se puder dizer o motivo, ajuda muito a melhorar o app:</Typography>
+          <RadioGroup value={deleteReason} onChange={(e) => setDeleteReason((e as React.ChangeEvent<HTMLInputElement>).target.value)}>
+            {[
+              ['nao-era-o-que-esperava', 'Não era o que eu esperava'],
+              ['achei-caro', 'Achei caro'],
+              ['nao-uso-mais', 'Paro de usar / não preciso mais'],
+              ['privacidade', 'Preocupação com meus dados'],
+              ['teste', 'Era só um teste'],
+            ].map(([v, l]) => (
+              <FormControlLabel key={v} value={v} control={<Radio size="small" />} label={<Typography variant="body2">{l}</Typography>} />
+            ))}
+          </RadioGroup>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, flexDirection: 'column', gap: 1 }}>
+          <Button fullWidth variant="contained" color="error" onClick={() => void confirmDeleteAccount()} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, minHeight: 44 }}>
+            Excluir tudo definitivamente
+          </Button>
+          <Button fullWidth onClick={() => setDeleteReasonOpen(false)} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>
+            Cancelar
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

@@ -205,7 +205,7 @@ export const ConsolidatedReportPage = () => {
         if (r.status === 402) {
           const d = await r.json().catch(() => ({}));
           stopped = { msg: d.message || 'Créditos insuficientes pra enviar agora.' };
-          notifyInsufficientCredits({ message: d.message, cost: CREDIT_COSTS.consolidated });
+          notifyInsufficientCredits({ message: d.message, cost: CREDIT_COSTS.consolidated, feature: 'CONSOLIDATED' });
           break;
         }
         stopped = { msg: 'Não foi possível enviar agora. Tente novamente.' };

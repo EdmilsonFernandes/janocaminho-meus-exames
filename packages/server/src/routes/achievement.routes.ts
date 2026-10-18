@@ -92,22 +92,36 @@ router.post('/claim', async (req: AuthedRequest, res, next) => {
       return b.earned && !claimedSet.has(key) && (!wantId || b.id === wantId);
     });
 
+    // CAP DOS MENSAIS (auditoria 18/10): desafios mensais são "créditos do mês" — não
+    // formam poupança infinita p/ uso leve. Com saldo >= cap o mensal fica claimable
+    // (badge NÃO é consumido — volta a pagar quando o saldo baixar); abaixo do cap paga
+    // no máximo até o cap. Permanentes NÃO são afetados. Kill-switch: admin sobe
+    // grants.monthlyClaimCap p/ 999999 (settings, sem deploy).
+    const cap = Number(getSettings().grants?.monthlyClaimCap ?? 150);
+    let balance = (await prisma.user.findUnique({ where: { id: userId }, select: { credits: true } }))?.credits ?? 0;
     const granted: string[] = [];
+    let monthlySkipped = 0;
     for (const b of targets) {
       const key = claimKeyOf(b);
+      let reward = b.reward;
+      if (b.period === 'monthly') {
+        if (balance >= cap) { monthlySkipped++; continue; }
+        reward = Math.min(reward, cap - balance);
+      }
       try {
         await prisma.$transaction([
           prisma.achievementGrant.create({ data: { userId, badgeId: key } }),
-          prisma.user.update({ where: { id: userId }, data: { credits: { increment: b.reward } } }),
-          prisma.creditTransaction.create({ data: { userId, delta: b.reward, kind: 'achievement', label: `Conquista: ${b.title}`, refId: key } }),
+          prisma.user.update({ where: { id: userId }, data: { credits: { increment: reward } } }),
+          prisma.creditTransaction.create({ data: { userId, delta: reward, kind: 'achievement', label: `Conquista: ${b.title}`, refId: key } }),
         ]);
         granted.push(b.id);
+        balance += reward;
       } catch (e: any) {
         if (e?.code !== 'P2002') throw e; // P2002 = já resgatado entre GET e POST → ignora
       }
     }
     const u = await prisma.user.findUnique({ where: { id: userId }, select: { credits: true } });
-    res.json({ granted, count: granted.length, newBalance: u?.credits ?? 0 });
+    res.json({ granted, count: granted.length, newBalance: u?.credits ?? 0, monthlyCapReached: monthlySkipped > 0 || undefined });
   } catch (e) { next(e); }
 });
 

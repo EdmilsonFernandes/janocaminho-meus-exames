@@ -20,6 +20,7 @@ import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { buildCurrentHealthSummary } from '../analysis/health-state';
 import { buildExamNarration } from '../utils/examNarration';
 import { buildExamReportPdf } from '../utils/examPdf';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -320,6 +321,7 @@ router.post('/:id/narrate', async (req: AuthedRequest, res, next) => {
     // Débito atômico ANTES de gerar (mesma regra anti-race do chat). Falta saldo → 402.
     const charged = await chargeCredits(req.userId!, CREDIT_COSTS.chat, 'narration', `Narração do resumo: ${exam.title}`, exam.id);
     if (!charged) {
+      void logPaywallHit(req.userId!, 'SUMMARY');
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para ouvir o resumo. Compre um pacote ou assine o mensal.' });
       return;
     }

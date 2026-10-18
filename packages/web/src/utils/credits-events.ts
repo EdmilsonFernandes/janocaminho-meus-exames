@@ -28,7 +28,7 @@ export const bumpCredits = (): void => {
  */
 export const CREDITS_INSUFFICIENT_EVENT = 'creditsInsufficient';
 
-export function notifyInsufficientCredits(detail: { cost?: number; message?: string } = {}): void {
+export function notifyInsufficientCredits(detail: { cost?: number; message?: string; feature?: string } = {}): void {
   try {
     window.dispatchEvent(new CustomEvent(CREDITS_INSUFFICIENT_EVENT, { detail }));
   } catch { /* sem window — ignora */ }

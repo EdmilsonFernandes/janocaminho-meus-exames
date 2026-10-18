@@ -14,6 +14,7 @@ import { findSubscriptionByIdCompat, updateSubscriptionCompatWithDb } from './su
 export type ApprovalKind =
   | { type: 'credits'; credits: number }
   | { type: 'api'; calls: number }
+  | { type: 'report'; vouchers: number }
   | { type: 'plan' };
 
 /** Aprova (ou ignora) uma Subscription. Retorna true se aprovou/creditou nesta chamada. */
@@ -47,6 +48,20 @@ export async function approvePendingSubscription(
       await tx.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } });
     });
     console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
+    return true;
+  }
+
+  if (kind.type === 'report') {
+    // RELATÓRIO AVULSO (18/10): compra única → +N vouchers (users.reportVouchers).
+    // Ledger delta=0 (não é crédito) — mas precisa aparecer no extrato (compra aconteceu).
+    const v = kind.vouchers;
+    if (!(v > 0)) return false;
+    await prisma.$transaction(async (tx) => {
+      await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+      await tx.user.update({ where: { id: sub.userId }, data: { reportVouchers: { increment: v } } });
+      await tx.creditTransaction.create({ data: { userId: sub.userId, delta: 0, kind: 'report_voucher', label: 'Relatório completo avulso', refId: sub.id } });
+    });
+    console.log(`[billing] relatório avulso +${v} voucher(s) p/ user ${sub.userId} (sub ${sub.id})`);
     return true;
   }
 

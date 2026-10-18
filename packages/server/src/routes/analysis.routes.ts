@@ -12,6 +12,7 @@ import { getPremiumPerks, guidelinesEnabled } from '../utils/settings';
 import { guidelinesContext } from '../analysis/guidelines';
 import { hashSharePin } from '../utils/crypto';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -71,6 +72,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (isFirstSummary) await logCredit(req.userId!, 0, 'ai_summary', 'Primeiro resumo — grátis');
     const charged = await chargeCredits(req.userId!, summaryCost, 'ai_summary', 'Resumo do exame');
     if (!charged) {
+      void logPaywallHit(req.userId!, 'SUMMARY');
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote de créditos para gerar análises com IA.' });
       return;
     }
@@ -130,9 +132,19 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     // PERK PREMIUM (settings): relatório consolidado INCLUÍDO no plano — sem débito. Free paga
     // créditos normalmente (nada é travado; perk liga/desliga no admin sem estado órfão).
     const premiumIncluded = getPremiumPerks().consolidatedFree && (await isPremium(req.userId!));
+    // VOUCHER do relatório avulso (18/10): compra única R$9,90 = 1 relatório completo.
+    // Consome ANTES dos créditos — updateMany condicional atômico (2 gerações
+    // simultâneas não comem o mesmo voucher).
+    let voucherUsed = false;
+    if (!premiumIncluded) {
+      const v = await prisma.user.updateMany({ where: { id: req.userId!, reportVouchers: { gt: 0 } }, data: { reportVouchers: { decrement: 1 } } });
+      voucherUsed = v.count > 0;
+      if (voucherUsed) await logCredit(req.userId!, 0, 'report_voucher', 'Relatório avulso (voucher usado)');
+    }
     // DÉBITO ATÔMICO ANTES da IA (anti-race).
-    const charged = premiumIncluded || await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado');
+    const charged = premiumIncluded || voucherUsed || await chargeCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated', 'Relatório consolidado');
     if (!charged) {
+      void logPaywallHit(req.userId!, 'CONSOLIDATED');
       res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos suficientes. Compre um pacote para gerar o relatório completo.' });
       return;
     }
@@ -158,7 +170,11 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
     } catch (genErr: any) {
       void logAiUsage({ userId: req.userId!, feature: 'CONSOLIDATED', success: false, errorCode: String(genErr?.message ?? genErr).slice(0, 200), latencyMs: Date.now() - t0 });
       // IA falhou após o débito → reembolsa (premium não foi debitado — não reembolsa).
-      if (!premiumIncluded) await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
+      // Voucher usado na falha volta pra conta (mesma justiça do reembolso de créditos).
+      if (!premiumIncluded) {
+        if (voucherUsed) await prisma.user.update({ where: { id: req.userId! }, data: { reportVouchers: { increment: 1 } } }).catch(() => {});
+        else await refundCredits(req.userId!, CREDIT_COSTS.consolidated, 'ai_consolidated_refund', 'Reembolso: falha na IA (consolidado)');
+      }
       // RAG: se a (re)geração falhou, devolve o ÚLTIMO relatório salvo em vez de erro
       const last = await prisma.aiAnalysis.findFirst({ where: { patientId, type: 'SUMMARY', examId: null, userMessage: null }, orderBy: { createdAt: 'desc' } });
       if (last) {

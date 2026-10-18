@@ -6,6 +6,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { sendEmail } from '../utils/mailer';
 import { doctorQuestionEmail, webUrl } from '../utils/emailTemplate';
+import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 router.use(requireAuth);
@@ -128,6 +129,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // Cobra créditos ANTES de criar (padrão chargeCredits atômico; 402 se saldo insuficiente)
     const cost = CREDIT_COSTS.question;
     const ok = await chargeCredits(req.userId!, cost, 'doctor_question', `Pergunta ao médico: ${msgBody.slice(0, 40)}`);
+    void logPaywallHit(req.userId!, 'DOCTOR_QUESTION');
     if (!ok) { res.status(402).json({ error: 'insufficient_credits', message: 'Créditos insuficientes para enviar a pergunta.' }); return; }
 
     const q = await prisma.doctorQuestion.create({

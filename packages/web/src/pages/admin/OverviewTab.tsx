@@ -12,6 +12,17 @@ const fmtMonth = (m: string): string => {
   return `${MESES[idx] ?? mo} ${y}`;
 };
 
+/** Rótulos humanos das features do paywall (mesma nomenclatura do app). */
+const FEATURE_LABELS: Record<string, string> = {
+  CHAT: 'Chat com a IA',
+  SUMMARY: 'Resumo de exame',
+  CONSOLIDATED: 'Relatório completo',
+  ACTION_PLAN: 'Plano de ação',
+  SHARE: 'Compartilhar c/ médico',
+  DOCTOR_QUESTION: 'Pergunta ao médico',
+  MED_INTERACTION: 'Interação de remédios',
+};
+
 export const OverviewTab = () => {
   const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -68,6 +79,80 @@ export const OverviewTab = () => {
           )}
         </Stack>
       </CardContent></Card>
+
+      {/* PAYWALL (18/10): quem tentou usar IA e estava sem saldo — antes invisível. É o
+          número nº1 de disposição a pagar; cruzar com as ofertas do dialog 402. */}
+      <Card sx={{ borderRadius: '12px' }}><CardContent>
+        <Typography variant="h6" sx={{ fontSize: 16 }}>🚧 Bateram no sem-saldo (paywall)</Typography>
+        <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ mt: 1, mb: metrics.paywall?.byFeature?.length ? 1.5 : 0 }}>
+          <Box><Typography variant="caption" color="text.secondary">Bloqueios (7d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#f59e0b' }}>{metrics.paywall?.hits7d ?? 0}</Typography></Box>
+          <Box><Typography variant="caption" color="text.secondary">Bloqueios (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#f59e0b' }}>{metrics.paywall?.hits30d ?? 0}</Typography></Box>
+          <Box><Typography variant="caption" color="text.secondary">Pessoas distintas (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.paywall?.users30d ?? 0}</Typography></Box>
+        </Stack>
+        {metrics.paywall?.byFeature?.length > 0 && (
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead><TableRow><TableCell sx={{ fontWeight: 700 }}>Função bloqueada (30d)</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Tentativas</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Pessoas</TableCell></TableRow></TableHead>
+              <TableBody>
+                {metrics.paywall.byFeature.map((f: any) => (
+                  <TableRow key={f.feature} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
+                    <TableCell sx={{ fontWeight: 600 }}>{FEATURE_LABELS[f.feature] ?? f.feature}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{f.hits}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{f.users}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+          Cada linha é alguém QUERENDO usar e não podendo — é aqui que o trial/pack/relatório do dialog 402 disputa a conversão.
+        </Typography>
+      </CardContent></Card>
+
+      {/* COORTE SEMANAL (18/10): com ~16 signups/semana, coorte mensal é cega. */}
+      {metrics.weeklyCohort?.length > 0 && (
+        <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📈 Semana a semana (cohort semanal)</Typography>
+          <TableContainer sx={{ overflowX: 'auto' }}>
+            <Table size="small">
+              <TableHead><TableRow>
+                <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Semana</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>Signups</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>1º exame</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>Usou IA</TableCell>
+                <TableCell align="right" sx={{ fontWeight: 700 }}>Voltou após 7d</TableCell>
+              </TableRow></TableHead>
+              <TableBody>
+                {metrics.weeklyCohort.map((c: any) => (
+                  <TableRow key={c.week} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
+                    <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{c.week}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.signups}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', color: c.activated > 0 ? 'success.dark' : 'text.secondary' }}>{c.activated}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', color: c.usedAi > 0 ? '#20b2aa' : 'text.secondary' }}>{c.usedAi}</TableCell>
+                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.retained7}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </CardContent></Card>
+      )}
+
+      {/* ORIGEM DO CADASTRO (18/10): de onde vêm os signups (UTM/referrer no register). */}
+      {metrics.acquisition?.length > 0 && (
+        <Card sx={{ borderRadius: '12px' }}><CardContent>
+          <Typography variant="h6" sx={{ fontSize: 16 }}>🧭 De onde vêm os cadastros</Typography>
+          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+            {metrics.acquisition.map((a: any) => (
+              <Box key={a.source} sx={{ minWidth: 110 }}>
+                <Typography variant="caption" color="text.secondary">{a.source}</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800 }}>{a.count}</Typography>
+              </Box>
+            ))}
+          </Stack>
+        </CardContent></Card>
+      )}
 
       <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" gutterBottom>🔻 Funil (conversão)</Typography>

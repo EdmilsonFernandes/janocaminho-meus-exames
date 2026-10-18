@@ -466,14 +466,18 @@ router.delete('/exam-knowledge/:id', async (req, res, next) => {
 
 // MÉTRICAS/FUNIL (analytics) — signups → free → pago, receita (MRR/total), churn/retensão no
 // vencimento e cohort por mês de signup. Pra o admin decidir com dado (ajustar preço/grants/custo).
+// 18/10: (a) contas isTest (dono/equipe) FORA dos números; (b) PAYWALL hits (quem tentou
+// usar IA sem saldo — sinal nº1 de disposição a pagar, antes invisível); (c) cohort SEMANAL
+// (mensal é cego p/ base nova); (d) origem do cadastro (acquisitionSource do register).
 router.get('/metrics', async (_req, res, next) => {
   try {
     const now = new Date();
+    const real = { role: 'OWNER' as const, isTest: { not: true } };
     // --- FUNIL ---
     const [signups, verified, premiumActive] = await Promise.all([
-      prisma.user.count({ where: { role: 'OWNER' } }),
-      prisma.user.count({ where: { role: 'OWNER', emailVerified: true } }),
-      prisma.user.count({ where: { role: 'OWNER', planExpiresAt: { gt: now } } }),
+      prisma.user.count({ where: real }),
+      prisma.user.count({ where: { ...real, emailVerified: true } }),
+      prisma.user.count({ where: { ...real, planExpiresAt: { gt: now } } }),
     ]);
     const freeActive = Math.max(0, verified - premiumActive);
     // --- RECEITA ---
@@ -485,7 +489,7 @@ router.get('/metrics', async (_req, res, next) => {
     // --- CHURN/RETENÇÃO (no vencimento) ---
     const everRows = await prisma.subscription.findMany({ where: { status: 'APPROVED', periodDays: { gt: 0 } }, select: { userId: true }, distinct: ['userId'] });
     const everPremium = everRows.length;
-    const stillActive = await prisma.user.count({ where: { role: 'OWNER', planExpiresAt: { gt: now }, subscriptions: { some: { status: 'APPROVED', periodDays: { gt: 0 } } } } });
+    const stillActive = await prisma.user.count({ where: { ...real, planExpiresAt: { gt: now }, subscriptions: { some: { status: 'APPROVED', periodDays: { gt: 0 } } } } });
     const churned = Math.max(0, everPremium - stillActive);
     const renewalRows = await prisma.$queryRaw<{ cnt: bigint }[]>`SELECT COUNT(*)::int AS cnt FROM (SELECT "userId" FROM subscriptions WHERE status='APPROVED' AND "periodDays" > 0 GROUP BY "userId" HAVING COUNT(*) >= 2) t`;
     const renewals = Number(renewalRows[0]?.cnt ?? 0);
@@ -496,18 +500,49 @@ router.get('/metrics', async (_req, res, next) => {
              COUNT(DISTINCT s."userId") AS converted
       FROM users u
       LEFT JOIN subscriptions s ON s."userId" = u.id AND s.status = 'APPROVED' AND s."periodDays" > 0
-      WHERE u."role" = 'OWNER'
+      WHERE u."role" = 'OWNER' AND COALESCE(u."isTest", false) = false
       GROUP BY 1 ORDER BY 1 DESC LIMIT 12`;
     // --- RECEITA por mês (pagamento aprovado) ---
     const revenueByMonth = await prisma.$queryRaw<{ month: string; amount: bigint }[]>`
       SELECT TO_CHAR(DATE_TRUNC('month', "updatedAt"), 'YYYY-MM') AS month, SUM("amount")::bigint AS amount
       FROM subscriptions WHERE status = 'APPROVED' GROUP BY 1 ORDER BY 1 DESC LIMIT 12`;
+    // --- PAYWALL HITS (18/10): tentativas travadas por saldo. Drift-safe (catch → 0). ---
+    const paywallTotals = await prisma.$queryRaw<{ d7: bigint; d30: bigint; users30: bigint }[]>`
+      SELECT COUNT(*) FILTER (WHERE "createdAt" >= now() - interval '7 days')::int AS d7,
+             COUNT(*) FILTER (WHERE "createdAt" >= now() - interval '30 days')::int AS d30,
+             COUNT(DISTINCT "userId") FILTER (WHERE "createdAt" >= now() - interval '30 days')::int AS users30
+      FROM paywall_hits`.catch(() => [{ d7: 0n, d30: 0n, users30: 0n }]);
+    const paywallByFeature = await prisma.$queryRaw<{ feature: string; hits: bigint; users: bigint }[]>`
+      SELECT feature, COUNT(*)::int AS hits, COUNT(DISTINCT "userId")::int AS users
+      FROM paywall_hits WHERE "createdAt" >= now() - interval '30 days'
+      GROUP BY 1 ORDER BY 2 DESC LIMIT 10`.catch(() => [] as { feature: string; hits: bigint; users: bigint }[]);
+    // --- COHORT SEMANAL (18/10): com base nova (~16 signups/sem), mês é grosso demais. ---
+    const weeklyCohort = await prisma.$queryRaw<{ wk: string; signups: bigint; activated: bigint; usedAi: bigint; retained7: bigint }[]>`
+      SELECT TO_CHAR(DATE_TRUNC('week', u."createdAt"), 'MM-DD') AS wk,
+             COUNT(*)::int AS signups,
+             COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM patients p JOIN exams e ON e."patientId"=p.id AND e.status='EXTRACTED' WHERE p."ownerId"=u.id))::int AS activated,
+             COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM credit_transactions t WHERE t."userId"=u.id AND t.delta<0 AND t.kind LIKE 'ai%'))::int AS used_ai,
+             COUNT(*) FILTER (WHERE u."lastActiveDay" >= TO_CHAR(u."createdAt" + interval '7 days','YYYY-MM-DD'))::int AS retained7
+      FROM users u
+      WHERE u."role"='OWNER' AND COALESCE(u."isTest", false)=false AND u."createdAt" >= now() - interval '84 days'
+      GROUP BY 1 ORDER BY MIN(u."createdAt") DESC LIMIT 12`.catch(() => [] as { wk: string; signups: bigint; activated: bigint; usedAi: bigint; retained7: bigint }[]);
+    // --- ORIGEM DO CADASTRO (18/10): de onde vêm os signups (UTM/referrer no register). ---
+    const acquisition = await prisma.$queryRaw<{ src: string; n: bigint }[]>`
+      SELECT COALESCE(NULLIF("acquisitionSource",''),'(direto)') AS src, COUNT(*)::int AS n
+      FROM users WHERE "role"='OWNER' AND COALESCE("isTest", false)=false
+      GROUP BY 1 ORDER BY 2 DESC LIMIT 10`.catch(() => [] as { src: string; n: bigint }[]);
     res.json({
       funnel: { signups, verified, freeActive, premiumActive, conversionPct: verified ? Math.round((premiumActive / verified) * 1000) / 10 : 0 },
       revenue: { mrr: Math.round(premiumActive * getMonthlyPlan().price * 100) / 100, total: Math.round((agg._sum.amount ?? 0) * 100) / 100, monthlyPayments, creditPurchases },
       churn: { everPremium, stillActive, churned, renewals, retentionPct: everPremium ? Math.round((stillActive / everPremium) * 1000) / 10 : 0 },
       cohort: cohort.map((r) => ({ month: r.month, signups: Number(r.signups), converted: Number(r.converted) })).filter((r) => r.month),
       revenueByMonth: revenueByMonth.map((r) => ({ month: r.month, amount: Number(r.amount) })).filter((r) => r.month),
+      paywall: {
+        hits7d: Number(paywallTotals[0]?.d7 ?? 0), hits30d: Number(paywallTotals[0]?.d30 ?? 0), users30d: Number(paywallTotals[0]?.users30 ?? 0),
+        byFeature: paywallByFeature.map((r) => ({ feature: r.feature, hits: Number(r.hits), users: Number(r.users) })),
+      },
+      weeklyCohort: weeklyCohort.map((r) => ({ week: r.wk, signups: Number(r.signups), activated: Number(r.activated), usedAi: Number(r.usedAi), retained7: Number(r.retained7) })),
+      acquisition: acquisition.map((r) => ({ source: r.src, count: Number(r.n) })),
     });
   } catch (e) { next(e); }
 });

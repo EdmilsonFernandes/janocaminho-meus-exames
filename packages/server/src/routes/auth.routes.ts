@@ -266,9 +266,12 @@ router.post('/register', validate(schemas.register), async (req, res, next) => {
     // (verify-email). Conta recém-criada fica com 0 créditos (e não consegue logar sem verificar).
     // Evita farm: pra pegar o bônus precisa acessar a caixa de entrada de cada e-mail.
     const deviceId = String(req.body?.deviceId ?? '').trim();
+    // ORIGEM DO CADASTRO (auditoria 18/10 — "16/semana... de onde?"): utm_source/campaign
+    // ou referrer capturado no front. Sanitizado (sem lixo de URL); vira "(direto)" no admin.
+    const acquisitionSource = String(req.body?.source ?? '').replace(/[^\w\-./:?=&%]/g, '').slice(0, 120) || null;
     const user = await prisma.$transaction(async (tx) => {
       const created = await tx.user.create({
-        data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL },
+        data: { email: mail, name: String(name), passwordHash, credits: 0, referralCode, referredBy: referrer?.referralCode ?? null, deviceId: deviceId || null, acquisitionSource, termsAcceptedAt: new Date(), termsVersion: TERMS_VERSION, termsUrl: TERMS_URL },
       });
       await tx.patient.create({ data: { ownerId: created.id, fullName: String(name), relationship: 'Titular', ...cpfData } });
       return created;
@@ -526,6 +529,10 @@ router.post('/change-password', requireAuth, async (req: AuthedRequest, res, nex
 router.delete('/account', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const userId = req.userId!;
+    // MOTIVO da saída (auditoria 18/10 — antes a deleção era 100% invisível pro dono):
+    // o front pergunta em 1 clique ANTES de confirmar. Audit é best-effort (nunca bloqueia).
+    const reason = String(req.body?.reason ?? '').slice(0, 120) || 'unspecified';
+    await audit('ACCOUNT_DELETED', req, { targetType: 'USER', targetId: userId, after: { reason } });
     const patients = await prisma.patient.findMany({ where: { ownerId: userId }, select: { id: true, fullName: true } });
     const pids = patients.map((p) => p.id);
     // 1) análises órfãs (chat/consolidado sem exame) por paciente
