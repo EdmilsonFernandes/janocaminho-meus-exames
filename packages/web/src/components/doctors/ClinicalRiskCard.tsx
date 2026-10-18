@@ -31,7 +31,10 @@ export interface ClinicalRiskCardProps {
   loading?: boolean;
 }
 
-type RiskLevel = 'Normal' | 'Suspeito' | 'Presuntivo' | 'Confirmado';
+/** Níveis de PRIORIDADE — vocabulário NÃO-diagnóstico (feedback do dono 18/10:
+ *  "Confirmado/Presuntivo" sugeria diagnóstico e dois pacientes distintos exibiam
+ *  conteúdo visualmente igual; guardrail da casa: o app educa, o médico decide). */
+type RiskLevel = 'Estável' | 'Observar' | 'Atenção' | 'Prioridade alta';
 
 interface RiskAction {
   id: string;
@@ -73,30 +76,30 @@ export const ClinicalRiskCard = ({
       computedScore = 0;
     }
 
-    let level: RiskLevel = 'Normal';
+    let level: RiskLevel = 'Estável';
     let levelColor = theme.palette.success.main;
     let levelBg = alpha(theme.palette.success.main, 0.12);
     let actionBadge = 'Acompanhamento de rotina';
     let severityBadge = 'Parâmetros estáveis';
 
     if (computedScore >= 75 || nImp >= 2 || (nImp >= 1 && criticalMeds > 0)) {
-      level = 'Confirmado';
+      level = 'Prioridade alta';
       levelColor = theme.palette.error.main;
       levelBg = alpha(theme.palette.error.main, 0.14);
-      actionBadge = 'Conduta imediata sugerida';
-      severityBadge = 'Gravidade elevada';
+      actionBadge = 'Revisar prioridades na consulta';
+      severityBadge = 'Múltiplos marcadores relevantes';
     } else if (computedScore >= 50 || nImp >= 1 || nMod >= 2) {
-      level = 'Presuntivo';
+      level = 'Atenção';
       levelColor = '#f59e0b'; // Amber / Warn
       levelBg = alpha('#f59e0b', 0.14);
       actionBadge = 'Atenção clínica requerida';
-      severityBadge = nImp > 0 ? 'Gravidade moderada a alta' : 'Gravidade moderada';
+      severityBadge = nImp > 0 ? 'Marcador relevante presente' : 'Alterações moderadas';
     } else if (computedScore >= 25 || totalAbnormal > 0) {
-      level = 'Suspeito';
+      level = 'Observar';
       levelColor = '#3b82f6'; // Blue / Inquérito
       levelBg = alpha('#3b82f6', 0.14);
-      actionBadge = 'Investigação em andamento';
-      severityBadge = 'Gravidade leve';
+      actionBadge = 'Acompanhar na próxima bateria';
+      severityBadge = 'Alterações leves';
     }
 
     // Mapeamento de sistemas orgânicos afetados
@@ -213,7 +216,7 @@ export const ClinicalRiskCard = ({
   }
 
   // Constantes de escala para a régua
-  const scaleLevels: RiskLevel[] = ['Normal', 'Suspeito', 'Presuntivo', 'Confirmado'];
+  const scaleLevels: RiskLevel[] = ['Estável', 'Observar', 'Atenção', 'Prioridade alta'];
   const currentIndex = scaleLevels.indexOf(riskAnalysis.level);
 
   // SVG Gauge calculations (circunferência = 2 * PI * 44 ≈ 276.46)
@@ -283,10 +286,10 @@ export const ClinicalRiskCard = ({
                   lineHeight: 1.2,
                 }}
               >
-                Avaliação de Risco Clínico
+                Prioridade Clínica
               </Typography>
               <Chip
-                label="Dr. Exame Insight"
+                label="Triagem educativa"
                 size="small"
                 sx={{
                   height: 20,
@@ -304,7 +307,7 @@ export const ClinicalRiskCard = ({
               variant="caption"
               sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mt: 0.2 }}
             >
-              Estratificação integrativa baseada em biomarcadores, gravidade e histórico
+              Triagem por biomarcadores alterados — apoia a priorização, não diagnostica
             </Typography>
           </Box>
         </Stack>
@@ -327,7 +330,7 @@ export const ClinicalRiskCard = ({
           <IconButton
             size="small"
             onClick={() => setExpanded((prev) => !prev)}
-            aria-label={expanded ? 'Recolher avaliação de risco' : 'Expandir avaliação de risco'}
+            aria-label={expanded ? 'Recolher prioridade clínica' : 'Expandir prioridade clínica'}
             sx={{
               color: 'text.secondary',
               '&:hover': { bgcolor: 'action.hover' },
@@ -443,7 +446,7 @@ export const ClinicalRiskCard = ({
                   mb: 0.75,
                 }}
               >
-                Risco {riskAnalysis.level}
+                Prioridade: {riskAnalysis.level}
               </Typography>
 
               <Stack
@@ -581,6 +584,41 @@ export const ClinicalRiskCard = ({
               />
             </Box>
           </Box>
+
+          {/* DESTAQUES DESTE PACIENTE — o que torna o card DELE (feedback 18/10: dois
+              pacientes distintos exibiam conteúdo visualmente igual; nome+valor de cada
+              analito tornam a diferença visível de imediato). Ordenação: desvio em nº de
+              faixas de referência (proxy honesto de magnitude, sem inventar severidade). */}
+          {(() => {
+            const sev = (it: any): number => {
+              const v = Number(it.valueNumeric);
+              const lo = Number(it.refLow), hi = Number(it.refHigh);
+              if (Number.isFinite(v) && Number.isFinite(lo) && Number.isFinite(hi) && hi > lo) {
+                const mid = (lo + hi) / 2, half = (hi - lo) / 2 || 1;
+                return Math.abs(v - mid) / half; // 1.0 = estourou a faixa inteira
+              }
+              return 0;
+            };
+            const top = [...abnormalItems].sort((a, b) => sev(b) - sev(a)).slice(0, 5);
+            if (!top.length) return null;
+            return (
+              <Box sx={{ pt: 2 }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary', display: 'block', mb: 1 }}>
+                  Destaques deste paciente
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  {top.map((it: any) => (
+                    <Chip
+                      key={it.id}
+                      size="small"
+                      label={`${it.name} ${it.valueText ?? ''}${it.unit ? ` ${it.unit}` : ''}`.trim()}
+                      sx={{ fontSize: 12, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.35) }}
+                    />
+                  ))}
+                </Box>
+              </Box>
+            );
+          })()}
 
           {/* LISTA DE AÇÕES CLÍNICAS RECOMENDADAS */}
           <Box sx={{ pt: 2 }}>
@@ -748,6 +786,11 @@ export const ClinicalRiskCard = ({
                 </Typography>
               </Box>
             )}
+
+            {/* GUARDRAIL: a conduta é do médico — sem linguagem diagnóstica no card. */}
+            <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled', lineHeight: 1.4 }}>
+              Priorização educativa gerada a partir das faixas de referência dos exames compartilhados. Não substitui julgamento clínico nem estabelece diagnóstico.
+            </Typography>
           </Box>
         </Box>
       </Collapse>
