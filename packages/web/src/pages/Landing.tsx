@@ -1,5 +1,7 @@
 import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { DrExame } from '../components/DrExame';
@@ -1215,6 +1217,74 @@ export const LandingPage = () => {
           </Box>
         </Container>
       </Box>
+
+      {/* CASOS DE USO (blueprint healthtech 17/10): a única peça do template que
+          faltava na v4. Personas reais de uso — SEM depoimento/citação inventada
+          (compliance ANVISA/CONAR); layout assimétrico (1 destaque + 2 compactos,
+          o template veda 3 colunas iguais). */}
+      <ScrollReveal>
+      <Box id="casos" sx={{ bgcolor: 'background.default', py: { xs: 6, md: 9 }, scrollMarginTop: 80 }}>
+        <Container maxWidth="md">
+          <Typography align="center" variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
+            Para quem é o <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>Dr. Exame</Box>
+          </Typography>
+          <Typography align="center" sx={{ color: 'text.secondary', mb: 4, fontSize: 17, maxWidth: 560, mx: 'auto' }}>
+            Três jeitos típicos de colocar seus exames para trabalhar a seu favor — histórias de uso, não depoimentos.
+          </Typography>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.55fr 1fr' }, gap: { xs: 2, md: 2.5 }, alignItems: 'stretch' }}>
+            {/* Destaque — família (diferencial D1: nenhum app global tem dependentes) */}
+            <Box sx={{ p: { xs: 2.5, md: 3 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+              <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
+                <Box sx={{ width: 44, height: 44, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,0.10)', color: TEAL_DARK, flexShrink: 0 }}>
+                  <Diversity3Icon />
+                </Box>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 17 }}>Quem cuida da família</Typography>
+              </Stack>
+              <Typography sx={{ color: 'text.secondary', fontSize: 15, lineHeight: 1.7 }}>
+                Os exames dela, do parceiro e dos filhos num lugar só — cada um com seu histórico e seu médico. Na consulta, o link certo chega antes de você sentar na cadeira.
+              </Typography>
+              <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap', rowGap: 1 }}>
+                {['Uma conta, vários perfis', 'Compartilhamento com cada médico', 'Histórico separado por pessoa'].map((c) => (
+                  <Chip key={c} label={c} size="small" sx={{ fontSize: 12.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.09)', color: INK, border: '1px solid rgba(32,178,170,0.22)' }} />
+                ))}
+              </Stack>
+            </Box>
+
+            {/* Compactos — crônico e atleta */}
+            <Stack spacing={2.5} sx={{ '& > *': { flex: 1 } }}>
+              <Box sx={{ p: { xs: 2.5, md: 2.75 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1 }}>
+                  <Box sx={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,0.10)', color: TEAL_DARK, flexShrink: 0 }}>
+                    <TrendingUpIcon sx={{ fontSize: 21 }} />
+                  </Box>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 16 }}>Quem repete exames</Typography>
+                </Stack>
+                <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.65 }}>
+                  TSH de 6 em 6 meses, vitamina D no inverno… a curva mostra se o tratamento está indo bem — antes de a dúvida virar ansiedade.
+                </Typography>
+              </Box>
+
+              <Box sx={{ p: { xs: 2.5, md: 2.75 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
+                <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1 }}>
+                  <Box sx={{ width: 38, height: 38, borderRadius: '50%', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,0.10)', color: TEAL_DARK, flexShrink: 0 }}>
+                    <DirectionsRunIcon sx={{ fontSize: 21 }} />
+                  </Box>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 16 }}>Quem treina</Typography>
+                </Stack>
+                <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.65 }}>
+                  CK e creatinina altos pós-treino assustam em qualquer laudo. Com o Modo Saúde Esportiva, a leitura entende quem levanta peso.
+                </Typography>
+              </Box>
+            </Stack>
+          </Box>
+
+          <Typography align="center" sx={{ color: 'text.disabled', fontSize: 12.5, mt: 3 }}>
+            Conteúdo educativo — o Dr. Exame não diagnostica e não substitui a consulta médica.
+          </Typography>
+        </Container>
+      </Box>
+      </ScrollReveal>
 
       {/* PLANOS — modelo explicado antes dos preços */}
       <ScrollReveal>
