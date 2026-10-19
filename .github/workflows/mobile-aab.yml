@@ -18,6 +18,12 @@ on:
         description: 'Observações do build (opcional)'
         required: false
         default: ''
+  # AUTO: a regra da casa é "versionCode +1 SEMPRE antes de AAB" — o bump no
+  # build.gradle É o sinal de release. Mudou ele no main → AAB nasce sozinho.
+  push:
+    branches: [main]
+    paths:
+      - 'packages/mobile/android/app/build.gradle'
 
 concurrency:
   group: mobile-aab
