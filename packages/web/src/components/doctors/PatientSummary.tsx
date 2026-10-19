@@ -9,6 +9,7 @@ import EditNoteIcon from '@mui/icons-material/EditNote';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import { photoUrlFor } from '../../config';
 import { copperText } from '../../theme';
 import { DoctorPatientSwitcher } from './DoctorPatientSwitcher';
@@ -64,6 +65,8 @@ export interface PatientSummaryProps {
   medsCount?: number;
   criticalMeds?: number;
   onOpenMeds?: () => void;
+  /** Agendamento de teleconsulta diretamente pelo cabeçalho do paciente. */
+  onScheduleTele?: () => void;
   /** TRUE enquanto o fetch do paciente corre (critique P1 26/08: sem isto os tiles
    *  mostram '0' verde ANTES do dado chegar — falso 'tudo normal' numa ferramenta
    *  de triagem clínica. Com loading → skeleton em cada tile, NUNCA 0 falso). */
@@ -87,7 +90,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds, loading }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds, onScheduleTele, loading }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -230,38 +233,66 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
           <Typography component="div" sx={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.09em', lineHeight: 1.4, color: (t) => copperText(t.palette.mode) }}>
             PACIENTE · PRONTUÁRIO COMPARTILHADO
           </Typography>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap sx={{ minWidth: 0 }}>
             <Typography title={fullName} sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 18, md: 21 }, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: '1 1 auto', minWidth: 0, color: 'text.primary' }}>
               {fullName}
             </Typography>
-            <Button
-              size="small"
-              onClick={() => setSwitcherOpen(true)}
-              startIcon={<SwapHorizIcon />}
-              aria-label="Trocar paciente"
-              sx={{
-                flexShrink: 0,
-                minWidth: 0,
-                textTransform: 'none',
-                fontWeight: 700,
-                color: primary,
-                borderRadius: '999px',
-                py: 0.35,
-                px: 1.25,
-                border: '1px solid',
-                borderColor: alpha(primary, 0.25),
-                bgcolor: alpha(primary, 0.05),
-                '&:hover': { bgcolor: alpha(primary, 0.12), borderColor: primary },
-              }}
-            >
-              Trocar
-            </Button>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flexShrink: 0 }}>
+              {onScheduleTele && (
+                <Button
+                  size="small"
+                  onClick={onScheduleTele}
+                  startIcon={<VideocamIcon sx={{ fontSize: 18 }} />}
+                  aria-label="Agendar teleconsulta"
+                  sx={{
+                    flexShrink: 0,
+                    minWidth: 0,
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    color: (t) => t.palette.mode === 'dark' ? '#e0b183' : '#b88a54',
+                    borderRadius: '999px',
+                    py: 0.35,
+                    px: 1.25,
+                    border: '1px solid',
+                    borderColor: 'rgba(212,165,116,0.4)',
+                    bgcolor: 'rgba(212,165,116,0.1)',
+                    '&:hover': { bgcolor: 'rgba(212,165,116,0.2)', borderColor: '#b88a54' },
+                  }}
+                >
+                  Teleconsulta
+                </Button>
+              )}
+              <Button
+                size="small"
+                onClick={() => setSwitcherOpen(true)}
+                startIcon={<SwapHorizIcon sx={{ fontSize: 18 }} />}
+                aria-label="Trocar paciente"
+                sx={{
+                  flexShrink: 0,
+                  minWidth: 0,
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  color: primary,
+                  borderRadius: '999px',
+                  py: 0.35,
+                  px: 1.25,
+                  border: '1px solid',
+                  borderColor: alpha(primary, 0.25),
+                  bgcolor: alpha(primary, 0.05),
+                  '&:hover': { bgcolor: alpha(primary, 0.12), borderColor: primary },
+                }}
+              >
+                Trocar
+              </Button>
+            </Stack>
           </Stack>
           {caption && <Typography sx={{ color: 'text.primary', opacity: 0.72, display: 'block', mt: 0.5, fontSize: 13, fontWeight: 600, lineHeight: 1.3 }}>{caption}</Typography>}
         </Box>
       </Stack>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: 1.25, mt: 2.25, minWidth: 0 }}>
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(3, 1fr)', lg: 'repeat(6, 1fr)' }, gap: { xs: 1, sm: 1.25 }, mt: 2, minWidth: 0 }}>
         {tiles.map((t) => (
           <Box
             key={t.key}
@@ -271,7 +302,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
             tabIndex={t.onClick ? 0 : undefined}
             aria-label={t.onClick ? `Abrir ${t.label}` : undefined}
             sx={{
-              p: 1.35,
+              p: { xs: 1.15, sm: 1.35 },
               borderRadius: '14px',
               bgcolor: 'background.paper',
               border: '1px solid',

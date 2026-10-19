@@ -20,6 +20,8 @@ import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 import { sendPushToUser } from '../utils/push';
 import { hasMeetConfig, meetAuthUrl, meetRedirectUri, exchangeMeetCode, createMeetSpace } from '../utils/meet';
+import { hasLiveKitConfig, createLiveKitRoom } from '../utils/livekit';
+import { createId } from '@paralleldrive/cuid2';
 import { REMINDER_RECURRENCES } from '../utils/reminderConstants';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
@@ -940,12 +942,13 @@ router.post('/patients/:patientId/notes', requireDoctor, async (req: any, res, n
   } catch (e) { next(e); }
 });
 
-// AGENDAR TELECONSULTA (lote "estilo Teams" 18/10/26) — o médico marca data/hora e cola
-// o link EXTERNO (Meet/Teams/WhatsApp); cai como lembrete type=teleconsulta na conta do
-// paciente, com push imediato + antecedências normais do job. Sem agenda/disponibilidade:
-// o encontro foi combinado por fora; aqui só se registra e o paciente é avisado.
+// AGENDAR TELECONSULTA (lote "estilo Teams" 18/10/26; F2 LiveKit 19/10/26) — o médico
+// marca data/hora e escolhe o provedor: LiveKit embutido (default quando LIVEKIT_* no
+// env), sala Meet gerada (Google conectado) ou link EXTERNO colado (Teams/WhatsApp).
+// Cai como lembrete type=teleconsulta na conta do paciente, com push imediato +
+// antecedências normais do job. Sem agenda/disponibilidade: o encontro foi combinado
+// por fora; aqui só se registra e o paciente é avisado.
 // O consentimento (Art. 15, Res. CFM 2.314/2022) é dado PELO PACIENTE no app antes de entrar.
-// createMeet: com a conta Google conectada, o link é GERADO (Meet API) — nada de colar.
 router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any, res, next) => {
   try {
     if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
@@ -959,27 +962,53 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     // já passou + roll quicando a recorrência um intervalo inteiro à frente).
     if (dueDate.getTime() <= Date.now()) { res.status(400).json({ error: 'Escolha uma data/hora futura.' }); return; }
 
-    // Sala Meet automática: refresh do médico → space → linkUrl gerado.
-    if (req.body?.createMeet) {
+    // Provedor da chamada (F2): createLiveKit > createMeet > link manual (D3).
+    // Default liveKit=true quando o env LIVEKIT_* está completo E nenhum link foi
+    // colado. Sem env, o pedido silencioso cai pro fluxo Meet/manual (degradação
+    // da casa — a UI nem mostra o toggle).
+    const wantsLiveKit = hasLiveKitConfig() && (req.body?.createLiveKit === true || (req.body?.createLiveKit == null && !linkUrl));
+    let provider: string | null = null;
+    let roomName: string | null = null;
+    let reminderId: string | undefined;
+
+    if (wantsLiveKit) {
+      // Sala renascida (D2): roomName fixo 'teleconsulta-<id>' — id gerado ANTES
+      // (cuid2, mesma família do default do Prisma) para casar o padrão do plano;
+      // ocorrência recorrente reusa o mesmo nome (LiveKit recria a sala vazia).
+      reminderId = createId();
+      roomName = `teleconsulta-${reminderId}`;
+      try {
+        await createLiveKitRoom(roomName);
+        provider = 'livekit';
+        linkUrl = ''; // a chamada roda no app — sem link externo neste ramo
+      } catch (e: any) {
+        res.status(502).json({ error: `Não deu pra criar a sala de vídeo (${String(e?.message ?? '').slice(0, 80)}). Cole o link manualmente e tente de novo.` }); return;
+      }
+    } else if (req.body?.createMeet) {
+      // Sala Meet automática: refresh do médico → space → linkUrl gerado.
       const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { googleRefreshTokenEnc: true, googleRefreshTokenIv: true } });
       const refresh = doc?.googleRefreshTokenEnc && doc.googleRefreshTokenIv ? decryptPII(doc.googleRefreshTokenEnc, doc.googleRefreshTokenIv) : null;
       if (!refresh) { res.status(400).json({ error: 'Conecte sua conta Google antes de gerar salas Meet (ou cole o link manualmente).' }); return; }
       try {
         const space = await createMeetSpace(refresh);
         linkUrl = space.uri;
+        provider = 'meet';
       } catch (e: any) {
         res.status(502).json({ error: `Não deu pra criar a sala Meet (${String(e?.message ?? '').slice(0, 80)}). Cole o link manualmente e tente de novo.` }); return;
       }
     }
 
-    if (!/^https?:\/\/[^\s/]+/i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
+    // Link obrigatório SOMENTE quando a chamada não roda no app (livekit → join interno).
+    if (provider !== 'livekit' && !/^https?:\/\/[^\s/]+/i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
     const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true } } } });
     if (!patient?.ownerId) { res.status(404).json({ error: 'Paciente sem conta vinculada.' }); return; }
     const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
     const r = await prisma.reminder.create({
       data: {
+        ...(reminderId ? { id: reminderId } : {}), // id explícito = roomName previsível
         ownerId: patient.ownerId, patientId: pid, title, dueDate,
-        type: 'teleconsulta', linkUrl: linkUrl.slice(0, 500), recurrence,
+        type: 'teleconsulta', linkUrl: provider === 'livekit' ? null : linkUrl.slice(0, 500),
+        recurrence, provider, roomName,
         createdByDoctorId: req.doctorId,
         notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
       },

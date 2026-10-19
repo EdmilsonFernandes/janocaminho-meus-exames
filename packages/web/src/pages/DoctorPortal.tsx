@@ -1002,25 +1002,48 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
         {/* DETALHE DO PACIENTE — desktop: LARGA TOTAL (sem rail de pacientes); mobile: coluna única */}
         {view === 'patients' && selected && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: 900 }, mx: 'auto', width: '100%' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, flex: 1, minWidth: 0, maxWidth: { md: '100%', lg: 1040, xl: 1240 }, mx: 'auto', width: '100%' }}>
             {isDesktop && (
               <Button size="small" onClick={() => { setSelected(null); setSelExam(null); }} startIcon={<ArrowBackIcon />}
                 sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 700, color: 'text.secondary', mb: -1 }}>
                 Voltar aos pacientes
               </Button>
             )}
-            {/* SEÇÃO DE TELECONSULTA DO PACIENTE — visão clara do agendamento, link Meet e status de aceite */}
-            {patientTele.length > 0 ? (
+
+            {/* HERO DO PACIENTE — Identidade, Dados Vitais e Atalhos de Ação Imediata */}
+            <PatientSummary
+              patient={selected}
+              loading={detailLoading}
+              exams={exams}
+              abnormal={abnormalStats}
+              questions={questions}
+              notes={notes}
+              patients={patients}
+              onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
+              onOpenExam={(id) => setSelExam(id)}
+              onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
+              onOpenExams={() => { setTab('exams'); setSelExam(null); }}
+              onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
+              onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
+              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
+              criticalMeds={medsInfo?.critical?.length ?? 0}
+              onOpenMeds={() => setMedsOpen(true)}
+              activity={activity}
+              onScheduleTele={openTele}
+            />
+
+            {/* SEÇÃO DE TELECONSULTA DO PACIENTE — exibida se houver consultas agendadas com este paciente */}
+            {patientTele.length > 0 && (
               <AppCard kind="elevated" sx={{ p: 2, borderRadius: '16px', border: '1px solid', borderColor: 'rgba(212,165,116,0.3)', bgcolor: 'background.paper' }}>
-                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-                  <Stack direction="row" alignItems="center" spacing={1}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
+                  <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
                     <VideocamIcon sx={{ color: 'secondary.dark', fontSize: 24 }} />
-                    <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-                      Teleconsultas agendadas com este paciente
+                    <Typography sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+                      Teleconsultas agendadas
                     </Typography>
                     <Chip size="small" label={patientTele.length} sx={{ height: 20, bgcolor: 'rgba(212,165,116,0.18)', color: 'secondary.dark', fontWeight: 800 }} />
                   </Stack>
-                  <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={openTele} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark' }}>
+                  <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={openTele} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark', alignSelf: { xs: 'stretch', sm: 'auto' } }}>
                     + Nova teleconsulta
                   </Button>
                 </Stack>
@@ -1029,10 +1052,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                     return (
                       <Box key={tc.id} sx={{ p: 1.75, borderRadius: '12px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.06)', border: '1px solid', borderColor: 'divider' }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
                           <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
-                              <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
+                              <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
                                 📅 {dt}
                               </Typography>
                               {tc.linkUrl?.includes('meet.google.com') && (
@@ -1053,7 +1076,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             </Typography>
                           </Box>
 
-                          <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                          <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'flex-end', sm: 'flex-start' } }}>
                             <Button
                               variant="contained"
                               size="small"
@@ -1061,8 +1084,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               onClick={() => void openTelemedicinaRoom(tc.linkUrl)}
                               sx={{
                                 borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                                bgcolor: 'secondary.dark', '&:hover': { bgcolor: 'secondary.main' },
-                                px: 2, flex: { xs: 1, sm: 'none' },
+                                bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d655f' },
+                                px: 2.2, py: 0.7, flex: { xs: 1, sm: 'none' },
+                                boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
                               }}
                             >
                               Entrar na sala
@@ -1095,36 +1119,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   })}
                 </Stack>
               </AppCard>
-            ) : (
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1.75, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexWrap: 'wrap', gap: 1.5 }}>
-                <Stack direction="row" alignItems="center" spacing={1.25}>
-                  <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(212,165,116,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <VideocamIcon sx={{ color: 'secondary.dark', fontSize: 22 }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
-                      Telemedicina & Videochamada
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      Agende uma consulta online com este paciente pelo Google Meet ou link próprio.
-                    </Typography>
-                  </Box>
-                </Stack>
-                <Button
-                  variant="contained"
-                  startIcon={<VideocamIcon />}
-                  onClick={openTele}
-                  sx={{
-                    textTransform: 'none', fontWeight: 800, fontSize: 13.5,
-                    borderRadius: '999px', px: 2.5, py: 0.9, color: '#fff',
-                    background: 'linear-gradient(135deg,#d4a574,#b88a54)',
-                    boxShadow: '0 4px 14px rgba(212,165,116,.4)',
-                    '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' },
-                  }}
-                >
-                  Agendar teleconsulta
-                </Button>
-              </Box>
             )}
 
             {/* MODAL DE AGENDAMENTO DE TELECONSULTA — UX Redesenhada com Design System */}
@@ -1249,25 +1243,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 </Button>
               </DialogActions>
             </Dialog>
-            <PatientSummary
-              patient={selected}
-              loading={detailLoading}
-              exams={exams}
-              abnormal={abnormalStats}
-              questions={questions}
-              notes={notes}
-              patients={patients}
-              onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
-              onOpenExam={(id) => setSelExam(id)}
-              onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
-              onOpenExams={() => { setTab('exams'); setSelExam(null); }}
-              onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
-              onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
-              medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
-              criticalMeds={medsInfo?.critical?.length ?? 0}
-              onOpenMeds={() => setMedsOpen(true)}
-              activity={activity}
-            />
 
             {/* REMÉDIOS do paciente (read-only) + interações críticas — contexto farmacológico. */}
             <Dialog open={medsOpen} onClose={() => setMedsOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '12px' } }}>

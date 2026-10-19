@@ -45,7 +45,13 @@ export const authHeader = (token: string) => ({ Authorization: `Bearer ${token}`
 export const api = () => request(app);
 
 let counter = 0;
-const uniq = (p: string) => `${p}-${Date.now().toString(36)}-${counter++}`;
+// Prefixo com @ = e-mail: sufixo entra ANTES do @ (bug squad 19/10 — "doc@exemplo.com-xxx"
+// tinha sufixo depois do TLD e o zod .email() rejeitava → createDoctor() default 400ava).
+const uniq = (p: string) => {
+  const sfx = `-${Date.now().toString(36)}-${counter++}`;
+  const at = p.indexOf('@');
+  return at === -1 ? `${p}${sfx}` : `${p.slice(0, at)}${sfx}${p.slice(at)}`;
+};
 
 export function testCpf(seed = counter++): string {
   const base = String(100000000 + seed).slice(-9);

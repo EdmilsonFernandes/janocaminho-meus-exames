@@ -17,6 +17,7 @@ import RepeatIcon from '@mui/icons-material/Repeat';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
@@ -73,6 +74,7 @@ const groupOf = (due: string): 'today' | 'week' | 'later' => {
 
 export const RemindersPage = () => {
   const [pid] = useSelectedPatient();
+  const navigate = useNavigate(); // teleconsulta LiveKit: entra pela rota /teleconsulta/:id (consent acontece lá)
   const [items, setItems] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -232,31 +234,58 @@ export const RemindersPage = () => {
                       🩺 Teleconsulta agendada
                     </Typography>
                   )}
-                  {r.linkUrl && (
+                  {(r.provider === 'livekit' || r.linkUrl) && (
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
-                      {r.linkUrl.includes('meet.google.com') && (
-                        <Chip size="small" label="Google Meet ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
-                      )}
-                      {r.consentAt ? (
+                      {r.provider === 'livekit' ? (
+                        /* Videochamada DENTRO do app (LiveKit F2): botão leva pra rota
+                           /teleconsulta/:id — consent Art.15 + câmera + chamada acontecem lá. */
                         <>
-                          <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); void openTelemedicinaRoom(r.linkUrl); }}
-                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
-                            Entrar na consulta
-                          </Button>
-                          <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#0f766e', '& .MuiChip-icon': { color: '#0f766e' } }} />
+                          <Chip size="small" label="No app ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
+                          {r.consentAt ? (
+                            <>
+                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
+                                Entrar na consulta
+                              </Button>
+                              <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#0f766e', '& .MuiChip-icon': { color: '#0f766e' } }} />
+                            </>
+                          ) : (
+                            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, color: '#0f766e', borderColor: 'rgba(15,118,110,.4)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
+                              Autorizar e entrar
+                            </Button>
+                          )}
                         </>
                       ) : (
-                        <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); setConsentFor(r); }}
-                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, color: '#0f766e', borderColor: 'rgba(15,118,110,.4)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
-                          Autorizar e entrar
-                        </Button>
+                        /* Fluxo link externo (Meet/Teams/WhatsApp) — comportamento anterior. */
+                        <>
+                          {r.linkUrl.includes('meet.google.com') && (
+                            <Chip size="small" label="Google Meet ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
+                          )}
+                          {r.consentAt ? (
+                            <>
+                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); void openTelemedicinaRoom(r.linkUrl); }}
+                                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
+                                Entrar na consulta
+                              </Button>
+                              <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#0f766e', '& .MuiChip-icon': { color: '#0f766e' } }} />
+                            </>
+                          ) : (
+                            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); setConsentFor(r); }}
+                              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, color: '#0f766e', borderColor: 'rgba(15,118,110,.4)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
+                              Autorizar e entrar
+                            </Button>
+                          )}
+                        </>
                       )}
-                      <IconButton size="small" aria-label="Compartilhar no WhatsApp" title="Compartilhar no WhatsApp" onClick={() => {
-                        const dt = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                        window.open(`https://wa.me/?text=${encodeURIComponent(`Teleconsulta "${r.title}"${r.doctor?.name ? ` com ${r.doctor.name}` : ''} — ${dt}. Link: ${r.linkUrl}`)}`, '_blank', 'noopener');
-                      }} sx={{ color: '#25d366', bgcolor: 'rgba(37,211,102,.08)', '&:hover': { bgcolor: 'rgba(37,211,102,.16)' } }}>
-                        <WhatsAppIcon sx={{ fontSize: 18 }} />
-                      </IconButton>
+                      {r.linkUrl && (
+                        <IconButton size="small" aria-label="Compartilhar no WhatsApp" title="Compartilhar no WhatsApp" onClick={() => {
+                          const dt = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                          window.open(`https://wa.me/?text=${encodeURIComponent(`Teleconsulta "${r.title}"${r.doctor?.name ? ` com ${r.doctor.name}` : ''} — ${dt}. Link: ${r.linkUrl}`)}`, '_blank', 'noopener');
+                        }} sx={{ color: '#25d366', bgcolor: 'rgba(37,211,102,.08)', '&:hover': { bgcolor: 'rgba(37,211,102,.16)' } }}>
+                          <WhatsAppIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      )}
                     </Stack>
                   )}
                 </Box>

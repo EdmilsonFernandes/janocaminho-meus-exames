@@ -44,27 +44,53 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        createNotificationChannel();
-        paintWebViewBrandBg();
-        // Health Connect: cria o bridge e REGISTRA o launcher de permissões ainda no onCreate
-        // (registerForActivityResult exige registro antes do primeiro onStart).
-        healthBridge = new HealthBridge(this);
-        healthBridge.ensureLauncher();
-        injectHealthBridge();
-        injectBiometricBridge();
-        if (ACTION_OPEN_EMERGENCY.equals(getIntent() != null ? getIntent().getAction() : null)) {
-            pendingEmergencyOpen = true;
-            maybeOpenEmergency();
+        try {
+            createNotificationChannel();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao criar NotificationChannel", t);
+        }
+        try {
+            paintWebViewBrandBg();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao pintar fundo", t);
+        }
+        try {
+            healthBridge = new HealthBridge(this);
+            healthBridge.ensureLauncher();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao inicializar HealthBridge nativo", t);
+        }
+        try {
+            injectHealthBridge();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao injetar HealthBridge", t);
+        }
+        try {
+            injectBiometricBridge();
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao injetar BiometricBridge", t);
+        }
+        try {
+            if (ACTION_OPEN_EMERGENCY.equals(getIntent() != null ? getIntent().getAction() : null)) {
+                pendingEmergencyOpen = true;
+                maybeOpenEmergency();
+            }
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha ao processar atalho de emergência", t);
         }
     }
 
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        // singleTask: se o app já está aberto, o atalho chega aqui (não no onCreate).
-        if (intent != null && ACTION_OPEN_EMERGENCY.equals(intent.getAction())) {
-            pendingEmergencyOpen = true;
-            maybeOpenEmergency();
+        try {
+            // singleTask: se o app já está aberto, o atalho chega aqui (não no onCreate).
+            if (intent != null && ACTION_OPEN_EMERGENCY.equals(intent.getAction())) {
+                pendingEmergencyOpen = true;
+                maybeOpenEmergency();
+            }
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "Falha em onNewIntent", t);
         }
     }
 
@@ -91,23 +117,31 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
     }
 
     private void injectBiometricBridge() {
-        if (biometricBridgeInjected || bridge == null || bridge.getWebView() == null) return;
-        WebView webView = bridge.getWebView();
-        webView.addJavascriptInterface(new BiometricBridge(), "DxBiometrics");
-        biometricBridgeInjected = true;
+        try {
+            if (biometricBridgeInjected || bridge == null || bridge.getWebView() == null) return;
+            WebView webView = bridge.getWebView();
+            webView.addJavascriptInterface(new BiometricBridge(), "DxBiometrics");
+            biometricBridgeInjected = true;
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "injectBiometricBridge falhou", t);
+        }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        injectHealthBridge(); // re-injeta se o WebView foi recriado
-        injectBiometricBridge(); // idem
+        try { injectHealthBridge(); } catch (Throwable t) { Log.e("DX_BOOT", "onStart injectHealthBridge falhou", t); }
+        try { injectBiometricBridge(); } catch (Throwable t) { Log.e("DX_BOOT", "onStart injectBiometricBridge falhou", t); }
     }
 
     /** Injeta o bridge de Health Connect (window.DxHealth) — passos/calorias/distância do widget. */
     private void injectHealthBridge() {
-        if (healthBridge == null || bridge == null || bridge.getWebView() == null) return;
-        bridge.getWebView().addJavascriptInterface(healthBridge, "DxHealth");
+        try {
+            if (healthBridge == null || bridge == null || bridge.getWebView() == null) return;
+            bridge.getWebView().addJavascriptInterface(healthBridge, "DxHealth");
+        } catch (Throwable t) {
+            Log.e("DX_BOOT", "injectHealthBridge falhou", t);
+        }
     }
 
     /** Avalia JS no WebView (o HealthBridge despacha CustomEvents por aqui). */

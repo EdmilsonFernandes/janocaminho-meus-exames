@@ -53,6 +53,8 @@ import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
 import ticketRoutes from './routes/ticket.routes';
 import sportsRoutes from './routes/sports.routes';
+// Teleconsulta in-app (F2 LiveKit): join token duplo (paciente/médico) — ver teleconsulta.routes.ts
+import teleconsultaRoutes from './routes/teleconsulta.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -341,6 +343,7 @@ app.use('/api/items', itemRoutes);
 app.use('/api/analyses', analysisRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
+app.use('/api/teleconsulta', teleconsultaRoutes);
 app.use('/api/billing', billingRoutes);
 // Webhook público do OpenPix (PIX — PAYMENT_PROVIDER=openpix). PÚBLICO como o do MP:
 // a "assinatura" é a existência de Subscription PENDING + valor bater (ver rota).

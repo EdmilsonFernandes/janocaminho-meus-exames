@@ -792,6 +792,9 @@ model Reminder {
   recurrence        String?    // 'diario' | 'semanal' | 'mensal' | 'semestral' | 'anual'
   consentAt         DateTime?  // aceite do paciente p/ telemedicina (Art. 15, Res. CFM 2.314/2022)
   createdByDoctorId String?    // médico que agendou (vazio = criado pelo próprio paciente)
+  // ── F2 LiveKit (19/10/26): provedor da chamada + sala (nullable = legado drift-safe).
+  provider          String?    // 'meet' | 'livekit' | null (link manual colado)
+  roomName          String?    // sala LiveKit p/ provider='livekit' (F3 egress referencia)
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])

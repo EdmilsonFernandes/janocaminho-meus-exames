@@ -76,6 +76,8 @@ const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ de
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
 const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.SinaisPage })));
+// Teleconsulta LiveKit (F2) — página imersiva (fora do AppLayout, sem bottom-nav).
+const TeleconsultaPage = lazy(() => import('./pages/Teleconsulta').then(m => ({ default: m.TeleconsultaPage })));
 import { VaccinesPage } from './pages/Vaccines';
 import { EmergencyCardPage } from './pages/EmergencyCard';
 import { TimelinePage } from './pages/Timeline';
@@ -992,6 +994,8 @@ export const App = () => {
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
       <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
+      {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
+      <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />
       {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
       <Route path="/admin" element={<AdminPage />} />
     </CustomRoutes>

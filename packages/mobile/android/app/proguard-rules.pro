@@ -34,3 +34,22 @@
 -dontwarn org.slf4j.**
 -dontwarn org.bouncycastle.**
 -dontwarn javax.naming.**
+
+# ── AndroidX Health Connect ─────────────────────────────────────────────────
+-keep class androidx.health.connect.** { *; }
+-dontwarn androidx.health.connect.**
+
+# ── AndroidX Biometric & Security Crypto ────────────────────────────────────
+-keep class androidx.biometric.** { *; }
+-dontwarn androidx.biometric.**
+-keep class androidx.security.crypto.** { *; }
+-dontwarn androidx.security.crypto.**
+
+# ── Activity Result & Lifecycle ─────────────────────────────────────────────
+-keep class androidx.activity.** { *; }
+-keep class androidx.fragment.app.** { *; }
+
+# ── Capacitor Browser plugin ────────────────────────────────────────────────
+-keep class com.capacitorjs.plugins.browser.** { *; }
+-dontwarn com.capacitorjs.plugins.browser.**
+

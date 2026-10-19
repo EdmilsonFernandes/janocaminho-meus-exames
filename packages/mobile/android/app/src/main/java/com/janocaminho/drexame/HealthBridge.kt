@@ -97,18 +97,23 @@ class HealthBridge(private val activity: MainActivity) {
      */
     fun ensureLauncher(): ActivityResultLauncher<Set<String>>? {
         if (!hcSdkOk()) return null // <API 26: registra nada (nunca toca classes HC)
-        launcher ?: run {
-            launcher = (activity as ComponentActivity).registerForActivityResult(
-                PermissionController.createRequestPermissionResultContract()
-            ) { granted ->
-                // GATE = SÓ O CORE (reporte 18/10: exigir TODAS fazia "concedeu e não
-                // conectou" quando o usuário desligava qualquer toggle do EXTENDED —
-                // FR/exercício/sono são opcionais; o widget vive sem eles).
-                val ok = granted != null && granted.containsAll(CORE_PERMISSIONS)
-                onPermissionsResult(pendingRequestId, ok)
-                // Libera a flag do gate com folga (o resume dispara antes deste callback às vezes).
-                activity.evalJs("try{setTimeout(()=>{window.__dxNativeIntent=false},2500)}catch(e){}")
+        try {
+            launcher ?: run {
+                launcher = (activity as ComponentActivity).registerForActivityResult(
+                    PermissionController.createRequestPermissionResultContract()
+                ) { granted ->
+                    // GATE = SÓ O CORE (reporte 18/10: exigir TODAS fazia "concedeu e não
+                    // conectou" quando o usuário desligava qualquer toggle do EXTENDED —
+                    // FR/exercício/sono são opcionais; o widget vive sem eles).
+                    val ok = granted != null && granted.containsAll(CORE_PERMISSIONS)
+                    onPermissionsResult(pendingRequestId, ok)
+                    // Libera a flag do gate com folga (o resume dispara antes deste callback às vezes).
+                    activity.evalJs("try{setTimeout(()=>{window.__dxNativeIntent=false},2500)}catch(e){}")
+                }
             }
+        } catch (t: Throwable) {
+            android.util.Log.e("DX_HEALTH", "ensureLauncher falhou de forma segura", t)
+            return null
         }
         return launcher
     }

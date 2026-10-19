@@ -219,8 +219,8 @@ export const ClinicalRiskCard = ({
   const scaleLevels: RiskLevel[] = ['Estável', 'Observar', 'Atenção', 'Prioridade alta'];
   const currentIndex = scaleLevels.indexOf(riskAnalysis.level);
 
-  // SVG Gauge calculations (circunferência = 2 * PI * 44 ≈ 276.46)
-  const radius = 42;
+  // SVG Gauge calculations (circunferência = 2 * PI * 34 ≈ 213.63)
+  const radius = 34;
   const circumference = 2 * Math.PI * radius;
   const strokeDashoffset = circumference - (riskAnalysis.score / 100) * circumference;
 
@@ -344,14 +344,14 @@ export const ClinicalRiskCard = ({
       {/* CONTEÚDO EXPANDÍVEL */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Box sx={{ px: { xs: 2, sm: 2.5 }, pb: 2.5 }}>
-          {/* BLOCO CENTRAL: GAUGE CIRCULAR + INFORMAÇÕES DE RISCO */}
+          {/* BLOCO CENTRAL: GAUGE CIRCULAR COMPACTO + INFORMAÇÕES DE RISCO */}
           <Box
             sx={{
               display: 'flex',
               alignItems: 'center',
-              flexDirection: { xs: 'column', sm: 'row' },
-              gap: { xs: 2, sm: 3 },
-              py: 1.5,
+              flexDirection: 'row',
+              gap: { xs: 2, sm: 2.5 },
+              py: 1.25,
               borderBottom: '1px solid',
               borderColor: 'divider',
             }}
@@ -359,8 +359,8 @@ export const ClinicalRiskCard = ({
             {/* GAUGE SVG ANIMADO */}
             <Box
               sx={{
-                width: 106,
-                height: 106,
+                width: 76,
+                height: 76,
                 position: 'relative',
                 flexShrink: 0,
                 display: 'grid',
@@ -368,27 +368,27 @@ export const ClinicalRiskCard = ({
               }}
             >
               <svg
-                width="106"
-                height="106"
+                width="76"
+                height="76"
                 style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}
               >
                 {/* Track de fundo */}
                 <circle
-                  cx="53"
-                  cy="53"
+                  cx="38"
+                  cy="38"
                   r={radius}
                   fill="none"
                   stroke={isDark ? '#263333' : '#e2e8f0'}
-                  strokeWidth="8"
+                  strokeWidth="6"
                 />
                 {/* Linha de progresso */}
                 <circle
-                  cx="53"
-                  cy="53"
+                  cx="38"
+                  cy="38"
                   r={radius}
                   fill="none"
                   stroke={riskAnalysis.levelColor}
-                  strokeWidth="8"
+                  strokeWidth="6"
                   strokeDasharray={circumference}
                   strokeDashoffset={strokeDashoffset}
                   strokeLinecap="round"
@@ -413,7 +413,7 @@ export const ClinicalRiskCard = ({
                   sx={{
                     fontFamily: 'Poppins, sans-serif',
                     fontWeight: 900,
-                    fontSize: 28,
+                    fontSize: 22,
                     lineHeight: 1,
                     color: riskAnalysis.levelColor,
                   }}
@@ -423,11 +423,11 @@ export const ClinicalRiskCard = ({
                 <Typography
                   variant="caption"
                   sx={{
-                    fontSize: 10,
+                    fontSize: 9,
                     fontWeight: 700,
                     color: 'text.secondary',
                     lineHeight: 1,
-                    mt: 0.25,
+                    mt: 0.2,
                   }}
                 >
                   DE 100
@@ -436,23 +436,24 @@ export const ClinicalRiskCard = ({
             </Box>
 
             {/* CLASSIFICAÇÃO E BADGES */}
-            <Box sx={{ flex: 1, textAlign: { xs: 'center', sm: 'left' } }}>
+            <Box sx={{ flex: 1, textAlign: 'left', minWidth: 0 }}>
               <Typography
                 sx={{
                   fontFamily: 'Poppins, sans-serif',
                   fontWeight: 800,
-                  fontSize: { xs: 20, sm: 22 },
+                  fontSize: { xs: 17, sm: 20 },
                   color: 'text.primary',
-                  mb: 0.75,
+                  mb: 0.5,
+                  lineHeight: 1.2,
                 }}
               >
-                Prioridade: {riskAnalysis.level}
+                {riskAnalysis.level.startsWith('Prioridade') ? riskAnalysis.level : `Prioridade ${riskAnalysis.level}`}
               </Typography>
 
               <Stack
                 direction="row"
                 alignItems="center"
-                spacing={1}
+                spacing={0.75}
                 flexWrap="wrap"
                 useFlexGap
                 justifyContent={{ xs: 'center', sm: 'flex-start' }}
@@ -607,14 +608,22 @@ export const ClinicalRiskCard = ({
                   Destaques deste paciente
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                  {top.map((it: any) => (
-                    <Chip
-                      key={it.id}
-                      size="small"
-                      label={`${it.name} ${it.valueText ?? ''}${it.unit ? ` ${it.unit}` : ''}`.trim()}
-                      sx={{ fontSize: 12, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.35) }}
-                    />
-                  ))}
+                  {top.map((it: any) => {
+                    const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
+                    const rawUnit = String(it.unit ?? '').trim();
+                    // Evita duplicações como "25,70 µUI/mL µUI/mL" ou "1,6845 nmol/L pg/mL"
+                    const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
+                    const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
+                    const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
+                    return (
+                      <Chip
+                        key={it.id || it.name}
+                        size="small"
+                        label={`${it.name}: ${displayVal}`.trim()}
+                        sx={{ fontSize: 12, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.35) }}
+                      />
+                    );
+                  })}
                 </Box>
               </Box>
             );

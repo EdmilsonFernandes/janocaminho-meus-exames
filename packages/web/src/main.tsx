@@ -1,6 +1,9 @@
 import './utils/fetch-cache'; // OFFLINE-FIRST: instala o cache de fetch ANTES de qualquer request
-import { installDiag } from './utils/diag';
-installDiag(); // ring buffer de erros + captura global → "enviar diagnóstico" no Perfil
+try {
+  installDiag(); // ring buffer de erros + captura global → "enviar diagnóstico" no Perfil
+} catch (e) {
+  console.warn('installDiag failed safely', e);
+}
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 // G3 — Sentry CAPACITOR (nível app grande): captura crash NATIVO (webview/ANR) além do
@@ -16,19 +19,27 @@ import { initAnalytics } from './utils/analytics';
 // SENTRY — error tracking em produção. Sem DSN = desligado.
 const SENTRY_DSN = 'https://80ba46ffe060f8851a79ded388bead7d@o4511611776663552.ingest.us.sentry.io/4511611790163968';
 if (SENTRY_DSN) {
-  Sentry.init(
-    {
-      dsn: SENTRY_DSN,
-      environment: import.meta.env.MODE,
-      release: 'dre-xame@' + ((window as any).__BUILD_INFO__?.version ?? 'dev'),
-      tracesSampleRate: 0.1,
-    },
-    SentryReact.init,
-  );
+  try {
+    Sentry.init(
+      {
+        dsn: SENTRY_DSN,
+        environment: import.meta.env.MODE,
+        release: 'dre-xame@' + ((window as any).__BUILD_INFO__?.version ?? 'dev'),
+        tracesSampleRate: 0.1,
+      },
+      SentryReact.init,
+    );
+  } catch (err) {
+    console.warn('Sentry init failed safely', err);
+  }
 }
 
 // G4 — analytics de produto (PostHog): no-op até existir VITE_POSTHOG_KEY no env.
-initAnalytics();
+try {
+  initAnalytics();
+} catch (e) {
+  console.warn('initAnalytics failed safely', e);
+}
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 

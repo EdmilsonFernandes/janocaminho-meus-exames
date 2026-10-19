@@ -112,9 +112,10 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     if (recurrence !== undefined) data.recurrence = parseRecurrence(recurrence);
     // Mesma regra do CREATE (review): PUT não pode deixar teleconsulta sem link
     // (chip sem botão Entrar + consentimento 400 = meia-entrada inútil).
+    // F2 LiveKit: consulta provider='livekit' entra PELO APP (linkUrl=null ok).
     const finalType = data.type !== undefined ? data.type : existing.type;
     const finalLink = data.linkUrl !== undefined ? data.linkUrl : existing.linkUrl;
-    if (finalType === 'teleconsulta' && !finalLink) {
+    if (finalType === 'teleconsulta' && existing.provider !== 'livekit' && !finalLink) {
       res.status(400).json({ error: 'Teleconsulta precisa do link da chamada (Meet/Teams/WhatsApp).' }); return;
     }
     const offsetsChanged = notifyOffsetsMin !== undefined;
