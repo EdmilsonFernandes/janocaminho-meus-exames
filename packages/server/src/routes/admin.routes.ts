@@ -1018,7 +1018,9 @@ router.post('/users/:id/reset-mfa', async (req: AuthedRequest, res, next) => {
     const id = String(req.params.id);
     const mfaClear = { mfaEnabled: false, mfaSecretEncrypted: null, mfaSecretIv: null, mfaSecretAuthTag: null, mfaConfirmedAt: null };
     const user = await prisma.user.update({ where: { id }, data: mfaClear, select: { id: true, email: true, name: true } });
-    void audit('RESET_MFA', req, { targetType: 'USER', targetId: id, after: { mfaEnabled: false, resetBy: 'admin' } });
+    // await (não void): o teste lê o auditLog logo após a resposta — fire-and-forget
+    // perdia a corrida no runner lento do CI (mesma família do flake DOCTOR_REVIEW_UPSERTED).
+    await audit('RESET_MFA', req, { targetType: 'USER', targetId: id, after: { mfaEnabled: false, resetBy: 'admin' } });
     console.log(`[admin] MFA resetado para ${user.email} (${id}) por ${req.userId}`);
     res.json({ ok: true, mfaEnabled: false, message: `MFA desativado para ${user.name || user.email}. Ele pode logar com senha e reconfigurar.` });
   } catch (e) { next(e); }
