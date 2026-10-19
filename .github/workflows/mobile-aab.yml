@@ -18,12 +18,10 @@ on:
         description: 'Observações do build (opcional)'
         required: false
         default: ''
-  # AUTO: a regra da casa é "versionCode +1 SEMPRE antes de AAB" — o bump no
-  # build.gradle É o sinal de release. Mudou ele no main → AAB nasce sozinho.
-  push:
-    branches: [main]
-    paths:
-      - 'packages/mobile/android/app/build.gradle'
+  # ⚠️ AUTO-TRIGGER REMOVIDO (19/10, decisão do dono): AABs do CI crashavam na
+  # Play Store enquanto os locais nunca crasharam. AAB de release = LOCAL
+  # (npm run sync + gradlew bundleRelease). Este workflow fica só no dispatch
+  # manual, para diagnóstico da diferença CI×local quando formos caçá-la.
 
 concurrency:
   group: mobile-aab
