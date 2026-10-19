@@ -260,6 +260,68 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const endedByUser = useRef(false);
   const noteKey = `dx-teleconsulta-note:${reminderId}`;
 
+  // ── Sons de chamada (dono 19/10: "som de aguardar como as empresas usam") ──
+  // Web Audio API puro (zero arquivos/CDN). Ringback = padrão Brasília: 1s tom /
+  // 4s pausa. Join/leave = chime discreto. Beep de gravação = aviso periódico.
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const ringbackIvRef = useRef<number | null>(null);
+  const recBeepIvRef = useRef<number | null>(null);
+
+  const getAudioCtx = useCallback(() => {
+    if (!audioCtxRef.current) {
+      try { audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)(); } catch { return null; }
+    }
+    if (audioCtxRef.current?.state === 'suspended') audioCtxRef.current.resume().catch(() => {});
+    return audioCtxRef.current;
+  }, []);
+
+  /** Toca um tom simples (oscilador sine) por `durMs` — volume discreto. */
+  const playTone = useCallback((freq: number, durMs: number, vol = 0.04, delay = 0) => {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    try {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.value = 0;
+      const t0 = ctx.currentTime + delay / 1000;
+      gain.gain.linearRampToValueAtTime(vol, t0 + 0.02);
+      gain.gain.linearRampToValueAtTime(0, t0 + durMs / 1000);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t0);
+      osc.stop(t0 + durMs / 1000 + 0.05);
+    } catch { /* best-effort */ }
+  }, [getAudioCtx]);
+
+  /** Ringback: "toc toc" de chamada telefônica enquanto o outro não entra. */
+  const startRingback = useCallback(() => {
+    if (ringbackIvRef.current) return;
+    const ring = () => {
+      playTone(440, 800); // tom principal
+      playTone(480, 800, 0.03); // harmônico
+    };
+    ring();
+    ringbackIvRef.current = window.setInterval(ring, 4000); // cadência Brasília: 1s on / 3s off
+  }, [playTone]);
+  const stopRingback = useCallback(() => {
+    if (ringbackIvRef.current) { clearInterval(ringbackIvRef.current); ringbackIvRef.current = null; }
+  }, []);
+
+  /** Chime discreto quando alguém entra/sai (join=dó-sol; leave=sol-dó descendente). */
+  const playJoinChime = useCallback(() => { playTone(523.25, 150, 0.06); playTone(783.99, 200, 0.05, 120); }, [playTone]);
+  const playLeaveChime = useCallback(() => { playTone(783.99, 150, 0.05); playTone(523.25, 200, 0.04, 120); }, [playTone]);
+
+  /** Beep periódico de gravação ativa (cortesia LGPD — avisa que está gravando). */
+  const startRecordingBeep = useCallback(() => {
+    if (recBeepIvRef.current) return;
+    const beep = () => playTone(1200, 120, 0.02);
+    recBeepIvRef.current = window.setInterval(beep, 30_000);
+  }, [playTone]);
+  const stopRecordingBeep = useCallback(() => {
+    if (recBeepIvRef.current) { clearInterval(recBeepIvRef.current); recBeepIvRef.current = null; }
+  }, []);
+
   // ── Preview (pré-join) ───────────────────────────────────────────────────────
   const openPreview = useCallback(async () => {
     setCamState('pending');
@@ -335,10 +397,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         // P3-reviewer: nome de exibição SEM o sufixo CRM (joinName do server é "Dr. Ana (116739/SP)")
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
         setToast({ text: `${displayName} entrou ✨`, k: Date.now() });
+        playJoinChime();
         hapticSuccess();
       })
       .on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
         setRemotes((cur) => cur.filter((r) => r.identity !== p.identity));
+        playLeaveChime();
       })
       .on(RoomEvent.Reconnecting, () => setBanner('reconnecting'))
       .on(RoomEvent.Reconnected, () => setBanner(null))
@@ -500,6 +564,20 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     if (phase === 'prejoin') { void openPreview(); }
     else stopPreview();
   }, [phase, openPreview, stopPreview]);
+
+  // Ringback: toca enquanto "Aguardando…" (incall + ninguém conectado). Para no 1º join.
+  useEffect(() => {
+    if (phase === 'incall' && remotes.length === 0) startRingback();
+    else stopRingback();
+    return () => { stopRingback(); };
+  }, [phase, remotes.length, startRingback, stopRingback]);
+
+  // Beep de gravação: só enquanto gravando (LGPD — cortesia auditiva).
+  useEffect(() => {
+    if (recording) startRecordingBeep();
+    else stopRecordingBeep();
+    return () => { stopRecordingBeep(); };
+  }, [recording, startRecordingBeep, stopRecordingBeep]);
 
   // O <video> do preview monta DEPOIS do getUserMedia resolver (camState ok) —
   // bind do stream acontece aqui, quando o ref já existe.
