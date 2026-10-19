@@ -6,10 +6,13 @@ import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 vi.mock('../src/utils/livekit', () => ({
   hasLiveKitConfig: vi.fn(() => true),
   buildJoinToken: vi.fn(async () => 'mock-join-token'),
+  // P1-reviewer: o join agora RE-CRIA a sala (maxParticipants) — mockar também
+  // (a real sairia pra rede do LiveKit).
+  createLiveKitRoom: vi.fn(async () => undefined),
 }));
 
 import { prisma } from '../src/prisma';
-import { hasLiveKitConfig, buildJoinToken } from '../src/utils/livekit';
+import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../src/utils/livekit';
 import { api, createUser, createDoctor, resetDb, authHeader } from './helpers';
 
 vi.mocked(hasLiveKitConfig).mockReturnValue(true);
@@ -76,6 +79,25 @@ describe('GET /api/teleconsulta/:id/join', () => {
     // Audit AWAIT (família void-audit extinta): o registro precisa existir ao fim do request.
     const log = await prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_JOIN', targetId: r.id } });
     expect(log?.actorType).toBe('USER');
+  });
+
+  it('LEGADO (P3-reviewer): reminder provider=null + link Meet não quebra listagem/PUT/join', async () => {
+    const { user, patient, token } = await createUser();
+    const r = await createTeleconsultaReminder(user.id, patient.id, {
+      consentAt: new Date(),
+      linkUrl: 'https://meet.google.com/legado-xyz',
+    });
+    // Listagem normal do paciente segue íntegra (campos novos opcionais)
+    const list = await api().get('/api/reminders').set(authHeader(token));
+    expect(list.status).toBe(200);
+    expect(Array.isArray(list.body)).toBe(true);
+    // PUT (marcar feito) no legado funciona (guard do reminder.routes relaxado)
+    const put = await api().put(`/api/reminders/${r.id}`).set(authHeader(token)).send({ done: true });
+    expect(put.status).toBe(200);
+    // Join de legado → 501 com o link externo (degradação)
+    const join = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(token));
+    expect(join.status).toBe(501);
+    expect(join.body).toMatchObject({ code: 'LIVEKIT_UNAVAILABLE', linkUrl: 'https://meet.google.com/legado-xyz' });
   });
 
   it('paciente owner SEM consent → 403 CONSENT_REQUIRED', async () => {

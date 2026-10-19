@@ -221,7 +221,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       })
       .on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
         upsertRemote(p);
-        setToast({ text: `${p.name || 'Participante'} entrou ✨`, k: Date.now() });
+        // P3-reviewer: nome de exibição SEM o sufixo CRM (joinName do server é "Dr. Ana (116739/SP)")
+        const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
+        setToast({ text: `${displayName} entrou ✨`, k: Date.now() });
         hapticSuccess();
       })
       .on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
@@ -444,6 +446,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   }, [navigate, onExited, role]);
 
   const saveNote = useCallback(() => {
+    // DÍVIDA (P2-reviewer 19/10): nota clínica só neste aparelho. F3 = persistir no
+    // reminder via endpoint do médico (ex.: PUT /api/doctor/patients/:pid/teleconsulta/:id
+    // {doctorNote}) para entrar no prontuário — até lá o caption avisa "neste aparelho".
     try { localStorage.setItem(noteKey, note); } catch { /* noop */ }
     setNoteSaved(true);
     hapticSuccess();
@@ -454,10 +459,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   const doctor = summary?.doctor;
   const main = remotes.find((r) => r.isDoctor) ?? remotes[0] ?? null;
+  // P2-reviewer: header do MÉDICO mostra o NOME do paciente (state do portal), não o
+  // título do lembrete; fallback = quem está na sala.
+  const statePatientName = (location.state as any)?.patientName as string | undefined;
   const headerName = role === 'doctor'
-    ? (summary?.title ? `Paciente: ${summary.title}` : (main?.name ? `Paciente: ${main.name}` : 'Teleconsulta'))
+    ? (`Paciente: ${statePatientName || main?.name || '—'}`)
     : (doctor?.name || main?.name || 'Médico(a)');
-  const headerCrm = role === 'patient' ? doctor?.crm : undefined;
+  // P3-reviewer: CRM completo com UF (o joinName do server traz "116739/SP" — normalizamos p/ "116739-SP")
+  const headerCrm = role === 'patient' && doctor?.crm
+    ? (/(\/|-)[A-Za-z]{2}$/.test(doctor.crm) ? doctor.crm.replace(/\/([A-Za-z]{2})$/, '-$1') : `${doctor.crm}${(doctor as any).crmUf ? `-${(doctor as any).crmUf}` : ''}`)
+    : undefined;
   const elapsedSec = startedAt && phase === 'incall' ? Math.round((Date.now() - startedAt) / 1000) : 0;
   void nowTick; // re-render do cronômetro
 
@@ -679,8 +690,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2.5, lineHeight: 1.6 }}>
               {unsupported
                 ? 'Seu aparelho não suporta chamada de vídeo no app.'
-                : 'A chamada pelo app não está disponível agora.'}
-              {fallbackLink ? ' Você pode entrar pelo link da consulta:' : ''}
+                : fallbackLink
+                  ? 'A chamada pelo app não está disponível agora. Você pode entrar pelo link da consulta:'
+                  // P3-reviewer: 501 SEM link (rollback de config) não pode ser beco sem saída.
+                  : 'A chamada pelo app está desativada agora — entre em contato com o consultório para receber o link da consulta.'}
             </Typography>
             {fallbackLink && (
               <Button variant="contained" fullWidth startIcon={<OpenInNewIcon />} onClick={() => { hapticLight(); void openTelemedicinaRoom(fallbackLink); }} sx={primaryBtn}>

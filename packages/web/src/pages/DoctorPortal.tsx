@@ -315,6 +315,7 @@ const statusDot = (color: string) => (
 const inlineStat = { display: 'inline-flex', alignItems: 'center', gap: 0.4, verticalAlign: 'middle' } as const;
 
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
+  const navigate = useNavigate(); // teleconsulta in-app (P0-reviewer): navega p/ /teleconsulta/:id
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
   const [tab, setTab] = useState('exams');
@@ -355,7 +356,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Meet automático (lote Teams 18/10): status da integração + preferência do diálogo.
-  const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean } | null>(null);
+  const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean; livekit?: boolean } | null>(null);
   const [createMeet, setCreateMeet] = useState(true);
 
   useEffect(() => {
@@ -596,11 +597,14 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   /** Agenda a teleconsulta (POST /doctor/patients/:id/teleconsulta) — cria o lembrete
    *  na conta do paciente (push imediato + antecedências 1d/1h/na hora). */
   const scheduleTele = async () => {
-    const useMeet = createMeet && meetStatus?.connected;
+    // P0-reviewer: precedência explícita — app (LiveKit) > Meet automático > link manual.
+    // Default: "no app" ligado quando o server tem LiveKit (capability meetStatus.livekit).
+    const useInApp = createMeet && meetStatus?.livekit; // createMeet vira "chamada no app" quando LiveKit existe
+    const useMeet = !useInApp && createMeet && meetStatus?.connected;
     if (!selected || !tele.date) return;
-    // link só é obrigatório no modo manual — com Meet automático o campo fica oculto
-    if (!useMeet && !/^https?:\/\/[^\s/]+/i.test(tele.link.trim())) {
-      snackbar({ message: 'Cole o link da consulta (https://…) ou ative a criação automática do Meet.', severity: 'warning' });
+    // link só é obrigatório no modo manual — nos modos automáticos o campo fica oculto
+    if (!useInApp && !useMeet && !/^https?:\/\/[^\s/]+/i.test(tele.link.trim())) {
+      snackbar({ message: 'Cole o link da consulta (https://…) ou ative a chamada automática.', severity: 'warning' });
       return;
     }
     setTeleBusy(true);
@@ -610,7 +614,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           dueDate: due,
-          ...(useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
+          ...(useInApp ? { createLiveKit: true } : useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
           title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
           recurrence: tele.recurrence || undefined,
         }),
@@ -1058,6 +1062,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
                                 📅 {dt}
                               </Typography>
+                              {tc.provider === 'livekit' && (
+                                <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
+                              )}
                               {tc.linkUrl?.includes('meet.google.com') && (
                                 <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
                               )}
@@ -1081,7 +1088,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               variant="contained"
                               size="small"
                               startIcon={<VideocamIcon />}
-                              onClick={() => void openTelemedicinaRoom(tc.linkUrl)}
+                              onClick={() => {
+                                // P0-reviewer: consulta no app navega pra tela embutida (papel
+                                // médico); externa (Meet/manual) abre Custom Tab como antes.
+                                if (tc.provider === 'livekit') navigate(`/teleconsulta/${tc.id}?role=doctor`, { state: { reminder: tc, patientName: selected?.patient?.fullName } });
+                                else void openTelemedicinaRoom(tc.linkUrl);
+                              }}
                               sx={{
                                 borderRadius: '999px', textTransform: 'none', fontWeight: 800,
                                 bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d655f' },
@@ -1091,18 +1103,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             >
                               Entrar na sala
                             </Button>
-                            <IconButton
-                              size="small"
-                              title="Copiar link da reunião"
-                              aria-label="Copiar link da reunião"
-                              onClick={() => {
-                                navigator.clipboard.writeText(tc.linkUrl);
-                                snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
-                              }}
-                              sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
-                            >
-                              <ContentCopyIcon fontSize="small" />
-                            </IconButton>
+                            {tc.linkUrl && (
+                              <IconButton
+                                size="small"
+                                title="Copiar link da reunião"
+                                aria-label="Copiar link da reunião"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(tc.linkUrl);
+                                  snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
+                                }}
+                                sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                              >
+                                <ContentCopyIcon fontSize="small" />
+                              </IconButton>
+                            )}
                             <IconButton
                               size="small"
                               title="Cancelar teleconsulta"
@@ -1168,9 +1182,23 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <TextField type="time" label="Horário" value={tele.time} onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))} InputLabelProps={{ shrink: true }} sx={{ flex: 0.8 }} size="small" />
                   </Stack>
 
-                  {/* Integração Google Meet */}
+                  {/* Provedor da chamada (P0-reviewer): LiveKit no app (default quando
+                      disponível) > Google Meet automático > link manual. */}
                   <Box sx={{ p: 1.75, borderRadius: '12px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.08)', border: '1px solid', borderColor: 'rgba(212,165,116,0.25)' }}>
-                    {meetStatus?.connected ? (
+                    {meetStatus?.livekit ? (
+                      <Stack spacing={0.5} sx={{ mb: meetStatus?.connected ? 1.5 : 0 }}>
+                        <FormControlLabel
+                          control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />}
+                          label={<Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Chamada dentro do app ✨ <Chip size="small" label="recomendado" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e', ml: 0.5 }} /></Typography>}
+                          sx={{ m: 0 }}
+                        />
+                        <Typography variant="caption" sx={{ color: 'text.secondary', pl: 4.5 }}>
+                          Vídeo seguro roda DENTRO do Dr. Exame — paciente entra pelo app, sem link externo. Desligue para usar Meet/link.
+                        </Typography>
+                      </Stack>
+                    ) : null}
+
+                    {!meetStatus?.livekit && meetStatus?.connected ? (
                       <Stack spacing={0.5}>
                         <FormControlLabel
                           control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />}
@@ -1181,7 +1209,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           Uma sala exclusiva (meet.google.com) será gerada pela API do Google e vinculada à teleconsulta.
                         </Typography>
                       </Stack>
-                    ) : meetStatus?.configured ? (
+                    ) : !meetStatus?.livekit && meetStatus?.configured ? (
                       <Stack spacing={1}>
                         <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>
                           Gere salas do Google Meet com 1 clique:
@@ -1201,7 +1229,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       </Stack>
                     ) : null}
 
-                    {!(createMeet && meetStatus?.connected) && (
+                    {!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && (
                       <TextField
                         label="Link da chamada externa"
                         placeholder="https://meet.google.com/… ou Teams / WhatsApp"
@@ -1210,7 +1238,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         size="small"
                         fullWidth
                         sx={{ mt: 1.5 }}
-                        helperText={meetStatus?.connected ? 'Desative o Meet automático se desejar colar um link manual.' : 'Cole o link de acesso da videochamada.'}
+                        helperText={meetStatus?.connected || meetStatus?.livekit ? 'Desative a chamada automática se desejar colar um link manual.' : 'Cole o link de acesso da videochamada.'}
                       />
                     )}
                   </Box>
@@ -1231,7 +1259,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Button
                   variant="contained"
                   onClick={() => void scheduleTele()}
-                  disabled={teleBusy || !tele.date || (!(createMeet && meetStatus?.connected) && !/^https?:\/\//i.test(tele.link.trim()))}
+                  disabled={teleBusy || !tele.date || (!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && !/^https?:\/\//i.test(tele.link.trim()))}
                   sx={{
                     borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3,
                     background: 'linear-gradient(135deg,#d4a574,#b88a54)',

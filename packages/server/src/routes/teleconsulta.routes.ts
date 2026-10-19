@@ -12,10 +12,9 @@ import { Router, type Response, type NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { prisma } from '../prisma';
-import { verifyToken } from '../auth/jwt';
 import { userPatientIds, type AuthedRequest } from '../middleware/auth';
 import { audit } from '../utils/audit';
-import { hasLiveKitConfig, buildJoinToken } from '../utils/livekit';
+import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../utils/livekit';
 
 const router = Router();
 
@@ -75,7 +74,14 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
   try {
     const id = String(req.params.id);
     const role = req.joinRole!;
-    const reminder = await prisma.reminder.findUnique({ where: { id } });
+    // Select EXPLÍCITO + fallback drift-safe (P2-reviewer): provider/roomName são colunas
+    // novas — se o banco legado ainda não as tem (migration não aplicada), caímos no select
+    // sem elas e seguimos pro 501 graceful em vez de 500 (padrão subscriptions, TASK_RULES).
+    const baseSelect = { id: true, type: true, patientId: true, consentAt: true, linkUrl: true, title: true, dueDate: true };
+    const reminder: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, provider: true, roomName: true } })
+      .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
+        ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
+        : Promise.reject(e));
     if (!reminder || reminder.type !== 'teleconsulta') {
       res.status(404).json({ error: 'Teleconsulta não encontrada' });
       return;
@@ -119,6 +125,10 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     }
 
     const room = roomName ?? `teleconsulta-${reminder.id}`;
+    // P1-reviewer — sala renascida COM limites: após emptyTimeout a sala é destruída e a
+    // re-entrada auto-criaria com defaults do projeto (maxParticipants ilimitado). Recriar
+    // no join devolve maxParticipants:2/emptyTimeout a cada ocorrência (createRoom idempotente).
+    await createLiveKitRoom(room);
     const token = await buildJoinToken({
       identity: role === 'doctor' ? `doctor:${req.doctorId}` : `patient:${req.userId}`,
       name: req.joinName ?? 'Participante',

@@ -962,11 +962,11 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     // já passou + roll quicando a recorrência um intervalo inteiro à frente).
     if (dueDate.getTime() <= Date.now()) { res.status(400).json({ error: 'Escolha uma data/hora futura.' }); return; }
 
-    // Provedor da chamada (F2): createLiveKit > createMeet > link manual (D3).
-    // Default liveKit=true quando o env LIVEKIT_* está completo E nenhum link foi
-    // colado. Sem env, o pedido silencioso cai pro fluxo Meet/manual (degradação
-    // da casa — a UI nem mostra o toggle).
-    const wantsLiveKit = hasLiveKitConfig() && (req.body?.createLiveKit === true || (req.body?.createLiveKit == null && !linkUrl));
+    // Provedor da chamada (F2): createLiveKit explícito > createMeet explícito >
+    // default liveKit (env completo + nenhum link + nenhum Meet pedido) > link manual (D3).
+    // P0-reviewer: Meet pedido explicitamente NUNCA vira LiveKit (o default só
+    // vale quando o médico não escolheu nada).
+    const wantsLiveKit = hasLiveKitConfig() && (req.body?.createLiveKit === true || (req.body?.createLiveKit == null && !linkUrl && !req.body?.createMeet));
     let provider: string | null = null;
     let roomName: string | null = null;
     let reminderId: string | undefined;
@@ -1085,7 +1085,8 @@ router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, as
 // GET /google/status  → o portal sabe se mostra o toggle "gerar sala Meet".
 router.get('/google/status', requireDoctor, async (req: any, res) => {
   const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { googleRefreshTokenEnc: true } });
-  res.json({ configured: hasMeetConfig(), connected: !!doc?.googleRefreshTokenEnc });
+  // livekit: capability p/ o portal ligar o toggle "chamada dentro do app" (P0-reviewer).
+  res.json({ configured: hasMeetConfig(), connected: !!doc?.googleRefreshTokenEnc, livekit: hasLiveKitConfig() });
 });
 
 // GET /google/auth → devolve a URL de consentimento (o portal navega; link de browser
