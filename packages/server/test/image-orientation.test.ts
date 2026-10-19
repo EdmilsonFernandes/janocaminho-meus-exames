@@ -34,19 +34,23 @@ const pixelAt = async (buf: Buffer, x: number, y: number): Promise<number[]> => 
   const i = (y * info.width + x) * info.channels;
   return [data[i], data[i + 1], data[i + 2]];
 };
-const near = (px: number[], want: number[]) => px.every((c, i) => Math.abs(c - want[i]) < 40);
+// Asserção RELATIVA (R vs B), não cor absoluta: o encoder do libvips varia entre
+// plataformas (Windows local × Linux do CI) e quebrou a comparação absoluta —
+// "qual metade é mais vermelha" é imune a isso (contraste ~170px de canal).
+const redder = (px: number[]) => px[0] - px[2] > 30;
+const bluer = (px: number[]) => px[2] - px[0] > 30;
 
 describe('optimizeAvatar — orientação EXIF', () => {
   it('orientation=3 (180°): metades trocam de lado (rotate aplicado antes do resize)', async () => {
     const out = await optimizeAvatar(await halfHalfImage(3));
     // 180°: o que era direita (vermelho) vira esquerda
-    expect(near(await pixelAt(out.buffer, 2, 4), RED)).toBe(true);
-    expect(near(await pixelAt(out.buffer, W - 3, 4), BLUE)).toBe(true);
+    expect(redder(await pixelAt(out.buffer, 2, 4))).toBe(true);
+    expect(bluer(await pixelAt(out.buffer, W - 3, 4))).toBe(true);
   });
 
   it('sem EXIF (normal): não inventa rotação', async () => {
     const out = await optimizeAvatar(await halfHalfImage());
-    expect(near(await pixelAt(out.buffer, 2, 4), BLUE)).toBe(true);
-    expect(near(await pixelAt(out.buffer, W - 3, 4), RED)).toBe(true);
+    expect(bluer(await pixelAt(out.buffer, 2, 4))).toBe(true);
+    expect(redder(await pixelAt(out.buffer, W - 3, 4))).toBe(true);
   });
 });

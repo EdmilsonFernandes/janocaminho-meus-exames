@@ -47,8 +47,24 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       prisma.reminder.count({ where }),
       prisma.reminder.findMany({ where, skip: start, take, orderBy: { dueDate: 'asc' } }),
     ]);
+
+    // Enriquecimento com dados do médico (se agendado via Portal do Médico)
+    const docIds = Array.from(new Set(rows.map((r) => r.createdByDoctorId).filter(Boolean))) as string[];
+    let docMap: Record<string, any> = {};
+    if (docIds.length > 0) {
+      const docs = await prisma.doctor.findMany({
+        where: { id: { in: docIds } },
+        select: { id: true, name: true, crm: true, crmUf: true, specialty: true },
+      });
+      docMap = Object.fromEntries(docs.map((d) => [d.id, d]));
+    }
+    const enriched = rows.map((r) => ({
+      ...r,
+      doctor: r.createdByDoctorId ? docMap[r.createdByDoctorId] ?? null : null,
+    }));
+
     setListHeaders(res, start, start + take, total);
-    res.json(rows);
+    res.json(enriched);
   } catch (e) { next(e); }
 });
 

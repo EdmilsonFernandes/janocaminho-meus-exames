@@ -8,13 +8,16 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { AppCard } from '../../AppCard';
 import { photoUrlFor } from '../../../config';
 import { CalendarBlank, ChatCircle, Stethoscope, ChartLineUp, Lightning, Diamond } from '@phosphor-icons/react';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import type { ReactNode } from 'react';
 import { a11yClick, focusRingSx, COPPER, statusDot, inlineStat, premiumText } from './shared';
 import { tealText } from '../../../theme';
+import { openTelemedicinaRoom } from '../../../utils/telemedicina';
 
 interface PortalOverviewProps {
   patients: any[];
   invites: any[];
+  teleconsultas?: any[];
   doctorName?: string;
   planInfo?: any;
   onStartCheckout?: (method: 'pix' | 'card') => void;
@@ -36,6 +39,7 @@ interface PortalOverviewProps {
 export const PortalOverview = ({
   patients,
   invites,
+  teleconsultas,
   doctorName,
   planInfo,
   onStartCheckout,
@@ -345,6 +349,71 @@ export const PortalOverview = ({
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' }, gap: 2.5, alignItems: 'flex-start' }}>
         {/* COLUNA PRINCIPAL (65%) — FILA CLÍNICA */}
         <Stack spacing={2.5}>
+          {/* PRÓXIMAS TELECONSULTAS DO MÉDICO */}
+          {teleconsultas && teleconsultas.length > 0 && (
+            <Box>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <VideocamIcon sx={{ fontSize: 22, color: 'secondary.dark' }} />
+                  <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 16, color: 'text.primary' }}>
+                    Teleconsultas agendadas
+                  </Typography>
+                  <Chip size="small" label={teleconsultas.length} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.18)', color: 'secondary.dark' }} />
+                </Stack>
+              </Stack>
+              <Stack spacing={1.25}>
+                {teleconsultas.slice(0, 4).map((tc: any) => {
+                  const pat = tc.patient;
+                  const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+                  return (
+                    <AppCard key={tc.id} kind="interactive" onClick={() => pat && onOpenPatient({ patient: pat, id: pat.id })}>
+                      <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, '&:last-child': { pb: 2 } }}>
+                        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
+                          <Avatar sx={{ width: 42, height: 42, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark', fontWeight: 800 }}>
+                            {pat?.fullName?.charAt(0) ?? 'P'}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                              <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                                {pat?.fullName ?? 'Paciente'}
+                              </Typography>
+                              {tc.linkUrl?.includes('meet.google.com') && (
+                                <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
+                              )}
+                            </Stack>
+                            <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>
+                              📅 {dt} {tc.consentAt ? '• ✅ Paciente autorizou' : '• ⏳ Aguardando aceite'}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<VideocamIcon />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void openTelemedicinaRoom(tc.linkUrl);
+                          }}
+                          sx={{
+                            borderRadius: '999px',
+                            textTransform: 'none',
+                            fontWeight: 800,
+                            bgcolor: 'secondary.dark',
+                            '&:hover': { bgcolor: 'secondary.main' },
+                            px: 2,
+                            flexShrink: 0,
+                          }}
+                        >
+                          Abrir chamada
+                        </Button>
+                      </CardContent>
+                    </AppCard>
+                  );
+                })}
+              </Stack>
+            </Box>
+          )}
+
           {/* FILA DE ATENÇÃO: Pacientes com alterações */}
           {alerts.length > 0 && (
             <Box>

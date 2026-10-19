@@ -991,6 +991,67 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
   } catch (e) { next(e); }
 });
 
+// LISTA TELECONSULTAS DO PACIENTE (para o médico ver os agendamentos)
+router.get('/patients/:patientId/teleconsultas', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const items = await prisma.reminder.findMany({
+      where: { patientId: pid, type: 'teleconsulta' },
+      orderBy: { dueDate: 'asc' },
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+// LISTA GERAL DE TELECONSULTAS DO MÉDICO (para o painel/overview do médico)
+router.get('/teleconsultas', requireDoctor, async (req: any, res, next) => {
+  try {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const items = await prisma.reminder.findMany({
+      where: {
+        createdByDoctorId: req.doctorId,
+        type: 'teleconsulta',
+        dueDate: { gte: todayStart },
+      },
+      orderBy: { dueDate: 'asc' },
+    });
+
+    const pids = Array.from(new Set(items.map((it) => it.patientId).filter(Boolean))) as string[];
+    let patientMap: Record<string, any> = {};
+    if (pids.length > 0) {
+      const pats = await prisma.patient.findMany({
+        where: { id: { in: pids } },
+        select: { id: true, fullName: true, birthDate: true, sex: true },
+      });
+      patientMap = Object.fromEntries(pats.map((p) => [p.id, p]));
+    }
+
+    const enriched = items.map((it) => ({
+      ...it,
+      patient: patientMap[it.patientId] ?? null,
+    }));
+
+    res.json({ items: enriched });
+  } catch (e) { next(e); }
+});
+
+// CANCELAR / EXCLUIR TELECONSULTA AGENDADA PELO MÉDICO
+router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, async (req: any, res, next) => {
+  try {
+    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const rid = String(req.params.reminderId);
+    const found = await prisma.reminder.findFirst({
+      where: { id: rid, patientId: pid, createdByDoctorId: req.doctorId },
+    });
+    if (!found) { res.status(404).json({ error: 'Teleconsulta não encontrada ou sem permissão para cancelar.' }); return; }
+    await prisma.reminder.delete({ where: { id: rid } });
+    res.json({ success: true });
+  } catch (e) { next(e); }
+});
+
 // ── Google Meet OAuth (conectar 1x p/ gerar salas) ─────────────────────────────
 // GET /google/status  → o portal sabe se mostra o toggle "gerar sala Meet".
 router.get('/google/status', requireDoctor, async (req: any, res) => {

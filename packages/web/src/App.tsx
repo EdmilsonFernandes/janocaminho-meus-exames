@@ -21,6 +21,7 @@ import SummarizeOutlinedIcon from '@mui/icons-material/SummarizeOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import MedicationOutlinedIcon from '@mui/icons-material/MedicationOutlined';
 import VaccinesOutlinedIcon from '@mui/icons-material/VaccinesOutlined';
+import PsychologyOutlinedIcon from '@mui/icons-material/PsychologyOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import EmergencyOutlinedIcon from '@mui/icons-material/EmergencyOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
@@ -40,6 +41,7 @@ import HelpOutlineOutlinedIcon from '@mui/icons-material/HelpOutlineOutlined';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { DrExame } from './components/DrExame';
 import { MascotPulse } from './components/MascotPulse';
@@ -321,48 +323,81 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
         boxShadow: '0 4px 14px rgba(0,0,0,0.03), 0 8px 24px rgba(32,178,170,.04)',
       })}>
         <Stack direction="row" alignItems="center" spacing={1.25}>
-          <Box sx={{ position: 'relative', flexShrink: 0 }}>
-            <Avatar src={userInfo.photo} sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
-              {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
-            </Avatar>
-            {/* Glow ring pulsante */}
-            <Box sx={{
-              position: 'absolute', inset: -3, borderRadius: '50%',
-              background: 'rgba(32,178,170,0.15)', filter: 'blur(6px)',
-              animation: 'dxAvatarGlow 3s ease-in-out infinite', pointerEvents: 'none',
-              '@keyframes dxAvatarGlow': {
-                '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
-                '50%': { opacity: 0.9, transform: 'scale(1.15)' },
+          <Box
+            component="button"
+            onClick={() => { onClose?.(); navigate('/perfil'); }}
+            aria-label="Abrir meu perfil"
+            title="Ver e editar meu perfil"
+            sx={{
+              p: 0,
+              border: 'none',
+              bgcolor: 'transparent',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1.25,
+              flex: 1,
+              minWidth: 0,
+              textAlign: 'left',
+              color: 'inherit',
+              borderRadius: '16px',
+              transition: 'opacity .15s ease',
+              '&:hover': {
+                '& .dx-user-name': { color: 'primary.main' },
+                '& .dx-profile-chevron': { color: 'primary.main', transform: 'translateX(2px)' },
               },
-            }} />
-          </Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {userInfo.name}
-            </Typography>
-            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-              <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{
-                height: 20, fontSize: 12, fontWeight: 800,
-                bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)',
-                color: userInfo.isPremium ? '#b88a54' : 'text.secondary',
-                ...(userInfo.isPremium ? {
-                  position: 'relative', overflow: 'hidden',
-                  '&::after': {
-                    content: '""', position: 'absolute', inset: 0,
-                    background: 'linear-gradient(105deg, transparent 35%, rgba(212,165,116,.3) 50%, transparent 65%)',
-                    backgroundSize: '200% 100%',
-                    animation: 'dxPremShimmer 3s ease-in-out infinite',
-                  },
-                  '@keyframes dxPremShimmer': {
-                    '0%': { backgroundPosition: '200% 0' },
-                    '100%': { backgroundPosition: '-200% 0' },
-                  },
-                } : {}),
+              '&:active': { transform: 'scale(0.99)', opacity: 0.8 },
+            }}
+          >
+            <Box sx={{ position: 'relative', flexShrink: 0 }}>
+              <Avatar src={userInfo.photo} sx={{ width: 46, height: 46, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
+                {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
+              </Avatar>
+              {/* Glow ring pulsante */}
+              <Box sx={{
+                position: 'absolute', inset: -3, borderRadius: '50%',
+                background: 'rgba(32,178,170,0.15)', filter: 'blur(6px)',
+                animation: 'dxAvatarGlow 3s ease-in-out infinite', pointerEvents: 'none',
+                '@keyframes dxAvatarGlow': {
+                  '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
+                  '50%': { opacity: 0.9, transform: 'scale(1.15)' },
+                },
               }} />
-              {credits != null && (
-                <Chip size="small" onClick={() => { onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
-              )}
-            </Stack>
+            </Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0 }}>
+                <Typography className="dx-user-name" sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, transition: 'color .15s ease' }}>
+                  {userInfo.name}
+                </Typography>
+                <ChevronRightIcon className="dx-profile-chevron" sx={{ fontSize: 18, color: 'text.disabled', flexShrink: 0, transition: 'all .15s ease' }} />
+              </Stack>
+              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
+                <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{
+                  height: 20, fontSize: 12, fontWeight: 800,
+                  bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)',
+                  color: userInfo.isPremium ? '#b88a54' : 'text.secondary',
+                  ...(userInfo.isPremium ? {
+                    position: 'relative', overflow: 'hidden',
+                    '&::after': {
+                      content: '""', position: 'absolute', inset: 0,
+                      background: 'linear-gradient(105deg, transparent 35%, rgba(212,165,116,.3) 50%, transparent 65%)',
+                      backgroundSize: '200% 100%',
+                      animation: 'dxPremShimmer 3s ease-in-out infinite',
+                    },
+                    '@keyframes dxPremShimmer': {
+                      '0%': { backgroundPosition: '200% 0' },
+                      '100%': { backgroundPosition: '-200% 0' },
+                    },
+                  } : {}),
+                }} />
+                {credits != null && (
+                  <Chip size="small" onClick={(e) => { e.stopPropagation(); onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
+                )}
+              </Stack>
+              <Typography sx={{ fontSize: 11, color: 'primary.dark', fontWeight: 600, mt: 0.25, display: 'block' }}>
+                Toque para abrir perfil ›
+              </Typography>
+            </Box>
           </Box>
           {onClose && (
             <IconButton
@@ -370,7 +405,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               size="small"
               title="Fechar menu"
               sx={(t) => ({
-                width: 30, height: 30, borderRadius: '50%', flexShrink: 0,
+                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
                 bgcolor: alpha(t.palette.text.primary, 0.06),
                 color: 'text.secondary',
                 transition: 'all .15s ease',
@@ -413,9 +448,11 @@ const AppMenu = () => {
       <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartOutlinedIcon />} routes={['/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
+    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartOutlinedIcon />} routes={['/sinais', '/medicoes', '/medicamentos', '/saude-mental', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
+      <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} highlight />
       <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartOutlinedIcon />} />
       <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationOutlinedIcon />} />
+      <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesOutlinedIcon />} />
       <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableOutlinedIcon />} />
       {/* Emergência ganha ícone PRÓPRIO (semáforo SOS) — antes repetia HealthAndSafety

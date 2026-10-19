@@ -415,24 +415,57 @@ export const ActivityView = ({
 
   return (
     <AppCard sx={{ p: 2 }}>
-      {/* Cabeçalho: título + range + sync. O título é PORTA p/ os Sinais Vitais (hub
-          estilo "Today": só existe pra quem conectou — sem conexão o card segue no estado
-          de convite, sem link morto). */}
+      {/* Cabeçalho: título + range + sync. O título é PORTA p/ os Sinais Vitais com badge interativo */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
         <Stack
           direction="row"
           alignItems="center"
-          spacing={0.25}
+          spacing={1}
           component="button"
           onClick={onOpenVitals}
           aria-label="Ver Sinais Vitais (sono, frequência cardíaca e tendências)"
           title="Sinais Vitais — detalhes e tendências"
-          sx={{ p: 0, border: 'none', bgcolor: 'transparent', cursor: 'pointer', textAlign: 'left', color: 'inherit', '&:hover .dx-vitals-title': { color: 'primary.dark' }, '&:active': { opacity: 0.7 } }}
+          sx={{
+            p: 0.5,
+            px: 1,
+            ml: -1,
+            borderRadius: '10px',
+            border: 'none',
+            bgcolor: 'transparent',
+            cursor: 'pointer',
+            textAlign: 'left',
+            color: 'inherit',
+            transition: 'background-color .2s ease',
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              '& .dx-vitals-title': { color: 'primary.dark' },
+              '& .dx-vitals-badge': { bgcolor: alpha(theme.palette.primary.main, 0.18), color: 'primary.dark' },
+            },
+            '&:active': { transform: 'scale(0.98)' },
+          }}
         >
           <Typography className="dx-vitals-title" sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75, transition: 'color .15s ease' }}>
-            <DirectionsWalkIcon sx={{ fontSize: 19, color: 'primary.dark' }} /> Atividade física
+            <DirectionsWalkIcon sx={{ fontSize: 20, color: 'primary.dark' }} /> Atividade física
           </Typography>
-          <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
+          <Box
+            className="dx-vitals-badge"
+            sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.25,
+              px: 0.75,
+              py: 0.2,
+              borderRadius: '99px',
+              fontSize: 11,
+              fontWeight: 700,
+              bgcolor: alpha(theme.palette.primary.main, 0.08),
+              color: 'text.secondary',
+              transition: 'all .2s ease',
+            }}
+          >
+            <span>Painel</span>
+            <ChevronRightIcon sx={{ fontSize: 14 }} />
+          </Box>
         </Stack>
         <Stack direction="row" spacing={0.5} alignItems="center">
           {source === 'cloud' && syncedAtISO && (() => {
@@ -487,28 +520,24 @@ export const ActivityView = ({
         ))}
       </ToggleButtonGroup>
 
-      {/* Herói: RING de meta (assinatura Google Fit) + número. MOBILE-FIRST (regra CRITICAL
-          de UX: texto NUNCA clipa em caixa fixa — largura fluida, altura por conteúdo): no xs
-          EMPILHA — ring+número numa linha (número com ~225px de folga; support quebra em até
-          2 linhas) e as métricas em grid auto-fit de chips largos (~149px/célula, sem
-          ellipsis). sm+ mantém as 3 colunas clássicas (ring | número | coluna de minis). */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.75, sm: 2 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
-        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0 }}>
+      {/* Herói: RING de meta + número grande + grid de métricas secundárias perfeitamente acomodadas */}
+      <Stack spacing={1.75}>
+        <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 0 }}>
           <ActivityRing ratio={s.goalRatio} pct={goalPct} done={s.goalRatio >= 1} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>{stepsLabel}</Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 500 }}>{stepsLabel}</Typography>
             <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.5rem, 8vw, 2rem)', sm: 'clamp(1.75rem, 5vw, 2.125rem)', md: 34 }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>{fmtSteps(primarySteps)}</Typography>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: '1.75rem', sm: '2.1rem' }, lineHeight: 1.1, color: 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+                {fmtSteps(primarySteps)}
+              </Typography>
               {s.goalRatio >= 1 && <CheckCircleIcon sx={{ fontSize: 20, color: 'success.main', mb: 0.5 }} aria-label="meta batida" />}
             </Stack>
             <Typography sx={{ fontSize: 12, color: 'text.disabled', mt: 0.25, lineHeight: 1.35 }}>{stepsSupport}</Typography>
           </Box>
         </Stack>
-        <Box sx={{ flex: { sm: 1 }, minWidth: 0, display: 'grid', gridTemplateColumns: { xs: 'repeat(auto-fit, minmax(140px, 1fr))', sm: '1fr' }, gap: { xs: 1.25, sm: 0.75 } }}>
-          {/* kcal some quando o período INTEIRO veio zerado (nenhuma origem publica caloria):
-              linha "0 kcal" fantasma não ajuda. kcalIsTotal = fallback Samsung (o Health
-              Connect do aparelho só tem TOTAL, que inclui metabolismo basal) — rótulo honesto,
-              curto ("Calorias totais") com a explicação no title do label. */}
+
+        {/* Métricas Secundárias em Grid 2x2 com largura garantida (nunca quebra texto em letras verticais) */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 1 }}>
           {primaryKcal > 0 && (
             <MetricMini icon={<LocalFireDepartmentIcon sx={{ fontSize: 15 }} />} tone={SEM.warn[theme.palette.mode]} label={s.kcalIsTotal ? 'Calorias totais' : 'Calorias'} labelTitle={s.kcalIsTotal ? 'Inclui metabolismo basal (Samsung Health só publica o total do dia)' : undefined} value={fmtKcal(primaryKcal)} unit="kcal" contextLabel={periodMetricLabel} />
           )}
@@ -516,8 +545,6 @@ export const ActivityView = ({
           {(s.hrRest ?? 0) > 0 && (
             <MetricMini icon={<FavoriteIcon sx={{ fontSize: 15 }} />} tone={SEM.bad[theme.palette.mode]} label="FC de repouso" value={`${Math.round(s.hrRest ?? 0)}`} unit="bpm" contextLabel={periodMetricLabel} />
           )}
-          {/* Sono: hoje = última noite; períodos = média/noite (só noites com dado). Escondido
-              enquanto 0 — relógio/app que não escreve sono no HC não gera tile fantasma. */}
           {(s.sleepMin ?? 0) > 0 && (
             <MetricMini
               icon={<BedtimeIcon sx={{ fontSize: 15 }} />}
@@ -525,11 +552,9 @@ export const ActivityView = ({
               label="Sono"
               value={fmtSleep(s.sleepMin ?? 0)}
               unit=""
-              contextLabel={range === 'today' ? 'última noite' : `média/noite · ${rangeLabel(range).toLowerCase()}`}
+              contextLabel={range === 'today' ? 'última noite' : `média/noite`}
             />
           )}
-          {/* Exercício: TOTAL do período (média/dia era rótulo mentiroso — "14min" era 98÷7).
-              Corte de ruído: <10 min no período = fontes não registram sessões, não mostra. */}
           {(s.exerciseMin ?? 0) >= 10 && (
             <MetricMini icon={<TimerIcon sx={{ fontSize: 15 }} />} tone={SEM.ok[theme.palette.mode]} label="Exercício" value={`${Math.round(s.exerciseMin ?? 0)} min`} unit="" contextLabel={undefined} />
           )}
@@ -622,6 +647,37 @@ export const ActivityView = ({
         );
       })()}
 
+      {/* Botão de Navegação Direto e Claro para Sinais Vitais (intuitivo, visual Apple Health/Dr. Exame) */}
+      {onOpenVitals && (
+        <Button
+          fullWidth
+          variant="outlined"
+          onClick={onOpenVitals}
+          endIcon={<ChevronRightIcon />}
+          sx={{
+            mt: 1.75,
+            py: 0.9,
+            borderRadius: '12px',
+            fontSize: 13,
+            fontWeight: 700,
+            textTransform: 'none',
+            letterSpacing: 0,
+            color: 'primary.dark',
+            borderColor: alpha(theme.palette.primary.main, 0.28),
+            bgcolor: alpha(theme.palette.primary.main, 0.04),
+            boxShadow: 'none',
+            '&:hover': {
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              borderColor: 'primary.main',
+              boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.15)}`,
+            },
+            '&:active': { transform: 'scale(0.99)' },
+          }}
+        >
+          Ver painel completo de Sinais Vitais & Tendências
+        </Button>
+      )}
+
       {/* CONFIRMAÇÃO de esconder — antes o card sumia num clique e o toast de "como voltar"
           passava despercebido. Premium: pergunta clara + pra onde vai + como volta. */}
       <Dialog open={hideAsk} onClose={() => setHideAsk(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
@@ -694,14 +750,28 @@ export const ActivityRing = ({ ratio, pct, done }: { ratio: number; pct: number;
  *  par semântico valor+unidade é noWrap (curto por construção). No xs vive numa célula da
  *  grid auto-fit (~149px) — "Calorias totais"/"FC de repouso"/"15.234 kcal" cabem inteiros. */
 export const MetricMini = ({ icon, tone, label, labelTitle, value, unit, contextLabel }: { icon: React.ReactNode; tone: string; label: string; labelTitle?: string; value: string; unit: string; contextLabel?: string }) => (
-  <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-    <Box sx={{ width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
-    <Box sx={{ minWidth: 0 }}>
-      <Typography title={labelTitle} sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.15 }}>{label}</Typography>
-      <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(0.875rem, 4vw, 1.0625rem)', sm: 17 }, lineHeight: 1.15, fontVariantNumeric: 'tabular-nums' }}>
-        {value}{unit ? <Typography component="span" sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
+  <Stack
+    direction="row"
+    spacing={1}
+    alignItems="center"
+    sx={{
+      minWidth: 0,
+      p: 0.85,
+      borderRadius: '12px',
+      bgcolor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.12 : 0.05),
+      border: '1px solid',
+      borderColor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.25 : 0.14),
+      transition: 'all .2s ease',
+      '&:hover': { bgcolor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.18 : 0.09) },
+    }}
+  >
+    <Box sx={{ width: 30, height: 30, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
+    <Box sx={{ minWidth: 0, flex: 1, overflow: 'hidden' }}>
+      <Typography noWrap title={labelTitle} sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 600, lineHeight: 1.2 }}>{label}</Typography>
+      <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
+        {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
-      {contextLabel && <Typography sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.15 }}>{contextLabel}</Typography>}
+      {contextLabel && <Typography noWrap sx={{ fontSize: 10, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );

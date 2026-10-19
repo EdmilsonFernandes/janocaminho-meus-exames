@@ -11,6 +11,9 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import SearchIcon from '@mui/icons-material/Search';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
 import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -18,6 +21,8 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
 import { tealText } from '../theme';
 import { notifyInsufficientCredits } from '../utils/credits-events';
+import { openTelemedicinaRoom } from '../utils/telemedicina';
+import { hapticLight, hapticSuccess } from '../utils/haptic';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -83,6 +88,9 @@ export const MedicosPage = () => {
   const [specialtyOptions, setSpecialtyOptions] = useState<string[]>(SPECIALTIES);
   const [shareCosts, setShareCosts] = useState<Record<string, number>>({});
   const [credits, setCredits] = useState<number | null>(null);
+  // Teleconsultas agendadas pelo médico para o paciente
+  const [teleconsultas, setTeleconsultas] = useState<any[]>([]);
+  const [consentFor, setConsentFor] = useState<any | null>(null);
   // Filtros
   const [search, setSearch] = useState('');
   const [specFilter, setSpecFilter] = useState('');
@@ -110,6 +118,21 @@ export const MedicosPage = () => {
     } catch (e: any) { setPergMsg(e.message || 'Falha ao enviar.'); } finally { setEnviando(false); }
   };
 
+  /** Aceite Art. 15 (telemedicina) direto da tela Meus Médicos e abertura via In-App Browser */
+  const consentAndOpen = async (r: any) => {
+    try {
+      const res = await fetch(`${API_URL}/reminders/${r.id}/consent`, { method: 'PUT', headers: { Authorization: `Bearer ${token()}` } });
+      if (!res.ok) throw new Error();
+      hapticSuccess();
+      setConsentFor(null);
+      await openTelemedicinaRoom(r.linkUrl);
+      load();
+    } catch {
+      notify('Falha ao autorizar telemedicina. Tente novamente.', { type: 'error' });
+      setConsentFor(null);
+    }
+  };
+
   // Exames do paciente (pro seletor "compartilhar exame específico"). Vazio no seletor = TODOS.
   useEffect(() => {
     if (!pid) return;
@@ -123,8 +146,21 @@ export const MedicosPage = () => {
     fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json()).then((d) => { setShares(d.items ?? []); setLoading(false); })
       .catch(() => setLoading(false));
+
+    if (pid) {
+      fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const now = new Date();
+            const teles = data.filter((it: any) => it.type === 'teleconsulta' && new Date(it.dueDate) >= now);
+            setTeleconsultas(teles);
+          }
+        })
+        .catch(() => {});
+    }
   };
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [pid]);
   useEffect(() => {
     fetch(`${API_URL}/billing/plans`).then((r) => r.json()).then((d) => setShareCosts(d.shares ?? {})).catch(() => {});
     fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.json()).then((d) => setCredits(typeof d.credits === 'number' ? d.credits : null)).catch(() => {});
@@ -288,6 +324,104 @@ export const MedicosPage = () => {
         </CardContent>
       </Card>
 
+      {/* SEÇÃO PRÓXIMAS TELECONSULTAS — o paciente vê de imediato as teleconsultas com seus médicos */}
+      {teleconsultas.length > 0 && (
+        <Card
+          sx={{
+            mb: 3,
+            borderRadius: '16px',
+            border: '1px solid',
+            borderColor: 'rgba(15,118,110,0.3)',
+            background: (t) =>
+              t.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(15,118,110,0.18) 0%, rgba(20,40,40,0.8) 100%)'
+                : 'linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(240,253,250,0.9) 100%)',
+            boxShadow: '0 4px 20px rgba(15,118,110,0.08)',
+          }}
+        >
+          <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+              <VideocamIcon sx={{ color: '#0f766e', fontSize: 24 }} />
+              <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+                Próximas Teleconsultas Agendadas
+              </Typography>
+              <Chip size="small" label={teleconsultas.length} sx={{ height: 20, bgcolor: 'rgba(15,118,110,0.15)', color: '#0f766e', fontWeight: 800 }} />
+            </Stack>
+
+            <Stack spacing={1.5}>
+              {teleconsultas.map((tc) => {
+                const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+                return (
+                  <Card key={tc.id} sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 1.75 }}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
+                            {tc.doctor ? tc.doctor.name : tc.title}
+                          </Typography>
+                          {tc.doctor?.specialty && (
+                            <Chip size="small" label={tc.doctor.specialty} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,0.1)', color: '#0f766e' }} />
+                          )}
+                          {tc.linkUrl?.includes('meet.google.com') && (
+                            <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
+                          )}
+                        </Stack>
+                        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ color: 'text.secondary', fontSize: 13 }}>
+                          <AccessTimeIcon sx={{ fontSize: 15, color: '#0f766e' }} />
+                          <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{dt}</Typography>
+                          {tc.doctor?.crm && <span>• CRM {tc.doctor.crm}</span>}
+                        </Stack>
+                      </Box>
+
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                        {tc.consentAt ? (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<VideocamIcon />}
+                            onClick={() => { hapticLight(); void openTelemedicinaRoom(tc.linkUrl); }}
+                            sx={{
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              bgcolor: '#0f766e',
+                              px: 2,
+                              '&:hover': { bgcolor: '#115e59' },
+                              boxShadow: '0 3px 12px rgba(15,118,110,.25)',
+                              flex: { xs: 1, sm: 'none' },
+                            }}
+                          >
+                            Entrar na consulta
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<VideocamIcon />}
+                            onClick={() => { hapticLight(); setConsentFor(tc); }}
+                            sx={{
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
+                              px: 2,
+                              '&:hover': { opacity: 0.95 },
+                              flex: { xs: 1, sm: 'none' },
+                            }}
+                          >
+                            Autorizar e entrar
+                          </Button>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </Card>
+                );
+              })}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Filtros */}
       {!loading && myShares.length > 0 && (
         <Stack spacing={1} sx={{ mb: 2.5 }}>
@@ -394,6 +528,45 @@ export const MedicosPage = () => {
                         <Chip size="small" label={`CRM ${s.doctor?.crm}`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
                         {s.convenio && <Chip size="small" label={s.convenio} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />}
                       </Stack>
+
+                      {/* Teleconsulta agendada com este médico */}
+                      {(() => {
+                        const docTele = teleconsultas.find(
+                          (tc) => (tc.doctor?.crm && tc.doctor?.crm === s.doctor?.crm) || (tc.createdByDoctorId && tc.createdByDoctorId === s.doctor?.id)
+                        );
+                        if (!docTele) return null;
+                        return (
+                          <Box sx={{ my: 1, p: 1, borderRadius: '10px', bgcolor: 'rgba(15,118,110,0.08)', border: '1px solid rgba(15,118,110,0.2)' }}>
+                            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap">
+                              <Stack direction="row" alignItems="center" spacing={0.75}>
+                                <VideocamIcon sx={{ fontSize: 16, color: '#0f766e' }} />
+                                <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: '#0f766e' }}>
+                                  Teleconsulta: {new Date(docTele.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                </Typography>
+                              </Stack>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (docTele.consentAt) {
+                                    void openTelemedicinaRoom(docTele.linkUrl);
+                                  } else {
+                                    setConsentFor(docTele);
+                                  }
+                                }}
+                                sx={{
+                                  py: 0.25, px: 1.25, fontSize: 11.5, fontWeight: 800,
+                                  borderRadius: '999px', textTransform: 'none', bgcolor: '#0f766e',
+                                  '&:hover': { bgcolor: '#115e59' },
+                                }}
+                              >
+                                {docTele.consentAt ? 'Entrar' : 'Autorizar e entrar'}
+                              </Button>
+                            </Stack>
+                          </Box>
+                        );
+                      })()}
 
                       {/* Scope toggles em pilulas limpas */}
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
@@ -566,6 +739,34 @@ export const MedicosPage = () => {
           <Button onClick={() => setShowForm(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
           <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
             {saving ? <CircularProgress size={20} color="inherit" /> : shareCost > 0 ? `Compartilhar (${shareCost} 💎)` : 'Compartilhar →'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIALOG DE CONSENTIMENTO TELEMEDICINA (Art. 15, Res. CFM 2.314/2022) */}
+      <Dialog open={!!consentFor} onClose={() => setConsentFor(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1, pb: 0.5 }}>
+          <VideocamIcon sx={{ fontSize: 20, color: '#0f766e' }} /> Autorizar teleconsulta
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.65, fontSize: 14 }}>
+            Autorizo o atendimento por <strong>telemedicina</strong> e a transmissão de imagens e dados nesta consulta com {consentFor?.doctor?.name ? `Dr(a). ${consentFor.doctor.name}` : 'seu médico'}, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento.
+          </Typography>
+          {consentFor && (
+            <Box sx={{ mt: 1.5, p: 1.25, borderRadius: '8px', bgcolor: 'rgba(15,118,110,.08)' }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 13, color: '#0f766e' }}>{consentFor.title || 'Teleconsulta'}</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                📅 {new Date(consentFor.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                {consentFor.linkUrl?.includes('meet.google.com') && ' • Google Meet'}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setConsentFor(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          <Button variant="contained" onClick={() => void consentAndOpen(consentFor)}
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } }}>
+            Autorizar e entrar
           </Button>
         </DialogActions>
       </Dialog>

@@ -1161,7 +1161,7 @@ const DashboardV2Inner = () => {
               {/* ATIVIDADE FÍSICA & HEALTH CONNECT — escondida no demo (dado é do DEVICE, não há como fingir) */}
               {!demo && (!real.me?.relationship || real.me.relationship === 'Titular') && (
                 <Section label="Atividade física & Dispositivos" icon={<Heartbeat size={18} weight="duotone" />}>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 2 }}>
                     <ActivityCard lastExamAt={d.lastExam} />
                     <RestingHeartCard />
                   </Box>
