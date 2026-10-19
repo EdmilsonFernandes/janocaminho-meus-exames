@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21' # Capacitor 7 compila com source release 21 (17 dá "invalid source release")
 
       - name: Dependências (workspaces)
         run: npm ci
