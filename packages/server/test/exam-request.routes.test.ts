@@ -221,7 +221,8 @@ describe('GET /api/exam-requests (§3g — role-aware)', () => {
 
     const asPatient = await api().get('/api/exam-requests').set(authHeader(token));
     expect(asPatient.status).toBe(200);
-    expect(asPatient.body.items.map((i: any) => i.title)).toEqual(['Titular', 'Dependente']);
+    // reviewer-E: agora DESC (mais recentes primeiro — pendentes novos visíveis)
+    expect(asPatient.body.items.map((i: any) => i.title)).toEqual(['Dependente', 'Titular']);
 
     // Outro médico não vaza; o médico certo vê tudo; ?patientId filtra; paciente alheio vê nada.
     const otherDoc = await createDoctor({ crm: uniqCrm(), email: `doc-er3${crmSeq}@test.com` });
