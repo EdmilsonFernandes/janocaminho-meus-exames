@@ -54,7 +54,8 @@ interface Summary {
   recordConsentAt?: string | null; // F3: paciente autorizou gravação p/ transcrição (§1 spec UX)
   provider?: string | null;
   linkUrl?: string | null;
-  doctor?: { name?: string; crm?: string; specialty?: string } | null;
+  doctor?: { name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
+  patient?: { id?: string; name?: string; photoUrl?: string } | null;
   stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
@@ -133,7 +134,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // revalidado no server (paciente) — lista /reminders é patient-scoped.
   const [summary, setSummary] = useState<Summary | null>(() => {
     const s = (location.state as any)?.reminder;
-    return s ? { id: s.id, title: s.title, dueDate: s.dueDate, consentAt: s.consentAt, recordConsentAt: s.recordConsentAt, provider: s.provider, linkUrl: s.linkUrl, doctor: s.doctor } : null;
+    const p = (location.state as any)?.patient;
+    const pName = (location.state as any)?.patientName;
+    return s ? {
+      id: s.id,
+      title: s.title,
+      dueDate: s.dueDate,
+      consentAt: s.consentAt,
+      recordConsentAt: s.recordConsentAt,
+      provider: s.provider,
+      linkUrl: s.linkUrl,
+      doctor: s.doctor,
+      patient: p || (pName ? { name: pName, photoUrl: s.patient?.photoUrl } : s.patient) || null,
+    } : null;
   });
   const summaryRef = useRef<Summary | null>(summary);
   useEffect(() => { summaryRef.current = summary; }, [summary]);
@@ -160,16 +173,21 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [fbRating, setFbRating] = useState<number | null>(null);
   const [fbNote, setFbNote] = useState('');
   const [fbSent, setFbSent] = useState(false);
-  const sendFeedback = async (rating: number) => {
+  const sendFeedback = async (rating: number, customNote?: string) => {
     setFbRating(rating);
+    const text = customNote !== undefined ? customNote : fbNote;
     try {
       // reviewer-J: authToken() é role-aware — token() mandaria Bearer null no portal.
       await fetch(`${API_URL}/teleconsulta/${reminderId}/feedback`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
-        body: JSON.stringify({ rating, note: fbNote.trim() || undefined }),
+        body: JSON.stringify({ rating, note: text.trim() || undefined }),
       });
     } catch { /* best-effort: a UX não trava por audit */ }
     setFbSent(true);
+    if (role === 'doctor' && text.trim()) {
+      try { localStorage.setItem(noteKey, text); } catch { /* noop */ }
+      setNoteSaved(true);
+    }
   };
   const [pipCorner, setPipCorner] = useState<'tr' | 'tl' | 'br' | 'bl'>('tr');
   const [pipDrag, setPipDrag] = useState<{ x: number; y: number; dx: number; dy: number } | null>(null);
@@ -544,17 +562,43 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         const s = fetched ?? summaryRef.current;
         if (s) setSummary(s);
         if (!s) { setPhase('error'); return; }
-        // reviewer-L: capability de transcrição (esconde o checkbox quando o server
-        // não transcreve) — best-effort, 1 request no boot.
+        // reviewer-L: capability de transcrição + dados de paciente/médico (foto e nome).
         fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } })
           .then((r) => (r.ok ? r.json() : null))
-          .then((d) => { if (!cancelled && d && typeof d.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: d.stt } : cur)); })
+          .then((d) => {
+            if (!cancelled && d) {
+              setSummary((cur) => (cur ? {
+                ...cur,
+                stt: typeof d.stt === 'boolean' ? d.stt : cur.stt,
+                patient: d.patient || cur.patient,
+                doctor: d.doctor || cur.doctor,
+              } : cur));
+            }
+          })
           .catch(() => {});
         // Spec §1: consentido → pula direto pra chamada.
         if (s.consentAt) { void startJoin(s); return; }
         setPhase('prejoin');
       } else {
         try { setNote(localStorage.getItem(`dx-teleconsulta-note:${reminderId}`) || ''); } catch { /* noop */ }
+        fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => {
+            if (!cancelled && d) {
+              setSummary((cur) => (cur ? {
+                ...cur,
+                stt: typeof d.stt === 'boolean' ? d.stt : cur.stt,
+                patient: d.patient || cur.patient,
+                doctor: d.doctor || cur.doctor,
+              } : {
+                id: reminderId,
+                stt: d.stt,
+                patient: d.patient,
+                doctor: d.doctor,
+              }));
+            }
+          })
+          .catch(() => {});
         setPhase('prejoin');
       }
     })();
@@ -861,18 +905,57 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <TrackVideo track={main!.track!} />
           </Box>
         ) : (
-          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
-            <Stack alignItems="center" spacing={1.5} sx={{ textAlign: 'center', px: 3 }}>
-              <Box sx={{
-                width: 88, height: 88, borderRadius: '50%', display: 'grid', placeItems: 'center',
-                bgcolor: 'rgba(32,178,170,.16)', border: '2px solid rgba(32,178,170,.4)', color: '#5fc9c3',
-                fontSize: 32, fontWeight: 800, animation: 'dxCallPulse 2s ease infinite',
-                '@keyframes dxCallPulse': { '0%,100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.1)' } },
-              }}>{initials(main?.name)}</Box>
-              <Typography sx={{ color: 'rgba(255,255,255,.92)', fontWeight: 700, fontSize: 15 }}>
-                Aguardando {role === 'patient' ? (doctor?.name || main?.name || 'o médico') : 'o paciente'}…
-              </Typography>
-              <CircularProgress size={20} sx={{ color: '#20b2aa' }} />
+          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
+            <Stack alignItems="center" spacing={2} sx={{ textAlign: 'center', maxWidth: 360 }}>
+              <Box sx={{ position: 'relative' }}>
+                <Avatar
+                  src={role === 'doctor'
+                    ? (summary?.patient?.photoUrl || (location.state as any)?.patient?.photoUrl)
+                    : (summary?.doctor?.photoUrl || doctor?.photoUrl)}
+                  sx={{
+                    width: 96,
+                    height: 96,
+                    fontSize: 34,
+                    fontWeight: 800,
+                    bgcolor: 'rgba(32,178,170,.18)',
+                    color: '#5fc9c3',
+                    border: '3px solid rgba(32,178,170,.5)',
+                    boxShadow: '0 0 32px rgba(32,178,170,0.35)',
+                    animation: 'dxCallPulse 2.4s ease-in-out infinite',
+                    '@keyframes dxCallPulse': {
+                      '0%,100%': { transform: 'scale(1)', boxShadow: '0 0 20px rgba(32,178,170,0.25)' },
+                      '50%': { transform: 'scale(1.05)', boxShadow: '0 0 36px rgba(32,178,170,0.5)' },
+                    },
+                  }}
+                >
+                  {initials(role === 'doctor'
+                    ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name)
+                    : (doctor?.name || main?.name))}
+                </Avatar>
+                <CircularProgress
+                  size={108}
+                  thickness={1.5}
+                  sx={{
+                    color: '#20b2aa',
+                    position: 'absolute',
+                    top: -6,
+                    left: -6,
+                    opacity: 0.6,
+                  }}
+                />
+              </Box>
+              <Box>
+                <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>
+                  Aguardando {role === 'doctor'
+                    ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name || 'o paciente')
+                    : (doctor?.name || main?.name || 'o médico')}…
+                </Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,.65)', fontSize: 13, mt: 0.5, lineHeight: 1.4 }}>
+                  {role === 'doctor'
+                    ? 'A sala já está conectada. Assim que o paciente entrar, o vídeo iniciará automaticamente.'
+                    : (doctor?.specialty ? `${doctor.specialty} · ` : '') + 'Conexão segura criptografada'}
+                </Typography>
+              </Box>
             </Stack>
           </Box>
         )}
@@ -1126,11 +1209,28 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   if (phase === 'ended' && ended) {
     const min = ended.sec >= 30 ? `${Math.max(1, Math.round(ended.sec / 60))} min` : 'menos de 1 min';
 
-    // Feedback 1-toque (F2, exatamente o mesmo) — reaproveitado nas duas áreas.
+    const PRESET_TAGS = role === 'doctor'
+      ? ['🔊 Áudio excelente', '📶 Conexão nítida', '⏱️ Pontual', '📋 Exames solicitados', '💊 Prescrição orientada', '⚠️ Conexão instável']
+      : ['🔊 Áudio excelente', '📶 Imagem nítida', '⏱️ Pontual', '🩺 Muito atencioso', '💡 Tirou dúvidas', '⚠️ Conexão oscilou'];
+
+    const togglePresetTag = (tag: string) => {
+      hapticLight();
+      const current = role === 'doctor' ? (fbNote || note) : fbNote;
+      const updated = current.includes(tag)
+        ? current.replace(tag, '').replace(/\s{2,}/g, ' ').trim()
+        : (current ? `${current} · ${tag}` : tag);
+      setFbNote(updated);
+      if (role === 'doctor') {
+        setNote(updated);
+        setNoteSaved(false);
+      }
+    };
+
+    // Feedback 1-toque (F2) com opções prontas — reaproveitado nas duas áreas.
     const feedbackBlock = !fbSent ? (
-      <Box sx={{ mt: 2.5, p: 1.75, borderRadius: '14px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.16)', textAlign: 'center' }}>
-        <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a chamada?</Typography>
-        <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5}>
+      <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.18)', textAlign: 'center' }}>
+        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a chamada?</Typography>
+        <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5} sx={{ mb: 1.25 }}>
           {[
             { v: 1, icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Péssima' },
             { v: 2, icon: <SentimentDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ruim' },
@@ -1139,19 +1239,44 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             { v: 5, icon: <SentimentVerySatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ótima' },
           ].map((o) => (
             <Tooltip key={o.v} title={o.label}>
-              <IconButton aria-label={o.label} onClick={() => void sendFeedback(o.v)}
-                sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 46, height: 46 }}>
+              <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v); }}
+                sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
                 {o.icon}
               </IconButton>
             </Tooltip>
           ))}
         </Stack>
+        <Stack direction="row" flexWrap="wrap" justifyContent="center" useFlexGap spacing={0.75} sx={{ mb: 1.25 }}>
+          {PRESET_TAGS.map((tag) => (
+            <Chip
+              key={tag}
+              label={tag}
+              size="small"
+              clickable
+              onClick={() => togglePresetTag(tag)}
+              sx={{
+                fontSize: 11.5,
+                fontWeight: 700,
+                borderRadius: '999px',
+                bgcolor: fbNote.includes(tag) ? 'rgba(32,178,170,0.22)' : 'rgba(0,0,0,0.04)',
+                color: fbNote.includes(tag) ? '#0f766e' : 'text.primary',
+                border: '1px solid',
+                borderColor: fbNote.includes(tag) ? '#20b2aa' : 'divider',
+              }}
+            />
+          ))}
+        </Stack>
         <TextField multiline minRows={2} maxRows={4} fullWidth size="small" value={fbNote} onChange={(e) => setFbNote(e.target.value)}
-          placeholder={role === 'doctor' ? 'Alguma observação sobre a conexão/áudio? (opcional)' : 'A conexão e o áudio funcionaram bem? (opcional)'}
+          placeholder="A conexão e o áudio funcionaram bem? (opcional)"
           slotProps={{ htmlInput: { 'aria-label': 'Observação sobre a chamada' } }}
-          sx={{ mt: 1.25, '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '10px' } }} />
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontSize: 10.5, color: 'text.disabled', textAlign: 'left' }}>
-          Registramos sua avaliação para melhorar a teleconsulta — é anônima.
+          sx={{ mt: 0.5, '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '10px' } }} />
+        {fbNote.trim() && (
+          <Button size="small" variant="text" onClick={() => void sendFeedback(fbRating ?? 5, fbNote)} sx={{ mt: 1, textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
+            Salvar avaliação
+          </Button>
+        )}
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, fontSize: 10.5, color: 'text.disabled', textAlign: 'center' }}>
+          Registramos sua avaliação para melhorar a teleconsulta.
         </Typography>
       </Box>
     ) : (
@@ -1282,34 +1407,112 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       );
     }
 
-    // Médico — card F2 (nota rápida + feedback). A área premium do médico (transcrição
-    // + status dos pedidos) vive no portal (fe2/DoctorPortal).
+    // Médico — card F2 premium com avaliação 1-toque, chips rápidos e anotações unificadas
     return (
       <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
-        <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px', textAlign: 'center' }} elevation={4}>
-          <CardContent sx={{ p: 3 }}>
+        <Card sx={{ maxWidth: 440, width: '100%', borderRadius: '22px', textAlign: 'center', boxShadow: '0 12px 36px rgba(0,0,0,0.08)' }} elevation={4}>
+          <CardContent sx={{ p: 3.5 }}>
             <Box sx={{ position: 'relative', width: 88, mx: 'auto', mb: 2 }}>
               <DrExame size={72} />
               <CheckCircleIcon sx={{ position: 'absolute', right: -6, bottom: -4, fontSize: 28, color: '#5fc9c3', bgcolor: 'background.paper', borderRadius: '50%' }} />
             </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>Consulta encerrada</Typography>
-            <Typography color="text.secondary" sx={{ fontSize: 14 }}>· {min}</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 22, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>Consulta encerrada</Typography>
+            <Typography color="text.secondary" sx={{ fontSize: 14 }}>Duração · {min}</Typography>
 
-            {feedbackBlock}
+            <Box sx={{ mt: 2.75, p: 2, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'rgba(32,178,170,0.18)', textAlign: 'left' }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', mb: 1, textAlign: 'center' }}>
+                Como foi a teleconsulta?
+              </Typography>
 
-            <Box sx={{ mt: 2.5, textAlign: 'left' }}>
-              <TextField multiline minRows={3} maxRows={6} fullWidth value={note} onChange={(e) => { setNote(e.target.value); setNoteSaved(false); }}
-                placeholder="Nota rápida sobre a consulta (opcional)" slotProps={{ htmlInput: { 'aria-label': 'Nota rápida sobre a consulta' } }}
-                sx={{ '& .MuiInputBase-root': { fontSize: 14, borderRadius: '12px' } }} />
-              <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1 }}>
-                <Button size="small" onClick={saveNote} disabled={!note.trim()} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>Salvar nota</Button>
-                {noteSaved && <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Nota salva" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />}
+              <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5} sx={{ mb: 1.5 }}>
+                {[
+                  { v: 1, icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Péssima' },
+                  { v: 2, icon: <SentimentDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ruim' },
+                  { v: 3, icon: <SentimentNeutralIcon sx={{ fontSize: 30 }} />, label: 'Ok' },
+                  { v: 4, icon: <SentimentSatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Boa' },
+                  { v: 5, icon: <SentimentVerySatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ótima' },
+                ].map((o) => (
+                  <Tooltip key={o.v} title={o.label}>
+                    <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v, fbNote || note); }}
+                      sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
+                      {o.icon}
+                    </IconButton>
+                  </Tooltip>
+                ))}
               </Stack>
-              <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5, fontSize: 11 }}>Fica salva neste aparelho.</Typography>
+
+              <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
+                Toque para adicionar itens rápidos:
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" useFlexGap spacing={0.75} sx={{ mb: 1.75 }}>
+                {PRESET_TAGS.map((tag) => {
+                  const sel = (fbNote || note).includes(tag);
+                  return (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      size="small"
+                      clickable
+                      onClick={() => togglePresetTag(tag)}
+                      sx={{
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        borderRadius: '999px',
+                        bgcolor: sel ? 'rgba(32,178,170,0.22)' : 'rgba(0,0,0,0.04)',
+                        color: sel ? '#0f766e' : 'text.primary',
+                        border: '1px solid',
+                        borderColor: sel ? '#20b2aa' : 'divider',
+                      }}
+                    />
+                  );
+                })}
+              </Stack>
+
+              <TextField
+                multiline
+                minRows={3}
+                maxRows={6}
+                fullWidth
+                size="small"
+                value={note || fbNote}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNote(val);
+                  setFbNote(val);
+                  setNoteSaved(false);
+                  setFbSent(false);
+                }}
+                placeholder="Anotações clínicas ou observações da consulta (opcional)…"
+                slotProps={{ htmlInput: { 'aria-label': 'Anotações clínicas da consulta' } }}
+                sx={{ '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '12px' } }}
+              />
+
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.5 }}>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => { void sendFeedback(fbRating ?? 5, note || fbNote); saveNote(); }}
+                  disabled={fbSent && noteSaved}
+                  sx={{
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    fontWeight: 700,
+                    fontSize: 12.5,
+                    borderColor: 'rgba(32,178,170,.45)',
+                    color: (t) => tealText(t.palette.mode),
+                    '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.06)' },
+                  }}
+                >
+                  {noteSaved ? 'Anotação salva ✓' : 'Salvar avaliação e anotações'}
+                </Button>
+                {noteSaved && (
+                  <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Salva no aparelho" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
+                )}
+              </Stack>
             </Box>
 
             <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
-              Voltar à ficha
+              Voltar ao Prontuário
             </Button>
           </CardContent>
         </Card>

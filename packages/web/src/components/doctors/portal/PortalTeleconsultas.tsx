@@ -40,6 +40,7 @@ interface PortalTeleconsultasProps {
   onOpenPost: (teleId: string) => void;
   onNewTele: (patientId?: string) => void;
   teleSummaries?: Record<string, TeleconsultaSummary>;
+  initialSearch?: string;
 }
 
 export const PortalTeleconsultas = ({
@@ -51,10 +52,15 @@ export const PortalTeleconsultas = ({
   onOpenPost,
   onNewTele,
   teleSummaries = {},
+  initialSearch = '',
 }: PortalTeleconsultasProps) => {
   const theme = useTheme();
   const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(initialSearch);
+
+  useEffect(() => {
+    if (initialSearch !== undefined) setSearch(initialSearch);
+  }, [initialSearch]);
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -323,9 +329,15 @@ export const PortalTeleconsultas = ({
       ) : (
         <Stack spacing={2}>
           {filtered.map((tc) => {
-            const pat = tc.patient;
-            const pName = pat?.fullName || 'Paciente';
-            const dt = new Date(tc.dueDate).toLocaleString('pt-BR', {
+            const matchedPatient = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
+            const pat = tc.patient || matchedPatient?.patient || matchedPatient;
+            const pName = pat?.fullName || pat?.name || 'Paciente';
+            const pPhoto = pat?.photoUrl || tc.patient?.photoUrl;
+            const dateObj = new Date(tc.dueDate);
+            const dayNum = dateObj.toLocaleDateString('pt-BR', { day: '2-digit' });
+            const monthShort = dateObj.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
+            const timeStr = dateObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const dt = dateObj.toLocaleString('pt-BR', {
               weekday: 'short',
               day: '2-digit',
               month: '2-digit',
@@ -354,7 +366,7 @@ export const PortalTeleconsultas = ({
                 }}
               >
                 <Stack spacing={2}>
-                  {/* LINHA SUPERIOR: Paciente, Sala e Status */}
+                  {/* LINHA SUPERIOR: Data/Calendário, Paciente com Foto, Sala e Status */}
                   <Stack
                     direction={{ xs: 'column', sm: 'row' }}
                     alignItems={{ xs: 'flex-start', sm: 'center' }}
@@ -362,7 +374,37 @@ export const PortalTeleconsultas = ({
                     spacing={1.5}
                   >
                     <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                      {/* Outlook-style Calendar Tile */}
+                      <Box
+                        sx={{
+                          minWidth: 54,
+                          width: 54,
+                          height: 54,
+                          borderRadius: '12px',
+                          textAlign: 'center',
+                          bgcolor: isToday ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.12)',
+                          border: '1.5px solid',
+                          borderColor: isToday ? '#0f766e' : 'rgba(212,165,116,0.35)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 9.5, fontWeight: 800, color: isToday ? '#0f766e' : 'secondary.dark', letterSpacing: '0.04em', lineHeight: 1 }}>
+                          {monthShort}
+                        </Typography>
+                        <Typography sx={{ fontSize: 18, fontWeight: 900, lineHeight: 1.15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+                          {dayNum}
+                        </Typography>
+                        <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'text.secondary', lineHeight: 1 }}>
+                          {timeStr}
+                        </Typography>
+                      </Box>
+
                       <Avatar
+                        src={pPhoto}
                         sx={{
                           width: 44,
                           height: 44,
@@ -371,6 +413,7 @@ export const PortalTeleconsultas = ({
                           bgcolor: 'rgba(15,118,110,0.14)',
                           color: '#0f766e',
                           border: '2px solid rgba(15,118,110,0.25)',
+                          flexShrink: 0,
                         }}
                       >
                         {pName.charAt(0).toUpperCase()}
@@ -380,11 +423,11 @@ export const PortalTeleconsultas = ({
                           <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary' }}>
                             {pName}
                           </Typography>
-                          {pat?.id && (
+                          {(pat?.id || tc.patientId) && (
                             <Button
                               size="small"
                               startIcon={<PersonOutlineIcon sx={{ fontSize: 14 }} />}
-                              onClick={() => onOpenPatient({ patient: pat, id: pat.id })}
+                              onClick={() => onOpenPatient(matchedPatient || { patient: pat, id: pat?.id || tc.patientId })}
                               sx={{
                                 py: 0.2,
                                 px: 1,

@@ -619,12 +619,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const fmtDate = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR') : 's/d';
 
   const handleEnterTele = (tc: any, patientName?: string) => {
+    const pFullName = patientName || tc.patient?.fullName || selected?.patient?.fullName || selected?.patient?.name;
+    const pPhoto = tc.patient?.photoUrl || selected?.patient?.photoUrl;
+    const pId = tc.patient?.id || selected?.patient?.id;
+    const navState = {
+      reminder: tc,
+      patientName: pFullName,
+      patient: { id: pId, name: pFullName, photoUrl: pPhoto },
+    };
     if (tc.provider === 'livekit' || (!tc.linkUrl && tc.id)) {
-      navigate(`/teleconsulta/${tc.id}?role=doctor`, { state: { reminder: tc, patientName: patientName || tc.patient?.fullName } });
+      navigate(`/teleconsulta/${tc.id}?role=doctor`, { state: navState });
     } else if (tc.linkUrl) {
       void openTelemedicinaRoom(tc.linkUrl);
     } else {
-      navigate(`/teleconsulta/${tc.id}?role=doctor`, { state: { reminder: tc, patientName: patientName || tc.patient?.fullName } });
+      navigate(`/teleconsulta/${tc.id}?role=doctor`, { state: navState });
     }
   };
 
@@ -1035,6 +1043,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             onOpenPost={openPost}
             onNewTele={openTele}
             teleSummaries={teleSummaries}
+            initialSearch={teleSearch}
           />
         )}
         {/* DR. EXAME PRO — banner premium (na aba Pacientes; no Painel fica integrado na coluna lateral) */}
@@ -1172,174 +1181,187 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onScheduleTele={openTele}
             />
 
-            {/* SEÇÃO DE TELECONSULTA DO PACIENTE — exibida se houver consultas agendadas com este paciente */}
-            {patientTele.length > 0 && (
-              <AppCard kind="elevated" sx={{ p: 2, borderRadius: '16px', border: '1px solid', borderColor: 'rgba(212,165,116,0.3)', bgcolor: 'background.paper' }}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
-                  <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                    <VideocamIcon sx={{ color: 'secondary.dark', fontSize: 24 }} />
-                    <Typography sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-                      Teleconsultas agendadas
-                    </Typography>
-                    <Chip size="small" label={patientTele.length} sx={{ height: 20, bgcolor: 'rgba(212,165,116,0.18)', color: 'secondary.dark', fontWeight: 800 }} />
-                  </Stack>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}>
-                    <Button size="small" variant="outlined" startIcon={<AssignmentAddIcon />} disabled={!latestTele} onClick={() => latestTele && setReqOpenId(latestTele.id)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}>
-                      Pedir exame
-                    </Button>
-                    <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark' }}>
-                      + Nova teleconsulta
-                    </Button>
-                  </Stack>
-                </Stack>
-                <Stack spacing={1.25}>
-                  {patientTele.map((tc) => {
-                    const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    const criada = new Date(tc.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                    const pName = selected?.patient?.fullName || selected?.patient?.name || 'Paciente';
-                    return (
-                      <Box key={tc.id} id={`tele-card-${tc.id}`} sx={{
-                        p: 1.75, borderRadius: '12px',
-                        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.06)',
-                        border: '1px solid', borderColor: 'divider',
-                        ...(flashTele === tc.id && {
-                          borderColor: 'rgba(212,165,116,0.65)',
-                          animation: 'dxTeleFlash 1.2s ease-in-out 3',
-                          '@keyframes dxTeleFlash': {
-                            '0%, 100%': { boxShadow: '0 0 0 0 rgba(212,165,116,0)' },
-                            '50%': { boxShadow: '0 0 0 4px rgba(212,165,116,0.30)' },
-                          },
-                        }),
-                      }}>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
-                          <Box sx={{ minWidth: 0, flex: 1 }}>
-                            {/* Identidade da consulta: paciente + código da sala — 3 teleconsultas no
-                                mesmo horário eram indistinguíveis (bug 3-salas 19/10). */}
-                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                              <Avatar sx={{ width: 32, height: 32, fontSize: 13.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.14)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.3)' }}>
-                                {pName.charAt(0).toUpperCase()}
-                              </Avatar>
-                              <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                {pName}
-                              </Typography>
-                              <Tooltip title="Código da sala — o paciente vê o MESMO código no card dele. Confiram antes de entrar.">
-                                <Chip size="small" label={`Sala ${String(tc.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)', flexShrink: 0 }} />
-                              </Tooltip>
-                            </Stack>
-                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                              <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary' }}>
-                                {dt}
-                              </Typography>
-                              <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
-                                criada {criada}
-                              </Typography>
-                              {tc.provider === 'livekit' && (
-                                <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
-                              )}
-                              {tc.linkUrl?.includes('meet.google.com') && (
-                                <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
-                              )}
-                              <Chip
-                                size="small"
-                                label={tc.consentAt ? 'Paciente autorizou (Art. 15 CFM)' : 'Aguardando aceite do paciente'}
-                                sx={{
-                                  height: 20, fontSize: 11, fontWeight: 700,
-                                  bgcolor: tc.consentAt ? 'rgba(15,118,110,0.12)' : 'rgba(245,158,11,0.12)',
-                                  color: tc.consentAt ? '#0f766e' : '#d97706',
-                                }}
-                              />
-                              {/* F3 — chips pós-consulta (do summary em cache; clicáveis
-                                  abrem a área). Sem pedidos/transcrição → chip some. */}
-                              {(() => {
-                                const s: TeleconsultaSummary | undefined = teleSummaries[tc.id];
-                                if (!s) return null;
-                                const pend = (s.examRequests ?? []).filter((r) => r.status === 'pending').length;
-                                const hasTr = !!s.transcript?.at;
-                                if (!pend && !hasTr) return null;
-                                return (<>
-                                  {pend > 0 && (
-                                    <Chip size="small" label={`${pend} ${pend === 1 ? 'pedido' : 'pedidos'}`} onClick={() => void openPost(tc.id)} aria-label={`Ver ${pend} ${pend === 1 ? 'pedido do médico' : 'pedidos do médico'}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'), color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }} />
-                                  )}
-                                  {hasTr && (
-                                    <Chip size="small" label="Transcrição ✓" onClick={() => void openPost(tc.id)} aria-label="Ver transcrição da consulta" sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)'), color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />
-                                  )}
-                                </>);
-                              })()}
-                            </Stack>
-                            <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
-                              {tc.title || 'Teleconsulta médica'} {tc.recurrence ? `• Repete ${tc.recurrence}` : ''}
-                            </Typography>
-                          </Box>
+            {/* SEÇÃO COMPACTA DE TELECONSULTA DO PACIENTE — mostra a próxima consulta e link direto p/ Agenda */}
+            {patientTele.length > 0 && (() => {
+              const nowMs = Date.now();
+              // Prioriza próxima agendada (futura), senão a mais recente
+              const upcoming = patientTele.find((t) => new Date(t.dueDate).getTime() >= nowMs - 1800000) || patientTele[0];
+              const pName = selected?.patient?.fullName || selected?.patient?.name || 'Paciente';
+              const pPhoto = selected?.patient?.photoUrl || selected?.photoUrl || upcoming.patient?.photoUrl;
+              const dt = new Date(upcoming.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+              const isFuture = new Date(upcoming.dueDate).getTime() >= nowMs;
 
-                          <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'flex-end', sm: 'flex-start' } }}>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              startIcon={<VideocamIcon />}
-                              onClick={() => handleEnterTele(tc, pName)}
-                              sx={{
-                                borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                                bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d655f' },
-                                px: 2.2, py: 0.7, flex: { xs: 1, sm: 'none' },
-                                boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
-                              }}
-                            >
-                              Entrar na sala
-                            </Button>
-                            {/* F3 — área pós-consulta: transcrição + pedidos + feedback. */}
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<SummarizeIcon />}
-                              onClick={() => void openPost(tc.id)}
-                              sx={{
-                                borderRadius: '999px', textTransform: 'none', fontWeight: 700,
-                                borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
-                                px: 1.75, flex: { xs: '1 1 100%', sm: 'none' },
-                              }}
-                            >
-                              Ver pós-consulta
-                            </Button>
-                            {tc.linkUrl && (
-                              <IconButton
-                                size="small"
-                                title="Copiar link da reunião"
-                                aria-label="Copiar link da reunião"
-                                onClick={() => {
-                                  navigator.clipboard.writeText(tc.linkUrl);
-                                  snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
-                                }}
-                                sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
-                              >
-                                <ContentCopyIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              color="error"
-                              startIcon={<DeleteOutlinedIcon />}
-                              onClick={() => cancelTele(tc.id, selected.patient.id)}
-                              sx={{
-                                borderRadius: '999px',
-                                textTransform: 'none',
-                                fontWeight: 700,
-                                px: 1.5,
-                                borderColor: 'rgba(239,68,68,0.35)',
-                                color: 'error.main',
-                                '&:hover': { borderColor: 'error.main', bgcolor: 'rgba(239,68,68,0.06)' },
-                              }}
-                            >
-                              Cancelar
-                            </Button>
-                          </Stack>
-                        </Stack>
+              return (
+                <AppCard kind="elevated" sx={{ p: 2.25, borderRadius: '16px', border: '1px solid', borderColor: isFuture ? 'rgba(15,118,110,0.35)' : 'rgba(212,165,116,0.3)', bgcolor: 'background.paper' }}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
+                    <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap">
+                      <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#0f766e' : 'secondary.dark' }}>
+                        <VideocamIcon sx={{ fontSize: 20 }} />
                       </Box>
-                    );
-                  })}
-                </Stack>
-              </AppCard>
-            )}
+                      <Box>
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
+                          {isFuture ? 'Próxima Teleconsulta' : 'Última Teleconsulta'}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                          {dt}
+                        </Typography>
+                      </Box>
+                      <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
+                      {upcoming.provider === 'livekit' && (
+                        <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
+                      )}
+                    </Stack>
+
+                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          setTeleSearch(pName);
+                          setView('teleconsultas');
+                          setSelected(null);
+                          setSelExam(null);
+                        }}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: 12.5,
+                          borderRadius: '999px',
+                          borderColor: 'rgba(15,118,110,0.4)',
+                          color: '#0f766e',
+                          '&:hover': { bgcolor: 'rgba(15,118,110,0.08)', borderColor: '#0f766e' },
+                        }}
+                      >
+                        Ver todas na Agenda ({patientTele.length}) →
+                      </Button>
+                      <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark', fontSize: 12.5 }}>
+                        + Nova
+                      </Button>
+                    </Stack>
+                  </Stack>
+
+                  {/* Detalhes da Próxima Teleconsulta */}
+                  <Box sx={{
+                    p: 1.75, borderRadius: '12px',
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.06)',
+                    border: '1px solid', borderColor: 'divider',
+                  }}>
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
+                      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                        <Avatar src={pPhoto} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.14)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.3)' }}>
+                          {pName.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                            <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+                              {upcoming.title || 'Teleconsulta médica'}
+                            </Typography>
+                            <Chip
+                              size="small"
+                              label={upcoming.consentAt ? 'Paciente autorizou (Art. 15 CFM)' : 'Aguardando aceite do paciente'}
+                              sx={{
+                                height: 20, fontSize: 10.5, fontWeight: 700,
+                                bgcolor: upcoming.consentAt ? 'rgba(15,118,110,0.12)' : 'rgba(245,158,11,0.12)',
+                                color: upcoming.consentAt ? '#0f766e' : '#d97706',
+                              }}
+                            />
+                          </Stack>
+                          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
+                            {dt} {upcoming.recurrence ? `• Repete ${upcoming.recurrence}` : ''}
+                          </Typography>
+                        </Box>
+                      </Stack>
+
+                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} alignItems="center" sx={{ justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          startIcon={<VideocamIcon />}
+                          onClick={() => handleEnterTele(upcoming, pName)}
+                          sx={{
+                            borderRadius: '999px', textTransform: 'none', fontWeight: 800,
+                            bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d655f' },
+                            px: 2.2, py: 0.6, fontSize: 13,
+                            boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
+                          }}
+                        >
+                          Entrar na sala
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          startIcon={<AssignmentAddIcon />}
+                          onClick={() => setReqOpenId(upcoming.id)}
+                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}
+                        >
+                          Pedir exame
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<SummarizeIcon />}
+                          onClick={() => void openPost(upcoming.id)}
+                          sx={{
+                            borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
+                            borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
+                          }}
+                        >
+                          Pós-consulta
+                        </Button>
+                        {upcoming.linkUrl && (
+                          <IconButton
+                            size="small"
+                            title="Copiar link da reunião"
+                            aria-label="Copiar link da reunião"
+                            onClick={() => {
+                              navigator.clipboard.writeText(upcoming.linkUrl);
+                              snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
+                            }}
+                            sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                          >
+                            <ContentCopyIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          color="error"
+                          startIcon={<DeleteOutlinedIcon />}
+                          onClick={() => cancelTele(upcoming.id, selected.patient.id)}
+                          sx={{
+                            borderRadius: '999px',
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            borderColor: 'rgba(239,68,68,0.35)',
+                            color: 'error.main',
+                            '&:hover': { borderColor: 'error.main', bgcolor: 'rgba(239,68,68,0.06)' },
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Box>
+                  {patientTele.length > 1 && (
+                    <Typography
+                      onClick={() => {
+                        setTeleSearch(pName);
+                        setView('teleconsultas');
+                        setSelected(null);
+                        setSelExam(null);
+                      }}
+                      sx={{
+                        fontSize: 11.5, color: '#0f766e', mt: 1, textAlign: 'center', cursor: 'pointer', fontWeight: 700,
+                        '&:hover': { textDecoration: 'underline' }
+                      }}
+                    >
+                      Exibindo a consulta em destaque. Há mais {patientTele.length - 1} {patientTele.length - 1 === 1 ? 'consulta' : 'consultas'} no histórico da Agenda →
+                    </Typography>
+                  )}
+                </AppCard>
+              );
+            })()}
 
 
 
@@ -1584,12 +1606,33 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               value={telePatId}
               onChange={(e) => setTelePatId(e.target.value)}
               fullWidth
+              InputLabelProps={{ shrink: true }}
               sx={{ mb: 2, mt: 1 }}
             >
               {patients.map((p) => {
                 const id = p.patient?.id || p.id;
                 const name = p.patient?.fullName || p.name || 'Paciente';
-                return <MenuItem key={id} value={id}>{name}</MenuItem>;
+                const photo = p.patient?.photoUrl || p.photoUrl;
+                return (
+                  <MenuItem key={id} value={id}>
+                    <Stack direction="row" spacing={1.25} alignItems="center">
+                      <Avatar
+                        src={photo}
+                        sx={{
+                          width: 28,
+                          height: 28,
+                          fontSize: 12,
+                          bgcolor: 'rgba(32,178,170,.15)',
+                          color: '#0f766e',
+                          fontWeight: 800,
+                        }}
+                      >
+                        {name.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>{name}</Typography>
+                    </Stack>
+                  </MenuItem>
+                );
               })}
             </TextField>
           )}
@@ -1598,37 +1641,83 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Typography>
 
           <Stack spacing={2}>
-            {/* Atalhos rápidos de data */}
+            {/* Atalhos rápidos de data — apenas horários futuros */}
             <Box>
               <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.75 }}>
                 Atalhos rápidos:
               </Typography>
               <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {[
-                  { label: 'Hoje 17h', get: () => { const d = new Date(); return { date: d.toISOString().split('T')[0], time: '17:00' }; } },
-                  { label: 'Amanhã 14h', get: () => { const d = new Date(Date.now() + 86400000); return { date: d.toISOString().split('T')[0], time: '14:00' }; } },
-                  { label: 'Em 3 dias 10h', get: () => { const d = new Date(Date.now() + 3 * 86400000); return { date: d.toISOString().split('T')[0], time: '10:00' }; } },
-                  { label: 'Próxima semana', get: () => { const d = new Date(Date.now() + 7 * 86400000); return { date: d.toISOString().split('T')[0], time: '14:00' }; } },
-                ].map((chip) => (
-                  <Chip
-                    key={chip.label}
-                    label={chip.label}
-                    size="small"
-                    onClick={() => {
-                      const val = chip.get();
-                      setTele((prev) => ({ ...prev, date: val.date, time: val.time }));
-                    }}
-                    sx={{ fontWeight: 700, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(212,165,116,.2)' } }}
-                  />
-                ))}
+                {(() => {
+                  const now = new Date();
+                  const currentHour = now.getHours();
+                  const todayDate = now.toISOString().split('T')[0];
+                  const nextH = Math.min(23, currentHour + 1);
+                  const nextHourStr = `${nextH.toString().padStart(2, '0')}:00`;
+                  const tom = new Date(Date.now() + 86400000);
+                  const in3 = new Date(Date.now() + 3 * 86400000);
+                  const nextW = new Date(Date.now() + 7 * 86400000);
+
+                  const shortcuts = [];
+                  if (currentHour < 22) {
+                    shortcuts.push({ label: `Hoje ${nextHourStr}`, get: () => ({ date: todayDate, time: nextHourStr }) });
+                  }
+                  shortcuts.push({ label: 'Amanhã 10h', get: () => ({ date: tom.toISOString().split('T')[0], time: '10:00' }) });
+                  shortcuts.push({ label: 'Amanhã 14h', get: () => ({ date: tom.toISOString().split('T')[0], time: '14:00' }) });
+                  shortcuts.push({ label: 'Em 3 dias 10h', get: () => ({ date: in3.toISOString().split('T')[0], time: '10:00' }) });
+                  shortcuts.push({ label: 'Próxima semana', get: () => ({ date: nextW.toISOString().split('T')[0], time: '14:00' }) });
+
+                  return shortcuts.map((chip) => (
+                    <Chip
+                      key={chip.label}
+                      label={chip.label}
+                      size="small"
+                      onClick={() => {
+                        const val = chip.get();
+                        setTele((prev) => ({ ...prev, date: val.date, time: val.time }));
+                      }}
+                      sx={{ fontWeight: 700, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(212,165,116,.2)' } }}
+                    />
+                  ));
+                })()}
               </Stack>
             </Box>
 
-            {/* Campos de Data e Hora */}
+            {/* Campos de Data e Hora com restrição mínima de data */}
             <Stack direction="row" spacing={1.5}>
-              <TextField type="date" label="Data da consulta" value={tele.date} onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))} InputLabelProps={{ shrink: true }} sx={{ flex: 1.2 }} size="small" />
-              <TextField type="time" label="Horário" value={tele.time} onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))} InputLabelProps={{ shrink: true }} sx={{ flex: 0.8 }} size="small" />
+              <TextField
+                type="date"
+                label="Data da consulta"
+                value={tele.date}
+                onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ min: new Date().toISOString().split('T')[0] }}
+                sx={{ flex: 1.2 }}
+                size="small"
+              />
+              <TextField
+                type="time"
+                label="Horário"
+                value={tele.time}
+                onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                sx={{ flex: 0.8 }}
+                size="small"
+              />
             </Stack>
+
+            {/* Alerta explícito de data/hora no passado */}
+            {(() => {
+              if (!tele.date) return null;
+              const dt = new Date(`${tele.date}T${tele.time || '14:00'}`);
+              const isPast = !isNaN(dt.getTime()) && dt.getTime() <= Date.now();
+              if (!isPast) return null;
+              return (
+                <Box sx={{ p: 1.25, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#dc2626', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <span>⚠️</span>
+                  <span>Este horário já passou. Escolha um horário futuro para agendar.</span>
+                </Box>
+              );
+            })()}
 
             {/* Provedor da chamada: LiveKit no app > Google Meet > link manual */}
             <Box sx={{ p: 1.75, borderRadius: '12px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.08)', border: '1px solid', borderColor: 'rgba(212,165,116,0.25)' }}>
@@ -1690,12 +1779,26 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               )}
             </Box>
 
-            {/* Título & Recorrência */}
+            {/* Título & Recorrência (Select sem sobreposição) */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
               <TextField label="Motivo / Título (opcional)" placeholder={`Teleconsulta com Dr(a). ${doctor?.name?.split(' ')[0] ?? ''}`} value={tele.title} onChange={(e) => setTele((t) => ({ ...t, title: e.target.value }))} size="small" sx={{ flex: 1.2 }} />
-              <TextField select SelectProps={{ native: true }} label="Repetir consulta" value={tele.recurrence} onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))} size="small" sx={{ flex: 0.8 }}>
-                {[['', 'Não repete'], ['semanal', 'Semanal'], ['mensal', 'Mensal'], ['semestral', 'Semestral'], ['anual', 'Anual']].map(([v, l]) => (
-                  <option key={v} value={v}>{l}</option>
+              <TextField
+                select
+                label="Repetir consulta"
+                value={tele.recurrence}
+                onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))}
+                size="small"
+                sx={{ flex: 0.8 }}
+                InputLabelProps={{ shrink: true }}
+              >
+                {[
+                  ['', 'Não repete'],
+                  ['semanal', 'Semanal'],
+                  ['mensal', 'Mensal'],
+                  ['semestral', 'Semestral'],
+                  ['anual', 'Anual'],
+                ].map(([v, l]) => (
+                  <MenuItem key={v} value={v}>{l}</MenuItem>
                 ))}
               </TextField>
             </Stack>
@@ -1706,7 +1809,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <Button
             variant="contained"
             onClick={() => void scheduleTele()}
-            disabled={teleBusy || !tele.date || (!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && !/^https?:\/\//i.test(tele.link.trim()))}
+            disabled={
+              teleBusy ||
+              !tele.date ||
+              (() => {
+                const dt = new Date(`${tele.date}T${tele.time || '14:00'}`);
+                return !isNaN(dt.getTime()) && dt.getTime() <= Date.now();
+              })() ||
+              (!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && !/^https?:\/\//i.test(tele.link.trim()))
+            }
             sx={{
               borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3,
               background: 'linear-gradient(135deg,#d4a574,#b88a54)',

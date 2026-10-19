@@ -148,7 +148,18 @@ router.put('/:id/consent', async (req: AuthedRequest, res, next) => {
 router.delete('/:id', async (req: AuthedRequest, res, next) => {
   try {
     const existing = await prisma.reminder.findUnique({ where: { id: String(req.params.id) } });
-    if (!existing || existing.ownerId !== req.userId) { res.status(404).json({ error: 'Lembrete não encontrado' }); return; }
+    if (!existing) { res.status(404).json({ error: 'Lembrete não encontrado' }); return; }
+    
+    // Verifica se o usuário é o dono do lembrete OU o dono do paciente vinculado
+    let hasAccess = existing.ownerId === req.userId;
+    if (!hasAccess && existing.patientId) {
+      const pat = await prisma.patient.findFirst({ where: { id: existing.patientId, ownerId: req.userId } });
+      if (pat) hasAccess = true;
+    }
+    if (!hasAccess) { res.status(403).json({ error: 'Sem permissão para excluir este lembrete.' }); return; }
+
+    // Desvincula pedidos de exame antes de deletar
+    await prisma.examRequest.updateMany({ where: { reminderId: existing.id }, data: { reminderId: null } }).catch(() => {});
     await prisma.reminder.delete({ where: { id: existing.id } });
     res.json({ id: existing.id });
   } catch (e) { next(e); }

@@ -1057,16 +1057,23 @@ router.get('/patients/:patientId/teleconsultas', requireDoctor, async (req: any,
   } catch (e) { next(e); }
 });
 
-// LISTA GERAL DE TELECONSULTAS DO MÉDICO (para o painel/overview do médico)
+// LISTA GERAL DE TELECONSULTAS DO MÉDICO (para o painel/overview e agenda de teleconsultas)
 router.get('/teleconsultas', requireDoctor, async (req: any, res, next) => {
   try {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    // Pacientes compartilhados com o médico
+    const shares = await prisma.doctorShare.findMany({
+      where: { doctorId: req.doctorId, revokedAt: null },
+      select: { patientId: true },
+    });
+    const sharedPids = shares.map((s) => s.patientId).filter(Boolean);
+
     const items = await prisma.reminder.findMany({
       where: {
-        createdByDoctorId: req.doctorId,
         type: 'teleconsulta',
-        dueDate: { gte: todayStart },
+        OR: [
+          { createdByDoctorId: req.doctorId },
+          ...(sharedPids.length > 0 ? [{ patientId: { in: sharedPids } }] : []),
+        ],
       },
       orderBy: { dueDate: 'asc' },
     });
@@ -1076,7 +1083,7 @@ router.get('/teleconsultas', requireDoctor, async (req: any, res, next) => {
     if (pids.length > 0) {
       const pats = await prisma.patient.findMany({
         where: { id: { in: pids } },
-        select: { id: true, fullName: true, birthDate: true, sex: true },
+        select: { id: true, fullName: true, birthDate: true, sex: true, photoUrl: true },
       });
       patientMap = Object.fromEntries(pats.map((p) => [p.id, p]));
     }
@@ -1097,14 +1104,13 @@ router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, as
     const pid = String(req.params.patientId);
     const rid = String(req.params.reminderId);
     const found = await prisma.reminder.findFirst({
-      where: { id: rid, patientId: pid, createdByDoctorId: req.doctorId },
+      where: { id: rid, patientId: pid },
     });
-    if (!found) { res.status(404).json({ error: 'Teleconsulta não encontrada ou sem permissão para cancelar.' }); return; }
-    // F3 (20/10): pedidos de exame feitos NA chamada SOBREVIVEM à exclusão (histórico do
-    // paciente) — só desvinculam da teleconsulta (reminderId nullable no ExamRequest).
-    await prisma.examRequest.updateMany({ where: { reminderId: rid }, data: { reminderId: null } }).catch(() => { /* histórico segue mesmo se falhar */ });
+    if (!found) { res.status(404).json({ error: 'Teleconsulta não encontrada.' }); return; }
+    // F3 (20/10): pedidos de exame feitos NA chamada SOBREVIVEM à exclusão
+    await prisma.examRequest.updateMany({ where: { reminderId: rid }, data: { reminderId: null } }).catch(() => {});
     await prisma.reminder.delete({ where: { id: rid } });
-    res.json({ success: true });
+    res.json({ success: true, id: rid });
   } catch (e) { next(e); }
 });
 

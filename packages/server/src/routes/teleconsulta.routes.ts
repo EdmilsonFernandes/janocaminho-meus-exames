@@ -82,7 +82,7 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     // Select EXPLÍCITO + fallback drift-safe (P2-reviewer): provider/roomName são colunas
     // novas — se o banco legado ainda não as tem (migration não aplicada), caímos no select
     // sem elas e seguimos pro 501 graceful em vez de 500 (padrão subscriptions, TASK_RULES).
-    const baseSelect = { id: true, type: true, patientId: true, consentAt: true, linkUrl: true, title: true, dueDate: true };
+    const baseSelect = { id: true, type: true, patientId: true, createdByDoctorId: true, consentAt: true, linkUrl: true, title: true, dueDate: true };
     const reminder: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, provider: true, roomName: true } })
       .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
         ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
@@ -320,9 +320,17 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       where: { reminderId: r.id },
       orderBy: { createdAt: 'asc' },
     }).catch(() => []);
-    const [feedbackLog, joinLogs] = await Promise.all([
+    const [feedbackLog, joinLogs, patient, doctor] = await Promise.all([
       prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_FEEDBACK', targetId: r.id }, orderBy: { createdAt: 'desc' } }),
       prisma.auditLog.findMany({ where: { action: 'TELECONSULTA_JOIN', targetId: r.id }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
+      r.patientId ? prisma.patient.findUnique({
+        where: { id: r.patientId },
+        select: { id: true, name: true, photoUrl: true },
+      }).catch(() => null) : null,
+      (r as any).createdByDoctorId ? prisma.doctor.findUnique({
+        where: { id: (r as any).createdByDoctorId },
+        select: { name: true, crm: true, crmState: true, specialty: true, avatarUrl: true },
+      }).catch(() => null) : null,
     ]);
     const fb: any = feedbackLog?.after ?? null;
     let durationHint: string | null = null;
@@ -338,6 +346,13 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,
       durationHint,
       stt: hasStt(), // reviewer-L: client esconde checkbox de gravação quando false
+      patient: patient ? { id: patient.id, name: patient.name, photoUrl: patient.photoUrl } : null,
+      doctor: doctor ? {
+        name: doctor.name,
+        crm: doctor.crm ? `${doctor.crm}${doctor.crmState ? `/${doctor.crmState}` : ''}` : undefined,
+        specialty: doctor.specialty || undefined,
+        photoUrl: doctor.avatarUrl || undefined,
+      } : null,
     });
   } catch (e) {
     next(e);
