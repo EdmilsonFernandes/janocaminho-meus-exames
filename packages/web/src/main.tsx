@@ -1,4 +1,5 @@
 import './utils/fetch-cache'; // OFFLINE-FIRST: instala o cache de fetch ANTES de qualquer request
+import { installDiag } from './utils/diag';
 try {
   installDiag(); // ring buffer de erros + captura global → "enviar diagnóstico" no Perfil
 } catch (e) {
