@@ -6,7 +6,7 @@
 // reload() (crasha o APK); zero jargão ("consulta/chamada", nunca room/track/token).
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material';
+import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useTheme, Avatar } from '@mui/material';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import MicIcon from '@mui/icons-material/Mic';
@@ -37,6 +37,15 @@ import type { ExamRequest, ExamRequestAction, TeleconsultaSummary as TeleSummary
 
 // ── Tokens fixos da spec (§5) ──────────────────────────────────────────────────
 const CALL_BG = '#0c1818'; // fundo in-call — fixo nos 2 modos (vídeo é o herói)
+// Fundo premium com padrão sutil de consultório (gradiente + cross-hatch CSS)
+const CALL_BG_STYLE = {
+  bgcolor: CALL_BG,
+  backgroundImage: `
+    radial-gradient(ellipse at 20% 80%, rgba(32,178,170,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(212,165,116,0.04) 0%, transparent 50%),
+    linear-gradient(135deg, #0a1616 0%, #0c1818 40%, #0e1e1e 100%)
+  `,
+} as const;
 const GLASS = 'rgba(15,24,24,.68)';
 const GLASS_FILTER = 'blur(18px) saturate(160%)';
 const COPPER = '#d4a574';
@@ -157,6 +166,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [banner, setBanner] = useState<'connecting' | 'reconnecting' | null>(null);
   const [toast, setToast] = useState<{ text: string; k: number } | null>(null);
   const [remotes, setRemotes] = useState<RemoteView[]>([]);
+  const [otherJoined, setOtherJoined] = useState(false); // alguém já entrou (para diferenciar "aguardando" de "saiu")
+  const [remoteLeft, setRemoteLeft] = useState<string | null>(null); // nome de quem saiu ("Dr(a). X saiu da chamada")
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [localVideo, setLocalVideo] = useState<LocalVideoTrack | null>(null);
@@ -418,11 +429,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         upsertRemote(p);
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
         setToast({ text: `${displayName} entrou ✨`, k: Date.now() });
+        setOtherJoined(true);
+        setRemoteLeft(null);
         playJoinChime();
         hapticSuccess();
       })
       .on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
+        const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
         setRemotes((cur) => cur.filter((r) => r.identity !== p.identity));
+        setRemoteLeft(displayName);
         playLeaveChime();
       })
       .on(RoomEvent.Reconnecting, () => setBanner('reconnecting'))
@@ -612,12 +627,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     else stopPreview();
   }, [phase, openPreview, stopPreview]);
 
-  // Ringback: toca enquanto "Aguardando…" (incall + ninguém conectado). Para no 1º join.
+  // Ringback: toca enquanto "Aguardando…" (incall + ninguém conectado AINDA). Para no
+  // 1º join e NÃO religa quando o outro sai (evita tocar eternamente).
   useEffect(() => {
-    if (phase === 'incall' && remotes.length === 0) startRingback();
+    if (phase === 'incall' && remotes.length === 0 && !otherJoined) startRingback();
     else stopRingback();
     return () => { stopRingback(); };
-  }, [phase, remotes.length, startRingback, stopRingback]);
+  }, [phase, remotes.length, otherJoined, startRingback, stopRingback]);
 
   // Beep de gravação: só enquanto gravando (LGPD — cortesia auditiva).
   useEffect(() => {
@@ -754,12 +770,26 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   }, [phase, role, summary?.recordConsentAt, txRetry]);
 
   // ── Ações da chamada ─────────────────────────────────────────────────────────
+  // Dono 20/10: "ao clicar no microfone ou câmera não ativa, fala que não é possível
+  // mexer" — causa: estado inicial dizia ON mesmo quando getUserMedia falhou; o toggle
+  // tentava DESLIGAR (que "funciona" no vazio) mas LIGAR falhava de novo. Agora:
+  // erro específico com CTA de permissão + retry real.
   const toggleMic = useCallback(async () => {
     hapticLight();
     const room = roomRef.current;
     if (!room) return;
-    try { await room.localParticipant.setMicrophoneEnabled(!micOn); setMicOn(!micOn); }
-    catch { setToast({ text: 'Não deu pra mexer no microfone.', k: Date.now() }); }
+    try {
+      if (!micOn) {
+        await room.localParticipant.setMicrophoneEnabled(true);
+        setMicOn(true);
+      } else {
+        await room.localParticipant.setMicrophoneEnabled(false);
+        setMicOn(false);
+      }
+    } catch {
+      setToast({ text: 'Microfone bloqueado pelo navegador — clique no ícone 🔒 na barra de endereço e permita o microfone.', k: Date.now() });
+      hapticError();
+    }
   }, [micOn]);
 
   const toggleCam = useCallback(async () => {
@@ -767,10 +797,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const room = roomRef.current;
     if (!room) return;
     try {
-      if (!camOn) { const pub = await room.localParticipant.setCameraEnabled(true); setLocalVideo(pub?.videoTrack ?? null); }
-      else { await room.localParticipant.setCameraEnabled(false); setLocalVideo(null); }
-      setCamOn(!camOn);
-    } catch { setToast({ text: 'Não deu pra mexer na câmera.', k: Date.now() }); }
+      if (!camOn) {
+        const pub = await room.localParticipant.setCameraEnabled(true);
+        setLocalVideo(pub?.videoTrack ?? null);
+        setCamOn(true);
+      } else {
+        await room.localParticipant.setCameraEnabled(false);
+        setLocalVideo(null);
+        setCamOn(false);
+      }
+    } catch {
+      setToast({ text: 'Câmera bloqueada pelo navegador — clique no ícone 🔒 na barra de endereço e permita a câmera.', k: Date.now() });
+      hapticError();
+    }
   }, [camOn]);
 
   const endCall = useCallback(async () => {
@@ -897,12 +936,39 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // ══ FASES ════════════════════════════════════════════════════════════════════
   if (phase === 'incall') {
     const mainHasVideo = main?.track && !main.muted;
+    const otherName = role === 'doctor'
+      ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || 'o paciente')
+      : (doctor?.name || main?.name || 'o médico');
     return (
-      <Box sx={{ position: 'fixed', inset: 0, bgcolor: CALL_BG, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
+      <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
         {mainHasVideo ? (
           <Box sx={{ position: 'absolute', inset: 0 }}>
             <TrackVideo track={main!.track!} />
+          </Box>
+        ) : otherJoined && remoteLeft ? (
+          /* O outro SAIU (Teams-style: você fica, mas sabe que ele foi) */
+          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
+            <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
+              <Avatar sx={{
+                width: 84, height: 84, fontSize: 30, fontWeight: 800,
+                bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)',
+              }}>
+                {initials(remoteLeft)}
+              </Avatar>
+              <Box>
+                <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18 }}>
+                  {remoteLeft} saiu da chamada
+                </Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 13, mt: 0.5, lineHeight: 1.5 }}>
+                  A chamada continua ativa do seu lado. Você pode encerrar quando quiser ou aguardar o retorno.
+                </Typography>
+              </Box>
+              <Button variant="contained" onClick={() => setEndOpen(true)} startIcon={<CallEndIcon />}
+                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: COPPER, '&:hover': { bgcolor: COPPER_DARK } }}>
+                Encerrar também
+              </Button>
+            </Stack>
           </Box>
         ) : (
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
@@ -946,9 +1012,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Box>
               <Box>
                 <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>
-                  Aguardando {role === 'doctor'
-                    ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name || 'o paciente')
-                    : (doctor?.name || main?.name || 'o médico')}…
+                  Aguardando {otherName}…
                 </Typography>
                 <Typography sx={{ color: 'rgba(255,255,255,.65)', fontSize: 13, mt: 0.5, lineHeight: 1.4 }}>
                   {role === 'doctor'
