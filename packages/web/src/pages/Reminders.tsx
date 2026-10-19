@@ -86,13 +86,29 @@ export const RemindersPage = () => {
   const [err, setErr] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false); // colapsado: agendados primeiro
   const [consentFor, setConsentFor] = useState<any | null>(null); // teleconsulta aguardando aceite
+  // F3 §4: pedidos de exame pendentes do médico, por teleconsulta (chip âmbar no card).
+  const [pendingReqs, setPendingReqs] = useState<Record<string, number>>({});
 
   const load = async () => {
     if (!pid) return;
     const r = await fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } });
     if (r.ok) setItems(await r.json());
   };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [pid]);
+  // Fetch leve dos pedidos (3g GET /api/exam-requests — role-aware no server). Fora do
+  // ar (404 pré-be1) ou offline → chip simplesmente não aparece (degradação da casa).
+  const loadExamRequests = async () => {
+    if (!pid) return;
+    try {
+      const r = await fetch(`${API_URL}/exam-requests?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } });
+      if (!r.ok) return;
+      const d = await r.json();
+      const list: any[] = Array.isArray(d?.items) ? d.items : Array.isArray(d) ? d : [];
+      const counts: Record<string, number> = {};
+      list.forEach((x) => { if (x?.status === 'pending' && x.reminderId) counts[x.reminderId] = (counts[x.reminderId] || 0) + 1; });
+      setPendingReqs(counts);
+    } catch { /* offline — sem chip */ }
+  };
+  useEffect(() => { load(); loadExamRequests(); /* eslint-disable-next-line */ }, [pid]);
 
   const toggleOffset = (o: number) => setOffsets((cur) => (cur.includes(o) ? cur.filter((x) => x !== o) : [...cur, o]));
 
@@ -136,7 +152,11 @@ export const RemindersPage = () => {
       if (!res.ok) throw new Error();
       hapticSuccess();
       setConsentFor(null);
-      await openTelemedicinaRoom(r.linkUrl);
+      if (r.linkUrl) {
+        await openTelemedicinaRoom(r.linkUrl);
+      } else {
+        navigate(`/teleconsulta/${r.id}`);
+      }
       load();
     } catch {
       hapticError();
@@ -246,13 +266,29 @@ export const RemindersPage = () => {
                       <Chip size="small" label={`Sala ${String(r.id).slice(-5).toUpperCase()}`} sx={{ height: 24, fontSize: 11.5, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
                     </Tooltip>
                   </Stack>
-                  {(r.provider === 'livekit' || r.linkUrl) && (
+                  {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
-                      {r.provider === 'livekit' ? (
+                      {(r.provider === 'livekit' || (!r.linkUrl && r.type === 'teleconsulta')) ? (
                         /* Videochamada DENTRO do app (LiveKit F2): botão leva pra rota
                            /teleconsulta/:id — consent Art.15 + câmera + chamada acontecem lá. */
                         <>
                           <Chip size="small" label="No app ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
+                          {/* F3 §4: pendência do médico — chip âmbar clicável → área da consulta. */}
+                          {(pendingReqs[r.id] ?? 0) > 0 && (
+                            <Chip
+                              size="small" clickable
+                              aria-label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico — abrir consulta`}
+                              label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico`}
+                              onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                              sx={{
+                                height: 24, fontSize: 11, fontWeight: 800, borderRadius: '8px',
+                                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'),
+                                color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e'),
+                                '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.24)' : 'rgba(245,158,11,.25)') },
+                                '&:focus-visible': { outline: '2px solid #f59e0b', outlineOffset: 1 },
+                              }}
+                            />
+                          )}
                           {r.consentAt ? (
                             <>
                               <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
@@ -269,14 +305,14 @@ export const RemindersPage = () => {
                           )}
                         </>
                       ) : (
-                        /* Fluxo link externo (Meet/Teams/WhatsApp) — comportamento anterior. */
+                        /* Fluxo link externo (Meet/Teams/WhatsApp) */
                         <>
-                          {r.linkUrl.includes('meet.google.com') && (
+                          {r.linkUrl?.includes('meet.google.com') && (
                             <Chip size="small" label="Google Meet ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
                           )}
                           {r.consentAt ? (
                             <>
-                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); void openTelemedicinaRoom(r.linkUrl); }}
+                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl); else navigate(`/teleconsulta/${r.id}`); }}
                                 sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
                                 Entrar na consulta
                               </Button>

@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, Checkbox, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../config';
@@ -69,6 +70,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
 };
 
 export const MedicosPage = () => {
+  const navigate = useNavigate();
   const translate = useTranslate();
   const notify = useNotify();
   const [pid] = useSelectedPatient();
@@ -118,14 +120,49 @@ export const MedicosPage = () => {
     } catch (e: any) { setPergMsg(e.message || 'Falha ao enviar.'); } finally { setEnviando(false); }
   };
 
-  /** Aceite Art. 15 (telemedicina) direto da tela Meus Médicos e abertura via In-App Browser */
+  /** Abrir consulta: in-app (LiveKit) ou link externo (Meet / Teams / WhatsApp) */
+  const handleEnterTele = (tc: any) => {
+    hapticLight();
+    if (tc.provider === 'livekit' || (!tc.linkUrl && tc.id)) {
+      navigate(`/teleconsulta/${tc.id}`, { state: { reminder: tc } });
+    } else if (tc.linkUrl) {
+      void openTelemedicinaRoom(tc.linkUrl);
+    } else {
+      navigate(`/teleconsulta/${tc.id}`);
+    }
+  };
+
+  /** Cancelamento de teleconsulta com confirmação */
+  const cancelTele = async (id: string) => {
+    if (!(await confirmDialog({
+      title: 'Cancelar teleconsulta',
+      message: 'Tem certeza que deseja cancelar esta teleconsulta? O médico será informado.',
+      confirmLabel: 'Sim, cancelar',
+    }))) return;
+    try {
+      const res = await fetch(`${API_URL}/reminders/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token()}` },
+      });
+      if (res.ok) {
+        notify('Teleconsulta cancelada.', { type: 'success' });
+        load();
+      } else {
+        notify('Não foi possível cancelar a consulta.', { type: 'error' });
+      }
+    } catch {
+      notify('Erro de conexão ao cancelar teleconsulta.', { type: 'error' });
+    }
+  };
+
+  /** Aceite Art. 15 (telemedicina) direto da tela Meus Médicos e abertura */
   const consentAndOpen = async (r: any) => {
     try {
       const res = await fetch(`${API_URL}/reminders/${r.id}/consent`, { method: 'PUT', headers: { Authorization: `Bearer ${token()}` } });
       if (!res.ok) throw new Error();
       hapticSuccess();
       setConsentFor(null);
-      await openTelemedicinaRoom(r.linkUrl);
+      handleEnterTele(r);
       load();
     } catch {
       notify('Falha ao autorizar telemedicina. Tente novamente.', { type: 'error' });
@@ -379,7 +416,7 @@ export const MedicosPage = () => {
                             variant="contained"
                             size="small"
                             startIcon={<VideocamIcon />}
-                            onClick={() => { hapticLight(); void openTelemedicinaRoom(tc.linkUrl); }}
+                            onClick={() => handleEnterTele(tc)}
                             sx={{
                               borderRadius: '999px',
                               textTransform: 'none',
@@ -412,6 +449,24 @@ export const MedicosPage = () => {
                             Autorizar e entrar
                           </Button>
                         )}
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          color="inherit"
+                          onClick={() => void cancelTele(tc.id)}
+                          sx={{
+                            borderRadius: '999px',
+                            textTransform: 'none',
+                            fontWeight: 700,
+                            fontSize: 12,
+                            px: 1.5,
+                            borderColor: 'divider',
+                            color: 'text.secondary',
+                            '&:hover': { borderColor: 'error.main', color: 'error.main', bgcolor: 'rgba(239,68,68,.06)' },
+                          }}
+                        >
+                          Cancelar
+                        </Button>
                       </Stack>
                     </Stack>
                   </Card>

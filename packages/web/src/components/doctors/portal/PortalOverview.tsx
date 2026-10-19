@@ -27,6 +27,9 @@ interface PortalOverviewProps {
   onLoadAllQ: () => void;
   onNewInvite: () => void;
   onSetPatAlertOnly: (v: boolean) => void;
+  onCancelTele?: (reminderId: string, patientId?: string) => void;
+  onEnterTele?: (tc: any, patientName?: string) => void;
+  onViewTeleconsultas?: () => void;
 }
 
 /**
@@ -49,6 +52,9 @@ export const PortalOverview = ({
   onLoadAllQ,
   onNewInvite,
   onSetPatAlertOnly,
+  onCancelTele,
+  onEnterTele,
+  onViewTeleconsultas,
 }: PortalOverviewProps) => {
   const t = useTheme();
   const premium = premiumText(t.palette.mode); // indigo AA no modo atual (dark usa o claro)
@@ -360,6 +366,11 @@ export const PortalOverview = ({
                   </Typography>
                   <Chip size="small" label={teleconsultas.length} sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.18)', color: 'secondary.dark' }} />
                 </Stack>
+                {onViewTeleconsultas && (
+                  <Button size="small" onClick={onViewTeleconsultas} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px' }}>
+                    Ver agenda completa ›
+                  </Button>
+                )}
               </Stack>
               <Stack spacing={1.25}>
                 {teleconsultas.slice(0, 4).map((tc: any) => {
@@ -367,7 +378,7 @@ export const PortalOverview = ({
                   const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit' });
                   return (
                     <AppCard key={tc.id} kind="interactive" onClick={() => pat && onOpenPatient({ patient: pat, id: pat.id })}>
-                      <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, '&:last-child': { pb: 2 } }}>
+                      <CardContent sx={{ p: 2, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'stretch', sm: 'center' }, justifyContent: 'space-between', gap: 1.5, '&:last-child': { pb: 2 } }}>
                         <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                           <Avatar sx={{ width: 42, height: 42, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark', fontWeight: 800 }}>
                             {pat?.fullName?.charAt(0) ?? 'P'}
@@ -377,35 +388,62 @@ export const PortalOverview = ({
                               <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
                                 {pat?.fullName ?? 'Paciente'}
                               </Typography>
-                              {tc.linkUrl?.includes('meet.google.com') && (
+                              {tc.provider === 'livekit' ? (
+                                <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
+                              ) : tc.linkUrl?.includes('meet.google.com') ? (
                                 <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
-                              )}
+                              ) : null}
                             </Stack>
                             <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.25 }}>
                               📅 {dt} {tc.consentAt ? '• ✅ Paciente autorizou' : '• ⏳ Aguardando aceite'}
                             </Typography>
                           </Box>
                         </Stack>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<VideocamIcon />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            void openTelemedicinaRoom(tc.linkUrl);
-                          }}
-                          sx={{
-                            borderRadius: '999px',
-                            textTransform: 'none',
-                            fontWeight: 800,
-                            bgcolor: 'secondary.dark',
-                            '&:hover': { bgcolor: 'secondary.main' },
-                            px: 2,
-                            flexShrink: 0,
-                          }}
-                        >
-                          Abrir chamada
-                        </Button>
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ justifyContent: { xs: 'flex-end', sm: 'flex-start' }, flexShrink: 0 }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<VideocamIcon />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onEnterTele) onEnterTele(tc, pat?.fullName);
+                              else void openTelemedicinaRoom(tc.linkUrl);
+                            }}
+                            sx={{
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              bgcolor: '#0f766e',
+                              '&:hover': { bgcolor: '#0d655f' },
+                              px: 2,
+                              boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
+                            }}
+                          >
+                            Entrar na sala
+                          </Button>
+                          {onCancelTele && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              color="error"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCancelTele(tc.id, tc.patientId || pat?.id);
+                              }}
+                              sx={{
+                                borderRadius: '999px',
+                                textTransform: 'none',
+                                fontWeight: 700,
+                                px: 1.5,
+                                borderColor: 'rgba(239,68,68,0.35)',
+                                color: 'error.main',
+                                '&:hover': { borderColor: 'error.main', bgcolor: 'rgba(239,68,68,0.06)' },
+                              }}
+                            >
+                              Cancelar
+                            </Button>
+                          )}
+                        </Stack>
                       </CardContent>
                     </AppCard>
                   );
