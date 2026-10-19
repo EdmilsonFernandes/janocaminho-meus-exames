@@ -1,0 +1,88 @@
+# AAB no CI — fim do "rala demais no Windows" (18/10/26).
+# Disparo MANUAL (Actions → Mobile AAB → Run): builda o web, sincroniza o Capacitor,
+# assina com o keystore dos Secrets e publica o .aab como artifact (baixa e sobe na Play).
+#
+# Secrets necessários (Settings → Secrets → Actions — configurar UMA vez):
+#   ANDROID_KEYSTORE_B64  → base64 do arquivo .jks (upload key)
+#                            gerar: base64 -w0 upload-keystore.jks  (Linux/GitBash)
+#   ANDROID_KEYSTORE_PASSWORD, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD
+#
+# O versionCode/Name vêm do build.gradle COMMITADO (regra da casa: bump sempre antes).
+# Sem os Secrets, o job falha explicitamente (não gera AAB sem assinatura escondido).
+name: Mobile AAB
+
+on:
+  workflow_dispatch:
+    inputs:
+      notes:
+        description: 'Observações do build (opcional)'
+        required: false
+        default: ''
+
+concurrency:
+  group: mobile-aab
+  cancel-in-progress: true
+
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Dependências (workspaces)
+        run: npm ci
+
+      - name: Keystore dos Secrets
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "$KS_B64" ]; then
+            echo "::error::Secret ANDROID_KEYSTORE_B64 não configurado — não dá pra assinar. Configure os 4 Secrets (ver comentário no workflow)."
+            exit 1
+          fi
+          echo "$KS_B64" | base64 -d > packages/mobile/android/app/upload-keystore.jks
+          cat > packages/mobile/android/app/keystore.properties <<EOF
+          storeFile=upload-keystore.jks
+          storePassword=$KS_PASS
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASS
+          EOF
+
+      - name: Build web + Capacitor sync
+        run: npm run sync --workspace packages/mobile
+
+      - name: Bundle Release (AAB)
+        working-directory: packages/mobile/android
+        run: |
+          chmod +x gradlew
+          ./gradlew bundleRelease -x lint
+
+      - name: Versão + checksum
+        working-directory: packages/mobile/android
+        run: |
+          VC=$(grep -oE 'versionCode [0-9]+' app/build.gradle | head -1 | cut -d' ' -f2)
+          VN=$(grep -oE 'versionName "[^"]+"' app/build.gradle | head -1 | cut -d'"' -f2)
+          echo "AAB_VERSION=v${VN}.${VC}" >> "$GITHUB_ENV"
+          sha256sum app/build/outputs/bundle/release/app-release.aab
+
+      - name: Publicar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: drexame-${{ env.AAB_VERSION }}
+          path: packages/mobile/android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
