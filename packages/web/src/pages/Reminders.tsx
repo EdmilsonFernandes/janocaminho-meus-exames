@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import { Card, CardContent, Typography, Button, TextField, IconButton, Checkbox, Stack, Chip, Box, Collapse, Accordion, AccordionSummary, AccordionDetails, Alert, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Card, CardContent, Typography, Button, TextField, IconButton, Checkbox, Stack, Chip, Box, Collapse, Accordion, AccordionSummary, AccordionDetails, Alert, Dialog, DialogTitle, DialogContent, DialogActions, Avatar, Tooltip } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { confirmDialog } from '../components/ConfirmDialog';
@@ -222,18 +222,30 @@ export const RemindersPage = () => {
               )}
 
               {/* TELECONSULTA — ação paciente×médico: consentimento (Art. 15) desbloqueia a
-                  entrada na chamada. In-App Browser no mobile (@capacitor/browser). */}
+                  entrada na chamada. Código da sala (5 finais do id) aparece AQUI e no header
+                  da chamada — médico e paciente conferem se estão na MESMA (bug 3-salas 19/10). */}
               {isTele && (
                 <Box sx={{ mt: 1, p: 1.25, borderRadius: '12px', bgcolor: 'rgba(15,118,110,0.06)', border: '1px solid rgba(15,118,110,0.15)' }}>
-                  {r.doctor ? (
-                    <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f766e', mb: 0.5, display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                      <span>🩺 Médico:</span> <strong>{r.doctor.name}</strong> {r.doctor.specialty ? `(${r.doctor.specialty})` : ''} • CRM {r.doctor.crm}
-                    </Typography>
-                  ) : (
-                    <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: '#0f766e', mb: 0.5 }}>
-                      🩺 Teleconsulta agendada
-                    </Typography>
-                  )}
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                    <Avatar sx={{ width: 34, height: 34, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.35)' }}>
+                      {(r.doctor?.name || 'D').charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      {r.doctor ? (
+                        <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
+                          {r.doctor.name} <span style={{ fontWeight: 600, color: 'text.secondary' }}>· CRM {r.doctor.crm}{r.doctor.crmUf ? `-${r.doctor.crmUf}` : ''}</span>
+                        </Typography>
+                      ) : (
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f766e' }}>🩺 Teleconsulta agendada</Typography>
+                      )}
+                      <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
+                        {r.doctor?.specialty ? `${r.doctor.specialty} · ` : ''}criada {new Date(r.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      </Typography>
+                    </Box>
+                    <Tooltip title="Confira este código com seu médico — precisa ser igual nos dois aparelhos">
+                      <Chip size="small" label={`Sala ${String(r.id).slice(-5).toUpperCase()}`} sx={{ height: 24, fontSize: 11.5, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
+                    </Tooltip>
+                  </Stack>
                   {(r.provider === 'livekit' || r.linkUrl) && (
                     <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
                       {r.provider === 'livekit' ? (

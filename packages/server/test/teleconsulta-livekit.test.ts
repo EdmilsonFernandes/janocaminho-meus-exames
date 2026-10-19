@@ -186,3 +186,56 @@ describe('GET /api/teleconsulta/:id/join', () => {
     expect(res.status).toBe(401);
   });
 });
+
+describe('POST /api/teleconsulta/:id/feedback (F2.1)', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('paciente avalia 1-5 → 201 + audit TELECONSULTA_FEEDBACK', async () => {
+    const { user, patient, token } = await createUser();
+    const r = await createTeleconsultaReminder(user.id, patient.id, { consentAt: new Date(), provider: 'livekit', roomName: 'teleconsulta-fb1' });
+    const res = await api().post(`/api/teleconsulta/${r.id}/feedback`).set(authHeader(token)).send({ rating: 5, note: 'Áudio perfeito' });
+    expect(res.status).toBe(201);
+    const log = await prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_FEEDBACK', targetId: r.id } });
+    expect(log?.after).toMatchObject({ rating: 5, note: 'Áudio perfeito', role: 'patient' });
+  });
+
+  it('rating inválido → 400; sem auth → 401', async () => {
+    const { user, patient, token } = await createUser();
+    const r = await createTeleconsultaReminder(user.id, patient.id, { consentAt: new Date() });
+    const bad = await api().post(`/api/teleconsulta/${r.id}/feedback`).set(authHeader(token)).send({ rating: 9 });
+    expect(bad.status).toBe(400);
+    const noAuth = await api().post(`/api/teleconsulta/${r.id}/feedback`).send({ rating: 3 });
+    expect(noAuth.status).toBe(401);
+  });
+});
+
+const H2 = (t: string) => ({ Authorization: `Bearer ${t}` });
+
+describe('guarda anti-duplicata do médico (409/force)', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('2ª teleconsulta NO MESMO DIA → 409 com existing; force:true → 201', async () => {
+    const { token, patient } = await createUser();
+    const crm = '66778-SP';
+    const { token: docToken } = await createDoctor({ crm, email: 'dup1@t.com' });
+    await api().post('/api/doctor-shares').set(H2(token)).send({ doctorCrm: crm, scopes: ['exams'] });
+    const first = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000).toISOString(), linkUrl: 'https://meet.google.com/dup' });
+    expect(first.status).toBe(201);
+    const dup = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000 + 3600000).toISOString(), linkUrl: 'https://meet.google.com/dup2' });
+    expect(dup.status).toBe(409);
+    expect(dup.body).toMatchObject({ code: 'TELECONSULTA_DUP' });
+    expect(dup.body.existing.roomCode).toBe(String(first.body.reminder.id).slice(-5).toUpperCase());
+    const forced = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000 + 7200000).toISOString(), linkUrl: 'https://meet.google.com/dup3', force: true });
+    expect(forced.status).toBe(201);
+  });
+
+  it('dia DIFERENTE não bloqueia', async () => {
+    const { token, patient } = await createUser();
+    const crm = '66779-SP';
+    const { token: docToken } = await createDoctor({ crm, email: 'dup2@t.com' });
+    await api().post('/api/doctor-shares').set(H2(token)).send({ doctorCrm: crm, scopes: ['exams'] });
+    await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000).toISOString(), linkUrl: 'https://x.com/1' });
+    const other = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 4 * 86400000).toISOString(), linkUrl: 'https://x.com/2' });
+    expect(other.status).toBe(201);
+  });
+});

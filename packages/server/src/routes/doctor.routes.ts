@@ -967,6 +967,30 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     // P0-reviewer: Meet pedido explicitamente NUNCA vira LiveKit (o default só
     // vale quando o médico não escolheu nada).
     const wantsLiveKit = hasLiveKitConfig() && (req.body?.createLiveKit === true || (req.body?.createLiveKit == null && !linkUrl && !req.body?.createMeet));
+
+    // Guarda anti-duplicata (bug 3-salas 19/10: médico clicou 3× "nada aconteceu" → 3
+    // teleconsultas no mesmo dia). MESMO DIA = mesmo médico+paciente+tipo, não-done.
+    // 409 + existing p/ o client confirmar ("criar outra?") e reenviar com force:true.
+    if (req.body?.force !== true) {
+      const d0 = new Date(dueDate); d0.setHours(0, 0, 0, 0);
+      const d1 = new Date(d0); d1.setDate(d1.getDate() + 1);
+      const dup = await prisma.reminder.findFirst({
+        where: {
+          patientId: pid, createdByDoctorId: req.doctorId, type: 'teleconsulta', done: false,
+          dueDate: { gte: d0, lt: d1 },
+        },
+        select: { id: true, dueDate: true, provider: true },
+      });
+      if (dup) {
+        res.status(409).json({
+          error: `Já existe teleconsulta com este paciente hoje (${dup.dueDate.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' })}). Deseja criar outra mesmo assim?`,
+          code: 'TELECONSULTA_DUP',
+          existing: { id: dup.id, dueDate: dup.dueDate, roomCode: dup.id.slice(-5).toUpperCase(), provider: dup.provider },
+        });
+        return;
+      }
+    }
+
     let provider: string | null = null;
     let roomName: string | null = null;
     let reminderId: string | undefined;

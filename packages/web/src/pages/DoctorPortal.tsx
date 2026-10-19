@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, FormControlLabel, Switch } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, FormControlLabel, Switch, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -332,6 +332,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // TELECONSULTA (lote "estilo Teams" 18/10): o médico marca data/hora + cola o link
   // externo (Meet/Teams/WhatsApp) → vira lembrete no app do paciente com push + consentimento.
   const [teleOpen, setTeleOpen] = useState(false);
+  const [flashTele, setFlashTele] = useState<string | null>(null); // card recém-agendado pisca (feedback de sucesso)
   const [teleBusy, setTeleBusy] = useState(false);
   const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
   const [patientTele, setPatientTele] = useState<any[]>([]);
@@ -610,23 +611,51 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     setTeleBusy(true);
     try {
       const due = new Date(`${tele.date}T${tele.time || '14:00'}`).toISOString();
-      const r = await fetch(`${API_URL}/doctor/patients/${selected.patient.id}/teleconsulta`, {
+      const scheduleOnce = (force: boolean) => fetch(`${API_URL}/doctor/patients/${selected.patient.id}/teleconsulta`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           dueDate: due,
+          ...(force ? { force: true } : {}),
           ...(useInApp ? { createLiveKit: true } : useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
           title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
           recurrence: tele.recurrence || undefined,
         }),
       });
+      let r = await scheduleOnce(false);
+      // Guarda anti-duplicata: já há teleconsulta HOJE com este paciente → confirma
+      // antes de criar a segunda (bug 3-salas 19/10 nasceu de cliques repetidos).
+      if (r.status === 409) {
+        const d: any = await r.json().catch(() => ({}));
+        const go = await confirmDialog({
+          title: 'Já existe teleconsulta hoje',
+          message: `${d.error || 'Já existe uma teleconsulta com este paciente neste dia.'}${d.existing?.roomCode ? `\n\nSala atual: ${d.existing.roomCode}` : ''}`,
+          confirmLabel: 'Criar outra',
+          cancelLabel: 'Cancelar',
+        });
+        if (!go) { setTeleBusy(false); return; }
+        r = await scheduleOnce(true);
+      }
       if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error || 'Falha ao agendar.');
-      snackbar({ message: 'Teleconsulta agendada — o paciente já foi avisado por push 📋', severity: 'success' });
+      const saved: any = await r.json().catch(() => ({}));
+      const code = String(saved?.reminder?.id ?? '').slice(-5).toUpperCase();
+      snackbar({ message: `✓ Teleconsulta agendada${code ? ` — Sala ${code}` : ''}. O paciente já foi avisado por push.`, severity: 'success' });
       setTeleOpen(false);
       setTele({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
-      // Recarrega teleconsultas
+      // Recarrega teleconsultas e CONFIRMA VISUALMENTE: rola até a lista e pisca o card novo
+      // (dono 19/10: "cria e nada acontece, volta sem saber se deu certo").
       fetch(`${API_URL}/doctor/patients/${selected.patient.id}/teleconsultas`, { headers: h })
         .then((res) => res.json()).then((d) => setPatientTele(d?.items ?? [])).catch(() => {});
       loadDoctorTele();
+      const newId = saved?.reminder?.id;
+      if (newId) {
+        setFlashTele(newId);
+        setTimeout(() => {
+          try {
+            document.getElementById(`tele-card-${newId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } catch { /* ignore */ }
+          setTimeout(() => setFlashTele(null), 4000);
+        }, 350);
+      }
     } catch (e: any) {
       snackbar({ message: e?.message || 'Falha ao agendar.', severity: 'error' });
     } finally { setTeleBusy(false); }
@@ -1054,13 +1083,43 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Stack spacing={1.25}>
                   {patientTele.map((tc) => {
                     const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    const criada = new Date(tc.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    const pName = selected?.patient?.fullName || selected?.patient?.name || 'Paciente';
                     return (
-                      <Box key={tc.id} sx={{ p: 1.75, borderRadius: '12px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.06)', border: '1px solid', borderColor: 'divider' }}>
+                      <Box key={tc.id} id={`tele-card-${tc.id}`} sx={{
+                        p: 1.75, borderRadius: '12px',
+                        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.06)',
+                        border: '1px solid', borderColor: 'divider',
+                        ...(flashTele === tc.id && {
+                          borderColor: 'rgba(212,165,116,0.65)',
+                          animation: 'dxTeleFlash 1.2s ease-in-out 3',
+                          '@keyframes dxTeleFlash': {
+                            '0%, 100%': { boxShadow: '0 0 0 0 rgba(212,165,116,0)' },
+                            '50%': { boxShadow: '0 0 0 4px rgba(212,165,116,0.30)' },
+                          },
+                        }),
+                      }}>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
                           <Box sx={{ minWidth: 0, flex: 1 }}>
+                            {/* Identidade da consulta: paciente + código da sala — 3 teleconsultas no
+                                mesmo horário eram indistinguíveis (bug 3-salas 19/10). */}
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                              <Avatar sx={{ width: 32, height: 32, fontSize: 13.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.14)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.3)' }}>
+                                {pName.charAt(0).toUpperCase()}
+                              </Avatar>
+                              <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {pName}
+                              </Typography>
+                              <Tooltip title="Código da sala — o paciente vê o MESMO código no card dele. Confiram antes de entrar.">
+                                <Chip size="small" label={`Sala ${String(tc.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)', flexShrink: 0 }} />
+                              </Tooltip>
+                            </Stack>
                             <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                              <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
-                                📅 {dt}
+                              <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary' }}>
+                                {dt}
+                              </Typography>
+                              <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                                criada {criada}
                               </Typography>
                               {tc.provider === 'livekit' && (
                                 <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />

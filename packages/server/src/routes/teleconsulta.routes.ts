@@ -151,4 +151,30 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
   }
 });
 
+/** FEEDBACK pós-chamada — POST /api/teleconsulta/:id/feedback {rating 1-5, note?}.
+ *  1-toque "como foi a chamada" (dono 19/10). Ambos os papéis; sem consent (pós-ato).
+ *  Persistência = audit (sem schema novo; F3 pode promover a coluna/relatório). */
+router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const rating = Number(req.body?.rating);
+    const note = String(req.body?.note ?? '').slice(0, 300) || null;
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      res.status(400).json({ error: 'Avaliação inválida (1 a 5).' });
+      return;
+    }
+    const exists = await prisma.reminder.findFirst({ where: { id: String(req.params.id), type: 'teleconsulta' }, select: { id: true } });
+    if (!exists) { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
+    await audit('TELECONSULTA_FEEDBACK', req, {
+      actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
+      actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
+      targetType: 'REMINDER',
+      targetId: exists.id,
+      after: { rating, note, role: req.joinRole },
+    });
+    res.status(201).json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

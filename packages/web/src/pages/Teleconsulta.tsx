@@ -6,7 +6,7 @@
 // reload() (crasha o APK); zero jargão ("consulta/chamada", nunca room/track/token).
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, Stack, TextField, Tooltip, Typography, useTheme } from '@mui/material';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
@@ -14,6 +14,11 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
+import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
+import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
+import SentimentSatisfiedIcon from '@mui/icons-material/SentimentSatisfied';
+import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Room, RoomEvent, Track, isBrowserSupported, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
@@ -139,6 +144,21 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [unsupported, setUnsupported] = useState(false);
   const [note, setNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
+  // Feedback pós-chamada (dono 19/10: "quando encerra tem que ter algo pronto pra falar
+  // se a chamada foi boa ou não") — 1 toque + nota opcional → audit TELECONSULTA_FEEDBACK.
+  const [fbRating, setFbRating] = useState<number | null>(null);
+  const [fbNote, setFbNote] = useState('');
+  const [fbSent, setFbSent] = useState(false);
+  const sendFeedback = async (rating: number) => {
+    setFbRating(rating);
+    try {
+      await fetch(`${API_URL}/teleconsulta/${reminderId}/feedback`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ rating, note: fbNote.trim() || undefined }),
+      });
+    } catch { /* best-effort: a UX não trava por audit */ }
+    setFbSent(true);
+  };
   const [pipCorner, setPipCorner] = useState<'tr' | 'tl' | 'br' | 'bl'>('tr');
   const [pipDrag, setPipDrag] = useState<{ x: number; y: number; dx: number; dy: number } | null>(null);
 
@@ -571,6 +591,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           {role === 'patient' && summary?.consentAt && (
             <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="autorizada" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3', '& .MuiChip-icon': { color: '#5fc9c3' } }} />
           )}
+          {/* Sala: mesmo código nos DOIS aparelhos (bug 3-salas 19/10) — conferência instantânea */}
+          <Tooltip title="Confira: este código é o mesmo no aparelho da outra pessoa">
+            <Chip size="small" label={`Sala ${String(reminderId).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(0,0,0,.30)', color: '#e0bc97', border: '1px dashed rgba(224,188,151,.45)' }} />
+          </Tooltip>
           <Typography sx={{ color: 'rgba(255,255,255,.8)', fontSize: 12, fontVariantNumeric: 'tabular-nums', fontWeight: 600 }} aria-label="Tempo de chamada">
             {clockFmt(elapsedSec)}
           </Typography>
@@ -652,6 +676,38 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Box>
             <Typography sx={{ fontWeight: 800, fontSize: 20, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>Consulta encerrada</Typography>
             <Typography color="text.secondary" sx={{ fontSize: 14 }}>· {min}</Typography>
+
+            {/* Feedback 1-toque (ambos os papéis) — como foi a chamada */}
+            {!fbSent ? (
+              <Box sx={{ mt: 2.5, p: 1.75, borderRadius: '14px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.16)' }}>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a chamada?</Typography>
+                <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5}>
+                  {[
+                    { v: 1, icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Péssima' },
+                    { v: 2, icon: <SentimentDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ruim' },
+                    { v: 3, icon: <SentimentNeutralIcon sx={{ fontSize: 30 }} />, label: 'Ok' },
+                    { v: 4, icon: <SentimentSatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Boa' },
+                    { v: 5, icon: <SentimentVerySatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Ótima' },
+                  ].map((o) => (
+                    <Tooltip key={o.v} title={o.label}>
+                      <IconButton aria-label={o.label} onClick={() => void sendFeedback(o.v)}
+                        sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 46, height: 46 }}>
+                        {o.icon}
+                      </IconButton>
+                    </Tooltip>
+                  ))}
+                </Stack>
+                <TextField multiline minRows={2} maxRows={4} fullWidth size="small" value={fbNote} onChange={(e) => setFbNote(e.target.value)}
+                  placeholder={role === 'doctor' ? 'Alguma observação sobre a conexão/áudio? (opcional)' : 'A conexão e o áudio funcionaram bem? (opcional)'}
+                  slotProps={{ htmlInput: { 'aria-label': 'Observação sobre a chamada' } }}
+                  sx={{ mt: 1.25, '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '10px' } }} />
+                <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontSize: 10.5, color: 'text.disabled', textAlign: 'left' }}>
+                  Registramos sua avaliação para melhorar a teleconsulta — é anônima.
+                </Typography>
+              </Box>
+            ) : (
+              <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Obrigado pela avaliação ✓" sx={{ mt: 2, height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
+            )}
 
             {role === 'doctor' && (
               <Box sx={{ mt: 2.5, textAlign: 'left' }}>
