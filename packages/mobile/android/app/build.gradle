@@ -8,8 +8,8 @@ android {
         applicationId "com.janocaminho.drexame"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 508
-        versionName "2.7.259"
+        versionCode 509
+        versionName "2.7.260"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -34,13 +34,9 @@ android {
     }
     buildTypes {
         release {
-            // R8 ON (score "Otimização do app" do Play: Ofuscação estava 1% com minify off).
-            // As keep rules obrigatórias do Capacitor estão em proguard-rules.pro — a chamada
-            // JS→nativo é REFLEXIVA (Bridge acha plugin/método por nome); sem elas, push,
-            // biometria, Health Connect e Google login quebram SILENCIOSAMENTE em runtime.
-            minifyEnabled true
-            shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
         }
     }

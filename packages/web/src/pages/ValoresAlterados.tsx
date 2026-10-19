@@ -1,9 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails, Collapse } from '@mui/material';
+import { alpha } from '@mui/material/styles';
 import { Title, useTranslate } from 'react-admin';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import HistoryIcon from '@mui/icons-material/History';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { API_URL, token } from '../config';
@@ -83,6 +88,53 @@ export const ValoresAlteradosPage = () => {
     return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
   };
 
+  const INITIAL_LIMIT = 3;
+  const [showAll, setShowAll] = useState(false);
+
+  const initialGroups = useMemo(() => groups.slice(0, INITIAL_LIMIT), [groups]);
+  const hiddenGroups = useMemo(() => groups.slice(INITIAL_LIMIT), [groups]);
+
+  const renderExamAccordion = (g: (typeof groups)[number]) => {
+    const mp = maxPriority(g.items);
+    const meta = PRIORITY_META[mp];
+    const stale = isStaleExam(g.performedAt);
+    return (
+      <Accordion
+        key={g.examId}
+        disableGutters
+        elevation={0}
+        sx={{
+          border: `1px solid ${meta.color}55`,
+          borderLeft: `4px solid ${meta.color}`,
+          borderRadius: '16px !important',
+          overflow: 'hidden',
+          '&:before': { display: 'none' },
+          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)'),
+        }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: meta.color + '14' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <Box component="span" sx={{ fontSize: 18 }}>{meta.emoji}</Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, mp), lineHeight: 1.2 }}>{g.examTitle}</Typography>
+              <Typography variant="caption" sx={{ color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
+              {stale && <Typography variant="caption" sx={{ display: 'block', color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
+              {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
+            </Box>
+            <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: (t) => priorityText(t.palette.mode, mp) }} />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 1.25 }}>
+          {/* 1 botão de agendar POR EXAME (não por item) — usa o marcador do item mais grave */}
+          <Box sx={{ mb: 1, display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-start' } }}>
+            <TelemedicineButton marker={g.items[0]?.nameCanonical} compact />
+          </Box>
+          <CappedExamMarkers items={g.items} />
+        </AccordionDetails>
+      </Accordion>
+    );
+  };
+
   return (
     <PageContainer width="wide">
       <Title title={translate('page.alterados')} />
@@ -111,7 +163,7 @@ export const ValoresAlteradosPage = () => {
       ) : (
         <>
           {/* Resumo não-alarmista por prioridade */}
-          <Card variant="outlined" sx={{ mb: 1, borderRadius: '12px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+          <Card variant="outlined" sx={{ mb: 1, borderRadius: '16px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'importante') }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
@@ -129,36 +181,97 @@ export const ValoresAlteradosPage = () => {
             </CardContent>
           </Card>
 
+          {/* Cabeçalho de Contexto & Foco */}
+          {groups.length > INITIAL_LIMIT && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 0.5, py: 0.75 }}>
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <AutoAwesomeIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  {showAll ? `Histórico Completo (${groups.length} exames)` : `Foco: 3 mais relevantes`}
+                </Typography>
+              </Stack>
+              <Chip
+                size="small"
+                label={showAll ? `Exibindo todos (${groups.length})` : `3 de ${groups.length} exames`}
+                sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
+              />
+            </Box>
+          )}
+
+          {/* Lista com os 3 principais */}
           <Stack spacing={1}>
-            {groups.map((g) => {
-              const mp = maxPriority(g.items);
-              const meta = PRIORITY_META[mp];
-              const stale = isStaleExam(g.performedAt);
-              return (
-                <Accordion key={g.examId} disableGutters elevation={0} sx={{ border: `1px solid ${meta.color}55`, borderRadius: '12px', overflow: 'hidden', '&:before': { display: 'none' } }}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: meta.color + '14' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-                      <Box component="span" sx={{ fontSize: 18 }}>{meta.emoji}</Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, mp), lineHeight: 1.2 }}>{g.examTitle}</Typography>
-                        <Typography variant="caption" sx={{ color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-                        {stale && <Typography variant="caption" sx={{ display: 'block', color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }}>⏳ Exame antigo — considere renovar com seu médico</Typography>}
-                        {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: (t) => priorityText(t.palette.mode, mp), opacity: 0.85 }}>🩺 Dr. {g.requestingDoctor}</Typography>}
-                      </Box>
-                      <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 20, bgcolor: meta.color + '22', color: (t) => priorityText(t.palette.mode, mp) }} />
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 1.25 }}>
-                    {/* 1 botão de agendar POR EXAME (não por item) — usa o marcador do item mais grave */}
-                    <Box sx={{ mb: 1, display: 'flex', justifyContent: { xs: 'stretch', sm: 'flex-start' } }}>
-                      <TelemedicineButton marker={g.items[0]?.nameCanonical} compact />
-                    </Box>
-                    <CappedExamMarkers items={g.items} />
-                  </AccordionDetails>
-                </Accordion>
-              );
-            })}
+            {initialGroups.map(renderExamAccordion)}
           </Stack>
+
+          {/* Exames ocultos com animação de expansão suave */}
+          {hiddenGroups.length > 0 && (
+            <>
+              <Collapse in={showAll} unmountOnExit timeout={300}>
+                <Stack spacing={1} sx={{ pt: 1 }}>
+                  {hiddenGroups.map(renderExamAccordion)}
+                </Stack>
+              </Collapse>
+
+              {/* Botão de Expansão Premium */}
+              <Card
+                variant="outlined"
+                onClick={() => setShowAll((v) => !v)}
+                sx={{
+                  mt: 1,
+                  cursor: 'pointer',
+                  borderRadius: '16px',
+                  border: (t) => `1px dashed ${alpha(t.palette.primary.main, showAll ? 0.3 : 0.45)}`,
+                  background: (t) =>
+                    t.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(32,178,170,0.10) 0%, rgba(32,178,170,0.02) 100%), #141f20'
+                      : 'linear-gradient(135deg, rgba(32,178,170,0.08) 0%, rgba(32,178,170,0.02) 100%), #f8fcfa',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px)',
+                    boxShadow: (t) => `0 6px 20px ${alpha(t.palette.primary.main, 0.15)}`,
+                  },
+                }}
+              >
+                <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: '12px',
+                          bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
+                          color: 'primary.main',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {showAll ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
+                          {showAll ? 'Recolher para os 3 mais relevantes' : `Ver histórico completo de alterações (+${hiddenGroups.length} exames)`}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {showAll ? 'Exibindo todos os exames alterados' : `Toque para conferir todo o histórico anterior`}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Chip
+                      size="small"
+                      icon={showAll ? <KeyboardArrowUpIcon sx={{ '&&': { fontSize: 16 } }} /> : <KeyboardArrowDownIcon sx={{ '&&': { fontSize: 16 } }} />}
+                      label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
+                      color="primary"
+                      variant={showAll ? 'outlined' : 'filled'}
+                      sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>*Educativo. Sempre confirme com seu médico.</Typography>

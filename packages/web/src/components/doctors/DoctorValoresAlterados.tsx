@@ -1,7 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { Box, Card, CardContent, Typography, Stack, Chip, Accordion, AccordionSummary, AccordionDetails, Button, Collapse } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import HistoryIcon from '@mui/icons-material/History';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL } from '../../config';
 import { ListSkeleton } from '../Skeleton';
 import { EmptyState } from '../EmptyState';
@@ -92,6 +96,72 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
     return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
   };
 
+  const INITIAL_LIMIT = 3;
+  const [showAll, setShowAll] = useState(false);
+
+  const initialGroups = useMemo(() => groups.slice(0, INITIAL_LIMIT), [groups]);
+  const hiddenGroups = useMemo(() => groups.slice(INITIAL_LIMIT), [groups]);
+
+  const renderExamAccordion = (g: (typeof groups)[number]) => {
+    const mp = maxPriority(g.items);
+    const meta = PRIORITY_META[mp];
+    const stale = isStaleExam(g.performedAt);
+    return (
+      <Accordion
+        key={g.examId}
+        disableGutters
+        elevation={0}
+        sx={{
+          border: `1px solid ${alpha(meta.color, 0.28)}`,
+          borderLeft: `4px solid ${meta.color}`,
+          borderRadius: '20px !important',
+          overflow: 'hidden',
+          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.03)'),
+          '&:before': { display: 'none' },
+          '& .MuiAccordionSummary-root': {
+            borderTopLeftRadius: '20px',
+            borderTopRightRadius: '20px',
+            bgcolor: alpha(meta.color, 0.05),
+          },
+          '& .MuiAccordionDetails-root': {
+            borderBottomLeftRadius: '20px',
+            borderBottomRightRadius: '20px',
+          },
+        }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(meta.color, 0.04) }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+            <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{g.examTitle}</Typography>
+              <Typography variant="caption" color="text.secondary">📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
+              {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.dark' }}>⏳ Exame antigo — considere renovar</Typography>}
+              {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
+            </Box>
+            <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 22, bgcolor: alpha(meta.color, 0.15), color: meta.color }} />
+          </Box>
+        </AccordionSummary>
+        <AccordionDetails sx={{ p: 1.25 }}>
+          <CappedExamMarkers
+            items={g.items}
+            extra={doctorId ? (it: any) => (
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -0.25, mb: 0.5 }}>
+                <ReviewControl
+                  review={reviews[it.id] ?? null}
+                  patientId={patientId}
+                  itemId={it.id}
+                  token={token}
+                  doctorId={doctorId}
+                  onSaved={(rv) => setReviews((prev) => ({ ...prev, [it.id]: rv }))}
+                />
+              </Box>
+            ) : undefined}
+          />
+        </AccordionDetails>
+      </Accordion>
+    );
+  };
+
   if (loading) return <ListSkeleton count={3} />;
 
   return (
@@ -146,67 +216,96 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
             </Box>
           )}
 
+          {/* Cabeçalho de Contexto & Foco Clínico */}
+          {groups.length > INITIAL_LIMIT && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 0.5, pt: 0.5 }}>
+              <Stack direction="row" spacing={0.75} alignItems="center">
+                <AutoAwesomeIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                  {showAll ? `Histórico Completo (${groups.length} exames)` : `Foco Clínico: 3 mais recentes`}
+                </Typography>
+              </Stack>
+              <Chip
+                size="small"
+                label={showAll ? `Exibindo todos (${groups.length})` : `3 de ${groups.length} exames`}
+                sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
+              />
+            </Box>
+          )}
+
+          {/* Lista com os 3 principais */}
           <Stack spacing={1.25}>
-            {groups.map((g) => {
-              const mp = maxPriority(g.items);
-              const meta = PRIORITY_META[mp];
-              const stale = isStaleExam(g.performedAt);
-              return (
-                <Accordion
-                  key={g.examId}
-                  disableGutters
-                  elevation={0}
-                  sx={{
-                    border: `1px solid ${alpha(meta.color, 0.28)}`,
-                    borderLeft: `4px solid ${meta.color}`,
-                    borderRadius: '20px !important',
-                    overflow: 'hidden',
-                    boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.03)'),
-                    '&:before': { display: 'none' },
-                    '& .MuiAccordionSummary-root': {
-                      borderTopLeftRadius: '20px',
-                      borderTopRightRadius: '20px',
-                      bgcolor: alpha(meta.color, 0.05),
-                    },
-                    '& .MuiAccordionDetails-root': {
-                      borderBottomLeftRadius: '20px',
-                      borderBottomRightRadius: '20px',
-                    },
-                  }}
-                >
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(meta.color, 0.04) }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
-                      <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{g.examTitle}</Typography>
-                        <Typography variant="caption" color="text.secondary">📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-                        {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.dark' }}>⏳ Exame antigo — considere renovar</Typography>}
-                        {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
-                      </Box>
-                      <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 22, bgcolor: alpha(meta.color, 0.15), color: meta.color }} />
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ p: 1.25 }}>
-                    <CappedExamMarkers
-                      items={g.items}
-                      extra={doctorId ? (it: any) => (
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -0.25, mb: 0.5 }}>
-                          <ReviewControl
-                            review={reviews[it.id] ?? null}
-                            patientId={patientId}
-                            itemId={it.id}
-                            token={token}
-                            doctorId={doctorId}
-                            onSaved={(rv) => setReviews((prev) => ({ ...prev, [it.id]: rv }))}
-                          />
-                        </Box>
-                      ) : undefined}
-                    />
-                  </AccordionDetails>
-                </Accordion>
-              );
-            })}
+            {initialGroups.map(renderExamAccordion)}
           </Stack>
+
+          {/* Exames ocultos com animação suave de expansão */}
+          {hiddenGroups.length > 0 && (
+            <>
+              <Collapse in={showAll} unmountOnExit timeout={300}>
+                <Stack spacing={1.25} sx={{ pt: 1.25 }}>
+                  {hiddenGroups.map(renderExamAccordion)}
+                </Stack>
+              </Collapse>
+
+              {/* Botão de Expansão Smart & Premium */}
+              <Card
+                variant="outlined"
+                onClick={() => setShowAll((v) => !v)}
+                sx={{
+                  cursor: 'pointer',
+                  borderRadius: '18px',
+                  border: (t) => `1px dashed ${alpha(t.palette.primary.main, showAll ? 0.3 : 0.45)}`,
+                  background: (t) =>
+                    t.palette.mode === 'dark'
+                      ? 'linear-gradient(135deg, rgba(32,178,170,0.10) 0%, rgba(32,178,170,0.02) 100%), #141f20'
+                      : 'linear-gradient(135deg, rgba(32,178,170,0.08) 0%, rgba(32,178,170,0.02) 100%), #f8fcfa',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    transform: 'translateY(-2px)',
+                    boxShadow: (t) => `0 6px 20px ${alpha(t.palette.primary.main, 0.15)}`,
+                  },
+                }}
+              >
+                <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Box
+                        sx={{
+                          width: 38,
+                          height: 38,
+                          borderRadius: '12px',
+                          bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
+                          color: 'primary.main',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {showAll ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
+                      </Box>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
+                          {showAll ? 'Recolher para os 3 mais recentes' : `Ver histórico completo de alterações (+${hiddenGroups.length} exames)`}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {showAll ? 'Exibindo todo o histórico' : `Exames anteriores com parâmetros fora da faixa`}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Chip
+                      size="small"
+                      icon={showAll ? <KeyboardArrowUpIcon sx={{ '&&': { fontSize: 16 } }} /> : <KeyboardArrowDownIcon sx={{ '&&': { fontSize: 16 } }} />}
+                      label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
+                      color="primary"
+                      variant={showAll ? 'outlined' : 'filled'}
+                      sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                    />
+                  </Stack>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>*Educativo. A interpretação final é sua.</Typography>

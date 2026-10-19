@@ -58,7 +58,8 @@ jobs:
              git fetch origin --prune; \
              git reset --hard origin/main; \
              docker compose -f docker-compose.prod.yml --env-file .env.prod pull; \
-             docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --force-recreate; \
+             docker rm -f meus-exames-app 2>/dev/null || true; \
+             docker compose -f docker-compose.prod.yml --env-file .env.prod up -d; \
              docker image prune -f; \
              echo 'Deploy OK'"
 

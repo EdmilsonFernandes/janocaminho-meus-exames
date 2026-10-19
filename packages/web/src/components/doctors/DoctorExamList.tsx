@@ -1,8 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, Accordion, AccordionSummary, AccordionDetails, Chip } from '@mui/material';
+import { Box, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography, Accordion, AccordionSummary, AccordionDetails, Chip, Card, CardContent, Collapse } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import HistoryIcon from '@mui/icons-material/History';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { API_URL } from '../../config';
 import { ExamCard } from '../exams/ExamCard';
 import { ListSkeleton } from '../Skeleton';
@@ -67,6 +71,47 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
     window.open(url, '_blank');
   };
 
+  const [showAllYears, setShowAllYears] = useState(false);
+  const isFiltering = query.length > 0 || cat !== 'all';
+  const initialDateGroups = useMemo(() => (isFiltering ? dateGroups : dateGroups.slice(0, 1)), [dateGroups, isFiltering]);
+  const hiddenDateGroups = useMemo(() => (isFiltering ? [] : dateGroups.slice(1)), [dateGroups, isFiltering]);
+  const hiddenExamsCount = useMemo(() => hiddenDateGroups.reduce((acc, g) => acc + g.items.length, 0), [hiddenDateGroups]);
+
+  const renderDateAccordion = (g: (typeof dateGroups)[number]) => (
+    <Accordion
+      key={String(g.year ?? 'sdata')}
+      defaultExpanded
+      elevation={0}
+      disableGutters
+      sx={(t) => ({
+        borderRadius: '20px !important',
+        overflow: 'hidden',
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
+        '&:before': { display: 'none' },
+        '& .MuiAccordionSummary-root': {
+          borderTopLeftRadius: '20px',
+          borderTopRightRadius: '20px',
+        },
+        '& .MuiAccordionDetails-root': {
+          borderBottomLeftRadius: '20px',
+          borderBottomRightRadius: '20px',
+        },
+      })}
+    >
+      <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={(t) => ({ bgcolor: alpha(t.palette.primary.main, 0.04) })}>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{g.label}</Typography>
+        <Chip size="small" label={g.items.length} sx={(t) => ({ ml: 1, bgcolor: alpha(t.palette.primary.main, 0.12), color: t.palette.primary.dark, fontWeight: 700, height: 22 })} />
+      </AccordionSummary>
+      <AccordionDetails sx={{ p: 1 }}>
+        <Stack spacing={1}>
+          {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} onOpenPdf={r.filePath ? () => openPdf(r.id) : undefined} />)}
+        </Stack>
+      </AccordionDetails>
+    </Accordion>
+  );
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
       <Typography variant="h6" sx={{ color: 'text.primary' }}>
@@ -128,40 +173,96 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
         <EmptyState emoji="📄" title="Nenhum exame compartilhado" desc="Este paciente ainda não compartilhou exames com você." />
       ) : (
         <>
-          {view === 'date' && dateGroups.map((g) => (
-            <Accordion
-              key={String(g.year ?? 'sdata')}
-              defaultExpanded
-              elevation={0}
-              disableGutters
-              sx={(t) => ({
-                borderRadius: '20px !important',
-                overflow: 'hidden',
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
-                '&:before': { display: 'none' },
-                '& .MuiAccordionSummary-root': {
-                  borderTopLeftRadius: '20px',
-                  borderTopRightRadius: '20px',
-                },
-                '& .MuiAccordionDetails-root': {
-                  borderBottomLeftRadius: '20px',
-                  borderBottomRightRadius: '20px',
-                },
-              })}
-            >
-              <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={(t) => ({ bgcolor: alpha(t.palette.primary.main, 0.04) })}>
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>{g.label}</Typography>
-                <Chip size="small" label={g.items.length} sx={(t) => ({ ml: 1, bgcolor: alpha(t.palette.primary.main, 0.12), color: t.palette.primary.dark, fontWeight: 700, height: 22 })} />
-              </AccordionSummary>
-              <AccordionDetails sx={{ p: 1 }}>
-                <Stack spacing={1}>
-                  {g.items.map((r: any) => <ExamCard key={r.id} exam={r} onOpen={onOpen} onOpenPdf={r.filePath ? () => openPdf(r.id) : undefined} />)}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          ))}
+          {view === 'date' && (
+            <>
+              {hiddenDateGroups.length > 0 && !isFiltering && (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 0.5, pt: 0.5 }}>
+                  <Stack direction="row" spacing={0.75} alignItems="center">
+                    <AutoAwesomeIcon sx={{ fontSize: 16, color: 'primary.main' }} />
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      {showAllYears ? `Histórico Completo (${exams.length} exames)` : `Foco Recente: ${initialDateGroups[0]?.label ?? 'Mais Recente'}`}
+                    </Typography>
+                  </Stack>
+                  <Chip
+                    size="small"
+                    label={showAllYears ? `Exibindo todos (${exams.length})` : `${initialDateGroups[0]?.items.length ?? 0} de ${exams.length} exames`}
+                    sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
+                  />
+                </Box>
+              )}
+
+              <Stack spacing={1.25}>
+                {initialDateGroups.map(renderDateAccordion)}
+              </Stack>
+
+              {hiddenDateGroups.length > 0 && !isFiltering && (
+                <>
+                  <Collapse in={showAllYears} unmountOnExit timeout={300}>
+                    <Stack spacing={1.25} sx={{ pt: 1.25 }}>
+                      {hiddenDateGroups.map(renderDateAccordion)}
+                    </Stack>
+                  </Collapse>
+
+                  <Card
+                    variant="outlined"
+                    onClick={() => setShowAllYears((v) => !v)}
+                    sx={{
+                      cursor: 'pointer',
+                      borderRadius: '18px',
+                      border: (t) => `1px dashed ${alpha(t.palette.primary.main, showAllYears ? 0.3 : 0.45)}`,
+                      background: (t) =>
+                        t.palette.mode === 'dark'
+                          ? 'linear-gradient(135deg, rgba(32,178,170,0.10) 0%, rgba(32,178,170,0.02) 100%), #141f20'
+                          : 'linear-gradient(135deg, rgba(32,178,170,0.08) 0%, rgba(32,178,170,0.02) 100%), #f8fcfa',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        transform: 'translateY(-2px)',
+                        boxShadow: (t) => `0 6px 20px ${alpha(t.palette.primary.main, 0.15)}`,
+                      },
+                    }}
+                  >
+                    <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between">
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                          <Box
+                            sx={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: '12px',
+                              bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
+                              color: 'primary.main',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            {showAllYears ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
+                          </Box>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
+                              {showAllYears ? 'Recolher para o ano mais recente' : `Ver exames de anos anteriores (+${hiddenExamsCount} exames)`}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              {showAllYears ? 'Exibindo arquivo completo' : `Histórico de ${hiddenDateGroups.map((g) => g.label).join(', ')}`}
+                            </Typography>
+                          </Box>
+                        </Stack>
+                        <Chip
+                          size="small"
+                          icon={showAllYears ? <KeyboardArrowUpIcon sx={{ '&&': { fontSize: 16 } }} /> : <KeyboardArrowDownIcon sx={{ '&&': { fontSize: 16 } }} />}
+                          label={showAllYears ? 'Recolher' : `+${hiddenExamsCount}`}
+                          color="primary"
+                          variant={showAllYears ? 'outlined' : 'filled'}
+                          sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                        />
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </>
+          )}
           {view === 'category' && catGroups.map((g) => (
             <Accordion
               key={g.cat.key}

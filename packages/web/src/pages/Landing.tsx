@@ -46,6 +46,7 @@ import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { LandingBodyMapSection } from '../components/landing/LandingBodyMapSection';
 import { ComparisonTable } from '../components/landing/ComparisonTable';
 import { TrustSection } from '../components/landing/TrustSection';
+import { TeleconsultaShowcase } from '../components/landing/TeleconsultaShowcase';
 import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
 import { HealthPackageShowcaseCard } from '../components/landing/HealthPackageShowcaseCard';
 import { ClinicalDecisionCard } from '../components/landing/ClinicalDecisionCard';
@@ -1284,6 +1285,12 @@ export const LandingPage = () => {
           </Typography>
         </Container>
       </Box>
+      </ScrollReveal>
+
+      {/* NOVO 19/10 — TELEMEDICINA: vitrine premium com simulação viva da
+          teleconsulta embutida (F2 LiveKit) antes de chegar nos planos. */}
+      <ScrollReveal>
+      <TeleconsultaShowcase onCta={() => goTo('planos')} />
       </ScrollReveal>
 
       {/* PLANOS — modelo explicado antes dos preços */}
