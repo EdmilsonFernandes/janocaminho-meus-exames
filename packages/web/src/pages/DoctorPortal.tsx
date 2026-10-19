@@ -331,6 +331,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [teleOpen, setTeleOpen] = useState(false);
   const [teleBusy, setTeleBusy] = useState(false);
   const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
+  /** Abre o dialog de teleconsulta já com AMANHÃ pré-marcado — botão de agendar
+   *  nasce clicável (vazio antes = desabilitado em silêncio, parecia "morto"). */
+  const openTele = () => {
+    if (!tele.date) {
+      const d = new Date(Date.now() + 86_400_000);
+      setTele((t) => ({ ...t, date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }));
+    }
+    setTeleOpen(true);
+  };
+  // Retorno do OAuth do Meet (callback server → #/para-medicos?meet=ok|erro): confirma
+  // na tela — antes a volta era muda (dono 18/10: "conectou e ficou na tela preta").
+  useEffect(() => {
+    const m = window.location.hash.match(/[?&]meet=(ok|erro)/);
+    if (!m) return;
+    if (m[1] === 'ok') snackbar({ message: 'Conta Google conectada ✨ Salas Meet serão criadas sozinhas ao agendar.', severity: 'success' });
+    else snackbar({ message: 'Não deu pra conectar o Google. Tente de novo.', severity: 'error' });
+    try { window.history.replaceState({}, '', window.location.hash.replace(/[?&]meet=(ok|erro)/, '')); } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // Meet automático (lote Teams 18/10): status da integração + preferência do diálogo.
   const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean } | null>(null);
   const [createMeet, setCreateMeet] = useState(true);
@@ -949,9 +968,17 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Button>
             )}
             {/* AGENDAR TELECONSULTA (estilo Teams — data/hora + link externo; sem agenda de
-                disponibilidade). O paciente recebe push, autoriza (Art. 15) e entra pelo link. */}
-            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => setTeleOpen(true)}
-              sx={{ alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, borderRadius: '999px', px: 2, color: 'secondary.dark', borderColor: 'rgba(212,165,116,.5)', '&:hover': { borderColor: 'secondary.dark', bgcolor: 'rgba(212,165,116,.08)' } }}>
+                disponibilidade). O paciente recebe push, autoriza (Art. 15) e entra pelo link.
+                CTA premium cobre (gradiente + glow) — feedback dono 18/10: precisava chamar. */}
+            <Button variant="contained" startIcon={<VideocamIcon />} onClick={openTele}
+              sx={{
+                alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, fontSize: 14.5,
+                borderRadius: '999px', px: 3, py: 1.2, color: '#fff',
+                background: 'linear-gradient(135deg,#d4a574,#b88a54)',
+                boxShadow: '0 4px 16px rgba(212,165,116,.45)',
+                '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)', boxShadow: '0 6px 20px rgba(212,165,116,.55)' },
+                '&:active': { transform: 'scale(0.98)' },
+              }}>
               Agendar teleconsulta
             </Button>
             <Dialog open={teleOpen} onClose={() => setTeleOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
@@ -972,12 +999,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   {meetStatus?.connected ? (
                     <FormControlLabel control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />} label={<Typography sx={{ fontSize: 13.5, fontWeight: 700 }}>Criar sala Google Meet automaticamente <Chip size="small" label="✨" sx={{ height: 18, fontSize: 10, bgcolor: 'rgba(212,165,116,.18)' }} /></Typography>} sx={{ m: 0 }} />
                   ) : meetStatus?.configured ? (
-                    <Button size="small" variant="outlined" onClick={async () => {
+                    <Button variant="contained" onClick={async () => {
                       const r = await fetch(`${API_URL}/doctor/google/auth`, { headers: h });
                       const d = await r.json().catch(() => ({}));
                       if (r.ok && d.url) window.location.href = d.url; else snackbar({ message: d.error || 'Não deu pra iniciar a conexão com o Google.', severity: 'error' });
-                    }} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px', alignSelf: 'flex-start' }}>
-                      Conectar conta Google p/ gerar salas Meet
+                    }} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px', alignSelf: 'flex-start', px: 2.5, py: 0.9, background: 'linear-gradient(135deg,#d4a574,#b88a54)', boxShadow: '0 3px 12px rgba(212,165,116,.4)', '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' } }}>
+                      Conectar conta Google p/ gerar salas Meet ✨
                     </Button>
                   ) : null}
                   {!(createMeet && meetStatus?.connected) && (
