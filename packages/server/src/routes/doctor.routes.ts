@@ -1131,7 +1131,7 @@ router.patch('/notes/:id/share', requireDoctor, async (req: any, res, next) => {
       } catch (e: any) { console.error('[doctor-plan] falha email:', e?.message); }
     }
     const updated = await prisma.doctorNote.update({ where: { id: note.id }, data: { sharedAt: new Date() } });
-    void audit('DOCTOR_PLAN_SHARED', req, {
+    await audit('DOCTOR_PLAN_SHARED', req, { // await: assertado em teste (flake CI família void-audit)
       actorType: 'DOCTOR', actorId: req.doctorId,
       targetType: 'PATIENT', targetId: note.patientId,
       after: { noteId: note.id, emailed: !!to },
@@ -1622,7 +1622,7 @@ router.post('/:doctorId/clinical-goals', requireDoctor, async (req: any, res, ne
         include: goalInclude,
       });
     });
-    void audit('CLINICAL_GOAL_CREATED', req, {
+    await audit('CLINICAL_GOAL_CREATED', req, { // await: assertado em teste (flake CI família void-audit)
       actorType: 'DOCTOR', actorId: req.doctorId,
       targetType: 'PATIENT', targetId: patientId,
       after: { goalId: created.id, analyte, targetLow, targetHigh, unit, justification, source, superseded: created.supersedesId ?? null },
@@ -1644,7 +1644,9 @@ router.post('/:doctorId/clinical-goals/:id/expire', requireDoctor, async (req: a
       data: { validTo: now },
       include: goalInclude,
     });
-    void audit('CLINICAL_GOAL_EXPIRED', req, {
+    // await (não void): teste lê o auditLog logo após a resposta — 3º flake da família
+    // fire-and-forget no CI (DOCTOR_REVIEW, RESET_MFA, e este). audit() engole erro interno.
+    await audit('CLINICAL_GOAL_EXPIRED', req, {
       actorType: 'DOCTOR', actorId: req.doctorId,
       targetType: 'CLINICAL_GOAL', targetId: goal.id,
       before: { validTo: goal.validTo }, after: { validTo: now },
