@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
+import { REMINDER_TYPES, REMINDER_RECURRENCES } from '../utils/reminderConstants';
 
 /** Antecedências (minutos antes do dueDate) escolhidas pelo usuário ao criar — estilo Agenda do Google. */
 const DEFAULT_OFFSETS = [1440, 300, 0]; // 1 dia · 5h · na hora
@@ -13,19 +14,20 @@ function parseOffsets(v: unknown): number[] {
 }
 
 // ── Lote "estilo Teams" (18/10/26): tipo/link/recorrência com whitelist (nunca confiar no client).
-const REMINDER_TYPES = ['exame', 'consulta', 'medicamento', 'teleconsulta'] as const;
-const REMINDER_RECURRENCES = ['diario', 'semanal', 'mensal', 'semestral', 'anual'] as const;
+// As listas vivem em utils/reminderConstants (fonte única — rotas + jobs).
 function parseType(v: unknown): string | null {
   return REMINDER_TYPES.includes(v as any) ? String(v) : null;
 }
 function parseRecurrence(v: unknown): string | null {
   return REMINDER_RECURRENCES.includes(v as any) ? String(v) : null;
 }
+/** http(s) com HOST (review: "https://" vazio passava no prefixo solto). */
+const LINK_URL_RE = /^https?:\/\/[^\s/]+/i;
 function parseLinkUrl(v: unknown): string | null {
   if (typeof v !== 'string' || !v.trim()) return null;
   const s = v.trim();
   // Só http(s) — o link é EXTERNO por design (Meet/Teams/WhatsApp); nunca hospedamos chamada.
-  if (!/^https?:\/\//i.test(s)) return null;
+  if (!LINK_URL_RE.test(s)) return null;
   return s.slice(0, 500);
 }
 
@@ -86,8 +88,19 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     if (note != null) data.note = String(note);
     if (done != null) data.done = Boolean(done);
     if (type !== undefined) data.type = parseType(type);
+    // Link inválido (scheme sem host, javascript:, …) é ERRO, não "limpa silenciosa"
+    if (linkUrl !== undefined && String(linkUrl ?? '').trim() && !parseLinkUrl(linkUrl)) {
+      res.status(400).json({ error: 'Link inválido — use http(s)://…' }); return;
+    }
     if (linkUrl !== undefined) data.linkUrl = parseLinkUrl(linkUrl);
     if (recurrence !== undefined) data.recurrence = parseRecurrence(recurrence);
+    // Mesma regra do CREATE (review): PUT não pode deixar teleconsulta sem link
+    // (chip sem botão Entrar + consentimento 400 = meia-entrada inútil).
+    const finalType = data.type !== undefined ? data.type : existing.type;
+    const finalLink = data.linkUrl !== undefined ? data.linkUrl : existing.linkUrl;
+    if (finalType === 'teleconsulta' && !finalLink) {
+      res.status(400).json({ error: 'Teleconsulta precisa do link da chamada (Meet/Teams/WhatsApp).' }); return;
+    }
     const offsetsChanged = notifyOffsetsMin !== undefined;
     const dueChanged = dueDate !== undefined && new Date(dueDate).getTime() !== new Date(existing.dueDate).getTime();
     if (offsetsChanged) data.notifyOffsetsMin = parseOffsets(notifyOffsetsMin);

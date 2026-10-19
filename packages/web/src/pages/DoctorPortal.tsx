@@ -569,7 +569,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   /** Agenda a teleconsulta (POST /doctor/patients/:id/teleconsulta) — cria o lembrete
    *  na conta do paciente (push imediato + antecedências 1d/1h/na hora). */
   const scheduleTele = async () => {
-    if (!selected || !tele.date || !/^https?:\/\//i.test(tele.link.trim())) return;
+    const useMeet = createMeet && meetStatus?.connected;
+    if (!selected || !tele.date) return;
+    // link só é obrigatório no modo manual — com Meet automático o campo fica oculto
+    if (!useMeet && !/^https?:\/\/[^\s/]+/i.test(tele.link.trim())) {
+      snackbar({ message: 'Cole o link da consulta (https://…) ou ative a criação automática do Meet.', severity: 'warning' });
+      return;
+    }
     setTeleBusy(true);
     try {
       const due = new Date(`${tele.date}T${tele.time || '14:00'}`).toISOString();
@@ -577,8 +583,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           dueDate: due,
-          ...(createMeet && meetStatus?.connected ? { createMeet: true } : {}),
-          ...(!(createMeet && meetStatus?.connected) ? { linkUrl: tele.link.trim() } : {}),
+          ...(useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
           title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
           recurrence: tele.recurrence || undefined,
         }),

@@ -10,14 +10,17 @@
  * Docs: developers.google.com/workspace/meet/api/guides/overview
  */
 
+import { webUrl } from './emailTemplate';
+
 export const MEET_SCOPE = 'https://www.googleapis.com/auth/meetings.space.created';
 
 export const hasMeetConfig = (): boolean =>
   !!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET;
 
-/** redirect_uri do fluxo OAuth (precisa estar registrado no Google Console). */
+/** redirect_uri do fluxo OAuth (precisa estar registrado no Google Console).
+ *  Default respeita WEB_BASE_PATH (prod: /minhasaude) — env override p/ casos especiais. */
 export const meetRedirectUri = (): string =>
-  process.env.GOOGLE_MEET_REDIRECT || `${(process.env.WEB_ORIGIN || 'http://localhost:5173').replace(/\/$/, '')}/api/doctor/google/callback`;
+  process.env.GOOGLE_MEET_REDIRECT || webUrl('/api/doctor/google/callback');
 
 /** URL de consentimento (access_type=offline + prompt=consent garantem refresh token). */
 export function meetAuthUrl(state: string): string {

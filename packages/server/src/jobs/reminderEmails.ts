@@ -32,8 +32,10 @@ function offsetLabel(o: number): string {
  * Offset > 0 ("X antes")  dispara quando now >= dueDate - offset, e só enquanto dueDate > now.
  * Offset = 0 ("na hora")  dispara quando now >= dueDate, com tolerância de 24h (não dispara p/ lembretes antigos).
  */
-/** Intervalo da recorrência em passos de data (lote "estilo Teams" 18/10/26). */
-const RECURRENCE_STEP: Record<string, (d: Date) => Date> = {
+/** Intervalo da recorrência em passos de data (lote "estilo Teams" 18/10/26).
+ *  Tipado com ReminderRecurrence: se alguém adicionar valor novo na whitelist
+ *  sem step aqui, o COMPILADOR reclama (antes eram 2 listas soltas). */
+const RECURRENCE_STEP: Record<import('../utils/reminderConstants').ReminderRecurrence, (d: Date) => Date> = {
   diario: (d) => new Date(d.getTime() + MS_DAY),
   semanal: (d) => new Date(d.getTime() + 7 * MS_DAY),
   mensal: (d) => addMonths(d, 1),
@@ -57,25 +59,43 @@ function addMonths(d: Date, n: number): Date {
  * Mantém UMA linha limpa por série — a lista nunca vira cemitério de ocorrências.
  */
 export async function rollRecurringReminders(now: number): Promise<void> {
-  const stale = await prisma.reminder.findMany({
-    where: {
-      recurrence: { not: null },
-      OR: [{ done: true }, { done: false, dueDate: { lt: new Date(now - 24 * MS_HOUR) } }],
-    },
-    take: 200,
-  });
-  for (const r of stale) {
-    const step = RECURRENCE_STEP[r.recurrence!];
-    if (!step) continue;
-    let next = step(new Date(r.dueDate));
-    // Catch-up: atraso maior que 1 intervalo (ex.: app parado 3 meses) avança até o futuro.
-    let guard = 0;
-    while (next.getTime() <= now && guard++ < 120) next = step(next);
-    await prisma.reminder.update({
-      where: { id: r.id },
-      data: { dueDate: next, sentOffsets: [], done: false, consentAt: null },
-    }).catch((e) => console.error('[reminders] roll falhou:', r.id, e?.message));
-  }
+  // Cursor por id (take sem orderBy repetia sempre as mesmas 200 e ia pra trás de
+  // linhas 201+ em bases grandes — cada lote processado muda o dueDate, então o
+  // where deixa de casar e o cursor avança até esvaziar).
+  let cursor: string | undefined;
+  do {
+    const stale = await prisma.reminder.findMany({
+      where: {
+        recurrence: { not: null },
+        OR: [{ done: true }, { done: false, dueDate: { lt: new Date(now - 24 * MS_HOUR) } }],
+      },
+      orderBy: { id: 'asc' },
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      take: 200,
+    });
+    if (!stale.length) break;
+    cursor = stale[stale.length - 1].id;
+    for (const r of stale) {
+      const rec = r.recurrence as import('../utils/reminderConstants').ReminderRecurrence | null;
+      if (!rec) continue;
+      const step = RECURRENCE_STEP[rec];
+      if (!step) continue;
+      let next = step(new Date(r.dueDate));
+      // Catch-up: atraso maior que 1 intervalo (ex.: app parado 3 meses) avança até o futuro.
+      let guard = 0;
+      while (next.getTime() <= now && guard++ < 120) next = step(next);
+      // Race-safe: só rola se o estado AINDA bate (paciente pode ter desmarcado
+      // "feito" entre o findMany e o update — update condicional não sobrescreve).
+      await prisma.reminder.updateMany({
+        where: {
+          id: r.id,
+          recurrence: r.recurrence,
+          OR: [{ done: true }, { done: false, dueDate: r.dueDate }],
+        },
+        data: { dueDate: next, sentOffsets: [], done: false, consentAt: null },
+      }).catch((e) => { console.error('[reminders] roll falhou:', r.id, e?.message); });
+    }
+  } while (true);
 }
 
 export function startReminderEmailJob(): void {

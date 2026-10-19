@@ -137,7 +137,6 @@ describe('MÉDICO agenda teleconsulta (POST /doctor/patients/:id/teleconsulta)',
     const r = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H(docToken)).send({
       dueDate: new Date(Date.now() + 2 * DAY).toISOString(), linkUrl: 'https://meet.google.com/doc-123',
     });
-    console.log('DEBUG_TELE', r.status, JSON.stringify(r.body));
     expect(r.status).toBe(201);
     expect(r.body.reminder).toMatchObject({
       patientId: patient.id, ownerId: user.id, type: 'teleconsulta',
@@ -168,9 +167,34 @@ describe('MÉDICO agenda teleconsulta (POST /doctor/patients/:id/teleconsulta)',
     const crm = '55667-SP';
     const { token: docToken } = await createDoctor({ crm, email: 'tele4@t.com' });
     await api().post('/api/doctor-shares').set(H(token)).send({ doctorCrm: crm, scopes: ['exams'] });
-    const r = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H(docToken)).send({ dueDate: new Date().toISOString(), createMeet: true });
+    const r = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H(docToken)).send({ dueDate: new Date(Date.now() + DAY).toISOString(), createMeet: true });
     expect(r.status).toBe(400);
     expect(r.body.error).toContain('Conecte');
+  });
+
+  it('data no PASSADO → 400 (não cria consulta já vencida)', async () => {
+    const { token, patient } = await createUser();
+    const crm = '44556-SP';
+    const { token: docToken } = await createDoctor({ crm, email: 'tele7@t.com' });
+    await api().post('/api/doctor-shares').set(H(token)).send({ doctorCrm: crm, scopes: ['exams'] });
+    const r = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H(docToken)).send({ dueDate: new Date(Date.now() - DAY).toISOString(), linkUrl: 'https://meet.google.com/x' });
+    expect(r.status).toBe(400);
+    expect(r.body.error).toContain('futura');
+  });
+
+  it('PUT de lembrete não pode transformar em teleconsulta sem link nem aceitar link sem host', async () => {
+    const { token, patient } = await createUser();
+    const plain = await api().post('/api/reminders').set(H(token)).send({ patientId: patient.id, title: 'Exame', dueDate: new Date(Date.now() + DAY).toISOString() });
+    // vira teleconsulta sem link → 400 (meia-entrada inútil: chip sem botão Entrar)
+    const bad1 = await api().put(`/api/reminders/${plain.body.id}`).set(H(token)).send({ type: 'teleconsulta' });
+    expect(bad1.status).toBe(400);
+    // link sem host ("https://") → 400 explícito (não limpa silenciosamente)
+    const bad2 = await api().put(`/api/reminders/${plain.body.id}`).set(H(token)).send({ linkUrl: 'https://' });
+    expect(bad2.status).toBe(400);
+    // com link válido vira teleconsulta de verdade
+    const ok = await api().put(`/api/reminders/${plain.body.id}`).set(H(token)).send({ type: 'teleconsulta', linkUrl: 'https://meet.google.com/ok-put' });
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ type: 'teleconsulta', linkUrl: 'https://meet.google.com/ok-put' });
   });
 
   it('createMeet COM conta conectada → sala gerada vira o linkUrl (nada colado)', async () => {

@@ -20,6 +20,7 @@ import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 import { sendPushToUser } from '../utils/push';
 import { hasMeetConfig, meetAuthUrl, meetRedirectUri, exchangeMeetCode, createMeetSpace } from '../utils/meet';
+import { REMINDER_RECURRENCES } from '../utils/reminderConstants';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
@@ -952,8 +953,11 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     const dueDate = new Date(String(req.body?.dueDate ?? ''));
     let linkUrl = String(req.body?.linkUrl ?? '').trim();
     const title = String(req.body?.title ?? '').trim() || 'Teleconsulta';
-    const recurrence = ['diario', 'semanal', 'mensal', 'semestral', 'anual'].includes(req.body?.recurrence) ? String(req.body.recurrence) : null;
+    const recurrence = REMINDER_RECURRENCES.includes(req.body?.recurrence) ? String(req.body.recurrence) : null;
     if (Number.isNaN(dueDate.getTime())) { res.status(400).json({ error: 'Data/hora inválida.' }); return; }
+    // Review: data no passado criava consulta "já vencida" (push imediato de algo que
+    // já passou + roll quicando a recorrência um intervalo inteiro à frente).
+    if (dueDate.getTime() <= Date.now()) { res.status(400).json({ error: 'Escolha uma data/hora futura.' }); return; }
 
     // Sala Meet automática: refresh do médico → space → linkUrl gerado.
     if (req.body?.createMeet) {
@@ -968,7 +972,7 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
       }
     }
 
-    if (!/^https?:\/\//i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
+    if (!/^https?:\/\/[^\s/]+/i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
     const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true } } } });
     if (!patient?.ownerId) { res.status(404).json({ error: 'Paciente sem conta vinculada.' }); return; }
     const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
@@ -1014,9 +1018,9 @@ router.get('/google/callback', async (req: any, res) => {
     const enc = encryptPII(refresh);
     if (!enc) throw new Error('criptografia indisponível (APP_ENCRYPTION_KEY)');
     await prisma.doctor.update({ where: { id: payload.doctorId }, data: { googleRefreshTokenEnc: enc.enc, googleRefreshTokenIv: enc.iv } });
-    res.redirect(`${(process.env.WEB_ORIGIN || 'http://localhost:5173').replace(/\/$/, '')}/#/para-medicos?meet=ok`);
+    res.redirect(webUrl('/#/para-medicos?meet=ok'));
   } catch {
-    res.redirect(`${(process.env.WEB_ORIGIN || 'http://localhost:5173').replace(/\/$/, '')}/#/para-medicos?meet=erro`);
+    res.redirect(webUrl('/#/para-medicos?meet=erro'));
   }
 });
 
@@ -1731,7 +1735,9 @@ router.post('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => 
     const review = existing
       ? await prisma.doctorReview.update({ where: { id: existing.id }, data: { status, note, examId } })
       : await prisma.doctorReview.create({ data: { doctorId: req.doctorId, patientId, kind, examItemId, examId, status, note } });
-    void audit('DOCTOR_REVIEW_UPSERTED', req, {
+    // await (não void): o contrato E5.3 é "audita" — o teste lê o auditLog logo após
+    // a resposta; fire-and-forget perdia a corrida no runner lento do CI (flake: 2→1 logs).
+    await audit('DOCTOR_REVIEW_UPSERTED', req, {
       actorType: 'DOCTOR', actorId: req.doctorId,
       targetType: 'PATIENT', targetId: patientId,
       before: existing ? { status: existing.status, note: existing.note ?? null } : null,

@@ -125,16 +125,20 @@ export const RemindersPage = () => {
     load();
   };
 
-  /** Consentimento Art. 15 (teleconsulta): registra o aceite e abre a chamada EXTERNA. */
+  /** Consentimento Art. 15 (teleconsulta): registra o aceite e abre a chamada EXTERNA.
+   *  A aba abre NO CLIQUE (gesto síncrono) — depois do await o browser bloqueia popup. */
   const consentAndOpen = async (r: any) => {
+    const tab = window.open('about:blank', '_blank'); // precisa nascer no stack do gesto
     try {
       const res = await fetch(`${API_URL}/reminders/${r.id}/consent`, { method: 'PUT', headers: { Authorization: `Bearer ${token()}` } });
       if (!res.ok) throw new Error();
       hapticSuccess();
       setConsentFor(null);
-      window.open(r.linkUrl, '_blank', 'noopener');
+      if (tab) tab.location.href = r.linkUrl; // consentimento OK → navega a aba aberta
+      else window.open(r.linkUrl, '_blank', 'noopener'); // fallback (popup permitido?)
       load();
     } catch {
+      tab?.close(); // consentimento falhou → não abre nada
       hapticError();
       setConsentFor(null);
     }
