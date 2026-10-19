@@ -9,6 +9,9 @@ import sharp from 'sharp';
 export async function optimizeAvatar(buffer: Buffer): Promise<{ buffer: Buffer; contentType: string }> {
   try {
     const optimized = await sharp(buffer, { failOn: 'none' })
+      .rotate() // aplica a orientação EXIF ANTES de tudo — sem isso fotos de celular
+                // saem tortas/de cabeça pra baixo (o .jpeg() final stripa o EXIF,
+                // então os pixels precisam já estar girados). Bug dono 18/10.
       .resize({ width: 512, height: 512, fit: 'cover', position: 'centre', withoutEnlargement: true })
       .jpeg({ quality: 80, progressive: true })
       .toBuffer();
