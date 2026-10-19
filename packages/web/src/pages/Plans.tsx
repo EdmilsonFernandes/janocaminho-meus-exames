@@ -45,7 +45,8 @@ export const PlansPage = () => {
   const crLabel = String(planInfo?.plan?.monthlyCredits ?? 250);
   // Régua da linguagem de produto (18/10): 1 leitura = custo do resumo (settings). Packs e
   // mensal falam em LEITURAS na vitrine; créditos 💎 seguem como detalhe (saldo nunca muda).
-  const rd = Math.max(1, Number(planInfo?.summaryCost) > 0 ? Number(planInfo.summaryCost) : 10);
+  const summaryCost = Number(planInfo?.summaryCost ?? 0); // Number(undefined)=NaN sem narrowing — CI pescou
+  const rd = Math.max(1, summaryCost > 0 ? summaryCost : 10);
   const monthlyReads = Math.floor((Number(planInfo?.plan?.monthlyCredits) || 250) / rd);
   const [pixPack, setPixPack] = useState<string | null>(null);
   const [chooserPack, setChooserPack] = useState<string | null>(null);
