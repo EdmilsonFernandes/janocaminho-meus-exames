@@ -1083,7 +1083,7 @@ router.get('/teleconsultas', requireDoctor, async (req: any, res, next) => {
     if (pids.length > 0) {
       const pats = await prisma.patient.findMany({
         where: { id: { in: pids } },
-        select: { id: true, fullName: true, birthDate: true, sex: true, photoUrl: true },
+        select: { id: true, fullName: true, dateOfBirth: true, sex: true, photoUrl: true },
       });
       patientMap = Object.fromEntries(pats.map((p) => [p.id, p]));
     }
