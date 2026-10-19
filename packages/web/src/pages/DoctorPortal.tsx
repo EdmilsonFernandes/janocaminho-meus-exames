@@ -713,7 +713,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       title: 'Cancelar teleconsulta',
       message: 'Deseja realmente cancelar esta teleconsulta? O horário será liberado e o paciente informado.',
       confirmLabel: 'Sim, cancelar teleconsulta',
-      confirmColor: 'error',
     }))) return;
     try {
       const r = await fetch(`${API_URL}/doctor/patients/${pid}/teleconsulta/${reminderId}`, { method: 'DELETE', headers: h });
@@ -1188,7 +1187,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     <Button size="small" variant="outlined" startIcon={<AssignmentAddIcon />} disabled={!latestTele} onClick={() => latestTele && setReqOpenId(latestTele.id)} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}>
                       Pedir exame
                     </Button>
-                    <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={openTele} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark' }}>
+                    <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark' }}>
                       + Nova teleconsulta
                     </Button>
                   </Stack>

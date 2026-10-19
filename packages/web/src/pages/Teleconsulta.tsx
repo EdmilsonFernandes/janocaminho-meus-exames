@@ -55,6 +55,7 @@ interface Summary {
   provider?: string | null;
   linkUrl?: string | null;
   doctor?: { name?: string; crm?: string; specialty?: string } | null;
+  stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
 const dueAtDays = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(9, 0, 0, 0); return d.toISOString(); };
@@ -197,7 +198,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [reqOpen, setReqOpen] = useState(false);
   const [reqTitle, setReqTitle] = useState('');
   const [reqNote, setReqNote] = useState('');
-  const [reqBusy, setReqBusy] = useState(false);
+  const [docReqBusy, setDocReqBusy] = useState(false);
 
   const collectRoomAudioTracks = (room: Room): MediaStreamTrack[] => {
     const tracks: MediaStreamTrack[] = [];
@@ -476,6 +477,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         const s = fetched ?? summaryRef.current;
         if (s) setSummary(s);
         if (!s) { setPhase('error'); return; }
+        // reviewer-L: capability de transcrição (esconde o checkbox quando o server
+        // não transcreve) — best-effort, 1 request no boot.
+        fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } })
+          .then((r) => (r.ok ? r.json() : null))
+          .then((d) => { if (!cancelled && d && typeof d.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: d.stt } : cur)); })
+          .catch(() => {});
         // Spec §1: consentido → pula direto pra chamada.
         if (s.consentAt) { void startJoin(s); return; }
         setPhase('prejoin');
@@ -992,9 +999,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <DialogActions sx={{ px: 3, pb: 2.5 }}>
             <Button onClick={() => setReqOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
             <Button
-              variant="contained" disabled={reqBusy || !reqTitle.trim()}
+              variant="contained" disabled={docReqBusy || !reqTitle.trim()}
               onClick={async () => {
-                setReqBusy(true);
+                setDocReqBusy(true);
                 try {
                   const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/exam-request`, {
                     method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
@@ -1006,11 +1013,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   setReqOpen(false);
                   setReqTitle(''); setReqNote('');
                 } catch { setToast({ text: 'Não deu pra enviar. Tenta de novo.', k: Date.now() }); hapticError(); }
-                finally { setReqBusy(false); }
+                finally { setDocReqBusy(false); }
               }}
               sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#d4a574,#b88a54)', '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' } }}
             >
-              {reqBusy ? 'Enviando…' : 'Enviar pedido'}
+              {docReqBusy ? 'Enviando…' : 'Enviar pedido'}
             </Button>
           </DialogActions>
         </Dialog>
@@ -1352,8 +1359,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           )}
           {/* F3 §1: gravação p/ transcrição — checkbox SEPARADO do consent Art.15 (divisor
               hairline + 12px), default OFF, sem nudge visual. Opt-in honesto: a consulta
-              funciona sem. Médico não vê (o titular do dado é o paciente). */}
-          {showConsent && (
+              funciona sem. Médico não vê (o titular do dado é o paciente).
+              reviewer-L: some quando o server não transcreve (stt flag do join/summary) —
+              ausência é a mensagem, nunca promessa falsa. */}
+          {showConsent && summary?.stt !== false && (
             <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
               <FormControlLabel
                 disableTypography
