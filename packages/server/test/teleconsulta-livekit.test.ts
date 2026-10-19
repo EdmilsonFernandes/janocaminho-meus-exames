@@ -68,7 +68,8 @@ describe('GET /api/teleconsulta/:id/join', () => {
 
     const res = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(token));
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ serverUrl: 'wss://test.example.org', token: 'mock-join-token', room: 'teleconsulta-abc' });
+    expect(res.body).toMatchObject({ serverUrl: 'wss://test.example.org', token: 'mock-join-token', room: 'teleconsulta-abc' });
+    expect(typeof res.body.stt).toBe('boolean'); // reviewer-L: capability no join
 
     const call = vi.mocked(buildJoinToken).mock.calls[0][0];
     expect(call.identity).toBe(`patient:${user.id}`);

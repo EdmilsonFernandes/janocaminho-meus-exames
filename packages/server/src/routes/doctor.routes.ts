@@ -1100,6 +1100,9 @@ router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, as
       where: { id: rid, patientId: pid, createdByDoctorId: req.doctorId },
     });
     if (!found) { res.status(404).json({ error: 'Teleconsulta não encontrada ou sem permissão para cancelar.' }); return; }
+    // F3 (20/10): pedidos de exame feitos NA chamada SOBREVIVEM à exclusão (histórico do
+    // paciente) — só desvinculam da teleconsulta (reminderId nullable no ExamRequest).
+    await prisma.examRequest.updateMany({ where: { reminderId: rid }, data: { reminderId: null } }).catch(() => { /* histórico segue mesmo se falhar */ });
     await prisma.reminder.delete({ where: { id: rid } });
     res.json({ success: true });
   } catch (e) { next(e); }

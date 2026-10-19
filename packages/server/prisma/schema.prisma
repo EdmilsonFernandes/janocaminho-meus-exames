@@ -289,9 +289,34 @@ model Patient {
   sportsProfile SportsProfile?
   clinicalGoals ClinicalGoal[]
   reviews       DoctorReview[]
+  examRequests  ExamRequest[]
 
   @@index([ownerId])
   @@map("patients")
+}
+
+// F3 TELEMEDICINA PREMIUM (20/10/26) — "o dr. pediu 1 exame" com 1 toque. O médico cria o
+// pedido (dentro da chamada via reminderId, ou fora dela); o PACIENTE responde no app
+// (authorize/deny/schedule). authorize = estende o recorte de exames do DoctorShare (D6:
+// examIds vazio = TODOS → no-op, só estende recorte não-vazio); schedule = cria um Reminder
+// type='exame' na agenda do paciente. Médico NÃO tem canal push (D7) — ele vê a resposta
+// pelo status aqui (poll do portal). LGPD: nada de PII além do título/nota (texto do médico).
+model ExamRequest {
+  id             String    @id @default(cuid())
+  patientId      String
+  patient        Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId       String
+  doctor         Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  reminderId     String?   // teleconsulta de origem (null = pedido fora de chamada; limpado se a teleconsulta for excluída)
+  title          String    // ≤120, obrigatório — o exame pedido ("Hemogloba glicada")
+  note           String?   // orientação livre do médico
+  existingExamId String?   // exame JÁ EXISTENTE que o médico pede autorização p/ ver
+  status         String    @default("pending") // pending | authorized | denied | scheduled
+  createdAt      DateTime  @default(now())
+  respondedAt    DateTime?
+
+  @@index([patientId, status])
+  @@map("exam_requests")
 }
 
 // SAÚDE ESPORTIVA (E2, out/2026) — CAMADA 2 da política de referências (RELATORIO §4):
@@ -795,6 +820,14 @@ model Reminder {
   // ── F2 LiveKit (19/10/26): provedor da chamada + sala (nullable = legado drift-safe).
   provider          String?    // 'meet' | 'livekit' | null (link manual colado)
   roomName          String?    // sala LiveKit p/ provider='livekit' (F3 egress referencia)
+  // ── F3 Telemedicina premium (20/10/26): gravação/transcrição POR consulta.
+  // Áudio é EFÊMERO (vive em disco só até o STT; nunca no DB — LGPD). O permanente é o
+  // transcript CIFRADO (PII-style: transcriptEnc+Iv, igual cpfEncrypted).
+  recordConsentAt   DateTime?  // D3: PACIENTE autorizou gravação+transcrição (titular dos dados)
+  recordingAt       DateTime?  // D4: áudio salvo aguardando STT (estado pendente do job)
+  transcriptEnc     String?    // transcript cifrado (encryptPII) — nunca texto-puro no banco
+  transcriptIv      String?
+  transcriptAt      DateTime?
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])
@@ -911,6 +944,7 @@ model Doctor {
   invites      PatientInvite[]
   consultations Consultation[]
   clinicalGoalsSet ClinicalGoal[]
+  examRequests ExamRequest[]
   // MFA (TOTP 2FA) — mesmo esquema do User
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?

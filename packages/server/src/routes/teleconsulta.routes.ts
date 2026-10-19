@@ -15,6 +15,11 @@ import { prisma } from '../prisma';
 import { userPatientIds, type AuthedRequest } from '../middleware/auth';
 import { audit } from '../utils/audit';
 import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../utils/livekit';
+// F3 (20/10/26): gravação/transcrição premium + pós-chamada (contrato f3-arquitetura §3a-3d).
+import { decryptPII } from '../utils/crypto';
+import { hasStt, SttError } from '../utils/stt';
+import { acceptAudioFile } from '../middleware/uploadAudio';
+import { audioPathFor, finalizeTranscription, abortTranscription } from '../jobs/transcriptionQueue';
 
 const router = Router();
 
@@ -145,7 +150,9 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       targetId: reminder.id,
       after: { role, reminderId: reminder.id, room },
     });
-    res.json({ serverUrl: process.env.LIVEKIT_URL, token, room });
+    // stt: capability p/ o client esconder o checkbox de gravação quando o server
+    // não transcreve (reviewer-L — ausência é a mensagem, sem promessa falsa).
+    res.json({ serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt() });
   } catch (e) {
     next(e);
   }
@@ -172,6 +179,166 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
       after: { rating, note, role: req.joinRole },
     });
     res.status(201).json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+// ════════════════════════════════════════════════════════════════════════════════
+// F3 TELECONSULTA PREMIUM (20/10/26) — gravação, transcrição cifrada e pós-chamada.
+// Contrato: docs/research/2026-10-20-f3-arquitetura.md §3a-3d. LGPD: áudio efêmero em
+// disco até o STT; o permanente é o transcript CIFRADO (encryptPII, igual CPF — D1).
+// ════════════════════════════════════════════════════════════════════════════════
+
+interface TeleconsultaRef {
+  id: string;
+  patientId: string;
+  ownerId: string;
+  recordConsentAt: Date | null;
+}
+
+/** Carrega a teleconsulta + checa acesso DUAL (paciente owner OU médico com share ativo —
+ *  cópia do join). Responde (404/403) e devolve undefined quando NÃO deve seguir.
+ *  Leitura drift-safe igual join: coluna F3 nova + fallback "column does not exist". */
+async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Promise<TeleconsultaRef | undefined> {
+  const id = String(req.params.id);
+  const baseSelect = { id: true, type: true, patientId: true, ownerId: true };
+  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, recordConsentAt: true } })
+    .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
+      ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
+      : Promise.reject(e));
+  if (!row || row.type !== 'teleconsulta') { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
+
+  if (req.joinRole === 'doctor') {
+    const share = await prisma.doctorShare.findFirst({
+      where: { doctorId: req.doctorId!, patientId: row.patientId, active: true },
+      select: { id: true },
+    });
+    if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+  } else {
+    const ids = await userPatientIds(req.userId!);
+    if (!ids.includes(row.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+  }
+  return { id: row.id, patientId: row.patientId, ownerId: row.ownerId, recordConsentAt: row.recordConsentAt ?? null };
+}
+
+/** 3a — PUT/PATCH /api/teleconsulta/:id/record-consent (os dois verbos: cliente pode
+ *  chamar qualquer um). PACIENTE titular autoriza gravação+transcrição (D3 — checkbox
+ *  default OFF do pré-join). Idempotente: mantém o 1º timestamp (re-envio não renova). */
+async function setRecordConsent(req: JoinRequest, res: Response, next: NextFunction): Promise<void> {
+  try {
+    if (req.joinRole !== 'patient') { res.status(403).json({ error: 'A autorização de gravação é dada pelo paciente.' }); return; }
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    if (!r.recordConsentAt) {
+      const now = new Date();
+      await prisma.reminder.update({ where: { id: r.id }, data: { recordConsentAt: now } });
+      await audit('TELECONSULTA_RECORD_CONSENT', req, {
+        actorType: 'USER', actorId: req.userId, targetType: 'REMINDER', targetId: r.id,
+        after: { reminderId: r.id, recordConsentAt: now.toISOString() },
+      });
+      res.json({ recordConsentAt: now.toISOString() });
+      return;
+    }
+    res.json({ recordConsentAt: new Date(r.recordConsentAt).toISOString() });
+  } catch (e) {
+    next(e);
+  }
+}
+router.put('/:id/record-consent', requireJoinIdentity, setRecordConsent);
+router.patch('/:id/record-consent', requireJoinIdentity, setRecordConsent);
+
+/** 3b — POST /api/teleconsulta/:id/recording (multipart field "file"). Só o MÉDICO (quem
+ *  grava no client); paciente → 403. Fluxo: consent do paciente → áudio no disco → STT.
+ *  Sem GROQ key ou STT falho → 202 {pending:true} (job transcriptionQueue finaliza). */
+router.post('/:id/recording', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    if (req.joinRole !== 'doctor') { res.status(403).json({ error: 'Apenas o médico envia a gravação da chamada.' }); return; }
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    if (!r.recordConsentAt) {
+      res.status(403).json({ error: 'O paciente precisa autorizar a gravação e a transcrição antes da chamada.', code: 'RECORD_CONSENT_REQUIRED' });
+      return;
+    }
+    // Multipart SÓ depois das checagens (não decodifica 80MB de upload recusado).
+    // reviewer-D: multipart SEM campo 'file' → multer resolve sem erro e sem arquivo;
+    // sem este 400 a rota devolvia nada (hang). Wrapper só responde 400/413 de ERRO.
+    const file = await acceptAudioFile(req);
+    if (!file) { res.status(400).json({ error: 'Envie o áudio no campo "file" (audio/webm).' }); return; }
+    const buf: Buffer = file.buffer;
+
+    // Áudio no disco ANTES do marcador pendente (D4): row `recordingAt≠null` sempre tem
+    // arquivo — crash entre write e update vira órfão que o job varre, nunca o inverso.
+    // Re-upload sobrescreve o arquivo e reseta o transcript anterior (refaz — §3b).
+    const { promises: fsp } = await import('fs');
+    await fsp.mkdir(config.teleconsultaDir, { recursive: true });
+    await fsp.writeFile(audioPathFor(r.id), buf);
+    await prisma.reminder.update({
+      where: { id: r.id },
+      data: { recordingAt: new Date(), transcriptEnc: null, transcriptIv: null, transcriptAt: null },
+    });
+
+    // reviewer-G: SEMPRE async — STT inline (até 240s) estoura o proxy_read_timeout 60s
+    // do nginx (504 pro client). O job transcriptionQueue finaliza (tick 2min) e o
+    // client acompanha via GET /summary (poll da área pós-chamada).
+    res.status(202).json({ pending: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** 3c — GET /api/teleconsulta/:id/transcript (auth dual). Drift-safe: banco sem as
+ *  colunas F3 ainda → null em vez de 500. Transcript sai DECRYPTADO só aqui. */
+router.get('/:id/transcript', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const row: any = await prisma.reminder.findUnique({
+      where: { id: r.id },
+      select: { transcriptEnc: true, transcriptIv: true, transcriptAt: true },
+    }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
+    const text = row ? decryptPII(row.transcriptEnc, row.transcriptIv) : null;
+    res.json({
+      text,
+      transcriptAt: row?.transcriptAt ? new Date(row.transcriptAt).toISOString() : null,
+      disclaimer: 'Transcrição gerada por IA — revise com o médico.',
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** 3d — GET /api/teleconsulta/:id/summary (auth dual) — a "área pós-chamada" do dono:
+ *  transcrição (só a data), pedidos de exame da chamada (ExamRequest), feedback 1-toque
+ *  (F2, auditLog) e duração aproximada (1º→último join no auditLog). */
+router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const row: any = await prisma.reminder.findUnique({
+      where: { id: r.id },
+      select: { transcriptAt: true },
+    }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
+    // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
+    const examRequests = await (prisma as any).examRequest.findMany({
+      where: { reminderId: r.id },
+      orderBy: { createdAt: 'asc' },
+    }).catch(() => []);
+    const [feedbackLog, joinLogs] = await Promise.all([
+      prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_FEEDBACK', targetId: r.id }, orderBy: { createdAt: 'desc' } }),
+      prisma.auditLog.findMany({ where: { action: 'TELECONSULTA_JOIN', targetId: r.id }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
+    ]);
+    const fb: any = feedbackLog?.after ?? null;
+    let durationHint: string | null = null;
+    if (joinLogs.length >= 2) {
+      const mins = Math.max(1, Math.round(
+        (new Date(joinLogs[joinLogs.length - 1].createdAt).getTime() - new Date(joinLogs[0].createdAt).getTime()) / 60_000,
+      ));
+      durationHint = `aprox. ${mins} min`;
+    }
+    res.json({
+      transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
+      examRequests,
+      feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,
+      durationHint,
+      stt: hasStt(), // reviewer-L: client esconde checkbox de gravação quando false
+    });
   } catch (e) {
     next(e);
   }

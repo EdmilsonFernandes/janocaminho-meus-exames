@@ -26,6 +26,7 @@ process.env.SMTP_PASS = '';
 process.env.UPLOAD_DIR = './data/test-exams';
 process.env.PHOTOS_DIR = './data/test-photos';
 process.env.AGENT_DIR = './data/test-agent';
+process.env.TELECONSULTA_DIR = './data/test-teleconsultas'; // F3: áudio efêmero das teleconsultas (testes escrevem aqui)
 
 // --- MOCKS de módulos externos (valem para TODOS os testes) ---
 

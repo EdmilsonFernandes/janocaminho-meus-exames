@@ -13,6 +13,7 @@ import { startAuditRetentionJob } from './jobs/auditRetention';
 import { startPushCampaignScheduler } from './jobs/pushCampaigns';
 import { startActivityNudgeJob } from './jobs/activityNudges';
 import { startEmailIngestJob } from './jobs/emailIngest';
+import { startTranscriptionQueueJob } from './jobs/transcriptionQueue';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
 import { initLlm } from './llm';
@@ -49,6 +50,7 @@ const server = app.listen(config.port, () => {
   startPushCampaignScheduler(); // campanhas de push AGENDADAS pelo admin (audienceFilter, 5 min)
   startActivityNudgeJob(); // triggers de atividade/engajamento (meta 8k, streak, queda, reativação)
   startEmailIngestJob(); // ingestão de exame por e-mail (código EX-XXXX no assunto; IMAP_ENABLED)
+  startTranscriptionQueueJob(); // F3: transcrições de teleconsulta pendentes (STT off/falha → job finaliza)
   void import('./pricing/worker').then((m) => m.startPriceWorkerJob()); // preços: worker assíncrono (cache 6h, kill-switch env)
   void import('./pricing/catalog').then((m) => m.startCatalogJob()); // catálogo: bootstrap 1× + refresh 2h
   void import('./pricing/providers/vtexDynamic').then((m) => m.seedPharmacies().catch(() => {})); // seed farmácias 1×

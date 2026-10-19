@@ -345,13 +345,17 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const room = roomRef.current;
     roomRef.current = null;
     if (audioSink.current) audioSink.current.innerHTML = '';
+    // Sons: tudo para no teardown (ringback, beep de gravação, AudioContext fecha)
+    stopRingback();
+    stopRecordingBeep();
+    try { audioCtxRef.current?.close(); audioCtxRef.current = null; } catch { /* noop */ }
     setLocalVideo(null);
     setRemotes([]);
     if (room) {
       try { room.removeAllListeners(); } catch { /* noop */ }
       try { await room.disconnect(); } catch { /* noop */ }
     }
-  }, []);
+  }, [stopRingback, stopRecordingBeep]);
 
   // ── Conexão LiveKit ──────────────────────────────────────────────────────────
   const connectRoom = useCallback(async (serverUrl: string, lkToken: string) => {
@@ -394,7 +398,6 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       })
       .on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
         upsertRemote(p);
-        // P3-reviewer: nome de exibição SEM o sufixo CRM (joinName do server é "Dr. Ana (116739/SP)")
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
         setToast({ text: `${displayName} entrou ✨`, k: Date.now() });
         playJoinChime();
@@ -442,7 +445,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // (checkbox no pré-join dele). Sem consent → nada grava (ausência é a mensagem).
     if (role === 'doctor' && summaryRef.current?.recordConsentAt) startRoomRecording(room);
     try { wakeLock.current = await (navigator as any).wakeLock?.request('screen'); } catch { /* WebView sem wakelock — ok */ }
-  }, [restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom]);
+  }, [playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom]);
 
   // ── Join via backend ─────────────────────────────────────────────────────────
   const startJoin = useCallback(async (s?: Summary | null) => {

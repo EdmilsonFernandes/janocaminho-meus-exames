@@ -92,7 +92,10 @@ export async function rollRecurringReminders(now: number): Promise<void> {
           recurrence: r.recurrence,
           OR: [{ done: true }, { done: false, dueDate: r.dueDate }],
         },
-        data: { dueDate: next, sentOffsets: [], done: false, consentAt: null },
+        data: { dueDate: next, sentOffsets: [], done: false, consentAt: null,
+          // D5 (F3, 20/10): o pacote da PRÓXIMA consulta começa limpo — consent de
+          // gravação e transcrição são POR consulta (áudio novo, consent novo).
+          recordConsentAt: null, recordingAt: null, transcriptEnc: null, transcriptIv: null, transcriptAt: null },
       }).catch((e) => { console.error('[reminders] roll falhou:', r.id, e?.message); });
     }
   } while (true);

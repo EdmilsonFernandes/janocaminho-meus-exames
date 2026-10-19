@@ -134,6 +134,13 @@ export const config = {
 
   // "Memória" do agente (historico.md por paciente) — path absoluto alinhado ao volume
   agentDir: process.env.AGENT_DIR ?? './data/agent',
+
+  // F3 Telemedicina premium (20/10/26): STT da transcrição (Groq whisper) + diretório do
+  // áudio EFÊMERO das teleconsultas (mesmo volume /app/data — nada novo p/ provisionar).
+  // STT_PROVIDER reservado p/ 'whisper-local'; sem chave → upload 202 pending + job retria.
+  groqApiKey: process.env.GROQ_API_KEY ?? '',
+  sttProvider: (process.env.STT_PROVIDER ?? 'groq').toLowerCase(),
+  teleconsultaDir: process.env.TELECONSULTA_DIR ?? './data/teleconsultas',
 } as const;
 
 // SEGURANÇA (boot): em produção, falha se segredos críticos não estão definidos. Sem isto, se a
