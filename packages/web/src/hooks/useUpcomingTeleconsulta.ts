@@ -27,12 +27,16 @@ export interface UpcomingTeleconsultaState {
   item: TeleconsultaItem | null;
   status: TeleconsultaStatus;
   startsInText: string | null;
+  relativeLabel: string | null;
+  timeLabel: string | null;
   roomCode: string | null;
   doctorName: string | null;
   doctorSpecialty: string | null;
+  specialty: string | null;
   isToday: boolean;
   isLive: boolean;
   hasConsent: boolean;
+  hasPendingExams: boolean;
   pendingRequestsCount: number;
   reload: () => Promise<void>;
 }
@@ -186,16 +190,25 @@ export function useUpcomingTeleconsulta(): UpcomingTeleconsultaState {
     };
   }, [load]);
 
+  const timeLabel = item?.dueDate
+    ? new Date(item.dueDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    : null;
+  const specialty = item?.doctor?.specialty || null;
+
   return {
     item,
     status,
     startsInText,
+    relativeLabel: startsInText,
+    timeLabel: timeLabel ? `às ${timeLabel}` : null,
     roomCode: item?.id ? String(item.id).slice(-5).toUpperCase() : null,
     doctorName: item?.doctor?.name || null,
-    doctorSpecialty: item?.doctor?.specialty || null,
+    doctorSpecialty: specialty,
+    specialty,
     isToday: status === 'today',
     isLive: status === 'live',
     hasConsent: !!item?.consentAt,
+    hasPendingExams: pendingReqs > 0,
     pendingRequestsCount: pendingReqs,
     reload: load,
   };
