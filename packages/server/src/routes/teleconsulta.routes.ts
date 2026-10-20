@@ -15,6 +15,7 @@ import { prisma } from '../prisma';
 import { userPatientIds, type AuthedRequest } from '../middleware/auth';
 import { audit } from '../utils/audit';
 import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../utils/livekit';
+import { sendPushToUser } from '../utils/push';
 // F3 (20/10/26): gravação/transcrição premium + pós-chamada (contrato f3-arquitetura §3a-3d).
 import { decryptPII } from '../utils/crypto';
 import { hasStt, SttError } from '../utils/stt';
@@ -155,6 +156,11 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     });
     // stt: capability p/ o client esconder o checkbox de gravação quando o server
     // não transcreve (reviewer-L — ausência é a mensagem, sem promessa falsa).
+    // WhatsApp-style: médico entrou → push pro paciente "está te chamando"
+    if (role === 'doctor') {
+      const docName = req.joinName?.replace(/^Dr\.\s*/, '') || 'seu médico';
+      void sendPushToUser(reminder.ownerId, `📞 ${docName} está te chamando`, 'Toque para atender a teleconsulta agora.', { type: 'teleconsulta', reminderId: reminder.id }).catch(() => {});
+    }
     res.json({ serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt() });
   } catch (e) {
     next(e);
@@ -343,7 +349,11 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       ));
       durationHint = `aprox. ${mins} min`;
     }
+    // WhatsApp-style: médico já entrou na sala? (join role=doctor nos últimos 5 min
+    // sem disconnect) → pré-join do paciente vira tela de "chamada recebida"
+    const doctorInRoom = joinLogs.some((l: any) => l.after?.role === 'doctor' && Date.now() - new Date(l.createdAt).getTime() < 5 * 60_000);
     res.json({
+      doctorInRoom,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
       examRequests,
       feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,

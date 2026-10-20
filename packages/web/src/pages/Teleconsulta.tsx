@@ -67,6 +67,7 @@ interface Summary {
   doctor?: { id?: string; name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
   patient?: { id?: string; name?: string; photoUrl?: string } | null;
   patientId?: string;
+  doctorInRoom?: boolean; // WhatsApp-style: médico já entrou → pré-join vira "chamada recebida"
   stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
@@ -599,6 +600,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 stt: typeof d.stt === 'boolean' ? d.stt : cur.stt,
                 patient: d.patient || cur.patient,
                 doctor: d.doctor || cur.doctor,
+                doctorInRoom: d.doctorInRoom ?? false,
               } : cur));
             }
           })
@@ -638,6 +640,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     if (phase === 'prejoin') { void openPreview(); }
     else stopPreview();
   }, [phase, openPreview, stopPreview]);
+
+  // WhatsApp-style: poll do summary no pré-join p/ detectar médico entrando
+  // (doctorInRoom true = tela vira "chamada recebida" com toque visual)
+  useEffect(() => {
+    if (phase !== 'prejoin' || role !== 'patient') return;
+    const iv = setInterval(() => {
+      fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => { if (d?.doctorInRoom) setSummary((cur) => (cur ? { ...cur, doctorInRoom: true } : cur)); })
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [authToken, phase, reminderId, role]);
 
   // Ringback: toca enquanto "Aguardando…" (incall + ninguém conectado AINDA). Para no
   // 1º join e NÃO religa quando o outro sai (evita tocar eternamente).
@@ -1647,8 +1662,93 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     );
   }
 
-  // Pré-join + loading
+  // Pré-join + loading — ou WHATSAPP-STYLE incoming call quando médico já tá na sala
   const showConsent = role === 'patient' && !summary?.consentAt;
+  const isIncomingCall = role === 'patient' && !!summary?.doctorInRoom && phase === 'prejoin';
+  if (isIncomingCall) {
+    const docName = summary?.doctor?.name || 'Seu médico';
+    return (
+      <Box sx={{ ...CALL_BG_STYLE, minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, pt: 'calc(env(safe-area-inset-top) + 40px)' }}>
+        {/* Anéis pulsantes ao redor da foto (estilo telefone chamando) */}
+        <Box sx={{ position: 'relative', mb: 3 }}>
+          {[0, 1, 2].map((i) => (
+            <Box key={i} sx={{
+              position: 'absolute', inset: -(20 + i * 22), borderRadius: '50%',
+              border: '2px solid rgba(32,178,170,0.25)',
+              animation: `dxRingExpand 2s ease-out ${i * 0.4}s infinite`,
+              '@keyframes dxRingExpand': {
+                '0%': { transform: 'scale(0.8)', opacity: 0.8 },
+                '100%': { transform: 'scale(1.4)', opacity: 0 },
+              },
+              '@media (prefers-reduced-motion: reduce)': { animation: 'none', opacity: 0.2 },
+            }} />
+          ))}
+          <Avatar
+            src={doctorPhotoUrl(summary?.doctor?.id || '')}
+            sx={{
+              width: 120, height: 120, fontSize: 42, fontWeight: 800,
+              bgcolor: 'rgba(32,178,170,.15)', color: '#5fc9c3',
+              border: '4px solid rgba(32,178,170,.4)',
+              boxShadow: '0 0 48px rgba(32,178,170,.3)',
+            }}
+          >
+            {docName.charAt(0).toUpperCase()}
+          </Avatar>
+        </Box>
+        <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 22, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>
+          {docName}
+        </Typography>
+        <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 14, mb: 1 }}>
+          {summary?.doctor?.specialty ? `${summary.doctor.specialty} · ` : ''}Chamada de vídeo…
+        </Typography>
+        <Typography sx={{ color: 'rgba(255,255,255,.4)', fontSize: 12, mb: 5 }}>
+          Sala {String(reminderId).slice(-5).toUpperCase()}
+        </Typography>
+        {/* Botões: verde atender + vermelho recusar */}
+        <Stack direction="row" spacing={6} alignItems="center">
+          <Box sx={{ textAlign: 'center' }}>
+            <IconButton
+              aria-label="Recusar chamada"
+              onClick={() => { hapticLight(); exitTo(); }}
+              sx={{
+                width: 64, height: 64, bgcolor: '#ef4444', color: '#fff',
+                '&:hover': { bgcolor: '#dc2626', transform: 'scale(1.05)' },
+                transition: 'all .2s', boxShadow: '0 4px 20px rgba(239,68,68,.4)',
+              }}
+            >
+              <CallEndIcon sx={{ fontSize: 28 }} />
+            </IconButton>
+            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 11, mt: 1 }}>Recusar</Typography>
+          </Box>
+          <Box sx={{ textAlign: 'center' }}>
+            <IconButton
+              aria-label={showConsent ? 'Autorizar e atender' : 'Atender chamada'}
+              onClick={() => void consentAndJoin()}
+              disabled={joinLoading}
+              sx={{
+                width: 64, height: 64, bgcolor: '#059669', color: '#fff',
+                '&:hover': { bgcolor: '#047857', transform: 'scale(1.05)' },
+                '&:disabled': { bgcolor: '#05966980' },
+                transition: 'all .2s', boxShadow: '0 4px 20px rgba(5,150,105,.4)',
+                '@media (prefers-reduced-motion: no-preference)': {
+                  animation: 'dxAnswerPulse 1.5s ease-in-out infinite',
+                  '@keyframes dxAnswerPulse': { '0%,100%': { boxShadow: '0 4px 20px rgba(5,150,105,.3)' }, '50%': { boxShadow: '0 4px 32px rgba(5,150,105,.6)' } },
+                },
+              }}
+            >
+              {joinLoading ? <CircularProgress size={26} sx={{ color: '#fff' }} /> : <VideocamIcon sx={{ fontSize: 28 }} />}
+            </IconButton>
+            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 11, mt: 1 }}>{showConsent ? 'Autorizar' : 'Atender'}</Typography>
+          </Box>
+        </Stack>
+        {showConsent && (
+          <Typography sx={{ color: 'rgba(255,255,255,.35)', fontSize: 11, mt: 4, maxWidth: 280, textAlign: 'center', lineHeight: 1.5 }}>
+            Ao atender, você autoriza a telemedicina conforme o Art. 15 da Res. CFM 2.314/2022.
+          </Typography>
+        )}
+      </Box>
+    );
+  }
   const ctaLabel = role === 'doctor' ? 'Entrar e aguardar' : showConsent ? 'Autorizar e entrar' : 'Entrar na consulta';
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 1.5 }}>
