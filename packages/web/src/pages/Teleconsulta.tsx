@@ -401,8 +401,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const upsertRemote = (p: RemoteParticipant) => {
       const isDoctor = p.identity.startsWith('doctor:');
       setRemotes((cur) => {
+        // Preserva track/muted existentes — sem isto, re-upsert (ParticipantConnected
+        // chegando depois de TrackSubscribed) ZERAVA o track e o vídeo sumia.
+        const existing = cur.find((r) => r.identity === p.identity);
         const next = cur.filter((r) => r.identity !== p.identity);
-        next.push({ identity: p.identity, name: p.name || p.identity, isDoctor, track: null, muted: false });
+        next.push({ identity: p.identity, name: p.name || p.identity, isDoctor, track: existing?.track ?? null, muted: existing?.muted ?? false });
         return next;
       });
     };
@@ -412,6 +415,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
     room
       .on(RoomEvent.TrackSubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
+        // Dono 20/10: TrackSubscribed pode chegar ANTES de ParticipantConnected processar
+        // (raça). Garante que o participante está no estado ANTES de setar o track —
+        // sem isto, setRemoteVideo mapeava array vazio e o vídeo unilateral sumia.
+        upsertRemote(p);
         if (track.kind === 'audio') {
           try { const el = track.attach(); el.style.display = 'none'; audioSink.current?.appendChild(el); } catch { /* noop */ }
           // Gravando e alguém entrou depois: reinclui o áudio novo no recorder.
@@ -1047,50 +1054,31 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           {camOn && localVideo ? <TrackVideo track={localVideo} mirrored /> : <VideocamOffIcon sx={{ color: 'rgba(255,255,255,.5)' }} />}
         </Box>
 
-        {/* Header flutuante (vidro) */}
+        {/* Header vidro — 2 LINHAS (nome+timer / chips): 6 elementos numa linha
+            de 390px ficava sopa no iPhone — dono 20/10 "header confuso" */}
         <Stack
-          direction="row" alignItems="center" spacing={1}
           sx={{
-            position: 'absolute', top: 0, left: 0, right: 0, px: 1.5, pt: 'calc(env(safe-area-inset-top) + 8px)', pb: 1,
+            position: 'absolute', top: 0, left: 0, right: 0, px: 1.5,
+            pt: 'calc(env(safe-area-inset-top) + 8px)', pb: 0.75,
             background: 'rgba(0,0,0,.45)', backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER,
           }}
         >
-          <DrExame size={28} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography noWrap sx={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>
-              {headerName}{headerCrm ? ` · CRM ${headerCrm}` : ''}
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <DrExame size={26} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography noWrap sx={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{headerName}</Typography>
+              {headerCrm && <Typography noWrap sx={{ color: 'rgba(255,255,255,.55)', fontSize: 10 }}>{headerCrm}</Typography>}
+            </Box>
+            <Typography sx={{ color: 'rgba(255,255,255,.85)', fontSize: 13, fontVariantNumeric: 'tabular-nums', fontWeight: 700 }} aria-label="Tempo de chamada">
+              {clockFmt(elapsedSec)}
             </Typography>
-          </Box>
-          {role === 'doctor' && (
-            <Chip size="small" label="Médico" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />
-          )}
-          {role === 'patient' && summary?.consentAt && (
-            <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="autorizada" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3', '& .MuiChip-icon': { color: '#5fc9c3' } }} />
-          )}
-          {/* F3 §2c: transparência LGPD — ambos os papéis veem quando a consulta é gravada
-              (recordConsentAt do paciente). Sem consent → NADA renderiza (ausência é a mensagem). */}
-          {!!summary?.recordConsentAt && (
-            <Tooltip title="O áudio é apagado assim que o texto da consulta fica pronto.">
-              <Stack
-                direction="row" alignItems="center" spacing={0.5} aria-label="Consulta sendo gravada"
-                sx={{ px: 0.85, py: '2px', borderRadius: '999px', bgcolor: 'rgba(0,0,0,.45)', flexShrink: 0 }}
-              >
-                <Box sx={{
-                  width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444',
-                  animation: 'dxRecPulse 2s ease infinite',
-                  '@keyframes dxRecPulse': { '0%,100%': { transform: 'scale(1)' }, '50%': { transform: 'scale(1.35)' } },
-                }} />
-                <Typography sx={{ color: '#fff', fontSize: 11, fontWeight: 700, whiteSpace: 'nowrap' }}>Gravando áudio</Typography>
-              </Stack>
-            </Tooltip>
-          )}
-          {/* Sala: mesmo código nos DOIS aparelhos (bug 3-salas 19/10) — conferência instantânea */}
-          <Tooltip title="Confira: este código é o mesmo no aparelho da outra pessoa">
-            <Chip size="small" label={`Sala ${String(reminderId).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 10.5, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(0,0,0,.30)', color: '#e0bc97', border: '1px dashed rgba(224,188,151,.45)' }} />
-          </Tooltip>
-          <Typography sx={{ color: 'rgba(255,255,255,.8)', fontSize: 12, fontVariantNumeric: 'tabular-nums', fontWeight: 600 }} aria-label="Tempo de chamada">
-            {clockFmt(elapsedSec)}
-          </Typography>
+          </Stack>
+          <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
+            {role === 'doctor' && <Chip size="small" label="Médico" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />}
+            {role === 'patient' && summary?.consentAt && <Chip size="small" label="✓ autorizada" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3' }} />}
+            {!!summary?.recordConsentAt && <Chip size="small" label="● gravando" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(239,68,68,.15)', color: '#fca5a5' }} />}
+            <Chip size="small" label={`Sala ${String(reminderId).slice(-5).toUpperCase()}`} sx={{ height: 18, fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(0,0,0,.3)', color: '#e0bc97', border: '1px dashed rgba(224,188,151,.35)' }} />
+          </Stack>
         </Stack>
 
         {/* Indicadores (vidro, topo) */}
@@ -1462,9 +1450,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             {/* §3c — feedback 1-toque fecha a área */}
             {feedbackBlock}
 
-            <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
-              Voltar aos lembretes
-            </Button>
+            <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
+              <Button variant="outlined" fullWidth onClick={() => { setEnded(null); setPhase('prejoin'); setFbSent(false); setFbRating(null); }}
+                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', py: 1.2, color: (t) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.35)' }}>
+                Voltar à chamada
+              </Button>
+              <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn }}>
+                Sair
+              </Button>
+            </Stack>
           </Box>
 
           {/* Toast da área (respostas de pedido / cópia) */}
