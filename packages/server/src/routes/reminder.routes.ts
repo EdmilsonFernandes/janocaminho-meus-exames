@@ -54,7 +54,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     if (docIds.length > 0) {
       const docs = await prisma.doctor.findMany({
         where: { id: { in: docIds } },
-        select: { id: true, name: true, crm: true, crmUf: true, specialty: true },
+        select: { id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true },
       });
       docMap = Object.fromEntries(docs.map((d) => [d.id, d]));
     }

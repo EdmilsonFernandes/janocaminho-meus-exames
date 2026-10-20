@@ -18,7 +18,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import { useNavigate } from 'react-router-dom';
-import { API_URL, token } from '../config';
+import { API_URL, token, doctorPhotoUrl } from '../config';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -244,100 +244,252 @@ export const RemindersPage = () => {
               {/* TELECONSULTA — ação paciente×médico: consentimento (Art. 15) desbloqueia a
                   entrada na chamada. Código da sala (5 finais do id) aparece AQUI e no header
                   da chamada — médico e paciente conferem se estão na MESMA (bug 3-salas 19/10). */}
-              {isTele && (
-                <Box sx={{ mt: 1, p: 1.25, borderRadius: '12px', bgcolor: 'rgba(15,118,110,0.06)', border: '1px solid rgba(15,118,110,0.15)' }}>
-                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                    <Avatar sx={{ width: 34, height: 34, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.35)' }}>
-                      {(r.doctor?.name || 'D').charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      {r.doctor ? (
-                        <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
-                          {r.doctor.name} <span style={{ fontWeight: 600, color: 'text.secondary' }}>· CRM {r.doctor.crm}{r.doctor.crmUf ? `-${r.doctor.crmUf}` : ''}</span>
-                        </Typography>
-                      ) : (
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f766e' }}>🩺 Teleconsulta agendada</Typography>
-                      )}
-                      <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
-                        {r.doctor?.specialty ? `${r.doctor.specialty} · ` : ''}criada {new Date(r.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </Typography>
-                    </Box>
-                    <Tooltip title="Confira este código com seu médico — precisa ser igual nos dois aparelhos">
-                      <Chip size="small" label={`Sala ${String(r.id).slice(-5).toUpperCase()}`} sx={{ height: 24, fontSize: 11.5, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
-                    </Tooltip>
-                  </Stack>
-                  {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (
-                    <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75 }}>
-                      {(r.provider === 'livekit' || (!r.linkUrl && r.type === 'teleconsulta')) ? (
-                        /* Videochamada DENTRO do app (LiveKit F2): botão leva pra rota
-                           /teleconsulta/:id — consent Art.15 + câmera + chamada acontecem lá. */
-                        <>
-                          <Chip size="small" label="No app ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
-                          {/* F3 §4: pendência do médico — chip âmbar clicável → área da consulta. */}
-                          {(pendingReqs[r.id] ?? 0) > 0 && (
+              {isTele && (() => {
+                const docId = r.doctor?.id || r.createdByDoctorId || r.doctorId;
+                const docPhoto = docId ? doctorPhotoUrl(docId) : undefined;
+                const roomCode = String(r.id).slice(-5).toUpperCase();
+                const docName = r.doctor?.name ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`) : null;
+
+                return (
+                  <Box
+                    sx={(t) => ({
+                      mt: 1.5,
+                      p: { xs: 1.75, sm: 2 },
+                      borderRadius: '16px',
+                      background: t.palette.mode === 'dark'
+                        ? 'linear-gradient(135deg, rgba(15,118,110,0.16) 0%, rgba(17,94,89,0.22) 100%)'
+                        : 'linear-gradient(135deg, rgba(240,253,250,0.95) 0%, rgba(204,251,241,0.4) 100%)',
+                      border: '1.5px solid',
+                      borderColor: t.palette.mode === 'dark' ? 'rgba(45,212,191,0.25)' : 'rgba(15,118,110,0.2)',
+                      boxShadow: '0 4px 18px rgba(15,118,110,0.08)',
+                    })}
+                  >
+                    <Stack direction="row" spacing={1.75} alignItems="center" sx={{ mb: 1.5 }}>
+                      <Avatar
+                        src={docPhoto}
+                        alt={r.doctor?.name || 'Médico'}
+                        sx={{
+                          width: 52,
+                          height: 52,
+                          fontSize: 18,
+                          fontWeight: 800,
+                          bgcolor: 'rgba(15,118,110,0.12)',
+                          color: '#0f766e',
+                          border: '2px solid rgba(15,118,110,0.3)',
+                          boxShadow: '0 2px 10px rgba(15,118,110,0.15)',
+                          borderRadius: '14px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {(r.doctor?.name || 'D').charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.25 }}>
+                          <Typography sx={{ fontSize: 14.5, fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
+                            {docName || 'Teleconsulta agendada'}
+                          </Typography>
+                          {r.doctor?.crm && (
                             <Chip
-                              size="small" clickable
-                              aria-label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico — abrir consulta`}
-                              label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico`}
-                              onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                              size="small"
+                              label={`CRM ${r.doctor.crm}${r.doctor.crmUf ? `-${r.doctor.crmUf}` : ''}`}
                               sx={{
-                                height: 24, fontSize: 11, fontWeight: 800, borderRadius: '8px',
-                                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'),
-                                color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e'),
-                                '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.24)' : 'rgba(245,158,11,.25)') },
-                                '&:focus-visible': { outline: '2px solid #f59e0b', outlineOffset: 1 },
+                                height: 20,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                bgcolor: 'rgba(15,118,110,0.1)',
+                                color: '#0f766e',
+                                borderRadius: '6px',
                               }}
                             />
                           )}
-                          {r.consentAt ? (
-                            <>
-                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
-                                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
-                                Entrar na consulta
-                              </Button>
-                              <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#0f766e', '& .MuiChip-icon': { color: '#0f766e' } }} />
-                            </>
-                          ) : (
-                            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
-                              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, color: '#0f766e', borderColor: 'rgba(15,118,110,.4)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
-                              Autorizar e entrar
-                            </Button>
+                        </Stack>
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                          {r.doctor?.specialty && (
+                            <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#0f766e' }}>
+                              🩺 {r.doctor.specialty}
+                            </Typography>
                           )}
-                        </>
-                      ) : (
-                        /* Fluxo link externo (Meet/Teams/WhatsApp) */
-                        <>
-                          {r.linkUrl?.includes('meet.google.com') && (
-                            <Chip size="small" label="Google Meet ✨" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark' }} />
-                          )}
-                          {r.consentAt ? (
-                            <>
-                              <Button size="small" variant="contained" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl); else navigate(`/teleconsulta/${r.id}`); }}
-                                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' }, boxShadow: '0 4px 12px rgba(15,118,110,.25)' }}>
-                                Entrar na consulta
-                              </Button>
-                              <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,.1)', color: '#0f766e', '& .MuiChip-icon': { color: '#0f766e' } }} />
-                            </>
-                          ) : (
-                            <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => { hapticLight(); setConsentFor(r); }}
-                              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, color: '#0f766e', borderColor: 'rgba(15,118,110,.4)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
-                              Autorizar e entrar
-                            </Button>
-                          )}
-                        </>
-                      )}
-                      {r.linkUrl && (
-                        <IconButton size="small" aria-label="Compartilhar no WhatsApp" title="Compartilhar no WhatsApp" onClick={() => {
-                          const dt = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                          window.open(`https://wa.me/?text=${encodeURIComponent(`Teleconsulta "${r.title}"${r.doctor?.name ? ` com ${r.doctor.name}` : ''} — ${dt}. Link: ${r.linkUrl}`)}`, '_blank', 'noopener');
-                        }} sx={{ color: '#25d366', bgcolor: 'rgba(37,211,102,.08)', '&:hover': { bgcolor: 'rgba(37,211,102,.16)' } }}>
-                          <WhatsAppIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      )}
+                          <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                            Agendada para {new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                        </Stack>
+                      </Box>
+                      <Tooltip title="Código da sala para atendimento com o médico">
+                        <Chip
+                          size="small"
+                          label={`Sala #${roomCode}`}
+                          sx={{
+                            height: 26,
+                            fontSize: 11.5,
+                            fontWeight: 800,
+                            fontFamily: 'monospace',
+                            bgcolor: 'rgba(212,165,116,.2)',
+                            color: 'secondary.dark',
+                            border: '1px solid rgba(212,165,116,.4)',
+                            borderRadius: '8px',
+                          }}
+                        />
+                      </Tooltip>
                     </Stack>
-                  )}
-                </Box>
-              )}
+
+                    {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ pt: 1, borderTop: '1px solid rgba(15,118,110,0.1)' }}>
+                        {(r.provider === 'livekit' || (!r.linkUrl && r.type === 'teleconsulta')) ? (
+                          <>
+                            <Chip size="small" label="No app ✨" sx={{ height: 24, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark', borderRadius: '8px' }} />
+                            {(pendingReqs[r.id] ?? 0) > 0 && (
+                              <Chip
+                                size="small" clickable
+                                aria-label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico — abrir consulta`}
+                                label={`${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico`}
+                                onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                                sx={{
+                                  height: 24, fontSize: 11, fontWeight: 800, borderRadius: '8px',
+                                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'),
+                                  color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e'),
+                                  '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.24)' : 'rgba(245,158,11,.25)') },
+                                }}
+                              />
+                            )}
+                            {r.consentAt ? (
+                              <>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  startIcon={<VideocamIcon />}
+                                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                                  sx={{
+                                    borderRadius: '999px',
+                                    textTransform: 'none',
+                                    fontWeight: 800,
+                                    fontSize: 13,
+                                    px: 2.25,
+                                    py: 0.6,
+                                    bgcolor: '#0f766e',
+                                    '&:hover': { bgcolor: '#115e59' },
+                                    boxShadow: '0 4px 14px rgba(15,118,110,.35)',
+                                  }}
+                                >
+                                  Entrar na consulta
+                                </Button>
+                                <Chip
+                                  size="small"
+                                  icon={<VerifiedIcon sx={{ fontSize: 14 }} />}
+                                  label="telemedicina autorizada"
+                                  sx={{
+                                    height: 24,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    bgcolor: 'rgba(15,118,110,.1)',
+                                    color: '#0f766e',
+                                    borderRadius: '8px',
+                                    '& .MuiChip-icon': { color: '#0f766e' },
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<VideocamIcon />}
+                                onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                                sx={{
+                                  borderRadius: '999px',
+                                  textTransform: 'none',
+                                  fontWeight: 800,
+                                  fontSize: 13,
+                                  px: 2,
+                                  color: '#0f766e',
+                                  borderColor: 'rgba(15,118,110,.4)',
+                                  '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' },
+                                }}
+                              >
+                                Autorizar e entrar
+                              </Button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            {r.linkUrl?.includes('meet.google.com') && (
+                              <Chip size="small" label="Google Meet ✨" sx={{ height: 24, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.2)', color: 'secondary.dark', borderRadius: '8px' }} />
+                            )}
+                            {r.consentAt ? (
+                              <>
+                                <Button
+                                  size="small"
+                                  variant="contained"
+                                  startIcon={<VideocamIcon />}
+                                  onClick={() => { hapticLight(); if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl); else navigate(`/teleconsulta/${r.id}`); }}
+                                  sx={{
+                                    borderRadius: '999px',
+                                    textTransform: 'none',
+                                    fontWeight: 800,
+                                    fontSize: 13,
+                                    px: 2.25,
+                                    py: 0.6,
+                                    bgcolor: '#0f766e',
+                                    '&:hover': { bgcolor: '#115e59' },
+                                    boxShadow: '0 4px 14px rgba(15,118,110,.35)',
+                                  }}
+                                >
+                                  Entrar na consulta
+                                </Button>
+                                <Chip
+                                  size="small"
+                                  icon={<VerifiedIcon sx={{ fontSize: 14 }} />}
+                                  label="telemedicina autorizada"
+                                  sx={{
+                                    height: 24,
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    bgcolor: 'rgba(15,118,110,.1)',
+                                    color: '#0f766e',
+                                    borderRadius: '8px',
+                                    '& .MuiChip-icon': { color: '#0f766e' },
+                                  }}
+                                />
+                              </>
+                            ) : (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<VideocamIcon />}
+                                onClick={() => { hapticLight(); setConsentFor(r); }}
+                                sx={{
+                                  borderRadius: '999px',
+                                  textTransform: 'none',
+                                  fontWeight: 800,
+                                  fontSize: 13,
+                                  px: 2,
+                                  color: '#0f766e',
+                                  borderColor: 'rgba(15,118,110,.4)',
+                                  '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' },
+                                }}
+                              >
+                                Autorizar e entrar
+                              </Button>
+                            )}
+                          </>
+                        )}
+                        {r.linkUrl && (
+                          <IconButton
+                            size="small"
+                            aria-label="Compartilhar no WhatsApp"
+                            title="Compartilhar no WhatsApp"
+                            onClick={() => {
+                              const dt = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                              window.open(`https://wa.me/?text=${encodeURIComponent(`Teleconsulta "${r.title}"${r.doctor?.name ? ` com ${r.doctor.name}` : ''} — ${dt}. Link: ${r.linkUrl}`)}`, '_blank', 'noopener');
+                            }}
+                            sx={{ color: '#25d366', bgcolor: 'rgba(37,211,102,.08)', '&:hover': { bgcolor: 'rgba(37,211,102,.16)' } }}
+                          >
+                            <WhatsAppIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        )}
+                      </Stack>
+                    )}
+                  </Box>
+                );
+              })()}
             </Box>
             <IconButton size="small" aria-label={`Excluir lembrete ${r.title}`} onClick={async () => { if (await confirmDialog({ title: 'Excluir lembrete', message: `Apagar "${r.title}"? O aviso programado deixa de ser enviado.`, confirmLabel: 'Excluir' })) del(r); }} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}>
               <DeleteIcon fontSize="small" />
