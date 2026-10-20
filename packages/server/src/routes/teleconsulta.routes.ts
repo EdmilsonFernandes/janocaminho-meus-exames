@@ -133,7 +133,10 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     // P1-reviewer — sala renascida COM limites: após emptyTimeout a sala é destruída e a
     // re-entrada auto-criaria com defaults do projeto (maxParticipants ilimitado). Recriar
     // no join devolve maxParticipants:2/emptyTimeout a cada ocorrência (createRoom idempotente).
-    await createLiveKitRoom(room);
+    // Sala renascida COM limites (P1-reviewer) — mas FORA do caminho crítico:
+    // await = +500ms de latência Brasil→LiveKit Cloud. O client conecta via
+    // WebSocket que recria a sala se preciso; o maxParticipants ébeltiche.
+    void createLiveKitRoom(room).catch(() => { /* LiveKit auto-cria no connect */ });
     const token = await buildJoinToken({
       identity: role === 'doctor' ? `doctor:${req.doctorId}` : `patient:${req.userId}`,
       name: req.joinName ?? 'Participante',

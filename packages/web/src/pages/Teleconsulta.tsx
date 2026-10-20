@@ -25,6 +25,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Room, RoomEvent, Track, isBrowserSupported, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
 import { API_URL, token } from '../config';
+import { Capacitor } from '@capacitor/core';
 import { DrExame } from '../components/DrExame';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticError, hapticLight, hapticSuccess } from '../utils/haptic';
@@ -770,47 +771,41 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   }, [phase, role, summary?.recordConsentAt, txRetry]);
 
   // ── Ações da chamada ─────────────────────────────────────────────────────────
-  // Dono 20/10: "ao clicar no microfone ou câmera não ativa, fala que não é possível
-  // mexer" — causa: estado inicial dizia ON mesmo quando getUserMedia falhou; o toggle
-  // tentava DESLIGAR (que "funciona" no vazio) mas LIGAR falhava de novo. Agora:
-  // erro específico com CTA de permissão + retry real.
+  // Dono 20/10: WebView não tem 🔒 na barra de endereço — mensagem precisa ser
+  // CONTEXT-AWARE: nativo → "configurações do app"; navegador → "🔒 na barra".
+  const mediaErrHint = useCallback((kind: 'mic' | 'cam', e?: any) => {
+    const label = kind === 'mic' ? 'microfone' : 'câmera';
+    const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
+    if (e?.name === 'NotFoundError') return `Não achamos ${label === 'mic' ? 'microfone' : 'câmera'} neste aparelho.`;
+    if (isNative) return `Permita o ${label} nas Configurações do Android → Apps → Dr. Exame → Permissões.`;
+    return `${label === 'mic' ? 'Microfone' : 'Câmera'} bloqueado — clique no 🔒 ou 🎥 na barra de endereço do navegador e permita.`;
+  }, []);
+
   const toggleMic = useCallback(async () => {
     hapticLight();
     const room = roomRef.current;
     if (!room) return;
     try {
-      if (!micOn) {
-        await room.localParticipant.setMicrophoneEnabled(true);
-        setMicOn(true);
-      } else {
-        await room.localParticipant.setMicrophoneEnabled(false);
-        setMicOn(false);
-      }
-    } catch {
-      setToast({ text: 'Microfone bloqueado pelo navegador — clique no ícone 🔒 na barra de endereço e permita o microfone.', k: Date.now() });
+      if (!micOn) { await room.localParticipant.setMicrophoneEnabled(true); setMicOn(true); }
+      else { await room.localParticipant.setMicrophoneEnabled(false); setMicOn(false); }
+    } catch (e: any) {
+      setToast({ text: mediaErrHint('mic', e), k: Date.now() });
       hapticError();
     }
-  }, [micOn]);
+  }, [micOn, mediaErrHint]);
 
   const toggleCam = useCallback(async () => {
     hapticLight();
     const room = roomRef.current;
     if (!room) return;
     try {
-      if (!camOn) {
-        const pub = await room.localParticipant.setCameraEnabled(true);
-        setLocalVideo(pub?.videoTrack ?? null);
-        setCamOn(true);
-      } else {
-        await room.localParticipant.setCameraEnabled(false);
-        setLocalVideo(null);
-        setCamOn(false);
-      }
-    } catch {
-      setToast({ text: 'Câmera bloqueada pelo navegador — clique no ícone 🔒 na barra de endereço e permita a câmera.', k: Date.now() });
+      if (!camOn) { const pub = await room.localParticipant.setCameraEnabled(true); setLocalVideo(pub?.videoTrack ?? null); setCamOn(true); }
+      else { await room.localParticipant.setCameraEnabled(false); setLocalVideo(null); setCamOn(false); }
+    } catch (e: any) {
+      setToast({ text: mediaErrHint('cam', e), k: Date.now() });
       hapticError();
     }
-  }, [camOn]);
+  }, [camOn, mediaErrHint]);
 
   const endCall = useCallback(async () => {
     setEndOpen(false);
