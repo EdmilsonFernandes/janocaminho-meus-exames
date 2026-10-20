@@ -220,13 +220,17 @@ describe('guarda anti-duplicata do médico (409/force)', () => {
     const crm = '66778-SP';
     const { token: docToken } = await createDoctor({ crm, email: 'dup1@t.com' });
     await api().post('/api/doctor-shares').set(H2(token)).send({ doctorCrm: crm, scopes: ['exams'] });
-    const first = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000).toISOString(), linkUrl: 'https://meet.google.com/dup' });
+    // CI = UTC: datas a ~meia-noite atravessam o dia. Fixamos MEIO-DIA pra garantir
+    // que todas as variações (+1h, +2h) caem NO MESMO dia independente de timezone.
+    const dayBase = new Date(Date.now() + 3 * 86400000);
+    dayBase.setHours(12, 0, 0, 0);
+    const first = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: dayBase.toISOString(), linkUrl: 'https://meet.google.com/dup' });
     expect(first.status).toBe(201);
-    const dup = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000 + 3600000).toISOString(), linkUrl: 'https://meet.google.com/dup2' });
+    const dup = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(dayBase.getTime() + 3600000).toISOString(), linkUrl: 'https://meet.google.com/dup2' });
     expect(dup.status).toBe(409);
     expect(dup.body).toMatchObject({ code: 'TELECONSULTA_DUP' });
     expect(dup.body.existing.roomCode).toBe(String(first.body.reminder.id).slice(-5).toUpperCase());
-    const forced = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000 + 7200000).toISOString(), linkUrl: 'https://meet.google.com/dup3', force: true });
+    const forced = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(dayBase.getTime() + 7200000).toISOString(), linkUrl: 'https://meet.google.com/dup3', force: true });
     expect(forced.status).toBe(201);
   });
 
@@ -235,8 +239,10 @@ describe('guarda anti-duplicata do médico (409/force)', () => {
     const crm = '66779-SP';
     const { token: docToken } = await createDoctor({ crm, email: 'dup2@t.com' });
     await api().post('/api/doctor-shares').set(H2(token)).send({ doctorCrm: crm, scopes: ['exams'] });
-    await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 3 * 86400000).toISOString(), linkUrl: 'https://x.com/1' });
-    const other = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: new Date(Date.now() + 4 * 86400000).toISOString(), linkUrl: 'https://x.com/2' });
+    const dayBase = new Date(Date.now() + 3 * 86400000); dayBase.setHours(12, 0, 0, 0);
+    const dayOther = new Date(Date.now() + 4 * 86400000); dayOther.setHours(12, 0, 0, 0);
+    await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: dayBase.toISOString(), linkUrl: 'https://x.com/1' });
+    const other = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(docToken)).send({ dueDate: dayOther.toISOString(), linkUrl: 'https://x.com/2' });
     expect(other.status).toBe(201);
   });
 });
