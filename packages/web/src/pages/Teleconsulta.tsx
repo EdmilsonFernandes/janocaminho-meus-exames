@@ -776,10 +776,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // CONTEXT-AWARE: nativo → "configurações do app"; navegador → "🔒 na barra".
   const mediaErrHint = useCallback((kind: 'mic' | 'cam', e?: any) => {
     const label = kind === 'mic' ? 'microfone' : 'câmera';
+    const capLabel = label.charAt(0).toUpperCase() + label.slice(1);
     const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
-    if (e?.name === 'NotFoundError') return `Não achamos ${label === 'mic' ? 'microfone' : 'câmera'} neste aparelho.`;
+    if (e?.name === 'NotFoundError') return `Não achamos ${label} neste aparelho.`;
     if (isNative) return `Permita o ${label} nas Configurações do Android → Apps → Dr. Exame → Permissões.`;
-    return `${label === 'mic' ? 'Microfone' : 'Câmera'} bloqueado — clique no 🔒 ou 🎥 na barra de endereço do navegador e permita.`;
+    return `${capLabel} bloqueado — clique no 🔒 ou 🎥 na barra de endereço do navegador e permita.`;
   }, []);
 
   const toggleMic = useCallback(async () => {
