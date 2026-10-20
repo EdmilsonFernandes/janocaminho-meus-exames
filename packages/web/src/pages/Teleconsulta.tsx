@@ -354,10 +354,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   }, []);
 
   // ── Preview (pré-join) ───────────────────────────────────────────────────────
+  // Dono 20/10: audio JUNTO com vídeo — o browser permissa AMBOS de uma vez
+  // (se audio:false, o mic só era pedido pelo LiveKit JÁ DENTRO da chamada,
+  // quando o usuário menos espera e o Chrome às vezes bloqueia).
   const openPreview = useCallback(async () => {
     setCamState('pending');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
       previewStream.current?.getTracks().forEach((t) => t.stop());
       previewStream.current = stream;
       if (previewVideo.current) { previewVideo.current.srcObject = stream; previewVideo.current.play().catch(() => {}); }
@@ -780,6 +783,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
     if (e?.name === 'NotFoundError') return `Não achamos ${label} neste aparelho.`;
     if (isNative) return `Permita o ${label} nas Configurações do Android → Apps → Dr. Exame → Permissões.`;
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) return `${capLabel} bloqueado no Safari — vá em Ajustes → Safari → ${capLabel} e toque em Permitir.`;
     return `${capLabel} bloqueado — clique no 🔒 ou 🎥 na barra de endereço do navegador e permita.`;
   }, []);
 
