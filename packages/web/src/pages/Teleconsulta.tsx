@@ -24,7 +24,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Room, RoomEvent, Track, isBrowserSupported, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
-import { API_URL, token } from '../config';
+import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { DrExame } from '../components/DrExame';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
@@ -64,8 +64,9 @@ interface Summary {
   recordConsentAt?: string | null; // F3: paciente autorizou gravação p/ transcrição (§1 spec UX)
   provider?: string | null;
   linkUrl?: string | null;
-  doctor?: { name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
+  doctor?: { id?: string; name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
   patient?: { id?: string; name?: string; photoUrl?: string } | null;
+  patientId?: string;
   stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
@@ -570,7 +571,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             if (res.ok) {
               const list = await res.json();
               const found = Array.isArray(list) ? list.find((x: any) => x?.id === reminderId) : null;
-              if (found) fetched = { id: found.id, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor };
+              if (found) fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor };
             } else if (res.status === 401) { setPhase('error'); return; }
           } catch { /* offline: cai no state se houver */ }
         }
@@ -945,7 +946,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           /* O outro SAIU (Teams-style: você fica, mas sabe que ele foi) */
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
-              <Avatar sx={{
+              <Avatar
+                src={role === 'doctor'
+                  ? photoUrlFor(summary?.patientId || '')
+                  : doctorPhotoUrl(summary?.doctor?.id || '')}
+                sx={{
                 width: 84, height: 84, fontSize: 30, fontWeight: 800,
                 bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)',
               }}>
@@ -971,8 +976,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <Box sx={{ position: 'relative' }}>
                 <Avatar
                   src={role === 'doctor'
-                    ? (summary?.patient?.photoUrl || (location.state as any)?.patient?.photoUrl)
-                    : (summary?.doctor?.photoUrl || doctor?.photoUrl)}
+                    ? photoUrlFor((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId || '')
+                    : doctorPhotoUrl(summary?.doctor?.id || '')}
                   sx={{
                     width: 96,
                     height: 96,
