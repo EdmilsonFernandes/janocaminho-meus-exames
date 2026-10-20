@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dr. Exame — Paciente v4 · mock de direção</title>
+<meta name="description" content="Protótipo de direção visual da área do paciente do Dr. Exame: menu, painel e estados de teleconsulta.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<style>
+:root{
+  --teal:#20b2aa; --teal-600:#178f89; --teal-700:#0f6e68; --nevoa:#5fc9c3;
+  --rail:#0b3a37; --rail-2:#072a28; --rail-ink:#e7f5f3; --rail-mute:rgba(231,245,243,.70); --rail-dim:rgba(231,245,243,.52);
+  --cobre:#d4a574; --cobre-700:#9a6b36; --cream:#fbf3e8;
+  --ink:#14201f; --ink-2:#4b5d5b; --ink-3:#6b7c7a;
+  --bg:#f2f7f6; --paper:#fff; --line:#e1ecea;
+  --red:#b91c1c; --red-bg:#fdecec; --amber:#92400e; --amber-bg:#fdf3e1; --green:#047857; --green-bg:#e7f6ef;
+  --r-card:16px; --r-ctl:12px;
+  --sh-1:0 1px 2px rgba(16,40,38,.05),0 2px 8px rgba(16,40,38,.04);
+  --sh-2:0 8px 24px rgba(11,58,55,.10);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#dfe7e6;-webkit-font-smoothing:antialiased}
+::selection{background:rgba(32,178,170,.25)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.ph{line-height:1}
+
+/* ---------- Controles do mock (não fazem parte do design) ---------- */
+.controls{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:10px 16px;background:#16201f;color:#cfe3e1;font-size:12px}
+.controls b{color:#fff;font-family:Poppins;font-size:13px;margin-right:6px}
+.seg{display:inline-flex;background:#243231;border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:transparent;color:#a9c3c0;padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600}
+.seg button[aria-pressed=true]{background:#e7f5f3;color:#0b3a37}
+.controls label{display:flex;gap:6px;align-items:center}
+.stage{display:flex;justify-content:center;padding:24px 16px 60px}
+
+/* ---------- Device ---------- */
+.device{position:relative;display:flex;width:1360px;max-width:100%;height:900px;background:var(--bg);border-radius:18px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.18)}
+.mobile .device{width:390px;height:844px;border-radius:36px;border:10px solid #111}
+
+/* ---------- Rail (Direção A: Consultório) ---------- */
+.rail{width:268px;flex-shrink:0;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--rail) 0%,var(--rail-2) 100%);color:var(--rail-ink);padding:18px 12px 12px;overflow-y:auto;position:relative}
+.rail::before{content:"";position:absolute;inset:0 0 auto 0;height:220px;background:radial-gradient(120% 80% at 0% 0%,rgba(32,178,170,.28),transparent 70%);pointer-events:none}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 8px 18px;position:relative}
+.brand .logo{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,#2cc4bb,#178f89);display:grid;place-items:center;box-shadow:0 6px 16px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.3)}
+.brand .logo i{font-size:22px;color:#fff}
+.brand .name{font-family:Poppins;font-weight:800;font-size:18px;letter-spacing:-.02em}
+.brand .sub{font-size:12px;color:var(--rail-dim);margin-top:1px}
+
+.nav{display:flex;flex-direction:column;gap:2px;position:relative}
+.item{display:flex;align-items:center;gap:12px;min-height:42px;padding:0 12px;border-radius:12px;border:0;background:transparent;color:var(--rail-mute);text-align:left;width:100%;font-size:14px;font-weight:500;transition:background .15s,color .15s}
+.item i{font-size:20px;color:var(--rail-dim);transition:color .15s}
+.item:hover{background:rgba(255,255,255,.06);color:var(--rail-ink)}
+.item:hover i{color:var(--rail-ink)}
+.item .lbl{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item[aria-current=page]{background:var(--cream);color:var(--rail);font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.18)}
+.item[aria-current=page] i{color:var(--cobre-700)}
+.badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(212,165,116,.22);color:#f3d3ac}
+.item[aria-current=page] .badge{background:#f1e2cf;color:var(--cobre-700)}
+.badge.live{background:#ef4444;color:#fff}
+
+.group{margin-top:14px}
+.ghead{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:6px 12px;min-height:34px;border-radius:10px;color:#93d3cd;font-size:12px;font-weight:600;letter-spacing:.01em;text-align:left}
+.ghead:hover{color:#fff}
+.ghead .chev{margin-left:auto;font-size:14px;transition:transform .25s cubic-bezier(.16,1,.3,1)}
+.ghead[aria-expanded=true]{color:#fff}
+.ghead[aria-expanded=true] .chev{transform:rotate(180deg)}
+.ghead .dot{width:6px;height:6px;border-radius:50%;background:var(--cobre);display:none}
+.group.has-active .ghead[aria-expanded=false] .dot{display:inline-block}
+.gbody{display:grid;grid-template-rows:1fr;transition:grid-template-rows .28s cubic-bezier(.16,1,.3,1)}
+.gbody>div{overflow:hidden;display:flex;flex-direction:column;gap:2px}
+.group.closed .gbody{grid-template-rows:0fr}
+
+.rail .spacer{flex:1;min-height:16px}
+.sos{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:12px;border:1px solid rgba(248,113,113,.35);background:rgba(239,68,68,.10);color:#fecaca;font-size:14px;font-weight:600;width:100%;text-align:left;margin-bottom:10px}
+.sos i{font-size:20px;color:#fca5a5}
+.sos:hover{background:rgba(239,68,68,.18)}
+.account{display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);width:100%;text-align:left;color:var(--rail-ink)}
+.account:hover{background:rgba(255,255,255,.09)}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5fc9c3,#178f89);display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
+.account .who{flex:1;min-width:0}
+.account .nm{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.account .pl{font-size:12px;color:#e8c9a2}
+.account i{color:var(--rail-dim)}
+.acctmenu{display:none;flex-direction:column;gap:2px;margin:0 0 8px}
+.acct-open .acctmenu{display:flex}
+.acctmenu .sep{height:1px;background:rgba(255,255,255,.08);margin:6px 8px}
+
+/* ---------- Main ---------- */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:72px;flex-shrink:0;display:flex;align-items:center;gap:14px;padding:0 28px}
+.ttl{flex:1;min-width:0}
+.ttl h1{margin:0;font-family:Poppins;font-weight:700;font-size:20px;letter-spacing:-.02em}
+.ttl .crumb{font-size:13px;color:var(--ink-3);margin-top:1px}
+.tb-act{display:flex;align-items:center;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:38px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--paper);font-size:13px;font-weight:600;color:var(--ink-2)}
+.chip:hover{border-color:#c8dcd9}
+.chip i{font-size:17px}
+.iconbtn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--paper);display:grid;place-items:center;position:relative;color:var(--ink-2)}
+.iconbtn i{font-size:19px}
+.iconbtn .n{position:absolute;top:-3px;right:-3px;min-width:18px;height:18px;border-radius:9px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;border:2px solid var(--bg)}
+.tele-pill{background:var(--rail);color:#fff;border-color:transparent}
+.tele-pill i{color:#7fe0d8}
+.tele-pill.live{background:#b91c1c}
+.tele-pill.live i{color:#fff}
+.pulse{width:8px;height:8px;border-radius:50%;background:#fff;position:relative}
+.pulse::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid rgba(255,255,255,.6);animation:ring 1.6s ease-out infinite}
+@keyframes ring{from{transform:scale(.6);opacity:1}to{transform:scale(1.6);opacity:0}}
+.pswitch .avatar{width:26px;height:26px;font-size:12px}
+.pswitch{padding-left:5px}
+
+.content{flex:1;overflow-y:auto;padding:4px 28px 40px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+
+.card{background:var(--paper);border-radius:var(--r-card);border:1px solid var(--line);box-shadow:var(--sh-1)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:start}
+
+/* Live banner */
+.livebar{display:flex;align-items:center;gap:16px;padding:16px 20px;border-radius:var(--r-card);background:linear-gradient(110deg,#0b3a37,#0f5551);color:#fff;box-shadow:var(--sh-2)}
+.livebar .ic{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.1);display:grid;place-items:center;position:relative}
+.livebar .ic i{font-size:24px;color:#7fe0d8}
+.livebar .tx{flex:1;min-width:0}
+.livebar .t1{font-family:Poppins;font-weight:700;font-size:16px;display:flex;align-items:center;gap:8px}
+.livebar .t2{font-size:13px;color:rgba(255,255,255,.75);margin-top:2px}
+.livetag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;background:#dc2626;padding:3px 8px;border-radius:99px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 18px;border-radius:var(--r-ctl);border:0;font-weight:700;font-size:14px;font-family:Poppins;white-space:nowrap;transition:transform .12s,box-shadow .2s,background .2s}
+.btn:active{transform:scale(.97)}
+.btn i{font-size:18px}
+.btn-primary{background:linear-gradient(135deg,#20b2aa,#178f89);color:#fff;box-shadow:0 6px 16px rgba(23,143,137,.30)}
+.btn-primary:hover{box-shadow:0 8px 22px rgba(23,143,137,.40)}
+.btn-cream{background:var(--cream);color:var(--rail)}
+.btn-cream:hover{background:#fff}
+.btn-ghost{background:rgba(32,178,170,.10);color:var(--teal-700)}
+.btn-ghost:hover{background:rgba(32,178,170,.16)}
+.btn-line{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3)}
+.btn-sm{height:36px;padding:0 12px;font-size:13px;border-radius:10px}
+
+/* Panorama */
+.pano{padding:24px 26px}
+.pano-top{display:flex;align-items:flex-start;gap:16px}
+.pano h2{margin:0;font-family:Poppins;font-weight:800;font-size:28px;letter-spacing:-.025em;line-height:1.15}
+.pano .meta{font-size:13.5px;color:var(--ink-3);margin-top:4px}
+.lens{margin-left:auto;display:inline-flex;background:#eef5f4;border-radius:10px;padding:3px;flex-shrink:0}
+.lens button{border:0;background:transparent;padding:6px 12px;border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink-3);display:flex;gap:6px;align-items:center}
+.lens button[aria-pressed=true]{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.pano-body{display:grid;grid-template-columns:auto minmax(0,1fr);gap:26px;align-items:center;margin-top:22px}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .v b{font-family:Poppins;font-weight:800;font-size:38px;letter-spacing:-.03em;line-height:1}
+.ring .v span{font-size:12px;color:var(--ink-3);margin-top:2px}
+.status{font-family:Poppins;font-weight:700;font-size:21px;letter-spacing:-.02em}
+.sev{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sv{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:99px;font-size:13px;font-weight:600}
+.sv i{font-size:15px}
+.sv.r{background:var(--red-bg);color:var(--red)}
+.sv.a{background:var(--amber-bg);color:var(--amber)}
+.sv.g{background:var(--green-bg);color:var(--green)}
+.changed{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:14px;border-top:1px dashed var(--line);font-size:13.5px;color:var(--ink-2)}
+.changed b{color:var(--ink)}
+.changed .up{color:var(--red);font-weight:600;display:inline-flex;gap:4px;align-items:center}
+.changed .down{color:var(--green);font-weight:600;display:inline-flex;gap:4px;align-items:center}
+.link{color:var(--teal-700);font-weight:600;text-decoration:none;display:inline-flex;gap:4px;align-items:center;border:0;background:none;padding:0;font-size:13.5px}
+.link:hover{text-decoration:underline;text-underline-offset:3px}
+.pano-act{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+.stale{display:flex;gap:8px;align-items:flex-start;margin-top:12px;font-size:12.5px;color:var(--amber);line-height:1.4}
+
+/* Next step / tele */
+.next{padding:20px}
+.next h3{margin:0 0 4px;font-family:Poppins;font-weight:700;font-size:16px;letter-spacing:-.01em}
+.next .lead{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin:6px 0 16px}
+.kicker{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--teal-700);margin-bottom:10px}
+.kicker i{font-size:18px}
+.when{font-family:Poppins;font-weight:800;font-size:22px;letter-spacing:-.02em;line-height:1.2}
+.doc{display:flex;align-items:center;gap:10px;margin:12px 0 14px}
+.doc .avatar{width:38px;height:38px;background:#e6f4f2;color:var(--teal-700)}
+.doc .dn{font-size:14px;font-weight:600}
+.doc .ds{font-size:12.5px;color:var(--ink-3)}
+.prep{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;border-top:1px solid var(--line)}
+.prep li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.prep li i{font-size:20px}
+.prep .ok i{color:var(--green)}
+.prep .todo i{color:#a7b8b6}
+.prep li .link{margin-left:auto;font-size:13px}
+.next.dark{background:linear-gradient(160deg,#0b3a37,#0f514d);color:#fff;border-color:transparent;box-shadow:var(--sh-2)}
+.next.dark .kicker{color:#8fe3dc}
+.next.dark .doc .avatar{background:rgba(255,255,255,.12);color:#fff}
+.next.dark .ds{color:rgba(255,255,255,.7)}
+.count{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;background:rgba(255,255,255,.12);padding:4px 10px;border-radius:99px;margin-top:8px}
+.room{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;font-weight:700;color:#f3d3ac;border:1px dashed rgba(243,211,172,.5);padding:3px 8px;border-radius:8px;margin-left:auto}
+.next .row{display:flex;gap:8px;flex-wrap:wrap}
+.reqchip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;background:var(--amber-bg);color:var(--amber);padding:5px 10px;border-radius:99px;margin:4px 0 14px}
+
+/* Attention list */
+.att{padding:6px 0}
+.att-h{display:flex;align-items:baseline;gap:10px;padding:16px 22px 8px}
+.att-h h3{margin:0;font-family:Poppins;font-weight:700;font-size:16px}
+.att-h span{font-size:13px;color:var(--ink-3)}
+.arow{display:flex;align-items:center;gap:14px;padding:12px 22px;border-top:1px solid var(--line)}
+.arow:first-of-type{border-top:0}
+.aic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex-shrink:0}
+.aic i{font-size:20px}
+.aic.r{background:var(--red-bg);color:var(--red)}
+.aic.a{background:var(--amber-bg);color:var(--amber)}
+.aic.t{background:#e6f4f2;color:var(--teal-700)}
+.aic.c{background:#f6ece0;color:var(--cobre-700)}
+.atx{flex:1;min-width:0}
+.atx .a1{font-size:14px;font-weight:600;line-height:1.35}
+.atx .a2{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.tag{font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:99px;margin-right:6px}
+.tag.r{background:var(--red-bg);color:var(--red)}
+.tag.a{background:var(--amber-bg);color:var(--amber)}
+.arow .btn{flex-shrink:0}
+.empty{padding:22px;display:flex;gap:14px;align-items:center;color:var(--ink-2);font-size:14px}
+.empty i{font-size:28px;color:var(--green)}
+
+/* Distribution */
+.dist{padding:20px}
+.dist h3{margin:0 0 14px;font-family:Poppins;font-weight:700;font-size:15px}
+.bar{display:flex;height:10px;border-radius:99px;overflow:hidden;background:#eef3f2;gap:2px}
+.bar span{display:block}
+.legend{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.legend button{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:6px 8px;margin:0 -8px;border-radius:10px;font-size:13.5px;color:var(--ink-2);text-align:left}
+.legend button:hover{background:#f2f7f6}
+.legend .sw{width:10px;height:10px;border-radius:3px}
+.legend b{margin-left:auto;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr)}
+.kpi{padding:16px 20px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:2px;border-top:0;border-right:0;border-bottom:0;background:transparent;text-align:left}
+.kpi:first-child{border-left:0}
+.kpi:hover{background:#f7fbfa}
+.kpi .k1{font-size:12.5px;color:var(--ink-3);font-weight:600;display:flex;gap:6px;align-items:center}
+.kpi .k1 i{font-size:16px;color:var(--teal-600)}
+.kpi .k2{font-family:Poppins;font-weight:800;font-size:22px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .k3{font-size:12.5px;color:var(--ink-3)}
+
+.more h3{margin:6px 0 10px;font-family:Poppins;font-weight:700;font-size:15px;color:var(--ink-2)}
+.more .row{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mcard{padding:16px;display:flex;gap:12px;align-items:center}
+.mcard i{font-size:22px;color:var(--teal-600)}
+.mcard .m1{font-size:14px;font-weight:600}
+.mcard .m2{font-size:12.5px;color:var(--ink-3)}
+.note{font-size:12px;color:var(--ink-3);text-align:center}
+
+/* Bottom nav (mobile) */
+.bnav{display:none}
+.mobile .bnav{display:flex;position:absolute;left:12px;right:12px;bottom:12px;height:64px;border-radius:20px;background:rgba(255,255,255,.86);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.8);box-shadow:0 12px 30px rgba(11,58,55,.16);justify-content:space-around;align-items:center;z-index:5}
+.bnav button{flex:1;border:0;background:transparent;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:600;color:#56706d;position:relative;min-height:48px;justify-content:center}
+.bnav button i{font-size:22px}
+.bnav button[aria-current=page]{color:var(--rail)}
+.bnav button[aria-current=page]::before{content:"";position:absolute;top:2px;width:44px;height:30px;border-radius:99px;background:var(--cream);z-index:-1}
+.bnav button[aria-current=page] i{color:var(--cobre-700)}
+.bnav .robot{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#20b2aa,#0f6e68);display:grid;place-items:center;color:#fff;transform:translateY(-12px);border:3px solid #fff;box-shadow:0 8px 20px rgba(23,143,137,.4)}
+.bnav .robot i{font-size:26px}
+.bnav .bdot{position:absolute;top:6px;right:calc(50% - 16px);width:9px;height:9px;border-radius:50%;background:#ef4444;border:2px solid #fff}
+
+/* ---------- Mobile layout ---------- */
+.mobile .rail{position:absolute;inset:0 auto 0 0;width:86%;z-index:20;transform:translateX(-102%);transition:transform .32s cubic-bezier(.16,1,.3,1);border-radius:0 24px 24px 0;box-shadow:20px 0 50px rgba(0,0,0,.3)}
+.mobile.drawer .rail{transform:none}
+.scrim{display:none}
+.mobile.drawer .scrim{display:block;position:absolute;inset:0;background:rgba(6,30,28,.45);z-index:15}
+.mobile .topbar{height:60px;padding:0 14px;gap:8px}
+.mobile .ttl h1{font-size:17px}
+.mobile .ttl .crumb{display:none}
+.mobile .hide-m{display:none!important}
+.mobile .content{padding:0 14px 100px}
+.mobile .wrap{gap:14px}
+.mobile .grid{grid-template-columns:1fr;gap:14px}
+.mobile .pano{padding:18px}
+.mobile .pano h2{font-size:22px}
+.mobile .pano-top{flex-direction:column;gap:12px}
+.mobile .lens{margin-left:0}
+.mobile .pano-body{grid-template-columns:1fr;gap:14px;justify-items:start}
+.mobile .pano-body .ring{width:104px;height:104px}
+.mobile .pano-body .ring svg{width:104px;height:104px}
+.mobile .ring .v b{font-size:30px}
+.mobile .pano-hrow{display:flex;gap:16px;align-items:center}
+.mobile .pano-act .btn{flex:1}
+.mobile .kpis{grid-template-columns:repeat(2,1fr)}
+.mobile .kpi:nth-child(3){border-left:0}
+.mobile .kpi:nth-child(n+3){border-top:1px solid var(--line)}
+.mobile .more .row{grid-template-columns:1fr}
+.mobile .livebar{flex-wrap:wrap;padding:14px}
+.mobile .livebar .btn{width:100%}
+.mobile .arow{padding:12px 16px;flex-wrap:wrap}
+.mobile .arow .btn{margin-left:52px}
+.mobile .att-h{padding:14px 16px 6px}
+.mobile .mlogo{display:flex}
+.mlogo{display:none;align-items:center;gap:8px}
+.mlogo .logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2cc4bb,#178f89);display:grid;place-items:center}
+.mlogo .logo i{color:#fff;font-size:19px}
+.mlogo b{font-family:Poppins;font-weight:800;font-size:16px;letter-spacing:-.02em}
+.mobile .ttl{display:none}
+.mobile .spacer-m{flex:1}
+.spacer-m{display:none}
+.mobile .spacer-m{display:block}
+.menubtn{display:none}
+.mobile .menubtn{display:grid}
+
+/* ---------- Direção B: Papel clínico (overrides) ---------- */
+.dirB .rail{background:#fff;color:var(--ink);border-right:1px solid var(--line)}
+.dirB .rail::before{display:none}
+.dirB .brand .sub{color:var(--ink-3)}
+.dirB .item{color:#33504d}
+.dirB .item i{color:#6b8a87}
+.dirB .item:hover{background:#eef6f5;color:var(--ink)}
+.dirB .item:hover i{color:var(--teal-700)}
+.dirB .item[aria-current=page]{background:var(--teal-600);color:#fff;box-shadow:0 4px 12px rgba(23,143,137,.3)}
+.dirB .item[aria-current=page] i{color:#fff}
+.dirB .item[aria-current=page] .badge{background:rgba(255,255,255,.2);color:#fff}
+.dirB .badge{background:#e6f4f2;color:var(--teal-700)}
+.dirB .ghead{color:#7a8f8d;cursor:default;pointer-events:none;padding-top:10px;border-top:1px solid var(--line);border-radius:0;margin-top:4px}
+.dirB .ghead .chev,.dirB .ghead .dot{display:none!important}
+.dirB .group.closed .gbody{grid-template-rows:1fr}
+.dirB .sos{background:#fdf0f0;color:#b91c1c;border-color:#f7caca}
+.dirB .sos i{color:#dc2626}
+.dirB .account{background:#f4f8f7;border-color:var(--line);color:var(--ink)}
+.dirB .account .pl{color:var(--cobre-700)}
+.dirB .acctmenu .sep{background:var(--line)}
+.dirB .topbar{background:#fff;border-bottom:1px solid var(--line)}
+.dirB .content{padding-top:24px}
+.dirB .next.dark{background:#fff;color:var(--ink);border:2px solid var(--teal)}
+.dirB .next.dark .kicker{color:var(--teal-700)}
+.dirB .next.dark .ds{color:var(--ink-3)}
+.dirB .next.dark .doc .avatar{background:#e6f4f2;color:var(--teal-700)}
+.dirB .next.dark .count{background:#e6f4f2;color:var(--teal-700)}
+.dirB .next.dark .room{color:var(--cobre-700);border-color:#e3c49f}
+.dirB .next.dark .btn-cream{background:linear-gradient(135deg,#20b2aa,#178f89);color:#fff}
+.dirB .next.dark .btn-line{color:var(--teal-700);border-color:#bfe0dc}
+.dirB .bnav button[aria-current=page]::before{background:#e1f3f1}
+.dirB .bnav button[aria-current=page] i{color:var(--teal-700)}
+.dirB .tele-pill{background:var(--teal-600)}
+
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="controls" role="toolbar" aria-label="Controles do protótipo">
+  <span><b>Mock v4</b></span>
+  <label>Direção <span class="seg" data-ctl="dir"><button data-v="A" aria-pressed="true">A · Consultório</button><button data-v="B">B · Papel clínico</button></span></label>
+  <label>Tela <span class="seg" data-ctl="dev"><button data-v="desktop" aria-pressed="true">Desktop</button><button data-v="mobile">Mobile</button></span></label>
+  <label>Teleconsulta <span class="seg" data-ctl="tele"><button data-v="none" aria-pressed="true">Nenhuma</button><button data-v="agendada">Em 3 dias</button><button data-v="hoje">Hoje</button><button data-v="live">Começou</button><button data-v="pos">Pós-consulta</button></span></label>
+  <label>Dados <span class="seg" data-ctl="data"><button data-v="full" aria-pressed="true">Com exames</button><button data-v="empty">Sem exames</button></span></label>
+  <label><input type="checkbox" id="longname"> Nome longo</label>
+  <label class="m-only"><input type="checkbox" id="drawer"> Menu aberto (mobile)</label>
+</div>
+
+<div class="stage">
+<div id="root" class="dirA desktop">
+<div class="device">
+
+  <div class="scrim" onclick="setDrawer(false)"></div>
+
+  <!-- ================= RAIL ================= -->
+  <aside class="rail" aria-label="Menu principal">
+    <div class="brand">
+      <div class="logo"><i class="ph-fill ph-robot"></i></div>
+      <div><div class="name">Dr. Exame</div><div class="sub">Saúde do <span class="fname">Edmilson</span></div></div>
+    </div>
+
+    <nav class="nav">
+      <button class="item" aria-current="page" data-route="inicio"><i class="ph ph-house"></i><span class="lbl">Início</span></button>
+
+      <div class="group" data-group>
+        <button class="ghead" aria-expanded="true"><span>Meus exames</span><span class="dot"></span><i class="ph ph-caret-down chev"></i></button>
+        <div class="gbody"><div>
+          <button class="item"><i class="ph ph-files"></i><span class="lbl">Todos os exames</span></button>
+          <button class="item"><i class="ph ph-warning-diamond"></i><span class="lbl">Valores alterados</span></button>
+          <button class="item"><i class="ph ph-chart-line-up"></i><span class="lbl">Evolução</span></button>
+          <button class="item"><i class="ph ph-trend-up"></i><span class="lbl">Tendências</span></button>
+          <button class="item"><i class="ph ph-clock-counter-clockwise"></i><span class="lbl">Linha do tempo</span></button>
+          <button class="item"><i class="ph ph-file-text"></i><span class="lbl">Relatório completo</span></button>
+        </div></div>
+      </div>
+
+      <div class="group" data-group>
+        <button class="ghead" aria-expanded="true"><span>Consultas e médicos</span><span class="dot"></span><i class="ph ph-caret-down chev"></i></button>
+        <div class="gbody"><div>
+          <button class="item"><i class="ph ph-video-camera"></i><span class="lbl">Agenda e teleconsultas</span><span class="badge" data-tele-badge hidden></span></button>
+          <button class="item"><i class="ph ph-stethoscope"></i><span class="lbl">Meus médicos</span></button>
+          <button class="item"><i class="ph ph-chats-circle"></i><span class="lbl">Perguntas para o médico</span></button>
+        </div></div>
+      </div>
+
+      <div class="group closed" data-group>
+        <button class="ghead" aria-expanded="false"><span>Rotina de saúde</span><span class="dot"></span><i class="ph ph-caret-down chev"></i></button>
+        <div class="gbody"><div>
+          <button class="item"><i class="ph ph-heartbeat"></i><span class="lbl">Sinais vitais</span></button>
+          <button class="item"><i class="ph ph-ruler"></i><span class="lbl">Medições</span></button>
+          <button class="item"><i class="ph ph-pill"></i><span class="lbl">Medicamentos</span></button>
+          <button class="item"><i class="ph ph-brain"></i><span class="lbl">Saúde mental e humor</span></button>
+          <button class="item"><i class="ph ph-syringe"></i><span class="lbl">Vacinas</span></button>
+          <button class="item"><i class="ph ph-receipt"></i><span class="lbl">Despesas médicas</span></button>
+          <button class="item"><i class="ph ph-trophy"></i><span class="lbl">Conquistas</span></button>
+        </div></div>
+      </div>
+
+      <div class="group" style="margin-top:14px">
+        <button class="item"><i class="ph ph-users-three"></i><span class="lbl">Família e dependentes</span></button>
+      </div>
+    </nav>
+
+    <div class="spacer"></div>
+
+    <button class="sos"><i class="ph-fill ph-first-aid"></i>Cartão de emergência</button>
+
+    <div class="acctwrap">
+      <div class="acctmenu" aria-label="Conta">
+        <button class="item"><i class="ph ph-user-circle"></i><span class="lbl">Meu perfil</span></button>
+        <button class="item"><i class="ph ph-lightning"></i><span class="lbl">Carteira e créditos</span><span class="badge">9.678</span></button>
+        <button class="item"><i class="ph ph-crown-simple"></i><span class="lbl">Planos</span></button>
+        <button class="item"><i class="ph ph-gift"></i><span class="lbl">Indique e ganhe</span></button>
+        <button class="item"><i class="ph ph-lock-key"></i><span class="lbl">Segurança e senha</span></button>
+        <button class="item"><i class="ph ph-shield-check"></i><span class="lbl">Privacidade (LGPD)</span></button>
+        <div class="sep"></div>
+        <button class="item"><i class="ph ph-question"></i><span class="lbl">Dúvidas frequentes</span></button>
+        <button class="item" style="color:#fca5a5"><i class="ph ph-sign-out" style="color:#fca5a5"></i><span class="lbl">Sair da conta</span></button>
+      </div>
+      <button class="account" onclick="document.getElementById('root').classList.toggle('acct-open')" aria-label="Conta e configurações">
+        <div class="avatar">E</div>
+        <div class="who"><div class="nm fullname">Edmilson Lopes</div><div class="pl">Premium</div></div>
+        <i class="ph ph-caret-up-down"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN ================= -->
+  <div class="main">
+    <header class="topbar">
+      <button class="iconbtn menubtn" aria-label="Abrir menu" onclick="setDrawer(true)"><i class="ph ph-list"></i></button>
+      <div class="mlogo"><div class="logo"><i class="ph-fill ph-robot"></i></div><b>Dr. Exame</b></div>
+      <div class="ttl"><h1>Início</h1><div class="crumb">Segunda, 20 de outubro · dados de <span class="fname">Edmilson</span> (titular)</div></div>
+      <div class="spacer-m"></div>
+      <div class="tb-act">
+        <button class="chip tele-pill" data-when="tele=hoje"><i class="ph-fill ph-video-camera"></i><span class="hide-m">Consulta</span> em 1h52</button>
+        <button class="chip tele-pill live" data-when="tele=live"><span class="pulse"></span>Entrar<span class="hide-m">&nbsp;na consulta</span></button>
+        <button class="chip hide-m" title="Créditos de leitura"><i class="ph ph-lightning" style="color:#b88a54"></i>9.678</button>
+        <button class="iconbtn" aria-label="Notificações (2)"><i class="ph ph-bell"></i><span class="n">2</span></button>
+        <button class="chip pswitch hide-m" aria-label="Trocar pessoa"><span class="avatar">E</span><span class="fname">Edmilson</span><i class="ph ph-caret-down"></i></button>
+      </div>
+    </header>
+
+    <main class="content">
+      <div class="wrap">
+
+        <!-- LIVE: banner topo (a coisa mais importante agora) -->
+        <section class="livebar" data-when="tele=live" aria-label="Teleconsulta em andamento">
+          <div class="ic"><i class="ph-fill ph-video-camera"></i></div>
+          <div class="tx">
+            <div class="t1"><span class="livetag"><span class="pulse" style="width:6px;height:6px"></span>Agora</span>Sua teleconsulta começou às 14:00</div>
+            <div class="t2">Dr Teste QA · Clínico Geral · Sala 4F2A9 — confira o código com o médico</div>
+          </div>
+          <button class="btn btn-cream"><i class="ph-fill ph-video-camera"></i>Entrar na consulta</button>
+        </section>
+
+        <div class="grid">
+          <!-- ===== Coluna principal ===== -->
+          <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+            <!-- PANORAMA: Como estou? O que mudou? -->
+            <section class="card pano" aria-labelledby="hello">
+              <div class="pano-top">
+                <div style="min-width:0">
+                  <h2 id="hello">Bom dia, <span class="fname">Edmilson</span></h2>
+                  <div class="meta" data-when="data=full">Último exame em 04/08/2026 · 548 marcadores analisados</div>
+                  <div class="meta" data-when="data=empty">Seu painel começa no primeiro exame. Educativo — não substitui o médico.</div>
+                </div>
+                <div class="lens" role="group" aria-label="Lente" data-when="data=full">
+                  <button aria-pressed="true"><i class="ph ph-leaf"></i>Saúde geral</button>
+                  <button aria-pressed="false"><i class="ph ph-barbell"></i>Esportiva</button>
+                </div>
+              </div>
+
+              <div data-when="data=full">
+                <div class="pano-body">
+                  <div class="pano-hrow">
+                    <div class="ring" aria-label="Score 76 de 100">
+                      <svg width="132" height="132" viewBox="0 0 132 132"><circle cx="66" cy="66" r="56" fill="none" stroke="#e8f1f0" stroke-width="12"/><circle cx="66" cy="66" r="56" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="84.5"/><defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#2cc4bb"/><stop offset="1" stop-color="#0f6e68"/></linearGradient></defs></svg>
+                      <div class="v"><b>76</b><span>de 100</span></div>
+                    </div>
+                  </div>
+                  <div style="min-width:0">
+                    <div class="status">Em boa forma, com 2 pontos importantes</div>
+                    <div class="sev">
+                      <span class="sv r"><i class="ph-fill ph-warning-circle"></i>2 importantes</span>
+                      <span class="sv a"><i class="ph-fill ph-circle-half"></i>5 moderados</span>
+                      <span class="sv g"><i class="ph-fill ph-check-circle"></i>472 normais</span>
+                    </div>
+                    <div class="changed">
+                      <span><b>Desde o exame anterior:</b></span>
+                      <span class="up"><i class="ph ph-arrow-up-right"></i>3 pioraram</span>
+                      <span class="down"><i class="ph ph-arrow-down-right"></i>3 melhoraram</span>
+                      <button class="link">Ver evolução <i class="ph ph-arrow-right"></i></button>
+                    </div>
+                  </div>
+                </div>
+                <div class="pano-act">
+                  <button class="btn btn-primary">Ver o que precisa de atenção <i class="ph ph-arrow-right"></i></button>
+                  <button class="btn btn-ghost"><i class="ph-fill ph-play-circle"></i>Ouvir resumo · 1 min</button>
+                  <button class="btn btn-ghost"><i class="ph ph-chat-circle-dots"></i>Perguntar ao Dr. Exame</button>
+                </div>
+              </div>
+
+              <div data-when="data=empty">
+                <div style="display:flex;gap:18px;align-items:center;margin-top:22px;flex-wrap:wrap">
+                  <div class="aic t" style="width:64px;height:64px;border-radius:18px"><i class="ph ph-file-arrow-up" style="font-size:32px"></i></div>
+                  <div style="flex:1;min-width:220px">
+                    <div class="status">Envie seu primeiro exame</div>
+                    <div class="meta" style="font-size:14px;line-height:1.5">PDF ou foto do laudo. Em poucos minutos o Dr. Exame mostra o que está bem, o que mudou e o que levar ao médico.</div>
+                  </div>
+                </div>
+                <div class="pano-act">
+                  <button class="btn btn-primary"><i class="ph ph-upload-simple"></i>Enviar primeiro exame</button>
+                  <button class="btn btn-ghost">Ver com dados de exemplo</button>
+                </div>
+              </div>
+            </section>
+
+            <!-- O QUE PRECISA DA MINHA ATENÇÃO -->
+            <section class="card att" aria-labelledby="atth">
+              <div class="att-h"><h3 id="atth">Precisa da sua atenção</h3><span data-when="data=full">em ordem de prioridade</span></div>
+
+              <div data-when="data=full">
+                <div class="arow" data-when="tele=pos">
+                  <div class="aic c"><i class="ph ph-clipboard-text"></i></div>
+                  <div class="atx"><div class="a1">Dr Teste QA pediu 1 exame</div><div class="a2">Pedido feito na consulta de ontem · aguardando você</div></div>
+                  <button class="btn btn-ghost btn-sm">Ver pedido</button>
+                </div>
+                <div class="arow">
+                  <div class="aic r"><i class="ph-fill ph-warning-circle"></i></div>
+                  <div class="atx"><div class="a1"><span class="tag r">Importante</span>DHT – Di-hidrotestosterona</div><div class="a2">245 ng/dL · acima da faixa de referência e subiu desde o exame anterior</div></div>
+                  <button class="btn btn-ghost btn-sm">Entender</button>
+                </div>
+                <div class="arow">
+                  <div class="aic a"><i class="ph-fill ph-circle-half"></i></div>
+                  <div class="atx"><div class="a1"><span class="tag a">Moderado</span>5 marcadores levemente fora da faixa</div><div class="a2">Vale acompanhar no próximo exame</div></div>
+                  <button class="btn btn-ghost btn-sm">Ver lista</button>
+                </div>
+                <div class="arow" data-when="tele=agendada|hoje">
+                  <div class="aic t"><i class="ph ph-chats-circle"></i></div>
+                  <div class="atx"><div class="a1">Anote dúvidas para a teleconsulta</div><div class="a2">Nenhuma pergunta preparada ainda · o médico vê antes da chamada</div></div>
+                  <button class="btn btn-ghost btn-sm">Anotar</button>
+                </div>
+                <div class="arow">
+                  <div class="aic a"><i class="ph ph-hourglass-medium"></i></div>
+                  <div class="atx"><div class="a1">28 marcadores sem medição há mais de 12 meses</div><div class="a2">Ficam fora do score até um exame mais recente</div></div>
+                  <button class="btn btn-ghost btn-sm">Enviar exame</button>
+                </div>
+              </div>
+              <div class="empty" data-when="data=empty"><i class="ph-fill ph-check-circle"></i>Nada pendente por aqui. Quando houver algo para acompanhar, aparece nesta lista.</div>
+            </section>
+
+            <!-- KPIs (1 cartão, não 4) -->
+            <section class="card kpis" aria-label="Indicadores" data-when="data=full">
+              <button class="kpi"><span class="k1"><i class="ph ph-hourglass"></i>Idade biológica</span><span class="k2">47 anos</span><span class="k3">estimativa corporal</span></button>
+              <button class="kpi"><span class="k1"><i class="ph ph-heart"></i>Cardiorrisco</span><span class="k2">Baixo</span><span class="k3">2 fatores de risco</span></button>
+              <button class="kpi"><span class="k1"><i class="ph ph-files"></i>Exames</span><span class="k2">25</span><span class="k3">desde 2019</span></button>
+              <button class="kpi"><span class="k1"><i class="ph ph-check-circle"></i>Normais</span><span class="k2">86%</span><span class="k3">472 de 548</span></button>
+            </section>
+
+            <section class="more" data-when="data=full">
+              <h3>Mais da sua saúde</h3>
+              <div class="row">
+                <button class="card mcard"><i class="ph ph-person-simple"></i><span style="text-align:left"><div class="m1">Mapa corporal</div><div class="m2">Exames por órgão</div></span></button>
+                <button class="card mcard"><i class="ph ph-sneaker-move"></i><span style="text-align:left"><div class="m1">Atividade física</div><div class="m2">Health Connect</div></span></button>
+                <button class="card mcard"><i class="ph ph-brain"></i><span style="text-align:left"><div class="m1">Saúde mental</div><div class="m2">PHQ-9 e GAD-7</div></span></button>
+              </div>
+              <p class="note">↓ O restante do painel atual (mapa corporal, perguntas pro médico, conquistas…) continua abaixo, sem alterações de conteúdo.</p>
+            </section>
+          </div>
+
+          <!-- ===== Coluna lateral: Próximo passo ===== -->
+          <div style="display:flex;flex-direction:column;gap:20px;min-width:0">
+
+            <!-- Sem teleconsulta / live → próximo passo vem dos exames -->
+            <section class="card next" data-when="tele=none|live" aria-label="Próximo passo">
+              <div class="kicker"><i class="ph ph-compass"></i>Seu próximo passo</div>
+              <div data-when="data=full">
+                <h3>Atualize seus exames</h3>
+                <p class="lead">28 marcadores estão sem medição há mais de 12 meses e não entram no seu score. Um exame recente deixa a leitura completa.</p>
+                <button class="btn btn-primary" style="width:100%"><i class="ph ph-upload-simple"></i>Enviar exame recente</button>
+              </div>
+              <div data-when="data=empty">
+                <h3>Comece em 2 minutos</h3>
+                <p class="lead">Tire uma foto do laudo ou envie o PDF do laboratório.</p>
+                <button class="btn btn-primary" style="width:100%"><i class="ph ph-camera"></i>Fotografar laudo</button>
+              </div>
+            </section>
+
+            <!-- Agendada (>24h): discreta, foco em preparo -->
+            <section class="card next" data-when="tele=agendada" aria-label="Próxima teleconsulta">
+              <div class="kicker"><i class="ph ph-video-camera"></i>Próxima teleconsulta</div>
+              <div class="when">Qui, 23 de out · 14:00</div>
+              <div class="doc"><div class="avatar">D</div><div><div class="dn">Dr Teste QA</div><div class="ds">Clínico Geral · CRM 99999-SP</div></div></div>
+              <ul class="prep">
+                <li class="ok"><i class="ph-fill ph-check-circle"></i>Exames compartilhados com o médico</li>
+                <li class="todo"><i class="ph ph-circle"></i>Anotar perguntas<button class="link">Anotar</button></li>
+                <li class="todo"><i class="ph ph-circle"></i>Autorizar teleconsulta<button class="link">Autorizar</button></li>
+              </ul>
+              <button class="btn btn-ghost" style="width:100%">Ver na agenda</button>
+            </section>
+
+            <!-- Hoje: ganha superfície de identidade -->
+            <section class="card next dark" data-when="tele=hoje" aria-label="Teleconsulta de hoje">
+              <div class="kicker"><i class="ph-fill ph-video-camera"></i>Teleconsulta hoje<span class="room">Sala 4F2A9</span></div>
+              <div class="when">Hoje às 14:00</div>
+              <span class="count"><i class="ph ph-timer"></i>começa em 1h52</span>
+              <div class="doc"><div class="avatar">D</div><div><div class="dn">Dr Teste QA</div><div class="ds">Clínico Geral · CRM 99999-SP</div></div></div>
+              <div class="row">
+                <button class="btn btn-cream" style="flex:1"><i class="ph ph-shield-check"></i>Autorizar e entrar</button>
+                <button class="btn btn-line">Perguntas</button>
+              </div>
+            </section>
+
+            <!-- Pós-consulta -->
+            <section class="card next" data-when="tele=pos" aria-label="Última consulta">
+              <div class="kicker"><i class="ph ph-video-camera"></i>Consulta de ontem</div>
+              <div class="doc" style="margin-top:0"><div class="avatar">D</div><div><div class="dn">Dr Teste QA</div><div class="ds">19/10 · 14:00 · 32 min</div></div></div>
+              <span class="reqchip"><i class="ph ph-clipboard-text"></i>1 pedido de exame aguardando você</span>
+              <div class="row">
+                <button class="btn btn-primary" style="flex:1">Ver pedido</button>
+                <button class="btn btn-ghost">Resumo</button>
+              </div>
+            </section>
+
+            <!-- Distribuição -->
+            <section class="card dist" data-when="data=full" aria-labelledby="disth">
+              <h3 id="disth">Seus 548 marcadores</h3>
+              <div class="bar" aria-hidden="true"><span style="width:86%;background:#10b981"></span><span style="width:10%;background:#f59e0b"></span><span style="width:4%;background:#ef4444"></span></div>
+              <div class="legend">
+                <button><span class="sw" style="background:#10b981"></span>Dentro da faixa<b>472</b></button>
+                <button><span class="sw" style="background:#f59e0b"></span>Alteração leve<b>53</b></button>
+                <button><span class="sw" style="background:#ef4444"></span>Requer atenção<b>23</b></button>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Bottom nav (mobile) -->
+  <nav class="bnav" aria-label="Navegação inferior">
+    <button aria-current="page"><i class="ph-fill ph-house"></i>Início</button>
+    <button><i class="ph ph-files"></i>Exames</button>
+    <button aria-label="Dr. Exame — conversar com a IA"><span class="robot"><i class="ph-fill ph-robot"></i></span></button>
+    <button><i class="ph ph-calendar-check"></i>Agenda<span class="bdot" data-when="tele=hoje|live"></span></button>
+    <button onclick="setDrawer(true)"><i class="ph ph-dots-three-circle"></i>Mais</button>
+  </nav>
+</div>
+</div>
+</div>
+
+<script>
+const S={dir:'A',dev:'desktop',tele:'none',data:'full'};
+const root=document.getElementById('root');
+function render(){
+  root.className=`dir${S.dir} ${S.dev}`+(document.getElementById('drawer').checked&&S.dev==='mobile'?' drawer':'')+(root.classList.contains('acct-open')?' acct-open':'');
+  document.querySelectorAll('[data-when]').forEach(el=>{
+    const ok=el.dataset.when.split(' ').every(c=>{const[k,v]=c.split('=');return v.split('|').includes(S[k]);});
+    el.hidden=!ok;
+  });
+  const b=document.querySelector('[data-tele-badge]');
+  const map={agendada:['qui',''],hoje:['hoje',''],live:['agora','live']};
+  if(map[S.tele]){b.hidden=false;b.textContent=map[S.tele][0];b.className='badge '+map[S.tele][1];}else b.hidden=true;
+  const long=document.getElementById('longname').checked;
+  document.querySelectorAll('.fname').forEach(e=>e.textContent=long?'Maria Aparecida':'Edmilson');
+  document.querySelectorAll('.fullname').forEach(e=>e.textContent=long?'Maria Aparecida dos Santos Oliveira':'Edmilson Lopes');
+  document.querySelectorAll('.avatar').forEach(e=>{if(e.textContent.length===1)e.textContent=long?'M':'E'});
+  document.querySelectorAll('.doc .avatar').forEach(e=>e.textContent='D');
+  document.querySelectorAll('[data-group]').forEach(g=>g.classList.toggle('has-active',!!g.querySelector('[aria-current=page]')));
+}
+document.querySelectorAll('[data-ctl]').forEach(seg=>seg.addEventListener('click',e=>{
+  const btn=e.target.closest('button');if(!btn)return;
+  seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b===btn));
+  S[seg.dataset.ctl]=btn.dataset.v;render();
+}));
+document.getElementById('longname').onchange=render;
+document.getElementById('drawer').onchange=render;
+function setDrawer(v){document.getElementById('drawer').checked=v;render();}
+// Acordeão: expandir grupo ≠ selecionar página
+document.querySelectorAll('.ghead').forEach(h=>h.addEventListener('click',()=>{
+  const g=h.closest('.group');const open=g.classList.toggle('closed');h.setAttribute('aria-expanded',!open);render();
+}));
+// Selecionar página
+document.querySelectorAll('.rail .item').forEach(it=>it.addEventListener('click',()=>{
+  document.querySelectorAll('.rail .item').forEach(x=>x.removeAttribute('aria-current'));
+  it.setAttribute('aria-current','page');
+  document.querySelector('.ttl h1').textContent=it.querySelector('.lbl').textContent;render();
+}));
+render();
+</script>
+</body>
+</html>

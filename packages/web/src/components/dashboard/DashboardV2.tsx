@@ -56,6 +56,10 @@ import { SportsDashboard } from '../sports/SportsDashboard';
 import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 import { PersonaSwitcher } from '../sports/PersonaSwitcher';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
+import { TeleconsultaCard } from './TeleconsultaCard';
+import { useUpcomingTeleconsulta } from '../../hooks/useUpcomingTeleconsulta';
+import { openTelemedicinaRoom } from '../../utils/telemedicina';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 
 const readTotal = (r: Response) =>
   Number(r.headers.get('X-Total-Count') ?? r.headers.get('content-range')?.split('/')?.[1] ?? '0');
@@ -789,6 +793,7 @@ const DashboardV2Inner = () => {
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const real = useDashboardData(pid);
+  const tele = useUpcomingTeleconsulta();
   // E4.1 — perfil esportivo (GET /sports/profile, cache de sessão): só o TOGGLE ativo
   // no servidor troca o painel. Sem perfil / offline / active=false → dashboard normal.
   const sports = useSportsProfile();
@@ -1022,6 +1027,87 @@ const DashboardV2Inner = () => {
         </ScrollReveal>
       )}
 
+      {/* 0.1 BANNER TELECONSULTA AO VIVO (PRIORIDADE CLÍNICA MÁXIMA) */}
+      {!demo && tele.isLive && (
+        <ScrollReveal>
+          <Box sx={{ mb: 2 }}>
+            <AppCard
+              sx={{
+                p: { xs: 2, sm: 2.25 },
+                borderRadius: '20px !important',
+                background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
+                color: '#ffffff',
+                border: '1.5px solid rgba(239, 68, 68, 0.45)',
+                boxShadow: '0 12px 32px rgba(239, 68, 68, 0.25)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 2,
+              }}
+            >
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 260, flex: 1 }}>
+                <Box
+                  sx={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(239, 68, 68, 0.2)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#ef4444',
+                    flexShrink: 0,
+                    animation: 'tcLivePulse 1.8s infinite',
+                    '@keyframes tcLivePulse': {
+                      '0%, 100%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.08)' },
+                    },
+                  }}
+                >
+                  <VideocamRoundedIcon sx={{ fontSize: 26 }} />
+                </Box>
+                <Box sx={{ minWidth: 0 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444' }} />
+                    <Typography sx={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fca5a5' }}>
+                      Sua teleconsulta está acontecendo agora
+                    </Typography>
+                  </Stack>
+                  <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 17.5 }, lineHeight: 1.25, color: '#ffffff' }}>
+                    {tele.doctorName ? `${tele.doctorName} · ` : ''}{tele.specialty || 'Consulta médica online'}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', mt: 0.25 }}>
+                    Sala virtual pronta · Toque para entrar na chamada com áudio e vídeo
+                  </Typography>
+                </Box>
+              </Stack>
+              <Button
+                variant="contained"
+                onClick={() => {
+                  if (tele.item?.linkUrl) void openTelemedicinaRoom(tele.item.linkUrl);
+                  else if (tele.item?.id) navigate(`/teleconsulta/${tele.item.id}`);
+                  else navigate('/telemedicina');
+                }}
+                sx={{
+                  bgcolor: '#ef4444',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  px: 2.75,
+                  py: 1.15,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
+                  '&:hover': { bgcolor: '#dc2626' },
+                }}
+              >
+                Entrar na consulta agora
+              </Button>
+            </AppCard>
+          </Box>
+        </ScrollReveal>
+      )}
+
       {/* 1. HERO HEALTH CARD (Score + Status + Ações em largura total) */}
       <ScrollReveal>
         <HeroHealthCard
@@ -1179,6 +1265,9 @@ const DashboardV2Inner = () => {
           {/* COLUNA LATERAL (35%) */}
           <Grid size={{ xs: 12, md: 5, lg: 4 }}>
             <Stack spacing={2.5}>
+              {/* TELECONSULTA AGENDADA / AO VIVO */}
+              {!demo && <TeleconsultaCard />}
+
               {/* PANORAMA DOS MARCADORES */}
               <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => (dest === 'alterados' ? go('/alterados') : go('/exams'))()} />
 

@@ -87,3 +87,4 @@ packages/web/playwright/.cache/
 #   npx skills add https://github.com/pbakaus/impeccable --skill impeccable
 .agents/
 .claude/skills/impeccable
+releases/

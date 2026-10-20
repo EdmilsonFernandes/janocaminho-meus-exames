@@ -43,11 +43,14 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import VideocamIcon from '@mui/icons-material/Videocam';
 import { DrExame } from './components/DrExame';
 import { MascotPulse } from './components/MascotPulse';
 import { dataProvider } from './dataProvider';
 import { API_URL, token, photoUrlFor } from './config';
 import { authProvider } from './authProvider';
+import { useUpcomingTeleconsulta } from './hooks/useUpcomingTeleconsulta';
+import { openTelemedicinaRoom } from './utils/telemedicina';
 import { lightTheme, darkTheme, lightThemeLarge, darkThemeLarge } from './theme';
 import { alpha } from '@mui/material/styles';
 import { i18nProvider } from './i18n';
@@ -140,19 +143,40 @@ const CustomAppBar = (props: AppBarProps) => {
   const { pathname } = useLocation();
   const canBack = !isDesktop && pathname !== '/';
   const { openDrawer } = useAppDrawer();
+  const tele = useUpcomingTeleconsulta();
+
+  const [patientName, setPatientName] = useState('Edmilson');
+  useEffect(() => {
+    const update = () => {
+      try {
+        const u = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
+        const parsed = u ? JSON.parse(u) : null;
+        setPatientName(parsed?.name || parsed?.fullName || 'Paciente');
+      } catch {}
+    };
+    update();
+    window.addEventListener('storage', update);
+    window.addEventListener('userChanged', update);
+    return () => {
+      window.removeEventListener('storage', update);
+      window.removeEventListener('userChanged', update);
+    };
+  }, []);
+
   return (
     <AppBar
       {...props}
       userMenu={false}
       toolbar={isDesktop ? <LoadingIndicator /> : <span />}
       sx={{
-        bgcolor: isDark ? 'rgba(22, 32, 32, 0.75)' : 'rgba(255, 255, 255, 0.72)',
+        bgcolor: isDark ? 'rgba(15, 24, 24, 0.85)' : 'rgba(255, 255, 255, 0.88)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         borderBottom: '1px solid',
-        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(32, 178, 170, 0.14)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.4)' : '0 4px 20px rgba(32,178,170,0.06)',
+        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(32, 178, 170, 0.16)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.45)' : '0 2px 14px rgba(11,58,55,0.06)',
         color: 'text.primary',
+        px: { xs: 1, sm: 2.5 },
       }}
     >
       {!isDesktop && (
@@ -182,9 +206,70 @@ const CustomAppBar = (props: AppBarProps) => {
           )}
         </Box>
       )}
-      {isDesktop && <TitlePortal />}
-      <Box sx={{ flex: 1, minWidth: 4 }} />
-      <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1 }} sx={{ ml: 0.5, flexShrink: 0 }}>
+      {isDesktop && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0, py: 0.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <TitlePortal />
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11.5, fontWeight: 500, lineHeight: 1.2 }}>
+              {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })} · dados de {patientName} (titular)
+            </Typography>
+          </Box>
+        </Box>
+      )}
+      <Box sx={{ flex: 1, minWidth: 8 }} />
+      <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.25 }} sx={{ ml: 0.5, flexShrink: 0 }}>
+        {/* Pílula de Teleconsulta Viva / Hoje */}
+        {tele.isLive && tele.item && (
+          <Button
+            size="small"
+            variant="contained"
+            onClick={() => {
+              if (tele.item?.linkUrl) void openTelemedicinaRoom(tele.item.linkUrl);
+              else navigate(`/teleconsulta/${tele.item?.id}`);
+            }}
+            startIcon={<Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#fff', boxShadow: '0 0 0 3px rgba(255,255,255,0.4)', animation: 'dxPulseLive 1.6s infinite' }} />}
+            sx={{
+              borderRadius: '999px',
+              bgcolor: '#b91c1c',
+              color: '#fff',
+              fontSize: { xs: 11, sm: 12.5 },
+              fontWeight: 800,
+              textTransform: 'none',
+              px: { xs: 1.2, sm: 1.8 },
+              height: 34,
+              boxShadow: '0 4px 14px rgba(185,28,28,.4)',
+              '&:hover': { bgcolor: '#991b1b' },
+              '@keyframes dxPulseLive': {
+                '0%': { transform: 'scale(0.8)', opacity: 1 },
+                '100%': { transform: 'scale(2.2)', opacity: 0 },
+              },
+            }}
+          >
+            Entrar na consulta
+          </Button>
+        )}
+        {tele.isToday && !tele.isLive && tele.item && (
+          <Chip
+            size="small"
+            icon={<VideocamIcon sx={{ fontSize: 16, color: '#20b2aa !important' }} />}
+            label={`Consulta ${tele.startsInText || 'hoje'}`}
+            onClick={() => navigate('/lembretes')}
+            clickable
+            sx={{
+              height: 32,
+              borderRadius: '999px',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.18)' : 'rgba(11,58,55,.08)',
+              color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0b3a37',
+              border: '1px solid',
+              borderColor: 'rgba(32,178,170,.3)',
+              fontWeight: 700,
+              fontSize: 12,
+              '&:hover': { bgcolor: 'rgba(32,178,170,.22)' },
+            }}
+          />
+        )}
         <CreditsChip />
         <NotificationBell />
         <PatientSwitcher />
@@ -198,49 +283,109 @@ const CustomAppBar = (props: AppBarProps) => {
 // Rota ativa? ('/' é exato; o resto é startsWith p/ cobrir sub-rotas)
 const routeMatches = (route: string, pathname: string) => (route === '/' ? pathname === '/' : pathname.startsWith(route));
 
-// Seção COLAPSÁVEL do menu (acordeão): header clicável + chevron + MUI Collapse.
-// `routes` habilita o SMART-EXPAND: a seção que contém a rota ativa abre sozinha,
-// então o usuário vê seu contexto sem procurar. Fechamento manual é respeitado
-// enquanto ele permanece numa rota daquela seção (o effect só roda em pathname change).
-//
-// FEEDBACK C5 (ref. Loteria da Caixa): o header de seção agora é um BLOCO DE COR —
-// barra tinted com chip de ícone preenchido — impossível confundir com um item de menu.
-// A diferença colapsado × expandido é dramática (tint forte + chip gradiente + rail
-// de aninhamento), não só a setinha. Identidade preservada: só teal da marca.
-const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string; icon: React.ReactNode; children: React.ReactNode; routes: string[] }) => {
+// Seção COLAPSÁVEL do menu (acordeão) estilo Consultório Premium (Direção A):
+// Header discreto e elegante com chip de ícone e chevron suave, contrastando sobre o rail profundo.
+const MenuSectionAccordion = ({
+  title,
+  icon,
+  children,
+  routes,
+  badge,
+}: {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  routes: string[];
+  badge?: string;
+}) => {
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
-  useEffect(() => { if (routes.some((r) => routeMatches(r, pathname))) setOpen(true); /* eslint-disable-next-line */ }, [pathname]);
+  const hasActiveChild = routes.some((r) => routeMatches(r, pathname));
+
+  useEffect(() => {
+    if (hasActiveChild) setOpen(true);
+  }, [pathname, hasActiveChild]);
+
   return (
-    <Box sx={{ mb: 0.25 }}>
+    <Box sx={{ mb: 0.5 }}>
       <ListItemButton
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        sx={(t) => ({
-          borderRadius: '14px', m: '2px 8px', pl: 1.25, pr: 1, minHeight: 46,
-          bgcolor: open ? alpha(t.palette.primary.main, 0.12) : alpha(t.palette.primary.main, 0.05),
-          border: '1px solid', borderColor: open ? alpha(t.palette.primary.main, 0.25) : alpha(t.palette.primary.main, 0.1),
-          transition: 'background-color .2s, border-color .2s, box-shadow .25s ease',
-          '&:hover': { bgcolor: alpha(t.palette.primary.main, open ? 0.16 : 0.09), boxShadow: '0 0 12px rgba(32,178,170,.08)' },
-        })}
+        sx={{
+          borderRadius: '12px',
+          m: '2px 6px',
+          pl: 1.25,
+          pr: 1,
+          minHeight: 38,
+          bgcolor: open ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.02)',
+          border: '1px solid',
+          borderColor: open ? 'rgba(32, 178, 170, 0.28)' : 'rgba(255, 255, 255, 0.04)',
+          transition: 'all .2s ease',
+          '&:hover': {
+            bgcolor: 'rgba(255, 255, 255, 0.1)',
+            borderColor: 'rgba(32, 178, 170, 0.4)',
+          },
+        }}
       >
-        <Box component="span" sx={(t) => ({
-          width: 28, height: 28, borderRadius: '8px', mr: 1.25, flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : alpha(t.palette.primary.main, 0.12),
-          color: open ? '#fff' : t.palette.primary.dark,
-          transition: 'background .2s, color .2s, transform .3s cubic-bezier(.34,1.56,.64,1)',
-          transform: open ? 'rotate(0deg)' : 'none',
-          '& svg': { fontSize: 17 },
-        })}>{icon}</Box>
-        <ListItemText primary={title} primaryTypographyProps={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }} />
-        <ExpandMoreIcon sx={{ transform: open ? 'rotate(0deg)' : 'rotate(-90deg)', transition: 'transform .25s cubic-bezier(.34,1.56,.64,1)', color: open ? 'primary.main' : 'text.secondary', fontSize: 20 }} />
+        <Box
+          component="span"
+          sx={{
+            width: 26,
+            height: 26,
+            borderRadius: '8px',
+            mr: 1.25,
+            flexShrink: 0,
+            display: 'grid',
+            placeItems: 'center',
+            background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : 'rgba(255, 255, 255, 0.08)',
+            color: open ? '#fff' : '#93d3cd',
+            transition: 'all .2s ease',
+            '& svg': { fontSize: 16 },
+          }}
+        >
+          {icon}
+        </Box>
+        <ListItemText
+          primary={title}
+          primaryTypographyProps={{
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: open ? '#ffffff' : '#a3cdc8',
+            letterSpacing: '0.01em',
+          }}
+        />
+        {badge && (
+          <Chip
+            size="small"
+            label={badge}
+            sx={{
+              mr: 0.5,
+              height: 18,
+              fontSize: 10.5,
+              fontWeight: 800,
+              bgcolor: badge === 'ao vivo' ? '#ef4444' : 'rgba(212, 165, 116, 0.28)',
+              color: badge === 'ao vivo' ? '#ffffff' : '#f3d3ac',
+              borderRadius: '99px',
+            }}
+          />
+        )}
+        <ExpandMoreIcon
+          sx={{
+            transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
+            transition: 'transform .25s cubic-bezier(.34,1.56,.64,1)',
+            color: open ? '#5fc9c3' : 'rgba(231, 245, 243, 0.45)',
+            fontSize: 18,
+          }}
+        />
       </ListItemButton>
-      <Collapse in={open} timeout={280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.5 }}>
-        <Box sx={{
-          ml: '22px', pl: 1,
-          borderLeft: '2px solid',
-          borderImage: 'linear-gradient(to bottom, #20b2aa, rgba(32,178,170,0.08)) 1',
-        }}>
+      <Collapse in={open} timeout={280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.25 }}>
+        <Box
+          sx={{
+            ml: '18px',
+            pl: 1,
+            borderLeft: '2px solid rgba(32, 178, 170, 0.28)',
+          }}
+        >
           {children}
         </Box>
       </Collapse>
@@ -248,40 +393,132 @@ const MenuSectionAccordion = ({ title, icon, children, routes }: { title: string
   );
 };
 
-// Item de navegação (MUI puro, monocromático, borda lateral teal no ativo).
-const NavItem = ({ to, primaryText, icon, highlight }: { to: string; primaryText: string; icon: React.ReactNode; highlight?: boolean }) => {
+// Item de navegação Direção A (Consultório Premium):
+// Ativo = fundo creme quente (#fbf3e8), texto escuro #0b3a37, ícone cobre #9a6b36 com sombra elegante.
+const NavItem = ({
+  to,
+  primaryText,
+  icon,
+  highlight,
+  badge,
+  isSos,
+}: {
+  to: string;
+  primaryText: string;
+  icon: React.ReactNode;
+  highlight?: boolean;
+  badge?: string;
+  isSos?: boolean;
+}) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
+
+  if (isSos) {
+    return (
+      <ListItemButton
+        onClick={() => navigate(to)}
+        selected={active}
+        sx={{
+          borderRadius: '12px',
+          m: '4px 6px',
+          py: 0.8,
+          px: 1.25,
+          minHeight: 44,
+          bgcolor: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(248, 113, 113, 0.35)',
+          color: '#fecaca',
+          transition: 'all .15s ease',
+          '&:hover': {
+            bgcolor: 'rgba(239, 68, 68, 0.22)',
+            color: '#fff',
+            transform: 'translateX(3px)',
+          },
+        }}
+      >
+        <ListItemIcon sx={{ minWidth: 32, color: '#fca5a5', '& svg': { fontSize: 20 } }}>
+          {icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={primaryText}
+          primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: '#fecaca' }}
+        />
+      </ListItemButton>
+    );
+  }
+
   return (
-    <ListItemButton onClick={() => navigate(to)} selected={active}
+    <ListItemButton
+      onClick={() => navigate(to)}
+      selected={active}
       sx={{
-        borderRadius: '10px', m: '1px 0', py: 0.5, pl: 1.25, minHeight: 42, flex: '0 0 auto',
+        borderRadius: '12px',
+        m: '2px 6px',
+        py: 0.6,
+        pl: 1.25,
+        pr: 1,
+        minHeight: 40,
+        flex: '0 0 auto',
         borderLeft: 'none',
         transition: 'all .15s ease, transform .15s ease',
-        ...(active ? {
-          background: 'linear-gradient(135deg, rgba(32,178,170,0.16), rgba(32,178,170,0.08))',
-          boxShadow: '0 2px 8px rgba(32,178,170,.1)',
-        } : {}),
-        '&.Mui-selected': { bgcolor: 'transparent', background: 'linear-gradient(135deg, rgba(32,178,170,0.16), rgba(32,178,170,0.08))' },
-        '&.Mui-selected:hover': { background: 'linear-gradient(135deg, rgba(32,178,170,0.22), rgba(32,178,170,0.12))' },
-        '&:hover': active ? {} : { bgcolor: 'rgba(32,178,170,.06)', transform: 'translateX(4px)' },
-      }}>
-      <ListItemIcon sx={{
-        minWidth: 32,
-        color: active ? '#20b2aa' : highlight ? '#178f89' : 'text.secondary',
-        '& svg': { fontSize: 19, transition: 'transform .2s ease' },
-        ...(active ? { '& svg': { fontSize: 19, transform: 'scale(1.12)' } } : {}),
-      }}>{icon}</ListItemIcon>
-      <ListItemText primary={primaryText} primaryTypographyProps={{ fontSize: 13, fontWeight: active || highlight ? 800 : 500, color: active ? '#0f6e68' : highlight ? 'text.primary' : 'text.secondary', noWrap: true }} />
+        color: active ? '#0b3a37' : 'rgba(231, 245, 243, 0.72)',
+        ...(active
+          ? {
+              bgcolor: '#fbf3e8 !important',
+              color: '#0b3a37 !important',
+              boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
+            }
+          : {
+              bgcolor: 'transparent',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.08)',
+                color: '#ffffff',
+                transform: 'translateX(3px)',
+              },
+            }),
+      }}
+    >
+      <ListItemIcon
+        sx={{
+          minWidth: 30,
+          color: active ? '#9a6b36' : highlight ? '#5fc9c3' : 'rgba(231, 245, 243, 0.55)',
+          '& svg': { fontSize: 19, transition: 'transform .2s ease' },
+          ...(active ? { '& svg': { fontSize: 19, transform: 'scale(1.12)' } } : {}),
+        }}
+      >
+        {icon}
+      </ListItemIcon>
+      <ListItemText
+        primary={primaryText}
+        primaryTypographyProps={{
+          fontSize: 13,
+          fontWeight: active ? 800 : 500,
+          color: active ? '#0b3a37' : highlight ? '#ffffff' : 'rgba(231, 245, 243, 0.78)',
+          noWrap: true,
+        }}
+      />
+      {badge && (
+        <Chip
+          size="small"
+          label={badge}
+          sx={{
+            height: 19,
+            fontSize: 10.5,
+            fontWeight: 800,
+            bgcolor: badge === 'ao vivo' ? '#ef4444' : 'rgba(212, 165, 116, 0.28)',
+            color: badge === 'ao vivo' ? '#ffffff' : '#f3d3ac',
+            borderRadius: '99px',
+          }}
+        />
+      )}
     </ListItemButton>
   );
 };
 
-// Card de perfil do usuário (Foto Edmilson, nome, plano, créditos) — topo do menu.
+// Card de perfil do usuário — perfeitamente harmonizado com a sidebar de Consultório
 const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   const navigate = useNavigate();
-  const { credits } = useCredits(); // saldo reativo compartilhado c/ o chip do header
+  const { credits } = useCredits();
   const [userInfo, setUserInfo] = useState<{ name: string; photo?: string; isPremium: boolean }>({
     name: 'Usuário',
     isPremium: false,
@@ -312,22 +549,27 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   }, []);
 
   return (
-    /* Gap do avatar (bug dono 27/09): drawer já nasce ABAIXO da status bar no APK
-       (env() = 0/inválida lá) — o calc empilhava 4px + 12px de padding dobro = respiro
-       morto. pt fixo mínimo; o card interno tem o próprio p: 1.5 de respiro. */
-    <Box sx={{ px: 1.5, pb: 1, pt: onClose ? 0.75 : 1.5 }}>
-      <Box sx={(t) => ({
-        p: 1.25, pt: 1, borderRadius: '20px',
-        background: t.palette.mode === 'dark'
-          ? `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.12), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.06), transparent 50%), ${t.palette.background.paper}`
-          : `radial-gradient(ellipse at 20% 30%, rgba(32,178,170,.08), transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(212,165,116,.04), transparent 50%), #ffffff`,
-        border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.18),
-        boxShadow: '0 4px 14px rgba(0,0,0,0.03), 0 8px 24px rgba(32,178,170,.04)',
-      })}>
+    <Box sx={{ px: 1.25, pb: 1, pt: onClose ? 0.75 : 1 }}>
+      <Box
+        sx={{
+          p: 1.25,
+          borderRadius: '16px',
+          bgcolor: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+          transition: 'background .15s ease',
+          '&:hover': {
+            bgcolor: 'rgba(255, 255, 255, 0.08)',
+          },
+        }}
+      >
         <Stack direction="row" alignItems="center" spacing={1.25}>
           <Box
             component="button"
-            onClick={() => { onClose?.(); navigate('/perfil'); }}
+            onClick={() => {
+              onClose?.();
+              navigate('/perfil');
+            }}
             aria-label="Abrir meu perfil"
             title="Ver e editar meu perfil"
             sx={{
@@ -342,63 +584,85 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               minWidth: 0,
               textAlign: 'left',
               color: 'inherit',
-              borderRadius: '16px',
-              transition: 'opacity .15s ease',
+              borderRadius: '12px',
               '&:hover': {
-                '& .dx-user-name': { color: 'primary.main' },
-                '& .dx-profile-chevron': { color: 'primary.main', transform: 'translateX(2px)' },
+                '& .dx-user-name': { color: '#5fc9c3' },
+                '& .dx-profile-chevron': { color: '#5fc9c3', transform: 'translateX(2px)' },
               },
-              '&:active': { transform: 'scale(0.99)', opacity: 0.8 },
             }}
           >
             <Box sx={{ position: 'relative', flexShrink: 0 }}>
-              <Avatar src={userInfo.photo} sx={{ width: 46, height: 46, fontSize: 18, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 800, border: '2px solid rgba(32,178,170,0.3)', position: 'relative', zIndex: 1 }}>
+              <Avatar
+                src={userInfo.photo}
+                sx={{
+                  width: 42,
+                  height: 42,
+                  fontSize: 16,
+                  bgcolor: 'rgba(32,178,170,0.25)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  border: '2px solid rgba(95,201,195,0.4)',
+                }}
+              >
                 {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
               </Avatar>
-              {/* Glow ring pulsante */}
-              <Box sx={{
-                position: 'absolute', inset: -3, borderRadius: '50%',
-                background: 'rgba(32,178,170,0.15)', filter: 'blur(6px)',
-                animation: 'dxAvatarGlow 3s ease-in-out infinite', pointerEvents: 'none',
-                '@keyframes dxAvatarGlow': {
-                  '0%, 100%': { opacity: 0.4, transform: 'scale(1)' },
-                  '50%': { opacity: 0.9, transform: 'scale(1.15)' },
-                },
-              }} />
             </Box>
             <Box sx={{ minWidth: 0, flex: 1 }}>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0 }}>
-                <Typography className="dx-user-name" sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, transition: 'color .15s ease' }}>
+                <Typography
+                  className="dx-user-name"
+                  sx={{
+                    fontWeight: 800,
+                    fontSize: 14.5,
+                    color: '#e7f5f3',
+                    lineHeight: 1.2,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    transition: 'color .15s ease',
+                  }}
+                >
                   {userInfo.name}
                 </Typography>
-                <ChevronRightIcon className="dx-profile-chevron" sx={{ fontSize: 18, color: 'text.disabled', flexShrink: 0, transition: 'all .15s ease' }} />
+                <ChevronRightIcon
+                  className="dx-profile-chevron"
+                  sx={{ fontSize: 18, color: 'rgba(231,245,243,0.4)', flexShrink: 0, transition: 'all .15s ease' }}
+                />
               </Stack>
-              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-                <Chip size="small" label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'} sx={{
-                  height: 20, fontSize: 12, fontWeight: 800,
-                  bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.18)' : 'rgba(0,0,0,0.06)',
-                  color: userInfo.isPremium ? '#b88a54' : 'text.secondary',
-                  ...(userInfo.isPremium ? {
-                    position: 'relative', overflow: 'hidden',
-                    '&::after': {
-                      content: '""', position: 'absolute', inset: 0,
-                      background: 'linear-gradient(105deg, transparent 35%, rgba(212,165,116,.3) 50%, transparent 65%)',
-                      backgroundSize: '200% 100%',
-                      animation: 'dxPremShimmer 3s ease-in-out infinite',
-                    },
-                    '@keyframes dxPremShimmer': {
-                      '0%': { backgroundPosition: '200% 0' },
-                      '100%': { backgroundPosition: '-200% 0' },
-                    },
-                  } : {}),
-                }} />
+              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
+                <Chip
+                  size="small"
+                  label={userInfo.isPremium ? '👑 Premium' : 'Plano grátis'}
+                  sx={{
+                    height: 20,
+                    fontSize: 11,
+                    fontWeight: 800,
+                    bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.22)' : 'rgba(255,255,255,0.08)',
+                    color: userInfo.isPremium ? '#f3d3ac' : 'rgba(231,245,243,0.7)',
+                  }}
+                />
                 {credits != null && (
-                  <Chip size="small" onClick={(e) => { e.stopPropagation(); onClose?.(); navigate('/planos'); }} label={`⚡ ${credits} (+)`} sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0f6e68', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(32,178,170,0.2)' } }} />
+                  <Chip
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClose?.();
+                      navigate('/planos');
+                    }}
+                    label={`⚡ ${credits}`}
+                    sx={{
+                      height: 20,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      bgcolor: 'rgba(32,178,170,0.2)',
+                      color: '#5fc9c3',
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'rgba(32,178,170,0.35)' },
+                    }}
+                  />
                 )}
               </Stack>
-              <Typography sx={{ fontSize: 11, color: 'primary.dark', fontWeight: 600, mt: 0.25, display: 'block' }}>
-                Toque para abrir perfil ›
-              </Typography>
             </Box>
           </Box>
           {onClose && (
@@ -406,16 +670,17 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               onClick={onClose}
               size="small"
               title="Fechar menu"
-              sx={(t) => ({
-                width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                bgcolor: alpha(t.palette.text.primary, 0.06),
-                color: 'text.secondary',
-                transition: 'all .15s ease',
-                '&:hover': { bgcolor: alpha(t.palette.primary.main, 0.15), color: 'primary.main' },
-                '& svg': { fontSize: 18 }
-              })}
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                flexShrink: 0,
+                bgcolor: 'rgba(255,255,255,0.06)',
+                color: 'rgba(231,245,243,0.7)',
+                '&:hover': { bgcolor: 'rgba(32,178,170,0.2)', color: '#fff' },
+              }}
             >
-              <CloseIcon />
+              <CloseIcon sx={{ fontSize: 18 }} />
             </IconButton>
           )}
         </Stack>
@@ -424,98 +689,172 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
   );
 };
 
-// Menu lateral — organizado como app profissional (headers de seção, sem acordeão)
+// Menu lateral — com agrupamento clínico de alta clareza e autoridade
 const AppMenu = () => {
   const logout = useLogout();
   const navigate = useNavigate();
   const translate = useTranslate();
   const { pathname } = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const tele = useUpcomingTeleconsulta();
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
+
   return (
-  <Box component="nav" sx={{ py: 1, display: 'flex', flexDirection: 'column', minHeight: '100%', width: '100%', minWidth: 0, maxWidth: '100%', containerType: 'inline-size', overflowX: 'hidden', overflowY: 'auto', maxHeight: '100dvh', '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' } }}>
+  <Box
+    component="nav"
+    sx={{
+      py: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100%',
+      width: '100%',
+      minWidth: 0,
+      maxWidth: '100%',
+      containerType: 'inline-size',
+      overflowX: 'hidden',
+      overflowY: 'auto',
+      maxHeight: '100dvh',
+      color: '#e7f5f3',
+      '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' },
+    }}
+  >
+    {isDesktop && (
+      <Box sx={{ px: 2, pt: 1.25, pb: 1, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+        <Box sx={{
+          width: 36, height: 36, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
+          background: 'linear-gradient(135deg,#2cc4bb 0%,#178f89 100%)',
+          boxShadow: '0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.3)', overflow: 'hidden'
+        }}>
+          <DrExame size={26} sx={{ borderRadius: '22%' }} />
+        </Box>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.02em', color: '#fff', lineHeight: 1.1 }}>
+            Dr. Exame
+          </Typography>
+          <Typography sx={{ fontSize: 11, color: 'rgba(231,245,243,0.6)', fontWeight: 500, mt: 0.2 }}>
+            Saúde Inteligente
+          </Typography>
+        </Box>
+      </Box>
+    )}
+
     {isDesktop && <UserProfileCard />}
-    {isDesktop && <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2, mb: 1 }} />}
-    {/* Início fora dos acordeões: desktop NÃO tem bottom-nav — sem isto, quem navega
-        pra qualquer tela perde o caminho de volta ao dashboard (beco sem saída). */}
+    {isDesktop && <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mx: 2, mb: 1 }} />}
+
+    {/* Início fora dos acordeões: acesso direto */}
     <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} />
-    <MenuSectionAccordion title={translate('menu.section.exams')} icon={<FactCheckOutlinedIcon />} routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}>
-      <NavItem to="/exams" primaryText={translate('menu.exams')} icon={<FactCheckOutlinedIcon />} />
-      <NavItem to="/alterados" primaryText={translate('menu.alterados')} icon={<WarningAmberOutlinedIcon />} highlight />
-      <NavItem to="/evolucao" primaryText={translate('menu.evolution')} icon={<InsightsOutlinedIcon />} />
-      <NavItem to="/tendencias" primaryText={translate('menu.trends')} icon={<QueryStatsOutlinedIcon />} />
-      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline')} icon={<HistoryOutlinedIcon />} />
-      <NavItem to="/relatorio" primaryText={translate('menu.report')} icon={<SummarizeOutlinedIcon />} />
+
+    {/* Grupo 1: Meus Exames */}
+    <MenuSectionAccordion
+      title={translate('menu.section.exams', { _: 'Meus exames' })}
+      icon={<FactCheckOutlinedIcon />}
+      routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}
+    >
+      <NavItem to="/exams" primaryText={translate('menu.exams', { _: 'Todos os exames' })} icon={<FactCheckOutlinedIcon />} />
+      <NavItem to="/alterados" primaryText={translate('menu.alterados', { _: 'Valores alterados' })} icon={<WarningAmberOutlinedIcon />} highlight />
+      <NavItem to="/evolucao" primaryText={translate('menu.evolution', { _: 'Evolução' })} icon={<InsightsOutlinedIcon />} />
+      <NavItem to="/tendencias" primaryText={translate('menu.trends', { _: 'Tendências' })} icon={<QueryStatsOutlinedIcon />} />
+      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline', { _: 'Linha do tempo' })} icon={<HistoryOutlinedIcon />} />
+      <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Relatório completo' })} icon={<SummarizeOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.care')} icon={<MonitorHeartOutlinedIcon />} routes={['/sinais', '/medicoes', '/medicamentos', '/saude-mental', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/despesas']}>
+    {/* Grupo 2: Consultas & Médicos (Teleconsulta integrada!) */}
+    <MenuSectionAccordion
+      title="Consultas e médicos"
+      icon={<MedicalServicesOutlinedIcon />}
+      routes={['/lembretes', '/medicos', '/perguntas']}
+      badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? 'agendada' : undefined}
+    >
+      <NavItem
+        to="/lembretes"
+        primaryText="Agenda & teleconsultas"
+        icon={<EventAvailableOutlinedIcon />}
+        highlight={tele.isToday || tele.isLive}
+        badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : undefined}
+      />
+      <NavItem to="/medicos" primaryText={translate('menu.doctors', { _: 'Meus médicos' })} icon={<MedicalServicesOutlinedIcon />} />
+      <NavItem to="/perguntas" primaryText={translate('menu.questions', { _: 'Perguntas para o médico' })} icon={<QuestionAnswerOutlinedIcon />} />
+    </MenuSectionAccordion>
+
+    {/* Grupo 3: Rotina de Saúde */}
+    <MenuSectionAccordion
+      title="Rotina de saúde"
+      icon={<MonitorHeartOutlinedIcon />}
+      routes={['/sinais', '/medicoes', '/medicamentos', '/saude-mental', '/vacinas', '/despesas', '/conquistas']}
+    >
       <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} highlight />
-      <NavItem to="/medicoes" primaryText={translate('menu.measurements')} icon={<MonitorHeartOutlinedIcon />} />
-      <NavItem to="/medicamentos" primaryText={translate('menu.medications')} icon={<MedicationOutlinedIcon />} />
+      <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
+      <NavItem to="/medicamentos" primaryText={translate('menu.medications', { _: 'Medicamentos' })} icon={<MedicationOutlinedIcon />} />
       <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
-      <NavItem to="/vacinas" primaryText={translate('menu.vaccines')} icon={<VaccinesOutlinedIcon />} />
-      <NavItem to="/lembretes" primaryText={translate('menu.reminders')} icon={<EventAvailableOutlinedIcon />} />
-      {/* Emergência ganha ícone PRÓPRIO (semáforo SOS) — antes repetia HealthAndSafety
-          da Privacidade: funções distintas, mesmo glifo = confusão na busca visual. */}
-      <NavItem to="/emergencia" primaryText={translate('menu.emergency')} icon={<EmergencyOutlinedIcon />} highlight />
-      <NavItem to="/conquistas" primaryText={translate('menu.achievements')} icon={<EmojiEventsOutlinedIcon />} />
-      {/* Despesa médica é CUIDADO de saúde (pedido do dono) — antes ficava em "Conta". */}
-      <NavItem to="/despesas" primaryText={translate('menu.expenses')} icon={<AccountBalanceWalletOutlinedIcon />} />
+      <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
+      <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
+      <NavItem to="/conquistas" primaryText={translate('menu.achievements', { _: 'Conquistas' })} icon={<EmojiEventsOutlinedIcon />} />
     </MenuSectionAccordion>
 
-    <MenuSectionAccordion title={translate('menu.section.people')} icon={<Diversity3OutlinedIcon />} routes={['/familia', '/patients', '/medicos', '/perguntas']}>
-      <NavItem to="/familia" primaryText={translate('menu.family_full')} icon={<Diversity3OutlinedIcon />} />
-      <NavItem to="/medicos" primaryText={translate('menu.doctors')} icon={<MedicalServicesOutlinedIcon />} />
-      <NavItem to="/perguntas" primaryText={translate('menu.questions')} icon={<QuestionAnswerOutlinedIcon />} />
-    </MenuSectionAccordion>
+    {/* Grupo 4: Família e Dependentes */}
+    <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} />
 
-    <MenuSectionAccordion title={translate('menu.section.account')} icon={<ManageAccountsOutlinedIcon />} routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}>
-      <NavItem to="/perfil" primaryText={translate('menu.profile')} icon={<AccountCircleOutlinedIcon />} />
-      <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira' })} icon={<BoltOutlinedIcon />} highlight />
+    {/* Cartão de Emergência SOS */}
+    <Box sx={{ my: 0.5 }}>
+      <NavItem
+        to="/emergencia"
+        primaryText="Cartão de emergência"
+        icon={<EmergencyOutlinedIcon />}
+        isSos
+      />
+    </Box>
+
+    {/* Grupo 5: Conta & Configurações */}
+    <MenuSectionAccordion
+      title="Conta e planos"
+      icon={<ManageAccountsOutlinedIcon />}
+      routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}
+    >
+      <NavItem to="/perfil" primaryText={translate('menu.profile', { _: 'Meu perfil' })} icon={<AccountCircleOutlinedIcon />} />
+      <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira & créditos' })} icon={<BoltOutlinedIcon />} highlight />
       <NavItem to="/indique" primaryText={translate('menu.invite', { _: 'Indique e ganhe 🎁' })} icon={<CardGiftcardOutlinedIcon />} highlight />
-      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd')} icon={<LockOutlinedIcon />} />
-      <NavItem to="/privacidade" primaryText={translate('menu.privacy')} icon={<HealthAndSafetyOutlinedIcon />} />
-      <NavItem to="/planos" primaryText={translate('menu.plans')} icon={<WorkspacePremiumOutlinedIcon />} />
-      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin')} icon={<AdminPanelSettingsOutlinedIcon />} />}
+      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd', { _: 'Segurança e senha' })} icon={<LockOutlinedIcon />} />
+      <NavItem to="/privacidade" primaryText={translate('menu.privacy', { _: 'Privacidade (LGPD)' })} icon={<HealthAndSafetyOutlinedIcon />} />
+      <NavItem to="/planos" primaryText={translate('menu.plans', { _: 'Planos' })} icon={<WorkspacePremiumOutlinedIcon />} />
+      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} />}
     </MenuSectionAccordion>
 
-    {/* Gradient divider premium */}
-    <Box sx={{ mx: 2, my: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(32,178,170,.2) 30%, rgba(32,178,170,.2) 70%, transparent)' }} />
+    {/* Divisor suave */}
+    <Box sx={{ mx: 2, my: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.12) 30%, rgba(255,255,255,.12) 70%, transparent)' }} />
 
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} />
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75 }}>
-      <ListItemIcon sx={{ minWidth: 36 }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75, color: 'rgba(231,245,243,0.72)', '&:hover': { bgcolor: 'rgba(255,255,255,.07)', color: '#fff' } }}>
+      <ListItemIcon sx={{ minWidth: 32, color: 'rgba(231,245,243,0.55)' }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{
-      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: 'error.main',
+      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: '#fca5a5',
       transition: 'background-color .15s ease',
-      '&:hover': { bgcolor: 'rgba(239,68,68,.08)', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
+      '&:hover': { bgcolor: 'rgba(239,68,68,.15)', color: '#fecaca', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
       '@keyframes dxShake': {
         '0%, 100%': { transform: 'rotate(0)' },
         '25%': { transform: 'rotate(-8deg)' },
         '75%': { transform: 'rotate(8deg)' },
       },
     }}>
-      <ListItemIcon sx={{ color: 'error.main', minWidth: 36 }}><LogoutIcon fontSize="small" /></ListItemIcon>
+      <ListItemIcon sx={{ color: '#fca5a5', minWidth: 32 }}><LogoutIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
-    <Box sx={{ px: 2, pt: 2, pb: 1.5, textAlign: 'center' }}>
+    <Box sx={{ px: 2, pt: 1.5, pb: 1.5, textAlign: 'center' }}>
       <Box sx={{
         display: 'inline-flex', alignItems: 'center', gap: 0.75,
         px: 1.5, py: 0.5, borderRadius: 99,
-        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(32,178,170,0.06)',
-        border: '1px solid',
-        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(32,178,170,0.14)',
+        bgcolor: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.08)',
       }}>
         <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#20b2aa', boxShadow: '0 0 6px #20b2aa' }} />
-        <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', letterSpacing: '0.01em' }}>
-          Dr. Exame · Saúde Inteligente
+        <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: 'rgba(231,245,243,0.7)', letterSpacing: '0.01em' }}>
+          Dr. Exame · Saúde
         </Typography>
-        <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600, color: 'text.disabled' }}>
+        <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600, color: 'rgba(231,245,243,0.4)' }}>
           v{APP_BUILD_INFO.version}
         </Typography>
       </Box>
@@ -581,13 +920,13 @@ const AppDrawer = () => {
       PaperProps={{
         sx: {
           width: { xs: '84vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
-          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20, 30, 30, 0.88)' : 'rgba(255, 255, 255, 0.88)',
+          background: 'linear-gradient(180deg, #0b3a37 0%, #072a28 100%)',
+          color: '#e7f5f3',
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
           borderRadius: '0 24px 24px 0',
-          borderRight: '1px solid',
-          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(32,178,170,0.18)',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.25)',
+          borderRight: '1px solid rgba(255,255,255,0.1)',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
         }
       }}>
       <UserProfileCard onClose={closeDrawer} />
@@ -754,10 +1093,20 @@ const AppLayout = (props: any) => {
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
-          // SIDEBAR DESKTOP (5x): o react-admin deixava .RaSidebar-fixed c/ width 0 + position:fixed → menu sumia no web.
-          // Solução: in-flow (static) + width 100% no desktop → preenche o paper do drawer docked (que já reserva
-          // espaço) e o conteúdo flui ao lado NATURALMENTE (sem hack de padding, sem espaço branco). Mobile intocado.
-          '& .RaSidebar-fixed': { position: { sm: 'static !important' }, width: { sm: '100% !important' }, height: { sm: 'auto !important' } },
+          // SIDEBAR DESKTOP (Consultório Premium): in-flow + width 268px + fundo profundo elegante
+          '& .RaSidebar-root': { width: { sm: '268px !important' }, minWidth: { sm: '268px !important' }, flexShrink: 0 },
+          '& .RaSidebar-fixed, & .RaSidebar-paper, & .RaSidebar-root .MuiPaper-root': {
+            position: { sm: 'static !important' },
+            width: { sm: '268px !important' },
+            minWidth: { sm: '268px !important' },
+            maxWidth: { sm: '268px !important' },
+            height: { sm: 'auto !important' },
+            minHeight: { sm: '100dvh' },
+            background: 'linear-gradient(180deg, #0b3a37 0%, #072a28 100%) !important',
+            color: '#e7f5f3 !important',
+            borderRight: '1px solid rgba(255,255,255,0.08) !important',
+            boxShadow: '4px 0 24px rgba(0,0,0,0.12)',
+          },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
           // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
