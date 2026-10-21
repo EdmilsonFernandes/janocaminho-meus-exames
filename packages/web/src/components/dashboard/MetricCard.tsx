@@ -8,8 +8,8 @@ export const MetricCard = ({ label, value, color, icon, onClick }: { label: stri
     <Card onClick={onClick} sx={{ height: '100%', cursor: 'pointer', transition: 'all .15s', '&:hover': { transform: 'translateY(-2px)', boxShadow: 6, borderColor: color } }}>
       <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: 0.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
         <Box sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color, bgcolor: 'action.hover', '& svg': { fontSize: 22 } }}>{icon}</Box>
-        <Typography sx={{ fontWeight: 800, color, fontSize: { xs: 24, sm: 30 }, lineHeight: 1.1, mt: 0.25 }}>{value}</Typography>
-        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2 }}>{label}</Typography>
+        <Typography sx={{ fontWeight: 800, color, fontSize: { xs: 24, sm: 30 }, lineHeight: 1.1, mt: 0.25, fontVariantNumeric: 'tabular-nums', fontFamily: '"Poppins",sans-serif' }}>{value}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.2, letterSpacing: '-0.01em', fontWeight: 600 }}>{label}</Typography>
       </CardContent>
     </Card>
   </Grid>

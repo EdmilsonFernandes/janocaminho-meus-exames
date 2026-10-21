@@ -10,9 +10,11 @@ export function haptic(pattern: number | number[] = 12): void {
 
 /** Toque leve (navegação, taps comuns). */
 export const hapticLight = (): void => haptic(10);
-/** Toque médio (abrir menu, toggle). */
+/** Toque médio (abrir menu, toggle, aviso). */
 export const hapticMedium = (): void => haptic(20);
-/** Padrão de sucesso (salvou, enviou): tique-tique curto. */
-export const hapticSuccess = (): void => haptic([10, 35, 25]);
-/** Padrão de erro (falhou): mais longo/duro. */
-export const hapticError = (): void => haptic([35, 50, 35]);
+/** Navegação (trocar tab/screen) — 5ms, quase subliminar. */
+export const hapticNav = (): void => haptic(5);
+/** Sucesso (salvou/enviou/enviar confirmado) — tique único de 10ms. */
+export const hapticSuccess = (): void => haptic(10);
+/** Erro (falha de API/submit) — triplo 50/50/50, inconfundível. */
+export const hapticError = (): void => haptic([50, 50, 50]);

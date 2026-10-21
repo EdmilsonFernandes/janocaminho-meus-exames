@@ -231,9 +231,20 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
               ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.05)'
               : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03), inset 0 1px 0 rgba(255,255,255,.6)',
             border: `1px solid ${isDark ? '#2a3636' : '#d8ece9'}`,
-            // Press state (feel nativo): card 'respira' leve ao toque. Sutil p/ não estranhar em cards estáticos.
+            // Press state (feel nativo): card 'respira' leve ao toque E a sombra afunda junto
+            // (0 2px 12px → 0 1px 6px) — o par transform+shadow vende a sensação de profundidade.
             transition: 'transform .12s ease, box-shadow .2s ease',
-            '&:active': { transform: 'scale(0.985)' },
+            '&:active': {
+              transform: 'scale(0.985)',
+              boxShadow: isDark
+                ? '0 1px 6px rgba(0,0,0,.45)'
+                : '0 1px 6px rgba(0,0,0,.06)',
+            },
+            // prefers-reduced-motion: desliga o motion do press (transform) e as transições.
+            '@media (prefers-reduced-motion: reduce)': {
+              transition: 'none',
+              '&:active': { transform: 'none' },
+            },
           },
         },
       },

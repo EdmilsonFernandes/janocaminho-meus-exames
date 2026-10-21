@@ -539,7 +539,7 @@ const ExamCards = () => {
   const heroMd = isDefaultView && lastExam ? (
     <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: '1fr', alignItems: 'stretch' }}>
       <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => setSelected(lastExam.id)} onPdf={() => openPdf(lastExam.id)} />
-      <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/evolucao')} />
+      <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/tendencias')} />
     </Box>
   ) : null;
   if (isMd) {
@@ -673,7 +673,7 @@ const ExamCards = () => {
       {isDefaultView && lastExam && (
         <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: '1.6fr 1fr' }, alignItems: 'stretch' }}>
           <ExamHero r={lastExam} abnCount={abnByExam[lastExam.id] ?? 0} onView={() => navigate(`/exams/${lastExam.id}/show`)} onPdf={() => openPdf(lastExam.id)} />
-          <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/evolucao')} />
+          <ChangesSinceExam worsened={worsened} improved={improved} loaded={hsLoaded} onView={() => navigate('/tendencias')} />
         </Box>
       )}
 

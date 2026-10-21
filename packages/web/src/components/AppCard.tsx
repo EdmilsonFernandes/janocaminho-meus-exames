@@ -2,6 +2,7 @@ import type { ReactNode, KeyboardEvent } from 'react';
 import { Card, CardProps } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import { RADIUS } from '../theme';
+import { useCardPress, usePrefersReducedMotion } from './useCardPress';
 
 /**
  * AppCard — primitiva de Card do design-system (unifica as ~10 variantes inline).
@@ -46,8 +47,11 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
   const theme = useTheme();
   const col = resolveTone(theme, tone);
   const glowColor = typeof glow === 'string' ? glow : col;
+  // CARD PRESS — tátil em TODAS as variantes (scale .98 + sombra achatada no :active).
+  const press = useCardPress();
+  const reduced = usePrefersReducedMotion();
 
-  const base: Record<string, unknown> = { borderRadius: RADIUS.card, overflow: 'hidden' };
+  const base: Record<string, unknown> = { borderRadius: RADIUS.card, overflow: 'hidden', ...press };
   let extra: Record<string, unknown> = {};
 
   switch (kind) {
@@ -62,7 +66,8 @@ export const AppCard = ({ kind = 'default', tone = 'primary', tone2, glow, sx, c
           transform: 'translateY(-3px)',
           boxShadow: `0 4px 12px rgba(0,0,0,.06), 0 12px 28px ${alpha(theme.palette.primary.main, 0.12)}`,
         },
-        '&:active': { transform: 'translateY(0)' },
+        // press tátil: cancela o lift do hover E escala (mesmo .98 do useCardPress)
+        '&:active': reduced ? { transform: 'none' } : { transform: 'translateY(0) scale(.98)', boxShadow: '0 1px 6px rgba(0,0,0,.10)' },
         // Teclado/leitor de tela (a11y P1, bateria 2026-09): cards clicáveis precisam de
         // foco visível. O elemento continua <div> com role=button (ver abaixo) porque os
         // cards de exame têm botões ANINHADOS (excluir, re-extrair) — <button> pai seria

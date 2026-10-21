@@ -3,6 +3,7 @@ import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, 
 import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import { hapticSuccess, hapticError, hapticMedium } from '../utils/haptic';
 
 export type ConfirmTone = 'danger' | 'warning' | 'primary';
 export interface ConfirmOptions {
@@ -107,8 +108,89 @@ export const promptDialog = (opts: PromptOptions): Promise<string | null> =>
 
 export interface SnackbarOptions { message: React.ReactNode; severity?: 'success' | 'error' | 'warning' | 'info' }
 let _snackbar: ((o: SnackbarOptions) => void) | null = null;
-/** Snackbar (toast) premium imperativo: `snackbar({ message: 'Copiado!', severity: 'success' })`. */
-export const snackbar = (opts: SnackbarOptions): void => { _snackbar?.(opts); };
+/** Snackbar (toast) premium imperativo: `snackbar({ message: 'Copiado!', severity: 'success' })`.
+ *  Haptic central: o toast é o canal de resultado da maioria dos save/submit/enviar do app —
+ *  vibra aqui (por severity) e TODA página herda sem tocar em call-site. */
+export const snackbar = (opts: SnackbarOptions): void => {
+  if (opts.severity === 'success') hapticSuccess();
+  else if (opts.severity === 'error') hapticError();
+  else if (opts.severity === 'warning') hapticMedium();
+  _snackbar?.(opts);
+};
+
+// ───────────────── TOAST SWIPE-TO-DISMISS ─────────────────
+// Arrastar p/ qualquer lado dismissa o toast (padrão mobile-first iOS/Material).
+// Só transform/opacity (GPU-friendly, zero layout); prefers-reduced-motion → sem animação.
+const SWIPE_THRESHOLD = 64; // px — metade de um swipe deliberado
+const prefersReducedMotion = (): boolean => {
+  try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
+};
+
+const SwipeableAlert = ({ severity, message, onClose }: { severity?: SnackbarOptions['severity']; message: React.ReactNode; onClose: () => void }) => {
+  const [dx, setDx] = React.useState(0);
+  const [leaving, setLeaving] = React.useState(false);
+  const dragging = React.useRef(false);
+  const start = React.useRef<{ x: number; y: number; horizontal: boolean } | null>(null);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    if (leaving) return;
+    const t = e.touches[0];
+    start.current = { x: t.clientX, y: t.clientY, horizontal: false };
+  };
+  const onTouchMove = (e: React.TouchEvent) => {
+    const s = start.current;
+    if (!s || leaving) return;
+    const t = e.touches[0];
+    const ddx = t.clientX - s.x;
+    const ddy = t.clientY - s.y;
+    // Só trava o gesto quando horizontal e dominante (vertical segue pro scroll da página).
+    if (!s.horizontal) {
+      if (Math.abs(ddx) < 8 || Math.abs(ddx) <= Math.abs(ddy)) return;
+      s.horizontal = true;
+    }
+    dragging.current = true;
+    setDx(ddx); // dedo colado no toast (transition none durante o arrasto)
+  };
+  const onTouchEnd = () => {
+    const s = start.current;
+    start.current = null;
+    if (!s || leaving) return;
+    const d = dx;
+    dragging.current = false;
+    setDx(0);
+    if (s.horizontal && Math.abs(d) > SWIPE_THRESHOLD) {
+      if (prefersReducedMotion()) { onClose(); return; }
+      // Saída: desliza p/ fora + fade curto, depois fecha de verdade.
+      setDx(d > 0 ? 480 : -480);
+      setLeaving(true);
+      window.setTimeout(onClose, 170);
+    }
+    // Abaixo do threshold: spring-back (transition cubic-bezier volta o card pro centro).
+  };
+
+  return (
+    <MuiAlert
+      elevation={3}
+      severity={severity ?? 'info'}
+      onClose={onClose}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      sx={{
+        borderRadius: '12px', fontWeight: 600, alignItems: 'center',
+        transform: `translateX(${dx}px)`,
+        opacity: leaving ? 0 : 1,
+        transition: leaving
+          ? 'transform .17s ease-out, opacity .17s ease-out'
+          : dragging.current ? 'none' : 'transform .24s cubic-bezier(.16,1,.3,1)',
+        touchAction: 'pan-y', // horizontal é NOSSO; vertical entrega pro scroll
+        '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+      }}
+    >
+      {message}
+    </MuiAlert>
+  );
+};
 
 /** Provider que renderiza os Dialogs premium e registra as fns globais. Envolver o App 1x. */
 export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode }) => {
@@ -144,7 +226,7 @@ export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode 
         onSubmit={(v) => closePrompt(v)}
       />
       <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <MuiAlert elevation={3} severity={snack?.severity ?? 'info'} onClose={() => setSnack(null)} sx={{ borderRadius: '12px', fontWeight: 600, alignItems: 'center' }}>{snack?.message}</MuiAlert>
+        <SwipeableAlert severity={snack?.severity} message={snack?.message} onClose={() => setSnack(null)} />
       </Snackbar>
     </React.Fragment>
   );

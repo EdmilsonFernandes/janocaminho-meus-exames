@@ -33,11 +33,14 @@ import { BodyMap, type BodyRegionView } from '../BodyMap';
 import { ShareHealthButton } from '../ShareHealthCard';
 import { ReviewPrompt, maybeRequestReview } from '../ReviewPrompt';
 import { AppCard } from '../AppCard';
+import { usePrefersReducedMotion } from '../useCardPress';
 import { GradientButton } from '../GradientButton';
 import { Celebration } from '../Celebration';
 import { Shimmer, TileShimmer } from '../Shimmer';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
 import { ScrollReveal } from './ScrollReveal';
+import { StaggerIn } from './StaggerIn';
+import { SkeletonCard } from './SkeletonCard';
 import { Section } from './Section';
 import { DEMO_DASHBOARD, DEMO_CHRONO_AGE } from './demoData';
 import { track } from '../../utils/analytics';
@@ -106,19 +109,7 @@ interface MentalLatest {
   gad7Previous: MentalRow | null;
 }
 
-/** Um único ponto p/ prefers-reduced-motion (sparkles, ring pulse, tile spring). */
-const usePrefersReducedMotion = () => {
-  const [reduced, setReduced] = useState(
-    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-  );
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const fn = () => setReduced(mq.matches);
-    mq.addEventListener('change', fn);
-    return () => mq.removeEventListener('change', fn);
-  }, []);
-  return reduced;
-};
+// usePrefersReducedMotion — consolidado em components/useCardPress.ts (ponto único do app).
 
 /** Busca os mesmos dados do Dashboard legacy — V2 isolada (não toca no fetch do legacy). */
 function useDashboardData(pid: string | null) {
@@ -280,8 +271,39 @@ const scoreGlowColor = (s: number | null) => {
   return 'rgba(239,68,68,.12)';
 };
 
-/** Countup hook — anima um número de 0 ao alvo com easing. CSS-free, cancelável. */
-const useCountUp = (target: number | null, duration = 1200) => {
+/** Solver de cubic-bezier CSS (Newton–Raphson + bisseção) — replica no rAF a MESMA
+ *  curva de easing usada no CSS do design system, sem dependência externa. */
+const cubicBezier = (x1: number, y1: number, x2: number, y2: number) => {
+  const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
+  const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
+  const sampleX = (u: number) => ((ax * u + bx) * u + cx) * u;
+  const sampleY = (u: number) => ((ay * u + by) * u + cy) * u;
+  const dX = (u: number) => (3 * ax * u + 2 * bx) * u + cx;
+  return (t: number) => {
+    let u = t;
+    for (let i = 0; i < 8; i++) {
+      const x = sampleX(u) - t;
+      if (Math.abs(x) < 1e-5) return sampleY(u);
+      const d = dX(u);
+      if (Math.abs(d) < 1e-6) break;
+      u -= x / d;
+    }
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 20; i++) {
+      const x = sampleX(u);
+      if (Math.abs(x - t) < 1e-5) break;
+      if (x < t) lo = u; else hi = u;
+      u = (lo + hi) / 2;
+    }
+    return sampleY(u);
+  };
+};
+/** ease-out exponencial — a curva cubic-bezier(.16,1,.3,1) do motion system. */
+const easeOutExpo = cubicBezier(0.16, 1, 0.3, 1);
+
+/** Countup hook — 0 → alvo em ~800ms (easeOutExpo), CSS-free, cancelável.
+ *  prefers-reduced-motion: mostra o valor final direto, sem animar. */
+const useCountUp = (target: number | null, duration = 800) => {
   const [value, setValue] = useState(0);
   const prevTarget = useRef<number | null>(null);
   useEffect(() => {
@@ -293,8 +315,7 @@ const useCountUp = (target: number | null, duration = 1200) => {
     const step = (ts: number) => {
       if (!start) start = ts;
       const p = Math.min((ts - start) / duration, 1);
-      const ease = 1 - Math.pow(1 - p, 3); // easeOutCubic
-      setValue(Math.round(ease * target));
+      setValue(Math.round(easeOutExpo(p) * target));
       if (p < 1) raf = requestAnimationFrame(step);
     };
     raf = requestAnimationFrame(step);
@@ -455,6 +476,8 @@ const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onO
 };
 
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg. */
+/** Circunferência do ring do hero (r=42) — o arco do score é fração dela via dashoffset. */
+const RING_CIRC = 2 * Math.PI * 42;
 const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, staleWarning, scoreGain = 0, audioSummary, onDetails, onFirstExam, onChat, onDemo }: {
   loaded: boolean; score: number | null; exams: number; importante: number; moderada: number; lastExam: string | null; staleWarning: string; scoreGain?: number; audioSummary?: string; onDetails: () => void; onFirstExam: () => void; onChat?: () => void; onDemo?: () => void;
 }) => {
@@ -464,8 +487,8 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const totalAtt = importante + moderada;
   const noData = score == null && exams === 0;
   const title = noData ? 'Começa com seu primeiro exame' : score == null ? 'Score indisponível' : st.label;
-  const animatedScore = useCountUp(score);
-  const dashLen = (score ?? 0) * 2.64;
+  const animatedScore = useCountUp(score); // 0 → score em ~800ms easeOutExpo (mesma curva do anel)
+  const dashLen = ((score ?? 0) / 100) * RING_CIRC;
   const isDark = t.palette.mode === 'dark';
   const reduced = usePrefersReducedMotion();
   // Badge de ganho some sozinho (8s) — nunca vira ruído permanente.
@@ -567,12 +590,14 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             <circle cx="50" cy="50" r="42" fill="none"
               stroke={alpha(t.palette.text.primary, isDark ? 0.08 : 0.06)}
               strokeWidth="8" />
-            {/* Progress — gradiente + animação */}
+            {/* Progress — anel preenche de VAZIO até o arco do score via stroke-dashoffset
+                (transition pura CSS; mesma curva/duração do count-up: 800ms easeOutExpo). */}
             <circle cx="50" cy="50" r="42" fill="none"
               stroke="url(#scoreGrad)" strokeWidth="8" strokeLinecap="round"
-              strokeDasharray={`${dashLen} 999`}
-              style={{ transition: 'stroke-dasharray 1.2s cubic-bezier(.16,1,.3,1)' }}
+              strokeDasharray={RING_CIRC}
+              strokeDashoffset={RING_CIRC - dashLen}
               filter={score && score >= 60 ? 'drop-shadow(0 0 4px rgba(32,178,170,.4))' : undefined}
+              style={reduced ? undefined : { transition: 'stroke-dashoffset .8s cubic-bezier(.16,1,.3,1)' }}
             />
           </Box>
           <Box sx={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', px: 0.5, minWidth: 0, pointerEvents: 'none', zIndex: 2 }}>
@@ -592,7 +617,16 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
           <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase', color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>
             {last && !noData ? <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><ScienceIcon sx={{ fontSize: 13 }} /> Exame em {last}</Box> : 'Sua saúde hoje'}
           </Typography>
-          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance' }}>{title}</Typography>
+          <Typography sx={{
+            fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance',
+            // STATUS ENTRA DEPOIS do count-up: fade + translateY(4px→0), 200ms com delay
+            // 850ms (stagger sutil). GPU-friendly (só opacity/transform). Fora dos estados
+            // sem score (noData/indisponível não têm count-up — aparecem direto).
+            ...(score != null && !noData && !reduced ? {
+              animation: 'dxStatusIn .2s cubic-bezier(.16,1,.3,1) .85s both',
+              '@keyframes dxStatusIn': { from: { opacity: 0, transform: 'translateY(4px)' } },
+            } : {}),
+          }}>{title}</Typography>
           {/* W2 — comemora o progresso (só quando SUBIU; nunca pune queda). */}
           {scoreGain > 0 && showGain && (
             <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.75, px: 1.25, py: 0.4, borderRadius: RADIUS.sm, bgcolor: 'rgba(212,165,116,.14)', border: '1px solid rgba(212,165,116,.35)', fontSize: 12.5, fontWeight: 800, color: (th) => copperText(th.palette.mode) }}>
@@ -1027,8 +1061,9 @@ const DashboardV2Inner = () => {
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
       {/* 1. HERO — IMEDIATAMENTE após a saudação (fix #1): o dado mais importante
-          abre a tela. Resumo em áudio vira play compacto DENTRO do hero (fix #15). */}
-      <ScrollReveal>
+          abre a tela. Resumo em áudio vira play compacto DENTRO do hero (fix #15).
+          STAGGER: hero entra primeiro (0ms), KPI 100ms, grid 200ms, banner 300ms. */}
+      <StaggerIn delay={0}>
         <HeroHealthCard
           loaded={d.loaded}
           score={d.score}
@@ -1048,11 +1083,11 @@ const DashboardV2Inner = () => {
           onChat={go('/chat')}
           onDemo={demo ? undefined : () => { setDemo(true); demoEvent('started'); }}
         />
-      </ScrollReveal>
+      </StaggerIn>
 
       {/* 0.1 BANNER TELECONSULTA AO VIVO (PRIORIDADE CLÍNICA MÁXIMA) */}
       {!demo && tele.isLive && (
-        <ScrollReveal>
+        <StaggerIn delay={300}>
           <Box sx={{ mb: 2 }}>
             <AppCard
               sx={{
@@ -1130,7 +1165,7 @@ const DashboardV2Inner = () => {
               </Button>
             </AppCard>
           </Box>
-        </ScrollReveal>
+        </StaggerIn>
       )}
 
       {/* ALERTAS DE EXAMES — abaixo do hero (saúde crítica depois do retrato geral). */}
@@ -1171,7 +1206,7 @@ const DashboardV2Inner = () => {
 
       {/* 2. 4 CARDS DE KPI COM SOFT BADGES (2x2 no mobile, 4x1 no desktop). W4: enquanto
           carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}
-      <ScrollReveal delay={80}>
+      <StaggerIn delay={100}>
         {!d.loaded && !demo ? (
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
             {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
@@ -1227,7 +1262,7 @@ const DashboardV2Inner = () => {
           />
         </Box>
         )}
-      </ScrollReveal>
+      </StaggerIn>
 
       {/* LENTE ESPORTIVA — desceu do topo (fix #1) e só aparece pra quem JÁ TEM perfil
           esportivo (fix #3): sem perfil o toggle é ruído de um recurso desconhecido —
@@ -1239,17 +1274,24 @@ const DashboardV2Inner = () => {
       )}
 
       {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) */}
-      <ScrollReveal delay={140}>
+      <StaggerIn delay={200}>
         <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
           {/* COLUNA PRINCIPAL (65%) */}
           <Grid size={{ xs: 12, md: 7, lg: 8 }}>
             <Stack spacing={2.5}>
-              {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz sentido) */}
-              {!demo && <NextStepsCard exams={d.stats.exams} />}
+              {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz
+                  sentido). Enquanto carrega: SkeletonCard da marca (nada de estado vazio
+                  prematuro "envie o 1º exame" piscando antes dos dados chegarem). */}
+              {!demo && (!d.loaded
+                ? <SkeletonCard variant="content" />
+                : <NextStepsCard exams={d.stats.exams} />)}
 
               {/* O QUE MUDOU — card único com 2 abas (Exames | Hábitos). Antes eram dois
-                  cards irmãos dizendo a mesma coisa ("o que mudou" × "desde seu último exame"). */}
-              <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/tendencias')} loaded={d.loaded} lastExamAt={d.lastExam} />
+                  cards irmãos dizendo a mesma coisa ("o que mudou" × "desde seu último exame").
+                  Loading: skeleton de LISTA no mesmo footprint (2 grupos de marcadores). */}
+              {!d.loaded && !demo
+                ? <SkeletonCard variant="list" />
+                : <ChangesSinceExam worsened={d.worsened} improved={d.improved} onView={go('/tendencias')} loaded={d.loaded} lastExamAt={d.lastExam} />}
 
               {/* MAPA CORPORAL INTERATIVO & SISTEMAS (Com Raio-X GPU Leve, blindado contra crash Web e APK) */}
               <DashboardErrorBoundary>
@@ -1335,7 +1377,7 @@ const DashboardV2Inner = () => {
             </Stack>
           </Grid>
         </Grid>
-      </ScrollReveal>
+      </StaggerIn>
 
       <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
 

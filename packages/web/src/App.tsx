@@ -4,7 +4,7 @@ import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
-import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, CircularProgress, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
+import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
@@ -61,7 +61,7 @@ import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
 import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
 import { TrendsPage } from './pages/Trends';
-import { hapticLight } from './utils/haptic';
+import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
@@ -432,7 +432,7 @@ const NavItem = ({
   if (isSos) {
     return (
       <ListItemButton
-        onClick={() => navigate(to)}
+        onClick={() => { hapticNav(); navigate(to); }}
         selected={active}
         sx={{
           borderRadius: '12px',
@@ -464,7 +464,7 @@ const NavItem = ({
 
   return (
     <ListItemButton
-      onClick={() => navigate(to)}
+      onClick={() => { hapticNav(); navigate(to); }}
       selected={active}
       sx={{
         borderRadius: '12px',
@@ -991,15 +991,19 @@ const LangToggle = () => {
   );
 };
 
-// Pull-to-refresh no mobile: puxa a tela no topo e solta p/ recarregar
+// Pull-to-refresh no mobile: puxa a tela no topo e o MASCOTE Dr. Exame desce com o
+// dedo — o robô É o indicador (sem spinner padrão). Ao soltar no gatilho, ele
+// BALANÇA (rotação -10°→10°→0) enquanto o refresh roda, e sai quando termina.
 const PullToRefresh = () => {
   const [shown, setShown] = useState(0);
+  const [wiggle, setWiggle] = useState(false);
   const dist = useRef(0);
   const fired = useRef(false); // haptic dispara 1x por gesto (ao cruzar o limite), não a cada frame
+  const wiggleTm = useRef<number | undefined>(undefined);
   const refresh = useRefresh();
   useEffect(() => {
     let startY = 0; let active = false;
-    const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; fired.current = false; } };
+    const onStart = (e: TouchEvent) => { if ((window.scrollY ?? 0) <= 0) { startY = e.touches[0].clientY; active = true; fired.current = false; window.clearTimeout(wiggleTm.current); setWiggle(false); } };
     const onMove = (e: TouchEvent) => {
       if (!active) return;
       const d = Math.min(e.touches[0].clientY - startY, 100);
@@ -1010,25 +1014,51 @@ const PullToRefresh = () => {
     };
     // refresh() (refetch via dataProvider) em vez de window.location.reload():
     // reload recarrega o WebView inteiro e crasha o app nativo (Capacitor).
-    const onEnd = () => { if (active && dist.current > 70) refresh(); active = false; dist.current = 0; setShown(0); };
+    // Ao soltar no gatilho: robô balança ~650ms (o refresh já disparou) e então recolhe.
+    const onEnd = () => {
+      if (active && dist.current > 70) {
+        setWiggle(true);
+        refresh();
+        window.clearTimeout(wiggleTm.current);
+        wiggleTm.current = window.setTimeout(() => { setWiggle(false); setShown(0); }, 650);
+      } else {
+        setShown(0);
+      }
+      active = false; dist.current = 0;
+    };
     window.addEventListener('touchstart', onStart, { passive: true });
     window.addEventListener('touchmove', onMove, { passive: true });
     window.addEventListener('touchend', onEnd);
     // touchcancel: se o toque é interrompido pelo sistema (scroll/gesto), reseta o
     // active — senão ele podia ficar true e o spinner pipocar nos toques seguintes.
     window.addEventListener('touchcancel', onEnd);
-    return () => { window.removeEventListener('touchstart', onStart); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); window.removeEventListener('touchcancel', onEnd); };
+    return () => { window.removeEventListener('touchstart', onStart); window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); window.removeEventListener('touchcancel', onEnd); window.clearTimeout(wiggleTm.current); };
   }, []);
-  if (shown <= 5) return null;
+  if (shown <= 5 && !wiggle) return null;
+  const pull = Math.min(shown / 70, 1); // 0→1 no caminho até o gatilho (70px)
   return (
-    <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', height: shown, zIndex: 1500, pointerEvents: 'none' }}>
-      {/* Indicador gira COM o puxar (feedback de progresso, como o nativo);
-          após soltar, o CircularProgress anima a rotação indefinida sozinho. */}
-      <CircularProgress
-        variant={shown > 70 ? 'indeterminate' : 'determinate'}
-        value={Math.min((shown / 70) * 100, 100)}
-        size={26}
-        sx={{ mt: 1, opacity: Math.min(shown / 70, 1), color: 'primary.main' }}
+    <Box sx={{ position: 'fixed', top: 0, left: 0, right: 0, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', height: shown, zIndex: 1500, pointerEvents: 'none' }}>
+      {/* O robô desce COM o gesto (container cresce com o dedo + translateY/scale
+          seguem o progresso — feedback contínuo, como o indicador nativo). No gatilho
+          ele "infla" (scale 1.08): pronto pra soltar. Solto: balança e recolhe. */}
+      <DrExame
+        size={34}
+        sx={{
+          mt: '6px',
+          opacity: wiggle ? 1 : Math.max(pull, 0.15),
+          transform: `translateY(${Math.round(shown * 0.15)}px) scale(${1 + pull * 0.08})`,
+          ...(wiggle ? { animation: 'dxPtrWiggle .65s ease-in-out' } : {}),
+          '@keyframes dxPtrWiggle': {
+            '0%': { transform: 'rotate(0deg) scale(1.08)' },
+            '20%': { transform: 'rotate(-10deg) scale(1.08)' },
+            '40%': { transform: 'rotate(10deg) scale(1.08)' },
+            '60%': { transform: 'rotate(-6deg) scale(1.08)' },
+            '80%': { transform: 'rotate(6deg) scale(1.08)' },
+            '100%': { transform: 'rotate(0deg) scale(1)' },
+          },
+          // Reduced-motion: sem balanço autônomo (seguir o dedo é gesto do usuário).
+          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+        }}
       />
     </Box>
   );

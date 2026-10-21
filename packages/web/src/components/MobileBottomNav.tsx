@@ -11,7 +11,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MenuIcon from '@mui/icons-material/Menu';
-import { hapticLight } from '../utils/haptic';
+import { hapticNav } from '../utils/haptic';
 
 /**
  * MobileBottomNav Ultra-Premium — "Floating Glass Island" (Cápsula de Vidro Flutuante).
@@ -52,7 +52,7 @@ export const MobileBottomNav = () => {
   const item = (it: { icon: string; label: string; to: string; robot?: boolean }, onClick?: () => void, on?: boolean) => (
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
       aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
-      onClick={() => { hapticLight(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
+      onClick={() => { hapticNav(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
@@ -110,7 +110,7 @@ export const MobileBottomNav = () => {
   );
 
   const maisItem = (on: boolean, onClick?: () => void) => (
-    <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticLight(); onClick?.(); }} sx={{
+    <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticNav(); onClick?.(); }} sx={{
       flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',

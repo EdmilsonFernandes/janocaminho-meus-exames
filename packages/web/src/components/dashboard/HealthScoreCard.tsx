@@ -113,7 +113,7 @@ export const HealthScoreCard = ({ loaded, score, abnormalCount, markerCount, onD
         {/* Cabeçalho: "Score de Saúde" + (?) ajuda — explica o que é esse número pro leigo */}
         <Stack direction="row" alignItems="center" sx={{ mb: 1.25 }}>
           <MonitorHeartIcon sx={{ color: 'primary.main', fontSize: 18, mr: 0.75 }} />
-          <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 10, sm: 11 } }}>Score de Saúde</Typography>
+          <Typography variant="overline" sx={{ lineHeight: 1, color: 'text.secondary', fontSize: { xs: 10, sm: 11 }, letterSpacing: '-0.01em' }}>Score de Saúde</Typography>
           <IconButton size="small" onClick={(e) => setHelp(e.currentTarget)} sx={{ ml: 'auto', p: 0.25, color: 'primary.main' }} aria-label="O que é o Score de Saúde?" title="O que é o Score de Saúde?"><HelpOutlineIcon sx={{ fontSize: 16 }} /></IconButton>
         </Stack>
         {/* gauge + VEREDITO (herói) lado a lado. O número 76 apoia; a frase é o que se entende "batendo o olho". */}
