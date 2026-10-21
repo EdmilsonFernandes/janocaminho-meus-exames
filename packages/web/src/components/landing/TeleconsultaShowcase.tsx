@@ -784,7 +784,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                     com gravação de registro clínico.
                   </Typography>
 
-                  {/* Botão Interativo "Autorizar e Entrar" */}
+                  {/* Botão Interativo "Entrar na Consulta" */}
                   <Button
                     fullWidth
                     variant="contained"
@@ -809,7 +809,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       },
                     }}
                   >
-                    Autorizar e entrar
+                    Entrar na consulta
                   </Button>
 
                   <Typography

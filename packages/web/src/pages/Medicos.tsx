@@ -446,7 +446,7 @@ export const MedicosPage = () => {
                               flex: { xs: 1, sm: 'none' },
                             }}
                           >
-                            Autorizar e entrar
+                            Entrar na consulta
                           </Button>
                         )}
                         <Button
@@ -616,7 +616,7 @@ export const MedicosPage = () => {
                                   '&:hover': { bgcolor: '#115e59' },
                                 }}
                               >
-                                {docTele.consentAt ? 'Entrar' : 'Autorizar e entrar'}
+                                Entrar na consulta
                               </Button>
                             </Stack>
                           </Box>
@@ -821,7 +821,7 @@ export const MedicosPage = () => {
           <Button onClick={() => setConsentFor(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
           <Button variant="contained" onClick={() => void consentAndOpen(consentFor)}
             sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } }}>
-            Autorizar e entrar
+            Entrar na consulta
           </Button>
         </DialogActions>
       </Dialog>
