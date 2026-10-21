@@ -8,6 +8,7 @@ import { API_URL, apiHeaders } from '../../config';
 import { SEM } from '../../theme';
 import { useSelectedPatient } from '../../patient-context';
 import { AppCard } from '../AppCard';
+import { RADIUS } from '../../theme';
 
 /**
  * RestingHeartCard — tendência de FREQUÊNCIA CARDÍACA MÉDIA diária (Health Connect).
@@ -37,21 +38,8 @@ const CARD_IN = {
     to: { opacity: 1, transform: 'none' },
   },
 } as const;
-const BEAT = {
-  animation: 'DxHrPulse 1.1s cubic-bezier(.22,1,.36,1) infinite',
-  '@keyframes DxHrPulse': {
-    '0%': { transform: 'scale(1)' },
-    '14%': { transform: 'scale(1.22)' },
-    '28%': { transform: 'scale(1.04)' },
-    '42%': { transform: 'scale(1.3)' },
-    '70%': { transform: 'scale(1)' },
-    '100%': { transform: 'scale(1)' },
-  },
-  transformOrigin: 'center center',
-  '@media (prefers-reduced-motion: reduce)': {
-    animation: 'none',
-  },
-} as const;
+// Dieta de movimento (out/26): batimento cardíaco infinito removido — ícone e ponto
+// da zona ficam ESTÁTICOS (a cor da zona já sinaliza o estado).
 
 export const RestingHeartCard = () => {
   const theme = useTheme();
@@ -89,8 +77,8 @@ export const RestingHeartCard = () => {
   const selFmt = sel ? new Date(`${sel.date}T12:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit' }).replace('.', '') : '';
 
   return (
-    <AppCard sx={{ p: { xs: 2, sm: 2.5 }, borderRadius: '20px !important', ...CARD_IN }}>
-      {/* Cabeçalho + zona (chip com batimento) */}
+    <AppCard sx={{ p: { xs: 2, sm: 2.5 }, ...CARD_IN }}>
+      {/* Cabeçalho + zona (chip estático) */}
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.25 }}>
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <FavoriteIcon sx={{
@@ -98,16 +86,15 @@ export const RestingHeartCard = () => {
             color: (t) => dangerText(t.palette.mode),
             filter: 'drop-shadow(0 2px 6px rgba(239, 68, 68, 0.35))',
             display: 'inline-block',
-            ...BEAT,
           }} /> Frequência cardíaca
         </Typography>
         <Stack
           direction="row"
           spacing={0.5}
           alignItems="center"
-          sx={{ px: 1, py: 0.35, borderRadius: '999px', bgcolor: alpha(z.color, 0.1), border: `1px solid ${alpha(z.color, 0.25)}` }}
+          sx={{ px: 1, py: 0.35, borderRadius: RADIUS.sm, bgcolor: alpha(z.color, 0.1), border: `1px solid ${alpha(z.color, 0.25)}` }}
         >
-          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: z.color, boxShadow: `0 0 8px ${z.color}`, ...BEAT }} />
+          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: z.color, boxShadow: `0 0 8px ${z.color}` }} />
           <Typography sx={{ fontSize: 12, fontWeight: 700, color: z.color }}>{z.label}</Typography>
         </Stack>
       </Stack>

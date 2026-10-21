@@ -18,7 +18,7 @@ import { GoogleG, LockSecure } from './GoogleG';
 import { AppCard } from '../AppCard';
 import { GradientButton } from '../GradientButton';
 import { hapticLight } from '../../utils/haptic';
-import { SEM } from '../../theme';
+import { SEM, RADIUS } from '../../theme';
 import { backfillActivityDays, fetchActivityDays, hasHealthPermissions, healthConnectSupported, permissionOutcomeMessage, requestHealthPermissions, syncActivityToServer } from '../../services/healthConnect';
 import { fetchActivitySummary, summaryToDays, syncStamp } from '../../services/activitySummary';
 import { barHeight, fmtKcal, fmtKm, fmtSleep, fmtSteps, summarize, weekOfExam, STEPS_GOAL, type ActivityDay, type ActivityRange } from '../../utils/activityStats';
@@ -429,7 +429,7 @@ export const ActivityView = ({
             p: 0.5,
             px: 1,
             ml: -1,
-            borderRadius: '10px',
+            borderRadius: RADIUS.button,
             border: 'none',
             bgcolor: 'transparent',
             cursor: 'pointer',
@@ -455,7 +455,7 @@ export const ActivityView = ({
               gap: 0.25,
               px: 0.75,
               py: 0.2,
-              borderRadius: '99px',
+              borderRadius: RADIUS.sm,
               fontSize: 11,
               fontWeight: 700,
               bgcolor: alpha(theme.palette.primary.main, 0.08),
@@ -492,7 +492,8 @@ export const ActivityView = ({
               color: 'primary.dark', bgcolor: alpha(theme.palette.primary.main, 0.10),
               '&:hover': { bgcolor: alpha(theme.palette.primary.main, 0.18) },
               '@keyframes DxSpin': { to: { transform: 'rotate(360deg)' } },
-              '& .MuiSvgIcon-root': { fontSize: 18, ...(syncing ? { animation: 'DxSpin 1s linear infinite' } : {}) },
+              // Spinner de sync (infinite permitido — estado de processamento); reduced-motion desliga.
+              '& .MuiSvgIcon-root': { fontSize: 18, ...(syncing ? { animation: 'DxSpin 1s linear infinite' } : {}), '@media (prefers-reduced-motion: reduce)': { animation: 'none' } },
             }}
           >
             <SyncIcon />
@@ -511,7 +512,7 @@ export const ActivityView = ({
         value={range}
         onChange={(_, v) => { if (v) onRange(v as ActivityRange); }}
         aria-label="Período da atividade"
-        sx={{ mb: 1.5, '& .MuiToggleButton-root': { px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, borderRadius: '99px !important', border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
+        sx={{ mb: 1.5, '& .MuiToggleButton-root': { px: 1.25, py: { xs: 0.75, sm: 0.35 }, minHeight: { xs: 40, sm: 0 }, borderRadius: RADIUS.sm, border: '1px solid', borderColor: 'divider', textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary', '&.Mui-selected': { bgcolor: alpha(theme.palette.primary.main, 0.15), color: 'primary.dark', borderColor: alpha(theme.palette.primary.main, 0.4) } } }}
       >
         {RANGES.map((r) => (
           <ToggleButton key={r.value} value={r.value} aria-pressed={range === r.value} disabled={source === 'cloud' && r.value === 'today'} title={source === 'cloud' && r.value === 'today' ? 'O dado de hoje chega pela sincronização do app no celular — veja 7 ou 30 dias' : undefined}>
@@ -771,7 +772,7 @@ export const MetricMini = ({ icon, tone, label, labelTitle, value, unit, context
       <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>
         {value}{unit ? <Typography component="span" sx={{ fontSize: 11, color: 'text.disabled', fontWeight: 600 }}> {unit}</Typography> : null}
       </Typography>
-      {contextLabel && <Typography noWrap sx={{ fontSize: 10, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
+      {contextLabel && <Typography noWrap sx={{ fontSize: 12, color: 'text.disabled', lineHeight: 1.1 }}>{contextLabel}</Typography>}
     </Box>
   </Stack>
 );

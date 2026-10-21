@@ -39,7 +39,7 @@ export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstNa
         sx={{
           width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5,
           py: { xs: 4.5, md: 6 }, px: { xs: 2.5, md: 5 },
-          borderRadius: '24px',
+          borderRadius: '20px',
           border: dragging ? `2.5px dashed ${TEAL}` : '2px dashed rgba(32,178,170,.45)',
           bgcolor: dragging ? alpha(TEAL, 0.12) : alpha(TEAL, 0.04),
           cursor: 'pointer', textAlign: 'center',
@@ -58,15 +58,12 @@ export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstNa
           accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf"
           onChange={(e) => { goWithFiles(e.target.files); if (e.target) e.target.value = ''; }}
         />
-        {/* ícone flutuante sutil (reduced-motion respeitado) */}
+        {/* ícone estático (dieta de movimento: float infinito removido) */}
         <Box sx={{
-          width: 76, height: 76, borderRadius: '24px',
+          width: 76, height: 76, borderRadius: '20px',
           background: 'linear-gradient(135deg,#20b2aa,#178f89)',
           display: 'grid', placeItems: 'center',
           boxShadow: '0 14px 34px rgba(32,178,170,.35)',
-          animation: 'ffeFloat 3s ease-in-out infinite',
-          '@keyframes ffeFloat': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-6px)' } },
-          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
         }}>
           <UploadFileIcon sx={{ fontSize: 38, color: '#fff' }} />
         </Box>
@@ -80,7 +77,7 @@ export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstNa
         </Box>
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center' }}>
           {['PDF', 'JPG', 'PNG'].map((f) => (
-            <Box key={f} sx={{ px: 1.5, py: 0.4, borderRadius: '999px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', fontSize: 12.5, fontWeight: 800, color: TEAL_DARK }}>
+            <Box key={f} sx={{ px: 1.5, py: 0.4, borderRadius: '8px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', fontSize: 12.5, fontWeight: 800, color: TEAL_DARK }}>
               {f}
             </Box>
           ))}
@@ -97,7 +94,7 @@ export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstNa
         startIcon={<PhotoCameraIcon />}
         onClick={onGoCreate}
         sx={{
-          borderRadius: '999px', px: 4, py: 1.2, textTransform: 'none', fontWeight: 800, fontSize: 15.5,
+          borderRadius: '12px', px: 4, py: 1.2, textTransform: 'none', fontWeight: 800, fontSize: 15.5,
           borderColor: alpha(TEAL, 0.4), color: TEAL_DARK,
           bgcolor: 'background.paper',
           '&:hover': { borderColor: TEAL, bgcolor: alpha(TEAL, 0.06) },

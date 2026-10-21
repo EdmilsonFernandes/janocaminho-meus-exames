@@ -1,5 +1,6 @@
 import { Box, Typography } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import SpaIcon from '@mui/icons-material/Spa';
+import BoltIcon from '@mui/icons-material/Bolt';
 import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../../config';
 import { hapticLight } from '../../utils/haptic';
@@ -37,7 +38,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
       sx={{
         mb: 2,
         p: 0.5,
-        borderRadius: '999px',
+        borderRadius: '8px',
         bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
         border: '1px solid',
         borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
@@ -54,7 +55,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           flex: 1,
           py: 0.9,
           px: { xs: 1, sm: 2 },
-          borderRadius: '999px',
+          borderRadius: '8px',
           border: 'none',
           cursor: 'pointer',
           fontFamily: 'inherit',
@@ -71,7 +72,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           },
         }}
       >
-        <Box component="span" sx={{ fontSize: 14 }}>🌿</Box>
+        <SpaIcon sx={{ fontSize: 16 }} />
         <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: !active ? 800 : 600, color: 'inherit' }}>
           Saúde Geral
         </Typography>
@@ -85,7 +86,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           flex: 1,
           py: 0.9,
           px: { xs: 1, sm: 2 },
-          borderRadius: '999px',
+          borderRadius: '8px',
           border: 'none',
           cursor: 'pointer',
           fontFamily: 'inherit',
@@ -94,9 +95,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           justifyContent: 'center',
           gap: 0.75,
           transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-          bgcolor: active
-            ? 'linear-gradient(135deg, #f59e0b, #d97706)'
-            : 'transparent',
+          // (fix props duplicadas) só `background` — bgcolor repetia o mesmo gradiente
           background: active
             ? 'linear-gradient(135deg, #f59e0b, #d97706)'
             : 'transparent',
@@ -107,7 +106,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
           },
         }}
       >
-        <Box component="span" sx={{ fontSize: 14 }}>⚡</Box>
+        <BoltIcon sx={{ fontSize: 16 }} />
         <Typography sx={{ fontSize: { xs: 12, sm: 13 }, fontWeight: active ? 800 : 600, color: 'inherit' }}>
           Lente Esportiva
         </Typography>

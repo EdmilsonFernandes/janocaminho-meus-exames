@@ -1,12 +1,14 @@
-import { dangerText } from '../../theme';
-import { Stack, Typography, Box, Chip, Button } from '@mui/material';
+import { useEffect, useRef, useState } from 'react';
+import { Stack, Typography, Box, Chip, Button, Tabs, Tab } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { AppCard } from '../AppCard';
 import { fmtNum } from '../../utils/format';
-import { tealText } from '../../theme';
+import { tealText, dangerText } from '../../theme';
+import { API_URL, token } from '../../config';
+import { SinceExamCard, type SinceExamData } from './SinceExamCard';
 
 /**
  * Marker — recorte mínimo de um marcador vindo do health-summary (topAttention / improving).
@@ -33,32 +35,72 @@ const fmtMarker = (m: Marker) =>
   m.latest?.valueNumeric != null ? `${fmtNum(m.latest.valueNumeric)}${m.unit ? ' ' + m.unit : ''}` : '—';
 
 /**
- * ChangesSinceExam — "Desde seu último exame": o que piorou (topAttention) e o que melhorou.
+ * ChangesSinceExam — "O que mudou": UM card com 2 abas (Exames | Hábitos).
+ *
+ * Merge (fix F3): antes eram dois cards irmãos contando a mesma história — este
+ * ("o que mudou nos seus exames") e o SinceExamCard ("seu dia a dia desde {mês}").
+ * Agora a aba Exames traz o que piorou (topAttention) e o que melhorou; a aba
+ * Hábitos (conteúdo do antigo SinceExamCard) traz atividade/peso/pressão ENTRE
+ * exames — o usuário vê "eu me exercitei mais E meu LDL caiu" lado a lado.
  *
  * Primitiva compartilhada (Dashboard V2 + Meus Exames). Dados vêm do `/patients/:id/health-summary`
- * (campos `topAttention` / `improving`) — NÃO há cálculo clínico aqui; só apresentação.
+ * (campos `topAttention` / `improving`) e do `/measurements/since-exam` (hábitos) — NÃO há
+ * cálculo clínico aqui; só apresentação. Sem `lastExamAt` (Meus Exames) a aba Hábitos não existe.
  */
 export const ChangesSinceExam = ({
   worsened,
   improved,
   onView,
   loaded,
-  title = 'O que mudou nos seus exames',
-  ctaLabel = 'Ver evolução completa',
+  lastExamAt,
+  title = 'O que mudou',
+  ctaLabel = 'Ver análise completa',
 }: {
   worsened: Marker[];
   improved: Marker[];
   onView: () => void;
   loaded: boolean;
+  /** Data do último exame — habilita a aba Hábitos (fetch /measurements/since-exam). */
+  lastExamAt?: string | null;
   title?: string;
   ctaLabel?: string;
 }) => {
-  if (loaded && worsened.length === 0 && improved.length === 0) return null;
+  const hasExamChanges = worsened.length > 0 || improved.length > 0;
+  const showTabs = !!lastExamAt;
+
+  // ── Aba Hábitos: mesmo fetch do antigo SinceExamCard (hoisted pro card-pai) ──
+  const [habits, setHabits] = useState<SinceExamData | null>(null);
+  const [habitsLoading, setHabitsLoading] = useState(!!lastExamAt);
+  useEffect(() => {
+    if (!lastExamAt) { setHabits(null); setHabitsLoading(false); return; }
+    setHabitsLoading(true);
+    fetch(`${API_URL}/measurements/since-exam`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setHabits(d))
+      .catch(() => setHabits(null))
+      .finally(() => setHabitsLoading(false));
+  }, [lastExamAt]);
+  const hasHabits = !!habits?.hasData && !!habits.habitChanges?.length;
+
+  // Aba inicial: Exames (primária do produto). Se os exames carregarem sem nenhuma
+  // mudança e houver hábitos, começa direto na aba que tem conteúdo (1x, sem override
+  // de escolha do usuário — guarda por ref).
+  const [tab, setTab] = useState<'exames' | 'habitos'>('exames');
+  const tabAutoPicked = useRef(false);
+  useEffect(() => {
+    if (tabAutoPicked.current || !loaded) return;
+    tabAutoPicked.current = true;
+    if (!hasExamChanges && hasHabits) setTab('habitos');
+  }, [loaded, hasExamChanges, hasHabits]);
+
+  // Visibilidade (herdada do card original): nada de exames E nada de hábitos → card não existe.
+  if (loaded && !hasExamChanges && !habitsLoading && !hasHabits) return null;
+
   const worsenedNames = new Set(worsened.map((m) => (m.nameCanonical || m.name).toUpperCase()));
   const improvedUnique = improved.filter((m) => !worsenedNames.has((m.nameCanonical || m.name).toUpperCase()));
-  return (
-    <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
-      <Typography component="h2" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</Typography>
+
+  const examsTab = (
+    <>
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, mb: 1.5, flexWrap: 'wrap', rowGap: 0.5 }}>
         {worsened.length > 0 && (
           <Chip
@@ -92,7 +134,9 @@ export const ChangesSinceExam = ({
             }}
           />
         )}
-        {worsened.length === 0 && improved.length === 0 && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>}
+        {!loaded && worsened.length === 0 && improved.length === 0 && (
+          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Carregando…</Typography>
+        )}
       </Stack>
       <Stack spacing={1.2}>
         {worsened.slice(0, 3).map((m, i) => (
@@ -143,7 +187,44 @@ export const ChangesSinceExam = ({
             <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', ml: 1 }}>{fmtMarker(m)}</Typography>
           </Box>
         ))}
+
+        {loaded && !hasExamChanges && (
+          <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
+            Nenhuma mudança nos marcadores desde o último exame.
+          </Typography>
+        )}
       </Stack>
+    </>
+  );
+
+  const habitsTab = habitsLoading ? (
+    <Typography sx={{ fontSize: 13, color: 'text.secondary', py: 0.5 }}>Carregando…</Typography>
+  ) : hasHabits ? (
+    <SinceExamCard data={habits} />
+  ) : (
+    <Typography sx={{ fontSize: 13, color: 'text.secondary', py: 0.5 }}>
+      Sem mudanças de hábitos (atividade, peso, pressão) no período.
+    </Typography>
+  );
+
+  return (
+    <AppCard kind="default" sx={{ p: { xs: 2, md: 2.5 }, height: '100%' }}>
+      <Typography component="h2" sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{title}</Typography>
+      {showTabs ? (
+        <Tabs
+          value={tab}
+          onChange={(_, v: 'exames' | 'habitos') => setTab(v)}
+          variant="fullWidth"
+          sx={{
+            mt: 0.5, minHeight: 40,
+            '& .MuiTab-root': { minHeight: 40, fontSize: 13, fontWeight: 700, textTransform: 'none', borderRadius: '10px' },
+          }}
+        >
+          <Tab value="exames" label="Exames" disableRipple />
+          <Tab value="habitos" label="Hábitos" disableRipple />
+        </Tabs>
+      ) : null}
+      {tab === 'exames' || !showTabs ? examsTab : habitsTab}
       <Box sx={{ mt: 1.5 }}>
         <Button variant="text" onClick={onView} endIcon={<ArrowForwardIcon />} sx={{ p: 0, px: 0.5, minHeight: 44, alignSelf: 'flex-start', textTransform: 'none', fontWeight: 800, color: (th) => tealText(th.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}>{ctaLabel}</Button>
       </Box>

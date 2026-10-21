@@ -248,5 +248,5 @@ export const DEMO_DASHBOARD = {
   bodyRegions: DEMO_BODY_REGIONS,
 };
 
-/** Idade cronológica da persona (alimenta o diff do Idade Bio: 32a = "2a mais jovem"). */
+/** Idade cronológica da persona (alimenta o diff do Idade do corpo: 32a = "2a mais jovem"). */
 export const DEMO_CHRONO_AGE = 34;

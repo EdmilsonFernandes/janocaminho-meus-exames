@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Button, Chip, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import { useNavigate } from 'react-router-dom';
 import { usePremium } from '../PremiumGate';
 import { fetchPublicConfig } from '../../config';
@@ -36,14 +37,15 @@ export const SportsUpsellCard = ({ pid, hasExams }: { pid: string | null | undef
   };
 
   return (
-    <AppCard kind="tinted" tone="primary" sx={{ p: { xs: 2, sm: 2.5 }, mb: 1.5, position: 'relative' }}>
+    <AppCard kind="tinted" tone="primary" sx={{ p: { xs: 2, sm: 2.5 }, position: 'relative' }}>
       <IconButton size="small" onClick={dismiss} aria-label="Não mostrar mais"
         sx={{ position: 'absolute', top: 6, right: 6, color: 'text.disabled' }}>
         <CloseIcon sx={{ fontSize: 18 }} />
       </IconButton>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, pr: 4 }}>
+        <FitnessCenterIcon sx={{ fontSize: 20, color: 'primary.main' }} />
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15 }}>
-          🏋️ Pratica esporte ou musculação?
+          Pratica esporte ou musculação?
         </Typography>
         {!premium && <Chip size="small" label="Premium" sx={{ height: 20, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />}
       </Box>
@@ -56,8 +58,9 @@ export const SportsUpsellCard = ({ pid, hasExams }: { pid: string | null | undef
           <Chip key={d} size="small" label={d} sx={{ height: 22, fontSize: 11, bgcolor: 'rgba(32,178,170,.10)', color: 'text.secondary', fontWeight: 600 }} />
         ))}
       </Box>
-      <Button variant="contained" size="small" onClick={() => navigate('/perfil?sports=1')}
-        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 44 }}>
+      {/* CTA secundário (variant="outlined"): a primária gradiente fica só no hero. */}
+      <Button variant="outlined" size="small" onClick={() => navigate('/perfil?sports=1')}
+        sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 44, borderColor: 'rgba(32,178,170,.4)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e'), '&:hover': { borderColor: 'primary.main', bgcolor: 'rgba(32,178,170,.06)' } }}>
         Ver como fica — 30 segundos
       </Button>
     </AppCard>

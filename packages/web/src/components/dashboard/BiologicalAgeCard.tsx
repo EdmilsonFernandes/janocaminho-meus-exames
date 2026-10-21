@@ -5,7 +5,7 @@ import { API_URL, token } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { useEffect, useState } from 'react';
 import { AppCard } from '../AppCard';
-import { SEM } from '../../theme';
+import { SEM, RADIUS } from '../../theme';
 import { Dna } from '@phosphor-icons/react';
 
 type BioData = { age: number; confidence: string; markersUsed: number; missing?: string[] | null; method?: string; assumptions?: string[]; excludesHormonalMarkers?: boolean };
@@ -17,7 +17,7 @@ const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(pref
 // Mode-aware via SEM.ok (o literal #059669 perdia contraste no dark).
 
 /**
- * Tile "Idade Biológica" — estimativa (PhenoAge) baseada em marcadores sanguíneos.
+ * Tile "Idade do corpo" — estimativa (PhenoAge) baseada em marcadores sanguíneos.
  *
  * NUNCA retorna null: mantém a grade 2×2 do Dashboard sempre completa. Sem estimativa, o tile
  * diz POR QUE não calculou (availability do server): falta perfil (nascimento) → CTA perfil;
@@ -101,7 +101,6 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
         sx={{
           p: 2,
           height: '100%',
-          borderRadius: '20px !important',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -121,7 +120,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
       >
         <Box sx={{ minWidth: 0, flex: 1, pr: 1 }}>
           <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
-            Idade Bio
+            Idade do corpo
           </Typography>
           <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
             {value}
@@ -150,12 +149,12 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
               <Box
                 sx={{
                   p: { xs: 2.5, sm: 3 },
-                  borderRadius: '20px',
+                  borderRadius: RADIUS.card,
                   background: isDark
-                    ? 'radial-gradient(circle at 50% 30%, rgba(95,201,195,0.15) 0%, rgba(4,16,31,0.85) 100%)'
-                    : 'radial-gradient(circle at 50% 30%, rgba(192,132,252,0.12) 0%, rgba(248,250,252,0.95) 100%)',
+                    ? 'radial-gradient(circle at 50% 30%, rgba(95,201,195,0.15) 0%, rgba(15,24,24,0.9) 100%)'
+                    : 'radial-gradient(circle at 50% 30%, rgba(32,178,170,0.12) 0%, rgba(248,250,252,0.95) 100%)',
                   border: '1px solid',
-                  borderColor: isDark ? 'rgba(95,201,195,0.3)' : 'rgba(168,85,247,0.2)',
+                  borderColor: isDark ? 'rgba(95,201,195,0.3)' : 'rgba(32,178,170,0.25)',
                   textAlign: 'center',
                   mb: 2.5,
                   boxShadow: '0 8px 24px rgba(0,0,0,0.06)',
@@ -170,8 +169,8 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                     mx: 'auto',
                     mb: 2,
                     p: '5px',
-                    background: 'conic-gradient(#3b82f6 0%, #a855f7 50%, #ec4899 100%)',
-                    boxShadow: '0 0 24px rgba(168,85,247,0.35)',
+                    background: 'conic-gradient(#059669 0%, #20b2aa 50%, #178f89 100%)',
+                    boxShadow: '0 0 24px rgba(32,178,170,0.35)',
                     display: 'grid',
                     placeItems: 'center',
                   }}
@@ -181,7 +180,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                       width: '100%',
                       height: '100%',
                       borderRadius: '50%',
-                      bgcolor: isDark ? '#06172d' : '#ffffff',
+                      bgcolor: isDark ? '#0f1818' : '#ffffff',
                       display: 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
@@ -201,7 +200,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                     </Typography>
                     <Typography
                       sx={{
-                        fontSize: 9,
+                        fontSize: 12,
                         fontWeight: 800,
                         color: 'text.secondary',
                         textTransform: 'uppercase',
@@ -226,7 +225,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                         position: 'relative',
                         height: 8,
                         borderRadius: 4,
-                        background: 'linear-gradient(90deg, #3b82f6 0%, #a855f7 50%, #ec4899 100%)',
+                        background: 'linear-gradient(90deg, #059669 0%, #20b2aa 50%, #178f89 100%)',
                         my: 1,
                       }}
                     >
@@ -241,7 +240,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                           height: 16,
                           borderRadius: '50%',
                           bgcolor: '#ffffff',
-                          border: '3px solid #a855f7',
+                          border: '3px solid #178f89',
                           boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                         }}
                       />

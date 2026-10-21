@@ -22,8 +22,8 @@ export interface VoiceSummaryPlayerProps {
   subtitle?: string;
   /** Badge opcional no topo direito */
   badgeLabel?: string;
-  /** Tema de cor: 'purple' (estilo Kantesti) ou 'teal' (identidade Dr. Exame) */
-  colorScheme?: 'purple' | 'teal';
+  /** Tema de cor (identidade Dr. Exame; 'purple' removido — off-brand) */
+  colorScheme?: 'teal';
   /** Modo compacto para cards menores ou cabeçalhos */
   compact?: boolean;
   /** Callback quando o estado de reprodução muda */
@@ -107,49 +107,29 @@ export const VoiceSummaryPlayer = ({
     }
   };
 
-  // Cores dinâmicas baseadas no tema
-  const primaryGrad =
-    colorScheme === 'purple'
-      ? 'linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)'
-      : 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)';
+  // Cores dinâmicas baseadas no tema (identidade teal Dr. Exame)
+  const primaryGrad = 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)';
 
-  const glowShadow =
-    colorScheme === 'purple'
-      ? '0 8px 24px rgba(139, 92, 246, 0.45)'
-      : '0 8px 24px rgba(32, 178, 170, 0.45)';
+  const glowShadow = '0 8px 24px rgba(32, 178, 170, 0.45)';
 
-  const barColor = colorScheme === 'purple' ? '#a855f7' : '#20b2aa';
+  const barColor = '#20b2aa';
 
   return (
     <Box
       sx={{
         position: 'relative',
-        borderRadius: compact ? '16px' : '22px',
+        borderRadius: compact ? '16px' : '20px',
         p: compact ? '12px 16px' : '16px 20px',
         background: dark
-          ? colorScheme === 'purple'
-            ? 'linear-gradient(135deg, rgba(88, 28, 135, 0.22) 0%, rgba(15, 23, 42, 0.75) 100%)'
-            : 'linear-gradient(135deg, rgba(15, 95, 90, 0.25) 0%, rgba(15, 23, 42, 0.75) 100%)'
-          : colorScheme === 'purple'
-          ? 'linear-gradient(135deg, #faf5ff 0%, #fdf2f8 50%, #ffffff 100%)'
+          ? 'linear-gradient(135deg, rgba(15, 95, 90, 0.25) 0%, rgba(15, 23, 42, 0.75) 100%)'
           : 'linear-gradient(135deg, #f0fdfa 0%, #f4f8f8 50%, #ffffff 100%)',
         border: '1px solid',
-        borderColor: dark
-          ? colorScheme === 'purple'
-            ? 'rgba(168, 85, 247, 0.35)'
-            : 'rgba(32, 178, 170, 0.35)'
-          : colorScheme === 'purple'
-          ? 'rgba(168, 85, 247, 0.2)'
-          : 'rgba(32, 178, 170, 0.22)',
+        borderColor: dark ? 'rgba(32, 178, 170, 0.35)' : 'rgba(32, 178, 170, 0.22)',
         boxShadow: dark
           ? '0 10px 30px rgba(0, 0, 0, 0.35)'
           : '0 8px 25px rgba(15, 95, 90, 0.06)',
         overflow: 'hidden',
         userSelect: 'none',
-        '@keyframes soundwaveAnim': {
-          '0%, 100%': { transform: 'scaleY(0.35)', opacity: 0.65 },
-          '50%': { transform: 'scaleY(1.35)', opacity: 1 },
-        },
         '@keyframes pulseGlow': {
           '0%, 100%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.06)' },
@@ -169,7 +149,9 @@ export const VoiceSummaryPlayer = ({
               background: primaryGrad,
               color: '#ffffff',
               boxShadow: playing ? glowShadow : '0 4px 14px rgba(32, 178, 170, 0.25)',
+              // Play ativo (áudio narrando) — infinite permitido; reduced-motion desliga.
               animation: playing ? 'pulseGlow 2s ease-in-out infinite' : 'none',
+              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
               transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               flexShrink: 0,
               '&:hover': {
@@ -204,7 +186,7 @@ export const VoiceSummaryPlayer = ({
             <Typography
               variant="caption"
               sx={{
-                color: playing ? (colorScheme === 'purple' ? '#c084fc' : '#0f766e') : 'text.secondary',
+                color: playing ? '#0f766e' : 'text.secondary',
                 fontWeight: playing ? 700 : 500,
                 fontSize: 12,
                 lineHeight: 1.35,
@@ -231,27 +213,21 @@ export const VoiceSummaryPlayer = ({
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '3px', height: 26, flexShrink: 0 }}>
-            {BAR_HEIGHTS.slice(0, 12).map((h, i) => {
-              const delay = (i * 0.08).toFixed(2);
-              return (
-                <Box
-                  key={i}
-                  sx={{
-                    width: 3,
-                    height: `${Math.round(h * 0.8)}px`,
-                    borderRadius: '999px',
-                    bgcolor: barColor,
-                    transformOrigin: 'center',
-                    opacity: playing ? 0.95 : 0.4,
-                    animation: playing
-                      ? `soundwaveAnim 1.2s ease-in-out ${delay}s infinite`
-                      : 'none',
-                    transition: 'opacity 0.3s ease',
-                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-                  }}
-                />
-              );
-            })}
+            {/* Equalizador ESTÁTICO (dieta de movimento): a opacidade já sinaliza
+                narrando/parado — sem barras dançantes infinitas. */}
+            {BAR_HEIGHTS.slice(0, 12).map((h, i) => (
+              <Box
+                key={i}
+                sx={{
+                  width: 3,
+                  height: `${Math.round(h * 0.8)}px`,
+                  borderRadius: '2px',
+                  bgcolor: barColor,
+                  opacity: playing ? 0.95 : 0.4,
+                  transition: 'opacity 0.3s ease',
+                }}
+              />
+            ))}
           </Box>
 
           {badgeLabel && (
@@ -261,11 +237,11 @@ export const VoiceSummaryPlayer = ({
               label={badgeLabel}
               sx={{
                 height: 22,
-                fontSize: 10.5,
+                fontSize: 12,
                 fontWeight: 800,
-                borderRadius: '999px',
+                borderRadius: '8px',
                 bgcolor: alpha(barColor, 0.12),
-                color: colorScheme === 'purple' ? barColor : '#0f766e',
+                color: '#0f766e',
                 border: `1px solid ${alpha(barColor, 0.25)}`,
                 minWidth: 0,
                 '& .MuiChip-label': { whiteSpace: 'nowrap' },
@@ -282,7 +258,7 @@ export const VoiceSummaryPlayer = ({
             gap: 0.25,
             bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
             p: '3px',
-            borderRadius: '999px',
+            borderRadius: '8px',
             flexShrink: 0,
           }}
         >
@@ -298,14 +274,14 @@ export const VoiceSummaryPlayer = ({
                 onClick={() => handleChangeRate(r)}
                 sx={{
                   border: 0,
-                  background: active ? (colorScheme === 'purple' ? '#8b5cf6' : '#20b2aa') : 'none',
+                  background: active ? '#20b2aa' : 'none',
                   color: active ? '#ffffff' : 'text.secondary',
-                  fontSize: 10.5,
+                  fontSize: 12,
                   fontWeight: 800,
                   fontFamily: 'inherit',
                   px: 1,
                   py: 0.4,
-                  borderRadius: '999px',
+                  borderRadius: '8px',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'background-color 0.15s ease, color 0.15s ease',

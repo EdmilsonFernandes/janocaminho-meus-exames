@@ -1,9 +1,11 @@
 import { Box, Card, CardContent, Typography } from '@mui/material';
 import { UploadSimple, ChartLineUp, UsersThree, FileText } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
+import { RADIUS, tealText } from '../../theme';
 
 // Quick Actions — tiles compactos (ícone acima, texto abaixo).
-// "Enviar exame" é a CTA PRIMÁRIA: tile preenchido (gradiente teal) com borda animada premium.
+// "Enviar exame" segue variant="outlined" com destaque teal (borda + label forte):
+// a única CTA PRIMÁRIA (gradiente) do dashboard é o HeroHealthCard (dieta de primária).
 // IA fica no AiCard (hero), não duplica aqui.
 const ACTIONS = [
   { icon: <UploadSimple size={22} weight="duotone" />, label: 'Enviar exame', to: '/exams/create', primary: true, color: '#20b2aa' },
@@ -30,91 +32,43 @@ export const QuickActions = () => {
       }}>
       {ACTIONS.map((a, i) => (
         <Box key={a.label} sx={{ height: '100%', display: 'flex' }}>
-          {a.primary ? (
-            /* CTA primário — tile preenchido (gradiente teal premium) que preenche o quadrado certinho nos dois modos */
-            <Card
-              onClick={() => navigate(a.to)}
-              sx={{
-                width: '100%',
-                height: '100%',
-                cursor: 'pointer',
-                textAlign: 'center',
-                borderRadius: '20px',
-                border: '1px solid',
-                borderColor: 'rgba(255,255,255,0.2)',
-                background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
-                color: '#fff',
-                boxShadow: (t) => t.palette.mode === 'dark'
-                  ? '0 6px 20px rgba(32,178,170,0.35)'
-                  : '0 6px 20px rgba(32,178,170,0.28)',
-                transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
-                position: 'relative',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                animation: `dxActionIn .35s cubic-bezier(.16,1,.3,1) ${i * 0.06}s both`,
-                '&:hover': {
-                  transform: 'translateY(-3px) scale(1.01)',
-                  boxShadow: '0 10px 30px rgba(32,178,170,0.45)',
-                  '& .action-icon-box': { transform: 'scale(1.12)' },
-                },
-                '&:active': { transform: 'scale(.96)' },
-              }}
-            >
-              {/* Mini "+" badge */}
-              <Box sx={{
-                position: 'absolute', top: 8, right: 8, width: 18, height: 18, borderRadius: '50%',
-                bgcolor: 'rgba(255,255,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 12, fontWeight: 900, color: '#fff',
-              }}>+</Box>
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-                <Box className="action-icon-box" sx={{
-                  width: 44, height: 44, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.28), rgba(255,255,255,0.12))',
-                  color: '#fff',
-                  transition: 'transform .2s ease',
-                }}>{a.icon}</Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: '#fff' }}>{a.label}</Typography>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card
-              onClick={() => navigate(a.to)}
-              sx={{
-                width: '100%',
-                height: '100%',
-                cursor: 'pointer',
-                textAlign: 'center',
-                borderRadius: '20px',
-                transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                '&:hover': {
-                  transform: 'translateY(-3px)',
-                  boxShadow: `0 8px 24px rgba(0,0,0,.08)`,
-                  '& .action-icon-box': { transform: 'scale(1.12)' },
-                },
-                '&:active': { transform: 'scale(.96)' },
-                border: '1px solid', borderColor: 'divider',
-                bgcolor: 'background.paper',
-                animation: `dxActionIn .35s cubic-bezier(.16,1,.3,1) ${i * 0.06}s both`,
-                '@keyframes dxActionIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } },
-              }}
-            >
-              <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-                <Box className="action-icon-box" sx={{
-                  width: 44, height: 44, borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  color: a.color,
-                  bgcolor: (t) => t.palette.mode === 'dark' ? `${a.color}15` : `${a.color}10`,
-                  border: `1px solid ${a.color}25`,
-                  transition: 'background-color .2s, transform .2s ease',
-                }}>{a.icon}</Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.primary' }}>{a.label}</Typography>
-              </CardContent>
-            </Card>
-          )}
+          <Card
+            variant="outlined"
+            onClick={() => navigate(a.to)}
+            sx={{
+              width: '100%',
+              height: '100%',
+              cursor: 'pointer',
+              textAlign: 'center',
+              borderRadius: RADIUS.card,
+              transition: 'transform .18s cubic-bezier(.34,1.56,.64,1), box-shadow .2s ease',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              '&:hover': {
+                transform: 'translateY(-3px)',
+                boxShadow: `0 8px 24px rgba(0,0,0,.08)`,
+                '& .action-icon-box': { transform: 'scale(1.12)' },
+              },
+              '&:active': { transform: 'scale(.96)' },
+              border: a.primary ? '1.5px solid' : '1px solid',
+              borderColor: a.primary ? 'rgba(32,178,170,.45)' : 'divider',
+              bgcolor: (t) => (a.primary && t.palette.mode === 'dark') ? 'rgba(32,178,170,.08)' : 'background.paper',
+              animation: `dxActionIn .35s cubic-bezier(.16,1,.3,1) ${i * 0.06}s both`,
+              '@keyframes dxActionIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } },
+            }}
+          >
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, py: 1.75, '&:last-child': { pb: 1.75 } }}>
+              <Box className="action-icon-box" sx={{
+                width: 44, height: 44, borderRadius: RADIUS.tile, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: a.color,
+                bgcolor: (t) => t.palette.mode === 'dark' ? `${a.color}15` : `${a.color}10`,
+                border: `1px solid ${a.color}25`,
+                transition: 'background-color .2s, transform .2s ease',
+              }}>{a.icon}</Box>
+              <Typography variant="caption" sx={{ fontWeight: a.primary ? 800 : 700, color: a.primary ? (t) => tealText(t.palette.mode) : 'text.primary' }}>{a.label}</Typography>
+            </CardContent>
+          </Card>
         </Box>
       ))}
       </Box>

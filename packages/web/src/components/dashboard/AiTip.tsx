@@ -1,4 +1,5 @@
 import { Box, Typography } from '@mui/material';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { DrExame } from '../DrExame';
 
 // Dica contextual da IA (robô DrExame + texto). Lógica de tipMsg/fmtItem movida da Dashboard.
@@ -16,7 +17,7 @@ export const AiTip = ({ firstName, tipData, fallbackTip }: { firstName?: string;
         <DrExame size={34} sx={{ borderRadius: '50%' }} />
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 13 }}>✨ Dica personalizada (IA)</Typography>
+        <Typography sx={{ fontWeight: 800, color: '#178f89', fontSize: 13, display: 'flex', alignItems: 'center', gap: 0.5 }}><AutoAwesomeIcon sx={{ fontSize: 15 }} /> Dica personalizada (IA)</Typography>
         <Typography sx={{ fontSize: 14, color: 'text.primary', lineHeight: 1.5, mt: 0.25 }}>{tipMsg}</Typography>
       </Box>
     </Box>

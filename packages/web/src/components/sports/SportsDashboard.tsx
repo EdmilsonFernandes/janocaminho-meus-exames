@@ -23,7 +23,7 @@ import { PageContainer } from '../layout/PageContainer';
 import { DashboardHeader } from '../dashboard/DashboardHeader';
 import { FailedExamsAlert } from '../dashboard/FailedExamsAlert';
 import { RejectedExamsAlert } from '../dashboard/RejectedExamsAlert';
-import { ProcessingStrip } from '../dashboard/DashboardV2';
+import { ProcessingStrip, SEVERITY } from '../dashboard/DashboardV2';
 import { BiologicalAgeCard } from '../dashboard/BiologicalAgeCard';
 import { AppCard } from '../AppCard';
 import { EmptyState } from '../EmptyState';
@@ -498,9 +498,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
           {spotlightTiles.length > 0 ? (
             <>
               {spotlightTiles.map((t) => statTile(t.key, t.icon, t.label, t.value, t.sub, t.tone, t.onClick))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados', String(d.stats.abnormal),
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? SEVERITY.high : SEVERITY.low, String(d.stats.abnormal),
                 d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
-                () => navigate('/alterados'))}
+                () => navigate('/tendencias'))}
               {missingSpotlight.length > 0 && statTile(
                 'complete',
                 <PlaylistAddCheckIcon fontSize="small" />,
@@ -516,9 +516,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               {statTile('ultimo', <EventAvailableIcon fontSize="small" />, 'Último exame', fmtDay(d.lastExam), relDays(d.lastExam) ?? '—', tealText(theme.palette.mode),
                 () => (lastExamRow ? navigate(`/exams/${lastExamRow.id}/show`) : navigate('/exams')))}
               {statTile('ano', <ScienceIcon fontSize="small" />, 'Exames no ano', String(examsLastYear), `de ${d.stats.exams} no total`, tealText(theme.palette.mode), () => navigate('/exams'))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, 'Alterados', String(d.stats.abnormal),
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? SEVERITY.high : SEVERITY.low, String(d.stats.abnormal),
                 d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
-                () => navigate('/alterados'))}
+                () => navigate('/tendencias'))}
               <BiologicalAgeCard idx={3} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
             </>
           )}

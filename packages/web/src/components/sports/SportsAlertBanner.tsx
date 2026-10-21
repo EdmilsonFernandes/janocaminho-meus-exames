@@ -16,6 +16,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { useNavigate } from 'react-router-dom';
 import { AppCard } from '../AppCard';
 import { RADIUS, SEM } from '../../theme';
+import { SEVERITY } from '../dashboard/DashboardV2';
 import { fmtNum } from '../../utils/format';
 import { androgenDeclared } from './sportsDomains';
 import type { Marker } from '../dashboard/ChangesSinceExam';
@@ -162,13 +163,12 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography component="h2" sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, color: 'text.primary' }}>
-            {attention} {attention === 1 ? 'marcador pede' : 'marcadores pedem'} atenção
-            {importante > 0 ? ` · ${importante} importante${importante > 1 ? 's' : ''}` : ''}
+            {attention} {attention === 1 ? 'marcador' : 'marcadores'}: {importante > 0 ? SEVERITY.high : SEVERITY.mid}
           </Typography>
           <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 0.5, lineHeight: 1.45 }}>
             {importante > 0
-              ? 'Os marcadores importantes merecem prioridade na sua próxima consulta médica.'
-              : 'Ajustes moderados — acompanhe a evolução e comente na sua consulta.'}
+              ? `${SEVERITY.high}: prioridade na sua próxima consulta médica.`
+              : `${SEVERITY.mid}: acompanhe a evolução e comente na sua consulta.`}
           </Typography>
 
           {/* Tags dos que pioraram ou estão relacionados com treino/substâncias */}
@@ -268,7 +268,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
           <Box sx={{ mt: 1.5 }}>
             <Button
               size="small"
-              onClick={() => navigate('/alterados')}
+              onClick={() => navigate('/tendencias')}
               sx={{
                 textTransform: 'none',
                 fontWeight: 800,
@@ -284,7 +284,7 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
                 '&:active': { transform: 'scale(0.98)' },
               }}
             >
-              Ver todos os alterados →
+              Ver análise completa →
             </Button>
           </Box>
         </Box>

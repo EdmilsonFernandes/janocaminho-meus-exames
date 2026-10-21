@@ -48,7 +48,6 @@ export const TeleconsultaCard: React.FC = () => {
     <AppCard
       sx={{
         p: { xs: 2.25, md: 2.75 },
-        borderRadius: '20px !important',
         position: 'relative',
         overflow: 'hidden',
         background: isLive
@@ -89,11 +88,13 @@ export const TeleconsultaCard: React.FC = () => {
                     height: 8,
                     borderRadius: '50%',
                     bgcolor: '#ef4444',
+                    // Live (teleconsulta ao vivo) — infinite permitido; reduced-motion desliga.
                     animation: 'tcPulse 1.4s infinite',
                     '@keyframes tcPulse': {
                       '0%, 100%': { opacity: 1, transform: 'scale(1)' },
                       '50%': { opacity: 0.4, transform: 'scale(1.3)' },
                     },
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                   }}
                 />
               }
