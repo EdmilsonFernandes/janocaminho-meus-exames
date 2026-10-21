@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dr. Exame — Dashboard (After)</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #20b2aa; --teal-dark: #178f89; --teal-light: #5fc9c3;
+    --copper: #d4a574; --copper-dark: #b88a54;
+    --bg: #eef7f6; --paper: #ffffff; --ink: #2d3748; --ink-2: #64748b;
+    --radius: 16px; --shadow: 0 2px 12px rgba(15,61,58,.06);
+  }
+  [data-theme="dark"] {
+    --bg: #0f1818; --paper: #1a2424; --ink: #e8eef0; --ink-2: #94a3b8;
+    --shadow: 0 2px 12px rgba(0,0,0,.3);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:#1a1a2e; display:flex; gap:24px; padding:24px; justify-content:center; flex-wrap:wrap; }
+  .phone { width:390px; min-height:844px; background:var(--bg); border-radius:24px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,.3); position:relative; }
+  [data-theme="light"] { color-scheme:light; }
+  [data-theme="dark"] { color-scheme:dark; }
+  .status { height:44px; background:var(--paper); display:flex; align-items:flex-end; justify-content:center; padding-bottom:6px; font-size:12px; font-weight:600; color:var(--ink); }
+  .appbar { height:52px; background:rgba(255,255,255,.85); backdrop-filter:blur(18px); display:flex; align-items:center; padding:0 16px; gap:10px; border-bottom:1px solid rgba(32,178,170,.08); }
+  [data-theme="dark"] .appbar { background:rgba(26,36,36,.85); }
+  .appbar .logo { width:32px; height:32px; border-radius:10px; background:linear-gradient(135deg,var(--teal),var(--teal-dark)); display:grid; place-items:center; font-size:16px; }
+  .appbar .credits { margin-left:auto; background:rgba(32,178,170,.1); color:var(--teal-dark); padding:4px 12px; border-radius:99px; font-size:12px; font-weight:700; }
+  .content { padding:12px 16px; display:flex; flex-direction:column; gap:12px; }
+
+  /* Header — linha simples, sem card */
+  .header { display:flex; align-items:baseline; gap:8px; padding:4px 0; }
+  .header h1 { font-family:'Poppins',sans-serif; font-size:18px; font-weight:700; color:var(--ink); }
+  .header .date { font-size:12px; color:var(--ink-2); }
+
+  /* HERO — o ÚNICO gradiente da tela */
+  .hero { background:linear-gradient(135deg,var(--teal),var(--teal-dark)); border-radius:20px; padding:20px; color:#fff; position:relative; overflow:hidden; }
+  .hero::after { content:''; position:absolute; inset:0; background:radial-gradient(circle at 70% 30%, rgba(255,255,255,.08) 0%, transparent 60%); }
+  .hero-top { display:flex; align-items:center; gap:14px; position:relative; z-index:1; }
+  .hero-ring { width:72px; height:72px; border-radius:50%; border:4px solid rgba(255,255,255,.25); display:grid; place-items:center; font-family:'Poppins',sans-serif; font-size:24px; font-weight:800; position:relative; }
+  .hero-ring svg { position:absolute; inset:-4px; }
+  .hero-info { flex:1; }
+  .hero-info .status { height:auto; font-family:'Poppins',sans-serif; font-size:16px; font-weight:700; color:#fff; justify-content:flex-start; padding:0; background:none; }
+  .hero-info .sub { font-size:12px; opacity:.8; margin-top:2px; }
+  .hero-info .sub .dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:#fbbf24; margin-right:4px; }
+  .hero-actions { display:flex; gap:8px; margin-top:14px; position:relative; z-index:1; }
+  .hero-actions .primary { flex:1; background:rgba(255,255,255,.18); backdrop-filter:blur(8px); border:1px solid rgba(255,255,255,.25); border-radius:12px; padding:10px 14px; color:#fff; font-family:'Inter',sans-serif; font-size:13px; font-weight:700; text-align:center; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .hero-actions .ghost { width:44px; height:44px; border-radius:12px; background:rgba(255,255,255,.1); display:grid; place-items:center; cursor:pointer; }
+
+  /* KPI grid */
+  .kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .kpi { background:var(--paper); border-radius:var(--radius); padding:14px; box-shadow:var(--shadow); border:1px solid rgba(32,178,170,.06); }
+  .kpi .label { font-size:12px; font-weight:600; color:var(--ink-2); margin-bottom:4px; }
+  .kpi .value { font-family:'Poppins',sans-serif; font-size:20px; font-weight:800; color:var(--ink); }
+  .kpi .value.warn { color:#d97706; }
+  .kpi .trend { font-size:11px; color:var(--ink-2); margin-top:2px; }
+  .kpi .trend.up { color:#059669; }
+
+  /* O que mudou — merged card com abas */
+  .changed { background:var(--paper); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); border:1px solid rgba(32,178,210,.06); }
+  .changed h3 { font-family:'Poppins',sans-serif; font-size:14px; font-weight:700; color:var(--ink); margin-bottom:10px; }
+  .tabs { display:flex; gap:0; border-bottom:1px solid rgba(0,0,0,.06); margin-bottom:12px; }
+  .tab { padding:8px 14px; font-size:12px; font-weight:600; color:var(--ink-2); border-bottom:2px solid transparent; cursor:pointer; }
+  .tab.active { color:var(--teal-dark); border-bottom-color:var(--teal); }
+  .change-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,.04); }
+  .change-item:last-child { border-bottom:none; }
+  .change-item .icon { width:32px; height:32px; border-radius:10px; display:grid; place-items:center; font-size:14px; }
+  .change-item .icon.up { background:rgba(5,150,105,.1); color:#059669; }
+  .change-item .icon.warn { background:rgba(217,119,6,.1); color:#d97706; }
+  .change-item .info { flex:1; }
+  .change-item .info .name { font-size:13px; font-weight:600; color:var(--ink); }
+  .change-item .info .detail { font-size:11px; color:var(--ink-2); }
+  .change-item .arrow { font-size:14px; color:var(--ink-2); }
+
+  /* Quick actions — outline, não gradient */
+  .actions { display:flex; gap:8px; }
+  .actions button { flex:1; background:var(--paper); border:1px solid rgba(32,178,210,.2); border-radius:12px; padding:12px 8px; font-size:12px; font-weight:600; color:var(--teal-dark); cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .actions button .icon { font-size:18px; }
+
+  /* Bottom cards */
+  .cards { display:flex; flex-direction:column; gap:10px; }
+  .card { background:var(--paper); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); border:1px solid rgba(32,178,210,.06); }
+  .card h4 { font-family:'Poppins',sans-serif; font-size:13px; font-weight:700; color:var(--ink); margin-bottom:8px; }
+  .card p { font-size:12px; color:var(--ink-2); line-height:1.5; }
+
+  /* AI tip — text, não CTA */
+  .ai-tip { background:rgba(32,178,210,.06); border-radius:12px; padding:12px 14px; display:flex; gap:10px; align-items:flex-start; }
+  .ai-tip .sparkle { font-size:14px; color:var(--teal); flex-shrink:0; margin-top:1px; }
+  .ai-tip p { font-size:12px; color:var(--ink); line-height:1.5; }
+  .ai-tip .action { font-size:12px; color:var(--teal-dark); font-weight:600; text-decoration:underline; cursor:pointer; margin-top:4px; display:inline-block; }
+
+  /* Bottom nav */
+  .bottom { position:sticky; bottom:0; height:64px; background:var(--paper); border-top:1px solid rgba(0,0,0,.06); display:flex; align-items:center; justify-content:space-around; padding:0 8px; }
+  .bottom .nav-item { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; color:var(--ink-2); cursor:pointer; }
+  .bottom .nav-item.active { color:var(--teal-dark); }
+  .bottom .nav-item .icon { font-size:20px; }
+
+  /* Label das colunas */
+  .col-label { text-align:center; margin-bottom:8px; font-family:'Poppins',sans-serif; font-size:14px; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:.05em; }
+</style>
+</head>
+<body>
+
+<!-- LIGHT MODE -->
+<div>
+  <div class="col-label">☀️ Light Mode</div>
+  <div class="phone" data-theme="light">
+    <div class="status">9:41</div>
+    <div class="appbar">
+      <div class="logo">🤖</div>
+      <div class="credits">⚡ 4 leituras</div>
+    </div>
+    <div class="content">
+
+      <!-- Header simples (KILL card gradiente) -->
+      <div class="header">
+        <h1>Bom dia, Edmilson</h1>
+        <span class="date">sex, 21 out</span>
+      </div>
+
+      <!-- HERO — primeiro e único gradiente -->
+      <div class="hero">
+        <div class="hero-top">
+          <div class="hero-ring">
+            <svg width="76" height="76" viewBox="0 0 76 76">
+              <circle cx="38" cy="38" r="34" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="4"/>
+              <circle cx="38" cy="38" r="34" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="4" stroke-dasharray="213 2π×34" stroke-linecap="round" transform="rotate(-90 38 38)" stroke-dashoffset="38"/>
+            </svg>
+            82
+          </div>
+          <div class="hero-info">
+            <div class="status">Em boa forma</div>
+            <div class="sub"><span class="dot"></span>2 requerem atenção · 3 leves · 18 normais</div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <div class="primary">📈 Ver análise completa</div>
+          <div class="ghost" title="Ouvir resumo">▶️</div>
+        </div>
+      </div>
+
+      <!-- KPI 2×2 — labels claros -->
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="label">Requerem atenção</div>
+          <div class="value warn">2</div>
+          <div class="trend">TSH e Vitamina D</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Exames</div>
+          <div class="value">6</div>
+          <div class="trend">Último: 12/out</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Risco do coração</div>
+          <div class="value">Baixo</div>
+          <div class="trend up">↓ 12% vs anterior</div>
+        </div>
+        <div class="kpi">
+          <div class="label">Idade do corpo</div>
+          <div class="value">34 anos</div>
+          <div class="trend">Cronológica: 38</div>
+        </div>
+      </div>
+
+      <!-- O que mudou — MERGE com 2 abas -->
+      <div class="changed">
+        <h3>O que mudou</h3>
+        <div class="tabs">
+          <div class="tab active">Exames</div>
+          <div class="tab">Hábitos</div>
+        </div>
+        <div class="change-item">
+          <div class="icon warn">⚠️</div>
+          <div class="info">
+            <div class="name">TSH</div>
+            <div class="detail">4.2 → 5.8 µUI/mL · Requer atenção</div>
+          </div>
+          <div class="arrow">↑</div>
+        </div>
+        <div class="change-item">
+          <div class="icon up">✅</div>
+          <div class="info">
+            <div class="name">Vitamina D</div>
+            <div class="detail">18 → 32 ng/mL · Normal</div>
+          </div>
+          <div class="arrow">↑</div>
+        </div>
+      </div>
+
+      <!-- Quick actions — outline, não gradient -->
+      <div class="actions">
+        <button><span class="icon">📄</span>Enviar exame</button>
+        <button><span class="icon">💬</span>Tirar dúvida</button>
+        <button><span class="icon">📅</span>Lembretes</button>
+      </div>
+
+      <!-- AI tip — passivo, não CTA -->
+      <div class="ai-tip">
+        <span class="sparkle">✨</span>
+        <div>
+          <p>Sua TSH subiu junto com o aumento de peso na balança. Pode ser o hipotireoidismo — converse com seu médico sobre ajustar a dose.</p>
+          <span class="action">Perguntar ao Dr. Exame</span>
+        </div>
+      </div>
+
+      <!-- Cards de apoio (fim da página) -->
+      <div class="cards">
+        <div class="card">
+          <h4>🗺️ Mapa Corporal</h4>
+          <p>Toque numa região para ver os exames relacionados.</p>
+        </div>
+        <div class="card">
+          <h4>🏃 Atividade Física</h4>
+          <p>8.432 passos hoje · 84% da meta · FC repouso 62 bpm</p>
+        </div>
+      </div>
+
+    </div>
+    <div class="bottom">
+      <div class="nav-item"><span class="icon">📄</span>Exames</div>
+      <div class="nav-item"><span class="icon">💬</span>Chat</div>
+      <div class="nav-item active"><span class="icon">🏠</span>Início</div>
+      <div class="nav-item"><span class="icon">📈</span>Sinais</div>
+      <div class="nav-item"><span class="icon">⋯</span>Mais</div>
+    </div>
+  </div>
+</div>
+
+<!-- DARK MODE -->
+<div>
+  <div class="col-label">🌙 Dark Mode</div>
+  <div class="phone" data-theme="dark" style="background:#0f1818">
+    <div class="status" style="background:#1a2424">9:41</div>
+    <div class="appbar">
+      <div class="logo">🤖</div>
+      <div class="credits">⚡ 4 leituras</div>
+    </div>
+    <div class="content" style="background:#0f1818">
+      <div class="header">
+        <h1 style="color:#e8eef0">Bom dia, Edmilson</h1>
+        <span class="date">sex, 21 out</span>
+      </div>
+      <div class="hero">
+        <div class="hero-top">
+          <div class="hero-ring">82</div>
+          <div class="hero-info">
+            <div class="status">Em boa forma</div>
+            <div class="sub"><span class="dot"></span>2 requerem atenção · 3 leves · 18 normais</div>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <div class="primary">📈 Ver análise completa</div>
+          <div class="ghost">▶️</div>
+        </div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi" style="background:#1a2424">
+          <div class="label" style="color:#94a3b8">Requerem atenção</div>
+          <div class="value warn">2</div>
+          <div class="trend" style="color:#64748b">TSH e Vitamina D</div>
+        </div>
+        <div class="kpi" style="background:#1a2424">
+          <div class="label" style="color:#94a3b8">Exames</div>
+          <div class="value" style="color:#e8eef0">6</div>
+          <div class="trend" style="color:#64748b">Último: 12/out</div>
+        </div>
+        <div class="kpi" style="background:#1a2424">
+          <div class="label" style="color:#94a3b8">Risco do coração</div>
+          <div class="value" style="color:#e8eef0">Baixo</div>
+          <div class="trend" style="color:#059669">↓ 12% vs anterior</div>
+        </div>
+        <div class="kpi" style="background:#1a2424">
+          <div class="label" style="color:#94a3b8">Idade do corpo</div>
+          <div class="value" style="color:#e8eef0">34 anos</div>
+          <div class="trend" style="color:#64748b">Cronológica: 38</div>
+        </div>
+      </div>
+      <div class="changed" style="background:#1a2424">
+        <h3 style="color:#e8eef0">O que mudou</h3>
+        <div class="tabs" style="border-color:rgba(255,255,255,.08)">
+          <div class="tab active">Exames</div>
+          <div class="tab" style="color:#94a3b8">Hábitos</div>
+        </div>
+        <div class="change-item">
+          <div class="icon warn">⚠️</div>
+          <div class="info">
+            <div class="name" style="color:#e8eef0">TSH</div>
+            <div class="detail" style="color:#94a3b8">4.2 → 5.8 · Requer atenção</div>
+          </div>
+        </div>
+      </div>
+      <div class="ai-tip" style="background:rgba(32,178,210,.08)">
+        <span class="sparkle">✨</span>
+        <div>
+          <p style="color:#e8eef0">TSH subiu com o peso. Converse com seu médico.</p>
+          <span class="action" style="color:#5fc9c3">Perguntar ao Dr. Exame</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom" style="background:#1a2424;border-color:rgba(255,255,255,.06)">
+      <div class="nav-item" style="color:#94a3b8"><span class="icon">📄</span>Exames</div>
+      <div class="nav-item" style="color:#94a3b8"><span class="icon">💬</span>Chat</div>
+      <div class="nav-item active" style="color:#5fc9c3"><span class="icon">🏠</span>Início</div>
+      <div class="nav-item" style="color:#94a3b8"><span class="icon">📈</span>Sinais</div>
+      <div class="nav-item" style="color:#94a3b8"><span class="icon">⋯</span>Mais</div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
