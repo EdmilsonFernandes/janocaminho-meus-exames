@@ -363,7 +363,7 @@ export const PortalOverview = ({
                 <Chip
                   size="small"
                   label={`${totalActionCount} paciente${totalActionCount === 1 ? '' : 's'}`}
-                  sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e', borderRadius: '8px' }}
+                  sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', borderRadius: '8px' }}
                 />
               </Stack>
               {onViewTeleconsultas && (
@@ -381,22 +381,22 @@ export const PortalOverview = ({
                 onClick={() => setQueueFilter('all')}
                 sx={{
                   fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                  bgcolor: queueFilter === 'all' ? '#0f766e' : 'action.hover',
+                  bgcolor: queueFilter === 'all' ? '#178f89' : 'action.hover',
                   color: queueFilter === 'all' ? '#ffffff' : 'text.primary',
-                  '&:hover': { bgcolor: queueFilter === 'all' ? '#115e59' : 'action.selected' },
+                  '&:hover': { bgcolor: queueFilter === 'all' ? '#137a74' : 'action.selected' },
                 }}
               />
               {teleCount > 0 && (
                 <Chip
                   clickable
-                  icon={<VideocamIcon sx={{ fontSize: 15, color: queueFilter === 'tele' ? '#fff !important' : '#0f766e !important' }} />}
+                  icon={<VideocamIcon sx={{ fontSize: 15, color: queueFilter === 'tele' ? '#fff !important' : '#178f89 !important' }} />}
                   label={`Teleconsultas (${teleCount})`}
                   onClick={() => setQueueFilter('tele')}
                   sx={{
                     fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                    bgcolor: queueFilter === 'tele' ? '#0f766e' : 'rgba(15,118,110,0.1)',
-                    color: queueFilter === 'tele' ? '#ffffff' : '#0f766e',
-                    '&:hover': { bgcolor: queueFilter === 'tele' ? '#115e59' : 'rgba(15,118,110,0.2)' },
+                    bgcolor: queueFilter === 'tele' ? '#178f89' : 'rgba(15,118,110,0.1)',
+                    color: queueFilter === 'tele' ? '#ffffff' : '#178f89',
+                    '&:hover': { bgcolor: queueFilter === 'tele' ? '#137a74' : 'rgba(15,118,110,0.2)' },
                   }}
                 />
               )}
@@ -491,7 +491,7 @@ export const PortalOverview = ({
                             color: (t) => tealText(t.palette.mode),
                             border: '2px solid',
                             borderColor: p.hasTele
-                              ? '#0f766e'
+                              ? '#178f89'
                               : p.maxPriority === 'importante'
                               ? '#ef4444'
                               : p.hasQuestions
@@ -511,7 +511,7 @@ export const PortalOverview = ({
                               width: 18,
                               height: 18,
                               borderRadius: '50%',
-                              bgcolor: '#0f766e',
+                              bgcolor: '#178f89',
                               color: '#fff',
                               display: 'grid',
                               placeItems: 'center',
@@ -555,7 +555,7 @@ export const PortalOverview = ({
                             {patName}
                           </Typography>
                           {p.code && (
-                            <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 11.5, fontWeight: 700 }}>
+                            <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 12, fontWeight: 700 }}>
                               {p.code}
                             </Typography>
                           )}
@@ -573,9 +573,9 @@ export const PortalOverview = ({
                           icon={<VideocamIcon sx={{ fontSize: 14 }} />}
                           label="Teleconsulta"
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 800,
-                            bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e',
-                            '& .MuiChip-icon': { color: '#0f766e' }, borderRadius: '8px',
+                            height: 24, fontSize: 12, fontWeight: 800,
+                            bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89',
+                            '& .MuiChip-icon': { color: '#178f89' }, borderRadius: '8px',
                           }}
                         />
                       ) : p.hasAlert ? (
@@ -583,7 +583,7 @@ export const PortalOverview = ({
                           size="small"
                           label={p.maxPriority === 'importante' ? 'Alta Prioridade' : p.maxPriority === 'moderada' ? 'Alerta Médio' : 'Alerta Leve'}
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 800,
+                            height: 24, fontSize: 12, fontWeight: 800,
                             bgcolor: p.maxPriority === 'importante' ? 'rgba(239,68,68,0.12)' : 'rgba(245,158,11,0.12)',
                             color: p.maxPriority === 'importante' ? '#ef4444' : '#d97706',
                             borderRadius: '8px',
@@ -594,7 +594,7 @@ export const PortalOverview = ({
                           size="small"
                           label="Dúvidas abertas"
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 800,
+                            height: 24, fontSize: 12, fontWeight: 800,
                             bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706',
                             borderRadius: '8px',
                           }}
@@ -610,9 +610,9 @@ export const PortalOverview = ({
                           icon={<VideocamIcon sx={{ fontSize: 13 }} />}
                           label={`📅 ${teleDt} ${p.tele?.consentAt ? '• Paciente autorizou' : '• Aguardando'}`}
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 700,
-                            bgcolor: 'rgba(15,118,110,0.08)', color: '#0f766e',
-                            '& .MuiChip-icon': { color: '#0f766e' }, borderRadius: '8px',
+                            height: 24, fontSize: 12, fontWeight: 700,
+                            bgcolor: 'rgba(15,118,110,0.08)', color: '#178f89',
+                            '& .MuiChip-icon': { color: '#178f89' }, borderRadius: '8px',
                           }}
                         />
                       )}
@@ -622,7 +622,7 @@ export const PortalOverview = ({
                           icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
                           label={`Exames alterados (${PRIORITY_LABEL[p.maxPriority] ?? 'Alerta'})`}
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 700,
+                            height: 24, fontSize: 12, fontWeight: 700,
                             bgcolor: p.maxPriority === 'importante' ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
                             color: p.maxPriority === 'importante' ? '#ef4444' : '#d97706',
                             '& .MuiChip-icon': { color: p.maxPriority === 'importante' ? '#ef4444' : '#d97706' },
@@ -636,7 +636,7 @@ export const PortalOverview = ({
                           icon={<QuestionAnswerIcon sx={{ fontSize: 13 }} />}
                           label={`${p.openQuestions} dúvida${p.openQuestions > 1 ? 's' : ''} aguardando`}
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 700,
+                            height: 24, fontSize: 12, fontWeight: 700,
                             bgcolor: 'rgba(245,158,11,0.08)', color: '#d97706',
                             '& .MuiChip-icon': { color: '#d97706' }, borderRadius: '8px',
                           }}
@@ -648,7 +648,7 @@ export const PortalOverview = ({
                           icon={<CalendarBlank size={13} />}
                           label={(p.examsCount ?? 0) === 0 ? 'Sem exames compartilhados' : 'Exames > 1 ano para renovar'}
                           sx={{
-                            height: 24, fontSize: 11.5, fontWeight: 600,
+                            height: 24, fontSize: 12, fontWeight: 600,
                             bgcolor: 'action.hover', color: 'text.secondary',
                             borderRadius: '8px',
                           }}
@@ -674,13 +674,13 @@ export const PortalOverview = ({
                               textTransform: 'none',
                               fontWeight: 800,
                               fontSize: 13,
-                              bgcolor: '#0f766e',
-                              '&:hover': { bgcolor: '#0d655f' },
+                              bgcolor: '#178f89',
+                              '&:hover': { bgcolor: '#137a74' },
                               px: 2.25,
                               boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
                             }}
                           >
-                            Entrar na sala
+                            Entrar na consulta
                           </Button>
                           {p.hasQuestions && (
                             <Button
@@ -784,8 +784,8 @@ export const PortalOverview = ({
                             textTransform: 'none',
                             fontWeight: 800,
                             fontSize: 13,
-                            bgcolor: '#0f766e',
-                            '&:hover': { bgcolor: '#0d655f' },
+                            bgcolor: '#178f89',
+                            '&:hover': { bgcolor: '#137a74' },
                             px: 2.25,
                             boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
                           }}
@@ -806,8 +806,8 @@ export const PortalOverview = ({
                             textTransform: 'none',
                             fontWeight: 700,
                             fontSize: 12.5,
-                            bgcolor: '#0f766e',
-                            '&:hover': { bgcolor: '#0d655f' },
+                            bgcolor: '#178f89',
+                            '&:hover': { bgcolor: '#137a74' },
                             px: 2,
                           }}
                         >
@@ -826,8 +826,8 @@ export const PortalOverview = ({
                             textTransform: 'none',
                             fontWeight: 700,
                             fontSize: 12.5,
-                            bgcolor: '#0f766e',
-                            '&:hover': { bgcolor: '#0d655f' },
+                            bgcolor: '#178f89',
+                            '&:hover': { bgcolor: '#137a74' },
                             px: 2,
                           }}
                         >
@@ -918,7 +918,7 @@ export const PortalOverview = ({
                   justifyContent: 'center',
                 }}
               >
-                <ChartLineUp size={20} weight="bold" color="#0f766e" />
+                <ChartLineUp size={20} weight="bold" color="#178f89" />
               </Box>
               <Box>
                 <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>

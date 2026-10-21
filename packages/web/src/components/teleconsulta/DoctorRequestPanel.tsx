@@ -43,7 +43,7 @@ export interface DoctorRequestPanelProps {
 
 export const DoctorRequestPanel = ({ patientId, reminderId, fetchExams, authToken, onSent, onClose }: DoctorRequestPanelProps) => {
   const theme = useTheme();
-  const teal = theme.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e';
+  const teal = theme.palette.mode === 'dark' ? '#5fc9c3' : '#178f89';
   const [query, setQuery] = useState('');
   const [exams, setExams] = useState<DoctorExamOption[] | null>(null);
   const [examsErr, setExamsErr] = useState(false);

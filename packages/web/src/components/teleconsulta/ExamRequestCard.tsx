@@ -18,7 +18,7 @@ export interface ExamRequestCardProps {
 /** Tokens §5: âmbar pendência · teal status · neutro negado — AA nos 2 modos. */
 const chipStyle = (kind: 'amber' | 'teal' | 'muted', mode: 'light' | 'dark') => {
   if (kind === 'amber') return { bgcolor: mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)', color: mode === 'dark' ? '#fbbf24' : '#92400e' };
-  if (kind === 'teal') return { bgcolor: mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)', color: mode === 'dark' ? '#5fc9c3' : '#0f766e' };
+  if (kind === 'teal') return { bgcolor: mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)', color: mode === 'dark' ? '#5fc9c3' : '#178f89' };
   return { bgcolor: 'action.hover', color: 'text.secondary' };
 };
 
@@ -62,7 +62,7 @@ export const ExamRequestCard = ({ req, role, onAction, busy }: ExamRequestCardPr
     >
       <Stack direction="row" alignItems="flex-start" spacing={1.25}>
         <Box sx={{ width: 36, height: 36, borderRadius: '12px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: 'rgba(32,178,170,.10)' }}>
-          <AssignmentIcon sx={{ fontSize: 18, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />
+          <AssignmentIcon sx={{ fontSize: 18, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#178f89') }} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', lineHeight: 1.3, wordBreak: 'break-word' }}>
@@ -75,7 +75,7 @@ export const ExamRequestCard = ({ req, role, onAction, busy }: ExamRequestCardPr
           ) : null}
           <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
             {statusChip}
-            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
               pedido em {fmtDay(req.createdAt) ?? '—'}
             </Typography>
           </Stack>
@@ -101,7 +101,7 @@ export const ExamRequestCard = ({ req, role, onAction, busy }: ExamRequestCardPr
                 variant="outlined"
                 disabled={busy}
                 onClick={() => onAction!(req, 'schedule')}
-                sx={{ minHeight: 44, px: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'rgba(32,178,170,.45)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }}
+                sx={{ minHeight: 44, px: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'rgba(32,178,170,.45)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#178f89') }}
               >
                 Agendar
               </Button>
@@ -118,7 +118,7 @@ export const ExamRequestCard = ({ req, role, onAction, busy }: ExamRequestCardPr
 
           {/* Médico diante de pendente: sem push (D7) — explica onde a resposta chega. */}
           {role === 'doctor' && pending && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1, fontSize: 11.5, color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ display: 'block', mt: 1, fontSize: 12, color: 'text.secondary' }}>
               Paciente vê e responde no app dele.
             </Typography>
           )}

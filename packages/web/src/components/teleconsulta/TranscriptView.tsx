@@ -183,7 +183,7 @@ export const TranscriptView = ({ text, transcriptAt, role }: TranscriptViewProps
             <Chip
               size="small"
               label={filtered.length > 0 ? `${filtered.length} ${filtered.length === 1 ? 'trecho' : 'trechos'}` : 'nenhum trecho encontrado'}
-              sx={{ mt: 0.75, height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: filtered.length ? 'rgba(32,178,170,.12)' : 'rgba(245,158,11,.15)', color: filtered.length ? (t) => tealText(t.palette.mode) : (theme.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }}
+              sx={{ mt: 0.75, height: 22, fontSize: 12, fontWeight: 700, bgcolor: filtered.length ? 'rgba(32,178,170,.12)' : 'rgba(245,158,11,.15)', color: filtered.length ? (t) => tealText(t.palette.mode) : (theme.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }}
             />
           )}
         </Box>
@@ -229,7 +229,7 @@ export const TranscriptView = ({ text, transcriptAt, role }: TranscriptViewProps
 
       {/* Rodapé: disclaimer IA (promessa única do doc — nada além disto) */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ px: 1.75, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+        <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
           {isDoctor
             ? 'Transcrição gerada por IA — revise antes de usar no plano.'
             : 'Transcrição gerada por IA — revise com seu médico.'}

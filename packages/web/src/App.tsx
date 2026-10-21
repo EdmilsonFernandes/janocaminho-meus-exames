@@ -169,12 +169,12 @@ const CustomAppBar = (props: AppBarProps) => {
       userMenu={false}
       toolbar={isDesktop ? <LoadingIndicator /> : <span />}
       sx={{
-        bgcolor: isDark ? 'rgba(15, 24, 24, 0.85)' : 'rgba(255, 255, 255, 0.88)',
+        bgcolor: isDark ? 'rgba(15, 24, 24, 0.92)' : 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(24px) saturate(180%)',
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         borderBottom: '1px solid',
-        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(32, 178, 170, 0.16)',
-        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.45)' : '0 2px 14px rgba(11,58,55,0.06)',
+        borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+        boxShadow: isDark ? '0 4px 20px rgba(0,0,0,0.45)' : '0 2px 10px rgba(0,0,0,0.03)',
         color: 'text.primary',
         px: { xs: 1, sm: 2.5 },
       }}
@@ -219,9 +219,10 @@ const CustomAppBar = (props: AppBarProps) => {
         </Box>
       )}
       <Box sx={{ flex: 1, minWidth: 8 }} />
+      {/* Lado direito do header: SEMPRE fixo e estável — nunca empurra o avatar ou o sino pra fora */}
       <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.25 }} sx={{ ml: 0.5, flexShrink: 0 }}>
-        {/* Pílula de Teleconsulta Viva / Hoje */}
-        {tele.isLive && tele.item && (
+        {/* No desktop, pílula compacta de Teleconsulta Viva / Hoje */}
+        {isDesktop && tele.isLive && tele.item && (
           <Button
             size="small"
             variant="contained"
@@ -234,11 +235,11 @@ const CustomAppBar = (props: AppBarProps) => {
               borderRadius: '999px',
               bgcolor: '#b91c1c',
               color: '#fff',
-              fontSize: { xs: 11, sm: 12.5 },
+              fontSize: 12,
               fontWeight: 800,
               textTransform: 'none',
-              px: { xs: 1.2, sm: 1.8 },
-              height: 34,
+              px: 1.5,
+              height: 32,
               boxShadow: '0 4px 14px rgba(185,28,28,.4)',
               '&:hover': { bgcolor: '#991b1b' },
               '@keyframes dxPulseLive': {
@@ -250,23 +251,23 @@ const CustomAppBar = (props: AppBarProps) => {
             Entrar na consulta
           </Button>
         )}
-        {tele.isToday && !tele.isLive && tele.item && (
+        {isDesktop && tele.isToday && !tele.isLive && tele.item && (
           <Chip
             size="small"
             icon={<VideocamIcon sx={{ fontSize: 16, color: '#20b2aa !important' }} />}
             label={`Consulta ${tele.startsInText || 'hoje'}`}
-            onClick={() => navigate('/lembretes')}
+            onClick={() => navigate('/lembretes?tab=consultas')}
             clickable
             sx={{
-              height: 32,
+              height: 30,
               borderRadius: '999px',
-              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.18)' : 'rgba(11,58,55,.08)',
-              color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0b3a37',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.18)' : 'rgba(32,178,170,.08)',
+              color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0d9488',
               border: '1px solid',
               borderColor: 'rgba(32,178,170,.3)',
               fontWeight: 700,
               fontSize: 12,
-              '&:hover': { bgcolor: 'rgba(32,178,170,.22)' },
+              '&:hover': { bgcolor: 'rgba(32,178,170,.18)' },
             }}
           />
         )}
@@ -313,17 +314,25 @@ const MenuSectionAccordion = ({
         aria-expanded={open}
         sx={{
           borderRadius: '12px',
-          m: '2px 6px',
+          m: '2px 8px',
           pl: 1.25,
           pr: 1,
           minHeight: 38,
-          bgcolor: open ? 'rgba(255, 255, 255, 0.07)' : 'rgba(255, 255, 255, 0.02)',
+          bgcolor: (t) => {
+            const isDark = t.palette.mode === 'dark';
+            if (open) return isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(32, 178, 170, 0.05)';
+            return 'transparent';
+          },
           border: '1px solid',
-          borderColor: open ? 'rgba(32, 178, 170, 0.28)' : 'rgba(255, 255, 255, 0.04)',
+          borderColor: (t) => {
+            const isDark = t.palette.mode === 'dark';
+            if (open) return isDark ? 'rgba(32, 178, 170, 0.28)' : 'rgba(32, 178, 170, 0.16)';
+            return 'transparent';
+          },
           transition: 'all .2s ease',
           '&:hover': {
-            bgcolor: 'rgba(255, 255, 255, 0.1)',
-            borderColor: 'rgba(32, 178, 170, 0.4)',
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(32, 178, 170, 0.08)',
+            borderColor: 'rgba(32, 178, 170, 0.3)',
           },
         }}
       >
@@ -337,8 +346,8 @@ const MenuSectionAccordion = ({
             flexShrink: 0,
             display: 'grid',
             placeItems: 'center',
-            background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : 'rgba(255, 255, 255, 0.08)',
-            color: open ? '#fff' : '#93d3cd',
+            background: open ? 'linear-gradient(135deg, #20b2aa, #0d9488)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+            color: open ? '#fff' : (t) => t.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
             transition: 'all .2s ease',
             '& svg': { fontSize: 16 },
           }}
@@ -350,8 +359,14 @@ const MenuSectionAccordion = ({
           primaryTypographyProps={{
             fontSize: 12.5,
             fontWeight: 700,
-            color: open ? '#ffffff' : '#a3cdc8',
             letterSpacing: '0.01em',
+            sx: {
+              color: (t) => {
+                const isDark = t.palette.mode === 'dark';
+                if (open) return isDark ? '#ffffff' : '#0f766e';
+                return isDark ? 'rgba(241, 245, 249, 0.8)' : '#475569';
+              },
+            },
           }}
         />
         {badge && (
@@ -373,7 +388,7 @@ const MenuSectionAccordion = ({
           sx={{
             transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
             transition: 'transform .25s cubic-bezier(.34,1.56,.64,1)',
-            color: open ? '#5fc9c3' : 'rgba(231, 245, 243, 0.45)',
+            color: (t) => (open ? '#20b2aa' : t.palette.mode === 'dark' ? 'rgba(241, 245, 249, 0.45)' : '#94a3b8'),
             fontSize: 18,
           }}
         />
@@ -383,7 +398,7 @@ const MenuSectionAccordion = ({
           sx={{
             ml: '18px',
             pl: 1,
-            borderLeft: '2px solid rgba(32, 178, 170, 0.28)',
+            borderLeft: '2px solid rgba(32, 178, 170, 0.25)',
           }}
         >
           {children}
@@ -393,8 +408,8 @@ const MenuSectionAccordion = ({
   );
 };
 
-// Item de navegação Direção A (Consultório Premium):
-// Ativo = fundo creme quente (#fbf3e8), texto escuro #0b3a37, ícone cobre #9a6b36 com sombra elegante.
+// Item de navegação Dr. Exame:
+// Ativo = fundo translúcido teal, texto destacado, acento lateral indicador na cor oficial #20b2aa.
 const NavItem = ({
   to,
   primaryText,
@@ -421,27 +436,27 @@ const NavItem = ({
         selected={active}
         sx={{
           borderRadius: '12px',
-          m: '4px 6px',
+          m: '4px 8px',
           py: 0.8,
           px: 1.25,
           minHeight: 44,
-          bgcolor: 'rgba(239, 68, 68, 0.12)',
+          bgcolor: 'rgba(239, 68, 68, 0.08)',
           border: '1px solid rgba(248, 113, 113, 0.35)',
-          color: '#fecaca',
+          color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#dc2626',
           transition: 'all .15s ease',
           '&:hover': {
-            bgcolor: 'rgba(239, 68, 68, 0.22)',
-            color: '#fff',
+            bgcolor: 'rgba(239, 68, 68, 0.16)',
+            color: (t) => t.palette.mode === 'dark' ? '#fff' : '#b91c1c',
             transform: 'translateX(3px)',
           },
         }}
       >
-        <ListItemIcon sx={{ minWidth: 32, color: '#fca5a5', '& svg': { fontSize: 20 } }}>
+        <ListItemIcon sx={{ minWidth: 32, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', '& svg': { fontSize: 20 } }}>
           {icon}
         </ListItemIcon>
         <ListItemText
           primary={primaryText}
-          primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: '#fecaca' }}
+          primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: 'inherit' }}
         />
       </ListItemButton>
     );
@@ -453,26 +468,29 @@ const NavItem = ({
       selected={active}
       sx={{
         borderRadius: '12px',
-        m: '2px 6px',
-        py: 0.6,
+        m: '2px 8px',
+        py: 0.65,
         pl: 1.25,
         pr: 1,
         minHeight: 40,
         flex: '0 0 auto',
-        borderLeft: 'none',
         transition: 'all .15s ease, transform .15s ease',
-        color: active ? '#0b3a37' : 'rgba(231, 245, 243, 0.72)',
+        color: (t) => {
+          const isDark = t.palette.mode === 'dark';
+          if (active) return isDark ? '#5fc9c3' : '#0d9488';
+          return isDark ? 'rgba(241, 245, 249, 0.78)' : '#334155';
+        },
+        borderLeft: active ? '3.5px solid #20b2aa' : '3.5px solid transparent',
         ...(active
           ? {
-              bgcolor: '#fbf3e8 !important',
-              color: '#0b3a37 !important',
-              boxShadow: '0 4px 14px rgba(0,0,0,0.22)',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32, 178, 170, 0.16) !important' : 'rgba(32, 178, 170, 0.08) !important',
+              boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(32,178,170,0.06)',
             }
           : {
               bgcolor: 'transparent',
               '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.08)',
-                color: '#ffffff',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(32, 178, 170, 0.05)',
+                color: (t) => t.palette.mode === 'dark' ? '#ffffff' : '#0f766e',
                 transform: 'translateX(3px)',
               },
             }),
@@ -481,7 +499,12 @@ const NavItem = ({
       <ListItemIcon
         sx={{
           minWidth: 30,
-          color: active ? '#9a6b36' : highlight ? '#5fc9c3' : 'rgba(231, 245, 243, 0.55)',
+          color: (t) => {
+            const isDark = t.palette.mode === 'dark';
+            if (active) return '#20b2aa';
+            if (highlight) return isDark ? '#5fc9c3' : '#0d9488';
+            return isDark ? 'rgba(241, 245, 249, 0.55)' : '#64748b';
+          },
           '& svg': { fontSize: 19, transition: 'transform .2s ease' },
           ...(active ? { '& svg': { fontSize: 19, transform: 'scale(1.12)' } } : {}),
         }}
@@ -492,8 +515,8 @@ const NavItem = ({
         primary={primaryText}
         primaryTypographyProps={{
           fontSize: 13,
-          fontWeight: active ? 800 : 500,
-          color: active ? '#0b3a37' : highlight ? '#ffffff' : 'rgba(231, 245, 243, 0.78)',
+          fontWeight: active ? 750 : 500,
+          color: 'inherit',
           noWrap: true,
         }}
       />
@@ -554,12 +577,13 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
         sx={{
           p: 1.25,
           borderRadius: '16px',
-          bgcolor: 'rgba(255, 255, 255, 0.05)',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
-          boxShadow: '0 4px 14px rgba(0,0,0,0.2)',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+          border: '1px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
           transition: 'background .15s ease',
           '&:hover': {
-            bgcolor: 'rgba(255, 255, 255, 0.08)',
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.07)' : 'rgba(32, 178, 170, 0.05)',
           },
         }}
       >
@@ -586,8 +610,8 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               color: 'inherit',
               borderRadius: '12px',
               '&:hover': {
-                '& .dx-user-name': { color: '#5fc9c3' },
-                '& .dx-profile-chevron': { color: '#5fc9c3', transform: 'translateX(2px)' },
+                '& .dx-user-name': { color: '#0d9488' },
+                '& .dx-profile-chevron': { color: '#0d9488', transform: 'translateX(2px)' },
               },
             }}
           >
@@ -598,10 +622,10 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                   width: 42,
                   height: 42,
                   fontSize: 16,
-                  bgcolor: 'rgba(32,178,170,0.25)',
-                  color: '#fff',
+                  bgcolor: 'rgba(32,178,170,0.18)',
+                  color: '#0d9488',
                   fontWeight: 800,
-                  border: '2px solid rgba(95,201,195,0.4)',
+                  border: '2px solid rgba(32,178,170,0.3)',
                 }}
               >
                 {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
@@ -614,7 +638,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                   sx={{
                     fontWeight: 800,
                     fontSize: 14.5,
-                    color: '#e7f5f3',
+                    color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
                     lineHeight: 1.2,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
@@ -627,7 +651,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                 </Typography>
                 <ChevronRightIcon
                   className="dx-profile-chevron"
-                  sx={{ fontSize: 18, color: 'rgba(231,245,243,0.4)', flexShrink: 0, transition: 'all .15s ease' }}
+                  sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.4)' : '#94a3b8', flexShrink: 0, transition: 'all .15s ease' }}
                 />
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
@@ -638,8 +662,8 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                     height: 20,
                     fontSize: 11,
                     fontWeight: 800,
-                    bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.22)' : 'rgba(255,255,255,0.08)',
-                    color: userInfo.isPremium ? '#f3d3ac' : 'rgba(231,245,243,0.7)',
+                    bgcolor: userInfo.isPremium ? 'rgba(212,165,116,0.22)' : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
+                    color: userInfo.isPremium ? '#b45309' : (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.7)' : '#64748b',
                   }}
                 />
                 {credits != null && (
@@ -655,10 +679,10 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                       height: 20,
                       fontSize: 11,
                       fontWeight: 700,
-                      bgcolor: 'rgba(32,178,170,0.2)',
-                      color: '#5fc9c3',
+                      bgcolor: 'rgba(32,178,170,0.15)',
+                      color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0d9488',
                       cursor: 'pointer',
-                      '&:hover': { bgcolor: 'rgba(32,178,170,0.35)' },
+                      '&:hover': { bgcolor: 'rgba(32,178,170,0.25)' },
                     }}
                   />
                 )}
@@ -675,9 +699,9 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                 height: 32,
                 borderRadius: '50%',
                 flexShrink: 0,
-                bgcolor: 'rgba(255,255,255,0.06)',
-                color: 'rgba(231,245,243,0.7)',
-                '&:hover': { bgcolor: 'rgba(32,178,170,0.2)', color: '#fff' },
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.7)' : '#64748b',
+                '&:hover': { bgcolor: 'rgba(32,178,170,0.15)', color: '#0d9488' },
               }}
             >
               <CloseIcon sx={{ fontSize: 18 }} />
@@ -716,7 +740,7 @@ const AppMenu = () => {
       overflowX: 'hidden',
       overflowY: 'auto',
       maxHeight: '100dvh',
-      color: '#e7f5f3',
+      color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
       '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' },
     }}
   >
@@ -724,16 +748,16 @@ const AppMenu = () => {
       <Box sx={{ px: 2, pt: 1.25, pb: 1, display: 'flex', alignItems: 'center', gap: 1.25 }}>
         <Box sx={{
           width: 36, height: 36, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: 'linear-gradient(135deg,#2cc4bb 0%,#178f89 100%)',
-          boxShadow: '0 4px 14px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.3)', overflow: 'hidden'
+          background: 'linear-gradient(135deg,#20b2aa 0%,#0d9488 100%)',
+          boxShadow: '0 4px 14px rgba(32,178,170,.25), inset 0 1px 0 rgba(255,255,255,.3)', overflow: 'hidden'
         }}>
           <DrExame size={26} sx={{ borderRadius: '22%' }} />
         </Box>
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.02em', color: '#fff', lineHeight: 1.1 }}>
+          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.02em', color: (t) => t.palette.mode === 'dark' ? '#fff' : '#0f172a', lineHeight: 1.1 }}>
             Dr. Exame
           </Typography>
-          <Typography sx={{ fontSize: 11, color: 'rgba(231,245,243,0.6)', fontWeight: 500, mt: 0.2 }}>
+          <Typography sx={{ fontSize: 11, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.6)' : '#64748b', fontWeight: 500, mt: 0.2 }}>
             Saúde Inteligente
           </Typography>
         </Box>
@@ -741,7 +765,7 @@ const AppMenu = () => {
     )}
 
     {isDesktop && <UserProfileCard />}
-    {isDesktop && <Divider sx={{ borderColor: 'rgba(255,255,255,0.08)', mx: 2, mb: 1 }} />}
+    {isDesktop && <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2, mb: 1 }} />}
 
     {/* Início fora dos acordeões: acesso direto */}
     <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} />
@@ -769,7 +793,7 @@ const AppMenu = () => {
     >
       <NavItem
         to="/lembretes"
-        primaryText="Agenda & teleconsultas"
+        primaryText="Minhas consultas"
         icon={<EventAvailableOutlinedIcon />}
         highlight={tele.isToday || tele.isLive}
         badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : undefined}
@@ -782,11 +806,11 @@ const AppMenu = () => {
     <MenuSectionAccordion
       title="Rotina de saúde"
       icon={<MonitorHeartOutlinedIcon />}
-      routes={['/sinais', '/medicoes', '/medicamentos', '/saude-mental', '/vacinas', '/despesas', '/conquistas']}
+      routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas']}
     >
-      <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} highlight />
+      <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
+      <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
       <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
-      <NavItem to="/medicamentos" primaryText={translate('menu.medications', { _: 'Medicamentos' })} icon={<MedicationOutlinedIcon />} />
       <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
       <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
@@ -822,24 +846,24 @@ const AppMenu = () => {
     </MenuSectionAccordion>
 
     {/* Divisor suave */}
-    <Box sx={{ mx: 2, my: 1, height: '1px', background: 'linear-gradient(90deg, transparent, rgba(255,255,255,.12) 30%, rgba(255,255,255,.12) 70%, transparent)' }} />
+    <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
 
     <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} />
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75, color: 'rgba(231,245,243,0.72)', '&:hover': { bgcolor: 'rgba(255,255,255,.07)', color: '#fff' } }}>
-      <ListItemIcon sx={{ minWidth: 32, color: 'rgba(231,245,243,0.55)' }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.72)' : '#475569', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.07)' : 'rgba(32,178,170,.08)', color: '#0d9488' } }}>
+      <ListItemIcon sx={{ minWidth: 32, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.55)' : '#64748b' }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{
-      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: '#fca5a5',
+      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626',
       transition: 'background-color .15s ease',
-      '&:hover': { bgcolor: 'rgba(239,68,68,.15)', color: '#fecaca', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
+      '&:hover': { bgcolor: 'rgba(239,68,68,.12)', color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#b91c1c', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
       '@keyframes dxShake': {
         '0%, 100%': { transform: 'rotate(0)' },
         '25%': { transform: 'rotate(-8deg)' },
         '75%': { transform: 'rotate(8deg)' },
       },
     }}>
-      <ListItemIcon sx={{ color: '#fca5a5', minWidth: 32 }}><LogoutIcon fontSize="small" /></ListItemIcon>
+      <ListItemIcon sx={{ color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', minWidth: 32 }}><LogoutIcon fontSize="small" /></ListItemIcon>
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
@@ -920,17 +944,17 @@ const AppDrawer = () => {
       PaperProps={{
         sx: {
           width: { xs: '84vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
-          background: 'linear-gradient(180deg, #0b3a37 0%, #072a28 100%)',
-          color: '#e7f5f3',
+          background: (t) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%)' : '#ffffff',
+          color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
           backdropFilter: 'blur(24px) saturate(180%)',
           WebkitBackdropFilter: 'blur(24px) saturate(180%)',
           borderRadius: '0 24px 24px 0',
-          borderRight: '1px solid rgba(255,255,255,0.1)',
-          boxShadow: '0 20px 50px rgba(0,0,0,0.4)',
+          borderRight: (t) => t.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? '0 20px 50px rgba(0,0,0,0.6)' : '0 20px 50px rgba(0,0,0,0.08)',
         }
       }}>
       <UserProfileCard onClose={closeDrawer} />
-      <Divider sx={{ borderColor: (t) => alpha(t.palette.primary.main, 0.12), mx: 2 }} />
+      <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2 }} />
       <Box sx={{
         flex: 1, overflowY: 'auto', px: 1, py: 1,
         '& > *': {
@@ -1093,7 +1117,7 @@ const AppLayout = (props: any) => {
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
-          // SIDEBAR DESKTOP (Consultório Premium): in-flow + width 268px + fundo profundo elegante
+          // SIDEBAR DESKTOP: in-flow + width 268px + fundo premium Dr. Exame
           '& .RaSidebar-root': { width: { sm: '268px !important' }, minWidth: { sm: '268px !important' }, flexShrink: 0 },
           '& .RaSidebar-fixed, & .RaSidebar-paper, & .RaSidebar-root .MuiPaper-root': {
             position: { sm: 'static !important' },
@@ -1102,10 +1126,10 @@ const AppLayout = (props: any) => {
             maxWidth: { sm: '268px !important' },
             height: { sm: 'auto !important' },
             minHeight: { sm: '100dvh' },
-            background: 'linear-gradient(180deg, #0b3a37 0%, #072a28 100%) !important',
-            color: '#e7f5f3 !important',
-            borderRight: '1px solid rgba(255,255,255,0.08) !important',
-            boxShadow: '4px 0 24px rgba(0,0,0,0.12)',
+            background: (t: any) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%) !important' : '#ffffff !important',
+            color: (t: any) => (t.palette.mode === 'dark' ? '#f1f5f9 !important' : '#0f172a !important'),
+            borderRight: (t: any) => t.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08) !important' : '1px solid rgba(0,0,0,0.06) !important',
+            boxShadow: (t: any) => t.palette.mode === 'dark' ? '4px 0 24px rgba(0,0,0,0.25)' : '4px 0 24px rgba(0,0,0,0.03)',
           },
           '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
           // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,

@@ -14,6 +14,10 @@ import {
   Tab,
   useTheme,
   Tooltip,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import SearchIcon from '@mui/icons-material/Search';
@@ -26,6 +30,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AddIcon from '@mui/icons-material/Add';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { AppCard } from '../../AppCard';
 import { tealText, COPPER, copperText } from '../../../theme';
 import { snackbar } from '../../ConfirmDialog';
@@ -57,6 +62,8 @@ export const PortalTeleconsultas = ({
   const theme = useTheme();
   const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
   const [search, setSearch] = useState(initialSearch);
+  // FIX 2 (1 ação primária por card): copiar/cancelar saem da linha de ação → menu ⋮.
+  const [teleMenu, setTeleMenu] = useState<{ id: string; el: HTMLElement } | null>(null);
 
   useEffect(() => {
     if (initialSearch !== undefined) setSearch(initialSearch);
@@ -125,7 +132,7 @@ export const PortalTeleconsultas = ({
                 bgcolor: 'rgba(15,118,110,0.12)',
                 display: 'grid',
                 placeItems: 'center',
-                color: '#0f766e',
+                color: '#178f89',
               }}
             >
               <VideocamIcon />
@@ -144,7 +151,7 @@ export const PortalTeleconsultas = ({
             </Typography>
           </Stack>
           <Typography sx={{ color: 'text.secondary', fontSize: 13.5 }}>
-            Gerencie seus atendimentos online, inicie chamadas com um clique e acesse o pós-consulta.
+            Gerencie seus atendimentos online, inicie chamadas com um clique e acesse o resumo da consulta.
           </Typography>
         </Box>
 
@@ -159,9 +166,9 @@ export const PortalTeleconsultas = ({
             fontSize: 14,
             px: 2.75,
             py: 1,
-            background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
+            background: 'linear-gradient(135deg, #178f89, #20b2aa)',
             boxShadow: '0 4px 14px rgba(15,118,110,0.3)',
-            '&:hover': { background: 'linear-gradient(135deg, #0d655f, #0f766e)' },
+            '&:hover': { background: 'linear-gradient(135deg, #137a74, #178f89)' },
             alignSelf: { xs: 'stretch', sm: 'auto' },
           }}
         >
@@ -184,7 +191,7 @@ export const PortalTeleconsultas = ({
           sx={{
             borderRadius: '14px',
             border: '1px solid',
-            borderColor: filter === 'today' ? '#0f766e' : 'divider',
+            borderColor: filter === 'today' ? '#178f89' : 'divider',
             bgcolor: filter === 'today' ? 'rgba(15,118,110,0.06)' : 'background.paper',
           }}
         >
@@ -193,11 +200,11 @@ export const PortalTeleconsultas = ({
               Consultas Hoje
             </Typography>
             <Stack direction="row" alignItems="baseline" spacing={1}>
-              <Typography sx={{ fontSize: 24, fontWeight: 800, color: todayList.length > 0 ? '#0f766e' : 'text.primary', lineHeight: 1 }}>
+              <Typography sx={{ fontSize: 24, fontWeight: 800, color: todayList.length > 0 ? '#178f89' : 'text.primary', lineHeight: 1 }}>
                 {todayList.length}
               </Typography>
               {todayList.length > 0 && (
-                <Chip size="small" label="Ativo hoje" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e' }} />
+                <Chip size="small" label="Ativo hoje" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89' }} />
               )}
             </Stack>
           </CardContent>
@@ -260,7 +267,7 @@ export const PortalTeleconsultas = ({
           scrollButtons="auto"
           sx={{
             minHeight: 38,
-            '& .MuiTabs-indicator': { height: 3, borderRadius: '3px', bgcolor: '#0f766e' },
+            '& .MuiTabs-indicator': { height: 3, borderRadius: '3px', bgcolor: '#178f89' },
             '& .MuiTab-root': {
               minHeight: 38,
               py: 0.75,
@@ -269,7 +276,7 @@ export const PortalTeleconsultas = ({
               fontWeight: 700,
               fontSize: 13,
               color: 'text.secondary',
-              '&.Mui-selected': { color: '#0f766e' },
+              '&.Mui-selected': { color: '#178f89' },
             },
           }}
         >
@@ -301,7 +308,7 @@ export const PortalTeleconsultas = ({
       {/* LISTA DE CARDS DE TELECONSULTA */}
       {filtered.length === 0 ? (
         <AppCard sx={{ p: 5, textAlign: 'center', borderRadius: '18px', border: '1px dashed', borderColor: 'divider' }}>
-          <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 1.5, borderRadius: '50%', bgcolor: 'rgba(15,118,110,0.1)', display: 'grid', placeItems: 'center', color: '#0f766e' }}>
+          <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 1.5, borderRadius: '50%', bgcolor: 'rgba(15,118,110,0.1)', display: 'grid', placeItems: 'center', color: '#178f89' }}>
             <EventAvailableIcon sx={{ fontSize: 32 }} />
           </Box>
           <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
@@ -318,9 +325,9 @@ export const PortalTeleconsultas = ({
               borderRadius: '999px',
               textTransform: 'none',
               fontWeight: 700,
-              color: '#0f766e',
+              color: '#178f89',
               borderColor: 'rgba(15,118,110,0.4)',
-              '&:hover': { borderColor: '#0f766e', bgcolor: 'rgba(15,118,110,0.06)' },
+              '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(15,118,110,0.06)' },
             }}
           >
             Agendar nova teleconsulta
@@ -384,7 +391,7 @@ export const PortalTeleconsultas = ({
                           textAlign: 'center',
                           bgcolor: isToday ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.12)',
                           border: '1.5px solid',
-                          borderColor: isToday ? '#0f766e' : 'rgba(212,165,116,0.35)',
+                          borderColor: isToday ? '#178f89' : 'rgba(212,165,116,0.35)',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -392,13 +399,13 @@ export const PortalTeleconsultas = ({
                           flexShrink: 0,
                         }}
                       >
-                        <Typography sx={{ fontSize: 9.5, fontWeight: 800, color: isToday ? '#0f766e' : 'secondary.dark', letterSpacing: '0.04em', lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 800, color: isToday ? '#178f89' : 'secondary.dark', letterSpacing: '0.04em', lineHeight: 1 }}>
                           {monthShort}
                         </Typography>
                         <Typography sx={{ fontSize: 18, fontWeight: 900, lineHeight: 1.15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                           {dayNum}
                         </Typography>
-                        <Typography sx={{ fontSize: 10, fontWeight: 700, color: 'text.secondary', lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', lineHeight: 1 }}>
                           {timeStr}
                         </Typography>
                       </Box>
@@ -411,7 +418,7 @@ export const PortalTeleconsultas = ({
                           fontSize: 16,
                           fontWeight: 800,
                           bgcolor: 'rgba(15,118,110,0.14)',
-                          color: '#0f766e',
+                          color: '#178f89',
                           border: '2px solid rgba(15,118,110,0.25)',
                           flexShrink: 0,
                         }}
@@ -431,7 +438,7 @@ export const PortalTeleconsultas = ({
                               sx={{
                                 py: 0.2,
                                 px: 1,
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 fontWeight: 700,
                                 textTransform: 'none',
                                 color: (t) => tealText(t.palette.mode),
@@ -456,7 +463,7 @@ export const PortalTeleconsultas = ({
                         label={`Sala ${String(tc.id).slice(-5).toUpperCase()}`}
                         sx={{
                           height: 24,
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: 800,
                           fontFamily: 'monospace',
                           bgcolor: 'rgba(212,165,116,.18)',
@@ -484,8 +491,8 @@ export const PortalTeleconsultas = ({
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mr: 1 }}>
-                      <AccessTimeIcon sx={{ fontSize: 16, color: '#0f766e' }} />
-                      <Typography sx={{ fontWeight: 800, fontSize: 14, color: isToday ? '#0f766e' : 'text.primary' }}>
+                      <AccessTimeIcon sx={{ fontSize: 16, color: '#178f89' }} />
+                      <Typography sx={{ fontWeight: 800, fontSize: 14, color: isToday ? '#178f89' : 'text.primary' }}>
                         {isToday ? `Hoje · ${dt.split('·')[1] || dt}` : dt}
                       </Typography>
                     </Stack>
@@ -495,24 +502,24 @@ export const PortalTeleconsultas = ({
                     </Typography>
 
                     {tc.provider === 'livekit' ? (
-                      <Chip size="small" label="Vídeo no App ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
+                      <Chip size="small" label="Vídeo no App" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89' }} />
                     ) : tc.linkUrl?.includes('meet.google.com') ? (
-                      <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
+                      <Chip size="small" label="Google Meet" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
                     ) : (
-                      <Chip size="small" label="Link Externo" sx={{ height: 20, fontSize: 11, fontWeight: 700 }} />
+                      <Chip size="small" label="Link Externo" sx={{ height: 22, fontSize: 12, fontWeight: 700 }} />
                     )}
 
                     <Chip
                       size="small"
                       icon={tc.consentAt ? <CheckCircleOutlineIcon sx={{ fontSize: 13 }} /> : <HourglassEmptyIcon sx={{ fontSize: 13 }} />}
-                      label={tc.consentAt ? 'Paciente autorizou (CFM)' : 'Aguardando aceite do paciente'}
+                      label={tc.consentAt ? 'Paciente autorizou' : 'Aguardando aceite do paciente'}
                       sx={{
                         height: 22,
-                        fontSize: 11,
+                        fontSize: 12,
                         fontWeight: 700,
                         bgcolor: tc.consentAt ? 'rgba(15,118,110,0.12)' : 'rgba(245,158,11,0.12)',
-                        color: tc.consentAt ? '#0f766e' : '#d97706',
-                        '& .MuiChip-icon': { color: tc.consentAt ? '#0f766e' : '#d97706' },
+                        color: tc.consentAt ? '#178f89' : '#d97706',
+                        '& .MuiChip-icon': { color: tc.consentAt ? '#178f89' : '#d97706' },
                       }}
                     />
 
@@ -521,7 +528,7 @@ export const PortalTeleconsultas = ({
                         size="small"
                         label={`${pend} pedido(s)`}
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }}
+                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }}
                       />
                     )}
 
@@ -530,7 +537,7 @@ export const PortalTeleconsultas = ({
                         size="small"
                         label="Transcrição ✓"
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.12)', color: '#0f766e' }}
+                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.12)', color: '#178f89' }}
                       />
                     )}
                   </Stack>
@@ -553,15 +560,15 @@ export const PortalTeleconsultas = ({
                           textTransform: 'none',
                           fontWeight: 800,
                           fontSize: 13.5,
-                          bgcolor: '#0f766e',
-                          '&:hover': { bgcolor: '#0d655f' },
+                          bgcolor: '#178f89',
+                          '&:hover': { bgcolor: '#137a74' },
                           px: 2.5,
                           py: 0.8,
                           boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
                           flex: { xs: 1, sm: 'none' },
                         }}
                       >
-                        Entrar na sala
+                        Entrar na consulta
                       </Button>
 
                       <Button
@@ -580,44 +587,20 @@ export const PortalTeleconsultas = ({
                           flex: { xs: 1, sm: 'none' },
                         }}
                       >
-                        Pós-consulta
+                        Resumo da consulta
                       </Button>
 
-                      {tc.linkUrl && (
+                      <Tooltip title="Mais ações">
                         <IconButton
                           size="small"
-                          title="Copiar link da reunião"
-                          onClick={() => {
-                            navigator.clipboard.writeText(tc.linkUrl);
-                            snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
-                          }}
-                          sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                          aria-label={`Mais ações da teleconsulta de ${pName}`}
+                          onClick={(e) => setTeleMenu({ id: tc.id, el: e.currentTarget })}
+                          sx={{ color: 'text.secondary', alignSelf: { xs: 'flex-end', sm: 'center' } }}
                         >
-                          <ContentCopyIcon fontSize="small" />
+                          <MoreVertIcon fontSize="small" />
                         </IconButton>
-                      )}
+                      </Tooltip>
                     </Stack>
-
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      color="error"
-                      startIcon={<DeleteOutlinedIcon />}
-                      onClick={() => onCancelTele(tc.id, tc.patientId || pat?.id)}
-                      sx={{
-                        borderRadius: '999px',
-                        textTransform: 'none',
-                        fontWeight: 700,
-                        fontSize: 13,
-                        borderColor: 'rgba(239,68,68,0.35)',
-                        color: 'error.main',
-                        '&:hover': { borderColor: 'error.main', bgcolor: 'rgba(239,68,68,0.06)' },
-                        px: 2,
-                        alignSelf: { xs: 'flex-start', sm: 'center' },
-                      }}
-                    >
-                      Cancelar consulta
-                    </Button>
                   </Stack>
                 </Stack>
               </AppCard>
@@ -625,6 +608,37 @@ export const PortalTeleconsultas = ({
           })}
         </Stack>
       )}
+
+      {/* FIX 2 — copiar/cancelar no menu ⋮ (regra de 1 ação primária por card) */}
+      <Menu
+        anchorEl={teleMenu?.el}
+        open={!!teleMenu}
+        onClose={() => setTeleMenu(null)}
+        slotProps={{ paper: { sx: { borderRadius: '14px', minWidth: 220, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,.12)' } } }}
+      >
+        {(() => {
+          const tc = filtered.find((t) => t.id === teleMenu?.id);
+          if (!tc) return null;
+          return (
+            <>
+              {tc.linkUrl && (
+                <MenuItem onClick={() => {
+                  navigator.clipboard.writeText(tc.linkUrl);
+                  snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
+                  setTeleMenu(null);
+                }}>
+                  <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText>Copiar link da reunião</ListItemText>
+                </MenuItem>
+              )}
+              <MenuItem onClick={() => { onCancelTele(tc.id, tc.patientId); setTeleMenu(null); }} sx={{ color: 'error.main' }}>
+                <ListItemIcon><DeleteOutlinedIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+                <ListItemText>Cancelar consulta</ListItemText>
+              </MenuItem>
+            </>
+          );
+        })()}
+      </Menu>
     </Box>
   );
 };

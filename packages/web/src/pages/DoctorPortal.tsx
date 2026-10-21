@@ -41,6 +41,7 @@ import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
@@ -356,6 +357,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [telePatId, setTelePatId] = useState<string>('');
   const [teleFilter, setTeleFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
   const [teleSearch, setTeleSearch] = useState('');
+  const [fichaTeleMenu, setFichaTeleMenu] = useState<HTMLElement | null>(null); // overflow (⋮) da teleconsulta em destaque na ficha
 
   /** Abre o dialog de teleconsulta já com AMANHÃ pré-marcado — botão de agendar
    *  nasce clicável (vazio antes = desabilitado em silêncio, parecia "morto"). */
@@ -737,7 +739,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     }
   };
 
-  /** F3: abre a área pós-consulta ("O que ficou da consulta") — GET summary +
+  /** F3: abre a área pós-consulta ("Resumo da consulta") — GET summary +
    *  transcript em paralelo, on-demand. Falha parcial não derruba a outra seção;
    *  o summary em cache alimenta os chips "N pedidos"/"Transcrição ✓" da lista. */
   const openPost = async (teleId: string) => {
@@ -805,7 +807,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           background: (t) =>
             t.palette.mode === 'dark'
               ? 'radial-gradient(ellipse 90% 80% at 10% 0%, #0d9488 0%, #082d2b 100%)'
-              : 'radial-gradient(ellipse 90% 80% at 10% 0%, #20B2AA 0%, #0f766e 100%)',
+              : 'radial-gradient(ellipse 90% 80% at 10% 0%, #20B2AA 0%, #178f89 100%)',
           color: '#fff',
           boxShadow: '0 4px 16px rgba(15,95,90,.18)',
         }}
@@ -1195,7 +1197,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <AppCard kind="elevated" sx={{ p: 2.25, borderRadius: '16px', border: '1px solid', borderColor: isFuture ? 'rgba(15,118,110,0.35)' : 'rgba(212,165,116,0.3)', bgcolor: 'background.paper' }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
                     <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap">
-                      <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#0f766e' : 'secondary.dark' }}>
+                      <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#178f89' : 'secondary.dark' }}>
                         <VideocamIcon sx={{ fontSize: 20 }} />
                       </Box>
                       <Box>
@@ -1206,9 +1208,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           {dt}
                         </Typography>
                       </Box>
-                      <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
+                      <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 12, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
                       {upcoming.provider === 'livekit' && (
-                        <Chip size="small" label="No app ✨" sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e' }} />
+                        <Chip size="small" label="No app" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89' }} />
                       )}
                     </Stack>
 
@@ -1228,8 +1230,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           fontSize: 12.5,
                           borderRadius: '999px',
                           borderColor: 'rgba(15,118,110,0.4)',
-                          color: '#0f766e',
-                          '&:hover': { bgcolor: 'rgba(15,118,110,0.08)', borderColor: '#0f766e' },
+                          color: '#178f89',
+                          '&:hover': { bgcolor: 'rgba(15,118,110,0.08)', borderColor: '#178f89' },
                         }}
                       >
                         Ver todas na Agenda ({patientTele.length}) →
@@ -1248,7 +1250,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   }}>
                     <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
                       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                        <Avatar src={pPhoto} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.14)', color: '#0f766e', border: '1.5px solid rgba(32,178,170,0.3)' }}>
+                        <Avatar src={pPhoto} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.14)', color: '#178f89', border: '1.5px solid rgba(32,178,170,0.3)' }}>
                           {pName.charAt(0).toUpperCase()}
                         </Avatar>
                         <Box sx={{ minWidth: 0 }}>
@@ -1258,11 +1260,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             </Typography>
                             <Chip
                               size="small"
-                              label={upcoming.consentAt ? 'Paciente autorizou (Art. 15 CFM)' : 'Aguardando aceite do paciente'}
+                              label={upcoming.consentAt ? 'Paciente autorizou' : 'Aguardando aceite do paciente'}
                               sx={{
-                                height: 20, fontSize: 10.5, fontWeight: 700,
+                                height: 22, fontSize: 12, fontWeight: 700,
                                 bgcolor: upcoming.consentAt ? 'rgba(15,118,110,0.12)' : 'rgba(245,158,11,0.12)',
-                                color: upcoming.consentAt ? '#0f766e' : '#d97706',
+                                color: upcoming.consentAt ? '#178f89' : '#d97706',
                               }}
                             />
                           </Stack>
@@ -1280,69 +1282,63 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           onClick={() => handleEnterTele(upcoming, pName)}
                           sx={{
                             borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                            bgcolor: '#0f766e', '&:hover': { bgcolor: '#0d655f' },
+                            bgcolor: '#178f89', '&:hover': { bgcolor: '#137a74' },
                             px: 2.2, py: 0.6, fontSize: 13,
                             boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
                           }}
                         >
-                          Entrar na sala
+                          Entrar na consulta
                         </Button>
                         <Button
                           size="small"
-                          variant="outlined"
+                          variant="text"
                           startIcon={<AssignmentAddIcon />}
                           onClick={() => setReqOpenId(upcoming.id)}
-                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}
+                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '999px', color: (t) => tealText(t.palette.mode) }}
                         >
                           Pedir exame
                         </Button>
                         <Button
-                          variant="outlined"
+                          variant="text"
                           size="small"
                           startIcon={<SummarizeIcon />}
                           onClick={() => void openPost(upcoming.id)}
-                          sx={{
-                            borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
-                            borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
-                          }}
+                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: (t) => tealText(t.palette.mode) }}
                         >
-                          Pós-consulta
+                          Resumo da consulta
                         </Button>
-                        {upcoming.linkUrl && (
+                        <Tooltip title="Mais ações">
                           <IconButton
                             size="small"
-                            title="Copiar link da reunião"
-                            aria-label="Copiar link da reunião"
-                            onClick={() => {
-                              navigator.clipboard.writeText(upcoming.linkUrl);
-                              snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' });
-                            }}
-                            sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                            aria-label="Mais ações da teleconsulta"
+                            aria-haspopup="menu"
+                            onClick={(e) => setFichaTeleMenu(e.currentTarget)}
+                            sx={{ color: 'text.secondary' }}
                           >
-                            <ContentCopyIcon fontSize="small" />
+                            <MoreVertIcon fontSize="small" />
                           </IconButton>
-                        )}
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="error"
-                          startIcon={<DeleteOutlinedIcon />}
-                          onClick={() => cancelTele(upcoming.id, selected.patient.id)}
-                          sx={{
-                            borderRadius: '999px',
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            fontSize: 12,
-                            borderColor: 'rgba(239,68,68,0.35)',
-                            color: 'error.main',
-                            '&:hover': { borderColor: 'error.main', bgcolor: 'rgba(239,68,68,0.06)' },
-                          }}
-                        >
-                          Cancelar
-                        </Button>
+                        </Tooltip>
                       </Stack>
                     </Stack>
                   </Box>
+                  {/* Overflow (⋮) da teleconsulta em destaque: copiar link + cancelar (destrutivo) fora da linha de ação — 1 primária por card. */}
+                  <Menu
+                    anchorEl={fichaTeleMenu}
+                    open={!!fichaTeleMenu}
+                    onClose={() => setFichaTeleMenu(null)}
+                    slotProps={{ paper: { sx: { borderRadius: '14px', minWidth: 230, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}
+                  >
+                    {upcoming.linkUrl && (
+                      <MenuItem onClick={() => { navigator.clipboard.writeText(upcoming.linkUrl); snackbar({ message: 'Link da teleconsulta copiado!', severity: 'info' }); setFichaTeleMenu(null); }}>
+                        <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+                        <ListItemText>Copiar link da reunião</ListItemText>
+                      </MenuItem>
+                    )}
+                    <MenuItem onClick={() => { setFichaTeleMenu(null); cancelTele(upcoming.id, selected.patient.id); }} sx={{ color: 'error.main' }}>
+                      <ListItemIcon><DeleteOutlinedIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
+                      <ListItemText>Cancelar consulta</ListItemText>
+                    </MenuItem>
+                  </Menu>
                   {patientTele.length > 1 && (
                     <Typography
                       onClick={() => {
@@ -1352,7 +1348,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                         setSelExam(null);
                       }}
                       sx={{
-                        fontSize: 11.5, color: '#0f766e', mt: 1, textAlign: 'center', cursor: 'pointer', fontWeight: 700,
+                        fontSize: 12, color: '#178f89', mt: 1, textAlign: 'center', cursor: 'pointer', fontWeight: 700,
                         '&:hover': { textDecoration: 'underline' }
                       }}
                     >
@@ -1623,7 +1619,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                           height: 28,
                           fontSize: 12,
                           bgcolor: 'rgba(32,178,170,.15)',
-                          color: '#0f766e',
+                          color: '#178f89',
                           fontWeight: 800,
                         }}
                       >
@@ -1725,7 +1721,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <Stack spacing={0.5} sx={{ mb: meetStatus?.connected ? 1.5 : 0 }}>
                   <FormControlLabel
                     control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />}
-                    label={<Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Chamada dentro do app ✨ <Chip size="small" label="recomendado" sx={{ height: 18, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#0f766e', ml: 0.5 }} /></Typography>}
+                    label={<Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Chamada dentro do app <Chip size="small" label="recomendado" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89', ml: 0.5 }} /></Typography>}
                     sx={{ m: 0 }}
                   />
                   <Typography variant="caption" sx={{ color: 'text.secondary', pl: 4.5 }}>
@@ -1830,18 +1826,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </DialogActions>
       </Dialog>
 
-      {/* F3 — ÁREA PÓS-CONSULTA: "O que ficou da consulta". Transcrição + pedidos + feedback/duração */}
+      {/* F3 — ÁREA PÓS-CONSULTA: "Resumo da consulta". Transcrição + pedidos + feedback/duração */}
       <Dialog open={!!postOpenId} onClose={() => setPostOpenId(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
         <DialogTitle sx={{ pb: 1, fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, display: 'flex', alignItems: 'center', gap: 1 }}>
           <SummarizeIcon sx={{ fontSize: 22, color: 'secondary.dark' }} />
-          <Box component="span" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>O que ficou da consulta</Box>
+          <Box component="span" sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Resumo da consulta</Box>
           {postOpenId && (
             <Tooltip title="Código da sala — o mesmo que o paciente vê no app.">
-              <Chip size="small" label={`Sala ${String(postOpenId).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)', flexShrink: 0 }} />
+              <Chip size="small" label={`Sala ${String(postOpenId).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 12, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)', flexShrink: 0 }} />
             </Tooltip>
           )}
           <Box sx={{ flex: 1 }} />
-          <IconButton size="small" aria-label="Atualizar pós-consulta" disabled={postLoading} onClick={() => postOpenId && void openPost(postOpenId)} sx={{ color: 'text.secondary' }}>
+          <IconButton size="small" aria-label="Atualizar resumo da consulta" disabled={postLoading} onClick={() => postOpenId && void openPost(postOpenId)} sx={{ color: 'text.secondary' }}>
             <RefreshIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
@@ -1851,7 +1847,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           )}
           {!postLoading && postErr && (
             <Alert severity="warning" sx={{ borderRadius: '14px' }} action={<Button color="inherit" size="small" onClick={() => postOpenId && void openPost(postOpenId)} sx={{ fontWeight: 700 }}>Tentar de novo</Button>}>
-              A área pós-consulta ainda não está disponível para esta consulta.
+              O resumo da consulta ainda não está disponível para esta consulta.
             </Alert>
           )}
           {!postLoading && !postErr && (
@@ -1859,16 +1855,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {/* Meta da consulta: duração, avaliação, pendências. */}
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 {postSummary?.durationHint && (
-                  <Chip size="small" icon={<ScheduleOutlinedIcon sx={{ fontSize: 14 }} />} label={`Encerrada · ${postSummary.durationHint}`} sx={{ height: 24, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary', '& .MuiChip-icon': { color: 'text.secondary' } }} />
+                  <Chip size="small" icon={<ScheduleOutlinedIcon sx={{ fontSize: 14 }} />} label={`Encerrada · ${postSummary.durationHint}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary', '& .MuiChip-icon': { color: 'text.secondary' } }} />
                 )}
                 {!!postSummary?.feedback && (
-                  <Chip size="small" label={`Avaliação do paciente: ${postSummary.feedback.rating}/5`} sx={{ height: 24, fontSize: 11.5, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)'), color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />
+                  <Chip size="small" label={`Avaliação do paciente: ${postSummary.feedback.rating}/5`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)'), color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#178f89') }} />
                 )}
                 {postPend > 0 && (
-                  <Chip size="small" label={`${postPend} ${postPend === 1 ? 'pedido aguardando' : 'pedidos aguardando'}`} sx={{ height: 24, fontSize: 11.5, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'), color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }} />
+                  <Chip size="small" label={`${postPend} ${postPend === 1 ? 'pedido aguardando' : 'pedidos aguardando'}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,.14)' : 'rgba(245,158,11,.15)'), color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#92400e') }} />
                 )}
                 {postHasTr && (
-                  <Chip size="small" label="Transcrição ✓" sx={{ height: 24, fontSize: 11.5, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)'), color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f766e') }} />
+                  <Chip size="small" label="Transcrição ✓" sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(95,201,195,.12)' : 'rgba(15,118,110,.10)'), color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#178f89') }} />
                 )}
               </Stack>
               {!!postSummary?.feedback?.note && (

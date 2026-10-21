@@ -211,7 +211,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [examQueue, setExamQueue] = useState<ExamRequest[]>([]); // pedidos novos chegando in-call
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [schedFor, setSchedFor] = useState<string | null>(null); // req com quick-chips "Agendar" abertos (§3a)
-  const [areaSummary, setAreaSummary] = useState<TeleSummary | null>(null); // §3 — área "O que ficou da consulta"
+  const [areaSummary, setAreaSummary] = useState<TeleSummary | null>(null); // §3 — área "Resumo da consulta"
   const [txState, setTxState] = useState<'pending' | 'ready' | 'error'>('pending'); // §3b transcrição
   const [txText, setTxText] = useState<string | null>(null);
   const [txAt, setTxAt] = useState<string | null>(null);
@@ -441,7 +441,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       .on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
         upsertRemote(p);
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
-        setToast({ text: `${displayName} entrou ✨`, k: Date.now() });
+        setToast({ text: `${displayName} entrou`, k: Date.now() });
         setOtherJoined(true);
         setRemoteLeft(null);
         playJoinChime();
@@ -709,7 +709,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     void teardownRoom();
   }, [stopPreview, teardownRoom]);
 
-  // ── F3 (c): resumo da área "O que ficou da consulta" (3d GET summary) ───────
+  // ── F3 (c): resumo da área "Resumo da consulta" (3d GET summary) ───────
   const loadAreaSummary = useCallback(async (): Promise<TeleSummary | null> => {
     try {
       const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
@@ -1082,17 +1082,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <DrExame size={26} />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{headerName}</Typography>
-              {headerCrm && <Typography noWrap sx={{ color: 'rgba(255,255,255,.55)', fontSize: 10 }}>{headerCrm}</Typography>}
+              {headerCrm && <Typography noWrap sx={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{headerCrm}</Typography>}
             </Box>
             <Typography sx={{ color: 'rgba(255,255,255,.85)', fontSize: 13, fontVariantNumeric: 'tabular-nums', fontWeight: 700 }} aria-label="Tempo de chamada">
               {clockFmt(elapsedSec)}
             </Typography>
           </Stack>
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
-            {role === 'doctor' && <Chip size="small" label="Médico" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />}
-            {role === 'patient' && summary?.consentAt && <Chip size="small" label="✓ autorizada" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3' }} />}
-            {!!summary?.recordConsentAt && <Chip size="small" label="● gravando" sx={{ height: 18, fontSize: 10, fontWeight: 700, bgcolor: 'rgba(239,68,68,.15)', color: '#fca5a5' }} />}
-            <Chip size="small" label={`Sala ${String(reminderId).slice(-5).toUpperCase()}`} sx={{ height: 18, fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(0,0,0,.3)', color: '#e0bc97', border: '1px dashed rgba(224,188,151,.35)' }} />
+            {role === 'doctor' && <Chip size="small" label="Médico" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />}
+            {role === 'patient' && summary?.consentAt && <Chip size="small" label="✓ autorizada" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3' }} />}
+            {!!summary?.recordConsentAt && <Chip size="small" label="● gravando" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(239,68,68,.15)', color: '#fca5a5' }} />}
           </Stack>
         </Stack>
 
@@ -1189,7 +1188,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </IconButton>
           )}
           <IconButton aria-label="Encerrar consulta" onClick={() => { hapticLight(); setEndOpen(true); }}
-            sx={{ width: 56, height: 56, bgcolor: COPPER, color: '#fff', '&:hover': { bgcolor: COPPER_DARK }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 3 } }}>
+            sx={{ width: 56, height: 56, bgcolor: '#dc2626', color: '#fff', '&:hover': { bgcolor: '#b91c1c' }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 3 } }}>
             <CallEndIcon sx={{ fontSize: 26 }} />
           </IconButton>
         </Stack>
@@ -1205,7 +1204,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             label="● gravando transcrição"
             sx={{
               position: 'absolute', top: 'calc(env(safe-area-inset-top) + 148px)', left: 14,
-              height: 24, fontSize: 10.5, fontWeight: 800, color: '#e0bc97',
+              height: 24, fontSize: 12, fontWeight: 800, color: '#e0bc97',
               bgcolor: 'rgba(0,0,0,.35)', border: '1px solid rgba(224,188,151,.35)',
               '& .MuiChip-label': { px: 1 },
               '@media (prefers-reduced-motion: no-preference)': {
@@ -1216,7 +1215,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           />
         )}
         {recUpload === 'up' && (
-          <Chip size="small" label="enviando gravação…" sx={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom) + 96px)', left: '50%', transform: 'translateX(-50%)', height: 24, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(0,0,0,.4)', color: '#cfe8e6' }} />
+          <Chip size="small" label="enviando gravação…" sx={{ position: 'absolute', bottom: 'calc(env(safe-area-inset-bottom) + 96px)', left: '50%', transform: 'translateX(-50%)', height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,.4)', color: '#cfe8e6' }} />
         )}
 
         {/* F3: dialog "Solicitar exame" (médico, in-call) */}
@@ -1252,7 +1251,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 } catch { setToast({ text: 'Não deu pra enviar. Tenta de novo.', k: Date.now() }); hapticError(); }
                 finally { setDocReqBusy(false); }
               }}
-              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#d4a574,#b88a54)', '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' } }}
+              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(135deg,#178f89,#0f766e)' }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 2 } }}
             >
               {docReqBusy ? 'Enviando…' : 'Enviar pedido'}
             </Button>
@@ -1270,7 +1269,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <DialogActions sx={{ px: 3, pb: 2.5 }}>
             <Button onClick={() => setEndOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Continuar</Button>
             <Button variant="contained" onClick={() => void endCall()} startIcon={<CallEndIcon />}
-              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: COPPER, '&:hover': { bgcolor: COPPER_DARK } }}>
+              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#dc2626', '&:hover': { bgcolor: '#b91c1c' } }}>
               Encerrar
             </Button>
           </DialogActions>
@@ -1302,7 +1301,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // Feedback 1-toque (F2) com opções prontas — reaproveitado nas duas áreas.
     const feedbackBlock = !fbSent ? (
       <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.18)', textAlign: 'center' }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a chamada?</Typography>
+        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a consulta?</Typography>
         <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5} sx={{ mb: 1.25 }}>
           {[
             { v: 1, icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 30 }} />, label: 'Péssima' },
@@ -1313,7 +1312,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           ].map((o) => (
             <Tooltip key={o.v} title={o.label}>
               <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v); }}
-                sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
+                sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#178f89', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
                 {o.icon}
               </IconButton>
             </Tooltip>
@@ -1328,11 +1327,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               clickable
               onClick={() => togglePresetTag(tag)}
               sx={{
-                fontSize: 11.5,
+                fontSize: 12,
                 fontWeight: 700,
                 borderRadius: '999px',
                 bgcolor: fbNote.includes(tag) ? 'rgba(32,178,170,0.22)' : 'rgba(0,0,0,0.04)',
-                color: fbNote.includes(tag) ? '#0f766e' : 'text.primary',
+                color: fbNote.includes(tag) ? '#178f89' : 'text.primary',
                 border: '1px solid',
                 borderColor: fbNote.includes(tag) ? '#20b2aa' : 'divider',
               }}
@@ -1348,7 +1347,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             Salvar avaliação
           </Button>
         )}
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, fontSize: 10.5, color: 'text.disabled', textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.75, fontSize: 12, color: 'text.disabled', textAlign: 'center' }}>
           Registramos sua avaliação para melhorar a teleconsulta.
         </Typography>
       </Box>
@@ -1356,7 +1355,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Obrigado pela avaliação ✓" sx={{ mt: 2, height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
     );
 
-    // ══ F3 §3 — ÁREA PREMIUM DO PACIENTE: "O que ficou da consulta" ═════════════
+    // ══ F3 §3 — ÁREA PREMIUM DO PACIENTE: "Resumo da consulta" ═════════════
     // A consulta não acaba no encerrar: pedidos com ações + transcrição + feedback
     // moram numa área rolável que persiste (a rota /teleconsulta/:id vira a área).
     if (role === 'patient') {
@@ -1388,7 +1387,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <CheckCircleIcon sx={{ position: 'absolute', right: -5, bottom: -5, fontSize: 22, color: '#5fc9c3', bgcolor: 'background.default', borderRadius: '50%' }} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>O que ficou da consulta</Typography>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>Resumo da consulta</Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.25 }}>
                   Consulta encerrada · {areaSummary?.durationHint || min}
                 </Typography>
@@ -1465,15 +1464,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             {/* §3c — feedback 1-toque fecha a área */}
             {feedbackBlock}
 
-            <Stack direction="row" spacing={1.5} sx={{ mt: 3 }}>
-              <Button variant="outlined" fullWidth onClick={() => { setEnded(null); setPhase('prejoin'); setFbSent(false); setFbRating(null); }}
-                sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', py: 1.2, color: (t) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.35)' }}>
-                Voltar à chamada
-              </Button>
-              <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn }}>
-                Sair
-              </Button>
-            </Stack>
+            {/* FIX 2 — "Sair" é o único contained (primária); reentrar é ação discreta */}
+            <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
+              Sair
+            </Button>
+            <Button variant="text" onClick={() => { setEnded(null); setPhase('prejoin'); setFbSent(false); setFbRating(null); }}
+              sx={{ display: 'block', mx: 'auto', mt: 1, textTransform: 'none', fontWeight: 700, fontSize: 13, borderRadius: '999px', color: 'text.secondary' }}>
+              Entrar de novo
+            </Button>
           </Box>
 
           {/* Toast da área (respostas de pedido / cópia) */}
@@ -1500,7 +1498,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
             <Box sx={{ mt: 2.75, p: 2, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'rgba(32,178,170,0.18)', textAlign: 'left' }}>
               <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', mb: 1, textAlign: 'center' }}>
-                Como foi a teleconsulta?
+                Como foi a consulta?
               </Typography>
 
               <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5} sx={{ mb: 1.5 }}>
@@ -1513,14 +1511,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 ].map((o) => (
                   <Tooltip key={o.v} title={o.label}>
                     <IconButton aria-label={o.label} onClick={() => { setFbRating(o.v); hapticLight(); void sendFeedback(o.v, fbNote || note); }}
-                      sx={{ color: fbRating === o.v ? '#0f766e' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#0f766e', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
+                      sx={{ color: fbRating === o.v ? '#178f89' : 'text.secondary', bgcolor: fbRating === o.v ? 'rgba(32,178,170,0.18)' : 'transparent', '&:hover': { color: '#178f89', bgcolor: 'rgba(32,178,170,0.10)' }, width: 44, height: 44 }}>
                       {o.icon}
                     </IconButton>
                   </Tooltip>
                 ))}
               </Stack>
 
-              <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', mb: 0.75 }}>
                 Toque para adicionar itens rápidos:
               </Typography>
               <Stack direction="row" flexWrap="wrap" useFlexGap spacing={0.75} sx={{ mb: 1.75 }}>
@@ -1534,11 +1532,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                       clickable
                       onClick={() => togglePresetTag(tag)}
                       sx={{
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 700,
                         borderRadius: '999px',
                         bgcolor: sel ? 'rgba(32,178,170,0.22)' : 'rgba(0,0,0,0.04)',
-                        color: sel ? '#0f766e' : 'text.primary',
+                        color: sel ? '#178f89' : 'text.primary',
                         border: '1px solid',
                         borderColor: sel ? '#20b2aa' : 'divider',
                       }}
@@ -1585,7 +1583,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   {noteSaved ? 'Anotação salva ✓' : 'Salvar avaliação e anotações'}
                 </Button>
                 {noteSaved && (
-                  <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Salva no aparelho" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
+                  <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Salva no aparelho" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
                 )}
               </Stack>
             </Box>
@@ -1698,11 +1696,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 22, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>
           {docName}
         </Typography>
-        <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 14, mb: 1 }}>
+        <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 14, mb: 5 }}>
           {summary?.doctor?.specialty ? `${summary.doctor.specialty} · ` : ''}Chamada de vídeo…
-        </Typography>
-        <Typography sx={{ color: 'rgba(255,255,255,.4)', fontSize: 12, mb: 5 }}>
-          Sala {String(reminderId).slice(-5).toUpperCase()}
         </Typography>
         {/* Botões: verde atender + vermelho recusar */}
         <Stack direction="row" spacing={6} alignItems="center">
@@ -1718,7 +1713,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             >
               <CallEndIcon sx={{ fontSize: 28 }} />
             </IconButton>
-            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 11, mt: 1 }}>Recusar</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 12, mt: 1 }}>Recusar</Typography>
           </Box>
           <Box sx={{ textAlign: 'center' }}>
             <IconButton
@@ -1738,18 +1733,18 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             >
               {joinLoading ? <CircularProgress size={26} sx={{ color: '#fff' }} /> : <VideocamIcon sx={{ fontSize: 28 }} />}
             </IconButton>
-            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 11, mt: 1 }}>{showConsent ? 'Autorizar' : 'Atender'}</Typography>
+            <Typography sx={{ color: 'rgba(255,255,255,.5)', fontSize: 12, mt: 1 }}>{showConsent ? 'Autorizar' : 'Atender'}</Typography>
           </Box>
         </Stack>
         {showConsent && (
-          <Typography sx={{ color: 'rgba(255,255,255,.35)', fontSize: 11, mt: 4, maxWidth: 280, textAlign: 'center', lineHeight: 1.5 }}>
+          <Typography sx={{ color: 'rgba(255,255,255,.35)', fontSize: 12, mt: 4, maxWidth: 280, textAlign: 'center', lineHeight: 1.5 }}>
             Ao atender, você autoriza a telemedicina conforme o Art. 15 da Res. CFM 2.314/2022.
           </Typography>
         )}
       </Box>
     );
   }
-  const ctaLabel = role === 'doctor' ? 'Entrar e aguardar' : showConsent ? 'Autorizar e entrar' : 'Entrar na consulta';
+  const ctaLabel = 'Entrar na consulta';
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 1.5 }}>
       <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px' }} elevation={4}>
@@ -1759,20 +1754,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           {/* Preview espelhado */}
           <Box sx={{ position: 'relative', aspectRatio: '16 / 9', borderRadius: '16px', overflow: 'hidden', bgcolor: '#0c1818', mb: 0.5 }}>
             {camState === 'ok' ? (
-              <video ref={previewVideo} playsInline autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+              <>
+                <video ref={previewVideo} playsInline autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
+                {phase === 'prejoin' && (
+                  <Chip size="small" label="Pré-visualização da câmera" sx={{ position: 'absolute', bottom: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
+                )}
+              </>
             ) : (
               <Stack spacing={1} sx={{ position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', bgcolor: (t) => (t.palette.mode === 'dark' ? '#1a2424' : '#eef7f6') }}>
                 <DrExame size={96} />
-                {phase === 'prejoin' && camState !== 'pending' && (
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary', mt: 1 }}>Sorria, você está pronto ✨</Typography>
-                )}
               </Stack>
             )}
             {camState === 'denied' && (
-              <Chip size="small" label="Câmera bloqueada" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 11, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
+              <Chip size="small" label="Câmera bloqueada" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
             )}
             {camState === 'nodevice' && (
-              <Chip size="small" label="Sem câmera" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 11, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
+              <Chip size="small" label="Sem câmera" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
             )}
             {phase === 'loading' && <CircularProgress size={22} sx={{ position: 'absolute', top: 10, right: 10, color: '#5fc9c3' }} />}
           </Box>
@@ -1840,16 +1837,21 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Box>
           )}
           {role === 'patient' && summary?.consentAt && (
-            <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="telemedicina autorizada" sx={{ mt: 1.5, height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,.1)', color: (t) => tealText(t.palette.mode), '& .MuiChip-icon': { color: (t) => tealText(t.palette.mode) } }} />
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>✓ Telemedicina autorizada</Typography>
           )}
           {role === 'doctor' && summary && !summary.consentAt && (
-            <Chip size="small" label="Paciente ainda não autorizou" sx={{ mt: 1.5, height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(217,119,6,.14)', color: '#b45309', borderRadius: '8px' }} />
+            <Chip size="small" label="Paciente ainda não autorizou" sx={{ mt: 1.5, height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(217,119,6,.14)', color: '#b45309', borderRadius: '8px' }} />
           )}
 
           <Button variant="contained" fullWidth disabled={phase === 'loading' || joinLoading} onClick={() => void consentAndJoin()} startIcon={joinLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,.8)' }} /> : <VideocamIcon />}
             sx={{ ...primaryBtn, mt: 2 }}>
             {ctaLabel}
           </Button>
+          {showConsent && (
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 1, lineHeight: 1.5 }}>
+              Ao entrar, você autoriza a telemedicina (Art. 15, Res. CFM 2.314/2022).
+            </Typography>
+          )}
         </CardContent>
       </Card>
 
