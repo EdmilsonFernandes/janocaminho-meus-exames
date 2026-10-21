@@ -6,6 +6,7 @@ import { confirmDialog } from '../components/ConfirmDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import BellIcon from '@mui/icons-material/NotificationsActive';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import AddAlarmIcon from '@mui/icons-material/AddAlarm';
 import HistoryIcon from '@mui/icons-material/History';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -333,6 +334,23 @@ export const RemindersPage = () => {
                     </Stack>
 
                     {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (
+                    r.done && r.type === 'teleconsulta' ? (
+                      /* ══ PÓS-CONSULTA (dono 21/10: "termina e continua disponível,
+                         não sei se transcreveu, não tem organização") — card vira hub ══ */
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ pt: 1, borderTop: '1px solid rgba(5,150,105,0.15)' }}>
+                        <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 14 }} />} label="Consulta realizada" sx={{ height: 26, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(5,150,105,.1)', color: '#059669', borderRadius: '8px', '& .MuiChip-icon': { color: '#059669' } }} />
+                        {(pendingReqs[r.id] ?? 0) > 0 && (
+                          <Chip size="small" clickable label={`📋 ${pendingReqs[r.id]} pedido${pendingReqs[r.id] > 1 ? 's' : ''} do médico`}
+                            onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                            sx={{ height: 26, fontSize: 11, fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(245,158,11,.14)', color: '#92400e', '&:hover': { bgcolor: 'rgba(245,158,11,.22)' } }} />
+                        )}
+                        <Button size="small" variant="outlined" startIcon={<AssignmentIcon />}
+                          onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: '#0f766e', borderColor: 'rgba(15,118,110,.35)', '&:hover': { bgcolor: 'rgba(15,118,110,.06)', borderColor: '#0f766e' } }}>
+                          Ver consulta
+                        </Button>
+                      </Stack>
+                    ) : (
                       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center" sx={{ pt: 1, borderTop: '1px solid rgba(15,118,110,0.1)' }}>
                         {(r.provider === 'livekit' || (!r.linkUrl && r.type === 'teleconsulta')) ? (
                           <>
@@ -486,7 +504,7 @@ export const RemindersPage = () => {
                           </IconButton>
                         )}
                       </Stack>
-                    )}
+                    ))}
                   </Box>
                 );
               })()}

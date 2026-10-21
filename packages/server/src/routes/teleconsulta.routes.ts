@@ -180,6 +180,9 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
     }
     const exists = await prisma.reminder.findFirst({ where: { id: String(req.params.id), type: 'teleconsulta' }, select: { id: true } });
     if (!exists) { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
+    // Dono 21/10: feedback = a consulta ACONTECEU → marca done (o card para de
+    // mostrar "Entrar na consulta" e vira "Ver consulta realizada").
+    await prisma.reminder.update({ where: { id: exists.id }, data: { done: true } }).catch(() => {});
     await audit('TELECONSULTA_FEEDBACK', req, {
       actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
       actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
