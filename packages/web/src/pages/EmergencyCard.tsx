@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Box, Card, CardContent, Typography, Button, Divider, Skeleton, Stack } from '@mui/material';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import WaterDropIcon from '@mui/icons-material/WaterDrop';
+import MedicationIcon from '@mui/icons-material/Medication';
+import CallIcon from '@mui/icons-material/Call';
+import PrintIcon from '@mui/icons-material/Print';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { printPage } from '../utils/nativeDoc';
@@ -42,16 +46,21 @@ export const EmergencyCardPage = () => {
                 {age && <Typography color="text.secondary" sx={{ fontWeight: 600 }}>{age} anos</Typography>}
               </Box>
               <Divider sx={{ my: 2 }} />
+              {/* Tipo sanguíneo (auditoria perfil 10/26): o campo NÃO existe no cadastro —
+                  "preencha no perfil" era beco sem saída (mentira). Enquanto a API não tem
+                  bloodType, a linha só aparece se houver dado. */}
+              {patient.bloodType && (
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>🩸 Tipo Sanguíneo</Typography>
-                <Typography variant="body2" color="text.secondary">{patient.bloodType || 'Não informado — preencha no perfil'}</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 0.75 }}><WaterDropIcon sx={{ fontSize: 19 }} /> Tipo Sanguíneo</Typography>
+                <Typography variant="body2" color="text.secondary">{patient.bloodType}</Typography>
               </Box>
+              )}
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>💊 Medicações</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 0.75 }}><MedicationIcon sx={{ fontSize: 19 }} /> Medicações</Typography>
                 <Typography variant="body2" color="text.secondary">{patient.clinicalProfile || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ mb: 2 }}>
-                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444' }}>📞 Contato de emergência</Typography>
+                <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 0.75 }}><CallIcon sx={{ fontSize: 19 }} /> Contato de emergência</Typography>
                 <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
@@ -63,7 +72,7 @@ export const EmergencyCardPage = () => {
                 </Box>
               </Box>
               <Button fullWidth variant="contained" sx={{ mt: 3, borderRadius: '999px', py: 1.25, fontWeight: 800, textTransform: 'none', bgcolor: '#ef4444', '&:hover': { bgcolor: '#dc2626' } }} onClick={() => printPage('Cartão de Emergência')}>
-                🖨️ Imprimir carteirinha
+                <PrintIcon sx={{ mr: 1 }} /> Imprimir carteirinha
               </Button>
             </>
           ) : (

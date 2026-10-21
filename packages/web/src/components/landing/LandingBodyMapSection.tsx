@@ -539,8 +539,11 @@ export const LandingBodyMapSection = () => {
                   fullWidth
                   variant="outlined"
                   onClick={() => {
+                    // Na home: rola até o demo. Em /features: deep-link ?ir=decifre
+                    // (a landing rola até #demo sozinha ao montar).
                     const el = document.getElementById('demo');
-                    el?.scrollIntoView({ behavior: 'smooth' });
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    else navigate('/?ir=decifre');
                   }}
                   sx={{
                     borderRadius: '999px',

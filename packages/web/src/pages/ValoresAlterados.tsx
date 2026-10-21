@@ -15,7 +15,6 @@ import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { ExplainButton } from '../components/ExplainItem';
 import { UnitLabel } from '../components/UnitLabel';
-import { ValueBar } from '../components/ValueBar';
 import { ListSkeleton } from '../components/Skeleton';
 import { EmptyState } from '../components/EmptyState';
 import { TelemedicineButton } from '../components/TelemedicineButton';
@@ -23,6 +22,7 @@ import { fmtVal, unitSuffix } from '../utils/format';
 import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK, priorityText } from '../utils/alertPriority';
 import { CappedExamMarkers } from '../components/CappedExamMarkers';
+import { RADIUS } from '../theme';
 
 import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
@@ -106,7 +106,7 @@ export const ValoresAlteradosPage = () => {
         sx={{
           border: `1px solid ${meta.color}55`,
           borderLeft: `4px solid ${meta.color}`,
-          borderRadius: '16px !important',
+          borderRadius: `${RADIUS.card} !important`,
           overflow: 'hidden',
           '&:before': { display: 'none' },
           boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)'),
@@ -163,7 +163,7 @@ export const ValoresAlteradosPage = () => {
       ) : (
         <>
           {/* Resumo não-alarmista por prioridade */}
-          <Card variant="outlined" sx={{ mb: 1, borderRadius: '16px', borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
+          <Card variant="outlined" sx={{ mb: 1, borderRadius: RADIUS.card, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
             <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
                 <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'importante') }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
@@ -193,7 +193,7 @@ export const ValoresAlteradosPage = () => {
               <Chip
                 size="small"
                 label={showAll ? `Exibindo todos (${groups.length})` : `3 de ${groups.length} exames`}
-                sx={{ height: 22, fontSize: '0.72rem', fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
+                sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: (t) => alpha(t.palette.primary.main, 0.1), color: 'primary.main' }}
               />
             </Box>
           )}
@@ -219,7 +219,7 @@ export const ValoresAlteradosPage = () => {
                 sx={{
                   mt: 1,
                   cursor: 'pointer',
-                  borderRadius: '16px',
+                  borderRadius: RADIUS.card,
                   border: (t) => `1px dashed ${alpha(t.palette.primary.main, showAll ? 0.3 : 0.45)}`,
                   background: (t) =>
                     t.palette.mode === 'dark'
@@ -240,7 +240,7 @@ export const ValoresAlteradosPage = () => {
                         sx={{
                           width: 38,
                           height: 38,
-                          borderRadius: '12px',
+                          borderRadius: RADIUS.md,
                           bgcolor: (t) => alpha(t.palette.primary.main, 0.14),
                           color: 'primary.main',
                           display: 'flex',
@@ -265,7 +265,7 @@ export const ValoresAlteradosPage = () => {
                       label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
                       color="primary"
                       variant={showAll ? 'outlined' : 'filled'}
-                      sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                      sx={{ fontWeight: 800, borderRadius: RADIUS.pill, height: 26 }}
                     />
                   </Stack>
                 </CardContent>

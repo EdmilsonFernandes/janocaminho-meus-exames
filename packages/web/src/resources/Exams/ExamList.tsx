@@ -3,8 +3,13 @@ import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
 import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
-import { alpha } from '@mui/material/styles';
+import { alpha, lighten } from '@mui/material/styles';
 import ScienceIcon from '@mui/icons-material/Science';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import ScheduleIcon from '@mui/icons-material/Schedule';
+import FiberNewIcon from '@mui/icons-material/FiberNew';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import FolderOutlinedIcon from '@mui/icons-material/FolderOutlined';
 import ImageIcon from '@mui/icons-material/Image';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -40,7 +45,7 @@ import { ChangesSinceExam, type Marker } from '../../components/dashboard/Change
 import { ExamShow } from './ExamShow';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { openExamFile } from '../../utils/examFile';
-import { RADIUS } from '../../theme';
+import { RADIUS, SEM, tealText } from '../../theme';
 
 // Status de PROCESSAMENTO (não clínico) → chave de paleta (token, sem hex literal).
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info', REJECTED: 'default' };
@@ -51,6 +56,9 @@ const kindLabel: Record<string, string> = { LAB_PANEL: 'Laboratorial', IMAGING: 
 const toneMain = (t: any, sc: string) => (sc === 'default' ? t.palette.text.secondary : (t.palette as any)[sc]?.main ?? t.palette.text.secondary);
 
 const RECENT_DAYS = 90; // filtro "Recentes": últimos ~3 meses.
+
+/** Tema mínimo p/ callbacks sx de cor por modo (indexar SEM com `any` dá TS7053). */
+type ModeTheme = { palette: { mode: 'light' | 'dark' } };
 
 /** Ano (int) de um exame — performedAt (data do exame) com fallback no envio (createdAt). */
 const yearOf = (r: any): number | null => {
@@ -110,9 +118,9 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
         {abnCount > 0 ? (
-          <Chip size="small" label={`${abnCount} alterado${abnCount === 1 ? '' : 's'}`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: alpha('#c2410c', 0.14), color: '#b45309' }} />
+          <Chip size="small" label={`${abnCount} alterado${abnCount === 1 ? '' : 's'}`} sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: (t) => SEM.warn[t.palette.mode] }} />
         ) : (
-          <Chip size="small" label="Nada alterado" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: alpha('#047857', 0.14), color: '#047857' }} />
+          <Chip size="small" label="Nada alterado" sx={{ height: 22, fontWeight: 700, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode] }} />
         )}
       </Stack>
       <Stack direction="row" spacing={1} sx={{ mt: 2.25 }}>
@@ -177,11 +185,11 @@ const ExamFilterToolbar = ({
           onChange={(_, v) => { if (v) setView(v); }}
           sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: 40 }}
         >
-          <ToggleButton value="date" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider' }}>
-            📅 Data
+          <ToggleButton value="date" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+            <CalendarMonthIcon sx={{ fontSize: 16 }} /> Data
           </ToggleButton>
-          <ToggleButton value="category" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider' }}>
-            📁 Categoria
+          <ToggleButton value="category" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+            <FolderOutlinedIcon sx={{ fontSize: 16 }} /> Categoria
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
@@ -199,7 +207,7 @@ const ExamFilterToolbar = ({
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        {/* Todos */}
+        {/* Todos — inativo mode-aware (lavagem teal + texto AA por modo); ativo = sólido. */}
         <Chip
           size="small"
           label={translate('exams.all', { count: extractedCount })}
@@ -210,10 +218,10 @@ const ExamFilterToolbar = ({
             flexShrink: 0,
             fontWeight: 800,
             whiteSpace: 'nowrap',
-            bgcolor: isAllActive ? '#0f5f5a' : 'rgba(15,95,90,0.08)',
-            color: isAllActive ? '#fff' : '#0f5f5a',
+            bgcolor: isAllActive ? '#0f5f5a' : (t) => alpha(t.palette.primary.main, 0.10),
+            color: isAllActive ? '#fff' : (t) => tealText(t.palette.mode),
             border: '1px solid',
-            borderColor: isAllActive ? '#0f5f5a' : 'rgba(15,95,90,0.2)',
+            borderColor: isAllActive ? '#0f5f5a' : (t) => alpha(t.palette.primary.main, 0.28),
           }}
         />
 
@@ -221,7 +229,8 @@ const ExamFilterToolbar = ({
         {abnormalCount > 0 && (
           <Chip
             size="small"
-            label={`⚠️ Alterados (${abnormalCount})`}
+            icon={<WarningAmberIcon sx={{ fontSize: '15px !important', color: (t: ModeTheme) => `${isAlteredActive ? '#fff' : SEM.warn[t.palette.mode]} !important`, ml: 0.5, mr: -0.5 }} />}
+            label={`Alterados (${abnormalCount})`}
             onClick={() => { setSfilter(isAlteredActive ? 'all' : 'altered'); setCat('all'); }}
             {...chipA11y(isAlteredActive)}
             sx={{
@@ -229,10 +238,10 @@ const ExamFilterToolbar = ({
               flexShrink: 0,
               fontWeight: 800,
               whiteSpace: 'nowrap',
-              bgcolor: isAlteredActive ? '#c2410c' : 'rgba(234,88,12,0.12)',
-              color: isAlteredActive ? '#fff' : '#c2410c',
+              bgcolor: isAlteredActive ? '#c2410c' : (t) => alpha(SEM.warn[t.palette.mode], 0.12),
+              color: isAlteredActive ? '#fff' : (t) => SEM.warn[t.palette.mode],
               border: '1px solid',
-              borderColor: isAlteredActive ? '#c2410c' : 'rgba(234,88,12,0.3)',
+              borderColor: isAlteredActive ? '#c2410c' : (t) => alpha(SEM.warn[t.palette.mode], 0.3),
             }}
           />
         )}
@@ -241,7 +250,8 @@ const ExamFilterToolbar = ({
         {recentCount > 0 && (
           <Chip
             size="small"
-            label={`⏱️ Recentes (${recentCount})`}
+            icon={<ScheduleIcon sx={{ fontSize: '15px !important', color: (t: ModeTheme) => `${isRecentActive ? '#fff' : SEM.info[t.palette.mode]} !important`, ml: 0.5, mr: -0.5 }} />}
+            label={`Recentes (${recentCount})`}
             onClick={() => { setSfilter(isRecentActive ? 'all' : 'recent'); setCat('all'); }}
             {...chipA11y(isRecentActive)}
             sx={{
@@ -249,15 +259,16 @@ const ExamFilterToolbar = ({
               flexShrink: 0,
               fontWeight: 700,
               whiteSpace: 'nowrap',
-              bgcolor: isRecentActive ? '#0284c7' : 'rgba(2,132,199,0.1)',
-              color: isRecentActive ? '#fff' : '#0284c7',
+              bgcolor: isRecentActive ? '#0284c7' : (t) => alpha(SEM.info[t.palette.mode], 0.12),
+              color: isRecentActive ? '#fff' : (t) => SEM.info[t.palette.mode],
               border: '1px solid',
-              borderColor: isRecentActive ? '#0284c7' : 'rgba(2,132,199,0.25)',
+              borderColor: isRecentActive ? '#0284c7' : (t) => alpha(SEM.info[t.palette.mode], 0.3),
             }}
           />
         )}
 
-        {/* Categorias (Hemograma, Imagem, Hormônios...) */}
+        {/* Categorias (Hemograma, Imagem, Hormônios...) — inativo clareia a cor da
+            categoria no dark (hex do CATS foi calibrado p/ fundo claro). */}
         {presentCats.map((c) => {
           const isCatActive = cat === c.key && sfilter === 'all';
           const IconComp = c.icon;
@@ -265,7 +276,7 @@ const ExamFilterToolbar = ({
             <Chip
               key={c.key}
               size="small"
-              icon={<IconComp sx={{ fontSize: '15px !important', color: `${isCatActive ? '#fff' : c.color} !important`, ml: 0.5, mr: -0.5 }} />}
+              icon={<IconComp sx={{ fontSize: '15px !important', ml: 0.5, mr: -0.5 }} />}
               label={`${c.cat} (${catCounts[c.key]})`}
               onClick={() => { setCat(isCatActive ? 'all' : c.key); setSfilter('all'); }}
               {...chipA11y(isCatActive)}
@@ -274,9 +285,11 @@ const ExamFilterToolbar = ({
                 flexShrink: 0,
                 fontWeight: 700,
                 whiteSpace: 'nowrap',
-                bgcolor: isCatActive ? c.color : c.color + '1a',
-                color: isCatActive ? '#fff' : c.color,
-                border: `1px solid ${isCatActive ? c.color : c.color + '40'}`,
+                bgcolor: isCatActive ? c.color : (t) => alpha(c.color, t.palette.mode === 'dark' ? 0.22 : 0.10),
+                color: isCatActive ? '#fff' : (t) => (t.palette.mode === 'dark' ? lighten(c.color, 0.35) : c.color),
+                border: '1px solid',
+                borderColor: isCatActive ? c.color : (t) => alpha(c.color, t.palette.mode === 'dark' ? 0.45 : 0.25),
+                '& .MuiChip-icon': { color: isCatActive ? '#fff !important' : (t: ModeTheme) => `${t.palette.mode === 'dark' ? lighten(c.color, 0.35) : c.color} !important` },
               }}
             />
           );
@@ -450,6 +463,17 @@ const ExamCards = () => {
   const abnormalCount = extracted.filter((r: any) => (abnByExam[r.id] ?? 0) > 0).length;
   const recentCount = extracted.filter((r: any) => { const d = r.performedAt ?? r.createdAt; return !!d && (Date.now() - new Date(d).getTime()) < RECENT_DAYS * 86400000; }).length;
 
+  // Estado vazio HONESTO: se a lista só tem envios FAILED/REJECTED, "nenhum exame
+  // enviado ainda" é mentira (contradiz a seção "não foi possível ler" logo acima).
+  // Mostra estado neutro — as seções de atenção já explicam o que houve com cada envio.
+  const emptyBlock = (
+    filtering
+      ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
+      : failed.length > 0 || rejected.length > 0
+        ? <EmptyState title="Nenhum exame pronto ainda" desc="Os envios desta página precisam de atenção — re-extrai ou confere acima. Envie um novo documento quando quiser." />
+        : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
+  );
+
   const renderCard = (r: any) => {
     const sc = statusColor[r.status] ?? 'default';
     const cc = categorizeExam(r);
@@ -486,9 +510,9 @@ const ExamCards = () => {
               {cc.cat}{itemCount ? ` • ${itemCount} ${itemCount === 1 ? 'resultado' : 'resultados'}` : ''}{altered > 0 ? ` • ${altered} alterado${altered === 1 ? '' : 's'}` : ''}
             </Typography>
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
-              {isNew && <Chip size="small" label="🆕 Novo" sx={{ bgcolor: '#dcfce7', color: '#15803d', fontWeight: 700, height: 20 }} />}
+              {isNew && <Chip size="small" icon={<FiberNewIcon sx={{ fontSize: '14px !important' }} />} label="Novo" sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode], '& .MuiChip-icon': { color: (t: ModeTheme) => `${SEM.ok[t.palette.mode]} !important` } }} />}
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(toneMain(t, sc), 0.12), color: (t) => toneMain(t, sc) }} />
-              {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800, height: 20 }} />}
+              {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: (t) => SEM.warn[t.palette.mode], fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
           <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0, p: 1.25 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
@@ -564,8 +588,8 @@ const ExamCards = () => {
           {processing.length > 0 && (
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>{translate('exams.processing')}</Typography>
-                <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
+                <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => SEM.info[t.palette.mode] }}>{translate('exams.processing')}</Typography>
+                <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.info[t.palette.mode], 0.14), color: (t) => SEM.info[t.palette.mode], fontWeight: 700 }} />
               </Stack>
               <Stack spacing={1.5}>{processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}</Stack>
             </Box>
@@ -574,7 +598,7 @@ const ExamCards = () => {
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
-                <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
+                <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.bad[t.palette.mode], 0.14), color: (t) => SEM.bad[t.palette.mode], fontWeight: 700 }} />
               </Stack>
               <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
                 {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
@@ -586,7 +610,7 @@ const ExamCards = () => {
             <Box>
               <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
-                <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'rgba(0,0,0,.06)', color: 'text.secondary', fontWeight: 700 }} />
+                <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />
               </Stack>
               <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
                 Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
@@ -597,7 +621,7 @@ const ExamCards = () => {
           {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
           {view === 'date' && (
             <>
-              {dateGroups.length === 0 && processing.length === 0 && (filtering ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} /> : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />)}
+              {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
               {dateGroups.map((g) => {
                 const locked = !premium && g.year !== latestYear && g.year != null;
                 if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
@@ -607,7 +631,7 @@ const ExamCards = () => {
                   <Accordion key={String(g.year)} expanded={isAccordionExpanded(expKey, defaultExp)} onChange={() => toggleAccordion(expKey, defaultExp)} disableGutters elevation={0} sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                     <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                       <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                      <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
+                      <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
                     </AccordionSummary>
                     <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>{g.items.map(renderCard)}</AccordionDetails>
                   </Accordion>
@@ -617,7 +641,7 @@ const ExamCards = () => {
           )}
           {view === 'category' && (
             <>
-              {catGroups.length === 0 && processing.length === 0 && (filtering ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} /> : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />)}
+              {catGroups.length === 0 && processing.length === 0 && emptyBlock}
               {catGroups.map(({ cat: c, items }) => {
                 const defaultExp = catGroups.length <= 3;
                 const expKey = `cat-${c.key}`;
@@ -681,8 +705,8 @@ const ExamCards = () => {
       {processing.length > 0 && (
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0369a1' }}>{translate('exams.processing')}</Typography>
-            <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: '#e0f2fe', color: '#0369a1', fontWeight: 700 }} />
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => SEM.info[t.palette.mode] }}>{translate('exams.processing')}</Typography>
+            <Chip size="small" label={processing.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.info[t.palette.mode], 0.14), color: (t) => SEM.info[t.palette.mode], fontWeight: 700 }} />
           </Stack>
           <Stack spacing={1.5}>
             {processing.map((r: any) => <ProcessingCard key={r.id} r={r} onCancel={(e: any) => del(e, r.id, r.title || 'Exame em processamento')} />)}
@@ -693,7 +717,7 @@ const ExamCards = () => {
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'error.main' }}>{translate('exams.failed_title')}</Typography>
-            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: '#fee2e2', color: '#ef4444', fontWeight: 700 }} />
+            <Chip size="small" label={failed.length} sx={{ height: 18, bgcolor: (t) => alpha(SEM.bad[t.palette.mode], 0.14), color: (t) => SEM.bad[t.palette.mode], fontWeight: 700 }} />
           </Stack>
           <Alert severity="warning" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             {failed.length === 1 ? translate('exams.failed_msg_one') : translate('exams.failed_msg_many', { count: failed.length })} {translate('exams.failed_action')} <strong>{translate('exams.reextract')}</strong>.
@@ -707,7 +731,7 @@ const ExamCards = () => {
         <Box>
           <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.75 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.secondary' }}>Não adicionados (CPF divergente)</Typography>
-            <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'rgba(0,0,0,.06)', color: 'text.secondary', fontWeight: 700 }} />
+            <Chip size="small" label={rejected.length} sx={{ height: 18, bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 700 }} />
           </Stack>
           <Alert severity="info" icon={false} sx={{ mb: 1.25, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
             Exames cujo CPF do documento difere do CPF da conta ficam de fora das análises. Se o documento é seu, toque em "Acredito que houve um erro" e o suporte confere (OCR pode errar).
@@ -724,11 +748,7 @@ const ExamCards = () => {
       {/* Grupos (data OU categoria) */}
       {view === 'date' && (
         <>
-          {dateGroups.length === 0 && processing.length === 0 && (
-            filtering
-              ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
-          )}
+          {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
             if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
@@ -739,7 +759,7 @@ const ExamCards = () => {
                 sx={{ borderRadius: `${RADIUS.sectionCard} !important`, border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: 30, color: '#178f89', bgcolor: 'rgba(32,178,170,.12)', borderRadius: '50%', p: 0.6, boxShadow: '0 2px 6px rgba(32,178,170,.18)' }} />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                   <Typography sx={{ fontWeight: 800, flex: '1 1 auto', minWidth: 0 }}>📅 {g.label}</Typography>
-                  <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'rgba(0,0,0,.05)', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
+                  <Chip size="small" label={`${g.items.length} ${g.items.length === 1 ? 'exame' : 'exames'}`} sx={{ ml: 1.5, bgcolor: 'action.hover', color: 'text.secondary', height: 22, fontSize: 12, flexShrink: 0 }} />
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                   {g.items.map(renderCard)}
@@ -752,11 +772,7 @@ const ExamCards = () => {
 
       {view === 'category' && (
         <>
-          {catGroups.length === 0 && processing.length === 0 && (
-            filtering
-              ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
-              : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
-          )}
+          {catGroups.length === 0 && processing.length === 0 && emptyBlock}
           {catGroups.map(({ cat: c, items }) => {
             const defaultExp = catGroups.length <= 3;
             const expKey = `cat-${c.key}`;

@@ -32,10 +32,30 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
   const [muted, setMuted] = useState(false);
   const [camOff, setCamOff] = useState(false);
   const timerRef = useRef<number | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [inView, setInView] = useState(false);
+
+  // Só anima/quando visível: sem isto o ciclo de timers + setInterval roda desde o
+  // load da página (custo contínuo de bateria no mobile, mesmo fora da viewport).
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setInView(true);
+      return;
+    }
+    const io = new IntersectionObserver((entries) => {
+      setInView(entries[0]?.isIntersecting ?? false);
+    }, { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   // Ciclo automático da demonstração:
   // prejoin (6s) -> connecting (1.8s) -> in-call (14s) -> reinicia
+  // Pausa fora da viewport e no prefers-reduced-motion (interação manual continua ok).
   useEffect(() => {
+    if (!inView) return;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
     let t: number;
     if (phase === 'prejoin') {
       t = window.setTimeout(() => setPhase('connecting'), 6500);
@@ -48,19 +68,20 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
       }, 14000);
     }
     return () => window.clearTimeout(t);
-  }, [phase]);
+  }, [phase, inView]);
 
-  // Cronômetro da chamada ao vivo
+  // Cronômetro da chamada ao vivo (intervalo só com a seção em vista)
   useEffect(() => {
     if (phase !== 'incall') {
       setSecs(0);
       return;
     }
+    if (!inView) return;
     timerRef.current = window.setInterval(() => setSecs((s) => s + 1), 1000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
-  }, [phase]);
+  }, [phase, inView]);
 
   const mm = String(Math.floor(secs / 60)).padStart(2, '0');
   const ss = String(secs % 60).padStart(2, '0');
@@ -69,6 +90,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
     <Box
       component="section"
       id="teleconsulta"
+      ref={sectionRef}
       sx={{
         py: { xs: 6, md: 10 },
         scrollMarginTop: 80,
@@ -85,11 +107,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
           borderRadius: '50%',
           pointerEvents: 'none',
           background: 'radial-gradient(circle, rgba(32,178,170,0.18) 0%, transparent 68%)',
-          animation: 'dxTeleglow 8s ease-in-out infinite',
-          '@keyframes dxTeleglow': {
-            '0%,100%': { opacity: 0.6, transform: 'scale(1)' },
-            '50%': { opacity: 1, transform: 'scale(1.12)' },
-          },
+          opacity: 0.75,
         },
       }}
     >
@@ -307,6 +325,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                     '0%': { transform: 'scale(1)' },
                     '100%': { transform: 'scale(1.045) translateY(-4px)' },
                   },
+                  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                 }}
               >
                 {/* Vinhetas escuras nos cantos para leitura perfeita */}
@@ -374,6 +393,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                             '0%,100%': { opacity: 1 },
                             '50%': { opacity: 0.3 },
                           },
+                          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                         }}
                       />
                       <Typography sx={{ fontSize: 11, fontWeight: 800, fontFamily: 'monospace', color: '#fff' }}>
@@ -416,6 +436,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                             '0%': { height: 3 },
                             '100%': { height: 14 },
                           },
+                          '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                         }}
                       />
                     ))}
@@ -702,11 +723,6 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                         border: '2px dashed rgba(32,178,170,0.7)',
                         boxShadow: '0 0 16px rgba(32,178,170,0.2)',
                         pointerEvents: 'none',
-                        animation: 'dxFaceScan 3s ease-in-out infinite',
-                        '@keyframes dxFaceScan': {
-                          '0%,100%': { borderColor: 'rgba(32,178,170,0.85)', transform: 'scale(1)' },
-                          '50%': { borderColor: 'rgba(52,211,153,0.4)', transform: 'scale(1.02)' },
-                        },
                       }}
                     >
                       {/* Cantoneiras HUD */}
@@ -798,11 +814,6 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       py: 1.35,
                       background: 'linear-gradient(135deg, #20b2aa, #0f766e)',
                       boxShadow: '0 8px 24px rgba(32,178,170,0.45)',
-                      animation: 'dxPulseBtn 2.2s ease-in-out infinite',
-                      '@keyframes dxPulseBtn': {
-                        '0%,100%': { boxShadow: '0 8px 24px rgba(32,178,170,0.45)', transform: 'scale(1)' },
-                        '50%': { boxShadow: '0 8px 32px rgba(32,178,170,0.7)', transform: 'scale(1.02)' },
-                      },
                       '&:hover': {
                         background: 'linear-gradient(135deg, #24c9c1, #118a81)',
                         transform: 'scale(1.03)',
@@ -820,7 +831,7 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                       mt: 1,
                     }}
                   >
-                    🔒 Sala médica privativa · Toque para testar
+                    Sala médica privativa · Toque para testar
                   </Typography>
                 </Box>
               )}

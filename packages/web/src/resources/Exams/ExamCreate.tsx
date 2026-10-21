@@ -12,6 +12,9 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import RedeemIcon from '@mui/icons-material/Redeem';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { Title, useNotify, useRedirect, useRefresh, useLogout } from 'react-admin';
 import { API_URL, token, fetchPublicConfig } from '../../config';
 import { confirmDialog } from '../../components/ConfirmDialog';
@@ -20,6 +23,7 @@ import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { takeExamFiles } from '../../utils/examHandoff';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { RADIUS } from '../../theme';
 
 const MAX_BYTES = 32 * 1024 * 1024; // 32 MB por arquivo (limite do Claude)
 const isNative = typeof Capacitor !== 'undefined' && Capacitor.isNativePlatform();
@@ -103,10 +107,10 @@ const FilePreview = ({ file, onRemove }: { file: File; onRemove: () => void }) =
   const [url] = useState<string | null>(() => (isImg ? URL.createObjectURL(file) : null));
   useEffect(() => () => { if (url) URL.revokeObjectURL(url); }, [url]);
   return (
-    <Box sx={{ position: 'relative', p: 1.25, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', width: { xs: '100%', sm: 210 } }}>
+    <Box sx={{ position: 'relative', p: 1.25, borderRadius: RADIUS.card, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', width: { xs: '100%', sm: 210 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center">
         <Box sx={{
-          width: 52, height: 52, borderRadius: '12px', overflow: 'hidden', flexShrink: 0,
+          width: 52, height: 52, borderRadius: RADIUS.button, overflow: 'hidden', flexShrink: 0,
           bgcolor: 'rgba(32,178,170,.10)', display: 'grid', placeItems: 'center',
         }}>
           {url ? (
@@ -408,7 +412,7 @@ export const ExamCreate = () => {
         <Box sx={{
           width: 52,
           height: 52,
-          borderRadius: '18px',
+          borderRadius: RADIUS.card,
           background: 'linear-gradient(135deg,#20b2aa,#178f89)',
           display: 'flex',
           alignItems: 'center',
@@ -441,7 +445,7 @@ export const ExamCreate = () => {
             py: 1.25,
             gap: 1.25,
             alignItems: 'center',
-            borderRadius: '14px',
+            borderRadius: RADIUS.button,
             cursor: 'pointer',
             textAlign: 'left',
             bgcolor: 'action.hover',
@@ -452,7 +456,7 @@ export const ExamCreate = () => {
             '&:hover': { bgcolor: 'action.selected', borderColor: 'rgba(32,178,170,.5)' },
           }}
         >
-          <Box sx={{ fontSize: 20, lineHeight: 1 }}>💬</Box>
+          <ChatBubbleOutlineIcon sx={{ fontSize: 22, color: 'primary.main', flexShrink: 0 }} />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
               Não tem seu exame em mãos agora?
@@ -470,7 +474,7 @@ export const ExamCreate = () => {
           icon={false}
           sx={{
             mb: 2.5,
-            borderRadius: '18px',
+            borderRadius: RADIUS.card,
             p: { xs: 1.75, sm: 2 },
             alignItems: 'center',
             bgcolor: 'rgba(32,178,170,.09)',
@@ -479,7 +483,7 @@ export const ExamCreate = () => {
           }}
         >
           <Stack direction="row" spacing={1.5} alignItems="center">
-            <Box sx={{ fontSize: 32, lineHeight: 1 }}>🎁</Box>
+            <RedeemIcon sx={{ fontSize: 32, color: 'primary.main' }} />
             <Box sx={{ flex: 1 }}>
               <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, fontFamily: 'Poppins, sans-serif' }}>
                 Envie seu primeiro exame e ganhe <Box component="span" sx={{ color: '#178f89' }}>{Math.max(1, Math.floor(firstBonus / 10))} leituras grátis</Box>!
@@ -496,7 +500,7 @@ export const ExamCreate = () => {
       <Box sx={{
         display: 'flex',
         p: 0.5,
-        borderRadius: '16px',
+        borderRadius: RADIUS.card,
         bgcolor: 'action.hover',
         mb: 2.5,
         border: '1px solid',
@@ -507,7 +511,7 @@ export const ExamCreate = () => {
           sx={{
             flex: 1,
             py: 1.1,
-            borderRadius: '12px',
+            borderRadius: RADIUS.button,
             fontWeight: 700,
             fontSize: { xs: 13, sm: 14 },
             textTransform: 'none',
@@ -533,7 +537,7 @@ export const ExamCreate = () => {
           sx={{
             flex: 1,
             py: 1.1,
-            borderRadius: '12px',
+            borderRadius: RADIUS.button,
             fontWeight: 700,
             fontSize: { xs: 12.5, sm: 14 },
             textTransform: 'none',
@@ -561,7 +565,7 @@ export const ExamCreate = () => {
             color: '#178f89',
             px: 0.75,
             py: 0.2,
-            borderRadius: '999px',
+            borderRadius: RADIUS.pill,
             display: { xs: 'none', sm: 'inline-flex' },
             letterSpacing: '0.02em',
             flexShrink: 0,
@@ -574,7 +578,7 @@ export const ExamCreate = () => {
       {/* ABA 1: ENVIAR ARQUIVO / FOTO */}
       {method === 'upload' && (
         <Card sx={{
-          borderRadius: '24px',
+          borderRadius: RADIUS.card,
           border: '1px solid rgba(32,178,170,0.25)',
           boxShadow: '0 16px 40px rgba(32,178,170,.12)',
           bgcolor: 'background.paper',
@@ -594,7 +598,7 @@ export const ExamCreate = () => {
                     sx={{
                       flex: 1,
                       cursor: busy ? 'wait' : 'pointer',
-                      borderRadius: '18px',
+                      borderRadius: RADIUS.card,
                       p: { xs: 2, sm: 2.5 },
                       textAlign: 'center',
                       border: '2px solid #20b2aa',
@@ -619,12 +623,12 @@ export const ExamCreate = () => {
                       bgcolor: '#20b2aa',
                       px: 0.8,
                       py: 0.2,
-                      borderRadius: '999px',
+                      borderRadius: RADIUS.pill,
                       letterSpacing: '0.04em',
                     }}>
                       RECOMENDADO
                     </Box>
-                    <Box sx={{ fontSize: 36 }}>📷</Box>
+                    <DocumentScannerIcon sx={{ fontSize: 36, color: '#20b2aa' }} />
                     <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                       Escanear
                     </Typography>
@@ -639,7 +643,7 @@ export const ExamCreate = () => {
                     sx={{
                       flex: 1,
                       cursor: 'pointer',
-                      borderRadius: '18px',
+                      borderRadius: RADIUS.card,
                       p: { xs: 2, sm: 2.5 },
                       textAlign: 'center',
                       border: files.length ? '2px solid #20b2aa' : '2px dashed rgba(32,178,170,0.35)',
@@ -655,7 +659,7 @@ export const ExamCreate = () => {
                     onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}
                   >
                     <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
-                    <Box sx={{ fontSize: 36 }}>📄</Box>
+                    <DescriptionOutlinedIcon sx={{ fontSize: 36, color: '#20b2aa' }} />
                     <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                       {files.length ? `${files.length} selecionado(s)` : 'PDF ou Galeria'}
                     </Typography>
@@ -674,7 +678,7 @@ export const ExamCreate = () => {
                   onClick={(e) => { if (!ensureUploadConsent()) e.preventDefault(); }}
                   sx={{
                     cursor: 'pointer',
-                    borderRadius: '20px',
+                    borderRadius: RADIUS.hero,
                     py: { xs: 3.5, sm: 4.5 },
                     px: 3,
                     textAlign: 'center',
@@ -693,6 +697,8 @@ export const ExamCreate = () => {
                   }}
                 >
                   <input type="file" hidden multiple accept=".pdf,.jpg,.jpeg,.png,image/*,application/pdf" onChange={(e) => { onPick(e.target.files); if (e.target) e.target.value = ''; }} />
+                  {/* Ícone estático (audit 21/10): float infinito no idle viola a regra
+                      "animação infinita só em live/processing" e gastava bateria à toa. */}
                   <Box sx={{
                     width: 60,
                     height: 60,
@@ -702,9 +708,6 @@ export const ExamCreate = () => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#178f89',
-                    animation: 'ecDropFloat 2.6s ease-in-out infinite',
-                    '@keyframes ecDropFloat': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } },
-                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                   }}>
                     <UploadFileIcon sx={{ fontSize: 32 }} />
                   </Box>
@@ -727,7 +730,7 @@ export const ExamCreate = () => {
               {/* Arquivos selecionados — PREVIEW com miniatura (wizard: confirme que
                   é o arquivo certo) + X pra remover/trocar. */}
               {files.length > 0 && (
-                <Box sx={{ p: 2, borderRadius: '16px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                <Box sx={{ p: 2, borderRadius: RADIUS.card, bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block', mb: 1.25 }}>
                     Confira antes de analisar ({files.length}):
                   </Typography>
@@ -740,7 +743,7 @@ export const ExamCreate = () => {
               )}
 
               {/* Dica amigável */}
-              <Box sx={{ px: 2, py: 1.25, borderRadius: '16px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.22)' }}>
+              <Box sx={{ px: 2, py: 1.25, borderRadius: RADIUS.card, bgcolor: 'rgba(32,178,170,.06)', border: '1px solid', borderColor: 'rgba(32,178,170,.22)' }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.5, display: 'block' }}>
                   💡 <strong>Dica do Dr. Exame:</strong> Laudos originais em <strong>PDF</strong> emitidos pelo laboratório têm 100% de nitidez e leitura instantânea pela IA.
                 </Typography>
@@ -754,16 +757,16 @@ export const ExamCreate = () => {
                 placeholder="Ex.: Hemograma completo - Julho/2026"
                 size="small"
                 fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+                sx={{ '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button } }}
               />
 
               {/* Barra de Progresso */}
               {progress && (
-                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: '16px' }}>
+                <Box sx={{ bgcolor: 'background.default', p: 2, borderRadius: RADIUS.card }}>
                   <Typography variant="body2" sx={{ fontWeight: 700, color: 'text.primary', mb: 0.75 }}>
                     Enviando {progress.done}/{progress.total}…
                   </Typography>
-                  <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: '999px', bgcolor: '#20b2aa' } }} />
+                  <LinearProgress variant="determinate" value={pct} sx={{ height: 10, borderRadius: RADIUS.pill, bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { borderRadius: RADIUS.pill, bgcolor: '#20b2aa' } }} />
                   {progress.errors.map((er, i) => (
                     <Typography key={i} variant="caption" color="error" sx={{ display: 'block', mt: 0.5 }}>
                       ⚠ {er}
@@ -775,12 +778,12 @@ export const ExamCreate = () => {
               {/* ERRO elegante (wizard): card amigável + tentar de novo — não alert feio. */}
               {hardError && (
                 <Box sx={{
-                  p: 2, borderRadius: '18px',
+                  p: 2, borderRadius: RADIUS.card,
                   bgcolor: 'rgba(234,88,12,.07)',
                   border: '1px solid rgba(234,88,12,.35)',
                   display: 'flex', alignItems: 'center', gap: 1.75,
                 }}>
-                  <Box sx={{ width: 44, height: 44, borderRadius: '14px', bgcolor: 'rgba(234,88,12,.14)', display: 'grid', placeItems: 'center', fontSize: 22, flexShrink: 0 }} aria-hidden="true">⚠️</Box>
+                  <Box sx={{ width: 44, height: 44, borderRadius: RADIUS.button, bgcolor: 'rgba(234,88,12,.14)', display: 'grid', placeItems: 'center', flexShrink: 0 }} aria-hidden="true"><WarningAmberIcon sx={{ fontSize: 24, color: '#c2410c' }} /></Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
                       Não deu pra enviar
@@ -794,7 +797,7 @@ export const ExamCreate = () => {
                     size="small"
                     startIcon={<RefreshIcon sx={{ fontSize: 17 }} />}
                     onClick={() => { setHardError(null); setProgress(null); }}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, flexShrink: 0, borderColor: 'rgba(234,88,12,.4)', color: '#c2410c', '&:hover': { borderColor: '#c2410c', bgcolor: 'rgba(234,88,12,.06)' } }}
+                    sx={{ borderRadius: RADIUS.pill, textTransform: 'none', fontWeight: 800, flexShrink: 0, borderColor: 'rgba(234,88,12,.4)', color: '#c2410c', '&:hover': { borderColor: '#c2410c', bgcolor: 'rgba(234,88,12,.06)' } }}
                   >
                     Tentar novamente
                   </Button>
@@ -809,16 +812,16 @@ export const ExamCreate = () => {
                 fullWidth
                 disabled={busy || !files.length}
                 sx={{
-                  borderRadius: '999px',
+                  borderRadius: RADIUS.pill,
                   py: 1.6,
                   textTransform: 'none',
                   fontWeight: 800,
                   fontSize: 16,
-                  bgcolor: '#20b2aa',
+                  background: 'linear-gradient(135deg, #20b2aa, #178f89)',
                   color: '#ffffff',
                   boxShadow: '0 10px 28px rgba(32,178,170,.35)',
-                  '&:hover': { bgcolor: '#178f89' },
-                  '&.Mui-disabled': { bgcolor: 'action.disabledBackground', color: 'text.disabled' },
+                  '&:hover': { background: 'linear-gradient(135deg, #1ca299, #0f766e)' },
+                  '&.Mui-disabled': { background: 'action.disabledBackground', color: 'text.disabled' },
                 }}
               >
                 {busy ? 'Enviando e analisando com IA…' : files.length ? 'Analisar exame com IA →' : 'Enviar e extrair com IA →'}
@@ -835,15 +838,15 @@ export const ExamCreate = () => {
       {/* ABA 2: ENCAMINHAR POR E-MAIL (VOUCHER ULTRA-PREMIUM) */}
       {method === 'email' && (
         <Card sx={{
-          borderRadius: '24px',
+          borderRadius: RADIUS.card,
           border: '1px solid rgba(32,178,170,0.28)',
           boxShadow: '0 20px 48px rgba(32,178,170,.12), 0 4px 12px rgba(0,0,0,.03)',
           bgcolor: 'background.paper',
           overflow: 'hidden',
           position: 'relative',
         }}>
-          {/* Barra de destaque superior em gradiente */}
-          <Box sx={{ height: 6, background: 'linear-gradient(90deg, #093330, #20b2aa, #d4a574)' }} />
+          {/* Barra de destaque superior — teal apenas (cobre é assinatura PREMIUM, fora daqui) */}
+          <Box sx={{ height: 6, background: 'linear-gradient(90deg, #178f89, #20b2aa)' }} />
 
           <CardContent sx={{ p: { xs: 2, sm: 3.5 } }}>
             {/* Header compacto */}
@@ -851,7 +854,7 @@ export const ExamCreate = () => {
               <Box sx={{
                 width: 44,
                 height: 44,
-                borderRadius: '14px',
+                borderRadius: RADIUS.button,
                 background: 'linear-gradient(135deg, #093330, #178f89)',
                 display: 'flex',
                 alignItems: 'center',
@@ -873,7 +876,7 @@ export const ExamCreate = () => {
 
             {/* Box Voucher — estilo PIX, compacto */}
             <Box sx={{
-              borderRadius: '16px',
+              borderRadius: RADIUS.card,
               p: { xs: 1.5, sm: 2.25 },
               bgcolor: 'action.hover',
               border: '1px solid',
@@ -894,7 +897,7 @@ export const ExamCreate = () => {
                     bgcolor: 'background.paper',
                     py: 1,
                     px: { xs: 1.25, sm: 1.5 },
-                    borderRadius: '12px',
+                    borderRadius: RADIUS.button,
                     border: '1px solid',
                     borderColor: 'divider',
                   }}
@@ -921,7 +924,7 @@ export const ExamCreate = () => {
                     onClick={() => copy(emailInfo?.inbox || 'contato@janocaminho.com.br', 'Endereço de e-mail', 'inbox')}
                     startIcon={copiedKey === 'inbox' ? <CheckIcon sx={{ fontSize: 14 }} /> : <ContentCopyIcon sx={{ fontSize: 14 }} />}
                     sx={{
-                      borderRadius: '8px',
+                      borderRadius: RADIUS.sm,
                       textTransform: 'none',
                       fontWeight: 700,
                       fontSize: 12,
@@ -952,7 +955,7 @@ export const ExamCreate = () => {
                     bgcolor: 'rgba(32,178,170,0.08)',
                     py: 1,
                     px: { xs: 1.25, sm: 1.5 },
-                    borderRadius: '12px',
+                    borderRadius: RADIUS.button,
                     border: '1.5px dashed #20b2aa',
                   }}
                 >
@@ -971,26 +974,27 @@ export const ExamCreate = () => {
                       {emailInfo?.code || 'CARREGANDO...'}
                     </Typography>
                   </Stack>
+                  {/* Ação secundária em outlined (audit 21/10): contained teal competia com
+                      o CTA gradiente "Abrir E-mail" — 1 ação primária por tela. */}
                   <Button
                     size="small"
-                    variant="contained"
+                    variant="outlined"
                     onClick={() => copy(emailInfo?.code || '', 'Código de assunto', 'code')}
                     startIcon={copiedKey === 'code' ? <CheckIcon sx={{ fontSize: 14 }} /> : <ContentCopyIcon sx={{ fontSize: 14 }} />}
                     sx={{
-                      borderRadius: '8px',
+                      borderRadius: RADIUS.sm,
                       textTransform: 'none',
                       fontWeight: 800,
                       fontSize: 12,
                       px: 1.35,
                       py: 0.5,
-                      bgcolor: copiedKey === 'code' ? '#10b981' : '#20b2aa',
-                      color: '#fff',
-                      boxShadow: '0 4px 12px rgba(32,178,170,0.3)',
-                      '&:hover': { bgcolor: copiedKey === 'code' ? '#059669' : '#178f89' },
+                      color: copiedKey === 'code' ? '#10b981' : '#178f89',
+                      borderColor: copiedKey === 'code' ? '#10b981' : 'rgba(32,178,170,0.4)',
+                      bgcolor: copiedKey === 'code' ? 'rgba(16,185,129,0.08)' : 'transparent',
                       flexShrink: 0,
                     }}
                   >
-                    {copiedKey === 'code' ? 'Copiado!' : 'Copiar Código'}
+                    {copiedKey === 'code' ? 'Copiado!' : 'Copiar'}
                   </Button>
                 </Stack>
               </Box>
@@ -1007,7 +1011,7 @@ export const ExamCreate = () => {
               startIcon={<ForwardToInboxIcon />}
               endIcon={<OpenInNewIcon sx={{ fontSize: 17 }} />}
               sx={{
-                borderRadius: '999px',
+                borderRadius: RADIUS.pill,
                 py: { xs: 1.35, sm: 1.5 },
                 fontSize: { xs: 14, sm: 16 },
                 fontWeight: 800,
@@ -1029,7 +1033,7 @@ export const ExamCreate = () => {
             {/* Status do Robô Ouvindo */}
             <Box sx={{
               p: 2,
-              borderRadius: '16px',
+              borderRadius: RADIUS.card,
               bgcolor: 'rgba(16,185,129,0.07)',
               border: '1px solid rgba(16,185,129,0.22)',
               display: 'flex',
@@ -1065,7 +1069,7 @@ export const ExamCreate = () => {
       <Dialog open={consentOpen} onClose={() => setConsentOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, color: 'text.primary' }}>Antes de enviar seu exame</DialogTitle>
         <DialogContent>
-          <Alert severity="info" sx={{ mb: 2, borderRadius: '12px' }}>
+          <Alert severity="info" sx={{ mb: 2, borderRadius: RADIUS.button }}>
             O Meus Exames usa PDF, foto ou câmera para extrair dados de saúde e gerar uma análise educativa com IA.
           </Alert>
           <Stack spacing={1.25} sx={{ mb: 2 }}>
@@ -1092,7 +1096,7 @@ export const ExamCreate = () => {
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setConsentOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Agora não</Button>
-          <Button onClick={acceptUploadConsent} disabled={!consentChecked} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>
+          <Button onClick={acceptUploadConsent} disabled={!consentChecked} variant="contained" sx={{ borderRadius: RADIUS.pill, textTransform: 'none', fontWeight: 800, bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' } }}>
             Entendi e aceito
           </Button>
         </DialogActions>
@@ -1102,20 +1106,20 @@ export const ExamCreate = () => {
       <Dialog open={!!dupInfo} onClose={() => { setDupInfo(null); redirect('list', 'exams'); }} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: 800, color: 'text.primary' }}>📄 Documento já enviado</DialogTitle>
         <DialogContent>
-          <Alert severity="warning" sx={{ mb: 1.5, borderRadius: '12px' }}>
+          <Alert severity="warning" sx={{ mb: 1.5, borderRadius: RADIUS.button }}>
             {(dupInfo?.dups.length ?? 0) === 1
               ? 'Este arquivo já está no seu histórico (conteúdo idêntico) e não foi adicionado de novo.'
               : `${dupInfo?.dups.length ?? 0} arquivos já estão no seu histórico (conteúdo idêntico) e não foram adicionados de novo.`}
           </Alert>
           {(dupInfo?.dups ?? []).map((n, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-all', pl: 1 }}>• {n}</Typography>)}
-          {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: '12px' }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
+          {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: RADIUS.button }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
           <Typography variant="body2" sx={{ mt: 1.75, fontWeight: 600 }}>
             {dupInfo && dupInfo.sent > 0 ? `✅ ${dupInfo.sent} exame(s) novo(s) enviado(s) e extraindo.` : 'Nenhum exame novo foi adicionado.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1 }}>
-          <Button onClick={() => { setDupInfo(null); redirect('list', 'exams'); }} variant="contained" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Ver meus exames</Button>
-          <Button onClick={() => setDupInfo(null)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Enviar outro</Button>
+          <Button onClick={() => { setDupInfo(null); redirect('list', 'exams'); }} variant="contained" sx={{ borderRadius: RADIUS.pill, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>Ver meus exames</Button>
+          <Button onClick={() => setDupInfo(null)} sx={{ borderRadius: RADIUS.pill, textTransform: 'none', fontWeight: 700 }}>Enviar outro</Button>
         </DialogActions>
       </Dialog>
     </Box>

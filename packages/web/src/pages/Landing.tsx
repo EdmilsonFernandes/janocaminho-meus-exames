@@ -1,16 +1,12 @@
 import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { DrExame } from '../components/DrExame';
 
 // Ícones MUI (premium, no lugar dos emojis antigos)
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import Diversity3Icon from '@mui/icons-material/Diversity3';
 import LockIcon from '@mui/icons-material/Lock';
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
@@ -18,19 +14,16 @@ import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import MedicationIcon from '@mui/icons-material/Medication';
 import SavingsIcon from '@mui/icons-material/Savings';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import FamilyRestroomIcon from '@mui/icons-material/FamilyRestroom';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import AccessibilityNewIcon from '@mui/icons-material/AccessibilityNew';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
-import ChildCareIcon from '@mui/icons-material/ChildCare';
 import DescriptionIcon from '@mui/icons-material/Description';
-import ShareIcon from '@mui/icons-material/Share';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
-import PsychologyIcon from '@mui/icons-material/Psychology';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
-import RecordVoiceOverIcon from '@mui/icons-material/RecordVoiceOver';
+import StarIcon from '@mui/icons-material/Star';
+import BlockIcon from '@mui/icons-material/Block';
 
 import { ExamDemo } from '../components/ExamDemo';
 import { LeadPopup } from '../components/LeadPopup';
@@ -44,13 +37,9 @@ import { HeroRuler } from '../components/landing/HeroRuler';
 import { ProductPreview } from '../components/landing/ProductPreview';
 import { HealthEcosystemBento } from '../components/landing/HealthEcosystemBento';
 import { LandingNavbar } from '../components/landing/LandingNavbar';
-import { LandingBodyMapSection } from '../components/landing/LandingBodyMapSection';
 import { ComparisonTable } from '../components/landing/ComparisonTable';
 import { TrustSection } from '../components/landing/TrustSection';
-import { TeleconsultaShowcase } from '../components/landing/TeleconsultaShowcase';
 import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
-import { HealthPackageShowcaseCard } from '../components/landing/HealthPackageShowcaseCard';
-import { ClinicalDecisionCard } from '../components/landing/ClinicalDecisionCard';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { useHeroAb } from '../hooks/useHeroAb';
@@ -204,29 +193,20 @@ export const LandingPage = () => {
 
   return (
     <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', overflow: 'hidden' }}>
-      {/* keyframes (float do hero + chips) */}
-      <style>{`
-        @keyframes heroFloat { 0%,100%{transform:translateY(0) rotate(-1.5deg)} 50%{transform:translateY(-12px) rotate(-1.5deg)} }
-        @keyframes chipFloatA { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
-        @keyframes chipFloatB { 0%,100%{transform:translateY(0)} 50%{transform:translateY(9px)} }
-        @keyframes shimmerBtn {
-          0% { background-position: 200% center; }
-          100% { background-position: -200% center; }
-        }
-        .hero-float { animation: heroFloat 6s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce){ .hero-float{ animation: none !important; } }
-      `}</style>
 
       {/* NAVBAR flutuante com MEGA MENU estilo Kantesti (Web e Mobile/APK safe) */}
       <LandingNavbar scrolled={scrolled} isSports={isSports} onGoToSection={goTo} />
 
       {/* HERO — premium mesh gradient (padrão) OU Métrica Vital dark (variante ?sports=1:
-          mesmo fundo profundo dos cartazes de academia — continuidade da campanha QR). */}
+          mesmo fundo profundo dos cartazes de academia — continuidade da campanha QR).
+          Mode-aware: theme=dark ganha fundo profundo teal (texto claro segue legível). */}
       <Box sx={{
         position: 'relative', overflow: 'hidden',
-        background: isSports
+        background: (t) => (isSports
           ? 'linear-gradient(160deg, #06201e 0%, #093330 45%, #0f5f5a 100%)'
-          : 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)',
+          : t.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0f1818 0%, #14211f 55%, #17302d 100%)'
+            : 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)'),
         pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
       }}>
         <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.30),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.25),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
@@ -275,9 +255,9 @@ export const LandingPage = () => {
                 <>
                   <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
                     {heroAb === 'A' ? (
-                      <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>nunca antes.</Box></>
+                      <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>nunca antes.</Box></>
                     ) : (
-                      <><Box component="span" sx={{ display: 'block' }}>Seu exame de sangue,</Box> explicado <Box component="span" sx={{ ...SERIF_I, color: INK, fontSize: '1.06em' }}>em 30 segundos.</Box></>
+                      <><Box component="span" sx={{ display: 'block' }}>Seu exame de sangue,</Box> explicado <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>em 30 segundos.</Box></>
                     )}
                   </Typography>
                   <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
@@ -293,11 +273,8 @@ export const LandingPage = () => {
                   borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800,
                   bgcolor: 'primary.dark',
                   background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 50%, #178f89 100%)',
-                  backgroundSize: '200% auto',
-                  animation: 'shimmerBtn 3s linear infinite',
                   boxShadow: isSports ? '0 8px 28px rgba(0,0,0,.35), 0 8px 24px rgba(32,178,170,.35)' : '0 8px 24px rgba(32,178,170,.35)',
                   '&:hover': {
-                    backgroundPosition: 'right center',
                     boxShadow: '0 10px 28px rgba(32,178,170,.45)',
                   }
                 }}>
@@ -316,48 +293,28 @@ export const LandingPage = () => {
                   {isSports ? 'Ver como a IA interpreta ↓' : 'Ver como funciona ↓'}
                 </Button>
               </Stack>
-              {/* Risk-reversal no ponto de decisão — atrito zero em 1 linha (insight
-                  Kantesti: "60 segundos, sem cadastro" como centro). */}
-              <Typography sx={{ fontSize: 13, color: isSports ? 'rgba(255,255,255,.75)' : 'text.secondary', fontWeight: 700 }}>
-                ⚡ Em menos de 1 minuto · Grátis · Sem cartão · Primeiro exame com análise grátis
-              </Typography>
-              {/* Badge Android — app REAL na Play Store desde a 1ª dobra (o QR do rodapé
-                  cobre quem chegou ao fim; este cobre quem só viu o topo). */}
-              <Box
-                component="a"
-                href={PLAY_STORE_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                sx={{
-                  display: 'inline-flex', alignItems: 'center', gap: 0.75, mt: 1,
-                  px: 1.5, py: 0.5, borderRadius: '999px', textDecoration: 'none',
-                  border: '1px solid', borderColor: isSports ? 'rgba(95,201,195,.4)' : 'rgba(32,178,170,.35)',
-                  bgcolor: isSports ? 'rgba(32,178,170,.14)' : 'rgba(32,178,170,.06)',
-                  color: isSports ? '#5fc9c3' : TEAL_DARK,
-                  fontSize: 12.5, fontWeight: 800, width: 'fit-content',
-                  '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
-                }}
-              >
-                📱 App Android disponível
-              </Box>
-              {/* Prova imediata sem scroll — SÓ verificável: nota real da Play, fontes
-                  reais (diretrizes em packages/server/knowledge), LGPD. Zero métrica inventada. */}
-              <Stack direction="row" spacing={1.5} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
+              {/* Prova + risk-reversal numa linha só (1ª dobra enxuta: CTA → 1 linha de
+                  prova → entrar). Nota/fontes/LGPD verificáveis; Play fica no CTA final (QR). */}
+              <Stack direction="row" spacing={1.25} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, rowGap: 0.75, '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
                 {isSports ? (
                   <>
-                    <Box component="span">📘 Diretrizes <b style={{ color: '#fff' }}>SBEM 2026</b> e Endocrine Society</Box>
+                    <Box component="span"><MenuBookIcon sx={{ fontSize: 14, mr: 0.25, color: '#5fc9c3' }} /> Diretrizes <b style={{ color: '#fff' }}>SBEM 2026</b> e Endocrine Society</Box>
                     <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                    <Box component="span">🔒 Registro confidencial (LGPD)</Box>
+                    <Box component="span"><LockIcon sx={{ fontSize: 14, mr: 0.25, color: '#5fc9c3' }} /> Registro confidencial (LGPD)</Box>
                     <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                    <Box component="span">🚫 Nunca recomenda dose ou ciclo</Box>
+                    <Box component="span"><BlockIcon sx={{ fontSize: 14, mr: 0.25, color: '#5fc9c3' }} /> Nunca recomenda dose ou ciclo</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">Grátis · Sem cartão</Box>
                   </>
                 ) : (
                   <>
-                    <Box component="span">⭐ <b style={{ color: 'text.primary' }}>5,0</b> na Google Play</Box>
+                    <Box component="span"><StarIcon sx={{ fontSize: 14, mr: 0.25, color: '#f59e0b' }} /> <b style={{ color: 'text.primary' }}>5,0</b> na Google Play</Box>
                     <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                    <Box component="span">📗 IA com fontes: SBC, SBD e ADA</Box>
+                    <Box component="span"><MenuBookIcon sx={{ fontSize: 14, mr: 0.25, color: TEAL_DARK }} /> IA com fontes: SBC, SBD e ADA</Box>
                     <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
-                    <Box component="span">🔒 Conforme a LGPD</Box>
+                    <Box component="span"><LockIcon sx={{ fontSize: 14, mr: 0.25, color: TEAL_DARK }} /> Conforme a LGPD</Box>
+                    <Box component="span" sx={{ opacity: 0.35 }}>•</Box>
+                    <Box component="span">Grátis · Sem cartão · 1º exame com análise grátis</Box>
                   </>
                 )}
               </Stack>
@@ -375,7 +332,6 @@ export const LandingPage = () => {
                 <Box
                   sx={{
                     position: 'absolute', top: { xs: -6, md: -22 }, right: { xs: 0, md: -10 }, zIndex: 4,
-                    animation: 'chipFloatA 5s ease-in-out infinite',
                   }}
                 >
                   <Stack direction="row" spacing={1.25} alignItems="center" sx={{
@@ -413,11 +369,10 @@ export const LandingPage = () => {
                   boxShadow: '0 12px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(32,178,170,0.12)',
                   border: '1px solid rgba(255,255,255,0.85)',
                   display: 'flex', alignItems: 'center', gap: 1,
-                  animation: 'chipFloatA 5s ease-in-out infinite',
                 }}
               >
                 <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
-                <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: '"Poppins",sans-serif' }}>
                   Glicose: 92 mg/dL <Box component="span" sx={{ color: '#047857', fontWeight: 700, fontSize: 12 }}>· Normal</Box>
                 </Typography>
               </Box>
@@ -431,7 +386,6 @@ export const LandingPage = () => {
                   boxShadow: '0 12px 32px rgba(32,178,170,0.18), 0 2px 8px rgba(0,0,0,0.06)',
                   border: '1px solid rgba(32,178,170,0.25)',
                   display: 'flex', alignItems: 'center', gap: 0.8,
-                  animation: 'chipFloatB 6s ease-in-out infinite',
                 }}
               >
                 <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
@@ -440,7 +394,7 @@ export const LandingPage = () => {
                 </Typography>
               </Box>
 
-              <Box className="hero-float" sx={{
+              <Box sx={{
                 position: 'relative', width: '100%', maxWidth: 540,
                 borderRadius: '24px', overflow: 'hidden', p: '6px',
                 background: 'linear-gradient(135deg, rgba(32,178,170,.22), rgba(212,165,116,.16))',
@@ -505,8 +459,11 @@ export const LandingPage = () => {
       <Box sx={{ position: 'relative', zIndex: 10, mt: -2 }}>
         <Container maxWidth="lg">
           <Box sx={{
-            bgcolor: 'rgba(255,255,255,.65)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
-            borderRadius: '24px', border: '1px solid rgba(255,255,255,.8)',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(26,36,36,.72)' : 'rgba(255,255,255,.65)'),
+            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            borderRadius: '24px',
+            border: '1px solid',
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.25)' : 'rgba(255,255,255,.8)'),
             boxShadow: '0 4px 24px rgba(0,0,0,.04)', px: 3, py: 2.5
           }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} useFlexGap justifyContent="center" alignItems="center" sx={{ flexWrap: 'wrap' }}>
@@ -535,8 +492,22 @@ export const LandingPage = () => {
           produto por dentro logo no início, não só descrever). */}
       <ProductPreview />
 
-      {/* MAPA DO CORPO INTERATIVO & CÁLCULOS CLÍNICOS POR ÓRGÃO (Inspirado no Kantesti Body Map) */}
-      <LandingBodyMapSection />
+      {/* TELESTRIP — mapa do corpo, cálculos clínicos, showcase clínico e telemedicina
+          migraram pra /features (funil enxuto: a home não é mais 12 mil px). */}
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 3.5, md: 5 } }}>
+        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+          <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
+            Mapa do corpo, cálculos clínicos e <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>telemedicina no app</Box>
+          </Typography>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 1.75, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
+            Navegue pelos órgãos, veja HOMA-IR e eGFR calculados do seu laudo e entre na consulta por vídeo sem sair do Dr. Exame.
+          </Typography>
+          <Button variant="outlined" onClick={() => navigate('/features')} endIcon={<ArrowForwardIcon />}
+            sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'primary.main', color: 'primary.dark', '&:hover': { borderColor: 'primary.dark', bgcolor: 'rgba(32,178,170,.08)' } }}>
+            Explorar todos os recursos
+          </Button>
+        </Container>
+      </Box>
 
       {/* PROBLEMA — na linguagem de quem sai do laboratório sem entender nada
           (framework PAS: público leigo, consciente da dor). 3 dores + ponte pra solução. */}
@@ -887,44 +858,7 @@ export const LandingPage = () => {
         <TrustSection />
       </ScrollReveal>
 
-      {/* SHOWCASE CLÍNICO KANTESTI STYLE: PACOTE DE SAÚDE COM PLAYER DE ÁUDIO & CARD DE DECISÃO CLÍNICA */}
-      <Box sx={{ bgcolor: 'background.default', py: { xs: 7, md: 10 }, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Container maxWidth="lg">
-          <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 6 } }}>
-            <Chip
-              label="Tecnologia & Confiança Médica"
-              sx={{ bgcolor: 'rgba(32, 178, 170, 0.12)', color: TEAL_DARK, fontWeight: 800, mb: 1.5, fontSize: 12.5 }}
-            />
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em' }}>
-              Seus exames explicados com <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>precisão e voz humanizada</Box>
-            </Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 620, mx: 'auto' }}>
-              Experimente a síntese clínica do Dr. Exame: ouça o laudo em 1 minuto, navegue pelos órgãos e entenda as prioridades para a sua próxima consulta.
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-              gap: { xs: 3.5, md: 4.5 },
-              alignItems: 'stretch',
-              justifyContent: 'center',
-            }}
-          >
-            <HealthPackageShowcaseCard onCtaClick={() => navigate('/registrar')} ctaText="Começar grátis agora" />
-            <ClinicalDecisionCard />
-          </Box>
-        </Container>
-      </Box>
-
-
-
-      {/* NOVO 19/10 — TELEMEDICINA: vitrine premium com simulação viva da
-          teleconsulta embutida (F2 LiveKit) antes de chegar nos planos. */}
-      <ScrollReveal>
-      <TeleconsultaShowcase onCta={() => goTo('planos')} />
-      </ScrollReveal>
+      {/* (showcase clínico + telemedicina agora vivem em /features — funil da home enxuto) */}
 
       {/* PLANOS — modelo explicado antes dos preços */}
       <ScrollReveal>
@@ -1066,7 +1000,7 @@ export const LandingPage = () => {
                 <Box component="img" src={`${import.meta.env.BASE_URL}playstore-qr.png`} alt="QR code para baixar o Dr. Exame na Play Store" loading="lazy" decoding="async"
                   sx={{ width: 116, height: 116, borderRadius: '12px', bgcolor: '#fff', display: 'block', flexShrink: 0 }} />
                 <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame <Box component="span" sx={SERIF_I}>no seu celular</Box> 📱</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.15, color: 'text.primary' }}>Dr. Exame <Box component="span" sx={SERIF_I}>no seu celular</Box></Typography>
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 0.75 }}>Aponte a câmera do celular ou toque pra baixar.</Typography>
                   {/* Prova social real: nota atual do app na Play (5,0) */}
                   <Typography sx={{ fontSize: 13, color: 'text.secondary', mb: 1 }}><Box component="span" sx={{ color: '#f5a623', letterSpacing: 1.5 }}>★★★★★</Box> <b style={{ color: 'text.primary' }}>5,0</b> no Google Play</Typography>
@@ -1138,7 +1072,7 @@ export const LandingPage = () => {
 
           {/* Links como <a> de verdade */}
           <Stack direction="row" spacing={3} justifyContent="center" useFlexGap sx={{ flexWrap: 'wrap', rowGap: 1.25 }}>
-            {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'API para devs', h: '#/api-docs' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
+            {[{ l: 'Portal do Médico', h: '#/doctor' }, { l: 'Como validamos', h: '#/como-validamos' }, { l: 'Todos os recursos', h: '#/features' }, { l: 'API para devs', h: '#/api-docs' }, { l: 'Dúvidas frequentes', h: '#/faq' }, { l: 'Termos e LGPD', h: '#/termos' }, { l: 'Criar conta', h: '#/registrar' }, { l: 'Entrar', h: '#/entrar' }].map((x) => (
               <Box key={x.l} component="a" href={x.h} sx={{ color: '#5fc9c3', fontSize: 14, fontWeight: 700, textDecoration: 'none', transition: 'color .15s ease', '&:hover': { color: '#ffffff', textDecoration: 'underline' } }}>{x.l}</Box>
             ))}
           </Stack>

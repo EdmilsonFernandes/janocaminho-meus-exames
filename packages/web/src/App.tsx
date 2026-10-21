@@ -66,6 +66,7 @@ import { hapticLight, hapticNav } from './utils/haptic';
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
+const FeaturesPage = lazy(() => import('./pages/Features').then(m => ({ default: m.FeaturesPage })));
 const SportsLandingPage = lazy(() => import('./pages/SportsLanding').then(m => ({ default: m.SportsLandingPage })));
 const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.PlansPage })));
 const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
@@ -1384,6 +1385,7 @@ export const App = () => {
       <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       {/* Rotas Públicas de SEO e Aquisição (Saúde Esportiva, Atletas, Como Funciona) */}
       <Route path="/saude-esportiva" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+      <Route path="/features" element={<Suspense fallback={<PageSkeleton />}><FeaturesPage /></Suspense>} />
       <Route path="/exames-para-atletas" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
       <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/entender-exames-de-sangue" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />

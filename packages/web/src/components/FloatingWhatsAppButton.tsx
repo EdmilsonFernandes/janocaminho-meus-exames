@@ -30,19 +30,8 @@ export const FloatingWhatsAppButton = ({
 
   return (
     <>
-      <style>{`
-        @keyframes waGlowPulse {
-          0% {
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4), 0 0 0 0 rgba(37, 211, 102, 0.6);
-          }
-          70% {
-            box-shadow: 0 12px 28px rgba(37, 211, 102, 0.5), 0 0 0 14px rgba(37, 211, 102, 0);
-          }
-          100% {
-            box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4), 0 0 0 0 rgba(37, 211, 102, 0);
-          }
-        }
-      `}</style>
+      {/* Pulse infinito removido: animação em loop só em estados live/processing.
+          O botão mantém a sombra estática + feedback de hover/toque. */}
 
       <Tooltip title={tooltipText} placement="left" arrow enterTouchDelay={0}>
         <Box
@@ -68,7 +57,6 @@ export const FloatingWhatsAppButton = ({
             textDecoration: 'none',
             border: '2px solid rgba(255, 255, 255, 0.35)',
             boxShadow: '0 10px 28px rgba(37, 211, 102, 0.45)',
-            animation: hovered ? 'none' : 'waGlowPulse 2.8s infinite',
             transform: hovered ? 'scale(1.1) translateY(-3px)' : 'scale(1)',
             transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             touchAction: 'manipulation',

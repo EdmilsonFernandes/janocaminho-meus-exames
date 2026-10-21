@@ -11,7 +11,6 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { Reveal } from '../Reveal';
 
 const TEAL_DARK = '#178f89';
-const INK = '#0f5f5a';
 const COPPER = '#b88a54';
 const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontWeight: 400 } as const;
 
@@ -132,11 +131,11 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
   return (
     <Reveal>
       <Box id="esporte" sx={{
-        bgcolor: '#f8fafc',
+        bgcolor: 'background.default',
         py: { xs: full ? 6 : 5, md: full ? 10 : 8 },
         borderTop: '1px solid',
         borderBottom: '1px solid',
-        borderColor: 'rgba(15,95,90,0.08)',
+        borderColor: 'divider',
         position: 'relative',
         overflow: 'hidden',
         scrollMarginTop: 80,
@@ -165,9 +164,10 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
               {pillars.map((item, idx) => (
                 <Box key={idx} sx={{
                   p: 2.5,
-                  bgcolor: '#ffffff',
+                  bgcolor: 'background.paper',
                   borderRadius: '16px',
-                  border: '1px solid rgba(15,95,90,0.1)',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   boxShadow: '0 4px 16px rgba(15,95,90,0.03)',
                   transition: 'all 0.2s ease',
                   '&:hover': { borderColor: 'rgba(32,178,170,0.4)', boxShadow: '0 8px 24px rgba(15,95,90,0.08)', transform: 'translateY(-2px)' },
@@ -179,7 +179,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                     <Box sx={{ flex: 1 }}>
                       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.75, flexWrap: 'wrap' }}>
                         <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary' }}>{item.title}</Typography>
-                        {item.badge ? <Chip label={item.badge} size="small" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.07)', color: INK }} /> : null}
+                        {item.badge ? <Chip label={item.badge} size="small" sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.07)', color: TEAL_DARK }} /> : null}
                       </Stack>
                       <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.55 }}>{item.desc}</Typography>
                     </Box>
@@ -189,8 +189,8 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
             </Stack>
 
             {/* Showcase interativo — réplica do dashboard esportivo */}
-            <Box sx={{ bgcolor: '#ffffff', borderRadius: '24px', border: '1px solid rgba(15,95,90,0.15)', boxShadow: '0 12px 36px rgba(15,95,90,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: { xs: 2.5, sm: 3 }, bgcolor: 'rgba(240,250,249,0.7)', borderBottom: '1px solid rgba(15,95,90,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
+            <Box sx={{ bgcolor: 'background.paper', borderRadius: '24px', border: '1px solid', borderColor: 'divider', boxShadow: '0 12px 36px rgba(15,95,90,0.08)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+              <Box sx={{ p: { xs: 2.5, sm: 3 }, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
                 <Stack direction="row" spacing={1.5} alignItems="center">
                   <Box sx={{ width: 38, height: 38, borderRadius: '10px', bgcolor: TEAL_DARK, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: 15 }}>RS</Box>
                   <Box>
@@ -201,11 +201,11 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                     <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Contexto: Musculação Intensa + Suplementação</Typography>
                   </Box>
                 </Stack>
-                <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />} label="Modo Esporte Ativo" sx={{ height: 26, fontSize: 11.5, fontWeight: 700, bgcolor: '#ffffff', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }} />
+                <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />} label="Modo Esporte Ativo" sx={{ height: 26, fontSize: 11.5, fontWeight: 700, bgcolor: 'background.paper', color: TEAL_DARK, border: '1px solid rgba(13,148,136,0.25)' }} />
               </Box>
 
               {/* Cenários */}
-              <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: '#fbfcfd', borderBottom: '1px solid rgba(15,95,90,0.08)' }}>
+              <Box sx={{ px: { xs: 2, sm: 2.5 }, py: 1.75, bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', mb: 1.25, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                   Toque num cenário pra testar:
                 </Typography>
@@ -228,8 +228,8 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                           p: { xs: 1, sm: 1.25 },
                           borderRadius: '10px',
                           border: '1.5px solid',
-                          borderColor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)',
-                          bgcolor: active ? 'rgba(13,148,136,0.08)' : '#ffffff',
+                          borderColor: active ? TEAL_DARK : 'divider',
+                          bgcolor: active ? 'rgba(13,148,136,0.08)' : 'background.paper',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           display: 'flex',
@@ -240,14 +240,14 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                         }}
                       >
                         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-                          <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)', color: active ? '#ffffff' : INK, fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: active ? TEAL_DARK : 'rgba(15,95,90,0.12)', color: active ? '#ffffff' : 'text.primary', fontSize: 10, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                             {tab.num}
                           </Box>
                           <Typography sx={{ fontSize: { xs: 11.5, sm: 12 }, fontWeight: 800, color: active ? TEAL_DARK : 'text.primary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {tab.name}
                           </Typography>
                         </Stack>
-                        <Typography sx={{ fontSize: 10, color: active ? INK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
+                        <Typography sx={{ fontSize: 10, color: active ? TEAL_DARK : 'text.secondary', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', pl: { xs: 0, sm: 3 } }}>
                           {tab.sub}
                         </Typography>
                       </Box>
@@ -265,7 +265,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                   </Stack>
                   <Box sx={{ bgcolor: 'rgba(15,95,90,0.04)', border: '1px solid rgba(15,95,90,0.08)', borderRadius: '10px', px: 1.5, py: 1, mt: 0.5 }}>
                     <Typography sx={{ fontSize: 12, color: 'text.primary', lineHeight: 1.5 }}>
-                      <strong style={{ color: INK }}>Contexto do Atleta:</strong> {data.patientContext}
+                      <strong style={{ color: TEAL_DARK }}>Contexto do Atleta:</strong> {data.patientContext}
                     </Typography>
                   </Box>
                 </Box>
@@ -282,7 +282,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                 </Stack>
 
                 {/* Régua de camadas — meta do médico em COBRE (paleta da casa; roxo fora) */}
-                <Box sx={{ mb: 2.5, bgcolor: '#fbfcfd', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid #eef2f6' }}>
+                <Box sx={{ mb: 2.5, bgcolor: 'background.default', p: { xs: 1.5, sm: 2 }, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={0.75} sx={{ mb: 1.25 }}>
                     <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary' }}>Régua do Dr. Exame</Typography>
                     <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -321,15 +321,15 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                   <Typography sx={{ fontSize: 13, color: 'text.primary', lineHeight: 1.6 }}>{data.explanation}</Typography>
                 </Box>
 
-                <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ bgcolor: '#ffffff', p: 1.5, borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <Stack direction="row" spacing={1.25} alignItems="flex-start" sx={{ bgcolor: 'background.paper', p: 1.5, borderRadius: '10px', border: '1px solid', borderColor: 'divider' }}>
                   <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981', flexShrink: 0, mt: 0.2 }} />
                   <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.5 }}>
-                    <strong style={{ color: '#0f172a' }}>Ação recomendada:</strong> {data.tip}
+                    <strong style={{ color: TEAL_DARK }}>Ação recomendada:</strong> {data.tip}
                   </Typography>
                 </Stack>
               </Box>
 
-              <Box sx={{ p: 2, bgcolor: '#f8fafc', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
+              <Box sx={{ p: 2, bgcolor: 'background.default', borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
                 <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>
                   🔒 Conformidade com a LGPD · Dados isolados e protegidos por criptografia de ponta a ponta.
                 </Typography>
@@ -338,7 +338,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
           </Box>
 
           {/* CTA único + link p/ variante completa (dual-audience: compact não domina) */}
-          <Box sx={{ bgcolor: '#ffffff', borderRadius: '16px', p: { xs: 2.5, sm: 3.5 }, border: '1px solid rgba(15,95,90,0.1)', textAlign: 'center' }}>
+          <Box sx={{ bgcolor: 'background.paper', borderRadius: '16px', p: { xs: 2.5, sm: 3.5 }, border: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" alignItems="center" useFlexGap>
               <Button
                 variant="contained"
@@ -353,7 +353,7 @@ export const SportsSection = ({ variant = 'compact', onGoDemo }: { variant?: 'co
                 <Box
                   component="a"
                   href="#/?sports=1"
-                  sx={{ fontSize: 14.5, fontWeight: 700, color: TEAL_DARK, textDecoration: 'underline', textDecorationColor: 'rgba(23,143,137,.35)', textUnderlineOffset: 3, '&:hover': { color: INK } }}
+                  sx={{ fontSize: 14.5, fontWeight: 700, color: TEAL_DARK, textDecoration: 'underline', textDecorationColor: 'rgba(23,143,137,.35)', textUnderlineOffset: 3, '&:hover': { color: TEAL_DARK, textDecorationColor: TEAL_DARK } }}
                 >
                   Ver a página completa pra quem treina →
                 </Box>

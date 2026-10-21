@@ -20,7 +20,6 @@ import { openBlobFile, speakText, stopSpeakText } from '../../utils/nativeDoc';
 import { openExamFile } from '../../utils/examFile';
 import { HealthSummary } from '../../components/HealthSummary';
 import { displayStatus } from '../../utils/examStatus';
-import { ValueBar } from '../../components/ValueBar';
 import { RefBar } from '../../components/RefBar';
 import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
@@ -28,7 +27,7 @@ import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
 import { fmtVal, unitSuffix, fmtDateShort } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
-import { tealText } from '../../theme';
+import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
 import { RobotAnalysis } from '../../components/RobotAnalysis';
@@ -59,7 +58,7 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
     <Box component="input" value={v} autoFocus disabled={busy}
       onChange={(e: any) => setV(e.target.value)} onBlur={save}
       onKeyDown={(e: any) => { if (e.key === 'Enter') save(); if (e.key === 'Escape') { setV(it.valueText ?? ''); setEditing(false); } }}
-      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: '8px', border: '2px solid #20b2aa', outline: 'none', width: 'min(150px, 45vw)', maxWidth: '100%', bgcolor: 'background.paper', color }} />
+      sx={{ fontSize: '1.4rem', fontWeight: 800, p: '2px 6px', borderRadius: RADIUS.sm, border: '2px solid #20b2aa', outline: 'none', width: 'min(150px, 45vw)', maxWidth: '100%', bgcolor: 'background.paper', color }} />
   );
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
@@ -426,7 +425,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             </Typography>
           )}
           {headerNeedsReview && (
-            <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
+            <Alert severity="info" icon={false} sx={{ mt: 1.5, borderRadius: RADIUS.sectionCard, py: 0.75, '& .MuiAlert-message': { fontSize: 13 } }}>
               Alguns dados do cabeçalho vieram da leitura automática e precisam conferência. Os valores abaixo continuam editáveis.
             </Alert>
           )}
@@ -449,7 +448,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
         <Alert
           severity={urgency.level === 'CRITICO' ? 'error' : 'warning'}
           icon={false}
-          sx={{ mt: 2, borderRadius: '12px', '& .MuiAlert-message': { width: '100%' } }}
+          sx={{ mt: 2, borderRadius: RADIUS.sectionCard, '& .MuiAlert-message': { width: '100%' } }}
         >
           <Typography component="div" sx={{ fontWeight: 800, fontSize: '1.02rem' }}>
             {urgency.level === 'CRITICO' ? '🚨 Procure atendimento médico URGENTE' : '⚠️ Agende consulta médica'}
@@ -493,13 +492,13 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
       {nameBlock && (
         <Card sx={{ mt: 2, border: '1px solid', borderColor: 'warning.main', background: 'linear-gradient(135deg, rgba(245,158,11,.10), transparent)' }}>
           <CardContent>
-            <Typography sx={{ fontWeight: 800, color: '#b45309' }}>⚠️ Confirme o titular antes da análise</Typography>
+            <Typography sx={{ fontWeight: 800, color: (t) => SEM.warn[t.palette.mode] }}>⚠️ Confirme o titular antes da análise</Typography>
             <Typography variant="body2" sx={{ mt: 0.5 }}>
               O nome detectado no documento (<strong>{docNameInfo.text}</strong>) parece diferente do perfil selecionado (<strong>{profileNameInfo.text}</strong>).
             </Typography>
             <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-              <Chip size="small" label={`Similaridade ${Math.round((nm.score || 0) * 100)}%`} sx={{ bgcolor: '#f59e0b18', color: '#b45309', fontWeight: 800 }} />
-              <Chip size="small" label="Proteção de privacidade" sx={{ bgcolor: '#0ea5e918', color: '#0369a1', fontWeight: 800 }} />
+              <Chip size="small" label={`Similaridade ${Math.round((nm.score || 0) * 100)}%`} sx={{ bgcolor: (t) => `rgba(245,158,11,${t.palette.mode === 'dark' ? 0.2 : 0.09})`, color: (t) => SEM.warn[t.palette.mode], fontWeight: 800 }} />
+              <Chip size="small" label="Proteção de privacidade" sx={{ bgcolor: (t) => `rgba(14,165,233,${t.palette.mode === 'dark' ? 0.2 : 0.09})`, color: (t) => SEM.info[t.palette.mode], fontWeight: 800 }} />
             </Stack>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>Se o exame é realmente deste paciente, confirme para liberar a análise. Se não for, exclua para evitar misturar dados de outra pessoa.</Typography>
             <Box sx={{ mt: 1.5, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
@@ -546,7 +545,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
             const fewPanels = Object.keys(grouped).length <= 2;
             return (
             <Accordion key={panel} disableGutters elevation={0} defaultExpanded={fewPanels}
-              sx={{ mt: 1.5, borderRadius: '12px !important', overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
+              sx={{ mt: 1.5, borderRadius: `${RADIUS.sectionCard} !important`, overflow: 'hidden', border: '1px solid', borderColor: 'divider', '&:before': { display: 'none' } }}>
               <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ minHeight: '48px !important', '& .MuiAccordionSummary-content': { my: 0.75, alignItems: 'center' } }}>
                 <Typography sx={{ fontWeight: 700, fontSize: '1rem', flex: '1 1 auto', minWidth: 0, wordBreak: 'break-word', overflowWrap: 'anywhere', pr: 1 }}>{panel}</Typography>
                 {abn > 0 && <Chip size="small" color="error" variant="outlined" label={`${abn} alterado${abn > 1 ? 's' : ''}`} sx={{ ml: 0.5, height: 20, flexShrink: 0 }} />}
@@ -562,7 +561,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                     const goalText = goal ? dualStatusText(withinGoal(it.valueNumeric, goal), withinRef(it.valueNumeric, it.refLow, it.refHigh)) : null;
                     return (
                       <Box key={it.id} sx={{
-                        py: 1.25, pl: 1, borderRadius: '8px',
+                        py: 1.25, pl: 1, borderRadius: RADIUS.sm,
                         borderLeft: out ? '5px solid' : '5px solid transparent',
                         borderColor: out ? (m.color === 'error' ? 'error.main' : 'warning.main') : 'transparent',
                         background: out ? (m.color === 'error' ? 'rgba(198,40,40,.06)' : 'rgba(230,81,0,.06)') : 'transparent',
@@ -579,7 +578,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                                   <Typography sx={{ fontWeight: 800, fontSize: 13 }}>{goalRangeText(goal)}</Typography>
                                   {goal.setBy && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.setBy}</Typography>}
                                   {goal.justification && <Typography sx={{ fontSize: 12, opacity: 0.85, mt: 0.5 }}>{goal.justification}</Typography>}
-                                  {goal.source && <Typography sx={{ fontSize: 11, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
+                                  {goal.source && <Typography sx={{ fontSize: 12, opacity: 0.7, mt: 0.5 }}>Fonte: {goal.source}</Typography>}
                                 </Box>
                               }
                               arrow
@@ -601,7 +600,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                         {/* Régua pediátrica em uso (transparência: por que está marcado) */}
                         {String(it.refAppliesTo || '').startsWith('Pediátrico') && (
                           <Chip size="small" label={it.refAppliesTo} title="Faixa por idade (educativa) — nunca substitui o pediatra"
-                            sx={{ mt: 0.25, height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: '#178f89' }} />
+                            sx={{ mt: 0.25, height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }} />
                         )}
                         {/* Meta clínica (E2.4 — camada 2): texto explícito do duplo-estado.
                             REGRA DURA: meta atingida NÃO esconde "fora da referência" (e vice-versa). */}
@@ -610,7 +609,9 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                             🎯 Meta clínica ({goalRangeText(goal)}): {goalText ?? `definida por ${goal.setBy}`}
                           </Typography>
                         )}
-                        <ValueBar value={it.valueNumeric} low={it.refLow} high={it.refHigh} />
+                        {/* Régua visual única (RefBar): posição do valor na faixa de referência.
+                            ValueBar removido (audit 21/10): duplicava a RefBar com cores de
+                            marcador conflitantes (verde fixo x semântico). */}
                         <RefBar value={it.valueNumeric} refLow={it.refLow} refHigh={it.refHigh} unit={it.unit} />
                         {/* Sparkline mini-gráfico (linha temporal + faixa verde) — se há histórico */}
                         {it.history && it.history.length >= 2 && (
@@ -695,11 +696,11 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
           <CardContent>
             <Typography variant="h6" gutterBottom>Conversar com Dr. Exame</Typography>
             <Box sx={{ mb: 1 }}><CreditBadge amount={CREDIT_COSTS.chat} label={`${CREDIT_COSTS.chat} por pergunta`} /></Box>
-            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: '8px' }}>
+            <Box sx={{ maxHeight: 320, overflowY: 'auto', mb: 1, p: 1, bgcolor: 'action.hover', borderRadius: RADIUS.sm }}>
               {chatMessages.length === 0 && <Typography color="text.secondary">Ex.: "Por que minha hemoglobina subiu?"</Typography>}
               {chatMessages.map((m, i) => (
                 <Box key={i} sx={{ textAlign: m.role === 'user' ? 'right' : 'left', mb: 1 }}>
-                  <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
+                  <Box sx={{ display: 'inline-block', maxWidth: '85%', px: 1.25, py: 0.75, borderRadius: RADIUS.md, whiteSpace: 'pre-wrap', wordBreak: 'break-word', bgcolor: m.role === 'user' ? 'primary.main' : 'background.paper', color: m.role === 'user' ? 'primary.contrastText' : 'text.primary', border: m.role === 'user' ? 'none' : '1px solid', borderColor: 'divider' }}>{m.text || '…'}</Box>
                   {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
                   {m.role === 'assistant' && !!m.sources?.length && (
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mt: 0.5, justifyContent: 'flex-start' }}>
@@ -719,7 +720,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               <Box component="input" value={chatInput} disabled={chatBusy} placeholder="Converse com o Dr. Exame…"
                 onChange={(e: any) => setChatInput(e.target.value)}
                 onKeyDown={(e: any) => { if (e.key === 'Enter' && !chatBusy) sendChat(); }}
-                sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: '8px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />
+                sx={{ flex: 1, px: 1.5, py: 1.25, fontSize: 16, borderRadius: RADIUS.sm, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', color: 'text.primary', outline: 'none' }} />
               <Button variant="contained" onClick={sendChat} disabled={chatBusy || !chatInput.trim()}>Enviar</Button>
             </Stack>
           </CardContent>

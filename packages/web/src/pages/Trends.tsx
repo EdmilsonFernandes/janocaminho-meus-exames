@@ -16,17 +16,8 @@ import { PremiumGate } from '../components/PremiumGate';
 import { useClinicalGoals } from '../hooks/useClinicalGoals';
 import { goalFor } from '../utils/clinicalGoals';
 
-import type { TimeSeriesByName as TS } from '@meus-exames/shared';
-
-/** Title Case pra exibição (ALL CAPS → legível): "ACIDO URICO" → "Acido Urico". */
-const prettyName = (n: string) => {
-  if (!n) return '';
-  const tokens = n.split(/[_\s]+/);
-  return tokens.map((tok) => {
-    if (tok.length <= 4 && /^[A-Z0-9]+$/.test(tok) && !['ACIDO', 'URICO', 'BILIRRUBINA', 'DIRETA', 'INDIRETA', 'TOTAL'].includes(tok)) return tok;
-    return tok.charAt(0).toUpperCase() + tok.slice(1).toLowerCase();
-  }).join(' ');
-};
+import type { TimeSeriesByName as TS, EvolutionItem as EvoItem } from '@meus-exames/shared';
+import { prettyName } from '../utils/prettyName';
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
@@ -117,26 +108,32 @@ export const TrendsPage = () => {
 
   // AUTO-SELECT inteligente (auditoria: default alfabético abria em "Basofilos" — irrelevante).
   // Prioridade: (1) analito recebido no query param ?select=..., (2) 1º marcador ALTERADO, (3) mais medições.
+  // CRITIC fixes nesta fonte de tons:
+  //  - VAZAMENTO: era /items/abnormal SEM patientId → dots/auto-select de OUTRO paciente (dependentes)
+  //    apareciam na tela do paciente selecionado. Agora /items/evolution é POR PACIENTE.
+  //  - TOM: era o tom do último valor ANORMAL (analito normalizado continuava vermelho);
+  //    agora deriva do VALOR ATUAL (último ponto × faixa unificada da série).
   const [abnNames, setAbnNames] = useState<string[]>([]);
   const [toneByName, setToneByName] = useState<Record<string, 'atencao' | 'critico'>>({});
   useEffect(() => {
-    fetch(`${API_URL}/items/abnormal?_start=0&_end=100`, { headers: { Authorization: `Bearer ${token()}` } })
+    if (!pid) { setAbnNames([]); setToneByName({}); return; }
+    fetch(`${API_URL}/items/evolution?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : { items: [] }))
       .then((d) => {
-        const items: any[] = d.items ?? [];
-        setAbnNames([...new Set(items.map((i) => String(i.nameCanonical)).filter(Boolean))] as string[]);
-        // 1º item por nome = mais recente (lista ordenada por data desc) → tom do ÚLTIMO valor
+        const items: EvoItem[] = d.items ?? [];
+        const abn: string[] = [];
         const tones: Record<string, 'atencao' | 'critico'> = {};
         for (const it of items) {
-          const k = String(it.nameCanonical ?? '');
-          if (!k || tones[k]) continue;
-          const t = displayStatus(String(it.flag ?? ''), k, it.refLow, it.refHigh).tone;
-          if (t === 'atencao' || t === 'critico') tones[k] = t;
+          const lp = it.points[it.points.length - 1];
+          const s = displayStatus(lp?.flag, it.nameCanonical, it.refLow, it.refHigh, lp?.value);
+          if (it.abnormal || s.tone === 'atencao' || s.tone === 'critico') abn.push(it.nameCanonical);
+          if (s.tone === 'atencao' || s.tone === 'critico') tones[it.nameCanonical] = s.tone;
         }
+        setAbnNames(abn);
         setToneByName(tones);
       })
-      .catch(() => setAbnNames([]));
-  }, []);
+      .catch(() => { setAbnNames([]); setToneByName({}); });
+  }, [pid]);
   useEffect(() => {
     if (sel || names.length === 0) return;
     if (queryParamSelect && names.some((n) => n.nameCanonical === queryParamSelect)) {

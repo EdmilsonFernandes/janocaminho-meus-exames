@@ -21,6 +21,9 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import BloodtypeIcon from '@mui/icons-material/Bloodtype';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import DescriptionIcon from '@mui/icons-material/Description';
+import CreditCardIcon from '@mui/icons-material/CreditCard';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../DrExame';
 
@@ -55,7 +58,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
       action: () => {
         setMenuOpen(false);
         setMobileOpen(false);
-        onGoToSection('mapa-do-corpo');
+        navigate('/features');
       },
     },
     {
@@ -66,7 +69,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
       action: () => {
         setMenuOpen(false);
         setMobileOpen(false);
-        onGoToSection('calculos-clinicos');
+        navigate('/features');
       },
     },
     {
@@ -77,7 +80,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
       action: () => {
         setMenuOpen(false);
         setMobileOpen(false);
-        onGoToSection('esporte');
+        navigate('/saude-esportiva');
       },
     },
     {
@@ -97,7 +100,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
       action: () => {
         setMenuOpen(false);
         setMobileOpen(false);
-        onGoToSection('saude-mental-sec');
+        navigate('/features');
       },
     },
     {
@@ -124,7 +127,10 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
           zIndex: 1100,
           transition: 'background-color .25s ease, border-color .25s ease, box-shadow .25s ease',
           paddingTop: 'env(safe-area-inset-top)',
-          bgcolor: scrolled ? 'rgba(255,255,255,0.92)' : 'transparent',
+          // Mode-aware: quem salva theme=dark não pode ganhar navbar branca com texto claro.
+          bgcolor: (t) => (scrolled
+            ? (t.palette.mode === 'dark' ? 'rgba(26,36,36,0.92)' : 'rgba(255,255,255,0.92)')
+            : 'transparent'),
           backdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
           WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
           borderBottom: scrolled ? '1px solid rgba(32,178,170,0.12)' : '1px solid transparent',
@@ -185,7 +191,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
                     width: 580,
                     p: 2,
                     borderRadius: '20px',
-                    bgcolor: '#ffffff',
+                    bgcolor: 'background.paper',
                     border: '1px solid rgba(32,178,170,0.16)',
                     boxShadow: '0 20px 48px rgba(15,95,90,0.14)',
                     display: menuOpen ? 'grid' : 'none',
@@ -293,20 +299,20 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             >
               Entrar
             </Button>
+            {/* Outlined (não gradiente): a 1ª dobra tem UM CTA primário — o do hero. */}
             <Button
-              variant="contained"
+              variant="outlined"
               onClick={() => navigate('/registrar')}
               sx={{
                 borderRadius: '999px',
                 px: 2.5,
-                py: 0.9,
+                py: 0.75,
                 textTransform: 'none',
                 fontWeight: 700,
                 fontSize: 14,
-                bgcolor: TEAL_DARK,
-                background: 'linear-gradient(135deg, #178f89, #20b2aa)',
-                boxShadow: '0 4px 14px rgba(32,178,170,0.35)',
-                '&:hover': { bgcolor: 'primary.dark', transform: 'translateY(-1px)', boxShadow: '0 6px 18px rgba(32,178,170,0.45)' },
+                borderColor: 'primary.main',
+                color: 'primary.dark',
+                '&:hover': { borderColor: 'primary.dark', bgcolor: 'rgba(32,178,170,0.08)' },
               }}
             >
               Criar conta
@@ -334,7 +340,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             width: '85vw',
             maxWidth: 360,
             p: 3,
-            bgcolor: '#ffffff',
+            bgcolor: 'background.paper',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -393,31 +399,35 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
           <Stack spacing={1}>
             <Button
               fullWidth
+              startIcon={<DescriptionIcon sx={{ color: TEAL_DARK }} />}
               onClick={() => { setMobileOpen(false); onGoToSection('demo'); }}
               sx={{ justifyContent: 'flex-start', minHeight: 48, fontWeight: 700, color: 'text.primary', textTransform: 'none', fontSize: 15 }}
             >
-              📄 Como funciona (Teste Grátis)
+              Como funciona (Teste Grátis)
             </Button>
             <Button
               fullWidth
+              startIcon={<CreditCardIcon sx={{ color: TEAL_DARK }} />}
               onClick={() => { setMobileOpen(false); onGoToSection('planos'); }}
               sx={{ justifyContent: 'flex-start', minHeight: 48, fontWeight: 700, color: 'text.primary', textTransform: 'none', fontSize: 15 }}
             >
-              💳 Planos & Preços
+              Planos & Preços
             </Button>
             <Button
               fullWidth
+              startIcon={<MedicalServicesIcon sx={{ color: TEAL_DARK }} />}
               onClick={() => { setMobileOpen(false); navigate('/doctor'); }}
               sx={{ justifyContent: 'flex-start', minHeight: 48, fontWeight: 700, color: 'text.primary', textTransform: 'none', fontSize: 15 }}
             >
-              👨‍⚕️ Para Médicos & Nutricionistas
+              Para Médicos & Nutricionistas
             </Button>
             <Button
               fullWidth
+              startIcon={<HelpOutlineIcon sx={{ color: TEAL_DARK }} />}
               onClick={() => { setMobileOpen(false); navigate('/faq'); }}
               sx={{ justifyContent: 'flex-start', minHeight: 48, fontWeight: 700, color: 'text.primary', textTransform: 'none', fontSize: 15 }}
             >
-              ❓ Dúvidas Frequentes
+              Dúvidas Frequentes
             </Button>
           </Stack>
         </Box>

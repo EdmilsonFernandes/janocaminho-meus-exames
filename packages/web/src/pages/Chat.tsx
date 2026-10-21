@@ -35,10 +35,8 @@ const dotPulse = keyframes`
 `;
 // Pulso sutil do indicador de ditado por voz (o sx desliga com prefers-reduced-motion).
 const voicePulse = keyframes`0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.25)}`;
-// Aura/badge animados do mascote no hero (mesma identidade do FAB Dr. Exame).
-const drAura = keyframes`0%,100%{opacity:.4;transform:scale(.92)}50%{opacity:.72;transform:scale(1.14)}`;
-const drBob = keyframes`0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}`;
-const drSpark = keyframes`0%,100%{opacity:.65;transform:scale(.82) rotate(0deg)}45%{opacity:1;transform:scale(1.18) rotate(18deg)}70%{opacity:.9;transform:scale(1) rotate(8deg)}`;
+// (Aura/bob/spark do mascote no hero eram keyframes INFINITOS decorativos — removidos:
+// regra "animação infinita SÓ em live/processing". A aura estática ficou, só o movimento saiu.)
 const TypingDots = () => (
   <Box sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center', py: 0.5 }} aria-label="digitando">
     {[0, 1, 2].map((i) => (
@@ -168,7 +166,15 @@ export const ChatPage = () => {
   const messages = cur?.messages ?? [];
   // Autoscroll: rola SÓ o container de mensagens (não a página) pro fim a cada delta do streaming.
   // rAF garante que o novo texto já pintou antes de medir o scrollHeight (antes pulava o último).
+  // GUARD (critic): só rola se o usuário está PERTO do fim (~120px) — antes o scroll era
+  // incondicional e subir pra reler durante o streaming era impossível (efeito sequestro).
+  const nearBottomRef = useRef(true);
+  const onScrollMessages = () => {
+    const el = scrollRef.current; if (!el) return;
+    nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+  };
   useEffect(() => {
+    if (!nearBottomRef.current) return;
     const id = requestAnimationFrame(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' }); });
     return () => cancelAnimationFrame(id);
   }, [messages, busy]);
@@ -179,6 +185,7 @@ export const ChatPage = () => {
     const message = (overrideText ?? input).trim();
     if (!message || busy || !pid) return;
     setInput(''); setBusy(true);
+    nearBottomRef.current = true; // quem ENVIA quer ver a própria mensagem → autoscroll volta a valer
 
     let cid = curId;
     let work: Conv[] = convs;
@@ -293,15 +300,16 @@ export const ChatPage = () => {
         </IconButton>
       </Paper>
 
-      {/* mensagens */}
-      <Box ref={scrollRef} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'transparent', borderRadius: '12px' }}>
+      {/* mensagens — role=log/aria-live: leitor de tela anuncia as novas mensagens da IA (critic: chat era mudo) */}
+      <Box ref={scrollRef} onScroll={onScrollMessages} role="log" aria-live="polite" aria-label="Mensagens da conversa" sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'transparent', borderRadius: '12px' }}>
         {messages.length === 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 2, md: 4 }, gap: 1.5 }}>
-            {/* Mascote Dr. Exame com aura teal pulsante + badge ✨ (IA) — convite à conversa, estilo Itaú */}
-            <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center', animation: `${drBob} 3.4s ease-in-out infinite` }}>
-              <Box sx={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)', filter: 'blur(4px)', animation: `${drAura} 2.6s ease-in-out infinite` }} />
+            {/* Mascote Dr. Exame com aura teal + badge ✨ (IA) — convite à conversa, estilo Itaú.
+                Sem animação infinita (regra: infinita só em live/processing). */}
+            <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center' }}>
+              <Box sx={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)', filter: 'blur(4px)' }} />
               <DrExame size={64} sx={{ position: 'relative', borderRadius: '28%', filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))' }} />
-              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)', animation: `${drSpark} 2.2s ease-in-out infinite` }}>
+              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)' }}>
                 <AutoAwesomeIcon sx={{ fontSize: 13, color: '#fff' }} />
               </Box>
             </Box>
@@ -374,11 +382,11 @@ export const ChatPage = () => {
       {/* INPUT com botão "+" (bottom sheet de ações) e DITADO POR VOZ — estilo Mercado Pago.
           Gravando: borda error + ponto pulsante; transcrição aparece NO INPUT (parcial ao vivo). */}
       <Box component="form" onSubmit={(e: any) => { e.preventDefault(); voice.stop(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: voice.isRecording ? 'error.main' : 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
-        <IconButton onClick={() => setSheetOpen(true)} title="Ações rápidas" sx={{ color: TEAL, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
+        <IconButton onClick={() => setSheetOpen(true)} aria-label="Ações rápidas" title="Ações rápidas" sx={{ color: TEAL, p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
         {voice.isRecording && (
           <Box aria-hidden sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main', flexShrink: 0, animation: `${voicePulse} 1.2s ease-in-out infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
         )}
-        <Box component="input" value={input} disabled={busy || voice.isRecording} placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
+        <Box component="input" value={input} disabled={busy || voice.isRecording} aria-label="Pergunta sobre seus exames" placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voice.stop(); send(); } }}
           style={{ flex: 1, minWidth: 0, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />

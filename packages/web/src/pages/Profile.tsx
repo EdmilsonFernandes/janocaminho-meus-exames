@@ -14,6 +14,9 @@ import ApiIcon from '@mui/icons-material/Api';
 import ScaleIcon from '@mui/icons-material/Scale';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import StarIcon from '@mui/icons-material/Star';
+import Diversity3OutlinedIcon from '@mui/icons-material/Diversity3Outlined';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
+import BugReportIcon from '@mui/icons-material/BugReport';
 import { PLAY_URL } from '../components/ReviewPrompt';
 import { API_URL, token, apiHeaders } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -188,12 +191,13 @@ export const ProfilePage = () => {
             onUploaded={() => { setPhotoVer((v) => v + 1); void load(); }} />
           <Box sx={{ flex: 1, minWidth: 200 }}>
             <Typography variant="h5" sx={{ fontWeight: 800 }}>{fullName || '—'}</Typography>
-            <Typography sx={{ opacity: 0.92 }}>✉️ {user?.email ?? '—'}</Typography>
+            <Typography sx={{ opacity: 0.92, display: 'flex', alignItems: 'center', gap: 0.75 }}><MailOutlineIcon sx={{ fontSize: 18 }} />{user?.email ?? '—'}</Typography>
             <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap">
               {patient?.relationship && <Chip size="small" label={patient.relationship} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />}
+              {/* Conversão (auditoria perfil): o chip do plano era morto — agora leva a /planos. */}
               {planActive
-                 ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700 }} />
-                : <Chip size="small" label="Plano grátis" sx={{ bgcolor: 'rgba(255,255,255,.12)', color: '#fff' }} />}
+                 ? <Chip size="small" icon={<BadgeIcon sx={{ color: '#fff !important' }} />} label="Premium ativo" onClick={() => navigate('/planos')} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(255,255,255,.28)' } }} />
+                : <Chip size="small" label="Plano grátis · Ver planos" onClick={() => navigate('/planos')} sx={{ bgcolor: 'rgba(255,255,255,.12)', color: '#fff', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(255,255,255,.22)' } }} />}
               {profilePct != null && profilePct < 100 && (
                 <Chip size="small" label={`Perfil ${profilePct}%`} sx={{ bgcolor: 'rgba(255,255,255,.22)', color: '#fff', fontWeight: 700 }} />
               )}
@@ -278,7 +282,9 @@ export const ProfilePage = () => {
                 <Typography variant="body2" color="text.secondary">Sem peso registrado ainda — usado no IMC e no risco cardiometabólico.</Typography>
               )}
             </Box>
-            <Button variant={patient?.weightKg != null ? 'outlined' : 'contained'} onClick={() => navigate('/medicoes')} sx={{ flexShrink: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>
+            {/* 1 ação primária/tela (regra DS): o gradiente fica em "Salvar perfil" —
+                peso é atalho secundário, sempre outlined (antes competia como contained). */}
+            <Button variant="outlined" onClick={() => navigate('/medicoes')} sx={{ flexShrink: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }}>
               {patient?.weightKg != null ? 'Novo peso' : 'Registrar peso'}
             </Button>
           </Stack>
@@ -292,8 +298,8 @@ export const ProfilePage = () => {
           <FormControlLabel control={<Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔔 Avisar quando eu desbloquear uma conquista</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Você continua ganhando os créditos mesmo com isso desligado — só não recebe o aviso no sino.</Typography>
           <FormControlLabel control={<Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>♿ Botão de tradução em Libras</Box>} />
-          <FormControlLabel control={<Switch checked={textLarge} onChange={(e) => toggleTextLarge(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔍 Aa Texto grande — amplia os textos do app</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Traduz os textos do app para Língua Brasileira de Sinais. Desligue para remover o botão flutuante da tela.</Typography>
+          <FormControlLabel control={<Switch checked={textLarge} onChange={(e) => toggleTextLarge(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🔍 Aa Texto grande — amplia os textos do app</Box>} />
           <FormControlLabel control={<Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🏃 Card de atividade física no início</Box>} />
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Passos, calorias e distância (Health Connect do celular). Vale no app Android.</Typography>
           <FormControlLabel control={<Switch checked={privacyOn} onChange={(e) => setPrivacyOn(e.target.checked)} />} label={<Box sx={{ fontWeight: 600 }}>🙈 Modo privacidade — borra nomes de exames</Box>} />
@@ -301,8 +307,8 @@ export const ProfilePage = () => {
           {/* SAÚDE ESPORTIVA (E1): kill-switch via /api/public/config (admin, default OFF);
               ativar é premium. Sem o flag ligado o componente renderiza nada. */}
           <SportsModeCard pid={pid} />
-          <Button variant="outlined" onClick={() => { diagShare().catch(() => {}); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, mb: 0.5 }}>
-            📋 Enviar diagnóstico ao suporte
+          <Button variant="outlined" onClick={() => { diagShare().catch(() => {}); }} startIcon={<BugReportIcon />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, mb: 0.5 }}>
+            Enviar diagnóstico ao suporte
           </Button>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>Abre o compartilhamento do celular com versão do app, conexão e últimos erros da sessão (sem dados pessoais nem resultados de exame).</Typography>
           {/* Review (skill in-app-review): o prompt nativo dispara sozinho no momento
@@ -326,6 +332,7 @@ export const ProfilePage = () => {
       {/* CONTA */}
       <Card sx={{ mb: 2.5, borderRadius: '20px' }}>
         <CardContent sx={{ py: 1.5, px: { xs: 1.5, md: 2 } }}>
+          <AccountLinkRow icon={<Diversity3OutlinedIcon />} title="Família e dependentes" desc="Perfis de filhos, pais e cônjuge" onClick={() => navigate('/familia')} />
           <AccountLinkRow icon={<LockResetIcon />} title="Segurança" desc="Trocar senha, 2FA e biometria" onClick={() => navigate('/seguranca')} />
           <AccountLinkRow icon={<ShieldIcon />} title="Privacidade e dados" desc="Baixar seus dados, importar, termos (LGPD) e excluir conta" onClick={() => navigate('/privacidade')} />
           <AccountLinkRow icon={<ApiIcon />} title="API para desenvolvedores" desc="Integre preço de remédios e interações no seu produto" onClick={() => navigate('/api')} />

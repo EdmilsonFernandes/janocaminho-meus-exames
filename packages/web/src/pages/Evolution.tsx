@@ -29,6 +29,7 @@ import type { EvolutionItem as EvoItem, ClinicalGoalView } from '@meus-exames/sh
 import { tealText } from '../theme';
 import { useClinicalGoals } from '../hooks/useClinicalGoals';
 import { goalFor, goalRangeText, withinGoal, withinRef, dualStatusText, hasMixedMethods, lineBreakFlags } from '../utils/clinicalGoals';
+import { prettyName } from '../utils/prettyName';
 
 /** Chip "🎯 Meta clínica" (E2.4 — camada 2): SEMPRE além do badge da régua do lab; nunca
  *  o substitui. Tooltip mostra justificativa + fonte + autor (transparência clínica). */
@@ -57,8 +58,12 @@ type Status = 'out' | 'change' | 'stable';
 // Antes usava '!inRange' (recompute do valor vs faixa), que ignorava a reconciliação de escala
 // e inflava o 'fora da faixa' com marcadores incertos (Dashboard=2 vs Evolução=10).
 const statusOf = (it: EvoItem): Status => (it.abnormal ? 'out' : it.direction !== 'stable' ? 'change' : 'stable');
+// Vocabulário UNIFICADO (critic: 4 taxonomias de severidade entre telas): a dimensão
+// "alterado" usa o MESMO rótulo do Dashboard ("Requer atenção"); o GRAU fino (Abaixo/Acima/
+// Muito acima) continua vindo de displayStatus (utils/examStatus) nos tooltips/chips. "Em
+// mudança"/"Estável" são dimensão de TENDÊNCIA — exclusivas da Evolução, sem conflito.
 const STATUS_META: Record<Status, { emoji: string; label: string; color: string }> = {
-  out: { emoji: '🔴', label: 'Fora da faixa', color: '#ef4444' },
+  out: { emoji: '🔴', label: 'Requer atenção', color: '#ef4444' },
   change: { emoji: '🟠', label: 'Em mudança', color: '#f59e0b' },
   stable: { emoji: '✅', label: 'Estável', color: '#059669' },
 };
@@ -100,7 +105,8 @@ export const EvolutionPage = () => {
     const q = query.trim().toLowerCase();
     return items
       .filter((i) => filter === 'all' || statusOf(i) === filter)
-      .filter((i) => !q || i.nameCanonical.toLowerCase().includes(q))
+      // Busca casa no nameCanonical E no nome exibido (prettyName) — o usuário digita o que VÊ.
+      .filter((i) => !q || i.nameCanonical.toLowerCase().includes(q) || prettyName(i.nameCanonical).toLowerCase().includes(q))
       .sort((a, b) => order[statusOf(a)] - order[statusOf(b)]);
   }, [items, filter, query]);
 
@@ -366,7 +372,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
         >
           <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
             <Box sx={{ fontSize: 15, flexShrink: 0 }}>{meta.emoji}</Box>
-            <Typography sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{it.nameCanonical}</Typography>
+            <Typography sx={{ fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={it.nameCanonical}>{prettyName(it.nameCanonical)}</Typography>
           </Stack>
           <Stack
             direction="row"
@@ -405,15 +411,18 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
                   cursor={{ stroke: lineColor, strokeWidth: 1, strokeDasharray: '4 3' }}
                   content={({ active: a, payload }) => {
                     if (!a || !payload?.length) return null;
-                    const d = payload[0].payload as { v: number; date: string; flag: string; refLow?: number | null; refHigh?: number | null };
+                    const d = payload[0].payload as { v: number | null; vDot?: number; date: string; flag: string; refLow?: number | null; refHigh?: number | null };
+                    // Métodos mistos: ponto ISOLADO tem v=null (linha cortada) — o valor vem de
+                    // vDot (dot da série secundária). Antes: tocar no ponto e não ver o número.
+                    const val = d.v ?? d.vDot ?? null;
                     return (
                       <Box sx={{ bgcolor: 'background.paper', border: `1px solid ${lineColor}`, borderRadius: '8px', px: 1.25, py: 0.75, boxShadow: 2 }}>
-                        <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{d.v} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
+                        <Typography sx={{ fontWeight: 800, color: lineColor, lineHeight: 1.1 }}>{val ?? '—'} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>{d.date}</Typography>
                         {(() => {
                           // Status NUMÉRICO-PRIMEIRO contra a faixa UNIFICADA da série (mediana
                           // enviada pelo server) — mandato 2026-08-18: UMA faixa classifica tudo.
-                          const s = displayStatus(d.flag, it.nameCanonical, it.refLow, it.refHigh, d.v);
+                          const s = displayStatus(d.flag, it.nameCanonical, it.refLow, it.refHigh, val);
                           if (s.tone === 'normal' || s.short === '—') return null;
                           return <Typography variant="caption" sx={{ display: 'block', color: s.tone === 'critico' ? '#ef4444' : '#b45309', fontWeight: 700 }}>{s.label}</Typography>;
                         })()}
@@ -460,7 +469,7 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
         )}
         {it.predictMonths != null && (
           <Box sx={{ mt: 1, p: 1, borderRadius: '8px', bgcolor: `${lineColor}0d`, border: `1px solid ${lineColor}33` }}>
-            <Typography variant="body2" sx={{ color: lineColor, fontWeight: 600 }}>⏱️ Neste ritmo, {it.nameCanonical} {up ? 'ultrapassa' : 'fica abaixo de'} a faixa em ~{it.predictMonths} {it.predictMonths === 1 ? 'mês' : 'meses'}.</Typography>
+            <Typography variant="body2" sx={{ color: lineColor, fontWeight: 600 }}>⏱️ Neste ritmo, {prettyName(it.nameCanonical)} {up ? 'ultrapassa' : 'fica abaixo de'} a faixa em ~{it.predictMonths} {it.predictMonths === 1 ? 'mês' : 'meses'}.</Typography>
           </Box>
         )}
         <Stack direction="row" spacing={1} sx={{ mt: 1 }} useFlexGap flexWrap="wrap" alignItems="center">
