@@ -880,9 +880,7 @@ const DashboardV2Inner = () => {
   const [demoAsk, setDemoAsk] = useState(false);
   // 28/09: tile Risco do coração abre os FATORES (dialog) em vez de navegar pra Tendências.
   const [cardioOpen, setCardioOpen] = useState(false);
-  // Polish v2 — "Ver mais": 1ª dobra enxuta (saudação + hero + KPIs); o resto do
-  // painel mora atrás de um Collapse. Nada é removido — só escondido até o toque.
-  const [showAll, setShowAll] = useState(false);
+
   const d = demo ? DEMO_DASHBOARD : real;
   const th = useTheme();
   const isDark = th.palette.mode === 'dark';
@@ -1089,89 +1087,6 @@ const DashboardV2Inner = () => {
         />
       </StaggerIn>
 
-      {/* 0.1 BANNER TELECONSULTA AO VIVO (PRIORIDADE CLÍNICA MÁXIMA) */}
-      {!demo && tele.isLive && (
-        <StaggerIn delay={300}>
-          <Box sx={{ mb: 3.5 }}>
-            <AppCard
-              sx={{
-                p: { xs: 2, sm: 2.25 },
-                background: 'linear-gradient(135deg, #1f2937 0%, #111827 100%)',
-                color: '#ffffff',
-                border: '1.5px solid rgba(239, 68, 68, 0.45)',
-                boxShadow: '0 12px 32px rgba(239, 68, 68, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: 2,
-              }}
-            >
-              <Stack direction="row" spacing={2} alignItems="center" sx={{ minWidth: 260, flex: 1 }}>
-                <Box
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: '12px',
-                    bgcolor: 'rgba(239, 68, 68, 0.2)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    color: '#ef4444',
-                    flexShrink: 0,
-                    // Live (teleconsulta ao vivo) — única categoria com infinite permitido;
-                    // desliga em prefers-reduced-motion.
-                    animation: 'tcLivePulse 1.8s infinite',
-                    '@keyframes tcLivePulse': {
-                      '0%, 100%': { transform: 'scale(1)' },
-                      '50%': { transform: 'scale(1.08)' },
-                    },
-                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-                  }}
-                >
-                  <VideocamRoundedIcon sx={{ fontSize: 26 }} />
-                </Box>
-                <Box sx={{ minWidth: 0 }}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#ef4444' }} />
-                    <Typography sx={{ fontSize: 11, fontWeight: 800, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fca5a5' }}>
-                      Sua teleconsulta está acontecendo agora
-                    </Typography>
-                  </Stack>
-                  <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 17.5 }, lineHeight: 1.25, color: '#ffffff' }}>
-                    {tele.doctorName ? `${tele.doctorName} · ` : ''}{tele.specialty || 'Consulta médica online'}
-                  </Typography>
-                  <Typography sx={{ fontSize: 12, color: 'rgba(255,255,255,0.85)', mt: 0.25 }}>
-                    Sala virtual pronta · Toque para entrar na chamada com áudio e vídeo
-                  </Typography>
-                </Box>
-              </Stack>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  if (tele.item?.linkUrl) void openTelemedicinaRoom(tele.item.linkUrl);
-                  else if (tele.item?.id) navigate(`/teleconsulta/${tele.item.id}`);
-                  else navigate('/telemedicina');
-                }}
-                sx={{
-                  bgcolor: '#ef4444',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: 13,
-                  px: 2.75,
-                  py: 1.15,
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.4)',
-                  '&:hover': { bgcolor: '#dc2626' },
-                }}
-              >
-                Entrar na consulta agora
-              </Button>
-            </AppCard>
-          </Box>
-        </StaggerIn>
-      )}
-
       {/* ALERTAS DE EXAMES — abaixo do hero (saúde crítica depois do retrato geral). */}
       <FailedExamsAlert count={d.failed} onClick={() => navigate('/exams')} />
       <RejectedExamsAlert count={d.rejected} onClick={() => navigate('/exams')} />
@@ -1268,24 +1183,8 @@ const DashboardV2Inner = () => {
         )}
       </StaggerIn>
 
-      {/* VER MAIS (polish v2) — 1ª dobra enxuta (saudação + hero + KPIs): o resto do
-          painel (persona esportiva, mapa corporal, atividade, mental, IA, coluna
-          lateral) mora atrás deste Collapse. NADA foi removido — só escondido até o
-          toque (VISUAL_DENSITY=2: whitespace-heavy, 7 elementos na dobra). */}
-      <Box sx={{ mt: 3.5, display: 'flex', justifyContent: 'center' }}>
-        <Button
-          variant="text"
-          onClick={() => setShowAll((v) => !v)}
-          aria-expanded={showAll}
-          aria-controls="dash-ver-mais"
-          endIcon={<ExpandMoreIcon sx={{ transform: showAll ? 'rotate(180deg)' : 'none', transition: 'transform .25s cubic-bezier(.16,1,.3,1)' }} />}
-          sx={{ textTransform: 'none', fontWeight: 800, fontSize: 14, borderRadius: RADIUS.button, px: 2.5, color: (t) => tealText(t.palette.mode) }}
-        >
-          {showAll ? 'Ver menos' : 'Ver mais'}
-        </Button>
-      </Box>
-      <Collapse in={showAll} unmountOnExit>
-        <Box id="dash-ver-mais" sx={{ pt: 3.5 }}>
+      {/* DASHBOARD PRINCIPAL — fluxo natural contínuo sem barreira de clique */}
+      <Box id="dash-ver-mais" sx={{ pt: 3.5 }}>
           {/* LENTE ESPORTIVA — desceu do topo (fix #1) e só aparece pra quem JÁ TEM perfil
               esportivo (fix #3): sem perfil o toggle é ruído de um recurso desconhecido —
               o convite (aquisição) mora no FIM da página. */}
@@ -1367,9 +1266,8 @@ const DashboardV2Inner = () => {
           {/* COLUNA LATERAL (35%) */}
           <Grid size={{ xs: 12, md: 5, lg: 4 }}>
             <Stack spacing={3.5}>
-              {/* TELECONSULTA AGENDADA — XOR com o banner AO VIVO (fix #16): consulta
-                  acontecendo agora já tem card próprio no topo; duplicar CTA compete. */}
-              {!demo && !tele.isLive && <TeleconsultaCard />}
+              {/* TELECONSULTA (Card Clínico em Destaque) */}
+              {!demo && <TeleconsultaCard />}
 
               {/* PANORAMA DOS MARCADORES */}
               <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => go(dest === 'tendencias' ? '/tendencias' : '/exams')()} />
@@ -1402,7 +1300,6 @@ const DashboardV2Inner = () => {
         </Grid>
           </StaggerIn>
         </Box>
-      </Collapse>
 
       <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
 

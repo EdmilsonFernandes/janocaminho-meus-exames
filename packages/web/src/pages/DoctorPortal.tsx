@@ -1816,11 +1816,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               <TextField
                 select
                 label="Repetir consulta"
-                value={tele.recurrence}
+                value={tele.recurrence || ''}
                 onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))}
                 size="small"
                 sx={{ flex: 0.8 }}
                 InputLabelProps={{ shrink: true }}
+                SelectProps={{
+                  displayEmpty: true,
+                  renderValue: (val) => {
+                    const v = (val as string) || '';
+                    if (!v) return 'Não repete';
+                    const map: Record<string, string> = {
+                      semanal: 'Semanal',
+                      mensal: 'Mensal',
+                      semestral: 'Semestral',
+                      anual: 'Anual',
+                    };
+                    return map[v] || 'Não repete';
+                  },
+                }}
               >
                 {[
                   ['', 'Não repete'],
@@ -1923,7 +1937,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               )}
 
               {/* Transcrição */}
-              {(!!postTranscript?.text || !!postSummary?.transcript?.at) && (
+              {(!!postTranscript?.text || !!postSummary?.transcript?.at) ? (
                 <Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif', color: 'text.primary', mb: 1 }}>Transcrição</Typography>
                   <TranscriptView
@@ -1932,12 +1946,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     role="doctor"
                   />
                 </Box>
-              )}
-
-              {((postSummary?.examRequests?.length ?? 0) === 0) && !postTranscript?.text && (
-                <Box sx={{ textAlign: 'center', py: 2.5 }}>
-                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-                    Pedidos e transcrição desta consulta aparecem aqui — pode fechar e voltar depois.
+              ) : (
+                <Box sx={{ p: 2, borderRadius: '14px', bgcolor: 'action.hover', border: '1px dashed', borderColor: 'divider' }}>
+                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', mb: 0.5 }}>
+                    🎙️ Transcrição por IA
+                  </Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+                    Esta consulta ocorreu sem gravação de áudio ativa autorizada pelo paciente (CFM 2.314/2022). O prontuário, receitas e pedidos de exames ficam salvos permanentemente.
                   </Typography>
                 </Box>
               )}

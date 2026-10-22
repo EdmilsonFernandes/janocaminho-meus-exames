@@ -347,7 +347,7 @@ const MenuSectionAccordion = ({
             flexShrink: 0,
             display: 'grid',
             placeItems: 'center',
-            background: open ? 'linear-gradient(135deg, #20b2aa, #0d9488)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
+            background: open ? 'linear-gradient(135deg, #0d9488, #059669)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
             color: open ? '#fff' : (t) => t.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
             transition: 'all .2s ease',
             '& svg': { fontSize: 16 },
@@ -357,11 +357,16 @@ const MenuSectionAccordion = ({
         </Box>
         <ListItemText
           primary={title}
+          sx={{ flex: '1 1 auto', minWidth: 0, mr: 0.5, my: 0 }}
           primaryTypographyProps={{
             fontSize: 12.5,
             fontWeight: 700,
             letterSpacing: '0.01em',
+            noWrap: true,
             sx: {
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
               color: (t) => {
                 const isDark = t.palette.mode === 'dark';
                 if (open) return isDark ? '#ffffff' : '#0f766e';
@@ -376,20 +381,32 @@ const MenuSectionAccordion = ({
             label={badge}
             sx={{
               mr: 0.5,
-              height: 18,
-              fontSize: 10.5,
+              height: 20,
+              flexShrink: 0,
+              fontSize: 10,
               fontWeight: 800,
-              bgcolor: badge === 'ao vivo' ? '#ef4444' : 'rgba(212, 165, 116, 0.28)',
-              color: badge === 'ao vivo' ? '#ffffff' : '#f3d3ac',
+              whiteSpace: 'nowrap',
+              bgcolor: badge === 'ao vivo' ? '#ef4444' : badge === 'hoje' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(13, 148, 136, 0.14)',
+              color: badge === 'ao vivo' ? '#ffffff' : badge === 'hoje' ? '#d97706' : '#0d9488',
               borderRadius: '99px',
+              border: badge === 'ao vivo' ? 'none' : '1px solid',
+              borderColor: badge === 'hoje' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(13, 148, 136, 0.25)',
+              '& .MuiChip-label': {
+                px: 0.8,
+                py: 0,
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+                overflow: 'visible',
+              },
             }}
           />
         )}
         <ExpandMoreIcon
           sx={{
+            flexShrink: 0,
             transform: open ? 'rotate(0deg)' : 'rotate(-90deg)',
             transition: 'transform .25s cubic-bezier(.34,1.56,.64,1)',
-            color: (t) => (open ? '#20b2aa' : t.palette.mode === 'dark' ? 'rgba(241, 245, 249, 0.45)' : '#94a3b8'),
+            color: (t) => (open ? '#0d9488' : t.palette.mode === 'dark' ? 'rgba(241, 245, 249, 0.45)' : '#94a3b8'),
             fontSize: 18,
           }}
         />
@@ -399,7 +416,7 @@ const MenuSectionAccordion = ({
           sx={{
             ml: '18px',
             pl: 1,
-            borderLeft: '2px solid rgba(32, 178, 170, 0.25)',
+            borderLeft: '2px solid rgba(13, 148, 136, 0.22)',
           }}
         >
           {children}
@@ -410,7 +427,7 @@ const MenuSectionAccordion = ({
 };
 
 // Item de navegação Dr. Exame:
-// Ativo = fundo translúcido teal, texto destacado, acento lateral indicador na cor oficial #20b2aa.
+// Ativo = fundo translúcido teal, texto destacado, acento lateral indicador na cor oficial #0d9488.
 const NavItem = ({
   to,
   primaryText,
@@ -478,19 +495,19 @@ const NavItem = ({
         transition: 'all .15s ease, transform .15s ease',
         color: (t) => {
           const isDark = t.palette.mode === 'dark';
-          if (active) return isDark ? '#5fc9c3' : '#0d9488';
+          if (active) return isDark ? '#2dd4bf' : '#0f766e';
           return isDark ? 'rgba(241, 245, 249, 0.78)' : '#334155';
         },
-        borderLeft: active ? '3.5px solid #20b2aa' : '3.5px solid transparent',
+        borderLeft: active ? '3.5px solid #0d9488' : '3.5px solid transparent',
         ...(active
           ? {
-              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32, 178, 170, 0.16) !important' : 'rgba(32, 178, 170, 0.08) !important',
-              boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(32,178,170,0.06)',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(13, 148, 136, 0.16) !important' : 'rgba(13, 148, 136, 0.08) !important',
+              boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(13,148,136,0.06)',
             }
           : {
               bgcolor: 'transparent',
               '&:hover': {
-                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(32, 178, 170, 0.05)',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(13, 148, 136, 0.05)',
                 color: (t) => t.palette.mode === 'dark' ? '#ffffff' : '#0f766e',
                 transform: 'translateX(3px)',
               },
@@ -502,8 +519,8 @@ const NavItem = ({
           minWidth: 30,
           color: (t) => {
             const isDark = t.palette.mode === 'dark';
-            if (active) return '#20b2aa';
-            if (highlight) return isDark ? '#5fc9c3' : '#0d9488';
+            if (active) return '#0d9488';
+            if (highlight) return isDark ? '#2dd4bf' : '#0d9488';
             return isDark ? 'rgba(241, 245, 249, 0.55)' : '#64748b';
           },
           '& svg': { fontSize: 19, transition: 'transform .2s ease' },
@@ -790,7 +807,7 @@ const AppMenu = () => {
       title="Consultas e médicos"
       icon={<MedicalServicesOutlinedIcon />}
       routes={['/lembretes', '/medicos', '/perguntas']}
-      badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? 'agendada' : undefined}
+      badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? '1' : undefined}
     >
       <NavItem
         to="/lembretes"
@@ -868,18 +885,19 @@ const AppMenu = () => {
       <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
 
-    <Box sx={{ px: 2, pt: 1.5, pb: 1.5, textAlign: 'center' }}>
+    <Box sx={{ px: 2, pt: 1.5, pb: { xs: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))', sm: 2 }, textAlign: 'center' }}>
       <Box sx={{
         display: 'inline-flex', alignItems: 'center', gap: 0.75,
-        px: 1.5, py: 0.5, borderRadius: 99,
-        bgcolor: 'rgba(255,255,255,0.05)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        px: 1.5, py: 0.6, borderRadius: 99,
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+        border: '1px solid',
+        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
       }}>
-        <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#20b2aa', boxShadow: '0 0 6px #20b2aa' }} />
-        <Typography variant="caption" sx={{ fontSize: 11, fontWeight: 700, color: 'rgba(231,245,243,0.7)', letterSpacing: '0.01em' }}>
+        <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#0d9488', boxShadow: '0 0 8px rgba(13,148,136,0.6)' }} />
+        <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary', letterSpacing: '0.01em' }}>
           Dr. Exame · Saúde
         </Typography>
-        <Typography variant="caption" sx={{ fontSize: 10, fontWeight: 600, color: 'rgba(231,245,243,0.4)' }}>
+        <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700, color: 'text.secondary' }}>
           v{APP_BUILD_INFO.version}
         </Typography>
       </Box>

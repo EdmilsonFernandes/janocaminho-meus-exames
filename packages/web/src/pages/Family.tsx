@@ -263,7 +263,7 @@ export const FamilyPage = () => {
   const avgScore = validScores.length > 0 ? Math.round(validScores.reduce((a, b) => a + b, 0) / validScores.length) : null;
 
   return (
-    <PageContainer width={1020} sx={{ pb: { xs: 12, sm: 6 } }}>
+    <PageContainer width={1020} sx={{ pb: { xs: 16, sm: 6 } }}>
       {/* 1. HERO BANNER: CENTRO DE CUIDADOS DA FAMÍLIA */}
       <Card
         elevation={0}

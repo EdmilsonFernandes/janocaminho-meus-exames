@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer } from '@mui/material';
 import { API_URL, token } from '../../config';
-import { TabLoader, SectionError } from './parts';
+import { TabLoader, SectionError, FEATURE_LABELS } from './parts';
 
 /** "2026-08" → "Ago 2026" (evita datas quebrando no mobile). */
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -10,17 +10,6 @@ const fmtMonth = (m: string): string => {
   const [y, mo] = m.split('-');
   const idx = parseInt(mo, 10) - 1;
   return `${MESES[idx] ?? mo} ${y}`;
-};
-
-/** Rótulos humanos das features do paywall (mesma nomenclatura do app). */
-const FEATURE_LABELS: Record<string, string> = {
-  CHAT: 'Chat com a IA',
-  SUMMARY: 'Resumo de exame',
-  CONSOLIDATED: 'Relatório completo',
-  ACTION_PLAN: 'Plano de ação',
-  SHARE: 'Compartilhar c/ médico',
-  DOCTOR_QUESTION: 'Pergunta ao médico',
-  MED_INTERACTION: 'Interação de remédios',
 };
 
 export const OverviewTab = () => {
@@ -49,12 +38,12 @@ export const OverviewTab = () => {
     <Stack spacing={2}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
         {[
-          { l: 'Signups', v: metrics.funnel.signups, c: '#0ea5e9' },
-          { l: 'Premium ativos', v: metrics.funnel.premiumActive, c: '#20b2aa' },
-          { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#6366f1' },
-          { l: 'MRR (recorrente/mês)', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
-          { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#059669' },
-          { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#f59e0b' },
+          { l: 'Cadastros', v: metrics.funnel.signups, c: '#64748b' },
+          { l: 'Premium ativos', v: metrics.funnel.premiumActive, c: '#178f89' },
+          { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#178f89' },
+          { l: 'Receita recorrente/mês', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89' },
+          { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89' },
+          { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#b88a54' },
         ].map((k) => (
           <Card key={k.l} sx={{ borderRadius: '12px' }}><CardContent>
             <Typography variant="caption" color="text.secondary">{k.l}</Typography>
@@ -81,12 +70,12 @@ export const OverviewTab = () => {
       </CardContent></Card>
 
       {/* PAYWALL (18/10): quem tentou usar IA e estava sem saldo — antes invisível. É o
-          número nº1 de disposição a pagar; cruzar com as ofertas do dialog 402. */}
+          número nº1 de disposição a pagar; cruzar com as ofertas do paywall (402). */}
       <Card sx={{ borderRadius: '12px' }}><CardContent>
         <Typography variant="h6" sx={{ fontSize: 16 }}>🚧 Bateram no sem-saldo (paywall)</Typography>
         <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ mt: 1, mb: metrics.paywall?.byFeature?.length ? 1.5 : 0 }}>
-          <Box><Typography variant="caption" color="text.secondary">Bloqueios (7d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#f59e0b' }}>{metrics.paywall?.hits7d ?? 0}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Bloqueios (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#f59e0b' }}>{metrics.paywall?.hits30d ?? 0}</Typography></Box>
+          <Box><Typography variant="caption" color="text.secondary">Bloqueios (7d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#b88a54' }}>{metrics.paywall?.hits7d ?? 0}</Typography></Box>
+          <Box><Typography variant="caption" color="text.secondary">Bloqueios (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#b88a54' }}>{metrics.paywall?.hits30d ?? 0}</Typography></Box>
           <Box><Typography variant="caption" color="text.secondary">Pessoas distintas (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.paywall?.users30d ?? 0}</Typography></Box>
         </Stack>
         {metrics.paywall?.byFeature?.length > 0 && (
@@ -106,7 +95,7 @@ export const OverviewTab = () => {
           </TableContainer>
         )}
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          Cada linha é alguém QUERENDO usar e não podendo — é aqui que o trial/pack/relatório do dialog 402 disputa a conversão.
+          Cada linha é alguém QUERENDO usar e não podendo — é aqui que o trial/pack/relatório do paywall (402) disputa a conversão.
         </Typography>
       </CardContent></Card>
 
@@ -164,7 +153,7 @@ export const OverviewTab = () => {
           <Box key={s.l} sx={{ mb: 1.5 }}>
             <Stack direction="row" justifyContent="space-between"><Typography variant="body2">{s.l}</Typography><Typography variant="body2" sx={{ fontWeight: 700 }}>{s.n} ({Math.round(s.pct)}%)</Typography></Stack>
             <Box sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', mt: 0.5, overflow: 'hidden' }}>
-              <Box sx={{ height: '100%', width: `${Math.max(2, s.pct)}%`, bgcolor: s.c, borderRadius: '999px' }} />
+              <Box sx={{ height: '100%', width: `${s.pct}%`, bgcolor: s.c, borderRadius: '999px' }} />
             </Box>
           </Box>
         ))}

@@ -63,6 +63,18 @@ export const SectionError = ({ message, onRetry }: { message: string; onRetry: (
   </Card>
 );
 
+/** Rótulos humanos das features (paywall/AiAnalysis) — mesma nomenclatura do app.
+ *  Compartilhado entre OverviewTab (paywall) e IaTab (tipo de análise). */
+export const FEATURE_LABELS: Record<string, string> = {
+  CHAT: 'Chat com a IA',
+  SUMMARY: 'Resumo de exame',
+  CONSOLIDATED: 'Relatório completo',
+  ACTION_PLAN: 'Plano de ação',
+  SHARE: 'Compartilhar c/ médico',
+  DOCTOR_QUESTION: 'Pergunta ao médico',
+  MED_INTERACTION: 'Interação de remédios',
+};
+
 /** Dialog de confirmação premium (modelo ConfirmSpend) — substitui o window.confirm. */
 export const ConfirmDialog = ({ open, onClose, onConfirm, title, desc, confirmLabel = 'Confirmar', tone = 'danger', loading = false }: {
   open: boolean; onClose: () => void; onConfirm: () => void;

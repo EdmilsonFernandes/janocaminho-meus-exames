@@ -72,6 +72,23 @@ const TEMPLATES: { emoji: string; title: string; body: string; route?: string; a
 
 const hasAudience = (a: Audience) => Object.values(a).some(Boolean);
 
+/** Título curto do template pra etiqueta do chip — placeholders somem SEM deixar
+ *  pontuação órfã. Ex.: "{{streak}} dias seguidos, {{nome}}!" → "… dias seguidos!"
+ *  Genérico: qualquer {{palavra}} vira "…", só {{nome}} (saudação) é removido. */
+const chipTitle = (t: string): string => t
+  .replace(/,?\s*\{\{nome\}\},?\s*/g, ' ') // {{nome}} some levando as vírgulas vizinhas
+  .replace(/\{\{\w+\}\}/g, '…') // demais placeholders (streak, passosOntem, dias, meta…) → "…"
+  .replace(/\s+([!?.:;,])/g, '$1') // pontuação órfã cola na palavra anterior (", !" → "!")
+  .replace(/\s{2,}/g, ' ')
+  .trim();
+
+/** Público salvo da campanha → legível ("plan:free" → "Plano: Free"). */
+const segLabel = (g: string, v: unknown) => {
+  const group = AUDIENCE_GROUPS.find((x) => x.key === g);
+  const opt = group?.options.find((o) => o.value === v)?.label;
+  return `${group?.label ?? g}: ${opt ?? String(v)}`;
+};
+
 export const PushTab = () => {
   const notify = useNotify();
   const [title, setTitle] = useState('');
@@ -212,8 +229,15 @@ export const PushTab = () => {
       <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
         {previewing && <CircularProgress size={16} sx={{ color: '#178f89' }} />}
         {!previewing && preview && (
-          <Alert severity={preview.users > 0 ? 'info' : 'warning'} icon={<GroupsIcon fontSize="small" />} sx={{ py: 0.25, '.MuiAlert-message': { padding: 0, fontSize: 13 } }}>
-            <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s){segmented ? '' : ' (global)'}
+          <Alert severity={preview.devices > 0 ? 'info' : 'warning'} icon={<GroupsIcon fontSize="small" />} sx={{ py: 0.25, '.MuiAlert-message': { padding: 0, fontSize: 13 } }}>
+            {preview.users === 0 && preview.devices === 0 ? (
+              'Nenhum usuário alcançável ainda'
+            ) : (
+              <>
+                <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s){segmented ? '' : ' (global)'}
+                {preview.users > 0 && preview.devices === 0 && ' — push exige dispositivo registrado'}
+              </>
+            )}
           </Alert>
         )}
         {segmented && <Chip size="small" label="cap: 1 push manual/usuário/semana" variant="outlined" sx={{ height: 24, fontSize: 12, color: 'text.secondary' }} />}
@@ -228,7 +252,7 @@ export const PushTab = () => {
       <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>📋 Modelos prontos <Typography component="span" variant="caption" color="text.secondary">(o marcado com 🎯 pré-seleciona o público)</Typography></Typography>
       <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
         {TEMPLATES.map((t) => (
-          <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${t.title.replace(/\{\{nome\}\},?\s*/g, '').replace(/\{\{(streak|passosOntem)\}\}/g, '…')}${t.aud ? ' 🎯' : ''}`}
+          <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${chipTitle(t.title)}${t.aud ? ' 🎯' : ''}`}
             sx={{ height: 36, fontSize: 13, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.16)' } }} />
         ))}
       </Stack>
@@ -265,7 +289,7 @@ export const PushTab = () => {
             {campaigns.map((c: any) => {
               const scheduled = c.scheduledAt && !c.sentAt;
               const aud = c.audienceFilter && Object.keys(c.audienceFilter).length
-                ? Object.entries(c.audienceFilter).map(([g, v]) => `${g}:${v}`).join(' · ')
+                ? Object.entries(c.audienceFilter).map(([g, v]) => segLabel(g, v)).join(' · ')
                 : 'global';
               return (
                 <Box key={c.id} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>

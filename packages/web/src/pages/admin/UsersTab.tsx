@@ -54,13 +54,19 @@ export const UsersTab = () => {
   const openEdit = (u: U) => { setEditUser(u); setEditCredits(u.credits); setEditPlan(u.planExpiresAt ? u.planExpiresAt.split('T')[0] : ''); };
   const saveCredits = async () => {
     if (!editUser) return;
-    await fetch(`${API_URL}/admin/users/${editUser.id}/credits`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authH() }, body: JSON.stringify({ credits: editCredits }) });
-    notify('Créditos atualizados!', { type: 'success' }); setEditUser(null); void load();
+    try {
+      const r = await fetch(`${API_URL}/admin/users/${editUser.id}/credits`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authH() }, body: JSON.stringify({ credits: editCredits }) });
+      if (!r.ok) { notify('Falha ao salvar. Tente de novo.', { type: 'error' }); return; }
+      notify('Créditos atualizados!', { type: 'success' }); setEditUser(null); void load();
+    } catch { notify('Falha ao salvar. Tente de novo.', { type: 'error' }); }
   };
   const savePlan = async () => {
     if (!editUser) return;
-    await fetch(`${API_URL}/admin/users/${editUser.id}/plan`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authH() }, body: JSON.stringify({ planExpiresAt: editPlan || null }) });
-    notify('Plano atualizado!', { type: 'success' }); setEditUser(null); void load();
+    try {
+      const r = await fetch(`${API_URL}/admin/users/${editUser.id}/plan`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...authH() }, body: JSON.stringify({ planExpiresAt: editPlan || null }) });
+      if (!r.ok) { notify('Falha ao salvar. Tente de novo.', { type: 'error' }); return; }
+      notify('Plano atualizado!', { type: 'success' }); setEditUser(null); void load();
+    } catch { notify('Falha ao salvar. Tente de novo.', { type: 'error' }); }
   };
   const openDelete = async (u: U) => {
     try {
@@ -152,11 +158,11 @@ export const UsersTab = () => {
                 <Typography variant="caption" color="text.secondary">{u.email}</Typography>
                 {/* 01/10 (dono): trilha de aceite dos termos — auditoria LGPD. Antigos = null. */}
                 {(u as any).termsAcceptedAt ? (
-                  <Typography variant='caption' sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>
+                  <Typography variant='caption' sx={{ display: 'block', fontSize: 12, color: 'text.disabled' }}>
                     📜 Termos {(u as any).termsVersion ? (u as any).termsVersion + String.fromCharCode(32) : String.fromCharCode(32)}aceitos em {new Date((u as any).termsAcceptedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </Typography>
                 ) : (
-                  <Typography variant='caption' sx={{ display: 'block', fontSize: 10.5, color: 'text.disabled' }}>📜 Aceite dos termos: anterior ao registro de trilha</Typography>
+                  <Typography variant='caption' sx={{ display: 'block', fontSize: 12, color: 'text.disabled' }}>📜 Aceite dos termos: anterior ao registro de trilha</Typography>
                 )}
                 {/* 28/09 (dono): data de criação visível — saber QUANDO a conta surgiu. */}
                 {(u as any).createdAt && (
@@ -167,7 +173,7 @@ export const UsersTab = () => {
                 {/* 13/10 (dono): dependentes visíveis no admin — caso "Claiza": dependente
                     invisível na lista = falso mistério de "usuário sumido". */}
                 {Array.isArray((u as any).dependents) && (u as any).dependents.length > 0 && (
-                  <Typography variant="caption" sx={{ display: 'block', fontSize: 11, color: 'text.secondary', mt: 0.25 }}>
+                  <Typography variant="caption" sx={{ display: 'block', fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
                     👨‍👩‍👧 {(u as any).dependents.map((d: any) => `${d.fullName}${d.relationship ? ` (${d.relationship})` : ''}`).join(' · ')}
                   </Typography>
                 )}

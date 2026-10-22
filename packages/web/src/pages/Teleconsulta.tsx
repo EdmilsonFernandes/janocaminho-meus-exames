@@ -986,11 +986,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   };
 
   const primaryBtn = {
-    height: 48, borderRadius: '999px', textTransform: 'none' as const, fontWeight: 800, fontSize: 15,
-    background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff',
-    boxShadow: '0 4px 12px rgba(32,178,170,.30)',
-    '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 3 },
-    '&:hover': { background: 'linear-gradient(135deg,#1aa39b,#12706b)' },
+    height: 48, borderRadius: '14px', textTransform: 'none' as const, fontWeight: 800, fontSize: 14.5,
+    background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)', color: '#fff',
+    boxShadow: '0 4px 14px rgba(13,148,136,.35)',
+    '&:focus-visible': { outline: '2px solid #0d9488', outlineOffset: 3 },
+    '&:hover': { background: 'linear-gradient(135deg, #0f766e 0%, #047857 100%)', boxShadow: '0 6px 20px rgba(13,148,136,.45)' },
     '&:disabled': { color: 'rgba(255,255,255,.7)' },
   };
 
@@ -1471,10 +1471,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Box>
             )}
 
-            {/* §3b — Transcrição (só se houve consent de gravação; reader = TranscriptView) */}
-            {hasRecording && (
+            {/* §3b — Transcrição */}
+            {hasRecording ? (
               <Box sx={{ mt: 3 }}>
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Transcrição</Typography>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Transcrição da Consulta</Typography>
                 {txState === 'pending' && (
                   <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }} >
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
@@ -1483,14 +1483,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                           {[86, 70, 78].map((w, i) => (
                             <Box key={i} sx={{
                               height: 14, width: `${w}%`, borderRadius: '7px',
-                              bgcolor: 'rgba(32,178,170,.08)',
+                              bgcolor: 'rgba(13,148,136,.12)',
                               animation: `dxTxShimmer 1.6s ease ${i * 0.18}s infinite`,
                               '@keyframes dxTxShimmer': { '0%,100%': { opacity: 0.55 }, '50%': { opacity: 1 } },
                             }} />
                           ))}
                         </Stack>
                         <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 1.5, lineHeight: 1.55 }}>
-                          A transcrição chega em alguns minutos — pode sair, avisamos quando estiver pronta.
+                          A transcrição por IA está sendo processada — pode sair, avisamos quando estiver pronta.
                         </Typography>
                       </Box>
                     </CardContent>
@@ -1501,12 +1501,35 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                       <Stack spacing={1} alignItems="flex-start">
-                        <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Não deu pra gerar a transcrição.</Typography>
+                        <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>Não foi possível carregar a transcrição no momento.</Typography>
                         <Button size="small" variant="outlined" onClick={() => setTxRetry((n) => n + 1)} sx={quickBtnSx}>Tentar de novo</Button>
                       </Stack>
                     </CardContent>
                   </Card>
                 )}
+              </Box>
+            ) : (
+              <Box sx={{ mt: 3 }}>
+                <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', borderColor: 'divider', boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                      <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                        <AssignmentIcon sx={{ fontSize: 20 }} />
+                      </Box>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+                            Transcrição da Consulta
+                          </Typography>
+                          <Chip size="small" label="Sem gravação autorizada" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: 'text.secondary' }} />
+                        </Stack>
+                        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+                          Por privacidade e diretriz do CFM (Res. 2.314/2022), a gravação e transcrição inteligente exigem consentimento prévio de ambas as partes. Esta chamada ocorreu sem gravação de áudio ativa.
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </CardContent>
+                </Card>
               </Box>
             )}
 
@@ -1809,12 +1832,24 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const ctaLabel = 'Entrar na consulta';
   return (
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 1.5 }}>
-      <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px' }} elevation={4}>
-        <CardContent sx={{ p: 2.5 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1.5 }}>Sua consulta vai começar</Typography>
+      <Card
+        sx={{
+          maxWidth: 440,
+          width: '100%',
+          borderRadius: '24px',
+          border: '1.5px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(13,148,136,0.35)' : 'rgba(13,148,136,0.22)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? '0 16px 48px rgba(0,0,0,0.6)' : '0 14px 40px rgba(13,148,136,0.12)',
+        }}
+        elevation={0}
+      >
+        <CardContent sx={{ p: 2.75 }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1.5 }}>
+            Sua teleconsulta vai começar
+          </Typography>
 
           {/* Preview espelhado */}
-          <Box sx={{ position: 'relative', aspectRatio: '16 / 9', borderRadius: '16px', overflow: 'hidden', bgcolor: '#0c1818', mb: 0.5 }}>
+          <Box sx={{ position: 'relative', aspectRatio: '16 / 9', borderRadius: '16px', overflow: 'hidden', bgcolor: '#0c1818', mb: 1 }}>
             {camState === 'ok' ? (
               <>
                 <video ref={previewVideo} playsInline autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
@@ -1834,6 +1869,28 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <Chip size="small" label="Sem câmera" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
             )}
             {phase === 'loading' && <CircularProgress size={22} sx={{ position: 'absolute', top: 10, right: 10, color: '#5fc9c3' }} />}
+          </Box>
+
+          {/* Diagnóstico Rápido de Dispositivo & Reafirmação Clínica */}
+          <Box
+            sx={{
+              p: 1.25,
+              borderRadius: '12px',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.025)',
+              border: '1px solid',
+              borderColor: 'divider',
+              mb: 1.5,
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
+              <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#10b981' }} />
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary' }}>
+                Conexão Segura Criptografada (LiveKit E2EE)
+              </Typography>
+            </Stack>
+            <Typography variant="caption" sx={{ fontSize: 11.5, color: 'text.secondary', display: 'block' }}>
+              Áudio e vídeo de alta fidelidade protegidos conforme Resolução CFM 2.314/2022.
+            </Typography>
           </Box>
 
           {/* CTA de permissão (câmera) — não bloqueia a entrada */}

@@ -303,7 +303,7 @@ export const MedicosPage = () => {
   const activeCount = myShares.filter((s) => s.active).length;
 
   return (
-    <PageContainer width={760} sx={{ pb: { xs: 10, sm: 5 } }}>
+    <PageContainer width={760} sx={{ pb: { xs: 14, sm: 6 } }}>
       {/* HERO BANNER PREMIUM */}
       <Card
         elevation={0}

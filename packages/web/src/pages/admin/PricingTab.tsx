@@ -278,7 +278,7 @@ export const PricingTab = () => {
                 <TextField label="Título" size="small" sx={{ flex: { sm: '1 1 140px' }, width: { xs: '100%', sm: 'auto' } }} value={b.title ?? ''} onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} />
                 <TextField label="Descrição" size="small" sx={{ flex: { sm: '1 1 200px' }, width: { xs: '100%', sm: 'auto' } }} value={b.desc ?? ''} onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} />
                 <TextField label="Meta" type="number" size="small" sx={{ width: { xs: '100%', sm: 80 } }} value={b.threshold ?? 0} onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, threshold: Number(e.target.value) } : x))} />
-                <TextField label="💎 Recompensa" type="number" size="small" sx={{ width: { xs: '100%', sm: 90 } }} value={b.reward ?? 0} onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, reward: Number(e.target.value) } : x))} />
+                <TextField label="Recompensa" type="number" size="small" sx={{ width: { xs: '100%', sm: 120 } }} value={b.reward ?? 0} onChange={(e) => setBadges(prev => prev.map((x, j) => j === i ? { ...x, reward: Number(e.target.value) } : x))} />
               </Stack>
             ))}
           </Stack>

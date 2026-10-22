@@ -223,8 +223,8 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
                     }}
                   >
                     <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-                      <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Stack direction="row" spacing={1.5} alignItems="center">
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
                           <Box
                             sx={{
                               width: 38,
@@ -235,15 +235,16 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
+                              flexShrink: 0,
                             }}
                           >
                             {showAllYears ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
                           </Box>
-                          <Box>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
-                              {showAllYears ? 'Recolher para o ano mais recente' : `Ver exames de anos anteriores (+${hiddenExamsCount} exames)`}
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
+                              {showAllYears ? 'Recolher para o ano mais recente' : `Ver exames anteriores (+${hiddenExamsCount})`}
                             </Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.2 }}>
                               {showAllYears ? 'Exibindo arquivo completo' : `Histórico de ${hiddenDateGroups.map((g) => g.label).join(', ')}`}
                             </Typography>
                           </Box>
@@ -254,7 +255,14 @@ export const DoctorExamList = ({ patientId, token, onOpen }: { patientId: string
                           label={showAllYears ? 'Recolher' : `+${hiddenExamsCount}`}
                           color="primary"
                           variant={showAllYears ? 'outlined' : 'filled'}
-                          sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                          sx={{
+                            fontWeight: 800,
+                            borderRadius: '999px',
+                            height: 28,
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                            px: 0.5,
+                          }}
                         />
                       </Stack>
                     </CardContent>

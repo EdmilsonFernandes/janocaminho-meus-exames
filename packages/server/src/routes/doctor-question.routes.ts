@@ -23,7 +23,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       where: { patientId: patientFilter },
       include: {
         doctor: { select: { id: true, name: true, specialty: true, photoUrl: true } },
-        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+        messages: { orderBy: { createdAt: 'asc' } },
       },
       orderBy: { createdAt: 'desc' },
     });

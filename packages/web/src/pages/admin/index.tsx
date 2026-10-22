@@ -23,6 +23,8 @@ import PaymentsOutlinedIcon from '@mui/icons-material/PaymentsOutlined';
 import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined';
 import MonitorHeartOutlinedIcon from '@mui/icons-material/MonitorHeartOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
+import PrivacyTipOutlinedIcon from '@mui/icons-material/PrivacyTipOutlined';
+import DnsOutlinedIcon from '@mui/icons-material/DnsOutlined';
 import SupportAgentOutlinedIcon from '@mui/icons-material/SupportAgentOutlined';
 import ApiOutlinedIcon from '@mui/icons-material/ApiOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
@@ -78,6 +80,8 @@ export type ModuleId =
 export interface AdminModule {
   id: ModuleId;
   label: string;
+  /** Título curto p/ topbar mobile (390px) — full fica p/ sidebar/drawer. */
+  short: string;
   icon: ReactElement;
   group: string;
   badge?: string;
@@ -85,33 +89,34 @@ export interface AdminModule {
 
 const MODULES: AdminModule[] = [
   // 1. Visão Geral & Growth
-  { id: 'overview', label: 'Dashboard Executivo', icon: <DashboardOutlinedIcon />, group: 'Visão Geral & Growth' },
-  { id: 'usabilidade', label: 'Adoção de Funcionalidades', icon: <InsightsOutlinedIcon />, group: 'Visão Geral & Growth' },
-  { id: 'referrals', label: 'Indicações & MGM', icon: <CardGiftcardOutlinedIcon />, group: 'Visão Geral & Growth' },
+  { id: 'overview', label: 'Dashboard Executivo', short: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão Geral & Growth' },
+  { id: 'usabilidade', label: 'Adoção de Funcionalidades', short: 'Adoção', icon: <InsightsOutlinedIcon />, group: 'Visão Geral & Growth' },
+  { id: 'referrals', label: 'Indicações & MGM', short: 'Indicações', icon: <CardGiftcardOutlinedIcon />, group: 'Visão Geral & Growth' },
 
   // 2. Pessoas & Clínico
-  { id: 'users', label: 'Usuários / Pacientes', icon: <PeopleOutlinedIcon />, group: 'Pessoas & Clínico' },
-  { id: 'doctors', label: 'Médicos & Portais', icon: <MedicalServicesOutlinedIcon />, group: 'Pessoas & Clínico' },
-  { id: 'exams', label: 'Exames Processados', icon: <DescriptionOutlinedIcon />, group: 'Pessoas & Clínico' },
-  { id: 'support', label: 'Suporte & Chamados', icon: <SupportAgentOutlinedIcon />, group: 'Pessoas & Clínico' },
+  { id: 'users', label: 'Usuários / Pacientes', short: 'Usuários', icon: <PeopleOutlinedIcon />, group: 'Pessoas & Clínico' },
+  { id: 'doctors', label: 'Médicos & Portais', short: 'Médicos', icon: <MedicalServicesOutlinedIcon />, group: 'Pessoas & Clínico' },
+  { id: 'exams', label: 'Exames Processados', short: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Pessoas & Clínico' },
+  { id: 'support', label: 'Suporte & Chamados', short: 'Suporte', icon: <SupportAgentOutlinedIcon />, group: 'Pessoas & Clínico' },
 
   // 3. Inteligência Artificial
-  { id: 'usage', label: 'Consumo de IA & Créditos', icon: <BoltOutlinedIcon />, group: 'Inteligência Artificial' },
-  { id: 'ia', label: 'Provedores & Modelos', icon: <AutoAwesomeOutlinedIcon />, group: 'Inteligência Artificial' },
-  { id: 'risk', label: 'Risco Clínico & Qualidade', icon: <MonitorHeartOutlinedIcon />, group: 'Inteligência Artificial' },
+  { id: 'usage', label: 'Consumo de IA & Créditos', short: 'Consumo IA', icon: <BoltOutlinedIcon />, group: 'Inteligência Artificial' },
+  { id: 'ia', label: 'Provedores & Modelos', short: 'Provedores', icon: <AutoAwesomeOutlinedIcon />, group: 'Inteligência Artificial' },
+  { id: 'risk', label: 'Risco Clínico & Qualidade', short: 'Risco Clínico', icon: <MonitorHeartOutlinedIcon />, group: 'Inteligência Artificial' },
 
   // 4. Negócio & Ecossistema
-  { id: 'financeiro', label: 'Planos & Receita (PIX/Cartão)', icon: <PaymentsOutlinedIcon />, group: 'Comercial & Negócio' },
-  { id: 'config', label: 'Preços & Pacotes de Créditos', icon: <SettingsOutlinedIcon />, group: 'Comercial & Negócio' },
-  { id: 'labs', label: 'Laboratórios Parceiros', icon: <ScienceOutlinedIcon />, group: 'Comercial & Negócio' },
-  { id: 'pharmacies', label: 'Farmácias & Parcerias', icon: <StorefrontOutlinedIcon />, group: 'Comercial & Negócio' },
-  { id: 'api', label: 'API Pública & Integrações', icon: <ApiOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'financeiro', label: 'Planos & Receita (PIX/Cartão)', short: 'Financeiro', icon: <PaymentsOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'config', label: 'Preços & Pacotes de Créditos', short: 'Preços', icon: <SettingsOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'labs', label: 'Laboratórios Parceiros', short: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'pharmacies', label: 'Farmácias & Parcerias', short: 'Farmácias', icon: <StorefrontOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'api', label: 'API Pública & Integrações', short: 'API Pública', icon: <ApiOutlinedIcon />, group: 'Comercial & Negócio' },
 
   // 5. Segurança & Operação
-  { id: 'push', label: 'Push & Campanhas', icon: <CampaignOutlinedIcon />, group: 'Segurança & Operação' },
-  { id: 'tech', label: 'Saúde Técnica & Infra', icon: <MonitorHeartOutlinedIcon />, group: 'Segurança & Operação' },
-  { id: 'audit', label: 'Auditoria & Logs', icon: <ShieldOutlinedIcon />, group: 'Segurança & Operação' },
-  { id: 'pii', label: 'LGPD & Consulta PII/CPF', icon: <ShieldOutlinedIcon />, group: 'Segurança & Operação' },
+  { id: 'push', label: 'Push & Campanhas', short: 'Push', icon: <CampaignOutlinedIcon />, group: 'Segurança & Operação' },
+  // tech: DnsOutlined (não Settings — já usado por 'config'; MonitorHeart fica só do 'risk')
+  { id: 'tech', label: 'Saúde Técnica & Infra', short: 'Saúde Técnica', icon: <DnsOutlinedIcon />, group: 'Segurança & Operação' },
+  { id: 'audit', label: 'Auditoria & Logs', short: 'Auditoria', icon: <ShieldOutlinedIcon />, group: 'Segurança & Operação' },
+  { id: 'pii', label: 'LGPD & Consulta PII/CPF', short: 'LGPD & PII', icon: <PrivacyTipOutlinedIcon />, group: 'Segurança & Operação' },
 ];
 
 // Rodapé (mobile): atalhos rápidos + ☰ que abre TODOS os módulos no drawer categorizado.
@@ -129,6 +134,7 @@ export const AdminPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('md'));
+  const isSmall = useMediaQuery(theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [filterText, setFilterText] = useState('');
 
@@ -247,7 +253,7 @@ export const AdminPage = () => {
                       px: 2,
                       pt: 1.5,
                       pb: 0.5,
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: 800,
                       color: 'text.disabled',
                       textTransform: 'uppercase',
@@ -283,7 +289,7 @@ export const AdminPage = () => {
                     }}
                   />
                   {m.badge && (
-                    <Chip size="small" label={m.badge} sx={{ height: 18, fontSize: 10, fontWeight: 700 }} />
+                    <Chip size="small" label={m.badge} sx={{ height: 20, fontSize: 12, fontWeight: 700 }} />
                   )}
                 </ListItemButton>
               </Box>
@@ -367,7 +373,7 @@ export const AdminPage = () => {
                 {active?.icon}
               </Box>
               <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 } }}>
-                {active?.label}
+                {isSmall && active?.short ? active.short : active?.label}
               </Typography>
             </Stack>
 
@@ -375,9 +381,9 @@ export const AdminPage = () => {
 
             {stats && (
               <Stack direction="row" spacing={0.75} useFlexGap flexWrap="nowrap" sx={{ overflowX: 'auto' }}>
-                <Chip size="small" label={`👤 ${stats.users}`} sx={{ fontWeight: 700, height: 24, fontSize: 11.5 }} />
-                <Chip size="small" label={`📋 ${stats.exams}`} color="secondary" sx={{ fontWeight: 700, height: 24, fontSize: 11.5 }} />
-                <Chip size="small" label={`💰 R$ ${(stats.revenue ?? 0).toFixed(0)}`} color="success" sx={{ fontWeight: 700, height: 24, fontSize: 11.5 }} />
+                <Chip size="small" label={`👤 ${stats.users}`} sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
+                <Chip size="small" label={`📋 ${stats.exams}`} color="secondary" sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
+                <Chip size="small" label={`💰 R$ ${(stats.revenue ?? 0).toFixed(0)}`} color="success" sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
               </Stack>
             )}
           </Toolbar>
@@ -445,7 +451,7 @@ export const AdminPage = () => {
               }}
             >
               {f.icon}
-              <Typography sx={{ fontSize: 11, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>
+              <Typography sx={{ fontSize: 12, fontWeight: on ? 800 : 600, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>
                 {f.short}
               </Typography>
               <Box sx={{ height: 3, width: on ? 20 : 0, borderRadius: '12px', bgcolor: '#178f89', mt: 0.3, transition: 'width .2s' }} />
@@ -467,7 +473,7 @@ export const AdminPage = () => {
           }}
         >
           <MenuOutlinedIcon sx={{ fontSize: 21 }} />
-          <Typography sx={{ fontSize: 11, fontWeight: 700, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>Mais</Typography>
+          <Typography sx={{ fontSize: 12, fontWeight: 700, mt: 0.25, fontFamily: '"Poppins",sans-serif' }}>Mais</Typography>
           <Box sx={{ height: 3 }} />
         </Box>
       </Box>

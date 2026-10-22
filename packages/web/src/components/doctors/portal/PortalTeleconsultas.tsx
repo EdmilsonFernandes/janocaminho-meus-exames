@@ -35,6 +35,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import { AppCard } from '../../AppCard';
 import { tealText, COPPER, copperText } from '../../../theme';
 import { snackbar } from '../../ConfirmDialog';
+import { photoUrlFor } from '../../../config';
 import type { TeleconsultaSummary } from '../../teleconsulta/types';
 
 interface PortalTeleconsultasProps {
@@ -347,8 +348,9 @@ export const PortalTeleconsultas = ({
           {filteredActive.map((tc) => {
             const matchedPatient = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
             const pat = tc.patient || matchedPatient?.patient || matchedPatient;
+            const patId = pat?.id || matchedPatient?.patient?.id || matchedPatient?.id || tc.patientId;
             const pName = pat?.fullName || pat?.name || 'Paciente';
-            const pPhoto = pat?.photoUrl || tc.patient?.photoUrl;
+            const pPhoto = patId ? photoUrlFor(String(patId)) : (pat?.photoUrl || tc.patient?.photoUrl);
             const dateObj = new Date(tc.dueDate);
             const dayNum = dateObj.toLocaleDateString('pt-BR', { day: '2-digit' });
             const monthShort = dateObj.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
@@ -376,9 +378,18 @@ export const PortalTeleconsultas = ({
                   p: { xs: 2, sm: 2.5 },
                   borderRadius: '16px',
                   border: '1px solid',
-                  borderColor: isToday ? 'rgba(15,118,110,0.4)' : 'divider',
-                  boxShadow: isToday ? '0 4px 18px rgba(15,118,110,0.08)' : '0 2px 8px rgba(0,0,0,0.02)',
-                  transition: 'border-color .15s, box-shadow .15s',
+                  borderColor: isToday ? 'rgba(16,185,129,0.35)' : 'divider',
+                  borderLeft: '4px solid',
+                  borderLeftColor: isToday ? '#10b981' : '#0d9488',
+                  bgcolor: isToday
+                    ? (theme.palette.mode === 'dark' ? 'rgba(16,185,129,0.04)' : 'rgba(240,253,250,0.6)')
+                    : 'background.paper',
+                  boxShadow: isToday ? '0 4px 20px rgba(16,185,129,0.08)' : '0 2px 10px rgba(0,0,0,0.03)',
+                  transition: 'all .2s ease',
+                  '&:hover': {
+                    boxShadow: isToday ? '0 8px 24px rgba(16,185,129,0.15)' : '0 6px 18px rgba(0,0,0,0.06)',
+                    transform: 'translateY(-1px)',
+                  },
                 }}
               >
                 <Stack spacing={2}>
@@ -389,18 +400,18 @@ export const PortalTeleconsultas = ({
                     justifyContent="space-between"
                     spacing={1.5}
                   >
-                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                       {/* Outlook-style Calendar Tile */}
                       <Box
                         sx={{
-                          minWidth: 54,
-                          width: 54,
-                          height: 54,
+                          minWidth: 52,
+                          width: 52,
+                          height: 52,
                           borderRadius: '12px',
                           textAlign: 'center',
-                          bgcolor: isToday ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.12)',
+                          bgcolor: isToday ? 'rgba(16,185,129,0.12)' : 'rgba(13,148,136,0.10)',
                           border: '1.5px solid',
-                          borderColor: isToday ? '#178f89' : 'rgba(212,165,116,0.35)',
+                          borderColor: isToday ? '#10b981' : 'rgba(13,148,136,0.3)',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'center',
@@ -408,13 +419,13 @@ export const PortalTeleconsultas = ({
                           flexShrink: 0,
                         }}
                       >
-                        <Typography sx={{ fontSize: 12, fontWeight: 800, color: isToday ? '#178f89' : 'secondary.dark', letterSpacing: '0.04em', lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: 11, fontWeight: 800, color: isToday ? '#059669' : '#0d9488', letterSpacing: '0.04em', lineHeight: 1 }}>
                           {monthShort}
                         </Typography>
                         <Typography sx={{ fontSize: 18, fontWeight: 900, lineHeight: 1.15, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
                           {dayNum}
                         </Typography>
-                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary', lineHeight: 1 }}>
+                        <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', lineHeight: 1 }}>
                           {timeStr}
                         </Typography>
                       </Box>
@@ -422,23 +433,38 @@ export const PortalTeleconsultas = ({
                       <Avatar
                         src={pPhoto}
                         sx={{
-                          width: 44,
-                          height: 44,
-                          fontSize: 16,
+                          width: 48,
+                          height: 48,
+                          fontSize: 18,
                           fontWeight: 800,
-                          bgcolor: 'rgba(15,118,110,0.14)',
-                          color: '#178f89',
-                          border: '2px solid rgba(15,118,110,0.25)',
+                          bgcolor: 'rgba(13,148,136,0.14)',
+                          color: '#0d9488',
+                          border: '2px solid rgba(13,148,136,0.25)',
+                          borderRadius: '14px',
                           flexShrink: 0,
                         }}
                       >
                         {pName.charAt(0).toUpperCase()}
                       </Avatar>
-                      <Box sx={{ minWidth: 0 }}>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
                         <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                          <Typography sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary' }}>
+                          <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary' }}>
                             {pName}
                           </Typography>
+                          {isToday && (
+                            <Chip
+                              size="small"
+                              label="Hoje"
+                              sx={{
+                                height: 20,
+                                fontSize: 11,
+                                fontWeight: 800,
+                                bgcolor: 'rgba(16,185,129,0.15)',
+                                color: '#059669',
+                                borderRadius: '6px',
+                              }}
+                            />
+                          )}
                           {(pat?.id || tc.patientId) && (
                             <Button
                               size="small"
@@ -447,13 +473,13 @@ export const PortalTeleconsultas = ({
                               sx={{
                                 py: 0.2,
                                 px: 1,
-                                fontSize: 12,
+                                fontSize: 11.5,
                                 fontWeight: 700,
                                 textTransform: 'none',
                                 color: (t) => tealText(t.palette.mode),
-                                borderRadius: '999px',
-                                bgcolor: 'rgba(32,178,170,0.08)',
-                                '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' },
+                                borderRadius: '8px',
+                                bgcolor: 'rgba(13,148,136,0.08)',
+                                '&:hover': { bgcolor: 'rgba(13,148,136,0.16)' },
                               }}
                             >
                               Ver prontuário
@@ -469,22 +495,23 @@ export const PortalTeleconsultas = ({
                     <Tooltip title="Código da sala — conferido entre médico e paciente">
                       <Chip
                         size="small"
-                        label={`Sala ${String(tc.id).slice(-5).toUpperCase()}`}
+                        label={`Sala #${String(tc.id).slice(-5).toUpperCase()}`}
                         sx={{
                           height: 24,
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: 800,
                           fontFamily: 'monospace',
-                          bgcolor: 'rgba(212,165,116,.18)',
-                          color: 'secondary.dark',
-                          border: '1px dashed rgba(212,165,116,.5)',
+                          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+                          color: 'text.secondary',
+                          border: '1px dashed',
+                          borderColor: 'divider',
                           alignSelf: { xs: 'flex-start', sm: 'center' },
                         }}
                       />
                     </Tooltip>
                   </Stack>
 
-                  {/* LINHA DO MEIO: Data/Hora e Badges de Consentimento / Provedor */}
+                  {/* LINHA DO MEIO: Data/Hora e Badges Clínicos de Triagem */}
                   <Stack
                     direction="row"
                     alignItems="center"
@@ -493,60 +520,56 @@ export const PortalTeleconsultas = ({
                     useFlexGap
                     sx={{
                       p: 1.25,
-                      borderRadius: '10px',
+                      borderRadius: '12px',
                       bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'),
                       border: '1px solid',
                       borderColor: 'divider',
                     }}
                   >
                     <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mr: 1 }}>
-                      <AccessTimeIcon sx={{ fontSize: 16, color: '#178f89' }} />
-                      <Typography sx={{ fontWeight: 800, fontSize: 14, color: isToday ? '#178f89' : 'text.primary' }}>
+                      <AccessTimeIcon sx={{ fontSize: 16, color: '#0d9488' }} />
+                      <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: isToday ? '#059669' : 'text.primary' }}>
                         {isToday ? `Hoje · ${dt.split('·')[1] || dt}` : dt}
                       </Typography>
                     </Stack>
 
-                    <Typography variant="caption" sx={{ color: 'text.secondary', mr: 0.5 }}>
-                      (agendada {criada})
-                    </Typography>
-
                     {tc.provider === 'livekit' ? (
-                      <Chip size="small" label="Vídeo no App" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89' }} />
+                      <Chip size="small" label="Vídeo HD no App" sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
                     ) : tc.linkUrl?.includes('meet.google.com') ? (
-                      <Chip size="small" label="Google Meet" sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
+                      <Chip size="small" label="Google Meet" sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
                     ) : (
-                      <Chip size="small" label="Link Externo" sx={{ height: 22, fontSize: 12, fontWeight: 700 }} />
+                      <Chip size="small" label="Link Externo" sx={{ height: 22, fontSize: 11.5, fontWeight: 700 }} />
                     )}
 
                     <Chip
                       size="small"
                       icon={tc.consentAt ? <CheckCircleOutlineIcon sx={{ fontSize: 13 }} /> : <HourglassEmptyIcon sx={{ fontSize: 13 }} />}
-                      label={tc.consentAt ? 'Paciente autorizou' : 'Aguardando aceite do paciente'}
+                      label={tc.consentAt ? 'Paciente autorizou (CFM)' : 'Aguardando aceite'}
                       sx={{
                         height: 22,
-                        fontSize: 12,
+                        fontSize: 11.5,
                         fontWeight: 700,
-                        bgcolor: tc.consentAt ? 'rgba(15,118,110,0.12)' : 'rgba(245,158,11,0.12)',
-                        color: tc.consentAt ? '#178f89' : '#d97706',
-                        '& .MuiChip-icon': { color: tc.consentAt ? '#178f89' : '#d97706' },
+                        bgcolor: tc.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                        color: tc.consentAt ? '#059669' : '#d97706',
+                        '& .MuiChip-icon': { color: tc.consentAt ? '#059669' : '#d97706' },
                       }}
                     />
 
                     {pend > 0 && (
                       <Chip
                         size="small"
-                        label={`${pend} pedido(s)`}
+                        label={`${pend} exames anexados`}
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }}
+                        sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(59,130,246,0.12)', color: '#2563eb' }}
                       />
                     )}
 
                     {hasTr && (
                       <Chip
                         size="small"
-                        label="Transcrição ✓"
+                        label="Transcrição gravada"
                         onClick={() => onOpenPost(tc.id)}
-                        sx={{ height: 22, fontSize: 12, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.12)', color: '#178f89' }}
+                        sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488' }}
                       />
                     )}
                   </Stack>
@@ -561,45 +584,57 @@ export const PortalTeleconsultas = ({
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap alignItems="center">
                       <Button
                         variant="contained"
-                        size="small"
+                        size="medium"
                         startIcon={<VideocamIcon />}
                         onClick={() => onEnterTele(tc, pName)}
                         sx={{
-                          borderRadius: '999px',
+                          borderRadius: '12px',
                           textTransform: 'none',
                           fontWeight: 800,
                           fontSize: 13.5,
-                          bgcolor: '#178f89',
-                          '&:hover': { bgcolor: '#137a74' },
-                          px: 2.5,
-                          py: 0.8,
-                          boxShadow: '0 3px 10px rgba(15,118,110,0.3)',
+                          background: isToday
+                            ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
+                            : 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+                          color: '#ffffff',
+                          '&:hover': {
+                            background: isToday
+                              ? 'linear-gradient(135deg, #059669 0%, #047857 100%)'
+                              : 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
+                          },
+                          px: 2.75,
+                          py: 0.9,
+                          boxShadow: '0 4px 14px rgba(16,185,129,0.3)',
                           flex: { xs: 1, sm: 'none' },
                         }}
                       >
-                        Entrar na consulta
+                        {isToday ? 'Atender Paciente Agora' : 'Entrar na Consulta'}
                       </Button>
 
                       <Button
                         variant="outlined"
-                        size="small"
+                        size="medium"
                         startIcon={<SummarizeIcon />}
                         onClick={() => onOpenPost(tc.id)}
                         sx={{
-                          borderRadius: '999px',
+                          borderRadius: '12px',
                           textTransform: 'none',
                           fontWeight: 700,
                           fontSize: 13,
-                          borderColor: 'rgba(32,178,170,.45)',
+                          borderColor: 'rgba(13,148,136,0.4)',
                           color: (t) => tealText(t.palette.mode),
-                          px: 1.75,
+                          px: 2,
+                          py: 0.9,
+                          '&:hover': {
+                            borderColor: '#0d9488',
+                            bgcolor: 'rgba(13,148,136,0.06)',
+                          },
                           flex: { xs: 1, sm: 'none' },
                         }}
                       >
-                        Resumo da consulta
+                        Resumo da Consulta
                       </Button>
 
-                      <Tooltip title="Mais ações">
+                      <Tooltip title="Mais opções">
                         <IconButton
                           size="small"
                           aria-label={`Mais ações da teleconsulta de ${pName}`}
@@ -634,8 +669,9 @@ export const PortalTeleconsultas = ({
             {filteredEnded.map((tc) => {
               const matchedPatient = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
               const pat = tc.patient || matchedPatient?.patient || matchedPatient;
+              const patId = pat?.id || matchedPatient?.patient?.id || matchedPatient?.id || tc.patientId;
               const pName = pat?.fullName || pat?.name || 'Paciente';
-              const pPhoto = pat?.photoUrl || tc.patient?.photoUrl;
+              const pPhoto = patId ? photoUrlFor(String(patId)) : (pat?.photoUrl || tc.patient?.photoUrl);
               const ended = new Date(tc.endedAt);
               const endedFmt = Number.isNaN(ended.getTime())
                 ? ''

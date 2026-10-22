@@ -22,13 +22,13 @@ const buildParams = (page: number, status: string, type: string, q: string) => {
 };
 
 const downloadCsv = (rows: any[]) => {
-  const header = ['Data', 'Usuario', 'Valor', 'Tipo', 'Status', 'MP ID'];
+  const header = ['Data', 'Usuário', 'Valor', 'Tipo', 'Status', 'Referência'];
   const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = rows.map((p) => [
     new Date(p.createdAt).toLocaleDateString('pt-BR'),
     esc(p.user?.email ?? ''),
     Number(p.amount ?? 0).toFixed(2).replace('.', ','),
-    p.periodDays > 0 ? 'Mensal' : 'Creditos',
+    p.periodDays > 0 ? 'Mensal' : 'Créditos',
     p.status ?? '',
     p.mpPaymentId ?? '',
   ].join(';'));
@@ -157,7 +157,7 @@ export const FinanceiroTab = () => {
         <Table size="small" sx={{ minWidth: 640 }}>
           <TableHead>
             <TableRow sx={{ '& th': { fontWeight: 700, bgcolor: 'action.hover' } }}>
-              <TableCell>Data</TableCell><TableCell>Usuário</TableCell><TableCell>Valor</TableCell><TableCell>Tipo</TableCell><TableCell>Status</TableCell><TableCell>MP ID</TableCell>
+              <TableCell>Data</TableCell><TableCell>Usuário</TableCell><TableCell>Valor</TableCell><TableCell>Tipo</TableCell><TableCell>Status</TableCell><TableCell>Referência</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

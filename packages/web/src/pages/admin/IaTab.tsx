@@ -4,8 +4,9 @@ import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
+import { useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
-import { TabLoader, SectionError } from './parts';
+import { TabLoader, SectionError, ConfirmDialog, FEATURE_LABELS } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
 const PROVIDER_LABEL: Record<string, string> = {
@@ -32,6 +33,7 @@ const AiProviderCard = () => {
   const [newM, setNewM] = useState('');
   const [newL, setNewL] = useState('');
   const [addBusy, setAddBusy] = useState(false);
+  const [delModel, setDelModel] = useState<any | null>(null);
 
   const fetchModels = async () => { try { const r = await fetch(`${API_URL}/admin/ai-models`, { headers: H() }); if (r.ok) setModels(await r.json()); } catch {} };
   const apply = (j: any) => {
@@ -101,7 +103,13 @@ const AiProviderCard = () => {
       <CardContent>
         <Stack direction="row" alignItems="center" gap={1} sx={{ mb: 1 }}>
           <Typography sx={{ fontWeight: 800, flex: 1 }}>🤖 Provedor de IA (Dr. Exame)</Typography>
-          {cfg && <Chip size="small" color="success" variant="outlined" label={`Ativo: ${PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider}`} />}
+          {cfg && (() => {
+            // Chip reflete o resultado do ÚLTIMO teste (testResult): falhou → vermelho, ok → verde.
+            const tested = PROVIDER_LABEL[provider] ?? provider;
+            if (testResult && !testResult.ok) return <Chip size="small" color="error" variant="outlined" label={`Falhou: ${tested}`} />;
+            if (testResult?.ok) return <Chip size="small" color="success" variant="outlined" label={`Ativo: ${tested}`} />;
+            return <Chip size="small" color="success" variant="outlined" label={`Ativo: ${PROVIDER_LABEL[cfg.activeProvider] ?? cfg.activeProvider}`} />;
+          })()}
         </Stack>
         <Alert severity="info" sx={{ mb: 1.5, fontSize: 13 }}>Troca em <strong>tempo real</strong> (sem restart/deploy). Os valores abaixo são o que <strong>tá rodando</strong> (banco ou <strong>.env</strong>). A chave é <strong>cifrada</strong> no banco e nunca volta completa — deixe vazia pra manter a atual. Aceita <strong>várias chaves separadas por vírgula</strong> (ex.: chave1,chave2): a 1ª é a principal e, se der rate limit, o sistema alterna pras backups e volta pra principal sozinho quando o limite reseta.</Alert>
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 1.5 }}>
@@ -139,7 +147,7 @@ const AiProviderCard = () => {
             {modelsFor.length === 0
               ? <Typography variant="caption" color="text.secondary">Nenhum modelo cadastrado pra este provedor ainda.</Typography>
               : <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                  {modelsFor.map((m) => <Chip key={m.id} size="small" variant="outlined" label={m.label} onDelete={() => removeModel(m.id)} />)}
+                  {modelsFor.map((m) => <Chip key={m.id} size="small" variant="outlined" label={m.label} onDelete={() => setDelModel(m)} />)}
                 </Stack>}
           </Box>
         )}
@@ -148,9 +156,20 @@ const AiProviderCard = () => {
           <Button size="small" variant="contained" onClick={save} disabled={saving}>{saving ? 'Salvando…' : 'Salvar'}</Button>
           {testResult && (testResult.ok
             ? <Chip size="small" color="success" label={`✅ OK · ${testResult.latencyMs}ms · ${testResult.model}`} />
-            : <Chip size="small" color="error" label={`❌ ${String(testResult.error).slice(0, 80)}`} />)}
+            : <Chip size="small" color="error" label="❌ Falhou no teste" />)}
           {msg && <Alert severity={msg.ok ? 'success' : 'error'} sx={{ py: 0, fontSize: 13 }}>{msg.text}</Alert>}
         </Stack>
+        {testResult && !testResult.ok && (
+          <Typography component="pre" sx={{ whiteSpace: 'pre-wrap', fontSize: 12, m: 0, mt: 1, color: 'error.main', overflowWrap: 'anywhere' }}>
+            {String(testResult.error ?? 'Erro desconhecido.')}
+          </Typography>
+        )}
+        <ConfirmDialog
+          open={!!delModel} onClose={() => setDelModel(null)}
+          title="Remover modelo?" desc={`"${delModel?.label ?? delModel?.model ?? ''}" sai do catálogo deste provedor.`}
+          confirmLabel="Remover" tone="danger"
+          onConfirm={() => { const id = delModel?.id; setDelModel(null); if (id) removeModel(id); }}
+        />
       </CardContent>
     </Card>
   );
@@ -159,12 +178,14 @@ const AiProviderCard = () => {
 /** Card "Cache de explicações" — gerencia o exam_knowledge (explicações leigas reaproveitadas
  *  no /items/explain). Buscar, editar (vira 'curated'), regenerar via IA, deletar. */
 const ExamKnowledgeCard = () => {
+  const notify = useNotify();
   const [rows, setRows] = useState<any[]>([]);
   const [q, setQ] = useState('');
   const [source, setSource] = useState('');
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editing, setEditing] = useState<any | null>(null);
+  const [delRow, setDelRow] = useState<any | null>(null);
   const [draft, setDraft] = useState({ titulo: '', resumo: '', analogia: '', alterado: '' });
   const [saving, setSaving] = useState(false);
 
@@ -195,7 +216,7 @@ const ExamKnowledgeCard = () => {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || 'Erro ao salvar');
       setEditing(null); load();
-    } catch { /* best-effort */ }
+    } catch (e: any) { notify(e?.message || 'Erro ao salvar explicação.', { type: 'error' }); }
     setSaving(false);
   };
   const regenerate = async (id: string) => {
@@ -204,7 +225,6 @@ const ExamKnowledgeCard = () => {
     setBusyId(null);
   };
   const remove = async (id: string) => {
-    if (!window.confirm('Remover esta explicação? O próximo clique no "?" vai regenerá-la via IA.')) return;
     try { await fetch(`${API_URL}/admin/exam-knowledge/${id}`, { method: 'DELETE', headers: H() }); await load(); } catch {}
   };
 
@@ -240,7 +260,7 @@ const ExamKnowledgeCard = () => {
                   <Typography variant="caption" color="text.secondary">{new Date(row.updatedAt).toLocaleDateString('pt-BR')}</Typography>
                   <IconButton size="small" title="Editar" onClick={() => openEdit(row)}><EditOutlinedIcon fontSize="small" /></IconButton>
                   <IconButton size="small" title="Regenerar via IA" onClick={() => regenerate(row.id)} disabled={busyId === row.id}><RefreshOutlinedIcon fontSize="small" /></IconButton>
-                  <IconButton size="small" title="Remover" onClick={() => remove(row.id)}><DeleteOutlinedIcon fontSize="small" /></IconButton>
+                  <IconButton size="small" title="Remover" onClick={() => setDelRow(row)}><DeleteOutlinedIcon fontSize="small" /></IconButton>
                 </Stack>
                 {row.resumo && <Typography variant="body2" sx={{ mt: 0.5 }}>{row.resumo}</Typography>}
                 {row.analogia && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>💡 {row.analogia}</Typography>}
@@ -264,6 +284,12 @@ const ExamKnowledgeCard = () => {
             <Button variant="contained" onClick={saveEdit} disabled={saving}>{saving ? 'Salvando…' : 'Salvar (cura)'}</Button>
           </DialogActions>
         </Dialog>
+        <ConfirmDialog
+          open={!!delRow} onClose={() => setDelRow(null)}
+          title="Remover explicação?" desc={'O próximo clique no "?" vai regenerá-la via IA.'}
+          confirmLabel="Remover" tone="danger"
+          onConfirm={() => { const id = delRow?.id; setDelRow(null); if (id) remove(id); }}
+        />
       </CardContent>
     </Card>
   );
@@ -284,13 +310,13 @@ export const IaTab = () => {
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr 1fr' }, gap: 1.5, mb: 2 }}>
         {[
           { l: 'Análises IA', v: String(d.analysesCount ?? 0) },
-          { l: 'Custo total (R$)', v: (d.totalCost ?? 0).toFixed(2), sub: d.totalLogs ? `${d.totalLogs} logs` : 'sem logs' },
+          { l: 'Custo total', v: (d.totalCost ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), sub: d.totalLogs ? `${d.totalLogs} registros` : 'sem registros' },
           { l: 'Tokens', v: String(d.totalTokens ?? 0) },
           { l: 'Latência média', v: `${d.avgLatency ?? 0}ms` },
         ].map((k) => (
           <Card key={k.l} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ textAlign: 'center', py: 1.5 }}>
             <Typography sx={{ fontWeight: 800, fontSize: 20, color: '#178f89' }}>{k.v}</Typography>
-            <Typography variant="caption" color="text.secondary">{k.l}{k.sub ? ` (${k.sub})` : ''}</Typography>
+            <Typography variant="caption" color="text.secondary">{k.l}{k.sub ? ` · ${k.sub}` : ''}</Typography>
           </CardContent></Card>
         ))}
       </Box>
@@ -303,7 +329,7 @@ export const IaTab = () => {
         {d.recent?.map((a: any) => (
           <Card key={a.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
             <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-              <Chip size="small" label={a.type} variant="outlined" />
+              <Chip size="small" label={FEATURE_LABELS[a.type] ?? a.type} variant="outlined" />
               <Typography sx={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{a.exam?.title ?? 'Chat/relatório'}</Typography>
               <Typography variant="caption" color="text.secondary">{a.modelUsed ?? '?'} · {new Date(a.createdAt).toLocaleDateString('pt-BR')}</Typography>
             </Stack>
