@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, IconButton } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, Collapse, IconButton } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
@@ -47,6 +47,7 @@ import { track } from '../../utils/analytics';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
@@ -748,7 +749,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       boxShadow: (th) => th.palette.mode === 'dark'
         ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2)'
-        : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04)',
+        : '0 1px 4px rgba(15,61,58,.03), 0 4px 16px rgba(15,61,58,.02)',
       transition: 'transform .2s cubic-bezier(.16,1,.3,1), box-shadow .25s ease, border-color .2s ease',
       '&:hover': {
         boxShadow: '0 4px 14px rgba(0,0,0,.06)',
@@ -879,6 +880,9 @@ const DashboardV2Inner = () => {
   const [demoAsk, setDemoAsk] = useState(false);
   // 28/09: tile Risco do coração abre os FATORES (dialog) em vez de navegar pra Tendências.
   const [cardioOpen, setCardioOpen] = useState(false);
+  // Polish v2 — "Ver mais": 1ª dobra enxuta (saudação + hero + KPIs); o resto do
+  // painel mora atrás de um Collapse. Nada é removido — só escondido até o toque.
+  const [showAll, setShowAll] = useState(false);
   const d = demo ? DEMO_DASHBOARD : real;
   const th = useTheme();
   const isDark = th.palette.mode === 'dark';
@@ -1088,7 +1092,7 @@ const DashboardV2Inner = () => {
       {/* 0.1 BANNER TELECONSULTA AO VIVO (PRIORIDADE CLÍNICA MÁXIMA) */}
       {!demo && tele.isLive && (
         <StaggerIn delay={300}>
-          <Box sx={{ mb: 2 }}>
+          <Box sx={{ mb: 3.5 }}>
             <AppCard
               sx={{
                 p: { xs: 2, sm: 2.25 },
@@ -1178,7 +1182,7 @@ const DashboardV2Inner = () => {
 
       {/* MODO EXEMPLO — banner sempre visível: dado fictício nunca pode passar por seu. */}
       {demo && (
-        <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: RADIUS.card, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 2 }}>
+        <AppCard kind="accent" tone="warning" sx={{ p: { xs: 1.5, md: 2 }, borderRadius: RADIUS.card, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 3.5 }}>
           <Typography sx={{ flex: 1, minWidth: 180, fontSize: 13, lineHeight: 1.45 }}>
             <VisibilityIcon component="span" sx={{ fontSize: 15, mr: 0.25, verticalAlign: '-3px' }} /> <b>Modo exemplo</b> — tudo aqui é de uma pessoa fictícia. Seu app real ganha essa análise no 1º exame.
           </Typography>
@@ -1193,7 +1197,7 @@ const DashboardV2Inner = () => {
           passos concretos em vez de tiles vazios (cliff do dia 0). 1º exame = missão cumprida. */}
       {!demo && d.loaded && d.stats.exams === 0 && (
         <ScrollReveal delay={60}>
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 3.5 }}>
             <ActivationChecklist exams={d.stats.exams} />
           </Box>
         </ScrollReveal>
@@ -1208,11 +1212,11 @@ const DashboardV2Inner = () => {
           carrega, TILES EM SHIMMER (mesmo footprint) em vez de '…' — feel de app nativo. */}
       <StaggerIn delay={100}>
         {!d.loaded && !demo ? (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 3.5 }}>
             {[0, 1, 2, 3].map((i) => <TileShimmer key={i} />)}
           </Box>
         ) : (
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 2 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 1.5, mt: 3.5 }}>
           {/* Severidade (antes: tile de Score — redundante com o hero logo acima, e o label
               "Alterados" virava termão solto). O score continua no HERO; aqui a métrica usa
               a MESMA taxonomia: Requer atenção (count>0) ou Normal. */}
@@ -1264,21 +1268,40 @@ const DashboardV2Inner = () => {
         )}
       </StaggerIn>
 
-      {/* LENTE ESPORTIVA — desceu do topo (fix #1) e só aparece pra quem JÁ TEM perfil
-          esportivo (fix #3): sem perfil o toggle é ruído de um recurso desconhecido —
-          o convite (aquisição) mora no FIM da página. */}
-      {!demo && !!sports.profile && (
-        <Box sx={{ mt: 2 }}>
-          <PersonaSwitcher active={false} />
-        </Box>
-      )}
+      {/* VER MAIS (polish v2) — 1ª dobra enxuta (saudação + hero + KPIs): o resto do
+          painel (persona esportiva, mapa corporal, atividade, mental, IA, coluna
+          lateral) mora atrás deste Collapse. NADA foi removido — só escondido até o
+          toque (VISUAL_DENSITY=2: whitespace-heavy, 7 elementos na dobra). */}
+      <Box sx={{ mt: 3.5, display: 'flex', justifyContent: 'center' }}>
+        <Button
+          variant="text"
+          onClick={() => setShowAll((v) => !v)}
+          aria-expanded={showAll}
+          aria-controls="dash-ver-mais"
+          endIcon={<ExpandMoreIcon sx={{ transform: showAll ? 'rotate(180deg)' : 'none', transition: 'transform .25s cubic-bezier(.16,1,.3,1)' }} />}
+          sx={{ textTransform: 'none', fontWeight: 800, fontSize: 14, borderRadius: RADIUS.button, px: 2.5, color: (t) => tealText(t.palette.mode) }}
+        >
+          {showAll ? 'Ver menos' : 'Ver mais'}
+        </Button>
+      </Box>
+      <Collapse in={showAll} unmountOnExit>
+        <Box id="dash-ver-mais" sx={{ pt: 3.5 }}>
+          {/* LENTE ESPORTIVA — desceu do topo (fix #1) e só aparece pra quem JÁ TEM perfil
+              esportivo (fix #3): sem perfil o toggle é ruído de um recurso desconhecido —
+              o convite (aquisição) mora no FIM da página. */}
+          {!demo && !!sports.profile && (
+            <Box>
+              <PersonaSwitcher active={false} />
+            </Box>
+          )}
 
-      {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) */}
-      <StaggerIn delay={200}>
-        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+          {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) —
+              spacing 3.5 = gap 28px entre seções (polish v2). */}
+          <StaggerIn delay={200}>
+          <Grid container spacing={3.5} sx={{ mt: !demo && !!sports.profile ? 3.5 : 0 }}>
           {/* COLUNA PRINCIPAL (65%) */}
           <Grid size={{ xs: 12, md: 7, lg: 8 }}>
-            <Stack spacing={2.5}>
+            <Stack spacing={3.5}>
               {/* PRÓXIMOS PASSOS (onboarding) — escondido no demo (checklist real não faz
                   sentido). Enquanto carrega: SkeletonCard da marca (nada de estado vazio
                   prematuro "envie o 1º exame" piscando antes dos dados chegarem). */}
@@ -1343,7 +1366,7 @@ const DashboardV2Inner = () => {
 
           {/* COLUNA LATERAL (35%) */}
           <Grid size={{ xs: 12, md: 5, lg: 4 }}>
-            <Stack spacing={2.5}>
+            <Stack spacing={3.5}>
               {/* TELECONSULTA AGENDADA — XOR com o banner AO VIVO (fix #16): consulta
                   acontecendo agora já tem card próprio no topo; duplicar CTA compete. */}
               {!demo && !tele.isLive && <TeleconsultaCard />}
@@ -1377,7 +1400,9 @@ const DashboardV2Inner = () => {
             </Stack>
           </Grid>
         </Grid>
-      </StaggerIn>
+          </StaggerIn>
+        </Box>
+      </Collapse>
 
       <ReviewPrompt trigger={!demo && d.loaded && d.stats.exams > 0} />
 

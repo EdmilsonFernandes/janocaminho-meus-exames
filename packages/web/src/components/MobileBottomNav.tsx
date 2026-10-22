@@ -12,6 +12,7 @@ import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import MenuIcon from '@mui/icons-material/Menu';
 import { hapticNav } from '../utils/haptic';
+import { NAV_PILL } from '../theme';
 
 /**
  * MobileBottomNav Ultra-Premium — "Floating Glass Island" (Cápsula de Vidro Flutuante).
@@ -58,9 +59,12 @@ export const MobileBottomNav = () => {
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
       '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
-      color: on ? (isDark ? '#5fc9c3' : '#0f766e') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
-      position: 'relative', transition: 'color .18s ease, transform .12s ease',
+      color: on ? (isDark ? '#5fc9c3' : '#178f89') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
+      position: 'relative',
+      transition: 'color .18s ease, transform .12s ease, background-color .25s cubic-bezier(.16,1,.3,1), padding .25s cubic-bezier(.16,1,.3,1), border-radius .25s cubic-bezier(.16,1,.3,1)',
       '&:active': { transform: 'scale(.94)' },
+      // Pill da tab ativa (polish 10/26): fundo teal translúcido + padding generoso.
+      ...(on ? { background: NAV_PILL.bg, padding: NAV_PILL.padding, borderRadius: NAV_PILL.radius, alignSelf: 'stretch' } : {}),
     }}>
       {it.robot ? (
         <Box sx={{
@@ -116,16 +120,19 @@ export const MobileBottomNav = () => {
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
       '&:focus-visible': { boxShadow: '0 0 0 3px rgba(32,178,170,0.55)' },
-      color: on ? (isDark ? '#5fc9c3' : '#0f766e') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
-      position: 'relative', transition: 'color .18s ease, transform .12s ease',
+      color: on ? (isDark ? '#5fc9c3' : '#178f89') : (isDark ? 'rgba(255,255,255,0.55)' : 'rgba(30,41,59,0.68)'),
+      position: 'relative',
+      transition: 'color .18s ease, transform .12s ease, background-color .25s cubic-bezier(.16,1,.3,1), padding .25s cubic-bezier(.16,1,.3,1), border-radius .25s cubic-bezier(.16,1,.3,1)',
       '&:active': { transform: 'scale(.94)' },
+      // Pill da tab ativa (polish 10/26): fundo teal translúcido + padding generoso.
+      ...(on ? { background: NAV_PILL.bg, padding: NAV_PILL.padding, borderRadius: NAV_PILL.radius, alignSelf: 'stretch' } : {}),
     }}>
       <Box sx={{
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         height: 24,
-        transform: on ? 'scale(1.12) translateY(-1px)' : 'scale(1)',
+        transform: on ? 'scale(1.05)' : 'scale(1)',
         filter: on ? 'drop-shadow(0 2px 8px rgba(32,178,170,0.45))' : 'none',
-        transition: 'transform .2s cubic-bezier(.16,1,.3,1), filter .2s ease',
+        transition: 'transform .25s cubic-bezier(.16,1,.3,1), filter .25s ease',
         '& svg': { fontSize: 22 }
       }}>
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
