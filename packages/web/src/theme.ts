@@ -124,6 +124,16 @@ export const tealText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#5fc9c3'
 // do tealText: tom AA por modo p/ texto/ícone de ALERTA.
 export const dangerText = (mode: 'light' | 'dark') => (mode === 'dark' ? '#f87171' : '#dc2626');
 
+/**
+ * Pill da TAB ATIVA do MobileBottomNav (polish 10/26): fundo teal da marca a ~10%,
+ * padding 8px 14px e raio 14px. Fonte única p/ o nav não inventar literal.
+ */
+export const NAV_PILL = {
+  bg: 'rgba(32,178,170,.10)',
+  padding: '8px 14px',
+  radius: '14px',
+} as const;
+
 export type ThemeMode = 'light' | 'dark';
 
 /**
@@ -227,9 +237,11 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
         styleOverrides: {
           root: {
             borderRadius: '20px',
+            // Polish v2: DUAS camadas suaves com tom teal-escuro (15,61,58 = #0f3d3a)
+            // — profundidade sem sujeira visual. Dark mantém sombra profunda própria.
             boxShadow: isDark
               ? '0 2px 8px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.2), inset 0 1px 0 rgba(255,255,255,.05)'
-              : '0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.04), 0 12px 28px rgba(32,178,170,.03), inset 0 1px 0 rgba(255,255,255,.6)',
+              : '0 1px 4px rgba(15,61,58,.03), 0 4px 16px rgba(15,61,58,.02)',
             border: `1px solid ${isDark ? '#2a3636' : '#d8ece9'}`,
             // Press state (feel nativo): card 'respira' leve ao toque E a sombra afunda junto
             // (0 2px 12px → 0 1px 6px) — o par transform+shadow vende a sensação de profundidade.
