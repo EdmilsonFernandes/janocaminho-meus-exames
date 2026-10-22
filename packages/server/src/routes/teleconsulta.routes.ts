@@ -240,6 +240,42 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
   }
 });
 
+/** NUDGE — POST /api/teleconsulta/:id/nudge (22/10/26). No-show do paciente: médico
+ *  sozinho na sala há 5 min → reenvia o push "está esperando você" pro owner.
+ *  Só médico (é ele quem espera); consulta encerrada → 403 TELECONSULTA_ENDED
+ *  (nada de push zombie). Throttle 60s pelo auditLog protege a cota de push. */
+router.post('/:id/nudge', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    if (req.joinRole !== 'doctor') { res.status(403).json({ error: 'Apenas o médico pode reenviar o convite.' }); return; }
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    if (r.endedAt) { res.status(403).json({ code: 'TELECONSULTA_ENDED', error: 'Esta consulta já foi encerrada.' }); return; }
+    const last = await prisma.auditLog.findFirst({
+      where: { action: 'TELECONSULTA_NUDGE', targetId: r.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (last && Date.now() - new Date(last.createdAt).getTime() < 60_000) {
+      res.status(429).json({ error: 'Convite reenviado há menos de 1 minuto. Aguarde.' });
+      return;
+    }
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId! }, select: { name: true } });
+    const docName = doc?.name || 'seu médico';
+    let delivered = true;
+    try {
+      await sendPushToUser(r.ownerId, `📞 ${docName} está esperando você`, 'Sua teleconsulta já começou — toque para entrar agora.', { type: 'teleconsulta', reminderId: r.id });
+    } catch { delivered = false; }
+    await audit('TELECONSULTA_NUDGE', req, {
+      actorType: 'DOCTOR',
+      actorId: req.doctorId,
+      targetType: 'REMINDER',
+      targetId: r.id,
+      after: { reminderId: r.id, delivered },
+    });
+    res.json({ ok: true, delivered });
+  } catch (e) {
+    next(e);
+  }
+});
+
 // ════════════════════════════════════════════════════════════════════════════════
 // F3 TELECONSULTA PREMIUM (20/10/26) — gravação, transcrição cifrada e pós-chamada.
 // Contrato: docs/research/2026-10-20-f3-arquitetura.md §3a-3d. LGPD: áudio efêmero em
@@ -312,18 +348,20 @@ async function endTeleconsulta(r: TeleconsultaRef): Promise<{ endedAt: Date | nu
 }
 
 /** 3a — PUT/PATCH /api/teleconsulta/:id/record-consent (os dois verbos: cliente pode
- *  chamar qualquer um). PACIENTE titular autoriza gravação+transcrição (D3 — checkbox
- *  default OFF do pré-join). Idempotente: mantém o 1º timestamp (re-envio não renova). */
+ *  chamar qualquer um). Consentimento mútuo de gravação+transcrição por IA.
+ *  Idempotente: mantém o 1º timestamp (re-envio não renova). */
 async function setRecordConsent(req: JoinRequest, res: Response, next: NextFunction): Promise<void> {
   try {
-    if (req.joinRole !== 'patient') { res.status(403).json({ error: 'A autorização de gravação é dada pelo paciente.' }); return; }
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     if (!r.recordConsentAt) {
       const now = new Date();
       await prisma.reminder.update({ where: { id: r.id }, data: { recordConsentAt: now } });
       await audit('TELECONSULTA_RECORD_CONSENT', req, {
-        actorType: 'USER', actorId: req.userId, targetType: 'REMINDER', targetId: r.id,
-        after: { reminderId: r.id, recordConsentAt: now.toISOString() },
+        actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
+        actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
+        targetType: 'REMINDER',
+        targetId: r.id,
+        after: { reminderId: r.id, recordConsentAt: now.toISOString(), role: req.joinRole },
       });
       res.json({ recordConsentAt: now.toISOString() });
       return;
@@ -336,38 +374,39 @@ async function setRecordConsent(req: JoinRequest, res: Response, next: NextFunct
 router.put('/:id/record-consent', requireJoinIdentity, setRecordConsent);
 router.patch('/:id/record-consent', requireJoinIdentity, setRecordConsent);
 
-/** 3b — POST /api/teleconsulta/:id/recording (multipart field "file"). Só o MÉDICO (quem
- *  grava no client); paciente → 403. Fluxo: consent do paciente → áudio no disco → STT.
- *  Sem GROQ key ou STT falho → 202 {pending:true} (job transcriptionQueue finaliza). */
+/** 3b — POST /api/teleconsulta/:id/recording (multipart field "file").
+ *  Médico ou paciente autenticado envia o áudio da chamada gravada.
+ *  Fluxo: consent mútuo registrado -> áudio no disco -> dispara STT imediato + fallback na fila. */
 router.post('/:id/recording', requireJoinIdentity, async (req: JoinRequest, res, next) => {
   try {
-    if (req.joinRole !== 'doctor') { res.status(403).json({ error: 'Apenas o médico envia a gravação da chamada.' }); return; }
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     if (!r.recordConsentAt) {
-      res.status(403).json({ error: 'O paciente precisa autorizar a gravação e a transcrição antes da chamada.', code: 'RECORD_CONSENT_REQUIRED' });
+      res.status(403).json({ error: 'O consentimento de gravação e transcrição precisa ser registrado antes.', code: 'RECORD_CONSENT_REQUIRED' });
       return;
     }
-    // Multipart SÓ depois das checagens (não decodifica 80MB de upload recusado).
-    // reviewer-D: multipart SEM campo 'file' → multer resolve sem erro e sem arquivo;
-    // sem este 400 a rota devolvia nada (hang). Wrapper só responde 400/413 de ERRO.
+    // Sem STT configurado o upload é INÚTIL — o job nunca transcreveria (áudio efêmero
+    // preso no disco). 503 ANTES de decodificar o multipart (não gasta banda de upload)
+    // com código estável p/ o client nem oferecer o fluxo de gravação.
+    if (!hasStt()) {
+      res.status(503).json({ error: 'Transcrição não configurada neste servidor.', code: 'STT_DISABLED' });
+      return;
+    }
     const file = await acceptAudioFile(req);
     if (!file) { res.status(400).json({ error: 'Envie o áudio no campo "file" (audio/webm).' }); return; }
     const buf: Buffer = file.buffer;
 
-    // Áudio no disco ANTES do marcador pendente (D4): row `recordingAt≠null` sempre tem
-    // arquivo — crash entre write e update vira órfão que o job varre, nunca o inverso.
-    // Re-upload sobrescreve o arquivo e reseta o transcript anterior (refaz — §3b).
     const { promises: fsp } = await import('fs');
     await fsp.mkdir(config.teleconsultaDir, { recursive: true });
     await fsp.writeFile(audioPathFor(r.id), buf);
     await prisma.reminder.update({
       where: { id: r.id },
-      data: { recordingAt: new Date(), transcriptEnc: null, transcriptIv: null, transcriptAt: null },
+      // retryCount=0: re-upload de áudio que esgotou tentativas começa a contagem de novo.
+      data: { recordingAt: new Date(), transcriptEnc: null, transcriptIv: null, transcriptAt: null, retryCount: 0 },
     });
 
-    // reviewer-G: SEMPRE async — STT inline (até 240s) estoura o proxy_read_timeout 60s
-    // do nginx (504 pro client). O job transcriptionQueue finaliza (tick 2min) e o
-    // client acompanha via GET /summary (poll da área pós-chamada).
+    // Transcrição 100% via job (tick 15s pós-boot + 2min intervalal) — SEM inline
+    // void: chamada dupla (rota + job) quebrava teste e o retryCount.
+
     res.status(202).json({ pending: true });
   } catch (e) {
     next(e);

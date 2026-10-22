@@ -4,6 +4,7 @@
 // o transcript NÃO vai em texto-puro pro banco e volta legível pelo GET.
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 import fs from 'fs';
+import path from 'path';
 
 vi.mock('../src/utils/stt', () => ({
   hasStt: vi.fn(() => true),
@@ -70,6 +71,7 @@ describe('POST /api/teleconsulta/:id/recording (F3 gravação)', () => {
     expect(res.body.pending).toBe(true);
 
     // Roda o tick do job manualmente (mesma função que o setInterval chama).
+    transcribeAudio.mockClear();
     await processPendingTranscriptions();
     expect(transcribeAudio).toHaveBeenCalledTimes(1);
 
@@ -103,7 +105,7 @@ describe('POST /api/teleconsulta/:id/recording (F3 gravação)', () => {
     expect(transcribeAudio).not.toHaveBeenCalled();
   });
 
-  it('sem GROQ (hasStt false) → 202 pending + áudio mantido no disco + recordingAt marcado', async () => {
+  it('sem GROQ (hasStt false) → 503 STT_DISABLED ANTES do upload (nada em disco, STT nem chamado)', async () => {
     vi.mocked(hasStt).mockReturnValue(false);
     const { user, patient } = await createUser();
     const doc = await createSharingDoctor(patient.id, 3);
@@ -111,22 +113,21 @@ describe('POST /api/teleconsulta/:id/recording (F3 gravação)', () => {
 
     const res = await api().post(`/api/teleconsulta/${r.id}/recording`).set(authHeader(doc.token))
       .attach('file', AUDIO, { filename: 'rec.webm', contentType: 'audio/webm' });
-    expect(res.status).toBe(202);
-    expect(res.body).toEqual({ pending: true });
-    expect(fs.existsSync(audioPathFor(r.id))).toBe(true); // espera o job
+    expect(res.status).toBe(503);
+    expect(res.body).toMatchObject({ code: 'STT_DISABLED', error: 'Transcrição não configurada neste servidor.' });
+    expect(fs.existsSync(audioPathFor(r.id))).toBe(false); // upload RECUSADO antes de gravar
+    expect(transcribeAudio).not.toHaveBeenCalled();
     const row: any = await prisma.reminder.findUnique({ where: { id: r.id }, select: { recordingAt: true, transcriptAt: true } });
-    expect(row.recordingAt).toBeTruthy();
+    expect(row.recordingAt).toBeNull();
     expect(row.transcriptAt).toBeNull();
-    fs.unlinkSync(audioPathFor(r.id)); // cleanup manual (job não roda no teste)
   });
 
-  it('recording é DOCTOR-only: paciente owner POST → 403', async () => {
+  it('paciente TAMBÉM pode enviar gravação (edge fix 22/10: qualquer participante grava)', async () => {
     const { user, patient, token } = await createUser();
     const r = await createTeleconsultaReminder(user.id, patient.id, { recordConsentAt: new Date() });
     const res = await api().post(`/api/teleconsulta/${r.id}/recording`).set(authHeader(token))
       .attach('file', AUDIO, { filename: 'rec.webm', contentType: 'audio/webm' });
-    expect(res.status).toBe(403);
-    expect(transcribeAudio).not.toHaveBeenCalled();
+    expect([202, 201]).toContain(res.status); // 202 pending (job) ou 201 (sync)
   });
 
   it('arquivo que não é áudio → 400 (fileFilter)', async () => {
@@ -136,6 +137,72 @@ describe('POST /api/teleconsulta/:id/recording (F3 gravação)', () => {
     const res = await api().post(`/api/teleconsulta/${r.id}/recording`).set(authHeader(doc.token))
       .attach('file', Buffer.from('%PDF-fake'), { filename: 'rec.pdf', contentType: 'application/pdf' });
     expect(res.status).toBe(400);
+  });
+});
+
+describe('transcriptionQueue — retryCount / TRANSCRIPT_MAX_ATTEMPTS (22/10)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    vi.mocked(hasStt).mockClear().mockReturnValue(true);
+    vi.mocked(transcribeAudio).mockClear().mockResolvedValue(MOCK_TEXT);
+  });
+
+  /** Pendência "encalhada": áudio no disco + recordingAt marcado + transcriptAt null.
+   *  mkdir explícito: o afterAll do describe anterior REMOVE o diretório, e sem passar
+   *  pela rota (que faz mkdir) o writeFileSync estoura ENOENT. */
+  async function createPendingRecording(ownerId: string, patientId: string, retryCount = 0) {
+    const r = await createTeleconsultaReminder(ownerId, patientId, { recordConsentAt: new Date() });
+    fs.mkdirSync(path.dirname(audioPathFor(r.id)), { recursive: true });
+    fs.writeFileSync(audioPathFor(r.id), AUDIO);
+    await prisma.reminder.update({ where: { id: r.id }, data: { recordingAt: new Date(), retryCount } });
+    return r;
+  }
+
+  it('falha de rede (não-STT_TOO_LARGE) conta tentativa: retryCount+1, áudio e recordingAt mantidos', async () => {
+    const { user, patient } = await createUser();
+    const r = await createPendingRecording(user.id, patient.id, 0);
+    vi.mocked(transcribeAudio).mockRejectedValue(new Error('ECONNRESET'));
+
+    const done = await processPendingTranscriptions();
+    expect(done).toBe(0);
+    const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { retryCount: true, recordingAt: true } });
+    expect(row?.retryCount).toBe(1);
+    expect(row?.recordingAt).toBeTruthy(); // segue pendente p/ o próximo tick
+    expect(fs.existsSync(audioPathFor(r.id))).toBe(true);
+  });
+
+  it('esgota 5 tentativas → tick seguinte ABORTA: áudio fora, estado limpo, push "falhou definitivamente"', async () => {
+    const { user, patient } = await createUser();
+    const r = await createPendingRecording(user.id, patient.id, 4); // já falhou 4x
+    vi.mocked(transcribeAudio).mockRejectedValue(new Error('timeout'));
+
+    await processPendingTranscriptions(); // 5ª tentativa falha → retryCount=5 (ainda pendente)
+    let row: any = await prisma.reminder.findUnique({ where: { id: r.id }, select: { retryCount: true, recordingAt: true } });
+    expect(row.retryCount).toBe(5);
+    expect(row.recordingAt).toBeTruthy();
+
+    await processPendingTranscriptions(); // retryCount ≥ 5 → abort definitivo
+    row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { retryCount: true, recordingAt: true, transcriptAt: true } });
+    expect(row.recordingAt).toBeNull();
+    expect(row.retryCount).toBe(0);
+    expect(row.transcriptAt).toBeNull();
+    expect(fs.existsSync(audioPathFor(r.id))).toBe(false);
+    expect(transcribeAudio).toHaveBeenCalledTimes(1); // abort nem tenta o STT de novo
+    const notif = await prisma.notification.findFirst({ where: { userId: user.id, title: 'Transcrição indisponível' } });
+    expect(notif?.body).toContain('falhou definitivamente');
+    const log = await prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_TRANSCRIPT', targetId: r.id } });
+    expect(log?.after).toMatchObject({ error: 'STT_MAX_RETRIES' });
+  });
+
+  it('sucesso zera retryCount (um re-upload futuro recomeça a contagem limpa)', async () => {
+    const { user, patient } = await createUser();
+    const r = await createPendingRecording(user.id, patient.id, 3); // já falhou 3x antes
+    const done = await processPendingTranscriptions();
+    expect(done).toBe(1);
+    const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { retryCount: true, transcriptAt: true, recordingAt: true } });
+    expect(row?.retryCount).toBe(0);
+    expect(row?.transcriptAt).toBeTruthy();
+    expect(row?.recordingAt).toBeNull();
   });
 });
 
@@ -201,7 +268,7 @@ describe('PATCH/PUT /api/teleconsulta/:id/record-consent (F3 D3)', () => {
     const doc = await createSharingDoctor(patient.id, 6);
     const r = await createTeleconsultaReminder(user.id, patient.id, {});
     const res = await api().patch(`/api/teleconsulta/${r.id}/record-consent`).set(authHeader(doc.token));
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200); // edge fix 22/10: médico também pode consentir gravação
   });
 });
 

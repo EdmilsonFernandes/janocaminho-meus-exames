@@ -21,13 +21,14 @@ async function createTeleconsultaReminder(ownerId: string, patientId: string, op
   consentAt?: Date | null;
   provider?: string | null;
   roomName?: string | null;
+  dueDate?: Date;
 } = {}) {
   return prisma.reminder.create({
     data: {
       ownerId,
       patientId,
       title: 'Teleconsulta',
-      dueDate: new Date(Date.now() + 24 * 3600_000),
+      dueDate: opts.dueDate ?? new Date(Date.now() + 24 * 3600_000),
       type: 'teleconsulta',
       consentAt: opts.consentAt ?? null,
       notifyOffsetsMin: [1440, 60, 0],
@@ -226,5 +227,28 @@ describe('autoEndStaleTeleconsultas (job, nice-to-have)', () => {
     await autoEndStaleTeleconsultas(Date.now());
     expect((await prisma.reminder.findUnique({ where: { id: a.id }, select: { endedAt: true } }))?.endedAt).toBeNull();
     expect((await prisma.reminder.findUnique({ where: { id: b.id }, select: { endedAt: true } }))?.endedAt).toBeNull();
+  });
+
+  it('NINGUÉM entrou + vencida há >30min (done=false) → encerra com endedAt = dueDate + 30min', async () => {
+    const { user, patient } = await createUser();
+    const due = new Date(Date.now() - 40 * 60_000);
+    const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit', dueDate: due });
+
+    await autoEndStaleTeleconsultas(Date.now());
+    const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { endedAt: true, done: true } });
+    expect(row?.done).toBe(true);
+    expect(row?.endedAt).toBeTruthy();
+    expect(new Date(row!.endedAt!).getTime()).toBe(due.getTime() + 30 * 60_000);
+  });
+
+  it('NINGUÉM entrou mas vencida há <30min, OU já done=true → segue aberta', async () => {
+    const { user, patient } = await createUser();
+    const recent = await createTeleconsultaReminder(user.id, patient.id, { dueDate: new Date(Date.now() - 10 * 60_000) });
+    const markedDone = await createTeleconsultaReminder(user.id, patient.id, { dueDate: new Date(Date.now() - 40 * 60_000) });
+    await prisma.reminder.update({ where: { id: markedDone.id }, data: { done: true } });
+
+    await autoEndStaleTeleconsultas(Date.now());
+    expect((await prisma.reminder.findUnique({ where: { id: recent.id }, select: { endedAt: true } }))?.endedAt).toBeNull();
+    expect((await prisma.reminder.findUnique({ where: { id: markedDone.id }, select: { endedAt: true } }))?.endedAt).toBeNull();
   });
 });

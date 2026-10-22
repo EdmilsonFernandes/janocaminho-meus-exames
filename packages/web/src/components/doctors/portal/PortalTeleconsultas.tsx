@@ -32,6 +32,7 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HistoryIcon from '@mui/icons-material/History';
+import StarIcon from '@mui/icons-material/Star';
 import { AppCard } from '../../AppCard';
 import { tealText, COPPER, copperText } from '../../../theme';
 import { snackbar } from '../../ConfirmDialog';
@@ -570,6 +571,25 @@ export const PortalTeleconsultas = ({
                         label="Transcrição gravada"
                         onClick={() => onOpenPost(tc.id)}
                         sx={{ height: 22, fontSize: 11.5, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488' }}
+                      />
+                    )}
+
+                    {s?.feedback && (
+                      <Chip
+                        size="small"
+                        icon={<StarIcon sx={{ fontSize: '13px !important', color: '#f59e0b !important' }} />}
+                        label={`Avaliação: ${s.feedback.rating}/5${s.feedback.note ? ` · “${s.feedback.note}”` : ''}`}
+                        onClick={() => onOpenPost(tc.id)}
+                        sx={{
+                          height: 22,
+                          fontSize: 11.5,
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          bgcolor: 'rgba(245,158,11,0.12)',
+                          color: '#d97706',
+                          maxWidth: { xs: 200, sm: 300 },
+                          '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis' },
+                        }}
                       />
                     )}
                   </Stack>

@@ -22,6 +22,7 @@ import SentimentSatisfiedIcon from '@mui/icons-material/SentimentSatisfied';
 import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
+import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { Room, RoomEvent, Track, isBrowserSupported, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
@@ -70,6 +71,8 @@ interface Summary {
   patientId?: string;
   doctorInRoom?: boolean; // WhatsApp-style: médico já entrou → pré-join vira "chamada recebida"
   stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
+  feedback?: { rating: number; note?: string | null; role?: string | null } | null; // F4: avaliação já registrada
+  durationSec?: number | null; // F4: duração real (1º join → endedAt) — server /summary
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
 const dueAtDays = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); d.setHours(9, 0, 0, 0); return d.toISOString(); };
@@ -98,6 +101,69 @@ const dueShort = (d?: string) => {
   const hm = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   if (sameDay) return `Hoje · ${hm}`;
   return `${dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · ${hm}`;
+};
+
+// ── Gravação não se perde (22/10): fila IndexedDB p/ uploads que falharam ──────
+// Se o POST /recording falha (rede caiu no encerrar), o blob fica em indexedDB
+// ('drexame' → 'pending-recordings', keyPath 'id') e sobe de novo no 'online' /
+// próximo mount. Mesma key do reminder = última gravação vence (o server também
+// guarda 1 áudio por consulta em audioPathFor(id)). Best-effort: IDB indisponível
+// (modo privado) → helpers resolvem sem erro, gravação se perde como antes.
+const PENDING_REC_DB = 'drexame';
+const PENDING_REC_STORE = 'pending-recordings';
+const openPendingRecordingsDb = (): Promise<IDBDatabase | null> => new Promise((resolve) => {
+  try {
+    if (typeof indexedDB === 'undefined') { resolve(null); return; }
+    const req = indexedDB.open(PENDING_REC_DB, 1);
+    req.onupgradeneeded = () => { try { req.result.createObjectStore(PENDING_REC_STORE, { keyPath: 'id' }); } catch { /* store já existe */ } };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => resolve(null);
+    req.onblocked = () => resolve(null);
+  } catch { resolve(null); }
+});
+const savePendingRecording = async (id: string, blob: Blob): Promise<void> => {
+  const db = await openPendingRecordingsDb();
+  if (!db) return;
+  await new Promise<void>((resolve) => {
+    try {
+      const tx = db.transaction(PENDING_REC_STORE, 'readwrite');
+      tx.objectStore(PENDING_REC_STORE).put({ id, blob, timestamp: Date.now() });
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); resolve(); };
+      tx.onabort = () => { db.close(); resolve(); };
+    } catch { resolve(); }
+  });
+};
+/** Soba as gravações pendentes (rede voltou). Sucesso = apaga da fila; falha = fica. */
+const retryPendingRecordingUploads = async (getToken: () => string | null): Promise<void> => {
+  const db = await openPendingRecordingsDb();
+  if (!db) return;
+  const rows: { id: string; blob: Blob }[] = await new Promise((resolve) => {
+    try {
+      const rq = db.transaction(PENDING_REC_STORE, 'readonly').objectStore(PENDING_REC_STORE).getAll();
+      rq.onsuccess = () => resolve((rq.result as any[]) || []);
+      rq.onerror = () => resolve([]);
+    } catch { resolve([]); }
+  });
+  for (const row of rows) {
+    if (!row?.id || !(row.blob instanceof Blob)) continue;
+    const drop = () => new Promise<void>((resolve) => {
+      try {
+        const tx = db.transaction(PENDING_REC_STORE, 'readwrite');
+        tx.objectStore(PENDING_REC_STORE).delete(row.id);
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => resolve();
+      } catch { resolve(); }
+    });
+    try {
+      const fd = new FormData();
+      fd.append('file', row.blob, `${row.id}.webm`);
+      const r = await fetch(`${API_URL}/teleconsulta/${row.id}/recording`, { method: 'POST', headers: { Authorization: `Bearer ${getToken()}` }, body: fd });
+      if (r.ok) await drop(); // subiu — sai da fila
+      else if (r.status === 401) await drop(); // sessão morta p/ este acesso — não fica retentando p/ sempre
+    } catch { /* ainda offline — próxima tentativa (listener 'online' / mount) */ }
+  }
+  try { db.close(); } catch { /* noop */ }
 };
 
 /** Vídeo anexado a um track LiveKit (remoto ou local). Muted: áudio vem por track
@@ -167,12 +233,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   const [phase, setPhase] = useState<Phase>('loading');
   const [camState, setCamState] = useState<CamState>('pending');
+  const [micDenied, setMicDenied] = useState(false); // fix #13d: mic NEGADO no preview — câmera+mic negados bloqueiam a entrada
   const [joinLoading, setJoinLoading] = useState(false);
   const [banner, setBanner] = useState<'connecting' | 'reconnecting' | null>(null);
   const [toast, setToast] = useState<{ text: string; k: number } | null>(null);
   const [remotes, setRemotes] = useState<RemoteView[]>([]);
   const [otherJoined, setOtherJoined] = useState(false); // alguém já entrou (para diferenciar "aguardando" de "saiu")
   const [remoteLeft, setRemoteLeft] = useState<string | null>(null); // nome de quem saiu ("Dr(a). X saiu da chamada")
+  const [patientNoShow, setPatientNoShow] = useState(false); // agent2: médico sozinho na sala por 5 min
+  const [nudgeBusy, setNudgeBusy] = useState(false); // agent2: "Reenviar convite" em voo
   const [micOn, setMicOn] = useState(true);
   const [camOn, setCamOn] = useState(true);
   const [localVideo, setLocalVideo] = useState<LocalVideoTrack | null>(null);
@@ -220,88 +289,6 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [txRetry, setTxRetry] = useState(0); // "Tentar de novo" religa o poll
   const seenReqIds = useRef<Set<string>>(new Set()); // ids já notificados (diff do poll 20s)
   const dismissedReqIds = useRef<Set<string>>(new Set()); // "Depois" — não reacende o painel nesta sessão
-
-  // ── F3 reviewer-A (alto): gravação da chamada pelo LADO MÉDICO (contrato §4).
-  // MediaRecorder captura mic local + áudio remoto (webm/opus) → upload no encerrar
-  // → server transcreve (Groq) → transcript cifrado. Áudio efêmero (LGPD).
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const recordChunksRef = useRef<Blob[]>([]);
-  const [recording, setRecording] = useState(false);
-  const [recUpload, setRecUpload] = useState<'idle' | 'up' | 'ok' | 'fail'>('idle');
-  // ── F3 reviewer-B (alto): botão "Solicitar exame" IN-CALL do médico.
-  const [reqOpen, setReqOpen] = useState(false);
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqNote, setReqNote] = useState('');
-  const [docReqBusy, setDocReqBusy] = useState(false);
-
-  const collectRoomAudioTracks = (room: Room): MediaStreamTrack[] => {
-    const tracks: MediaStreamTrack[] = [];
-    try {
-      room.localParticipant.audioTrackPublications.forEach((p: any) => { if (p.track?.mediaStreamTrack) tracks.push(p.track.mediaStreamTrack); });
-      room.remoteParticipants.forEach((p: any) => p.audioTrackPublications.forEach((pub: any) => { if (pub.track?.mediaStreamTrack) tracks.push(pub.track.mediaStreamTrack); }));
-    } catch { /* best-effort */ }
-    return tracks;
-  };
-  const startRoomRecording = useCallback((room: Room) => {
-    if (typeof MediaRecorder === 'undefined' || mediaRecorderRef.current) return;
-    try {
-      const tracks = collectRoomAudioTracks(room);
-      if (!tracks.length) return;
-      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
-      const mr = new MediaRecorder(new MediaStream(tracks), { mimeType: mime });
-      mr.ondataavailable = (e) => { if (e.data?.size) recordChunksRef.current.push(e.data); };
-      mr.start(5000);
-      mediaRecorderRef.current = mr;
-      setRecording(true);
-    } catch { /* gravação é best-effort — nunca derruba a consulta */ }
-  }, []);
-  // Participante entrou depois do recorder ligado: restart p/ incluir o áudio novo
-  // (MediaRecorder não aceita track adicionada após start; chunks preservados).
-  const restartRoomRecording = useCallback((room: Room) => {
-    const old = mediaRecorderRef.current;
-    if (!old) return;
-    try {
-      old.onstop = () => { setTimeout(() => { mediaRecorderRef.current = null; startRoomRecording(room); }, 60); };
-      old.stop();
-    } catch { mediaRecorderRef.current = null; startRoomRecording(room); }
-  }, [startRoomRecording]);
-  const stopAndUploadRecording = useCallback(async () => {
-    const mr = mediaRecorderRef.current;
-    if (!mr) return;
-    mediaRecorderRef.current = null;
-    setRecording(false);
-    await new Promise<void>((res) => {
-      try { mr.onstop = () => res(); mr.stop(); setTimeout(res, 2000); } catch { res(); }
-    });
-    const blob = new Blob(recordChunksRef.current, { type: 'audio/webm' });
-    recordChunksRef.current = [];
-    if (blob.size < 3000) return; // vazio/curto demais — nem envia
-    setRecUpload('up');
-    try {
-      const fd = new FormData();
-      fd.append('file', blob, `${reminderId}.webm`);
-      const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/recording`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, body: fd });
-      setRecUpload(r.ok ? 'ok' : 'fail');
-    } catch { setRecUpload('fail'); }
-  }, [authToken, reminderId]);
-
-  // Encerramento SERVER-SIDE: marca a consulta como encerrada no banco (done +
-  // endedAt, rota do agent1). Sem isto o card ficava "Entrar na consulta" pra
-  // sempre (dono 21/10: "ela nunca encerra"). keepalive sobrevive ao unload.
-  // Chamado no endCall, no disconnect de rede E no unload (agent3 a/b).
-  const markEnded = useCallback(() => {
-    fetch(`${API_URL}/teleconsulta/${reminderId}/end`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, keepalive: true })
-      .catch(() => { /* best-effort: rede caída — server fecha sozinho pelo audit */ });
-  }, [authToken, reminderId]);
-
-  const roomRef = useRef<Room | null>(null);
-  const previewStream = useRef<MediaStream | null>(null);
-  const previewVideo = useRef<HTMLVideoElement>(null);
-  const audioSink = useRef<HTMLDivElement>(null);
-  const wakeLock = useRef<any>(null);
-  const startedAtRef = useRef<number | null>(null);
-  const endedByUser = useRef(false);
-  const noteKey = `dx-teleconsulta-note:${reminderId}`;
 
   // ── Sons de chamada (dono 19/10: "som de aguardar como as empresas usam") ──
   // Web Audio API puro (zero arquivos/CDN). Ringback = padrão Brasília: 1s tom /
@@ -365,12 +352,207 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     if (recBeepIvRef.current) { clearInterval(recBeepIvRef.current); recBeepIvRef.current = null; }
   }, []);
 
+  // ── F3/F4: gravação da chamada e transcrição inteligente por IA ──────────────
+  // MediaRecorder captura mic local + áudio remoto (mixado via Web Audio em webm/opus)
+  // → upload no encerrar → server transcreve com Groq Whisper → transcript cifrado.
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordChunksRef = useRef<Blob[]>([]);
+  const recAudioCtxRef = useRef<AudioContext | null>(null);
+  const recDestRef = useRef<MediaStreamAudioDestinationNode | null>(null);
+  const recSourcesRef = useRef<MediaStreamAudioSourceNode[]>([]);
+  const [recording, setRecording] = useState(false);
+  const [recUpload, setRecUpload] = useState<'idle' | 'up' | 'ok' | 'fail'>('idle');
+  const [recordPromptDismissed, setRecordPromptDismissed] = useState(false);
+  const [consentBusy, setConsentBusy] = useState(false);
+
+  // ── F3 reviewer-B (alto): botão "Solicitar exame" IN-CALL do médico.
+  const [reqOpen, setReqOpen] = useState(false);
+  const [reqTitle, setReqTitle] = useState('');
+  const [reqNote, setReqNote] = useState('');
+  const [docReqBusy, setDocReqBusy] = useState(false);
+
+  const collectRoomAudioTracks = (room: Room): MediaStreamTrack[] => {
+    const tracks: MediaStreamTrack[] = [];
+    try {
+      room.localParticipant.audioTrackPublications.forEach((p: any) => { if (p.track?.mediaStreamTrack) tracks.push(p.track.mediaStreamTrack); });
+      room.remoteParticipants.forEach((p: any) => p.audioTrackPublications.forEach((pub: any) => { if (pub.track?.mediaStreamTrack) tracks.push(pub.track.mediaStreamTrack); }));
+    } catch { /* best-effort */ }
+    return tracks;
+  };
+
+  const startRoomRecording = useCallback((room: Room) => {
+    if (typeof MediaRecorder === 'undefined' || mediaRecorderRef.current) return;
+    try {
+      const tracks = collectRoomAudioTracks(room);
+      if (!tracks.length) return;
+
+      let recordStream: MediaStream;
+      try {
+        const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtxClass) {
+          const actx = new AudioCtxClass();
+          recAudioCtxRef.current = actx;
+          const dest = actx.createMediaStreamDestination();
+          recDestRef.current = dest;
+          recSourcesRef.current = [];
+          tracks.forEach((t) => {
+            try {
+              const src = actx.createMediaStreamSource(new MediaStream([t]));
+              src.connect(dest);
+              recSourcesRef.current.push(src);
+            } catch { /* fallback */ }
+          });
+          recordStream = dest.stream;
+        } else {
+          recordStream = new MediaStream(tracks);
+        }
+      } catch {
+        recordStream = new MediaStream(tracks);
+      }
+
+      const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+        ? 'audio/webm;codecs=opus'
+        : MediaRecorder.isTypeSupported('audio/webm')
+        ? 'audio/webm'
+        : 'audio/mp4';
+      const mr = new MediaRecorder(recordStream, { mimeType: mime });
+      recordChunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data?.size) recordChunksRef.current.push(e.data); };
+      mr.start(3000);
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+      startRecordingBeep();
+    } catch { /* gravação é best-effort — nunca derruba a consulta */ }
+  }, [startRecordingBeep]);
+
+  const restartRoomRecording = useCallback((room: Room) => {
+    if (!mediaRecorderRef.current) {
+      startRoomRecording(room);
+      return;
+    }
+    if (recAudioCtxRef.current && recDestRef.current) {
+      try {
+        const currentTracks = collectRoomAudioTracks(room);
+        currentTracks.forEach((t) => {
+          try {
+            const src = recAudioCtxRef.current!.createMediaStreamSource(new MediaStream([t]));
+            src.connect(recDestRef.current!);
+            recSourcesRef.current.push(src);
+          } catch { /* noop */ }
+        });
+        return;
+      } catch { /* fallback */ }
+    }
+    const old = mediaRecorderRef.current;
+    if (!old) return;
+    try {
+      old.onstop = () => { setTimeout(() => { mediaRecorderRef.current = null; startRoomRecording(room); }, 60); };
+      old.stop();
+    } catch { mediaRecorderRef.current = null; startRoomRecording(room); }
+  }, [startRoomRecording]);
+
+  const stopAndUploadRecording = useCallback(async () => {
+    const mr = mediaRecorderRef.current;
+    if (!mr) return;
+    mediaRecorderRef.current = null;
+    setRecording(false);
+    stopRecordingBeep();
+    try {
+      recSourcesRef.current.forEach((s) => s.disconnect());
+      recSourcesRef.current = [];
+      recAudioCtxRef.current?.close().catch(() => {});
+      recAudioCtxRef.current = null;
+      recDestRef.current = null;
+    } catch { /* noop */ }
+
+    await new Promise<void>((res) => {
+      try { mr.onstop = () => res(); mr.stop(); setTimeout(res, 2000); } catch { res(); }
+    });
+    const blob = new Blob(recordChunksRef.current, { type: 'audio/webm' });
+    recordChunksRef.current = [];
+    if (blob.size < 1500) return; // vazio/curto demais — nem envia
+    setRecUpload('up');
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, `${reminderId}.webm`);
+      const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/recording`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, body: fd });
+      if (r.ok) { setRecUpload('ok'); return; }
+      setRecUpload('fail');
+      await savePendingRecording(reminderId, blob); // não se perde — retry no 'online'
+    } catch {
+      setRecUpload('fail');
+      await savePendingRecording(reminderId, blob); // rede caiu — blob vai pra fila no IndexedDB
+    }
+  }, [authToken, reminderId, stopRecordingBeep]);
+
+  const handleEnableRecording = useCallback(async () => {
+    setConsentBusy(true);
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/record-consent`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${authToken()}` },
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const at = data.recordConsentAt || new Date().toISOString();
+        setSummary((cur) => cur ? { ...cur, recordConsentAt: at } : cur);
+        if (roomRef.current) {
+          startRoomRecording(roomRef.current);
+        }
+        setToast({ text: '🎙️ Gravação com IA ativada', k: Date.now() });
+        hapticSuccess();
+      } else {
+        setToast({ text: 'Não foi possível ativar a gravação', k: Date.now() });
+      }
+    } catch {
+      setToast({ text: 'Falha de conexão', k: Date.now() });
+    } finally {
+      setConsentBusy(false);
+    }
+  }, [authToken, reminderId, startRoomRecording]);
+
+  // Encerramento SERVER-SIDE: marca a consulta como encerrada no banco (done +
+  // endedAt, rota do agent1). Sem isto o card ficava "Entrar na consulta" pra
+  // sempre (dono 21/10: "ela nunca encerra"). keepalive sobrevive ao unload.
+  // Chamado no endCall, no disconnect de rede E no unload (agent3 a/b).
+  const markEnded = useCallback(() => {
+    fetch(`${API_URL}/teleconsulta/${reminderId}/end`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, keepalive: true })
+      .catch(() => { /* best-effort: rede caída — server fecha sozinho pelo audit */ });
+  }, [authToken, reminderId]);
+
+  // agent2: "Reenviar convite" do painel de no-show — push pro paciente entrar agora.
+  const resendInvite = useCallback(async () => {
+    if (nudgeBusy) return;
+    setNudgeBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/nudge`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` } });
+      if (!r.ok) throw new Error('nudge');
+      hapticSuccess();
+      setToast({ text: 'Convite reenviado ao paciente ✓', k: Date.now() });
+    } catch {
+      hapticError();
+      setToast({ text: 'Não deu pra reenviar. Tenta de novo.', k: Date.now() });
+    } finally { setNudgeBusy(false); }
+  }, [authToken, nudgeBusy, reminderId]);
+
+  const otherJoinedRef = useRef(false); // espelho ref do otherJoined (guard do markEnded no unmount)
+  const noShowTimerRef = useRef<number | null>(null); // agent2: timer de no-show (5 min) — limpo no unmount
+  const roomRef = useRef<Room | null>(null);
+  const previewStream = useRef<MediaStream | null>(null);
+  const previewVideo = useRef<HTMLVideoElement>(null);
+  const audioSink = useRef<HTMLDivElement>(null);
+  const wakeLock = useRef<any>(null);
+  const startedAtRef = useRef<number | null>(null);
+  const endedByUser = useRef(false);
+  const noteKey = `dx-teleconsulta-note:${reminderId}`;
+
   // ── Preview (pré-join) ───────────────────────────────────────────────────────
   // Dono 20/10: audio JUNTO com vídeo — o browser permissa AMBOS de uma vez
   // (se audio:false, o mic só era pedido pelo LiveKit JÁ DENTRO da chamada,
   // quando o usuário menos espera e o Chrome às vezes bloqueia).
   const openPreview = useCallback(async () => {
     setCamState('pending');
+    setMicDenied(false);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
       previewStream.current?.getTracks().forEach((t) => t.stop());
@@ -378,7 +560,17 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       if (previewVideo.current) { previewVideo.current.srcObject = stream; previewVideo.current.play().catch(() => {}); }
       setCamState('ok');
     } catch (e: any) {
-      setCamState(e?.name === 'NotFoundError' || e?.name === 'OverconstrainedError' ? 'nodevice' : 'denied');
+      const noDevice = e?.name === 'NotFoundError' || e?.name === 'OverconstrainedError';
+      setCamState(noDevice ? 'nodevice' : 'denied');
+      // fix #13d: câmera negada → sonda o mic em separado. Ambos negados = sem mídia
+      // nenhuma: a entrada é bloqueada com orientação clara (não deixa entrar "no escuro").
+      if (!noDevice) {
+        try {
+          const audio = await navigator.mediaDevices.getUserMedia({ audio: true });
+          audio.getTracks().forEach((t) => t.stop());
+          setMicDenied(false);
+        } catch { setMicDenied(true); }
+      }
     }
   }, []);
   const stopPreview = useCallback(() => {
@@ -438,7 +630,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         if (track.kind === 'audio') {
           try { const el = track.attach(); el.style.display = 'none'; audioSink.current?.appendChild(el); } catch { /* noop */ }
           // Gravando e alguém entrou depois: reinclui o áudio novo no recorder.
-          if (mediaRecorderRef.current) restartRoomRecording(roomRef.current!);
+          if (mediaRecorderRef.current && roomRef.current) {
+            restartRoomRecording(roomRef.current);
+          } else if (summaryRef.current?.recordConsentAt && roomRef.current) {
+            startRoomRecording(roomRef.current);
+          }
           return;
         }
         if (pub.source === Track.Source.Camera) setRemoteVideo(p, track);
@@ -458,9 +654,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
         setToast({ text: `${displayName} entrou`, k: Date.now() });
         setOtherJoined(true);
+        otherJoinedRef.current = true;
         setRemoteLeft(null);
         playJoinChime();
         hapticSuccess();
+        if (summaryRef.current?.recordConsentAt && roomRef.current && !mediaRecorderRef.current) {
+          startRoomRecording(roomRef.current);
+        }
       })
       .on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
         const displayName = (p.name || 'Participante').replace(/\s*\([0-9]+\/?[A-Za-z]{2}\)\s*$/, '');
@@ -503,11 +703,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     startedAtRef.current = Date.now();
     setPhase('incall');
     setBanner(null);
-    // F3 §4: médico grava automaticamente quando o PACIENTE consentiu a gravação
-    // (checkbox no pré-join dele). Sem consent → nada grava (ausência é a mensagem).
-    if (role === 'doctor' && summaryRef.current?.recordConsentAt) startRoomRecording(room);
+    // Se o consentimento já existe e outro participante já está na sala, grava
+    if (summaryRef.current?.recordConsentAt && (room.remoteParticipants.size > 0 || otherJoined)) {
+      startRoomRecording(room);
+    }
     try { wakeLock.current = await (navigator as any).wakeLock?.request('screen'); } catch { /* WebView sem wakelock — ok */ }
-  }, [markEnded, playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom]);
+  }, [markEnded, playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom, otherJoined]);
 
   // ── Join via backend ─────────────────────────────────────────────────────────
   const startJoin = useCallback(async (s?: Summary | null) => {
@@ -517,6 +718,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     setBanner('connecting');
     try {
       const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/join`, { headers: { Authorization: `Bearer ${authToken()}` } });
+      if (res.status === 401) {
+        // agent2: sessão expirou — manda pro login em vez de toast genérico + loop no pré-join.
+        setBanner(null);
+        window.location.hash = role === 'doctor' ? '#/entrar/medico' : '#/entrar';
+        return;
+      }
       if (res.status === 501) {
         const d = await res.json().catch(() => ({} as any));
         setFallbackLink(d?.linkUrl || sum?.linkUrl || '');
@@ -545,6 +752,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       }
       if (!res.ok) throw new Error('join-failed');
       const data = await res.json();
+      // fix #13c: o /join devolve stt (hasStt do server) mas o client não salvava —
+      // sem isto o gate do banner/chip de gravação ficava cego até um /summary futuro.
+      if (typeof data.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: data.stt } : cur));
       await connectRoom(data.serverUrl, data.token);
     } catch {
       setBanner(null);
@@ -552,7 +762,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       hapticError();
       setPhase('prejoin');
     }
-  }, [authToken, connectRoom, reminderId, stopPreview]);
+  }, [authToken, connectRoom, reminderId, role, stopPreview]);
 
   // Botão do pré-join (paciente): consent Art.15 (só se ainda não consenter) + join.
   // F3 §1: se marcou o checkbox de gravação, registra o record-consent logo após o
@@ -561,6 +771,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const consentAndJoin = useCallback(async () => {
     const sum = summaryRef.current;
     if (joinLoading) return;
+    // fix #13d: câmera E microfone negados — sem mídia não existe consulta. Guarda
+    // dupla (botão desabilita no pré-join/atender; aqui cobre qualquer caminho residual).
+    if (camState === 'denied' && micDenied) {
+      setToast({ text: 'Sem câmera nem microfone não é possível consultar. Libere pelo menos um.', k: Date.now() });
+      hapticError();
+      return;
+    }
     setJoinLoading(true);
     try {
       if (role === 'patient' && sum && !sum.consentAt) {
@@ -590,7 +807,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     } finally {
       setJoinLoading(false);
     }
-  }, [joinLoading, recordAudio, reminderId, role, startJoin]);
+  }, [camState, joinLoading, micDenied, recordAudio, reminderId, role, startJoin]);
 
   // ── Bootstrap: resumo + decisão da fase inicial ──────────────────────────────
   useEffect(() => {
@@ -600,42 +817,50 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       if (role === 'patient') {
         const pid = (() => { try { return localStorage.getItem('selPatientId') || localStorage.getItem('patientId'); } catch { return null; } })();
         let fetched: Summary | null = null;
-        if (pid) {
+        
+        // Tenta buscar no summary canônico primeiro (não depende de patientId no localStorage)
+        try {
+          const sumRes = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
+          if (sumRes.ok) {
+            const d = await sumRes.json();
+            if (d) {
+              fetched = {
+                id: reminderId,
+                patientId: d.patient?.id || pid || '',
+                title: d.title || 'Teleconsulta médica',
+                dueDate: d.dueDate || new Date().toISOString(),
+                consentAt: d.consentAt ?? null,
+                recordConsentAt: d.recordConsentAt ?? null,
+                provider: 'livekit',
+                linkUrl: d.linkUrl || null,
+                doctor: d.doctor,
+                patient: d.patient,
+                endedAt: d.endedAt ?? null,
+                stt: typeof d.stt === 'boolean' ? d.stt : undefined,
+                doctorInRoom: d.doctorInRoom ?? false,
+              };
+            }
+          }
+        } catch { /* segue pro fallback de reminders */ }
+
+        if (!fetched && pid) {
           try {
             const res = await fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } });
             if (res.ok) {
               const list = await res.json();
               const found = Array.isArray(list) ? list.find((x: any) => x?.id === reminderId) : null;
-              if (found) fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor, endedAt: found.endedAt };
+              if (found) {
+                fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor, endedAt: found.endedAt };
+              }
             } else if (res.status === 401) { setPhase('error'); return; }
-          } catch { /* offline: cai no state se houver */ }
+          } catch { /* offline */ }
         }
         if (cancelled) return;
         const s = fetched ?? summaryRef.current;
         if (s) setSummary(s);
         if (!s) { setPhase('error'); return; }
-        // reviewer-L: capability de transcrição + dados de paciente/médico (foto e nome).
-        fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } })
-          .then((r) => (r.ok ? r.json() : null))
-          .then((d) => {
-            if (!cancelled && d) {
-              setSummary((cur) => (cur ? {
-                ...cur,
-                stt: typeof d.stt === 'boolean' ? d.stt : cur.stt,
-                patient: d.patient || cur.patient,
-                doctor: d.doctor || cur.doctor,
-                doctorInRoom: d.doctorInRoom ?? false,
-                endedAt: d.endedAt ?? cur.endedAt,
-              } : cur));
-              // F4: race do fetch — endedAt chegou DEPOIS do bootstrap ir pro pré-join.
-              if (d.endedAt) setPhase((p) => (p === 'loading' || p === 'prejoin' ? 'readonly' : p));
-            }
-          })
-          .catch(() => {});
-        // F4 pós-consulta (agent2): ENCERRADA → área read-only direto (sem pré-join,
-        // sem preview de câmera, sem consent — o join do server bloquearia de todo modo).
+
         if (s.endedAt) { setPhase('readonly'); return; }
-        // Spec §1: consentido → pula direto pra chamada.
         if (s.consentAt) { void startJoin(s); return; }
         setPhase('prejoin');
       } else {
@@ -696,12 +921,42 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     return () => { stopRingback(); };
   }, [phase, remotes.length, otherJoined, startRingback, stopRingback]);
 
+  // agent2: no-show do paciente — médico incall SOZINHO (ninguém nunca entrou) por
+  // 5 min → para o ringback e mostra "Paciente ainda não chegou" com ações reais
+  // (reenviar convite / encerrar). Timer em ref: limpo quando alguém entra e no unmount.
+  useEffect(() => {
+    const alone = phase === 'incall' && role === 'doctor' && remotes.length === 0 && !otherJoined;
+    if (!alone) {
+      if (noShowTimerRef.current) { clearTimeout(noShowTimerRef.current); noShowTimerRef.current = null; }
+      if (otherJoined) setPatientNoShow(false); // paciente chegou (mesmo que tenha saído depois) — não é no-show
+      return;
+    }
+    if (noShowTimerRef.current != null) return; // já armado
+    noShowTimerRef.current = window.setTimeout(() => {
+      noShowTimerRef.current = null;
+      setPatientNoShow(true);
+      stopRingback(); // 5 min tocando é suficiente
+      hapticError();
+    }, 300_000);
+    return () => {
+      if (noShowTimerRef.current) { clearTimeout(noShowTimerRef.current); noShowTimerRef.current = null; }
+    };
+  }, [phase, role, remotes.length, otherJoined, stopRingback]);
+
   // Beep de gravação: só enquanto gravando (LGPD — cortesia auditiva).
   useEffect(() => {
     if (recording) startRecordingBeep();
     else stopRecordingBeep();
     return () => { stopRecordingBeep(); };
   }, [recording, startRecordingBeep, stopRecordingBeep]);
+
+  // agent2: rede voltou (ou remontou já online) → sobe gravações da fila IndexedDB.
+  useEffect(() => {
+    const retry = () => { void retryPendingRecordingUploads(authToken); };
+    window.addEventListener('online', retry);
+    retry(); // mount: pendência da sessão anterior pode subir agora
+    return () => window.removeEventListener('online', retry);
+  }, [authToken]);
 
   // O <video> do preview monta DEPOIS do getUserMedia resolver (camState ok) —
   // bind do stream acontece aqui, quando o ref já existe.
@@ -740,8 +995,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     stopPreview();
     try { wakeLock.current?.release?.(); } catch { /* noop */ }
     wakeLock.current = null;
+    // agent2: unmount SEM endCall/Disconnected (navegou fora, fechou a tab no meio
+    // da chamada) também encerra no server — com o MESMO guard do endCall: sessão
+    // <25s sem o outro lado conectar é saída da sala de espera, não encerra.
+    const t0 = startedAtRef.current;
+    if (t0 != null && ((Date.now() - t0) / 1000 >= 25 || otherJoinedRef.current)) markEnded();
+    if (noShowTimerRef.current) { clearTimeout(noShowTimerRef.current); noShowTimerRef.current = null; }
     void teardownRoom();
-  }, [stopPreview, teardownRoom]);
+  }, [markEnded, stopPreview, teardownRoom]);
 
   // ── F3 (c): resumo da área "Resumo da consulta" (3d GET summary) ───────
   const loadAreaSummary = useCallback(async (): Promise<TeleSummary | null> => {
@@ -832,6 +1093,39 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, role, summary?.recordConsentAt, txRetry]);
 
+  // fix #9 (a): médico em 'ended'/'readonly' também carrega a área pós-consulta
+  // (pedidos + transcrição + duração) — mesmo GET /summary auth-dual do paciente.
+  // Transcrição: poll curto (15s × 4) — a STT pode estar terminando logo após o
+  // encerramento; sem gravação, transcript nunca aparece e a seção simplesmente some.
+  useEffect(() => {
+    if ((phase !== 'ended' && phase !== 'readonly') || role !== 'doctor') return;
+    let stop = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let tries = 0;
+    const tick = async () => {
+      if (stop) return;
+      const s = await loadAreaSummary();
+      if (stop) return;
+      if (s) setAreaSummary(s);
+      const at = s?.transcript?.at ?? null;
+      if (at) {
+        try {
+          const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/transcript`, { headers: { Authorization: `Bearer ${authToken()}` } });
+          if (r.ok) {
+            const d = await r.json();
+            if (!stop) { setTxText(typeof d?.text === 'string' ? d.text : ''); setTxAt(typeof d?.transcriptAt === 'string' ? d.transcriptAt : at); setTxState('ready'); }
+            return;
+          }
+        } catch { /* próximo tick */ }
+      }
+      tries += 1;
+      if (tries >= 4) return; // ~1 min sem transcript → consulta sem gravação (seção oculta)
+      timer = setTimeout(() => void tick(), 15000);
+    };
+    void tick();
+    return () => { stop = true; if (timer) clearTimeout(timer); };
+  }, [phase, role, authToken, reminderId, loadAreaSummary]);
+
   // ── Ações da chamada ─────────────────────────────────────────────────────────
   // Dono 20/10: WebView não tem 🔒 na barra de endereço — mensagem precisa ser
   // CONTEXT-AWARE: nativo → "configurações do app"; navegador → "🔒 na barra".
@@ -872,28 +1166,37 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     }
   }, [camOn, mediaErrHint]);
 
-  const endCall = useCallback(async () => {
-    setEndOpen(false);
-    const t0 = startedAtRef.current ?? Date.now();
-    endedByUser.current = true;
-    setEnded({ sec: Math.round((Date.now() - t0) / 1000) });
-    try { wakeLock.current?.release?.(); } catch { /* noop */ }
-    wakeLock.current = null;
-    // F3: para o recorder ANTES de derrubar os tracks (o flush precisa deles vivos)
-    // e sobe a gravação — o upload acontece de fundo; a área pós-chamada mostra
-    // o estado (enviando → transcrição em minutos).
-    await stopAndUploadRecording();
-    markEnded(); // encerramento server-side (done + endedAt) — a consulta PARA de ser re-entrável
-    await teardownRoom();
-    setPhase('ended');
-    hapticSuccess();
-  }, [markEnded, stopAndUploadRecording, teardownRoom]);
-
+  // agent2: exitTo declarado ANTES do endCall — o deps do endCall referenciava antes
+  // da declaração (TS2448, bloqueava o tsc do CI).
   const exitTo = useCallback(() => {
     hapticLight();
     if (onExited) { onExited(); return; }
     navigate(role === 'doctor' ? '/doctor' : '/lembretes');
   }, [navigate, onExited, role]);
+
+  const endCall = useCallback(async () => {
+    setEndOpen(false);
+    const t0 = startedAtRef.current ?? Date.now();
+    endedByUser.current = true;
+    const durSec = Math.round((Date.now() - t0) / 1000);
+    setEnded({ sec: durSec });
+    try { wakeLock.current?.release?.(); } catch { /* noop */ }
+    wakeLock.current = null;
+    await stopAndUploadRecording();
+
+    // Se o usuário entrou e saiu em menos de 25s sem outro participante conectado:
+    // Trata como saída da sala de espera — NÃO mata a consulta no servidor e NÃO pede avaliação!
+    if (durSec < 25 && !otherJoined) {
+      await teardownRoom();
+      exitTo();
+      return;
+    }
+
+    markEnded(); // encerramento server-side (done + endedAt)
+    await teardownRoom();
+    setPhase('ended');
+    hapticSuccess();
+  }, [exitTo, markEnded, otherJoined, stopAndUploadRecording, teardownRoom]);
 
   const saveNote = useCallback(() => {
     // DÍVIDA (P2-reviewer 19/10): nota clínica só neste aparelho. F3 = persistir no
@@ -1035,6 +1338,39 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Button>
             </Stack>
           </Box>
+        ) : patientNoShow && role === 'doctor' ? (
+          /* agent2: 5 min sozinho na sala — ringback parou, oferta de ação real
+             (reenviar convite via push / encerrar). Sala segue aberta se esperar. */
+          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
+            <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
+              <Avatar sx={{ width: 84, height: 84, fontSize: 30, fontWeight: 800, bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)' }}>
+                {initials(summary?.patient?.name || (location.state as any)?.patientName)}
+              </Avatar>
+              <Box>
+                <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18 }}>
+                  Paciente ainda não chegou
+                </Typography>
+                <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 13, mt: 0.5, lineHeight: 1.5 }}>
+                  Você está na sala há 5 minutos esperando. Reenvie o convite ou encerre a consulta — ela continua aberta se você preferir aguardar.
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1.5}>
+                <Button
+                  variant="contained" disabled={nudgeBusy} onClick={() => void resendInvite()}
+                  startIcon={nudgeBusy ? <CircularProgress size={16} color="inherit" /> : <NotificationsActiveIcon />}
+                  sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(135deg,#178f89,#0f766e)' }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 2 } }}
+                >
+                  {nudgeBusy ? 'Enviando…' : 'Reenviar convite'}
+                </Button>
+                <Button
+                  variant="contained" onClick={() => setEndOpen(true)} startIcon={<CallEndIcon />}
+                  sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: COPPER, '&:hover': { bgcolor: COPPER_DARK } }}
+                >
+                  Encerrar consulta
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
         ) : (
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2} sx={{ textAlign: 'center', maxWidth: 360 }}>
@@ -1128,9 +1464,119 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
             {role === 'doctor' && <Chip size="small" label="Médico" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />}
             {role === 'patient' && summary?.consentAt && <Chip size="small" label="✓ autorizada" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3' }} />}
-            {!!summary?.recordConsentAt && <Chip size="small" label="● gravando" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(239,68,68,.15)', color: '#fca5a5' }} />}
+            {/* fix #13b: stt false (server não transcreve) → chip de gravação NEM renderiza */}
+            {summary?.stt !== false && (recording ? (
+              <Chip size="small" label="● Gravando IA" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(239,68,68,.25)', color: '#fca5a5' }} />
+            ) : (
+              <Chip
+                size="small"
+                label={summary?.recordConsentAt ? "🎙️ Transcrição ativa" : "🎙️ Gravar IA"}
+                onClick={() => setRecordPromptDismissed(false)}
+                sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3', cursor: 'pointer' }}
+              />
+            ))}
           </Stack>
         </Stack>
+
+        {/* Banner Interativo: Perguntar se quer gravar áudio para transcrição quando ambos estiverem conectados */}
+        {/* fix #13b: stt false (server não transcreve) → banner de gravação NEM renderiza */}
+        {phase === 'incall' && (otherJoined || remotes.length > 0) && !recording && !summary?.recordConsentAt && !recordPromptDismissed && summary?.stt !== false && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 'calc(env(safe-area-inset-top) + 68px)',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              width: 'min(94%, 440px)',
+              zIndex: 25,
+              p: 2,
+              borderRadius: '20px',
+              background: 'rgba(12, 24, 28, 0.95)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              border: '1.5px solid rgba(32, 178, 170, 0.5)',
+              boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6), 0 0 24px rgba(32, 178, 170, 0.25)',
+              animation: 'dxSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
+              '@keyframes dxSlideDown': {
+                from: { opacity: 0, transform: 'translate(-50%, -16px)' },
+                to: { opacity: 1, transform: 'translate(-50%, 0)' },
+              },
+            }}
+          >
+            <Stack spacing={1.5}>
+              <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+                <Box
+                  sx={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: '12px',
+                    bgcolor: 'rgba(32, 178, 170, 0.18)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    color: '#20b2aa',
+                    flexShrink: 0,
+                    border: '1px solid rgba(32, 178, 170, 0.35)',
+                  }}
+                >
+                  <MicIcon sx={{ fontSize: 24 }} />
+                </Box>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 15, lineHeight: 1.3 }}>
+                    🎙️ Gravação & Transcrição por IA
+                  </Typography>
+                  <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: 12.5, lineHeight: 1.45, mt: 0.5 }}>
+                    {role === 'doctor'
+                      ? 'Deseja gravar o áudio desta consulta para gerar automaticamente a transcrição clínica e o prontuário por IA?'
+                      : 'Desejam gravar o áudio desta consulta para gerar automaticamente o resumo e a transcrição médica por IA?'}
+                  </Typography>
+                </Box>
+                <IconButton
+                  size="small"
+                  onClick={() => setRecordPromptDismissed(true)}
+                  sx={{ color: 'rgba(255,255,255,0.5)', '&:hover': { color: '#fff' }, p: 0.5 }}
+                >
+                  <CloseIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              </Stack>
+
+              <Stack direction="row" spacing={1} justifyContent="flex-end" sx={{ pt: 0.5 }}>
+                <Button
+                  size="small"
+                  onClick={() => setRecordPromptDismissed(true)}
+                  sx={{
+                    color: 'rgba(255,255,255,0.7)',
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: 12.5,
+                    px: 1.5,
+                    borderRadius: '999px',
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.1)', color: '#fff' },
+                  }}
+                >
+                  Não gravar
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={consentBusy}
+                  onClick={() => void handleEnableRecording()}
+                  startIcon={consentBusy ? <CircularProgress size={14} color="inherit" /> : <MicIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    px: 2.5,
+                    background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                    boxShadow: '0 4px 14px rgba(32,178,170,0.4)',
+                    '&:hover': { background: 'linear-gradient(135deg, #26cfc6 0%, #1a9e97 100%)' },
+                  }}
+                >
+                  {consentBusy ? 'Ativando…' : 'Sim, Gravar com IA'}
+                </Button>
+              </Stack>
+            </Stack>
+          </Box>
+        )}
 
         {/* Indicadores (vidro, topo) */}
         {(banner || toast) && (
@@ -1216,7 +1662,35 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             sx={{ width: 56, height: 56, bgcolor: camOn ? 'rgba(255,255,255,.14)' : 'rgba(255,255,255,.92)', color: camOn ? '#fff' : '#dc2626', '&:hover': { bgcolor: camOn ? 'rgba(255,255,255,.22)' : 'rgba(255,255,255,.95)' } }}>
             {camOn ? <VideocamIcon sx={{ fontSize: 26 }} /> : <VideocamOffIcon sx={{ fontSize: 26 }} />}
           </IconButton>
-          {/* F3 reviewer-B (alto): "Solicitar exame" IN-CALL — 4º controle do médico.
+          {/* Botão de Gravação & Transcrição por IA */}
+          <Tooltip title={recording ? "Gravação e Transcrição por IA Ativa" : "Gravar Áudio para Transcrição IA"}>
+            <IconButton
+              aria-label="Gravação por IA"
+              onClick={() => {
+                hapticLight();
+                if (!recording) {
+                  if (!summary?.recordConsentAt) {
+                    setRecordPromptDismissed(false);
+                  } else if (roomRef.current) {
+                    startRoomRecording(roomRef.current);
+                  }
+                } else {
+                  setToast({ text: 'Gravação por IA ativa na consulta', k: Date.now() });
+                }
+              }}
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: recording ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,.14)',
+                color: recording ? '#f87171' : '#fff',
+                border: recording ? '2px solid rgba(239,68,68,0.7)' : 'none',
+                '&:hover': { bgcolor: recording ? 'rgba(239,68,68,0.35)' : 'rgba(255,255,255,.22)' },
+              }}
+            >
+              <MicIcon sx={{ fontSize: 26 }} />
+            </IconButton>
+          </Tooltip>
+          {/* F3 reviewer-B (alto): "Solicitar exame" IN-CALL — controle do médico.
               Pedido chega na tela do paciente em tempo real (poll do summary). */}
           {role === 'doctor' && (
             <IconButton aria-label="Solicitar exame ao paciente" onClick={() => { hapticLight(); setReqOpen(true); }}
@@ -1343,8 +1817,37 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       }
     };
 
-    // Feedback 1-toque (F2) com opções prontas — reaproveitado nas duas áreas.
-    const feedbackBlock = !fbSent ? (
+    const existingFb = summary?.feedback || areaSummary?.feedback;
+    const isRated = fbSent || (existingFb && existingFb.rating != null);
+    const activeRating = fbRating || existingFb?.rating;
+    const activeNote = fbNote || existingFb?.note;
+    const actualSec = ended?.sec ?? summary?.durationSec ?? areaSummary?.durationSec ?? 0;
+    const wasRealCall = actualSec >= 25 || otherJoined;
+
+    // Feedback 1-toque com opções prontas — não exibe se a chamada foi só uma saída rápida (<25s e sem outro participante)
+    const feedbackBlock = isRated ? (
+      <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.22)', textAlign: 'center' }}>
+        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 0.5 }}>
+          <VerifiedIcon sx={{ fontSize: 18, color: '#178f89' }} />
+          <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>
+            Avaliação registrada ✓
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={0.5} justifyContent="center" sx={{ my: 0.75 }}>
+          {[1, 2, 3, 4, 5].map((st) => (
+            <span key={st} style={{ fontSize: 22, color: st <= (activeRating || 5) ? '#f59e0b' : '#cbd5e1' }}>★</span>
+          ))}
+          <Typography component="span" sx={{ ml: 0.75, fontWeight: 800, fontSize: 14, color: 'text.primary', alignSelf: 'center' }}>
+            ({activeRating || 5}/5)
+          </Typography>
+        </Stack>
+        {activeNote && (
+          <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic', mt: 0.5 }}>
+            “{activeNote}”
+          </Typography>
+        )}
+      </Box>
+    ) : wasRealCall ? (
       <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.18)', textAlign: 'center' }}>
         <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', mb: 1 }}>Como foi a consulta?</Typography>
         <Stack direction="row" justifyContent="center" useFlexGap spacing={0.5} sx={{ mb: 1.25 }}>
@@ -1396,9 +1899,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           Registramos sua avaliação para melhorar a teleconsulta.
         </Typography>
       </Box>
-    ) : (
-      <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Obrigado pela avaliação ✓" sx={{ mt: 2, height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
-    );
+    ) : null;
 
     // ══ F3 §3 — ÁREA PREMIUM DO PACIENTE: "Resumo da consulta" ═════════════
     // A consulta não acaba no encerrar: pedidos com ações + transcrição + feedback
@@ -1519,12 +2020,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
                           <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
-                            Transcrição da Consulta
+                            {wasRealCall ? 'Transcrição da Consulta' : 'Entrada Rápida / Saída'}
                           </Typography>
-                          <Chip size="small" label="Sem gravação autorizada" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: 'text.secondary' }} />
+                          <Chip size="small" label={wasRealCall ? 'Sem gravação autorizada' : 'Consulta Não Iniciada'} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(100,116,139,0.12)', color: 'text.secondary' }} />
                         </Stack>
                         <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
-                          Por privacidade e diretriz do CFM (Res. 2.314/2022), a gravação e transcrição inteligente exigem consentimento prévio de ambas as partes. Esta chamada ocorreu sem gravação de áudio ativa.
+                          {wasRealCall
+                            ? 'Por privacidade e diretriz do CFM (Res. 2.314/2022), a gravação e transcrição inteligente exigem consentimento prévio de ambas as partes. Esta chamada ocorreu sem gravação de áudio ativa.'
+                            : 'Você entrou e saiu da sala antes da chamada começar. A teleconsulta permanece agendada para o seu horário.'}
                         </Typography>
                       </Box>
                     </Stack>
@@ -1533,8 +2036,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Box>
             )}
 
-            {/* §3c — feedback 1-toque fecha a área. READ-ONLY: feedback só se JÁ dado
-                (histórico não re-avalia — o ato passou). */}
+            {/* §3c — feedback só se a chamada realmente aconteceu (wasRealCall) */}
             {readOnly
               ? (areaSummary?.feedback ? (
                 <Chip
@@ -1544,7 +2046,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   sx={{ mt: 2.5, height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}
                 />
               ) : null)
-              : feedbackBlock}
+              : (wasRealCall ? feedbackBlock : null)}
 
             {/* FIX 2 — contained ÚNICO. Read-only: "Voltar aos lembretes" e NADA de
                 re-entrar (a consulta acabou — o join do server bloqueia mesmo). */}
@@ -1569,19 +2071,64 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       );
     }
 
-    // Médico — card F2 premium com avaliação 1-toque, chips rápidos e anotações unificadas
+    // Médico — área pós-consulta (fix #9a): duração + pedidos de exame (read-only com
+    // status) + transcrição (mesmo reader do paciente) + avaliação/anotações. Mesma
+    // área rolável do paciente (o card centrado estourava com transcrição longa).
+    const docReqs = areaSummary?.examRequests ?? [];
+    const docTxReady = txState === 'ready';
+    const docTxPending = !docTxReady && !!areaSummary?.transcript?.at;
+    const docPatientName = summary?.patient?.name || statePatientName || '';
     return (
-      <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
-        <Card sx={{ maxWidth: 440, width: '100%', borderRadius: '22px', textAlign: 'center', boxShadow: '0 12px 36px rgba(0,0,0,0.08)' }} elevation={4}>
-          <CardContent sx={{ p: 3.5 }}>
-            <Box sx={{ position: 'relative', width: 88, mx: 'auto', mb: 2 }}>
-              <DrExame size={72} />
-              <CheckCircleIcon sx={{ position: 'absolute', right: -6, bottom: -4, fontSize: 28, color: '#5fc9c3', bgcolor: 'background.paper', borderRadius: '50%' }} />
+      <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
+        <Box sx={{ maxWidth: 640, mx: 'auto', px: 2, pt: 'calc(env(safe-area-inset-top) + 20px)', pb: 'calc(env(safe-area-inset-bottom) + 32px)' }}>
+          {/* Cabeçalho (mesma estrutura da área do paciente) */}
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Box sx={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
+              <DrExame size={56} />
+              <CheckCircleIcon sx={{ position: 'absolute', right: -5, bottom: -5, fontSize: 22, color: '#5fc9c3', bgcolor: 'background.default', borderRadius: '50%' }} />
             </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 22, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>Consulta encerrada</Typography>
-            <Typography color="text.secondary" sx={{ fontSize: 14 }}>Duração · {min}</Typography>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>
+                Consulta encerrada
+              </Typography>
+              <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.25 }}>
+                {docPatientName ? `Paciente: ${docPatientName} · ` : ''}Duração · {areaSummary?.durationHint || min}
+              </Typography>
+            </Box>
+          </Stack>
 
-            <Box sx={{ mt: 2.75, p: 2, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'rgba(32,178,170,0.18)', textAlign: 'left' }}>
+          {/* Pedidos de exame — mesmo card do paciente; médico vê status (read-only). */}
+          {docReqs.length > 0 && (
+            <Box sx={{ mt: 3 }}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Pedidos de exame</Typography>
+              <Stack spacing={1.25}>
+                {docReqs.map((req) => (
+                  <ExamRequestCard key={req.id} req={req} role="doctor" />
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {/* Transcrição — mesmo reader do paciente (role doctor = copiar tudo). */}
+          {(docTxReady || docTxPending) && (
+            <Box sx={{ mt: 3 }}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Transcrição da Consulta</Typography>
+              {docTxReady ? (
+                <TranscriptView text={txText} transcriptAt={txAt} role="doctor" />
+              ) : (
+                <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
+                  <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                    <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>
+                      A transcrição por IA ainda está sendo processada — reabra esta consulta em instantes.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              )}
+            </Box>
+          )}
+
+          {/* Avaliação + anotações (card original) */}
+          <Box sx={{ mt: 3, p: 2, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.06)', border: '1px solid', borderColor: 'rgba(32,178,170,0.18)', textAlign: 'left' }}>
               <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', mb: 1, textAlign: 'center' }}>
                 Como foi a consulta?
               </Typography>
@@ -1671,13 +2218,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   <Chip size="small" icon={<VerifiedIcon sx={{ fontSize: 13 }} />} label="Salva no aparelho" sx={{ height: 22, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }} />
                 )}
               </Stack>
-            </Box>
+          </Box>
 
-            <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
-              Voltar ao Prontuário
-            </Button>
-          </CardContent>
-        </Card>
+          <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
+            Voltar ao Prontuário
+          </Button>
+        </Box>
+
+        {/* Toast da área (igual ao do paciente) */}
+        {toast && (
+          <Box sx={{ position: 'fixed', bottom: 'calc(env(safe-area-inset-bottom) + 24px)', left: '50%', transform: 'translateX(-50%)', px: 2, py: 1, borderRadius: '999px', bgcolor: GLASS, backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER, color: '#fff', fontSize: 12.5, fontWeight: 600, zIndex: 1400, maxWidth: '90%', textAlign: 'center' }} role="status">
+            {toast.text}
+          </Box>
+        )}
       </Box>
     );
   }
@@ -1804,7 +2357,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <IconButton
               aria-label={showConsent ? 'Autorizar e atender' : 'Atender chamada'}
               onClick={() => void consentAndJoin()}
-              disabled={joinLoading}
+              disabled={joinLoading || (camState === 'denied' && micDenied)}
               sx={{
                 width: 64, height: 64, bgcolor: '#059669', color: '#fff',
                 '&:hover': { bgcolor: '#047857', transform: 'scale(1.05)' },
@@ -1893,14 +2446,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Typography>
           </Box>
 
-          {/* CTA de permissão (câmera) — não bloqueia a entrada */}
+          {/* CTA de permissão (câmera) — não bloqueia a entrada (exceto mic também negado) */}
           {camState === 'denied' && (
             <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
               <Button size="small" variant="outlined" onClick={() => void openPreview()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderColor: 'rgba(32,178,170,.4)' }}>
                 Permitir câmera
               </Button>
-              <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>Você também pode entrar só com áudio.</Typography>
+              <Typography variant="caption" sx={{ fontSize: 12, color: 'text.secondary' }}>
+                {micDenied ? 'Libere o microfone também — sem ele a consulta não acontece.' : 'Você também pode entrar só com áudio.'}
+              </Typography>
             </Stack>
+          )}
+          {/* fix #13d: câmera E microfone negados → sem mídia não existe consulta. */}
+          {camState === 'denied' && micDenied && (
+            <Typography role="alert" sx={{ fontSize: 13, fontWeight: 700, lineHeight: 1.5, mb: 0.5, color: 'error.main' }}>
+              Sem câmera nem microfone não é possível consultar. Libere pelo menos um.
+            </Typography>
           )}
 
           {/* Resumo */}
@@ -1962,12 +2523,30 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Chip size="small" label="Paciente ainda não autorizou" sx={{ mt: 1.5, height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(217,119,6,.14)', color: '#b45309', borderRadius: '8px' }} />
           )}
 
-          <Button variant="contained" fullWidth disabled={phase === 'loading' || joinLoading} onClick={() => void consentAndJoin()} startIcon={joinLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,.8)' }} /> : <VideocamIcon />}
+          <Button variant="contained" fullWidth disabled={phase === 'loading' || joinLoading || (camState === 'denied' && micDenied)} onClick={() => void consentAndJoin()} startIcon={joinLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,.8)' }} /> : <VideocamIcon />}
             sx={{ ...primaryBtn, mt: 2 }}>
             {ctaLabel}
           </Button>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={exitTo}
+            sx={{
+              mt: 1.25,
+              borderRadius: '999px',
+              textTransform: 'none',
+              fontWeight: 700,
+              fontSize: 13.5,
+              height: 44,
+              borderColor: 'divider',
+              color: 'text.secondary',
+              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.secondary', color: 'text.primary' },
+            }}
+          >
+            {role === 'doctor' ? 'Voltar ao Portal do Médico' : 'Voltar aos Meus Lembretes'}
+          </Button>
           {showConsent && (
-            <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 1, lineHeight: 1.5 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 1.25, lineHeight: 1.5 }}>
               Ao entrar, você autoriza a telemedicina (Art. 15, Res. CFM 2.314/2022).
             </Typography>
           )}

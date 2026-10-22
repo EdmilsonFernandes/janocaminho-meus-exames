@@ -833,6 +833,10 @@ model Reminder {
   //    POST /end (paciente ou médico), pelo feedback 1-toque ou pelo auto-end do job
   //    (só 1 participante entrou e ninguém mais veio em 30min).
   endedAt           DateTime?  // encerramento da chamada; null = ainda aberta
+  // ── Fila de transcrição (22/10/26): retryCount conta as tentativas de STT do job
+  //    transcriptionQueue (rede/timeout). ≥5 → abort definitivo (áudio fora + push);
+  //    sucesso ou re-upload → 0. Int? por drift-safe, mas migration já DEFAULT 0.
+  retryCount        Int?       @default(0)
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])

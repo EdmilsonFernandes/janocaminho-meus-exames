@@ -1952,7 +1952,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     🎙️ Transcrição por IA
                   </Typography>
                   <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
-                    Esta consulta ocorreu sem gravação de áudio ativa autorizada pelo paciente (CFM 2.314/2022). O prontuário, receitas e pedidos de exames ficam salvos permanentemente.
+                    {postSummary?.durationSec != null && postSummary.durationSec < 20
+                      ? 'Esta sala foi encerrada antes do início da consulta clínica (saída rápida/teste de conexão).'
+                      : 'Esta consulta ocorreu sem gravação de áudio ativa autorizada (CFM 2.314/2022). O prontuário, receitas e pedidos de exames ficam salvos permanentemente.'}
                   </Typography>
                 </Box>
               )}

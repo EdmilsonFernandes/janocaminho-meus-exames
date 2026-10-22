@@ -96,6 +96,7 @@ export async function rollRecurringReminders(now: number): Promise<void> {
           // D5 (F3, 20/10): o pacote da PRÓXIMA consulta começa limpo — consent de
           // gravação e transcrição são POR consulta (áudio novo, consent novo).
           recordConsentAt: null, recordingAt: null, transcriptEnc: null, transcriptIv: null, transcriptAt: null,
+          retryCount: 0,
           // Ciclo de vida (22/10): a PRÓXIMA ocorrência nasce ABERTA — sem isto o
           // endedAt da ocorrência anterior bloquearia o join da nova p/ sempre.
           endedAt: null },
@@ -111,6 +112,9 @@ export async function rollRecurringReminders(now: number): Promise<void> {
  * "encerrada" e o /join parar de aceitar re-entrada infinita (dono 22/10: "entrou
  * 15x e ela nunca encerra"). Se AMBOS os papéis entraram, a chamada aconteceu —
  * encerramento é humano (POST /end ou feedback), job não mexe.
+ * NINGUÉM entrou (sem join no auditLog) + dueDate < now-30min + done=false → também
+ * encerra (endedAt = dueDate + 30min): consulta vencida sem realização não fica
+ * "aberta"/re-entrável p/ sempre.
  * Falha não derruba o job (catch por linha); banco legado sem a coluna → no-op.
  */
 export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
@@ -118,16 +122,24 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
   // inteira → catch → [] (no-op até a migration aplicada).
   const rows = await prisma.reminder.findMany({
     where: { type: 'teleconsulta', endedAt: null },
-    select: { id: true },
+    select: { id: true, dueDate: true, done: true },
     take: 200,
-  }).catch(() => [] as { id: string }[]);
+  }).catch(() => [] as { id: string; dueDate: Date; done: boolean }[]);
   for (const r of rows) {
     const joins = await prisma.auditLog.findMany({
       where: { action: 'TELECONSULTA_JOIN', targetId: r.id },
       orderBy: { createdAt: 'asc' },
       select: { createdAt: true, after: true },
     });
-    if (!joins.length) continue; // ninguém nunca entrou — agenda normal segue
+    if (!joins.length) {
+      // Ninguém nunca entrou: só encerra VENCIDA há >30min e não realizada (done=false).
+      if (r.done || now - new Date(r.dueDate).getTime() < 30 * MS_MIN) continue;
+      await prisma.reminder.updateMany({
+        where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
+        data: { endedAt: new Date(new Date(r.dueDate).getTime() + 30 * MS_MIN), done: true },
+      }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
+      continue;
+    }
     const roles = new Set(joins.map((j: any) => (j.after as any)?.role).filter(Boolean));
     if (roles.size >= 2) continue; // chamada aconteceu — fim é humano
     const lastJoinMs = new Date(joins[joins.length - 1].createdAt).getTime();

@@ -52,9 +52,11 @@ import { PricingTab } from './PricingTab';
 import { PiiTab } from './PiiTab';
 import { LabsTab } from './LabsTab';
 import { PharmaciesTab } from './PharmaciesTab';
+import { TeleconsultasTab } from './TeleconsultasTab';
+import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
- *  Shell próprio (topbar + sidebar categorizada) com 19 módulos de controle.
+ *  Shell próprio (topbar + sidebar categorizada) com 20 módulos de controle.
  *  Guard: exclusivo para administradores (role = ADMIN). */
 export type ModuleId =
   | 'overview'
@@ -63,6 +65,7 @@ export type ModuleId =
   | 'users'
   | 'doctors'
   | 'exams'
+  | 'teleconsultas'
   | 'support'
   | 'usage'
   | 'ia'
@@ -97,6 +100,7 @@ const MODULES: AdminModule[] = [
   { id: 'users', label: 'Usuários / Pacientes', short: 'Usuários', icon: <PeopleOutlinedIcon />, group: 'Pessoas & Clínico' },
   { id: 'doctors', label: 'Médicos & Portais', short: 'Médicos', icon: <MedicalServicesOutlinedIcon />, group: 'Pessoas & Clínico' },
   { id: 'exams', label: 'Exames Processados', short: 'Exames', icon: <DescriptionOutlinedIcon />, group: 'Pessoas & Clínico' },
+  { id: 'teleconsultas', label: 'Teleconsultas & Feedbacks', short: 'Teleconsultas', icon: <VideoCameraFrontOutlinedIcon />, group: 'Pessoas & Clínico' },
   { id: 'support', label: 'Suporte & Chamados', short: 'Suporte', icon: <SupportAgentOutlinedIcon />, group: 'Pessoas & Clínico' },
 
   // 3. Inteligência Artificial
@@ -398,6 +402,7 @@ export const AdminPage = () => {
             {mod === 'users' && <UsersTab />}
             {mod === 'doctors' && <DoctorsTab />}
             {mod === 'exams' && <ExamsTab />}
+            {mod === 'teleconsultas' && <TeleconsultasTab />}
             {mod === 'labs' && <LabsTab />}
             {mod === 'pharmacies' && <PharmaciesTab />}
             {mod === 'ia' && <IaTab />}

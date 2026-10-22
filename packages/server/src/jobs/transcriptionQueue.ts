@@ -15,6 +15,10 @@ import { hasStt, transcribeAudio, SttError } from '../utils/stt';
 
 const MS_MIN = 60_000;
 
+/** Limite de tentativas de STT por gravação (rede/timeout). Esgotou → abort definitivo
+ *  (áudio fora, estado limpo, paciente avisado) — a fila não pendura áudio p/ sempre. */
+export const TRANSCRIPT_MAX_ATTEMPTS = 5;
+
 /** Caminho canônico do áudio efêmero de uma teleconsulta (rota e job usam o mesmo). */
 export function audioPathFor(reminderId: string): string {
   return path.join(config.teleconsultaDir, `${reminderId}.webm`);
@@ -41,7 +45,8 @@ export async function finalizeTranscription(
   await prisma.reminder.update({
     where: { id: reminder.id },
     // `?? undefined` (não null): input de update do Prisma p/ String? só aceita undefined.
-    data: { transcriptEnc: cipher?.enc ?? undefined, transcriptIv: cipher?.iv ?? undefined, transcriptAt, recordingAt: null },
+    // retryCount=0: sucesso zera a contagem (re-upload futuro começa limpo).
+    data: { transcriptEnc: cipher?.enc ?? undefined, transcriptIv: cipher?.iv ?? undefined, transcriptAt, recordingAt: null, retryCount: 0 },
   });
   // Áudio efêmero (D1 LGPD): o permanente é o transcript cifrado — o webm sai do disco.
   await fs.promises.unlink(audioPathFor(reminder.id)).catch(() => {});
@@ -61,14 +66,15 @@ export async function finalizeTranscription(
   return transcriptAt;
 }
 
-/** Abort terminal (ex.: STT_TOO_LARGE): arquivo fora, estado limpo, paciente avisado. */
-export async function abortTranscription(reminder: TranscriptReminderRef, code: string): Promise<void> {
+/** Abort terminal (ex.: STT_TOO_LARGE ou esgotadas as TRANSCRIPT_MAX_ATTEMPTS):
+ *  arquivo fora, estado limpo (retryCount junto), paciente avisado. */
+export async function abortTranscription(reminder: TranscriptReminderRef, code: string, message?: string): Promise<void> {
   await fs.promises.unlink(audioPathFor(reminder.id)).catch(() => {});
-  await prisma.reminder.update({ where: { id: reminder.id }, data: { recordingAt: null } }).catch(() => {});
+  await prisma.reminder.update({ where: { id: reminder.id }, data: { recordingAt: null, retryCount: 0 } }).catch(() => {});
   await sendPushToUser(
     reminder.ownerId,
     'Transcrição indisponível',
-    'Não foi possível transcrever a gravação desta teleconsulta (áudio muito longo).',
+    message ?? 'Não foi possível transcrever a gravação desta teleconsulta (áudio muito longo).',
     { type: 'teleconsulta', reminderId: reminder.id },
   ).catch((e: any) => console.error('[teleconsulta-stt] push falhou:', e?.message));
   await audit('TELECONSULTA_TRANSCRIPT', null, {
@@ -82,9 +88,9 @@ export async function abortTranscription(reminder: TranscriptReminderRef, code: 
 /** Varre as pendências (D4) e finaliza o que der. Devolve qtde transcrita neste tick. */
 export async function processPendingTranscriptions(): Promise<number> {
   if (!hasStt()) return 0; // degradação: sem provider, nada a fazer (áudio segue no disco)
-  const pending: TranscriptReminderRef[] = await prisma.reminder.findMany({
+  const pending: (TranscriptReminderRef & { retryCount: number | null })[] = await prisma.reminder.findMany({
     where: { type: 'teleconsulta', recordingAt: { not: null }, transcriptAt: null },
-    select: { id: true, ownerId: true },
+    select: { id: true, ownerId: true, retryCount: true },
     take: 10,
   });
   let done = 0;
@@ -94,6 +100,13 @@ export async function processPendingTranscriptions(): Promise<number> {
       await prisma.reminder.updateMany({ where: { id: r.id }, data: { recordingAt: null } }).catch(() => {});
       continue;
     }
+    const attempts = r.retryCount ?? 0;
+    if (attempts >= TRANSCRIPT_MAX_ATTEMPTS) {
+      // Esgotou as tentativas (rede/timeout crônico): abort definitivo em vez de
+      // pendurar áudio+row p/ sempre — arquivo fora, estado limpo, paciente avisado.
+      await abortTranscription(r, 'STT_MAX_RETRIES', `Transcrição falhou definitivamente após ${TRANSCRIPT_MAX_ATTEMPTS} tentativas.`).catch(() => {});
+      continue;
+    }
     try {
       await finalizeTranscription(r, { actorType: 'SYSTEM' });
       done++;
@@ -101,8 +114,12 @@ export async function processPendingTranscriptions(): Promise<number> {
       if (e instanceof SttError && e.code === 'STT_TOO_LARGE') {
         await abortTranscription(r, e.code).catch(() => {});
       } else {
-        // Rede/timeout: mantém arquivo + recordingAt → próximo tick retria.
-        console.error(`[teleconsulta-stt] pendência ${r.id} segue pendente:`, e?.message);
+        // Rede/timeout: conta a tentativa e mantém arquivo + recordingAt → próximo
+        // tick retria até TRANSCRIPT_MAX_ATTEMPTS. Increment (não update cego) é
+        // race-safe com o tick do interval anterior ainda rodando.
+        await prisma.reminder.update({ where: { id: r.id }, data: { retryCount: { increment: 1 } } })
+          .catch(() => { /* banco legado sem a coluna: segue sem contagem até a migration */ });
+        console.error(`[teleconsulta-stt] pendência ${r.id} segue pendente (tentativa ${attempts + 1}/${TRANSCRIPT_MAX_ATTEMPTS}):`, e?.message);
       }
     }
   }

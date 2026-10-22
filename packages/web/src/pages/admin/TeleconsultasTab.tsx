@@ -1,0 +1,436 @@
+import { useEffect, useState, useMemo } from 'react';
+import {
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  Stack,
+  Chip,
+  Avatar,
+  TextField,
+  InputAdornment,
+  Grid,
+  LinearProgress,
+  Rating,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  useTheme,
+  Button,
+} from '@mui/material';
+import StarIcon from '@mui/icons-material/Star';
+import SearchIcon from '@mui/icons-material/Search';
+import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
+import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import PersonIcon from '@mui/icons-material/Person';
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../../config';
+import { TabLoader, SectionError, PhotoZoom } from './parts';
+import { tealText, COPPER } from '../../theme';
+
+const H = () => ({ Authorization: `Bearer ${token()}` });
+
+interface FeedbackItem {
+  id: string;
+  teleId: string;
+  createdAt: string;
+  rating: number;
+  note: string | null;
+  role: 'patient' | 'doctor';
+  patient: { id: string; name: string; photoUrl?: string } | null;
+  doctor: { id: string; name: string; specialty?: string; crm?: string; photoUrl?: string } | null;
+  reminder: { title: string; dueDate?: string; endedAt?: string } | null;
+}
+
+interface FeedbacksResponse {
+  total: number;
+  avgRating: number;
+  positivePct: number;
+  counts: Record<number, number>;
+  items: FeedbackItem[];
+}
+
+export const TeleconsultasTab = () => {
+  const theme = useTheme();
+  const [data, setData] = useState<FeedbacksResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState(false);
+  const [search, setSearch] = useState('');
+  const [ratingFilter, setRatingFilter] = useState<number | 'all'>('all');
+
+  const load = () => {
+    setLoading(true);
+    setErr(false);
+    fetch(`${API_URL}/admin/teleconsultas/feedbacks`, { headers: H() })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((res: FeedbacksResponse) => {
+        setData(res);
+        setLoading(false);
+      })
+      .catch(() => {
+        setErr(true);
+        setLoading(false);
+      });
+  };
+
+  useEffect(() => {
+    load();
+  }, []);
+
+  const filteredItems = useMemo(() => {
+    if (!data?.items) return [];
+    return data.items.filter((item) => {
+      if (ratingFilter !== 'all' && item.rating !== ratingFilter) return false;
+      if (!search.trim()) return true;
+      const s = search.toLowerCase();
+      const patName = item.patient?.name?.toLowerCase() || '';
+      const docName = item.doctor?.name?.toLowerCase() || '';
+      const note = item.note?.toLowerCase() || '';
+      return patName.includes(s) || docName.includes(s) || note.includes(s);
+    });
+  }, [data?.items, search, ratingFilter]);
+
+  if (loading && !data) return <TabLoader />;
+  if (err && !data) return <SectionError message="Não foi possível carregar os feedbacks de teleconsultas." onRetry={load} />;
+
+  const total = data?.total || 0;
+  const avg = data?.avgRating || 5.0;
+  const posPct = data?.positivePct || 100;
+  const counts = data?.counts || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+
+  return (
+    <Box sx={{ width: '100%' }}>
+      {/* Cabeçalho */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <VideoCameraFrontIcon sx={{ color: '#0d9488' }} /> Teleconsultas & Avaliações
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            Monitore a experiência clínica, NPS e feedbacks deixados por pacientes e médicos pós-atendimento.
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<RefreshIcon />}
+          onClick={load}
+          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}
+        >
+          Atualizar
+        </Button>
+      </Stack>
+
+      {/* KPIs no Topo */}
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        {/* KPI 1: Média Geral */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706', display: 'grid', placeItems: 'center' }}>
+                  <StarIcon />
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Nota Média Geral
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
+                    {avg.toFixed(1)} <Typography component="span" sx={{ fontSize: 18, color: 'text.secondary', fontWeight: 600 }}>/ 5.0</Typography>
+                  </Typography>
+                </Box>
+              </Stack>
+              <Rating value={avg} precision={0.1} readOnly size="small" sx={{ color: '#f59e0b' }} />
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* KPI 2: Total de Avaliações */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488', display: 'grid', placeItems: 'center' }}>
+                  <RateReviewIcon />
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Total Avaliadas
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
+                    {total}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Consultas com feedback registrado
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* KPI 3: Satisfação Positiva */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', display: 'grid', placeItems: 'center' }}>
+                  <SentimentSatisfiedAltIcon />
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Aprovação (4 e 5 ★)
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: '#059669', lineHeight: 1 }}>
+                    {posPct}%
+                  </Typography>
+                </Box>
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Avaliações positivas de experiência
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* KPI 4: Distribuição de Estrelas */}
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.75 }}>
+                Distribuição de Notas
+              </Typography>
+              <Stack spacing={0.5}>
+                {[5, 4, 3, 2, 1].map((star) => {
+                  const count = counts[star] || 0;
+                  const pct = total > 0 ? (count / total) * 100 : 0;
+                  return (
+                    <Stack key={star} direction="row" alignItems="center" spacing={1}>
+                      <Typography sx={{ fontSize: 11, fontWeight: 700, width: 22 }}>{star}★</Typography>
+                      <LinearProgress
+                        variant="determinate"
+                        value={pct}
+                        sx={{
+                          flex: 1,
+                          height: 6,
+                          borderRadius: '3px',
+                          bgcolor: 'action.hover',
+                          '& .MuiLinearProgress-bar': {
+                            bgcolor: star >= 4 ? '#10b981' : star === 3 ? '#f59e0b' : '#ef4444',
+                          },
+                        }}
+                      />
+                      <Typography sx={{ fontSize: 11, color: 'text.secondary', width: 28, textAlign: 'right' }}>
+                        {count}
+                      </Typography>
+                    </Stack>
+                  );
+                })}
+              </Stack>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Barra de Filtros */}
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2.5 }}>
+        <TextField
+          size="small"
+          placeholder="Buscar por paciente, médico ou comentário…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          fullWidth
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ maxWidth: { sm: 400 } }}
+        />
+
+        <FormControl size="small" sx={{ minWidth: 160 }}>
+          <InputLabel>Filtrar por Nota</InputLabel>
+          <Select
+            value={ratingFilter}
+            label="Filtrar por Nota"
+            onChange={(e) => setRatingFilter(e.target.value as any)}
+          >
+            <MenuItem value="all">Todas as Notas</MenuItem>
+            <MenuItem value={5}>⭐⭐⭐⭐⭐ (5 estrelas)</MenuItem>
+            <MenuItem value={4}>⭐⭐⭐⭐ (4 estrelas)</MenuItem>
+            <MenuItem value={3}>⭐⭐⭐ (3 estrelas)</MenuItem>
+            <MenuItem value={2}>⭐⭐ (2 estrelas)</MenuItem>
+            <MenuItem value={1}>⭐ (1 estrela)</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
+
+      {/* Lista de Feedbacks */}
+      <Stack spacing={1.5}>
+        {filteredItems.map((item, idx) => {
+          const dateStr = new Date(item.createdAt).toLocaleString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+
+          return (
+            <Card
+              key={item.id}
+              variant="outlined"
+              sx={{
+                borderRadius: '16px',
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+                transition: 'all .15s ease',
+                '&:hover': {
+                  borderColor: 'rgba(32,178,170,0.4)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
+                },
+                animation: `fbIn .25s ease ${idx * 0.03}s both`,
+                '@keyframes fbIn': {
+                  from: { opacity: 0, transform: 'translateY(6px)' },
+                  to: { opacity: 1, transform: 'translateY(0)' },
+                },
+              }}
+            >
+              <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                  {/* Participantes: Paciente & Médico */}
+                  <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                    {/* Paciente */}
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 200 }}>
+                      <Avatar
+                        src={item.patient?.photoUrl ? photoUrlFor(item.patient.id) : undefined}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor: 'rgba(32,178,170,0.12)',
+                          color: '#0d9488',
+                          fontWeight: 800,
+                          fontSize: 16,
+                          borderRadius: '12px',
+                        }}
+                      >
+                        {(item.patient?.name || 'P').charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }} noWrap>
+                          {item.patient?.name || 'Paciente'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <PersonIcon sx={{ fontSize: 13 }} /> Paciente
+                        </Typography>
+                      </Box>
+                    </Stack>
+
+                    <Typography sx={{ color: 'text.disabled', fontSize: 18, display: { xs: 'none', sm: 'block' } }}>→</Typography>
+
+                    {/* Médico */}
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 200 }}>
+                      <Avatar
+                        src={item.doctor?.photoUrl ? doctorPhotoUrl(item.doctor.id) : undefined}
+                        sx={{
+                          width: 44,
+                          height: 44,
+                          bgcolor: 'rgba(212,165,116,0.16)',
+                          color: '#b88a54',
+                          fontWeight: 800,
+                          fontSize: 16,
+                          borderRadius: '12px',
+                        }}
+                      >
+                        {(item.doctor?.name || 'M').charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }} noWrap>
+                          {item.doctor ? `Dr(a). ${item.doctor.name}` : 'Médico da Consulta'}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                          <LocalHospitalIcon sx={{ fontSize: 13 }} /> {item.doctor?.specialty || 'Clínica Geral'}{item.doctor?.crm ? ` · ${item.doctor.crm}` : ''}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Stack>
+
+                  {/* Avaliação & Data */}
+                  <Stack direction={{ xs: 'row', sm: 'column' }} alignItems={{ xs: 'center', sm: 'flex-end' }} spacing={0.5} sx={{ minWidth: 160 }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Rating value={item.rating} readOnly size="small" sx={{ color: '#f59e0b' }} />
+                      <Typography sx={{ fontWeight: 900, fontSize: 15, color: 'text.primary' }}>
+                        {item.rating}/5
+                      </Typography>
+                    </Stack>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      {dateStr}
+                    </Typography>
+                  </Stack>
+                </Stack>
+
+                {/* Comentário / Observação deixada */}
+                {item.note && (
+                  <Box
+                    sx={{
+                      mt: 1.5,
+                      p: 1.5,
+                      borderRadius: '12px',
+                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
+                      borderLeft: '3px solid',
+                      borderLeftColor: item.rating >= 4 ? '#10b981' : item.rating === 3 ? '#f59e0b' : '#ef4444',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 13, color: 'text.primary', fontStyle: 'italic', lineHeight: 1.5 }}>
+                      “{item.note}”
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontWeight: 700 }}>
+                      — Enviado por: {item.role === 'doctor' ? 'Médico' : 'Paciente'}
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Tags extras da chamada */}
+                <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
+                  {item.reminder?.title && (
+                    <Chip size="small" label={item.reminder.title} sx={{ height: 20, fontSize: 11, fontWeight: 600 }} />
+                  )}
+                  <Chip
+                    size="small"
+                    label={`Sala #${String(item.teleId || '').slice(-5).toUpperCase()}`}
+                    sx={{ height: 20, fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }}
+                  />
+                  {item.rating >= 4 ? (
+                    <Chip size="small" label="Satisfação Alta" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669' }} />
+                  ) : item.rating <= 2 ? (
+                    <Chip size="small" label="Atenção / Risco de Churn" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626' }} />
+                  ) : null}
+                </Stack>
+              </CardContent>
+            </Card>
+          );
+        })}
+
+        {filteredItems.length === 0 && (
+          <Box sx={{ textAlign: 'center', py: 6, bgcolor: 'background.paper', borderRadius: '16px', border: '1px dashed', borderColor: 'divider' }}>
+            <RateReviewIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
+            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+              Nenhum feedback encontrado
+            </Typography>
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+              {search || ratingFilter !== 'all'
+                ? 'Nenhum resultado corresponde aos filtros selecionados.'
+                : 'Assim que as teleconsultas forem realizadas e avaliadas, as notas aparecerão aqui.'}
+            </Typography>
+          </Box>
+        )}
+      </Stack>
+    </Box>
+  );
+};

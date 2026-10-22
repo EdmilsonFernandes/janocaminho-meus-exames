@@ -1433,7 +1433,93 @@ router.post('/labs/:id/logo', upload.single('logo'), async (req: AuthedRequest, 
     const lab = await prisma.lab.update({ where: { id }, data: { logoUrl } });
     invalidateLabsCache();
     res.json({ lab });
-  } catch (e) { next(e); }
+  } catch (e) {
+    next(e);
+  }
+});
+
+// FEEDBACKS DE TELECONSULTA — monitoramento da qualidade do atendimento e satisfação do paciente/médico
+router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => {
+  try {
+    const logs = await prisma.auditLog.findMany({
+      where: { action: 'TELECONSULTA_FEEDBACK' },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    });
+
+    const reminderIds = Array.from(new Set(logs.map((l) => l.targetId).filter(Boolean))) as string[];
+    const reminders = reminderIds.length
+      ? await prisma.reminder.findMany({
+          where: { id: { in: reminderIds } },
+          select: {
+            id: true,
+            title: true,
+            dueDate: true,
+            patientId: true,
+            createdByDoctorId: true,
+            endedAt: true,
+          },
+        })
+      : [];
+
+    const reminderMap = new Map(reminders.map((r) => [r.id, r]));
+    const patientIds = Array.from(new Set(reminders.map((r) => r.patientId).filter(Boolean))) as string[];
+    const doctorIds = Array.from(new Set(reminders.map((r) => r.createdByDoctorId).filter(Boolean))) as string[];
+
+    const [patients, doctors] = await Promise.all([
+      patientIds.length
+        ? prisma.patient.findMany({ where: { id: { in: patientIds } }, select: { id: true, name: true, fullName: true, photoUrl: true } })
+        : [],
+      doctorIds.length
+        ? prisma.doctor.findMany({ where: { id: { in: doctorIds } }, select: { id: true, name: true, specialty: true, crm: true, crmUf: true, avatarUrl: true } })
+        : [],
+    ]);
+
+    const patientMap = new Map(patients.map((p) => [p.id, p]));
+    const doctorMap = new Map(doctors.map((d) => [d.id, d]));
+
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let sum = 0;
+
+    const items = logs.map((l) => {
+      const fb: any = l.after ?? {};
+      const rating = Number(fb.rating) || 5;
+      if (rating >= 1 && rating <= 5) {
+        counts[rating] = (counts[rating] || 0) + 1;
+        sum += rating;
+      }
+      const rem = l.targetId ? reminderMap.get(l.targetId) : null;
+      const pat = rem?.patientId ? patientMap.get(rem.patientId) : null;
+      const doc = rem?.createdByDoctorId ? doctorMap.get(rem.createdByDoctorId) : null;
+
+      return {
+        id: l.id,
+        teleId: l.targetId,
+        createdAt: l.createdAt,
+        rating,
+        note: fb.note || null,
+        role: fb.role || (l.actorType === 'DOCTOR' ? 'doctor' : 'patient'),
+        patient: pat ? { id: pat.id, name: pat.fullName || pat.name, photoUrl: pat.photoUrl } : null,
+        doctor: doc ? { id: doc.id, name: doc.name, specialty: doc.specialty, crm: doc.crm ? `${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''}` : null, photoUrl: doc.avatarUrl } : null,
+        reminder: rem ? { title: rem.title, dueDate: rem.dueDate, endedAt: rem.endedAt } : null,
+      };
+    });
+
+    const total = items.length;
+    const avgRating = total > 0 ? Number((sum / total).toFixed(1)) : 5.0;
+    const positiveCount = (counts[4] || 0) + (counts[5] || 0);
+    const positivePct = total > 0 ? Math.round((positiveCount / total) * 100) : 100;
+
+    res.json({
+      total,
+      avgRating,
+      positivePct,
+      ratingCounts: counts,
+      items,
+    });
+  } catch (e) {
+    next(e);
+  }
 });
 
 export default router;

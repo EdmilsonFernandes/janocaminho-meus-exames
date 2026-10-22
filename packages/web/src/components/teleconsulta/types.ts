@@ -32,6 +32,8 @@ export interface TeleconsultaSummary {
   examRequests: ExamRequest[];
   feedback: { rating: number; note?: string | null; role?: string | null } | null;
   durationHint: string | null;
+  /** Duração real (22/10): 1º join → endedAt (ou 1º→último join quando aberta). */
+  durationSec?: number | null;
 }
 
 /** Exame já extraído do paciente — opção do compositor de pedidos (§2a). */
