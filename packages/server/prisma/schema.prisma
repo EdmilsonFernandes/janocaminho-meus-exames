@@ -828,6 +828,11 @@ model Reminder {
   transcriptEnc     String?    // transcript cifrado (encryptPII) — nunca texto-puro no banco
   transcriptIv      String?
   transcriptAt      DateTime?
+  // ── Ciclo de vida END (22/10/26): encerramento REAL da teleconsulta. endedAt≠null →
+  //    join bloqueado (403 TELECONSULTA_ENDED — fim da re-entrada infinita). Gravado por
+  //    POST /end (paciente ou médico), pelo feedback 1-toque ou pelo auto-end do job
+  //    (só 1 participante entrou e ninguém mais veio em 30min).
+  endedAt           DateTime?  // encerramento da chamada; null = ainda aberta
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])

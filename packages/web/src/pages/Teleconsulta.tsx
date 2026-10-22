@@ -54,7 +54,7 @@ const COPPER_DARK = '#b88a54';
 const CONSENT_TEXT =
   'Autorizo o atendimento por telemedicina e a transmissão de imagens e dados nesta consulta, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento, e que ele fica registrado com data e hora.';
 
-type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'fallback' | 'error';
+type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'readonly' | 'fallback' | 'error';
 type CamState = 'pending' | 'ok' | 'denied' | 'nodevice';
 interface Summary {
   id: string;
@@ -62,6 +62,7 @@ interface Summary {
   dueDate?: string;
   consentAt?: string | null;
   recordConsentAt?: string | null; // F3: paciente autorizou gravação p/ transcrição (§1 spec UX)
+  endedAt?: string | null; // F4: consulta ENCERRADA (server marca no /end) → área read-only
   provider?: string | null;
   linkUrl?: string | null;
   doctor?: { id?: string; name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
@@ -154,6 +155,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       dueDate: s.dueDate,
       consentAt: s.consentAt,
       recordConsentAt: s.recordConsentAt,
+      endedAt: s.endedAt,
       provider: s.provider,
       linkUrl: s.linkUrl,
       doctor: s.doctor,
@@ -283,6 +285,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     } catch { setRecUpload('fail'); }
   }, [authToken, reminderId]);
 
+  // Encerramento SERVER-SIDE: marca a consulta como encerrada no banco (done +
+  // endedAt, rota do agent1). Sem isto o card ficava "Entrar na consulta" pra
+  // sempre (dono 21/10: "ela nunca encerra"). keepalive sobrevive ao unload.
+  // Chamado no endCall, no disconnect de rede E no unload (agent3 a/b).
+  const markEnded = useCallback(() => {
+    fetch(`${API_URL}/teleconsulta/${reminderId}/end`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, keepalive: true })
+      .catch(() => { /* best-effort: rede caída — server fecha sozinho pelo audit */ });
+  }, [authToken, reminderId]);
+
   const roomRef = useRef<Room | null>(null);
   const previewStream = useRef<MediaStream | null>(null);
   const previewVideo = useRef<HTMLVideoElement>(null);
@@ -377,6 +388,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   // ── Teardown da sala ─────────────────────────────────────────────────────────
   const teardownRoom = useCallback(async () => {
+    // Flush da gravação ANTES de derrubar a sala — se o médico fecha a tab/unmount
+    // sem passar pelo endCall, o upload parcial acontece aqui (chunks até então).
+    // Idempotente: endCall/Disconnected já fizeram o flush → recorder null → early-return.
+    void stopAndUploadRecording();
     const room = roomRef.current;
     roomRef.current = null;
     if (audioSink.current) audioSink.current.innerHTML = '';
@@ -390,7 +405,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       try { room.removeAllListeners(); } catch { /* noop */ }
       try { await room.disconnect(); } catch { /* noop */ }
     }
-  }, [stopRingback, stopRecordingBeep]);
+  }, [stopAndUploadRecording, stopRingback, stopRecordingBeep]);
 
   // ── Conexão LiveKit ──────────────────────────────────────────────────────────
   const connectRoom = useCallback(async (serverUrl: string, lkToken: string) => {
@@ -459,6 +474,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         if (endedByUser.current) return;
         // Caiu sem o usuário encerrar (rede/servidor) → pós-chamada com o tempo corrido.
         void stopAndUploadRecording(); // best-effort: chunks até o corte sobrevivem
+        markEnded(); // best-effort: encerramento server-side mesmo com a rede caída
         const t0 = startedAtRef.current ?? Date.now();
         setEnded({ sec: Math.round((Date.now() - t0) / 1000) });
         setPhase('ended');
@@ -491,7 +507,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // (checkbox no pré-join dele). Sem consent → nada grava (ausência é a mensagem).
     if (role === 'doctor' && summaryRef.current?.recordConsentAt) startRoomRecording(room);
     try { wakeLock.current = await (navigator as any).wakeLock?.request('screen'); } catch { /* WebView sem wakelock — ok */ }
-  }, [playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom]);
+  }, [markEnded, playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom]);
 
   // ── Join via backend ─────────────────────────────────────────────────────────
   const startJoin = useCallback(async (s?: Summary | null) => {
@@ -515,6 +531,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           setPhase('prejoin');
           setBanner(null);
           setToast({ text: 'Autorize a telemedicina para entrar.', k: Date.now() });
+          return;
+        }
+        // F4: consulta encerrada entre o load e o toque em "Entrar" → área read-only
+        // (nunca loop de "não deu pra entrar" numa consulta que já acabou).
+        if (d?.code === 'TELECONSULTA_ENDED') {
+          setSummary((cur) => (cur ? { ...cur, endedAt: d.endedAt ?? new Date().toISOString() } : cur));
+          setPhase('readonly');
+          setBanner(null);
           return;
         }
         throw new Error('forbidden');
@@ -582,7 +606,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             if (res.ok) {
               const list = await res.json();
               const found = Array.isArray(list) ? list.find((x: any) => x?.id === reminderId) : null;
-              if (found) fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor };
+              if (found) fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor, endedAt: found.endedAt };
             } else if (res.status === 401) { setPhase('error'); return; }
           } catch { /* offline: cai no state se houver */ }
         }
@@ -601,10 +625,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 patient: d.patient || cur.patient,
                 doctor: d.doctor || cur.doctor,
                 doctorInRoom: d.doctorInRoom ?? false,
+                endedAt: d.endedAt ?? cur.endedAt,
               } : cur));
+              // F4: race do fetch — endedAt chegou DEPOIS do bootstrap ir pro pré-join.
+              if (d.endedAt) setPhase((p) => (p === 'loading' || p === 'prejoin' ? 'readonly' : p));
             }
           })
           .catch(() => {});
+        // F4 pós-consulta (agent2): ENCERRADA → área read-only direto (sem pré-join,
+        // sem preview de câmera, sem consent — o join do server bloquearia de todo modo).
+        if (s.endedAt) { setPhase('readonly'); return; }
         // Spec §1: consentido → pula direto pra chamada.
         if (s.consentAt) { void startJoin(s); return; }
         setPhase('prejoin');
@@ -616,15 +646,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             if (!cancelled && d) {
               setSummary((cur) => (cur ? {
                 ...cur,
+                endedAt: d.endedAt ?? cur.endedAt ?? null,
                 stt: typeof d.stt === 'boolean' ? d.stt : cur.stt,
                 patient: d.patient || cur.patient,
                 doctor: d.doctor || cur.doctor,
               } : {
                 id: reminderId,
+                endedAt: d.endedAt ?? null,
                 stt: d.stt,
                 patient: d.patient,
                 doctor: d.doctor,
               }));
+              // F4: médico também cai na área read-only se a consulta já encerrou.
+              if (d.endedAt) setPhase((p) => (p === 'loading' || p === 'prejoin' ? 'readonly' : p));
             }
           })
           .catch(() => {});
@@ -748,9 +782,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     return () => { stop = true; clearInterval(t); };
   }, [phase, role, reminderId, authToken]);
 
-  // F3 (c): ao virar 'ended', carrega a área do paciente (pedidos + transcrição + duração).
+  // F3 (c): ao virar 'ended' (fim da chamada ao vivo) OU 'readonly' (reentrada de
+  // consulta encerrada), carrega a área do paciente (pedidos + transcrição + duração).
   useEffect(() => {
-    if (phase !== 'ended' || role !== 'patient') return;
+    if ((phase !== 'ended' && phase !== 'readonly') || role !== 'patient') return;
     setExamQueue([]);
     setSchedFor(null);
     void (async () => { const s = await loadAreaSummary(); if (s) setAreaSummary(s); })();
@@ -758,8 +793,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   // F3 (c) §3b: transcrição — pendente → poll 15s até 3min até transcriptAt aparecer;
   // pronta → texto via GET transcript (3c). Só existe se houve consent de gravação.
+  // F4: vale também na reentrada read-only (transcrição pode ter ficado pronta depois).
   useEffect(() => {
-    if (phase !== 'ended' || role !== 'patient' || !summary?.recordConsentAt) return;
+    if ((phase !== 'ended' && phase !== 'readonly') || role !== 'patient' || !summary?.recordConsentAt) return;
     let stop = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let tries = 0;
@@ -847,10 +883,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // e sobe a gravação — o upload acontece de fundo; a área pós-chamada mostra
     // o estado (enviando → transcrição em minutos).
     await stopAndUploadRecording();
+    markEnded(); // encerramento server-side (done + endedAt) — a consulta PARA de ser re-entrável
     await teardownRoom();
     setPhase('ended');
     hapticSuccess();
-  }, [stopAndUploadRecording, teardownRoom]);
+  }, [markEnded, stopAndUploadRecording, teardownRoom]);
 
   const exitTo = useCallback(() => {
     hapticLight();
@@ -1278,8 +1315,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     );
   }
 
-  if (phase === 'ended' && ended) {
-    const min = ended.sec >= 30 ? `${Math.max(1, Math.round(ended.sec / 60))} min` : 'menos de 1 min';
+  // F4 (agent2): 'ended' = sessão que ACABOU de encerrar (tem duração local); 'readonly'
+  // = consulta encerrada NO PASSADO (entrou pelo histórico — não há sessão). Mesma área.
+  if (phase === 'ended' || phase === 'readonly') {
+    const readOnly = phase === 'readonly' || !!summary?.endedAt; // servidor já encerrou → não re-entra
+    const endedFmt = summary?.endedAt
+      ? new Date(summary.endedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      : null;
+    const min = ended
+      ? (ended.sec >= 30 ? `${Math.max(1, Math.round(ended.sec / 60))} min` : 'menos de 1 min')
+      : (areaSummary?.durationHint || '—');
 
     const PRESET_TAGS = role === 'doctor'
       ? ['🔊 Áudio excelente', '📶 Conexão nítida', '⏱️ Pontual', '📋 Exames solicitados', '💊 Prescrição orientada', '⚠️ Conexão instável']
@@ -1387,9 +1432,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <CheckCircleIcon sx={{ position: 'absolute', right: -5, bottom: -5, fontSize: 22, color: '#5fc9c3', bgcolor: 'background.default', borderRadius: '50%' }} />
               </Box>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>Resumo da consulta</Typography>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.2 }}>
+                  {readOnly ? 'Consulta encerrada' : 'Resumo da consulta'}
+                </Typography>
                 <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.25 }}>
-                  Consulta encerrada · {areaSummary?.durationHint || min}
+                  {readOnly
+                    ? `Encerrada em ${endedFmt} · ${areaSummary?.durationHint || min}`
+                    : `Consulta encerrada · ${areaSummary?.durationHint || min}`}
                 </Typography>
               </Box>
             </Stack>
@@ -1461,17 +1510,30 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Box>
             )}
 
-            {/* §3c — feedback 1-toque fecha a área */}
-            {feedbackBlock}
+            {/* §3c — feedback 1-toque fecha a área. READ-ONLY: feedback só se JÁ dado
+                (histórico não re-avalia — o ato passou). */}
+            {readOnly
+              ? (areaSummary?.feedback ? (
+                <Chip
+                  size="small"
+                  icon={<VerifiedIcon sx={{ fontSize: 13 }} />}
+                  label={`Avaliação registrada (${areaSummary.feedback.rating}/5) ✓`}
+                  sx={{ mt: 2.5, height: 26, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}
+                />
+              ) : null)
+              : feedbackBlock}
 
-            {/* FIX 2 — "Sair" é o único contained (primária); reentrar é ação discreta */}
+            {/* FIX 2 — contained ÚNICO. Read-only: "Voltar aos lembretes" e NADA de
+                re-entrar (a consulta acabou — o join do server bloqueia mesmo). */}
             <Button variant="contained" fullWidth onClick={exitTo} sx={{ ...primaryBtn, mt: 3 }}>
-              Sair
+              {readOnly ? 'Voltar aos lembretes' : 'Sair'}
             </Button>
-            <Button variant="text" onClick={() => { setEnded(null); setPhase('prejoin'); setFbSent(false); setFbRating(null); }}
-              sx={{ display: 'block', mx: 'auto', mt: 1, textTransform: 'none', fontWeight: 700, fontSize: 13, borderRadius: '999px', color: 'text.secondary' }}>
-              Entrar de novo
-            </Button>
+            {!readOnly && (
+              <Button variant="text" onClick={() => { setEnded(null); setPhase('prejoin'); setFbSent(false); setFbRating(null); }}
+                sx={{ display: 'block', mx: 'auto', mt: 1, textTransform: 'none', fontWeight: 700, fontSize: 13, borderRadius: '999px', color: 'text.secondary' }}>
+                Entrar de novo
+              </Button>
+            )}
           </Box>
 
           {/* Toast da área (respostas de pedido / cópia) */}

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { useEffect, useRef, useState, type ReactElement } from 'react';
 import {
   Card, CardContent, Typography, Button, TextField, IconButton, Checkbox,
   Stack, Chip, Box, Collapse, Accordion, AccordionSummary, AccordionDetails,
@@ -19,6 +19,7 @@ import MedicationIcon from '@mui/icons-material/Medication';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import PhoneInTalkIcon from '@mui/icons-material/PhoneInTalk';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -36,6 +37,8 @@ import { openTelemedicinaRoom } from '../utils/telemedicina';
 
 const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.12)}`;
 const livePulse = keyframes`0%{transform:scale(0.85);opacity:1}100%{transform:scale(2.2);opacity:0}`;
+// INCOMING CALL: anel verde expandindo no card quando o médico está chamando
+const callingPulse = keyframes`0%,100%{box-shadow:0 0 0 0 rgba(5,150,105,.55)}50%{box-shadow:0 0 0 12px rgba(5,150,105,0)}`;
 
 // Antecedências oferecidas (minutos antes) — estilo Agenda do Google. Default: 1 dia + 5h + na hora.
 const OFFSET_PALETTE: { o: number; l: string }[] = [
@@ -103,6 +106,10 @@ export const RemindersPage = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [consentFor, setConsentFor] = useState<any | null>(null);
   const [pendingReqs, setPendingReqs] = useState<Record<string, number>>({});
+  // INCOMING CALL (dono 21/10: "quando chama é simplório, chama e depois para"):
+  // médico na sala + paciente em OUTRA página → o card acende "te chamando AGORA".
+  const [callingIds, setCallingIds] = useState<Record<string, boolean>>({});
+  const callingRef = useRef<Record<string, boolean>>({}); // p/ haptic só na transição
 
   const load = async () => {
     if (!pid) return;
@@ -203,8 +210,11 @@ export const RemindersPage = () => {
   const medications = items.filter(isMedication);
   const routineList = items.filter(isRoutineReminder);
 
-  const upcomingConsultations = consultations.filter((r) => new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  const pastConsultations = consultations.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+  // F4 pós-consulta: teleconsulta ENCERRADA (endedAt) sai das agendadas e vai direto
+  // pro "Histórico de consultas" — nunca mistura com consulta futura nem mostra "Entrar".
+  const endedConsultations = consultations.filter((r) => !!r.endedAt).sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime());
+  const upcomingConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const pastConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
 
   const upcomingRoutine = routineList.filter((r) => new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   const pastRoutine = routineList.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
@@ -215,11 +225,46 @@ export const RemindersPage = () => {
     { key: 'later', label: 'Depois', list: upcomingRoutine.filter((r) => groupOf(r.dueDate) === 'later') },
   ].filter((g) => g.list.length > 0);
 
+  // Poll doctorInRoom (5s) — espelha o poll do Teleconsulta.tsx para o paciente
+  // que está em OUTRA página: só teleconsultas não-done na janela da consulta
+  // (atrasadas ≤2h — fora disso ninguém chama; evita hammer da API).
+  // Quando o médico sai da sala (doctorInRoom=false) o destaque some sozinho:
+  // o map é REFEITO a cada tick, não acumulado.
+  useEffect(() => {
+    const cands = consultations.filter((r) =>
+      !r.done && !r.endedAt && !r.linkUrl && (r.type === 'teleconsulta' || r.provider === 'livekit') &&
+      new Date(r.dueDate).getTime() >= Date.now() - 2 * 60 * 60 * 1000);
+    if (!cands.length) { setCallingIds({}); callingRef.current = {}; return; }
+    let stop = false;
+    const poll = async () => {
+      const next: Record<string, boolean> = {};
+      await Promise.all(cands.map(async (r) => {
+        try {
+          const res = await fetch(`${API_URL}/teleconsulta/${r.id}/summary`, { headers: { Authorization: `Bearer ${token()}` } });
+          if (!res.ok) return;
+          const d = await res.json();
+          if (d?.doctorInRoom) next[r.id] = true;
+        } catch { /* offline: o próximo tick tenta de novo */ }
+      }));
+      if (stop) return;
+      const startedCalling = Object.keys(next).some((id) => !callingRef.current[id]);
+      callingRef.current = next;
+      setCallingIds(next);
+      if (startedCalling) hapticSuccess(); // começou a chamar AGORA — feedback tátil 1x
+    };
+    void poll();
+    const iv = setInterval(() => void poll(), 5000);
+    return () => { stop = true; clearInterval(iv); };
+  }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial)
   const renderConsultationCard = (r: any) => {
-    const isPast = new Date(r.dueDate) < now;
+    const hasEnded = !!r.endedAt; // F4: encerrada no server → área read-only, nunca "Entrar na consulta"
+    const isPast = new Date(r.dueDate) < now || hasEnded;
     const diffMs = new Date(r.dueDate).getTime() - now.getTime();
     const isLive = !isPast && diffMs <= 15 * 60 * 1000 && diffMs >= -60 * 60 * 1000;
+    // Médico já está na sala (poll 5s acima) — chamada entrando AGORA
+    const isCalling = !!callingIds[r.id];
     const docId = r.doctor?.id || r.createdByDoctorId || r.doctorId;
     const docPhoto = docId ? doctorPhotoUrl(docId) : undefined;
     const docName = r.doctor?.name ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`) : r.title;
@@ -231,11 +276,18 @@ export const RemindersPage = () => {
         sx={(t) => ({
           borderRadius: '20px',
           overflow: 'hidden',
-          borderColor: isLive ? '#20b2aa' : isPast ? t.palette.divider : 'rgba(32,178,170,0.3)',
-          bgcolor: isLive ? (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.06)' : 'rgba(240,253,250,0.7)') : 'background.paper',
-          boxShadow: isLive ? '0 6px 22px rgba(32,178,170,0.2)' : '0 2px 10px rgba(0,0,0,0.04)',
+          borderColor: isCalling ? '#059669' : isLive ? '#20b2aa' : isPast ? t.palette.divider : 'rgba(32,178,170,0.3)',
+          bgcolor: isCalling
+            ? (t.palette.mode === 'dark' ? 'rgba(5,150,105,0.10)' : 'rgba(236,253,245,0.9)')
+            : isLive ? (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.06)' : 'rgba(240,253,250,0.7)') : 'background.paper',
+          boxShadow: isCalling ? '0 6px 24px rgba(5,150,105,0.35)' : isLive ? '0 6px 22px rgba(32,178,170,0.2)' : '0 2px 10px rgba(0,0,0,0.04)',
           transition: 'all .2s ease',
-          opacity: isPast ? 0.78 : 1,
+          opacity: isPast && !isCalling ? 0.78 : 1,
+          // Verde PULSANTE enquanto o médico chama (some quando ele sai da sala)
+          ...(isCalling ? {
+            animation: `${callingPulse} 1.5s ease-in-out infinite`,
+            '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+          } : {}),
           '&:hover': {
             boxShadow: '0 8px 24px rgba(32,178,170,0.15)',
             transform: 'translateY(-2px)',
@@ -243,6 +295,18 @@ export const RemindersPage = () => {
         })}
       >
         <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+          {isCalling && (
+            <Stack
+              direction="row" alignItems="center" spacing={1}
+              aria-live="polite"
+              sx={{ mb: 1.25, px: 1.25, py: 1, borderRadius: '12px', bgcolor: 'rgba(5,150,105,.12)', border: '1px solid rgba(5,150,105,.35)' }}
+            >
+              <PhoneInTalkIcon sx={{ fontSize: 20, color: '#059669', '@media (prefers-reduced-motion: no-preference)': { animation: `${pulse} 1.2s ease-in-out infinite` } }} />
+              <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: '#047857', lineHeight: 1.3 }}>
+                📞 {docName} está te chamando AGORA
+              </Typography>
+            </Stack>
+          )}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'flex-start', sm: 'center' }}>
             {/* Foto / Avatar do Médico */}
             <Box sx={{ position: 'relative', flexShrink: 0 }}>
@@ -344,12 +408,62 @@ export const RemindersPage = () => {
                     sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.15)', color: '#b45309', borderRadius: '6px' }}
                   />
                 )}
+                {hasEnded && (
+                  <Chip
+                    size="small"
+                    label={`📋 Consulta encerrada ${new Date(r.endedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`}
+                    sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89', borderRadius: '6px' }}
+                  />
+                )}
               </Stack>
             </Box>
 
             {/* Ações da Consulta — FIX 2: 1 contained por card; consent é chip; WhatsApp é ícone discreto no canto */}
             <Stack direction="row" alignItems="center" spacing={1} sx={{ alignSelf: { xs: 'stretch', sm: 'center' }, justifyContent: { xs: 'flex-end', sm: 'flex-start' }, pt: { xs: 1, sm: 0 } }}>
-              {!isPast ? (
+              {isCalling ? (
+                /* Chamada entrando: "Atender" verde vira a ÚNICA primária do card —
+                   consent (se faltar) é tratado na própria tela de chamada entrando. */
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<PhoneInTalkIcon />}
+                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  sx={{
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    px: 2.4,
+                    py: 0.7,
+                    bgcolor: '#059669',
+                    '&:hover': { bgcolor: '#047857' },
+                    boxShadow: '0 4px 14px rgba(5,118,79,.4)',
+                  }}
+                >
+                  Atender
+                </Button>
+              ) : hasEnded ? (
+                /* F4: encerrada → "Ver resumo" é a única ação (área read-only em /teleconsulta/:id) */
+                <Button
+                  size="small"
+                  variant="contained"
+                  startIcon={<AssignmentIcon />}
+                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  sx={{
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    fontSize: 13,
+                    px: 2.2,
+                    py: 0.7,
+                    bgcolor: '#178f89',
+                    '&:hover': { bgcolor: '#137a74' },
+                    boxShadow: '0 4px 14px rgba(15,118,110,.35)',
+                  }}
+                >
+                  Ver resumo
+                </Button>
+              ) : !isPast ? (
                 r.consentAt ? (
                   <Button
                     size="small"
@@ -747,6 +861,26 @@ export const RemindersPage = () => {
               <AccordionDetails sx={{ pt: 0 }}>
                 <Stack spacing={1.5}>
                   {pastConsultations.map((r) => renderConsultationCard(r))}
+                </Stack>
+              </AccordionDetails>
+            </Accordion>
+          )}
+
+          {/* F4: HISTÓRICO DE CONSULTAS ENCERRADAS — separado das agendadas (spec: não
+              misturar). Cada card abre a área read-only (transcrição, pedidos, feedback). */}
+          {endedConsultations.length > 0 && (
+            <Accordion elevation={0} sx={{ mt: 1.5, border: '1px solid', borderColor: 'rgba(15,118,110,0.25)', borderRadius: '16px !important', '&:before': { display: 'none' } }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <HistoryIcon sx={{ color: '#178f89', fontSize: 20 }} />
+                  <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
+                    Histórico de consultas ({endedConsultations.length})
+                  </Typography>
+                </Stack>
+              </AccordionSummary>
+              <AccordionDetails sx={{ pt: 0 }}>
+                <Stack spacing={1.5}>
+                  {endedConsultations.map((r) => renderConsultationCard(r))}
                 </Stack>
               </AccordionDetails>
             </Accordion>

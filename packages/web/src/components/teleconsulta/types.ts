@@ -25,6 +25,9 @@ export interface ExamRequest {
 
 /** GET /api/teleconsulta/:id/summary (§3d). */
 export interface TeleconsultaSummary {
+  /** F4 pós-consulta: data-hora (ISO) de encerramento — null/ausente = consulta ativa.
+   *  Com endedAt, a teleconsulta vira área READ-ONLY (nunca reentra na sala). */
+  endedAt?: string | null;
   transcript: { at: string | null } | null;
   examRequests: ExamRequest[];
   feedback: { rating: number; note?: string | null; role?: string | null } | null;

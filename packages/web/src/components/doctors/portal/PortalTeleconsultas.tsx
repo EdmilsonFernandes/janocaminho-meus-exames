@@ -31,6 +31,7 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import HistoryIcon from '@mui/icons-material/History';
 import { AppCard } from '../../AppCard';
 import { tealText, COPPER, copperText } from '../../../theme';
 import { snackbar } from '../../ConfirmDialog';
@@ -74,22 +75,25 @@ export const PortalTeleconsultas = ({
   const todayEnd = todayStart + 86400000;
 
   // Separação por categorias
+  // F4: teleconsulta ENCERRADA (endedAt) sai de hoje/próximas — vive só no Histórico
+  // (nunca mais "Entrar na consulta"; o join do server bloquearia de todo modo).
   const todayList = useMemo(() => {
     return teleconsultas.filter((tc) => {
       const t = new Date(tc.dueDate).getTime();
-      return t >= todayStart && t < todayEnd;
+      return !tc.endedAt && t >= todayStart && t < todayEnd;
     });
   }, [teleconsultas, todayStart, todayEnd]);
 
   const upcomingList = useMemo(() => {
     return teleconsultas.filter((tc) => {
       const t = new Date(tc.dueDate).getTime();
-      return t >= now.getTime();
+      return !tc.endedAt && t >= now.getTime();
     });
   }, [teleconsultas, now]);
 
   const pastList = useMemo(() => {
     return teleconsultas.filter((tc) => {
+      if (tc.endedAt) return true; // encerrada → Histórico, mesmo agendada p/ hoje
       const t = new Date(tc.dueDate).getTime();
       return t < now.getTime() && !(t >= todayStart && t < todayEnd);
     });
@@ -111,6 +115,11 @@ export const PortalTeleconsultas = ({
       return pName.toLowerCase().includes(q) || title.toLowerCase().includes(q) || code.includes(q);
     });
   }, [teleconsultas, filter, search, todayList, upcomingList, pastList]);
+
+  // F4: split ativas × encerradas — as encerradas renderizam na seção "Histórico"
+  // do fim (nunca misturadas com as agendadas, nem com botão de entrar).
+  const filteredActive = useMemo(() => filtered.filter((tc) => !tc.endedAt), [filtered]);
+  const filteredEnded = useMemo(() => filtered.filter((tc) => !!tc.endedAt), [filtered]);
 
   return (
     <Box sx={{ maxWidth: 1040, mx: 'auto', width: '100%', pb: 4 }}>
@@ -335,7 +344,7 @@ export const PortalTeleconsultas = ({
         </AppCard>
       ) : (
         <Stack spacing={2}>
-          {filtered.map((tc) => {
+          {filteredActive.map((tc) => {
             const matchedPatient = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
             const pat = tc.patient || matchedPatient?.patient || matchedPatient;
             const pName = pat?.fullName || pat?.name || 'Paciente';
@@ -607,6 +616,99 @@ export const PortalTeleconsultas = ({
             );
           })}
         </Stack>
+      )}
+
+      {/* F4 — HISTÓRICO DE CONSULTAS ENCERRADAS (seção separada no fim): sem "Entrar
+          na consulta"; "Ver resumo" (outlined) abre o dialog com transcrição +
+          pedidos + duração. Chip "✓ Encerrada {data}" no lugar do botão de entrar. */}
+      {filteredEnded.length > 0 && (
+        <Box sx={{ mt: 3 }}>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
+            <HistoryIcon sx={{ fontSize: 20, color: '#178f89' }} />
+            <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif' }}>
+              Histórico ({filteredEnded.length})
+            </Typography>
+            <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+          </Stack>
+          <Stack spacing={1.25}>
+            {filteredEnded.map((tc) => {
+              const matchedPatient = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
+              const pat = tc.patient || matchedPatient?.patient || matchedPatient;
+              const pName = pat?.fullName || pat?.name || 'Paciente';
+              const pPhoto = pat?.photoUrl || tc.patient?.photoUrl;
+              const ended = new Date(tc.endedAt);
+              const endedFmt = Number.isNaN(ended.getTime())
+                ? ''
+                : ended.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+              const sched = new Date(tc.dueDate);
+              const schedFmt = Number.isNaN(sched.getTime())
+                ? ''
+                : sched.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+              const s: TeleconsultaSummary | undefined = teleSummaries[tc.id];
+              const pend = (s?.examRequests ?? []).filter((r) => r.status === 'pending').length;
+              const hasTr = !!s?.transcript?.at;
+              return (
+                <AppCard key={tc.id} sx={{ p: 1.75, borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+                      <Avatar src={pPhoto} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: '#178f89', flexShrink: 0 }}>
+                        {pName.charAt(0).toUpperCase()}
+                      </Avatar>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" useFlexGap>
+                          <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>{pName}</Typography>
+                          <Chip
+                            size="small"
+                            icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />}
+                            label={endedFmt ? `Encerrada ${endedFmt}` : 'Encerrada'}
+                            sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', '& .MuiChip-icon': { color: '#178f89' } }}
+                          />
+                          {pend > 0 && (
+                            <Chip size="small" label={`${pend} pedido(s)`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }} />
+                          )}
+                          {hasTr && (
+                            <Chip size="small" label="Transcrição ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89' }} />
+                          )}
+                        </Stack>
+                        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
+                          {tc.title || 'Teleconsulta médica'}{schedFmt ? ` · agendada p/ ${schedFmt}` : ''}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<SummarizeIcon />}
+                        onClick={() => onOpenPost(tc.id)}
+                        sx={{
+                          borderRadius: '999px',
+                          textTransform: 'none',
+                          fontWeight: 800,
+                          fontSize: 13,
+                          borderColor: 'rgba(32,178,170,.45)',
+                          color: (t) => tealText(t.palette.mode),
+                          px: 2,
+                          '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.06)' },
+                        }}
+                      >
+                        Ver resumo
+                      </Button>
+                      <Button
+                        size="small"
+                        startIcon={<PersonOutlineIcon sx={{ fontSize: 14 }} />}
+                        onClick={() => onOpenPatient(matchedPatient || { patient: pat, id: pat?.id || tc.patientId })}
+                        sx={{ py: 0.2, px: 1, fontSize: 12, fontWeight: 700, textTransform: 'none', color: (t) => tealText(t.palette.mode), borderRadius: '999px', bgcolor: 'rgba(32,178,170,0.08)', '&:hover': { bgcolor: 'rgba(32,178,170,0.16)' } }}
+                      >
+                        Prontuário
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </AppCard>
+              );
+            })}
+          </Stack>
+        </Box>
       )}
 
       {/* FIX 2 — copiar/cancelar no menu ⋮ (regra de 1 ação primária por card) */}

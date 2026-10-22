@@ -84,7 +84,7 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     // novas — se o banco legado ainda não as tem (migration não aplicada), caímos no select
     // sem elas e seguimos pro 501 graceful em vez de 500 (padrão subscriptions, TASK_RULES).
     const baseSelect = { id: true, type: true, patientId: true, createdByDoctorId: true, consentAt: true, linkUrl: true, title: true, dueDate: true };
-    const reminder: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, provider: true, roomName: true } })
+    const reminder: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, provider: true, roomName: true, endedAt: true } })
       .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
         ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
         : Promise.reject(e));
@@ -110,6 +110,18 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     // leitura tolerante enquanto o banco legado não as tem (legado = null = 501 + linkUrl).
     const provider = (reminder as { provider?: string | null }).provider ?? null;
     const roomName = (reminder as { roomName?: string | null }).roomName ?? null;
+    const endedAt = (reminder as { endedAt?: Date | null }).endedAt ?? null;
+
+    // ENCERRADA (22/10/26): consulta com endedAt≠null é HISTÓRICO — join bloqueado p/
+    // sempre (fim da re-entrada infinita: "entrou 15x e ela nunca encerrava").
+    if (endedAt) {
+      res.status(403).json({
+        code: 'TELECONSULTA_ENDED',
+        error: 'Esta consulta já foi encerrada.',
+        endedAt: new Date(endedAt).toISOString(),
+      });
+      return;
+    }
 
     // Sem LiveKit (env ausente OU reminder meet/manual) → 501: o client abre o linkUrl.
     const configured = hasLiveKitConfig();
@@ -161,7 +173,7 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       const docName = req.joinName?.replace(/^Dr\.\s*/, '') || 'seu médico';
       void sendPushToUser(reminder.ownerId, `📞 ${docName} está te chamando`, 'Toque para atender a teleconsulta agora.', { type: 'teleconsulta', reminderId: reminder.id }).catch(() => {});
     }
-    res.json({ serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt() });
+    res.json({ serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt(), endedAt: null });
   } catch (e) {
     next(e);
   }
@@ -178,19 +190,51 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
       res.status(400).json({ error: 'Avaliação inválida (1 a 5).' });
       return;
     }
-    const exists = await prisma.reminder.findFirst({ where: { id: String(req.params.id), type: 'teleconsulta' }, select: { id: true } });
-    if (!exists) { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     // Dono 21/10: feedback = a consulta ACONTECEU → marca done (o card para de
     // mostrar "Entrar na consulta" e vira "Ver consulta realizada").
-    await prisma.reminder.update({ where: { id: exists.id }, data: { done: true } }).catch(() => {});
+    // Dono 22/10: feedback também ENCERRA (endedAt) — avaliar é o fim do ato; sem
+    // isto a consulta continuava re-entrável p/ sempre.
+    await endTeleconsulta(r).catch(() => { /* feedback não falha por lifecycle */ });
     await audit('TELECONSULTA_FEEDBACK', req, {
       actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
       actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
       targetType: 'REMINDER',
-      targetId: exists.id,
+      targetId: r.id,
       after: { rating, note, role: req.joinRole },
     });
     res.status(201).json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+/** END — POST /api/teleconsulta/:id/end (22/10/26). ENCERRA a consulta: qualquer das
+ *  partes (paciente owner OU médico com share) pode encerrar; a partir daqui o /join
+ *  responde 403 TELECONSULTA_ENDED p/ sempre e o card vira histórico (summary/transcript
+ *  seguem acessíveis). Idempotente: re-end devolve o MESMO endedAt (não renova). */
+router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const alreadyEnded = !!r.endedAt;
+    const { endedAt, persisted } = await endTeleconsulta(r);
+    await audit('TELECONSULTA_END', req, {
+      actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
+      actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
+      targetType: 'REMINDER',
+      targetId: r.id,
+      after: { endedAt: endedAt?.toISOString() ?? null, role: req.joinRole, alreadyEnded },
+    });
+    // WhatsApp-style: médico encerrou → paciente sabe na hora (não fica "chamando" no
+    // vazio). Paciente encerrou → médico vê no portal (sem infra de push p/ doctor).
+    if (persisted && req.joinRole === 'doctor') {
+      void sendPushToUser(r.ownerId, 'Consulta encerrada', 'O médico encerrou a teleconsulta. Toque para ver o resumo.', { type: 'teleconsulta', reminderId: r.id }).catch(() => {});
+    }
+    res.json({
+      ok: true,
+      endedAt: endedAt ? endedAt.toISOString() : null,
+      alreadyEnded: alreadyEnded || !persisted,
+    });
   } catch (e) {
     next(e);
   }
@@ -207,15 +251,18 @@ interface TeleconsultaRef {
   patientId: string;
   ownerId: string;
   recordConsentAt: Date | null;
+  endedAt: Date | null;
+  /** true = coluna endedAt ainda não existe no banco (legado pré-migration). */
+  endedAtColMissing: boolean;
 }
 
 /** Carrega a teleconsulta + checa acesso DUAL (paciente owner OU médico com share ativo —
  *  cópia do join). Responde (404/403) e devolve undefined quando NÃO deve seguir.
- *  Leitura drift-safe igual join: coluna F3 nova + fallback "column does not exist". */
+ *  Leitura drift-safe igual join: colunas novas (F3 + endedAt) + fallback "column does not exist". */
 async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Promise<TeleconsultaRef | undefined> {
   const id = String(req.params.id);
   const baseSelect = { id: true, type: true, patientId: true, ownerId: true };
-  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, recordConsentAt: true } })
+  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, recordConsentAt: true, endedAt: true } })
     .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
       ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
       : Promise.reject(e));
@@ -231,7 +278,37 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
     const ids = await userPatientIds(req.userId!);
     if (!ids.includes(row.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
   }
-  return { id: row.id, patientId: row.patientId, ownerId: row.ownerId, recordConsentAt: row.recordConsentAt ?? null };
+  return {
+    id: row.id,
+    patientId: row.patientId,
+    ownerId: row.ownerId,
+    recordConsentAt: row.recordConsentAt ?? null,
+    endedAt: row.endedAt ?? null,
+    endedAtColMissing: !('endedAt' in row),
+  };
+}
+
+/** Encerra a teleconsulta (stamp endedAt + done) de forma IDEMPOTENTE e race-safe:
+ *  updateMany condicional (`endedAt: null`) nunca sobrescreve um encerramento anterior
+ *  — o 2º end devolve o timestamp JÁ existente. Drift: banco legado sem a coluna →
+ *  só done (igual feedback 21/10) e endedAt=null na resposta. */
+async function endTeleconsulta(r: TeleconsultaRef): Promise<{ endedAt: Date | null; persisted: boolean }> {
+  if (r.endedAtColMissing) {
+    await prisma.reminder.update({ where: { id: r.id }, data: { done: true } });
+    return { endedAt: r.endedAt, persisted: false };
+  }
+  const now = new Date();
+  if (r.endedAt) return { endedAt: new Date(r.endedAt), persisted: false }; // idempotente
+  const updated = await prisma.reminder.updateMany({
+    where: { id: r.id, endedAt: null },
+    data: { endedAt: now, done: true },
+  });
+  if (updated.count === 0) {
+    // Race: outro request encerreu entre o load e o update — devolve o timestamp vencedor.
+    const winner: any = await prisma.reminder.findUnique({ where: { id: r.id }, select: { endedAt: true } });
+    return { endedAt: winner?.endedAt ? new Date(winner.endedAt) : now, persisted: false };
+  }
+  return { endedAt: now, persisted: true };
 }
 
 /** 3a — PUT/PATCH /api/teleconsulta/:id/record-consent (os dois verbos: cliente pode
@@ -325,7 +402,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptAt: true },
+      select: { transcriptAt: true, endedAt: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
     const examRequests = await (prisma as any).examRequest.findMany({
@@ -345,18 +422,26 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       }).catch(() => null) : null,
     ]);
     const fb: any = feedbackLog?.after ?? null;
-    let durationHint: string | null = null;
-    if (joinLogs.length >= 2) {
-      const mins = Math.max(1, Math.round(
-        (new Date(joinLogs[joinLogs.length - 1].createdAt).getTime() - new Date(joinLogs[0].createdAt).getTime()) / 60_000,
-      ));
-      durationHint = `aprox. ${mins} min`;
+    // Duração REAL (22/10/26): 1º join → endedAt (encerrada) OU 1º→último join (aberta
+    // com re-entradas). durationSec é o contrato novo; durationHint (texto) fica p/
+    // retrocompat do client F2 que já o renderiza.
+    const endedAtIso = row?.endedAt ? new Date(row.endedAt).toISOString() : null;
+    let durationSec: number | null = null;
+    const firstJoinMs = joinLogs.length ? new Date(joinLogs[0].createdAt).getTime() : null;
+    if (firstJoinMs != null) {
+      const endMs = row?.endedAt
+        ? new Date(row.endedAt).getTime()
+        : joinLogs.length >= 2 ? new Date(joinLogs[joinLogs.length - 1].createdAt).getTime() : null;
+      if (endMs != null && endMs > firstJoinMs) durationSec = Math.round((endMs - firstJoinMs) / 1000);
     }
+    const durationHint = durationSec != null ? `aprox. ${Math.max(1, Math.round(durationSec / 60))} min` : null;
     // WhatsApp-style: médico já entrou na sala? (join role=doctor nos últimos 5 min
     // sem disconnect) → pré-join do paciente vira tela de "chamada recebida"
     const doctorInRoom = joinLogs.some((l: any) => l.after?.role === 'doctor' && Date.now() - new Date(l.createdAt).getTime() < 5 * 60_000);
     res.json({
       doctorInRoom,
+      endedAt: endedAtIso,
+      durationSec,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
       examRequests,
       feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,

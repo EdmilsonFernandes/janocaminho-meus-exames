@@ -95,10 +95,48 @@ export async function rollRecurringReminders(now: number): Promise<void> {
         data: { dueDate: next, sentOffsets: [], done: false, consentAt: null,
           // D5 (F3, 20/10): o pacote da PRÓXIMA consulta começa limpo — consent de
           // gravação e transcrição são POR consulta (áudio novo, consent novo).
-          recordConsentAt: null, recordingAt: null, transcriptEnc: null, transcriptIv: null, transcriptAt: null },
+          recordConsentAt: null, recordingAt: null, transcriptEnc: null, transcriptIv: null, transcriptAt: null,
+          // Ciclo de vida (22/10): a PRÓXIMA ocorrência nasce ABERTA — sem isto o
+          // endedAt da ocorrência anterior bloquearia o join da nova p/ sempre.
+          endedAt: null },
       }).catch((e) => { console.error('[reminders] roll falhou:', r.id, e?.message); });
     }
   } while (true);
+}
+
+/**
+ * AUTO-END de teleconsulta (22/10/26, nice-to-have): consulta INACABADA onde SÓ UM
+ * papel entrou (join no auditLog) e o último join foi há >30min — ninguém mais vem.
+ * Encerra sozinha (endedAt = último join + 30min, done=true) para o card virar
+ * "encerrada" e o /join parar de aceitar re-entrada infinita (dono 22/10: "entrou
+ * 15x e ela nunca encerra"). Se AMBOS os papéis entraram, a chamada aconteceu —
+ * encerramento é humano (POST /end ou feedback), job não mexe.
+ * Falha não derruba o job (catch por linha); banco legado sem a coluna → no-op.
+ */
+export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
+  // `endedAt: null` no where precisa da coluna — legado pré-migration rejeita a query
+  // inteira → catch → [] (no-op até a migration aplicada).
+  const rows = await prisma.reminder.findMany({
+    where: { type: 'teleconsulta', endedAt: null },
+    select: { id: true },
+    take: 200,
+  }).catch(() => [] as { id: string }[]);
+  for (const r of rows) {
+    const joins = await prisma.auditLog.findMany({
+      where: { action: 'TELECONSULTA_JOIN', targetId: r.id },
+      orderBy: { createdAt: 'asc' },
+      select: { createdAt: true, after: true },
+    });
+    if (!joins.length) continue; // ninguém nunca entrou — agenda normal segue
+    const roles = new Set(joins.map((j: any) => (j.after as any)?.role).filter(Boolean));
+    if (roles.size >= 2) continue; // chamada aconteceu — fim é humano
+    const lastJoinMs = new Date(joins[joins.length - 1].createdAt).getTime();
+    if (now - lastJoinMs < 30 * MS_MIN) continue; // ainda dentro da janela de espera
+    await prisma.reminder.updateMany({
+      where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
+      data: { endedAt: new Date(lastJoinMs + 30 * MS_MIN), done: true },
+    }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
+  }
 }
 
 export function startReminderEmailJob(): void {
@@ -156,6 +194,11 @@ export function startReminderEmailJob(): void {
       await rollRecurringReminders(Date.now());
     } catch (e) {
       console.error('[reminders] roll error:', (e as Error).message);
+    }
+    try {
+      await autoEndStaleTeleconsultas(Date.now());
+    } catch (e) {
+      console.error('[reminders] auto-end error:', (e as Error).message);
     }
   };
 
