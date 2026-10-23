@@ -374,6 +374,25 @@ async function setRecordConsent(req: JoinRequest, res: Response, next: NextFunct
 router.put('/:id/record-consent', requireJoinIdentity, setRecordConsent);
 router.patch('/:id/record-consent', requireJoinIdentity, setRecordConsent);
 
+/** QuickNote (23/10): nota clínica do médico desta consulta — fim da era
+ *  localStorage "só neste aparelho" (P2-reviewer 19/10). Sobrescreve (última
+ *  versão vale); visível apenas pro médico no /summary (paciente não lê). */
+router.put('/:id/doctor-note', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    if (req.joinRole !== 'doctor') { res.status(403).json({ error: 'A anotação clínica é do médico.' }); return; }
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const note = String(req.body?.note ?? '').slice(0, 4000);
+    await prisma.reminder.update({ where: { id: r.id }, data: { doctorNote: note || null } });
+    void audit('TELECONSULTA_DOCTOR_NOTE', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId, targetType: 'REMINDER', targetId: r.id,
+      after: { reminderId: r.id, chars: note.length },
+    });
+    res.json({ ok: true, doctorNote: note || null });
+  } catch (e) {
+    next(e);
+  }
+});
+
 /** 3b — POST /api/teleconsulta/:id/recording (multipart field "file").
  *  Médico ou paciente autenticado envia o áudio da chamada gravada.
  *  Fluxo: consent mútuo registrado -> áudio no disco -> dispara STT imediato + fallback na fila. */
@@ -441,7 +460,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true },
+      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true, doctorNote: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
     const examRequests = await (prisma as any).examRequest.findMany({
@@ -490,6 +509,8 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       // do opt-in de gravação.
       consentAt: row?.consentAt ? new Date(row.consentAt).toISOString() : null,
       recordConsentAt: row?.recordConsentAt ? new Date(row.recordConsentAt).toISOString() : null,
+      // QuickNote: privado do médico — o paciente não lê a anotação clínica.
+      doctorNote: req.joinRole === 'doctor' ? (row?.doctorNote ?? null) : undefined,
       durationSec,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
       examRequests,

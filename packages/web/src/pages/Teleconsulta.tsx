@@ -914,6 +914,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               }));
               // F4: médico também cai na área read-only se a consulta já encerrou.
               if (d.endedAt) setPhase((p) => (p === 'loading' || p === 'prejoin' ? 'readonly' : p));
+              // QuickNote: nota do PRONTUÁRIO (server) manda sobre o rascunho
+              // local — o médico reabre a consulta e vê o que escreveu antes.
+              if (d.doctorNote) setNote(d.doctorNote);
             }
           })
           .catch(() => {});
@@ -1228,14 +1231,26 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     hapticSuccess();
   }, [exitTo, markEnded, otherJoined, stopAndUploadRecording, teardownRoom]);
 
-  const saveNote = useCallback(() => {
-    // DÍVIDA (P2-reviewer 19/10): nota clínica só neste aparelho. F3 = persistir no
-    // reminder via endpoint do médico (ex.: PUT /api/doctor/patients/:pid/teleconsulta/:id
-    // {doctorNote}) para entrar no prontuário — até lá o caption avisa "neste aparelho".
+  const saveNote = useCallback(async () => {
+    // QuickNote 23/10: PRONTUÁRIO no server (fim do localStorage "só neste
+    // aparelho"). localStorage fica como fallback offline — se o PUT falhar,
+    // a nota não se perde e sincroniza no próximo save.
+    if (role === 'doctor') {
+      try {
+        const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/doctor-note`, {
+          method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
+          body: JSON.stringify({ note }),
+        });
+        if (!r.ok) throw new Error();
+        setNoteSaved(true);
+        hapticSuccess();
+        return;
+      } catch { /* offline/erro → cai no localStorage abaixo */ }
+    }
     try { localStorage.setItem(noteKey, note); } catch { /* noop */ }
     setNoteSaved(true);
     hapticSuccess();
-  }, [note, noteKey]);
+  }, [authToken, note, noteKey, reminderId, role]);
 
   // ── F3 (b/c): responder pedido do médico (3f PATCH /api/exam-requests/:id) ────
   // authorize = médico quer VER exame existente · schedule = exame novo (cria lembrete) · deny.
@@ -2319,7 +2334,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <Button
                   size="small"
                   variant="outlined"
-                  onClick={() => { void sendFeedback(fbRating ?? 5, note || fbNote); saveNote(); }}
+                  onClick={() => { void sendFeedback(fbRating ?? 5, note || fbNote); void saveNote(); }}
                   disabled={fbSent && noteSaved}
                   sx={{
                     borderRadius: '999px',

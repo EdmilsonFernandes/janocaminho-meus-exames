@@ -828,6 +828,10 @@ model Reminder {
   transcriptEnc     String?    // transcript cifrado (encryptPII) — nunca texto-puro no banco
   transcriptIv      String?
   transcriptAt      DateTime?
+  // ── QuickNote do médico (23/10/26): nota clínica da consulta no PRONTUÁRIO (fim da
+  //    era localStorage "só neste aparelho" — P2-reviewer 19/10). Texto simples, sem PII
+  //    além do que o médico escreve; visível só pro médico (summary role=doctor).
+  doctorNote        String?
   // ── Ciclo de vida END (22/10/26): encerramento REAL da teleconsulta. endedAt≠null →
   //    join bloqueado (403 TELECONSULTA_ENDED — fim da re-entrada infinita). Gravado por
   //    POST /end (paciente ou médico), pelo feedback 1-toque ou pelo auto-end do job
