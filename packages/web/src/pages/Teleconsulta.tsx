@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useMediaQuery, useTheme, Avatar } from '@mui/material';
 import CallEndIcon from '@mui/icons-material/CallEnd';
+import CallIcon from '@mui/icons-material/Call';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
@@ -67,7 +68,7 @@ interface Summary {
   endedAt?: string | null; // F4: consulta ENCERRADA (server marca no /end) → área read-only
   provider?: string | null;
   linkUrl?: string | null;
-  doctor?: { id?: string; name?: string; crm?: string; specialty?: string; photoUrl?: string } | null;
+  doctor?: { id?: string; name?: string; crm?: string; specialty?: string; photoUrl?: string; phone?: string } | null;
   patient?: { id?: string; name?: string; photoUrl?: string } | null;
   patientId?: string;
   doctorInRoom?: boolean; // WhatsApp-style: médico já entrou → pré-join vira "chamada recebida"
@@ -1698,6 +1699,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           </Stack>
         )}
 
+        {/* Fallback telefone (23/10, chamada real caiu de áudio): conexão ruim ou
+            médico saiu → paciente tem 1 toque pra salvar a consulta por ligação.
+            Telefone vem do perfil público do médico (opcional). */}
+        {role === 'patient' && (banner === 'reconnecting' || remoteLeft) && summary?.doctor?.phone && (
+          <Button
+            component="a"
+            href={`tel:${summary.doctor.phone}`}
+            size="small"
+            variant="contained"
+            startIcon={<CallIcon sx={{ fontSize: 16 }} />}
+            sx={{ position: 'absolute', top: 'calc(env(safe-area-inset-top) + 104px)', left: '50%', transform: 'translateX(-50%)', zIndex: 3, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12.5, px: 2.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)' }}
+          >
+            Problema na chamada? Ligar {summary.doctor.phone}
+          </Button>
+        )}
+
         {/* F3 §2b: pedido do médico chegou — painel flutuante (vidro) abaixo do header.
             Nunca cobre PiP nem controles (ancorado à esquerda, acima da barra). */}
         {role === 'patient' && examQueue[0] && (() => {
@@ -1947,6 +1964,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   patientId={briefPatientId}
                   authToken={authToken() ?? ''}
                   patientName={summary?.patient?.name || statePatientName || (role === 'patient' ? 'Meus exames' : null)}
+                  reason={summary?.title || null}
                 />
               </Box>
             </Box>

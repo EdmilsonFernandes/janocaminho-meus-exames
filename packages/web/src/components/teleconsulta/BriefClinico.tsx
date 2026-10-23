@@ -76,9 +76,10 @@ const ValueRow = ({ it, dim }: { it: BriefItem; dim?: boolean }) => {
   );
 };
 
-export const BriefClinico = ({ patientId, authToken, patientName }: { patientId: string; authToken: string; patientName?: string | null }) => {
+export const BriefClinico = ({ patientId, authToken, patientName, reason }: { patientId: string; authToken: string; patientName?: string | null; reason?: string | null }) => {
   const theme = useTheme();
   const [exams, setExams] = useState<BriefExam[] | null>(null);
+  const [totalExtracted, setTotalExtracted] = useState<number | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, BriefItem[]>>({});
@@ -89,7 +90,11 @@ export const BriefClinico = ({ patientId, authToken, patientName }: { patientId:
     setErr(null);
     fetch(`${API_URL}/doctor/patients/${patientId}/exams`, { headers: { Authorization: `Bearer ${authToken}` } })
       .then((r) => (r.ok ? r.json() : Promise.reject(r.status)))
-      .then((d: { items?: BriefExam[] }) => { if (id === reqId.current) setExams(d.items ?? []); })
+      .then((d: { items?: BriefExam[]; totalExtracted?: number }) => {
+        if (id !== reqId.current) return;
+        setExams(d.items ?? []);
+        if (typeof d.totalExtracted === 'number') setTotalExtracted(d.totalExtracted);
+      })
       .catch((s: unknown) => { if (id === reqId.current) { setExams(null); setErr(s === 403 ? 'O paciente ainda não compartilhou exames com você.' : 'Não foi possível carregar os exames agora.'); } });
   }, [patientId, authToken]);
 
@@ -127,6 +132,16 @@ export const BriefClinico = ({ patientId, authToken, patientName }: { patientId:
       <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 1.5 }}>
         {patientName ? `${patientName} · ` : ''}exames compartilhados — em destaque o que saiu da referência.
       </Typography>
+      {/* Razão da visita (padrão 2-B1 koruux: overview top-down) + compartilhamento
+          parcial (23/10): médico precisa SABER que existe exame que não enxerga. */}
+      {reason && (
+        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', mb: 0.75 }}>
+          Motivo da consulta: <Box component="span" sx={{ fontWeight: 600, color: 'text.secondary' }}>{reason}</Box>
+        </Typography>
+      )}
+      {totalExtracted != null && exams != null && exams.length > 0 && exams.length < totalExtracted && (
+        <Chip size="small" label={`Compartilhamento parcial — ${exams.length} de ${totalExtracted} exames`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px', mb: 1 }} />
+      )}
 
       {/* Carregando — skeleton (padrão da casa) */}
       {exams === null && !err && (

@@ -561,7 +561,11 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
     const panelRows = exams.length ? await prisma.examItem.findMany({ where: { examId: { in: exams.map((e) => e.id) } }, select: { examId: true, panel: true } }) : [];
     const panelsByExam = new Map<string, string[]>();
     for (const p of panelRows) { const arr = panelsByExam.get(p.examId) ?? []; arr.push(p.panel || ''); panelsByExam.set(p.examId, arr); }
-    res.json({ items: exams.map((e) => ({ id: e.id, title: synthesizeExamTitle(e.title, panelsByExam.get(e.id) ?? []), kind: e.kind, performedAt: e.performedAt, sourceLab: e.sourceLab, requestingDoctor: (e.rawExtraction as any)?.requestingDoctor ?? null, _count: e._count, items: e.items })) });
+    // Per-exam sharing: paciente selecionou exames específicos → médico só vê esses.
+    // totalExtracted (23/10): brief do médico mostra "Compartilhamento parcial · N de M"
+    // — sem isto o médico não sabe que existe mais exame que ele não enxerga.
+    const totalExtracted = await prisma.exam.count({ where: { patientId: req.params.patientId, status: 'EXTRACTED' } });
+    res.json({ items: exams.map((e) => ({ id: e.id, title: synthesizeExamTitle(e.title, panelsByExam.get(e.id) ?? []), kind: e.kind, performedAt: e.performedAt, sourceLab: e.sourceLab, requestingDoctor: (e.rawExtraction as any)?.requestingDoctor ?? null, _count: e._count, items: e.items })), totalExtracted });
   } catch (e) { next(e); }
 });
 

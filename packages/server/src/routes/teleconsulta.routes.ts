@@ -481,7 +481,8 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
         where: { id: (r as any).createdByDoctorId },
         // fix 23/10: idem — Doctor não tem crmState/avatarUrl (é crmUf/photoUrl)
         // → doctor sempre null → header do PACIENTE nunca mostrou nome/CRM do médico.
-        select: { name: true, crm: true, crmUf: true, specialty: true, photoUrl: true },
+        // phone (23/10): fallback "ligar por telefone" quando a chamada cai.
+        select: { name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true },
       }).catch(() => null) : null,
     ]);
     const fb: any = feedbackLog?.after ?? null;
@@ -523,6 +524,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
         crm: doctor.crm ? `${doctor.crm}${doctor.crmUf ? `/${doctor.crmUf}` : ''}` : undefined,
         specialty: doctor.specialty || undefined,
         photoUrl: doctor.photoUrl || undefined,
+        phone: doctor.phone || undefined,
       } : null,
     });
   } catch (e) {
