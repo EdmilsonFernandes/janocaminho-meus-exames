@@ -232,6 +232,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   });
   const summaryRef = useRef<Summary | null>(summary);
   useEffect(() => { summaryRef.current = summary; }, [summary]);
+  // Graça de 5 min quando o OUTRO participante cai (24/10 dono): não encerra
+  // "concluída" na hora — dá janela de reconexão antes do pós-chamada.
+  const graceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [phase, setPhase] = useState<Phase>('loading');
   const [camState, setCamState] = useState<CamState>('pending');
@@ -410,7 +413,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     if (typeof MediaRecorder === 'undefined' || mediaRecorderRef.current) return;
     try {
       const tracks = collectRoomAudioTracks(room);
-      if (!tracks.length) return;
+      if (!tracks.length) {
+        // Honestidade (23/10, chamada real): sem NENHUM áudio publicado não existe
+        // transcrição — avisar na hora, não deixar o médico descobrir no fim.
+        setToast({ text: 'Sem áudio capturado — a transcrição precisa do microfone ligado.', k: Date.now() });
+        return;
+      }
 
       let recordStream: MediaStream;
       try {
@@ -610,6 +618,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // sem passar pelo endCall, o upload parcial acontece aqui (chunks até então).
     // Idempotente: endCall/Disconnected já fizeram o flush → recorder null → early-return.
     void stopAndUploadRecording();
+    if (graceTimerRef.current) { clearTimeout(graceTimerRef.current); graceTimerRef.current = null; }
     const room = roomRef.current;
     roomRef.current = null;
     if (audioSink.current) audioSink.current.innerHTML = '';
@@ -682,6 +691,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         setOtherJoined(true);
         otherJoinedRef.current = true;
         setRemoteLeft(null);
+        // Voltou dentro da graça — cancela o timer de encerramento automático
+        if (graceTimerRef.current) { clearTimeout(graceTimerRef.current); graceTimerRef.current = null; }
         playJoinChime();
         hapticSuccess();
         if (summaryRef.current?.recordConsentAt && roomRef.current && !mediaRecorderRef.current) {
@@ -693,6 +704,35 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         setRemotes((cur) => cur.filter((r) => r.identity !== p.identity));
         setRemoteLeft(displayName);
         playLeaveChime();
+        // Dono 23/10: o outro saiu ≠ consulta encerrada. Se ELE encerrou (server),
+        // cai no pós-chamada com aviso claro; se só caiu a conexão, GRAÇA de 5 min
+        // p/ voltar antes de encerrar (nada de "concluída" imediata).
+        void (async () => {
+          if (graceTimerRef.current) { clearTimeout(graceTimerRef.current); graceTimerRef.current = null; }
+          try {
+            const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
+            if (r.ok) {
+              const d = await r.json().catch(() => null);
+              if (d?.endedAt) {
+                setSummary((cur) => (cur ? { ...cur, endedAt: d.endedAt } : cur));
+                setEnded({ sec: Math.round((Date.now() - (startedAtRef.current ?? Date.now())) / 1000) });
+                setPhase('ended');
+                setToast({ text: `${displayName} encerrou a consulta.`, k: Date.now() });
+                return;
+              }
+            }
+          } catch { /* offline — segue a graça padrão */ }
+          setToast({ text: `${displayName} saiu — aguardando voltar (até 5 min).`, k: Date.now() });
+          graceTimerRef.current = setTimeout(() => {
+            graceTimerRef.current = null;
+            if (roomRef.current && !otherJoinedRef.current) {
+              setEnded({ sec: Math.round((Date.now() - (startedAtRef.current ?? Date.now())) / 1000) });
+              setPhase('ended');
+              setToast({ text: 'Consulta encerrada — 5 min sem retorno do outro participante.', k: Date.now() });
+              hapticLight();
+            }
+          }, 5 * 60_000);
+        })();
       })
       .on(RoomEvent.Reconnecting, () => setBanner('reconnecting'))
       .on(RoomEvent.Reconnected, () => setBanner(null))
@@ -717,13 +757,23 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     let camOk = true;
     let micOk = true;
     try { await room.localParticipant.setMicrophoneEnabled(true); } catch { micOk = false; }
+    // Dono 23/10 (chamada REAL): mic falhava no AUTO-JOIN do APK — a permissão do
+    // WebView às vezes não está pronta quando o connect dispara na carga da página
+    // (sem gesto). Retry curto resolve a corrida; sem mic, o botão fica vermelho DE
+    // VERDADE e sem track não existe gravação/transcrição (era o sintoma da Heloisa).
+    if (!micOk) {
+      for (let i = 0; i < 3 && !micOk; i++) {
+        await new Promise((r) => setTimeout(r, 1500));
+        try { await room.localParticipant.setMicrophoneEnabled(true); micOk = true; } catch { /* tenta de novo */ }
+      }
+    }
     try {
       const pub = await room.localParticipant.setCameraEnabled(true);
       setLocalVideo(pub?.videoTrack ?? null);
     } catch { camOk = false; }
     setMicOn(micOk);
     setCamOn(camOk);
-    if (!micOk || !camOk) setToast({ text: camOk ? 'Sem microfone — entre com o que tiver.' : 'Câmera bloqueada — você também pode entrar só com áudio.', k: Date.now() });
+    if (!micOk || !camOk) setToast({ text: !micOk ? 'Sem microfone — verifique a permissão do app. A transcrição precisa de áudio.' : camOk ? 'Sem microfone — entre com o que tiver.' : 'Câmera bloqueada — você também pode entrar só com áudio.', k: Date.now() });
 
     setStartedAt(Date.now());
     startedAtRef.current = Date.now();
@@ -734,7 +784,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       startRoomRecording(room);
     }
     try { wakeLock.current = await (navigator as any).wakeLock?.request('screen'); } catch { /* WebView sem wakelock — ok */ }
-  }, [markEnded, playJoinChime, playLeaveChime, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom, otherJoined]);
+  }, [authToken, hapticLight, markEnded, playJoinChime, playLeaveChime, reminderId, restartRoomRecording, role, startRoomRecording, stopAndUploadRecording, teardownRoom, otherJoined]);
 
   // ── Join via backend ─────────────────────────────────────────────────────────
   const startJoin = useCallback(async (s?: Summary | null) => {
@@ -2226,9 +2276,26 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 Consulta encerrada
               </Typography>
               <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.25 }}>
-                {docPatientName ? `Paciente: ${docPatientName} · ` : ''}Duração · {areaSummary?.durationHint || min}
+                {docPatientName ? `Paciente: ${docPatientName} · ` : ''}duração {areaSummary?.durationHint || min}
               </Typography>
             </Box>
+          </Stack>
+
+          {/* Bater o olho (dono 23/10): os fatos da consulta em 1 linha — o médico
+              reabre e SABE o que tem aqui sem caçar seção por seção. */}
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 2 }}>
+            <Chip size="small" label={`⏱ ${areaSummary?.durationHint || min}`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px' }} />
+            {docTxReady ? (
+              <Chip size="small" label="Transcrição pronta" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px' }} />
+            ) : docTxPending ? (
+              <Chip size="small" label="Transcrição processando…" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
+            ) : (
+              <Chip size="small" label={areaSummary?.recordConsentAt || summary?.recordConsentAt ? 'Sem transcrição (áudio não capturado)' : 'Sem gravação'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px' }} />
+            )}
+            {docReqs.length > 0 && (
+              <Chip size="small" label={`${docReqs.length} pedido${docReqs.length > 1 ? 's' : ''} de exame`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', borderRadius: '8px' }} />
+            )}
+            <Chip size="small" label={noteSaved ? 'Nota no prontuário' : 'Nota não salva'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: noteSaved ? 'rgba(32,178,170,.10)' : 'action.hover', color: noteSaved ? (t) => tealText(t.palette.mode) : 'text.secondary', borderRadius: '8px' }} />
           </Stack>
 
           {/* Pedidos de exame — mesmo card do paciente; médico vê status (read-only). */}

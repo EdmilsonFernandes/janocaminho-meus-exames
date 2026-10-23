@@ -5,6 +5,10 @@ const config: CapacitorConfig = {
   appName: 'Meus Exames',
   webDir: 'www',
   android: {
+    // Chamada REAL 23/10: sem isto o WebView BLOQUEIA o áudio do outro participante
+    // até um gesto do usuário — o elemento <audio> remoto nasce depois do join
+    // (sem clique) e a paciente ficava muda. Autoplay de mídia liberado no app.
+    mediaPlaybackRequiresUserAction: false,
     // Android 15+ (targetSdk>=35) força edge-to-edge: sem isso o WebView desenha POR TRÁS da
     // status bar e da gesture bar (env(safe-area-inset-*) volta 0 no Android WebView → nada
     // compensa). 'auto' = Capacitor aplica margins no WebView só no 15+ (padrão do Capacitor
