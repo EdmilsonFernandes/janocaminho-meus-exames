@@ -6,14 +6,17 @@
 // (display único ponto de gate). Agendamento: além do push, dispara e-mail com
 // CTA direto pra sala (sendEmail é mockado no setup — assertimos a chamada).
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
 import { prisma } from '../src/prisma';
 import { sendEmail } from '../src/utils/mailer';
 import { api, createUser, createDoctor, resetDb } from './helpers';
 
 const H2 = (t: string) => ({ Authorization: `Bearer ${t}` });
-const PHOTO = readFileSync(join(__dirname, 'fixtures', 'daniel1.jpg'));
+// PNG 8x8 inline (floor do sharp) — fixture .jpg do repo local é gitignored e o CI
+// não o tinha (ENOENT no runner, run 39950771853). Sem dependência de arquivo.
+const PHOTO = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII=',
+  'base64',
+);
 
 describe('POST /api/doctor/me/photo (Pro-only)', () => {
   beforeEach(async () => {
