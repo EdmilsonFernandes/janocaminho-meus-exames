@@ -487,6 +487,15 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   }, []);
 
   const loadDoctorTele = () => fetch(`${API_URL}/doctor/teleconsultas`, { headers: h }).then((r) => r.json()).then((d) => setDoctorTele(d.items ?? [])).catch(() => {});
+  // fix dono 23/10: consulta recém-agendada não aparecia sem sair/entrar do app —
+  // refetch no focus (voltar pro app) + a cada 60s enquanto a tela está visível.
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') { loadPatients(); loadDoctorTele(); } };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const iv = setInterval(refresh, 60_000);
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); clearInterval(iv); };
+  }, []);
 
   // --- Convite de paciente (funil de aquisição: pré-cadastro no agendamento) ---
   const loadInvites = () => fetch(`${API_URL}/doctor/invites`, { headers: h }).then((r) => r.json()).then((d) => setInvites(d.items ?? [])).catch(() => {});
@@ -1643,7 +1652,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               {patients.map((p) => {
                 const id = p.patient?.id || p.id;
                 const name = p.patient?.fullName || p.name || 'Paciente';
-                const photo = p.patient?.photoUrl || p.photoUrl;
+                // fix dono 23/10: src com a REF crua nunca carregava — a foto do
+                // paciente é servida via token (photoUrlFor), como no resto do portal.
+                const photo = id ? photoUrlFor(String(id)) : undefined;
                 return (
                   <MenuItem key={id} value={id}>
                     <Stack direction="row" spacing={1.25} alignItems="center">

@@ -1563,7 +1563,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   <Typography sx={{ color: 'rgba(255,255,255,0.78)', fontSize: 12.5, lineHeight: 1.45, mt: 0.5 }}>
                     {role === 'doctor'
                       ? 'Deseja gravar o áudio desta consulta para gerar automaticamente a transcrição clínica e o prontuário por IA?'
-                      : 'Desejam gravar o áudio desta consulta para gerar automaticamente o resumo e a transcrição médica por IA?'}
+                      : 'Vocês dois estão na chamada. Autoriza gravar o áudio para gerar o resumo e a transcrição por IA? A gravação começa assim que você aprovar — e é opcional.'}
                   </Typography>
                 </Box>
                 <IconButton

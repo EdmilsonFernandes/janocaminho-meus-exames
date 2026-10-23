@@ -203,7 +203,16 @@ export const BriefClinico = ({ patientId, authToken, patientName }: { patientId:
                     <Box sx={{ mt: 0.5 }}>
                       {abnormal.slice(0, open ? abnormal.length : 3).map((it, i) => <ValueRow key={`${e.id}-ab-${i}`} it={it} />)}
                       {!open && abnormal.length > 3 && (
-                        <Typography sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode), pl: 0.5 }}>+{abnormal.length - 3} alterados…</Typography>
+                        <Typography
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Ver todos os ${abnormal.length} valores alterados`}
+                          onClick={() => void toggle(e.id)}
+                          onKeyDown={(ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); void toggle(e.id); } }}
+                          sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode), pl: 0.5, minHeight: 32, display: 'flex', alignItems: 'center', cursor: 'pointer', '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 2, borderRadius: '8px' } }}
+                        >
+                          +{abnormal.length - 3} alterados — toque para ver todos
+                        </Typography>
                       )}
                     </Box>
                   ) : (

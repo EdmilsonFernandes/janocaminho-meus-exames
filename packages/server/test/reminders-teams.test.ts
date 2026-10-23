@@ -72,45 +72,45 @@ describe('roll de recorrência (rollRecurringReminders)', () => {
 describe('teleconsulta — criação, consentimento e validações', () => {
   beforeEach(async () => { await resetDb(); });
 
-  it('PACIENTE cria teleconsulta com link e recorrência (POST /api/reminders)', async () => {
+  // Dono 23/10: teleconsulta é agendada SÓ pelo médico. Estes testes cobrem o
+  // GUARD — o fluxo completo de criação ficou no describe do médico abaixo.
+  it('PACIENTE não cria teleconsulta → 403 com instrução (só o médico agenda)', async () => {
     const { token, patient } = await createUser();
     const r = await api().post('/api/reminders').set(H(token)).send({
       patientId: patient.id, title: 'Teleconsulta cardiologista',
       dueDate: new Date(Date.now() + 3 * DAY).toISOString(),
       type: 'teleconsulta', linkUrl: 'https://meet.google.com/xyz-abc', recurrence: 'mensal',
     });
-    expect(r.status).toBe(201);
-    expect(r.body).toMatchObject({ type: 'teleconsulta', linkUrl: 'https://meet.google.com/xyz-abc', recurrence: 'mensal', consentAt: null });
+    expect(r.status).toBe(403);
+    expect(r.body.error).toContain('médico');
   });
 
-  it('teleconsulta SEM link é rejeitada (o botão Entrar precisa de destino)', async () => {
+  it('guard vale TAMBÉM sem link e com link inválido (não chega na validação de link)', async () => {
     const { token, patient } = await createUser();
-    const r = await api().post('/api/reminders').set(H(token)).send({
+    const noLink = await api().post('/api/reminders').set(H(token)).send({
       patientId: patient.id, title: 'Sem link', dueDate: new Date().toISOString(), type: 'teleconsulta',
     });
-    expect(r.status).toBe(400);
-  });
-
-  it('link não-http é rejeitado (whitelist — nunca javascript: ou afins)', async () => {
-    const { token, patient } = await createUser();
-    const r = await api().post('/api/reminders').set(H(token)).send({
+    expect(noLink.status).toBe(403);
+    const badLink = await api().post('/api/reminders').set(H(token)).send({
       patientId: patient.id, title: 'Link ruim', dueDate: new Date().toISOString(), type: 'teleconsulta', linkUrl: 'javascript:alert(1)',
     });
-    expect(r.status).toBe(400);
-    expect(r.body.error).toContain('link');
+    expect(badLink.status).toBe(403);
   });
 
   it('CONSENTIMENTO (PUT /:id/consent): carimba UMA vez, só p/ teleconsulta, só pro dono', async () => {
-    const { token, patient } = await createUser();
-    const r = await api().post('/api/reminders').set(H(token)).send({
-      patientId: patient.id, title: 'Tele', dueDate: new Date(Date.now() + DAY).toISOString(), type: 'teleconsulta', linkUrl: 'https://meet.google.com/ok',
+    const { user, token, patient } = await createUser();
+    // Teleconsulta criada direto no banco (rota de criação do paciente está
+    // bloqueada — simula a que o MÉDICO agendou, dono do reminder = paciente).
+    const tele = await prisma.reminder.create({
+      data: { ownerId: user.id, patientId: patient.id, title: 'Tele', dueDate: new Date(Date.now() + DAY), type: 'teleconsulta', linkUrl: 'https://meet.google.com/ok' },
+      select: { id: true },
     });
-    const c1 = await api().put(`/api/reminders/${r.body.id}/consent`).set(H(token));
+    const c1 = await api().put(`/api/reminders/${tele.id}/consent`).set(H(token));
     expect(c1.status).toBe(200);
     expect(c1.body.consentAt).toBeTruthy();
     // Re-aceitar não re-carimba (o PRIMEIRO aceite é o que vale — histórico preservado)
     await new Promise((res) => setTimeout(res, 20));
-    const c2 = await api().put(`/api/reminders/${r.body.id}/consent`).set(H(token));
+    const c2 = await api().put(`/api/reminders/${tele.id}/consent`).set(H(token));
     expect(c2.body.consentAt).toBe(c1.body.consentAt);
 
     // Lembrete comum → 400
@@ -120,7 +120,7 @@ describe('teleconsulta — criação, consentimento e validações', () => {
 
     // Outro usuário → 404 (não vaza)
     const b = await createUser();
-    const c4 = await api().put(`/api/reminders/${r.body.id}/consent`).set(H(b.token));
+    const c4 = await api().put(`/api/reminders/${tele.id}/consent`).set(H(b.token));
     expect(c4.status).toBe(404);
   });
 });

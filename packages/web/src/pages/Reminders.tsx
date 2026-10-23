@@ -54,7 +54,9 @@ const DEFAULT_OFFSETS = [1440, 300, 0];
 const offsetShort = (o: number) => OFFSET_PALETTE.find((p) => p.o === o)?.l ?? (o >= 1440 ? `${Math.round(o / 1440)} dias antes` : o >= 60 ? `${Math.round(o / 60)} h antes` : 'Na hora');
 
 const TYPES: { v: string; l: string; icon: ReactElement; color: string; sug: [string, string | null][] }[] = [
-  { v: 'teleconsulta', l: 'Teleconsulta', icon: <VideocamIcon sx={{ fontSize: 16 }} />, color: '#0d9488', sug: [['Teleconsulta com meu médico', null]] },
+  // fix dono 23/10: 'teleconsulta' SAIU da lista do paciente — consulta por vídeo
+  // é agendada SÓ pelo médico (portal). Paciente cria consulta PRESENCIAL como
+  // lembrete; as teleconsultas do médico continuam aparecendo na aba Consultas.
   { v: 'consulta', l: 'Consulta presencial', icon: <MedicalServicesIcon sx={{ fontSize: 16 }} />, color: '#7c3aed', sug: [['Consulta de rotina', 'anual'], ['Retorno com especialista', null]] },
   { v: 'medicamento', l: 'Medicamento', icon: <MedicationIcon sx={{ fontSize: 16 }} />, color: '#d97706', sug: [['Tomar medicação diária', 'diario'], ['Renovar receita', 'mensal']] },
   { v: 'exame', l: 'Exame / Jejum', icon: <ScienceIcon sx={{ fontSize: 16 }} />, color: '#0284c7', sug: [['Refazer exame de sangue', 'semestral'], ['Jejum de 8h para exames', null], ['Buscar resultado de laudo', null]] },
@@ -90,7 +92,7 @@ export const RemindersPage = () => {
   const tabParam = searchParams.get('tab') as 'consultas' | 'medicamentos' | 'lembretes' | null;
   const setTab = (tab: 'consultas' | 'medicamentos' | 'lembretes') => {
     setSearchParams({ tab });
-    if (tab === 'consultas') setRtype('teleconsulta');
+    if (tab === 'consultas') setRtype('consulta');
     else if (tab === 'medicamentos') setRtype('medicamento');
     else setRtype('exame');
   };
@@ -118,6 +120,15 @@ export const RemindersPage = () => {
     if (r.ok) setItems(await r.json());
   };
 
+  // fix dono 23/10: consulta agendada pelo MÉDICO não aparecia sem sair/entrar —
+  // refetch no focus + a cada 60s visível (o push chega antes da lista atualizar sozinha).
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void load(); };
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    const iv = setInterval(refresh, 60_000);
+    return () => { window.removeEventListener('focus', refresh); document.removeEventListener('visibilitychange', refresh); clearInterval(iv); };
+  }, []);
   const loadExamRequests = async () => {
     if (!pid) return;
     try {
@@ -919,7 +930,7 @@ export const RemindersPage = () => {
             <Button
               variant="contained"
               size="small"
-              onClick={() => { setRtype('teleconsulta'); setFormOpen(true); }}
+              onClick={() => { setRtype('consulta'); setFormOpen(true); }}
               startIcon={<AddAlarmIcon />}
               sx={{
                 borderRadius: '999px',
@@ -944,7 +955,7 @@ export const RemindersPage = () => {
                 <Stack direction="row" spacing={1.25} justifyContent="center" flexWrap="wrap" useFlexGap>
                   <Button
                     variant="contained"
-                    onClick={() => { setRtype('teleconsulta'); setFormOpen(true); }}
+                    onClick={() => { setRtype('consulta'); setFormOpen(true); }}
                     startIcon={<AddAlarmIcon />}
                     sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0d9488', px: 3 }}
                   >

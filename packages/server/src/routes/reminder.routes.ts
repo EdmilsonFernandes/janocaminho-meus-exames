@@ -80,7 +80,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const type = parseType(b.type);
     const linkUrl = parseLinkUrl(b.linkUrl);
     // Teleconsulta sem link não faz sentido (o botão "Entrar" não teria pra onde levar).
-    if (type === 'teleconsulta' && !linkUrl) { res.status(400).json({ error: 'Teleconsulta precisa do link da chamada (Meet/Teams/WhatsApp).' }); return; }
+    // Dono 23/10: teleconsulta é agendada SÓ pelo médico (portal dele) — evita
+    // salas paralelas/confusão de "quem criou". Paciente pede ao médico.
+    if (type === 'teleconsulta') { res.status(403).json({ error: 'Teleconsulta é agendada pelo seu médico no portal dele. Peça para ele agendar por lá.' }); return; }
     const r = await prisma.reminder.create({
       data: {
         ownerId: req.userId!, patientId: pid, title: String(title), dueDate: new Date(dueDate),
