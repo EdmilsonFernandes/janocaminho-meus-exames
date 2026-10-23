@@ -466,11 +466,16 @@ router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any,
 // SERVE a foto do médico: AUTENTICADA via ?t= (fecha o buraco da foto pública por CUID / LGPD).
 router.get('/photo/:id', requirePhotoToken, async (req, res) => {
   try {
-    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true, plan: true, planExpiresAt: true } });
-    // Pro-only (dono 23/10): plano free não exibe — 404 e a UI volta pra iniciais.
-    // Um único ponto de gate cobre todos os displays (card, teleconsulta, portal).
+    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { id: true, photoUrl: true, plan: true, planExpiresAt: true } });
+    // Pro-only (dono 23/10): plano free não exibe pro PACIENTE — 404 e a UI volta
+    // pra iniciais. Auto-visão liberada (24/10): o médico vê a PRÓPRIA foto no
+    // portal dele mesmo no free — bloquear identidade do dono foi efeito colateral
+    // hostil ("a foto do médico sumiu no dashboard dele").
     const pro = doctor?.plan === 'premium' && !!doctor.planExpiresAt && doctor.planExpiresAt > new Date();
-    if (!doctor?.photoUrl || !pro) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
+    const tok = (typeof req.query.t === 'string' ? req.query.t : null)
+      || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
+    const self = (() => { try { const p: any = verifyDoctorToken(tok ?? ''); return p?.doctorId && p.doctorId === doctor?.id; } catch { return false; } })();
+    if (!doctor?.photoUrl || (!pro && !self)) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
     const r = await resolvePatientPhoto(doctor.photoUrl);
     if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); return res.redirect(r.url); }
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -785,6 +790,68 @@ router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res,
       avgSteps: Math.round(avg('s')),
       avgKcal: Math.round(avg('c')),
       avgKm: Math.round(avg('d') * 10) / 10,
+    });
+  } catch (e) { next(e); }
+});
+
+// SINAIS VITAIS do paciente (Health Connect → measurements, note='Health Connect') p/ o
+// Brief da teleconsulta: série diária (últimos 90d) + summary 30d. FC aqui é a de repouso
+// (o sync manda hrRest ?? hrAvg por dia); sono = minutos dormidos na noite do dia; peso =
+// última medição manual WEIGHT (o bridge do Health Connect não expõe peso). Reuso da
+// tabela measurements — MESMA fonte da verdade do paciente (Linha do Tempo/Evolução), sem
+// tabela nova. Scope 'exams' (mesma família de dado de saúde do paciente); 403 sem share.
+router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, next) => {
+  void auditLog(req, 'doctor_viewed_vitals', String(req.params.patientId));
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const since = new Date(Date.now() - 90 * 86400000);
+    const rows = await prisma.measurement.findMany({
+      where: { patientId: pid, type: { in: ['STEPS', 'CALORIES', 'HEART_RATE', 'SLEEP_MINUTES', 'EXERCISE_MINUTES'] }, note: 'Health Connect', measuredAt: { gte: since } },
+      orderBy: [{ measuredAt: 'desc' }, { createdAt: 'desc' }],
+      select: { type: true, value: true, measuredAt: true, createdAt: true },
+    });
+    // Última WEIGHT manual (qualquer note) — best-effort p/ o chip de peso do brief.
+    const weight = await prisma.measurement.findFirst({ where: { patientId: pid, type: 'WEIGHT' }, orderBy: { measuredAt: 'desc' }, select: { value: true, measuredAt: true } });
+
+    // Dedup por type+dia (sort desc → 1º visto = mais recente; syncs distintos podem cruzar
+    // a janela de 90d). Mesma estratégia do /measurements/activity-summary.
+    type DayAcc = { date: string; restingHr: number; sleepMinutes: number; steps: number; activeKcal: number; exerciseMin: number };
+    const byDay = new Map<string, DayAcc>();
+    let lastSyncAt: Date | null = null;
+    for (const r of rows) {
+      const date = r.measuredAt.toISOString().slice(0, 10);
+      const acc = byDay.get(date) ?? { date, restingHr: 0, sleepMinutes: 0, steps: 0, activeKcal: 0, exerciseMin: 0 };
+      if (r.type === 'STEPS' && !acc.steps) acc.steps = r.value;
+      else if (r.type === 'HEART_RATE' && !acc.restingHr) acc.restingHr = r.value;
+      else if (r.type === 'SLEEP_MINUTES' && !acc.sleepMinutes) acc.sleepMinutes = r.value;
+      else if (r.type === 'CALORIES' && !acc.activeKcal) acc.activeKcal = r.value;
+      else if (r.type === 'EXERCISE_MINUTES' && !acc.exerciseMin) acc.exerciseMin = r.value;
+      byDay.set(date, acc);
+      if (!lastSyncAt || r.createdAt > lastSyncAt) lastSyncAt = r.createdAt;
+    }
+    const days = [...byDay.values()].sort((a, b) => (a.date < b.date ? 1 : -1)); // DESC — mais recente primeiro
+
+    // Summary: médias 30d sobre os dias COM dado da métrica (zero = sem registro, não conta).
+    const cutoff = Date.now() - 30 * 86400000;
+    const last30 = days.filter((d) => new Date(`${d.date}T12:00:00Z`).getTime() >= cutoff);
+    const avgOf = (pick: (d: DayAcc) => number) => {
+      const v = last30.map(pick).filter((x) => x > 0);
+      return v.length ? Math.round(v.reduce((t, x) => t + x, 0) / v.length) : null;
+    };
+    res.json({
+      days,
+      summary: {
+        restingHrAvg30d: avgOf((d) => d.restingHr),
+        sleepAvg30dMin: avgOf((d) => d.sleepMinutes),
+        stepsAvg30d: avgOf((d) => d.steps),
+        activeKcalAvg30d: avgOf((d) => d.activeKcal),
+        lastWeightKg: weight && weight.value > 0 ? weight.value : null,
+        lastWeightAt: weight?.measuredAt ?? null,
+        lastDay: days[0]?.date ?? null,
+      },
+      lastSyncAt,
     });
   } catch (e) { next(e); }
 });
