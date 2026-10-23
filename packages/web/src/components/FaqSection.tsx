@@ -33,6 +33,10 @@ export const FAQ_ITEMS = [
     a: `Não. Envie seu primeiro exame (PDF ou foto) e ganhe créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico. Só assina ou compra créditos avulsos se precisar de mais.`,
   },
   {
+    q: 'Como funciona a consulta por vídeo dentro do app?',
+    a: 'Seu médico agenda e você entra na chamada direto no Dr. Exame — sem link externo, sem Meet ou Zoom. Antes de começar, você autoriza a telemedicina (Art. 15 da Res. CFM 2.314/22). Se quiser, a IA transcreve a consulta: o áudio é descartado e o texto organizado fica no seu prontuário. Consultas particulares são pagas por PIX no próprio card da consulta — o médico define o valor.',
+  },
+  {
     q: 'Treino pesado ou tomo suplementos. O Dr. Exame entende meus exames esportivos?',
     a: 'Sim! Atletas de alta performance, corredores e praticantes de musculação frequentemente têm CK, TGO e creatinina elevadas sem que haja qualquer doença no fígado ou rins. O Dr. Exame conta com o Modo Saúde Esportiva: ele cruza os dados com o histórico de treinos e suplementação declarada (como creatina), desmistifica falsos positivos e avisa quando marcadores críticos (como hematócrito em reposição hormonal/TRT) pedem atenção clínica.',
   },

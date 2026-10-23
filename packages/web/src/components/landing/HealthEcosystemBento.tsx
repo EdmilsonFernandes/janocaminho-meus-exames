@@ -174,7 +174,7 @@ export const HealthEcosystemBento = ({ onRegister }: HealthEcosystemBentoProps) 
                 Lê seu relógio e celular
               </Typography>
               <Typography sx={{ color: 'text.secondary', fontSize: 14.5, lineHeight: 1.6, mb: 2.5 }}>
-                Integração nativa com <b>Google Health Connect</b> e Apple Health. Cruza colesterol com sedentarismo e sono profundo para cálculo de risco real.
+                Integração nativa com <b>Google Health Connect</b> e Apple Health. Cruza colesterol com sedentarismo e sono profundo para cálculo de risco real — e, na teleconsulta, esses dados chegam junto na tela do médico.
               </Typography>
             </Box>
 

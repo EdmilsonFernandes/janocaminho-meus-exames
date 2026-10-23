@@ -6,13 +6,13 @@ import MicOffIcon from '@mui/icons-material/MicOff';
 import VideocamOffOutlinedIcon from '@mui/icons-material/VideocamOffOutlined';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import EventRepeatIcon from '@mui/icons-material/EventRepeat';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import SignalCellularAltIcon from '@mui/icons-material/SignalCellularAlt';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import SecurityIcon from '@mui/icons-material/Security';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import WatchIcon from '@mui/icons-material/Watch';
+import QrCode2Icon from '@mui/icons-material/QrCode2';
 import { DrExame } from '../DrExame';
 
 type Phase = 'prejoin' | 'connecting' | 'incall';
@@ -178,24 +178,34 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
           <Stack spacing={2} sx={{ mb: 4 }}>
             {[
               {
+                icon: <AutoAwesomeIcon sx={{ fontSize: 21 }} />,
+                title: 'Brief clínico do médico durante a chamada',
+                desc: 'Valores alterados em destaque e o histórico do paciente a um toque — sem caçar em outro app.',
+              },
+              {
+                icon: <WatchIcon sx={{ fontSize: 21 }} />,
+                title: 'Sinais vitais do smartwatch chegam junto',
+                desc: 'Sono, batimentos e passos (Health Connect) já na tela do médico na hora da consulta.',
+              },
+              {
                 icon: <VideocamIcon sx={{ fontSize: 21 }} />,
-                title: 'Chamada Direto no App (Sem App Externo)',
-                desc: 'Vídeo e áudio de alta fidelidade sem precisar baixar Google Meet ou Zoom.',
+                title: 'Chamada de vídeo direto no app',
+                desc: 'Sem link externo, sem Google Meet ou Zoom — vídeo e áudio em alta definição, sala privativa.',
+              },
+              {
+                icon: <MicIcon sx={{ fontSize: 21 }} />,
+                title: 'Transcrição da consulta por IA ✨',
+                desc: 'Só com o seu consentimento: o áudio é efêmero e o texto organizado fica no prontuário.',
+              },
+              {
+                icon: <QrCode2Icon sx={{ fontSize: 21 }} />,
+                title: 'Consulta particular com PIX no app',
+                desc: 'O médico define o valor, você paga no card da consulta — sem repasse, sem burocracia.',
               },
               {
                 icon: <VerifiedIcon sx={{ fontSize: 21 }} />,
                 title: 'Consentimento Art. 15 · CFM 2.314/22',
                 desc: 'Registro eletrônico de autorização antes de iniciar, cumprindo o padrão CFM.',
-              },
-              {
-                icon: <NotificationsActiveIcon sx={{ fontSize: 21 }} />,
-                title: 'Lembretes Inteligentes no Celular',
-                desc: 'Push e avisos programados para paciente e médico não perderem o horário.',
-              },
-              {
-                icon: <SecurityIcon sx={{ fontSize: 21 }} />,
-                title: 'Sala Privativa & Criptografia Ponta a Ponta',
-                desc: 'Seus dados de saúde e sua consulta protegidos com tecnologia WebRTC segura.',
               },
             ].map((f) => (
               <Stack key={f.title} direction="row" spacing={1.75} alignItems="flex-start">

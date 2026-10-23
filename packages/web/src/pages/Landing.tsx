@@ -33,6 +33,8 @@ import { PaymentLogos } from '../components/PaymentLogos';
 import { SportsSection } from '../components/landing/SportsSection';
 // FAQ esportivo: lazy — só entra no bundle quando a variante ?sports=1 abre (CWV).
 const SportsFaq = lazy(() => import('../components/landing/SportsFaq').then((m) => ({ default: m.SportsFaq })));
+// Teleconsulta — chunk próprio: showcase animado de ~34K não pode pesar a 1ª dobra (CWV).
+const TeleconsultaShowcase = lazy(() => import('../components/landing/TeleconsultaShowcase').then((m) => ({ default: m.TeleconsultaShowcase })));
 import { HeroRuler } from '../components/landing/HeroRuler';
 import { ProductPreview } from '../components/landing/ProductPreview';
 import { HealthEcosystemBento } from '../components/landing/HealthEcosystemBento';
@@ -703,6 +705,14 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
+      {/* TELECONSULTA NO APP — a estrela nova pós-risco: descobriu o que pedir
+          atenção → converse com um médico SEM sair do Dr. Exame (vídeo no app,
+          brief do médico na chamada, transcrição IA, PIX no card da consulta).
+          Lazy: chunk desce depois do load, dobra inicial intacta. */}
+      <Suspense fallback={null}>
+        <TeleconsultaShowcase onCta={() => navigate('/registrar')} />
+      </Suspense>
+
       {/* ECOSSISTEMA & CUIDADO INTEGRAL — Bento Grid ultra premium unificado */}
       <ScrollReveal>
         <HealthEcosystemBento onRegister={() => navigate('/registrar')} />
@@ -839,13 +849,16 @@ export const LandingPage = () => {
       <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 4, md: 5 } }}>
         <Container maxWidth="md" sx={{ textAlign: 'center' }}>
           <Typography sx={{ fontSize: { xs: 17, md: 19 }, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
-            É médico? Receba o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de pré-consulta</Box> de cada paciente.
+            É médico? Veja o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de cada paciente</Box> — e atenda por vídeo sem sair do Dr. Exame.
           </Typography>
-          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 0.5, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
-            Top 3 mudanças, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Grátis pra começar.
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 0.5, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
+            Valores alterados em destaque, sinais vitais do smartwatch, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Na teleconsulta, o QuickNote vai direto pro prontuário, você define o valor e o paciente paga por PIX no card da consulta.
           </Typography>
-          <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 1.5, maxWidth: 520, mx: 'auto', lineHeight: 1.55 }}>
+          <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 0.75, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
             E tem mais: <Box component="b" sx={{ color: '#b88a54' }}>pesquisas clínicas recrutando no Brasil</Box> direto no brief de cada paciente.
+          </Typography>
+          <Typography variant="caption" sx={{ display: 'block', mb: 1.75, color: 'text.secondary', fontWeight: 600 }}>
+            Grátis pra começar · Dr. Exame Pro por R$ 29,90/mês
           </Typography>
           <Button variant="outlined" onClick={() => navigate('/doctor')} sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'rgba(212,165,116,.5)', color: '#b88a54', '&:hover': { borderColor: '#b88a54', bgcolor: 'rgba(212,165,116,.08)' } }}>
             Conhecer o Portal do Médico →
