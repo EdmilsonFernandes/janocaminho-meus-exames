@@ -100,7 +100,9 @@ router.post('/openpix', async (req, res) => {
     const countFromCorrelation = Number(String(correlationID).split('_')[2] ?? 0);
     const pixCredits = (sub as any).pixCredits ?? null;
     const kind =
-      sub.mpPreferenceId === 'api_pack'
+      sub.mpPreferenceId?.startsWith('teleconsulta_')
+        ? { type: 'teleconsulta' as const, reminderId: sub.mpPreferenceId.slice('teleconsulta_'.length) }
+        : sub.mpPreferenceId === 'api_pack'
         ? { type: 'api' as const, calls: pixCredits ?? countFromCorrelation }
         : sub.mpPreferenceId === 'report_pack'
           ? { type: 'report' as const, vouchers: pixCredits ?? 1 }

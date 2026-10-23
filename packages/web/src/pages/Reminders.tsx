@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { confirmDialog } from '../components/ConfirmDialog';
+import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -25,6 +25,8 @@ import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import VerifiedIcon from '@mui/icons-material/Verified';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
+import PaymentsIcon from '@mui/icons-material/Payments';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate, useSearchParams } from 'react-router-dom';
@@ -72,6 +74,8 @@ const RECUR: { v: string | null; l: string }[] = [
   { v: 'anual', l: 'Anual' },
 ];
 const recurLabel = (v?: string | null) => RECUR.find((r) => r.v === v)?.l ?? null;
+// Consulta particular (23/10): centavos → "R$ X,XX" (pt-BR, sem módulo de moeda).
+const fmtBrl = (c: number) => (c / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const groupOf = (due: string): 'today' | 'week' | 'later' => {
   const d = new Date(due);
@@ -272,6 +276,48 @@ export const RemindersPage = () => {
     const iv = setInterval(() => void poll(), 5000);
     return () => { stop = true; clearInterval(iv); };
   }, [items]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── CONSULTA PARTICULAR (23/10/26): paciente paga a teleconsulta no app (PIX).
+  // POST /billing/teleconsulta/:id cria a cobrança no padrão do relatório avulso;
+  // 409 + pendingPix = retomada do MESMO QR (não gera ordem nova). O poll em
+  // /billing/payment-status/:id detecta a aprovação do webhook e marca "Paga ✓".
+  const [payTele, setPayTele] = useState<any | null>(null);
+  const [payBusyId, setPayBusyId] = useState<string | null>(null);
+
+  const payTeleconsulta = async (r: any) => {
+    setPayBusyId(r.id);
+    try {
+      const res = await fetch(`${API_URL}/billing/teleconsulta/${r.id}`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
+      const d: any = await res.json().catch(() => ({}));
+      if (res.status === 409 && d.pendingPix) { hapticLight(); setPayTele({ ...d.pendingPix, reminderId: r.id }); return; }
+      if (!res.ok) throw new Error(d.error || 'Falha ao gerar a cobrança.');
+      hapticLight();
+      setPayTele({ reminderId: r.id, paymentId: d.paymentId, qrCode: d.qrCode, qrBase64: d.qrBase64, expiresAt: d.expiresAt, priceCents: d.priceCents });
+    } catch (e: any) {
+      hapticError();
+      snackbar({ message: e?.message || 'Falha ao gerar a cobrança.', severity: 'error' });
+    } finally { setPayBusyId(null); }
+  };
+
+  useEffect(() => {
+    if (!payTele?.paymentId) return;
+    const rid = payTele.reminderId;
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/billing/payment-status/${payTele.paymentId}`, { headers: { Authorization: `Bearer ${token()}` } });
+        if (!res.ok) return;
+        const d = await res.json();
+        if (d?.approved) {
+          clearInterval(iv);
+          setPayTele(null);
+          setItems((list) => list.map((it) => (it.id === rid ? { ...it, paidAt: new Date().toISOString() } : it)));
+          hapticSuccess();
+          snackbar({ message: '✓ Consulta paga! Pagamento confirmado.', severity: 'success' });
+        }
+      } catch { /* offline: o próximo tick tenta de novo */ }
+    }, 3000);
+    return () => clearInterval(iv);
+  }, [payTele?.paymentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
   const renderConsultationCard = (r: any) => {
@@ -649,6 +695,41 @@ export const RemindersPage = () => {
                   Ver Consulta
                 </Button>
               ) : null}
+
+              {/* Consulta particular (23/10): "Pagar consulta" (cobre) ou "Paga ✓" (verde). */}
+              {(r.consultPriceCents ?? 0) > 0 && (
+                r.paidAt ? (
+                  <Chip
+                    size="small"
+                    icon={<CheckCircleOutlineIcon />}
+                    label="Consulta paga"
+                    sx={{ height: 26, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,.14)', color: '#059669', borderRadius: '9px', flex: { xs: 1, sm: 'none' }, justifyContent: 'center' }}
+                  />
+                ) : (
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={<PaymentsIcon />}
+                    disabled={payBusyId === r.id}
+                    onClick={() => { hapticLight(); void payTeleconsulta(r); }}
+                    sx={{
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 800,
+                      fontSize: 13,
+                      px: 2,
+                      py: 0.8,
+                      background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)',
+                      color: '#fff',
+                      boxShadow: '0 4px 14px rgba(212,165,116,.4)',
+                      '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
+                      flex: { xs: 1, sm: 'none' },
+                    }}
+                  >
+                    {payBusyId === r.id ? 'Gerando PIX…' : `Pagar consulta — R$ ${fmtBrl(r.consultPriceCents)}`}
+                  </Button>
+                )
+              )}
 
               {r.linkUrl && (
                 <IconButton
@@ -1387,6 +1468,48 @@ export const RemindersPage = () => {
           >
             Entrar na consulta
           </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CONSULTA PARTICULAR (23/10): PIX da teleconsulta — QR + copia-e-cola.
+          O poll acima detecta a aprovação e fecha sozinho ("Consulta paga"). */}
+      <Dialog open={!!payTele} onClose={() => setPayTele(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1, pb: 0.5 }}>
+          <PaymentsIcon sx={{ fontSize: 20, color: '#d4a574' }} /> Pagar consulta
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center' }}>
+          {payTele?.priceCents != null && (
+            <Typography sx={{ fontWeight: 800, fontSize: 22, color: 'text.primary', mb: 0.5 }}>
+              R$ {fmtBrl(Number(payTele.priceCents))}
+            </Typography>
+          )}
+          <Typography sx={{ color: 'text.secondary', fontSize: 13, mb: 1.5 }}>
+            Escaneie o QR ou use o copia-e-cola. A confirmação é automática — pode fechar e voltar depois.
+          </Typography>
+          {payTele?.qrBase64 ? (
+            <Box component="img" src={payTele.qrBase64} alt="QR Code PIX da consulta" sx={{ width: 210, height: 210, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block' }} />
+          ) : null}
+          {payTele?.qrCode && (
+            <>
+              <TextField
+                value={payTele.qrCode}
+                multiline
+                size="small"
+                sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 11, fontFamily: 'monospace' } }}
+              />
+              <Button
+                size="small"
+                startIcon={<ContentCopyIcon />}
+                onClick={() => { try { void navigator.clipboard.writeText(String(payTele.qrCode ?? '')); snackbar({ message: 'Código PIX copiado!', severity: 'success' }); } catch { /* clipboard bloqueado */ } }}
+                sx={{ mt: 1, textTransform: 'none', fontWeight: 800, color: '#d4a574' }}
+              >
+                Copiar código PIX
+              </Button>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setPayTele(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
         </DialogActions>
       </Dialog>
     </PageContainer>

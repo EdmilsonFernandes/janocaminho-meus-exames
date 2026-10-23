@@ -466,6 +466,24 @@ export const PortalTeleconsultas = ({
                               }}
                             />
                           )}
+                          {/* Consulta particular (23/10): status do pagamento do paciente. */}
+                          {(tc.consultPriceCents ?? 0) > 0 && (
+                            tc.paidAt ? (
+                              <Chip
+                                size="small"
+                                icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />}
+                                label="Paga"
+                                sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', borderRadius: '6px', '& .MuiChip-icon': { color: '#059669' } }}
+                              />
+                            ) : (
+                              <Chip
+                                size="small"
+                                icon={<HourglassEmptyIcon sx={{ fontSize: 13 }} />}
+                                label={`Aguardando pagamento — R$ ${(tc.consultPriceCents / 100).toFixed(2).replace('.', ',')}`}
+                                sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px', '& .MuiChip-icon': { color: '#b45309' } }}
+                              />
+                            )
+                          )}
                           {(pat?.id || tc.patientId) && (
                             <Button
                               size="small"
@@ -724,6 +742,14 @@ export const PortalTeleconsultas = ({
                           )}
                           {hasTr && (
                             <Chip size="small" label="Transcrição ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89' }} />
+                          )}
+                          {/* Consulta particular (23/10): pagamento concluído (ou não) da consulta passada. */}
+                          {(tc.consultPriceCents ?? 0) > 0 && (
+                            tc.paidAt ? (
+                              <Chip size="small" icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />} label="Consulta paga" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', '& .MuiChip-icon': { color: '#059669' } }} />
+                            ) : (
+                              <Chip size="small" icon={<HourglassEmptyIcon sx={{ fontSize: 13 }} />} label={`Pagamento pendente — R$ ${(tc.consultPriceCents / 100).toFixed(2).replace('.', ',')}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', '& .MuiChip-icon': { color: '#b45309' } }} />
+                            )
                           )}
                         </Stack>
                         <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>

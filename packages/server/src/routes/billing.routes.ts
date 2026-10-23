@@ -494,6 +494,84 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
   } catch (e) { next(e); }
 });
 
+// ── CONSULTA PARTICULAR (23/10/26): paciente paga a teleconsulta agendada pelo médico.
+// Valor foi CONGELADO no Reminder (consultPriceCents) no agendamento; aqui cria a
+// cobrança PIX no MESMO padrão do relatório avulso (Subscription PENDING + tag
+// 'teleconsulta_<reminderId>' — os webhooks derivam o kind por ela). A aprovação marca
+// Reminder.paidAt/paymentRef. Join NÃO é bloqueado por pagamento (v1: cobrança é
+// confiança, não gate); repasse ao médico é fora do app (sem split automático).
+router.post('/teleconsulta/:id', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const r = await prisma.reminder.findUnique({ where: { id: String(req.params.id) } });
+    // Só o DONO do lembrete paga — cobrança de outro paciente não é visível nem criável.
+    if (!r || r.ownerId !== req.userId! || r.type !== 'teleconsulta') {
+      res.status(404).json({ error: 'Teleconsulta não encontrada.' }); return;
+    }
+    const priceCents = r.consultPriceCents ?? 0;
+    if (priceCents <= 0) { res.status(400).json({ error: 'Esta consulta não tem cobrança.' }); return; }
+    if (r.paidAt) { res.status(409).json({ error: 'Consulta já paga.', paidAt: r.paidAt.toISOString() }); return; }
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { id: true, name: true, email: true } });
+    if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
+    if (!pixProviderReady()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
+
+    const subscriptionColumns = await getSubscriptionColumnSupport();
+    // RETOMADA (padrão gateway, igual plano/relatório): PIX vivo desta consulta → 409 com o MESMO QR/timer.
+    if (subscriptionColumns.hasPixResume) {
+      await cancelStalePendingPixes().catch(() => {});
+      const existing = await prisma.subscription.findFirst({
+        where: { userId: user.id, status: 'PENDING', mpPreferenceId: `teleconsulta_${r.id}`, pixExpiresAt: { gt: new Date() } },
+        orderBy: { createdAt: 'desc' },
+        select: { id: true, mpPaymentId: true, pixQrCode: true, pixQrBase64: true, pixExpiresAt: true },
+      });
+      if (existing?.pixQrCode && existing?.pixQrBase64 && existing?.pixExpiresAt) {
+        res.status(409).json({
+          error: 'Você já tem um PIX pendente desta consulta. Conclua o pagamento ou aguarde expirar.',
+          pendingPix: {
+            id: existing.id, paymentId: existing.mpPaymentId ?? '', qrCode: existing.pixQrCode,
+            qrBase64: existing.pixQrBase64, expiresAt: existing.pixExpiresAt.toISOString(), priceCents,
+          },
+        });
+        return;
+      }
+    }
+
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: priceCents / 100, periodDays: 0, status: 'PENDING' });
+    // Tag da ordem (mesmo padrão 'report_pack'): webhooks Asaas/OpenPix casam por
+    // mpPaymentId e derivam o kind pela tag; o MP casa pelo external_reference abaixo.
+    await updateSubscriptionCompat(sub.id, { mpPreferenceId: `teleconsulta_${r.id}` });
+    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    let charge: PixChargeResult;
+    try {
+      charge = await createPixCharge({
+        amountBrlCents: priceCents,
+        correlationID: `teleconsulta_${sub.id}`, // único por ordem (OpenPix casa por mpPaymentId)
+        externalReference: `${sub.id}|0|TELE:${r.id}`, // MP: webhook casa por subId|…|TELE:<reminderId>
+        description: `Dr. Exame — Consulta particular: ${r.title.slice(0, 60)}`,
+        payerEmail: user.email,
+        payerFirstName: (user.name || 'Cliente').split(' ')[0],
+        userId: user.id,
+        payerName: user.name || undefined,
+        payerCpfCnpj: await payerCpfFor(user.id),
+        expiresAt: expires,
+        notificationUrl: publicNotifyUrl(),
+      });
+    } catch (e) {
+      console.error('[teleconsulta] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
+      res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos. Se persistir, fale com o suporte.' });
+      return;
+    }
+    console.log('[teleconsulta] PIX criado:', charge.id, '| provider:', activePixProvider(), '| reminder:', r.id);
+    const qrImg = charge.qrBase64 ? (charge.qrBase64.startsWith('data:') ? charge.qrBase64 : `data:image/png;base64,${charge.qrBase64}`) : '';
+    if (subscriptionColumns.hasPixResume) {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id, pixQrCode: charge.qrCode, pixQrBase64: qrImg, pixExpiresAt: expires });
+    } else {
+      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
+    }
+    res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), priceCents, reminderId: r.id });
+  } catch (e) { next(e); }
+});
+
 // ===== CARTÃO INLINE (Asaas direto — SEM redirect Checkout Pro) =====
 // POST /billing/pay-card { pack, method: 'card'|'debit', card, holder }
 // Form próprio do app → server valida (Luhn/validade/CVV/CPF server-side, nunca só
@@ -1059,7 +1137,9 @@ router.post('/webhook', async (req, res) => {
           // Mensal/pacotes: MESMA aprovação do webhook OpenPix (helper compartilhado em
           // utils/billingApproval — extraída daqui na migração PIX→OpenPix 02/10).
           const [subId, creditsStr, marker] = String(pay.external_reference).split('|');
-          const kind: ApprovalKind = marker === 'API' && creditsStr
+          const kind: ApprovalKind = marker?.startsWith('TELE:') && subId
+            ? { type: 'teleconsulta', reminderId: marker.slice('TELE:'.length) } // consulta particular (23/10)
+            : marker === 'API' && creditsStr
             ? { type: 'api', calls: Number(creditsStr) }
             : marker === 'REPORT' && creditsStr
               ? { type: 'report', vouchers: Number(creditsStr) }

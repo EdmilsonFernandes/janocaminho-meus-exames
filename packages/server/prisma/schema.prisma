@@ -841,6 +841,10 @@ model Reminder {
   //    transcriptionQueue (rede/timeout). ≥5 → abort definitivo (áudio fora + push);
   //    sucesso ou re-upload → 0. Int? por drift-safe, mas migration já DEFAULT 0.
   retryCount        Int?       @default(0)
+// ── Consulta particular (23/10/26): médico agenda cobrando pelo app (Asaas/MP).
+consultPriceCents Int?      // valor CONGELADO no agendamento (centavos); null/0 = sem cobrança
+paidAt            DateTime? // pagamento confirmado pelo webhook → "Paga ✓" pros dois lados
+paymentRef        String?   // id do pagamento no provedor (PIX/cartão)
   createdAt DateTime @default(now())
 
   @@index([patientId, dueDate])
@@ -970,6 +974,9 @@ model Doctor {
   freeUsageMonth    String?  // "2026-07" — mês corrente do contador free
   freeUsageCount    Int      @default(0)      // usos de features premium no mês (free tier: 5)
   defaultQuestionLimit Int   @default(5)      // limite padrão de perguntas em aberto pra novos shares (Pro)
+// Consulta particular (23/10/26): valor PADRÃO da teleconsulta particular (centavos).
+// Null/0 = sem cobrança. O valor é CONGELADO no Reminder no agendamento (paidAt/paymentRef lá).
+consultPriceCents  Int?
 
   @@map("doctors")
 }

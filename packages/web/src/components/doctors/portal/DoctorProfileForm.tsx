@@ -17,6 +17,11 @@ export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }
   </Box></CardContent></Card>
 );
 
+// Consulta particular (23/10/26): máscara simples de centavos — o médico digita
+// "15000" e vê "150,00". Sem biblioteca: strip não-dígitos → int → centavos.
+const centsToBrl = (c: number) => (c / 100).toFixed(2).replace('.', ',');
+const brlToCents = (s: string) => { const d = String(s ?? '').replace(/\D/g, ''); return d ? Number(d) : 0; };
+
 /** Formulário "Meu perfil" do médico (dados profissionais + perfil público + foto + MFA). */
 export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, photoVer, isPremium = true }: { token: string; doctor: any; onBack: () => void; onSaved: (d: any) => void; onPhoto: () => void; photoVer: number; isPremium?: boolean }) => {
   const [name, setName] = useState(doctor?.name ?? '');
@@ -27,20 +32,24 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
   const [clinicName, setClinicName] = useState(doctor?.clinicName ?? '');
   const [clinicCity, setClinicCity] = useState(doctor?.clinicCity ?? '');
   const [bio, setBio] = useState(doctor?.bio ?? '');
+  // Consulta particular: valor PADRÃO da teleconsulta (centavos ↔ "R$ X,XX" na máscara).
+  const [price, setPrice] = useState(doctor?.consultPriceCents ? centsToBrl(Number(doctor.consultPriceCents)) : '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const save = async () => {
     setSaving(true); setMsg(null);
     try {
-      const r = await fetch(`${API_URL}/doctor/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, specialty: spec, email }) });
+      const r = await fetch(`${API_URL}/doctor/me`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ name, specialty: spec, email, consultPriceCents: brlToCents(price) || null }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
       // Perfil público (telefone/consultório/cidade/bio) — endpoint dedicado, visto pelo paciente.
       const r2 = await fetch(`${API_URL}/doctor/profile`, { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ phone, clinicName, clinicCity, bio }) });
       const d2 = await r2.json();
       if (!r2.ok) throw new Error(d2.error || 'Falha ao salvar perfil público');
-      onSaved(d2.doctor); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
+      // /profile não devolve consultPriceCents (só /me devolve) — repassa o valor salvo
+      // pra o portal não perder o padrão de cobrança ao salvar o perfil.
+      onSaved({ ...d2.doctor, consultPriceCents: d?.doctor?.consultPriceCents }); setMsg({ type: 'ok', text: 'Perfil atualizado!' });
     } catch (e: any) { setMsg({ type: 'err', text: e.message }); } finally { setSaving(false); }
   };
 
@@ -89,6 +98,16 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
               {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
             </TextField>
             <TextField label="E-mail" type="email" value={email} onChange={(e) => setEmail(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            <TextField
+              label="Valor da consulta particular (R$)"
+              value={price}
+              onChange={(e) => setPrice(centsToBrl(brlToCents(e.target.value)))}
+              size="small"
+              fullWidth
+              inputProps={{ inputMode: 'numeric', placeholder: 'ex.: 150,00' }}
+              helperText="Pré-preenchido ao agendar uma teleconsulta com cobrança. Vazio = sem cobrança. Mínimo R$ 5,00 (PIX)."
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+            />
             <Divider sx={{ my: 0.5 }}><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>PERFIL PÚBLICO (visto pelo paciente)</Typography></Divider>
             <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} size="small" fullWidth helperText="Vira o botão 'Agendar no WhatsApp' para o paciente." inputProps={{ inputMode: 'tel' }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             <TextField label="Consultório / Clínica" value={clinicName} onChange={(e) => setClinicName(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />

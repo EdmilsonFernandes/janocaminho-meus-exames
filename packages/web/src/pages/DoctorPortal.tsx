@@ -343,7 +343,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [teleOpen, setTeleOpen] = useState(false);
   const [flashTele, setFlashTele] = useState<string | null>(null); // card recém-agendado pisca (feedback de sucesso)
   const [teleBusy, setTeleBusy] = useState(false);
-  const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
+  const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '', price: '' });
   const [patientTele, setPatientTele] = useState<any[]>([]);
   const [doctorTele, setDoctorTele] = useState<any[]>([]);
   // F3 (20/10) — área pós-consulta: summary/transcript on-demand + cache p/ chips da lista.
@@ -368,6 +368,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (!tele.date) {
       const d = new Date(Date.now() + 86_400_000);
       setTele((t) => ({ ...t, date: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` }));
+    }
+    // Consulta particular (23/10): pré-preenche com o valor PADRÃO do médico (perfil).
+    // O médico pode ajustar só desta consulta ou limpar (sem cobrança).
+    if (doctor?.consultPriceCents) {
+      setTele((t) => ({ ...t, price: t.price || (Number(doctor.consultPriceCents) / 100).toFixed(2).replace('.', ',') }));
     }
     setTeleOpen(true);
   };
@@ -675,6 +680,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           ...(useInApp ? { createLiveKit: true } : useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
           title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
           recurrence: tele.recurrence || undefined,
+          consultPriceCents: tele.price ? Number(tele.price.replace(/\D/g, '')) || undefined : undefined, // cobrança opcional (centavos; vazio = sem cobrança)
         }),
       });
       let r = await scheduleOnce(false);
@@ -696,7 +702,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       const code = String(saved?.reminder?.id ?? '').slice(-5).toUpperCase();
       snackbar({ message: `✓ Teleconsulta agendada${code ? ` — Sala ${code}` : ''}. O paciente já foi avisado por push.`, severity: 'success' });
       setTeleOpen(false);
-      setTele({ date: '', time: '14:00', link: '', title: '', recurrence: '' });
+      setTele({ date: '', time: '14:00', link: '', title: '', recurrence: '', price: '' });
       // Recarrega teleconsultas
       if (selected && selected.patient.id === targetPid) {
         fetch(`${API_URL}/doctor/patients/${targetPid}/teleconsultas`, { headers: h })
@@ -1858,6 +1864,22 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 ))}
               </TextField>
             </Stack>
+
+            {/* Consulta particular (23/10): cobrança opcional — pré-preenchida com o
+                valor padrão do médico (perfil). Vazio = sem cobrança. */}
+            <TextField
+              label="Cobrar do paciente (R$)"
+              value={tele.price}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '');
+                setTele((t) => ({ ...t, price: digits ? (Number(digits) / 100).toFixed(2).replace('.', ',') : '' }));
+              }}
+              size="small"
+              fullWidth
+              inputProps={{ inputMode: 'numeric', placeholder: 'ex.: 150,00' }}
+              helperText="Deixe vazio para não cobrar. O valor é congelado no agendamento e o paciente paga no app (PIX)."
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+            />
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>

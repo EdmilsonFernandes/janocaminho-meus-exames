@@ -391,7 +391,7 @@ router.put('/profile', requireDoctor, async (req: any, res, next) => {
 
 // Dados completos do médico logado (portal carrega pra edição do perfil público).
 router.get('/me', requireDoctor, async (req: any, res) => {
-  const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true } });
+  const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true, consultPriceCents: true } });
   res.json({ doctor: serializeDoctor(d) });
 });
 router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
@@ -420,6 +420,20 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
       data.name = nextName;
     }
     if (specialty != null) data.specialty = String(specialty).trim() || null;
+    // Consulta particular (23/10/26): valor PADRÃO da consulta em CENTAVOS (null/0 = sem
+    // cobrança). Preço é do MÉDICO, não feature Pro — qualquer médico define (v1: sem split).
+    if (req.body?.consultPriceCents !== undefined) {
+      if (req.body.consultPriceCents === null || Number(req.body.consultPriceCents) === 0) {
+        data.consultPriceCents = null;
+      } else {
+        const cents = Number(req.body.consultPriceCents);
+        if (!Number.isInteger(cents) || cents < 500 || cents > 2_000_000) {
+          res.status(400).json({ error: 'Valor inválido: use centavos entre R$ 5,00 e R$ 20.000,00 (ou 0 para não cobrar).' });
+          return;
+        }
+        data.consultPriceCents = cents;
+      }
+    }
     if (email != null) {
       const e = String(email).toLowerCase().trim();
       if (current.identityLockedAt && e !== current.email) {
@@ -429,7 +443,7 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
       if (dup) { res.status(409).json({ error: 'E-mail já usado por outro médico.' }); return; }
       data.email = e;
     }
-    const updated = await prisma.doctor.update({ where: { id: req.doctorId }, data, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
+    const updated = await prisma.doctor.update({ where: { id: req.doctorId }, data, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true, consultPriceCents: true } });
     res.json({ doctor: serializeDoctor(updated) });
   } catch (e) { next(e); }
 });
@@ -1030,6 +1044,18 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     let linkUrl = String(req.body?.linkUrl ?? '').trim();
     const title = String(req.body?.title ?? '').trim() || 'Teleconsulta';
     const recurrence = REMINDER_RECURRENCES.includes(req.body?.recurrence) ? String(req.body.recurrence) : null;
+    // Consulta particular (23/10/26): valor cobrado do paciente, CONGELADO no agendamento
+    // (0/null = sem cobrança). Mínimo R$ 5,00 = limite do PIX Asaas; preço é do MÉDICO
+    // (não é feature Pro — qualquer médico agenda com cobrança; v1 sem split de payout).
+    let consultPriceCents: number | null = null;
+    if (req.body?.consultPriceCents != null && Number(req.body.consultPriceCents) !== 0) {
+      const cents = Number(req.body.consultPriceCents);
+      if (!Number.isInteger(cents) || cents < 500 || cents > 2_000_000) {
+        res.status(400).json({ error: 'Valor da cobrança inválido (centavos; mínimo R$ 5,00, máximo R$ 20.000,00).' });
+        return;
+      }
+      consultPriceCents = cents;
+    }
     if (Number.isNaN(dueDate.getTime())) { res.status(400).json({ error: 'Data/hora inválida.' }); return; }
     // Review: data no passado criava consulta "já vencida" (push imediato de algo que
     // já passou + roll quicando a recorrência um intervalo inteiro à frente).
@@ -1106,6 +1132,7 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
         ownerId: patient.ownerId, patientId: pid, title, dueDate,
         type: 'teleconsulta', linkUrl: provider === 'livekit' ? null : linkUrl.slice(0, 500),
         recurrence, provider, roomName,
+        consultPriceCents, // valor congelado no agendamento (null/0 = sem cobrança)
         createdByDoctorId: req.doctorId,
         notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
       },

@@ -15,7 +15,10 @@ export type ApprovalKind =
   | { type: 'credits'; credits: number }
   | { type: 'api'; calls: number }
   | { type: 'report'; vouchers: number }
-  | { type: 'plan' };
+  | { type: 'plan' }
+  // Consulta particular (23/10): pagamento de teleconsulta agendada pelo médico — não
+  // credita nada no app; marca o Reminder (teleconsulta) como pago (paidAt/paymentRef).
+  | { type: 'teleconsulta'; reminderId: string };
 
 /** Aprova (ou ignora) uma Subscription. Retorna true se aprovou/creditou nesta chamada. */
 export async function approvePendingSubscription(
@@ -62,6 +65,21 @@ export async function approvePendingSubscription(
       await tx.creditTransaction.create({ data: { userId: sub.userId, delta: 0, kind: 'report_voucher', label: 'Relatório completo avulso', refId: sub.id } });
     });
     console.log(`[billing] relatório avulso +${v} voucher(s) p/ user ${sub.userId} (sub ${sub.id})`);
+    return true;
+  }
+
+  if (kind.type === 'teleconsulta') {
+    // CONSULTA PARTICULAR (23/10): marca a teleconsulta como paga (Reminder.paidAt +
+    // paymentRef) — "Paga ✓" pros dois lados. Não credita nada: é pagamento de serviço
+    // médico, não saldo do app. Idempotente pelo paidAt (webhook reenviado é no-op).
+    await prisma.$transaction(async (tx) => {
+      await tx.reminder.updateMany({
+        where: { id: kind.reminderId, paidAt: null },
+        data: { paidAt: new Date(), paymentRef: String(paymentId) },
+      });
+      await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+    });
+    console.log(`[billing] consulta particular paga — reminder ${kind.reminderId} (${String(paymentId)})`);
     return true;
   }
 
