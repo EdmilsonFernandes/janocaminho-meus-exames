@@ -1522,4 +1522,115 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
   }
 });
 
+// FUNIL DE TELECONSULTA — do agendamento à chamada real: realizadas (JOIN dos 2
+// papéis, ou endedAt com join), no-show (vencida +24h sem chamada), pendentes,
+// duração média (endedAt − 1º join, só das realizadas), retorno em 30d e % consent.
+router.get('/teleconsultas/funnel', async (req: AuthedRequest, res, next) => {
+  try {
+    const days = Math.min(365, Math.max(1, Number(req.query?.days) || 30));
+    const windowStart = new Date(Date.now() - days * 86_400_000);
+    const now = Date.now();
+
+    // Agendadas na janela (createdAt = momento do agendamento). Select mínimo.
+    const rows = await prisma.reminder.findMany({
+      where: { type: 'teleconsulta', createdAt: { gte: windowStart } },
+      select: { id: true, patientId: true, dueDate: true, consentAt: true, endedAt: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Joins reais das teleconsultas da janela (audit TELECONSULTA_JOIN).
+    const ids = rows.map((r) => r.id);
+    const joins = ids.length
+      ? await prisma.auditLog.findMany({
+          where: { action: 'TELECONSULTA_JOIN', targetId: { in: ids } },
+          select: { targetId: true, createdAt: true, after: true },
+          orderBy: { createdAt: 'asc' },
+        })
+      : [];
+
+    // Por teleconsulta: papéis distintos que entraram + instante do 1º join.
+    const rolesByTele = new Map<string, Set<string>>();
+    const firstJoinMs = new Map<string, number>();
+    for (const j of joins) {
+      const tid = j.targetId ?? '';
+      if (!tid) continue;
+      const role = String((j.after as any)?.role ?? '');
+      if (role) {
+        let roles = rolesByTele.get(tid);
+        if (!roles) {
+          roles = new Set();
+          rolesByTele.set(tid, roles);
+        }
+        roles.add(role);
+      }
+      // orderBy asc → primeira ocorrência por teleconsulta é o 1º join
+      if (!firstJoinMs.has(tid)) firstJoinMs.set(tid, new Date(j.createdAt).getTime());
+    }
+
+    let realizadas = 0;
+    let noShow = 0;
+    let pendentes = 0;
+    let consentCount = 0;
+    let durationSumMin = 0;
+    let durationCount = 0;
+    const realizadasByPatient = new Map<string, Date[]>();
+
+    for (const r of rows) {
+      const roles = rolesByTele.get(r.id);
+      const joined = (roles?.size ?? 0) > 0;
+      const bothRoles = (roles?.size ?? 0) >= 2;
+      const isRealizada = bothRoles || (r.endedAt != null && joined);
+
+      if (r.consentAt != null) consentCount++;
+      if (isRealizada) {
+        realizadas++;
+        if (r.patientId) {
+          const list = realizadasByPatient.get(r.patientId) ?? [];
+          list.push(new Date(r.dueDate));
+          realizadasByPatient.set(r.patientId, list);
+        }
+        const firstJoin = firstJoinMs.get(r.id);
+        if (r.endedAt && firstJoin != null) {
+          const min = (new Date(r.endedAt).getTime() - firstJoin) / 60_000;
+          if (min > 0) {
+            durationSumMin += min;
+            durationCount++;
+          }
+        }
+      } else if (new Date(r.dueDate).getTime() + 86_400_000 < now) {
+        noShow++; // vencida +24h sem JOIN dos 2 papéis
+      } else {
+        pendentes++; // futura, ou com menos de 24h do horário marcado
+      }
+    }
+
+    // Retorno 30d: paciente com ≥2 realizadas e volta dentro de 30d da anterior.
+    let retorno30d = 0;
+    for (const dates of realizadasByPatient.values()) {
+      dates.sort((a, b) => a.getTime() - b.getTime());
+      for (let i = 1; i < dates.length; i++) {
+        if (dates[i].getTime() - dates[i - 1].getTime() <= 30 * 86_400_000) {
+          retorno30d++;
+          break;
+        }
+      }
+    }
+
+    const total = rows.length;
+    res.json({
+      days,
+      total,
+      realizadas,
+      noShow,
+      pendentes,
+      realizacaoPct: total > 0 ? Math.round((realizadas / total) * 100) : 0,
+      avgDurationMin: durationCount > 0 ? Number((durationSumMin / durationCount).toFixed(1)) : null,
+      retorno30d,
+      consentPct: total > 0 ? Math.round((consentCount / total) * 100) : 0,
+    });
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;

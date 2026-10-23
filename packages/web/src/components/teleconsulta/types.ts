@@ -25,6 +25,8 @@ export interface ExamRequest {
 
 /** GET /api/teleconsulta/:id/summary (§3d). */
 export interface TeleconsultaSummary {
+  /** F3: paciente autorizou gravação p/ transcrição (mesmo shape do Summary local da página). */
+  recordConsentAt?: string | null;
   /** F4 pós-consulta: data-hora (ISO) de encerramento — null/ausente = consulta ativa.
    *  Com endedAt, a teleconsulta vira área READ-ONLY (nunca reentra na sala). */
   endedAt?: string | null;

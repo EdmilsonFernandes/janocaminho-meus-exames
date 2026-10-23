@@ -11,8 +11,14 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import BedtimeIcon from '@mui/icons-material/Bedtime';
+import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
+import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
 import { API_URL } from '../../config';
 import { tealText } from '../../theme';
+import { fmtSleep, fmtSteps } from '../../utils/activityStats';
 
 export interface BriefItem {
   name: string;
@@ -51,6 +57,46 @@ const flagTone = (flag: string | null | undefined, mode: 'light' | 'dark') => {
   return { bg: 'rgba(245,158,11,.14)', fg: '#b45309' };
 };
 
+/** Sinais vitais (Health Connect) — série diária + summary 30d do endpoint do médico. */
+export interface VitalDayRow { date: string; restingHr: number; sleepMinutes: number; steps: number; activeKcal: number; exerciseMin: number }
+interface VitalsBrief {
+  days: VitalDayRow[];
+  summary: {
+    restingHrAvg30d: number | null; sleepAvg30dMin: number | null; stepsAvg30d: number | null;
+    activeKcalAvg30d: number | null; lastWeightKg: number | null; lastWeightAt: string | null; lastDay: string | null;
+  };
+  lastSyncAt: string | null;
+}
+
+/** Carimbo relativo: "agora" · "há 12 min" · "há 3 h" · "ontem" · "há 4 dias". */
+const relStamp = (iso?: string | null): string => {
+  if (!iso) return '';
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return '';
+  const mins = Math.round((Date.now() - t) / 60000);
+  if (mins < 1) return 'agora';
+  if (mins < 60) return `há ${mins} min`;
+  const h = Math.round(mins / 60);
+  if (h < 24) return `há ${h} h`;
+  const d = Math.round(h / 24);
+  if (d === 1) return 'ontem';
+  return `há ${d} dias`;
+};
+
+/** Mini-métrica de sinal vital: ícone teal + valor + contexto (proveniência koruux 6-D1). */
+const VitalMetric = ({ icon, value, unit, label, context }: { icon: React.ReactNode; value: string; unit?: string; label: string; context?: string }) => (
+  <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+    <Stack direction="row" spacing={0.75} alignItems="center">
+      <Box sx={{ width: 26, height: 26, borderRadius: '8px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>{icon}</Box>
+      <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{label}</Typography>
+    </Stack>
+    <Typography sx={{ fontSize: 16, fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: 'text.primary' }}>
+      {value}{unit ? ` ${unit}` : ''}
+    </Typography>
+    {context && <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary' }}>{context}</Typography>}
+  </Stack>
+);
+
 /** Linha de valor: nome + valor com chip da flag + referência. Toque 44px, floor 12px. */
 const ValueRow = ({ it, dim }: { it: BriefItem; dim?: boolean }) => {
   const mode = useTheme().palette.mode;
@@ -83,7 +129,9 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
   const [err, setErr] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, BriefItem[]>>({});
+  const [vitals, setVitals] = useState<VitalsBrief | null>(null);
   const reqId = useRef(0);
+  const vitalsReqId = useRef(0);
 
   const load = useCallback(() => {
     const id = ++reqId.current;
@@ -98,14 +146,26 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
       .catch((s: unknown) => { if (id === reqId.current) { setExams(null); setErr(s === 403 ? 'O paciente ainda não compartilhou exames com você.' : 'Não foi possível carregar os exames agora.'); } });
   }, [patientId, authToken]);
 
+  // Sinais vitais (Health Connect): fetch on-demand discreto — seção SÓ aparece se o
+  // endpoint devolver dias (paciente sem smartwatch/sem sync não vê card vazio). Sem
+  // estado de erro: vitals é um extra, nunca deve competir com o brief de exames.
+  const loadVitals = useCallback(() => {
+    const id = ++vitalsReqId.current;
+    fetch(`${API_URL}/doctor/patients/${patientId}/vitals`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: VitalsBrief | null) => { if (id === vitalsReqId.current) setVitals(d); })
+      .catch(() => { if (id === vitalsReqId.current) setVitals(null); });
+  }, [patientId, authToken]);
+
   useEffect(() => {
-    setExams(null); setDetail({}); setOpenId(null);
+    setExams(null); setDetail({}); setOpenId(null); setVitals(null);
     load();
+    loadVitals();
     // fix critic #7: poll 30s enquanto aberto — o paciente pode compartilhar
     // DURANTE a chamada e o brief precisa aparecer sem fechar/abrir.
-    const iv = setInterval(load, 30_000);
+    const iv = setInterval(() => { load(); loadVitals(); }, 30_000);
     return () => clearInterval(iv);
-  }, [load]);
+  }, [load, loadVitals]);
 
   const toggle = useCallback(async (id: string) => {
     setOpenId((cur) => (cur === id ? null : id));
@@ -164,7 +224,7 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
           <CardContent sx={{ textAlign: 'center', py: 3.5, '&:last-child': { pb: 3.5 } }}>
             <FolderOpenIcon sx={{ fontSize: 34, color: 'text.secondary', mb: 1 }} />
             <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 1.5 }}>{err}</Typography>
-            <Button size="small" variant="contained" onClick={load} startIcon={<RefreshIcon sx={{ fontSize: 16 }} />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+            <Button size="small" variant="contained" onClick={() => { load(); loadVitals(); }} startIcon={<RefreshIcon sx={{ fontSize: 16 }} />} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
               Tentar de novo
             </Button>
           </CardContent>
@@ -253,6 +313,41 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
           })}
         </Stack>
       )}
+
+      {/* Sinais vitais contínuos (Health Connect) — só se o paciente sincronizou. Proveniência
+          explícita (padrão koruux 6-D1): o médico precisa saber de ONDE o dado veio. */}
+      {vitals && vitals.days.length > 0 && (() => {
+        const s = vitals.summary;
+        const latest = vitals.days[0];
+        return (
+          <Card sx={{ borderRadius: '16px', mt: 2 }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
+                <MonitorHeartIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>Sinais vitais</Typography>
+                <Chip size="small" label="30 dias" sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '6px' }} />
+              </Stack>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
+                {latest.restingHr > 0 && (
+                  <VitalMetric icon={<FavoriteIcon sx={{ fontSize: 15 }} />} value={`${latest.restingHr}`} unit="bpm" label="FC de repouso" context={s.restingHrAvg30d ? `média 30d ${s.restingHrAvg30d} bpm` : undefined} />
+                )}
+                {s.sleepAvg30dMin != null && (
+                  <VitalMetric icon={<BedtimeIcon sx={{ fontSize: 15 }} />} value={fmtSleep(s.sleepAvg30dMin)} label="Sono" context="média/noite · 30d" />
+                )}
+                {s.stepsAvg30d != null && (
+                  <VitalMetric icon={<DirectionsWalkIcon sx={{ fontSize: 15 }} />} value={fmtSteps(s.stepsAvg30d)} label="Passos" context="média/dia · 30d" />
+                )}
+                {s.lastWeightKg != null && (
+                  <VitalMetric icon={<MonitorWeightIcon sx={{ fontSize: 15 }} />} value={`${s.lastWeightKg} kg`} label="Último peso" context={relStamp(s.lastWeightAt)} />
+                )}
+              </Box>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.25 }}>
+                Fonte: smartwatch do paciente (Health Connect) · atualizado {relStamp(vitals.lastSyncAt)}
+              </Typography>
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 2 }}>
         Fonte: exames enviados pelo paciente · leitura educativa, decisão clínica é sua.

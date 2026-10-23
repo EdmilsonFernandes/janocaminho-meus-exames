@@ -464,18 +464,12 @@ router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any,
 });
 
 // SERVE a foto do médico: AUTENTICADA via ?t= (fecha o buraco da foto pública por CUID / LGPD).
+// Exibição SEMPRE funciona (dono 24/10: paciente vê a do médico, médico vê a do
+// paciente) — o Pro vale no UPLOAD (definir/trocar foto), não no display.
 router.get('/photo/:id', requirePhotoToken, async (req, res) => {
   try {
-    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { id: true, photoUrl: true, plan: true, planExpiresAt: true } });
-    // Pro-only (dono 23/10): plano free não exibe pro PACIENTE — 404 e a UI volta
-    // pra iniciais. Auto-visão liberada (24/10): o médico vê a PRÓPRIA foto no
-    // portal dele mesmo no free — bloquear identidade do dono foi efeito colateral
-    // hostil ("a foto do médico sumiu no dashboard dele").
-    const pro = doctor?.plan === 'premium' && !!doctor.planExpiresAt && doctor.planExpiresAt > new Date();
-    const tok = (typeof req.query.t === 'string' ? req.query.t : null)
-      || (req.headers.authorization?.startsWith('Bearer ') ? req.headers.authorization.slice(7) : null);
-    const self = (() => { try { const p: any = verifyDoctorToken(tok ?? ''); return p?.doctorId && p.doctorId === doctor?.id; } catch { return false; } })();
-    if (!doctor?.photoUrl || (!pro && !self)) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
+    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
+    if (!doctor?.photoUrl) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
     const r = await resolvePatientPhoto(doctor.photoUrl);
     if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); return res.redirect(r.url); }
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');

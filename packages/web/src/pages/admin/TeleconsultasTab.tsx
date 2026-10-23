@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, type ReactNode } from 'react';
 import {
   Box,
   Typography,
@@ -18,6 +18,8 @@ import {
   InputLabel,
   useTheme,
   Button,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import StarIcon from '@mui/icons-material/Star';
 import SearchIcon from '@mui/icons-material/Search';
@@ -27,6 +29,13 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PersonIcon from '@mui/icons-material/Person';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
+import EventBusyIcon from '@mui/icons-material/EventBusy';
+import VideocamIcon from '@mui/icons-material/Videocam';
+import TimerIcon from '@mui/icons-material/Timer';
+import ReplayIcon from '@mui/icons-material/Replay';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../../config';
 import { TabLoader, SectionError, PhotoZoom } from './parts';
 import { tealText, COPPER } from '../../theme';
@@ -53,6 +62,46 @@ interface FeedbacksResponse {
   items: FeedbackItem[];
 }
 
+interface FunnelResponse {
+  days: number;
+  total: number;
+  realizadas: number;
+  noShow: number;
+  pendentes: number;
+  realizacaoPct: number;
+  avgDurationMin: number | null;
+  retorno30d: number;
+  consentPct: number;
+}
+
+/** Card KPI do funil de teleconsulta (mesma linguagem visual dos KPIs de feedback). */
+function FunnelKpi({ icon, color, label, value, hint }: { icon: ReactNode; color: string; label: string; value: string | number; hint: string }) {
+  return (
+    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+      <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
+        <CardContent sx={{ p: 2.5 }}>
+          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
+            <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: `${color}1f`, color, display: 'grid', placeItems: 'center' }}>
+              {icon}
+            </Box>
+            <Box>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
+                {label}
+              </Typography>
+              <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
+                {value}
+              </Typography>
+            </Box>
+          </Stack>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {hint}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Grid>
+  );
+}
+
 export const TeleconsultasTab = () => {
   const theme = useTheme();
   const [data, setData] = useState<FeedbacksResponse | null>(null);
@@ -60,6 +109,9 @@ export const TeleconsultasTab = () => {
   const [err, setErr] = useState(false);
   const [search, setSearch] = useState('');
   const [ratingFilter, setRatingFilter] = useState<number | 'all'>('all');
+  const [days, setDays] = useState(30);
+  const [funnel, setFunnel] = useState<FunnelResponse | null>(null);
+  const [funnelErr, setFunnelErr] = useState(false);
 
   const load = () => {
     setLoading(true);
@@ -79,6 +131,19 @@ export const TeleconsultasTab = () => {
   useEffect(() => {
     load();
   }, []);
+
+  const loadFunnel = (d: number) => {
+    setFunnelErr(false);
+    fetch(`${API_URL}/admin/teleconsultas/funnel?days=${d}`, { headers: H() })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((res: FunnelResponse) => setFunnel(res))
+      .catch(() => setFunnelErr(true));
+  };
+
+  useEffect(() => {
+    loadFunnel(days);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [days]);
 
   const filteredItems = useMemo(() => {
     if (!data?.items) return [];
@@ -234,6 +299,68 @@ export const TeleconsultasTab = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Funil de Teleconsulta — conversão de agendamentos em chamadas reais */}
+      <Box sx={{ mb: 3 }}>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          alignItems={{ xs: 'flex-start', sm: 'center' }}
+          justifyContent="space-between"
+          spacing={1.5}
+          sx={{ mb: 1.5 }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+              Funil de teleconsulta
+            </Typography>
+            {funnel && (
+              <Chip
+                size="small"
+                label={`${funnel.pendentes} pendentes`}
+                sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }}
+              />
+            )}
+          </Stack>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={days}
+            onChange={(_e, v) => {
+              if (v != null) setDays(v);
+            }}
+            sx={{
+              '& .MuiToggleButton-root': {
+                px: 2,
+                py: 0.25,
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: 12,
+              },
+            }}
+          >
+            <ToggleButton value={7}>7d</ToggleButton>
+            <ToggleButton value={30}>30d</ToggleButton>
+            <ToggleButton value={90}>90d</ToggleButton>
+          </ToggleButtonGroup>
+        </Stack>
+
+        {funnelErr ? (
+          <SectionError message="Não foi possível carregar o funil de teleconsultas." onRetry={() => loadFunnel(days)} />
+        ) : !funnel ? (
+          <LinearProgress sx={{ height: 6, borderRadius: '999px' }} />
+        ) : (
+          <Grid container spacing={2}>
+            <FunnelKpi icon={<EventAvailableIcon />} color="#0d9488" label="Agendadas" value={funnel.total} hint="Teleconsultas criadas no período" />
+            <FunnelKpi icon={<VideocamIcon />} color="#059669" label="Realizadas" value={funnel.realizadas} hint="Chamada com os 2 participantes" />
+            <FunnelKpi icon={<EventBusyIcon />} color="#dc2626" label="No-show" value={funnel.noShow} hint="Vencidas +24h sem chamada" />
+            <FunnelKpi icon={<TrendingUpIcon />} color="#2563eb" label="% Realização" value={`${funnel.realizacaoPct}%`} hint="Agendadas que viraram chamada" />
+            <FunnelKpi icon={<TimerIcon />} color="#d97706" label="Duração Média" value={funnel.avgDurationMin != null ? `${funnel.avgDurationMin} min` : '—'} hint="Do 1º join ao encerramento" />
+            <FunnelKpi icon={<ReplayIcon />} color="#b88a54" label="Retorno 30d" value={funnel.retorno30d} hint="Pacientes com nova consulta em até 30d" />
+            <FunnelKpi icon={<VerifiedUserIcon />} color="#0d9488" label="% Consent" value={`${funnel.consentPct}%`} hint="Aceite Art. 15 (telemedicina)" />
+          </Grid>
+        )}
+      </Box>
 
       {/* Barra de Filtros */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2.5 }}>
