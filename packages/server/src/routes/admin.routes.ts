@@ -1468,10 +1468,10 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
 
     const [patients, doctors] = await Promise.all([
       patientIds.length
-        ? prisma.patient.findMany({ where: { id: { in: patientIds } }, select: { id: true, name: true, fullName: true, photoUrl: true } })
+        ? prisma.patient.findMany({ where: { id: { in: patientIds } }, select: { id: true, fullName: true, photoUrl: true } })
         : [],
       doctorIds.length
-        ? prisma.doctor.findMany({ where: { id: { in: doctorIds } }, select: { id: true, name: true, specialty: true, crm: true, crmUf: true, avatarUrl: true } })
+        ? prisma.doctor.findMany({ where: { id: { in: doctorIds } }, select: { id: true, name: true, specialty: true, crm: true, crmUf: true, photoUrl: true } })
         : [],
     ]);
 
@@ -1499,8 +1499,8 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
         rating,
         note: fb.note || null,
         role: fb.role || (l.actorType === 'DOCTOR' ? 'doctor' : 'patient'),
-        patient: pat ? { id: pat.id, name: pat.fullName || pat.name, photoUrl: pat.photoUrl } : null,
-        doctor: doc ? { id: doc.id, name: doc.name, specialty: doc.specialty, crm: doc.crm ? `${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''}` : null, photoUrl: doc.avatarUrl } : null,
+        patient: pat ? { id: pat.id, name: pat.fullName, photoUrl: pat.photoUrl } : null,
+        doctor: doc ? { id: doc.id, name: doc.name, specialty: doc.specialty, crm: doc.crm ? `${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''}` : null, photoUrl: doc.photoUrl } : null,
         reminder: rem ? { title: rem.title, dueDate: rem.dueDate, endedAt: rem.endedAt } : null,
       };
     });

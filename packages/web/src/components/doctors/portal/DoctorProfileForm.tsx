@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Box, Stack, Typography, Button, Card, CardContent, TextField, MenuItem, Divider, Alert, CircularProgress, IconButton } from '@mui/material';
+import { Box, Stack, Typography, Button, Card, CardContent, TextField, MenuItem, Divider, Alert, CircularProgress, IconButton, Avatar, Chip } from '@mui/material';
 import LockIcon from '@mui/icons-material/Lock';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
@@ -18,7 +18,7 @@ export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }
 );
 
 /** Formulário "Meu perfil" do médico (dados profissionais + perfil público + foto + MFA). */
-export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, photoVer }: { token: string; doctor: any; onBack: () => void; onSaved: (d: any) => void; onPhoto: () => void; photoVer: number }) => {
+export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, photoVer, isPremium = true }: { token: string; doctor: any; onBack: () => void; onSaved: (d: any) => void; onPhoto: () => void; photoVer: number; isPremium?: boolean }) => {
   const [name, setName] = useState(doctor?.name ?? '');
   const [spec, setSpec] = useState(doctor?.specialty ?? '');
   const [email, setEmail] = useState(doctor?.email ?? '');
@@ -54,11 +54,20 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
       <Card sx={{ borderRadius: '20px', mb: 2.5, background: 'radial-gradient(circle at 10% 20%, rgba(32,178,170,0.12) 0%, rgba(32,178,170,0.03) 100%)', border: '1px solid', borderColor: 'divider', boxShadow: '0 8px 24px rgba(0,0,0,0.04)' }}>
         <CardContent sx={{ p: 2.5 }}>
           <Stack direction="row" spacing={2.5} alignItems="center">
-            <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} onUploaded={onPhoto} size={84} hideLabel />
+            {isPremium ? (
+              <PhotoUpload endpoint={`${API_URL}/doctor/me/photo`} authToken={token} fallback={doctor?.name?.charAt(0)} src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} onUploaded={onPhoto} size={84} hideLabel />
+            ) : (
+              // Foto de perfil = Dr. Exame Pro (dono 23/10). Free: iniciais + cadeado
+              // (o server nega upload/serviço — aqui só comunica o porquê).
+              <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
+                <Avatar sx={{ width: 84, height: 84, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), fontSize: 30, fontWeight: 800, borderRadius: '16px' }}>{doctor?.name?.charAt(0) ?? '?'}</Avatar>
+                <Chip size="small" icon={<LockIcon sx={{ fontSize: '13px !important' }} />} label="Pro" sx={{ position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)', height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', '& .MuiChip-icon': { color: '#6366f1' } }} />
+              </Box>
+            )}
             <Box>
               <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: '1.1rem' }}>{name || 'Médico'}</Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 600, mt: 0.25 }}>CRM {doctor?.crm}{spec ? ` • ${spec}` : ''}</Typography>
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>Toque na câmera pra trocar a foto.</Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>{isPremium ? 'Toque na câmera pra trocar a foto.' : 'Foto de perfil é exclusiva do Dr. Exame Pro.'}</Typography>
             </Box>
           </Stack>
         </CardContent>

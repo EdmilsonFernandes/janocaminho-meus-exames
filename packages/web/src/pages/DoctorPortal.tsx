@@ -962,7 +962,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       </Box>
 
       <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100dvh', overflowX: 'hidden', width: '100%' }}>
-        {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} />}
+        {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} isPremium={!!planInfo?.isPremium} />}
         {view === 'password' && <DoctorChangePasswordForm token={token} onBack={() => setView('patients')} />}
 
         {/* CONVITES — gestão dedicada */}

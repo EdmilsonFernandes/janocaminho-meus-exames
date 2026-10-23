@@ -3,7 +3,7 @@ import { collapseAdjacentNearDupes } from '../analysis/dedup';
 import { medianRefRange } from '../utils/range';
 import { audit } from '../utils/audit';
 import { synthesizeExamTitle } from '../utils/examIdentity';
-import { doctorAnswerEmail, doctorPlanEmail, webUrl } from '../utils/emailTemplate';
+import { doctorAnswerEmail, doctorPlanEmail, teleconsultaEmail, webUrl } from '../utils/emailTemplate';
 import { saveAnalysisDoc, getLatestAnalysisDoc, DOC_KIND } from '../utils/analysisDoc';
 import { validate, schemas } from '../middleware/validate';
 import { Router } from 'express';
@@ -448,9 +448,14 @@ router.put('/me/password', requireDoctor, async (req: any, res, next) => {
 });
 
 // UPLOAD de foto do médico — S3 (prod) ou disco (dev). Espelho da rota do paciente.
+// Pro-only (dono 23/10): sem plano ativo não sobe — e NÃO consome o free tier
+// (foto não é "uso" que se esgota no mês; é identidade contínua).
 router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any, res, next) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
+    const docPlan = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true } });
+    const pro = docPlan?.plan === 'premium' && !!docPlan.planExpiresAt && docPlan.planExpiresAt > new Date();
+    if (!pro) { res.status(402).json({ error: 'premium_required', message: 'A foto de perfil é exclusiva do Dr. Exame Pro. Assine para personalizar seu perfil.' }); return; }
     const contentType = req.file.mimetype || 'image/jpeg';
     const ref = await saveDoctorPhoto(req.doctorId, req.file.buffer, contentType);
     await prisma.doctor.update({ where: { id: req.doctorId }, data: { photoUrl: ref } });
@@ -461,8 +466,11 @@ router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any,
 // SERVE a foto do médico: AUTENTICADA via ?t= (fecha o buraco da foto pública por CUID / LGPD).
 router.get('/photo/:id', requirePhotoToken, async (req, res) => {
   try {
-    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true } });
-    if (!doctor?.photoUrl) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
+    const doctor = await prisma.doctor.findUnique({ where: { id: String(req.params.id) }, select: { photoUrl: true, plan: true, planExpiresAt: true } });
+    // Pro-only (dono 23/10): plano free não exibe — 404 e a UI volta pra iniciais.
+    // Um único ponto de gate cobre todos os displays (card, teleconsulta, portal).
+    const pro = doctor?.plan === 'premium' && !!doctor.planExpiresAt && doctor.planExpiresAt > new Date();
+    if (!doctor?.photoUrl || !pro) { res.setHeader('Cache-Control', 'no-store'); res.status(404).send('sem foto'); return; }
     const r = await resolvePatientPhoto(doctor.photoUrl);
     if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); return res.redirect(r.url); }
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -1024,7 +1032,7 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
 
     // Link obrigatório SOMENTE quando a chamada não roda no app (livekit → join interno).
     if (provider !== 'livekit' && !/^https?:\/\/[^\s/]+/i.test(linkUrl)) { res.status(400).json({ error: 'Link da chamada obrigatório (http/https — Meet, Teams, WhatsApp…).' }); return; }
-    const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true } } } });
+    const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true, email: true } } } });
     if (!patient?.ownerId) { res.status(404).json({ error: 'Paciente sem conta vinculada.' }); return; }
     const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
     const r = await prisma.reminder.create({
@@ -1040,6 +1048,11 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     // Push imediato: o paciente fica sabendo AGORA (não só na 1ª antecedência).
     const dateStr = dueDate.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     void sendPushToUser(patient.ownerId, `📋 Teleconsulta agendada${doctor?.name ? ` com ${doctor.name}` : ''}`, `${dateStr} — toque para autorizar e entrar na hora.`, { type: 'reminder', reminderId: r.id }).catch(() => {});
+    // E-mail de agendamento (23/10): confirma no inbox com CTA direto pra sala
+    // (App Link abre o app no Android; sem app, a web oferece instalar). Best-effort.
+    if (patient.owner?.email) {
+      void sendEmail({ to: patient.owner.email, subject: `Teleconsulta agendada${doctor?.name ? ` com ${doctor.name}` : ''} — ${dateStr}`, html: teleconsultaEmail({ name: patient.owner.name?.split(' ')[0] ?? 'Paciente', doctorName: doctor?.name, dueDate: dateStr, teleId: r.id, kind: 'scheduled' }) }).catch(() => {});
+    }
     res.status(201).json({ reminder: r });
   } catch (e) { next(e); }
 });

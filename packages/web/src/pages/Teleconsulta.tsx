@@ -279,6 +279,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   // ── F3 (paciente): gravação (consent) + pedidos do médico + área pós-consulta ──
   const [recordAudio, setRecordAudio] = useState(false); // checkbox §1 — default OFF (opt-in honesto)
+  const [installDismissed, setInstallDismissed] = useState(false); // banner Play Store (web Android) — dispensável
   const [examQueue, setExamQueue] = useState<ExamRequest[]>([]); // pedidos novos chegando in-call
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [schedFor, setSchedFor] = useState<string | null>(null); // req com quick-chips "Agendar" abertos (§3a)
@@ -780,26 +781,30 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     }
     setJoinLoading(true);
     try {
+      let next: Summary | null = sum ? { ...sum } : sum;
+      // Art.15 (CFM 2.314/22) — só se ainda não consenter.
       if (role === 'patient' && sum && !sum.consentAt) {
         const res = await fetch(`${API_URL}/reminders/${reminderId}/consent`, { method: 'PUT', headers: { Authorization: `Bearer ${token()}` } });
         if (!res.ok) throw new Error('consent');
         hapticSuccess();
-        let next = { ...sum, consentAt: new Date().toISOString() };
-        if (recordAudio) {
-          const rcUrl = `${API_URL}/teleconsulta/${reminderId}/record-consent`;
-          const rcHeaders = { Authorization: `Bearer ${token()}` };
-          let rc: Response | null = null;
-          try {
-            rc = await fetch(rcUrl, { method: 'PUT', headers: rcHeaders });
-            if (!rc.ok && (rc.status === 404 || rc.status === 405)) rc = await fetch(rcUrl, { method: 'PATCH', headers: rcHeaders });
-          } catch { rc = null; }
-          if (rc?.ok) next = { ...next, recordConsentAt: new Date().toISOString() };
-        }
-        setSummary(next);
-        await startJoin(next);
-      } else {
-        await startJoin(sum);
+        next = { ...sum, consentAt: new Date().toISOString() };
       }
+      // F3 §1: record-consent INDEPENDENTE do Art.15 — fix 23/10: antes só era
+      // registrado junto do consent pendente; quem consentiu na marcação nunca
+      // via o checkbox e o recordConsentAt nunca nascia → gravação morta.
+      // Best-effort: falha aqui NUNCA derruba a entrada na chamada.
+      if (role === 'patient' && recordAudio && next && !next.recordConsentAt) {
+        const rcUrl = `${API_URL}/teleconsulta/${reminderId}/record-consent`;
+        const rcHeaders = { Authorization: `Bearer ${token()}` };
+        let rc: Response | null = null;
+        try {
+          rc = await fetch(rcUrl, { method: 'PUT', headers: rcHeaders });
+          if (!rc.ok && (rc.status === 404 || rc.status === 405)) rc = await fetch(rcUrl, { method: 'PATCH', headers: rcHeaders });
+        } catch { rc = null; }
+        if (rc?.ok) next = { ...next, recordConsentAt: new Date().toISOString() };
+      }
+      if (next !== sum) setSummary(next);
+      await startJoin(next);
     } catch {
       hapticError();
       setToast({ text: 'Não deu pra entrar. Tenta de novo em instantes.', k: Date.now() });
@@ -2300,6 +2305,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   // Pré-join + loading — ou WHATSAPP-STYLE incoming call quando médico já tá na sala
   const showConsent = role === 'patient' && !summary?.consentAt;
+  // Banner "instale o app" (23/10): quem chega num LINK de consulta pelo navegador
+  // Android não tem o app instalado (com App Link verificado, o app abriria direto).
+  // Oferece a Play Store sem sequestrar a web — a consulta funciona no navegador.
+  const showInstallBanner = role === 'patient' && !Capacitor.isNativePlatform() && /android/i.test(navigator.userAgent) && !installDismissed;
   const isIncomingCall = role === 'patient' && !!summary?.doctorInRoom && phase === 'prejoin';
   if (isIncomingCall) {
     const docName = summary?.doctor?.name || 'Seu médico';
@@ -2379,6 +2388,29 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             Ao atender, você autoriza a telemedicina conforme o Art. 15 da Res. CFM 2.314/2022.
           </Typography>
         )}
+        {/* F3 §1 fix 23/10: opt-in de gravação também na chamada recebida — antes
+            só existia no pré-join "cold", então quem atendia o push nunca via
+            (médico dentro → patient answer → gravação morta). Compacto: não
+            atrapalha o gesto de atender. */}
+        {role === 'patient' && !summary?.recordConsentAt && summary?.stt !== false && (
+          <FormControlLabel
+            disableTypography
+            label={(
+              <Typography sx={{ color: 'rgba(255,255,255,.75)', fontSize: 12.5, lineHeight: 1.4, userSelect: 'none', maxWidth: 240 }}>
+                Autorizo gravar o áudio p/ transcrição (opcional)
+              </Typography>
+            )}
+            control={(
+              <Checkbox
+                checked={recordAudio}
+                onChange={(e) => setRecordAudio(e.target.checked)}
+                inputProps={{ 'aria-label': 'Autorizar gravação de áudio para transcrição' }}
+                sx={{ color: 'rgba(255,255,255,.6)', p: '8px', '&.Mui-checked': { color: '#5fc9c3' }, '& .MuiSvgIcon-root': { fontSize: 22 }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 2 } }}
+              />
+            )}
+            sx={{ alignItems: 'flex-start', m: 0, mt: 1.5 }}
+          />
+        )}
       </Box>
     );
   }
@@ -2397,6 +2429,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         elevation={0}
       >
         <CardContent sx={{ p: 2.75 }}>
+          {showInstallBanner && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1.25, mb: 1.5, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.08)', border: '1px solid rgba(32,178,170,.3)' }}>
+              <Box sx={{ flexShrink: 0 }}><DrExame size={34} /></Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 800 }}>Prefere pelo app?</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>Instale o Dr. Exame — links de consulta abrem direto nele.</Typography>
+              </Box>
+              <Button size="small" variant="contained" href="https://play.google.com/store/apps/details?id=com.janocaminho.drexame" target="_blank" rel="noopener" sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, px: 1.5, minWidth: 0, flexShrink: 0 }}>Instalar</Button>
+              <IconButton size="small" aria-label="Dispensar aviso do app" onClick={() => { try { localStorage.setItem('dx_install_banner_off', '1'); } catch { /* storage bloqueado — some só desta sessão */ } setInstallDismissed(true); }} sx={{ flexShrink: 0, color: 'text.secondary' }}>
+                <CloseIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Box>
+          )}
           <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1.5 }}>
             Sua teleconsulta vai começar
           </Typography>
@@ -2482,12 +2527,17 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           {showConsent && (
             <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.65, mt: 1.5 }}>{CONSENT_TEXT}</Typography>
           )}
+          {role === 'patient' && summary?.consentAt && (
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>✓ Telemedicina autorizada</Typography>
+          )}
           {/* F3 §1: gravação p/ transcrição — checkbox SEPARADO do consent Art.15 (divisor
               hairline + 12px), default OFF, sem nudge visual. Opt-in honesto: a consulta
-              funciona sem. Médico não vê (o titular do dado é o paciente).
+              funciona sem. Médico não vê (o titular do dado é o paciente). Fix 23/10:
+              aparece sempre que ainda não há recordConsent — antes vinha só junto do
+              Art.15 pendente e quem consentiu na marcação nunca via (gravação morta).
               reviewer-L: some quando o server não transcreve (stt flag do join/summary) —
               ausência é a mensagem, nunca promessa falsa. */}
-          {showConsent && summary?.stt !== false && (
+          {role === 'patient' && !summary?.recordConsentAt && summary?.stt !== false && (
             <Box sx={{ mt: 1.5, pt: 1.5, borderTop: '1px solid', borderColor: 'divider' }}>
               <FormControlLabel
                 disableTypography
@@ -2515,9 +2565,6 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 sx={{ alignItems: 'flex-start', m: 0 }}
               />
             </Box>
-          )}
-          {role === 'patient' && summary?.consentAt && (
-            <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>✓ Telemedicina autorizada</Typography>
           )}
           {role === 'doctor' && summary && !summary.consentAt && (
             <Chip size="small" label="Paciente ainda não autorizou" sx={{ mt: 1.5, height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(217,119,6,.14)', color: '#b45309', borderRadius: '8px' }} />

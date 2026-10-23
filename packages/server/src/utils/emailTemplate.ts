@@ -251,3 +251,32 @@ export function leadWelcomeEmail(opts: { decifreUrl: string; signupUrl: string }
       <p style="font-size:12px;color:#8b9bb4;line-height:1.55;margin:0">Você recebe este e-mail porque pediu o link no site. Não quer mais? Responda "remover" que excluímos seu e-mail na hora (LGPD).</p>`,
   });
 }
+
+/** Link público com App Links verificados (drexame.janocaminho.com.br): no Android
+ *  com o app instalado abre DIRETO na rota; sem app, cai na web (que funciona) e
+ *  oferece instalar. Override via PUBLIC_APP_ORIGIN — NÃO mexer em WEB_ORIGIN por
+ *  aqui (ele alimenta URLs de OAuth/convites já registradas). */
+const _appOrigin = (process.env.PUBLIC_APP_ORIGIN || 'https://drexame.janocaminho.com.br').replace(/\/$/, '');
+export function appLink(path: string): string {
+  return `${_appOrigin}${path.startsWith('/') ? '' : '/'}${path}`;
+}
+
+/** E-mail de teleconsulta — agendamento confirmado (kind='scheduled') ou
+ *  lembrete de antecedência (kind='reminder'). CTA leva direto à sala. */
+export function teleconsultaEmail(opts: { name: string; doctorName?: string | null; dueDate: string; teleId: string; kind: 'scheduled' | 'reminder' }): string {
+  const scheduled = opts.kind === 'scheduled';
+  const withDoc = opts.doctorName ? ` com ${opts.doctorName}` : '';
+  const headline = scheduled ? 'Teleconsulta agendada 🗓️' : 'Sua teleconsulta está chegando 🩺';
+  return emailTemplate({
+    title: `${opts.name}, ${scheduled ? 'teleconsulta agendada' : 'sua teleconsulta está chegando'}`,
+    preheader: `Consulta${withDoc} em ${opts.dueDate}.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 10px">Olá <strong>${opts.name}</strong>,</p>
+      <h2 style="font-size:19px;color:#0f3d3a;margin:0 0 12px;line-height:1.35">${headline}</h2>
+      <p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 22px">Sua consulta${withDoc} está marcada para <strong>${opts.dueDate}</strong>. Chegue alguns minutos antes — o botão abaixo leva direto pra sala de espera.</p>
+      <div style="text-align:center;margin:0 0 22px">
+        <a href="${appLink(`/#/teleconsulta/${opts.teleId}`)}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Entrar na consulta</a>
+      </div>
+      <p style="font-size:13px;color:#8b9bb4;line-height:1.55;margin:0">No celular: se você tem o app Dr. Exame instalado, o link abre direto na sala. Sem app? Ele também funciona no navegador — e oferece instalar em um toque.</p>`,
+  });
+}

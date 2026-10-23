@@ -1,6 +1,6 @@
 import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
-import { reminderEmail } from '../utils/emailTemplate';
+import { reminderEmail, teleconsultaEmail } from '../utils/emailTemplate';
 import { sendPushToUser } from '../utils/push';
 
 const MS_MIN = 60_000;
@@ -162,15 +162,28 @@ export function startReminderEmailJob(): void {
         include: { patient: { include: { owner: { select: { id: true, email: true, name: true } } } } },
       });
 
+      // Teleconsulta: nome do médico que agendou (createdByDoctorId é scalar no
+      // reminder — sem include de relação; busca em lote antes do loop).
+      const teleDoctorIds = Array.from(new Set(reminders.filter((r) => r.type === 'teleconsulta' && r.createdByDoctorId).map((r) => r.createdByDoctorId as string)));
+      const doctorNames = new Map<string, string>();
+      if (teleDoctorIds.length) {
+        (await prisma.doctor.findMany({ where: { id: { in: teleDoctorIds } }, select: { id: true, name: true } })).forEach((d) => doctorNames.set(d.id, d.name));
+      }
+
       for (const r of reminders) {
         const owner = r.patient?.owner;
         const dueMs = new Date(r.dueDate).getTime();
         const sent = new Set(r.sentOffsets ?? []);
         const dateStr = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         const name = owner?.name?.split(' ')[0] ?? 'Paciente';
+        // Teleconsulta sem offsets (rows criadas antes do default do scheduleTele):
+        // padrão de consulta — o dono espera o e-mail "está chegando" nelas também.
+        const isTele = r.type === 'teleconsulta';
+        const offsets = r.notifyOffsetsMin?.length ? r.notifyOffsetsMin : (isTele ? [1440, 60, 0] : []);
+        const docName = isTele && r.createdByDoctorId ? doctorNames.get(r.createdByDoctorId) : undefined;
         const fired: number[] = [];
 
-        for (const o of r.notifyOffsetsMin ?? []) {
+        for (const o of offsets) {
           if (sent.has(o)) continue;
           const triggerMs = dueMs - o * MS_MIN;
           const eligible = o === 0
@@ -187,7 +200,15 @@ export function startReminderEmailJob(): void {
           }
           // e-mail (cada antecedência avisa por e-mail — iPhone sem push também é lembrado)
           if (owner?.email) {
-            await sendEmail({ to: owner.email, subject: `Lembrete: ${r.title}`, html: reminderEmail(name, r.title, dateStr) })
+            await sendEmail({
+              to: owner.email,
+              // Teleconsulta: template próprio com CTA direto pra sala (App Link
+              // abre o app no Android; web oferece instalar).
+              subject: isTele ? `${label} — sua teleconsulta${docName ? ` com ${docName}` : ''}` : `Lembrete: ${r.title}`,
+              html: isTele
+                ? teleconsultaEmail({ name, doctorName: docName, dueDate: dateStr, teleId: r.id, kind: 'reminder' })
+                : reminderEmail(name, r.title, dateStr),
+            })
               .catch((e) => console.error('[reminders] e-mail falhou:', e?.message));
           }
           console.log(`[reminders] disparo ${label} p/ ${owner?.email ?? owner?.id}: ${r.title}`);
