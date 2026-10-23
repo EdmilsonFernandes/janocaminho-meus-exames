@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, Tooltip as MuiTooltip } from '@mui/material';
+import { Box, Button, Card, CardContent, Typography, Chip, Stack, Grid, Accordion, AccordionSummary, AccordionDetails, InputBase, Paper, IconButton, Tooltip as MuiTooltip } from '@mui/material';
 /** Reduced-motion 1× (charts draw-in e afins) — Recharts não tem gate global. */
 const REDUCED_MOTION = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 import { alpha } from '@mui/material/styles';
@@ -7,6 +7,7 @@ import { Title, useTranslate } from 'react-admin';
 import { ResponsiveContainer, LineChart, Line, ReferenceArea, YAxis, Tooltip } from 'recharts';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { useNavigate } from 'react-router-dom';
@@ -174,12 +175,15 @@ export const EvolutionPage = () => {
                     onClick={() => setFilter(c.key)}
                     aria-pressed={on}
                     sx={{
-                      textAlign: 'center', py: 1.1, borderRadius: '20px', cursor: 'pointer',
-                      bgcolor: on ? `${c.color}14` : `${c.color}08`,
-                      border: on ? `2px solid ${c.color}` : `1px solid ${c.color}20`,
-                      boxShadow: on ? `0 4px 16px ${c.color}22` : 'none',
-                      transition: 'border-color .2s ease, background-color .2s ease, box-shadow .25s ease, transform .15s ease',
-                      '&:hover': { bgcolor: `${c.color}1E`, transform: 'translateY(-1px)' },
+                      textAlign: 'center', py: 1.25, borderRadius: '20px', cursor: 'pointer',
+                      bgcolor: (t) => on
+                        ? (t.palette.mode === 'dark' ? alpha(c.color, 0.22) : alpha(c.color, 0.14))
+                        : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#ffffff'),
+                      border: on ? `2px solid ${c.color}` : (t) => `1px solid ${alpha(c.color, 0.22)}`,
+                      boxShadow: on ? `0 6px 20px ${alpha(c.color, 0.3)}` : '0 1px 3px rgba(0,0,0,0.03)',
+                      transform: on ? 'scale(1.02)' : 'none',
+                      transition: 'all .2s ease',
+                      '&:hover': { bgcolor: (t) => alpha(c.color, 0.18), transform: on ? 'scale(1.02)' : 'translateY(-1px)' },
                       '&:active': { transform: 'scale(.97)' },
                       animation: `dxFilterIn .35s cubic-bezier(.16,1,.3,1) ${i * 0.06}s both`,
                       '@keyframes dxFilterIn': { from: { opacity: 0, transform: 'translateY(8px)' }, to: { opacity: 1, transform: 'none' } },
@@ -206,7 +210,11 @@ export const EvolutionPage = () => {
             }}>
               <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
               <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
-              {query && <Chip size="small" label="limpar" onClick={() => setQuery('')} sx={{ height: 22 }} />}
+              {query && (
+                <IconButton size="small" onClick={() => setQuery('')} sx={{ p: 0.5, color: 'text.secondary' }} aria-label="Limpar busca">
+                  <CloseIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+              )}
             </Paper>
           </ScrollReveal>
         </>
@@ -386,6 +394,11 @@ const EvoRow = ({ it, defaultExpanded, idx = 0, goal }: { it: EvoItem; defaultEx
             }}
           >
             <Typography sx={{ fontWeight: 800, color: meta.color, whiteSpace: 'nowrap' }}>{it.lastValue} {it.unit ? <UnitLabel unit={it.unit} /> : null}</Typography>
+            {it.isNew && (
+              <MuiTooltip title="Valor do exame mais recente — veio do último processamento" arrow>
+                <Chip size="small" label="Novo" sx={{ height: 20, borderRadius: 7, flexShrink: 0, fontWeight: 800, fontSize: 11, letterSpacing: 0.2, px: 0.75, bgcolor: 'rgba(32,178,170,0.14)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,0.35)' }} />
+              </MuiTooltip>
+            )}
             {mixedMethods ? <Box title="Métodos diferentes entre exames — sem linha de tendência" sx={{ fontSize: 15, flexShrink: 0 }}>⚠️</Box> : <EvoSparkline points={it.points} color={lineColor} />}
             {goal && <GoalChip goal={goal} />}
             {st !== 'stable' && it.pctChange !== 0 && <Chip size="small" sx={{ bgcolor: `${lineColor}14`, color: lineColor, fontWeight: 700, height: 22, borderRadius: '999px', flexShrink: 0 }} label={`${it.pctChange > 0 ? '+' : ''}${it.pctChange}%`} />}

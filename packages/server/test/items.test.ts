@@ -114,4 +114,22 @@ describe('itens: flags, alterados, série temporal, evolução', () => {
     const glic = r.body.items.find((i: any) => i.nameCanonical === 'GLICEMIA');
     expect(glic).toBeTruthy();
   });
+
+  it('GET /items/evolution marca isNew no item cujo último ponto vem do exame mais recente', async () => {
+    // Badge "Novo" (pedido do dono 10/2026): com muitos resultados, o user não sabe quais
+    // valores vieram do último processamento. isNew=true somente quando o ÚLTIMO ponto da
+    // série pertence ao exame mais recente do paciente.
+    const { patient, token } = await createUser();
+    const e1 = await createExam(patient.id, { title: 'Jan', performedAt: D1 });
+    const e2 = await createExam(patient.id, { title: 'Mar', performedAt: D2 });
+    await createItem(e1.id, { name: 'HEMOGLOBINA', nameCanonical: 'HEMOGLOBINA', valueNumeric: 13, refLow: 12, refHigh: 16 });
+    await createItem(e2.id, { name: 'HEMOGLOBINA', nameCanonical: 'HEMOGLOBINA', valueNumeric: 17, refLow: 12, refHigh: 16 });
+    // analito medido SÓ no exame antigo → último ponto NÃO é do exame mais recente
+    await createItem(e1.id, { name: 'VITAMINA_D', nameCanonical: 'VITAMINA_D', valueNumeric: 30, refLow: 20, refHigh: 60 });
+
+    const r = await api().get('/api/items/evolution').set(authHeader(token));
+    expect(r.status).toBe(200);
+    expect(r.body.items.find((i: any) => i.nameCanonical === 'HEMOGLOBINA').isNew).toBe(true);
+    expect(r.body.items.find((i: any) => i.nameCanonical === 'VITAMINA_D').isNew).toBe(false);
+  });
 });

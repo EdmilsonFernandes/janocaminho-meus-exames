@@ -64,18 +64,23 @@ describe('goalRangeText', () => {
 });
 
 describe('E2.5 — métodos diferentes não comparam', () => {
-  it('hasMixedMethods: ≥2 métodos informados distintos OU informado × não-informado', () => {
+  it('hasMixedMethods: só bloqueia com métodos INFORMADOS distintos em coletas adjacentes', () => {
     expect(hasMixedMethods([{ method: 'Química seca' }, { method: 'química seca' }])).toBe(false); // mesmo método (case)
-    expect(hasMixedMethods([{ method: null }, { method: null }])).toBe(false); // nenhum informado → compara (comportamento atual)
+    expect(hasMixedMethods([{ method: null }, { method: null }])).toBe(false); // nenhum informado → compara
     expect(hasMixedMethods([{ method: 'Química seca' }, { method: 'Eletroquimioluminescência' }])).toBe(true);
-    expect(hasMixedMethods([{ method: null }, { method: 'ECL' }])).toBe(true); // não dá p/ afirmar mesmo ensaio
-    expect(hasMixedMethods([{ method: 'Química seca' }, { method: null }, { method: null }])).toBe(true);
+    // fix 2026-10-23 (bug do dono): null = "não informado", NÃO é método diferente → conecta.
+    // Antes: exame novo extraído com método + antigos sem método viravam "métodos diferentes".
+    expect(hasMixedMethods([{ method: null }, { method: 'ECL' }])).toBe(false);
+    expect(hasMixedMethods([{ method: 'Química seca' }, { method: null }, { method: null }])).toBe(false);
+    expect(hasMixedMethods([{ method: 'ECL' }, { method: null }, { method: 'Química seca' }])).toBe(false);
   });
 
-  it('lineBreakFlags: quebra a linha onde o método muda (incl. informado × não-informado)', () => {
+  it('lineBreakFlags: quebra a linha SÓ quando ambos têm método informado e diferente', () => {
     const pts = [{ method: 'A' }, { method: 'A' }, { method: 'B' }, { method: null }, { method: 'B' }];
-    expect(lineBreakFlags(pts)).toEqual([false, false, true, true, true]);
+    expect(lineBreakFlags(pts)).toEqual([false, false, true, false, false]); // null conecta (fix 2026-10-23)
     // todos iguais → linha contínua
     expect(lineBreakFlags([{ method: 'A' }, { method: 'a' }, { method: 'A ' }])).toEqual([false, false, false]);
+    // regressão do bug: antigos sem método + novo com método → CONECTA (histórico preenche)
+    expect(lineBreakFlags([{ method: null }, { method: null }, { method: 'ECL' }])).toEqual([false, false, false]);
   });
 });

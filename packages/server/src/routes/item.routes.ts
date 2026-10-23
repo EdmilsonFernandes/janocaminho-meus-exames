@@ -209,9 +209,19 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
     const scope = patientId && pids.includes(patientId) ? patientId : { in: pids };
     const rows = (await prisma.examItem.findMany({
       where: { valueNumeric: { not: null }, exam: { patientId: scope, status: 'EXTRACTED' } },
-      include: { exam: { select: { id: true, performedAt: true, title: true, rawExtraction: true } } },
+      include: { exam: { select: { id: true, performedAt: true, createdAt: true, title: true, rawExtraction: true } } },
       orderBy: { exam: { performedAt: 'asc' } },
     })).filter((r) => !isCpfMismatch((r.exam as any).rawExtraction));
+    // Exame mais recente do paciente com valores (max performedAt; createdAt desempata/faz
+    // fallback quando performedAt é null) — referência do badge "Novo" do front: item cujo
+    // último ponto vem deste exame = valor do último processamento (pedido do dono 10/2026:
+    // com muitos resultados, o user não sabe quais valores são novos).
+    let latestExamId: string | null = null;
+    let latestKey = -Infinity;
+    for (const r of rows) {
+      const k = new Date(r.exam.performedAt ?? r.exam.createdAt).getTime();
+      if (k > latestKey) { latestKey = k; latestExamId = r.exam.id; }
+    }
     // Dedup por (analito + DIA): várias medições do mesmo analito no MESMO dia viram 1 ponto só.
     // Mantém a mais recente do dia (rows vêm orderBy performedAt asc, então o último set do dia vence).
     // Antes o dedup exigia valor IDÊNTICO — 2 medições no mesmo dia com valores ligeiramente diferentes
@@ -280,6 +290,8 @@ router.get('/evolution', async (req: AuthedRequest, res, next) => {
         // contava marcadores incertos (conflito de escala) como 'fora', inflando o número.
         abnormal: !!last.isAbnormal,
         count: items.length,
+        // Badge "Novo": o último ponto desta série pertence ao exame mais recente do paciente.
+        isNew: latestExamId != null && last.exam.id === latestExamId,
         points: items.map((i) => ({ value: i.valueNumeric, date: i.exam.performedAt, flag: i.flag, examId: i.exam.id, examTitle: i.exam.title, method: i.method, refLow: i.refLow, refHigh: i.refHigh })),
       });
     }

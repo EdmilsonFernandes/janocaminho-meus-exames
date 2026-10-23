@@ -60,6 +60,10 @@ export const EvolutionItemSchema = z.object({
   inRange: z.boolean(),
   abnormal: z.boolean(),
   count: z.number(),
+  // "Novo" (10/2026): true quando o ÚLTIMO ponto da série vem do exame mais recente do
+  // paciente — o front marca o valor do último processamento. Opcional = back-compat
+  // com respostas em cache (offline) que não trazem o campo.
+  isNew: z.boolean().optional(),
   points: z.array(EvoPointSchema),
 });
 export type EvolutionItem = z.infer<typeof EvolutionItemSchema>;

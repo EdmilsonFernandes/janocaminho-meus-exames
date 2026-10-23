@@ -54,31 +54,28 @@ export function goalRangeText(goal: { targetLow?: number | null; targetHigh?: nu
 
 export interface MethodPoint { method?: string | null }
 
-/** Métodos distintos enough p/ BLOQUEAR comparação? true quando há ≥2 métodos informados
- *  diferentes OU mistura de informado × não-informado (não dá para afirmar que é o mesmo
- *  ensaio — conservador clinicanente). Todos sem método → false (comportamento atual). */
+/** Métodos distintos enough p/ BLOQUEAR comparação? true quando há um par ADJACENTE com
+ *  métodos informados e de fato diferentes (controla o chip "⚠️ Métodos diferentes").
+ *  REGRA (fix 2026-10-23, bug do dono): método null/vazio = "NÃO INFORMADO" — NÃO conta
+ *  como diferente. Exames antigos sem método + exame novo com método CONECTAM normalmente. */
 export function hasMixedMethods(points: MethodPoint[]): boolean {
-  const seen = new Set<string>();
-  let hasNull = false;
-  let hasKnown = false;
-  for (const p of points) {
-    const m = (p.method ?? '').trim();
-    if (!m) { hasNull = true; continue; }
-    hasKnown = true;
-    seen.add(m.toUpperCase());
+  for (let i = 1; i < points.length; i++) {
+    const prev = (points[i - 1].method ?? '').trim().toUpperCase();
+    const cur = (points[i].method ?? '').trim().toUpperCase();
+    if (prev && cur && prev !== cur) return true;
   }
-  return seen.size >= 2 || (hasKnown && hasNull);
+  return false;
 }
 
 /** Por ponto: a LINHA deve "pular" este ponto (quebra o segmento vindo do anterior)?
- *  Quebra quando o método difere do ponto anterior (método informado vs não-informado
- *  também quebra — não dá para afirmar que é o mesmo ensaio). O ponto continua visível
- *  como dot isolado. Uso: valor=null no data point + série paralela só de dots. */
+ *  Quebra SOMENTE quando este ponto e o anterior têm métodos INFORMADOS diferentes —
+ *  null (não informado) conecta. O ponto quebrado continua visível como dot isolado.
+ *  Uso: valor=null no data point + série paralela só de dots. */
 export function lineBreakFlags(points: MethodPoint[]): boolean[] {
   return points.map((p, i) => {
     if (i === 0) return false;
     const prev = (points[i - 1].method ?? '').trim().toUpperCase();
     const cur = (p.method ?? '').trim().toUpperCase();
-    return prev !== cur;
+    return !!prev && !!cur && prev !== cur;
   });
 }
