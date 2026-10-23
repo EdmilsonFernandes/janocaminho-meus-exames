@@ -6,7 +6,7 @@
 // reload() (crasha o APK); zero jargão ("consulta/chamada", nunca room/track/token).
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useTheme, Avatar } from '@mui/material';
+import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useMediaQuery, useTheme, Avatar } from '@mui/material';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import MicIcon from '@mui/icons-material/Mic';
@@ -34,6 +34,7 @@ import { tealText } from '../theme';
 // F3 — componentes compartilhados da área de teleconsulta (fe2): 1 padrão só p/
 // médico e paciente. Contratos: docs/research/2026-10-20-f3-arquitetura.md §3.
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
+import { BriefClinico } from '../components/teleconsulta/BriefClinico';
 import { TranscriptView } from '../components/teleconsulta/TranscriptView';
 import type { ExamRequest, ExamRequestAction, TeleconsultaSummary as TeleSummary } from '../components/teleconsulta/types';
 
@@ -190,6 +191,7 @@ export const TeleconsultaPage = () => {
 /** State machine completa. role: paciente (app) ou médico (portal). */
 export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string; onExited?: () => void }) => {
   const theme = useTheme();
+  const isDesktopViewport = useMediaQuery(theme.breakpoints.up('sm'));
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -280,6 +282,29 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // ── F3 (paciente): gravação (consent) + pedidos do médico + área pós-consulta ──
   const [recordAudio, setRecordAudio] = useState(false); // checkbox §1 — default OFF (opt-in honesto)
   const [installDismissed, setInstallDismissed] = useState(false); // banner Play Store (web Android) — dispensável
+  const [briefOpen, setBriefOpen] = useState(false); // brief clínico (médico, in-call)
+  // Esc fecha o brief; foco entra no sheet e Tab fica preso nele (critic #5 —
+  // sem isso o Tab vazava pros controles da chamada atrás do scrim)
+  const briefSheetRef = useRef<HTMLDivElement | null>(null);
+  const briefCloseRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    if (!briefOpen) return;
+    const sheet = briefSheetRef.current;
+    briefCloseRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { setBriefOpen(false); return; }
+      if (e.key !== 'Tab' || !sheet) return;
+      const focusables = sheet.querySelectorAll<HTMLElement>('button,[href],[tabindex]:not([tabindex="-1"]),input,select,textarea');
+      if (!focusables.length) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      else if (!sheet.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [briefOpen]);
   const [examQueue, setExamQueue] = useState<ExamRequest[]>([]); // pedidos novos chegando in-call
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [schedFor, setSchedFor] = useState<string | null>(null); // req com quick-chips "Agendar" abertos (§3a)
@@ -1257,6 +1282,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // P2-reviewer: header do MÉDICO mostra o NOME do paciente (state do portal), não o
   // título do lembrete; fallback = quem está na sala.
   const statePatientName = (location.state as any)?.patientName as string | undefined;
+  // Brief clínico (médico): patientId do summary — o bootstrap do médico não
+  // popula o campo plano, mas patient.id vem no objeto do /summary.
+  const briefPatientId = summary?.patientId || summary?.patient?.id || '';
   const headerName = role === 'doctor'
     ? (`Paciente: ${statePatientName || main?.name || '—'}`)
     : (doctor?.name || main?.name || 'Médico(a)');
@@ -1468,6 +1496,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           </Stack>
           <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
             {role === 'doctor' && <Chip size="small" label="Médico" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(212,165,116,.2)', color: '#e0bc97' }} />}
+            {role === 'doctor' && briefPatientId && (
+              <Chip size="small" icon={<AssignmentIcon sx={{ fontSize: '15px !important' }} />} label="Exames" onClick={() => setBriefOpen(true)} aria-label="Abrir brief clínico do paciente" sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3', cursor: 'pointer', position: 'relative', '& .MuiChip-icon': { color: '#5fc9c3', ml: '6px', mr: '-4px' }, // hitbox 44px (critic #3): a área clicável estende 12px em volta
+                '&::after': { content: '""', position: 'absolute', inset: -12, }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 1 } }} />
+            )}
             {role === 'patient' && summary?.consentAt && <Chip size="small" label="✓ autorizada" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.18)', color: '#5fc9c3' }} />}
             {/* fix #13b: stt false (server não transcreve) → chip de gravação NEM renderiza */}
             {summary?.stt !== false && (recording ? (
@@ -1697,16 +1729,51 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           </Tooltip>
           {/* F3 reviewer-B (alto): "Solicitar exame" IN-CALL — controle do médico.
               Pedido chega na tela do paciente em tempo real (poll do summary). */}
-          {role === 'doctor' && (
-            <IconButton aria-label="Solicitar exame ao paciente" onClick={() => { hapticLight(); setReqOpen(true); }}
-              sx={{ width: 56, height: 56, bgcolor: 'rgba(255,255,255,.14)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.22)' } }}>
-              <AssignmentIcon sx={{ fontSize: 24 }} />
-            </IconButton>
+          {/* Brief clínico (médico): acesso direto aos exames alterados */}
+          {role === 'doctor' && briefPatientId && (
+            <Tooltip title={briefOpen ? "Fechar exames do paciente" : "Ver exames do paciente (Brief)"} arrow>
+              <IconButton aria-label="Ver exames do paciente" onClick={() => { hapticLight(); setBriefOpen((v) => !v); }}
+                sx={{
+                  width: 56, height: 56,
+                  bgcolor: briefOpen ? 'rgba(32,178,170,.35)' : 'rgba(255,255,255,.14)',
+                  color: briefOpen ? '#5fc9c3' : '#fff',
+                  border: briefOpen ? '1.5px solid #20b2aa' : 'none',
+                  '&:hover': { bgcolor: 'rgba(32,178,170,.25)' },
+                }}>
+                <AssignmentIcon sx={{ fontSize: 24 }} />
+              </IconButton>
+            </Tooltip>
           )}
-          <IconButton aria-label="Encerrar consulta" onClick={() => { hapticLight(); setEndOpen(true); }}
-            sx={{ width: 56, height: 56, bgcolor: '#dc2626', color: '#fff', '&:hover': { bgcolor: '#b91c1c' }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 3 } }}>
-            <CallEndIcon sx={{ fontSize: 26 }} />
-          </IconButton>
+          {/* Solicitar exame ao paciente (médico) */}
+          {role === 'doctor' && (
+            <Tooltip title="Solicitar novo exame ao paciente" arrow>
+              <IconButton aria-label="Solicitar exame ao paciente" onClick={() => { hapticLight(); setReqOpen(true); }}
+                sx={{ width: 56, height: 56, bgcolor: 'rgba(255,255,255,.14)', color: '#fff', '&:hover': { bgcolor: 'rgba(255,255,255,.22)' } }}>
+                <CheckCircleIcon sx={{ fontSize: 24 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+          {/* Paciente também pode consultar seus exames durante a chamada */}
+          {role === 'patient' && summary?.patientId && (
+            <Tooltip title={briefOpen ? "Fechar meus exames" : "Ver meus exames"} arrow>
+              <IconButton aria-label="Ver meus exames" onClick={() => { hapticLight(); setBriefOpen((v) => !v); }}
+                sx={{
+                  width: 56, height: 56,
+                  bgcolor: briefOpen ? 'rgba(32,178,170,.35)' : 'rgba(255,255,255,.14)',
+                  color: briefOpen ? '#5fc9c3' : '#fff',
+                  border: briefOpen ? '1.5px solid #20b2aa' : 'none',
+                  '&:hover': { bgcolor: 'rgba(32,178,170,.25)' },
+                }}>
+                <AssignmentIcon sx={{ fontSize: 24 }} />
+              </IconButton>
+            </Tooltip>
+          )}
+          <Tooltip title="Encerrar chamada" arrow>
+            <IconButton aria-label="Encerrar consulta" onClick={() => { hapticLight(); setEndOpen(true); }}
+              sx={{ width: 56, height: 56, bgcolor: '#dc2626', color: '#fff', '&:hover': { bgcolor: '#b91c1c' }, '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 3 } }}>
+              <CallEndIcon sx={{ fontSize: 26 }} />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
         {/* Sink de áudio remoto (elementos ocultos criados pelo SDK) */}
@@ -1773,6 +1840,53 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Brief clínico (in-call): sheet PRÓPRIO (fixed, mesma árvore) em vez de
+            Drawer MUI — o portal do Drawer perdia o stacking para os overlays
+            fullscreen da chamada (toque interceptado — bug real, achado no E2E).
+            Padrão overlay da casa: backdrop + painel com scroll interno, Esc fecha. */}
+        {!!briefPatientId && briefOpen && (
+          <>
+            {/* Scrim só no mobile (critic #6: no desktop o painel lateral não
+                precisa escurecer o vídeo — fecha pelo X ou clicando fora) */}
+            {!isDesktopViewport && (
+              <Box
+                aria-hidden
+                onClick={() => setBriefOpen(false)}
+                sx={{ position: 'fixed', inset: 0, zIndex: 1290, bgcolor: 'rgba(0,0,0,.45)', '@media (prefers-reduced-motion: no-preference)': { animation: 'dxFade .18s ease' }, '@keyframes dxFade': { from: { opacity: 0 }, to: { opacity: 1 } } }}
+              />
+            )}
+            <Box
+              ref={briefSheetRef}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Brief clínico — exames do paciente"
+              sx={{
+                position: 'fixed', zIndex: 1300, bgcolor: 'background.paper',
+                ...(isDesktopViewport
+                  ? { top: 0, right: 0, bottom: 0, width: 420, maxWidth: '92vw', borderLeft: '1px solid', borderColor: 'divider' }
+                  : { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }),
+                boxShadow: '0 -8px 40px rgba(0,0,0,.35)',
+                '@media (prefers-reduced-motion: no-preference)': { animation: isDesktopViewport ? 'dxSheetL .22s cubic-bezier(0.16,1,0.3,1)' : 'dxSheetUp .22s cubic-bezier(0.16,1,0.3,1)' },
+                '@keyframes dxSheetUp': { from: { transform: 'translateY(24px)', opacity: 0.6 }, to: { transform: 'none', opacity: 1 } },
+                '@keyframes dxSheetL': { from: { transform: 'translateX(24px)', opacity: 0.6 }, to: { transform: 'none', opacity: 1 } },
+              }}
+            >
+              {/* Handle visual (critic #2): pista de que o sheet é puxável/fechável */}
+              {!isDesktopViewport && <Box aria-hidden sx={{ width: 36, height: 4, borderRadius: 2, bgcolor: 'divider', position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)' }} />}
+              <IconButton ref={briefCloseRef} size="medium" aria-label="Fechar brief clínico" onClick={() => setBriefOpen(false)} sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'text.secondary', bgcolor: 'action.hover', width: 44, height: 44, '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 1 } }}>
+                <CloseIcon sx={{ fontSize: 20 }} />
+              </IconButton>
+              <Box sx={{ overflowY: 'auto', overscrollBehavior: 'contain' }}>
+                <BriefClinico
+                  patientId={briefPatientId}
+                  authToken={authToken() ?? ''}
+                  patientName={summary?.patient?.name || statePatientName || (role === 'patient' ? 'Meus exames' : null)}
+                />
+              </Box>
+            </Box>
+          </>
+        )}
 
         {/* Encerrar — dialog leve */}
         <Dialog open={endOpen} onClose={() => setEndOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>

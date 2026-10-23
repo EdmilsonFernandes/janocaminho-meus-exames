@@ -441,7 +441,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptAt: true, endedAt: true },
+      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
     const examRequests = await (prisma as any).examRequest.findMany({
@@ -453,11 +453,16 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       prisma.auditLog.findMany({ where: { action: 'TELECONSULTA_JOIN', targetId: r.id }, orderBy: { createdAt: 'asc' }, select: { createdAt: true } }),
       r.patientId ? prisma.patient.findUnique({
         where: { id: r.patientId },
-        select: { id: true, name: true, photoUrl: true },
+        // fix 23/10: selects com coluna inexistente (Patient.name — só há fullName)
+        // faziam o PrismaClientValidationError cair no .catch → patient SEMPRE null
+        // (header sem nome do paciente p/ o médico; brief clínico sem patientId).
+        select: { id: true, fullName: true, photoUrl: true },
       }).catch(() => null) : null,
       (r as any).createdByDoctorId ? prisma.doctor.findUnique({
         where: { id: (r as any).createdByDoctorId },
-        select: { name: true, crm: true, crmState: true, specialty: true, avatarUrl: true },
+        // fix 23/10: idem — Doctor não tem crmState/avatarUrl (é crmUf/photoUrl)
+        // → doctor sempre null → header do PACIENTE nunca mostrou nome/CRM do médico.
+        select: { name: true, crm: true, crmUf: true, specialty: true, photoUrl: true },
       }).catch(() => null) : null,
     ]);
     const fb: any = feedbackLog?.after ?? null;
@@ -480,18 +485,23 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     res.json({
       doctorInRoom,
       endedAt: endedAtIso,
+      // fix 23/10: sem consentAt/recordConsentAt no summary, o client de quem JÁ
+      // consentiu (deep link) reexibia a tela de consent Art.15 e perdia o estado
+      // do opt-in de gravação.
+      consentAt: row?.consentAt ? new Date(row.consentAt).toISOString() : null,
+      recordConsentAt: row?.recordConsentAt ? new Date(row.recordConsentAt).toISOString() : null,
       durationSec,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
       examRequests,
       feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,
       durationHint,
       stt: hasStt(), // reviewer-L: client esconde checkbox de gravação quando false
-      patient: patient ? { id: patient.id, name: patient.name, photoUrl: patient.photoUrl } : null,
+      patient: patient ? { id: patient.id, name: patient.fullName, photoUrl: patient.photoUrl } : null,
       doctor: doctor ? {
         name: doctor.name,
-        crm: doctor.crm ? `${doctor.crm}${doctor.crmState ? `/${doctor.crmState}` : ''}` : undefined,
+        crm: doctor.crm ? `${doctor.crm}${doctor.crmUf ? `/${doctor.crmUf}` : ''}` : undefined,
         specialty: doctor.specialty || undefined,
-        photoUrl: doctor.avatarUrl || undefined,
+        photoUrl: doctor.photoUrl || undefined,
       } : null,
     });
   } catch (e) {
