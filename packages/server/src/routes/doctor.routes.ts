@@ -1194,9 +1194,20 @@ router.get('/teleconsultas', requireDoctor, async (req: any, res, next) => {
       patientMap = Object.fromEntries(pats.map((p) => [p.id, p]));
     }
 
+    // §14.1: status do resumo pós-consulta por teleconsulta (1 query, drift-safe).
+    const csRows = await (prisma as any).consultSummary.findMany({
+      where: { reminderId: { in: items.map((it) => it.id) } },
+      select: { reminderId: true, status: true, approvedAt: true },
+    }).catch(() => []);
+    const consultSummaryMap: Record<string, { status: string; approvedAt: Date | null }> = Object.fromEntries(
+      (csRows as any[]).map((s) => [s.reminderId, { status: s.status, approvedAt: s.approvedAt ?? null }]),
+    );
     const enriched = items.map((it) => ({
       ...it,
       patient: patientMap[it.patientId] ?? null,
+      // §14.1: status do resumo pós-consulta (chip "Rascunho"/"Aprovado" no portal).
+      // Drift-safe: tabela nova ausente no legado → todos null (chip não aparece).
+      consultSummary: consultSummaryMap[it.id] ?? null,
     }));
 
     res.json({ items: enriched });

@@ -184,6 +184,24 @@ export async function getAsaasQrCode(
   throw lastErr ?? new Error('Asaas pixQrCode falhou');
 }
 
+/** Status do Asaas que representam dinheiro RECEBIDO (mesma lista do webhook
+ *  /webhooks/asaas — fonte única p/ conciliação §15.2 e verificação server-side). */
+export const ASAAS_RECEIVED_STATUSES = new Set(['RECEIVED', 'RECEIVED_IN_CASH', 'CONFIRMED', 'DETERMINED']);
+
+/** Consulta o status de um payment no Asaas (GET /v3/payments/{id}) — usado pela
+ *  CONCILIAÇÃO (§15.2 do spec gaps teleconsulta: revalidar "pago" quando o webhook
+ *  não chegou) e reutilizável pela verificação server-side do webhook. Fail-closed:
+ *  qualquer falha (rede/API/sem key) → null (NUNCA trata como pago).
+ *  Camada pura (só fetch global + config) → mockável em teste via stub de fetch. */
+export async function getAsaasPaymentStatus(paymentId: string): Promise<string | null> {
+  try {
+    const pay = await asaasFetch<{ status?: string }>(`/v3/payments/${encodeURIComponent(paymentId)}`);
+    return pay?.status ? String(pay.status).toUpperCase() : null;
+  } catch {
+    return null; // provider fora do ar / id inválido → não confirmado (fail closed)
+  }
+}
+
 /** Cobrança no CARTÃO (inline — form próprio do app, sem redirect). billingType
  *  CREDIT_CARD ou DEBIT_CARD (mesma estrutura de campos, muda só o tipo).
  *  Resposta: status CONFIRMED (aprovado na hora) ou PENDING (3DS/análise — o Asaas

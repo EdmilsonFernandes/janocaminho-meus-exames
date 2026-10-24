@@ -23,6 +23,9 @@ import { decryptPII } from '../utils/crypto';
 import { hasStt, SttError } from '../utils/stt';
 import { acceptAudioFile } from '../middleware/uploadAudio';
 import { audioPathFor, finalizeTranscription, abortTranscription } from '../jobs/transcriptionQueue';
+// §14.1 (24/10): resumo pós-consulta revisado pelo médico — payload role-aware injetado
+// no GET /summary abaixo (paciente só lê a versão APROVADA; rascunho nunca vaza).
+import { consultSummaryFor } from './consult-summary.routes';
 
 const router = Router();
 
@@ -704,6 +707,9 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       recordConsentAt: row?.recordConsentAt ? new Date(row.recordConsentAt).toISOString() : null,
       // QuickNote: privado do médico — o paciente não lê a anotação clínica.
       doctorNote: req.joinRole === 'doctor' ? (row?.doctorNote ?? null) : undefined,
+      // §14.1 Resumo pós-consulta: médico vê draft+approved+versions; paciente SOMENTE
+      // a versão aprovada (senão null — o rascunho nunca vaza ao paciente).
+      consultSummary: await consultSummaryFor(r.id, req.joinRole === 'doctor' ? 'doctor' : 'patient'),
       durationSec,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
       examRequests,

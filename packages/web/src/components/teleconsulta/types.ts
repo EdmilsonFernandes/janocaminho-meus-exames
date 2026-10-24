@@ -23,8 +23,31 @@ export interface ExamRequest {
   reminderId?: string | null;
 }
 
+/** §14.1 — Revisão registrada no histórico do resumo (ConsultSummary.revisions). */
+export interface ConsultSummaryRevision {
+  md: string;
+  at: string;
+  by?: string | null;
+  kind: 'generate' | 'draft' | 'approve';
+}
+
+/** §14.1 — Resumo pós-consulta revisado pelo médico. O PACIENTE recebe apenas a
+ *  versão aprovada (sem draftMd/revisions — o rascunho nunca vaza). */
+export interface ConsultSummaryInfo {
+  status: 'draft' | 'approved';
+  draftMd?: string | null;
+  summaryMd?: string | null;
+  generatedAt?: string | null;
+  approvedAt?: string | null;
+  approvedBy?: { name?: string | null } | null;
+  version: number;
+  revisions?: ConsultSummaryRevision[] | null;
+}
+
 /** GET /api/teleconsulta/:id/summary (§3d). */
 export interface TeleconsultaSummary {
+  /** §14.1: resumo aprovado pelo médico (paciente) / draft+approved+versões (médico). */
+  consultSummary?: ConsultSummaryInfo | null;
   /** F3: paciente autorizou gravação p/ transcrição (mesmo shape do Summary local da página). */
   recordConsentAt?: string | null;
   /** F4 pós-consulta: data-hora (ISO) de encerramento — null/ausente = consulta ativa.

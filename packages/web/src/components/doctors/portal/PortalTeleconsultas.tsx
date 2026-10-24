@@ -763,6 +763,25 @@ export const PortalTeleconsultas = ({
                           {hasTr && (
                             <Chip size="small" label="Transcrição ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,.10)', color: '#178f89' }} />
                           )}
+                          {/* §14.1: status do resumo pós-consulta — rascunho (âmbar, ainda
+                              privado) vs aprovado (teal, visível ao paciente). CTA leva à
+                              área do médico (gerar/editar/aprovar) quando a consulta é do app. */}
+                          {tc.consultSummary?.status === 'approved' && (
+                            <Chip
+                              size="small"
+                              label="Resumo aprovado ✓"
+                              onClick={() => (tc.provider === 'livekit' || !tc.linkUrl ? onEnterTele(tc, pName) : onOpenPost(tc.id))}
+                              sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(15,118,110,.14)', color: '#0d9488' }}
+                            />
+                          )}
+                          {tc.consultSummary?.status === 'draft' && (
+                            <Chip
+                              size="small"
+                              label="Resumo · rascunho"
+                              onClick={() => (tc.provider === 'livekit' || !tc.linkUrl ? onEnterTele(tc, pName) : onOpenPost(tc.id))}
+                              sx={{ height: 20, fontSize: 11, fontWeight: 800, cursor: 'pointer', bgcolor: 'rgba(245,158,11,.14)', color: '#b45309' }}
+                            />
+                          )}
                           {/* Consulta particular (23/10): pagamento concluído (ou não) da consulta passada. */}
                           {(tc.consultPriceCents ?? 0) > 0 && (
                             tc.paidAt ? (

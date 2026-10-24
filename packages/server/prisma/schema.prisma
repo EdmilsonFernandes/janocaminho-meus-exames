@@ -852,9 +852,37 @@ consultPriceCents Int?      // valor CONGELADO no agendamento (centavos); null/0
 paidAt            DateTime? // pagamento confirmado pelo webhook → "Paga ✓" pros dois lados
 paymentRef        String?   // id do pagamento no provedor (PIX/cartão)
   createdAt DateTime @default(now())
+  consultSummary ConsultSummary?
 
   @@index([patientId, dueDate])
   @@map("reminders")
+}
+
+// ── §14.1 RESUMO PÓS-CONSULTA (24/10/26, spec docs/design/2026-10-24-teleconsulta-gaps-spec.md):
+//    a IA prepara um RASCUNHO (draftMd) com os dados autorizados da consulta; o rascunho é
+//    do MÉDICO (revisar/editar/aprovar); SOMENTE a versão aprovada (summaryMd) chega ao
+//    paciente. Uma row por consulta (reminderId unique). version incrementa a cada
+//    mudança (gerar/editar/aprovar) e `revisions` guarda o histórico {md, at, by, kind} —
+//    o aprovado NUNCA é sobrescrito silenciosamente (summaryMd só muda via /approve,
+//    sempre auditável). Texto clínico plano (como doctorNote — PII sensível já vive cifrada).
+model ConsultSummary {
+  id                 String    @id @default(cuid())
+  reminderId         String    @unique
+  reminder           Reminder  @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  status             String    @default("draft") // 'draft' | 'approved' — approved = existe summaryMd visível ao paciente
+  draftMd            String?   // rascunho (IA + edições do médico) — nunca vaza ao paciente
+  summaryMd          String?   // versão APROVADA (o paciente só lê esta)
+  generatedAt        DateTime? // 1ª (ou última) geração por IA
+  approvedAt         DateTime?
+  approvedByDoctorId String?
+  approvedByDoctor   Doctor?   @relation("ConsultSummaryApprover", fields: [approvedByDoctorId], references: [id], onDelete: SetNull)
+  version            Int       @default(1) // incrementa a cada gerar/editar/aprovar
+  revisions          Json?     // histórico: [{md, at, by, kind:'generate'|'draft'|'approve'}] (últimas 50)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([approvedByDoctorId])
+  @@map("consult_summaries")
 }
 
 model Measurement {
@@ -968,6 +996,8 @@ model Doctor {
   consultations Consultation[]
   clinicalGoalsSet ClinicalGoal[]
   examRequests ExamRequest[]
+  // §14.1: resumos pós-consulta que este médico aprovou (ConsultSummary.approvedByDoctorId)
+  approvedConsultSummaries ConsultSummary[] @relation("ConsultSummaryApprover")
   // MFA (TOTP 2FA) — mesmo esquema do User
   mfaEnabled          Boolean   @default(false)
   mfaSecretEncrypted  String?
@@ -1334,4 +1364,24 @@ model EmailUploadCode {
   @@index([userId])
   @@index([patientId])
   @@map("email_upload_codes")
+}
+
+// ── §15.2 do spec de gaps da teleconsulta (24/10/26): FILA DE EXCEÇÕES — ocorrências
+//    que os jobs/rotinas NÃO puderam conciliar sozinhos (PIX pago com webhook perdido,
+//    paga sem atendimento, encerrada sem resumo...). Base da Central de Exceções do
+//    ADMIN (spec §14.5 — a UI vem depois; aqui só tabela + job que popula).
+//    SEM FK de propósito: reminderId é scalar opcional (exceção pode não ter consulta
+//    vinculada, e um reminder deletado não deve órfã a integridade da fila).
+model ExceptionQueue {
+  id         String    @id @default(cuid())
+  kind       String    // 'teleconsulta_payment_unconfirmed' | 'teleconsulta_paid_no_atendimento' | 'teleconsulta_ended_no_summary' | ...
+  reminderId String?   // consulta relacionada (null = sem consulta específica)
+  payload    Json?     // contexto mínimo p/ triagem humana — NUNCA dado clínico/PII
+  status     String    @default("open") // open | resolved
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@index([kind, status])
+  @@index([reminderId])
+  @@map("exception_queue")
 }

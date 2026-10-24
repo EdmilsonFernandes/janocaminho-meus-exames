@@ -11,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import BellIcon from '@mui/icons-material/NotificationsActive';
+import SummarizeIcon from '@mui/icons-material/Summarize';
 import AddAlarmIcon from '@mui/icons-material/AddAlarm';
 import HistoryIcon from '@mui/icons-material/History';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
@@ -615,6 +616,18 @@ export const RemindersPage = () => {
                       size="small"
                       label="✓ Prontuário Assinado"
                       sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0d9488', borderRadius: '6px' }}
+                    />
+                  )}
+                  {/* §14.1: consulta encerrada com resumo APROVADO pelo médico → CTA
+                      discreto (sem promessa quando ainda é rascunho). */}
+                  {hasEnded && r.consultSummaryApproved && (
+                    <Chip
+                      size="small"
+                      clickable
+                      icon={<SummarizeIcon sx={{ fontSize: 14 }} />}
+                      label="Ver resumo da consulta"
+                      onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                      sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: '#0d9488', borderRadius: '6px', '& .MuiChip-icon': { color: '#0d9488' } }}
                     />
                   )}
                 </Stack>

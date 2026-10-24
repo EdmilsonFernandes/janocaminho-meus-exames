@@ -58,6 +58,10 @@ import teleconsultaRoutes from './routes/teleconsulta.routes';
 // F3 Telemedicina premium: pedidos de exame do médico (POST /teleconsulta/:id/exam-request,
 // /exam-requests CRUD) — montado em /api SEM overlap com o router da teleconsulta (D8).
 import examRequestRoutes from './routes/examRequest.routes';
+// §14.1 Resumo pós-consulta: rascunho IA revisado/aprovado pelo médico (POST
+// /teleconsulta/:id/summary/generate, PUT /summary, POST /summary/approve) — mesmo
+// padrão D8 (montado em /api, sem overlap com teleconsulta.routes.ts).
+import consultSummaryRoutes from './routes/consult-summary.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -348,6 +352,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/teleconsulta', teleconsultaRoutes);
 app.use('/api', examRequestRoutes);
+app.use('/api', consultSummaryRoutes);
 app.use('/api/billing', billingRoutes);
 // Webhook público do OpenPix (PIX — PAYMENT_PROVIDER=openpix). PÚBLICO como o do MP:
 // a "assinatura" é a existência de Subscription PENDING + valor bater (ver rota).

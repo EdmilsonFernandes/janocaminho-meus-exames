@@ -58,9 +58,22 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       });
       docMap = Object.fromEntries(docs.map((d) => [d.id, d]));
     }
+    // §14.1: teleconsultas encerradas com resumo APROVADO ganham o CTA "Ver resumo da
+    // consulta" no card (paciente só vê o que o médico aprovou). Drift-safe: tabela
+    // nova ausente no legado → Set vazio (chip não aparece).
+    const teleIds = rows.filter((r) => r.type === 'teleconsulta').map((r) => r.id);
+    const approvedSummaries = teleIds.length
+      ? await (prisma as any).consultSummary.findMany({
+          where: { reminderId: { in: teleIds }, status: 'approved' },
+          select: { reminderId: true },
+        }).catch(() => [])
+      : [];
+    const approvedSummaryIds = new Set((approvedSummaries as any[]).map((s) => s.reminderId));
+
     const enriched = rows.map((r) => ({
       ...r,
       doctor: r.createdByDoctorId ? docMap[r.createdByDoctorId] ?? null : null,
+      consultSummaryApproved: approvedSummaryIds.has(r.id),
     }));
 
     setListHeaders(res, start, start + take, total);

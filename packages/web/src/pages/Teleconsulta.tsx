@@ -39,7 +39,7 @@ import { tealText } from '../theme';
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
 import { BriefClinico } from '../components/teleconsulta/BriefClinico';
 import { TranscriptView } from '../components/teleconsulta/TranscriptView';
-import type { ExamRequest, ExamRequestAction, TeleconsultaSummary as TeleSummary } from '../components/teleconsulta/types';
+import type { ConsultSummaryInfo, ExamRequest, ExamRequestAction, TeleconsultaSummary as TeleSummary } from '../components/teleconsulta/types';
 
 // ── Tokens fixos da spec (§5) ──────────────────────────────────────────────────
 const CALL_BG = '#0c1818'; // fundo in-call — fixo nos 2 modos (vídeo é o herói)
@@ -108,6 +108,23 @@ const dueShort = (d?: string) => {
   if (sameDay) return `Hoje · ${hm}`;
   return `${dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} · ${hm}`;
 };
+
+/** Markdown mínimo do resumo (§14.1): títulos ##/**, negrito **, quebras de linha —
+ *  sem lib nova (o prompt do resumo só emite títulos e negrito — texto clínico sóbrio). */
+const renderSummaryMd = (md: string) =>
+  md.split(/\n+/).map((line, i) => {
+    const heading = line.match(/^#{1,6}\s*(.*)$/);
+    const text = (heading ? heading[1] : line).trim();
+    if (!text) return null;
+    const parts = text.split(/\*\*(.+?)\*\*/g);
+    return (
+      <Typography key={i} sx={heading
+        ? { fontSize: 13.5, fontWeight: 800, color: 'text.primary', mt: i === 0 ? 0 : 1.5, mb: 0.5 }
+        : { fontSize: 13.5, color: 'text.secondary', lineHeight: 1.65 }}>
+        {parts.map((p, j) => (j % 2 === 1 ? <strong key={j}>{p}</strong> : p))}
+      </Typography>
+    );
+  });
 
 // ── Gravação não se perde (22/10): fila IndexedDB p/ uploads que falharam ──────
 // Se o POST /recording falha (rede caiu no encerrar), o blob fica em indexedDB
@@ -270,6 +287,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [unsupported, setUnsupported] = useState(false);
   const [note, setNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
+  // ── §14.1 Resumo pós-consulta (médico): gerar/editar/aprovar o rascunho da IA.
+  // Erro de geração NUNCA bloqueia a nota manual (QuickNote segue independente).
+  const [csBusy, setCsBusy] = useState<'generate' | 'save' | 'approve' | null>(null);
+  const [csDraft, setCsDraft] = useState('');
+  const [csEditing, setCsEditing] = useState(false);
+  const [csError, setCsError] = useState<string | null>(null);
+  const [csApproveOpen, setCsApproveOpen] = useState(false);
   // Feedback pós-chamada (dono 19/10: "quando encerra tem que ter algo pronto pra falar
   // se a chamada foi boa ou não") — 1 toque + nota opcional → audit TELECONSULTA_FEEDBACK.
   const [fbRating, setFbRating] = useState<number | null>(null);
@@ -1169,9 +1193,81 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         examRequests: Array.isArray(d?.examRequests) ? d.examRequests : [],
         feedback: d?.feedback ?? null,
         durationHint: d?.durationHint ?? null,
+        consultSummary: d?.consultSummary ?? null, // §14.1: aprovado (paciente) / draft+approved (médico)
       };
     } catch { return null; }
   }, [authToken, reminderId]);
+
+  // ── §14.1: ações do resumo (MÉDICO) — generate/edit/approve. Erro nunca derruba
+  // a página: mensagem + retry (as anotações manuais seguem intactas no server).
+  const applyConsultSummary = (payload: ConsultSummaryInfo | null) => {
+    if (!payload) return;
+    setAreaSummary((cur) => (cur ? { ...cur, consultSummary: payload } : cur));
+  };
+  const csGenerate = async () => {
+    setCsBusy('generate');
+    setCsError(null);
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary/generate`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` } });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(d?.error || 'Não foi possível gerar o rascunho agora.');
+      applyConsultSummary(d);
+      setCsDraft(String(d?.draftMd ?? ''));
+      setCsEditing(false);
+      hapticSuccess();
+    } catch (e: any) {
+      setCsError(e?.message || 'Não foi possível gerar o rascunho agora.');
+      hapticError();
+    } finally {
+      setCsBusy(null);
+    }
+  };
+  const csSaveDraft = async (): Promise<boolean> => {
+    if (!csDraft.trim()) { setCsError('Escreva o rascunho antes de salvar.'); return false; }
+    setCsBusy('save');
+    setCsError(null);
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
+        body: JSON.stringify({ draftMd: csDraft }),
+      });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(d?.error || 'Não foi possível salvar o rascunho.');
+      applyConsultSummary(d);
+      setCsEditing(false);
+      setToast({ text: 'Rascunho salvo — continue depois ou aprove quando quiser.', k: Date.now() });
+      hapticSuccess();
+      return true;
+    } catch (e: any) {
+      setCsError(e?.message || 'Não foi possível salvar o rascunho.');
+      hapticError();
+      return false;
+    } finally {
+      setCsBusy(null);
+    }
+  };
+  const csApprove = async () => {
+    setCsApproveOpen(false);
+    // Editor aberto com texto não salvo → salva ANTES (o server aprova o draft salvo;
+    // sem isso o médico aprovaria uma versão antiga sem perceber).
+    if (csEditing && !(await csSaveDraft())) return;
+    setCsBusy('approve');
+    setCsError(null);
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary/approve`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` } });
+      const d = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(d?.error || 'Não foi possível aprovar o resumo.');
+      applyConsultSummary(d);
+      setCsEditing(false);
+      setToast({ text: 'Resumo aprovado — o paciente já pode ler.', k: Date.now() });
+      hapticSuccess();
+    } catch (e: any) {
+      setCsError(e?.message || 'Não foi possível aprovar o resumo.');
+      hapticError();
+    } finally {
+      setCsBusy(null);
+    }
+  };
 
   // F3 (b): pedidos em tempo real IN-CALL — poll leve do summary a cada 20s (fallback
   // da casa: sem DataChannel, o polling cobre). Diff por id → painel flutuante §2b.
@@ -2297,6 +2393,34 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               </Box>
             </Stack>
 
+            {/* §14.1 — Resumo da consulta APROVADO pelo médico. Sem aprovação → NADA
+                (não prometer: o rascunho é privado do médico e nunca vaza ao paciente). */}
+            {areaSummary?.consultSummary?.status === 'approved' && (() => {
+              const cs = areaSummary.consultSummary!;
+              const approvedFmt = cs.approvedAt
+                ? new Date(cs.approvedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : '';
+              const docName = cs.approvedBy?.name
+                ? (cs.approvedBy.name.toLowerCase().startsWith('dr') ? cs.approvedBy.name : `Dr. ${cs.approvedBy.name}`)
+                : 'seu médico';
+              return (
+                <Box sx={{ mt: 3 }}>
+                  <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Resumo da consulta</Typography>
+                  <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
+                    <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 1 }}>
+                        <VerifiedIcon sx={{ fontSize: 17, color: tealText(mode) }} />
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
+                          Aprovado por {docName}{approvedFmt ? ` · ${approvedFmt}` : ''}
+                        </Typography>
+                      </Stack>
+                      {renderSummaryMd(cs.summaryMd ?? '')}
+                    </CardContent>
+                  </Card>
+                </Box>
+              );
+            })()}
+
             {/* §3a — Pedidos do médico (só se ≥1) */}
             {reqs.length > 0 && (
               <Box sx={{ mt: 3 }}>
@@ -2465,7 +2589,130 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <Chip size="small" label={`${docReqs.length} pedido${docReqs.length > 1 ? 's' : ''} de exame`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,.16)', color: '#b88a54', borderRadius: '8px' }} />
             )}
             <Chip size="small" label={noteSaved ? 'Nota no prontuário' : 'Nota não salva'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: noteSaved ? 'rgba(32,178,170,.10)' : 'action.hover', color: noteSaved ? (t) => tealText(t.palette.mode) : 'text.secondary', borderRadius: '8px' }} />
+            {/* §14.1: status do resumo revisado — rascunho (âmbar) vs aprovado (teal). */}
+            {areaSummary?.consultSummary?.status === 'approved' && (
+              <Chip size="small" label="Resumo aprovado ✓" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px' }} />
+            )}
+            {areaSummary?.consultSummary?.status === 'draft' && (
+              <Chip size="small" label="Resumo em rascunho" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
+            )}
           </Stack>
+
+          {/* §14.1 — Resumo da consulta: rascunho da IA → revisão do médico → aprovação.
+              Erro de geração = mensagem + retry; a nota manual (abaixo) segue independente. */}
+          <Box sx={{ mt: 3 }}>
+            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.25 }}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, flex: 1 }}>Resumo da consulta</Typography>
+              {areaSummary?.consultSummary && (
+                <Chip size="small" label={`versão ${areaSummary.consultSummary.version}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />
+              )}
+            </Stack>
+            <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
+              <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
+                {csEditing ? (
+                  <Stack spacing={1.25}>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                      Revise o rascunho antes de disponibilizar ao paciente. Nada é enviado sem sua aprovação.
+                    </Typography>
+                    <TextField
+                      multiline
+                      minRows={6}
+                      maxRows={14}
+                      fullWidth
+                      value={csDraft}
+                      onChange={(e) => setCsDraft(e.target.value)}
+                      slotProps={{ htmlInput: { 'aria-label': 'Rascunho do resumo da consulta' } }}
+                      sx={{ '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '12px', lineHeight: 1.6 } }}
+                    />
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                      <Button size="small" variant="contained" disabled={csBusy != null} onClick={() => void csSaveDraft()} sx={{ textTransform: 'none', fontWeight: 800, fontSize: 13, borderRadius: '999px' }}>
+                        {csBusy === 'save' ? 'Salvando…' : 'Salvar rascunho'}
+                      </Button>
+                      <Button size="small" variant="outlined" disabled={csBusy != null || !csDraft.trim()} onClick={() => setCsApproveOpen(true)} sx={{ textTransform: 'none', fontWeight: 800, fontSize: 13, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}>
+                        Aprovar e disponibilizar
+                      </Button>
+                      <Button size="small" variant="text" disabled={csBusy != null} onClick={() => void csGenerate()} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
+                        {csBusy === 'generate' ? 'Gerando…' : 'Gerar com IA ✨'}
+                      </Button>
+                      <Button size="small" variant="text" disabled={csBusy != null} onClick={() => { setCsEditing(false); setCsError(null); }} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
+                        Cancelar
+                      </Button>
+                    </Stack>
+                  </Stack>
+                ) : !areaSummary?.consultSummary ? (
+                  <Stack spacing={1.25} alignItems="flex-start">
+                    <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55 }}>
+                      Gere um rascunho com IA a partir dos dados da consulta (motivo, exames, transcrição e seus pedidos), revise e aprove. O paciente só vê depois da sua aprovação.
+                    </Typography>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={csBusy != null}
+                      onClick={() => void csGenerate()}
+                      startIcon={csBusy === 'generate' ? <CircularProgress size={15} color="inherit" /> : null}
+                      sx={{ textTransform: 'none', fontWeight: 800, fontSize: 13, borderRadius: '999px' }}
+                    >
+                      {csBusy === 'generate' ? 'Gerando rascunho…' : 'Gerar rascunho com IA ✨'}
+                    </Button>
+                  </Stack>
+                ) : (() => {
+                  const cs = areaSummary!.consultSummary!;
+                  const approvedFmt = cs.approvedAt
+                    ? new Date(cs.approvedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : '';
+                  return (
+                    <Stack spacing={1.25}>
+                      {cs.status === 'approved' && (
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                          <VerifiedIcon sx={{ fontSize: 16, color: (t) => tealText(t.palette.mode) }} />
+                          <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.secondary' }}>
+                            Aprovado{approvedFmt ? ` · ${approvedFmt}` : ''} — visível ao paciente
+                          </Typography>
+                        </Stack>
+                      )}
+                      {cs.status === 'draft' && (
+                        <Chip size="small" label="Rascunho — ainda não visível ao paciente" sx={{ alignSelf: 'flex-start', height: 24, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
+                      )}
+                      {renderSummaryMd((cs.status === 'approved' ? cs.summaryMd : cs.draftMd) ?? '')}
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                        <Button size="small" variant="outlined" disabled={csBusy != null} onClick={() => { setCsDraft(String(cs.draftMd ?? cs.summaryMd ?? '')); setCsEditing(true); setCsError(null); }} sx={{ textTransform: 'none', fontWeight: 800, fontSize: 13, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}>
+                          {cs.status === 'approved' ? 'Editar (nova versão)' : 'Editar rascunho'}
+                        </Button>
+                        <Button size="small" variant="contained" disabled={csBusy != null} onClick={() => setCsApproveOpen(true)} sx={{ textTransform: 'none', fontWeight: 800, fontSize: 13, borderRadius: '999px' }}>
+                          {csBusy === 'approve' ? 'Aprovando…' : 'Aprovar e disponibilizar ao paciente'}
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  );
+                })()}
+                {csError && (
+                  <Stack spacing={0.75} alignItems="flex-start" sx={{ mt: 1.5, p: 1.25, borderRadius: '12px', bgcolor: 'rgba(239,68,68,.08)', border: '1px solid rgba(239,68,68,.25)' }} role="alert">
+                    <Typography sx={{ fontSize: 12.5, color: 'error.main', lineHeight: 1.5 }}>{csError}</Typography>
+                    <Button size="small" variant="text" disabled={csBusy != null} onClick={() => void csGenerate()} sx={{ textTransform: 'none', fontWeight: 800, fontSize: 12.5, color: 'error.main', px: 0 }}>
+                      Tentar de novo
+                    </Button>
+                  </Stack>
+                )}
+              </CardContent>
+            </Card>
+          </Box>
+
+          {/* Confirmação curta antes de disponibilizar ao paciente (irreversível no
+              histórico — sempre gera versão nova rastreável). */}
+          <Dialog open={csApproveOpen} onClose={() => setCsApproveOpen(false)}>
+            <DialogTitle>Aprovar o resumo?</DialogTitle>
+            <DialogContent>
+              <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55 }}>
+                O texto atual do rascunho será disponibilizado ao paciente. Você pode editar e aprovar uma nova versão depois — o histórico fica registrado.
+              </Typography>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setCsApproveOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar</Button>
+              <Button variant="contained" disabled={csBusy != null} onClick={() => void csApprove()} sx={{ textTransform: 'none', fontWeight: 800 }}>
+                {csBusy === 'approve' ? 'Aprovando…' : 'Aprovar'}
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* Pedidos de exame — mesmo card do paciente; médico vê status (read-only). */}
           {docReqs.length > 0 && (

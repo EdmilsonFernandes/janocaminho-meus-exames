@@ -14,6 +14,7 @@ import { startPushCampaignScheduler } from './jobs/pushCampaigns';
 import { startActivityNudgeJob } from './jobs/activityNudges';
 import { startEmailIngestJob } from './jobs/emailIngest';
 import { startTranscriptionQueueJob } from './jobs/transcriptionQueue';
+import { startReconciliationJob } from './jobs/reconciliation';
 import { loadSettings } from './utils/settings';
 import { loadBlockedDomains } from './utils/blockedDomains';
 import { initLlm } from './llm';
@@ -51,6 +52,7 @@ const server = app.listen(config.port, () => {
   startActivityNudgeJob(); // triggers de atividade/engajamento (meta 8k, streak, queda, reativação)
   startEmailIngestJob(); // ingestão de exame por e-mail (código EX-XXXX no assunto; IMAP_ENABLED)
   startTranscriptionQueueJob(); // F3: transcrições de teleconsulta pendentes (STT off/falha → job finaliza)
+  startReconciliationJob(); // §15.2 spec gaps teleconsulta: conciliação pago×consulta/encerrada×resumo (10 min)
   void import('./pricing/worker').then((m) => m.startPriceWorkerJob()); // preços: worker assíncrono (cache 6h, kill-switch env)
   void import('./pricing/catalog').then((m) => m.startCatalogJob()); // catálogo: bootstrap 1× + refresh 2h
   void import('./pricing/providers/vtexDynamic').then((m) => m.seedPharmacies().catch(() => {})); // seed farmácias 1×
