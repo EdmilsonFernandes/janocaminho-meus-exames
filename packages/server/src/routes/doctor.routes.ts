@@ -908,6 +908,36 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
   } catch (e) { next(e); }
 });
 
+// BRIEF V2 (24/10): contexto clínico do paciente pro médico — medicações em uso
+// (medications ativas) + alergias + perfil. Mesmo guard do /vitals (scope 'exams' —
+// família de dado de saúde). Alimenta o brief da teleconsulta (BriefClinico) e o SOAP.
+router.get('/patients/:patientId/context', requireDoctor, async (req: any, res, next) => {
+  void auditLog(req, 'doctor_viewed_context', String(req.params.patientId));
+  try {
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    const pid = String(req.params.patientId);
+    const [medications, patient] = await Promise.all([
+      prisma.medication.findMany({
+        where: { patientId: pid, active: true },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: { name: true, dosage: true, frequency: true },
+      }),
+      // Drift-safe (padrão loadAccessibleTeleconsulta): coluna allergies é nova (migration
+      // aditiva pareada 20261025120000); deploy parcial sem a coluna degrada pra null
+      // em vez de derrubar o brief. Erro QUE NÃO é de coluna segue adiante (não engolir).
+      (prisma.patient.findUnique({ where: { id: pid }, select: { allergies: true, clinicalProfile: true } }) as Promise<any>)
+        .catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e)),
+    ]);
+    res.json({
+      medications: medications.map((m) => ({ name: m.name, dosage: m.dosage ?? null, frequency: m.frequency ?? null })),
+      allergies: patient?.allergies ?? null,
+      clinicalProfile: patient?.clinicalProfile ?? null,
+    });
+  } catch (e) { next(e); }
+});
+
 router.post('/patients/:patientId/analyses/consolidated', requireDoctor, async (req: any, res, next) => {
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });

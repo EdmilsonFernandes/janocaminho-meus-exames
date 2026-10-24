@@ -62,7 +62,7 @@ const GLASS_FILTER = 'blur(18px) saturate(160%)';
 const COPPER = '#d4a574';
 const COPPER_DARK = '#b88a54';
 const CONSENT_TEXT =
-  'Autorizo o atendimento por telemedicina e a transmissão de imagens e dados nesta consulta, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento, e que ele fica registrado com data e hora.';
+  'Autorizo o atendimento por telemedicina e a transmissão de imagens e dados nesta consulta, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento, e que ele fica registrado com data e hora. Sei também que a plataforma usa inteligência artificial como apoio à organização dos meus exames e do registro da consulta, sob responsabilidade do médico que me atende (Res. CFM 2.454/2026) — a decisão e a comunicação são sempre do médico.';
 
 type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'readonly' | 'fallback' | 'error' | 'waiting' | 'payment';
 /** Outcome honesto do /end (lifecycle 24/10): 'completed' o server valida sozinho. */

@@ -10,6 +10,7 @@ import { getLlm, getModel } from '../llm';
 import { HEALTH_SYSTEM, diagnosticGuard } from './system';
 import { buildCurrentHealthSummary, formatSnapshotContext } from './health-state';
 import { latestRiskAssessment } from './risk-service';
+import { appendAiFooter } from '../utils/aiFooter';
 
 export async function generateSoap(patientId: string): Promise<{ contentMd: string; modelUsed: string }> {
   const patient = await prisma.patient.findUnique({ where: { id: patientId } });
@@ -20,6 +21,12 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
 
   const risk = await latestRiskAssessment(patientId);
   const perfil = patient.clinicalProfile?.trim() || 'Não informado.';
+  // Brief v2 (24/10): medicações ativas + alergias — dado crítico pro contexto clínico
+  // do SOAP (o paciente registra no app; aqui a IA não inventa medicação).
+  const [meds] = await Promise.all([
+    prisma.medication.findMany({ where: { patientId, active: true }, orderBy: { createdAt: 'desc' }, take: 15, select: { name: true, dosage: true, frequency: true } }),
+  ]);
+  const allergies = patient.allergies?.trim() || 'Não informadas.';
 
   const abnormal = snapshot.topAttention.slice(0, 6).map((m) =>
     `${m.name}: ${m.latest.valueText ?? m.latest.valueNumeric ?? '—'} ${m.unit ?? ''} (ref ${m.refText ?? `${m.refLow ?? '?'}-${m.refHigh ?? '?'}`}, ${m.flag}, ${m.priority})`
@@ -33,7 +40,9 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
     `Gere um SOAP (Subjetivo, Objetivo, Avaliação, Plano) em Markdown clínico para o médico, ` +
     `baseado APENAS nos dados abaixo. Tom técnico, objetivo, SEM diagnóstico definitivo, SEM prescrever.\n\n` +
     `PACIENTE: ${patient.fullName} (${patient.gender ?? 'sexo NI'}, ${patient.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) + ' anos' : 'idade NI'})\n` +
-    `PERFIL CLÍNICO: ${perfil}\n\n` +
+    `PERFIL CLÍNICO: ${perfil}\n` +
+    `ALERGIAS: ${allergies}\n` +
+    `MEDICAÇÕES EM USO (registradas no app): ${meds.length ? meds.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}${m.frequency ? ` (${m.frequency})` : ''}`).join('; ') : 'nenhuma registrada'}\n\n` +
     `VALORES ALTERADOS / EM ATENÇÃO:\n${abnormal || '(sem alterações relevantes)'}\n\n` +
     `${riskTxt}\n\n` +
     `ESTADO ATUAL + TENDÊNCIAS:\n${formatSnapshotContext(snapshot)}\n\n` +
@@ -52,6 +61,6 @@ export async function generateSoap(patientId: string): Promise<{ contentMd: stri
   const response = await s.final();
   if (!response) throw new Error('SOAP: resposta vazia');
 
-  const contentMd = diagnosticGuard(response.text || '').text;
+  const contentMd = appendAiFooter(diagnosticGuard(response.text || '').text);
   return { contentMd, modelUsed: response.model || getModel() };
 }

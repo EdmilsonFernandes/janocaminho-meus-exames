@@ -98,7 +98,7 @@ router.post('/exams/:examId', async (req: AuthedRequest, res, next) => {
           </table>
           </div>
           <div class="section-title">📝 Observações</div>
-          <div class="highlight">Este documento foi gerado automaticamente pelo app <b>Meus Exames</b>. Os valores foram extraídos por IA a partir do PDF do exame. Análise educativa — não substitui avaliação médica.</div>
+          <div class="highlight">Este documento foi gerado automaticamente pelo app <b>Meus Exames</b>. Os valores foram extraídos por IA a partir do PDF do exame. Análise educativa — não substitui avaliação médica. Uso de IA como apoio registrado conforme Res. CFM 2.454/2026; a decisão clínica cabe ao médico responsável.</div>
         </div>
         <div class="footer">Meus Exames • Análise educativa de saúde • meus-exames.app</div>
       </div>

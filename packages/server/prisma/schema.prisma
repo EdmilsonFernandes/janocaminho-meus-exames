@@ -267,6 +267,9 @@ model Patient {
   // Perfil clínico livre (condições, medicações, histórico) — alimenta a IA de saúde.
   // Ex.: "Sem tireoide; usa levotiroxina (Levoid); usa testosterona; usa tirzepatida (Mounjaro)."
   clinicalProfile String?
+  // Alergias (texto livre: "Penicilina; AAS; contraste iodado") — dado crítico pré-prescrição:
+  // aparece em destaque no brief médico e alimenta SOAP/resumo (brief v2, 24/10).
+  allergies String?
   phone        String?
   photoUrl     String?
   uploadMonth        String?   // YYYY-MM do contador mensal de envios (cota grátis do premium)

@@ -370,7 +370,7 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     }
     const existing = await prisma.patient.findUnique({ where: { id }, select: { fullName: true, cpfHash: true, identityLockedAt: true } });
     if (!existing) { res.status(404).json({ error: 'Paciente não encontrado' }); return; }
-    const { fullName, relationship, dateOfBirth, clinicalProfile, phone, photoUrl, gender, heightCm, ethnicity, cpf } = req.body ?? {};
+    const { fullName, relationship, dateOfBirth, clinicalProfile, allergies, phone, photoUrl, gender, heightCm, ethnicity, cpf } = req.body ?? {};
     const data: any = {};
     if (fullName != null) {
       const nextName = String(fullName).trim();
@@ -399,6 +399,7 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
     if (relationship !== undefined) data.relationship = relationship ? String(relationship) : null;
     if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
     if (clinicalProfile != null) data.clinicalProfile = String(clinicalProfile);
+    if (allergies !== undefined) data.allergies = allergies ? String(allergies) : null;
     if (phone !== undefined) data.phone = phone ? String(phone) : null;
     if (photoUrl !== undefined) data.photoUrl = photoUrl ? String(photoUrl) : null;
     const updated = await prisma.patient.update({ where: { id }, data });

@@ -76,6 +76,7 @@ export const ProfilePage = () => {
   const [cpf, setCpf] = useState('');
   const [phone, setPhone] = useState('');
   const [clinical, setClinical] = useState('');
+  const [allergies, setAllergies] = useState('');
   const [gender, setGender] = useState('');
   const [heightCm, setHeightCm] = useState('');
   const [ethnicity, setEthnicity] = useState('');
@@ -105,7 +106,7 @@ export const ProfilePage = () => {
       if (pr.ok) {
         const p = await pr.json();
         setPatient(p); setFullName(p.fullName ?? ''); setCpf(p.cpfMasked ?? ''); setPhone(p.phone ?? '');
-        setClinical(p.clinicalProfile ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
+        setClinical(p.clinicalProfile ?? ''); setAllergies(p.allergies ?? ''); setGender(p.gender ?? ''); setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
         setEthnicity(p.ethnicity ?? ''); setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '');
       }
     }
@@ -116,7 +117,7 @@ export const ProfilePage = () => {
     if (!pid) return;
     if (!patient?.hasCpf && cpf && !isValidCpf(cpf)) { notify('Informe um CPF válido.', { type: 'error' }); return; }
     setSaving(true);
-    const body: any = { fullName, phone, clinicalProfile: clinical, gender, heightCm: parseHeightCm(heightCm), ethnicity, dateOfBirth: birthDate || null };
+    const body: any = { fullName, phone, clinicalProfile: clinical, allergies: allergies || null, gender, heightCm: parseHeightCm(heightCm), ethnicity, dateOfBirth: birthDate || null };
     if (!patient?.hasCpf && cpf) body.cpf = cpf;
     const r = await fetch(`${API_URL}/patients/${pid}`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify(body) });
     setSaving(false);
@@ -246,6 +247,11 @@ export const ProfilePage = () => {
               label="Perfil clínico (condições, medicações, histórico)"
               value={clinical} onChange={(e) => setClinical(e.target.value)} multiline minRows={4} fullWidth
               helperText="Ex.: 'Sem tireoide; usa levotiroxina; usa testosterona.' Isso contextualiza a IA — nunca substitui o médico."
+            />
+            <TextField
+              label="Alergias (medicamentos, alimentos, contraste)"
+              value={allergies} onChange={(e) => setAllergies(e.target.value)} multiline minRows={2} fullWidth
+              helperText="Ex.: 'Penicilina; AAS; contraste iodado'. Aparece em destaque para o médico no brief da consulta — deixe sempre atualizado."
             />
           </Stack>
           <Box sx={{ mt: 2.5 }}>

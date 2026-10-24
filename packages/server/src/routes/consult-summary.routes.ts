@@ -25,6 +25,7 @@ import { audit } from '../utils/audit';
 import { decryptPII } from '../utils/crypto';
 import { extractJsonObject } from '../utils/json';
 import { getLlm, getModel } from '../llm';
+import { appendAiFooter } from '../utils/aiFooter';
 
 const router = Router();
 
@@ -152,12 +153,18 @@ Responda SOMENTE com JSON no formato {"summaryMd": "..."} contendo exatamente es
 ## Exames e encaminhamentos solicitados
 ## Retorno e pendências`;
 
-function buildSummaryUserPrompt(r: SummaryReminderRef, examRequests: any[], exams: any[]): string {
+function buildSummaryUserPrompt(r: SummaryReminderRef, examRequests: any[], exams: any[], ctx?: { allergies: string | null; medications: { name: string; dosage: string | null; frequency: string | null }[] }): string {
   const fmtDate = (d: any) => (d ? new Date(d).toLocaleDateString('pt-BR') : 'data não registrada');
   const lines: string[] = [];
   lines.push(`MOTIVO DA CONSULTA (título do agendamento): ${r.title || 'não registrado'}`);
   lines.push(`NOTA DO MÉDICO SOBRE ESTA CONSULTA (QuickNote): ${r.doctorNote || 'não registrada'}`);
   lines.push(`TRANSCRIÇÃO DA CHAMADA: ${r.transcript ? r.transcript.slice(0, 12_000) : 'AUSENTE — inclua a seção "Transcrição indisponível — registro manual"'}`);
+  // Brief v2: registro estruturado do app — diferenciar [registro do app] de [relatado pelo
+  // paciente]; a IA não inventa medicação/alergia que não consta aqui.
+  if (ctx) {
+    lines.push(`MEDICAÇÕES ATIVAS REGISTRADAS NO APP: ${ctx.medications.length ? ctx.medications.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}${m.frequency ? ` (${m.frequency})` : ''}`).join('; ') : 'nenhuma registrada'}`);
+    lines.push(`ALERGIAS REGISTRADAS NO APP: ${ctx.allergies?.trim() || 'não informadas'}`);
+  }
   lines.push(`PEDIDOS DE EXAME/ENCAMINHAMENTOS DESTA CONSULTA: ${
     examRequests.length
       ? examRequests.map((er) => `${er.title} (status: ${er.status}${er.respondedAt ? `, respondido em ${fmtDate(er.respondedAt)}` : ''})`).join(' · ')
@@ -188,6 +195,17 @@ async function loadShareExams(patientId: string, examIds: string[] | null): Prom
 router.post('/teleconsulta/:id/summary/generate', requireDoctorIdentity, async (req: ConsultSummaryRequest, res, next) => {
   try {
     const r = await loadEndedTeleconsultaForDoctor(req, res); if (!r) return;
+    // Brief v2: meds ativas + alergias (drift-safe — ver /doctor/patients/:id/context).
+    const ctx = await (async () => {
+      try {
+        const [medications, p] = await Promise.all([
+          (prisma as any).medication.findMany({ where: { patientId: r.patientId, active: true }, orderBy: { createdAt: 'desc' }, take: 15, select: { name: true, dosage: true, frequency: true } }).catch(() => []),
+          (prisma.patient.findUnique({ where: { id: r.patientId }, select: { allergies: true } }) as Promise<any>)
+            .catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e)),
+        ]);
+        return { allergies: p?.allergies ?? null, medications };
+      } catch { return { allergies: null, medications: [] }; }
+    })();
     const [examRequests, exams] = await Promise.all([
       (prisma as any).examRequest.findMany({ where: { reminderId: r.id }, orderBy: { createdAt: 'asc' } }).catch(() => []),
       loadShareExams(r.patientId, (req as any).__shareExamIds ?? null),
@@ -197,7 +215,7 @@ router.post('/teleconsulta/:id/summary/generate', requireDoctorIdentity, async (
     try {
       const result = await getLlm().complete({
         system: SUMMARY_SYSTEM,
-        messages: [{ role: 'user', content: buildSummaryUserPrompt(r, examRequests, exams) }],
+        messages: [{ role: 'user', content: buildSummaryUserPrompt(r, examRequests, exams, ctx) }],
         // 16000 = número PROVADO do pipeline (prod, glm-4.6): com menos, o thinking
         // consome o budget e o text vem vazio (ver decifre.routes.ts).
         maxTokens: 16000,
@@ -216,7 +234,7 @@ router.post('/teleconsulta/:id/summary/generate', requireDoctorIdentity, async (
       });
       return;
     }
-    draftMd = draftMd.slice(0, 20_000);
+    draftMd = appendAiFooter(draftMd.slice(0, 20_000));
 
     const existing = await prisma.consultSummary.findUnique({ where: { reminderId: r.id }, select: { id: true, version: true, status: true, summaryMd: true, revisions: true } }).catch(() => null);
     const now = new Date();
@@ -283,7 +301,7 @@ router.post('/teleconsulta/:id/summary/approve', requireDoctorIdentity, async (r
       where: { reminderId: r.id },
       data: {
         status: 'approved',
-        summaryMd: existing.draftMd, // cópia rastreável: o aprovado só muda AQUI (audit + revision)
+        summaryMd: appendAiFooter(existing.draftMd), // disclosure obrigatório (CFM 2.454): mesmo que o médico o remova ao editar o rascunho, a versão que chega ao paciente carrega o carimbo
         approvedAt: now,
         approvedByDoctorId: req.doctorId,
         version: { increment: 1 },
