@@ -28,6 +28,7 @@ import {
 } from 'recharts';
 import { API_URL, token as authToken } from '../../config';
 import { tealText } from '../../theme';
+import { CommissionRulesCard } from './CommissionRulesCard';
 
 const brl = (cents: number | null | undefined) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format((cents ?? 0) / 100);
@@ -226,6 +227,9 @@ export const TeleFinanceTab = () => {
         <Box sx={{ flex: 1 }} />
         <IconButton onClick={load} aria-label="Atualizar" sx={{ color: 'text.secondary' }}><RefreshOutlinedIcon fontSize="small" /></IconButton>
       </Stack>
+
+      {/* ── §18.2 (Onda 2): CONDIÇÃO COMERCIAL — UI do GET/POST commission-rules ── */}
+      <CommissionRulesCard doctors={doctors} />
 
       {/* GMV — topo, com a verdade anti-dúbia: NÃO é receita */}
       <KpiGroup title="Volume movimentado" sub="Total pago por pacientes nas teleconsultas do período" accent="#20b2aa">
