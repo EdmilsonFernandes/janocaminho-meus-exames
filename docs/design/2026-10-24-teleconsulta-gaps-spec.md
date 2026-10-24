@@ -118,3 +118,12 @@ Geração/edição/aprovação/disponibilização do resumo; paciente BLOQUEADO 
 - SEM cosmética nova agora: terminar escopo, testar, entregar **UMA matriz de requisitos** com evidências e pendências REAIS — diferenciando: `código implementado` × `teste automatizado aprovado` × `integração validada` × `comportamento ainda não comprovado` (nunca equivalentes).
 
 **Fila**: §15 atravessa TODAS as fases (diagnóstico de legado na fase CORE-deploy; conciliação nos jobs; financeRulesVersion no CORE; matriz única na fase de validação final).
+
+## 16. Protocolo de revisão final integrada (dono, 24/10 — última instrução; executar ANTES de declarar encerrado)
+1. **Checklist única da conversa INTEIRA** (nenhum pedido de mensagem anterior de fora): cada item marcado como `implementado e validado` | `implementado sem validação` | `bloqueado` | `pendente`.
+2. **Revisão de código e fluxo completo** com as skills relevantes (arquitetura/regras/segurança/UX/testes); corrigir contradições entre as mudanças DENTRO do escopo.
+3. **Jornada completa com DOIS usuários distintos** (médico+paciente): agendamento→valor→PIX→lembrete→link WhatsApp/email→auth→entrada na janela→presença simultânea→reconexão→transcrição→encerramento→resumo aprovado→situação financeira + upload de exame novo→brief/prioridade→revogação→admin. Mocks/chamadas isoladas NÃO valem como jornada; declarar explicitamente o que foi comprovado em app real e integrações reais de teste.
+4. **Falhas e regressões**: concorrência, eventos duplicados/atrasados, indisponibilidade, permissões, recuperação; corrigir o que as mudanças quebraram e REPETIR testes afetados.
+5. **Implantação**: migrações, configs, jobs agendados, compatibilidade com consultas existentes, monitoramento, recuperação; sem segredos na entrega; seguir fluxo de publicação autorizado (código pronto ≠ produção validada).
+6. **Relatório final objetivo**: requisitos+evidências · testes+resultados · pendências+decisões · riscos/limitações · instruções curtas de validação (paciente/médico/admin) · situação exata: `pronto para homologação` | `homologado` | `implantado e verificado`. Proibido "100% concluído" com regra crítica sem validação; bloqueio registrado com precisão. Recomendação final fundamentada: **pronto pra uso ou impedimento? com quais evidências**.
+**SEM novas funcionalidades** — fechar, corrigir inconsistências, entregar fluxo completo verificável.
