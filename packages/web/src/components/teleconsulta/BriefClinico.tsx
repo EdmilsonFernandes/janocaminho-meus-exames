@@ -16,6 +16,8 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import MedicationIcon from '@mui/icons-material/Medication';
 import { API_URL, photoUrlFor } from '../../config';
 import { tealText } from '../../theme';
 import { fmtSleep, fmtSteps } from '../../utils/activityStats';
@@ -66,6 +68,13 @@ interface VitalsBrief {
     activeKcalAvg30d: number | null; lastWeightKg: number | null; lastWeightAt: string | null; lastDay: string | null;
   };
   lastSyncAt: string | null;
+}
+
+/** Contexto clínico (brief v2): alergias + medicações em uso registradas no app. */
+interface ContextBrief {
+  allergies: string | null;
+  clinicalProfile: string | null;
+  medications: { name: string; dosage: string | null; frequency: string | null }[];
 }
 
 /** Carimbo relativo: "agora" · "há 12 min" · "há 3 h" · "ontem" · "há 4 dias". */
@@ -130,8 +139,10 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
   const [openId, setOpenId] = useState<string | null>(null);
   const [detail, setDetail] = useState<Record<string, BriefItem[]>>({});
   const [vitals, setVitals] = useState<VitalsBrief | null>(null);
+  const [ctx, setCtx] = useState<ContextBrief | null>(null);
   const reqId = useRef(0);
   const vitalsReqId = useRef(0);
+  const ctxReqId = useRef(0);
 
   const load = useCallback(() => {
     const id = ++reqId.current;
@@ -157,15 +168,27 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
       .catch(() => { if (id === vitalsReqId.current) setVitals(null); });
   }, [patientId, authToken]);
 
+  // Contexto clínico (alergias/meds): mesmo padrão discreto do vitals — extra que nunca
+  // compete com o brief de exames. Alergia não informada ≠ sem alergias: renderizamos
+  // "não informadas — confirme", nunca um "sem alergias" falso-tranquilizador.
+  const loadContext = useCallback(() => {
+    const id = ++ctxReqId.current;
+    fetch(`${API_URL}/doctor/patients/${patientId}/context`, { headers: { Authorization: `Bearer ${authToken}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: ContextBrief | null) => { if (id === ctxReqId.current) setCtx(d); })
+      .catch(() => { if (id === ctxReqId.current) setCtx(null); });
+  }, [patientId, authToken]);
+
   useEffect(() => {
-    setExams(null); setDetail({}); setOpenId(null); setVitals(null);
+    setExams(null); setDetail({}); setOpenId(null); setVitals(null); setCtx(null);
     load();
     loadVitals();
+    loadContext();
     // fix critic #7: poll 30s enquanto aberto — o paciente pode compartilhar
     // DURANTE a chamada e o brief precisa aparecer sem fechar/abrir.
-    const iv = setInterval(() => { load(); loadVitals(); }, 30_000);
+    const iv = setInterval(() => { load(); loadVitals(); loadContext(); }, 30_000);
     return () => clearInterval(iv);
-  }, [load, loadVitals]);
+  }, [load, loadVitals, loadContext]);
 
   const toggle = useCallback(async (id: string) => {
     setOpenId((cur) => (cur === id ? null : id));
@@ -206,6 +229,45 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
       {totalExtracted != null && exams != null && exams.length > 0 && exams.length < totalExtracted && (
         <Chip size="small" label={`Compartilhamento parcial — ${exams.length} de ${totalExtracted} exames`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px', mb: 1 }} />
       )}
+
+      {/* Alergias + medicações em uso (brief v2) — alergia é o dado que o médico mais
+          consulta antes de prescrever; "não informada" nunca vira "sem alergias". */}
+      {ctx && (() => {
+        const allergyList = (ctx.allergies ?? '').split(/[,;\n]/).map((s) => s.trim()).filter(Boolean);
+        const dark = theme.palette.mode === 'dark';
+        return (
+          <Card sx={{ borderRadius: '16px', mb: 1.5, border: allergyList.length ? '1.5px solid rgba(239,68,68,.45)' : '1px solid', borderColor: allergyList.length ? undefined : 'divider' }}>
+            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
+                <WarningAmberIcon sx={{ fontSize: 18, color: allergyList.length ? (dark ? '#f87171' : '#b91c1c') : 'text.secondary' }} />
+                <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>Alergias</Typography>
+              </Stack>
+              {allergyList.length > 0 ? (
+                <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                  {allergyList.map((a) => (
+                    <Chip key={a} size="small" label={a} sx={{ height: 26, fontSize: 13, fontWeight: 800, bgcolor: dark ? 'rgba(248,113,113,.16)' : 'rgba(239,68,68,.10)', color: dark ? '#f87171' : '#b91c1c', borderRadius: '8px' }} />
+                  ))}
+                </Stack>
+              ) : (
+                <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Não informadas no app — confirme com o paciente.</Typography>
+              )}
+              {ctx.medications.length > 0 && (
+                <>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1.5, mb: 0.75 }}>
+                    <MedicationIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>Medicações em uso ({ctx.medications.length})</Typography>
+                  </Stack>
+                  <Stack direction="row" sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+                    {ctx.medications.map((m) => (
+                      <Chip key={m.name} size="small" label={`${m.name}${m.dosage ? ` · ${m.dosage}` : ''}${m.frequency ? ` · ${m.frequency}` : ''}`} sx={{ height: 26, fontSize: 12.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px', maxWidth: '100%', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
+                    ))}
+                  </Stack>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
 
       {/* Carregando — skeleton (padrão da casa) */}
       {exams === null && !err && (
@@ -354,7 +416,7 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
       })()}
 
       <Typography sx={{ fontSize: 12, color: 'text.secondary', textAlign: 'center', mt: 2 }}>
-        Fonte: exames enviados pelo paciente · leitura educativa, decisão clínica é sua.
+        Fonte: exames enviados pelo paciente · leitura educativa, decisão clínica é sua · apoio de IA registrado (Res. CFM 2.454/2026).
       </Typography>
     </Box>
   );
