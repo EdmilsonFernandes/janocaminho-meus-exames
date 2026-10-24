@@ -12,6 +12,7 @@ export interface TeleconsultaItem {
   linkUrl?: string;
   consentAt?: string | null;
   doctor?: {
+    id?: string;
     name?: string;
     crm?: string;
     crmUf?: string;
@@ -20,6 +21,7 @@ export interface TeleconsultaItem {
   done?: boolean;
   endedAt?: string | null;
   createdAt?: string;
+  createdByDoctorId?: string | null;
 }
 
 export type TeleconsultaStatus = 'none' | 'live' | 'today' | 'upcoming' | 'recent';

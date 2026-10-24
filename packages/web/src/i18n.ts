@@ -31,6 +31,7 @@ export const ptMessages = {
 
   // navegação (rodapé + grid de atalhos + seções do menu lateral)
   'nav.home': 'Início',
+  'nav.consultas': 'Consultas',
   'nav.exams': 'Exames',
   'nav.evolution': 'Evolução',
   'nav.more': 'Mais',
@@ -275,6 +276,7 @@ export const enMessages = {
   'menu.dependents': 'Dependents',
   'menu.logout': 'Sign out',
   'nav.home': 'Home',
+  'nav.consultas': 'Consultations',
   'nav.exams': 'Exams',
   'nav.evolution': 'Evolution',
   'nav.more': 'More',

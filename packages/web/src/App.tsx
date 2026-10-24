@@ -72,6 +72,7 @@ const PlansPage = lazy(() => import('./pages/Plans').then(m => ({ default: m.Pla
 const WalletPage = lazy(() => import('./pages/Wallet').then(m => ({ default: m.WalletPage })));
 const InvitePage = lazy(() => import('./pages/Invite').then(m => ({ default: m.InvitePage })));
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
+const MinhasConsultasPage = lazy(() => import('./pages/MinhasConsultas').then(m => ({ default: m.MinhasConsultasPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
@@ -474,8 +475,11 @@ const NavItem = ({
         </ListItemIcon>
         <ListItemText
           primary={primaryText}
+          secondary="Acesso rápido para socorristas"
           primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: 'inherit' }}
+          secondaryTypographyProps={{ fontSize: 11, sx: { color: (t: any) => t.palette.mode === 'dark' ? 'rgba(254, 202, 202, 0.7)' : '#b91c1c' } }}
         />
+        <ChevronRightIcon sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', opacity: 0.8 }} />
       </ListItemButton>
     );
   }
@@ -549,9 +553,18 @@ const NavItem = ({
             bgcolor: badge === 'ao vivo' ? '#ef4444' : 'rgba(212, 165, 116, 0.28)',
             color: badge === 'ao vivo' ? '#ffffff' : '#f3d3ac',
             borderRadius: '99px',
+            mr: 0.5,
           }}
         />
       )}
+      <ChevronRightIcon
+        sx={{
+          fontSize: 17,
+          color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
+          transition: 'all .15s ease',
+          opacity: active ? 0.9 : 0.6,
+        }}
+      />
     </ListItemButton>
   );
 };
@@ -692,7 +705,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                       onClose?.();
                       navigate('/planos');
                     }}
-                    label={`⚡ ${credits}`}
+                    label={`⚡ ${Number(credits).toLocaleString('pt-BR')}`}
                     sx={{
                       height: 20,
                       fontSize: 11,
@@ -806,11 +819,11 @@ const AppMenu = () => {
     <MenuSectionAccordion
       title="Consultas e médicos"
       icon={<MedicalServicesOutlinedIcon />}
-      routes={['/lembretes', '/medicos', '/perguntas']}
+      routes={['/consultas', '/lembretes', '/medicos', '/perguntas']}
       badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? '1' : undefined}
     >
       <NavItem
-        to="/lembretes"
+        to="/consultas"
         primaryText="Minhas consultas"
         icon={<EventAvailableOutlinedIcon />}
         highlight={tele.isToday || tele.isLive}
@@ -1448,6 +1461,7 @@ export const App = () => {
       <Route path="/relatorio" element={<ConsolidatedReportPage />} />
       <Route path="/alterados" element={<ValoresAlteradosPage />} />
       <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
+      <Route path="/consultas" element={<Suspense fallback={<PageSkeleton />}><MinhasConsultasPage /></Suspense>} />
       <Route path="/medicoes" element={<MeasurementsPage />} />
       {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
           Android funciona nativo; gráfico+períodos+tabela não cabem em dialog 360px). */}

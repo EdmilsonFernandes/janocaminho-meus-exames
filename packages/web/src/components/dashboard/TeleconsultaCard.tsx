@@ -22,6 +22,8 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import { useUpcomingTeleconsulta } from '../../hooks/useUpcomingTeleconsulta';
 import { openTelemedicinaRoom } from '../../utils/telemedicina';
+import { doctorPhotoUrl } from '../../config';
+import { safeAvatar } from '../../utils/safeAvatar';
 import { AppCard } from '../AppCard';
 
 export const TeleconsultaCard: React.FC = () => {
@@ -67,6 +69,10 @@ export const TeleconsultaCard: React.FC = () => {
   const doctorCrm = tele.item?.doctor?.crm
     ? `CRM ${tele.item.doctor.crm}${tele.item.doctor.crmUf ? `/${tele.item.doctor.crmUf}` : ''}`
     : null;
+
+  // Foto REAL do médico (payload traz doctor.id; fallback = inicial).
+  const docId = tele.item?.doctor?.id || tele.item?.createdByDoctorId;
+  const docPhoto = safeAvatar(docId ? doctorPhotoUrl(docId) : undefined, doctorDisplayName);
 
   return (
     <AppCard
@@ -213,6 +219,8 @@ export const TeleconsultaCard: React.FC = () => {
       <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2.25 }}>
         <Box sx={{ position: 'relative', flexShrink: 0 }}>
           <Avatar
+            src={docPhoto}
+            alt={doctorDisplayName}
             sx={{
               width: { xs: 52, sm: 60 },
               height: { xs: 52, sm: 60 },
@@ -393,6 +401,20 @@ export const TeleconsultaCard: React.FC = () => {
             </IconButton>
           </Tooltip>
         </Stack>
+
+        {/* Atalho para a tela dedicada de consultas (FALHAS 1/2 — mock aprovado) */}
+        <Button
+          size="small"
+          onClick={() => navigate('/consultas')}
+          endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 14 }} />}
+          sx={{
+            mt: 1.25, textTransform: 'none', fontWeight: 800, fontSize: 12.5,
+            color: '#0d9488', alignSelf: { xs: 'stretch', sm: 'flex-end' }, minHeight: 32,
+            '&:hover': { bgcolor: 'rgba(13,148,136,0.08)' },
+          }}
+        >
+          Ver todas as consultas →
+        </Button>
       </Stack>
     </AppCard>
   );

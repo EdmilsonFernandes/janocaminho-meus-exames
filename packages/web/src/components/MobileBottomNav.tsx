@@ -10,6 +10,8 @@ import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DescriptionIcon from '@mui/icons-material/Description';
 import TrendingUpOutlinedIcon from '@mui/icons-material/TrendingUpOutlined';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import MenuIcon from '@mui/icons-material/Menu';
 import { hapticNav } from '../utils/haptic';
 import { NAV_PILL } from '../theme';
@@ -21,6 +23,8 @@ import { NAV_PILL } from '../theme';
 const NAV = [
   { icon: 'home', label: 'nav.home', to: '/' },
   { icon: 'exam', label: 'nav.exams', to: '/exams' },
+  // Minhas Consultas (mock aprovado): posição 3 da nav — teleconsultas do paciente.
+  { icon: 'consultas', label: 'nav.consultas', to: '/consultas' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
   { icon: 'trend', label: 'nav.evolution', to: '/evolucao' },
 ] as const;
@@ -89,6 +93,7 @@ export const MobileBottomNav = () => {
         }}>
           {it.icon === 'home' && (on ? <HomeIcon /> : <HomeOutlinedIcon />)}
           {it.icon === 'exam' && (on ? <DescriptionIcon /> : <DescriptionOutlinedIcon />)}
+          {it.icon === 'consultas' && (on ? <VideocamRoundedIcon /> : <VideocamOutlinedIcon />)}
           {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
         </Box>
       )}

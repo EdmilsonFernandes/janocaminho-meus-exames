@@ -14,7 +14,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import VerifiedIcon from '@mui/icons-material/Verified';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
 import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -129,29 +128,6 @@ export const MedicosPage = () => {
       void openTelemedicinaRoom(tc.linkUrl);
     } else {
       navigate(`/teleconsulta/${tc.id}`);
-    }
-  };
-
-  /** Cancelamento de teleconsulta com confirmação */
-  const cancelTele = async (id: string) => {
-    if (!(await confirmDialog({
-      title: 'Cancelar teleconsulta',
-      message: 'Tem certeza que deseja cancelar esta teleconsulta? O médico será informado.',
-      confirmLabel: 'Sim, cancelar',
-    }))) return;
-    try {
-      const res = await fetch(`${API_URL}/reminders/${id}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token()}` },
-      });
-      if (res.ok) {
-        notify('Teleconsulta cancelada.', { type: 'success' });
-        load();
-      } else {
-        notify('Não foi possível cancelar a consulta.', { type: 'error' });
-      }
-    } catch {
-      notify('Erro de conexão ao cancelar teleconsulta.', { type: 'error' });
     }
   };
 
@@ -361,121 +337,52 @@ export const MedicosPage = () => {
         </CardContent>
       </Card>
 
-      {/* SEÇÃO PRÓXIMAS TELECONSULTAS — o paciente vê de imediato as teleconsultas com seus médicos */}
-      {teleconsultas.length > 0 && (
-        <Card
-          sx={{
-            mb: 3,
-            borderRadius: '16px',
-            border: '1px solid',
-            borderColor: 'rgba(15,118,110,0.3)',
-            background: (t) =>
-              t.palette.mode === 'dark'
-                ? 'linear-gradient(135deg, rgba(15,118,110,0.18) 0%, rgba(20,40,40,0.8) 100%)'
-                : 'linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(240,253,250,0.9) 100%)',
-            boxShadow: '0 4px 20px rgba(15,118,110,0.08)',
-          }}
-        >
-          <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-              <VideocamIcon sx={{ color: '#0f766e', fontSize: 24 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-                Próximas Teleconsultas Agendadas
+      {/* Teleconsultas agora vivem na tela dedicada /consultas (FALHAS 1/2 — mock
+          aprovado). Aqui só um card-link de atalho, sem lista inline duplicada. */}
+      <Card
+        onClick={() => { hapticLight(); navigate('/consultas'); }}
+        sx={{
+          mb: 3,
+          borderRadius: '16px',
+          border: '1px solid',
+          borderColor: 'rgba(15,118,110,0.3)',
+          background: (t) =>
+            t.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(15,118,110,0.18) 0%, rgba(20,40,40,0.8) 100%)'
+              : 'linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(240,253,250,0.9) 100%)',
+          boxShadow: '0 4px 20px rgba(15,118,110,0.08)',
+          cursor: 'pointer',
+          transition: 'all .2s ease',
+          '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(15,118,110,0.14)' },
+          '&:active': { transform: 'scale(.99)' },
+        }}
+      >
+        <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
+          <Stack direction="row" alignItems="center" spacing={1.25}>
+            <VideocamIcon sx={{ color: '#0f766e', fontSize: 24 }} />
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+                  Ver consultas agendadas
+                </Typography>
+                <Chip
+                  size="small"
+                  label={teleconsultas.length}
+                  sx={{ height: 20, bgcolor: 'rgba(15,118,110,0.15)', color: '#0f766e', fontWeight: 800 }}
+                />
+              </Stack>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
+                {teleconsultas.length > 0
+                  ? `${teleconsultas.length} ${teleconsultas.length === 1 ? 'teleconsulta agendada' : 'teleconsultas agendadas'} — sala virtual, pagamento e histórico`
+                  : 'Sala virtual, pagamento PIX e histórico das suas teleconsultas'}
               </Typography>
-              <Chip size="small" label={teleconsultas.length} sx={{ height: 20, bgcolor: 'rgba(15,118,110,0.15)', color: '#0f766e', fontWeight: 800 }} />
-            </Stack>
-
-            <Stack spacing={1.5}>
-              {teleconsultas.map((tc) => {
-                const dt = new Date(tc.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', weekday: 'short', hour: '2-digit', minute: '2-digit' });
-                return (
-                  <Card key={tc.id} sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', p: 1.75 }}>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mb: 0.5 }}>
-                          <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary' }}>
-                            {tc.doctor ? tc.doctor.name : tc.title}
-                          </Typography>
-                          {tc.doctor?.specialty && (
-                            <Chip size="small" label={tc.doctor.specialty} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,118,110,0.1)', color: '#0f766e' }} />
-                          )}
-                          {tc.linkUrl?.includes('meet.google.com') && (
-                            <Chip size="small" label="Google Meet ✨" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.2)', color: 'secondary.dark' }} />
-                          )}
-                        </Stack>
-                        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ color: 'text.secondary', fontSize: 13 }}>
-                          <AccessTimeIcon sx={{ fontSize: 15, color: '#0f766e' }} />
-                          <Typography sx={{ fontSize: 13, fontWeight: 600 }}>{dt}</Typography>
-                          {tc.doctor?.crm && <span>• CRM {tc.doctor.crm}</span>}
-                        </Stack>
-                      </Box>
-
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                        {tc.consentAt ? (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            startIcon={<VideocamIcon />}
-                            onClick={() => handleEnterTele(tc)}
-                            sx={{
-                              borderRadius: '999px',
-                              textTransform: 'none',
-                              fontWeight: 800,
-                              bgcolor: '#0f766e',
-                              px: 2,
-                              '&:hover': { bgcolor: '#115e59' },
-                              boxShadow: '0 3px 12px rgba(15,118,110,.25)',
-                              flex: { xs: 1, sm: 'none' },
-                            }}
-                          >
-                            Entrar na consulta
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="contained"
-                            size="small"
-                            startIcon={<VideocamIcon />}
-                            onClick={() => { hapticLight(); setConsentFor(tc); }}
-                            sx={{
-                              borderRadius: '999px',
-                              textTransform: 'none',
-                              fontWeight: 800,
-                              background: 'linear-gradient(135deg, #0f766e, #14b8a6)',
-                              px: 2,
-                              '&:hover': { opacity: 0.95 },
-                              flex: { xs: 1, sm: 'none' },
-                            }}
-                          >
-                            Entrar na consulta
-                          </Button>
-                        )}
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          color="inherit"
-                          onClick={() => void cancelTele(tc.id)}
-                          sx={{
-                            borderRadius: '999px',
-                            textTransform: 'none',
-                            fontWeight: 700,
-                            fontSize: 12,
-                            px: 1.5,
-                            borderColor: 'divider',
-                            color: 'text.secondary',
-                            '&:hover': { borderColor: 'error.main', color: 'error.main', bgcolor: 'rgba(239,68,68,.06)' },
-                          }}
-                        >
-                          Cancelar
-                        </Button>
-                      </Stack>
-                    </Stack>
-                  </Card>
-                );
-              })}
-            </Stack>
-          </CardContent>
-        </Card>
-      )}
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#0f766e', whiteSpace: 'nowrap' }}>
+              Ver todas →
+            </Typography>
+          </Stack>
+        </CardContent>
+      </Card>
 
       {/* Filtros */}
       {!loading && myShares.length > 0 && (
