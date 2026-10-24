@@ -87,17 +87,25 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#059669" /></Grid>
     </Grid>
 
-    {/* "Baseado em N exames" — rows compactas clicáveis */}
+    {/* "Baseado em N exames" — strip horizontal compacto estilo carrossel */}
     {sourceExams && sourceExams.length > 0 && onOpenExam && (
       <Box sx={{ mt: 1.75 }}>
-        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>
-          Baseado em {sourceExams.length} exame{sourceExams.length === 1 ? '' : 's'} — toque para abrir:
-        </Typography>
-        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.75 }}>
+          <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Baseado em {sourceExams.length} exames analisados
+          </Typography>
+          <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>
+            Toque para abrir →
+          </Typography>
+        </Stack>
+        <Box sx={{
+          display: 'flex', gap: 1, overflowX: 'auto', py: 0.5, px: 0.2,
+          scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' },
+        }}>
           {sourceExams.map((e, i) => {
-            const dt = e.performedAt ? new Date(`${String(e.performedAt).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR') : '';
+            const dt = e.performedAt ? new Date(`${String(e.performedAt).slice(0, 10)}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }) : '';
             const lab = (e.sourceLab || '').trim();
-            const labShort = lab.length > 42 ? `${lab.slice(0, 42)}…` : lab;
+            const labShort = lab.length > 18 ? `${lab.slice(0, 18)}…` : lab;
             return (
               <Box
                 key={i}
@@ -105,31 +113,39 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
                 onClick={() => onOpenExam(e.id)}
                 title={`${e.title}${dt ? ` — ${dt}` : ''}${lab ? ` • ${lab}` : ''}`}
                 sx={{
-                  display: 'flex', alignItems: 'center', gap: 1, width: '100%', textAlign: 'left',
-                  p: 0.75, borderRadius: '8px', cursor: 'pointer',
-                  border: '1px solid', borderColor: 'divider', bgcolor: 'transparent',
-                  transition: 'background-color .15s ease, border-color .15s ease',
-                  '&:hover': { bgcolor: alpha('#20b2aa', 0.06), borderColor: alpha('#20b2aa', 0.35) },
+                  display: 'inline-flex', alignItems: 'center', gap: 1,
+                  px: 1.25, py: 0.75, borderRadius: '999px', cursor: 'pointer', flexShrink: 0,
+                  border: '1px solid', borderColor: 'divider', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                  transition: 'all .15s ease',
+                  '&:hover': { bgcolor: alpha('#20b2aa', 0.08), borderColor: '#20b2aa', transform: 'translateY(-1px)' },
                 }}
               >
-                <Box sx={{ width: 28, height: 28, borderRadius: '8px', display: 'grid', placeItems: 'center', flexShrink: 0, bgcolor: alpha('#20b2aa', 0.12), color: (t) => tealText(t.palette.mode) }}>
-                  <DescriptionIcon sx={{ fontSize: 16 }} />
-                </Box>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{e.title}</Typography>
-                  <Typography noWrap variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                    {dt}{labShort ? ` • ${labShort}` : ''}
-                  </Typography>
-                </Box>
+                <DescriptionIcon sx={{ fontSize: 15, color: '#0d9488' }} />
+                <Typography noWrap sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary', maxWidth: 160 }}>
+                  {e.title}
+                </Typography>
+                {(dt || labShort) && (
+                  <Chip
+                    size="small"
+                    label={[dt, labShort].filter(Boolean).join(' • ')}
+                    sx={{ height: 18, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }}
+                  />
+                )}
               </Box>
             );
           })}
-        </Stack>
+        </Box>
       </Box>
     )}
 
-    {/* Barra de Ações Rápidas (Atualizar, Compartilhar, Imprimir) */}
-    <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} useFlexGap flexWrap="wrap" alignItems="center">
+    {/* Barra de Ações Rápidas (Atualizar, Compartilhar, Imprimir) — grid 3 colunas fluida sem quebra */}
+    <Box sx={{
+      mt: 1.75,
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: 1,
+    }}>
       <Button
         size="small"
         variant="outlined"
@@ -142,14 +158,16 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
           borderRadius: '999px',
           textTransform: 'none',
           fontWeight: 800,
-          px: { xs: 1.5, sm: 1.75 },
+          fontSize: { xs: 11.5, sm: 12.5 },
+          px: { xs: 0.5, sm: 1.5 },
+          py: 0.8,
+          whiteSpace: 'nowrap',
           borderColor: 'rgba(32,178,170,0.3)',
           color: (t) => tealText(t.palette.mode),
           '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
         }}
       >
-        <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>{loading ? 'Gerando…' : 'Atualizar'}</Box>
-        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>{loading ? 'Gerando…' : 'Atualizar relatório'}</Box>
+        {loading ? 'Gerando…' : 'Atualizar'}
       </Button>
 
       <Button
@@ -162,8 +180,10 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
           borderRadius: '999px',
           textTransform: 'none',
           fontWeight: 700,
-          fontSize: 12,
-          px: 1.5,
+          fontSize: { xs: 11.5, sm: 12.5 },
+          px: { xs: 0.5, sm: 1.5 },
+          py: 0.8,
+          whiteSpace: 'nowrap',
           borderColor: 'rgba(32,178,170,0.3)',
           color: (t) => tealText(t.palette.mode),
           '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
@@ -182,8 +202,10 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
           borderRadius: '999px',
           textTransform: 'none',
           fontWeight: 700,
-          fontSize: 12,
-          px: 1.5,
+          fontSize: { xs: 11.5, sm: 12.5 },
+          px: { xs: 0.5, sm: 1.5 },
+          py: 0.8,
+          whiteSpace: 'nowrap',
           borderColor: 'rgba(32,178,170,0.3)',
           color: (t) => tealText(t.palette.mode),
           '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
@@ -191,7 +213,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       >
         Imprimir / PDF
       </Button>
-    </Stack>
+    </Box>
 
     {/* Resumo Textual */}
     {resumo && (

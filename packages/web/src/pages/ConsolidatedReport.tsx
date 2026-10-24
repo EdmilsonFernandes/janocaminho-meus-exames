@@ -508,7 +508,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             </Alert>
           )}
           <ReportHero
-            resumo={s.resumoGeral}
+            resumo={[s.resumoGeral, s.leituraFinal ? `Leitura final: ${s.leituraFinal}` : ''].filter(Boolean).join('\n\n')}
             counts={counts}
             speaking={speaking}
             loading={loading}
@@ -639,7 +639,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
                       const lim = atLimit(s);
                       const open = Number(s.openQuestions ?? 0); const max = Number(s.questionLimit ?? 5);
                       return <MenuItem key={id} value={id} disabled={lim} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.75, opacity: lim ? 0.5 : 1 }}>
-                        <Avatar src={s.doctor?.photoUrl ? doctorPhotoUrl(id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
+                        <Avatar src={s.doctor?.photoUrl && id ? doctorPhotoUrl(id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#20b2aa', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(nm || '?').charAt(0)}</Avatar>
                         <Box sx={{ minWidth: 0, flex: 1 }}><Typography variant="inherit" sx={{ fontWeight: 700 }}>{nm}</Typography>
                           <Typography variant="caption" sx={{ display: 'block', color: lim ? '#dc2626' : 'text.secondary', fontSize: 12, lineHeight: 1.2 }}>{sp ? sp + ' · ' : ''}{lim ? `limite atingido (${open}/${max})` : `${open}/${max} em aberto`}</Typography>
                         </Box>
@@ -661,17 +661,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
             );
           })()}
 
-          {s.leituraFinal && (
-            <Box sx={{
-              p: 2.5, borderRadius: '16px',
-              background: 'linear-gradient(135deg, rgba(3,105,161,0.1), rgba(32,178,170,0.04))',
-              border: '1px solid rgba(3,105,161,0.2)',
-              boxShadow: '0 4px 16px rgba(3,105,161,0.04)'
-            }}>
-              <Typography sx={{ fontWeight: 800, color: '#0369a1', mb: 0.75, fontFamily: '"Poppins",sans-serif', fontSize: 16 }}>📌 Leitura final</Typography>
-              <Typography sx={{ lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontSize: 14 }}>{s.leituraFinal}</Typography>
-            </Box>
-          )}
+
 
           {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
           {!!s.sources?.length && (

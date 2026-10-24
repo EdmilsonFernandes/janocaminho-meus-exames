@@ -140,26 +140,32 @@ export const PixPaymentBlock = ({
   const mm = String(Math.floor(secs / 60)).padStart(2, '0');
   const ss = String(secs % 60).padStart(2, '0');
 
-  const copperBtn = {
-    minHeight: 44,
+  const emeraldBtn = {
+    minHeight: 46,
     borderRadius: '12px',
     textTransform: 'none' as const,
     fontWeight: 800,
-    background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)',
+    fontSize: 14.5,
+    background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
     color: '#fff',
-    '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
+    boxShadow: '0 4px 14px rgba(23, 143, 137, 0.3)',
+    transition: 'all .2s ease',
+    '&:hover': {
+      background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+      boxShadow: '0 6px 18px rgba(23, 143, 137, 0.4)',
+    },
   };
 
   return (
     <Box sx={{
       mt: 1.5,
-      p: 1.75,
-      borderRadius: '14px',
+      p: 2,
+      borderRadius: '16px',
       border: '1px solid',
-      borderColor: expired ? 'rgba(239,68,68,.3)' : 'rgba(245,158,11,.3)',
+      borderColor: expired ? 'rgba(239,68,68,.3)' : 'rgba(23,143,137,.25)',
       background: isDark
-        ? 'linear-gradient(135deg, rgba(245,158,11,0.07), rgba(217,119,6,0.04))'
-        : 'linear-gradient(135deg, rgba(245,158,11,0.06), rgba(255,251,235,0.6))',
+        ? 'linear-gradient(135deg, rgba(23,143,137,0.08), rgba(13,95,90,0.04))'
+        : 'linear-gradient(135deg, rgba(23,143,137,0.05), rgba(240,253,250,0.8))',
     }}>
       {!charge ? (
         <Button
@@ -168,7 +174,7 @@ export const PixPaymentBlock = ({
           disabled={busy}
           startIcon={busy ? <CircularProgress size={16} sx={{ color: '#fff' }} /> : <PaymentsRoundedIcon />}
           onClick={() => void createCharge()}
-          sx={copperBtn}
+          sx={emeraldBtn}
         >
           {busy ? 'Gerando PIX…' : `Gerar PIX — R$ ${fmtBrl(priceCents)}`}
         </Button>
@@ -181,7 +187,7 @@ export const PixPaymentBlock = ({
             fullWidth
             variant="contained"
             disabled={busy}
-            sx={{ ...copperBtn, mt: 1.5 }}
+            sx={{ ...emeraldBtn, mt: 1.5 }}
             onClick={() => void createCharge()}
           >
             {busy ? 'Gerando novo PIX…' : 'Gerar novo PIX'}
@@ -189,7 +195,7 @@ export const PixPaymentBlock = ({
         </Box>
       ) : (
         <>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.25 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
             <Stack direction="row" alignItems="baseline" spacing={0.5}>
               <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>R$</Typography>
               <Typography sx={{ fontSize: 24, fontWeight: 900, color: 'text.primary', letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>
@@ -200,7 +206,7 @@ export const PixPaymentBlock = ({
               size="small"
               icon={<HourglassEmptyRoundedIcon sx={{ fontSize: '15px !important' }} />}
               label={`Vence em ${mm}:${ss}`}
-              sx={{ borderRadius: '999px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(245,158,11,.14)', color: isDark ? '#fbbf24' : '#b45309', border: '1px solid rgba(245,158,11,.3)' }}
+              sx={{ borderRadius: '999px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(23,143,137,.12)', color: isDark ? '#20b2aa' : '#0d5f5a', border: '1px solid rgba(23,143,137,.3)' }}
             />
           </Stack>
 
@@ -209,37 +215,85 @@ export const PixPaymentBlock = ({
               component="img"
               src={charge.qrBase64}
               alt="QR Code PIX da consulta"
-              sx={{ width: 190, height: 190, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block' }}
+              sx={{ width: 190, height: 190, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }}
             />
           )}
 
           {charge.qrCode && (
-            <>
-              <TextField
-                inputRef={pixCodeRef}
+            <Box sx={{ mt: 1.75 }}>
+              <Box
+                onClick={() => void doCopy()}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  p: 1.25,
+                  px: 1.5,
+                  borderRadius: '10px',
+                  bgcolor: 'action.hover',
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  cursor: 'pointer',
+                  transition: 'all .2s ease',
+                  '&:hover': { bgcolor: 'action.selected', borderColor: '#178f89' },
+                }}
+              >
+                <Typography
+                  noWrap
+                  sx={{
+                    fontSize: 11.5,
+                    fontFamily: 'monospace',
+                    color: 'text.secondary',
+                    maxWidth: '85%',
+                  }}
+                >
+                  {charge.qrCode.slice(0, 24)}…{charge.qrCode.slice(-12)}
+                </Typography>
+                <ContentCopyRoundedIcon sx={{ fontSize: 16, color: '#178f89' }} />
+              </Box>
+
+              {/* Accessible input for WebView fallback copy */}
+              <input
+                ref={pixCodeRef}
                 value={charge.qrCode}
-                multiline
-                size="small"
-                inputProps={{ readOnly: true, 'aria-label': 'Código PIX copia e cola' }}
-                onFocus={(e) => e.target.select()}
-                sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 11, fontFamily: 'monospace' } }}
+                readOnly
+                style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0 }}
               />
+
               <Button
-                size="small"
                 fullWidth
+                size="large"
                 variant="contained"
                 startIcon={copied ? <CheckCircleOutlineRoundedIcon /> : <ContentCopyRoundedIcon />}
                 onClick={() => void doCopy()}
-                sx={{ ...copperBtn, mt: 1, ...(copied ? { background: 'success.main', '&:hover': { background: 'success.dark' } } : {}) }}
+                sx={{
+                  ...emeraldBtn,
+                  mt: 1.25,
+                  ...(copied ? { background: 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)', '&:hover': { background: '#16a34a' } } : {}),
+                }}
               >
-                {copied ? 'Copiado!' : 'Copiar código PIX'}
+                {copied ? 'Código PIX Copiado!' : 'Copiar Código PIX'}
               </Button>
-            </>
+            </Box>
           )}
 
-          <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ mt: 1.5 }}>
-            <CircularProgress size={13} sx={{ color: '#d4a574' }} />
-            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 12.5 }}>Aguardando pagamento…</Typography>
+          <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ mt: 2 }}>
+            <Box
+              sx={{
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: '#22c55e',
+                animation: 'radarPing 1.6s infinite ease-in-out',
+                '@keyframes radarPing': {
+                  '0%, 100%': { opacity: 0.3, transform: 'scale(0.8)' },
+                  '50%': { opacity: 1, transform: 'scale(1.2)' },
+                },
+              }}
+            />
+            <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13, fontWeight: 500 }}>
+              Aguardando confirmação bancária…
+            </Typography>
           </Stack>
         </>
       )}

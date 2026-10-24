@@ -66,8 +66,10 @@ export const TeleconsultaCard: React.FC = () => {
       : `Dr(a). ${tele.doctorName}`
     : 'Consulta médica online';
 
-  const doctorCrm = tele.item?.doctor?.crm
-    ? `CRM ${tele.item.doctor.crm}${tele.item.doctor.crmUf ? `/${tele.item.doctor.crmUf}` : ''}`
+  const rawCrm = String(tele.item?.doctor?.crm ?? '').trim();
+  const crmHasUf = /-?\b[A-Za-z]{2}$/.test(rawCrm);
+  const doctorCrm = rawCrm
+    ? `CRM ${rawCrm}${!crmHasUf && tele.item?.doctor?.crmUf ? `-${tele.item.doctor.crmUf}` : ''}`
     : null;
 
   // Foto REAL do médico (payload traz doctor.id; fallback = inicial).
@@ -117,35 +119,38 @@ export const TeleconsultaCard: React.FC = () => {
 
       {/* Top Header do Card: Status pill + Horário */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 2 }}>
-        <Stack direction="row" alignItems="center" spacing={1}>
+        <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0, flex: 1 }}>
           {isLive ? (
             <Chip
               size="small"
               icon={
                 <Box
                   sx={{
-                    width: 8,
-                    height: 8,
+                    width: 7,
+                    height: 7,
                     borderRadius: '50%',
                     bgcolor: '#10b981',
                     animation: 'tcPulse 1.6s infinite',
                     '@keyframes tcPulse': {
                       '0%, 100%': { opacity: 1, transform: 'scale(1)' },
-                      '50%': { opacity: 0.4, transform: 'scale(1.3)' },
+                      '50%': { opacity: 0.4, transform: 'scale(1.4)' },
                     },
                     '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                   }}
                 />
               }
-              label="SALA LIBERADA • MÉDICO AGUARDANDO"
+              label="SALA LIBERADA"
               sx={{
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 bgcolor: isDark ? 'rgba(16, 185, 129, 0.15)' : 'rgba(16, 185, 129, 0.10)',
                 color: isDark ? '#34d399' : '#059669',
                 fontWeight: 800,
-                fontSize: 11.5,
+                fontSize: 11,
                 border: '1px solid',
                 borderColor: isDark ? 'rgba(52, 211, 153, 0.3)' : 'rgba(16, 185, 129, 0.3)',
                 letterSpacing: '0.03em',
+                '& .MuiChip-label': { px: 0.9, whiteSpace: 'nowrap' },
               }}
             />
           ) : isToday ? (
@@ -154,12 +159,15 @@ export const TeleconsultaCard: React.FC = () => {
               icon={<AccessTimeRoundedIcon sx={{ fontSize: '14px !important', color: '#0d9488 !important' }} />}
               label="HOJE"
               sx={{
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 bgcolor: isDark ? 'rgba(13, 148, 136, 0.18)' : 'rgba(13, 148, 136, 0.10)',
                 color: isDark ? '#2dd4bf' : '#0f766e',
                 fontWeight: 800,
-                fontSize: 11.5,
+                fontSize: 11,
                 border: '1px solid rgba(13, 148, 136, 0.3)',
                 letterSpacing: '0.04em',
+                '& .MuiChip-label': { px: 0.9, whiteSpace: 'nowrap' },
               }}
             />
           ) : (
@@ -168,20 +176,27 @@ export const TeleconsultaCard: React.FC = () => {
               icon={<CalendarMonthRoundedIcon sx={{ fontSize: '14px !important', color: '#0d9488 !important' }} />}
               label="CONSULTA AGENDADA"
               sx={{
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 bgcolor: isDark ? 'rgba(13, 148, 136, 0.15)' : 'rgba(13, 148, 136, 0.08)',
                 color: isDark ? '#2dd4bf' : '#0d9488',
                 fontWeight: 700,
-                fontSize: 11.5,
+                fontSize: 11,
                 border: '1px solid rgba(13, 148, 136, 0.25)',
+                '& .MuiChip-label': { px: 0.9, whiteSpace: 'nowrap' },
               }}
             />
           )}
 
-          {tele.relativeLabel && (
-            <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
+          {isLive ? (
+            <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#34d399' : '#059669' }}>
+              • Médico aguardando
+            </Typography>
+          ) : tele.relativeLabel ? (
+            <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.secondary' }}>
               {tele.relativeLabel}
             </Typography>
-          )}
+          ) : null}
         </Stack>
 
         {tele.roomCode && (
@@ -198,17 +213,21 @@ export const TeleconsultaCard: React.FC = () => {
               }
               label={`Sala #${tele.roomCode}`}
               sx={{
+                flexShrink: 0,
+                whiteSpace: 'nowrap',
                 bgcolor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.05)',
                 color: 'text.primary',
-                fontSize: 11.5,
+                fontSize: 11,
                 fontFamily: 'monospace',
                 fontWeight: 700,
                 cursor: 'pointer',
+                height: 24,
                 border: '1px solid',
                 borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)',
                 '&:hover': {
                   bgcolor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.09)',
                 },
+                '& .MuiChip-label': { px: 0.8, whiteSpace: 'nowrap' },
               }}
             />
           </Tooltip>
@@ -327,34 +346,35 @@ export const TeleconsultaCard: React.FC = () => {
       </Box>
 
       {/* Ações Primárias & Secundárias */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems="center">
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleJoin}
-          startIcon={<VideocamRoundedIcon />}
-          sx={{
-            py: 1.25,
-            px: 2.5,
-            background: 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
-            color: '#ffffff',
-            fontWeight: 800,
-            fontSize: 14,
-            borderRadius: '12px',
-            textTransform: 'none',
-            boxShadow: '0 4px 14px rgba(13, 148, 136, 0.35)',
-            transition: 'all 0.2s ease',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
-              boxShadow: '0 6px 20px rgba(13, 148, 136, 0.45)',
-              transform: 'translateY(-1px)',
-            },
-          }}
-        >
-          {isLive ? 'Entrar na Consulta com Vídeo' : isToday ? 'Entrar na Sala de Espera' : 'Ver Detalhes da Consulta'}
-        </Button>
+      <Stack spacing={1.25}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleJoin}
+            startIcon={<VideocamRoundedIcon />}
+            sx={{
+              py: 1.25,
+              px: 2,
+              background: isLive
+                ? 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+                : 'linear-gradient(135deg, #0d9488 0%, #059669 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: 14,
+              borderRadius: '12px',
+              textTransform: 'none',
+              boxShadow: isLive ? '0 4px 16px rgba(16, 185, 129, 0.35)' : '0 4px 14px rgba(13, 148, 136, 0.35)',
+              transition: 'all 0.2s ease',
+              '&:hover': {
+                background: isLive ? 'linear-gradient(135deg, #047857 0%, #059669 100%)' : 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
+                transform: 'translateY(-1px)',
+              },
+            }}
+          >
+            {isLive ? 'Entrar na Consulta com Vídeo' : isToday ? 'Entrar na Sala de Espera' : 'Ver Detalhes da Consulta'}
+          </Button>
 
-        <Stack direction="row" spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
           <Tooltip title="Testar microfone e câmera">
             <IconButton
               onClick={() => {
@@ -363,6 +383,7 @@ export const TeleconsultaCard: React.FC = () => {
               sx={{
                 width: 44,
                 height: 44,
+                flexShrink: 0,
                 borderRadius: '12px',
                 border: '1px solid',
                 borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
@@ -378,42 +399,24 @@ export const TeleconsultaCard: React.FC = () => {
               <MicNoneRoundedIcon sx={{ fontSize: 20 }} />
             </IconButton>
           </Tooltip>
-
-          <Tooltip title="Ver exames ou gerenciar">
-            <IconButton
-              onClick={() => navigate('/telemedicina')}
-              sx={{
-                width: 44,
-                height: 44,
-                borderRadius: '12px',
-                border: '1px solid',
-                borderColor: isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(0, 0, 0, 0.1)',
-                bgcolor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)',
-                color: 'text.secondary',
-                '&:hover': {
-                  color: '#0d9488',
-                  borderColor: '#0d9488',
-                  bgcolor: isDark ? 'rgba(13, 148, 136, 0.1)' : 'rgba(13, 148, 136, 0.06)',
-                },
-              }}
-            >
-              <ArrowForwardRoundedIcon sx={{ fontSize: 20 }} />
-            </IconButton>
-          </Tooltip>
         </Stack>
 
-        {/* Atalho para a tela dedicada de consultas (FALHAS 1/2 — mock aprovado) */}
         <Button
           size="small"
           onClick={() => navigate('/consultas')}
           endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 14 }} />}
           sx={{
-            mt: 1.25, textTransform: 'none', fontWeight: 800, fontSize: 12.5,
-            color: '#0d9488', alignSelf: { xs: 'stretch', sm: 'flex-end' }, minHeight: 32,
-            '&:hover': { bgcolor: 'rgba(13,148,136,0.08)' },
+            textTransform: 'none',
+            fontWeight: 700,
+            fontSize: 12.5,
+            color: 'text.secondary',
+            justifyContent: 'center',
+            py: 0.5,
+            minHeight: 28,
+            '&:hover': { color: '#0d9488', bgcolor: 'transparent' },
           }}
         >
-          Ver todas as consultas →
+          Ver todas as consultas
         </Button>
       </Stack>
     </AppCard>

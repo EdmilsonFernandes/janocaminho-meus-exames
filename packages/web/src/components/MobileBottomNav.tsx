@@ -13,6 +13,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import MenuIcon from '@mui/icons-material/Menu';
+import AlarmOnIcon from '@mui/icons-material/AlarmOn';
+import AlarmOutlinedIcon from '@mui/icons-material/AlarmOutlined';
 import { hapticNav } from '../utils/haptic';
 import { NAV_PILL } from '../theme';
 
@@ -26,6 +28,8 @@ const NAV = [
   // Minhas Consultas (mock aprovado): posição 3 da nav — teleconsultas do paciente.
   { icon: 'consultas', label: 'nav.consultas', to: '/consultas' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
+  // Lembretes volta pra barra (dono 24/10: "sumiu" no drawer) — 6 itens, robô central preservado.
+  { icon: 'lembretes', label: 'nav.reminders', to: '/lembretes' },
   { icon: 'trend', label: 'nav.evolution', to: '/evolucao' },
 ] as const;
 const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
@@ -94,6 +98,7 @@ export const MobileBottomNav = () => {
           {it.icon === 'home' && (on ? <HomeIcon /> : <HomeOutlinedIcon />)}
           {it.icon === 'exam' && (on ? <DescriptionIcon /> : <DescriptionOutlinedIcon />)}
           {it.icon === 'consultas' && (on ? <VideocamRoundedIcon /> : <VideocamOutlinedIcon />)}
+          {it.icon === 'lembretes' && (on ? <AlarmOnIcon /> : <AlarmOutlinedIcon />)}
           {it.icon === 'trend' && (on ? <TrendingUpIcon /> : <TrendingUpOutlinedIcon />)}
         </Box>
       )}

@@ -419,8 +419,8 @@ const MenuSectionAccordion = ({
       <Collapse in={open} timeout={280} easing="cubic-bezier(.34,1.56,.64,1)" sx={{ pb: 0.25 }}>
         <Box
           sx={{
-            ml: '18px',
-            pl: 1,
+            ml: '12px',
+            pl: 0.75,
             borderLeft: '2px solid rgba(13, 148, 136, 0.22)',
           }}
         >
@@ -545,25 +545,38 @@ const NavItem = ({
           color: 'inherit',
           noWrap: true,
         }}
+        sx={{ minWidth: 0, mr: 0.75, my: 0 }}
       />
       {badge && (
         <Chip
           size="small"
           label={badge}
           sx={{
-            height: 19,
-            fontSize: 10.5,
+            height: 20,
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            fontSize: 10,
             fontWeight: 800,
-            bgcolor: badge === 'ao vivo' ? '#ef4444' : 'rgba(212, 165, 116, 0.28)',
-            color: badge === 'ao vivo' ? '#ffffff' : '#f3d3ac',
+            bgcolor: badge === 'ao vivo' ? '#ef4444' : badge === 'hoje' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(13, 148, 136, 0.14)',
+            color: badge === 'ao vivo' ? '#ffffff' : badge === 'hoje' ? '#d97706' : '#0d9488',
             borderRadius: '99px',
+            border: badge === 'ao vivo' ? 'none' : '1px solid',
+            borderColor: badge === 'hoje' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(13, 148, 136, 0.25)',
             mr: 0.5,
+            '& .MuiChip-label': {
+              px: 0.8,
+              py: 0,
+              whiteSpace: 'nowrap',
+              lineHeight: 1,
+              overflow: 'visible',
+            },
           }}
         />
       )}
       <ChevronRightIcon
         sx={{
           fontSize: 17,
+          flexShrink: 0,
           color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
           transition: 'all .15s ease',
           opacity: active ? 0.9 : 0.6,
@@ -1183,13 +1196,13 @@ const AppLayout = (props: any) => {
           // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
           // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
           '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
-          // SIDEBAR DESKTOP: in-flow + width 268px + fundo premium Dr. Exame
-          '& .RaSidebar-root': { width: { sm: '268px !important' }, minWidth: { sm: '268px !important' }, flexShrink: 0 },
+          // SIDEBAR DESKTOP: in-flow + width 280px + fundo premium Dr. Exame
+          '& .RaSidebar-root': { width: { sm: '280px !important' }, minWidth: { sm: '280px !important' }, flexShrink: 0 },
           '& .RaSidebar-fixed, & .RaSidebar-paper, & .RaSidebar-root .MuiPaper-root': {
             position: { sm: 'static !important' },
-            width: { sm: '268px !important' },
-            minWidth: { sm: '268px !important' },
-            maxWidth: { sm: '268px !important' },
+            width: { sm: '280px !important' },
+            minWidth: { sm: '280px !important' },
+            maxWidth: { sm: '280px !important' },
             height: { sm: 'auto !important' },
             minHeight: { sm: '100dvh' },
             background: (t: any) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%) !important' : '#ffffff !important',

@@ -293,6 +293,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // (PAYMENT_REQUIRED) + dialog honesto de encerramento (outcome do /end).
   const [opensAt, setOpensAt] = useState<string | null>(null); // countdown até a janela abrir
   const [payPriceCents, setPayPriceCents] = useState<number | null>(null);
+  const [recheckBusy, setRecheckBusy] = useState(false); // "Já paguei" em voo (spinner + disabled)
+  const payBlockedRef = useRef(false); // join 402 → fase payment É estável (nunca volta a prejoin/câmera)
   const [outcomeOpen, setOutcomeOpen] = useState(false); // "Como encerrar?"
   const [outcomeSuggest, setOutcomeSuggest] = useState<'no_show' | 'technical' | null>(null); // sugestão do server
   const [outcomeBusy, setOutcomeBusy] = useState(false);
@@ -987,15 +989,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         // Lifecycle §2 (24/10): consulta particular sem PIX pago → não entra.
         // Paciente volta aos lembretes (o dialog de PIX já existe lá); médico
         // fica sabendo que o paciente ainda não pagou.
+        // bug dono 24/10: TODO 402 do join é barreira de pagamento — code ausente
+        // não pode virar 'join-failed' → prejoin → câmera ↔ payment em loop.
         const d = await res.json().catch(() => ({} as any));
-        if (d?.code === 'PAYMENT_REQUIRED') {
-          setPayPriceCents(typeof d.priceCents === 'number' ? d.priceCents : null);
-          setPhase('payment');
-          setBanner(null);
-          hapticError();
-          return;
-        }
-        throw new Error('join-failed');
+        payBlockedRef.current = true;
+        setPayPriceCents(typeof d?.priceCents === 'number' ? d.priceCents : null);
+        setPhase('payment');
+        setBanner(null);
+        hapticError();
+        return;
       }
       if (res.status === 403) {
         const d = await res.json().catch(() => ({} as any));
@@ -1025,18 +1027,49 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         throw new Error('forbidden');
       }
       if (!res.ok) throw new Error('join-failed');
+      payBlockedRef.current = false; // join liberado — não é mais barreira de pagamento
       const data = await res.json();
       // fix #13c: o /join devolve stt (hasStt do server) mas o client não salvava —
       // sem isto o gate do banner/chip de gravação ficava cego até um /summary futuro.
       if (typeof data.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: data.stt } : cur));
       await connectRoom(data.serverUrl, data.token);
     } catch {
+      // bug dono 24/10: bloqueado por pagamento NUNCA cai no prejoin (abriria a
+      // câmera/pedido de permissão e piscaria payment ↔ câmera). Fica no payment.
+      if (payBlockedRef.current) { setPhase('payment'); setBanner(null); return; }
       setBanner(null);
       setToast({ text: 'Não deu pra entrar. Tenta de novo em instantes.', k: Date.now() });
       hapticError();
       setPhase('prejoin');
     }
   }, [authToken, connectRoom, reminderId, role, stopPreview]);
+
+  // "Já paguei — verificar de novo" (bug dono 24/10): verificação DE VERDADE —
+  // refetch do /summary (paidAt, relógio do server). Pago → auto-avança pro join
+  // (que agora passa); pendente → toast claro + botão reabilita. NUNCA re-roda o
+  // join às cegas (402 em loop = botão piscando sem feedback).
+  const recheckPay = useCallback(async () => {
+    if (recheckBusy) return;
+    setRecheckBusy(true);
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
+      const d = res.ok ? await res.json().catch(() => null) : null;
+      if (d?.paidAt) {
+        payBlockedRef.current = false;
+        hapticSuccess();
+        setToast({ text: 'Pagamento confirmado! Entrando na consulta…', k: Date.now() });
+        await startJoin();
+        return;
+      }
+      hapticError();
+      setToast({ text: 'Ainda não identificamos o pagamento — pode levar alguns segundos após o PIX.', k: Date.now() });
+    } catch {
+      hapticError();
+      setToast({ text: 'Sem conexão pra verificar agora. Tenta de novo.', k: Date.now() });
+    } finally {
+      setRecheckBusy(false);
+    }
+  }, [authToken, hapticError, hapticSuccess, recheckBusy, reminderId, startJoin]);
 
   // Botão do pré-join (paciente): consent Art.15 (só se ainda não consenter) + join.
   // F3 §1: se marcou o checkbox de gravação, registra o record-consent logo após o
@@ -1080,6 +1113,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       await startJoin(next);
     } catch {
       hapticError();
+      // Mesma estabilidade do startJoin: barreira de pagamento → payment, não prejoin.
+      if (payBlockedRef.current) { setPhase('payment'); return; }
       setToast({ text: 'Não deu pra entrar. Tenta de novo em instantes.', k: Date.now() });
       setPhase('prejoin');
     } finally {
@@ -1801,8 +1836,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
               <Avatar
                 src={role === 'doctor'
-                  ? photoUrlFor(summary?.patient?.id || summary?.patientId || '')
-                  : doctorPhotoUrl(summary?.doctor?.id || '')}
+                  ? (summary?.patient?.id || summary?.patientId ? photoUrlFor(String(summary?.patient?.id || summary?.patientId || '')) : undefined)
+                  : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined)}
                 sx={{
                 width: 84, height: 84, fontSize: 30, fontWeight: 800,
                 bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)',
@@ -1862,8 +1897,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <Box sx={{ position: 'relative' }}>
                 <Avatar
                   src={role === 'doctor'
-                    ? photoUrlFor((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId || '')
-                    : doctorPhotoUrl(summary?.doctor?.id || '')}
+                    ? ((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId ? photoUrlFor(String((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId)) : undefined)
+                    : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined)}
                   sx={{
                     width: 96,
                     height: 96,
@@ -3225,8 +3260,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 </Button>
               </>
             )}
-            <Button variant="outlined" fullWidth onClick={() => void startJoin()} sx={{ mt: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, height: 44, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.secondary' } }}>
-              Já paguei — verificar de novo
+            <Button variant="outlined" fullWidth disabled={recheckBusy} onClick={() => void recheckPay()} startIcon={recheckBusy ? <CircularProgress size={16} color="inherit" /> : null} sx={{ mt: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, height: 44, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.secondary' } }}>
+              {recheckBusy ? 'Verificando…' : 'Já paguei — verificar de novo'}
             </Button>
           </CardContent>
         </Card>
@@ -3323,7 +3358,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             }} />
           ))}
           <Avatar
-            src={doctorPhotoUrl(summary?.doctor?.id || '')}
+            src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined}
             sx={{
               width: 120, height: 120, fontSize: 42, fontWeight: 800,
               bgcolor: 'rgba(32,178,170,.15)', color: '#5fc9c3',
@@ -3523,7 +3558,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mt: 1.5, p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
             {role === 'patient' ? (
               <>
-                <Avatar src={doctorPhotoUrl(summary?.doctor?.id || '')} sx={{ width: 40, height: 40, fontSize: 15, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
+                <Avatar src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined} sx={{ width: 40, height: 40, fontSize: 15, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
                   {initials(doctor?.name)}
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>

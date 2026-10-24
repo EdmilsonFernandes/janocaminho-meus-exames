@@ -53,6 +53,8 @@ export function apiHeaders(json = false): Record<string, string> {
 /** URL da foto do paciente. `version` busta o cache (ETag); `?t=` leva o token (a rota exige
  *  auth agora — fecha o buraco da foto pública por CUID / LGPD facial). */
 export const photoUrlFor = (patientId: string, version?: number | string): string => {
+  // 400-safe: mesmo guard do doctorPhotoUrl (nunca URL com id vazio).
+  if (!patientId) return '';
   const base = `${API_URL.replace('/api', '')}/api/patients/${patientId}/photo`;
   const t = photoAuthToken();
   const q = new URLSearchParams();
@@ -64,6 +66,10 @@ export const photoUrlFor = (patientId: string, version?: number | string): strin
 
 /** URL da foto do MÉDICO (mesmo padrão do photoUrlFor: ?t= token pra auth no server). */
 export const doctorPhotoUrl = (doctorId: string, version?: number | string): string => {
+  // 400-safe (bug dono 24/10): id vazio → NUNCA monta /api/doctor/photo/?t=…
+  // (lembrete legado sem médico no payload pedia a rota SEM id → 404 "Cannot GET").
+  // Caller cai no fallback de iniciais do Avatar.
+  if (!doctorId) return '';
   const base = `${API_URL.replace('/api', '')}/api/doctor/photo/${doctorId}`;
   const t = photoAuthToken();
   const q = new URLSearchParams();

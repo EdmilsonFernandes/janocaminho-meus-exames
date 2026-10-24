@@ -318,7 +318,16 @@ export const RemindersPage = () => {
     try {
       const res = await fetch(`${API_URL}/billing/teleconsulta/${r.id}`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
       const d: any = await res.json().catch(() => ({}));
-      if (res.status === 409 && d.pendingPix) { hapticLight(); setPayTele({ ...d.pendingPix, reminderId: r.id }); return; }
+      if (res.status === 409 && d.pendingPix) {
+        hapticLight();
+        // Retomada ESTÁVEL (bug dono 24/10): MESMO QR/lembrete já no dialog → não
+        // troca o estado (zero re-render/reabrir). paymentId vazio → undefined p/ o
+        // poll não bater em /payment-status com id de subscription.
+        const p: any = d.pendingPix;
+        if (payTele?.reminderId === r.id && payTele?.qrCode === p.qrCode) return;
+        setPayTele({ ...p, paymentId: p.paymentId || undefined, reminderId: r.id });
+        return;
+      }
       // 409 SEM pendingPix = "Consulta já paga." (paga em outra aba/device) → comemora, não é erro.
       if (res.status === 409 && d.paidAt) {
         setPayTele(null);
@@ -698,13 +707,18 @@ export const RemindersPage = () => {
                     {docName}
                   </Typography>
                   <VerifiedIcon sx={{ fontSize: 16, color: '#0d9488' }} />
-                  {r.doctor?.crm && (
-                    <Chip
-                      size="small"
-                      label={`CRM ${r.doctor.crm}${r.doctor.crmUf ? `/${r.doctor.crmUf}` : ''}`}
-                      sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', borderRadius: '6px', fontFamily: 'monospace' }}
-                    />
-                  )}
+                  {r.doctor?.crm && (() => {
+                    const crmStr = String(r.doctor.crm).trim();
+                    const hasUf = /-?\b[A-Za-z]{2}$/.test(crmStr);
+                    const label = `CRM ${crmStr}${!hasUf && r.doctor.crmUf ? `-${r.doctor.crmUf}` : ''}`;
+                    return (
+                      <Chip
+                        size="small"
+                        label={label}
+                        sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(13,148,136,0.1)', color: '#0d9488', borderRadius: '6px', fontFamily: 'monospace' }}
+                      />
+                    );
+                  })()}
                 </Stack>
 
                 <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" sx={{ mb: 0.75 }}>
@@ -905,13 +919,13 @@ export const RemindersPage = () => {
                 </Button>
               ) : null}
 
-              {/* Consulta particular (23/10): "Pagar consulta" (cobre) ou "Paga ✓" (verde). */}
+              {/* Consulta particular (23/10): "Pagar consulta" (cobre) ou "Paga ✓" (verde) — no histórico nunca cobra de novo. */}
               {(r.consultPriceCents ?? 0) > 0 && (
-                r.paidAt ? (
+                (r.paidAt || hasEnded) ? (
                   <Chip
                     size="small"
                     icon={<CheckCircleOutlineIcon />}
-                    label="Consulta paga"
+                    label={r.paidAt ? 'Consulta paga' : 'Concluída'}
                     sx={{ height: 26, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,.14)', color: '#059669', borderRadius: '9px', flex: { xs: 1, sm: 'none' }, justifyContent: 'center' }}
                   />
                 ) : (
@@ -1791,37 +1805,92 @@ export const RemindersPage = () => {
                 <Box component="img" src={payTele.qrBase64} alt="QR Code PIX da consulta" sx={{ width: 210, height: 210, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block' }} />
               ) : null}
               {payTele?.qrCode && (
-                <>
-                  {/* readOnly: código nunca editável; tocar no campo já seleciona tudo —
-                      no WebView sem clipboard é o caminho "toque e segure p/ copiar". */}
-                  <TextField
-                    inputRef={pixCodeRef}
+                <Box sx={{ mt: 2 }}>
+                  <Box
+                    onClick={() => void doCopyPix()}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      p: 1.25,
+                      px: 1.75,
+                      borderRadius: '10px',
+                      bgcolor: 'action.hover',
+                      border: '1px dashed',
+                      borderColor: 'divider',
+                      cursor: 'pointer',
+                      transition: 'all .2s ease',
+                      '&:hover': { bgcolor: 'action.selected', borderColor: '#178f89' },
+                    }}
+                  >
+                    <Typography
+                      noWrap
+                      sx={{
+                        fontSize: 12,
+                        fontFamily: 'monospace',
+                        color: 'text.secondary',
+                        maxWidth: '85%',
+                      }}
+                    >
+                      {payTele.qrCode.slice(0, 24)}…{payTele.qrCode.slice(-12)}
+                    </Typography>
+                    <ContentCopyIcon sx={{ fontSize: 16, color: '#178f89' }} />
+                  </Box>
+
+                  {/* Hidden / accessible input for fallback selection on WebView */}
+                  <input
+                    ref={pixCodeRef}
                     value={payTele.qrCode}
-                    multiline
-                    size="small"
-                    inputProps={{ readOnly: true, 'aria-label': 'Código PIX copia e cola' }}
-                    onFocus={(e) => e.target.select()}
-                    sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 11, fontFamily: 'monospace' } }}
+                    readOnly
+                    style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', height: 0, width: 0 }}
                   />
+
                   <Button
-                    size="small"
+                    fullWidth
+                    size="large"
                     variant="contained"
                     startIcon={pixCopied ? <CheckCircleOutlineIcon /> : <ContentCopyIcon />}
                     onClick={() => void doCopyPix()}
                     sx={{
-                      mt: 1, minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800,
-                      background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)', color: '#fff',
-                      '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
-                      ...(pixCopied ? { background: 'success.main', '&:hover': { background: 'success.dark' } } : {}),
+                      mt: 1.5,
+                      minHeight: 46,
+                      borderRadius: '12px',
+                      textTransform: 'none',
+                      fontWeight: 800,
+                      fontSize: 14.5,
+                      background: pixCopied
+                        ? 'linear-gradient(135deg, #16a34a 0%, #15803d 100%)'
+                        : 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
+                      color: '#fff',
+                      boxShadow: '0 4px 14px rgba(23, 143, 137, 0.3)',
+                      transition: 'all .2s ease',
+                      '&:hover': {
+                        background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                        boxShadow: '0 6px 18px rgba(23, 143, 137, 0.4)',
+                      },
                     }}
                   >
-                    {pixCopied ? 'Copiado!' : 'Copiar código PIX'}
+                    {pixCopied ? 'Código PIX Copiado!' : 'Copiar Código PIX'}
                   </Button>
-                </>
+                </Box>
               )}
               <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ mt: 2 }}>
-                <CircularProgress size={14} sx={{ color: '#d4a574' }} />
-                <Typography variant="body2" color="text.secondary">Aguardando pagamento…</Typography>
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: '#22c55e',
+                    animation: 'radarPing 1.6s infinite ease-in-out',
+                    '@keyframes radarPing': {
+                      '0%, 100%': { opacity: 0.3, transform: 'scale(0.8)' },
+                      '50%': { opacity: 1, transform: 'scale(1.2)' },
+                    },
+                  }}
+                />
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 13, fontWeight: 500 }}>
+                  Aguardando confirmação bancária…
+                </Typography>
               </Stack>
             </>
           )}

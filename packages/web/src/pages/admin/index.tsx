@@ -194,13 +194,51 @@ export const AdminPage = () => {
 
   const Sidebar = (
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', bgcolor: 'background.paper' }}>
-      {/* Topo do drawer */}
-      <Box sx={{ p: 2, pb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography sx={{ fontWeight: 900, fontFamily: '"Poppins",sans-serif', color: '#178f89', fontSize: 17, letterSpacing: '-0.02em' }}>
-            ⚙️ Backoffice
-          </Typography>
-          <Typography variant="caption" color="text.secondary">Dr. Exame · Gestão & Controle</Typography>
+      {/* Topo do drawer com Logo e Brand Enterprise */}
+      <Box sx={{ p: 2, pb: 1.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box
+            sx={{
+              width: 38,
+              height: 38,
+              borderRadius: '10px',
+              background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#ffffff',
+              boxShadow: '0 4px 14px rgba(23, 143, 137, 0.35)',
+            }}
+          >
+            <Typography sx={{ fontWeight: 900, fontSize: 18, lineHeight: 1 }}>⚕️</Typography>
+          </Box>
+          <Box>
+            <Stack direction="row" spacing={0.75} alignItems="center">
+              <Typography sx={{ fontWeight: 900, fontFamily: '"Poppins",sans-serif', color: 'text.primary', fontSize: 15.5, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                DR. EXAME
+              </Typography>
+              <Chip
+                size="small"
+                label="ENTERPRISE"
+                sx={{
+                  height: 18,
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  bgcolor: 'rgba(23, 143, 137, 0.12)',
+                  color: '#178f89',
+                  borderRadius: '4px',
+                  letterSpacing: '0.04em',
+                  '& .MuiChip-label': { px: 0.6, py: 0 },
+                }}
+              />
+            </Stack>
+            <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e' }} />
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11, fontWeight: 500 }}>
+                Console de Gestão
+              </Typography>
+            </Stack>
+          </Box>
         </Box>
         {!isDesktop && (
           <IconButton size="small" onClick={() => setDrawerOpen(false)} sx={{ color: 'text.secondary' }}>
@@ -210,18 +248,18 @@ export const AdminPage = () => {
       </Box>
 
       {/* Campo de busca rápida no drawer */}
-      <Box sx={{ px: 1.5, pb: 1.25 }}>
+      <Box sx={{ px: 1.5, py: 1.25 }}>
         <TextField
           size="small"
           fullWidth
-          placeholder="Buscar módulo..."
+          placeholder="Buscar módulo (/)..."
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
           slotProps={{
             input: {
               startAdornment: (
                 <InputAdornment position="start">
-                  <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                  <SearchIcon sx={{ fontSize: 17, color: 'text.secondary' }} />
                 </InputAdornment>
               ),
               endAdornment: filterText ? (
@@ -230,14 +268,24 @@ export const AdminPage = () => {
                     <CloseIcon sx={{ fontSize: 14 }} />
                   </IconButton>
                 </InputAdornment>
-              ) : undefined,
+              ) : (
+                <InputAdornment position="end">
+                  <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: 'text.disabled', bgcolor: 'action.hover', px: 0.6, py: 0.2, borderRadius: '4px', fontFamily: 'monospace' }}>
+                    /
+                  </Typography>
+                </InputAdornment>
+              ),
             },
           }}
           sx={{
             '& .MuiOutlinedInput-root': {
-              borderRadius: '10px',
-              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
-              fontSize: 13,
+              borderRadius: '8px',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+              fontSize: 12.5,
+              transition: 'all .2s ease',
+              '& fieldset': { borderColor: 'rgba(0,0,0,0.08)' },
+              '&:hover fieldset': { borderColor: '#178f89' },
+              '&.Mui-focused fieldset': { borderColor: '#178f89', borderWidth: '1.5px' },
             },
           }}
         />
@@ -259,13 +307,13 @@ export const AdminPage = () => {
                   <Typography
                     sx={{
                       px: 2,
-                      pt: 1.5,
+                      pt: 1.75,
                       pb: 0.5,
-                      fontSize: 12,
+                      fontSize: 11,
                       fontWeight: 800,
                       color: 'text.disabled',
                       textTransform: 'uppercase',
-                      letterSpacing: '0.06em',
+                      letterSpacing: '0.08em',
                     }}
                   >
                     {m.group}
@@ -276,28 +324,45 @@ export const AdminPage = () => {
                   selected={on}
                   sx={{
                     mx: 1,
-                    mb: 0.25,
-                    borderRadius: '10px',
+                    mb: 0.35,
+                    borderRadius: '8px',
                     py: 0.75,
-                    borderLeft: on ? '3px solid #178f89' : '3px solid transparent',
-                    '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.14)' },
-                    '&.Mui-selected .MuiListItemIcon-root': { color: '#178f89' },
+                    px: 1.25,
+                    position: 'relative',
+                    transition: 'all 0.15s ease-in-out',
+                    bgcolor: on ? (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.18)' : 'rgba(23,143,137,.10)' : 'transparent',
+                    '&:hover': {
+                      bgcolor: on ? (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.22)' : 'rgba(23,143,137,.14)' : 'action.hover',
+                    },
                   }}
                 >
-                  <ListItemIcon sx={{ minWidth: 34, color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 20 } }}>
+                  {on && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        left: 0,
+                        top: '20%',
+                        bottom: '20%',
+                        width: 3.5,
+                        bgcolor: '#178f89',
+                        borderRadius: '0 4px 4px 0',
+                      }}
+                    />
+                  )}
+                  <ListItemIcon sx={{ minWidth: 32, color: on ? '#178f89' : 'text.secondary', '& svg': { fontSize: 19 } }}>
                     {m.icon}
                   </ListItemIcon>
                   <ListItemText
                     primary={m.label}
                     primaryTypographyProps={{
-                      fontSize: 13.5,
-                      fontWeight: on ? 800 : 500,
+                      fontSize: 13,
+                      fontWeight: on ? 700 : 500,
                       color: on ? 'text.primary' : 'text.secondary',
                       noWrap: true,
                     }}
                   />
                   {m.badge && (
-                    <Chip size="small" label={m.badge} sx={{ height: 20, fontSize: 12, fontWeight: 700 }} />
+                    <Chip size="small" label={m.badge} sx={{ height: 18, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover' }} />
                   )}
                 </ListItemButton>
               </Box>
@@ -315,13 +380,13 @@ export const AdminPage = () => {
 
       {/* Ações de rodapé do drawer */}
       <List disablePadding sx={{ p: 0.75 }}>
-        <ListItemButton onClick={() => navigate('/')} sx={{ borderRadius: '10px', py: 0.75 }}>
-          <ListItemIcon sx={{ minWidth: 34, color: 'text.secondary' }}><ArrowBackIcon sx={{ fontSize: 19 }} /></ListItemIcon>
-          <ListItemText primary="Voltar ao app do paciente" primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }} />
+        <ListItemButton onClick={() => navigate('/')} sx={{ borderRadius: '8px', py: 0.75, '&:hover': { bgcolor: 'action.hover' } }}>
+          <ListItemIcon sx={{ minWidth: 32, color: 'text.secondary' }}><ArrowBackIcon sx={{ fontSize: 18 }} /></ListItemIcon>
+          <ListItemText primary="Voltar ao app do paciente" primaryTypographyProps={{ fontSize: 12.5, fontWeight: 600 }} />
         </ListItemButton>
-        <ListItemButton onClick={logout} sx={{ borderRadius: '10px', py: 0.75, color: 'error.main' }}>
-          <ListItemIcon sx={{ minWidth: 34, color: 'error.main' }}><LogoutIcon sx={{ fontSize: 19 }} /></ListItemIcon>
-          <ListItemText primary="Sair do backoffice" primaryTypographyProps={{ fontSize: 13, fontWeight: 700 }} />
+        <ListItemButton onClick={logout} sx={{ borderRadius: '8px', py: 0.75, color: 'error.main', '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.08)' } }}>
+          <ListItemIcon sx={{ minWidth: 32, color: 'error.main' }}><LogoutIcon sx={{ fontSize: 18 }} /></ListItemIcon>
+          <ListItemText primary="Sair do backoffice" primaryTypographyProps={{ fontSize: 12.5, fontWeight: 700 }} />
         </ListItemButton>
       </List>
     </Box>
@@ -330,12 +395,12 @@ export const AdminPage = () => {
   const active = MODULES.find((m) => m.id === mod);
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: 'background.default' }}>
+    <Box sx={{ display: 'flex', minHeight: '100dvh', bgcolor: (t) => t.palette.mode === 'dark' ? 'background.default' : '#f8fafc' }}>
       <Title title="Backoffice · Dr. Exame" />
 
       {/* Sidebar Desktop / Drawer Mobile */}
       {isDesktop ? (
-        <Box component="aside" sx={{ width: 260, position: 'sticky', top: 0, height: '100dvh', flexShrink: 0, borderRight: 1, borderColor: 'divider' }}>
+        <Box component="aside" sx={{ width: 270, position: 'sticky', top: 0, height: '100dvh', flexShrink: 0, borderRight: 1, borderColor: 'divider', bgcolor: 'background.paper' }}>
           {Sidebar}
         </Box>
       ) : (
@@ -357,43 +422,141 @@ export const AdminPage = () => {
 
       {/* Conteúdo Principal */}
       <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
-        {/* Topbar */}
+        {/* Topbar Glassmorphic */}
         <AppBar
           position="sticky"
           elevation={0}
           sx={{
-            bgcolor: 'background.paper',
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(18,24,27,0.88)' : 'rgba(255,255,255,0.88)',
+            backdropFilter: 'blur(16px)',
             color: 'text.primary',
             borderBottom: 1,
             borderColor: 'divider',
             pt: 'env(safe-area-inset-top)',
           }}
         >
-          <Toolbar variant="dense" sx={{ gap: 1, minHeight: { xs: 54, sm: 58 }, px: { xs: 1.5, sm: 2.5 } }}>
+          <Toolbar variant="dense" sx={{ gap: 1.5, minHeight: { xs: 56, sm: 60 }, px: { xs: 1.5, sm: 2.5 } }}>
             {!isDesktop && (
               <IconButton onClick={() => setDrawerOpen(true)} sx={{ color: 'text.secondary' }} aria-label="Abrir menu">
                 <MenuIcon />
               </IconButton>
             )}
 
-            <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-              <Box sx={{ color: '#178f89', display: 'flex', alignItems: 'center', '& svg': { fontSize: 20 } }}>
+            <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+              <Box
+                sx={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '8px',
+                  bgcolor: 'rgba(23, 143, 137, 0.1)',
+                  color: '#178f89',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  '& svg': { fontSize: 19 },
+                }}
+              >
                 {active?.icon}
               </Box>
-              <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 } }}>
-                {isSmall && active?.short ? active.short : active?.label}
-              </Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" spacing={0.75} alignItems="center">
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em', display: { xs: 'none', sm: 'inline-block' } }}>
+                    {active?.group} /
+                  </Typography>
+                  <Typography noWrap sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 }, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
+                    {isSmall && active?.short ? active.short : active?.label}
+                  </Typography>
+                </Stack>
+              </Box>
             </Stack>
 
             <Box sx={{ flex: 1 }} />
 
-            {stats && (
-              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="nowrap" sx={{ overflowX: 'auto' }}>
-                <Chip size="small" label={`👤 ${stats.users}`} sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
-                <Chip size="small" label={`📋 ${stats.exams}`} color="secondary" sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
-                <Chip size="small" label={`💰 R$ ${(stats.revenue ?? 0).toFixed(0)}`} color="success" sx={{ fontWeight: 700, height: 24, fontSize: 12 }} />
-              </Stack>
-            )}
+            {/* Enterprise Status & Quick KPI Capsules */}
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="nowrap">
+              <Chip
+                size="small"
+                icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e', ml: '6px !important' }} />}
+                label="Online"
+                sx={{
+                  display: { xs: 'none', md: 'inline-flex' },
+                  height: 26,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  bgcolor: 'rgba(34, 197, 94, 0.08)',
+                  color: '#166534',
+                  border: '1px solid rgba(34, 197, 94, 0.2)',
+                }}
+              />
+
+              {stats && (
+                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="nowrap" sx={{ overflowX: 'auto' }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.6,
+                      px: 1.25,
+                      py: 0.4,
+                      borderRadius: '8px',
+                      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12 }}>👥</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace' }}>
+                      {stats.users}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
+                      usuários
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.6,
+                      px: 1.25,
+                      py: 0.4,
+                      borderRadius: '8px',
+                      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12 }}>📋</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace' }}>
+                      {stats.exams}
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: 'text.secondary', display: { xs: 'none', lg: 'inline' } }}>
+                      exames
+                    </Typography>
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.6,
+                      px: 1.25,
+                      py: 0.4,
+                      borderRadius: '8px',
+                      bgcolor: 'rgba(23, 143, 137, 0.1)',
+                      border: '1px solid rgba(23, 143, 137, 0.25)',
+                      color: '#178f89',
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 12 }}>💰</Typography>
+                    <Typography sx={{ fontSize: 12, fontWeight: 800, fontFamily: 'monospace', color: '#0d5f5a' }}>
+                      R$ {Number(stats.revenue ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    </Typography>
+                  </Box>
+                </Stack>
+              )}
+            </Stack>
           </Toolbar>
         </AppBar>
 
