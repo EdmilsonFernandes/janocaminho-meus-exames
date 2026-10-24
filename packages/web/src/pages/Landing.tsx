@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse } from '@mui/material';
+import { Box, Container, Typography, Button, Stack, Chip, Dialog, IconButton, Collapse, Divider } from '@mui/material';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, useEffect, lazy, Suspense } from 'react';
@@ -121,14 +121,14 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
   const perks = info?.premiumPerks;
   const minPack = info?.packs?.length ? Math.min(...info.packs.map((x) => x.price)) : 9.9;
   return [
-    { name: 'Grátis', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis →', features: [
+    { name: 'Grátis', prefix: '', price: 'R$ 0', period: '', highlight: false, cta: 'Começar grátis →', features: [
       { icon: 'gift', text: `${credits} créditos no cadastro (≈ ${Math.floor(credits / 10)} resumos)` },
       { icon: 'check', text: '1º exame com análise completa grátis' },
       { icon: 'upload', text: 'Envie exames (PDF/foto) + alertas' },
       { icon: 'heartbeat', text: 'Score de Saúde e tendências' },
       { icon: 'users', text: 'Família e portal do médico no plano grátis' },
     ] },
-    { name: 'Mensal', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês', highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal', features: [
+    { name: 'Mensal', prefix: '', price: p ? (p.founder && p.price !== p.effectivePrice ? fmtBRL(p.effectivePrice) : fmtBRL(p.price)) : 'R$ —', period: '/mês', highlight: true, cta: p?.founder ? 'Garantir vaga de fundador' : 'Assinar mensal', features: [
       { icon: 'lightning', text: `${p?.monthlyCredits ?? 250} créditos de IA/mês (melhor custo)` },
       { icon: 'file-text', text: 'Relatórios completos incluídos' },
       { icon: 'barbell', text: 'Modo Saúde Esportiva' },
@@ -136,7 +136,7 @@ const planData = (credits: number, info: ReturnType<typeof usePlanInfo> = null) 
       { icon: 'users', text: `Família até ${perks?.familyLimit ?? 10} perfis` },
       { icon: 'upload', text: 'Envios de exame sem custo' },
     ] },
-    { name: 'Créditos', price: `a partir de ${fmtBRL(minPack ?? 9.9)}`, period: 'avulso', highlight: false, cta: 'Ver pacotes', features: [
+    { name: 'Créditos', prefix: 'a partir de', price: fmtBRL(minPack ?? 9.9), period: 'avulso', highlight: false, cta: 'Ver pacotes', features: [
       { icon: 'card', text: 'PIX, cartão ou débito' },
       { icon: 'stack', text: 'Pacotes flexíveis' },
       { icon: 'coins', text: 'Cada análise consome créditos' },
@@ -994,11 +994,39 @@ export const LandingPage = () => {
                 transition: 'transform .25s ease, box-shadow .25s ease',
                 display: 'flex', flexDirection: 'column',
               }}>
-                {p.highlight && <Chip label="MAIS ESCOLHIDO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 11.5, letterSpacing: '0.04em', px: 1, boxShadow: '0 4px 12px rgba(32,178,170,.4)' }} />}
-                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 19, color: 'text.primary', mb: 0.75 }}>{p.name}</Typography>
-                <Typography sx={{ fontWeight: 800, fontSize: 34, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}</Typography>
-                <Box sx={{ my: 2, height: 1, bgcolor: 'divider' }} />
-                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                {p.highlight && (
+                  <Chip
+                    label="MAIS ESCOLHIDO"
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: -14,
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      bgcolor: TEAL,
+                      color: '#fff',
+                      fontWeight: 800,
+                      fontSize: 11.5,
+                      letterSpacing: '0.04em',
+                      whiteSpace: 'nowrap',
+                      height: 28,
+                      boxShadow: '0 4px 14px rgba(32,178,170,.45)',
+                      '& .MuiChip-label': {
+                        whiteSpace: 'nowrap',
+                        px: 1.5,
+                      },
+                    }}
+                  />
+                )}
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 19, color: 'text.primary', mb: 0.25 }}>{p.name}</Typography>
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600, height: 18, mb: 0.5, display: 'flex', alignItems: 'center' }}>
+                  {p.prefix || '\u00A0'}
+                </Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 34, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>
+                  {p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Stack spacing={0.5} sx={{ flex: 1, mb: 2 }}>
                   {p.features.map((f: any) => (
                     <Stack key={f.text} direction="row" spacing={1.25} alignItems="center" sx={{ py: 0.6 }}>
                       <PlanFeatureIcon name={f.icon} highlight={p.highlight} />
@@ -1012,7 +1040,7 @@ export const LandingPage = () => {
                   color="primary"
                   onClick={() => navigate('/registrar')}
                   sx={{
-                    mt: 3, borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.25, fontSize: 15,
+                    mt: 'auto', borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.25, fontSize: 15,
                     ...(p.highlight
                       ? { background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 100%)', boxShadow: '0 8px 24px rgba(32,178,170,.35)' }
                       : { borderColor: 'divider', color: 'text.primary', '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.05)' } }
