@@ -1,5 +1,22 @@
 import './utils/fetch-cache'; // OFFLINE-FIRST: instala o cache de fetch ANTES de qualquer request
+import { Capacitor } from '@capacitor/core';
 import { installDiag } from './utils/diag';
+
+// DEPLOY RODANDO COM ABA ABERTA (dono 24/10: "Failed to fetch dynamically
+// imported module …/Chat-*.js"): o app antigo em memória pede chunk que o
+// deploy novo trocou de hash → rota lazy morre até o F5. Auto-recuperação:
+// recarrega 1× sozinho NO NAVEGADOR (APK nunca — reload crasha a WebView).
+const PRELOAD_RELOADED = 'dx_preload_reloaded';
+const recoverStaleChunk = () => {
+  if (Capacitor.isNativePlatform()) return;
+  try { if (sessionStorage.getItem(PRELOAD_RELOADED)) return; sessionStorage.setItem(PRELOAD_RELOADED, '1'); } catch { /* storage bloqueado — reload só desta sessão de página */ }
+  window.location.reload();
+};
+window.addEventListener('vite:preloadError', recoverStaleChunk);
+window.addEventListener('error', (e) => {
+  if (String(e?.message || '').includes('Failed to fetch dynamically imported module')) recoverStaleChunk();
+});
+
 try {
   installDiag(); // ring buffer de erros + captura global → "enviar diagnóstico" no Perfil
 } catch (e) {
