@@ -280,3 +280,40 @@ export function teleconsultaEmail(opts: { name: string; doctorName?: string | nu
       <p style="font-size:13px;color:#8b9bb4;line-height:1.55;margin:0">No celular: se você tem o app Dr. Exame instalado, o link abre direto na sala. Sem app? Ele também funciona no navegador — e oferece instalar em um toque.</p>`,
   });
 }
+
+/** E-mail §13 (spec gaps 24/10): "sua consulta começa em instantes" — disparado
+ *  pelo job reminderEmails `entryWindowMin` antes do horário pro PACIENTE e pro
+ *  MÉDICO (backend puro: com o app fechado, o e-mail é o canal que chega).
+ *  SEM dados de saúde: só participantes, data/hora com fuso explícito (o sufixo
+ *  "(horário de Brasília)" é acrescentado AQUI — quem chama manda a data já
+ *  convertida p/ America/Sao_Paulo), CTA da sala e o check de câmera/mic/conexão.
+ *  priceCents>0 = pagamento pendente: informa SEM prometer sala liberada. */
+export function teleconsultaStartingEmail(opts: {
+  name: string; otherName?: string | null; dueDate: string; teleId: string;
+  role: 'patient' | 'doctor'; priceCents?: number | null;
+}): string {
+  const patient = opts.role === 'patient';
+  const withOther = opts.otherName ? ` com ${opts.otherName}` : '';
+  const headline = patient ? 'Sua teleconsulta começa em instantes 🩺' : `Teleconsulta${withOther} começa em instantes 🩺`;
+  const due = `${opts.dueDate} (horário de Brasília)`;
+  const pending = opts.priceCents && opts.priceCents > 0
+    ? `<div style="background:#fff3e0;border-left:4px solid #ff9800;border-radius:8px;padding:14px 18px;margin:0 0 20px">
+        <p style="font-size:14px;color:#51607a;margin:0">⏳ ${patient
+          ? '<strong>Pagamento pendente</strong> — a entrada na sala é liberada após a confirmação do pagamento.'
+          : '<strong>Pagamento do paciente ainda pendente</strong> — a entrada dele é liberada após a confirmação.'}</p>
+      </div>`
+    : '';
+  return emailTemplate({
+    title: `${opts.name}, sua teleconsulta começa em instantes — Dr. Exame`,
+    preheader: `Consulta${withOther} às ${due}.`,
+    content: `
+      <p style="font-size:16px;color:#15233b;margin:0 0 10px">Olá <strong>${opts.name}</strong>,</p>
+      <h2 style="font-size:19px;color:#0f3d3a;margin:0 0 12px;line-height:1.35">${headline}</h2>
+      <p style="font-size:15px;color:#51607a;line-height:1.6;margin:0 0 22px">Sua consulta${withOther} está marcada para <strong>${due}</strong>. Deixe câmera, microfone e conexão prontos — o botão abaixo leva direto à sala de espera.</p>
+      ${pending}
+      <div style="text-align:center;margin:0 0 22px">
+        <a href="${appLink(`/#/teleconsulta/${opts.teleId}`)}" style="display:inline-block;background:#20b2aa;color:#fff;font-size:16px;font-weight:700;padding:14px 36px;border-radius:99px;text-decoration:none">Acessar teleconsulta</a>
+      </div>
+      <p style="font-size:13px;color:#8b9bb4;line-height:1.55;margin:0">No celular: com o app Dr. Exame instalado, o link abre direto na consulta. Sem app? Ele também funciona no navegador — e oferece instalar em um toque.</p>`,
+  });
+}

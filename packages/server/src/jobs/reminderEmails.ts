@@ -1,8 +1,9 @@
 import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
-import { reminderEmail, teleconsultaEmail } from '../utils/emailTemplate';
+import { reminderEmail, teleconsultaEmail, teleconsultaStartingEmail } from '../utils/emailTemplate';
 import { sendPushToUser } from '../utils/push';
 import { computeJointMs, loadPresenceEvents, resolveAutoOutcome } from '../utils/teleconsultaLifecycle';
+import { getTeleconsultaConfig } from '../utils/settings';
 
 const MS_MIN = 60_000;
 const MS_HOUR = 3_600_000;
@@ -171,75 +172,193 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
   }
 }
 
+// ─────────────── §13 (spec gaps 24/10): e-mail "começa em X min" ───────────────
+// Lembrete por E-MAIL entryWindowMin antes do horário, pro PACIENTE e pro MÉDICO
+// que agendou (backend puro — com o app fechado, o e-mail é o canal que chega;
+// §13 de docs/design/2026-10-24-teleconsulta-gaps-spec.md). A antecedência vem de
+// getTeleconsultaConfig() — a MESMA AppSetting 'teleconsulta' do /join (fonte
+// única, nunca hardcode duplicado).
+//
+// DEDUP p/ 2 destinatários no sentOffsets (Int[]) SEM schema novo: markers
+// codificados. paciente = 100000 + entryWindowMin · médico = 200000 + entryWindowMin.
+// Por que NÃO o offset cru pro paciente: entryWindowMin é editável no admin e pode
+// colidir com uma antecedência REAL do notifyOffsetsMin (ex.: 60 = "falta 1h") —
+// 100060 nunca colide (offsets legítimos vão até 10080 = 1 semana). Reagendada
+// (PUT /reminders/:id) já zera sentOffsets na rota — invalidação primária; trocar
+// entryWindowMin (5→60) muda os markers e reenvia na nova janela (aceito: passa a
+// valer a regra vigente).
+const STARTING_MARK_PATIENT = 100_000;
+const STARTING_MARK_DOCTOR = 200_000;
+
+/** Marker de dedup do e-mail "começa em X min" (§13) no sentOffsets do reminder. */
+export function startingEmailMark(offsetMin: number, role: 'patient' | 'doctor'): number {
+  return (role === 'patient' ? STARTING_MARK_PATIENT : STARTING_MARK_DOCTOR) + offsetMin;
+}
+
+/**
+ * Decisão PURA (§13): o e-mail "começa em X min" dispara neste instante?
+ *  - offset extra = entryWindowMin (janela do /join — mesma config);
+ *  - dispara a partir de dueDate − offset e SÓ enquanto dueDate é FUTURO:
+ *    agendada com MENOS que a janela de antecedência → triggerMs já passou →
+ *    dispara IMEDIATO no 1º tick do job (a matemática de offsets cobre, sem caso
+ *    especial). dueDate ≤ now (já começou) não avisa mais — quem perdeu a hora
+ *    recebe o offset 0 "na hora" do fluxo normal;
+ *  - done/endedAt → encerrada/cancelada/concluída NÃO avisa. O claim do
+ *    sendDueReminders RECONFIRMA isso no banco (race-safe contra mudança entre
+ *    o findMany e o envio).
+ */
+export function shouldSendStartingReminder(
+  r: { dueDate: Date | string; done?: boolean; endedAt?: Date | string | null },
+  now: number,
+  cfg: { entryWindowMin: number },
+): boolean {
+  if (r.done) return false;
+  if (r.endedAt != null) return false;
+  const dueMs = new Date(r.dueDate).getTime();
+  const triggerMs = dueMs - cfg.entryWindowMin * MS_MIN;
+  return now >= triggerMs && dueMs > now;
+}
+
+/**
+ * PASS principal do job (exportado p/ testes — sem setInterval/fake timers):
+ * dispara push+e-mail das antecedências vencidas (notifyOffsetsMin) e, para
+ * teleconsulta, o e-mail "começa em X min" (§13) pro paciente E pro médico.
+ */
+export async function sendDueReminders(now: number): Promise<void> {
+  const from = new Date(now - 24 * MS_HOUR);     // tolerância: dispara "na hora" até 24h depois
+  const to = new Date(now + 8 * MS_DAY);          // cobre a maior antecedência oferecida (1 semana)
+  const reminders = await prisma.reminder.findMany({
+    where: { done: false, dueDate: { gte: from, lte: to } },
+    include: { patient: { include: { owner: { select: { id: true, email: true, name: true } } } } },
+  });
+
+  // Teleconsulta: médico que agendou (createdByDoctorId é scalar no reminder —
+  // sem include de relação; busca em lote antes do loop). Nome p/ o e-mail de
+  // antecedência do PACIENTE; e-mail p/ o destinatário MÉDICO do §13.
+  const teleDoctorIds = Array.from(new Set(reminders.filter((r) => r.type === 'teleconsulta' && r.createdByDoctorId).map((r) => r.createdByDoctorId as string)));
+  const doctorNames = new Map<string, string>();
+  const doctorEmails = new Map<string, string>();
+  if (teleDoctorIds.length) {
+    (await prisma.doctor.findMany({ where: { id: { in: teleDoctorIds } }, select: { id: true, name: true, email: true } }))
+      .forEach((d) => { doctorNames.set(d.id, d.name); doctorEmails.set(d.id, d.email); });
+  }
+
+  for (const r of reminders) {
+    const owner = r.patient?.owner;
+    const dueMs = new Date(r.dueDate).getTime();
+    const sent = new Set(r.sentOffsets ?? []);
+    const dateStr = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const name = owner?.name?.split(' ')[0] ?? 'Paciente';
+    // Teleconsulta sem offsets (rows criadas antes do default do scheduleTele):
+    // padrão de consulta — o dono espera o e-mail "está chegando" nelas também.
+    const isTele = r.type === 'teleconsulta';
+    const offsets = r.notifyOffsetsMin?.length ? r.notifyOffsetsMin : (isTele ? [1440, 60, 0] : []);
+    const docName = isTele && r.createdByDoctorId ? doctorNames.get(r.createdByDoctorId) : undefined;
+    const fired: number[] = [];
+
+    for (const o of offsets) {
+      if (sent.has(o)) continue;
+      const triggerMs = dueMs - o * MS_MIN;
+      const eligible = o === 0
+        ? now >= dueMs && dueMs >= now - 24 * MS_HOUR      // "na hora" (+ tolerância)
+        : now >= triggerMs && dueMs > now;                 // "X antes" (só enquanto futuro)
+      if (!eligible) continue;
+
+      const label = offsetLabel(o);
+      const body = `${label} — ${r.title} (${dateStr}).`;
+
+      // push + notificação in-app (sendPushToUser cria a Notification e manda FCM p/ os devices)
+      if (owner?.id) {
+        await sendPushToUser(owner.id, `Lembrete: ${r.title}`, `${name}, ${body}`, { type: 'reminder', reminderId: r.id, offset: String(o) }).catch((e) => console.error('[reminders] push falhou:', e?.message));
+      }
+      // e-mail (cada antecedência avisa por e-mail — iPhone sem push também é lembrado)
+      if (owner?.email) {
+        await sendEmail({
+          to: owner.email,
+          // Teleconsulta: template próprio com CTA direto pra sala (App Link
+          // abre o app no Android; web oferece instalar).
+          subject: isTele ? `${label} — sua teleconsulta${docName ? ` com ${docName}` : ''}` : `Lembrete: ${r.title}`,
+          html: isTele
+            ? teleconsultaEmail({ name, doctorName: docName, dueDate: dateStr, teleId: r.id, kind: 'reminder' })
+            : reminderEmail(name, r.title, dateStr),
+        })
+          .catch((e) => console.error('[reminders] e-mail falhou:', e?.message));
+      }
+      console.log(`[reminders] disparo ${label} p/ ${owner?.email ?? owner?.id}: ${r.title}`);
+      fired.push(o);
+    }
+
+    // marca os offsets disparados (dedup persistente) — um UPDATE por lembrete com trabalho neste tick
+    if (fired.length) {
+      await prisma.reminder.update({ where: { id: r.id }, data: { sentOffsets: { push: fired } } }).catch((e) => console.error('[reminders] update sentOffsets falhou:', e?.message));
+    }
+
+    // ── §13: e-mail "começa em X min" pro PACIENTE e pro MÉDICO que agendou ──
+    if (isTele) {
+      const { entryWindowMin } = getTeleconsultaConfig();
+      if (shouldSendStartingReminder(r, now, { entryWindowMin })) {
+        // Fuso explícito, relógio SERVER: converte p/ America/Sao_Paulo (imune ao
+        // TZ do host) — o sufixo "(horário de Brasília)" entra no template.
+        const dateBrt = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' });
+        // Pagamento pendente: só quando há cobrança AINDA não confirmada (paidAt).
+        const rawPrice = r.consultPriceCents ?? 0;
+        const priceCents: number | undefined = !r.paidAt && rawPrice > 0 ? rawPrice : undefined;
+        // CLAIM race-safe (dedup §13): grava o marker SÓ se o estado AINDA bate —
+        // não done, não encerrada (endedAt), dueDate intacto (reagendada invalida),
+        // marker ausente (2ª passada/restart/worker paralelo). Só 1 vencedor →
+        // exatamente 1 e-mail por papel. Envio falhar DEPOIS do claim → log de
+        // tentativa (aceite do provedor ≠ entrega); marker não é retraído p/ não
+        // duplicar em reprocessamento — os demais canais (offset 0, push, in-app)
+        // seguem de pé. Falha no claim (coluna ausente em banco legado) → no-op.
+        const claim = async (marker: number): Promise<boolean> => {
+          try {
+            const res = await prisma.reminder.updateMany({
+              where: { id: r.id, done: false, endedAt: null, dueDate: r.dueDate, NOT: { sentOffsets: { has: marker } } },
+              data: { sentOffsets: { push: marker } },
+            });
+            return res.count === 1;
+          } catch (e) {
+            console.error('[reminders] claim do starting e-mail falhou:', r.id, (e as Error)?.message);
+            return false;
+          }
+        };
+
+        // PACIENTE (dono da conta) — try/catch por envio: falha não bloqueia o médico.
+        const markPatient = startingEmailMark(entryWindowMin, 'patient');
+        if (owner?.email && !sent.has(markPatient) && (await claim(markPatient))) {
+          await sendEmail({
+            to: owner.email,
+            subject: `Começa em ${entryWindowMin} min — teleconsulta${docName ? ` com ${docName}` : ''}`,
+            html: teleconsultaStartingEmail({ name, otherName: docName, dueDate: dateBrt, teleId: r.id, role: 'patient', priceCents }),
+          }).catch((e) => console.error('[reminders] starting e-mail (paciente) falhou:', r.id, (e as Error)?.message));
+          console.log(`[reminders] starting (-${entryWindowMin}min) paciente ${owner.email}: ${r.title}`);
+        }
+
+        // MÉDICO que agendou. Sem createdByDoctorId (linha legado/auto) → só o
+        // paciente é avisado — nunca falha o loop por causa disso.
+        const markDoctor = startingEmailMark(entryWindowMin, 'doctor');
+        const docEmail = r.createdByDoctorId ? doctorEmails.get(r.createdByDoctorId) : undefined;
+        const patientName = r.patient?.fullName;
+        if (docEmail && patientName && !sent.has(markDoctor) && (await claim(markDoctor))) {
+          // "Dr. Roberto Silva" → "Roberto" (prefixo não é nome); sem nome → neutro.
+          const docFirst = (doctorNames.get(r.createdByDoctorId as string) || '')
+            .replace(/^(dr|dra)\.?\s+/i, '').split(' ')[0] || 'doutor(a)';
+          await sendEmail({
+            to: docEmail,
+            subject: `Começa em ${entryWindowMin} min — teleconsulta com ${patientName}`,
+            html: teleconsultaStartingEmail({ name: docFirst, otherName: patientName, dueDate: dateBrt, teleId: r.id, role: 'doctor', priceCents }),
+          }).catch((e) => console.error('[reminders] starting e-mail (médico) falhou:', r.id, (e as Error)?.message));
+          console.log(`[reminders] starting (-${entryWindowMin}min) médico ${docEmail}: ${r.title}`);
+        }
+      }
+    }
+  }
+}
+
 export function startReminderEmailJob(): void {
   const check = async () => {
     try {
-      const now = Date.now();
-      const from = new Date(now - 24 * MS_HOUR);     // tolerância: dispara "na hora" até 24h depois
-      const to = new Date(now + 8 * MS_DAY);          // cobre a maior antecedência oferecida (1 semana)
-      const reminders = await prisma.reminder.findMany({
-        where: { done: false, dueDate: { gte: from, lte: to } },
-        include: { patient: { include: { owner: { select: { id: true, email: true, name: true } } } } },
-      });
-
-      // Teleconsulta: nome do médico que agendou (createdByDoctorId é scalar no
-      // reminder — sem include de relação; busca em lote antes do loop).
-      const teleDoctorIds = Array.from(new Set(reminders.filter((r) => r.type === 'teleconsulta' && r.createdByDoctorId).map((r) => r.createdByDoctorId as string)));
-      const doctorNames = new Map<string, string>();
-      if (teleDoctorIds.length) {
-        (await prisma.doctor.findMany({ where: { id: { in: teleDoctorIds } }, select: { id: true, name: true } })).forEach((d) => doctorNames.set(d.id, d.name));
-      }
-
-      for (const r of reminders) {
-        const owner = r.patient?.owner;
-        const dueMs = new Date(r.dueDate).getTime();
-        const sent = new Set(r.sentOffsets ?? []);
-        const dateStr = new Date(r.dueDate).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-        const name = owner?.name?.split(' ')[0] ?? 'Paciente';
-        // Teleconsulta sem offsets (rows criadas antes do default do scheduleTele):
-        // padrão de consulta — o dono espera o e-mail "está chegando" nelas também.
-        const isTele = r.type === 'teleconsulta';
-        const offsets = r.notifyOffsetsMin?.length ? r.notifyOffsetsMin : (isTele ? [1440, 60, 0] : []);
-        const docName = isTele && r.createdByDoctorId ? doctorNames.get(r.createdByDoctorId) : undefined;
-        const fired: number[] = [];
-
-        for (const o of offsets) {
-          if (sent.has(o)) continue;
-          const triggerMs = dueMs - o * MS_MIN;
-          const eligible = o === 0
-            ? now >= dueMs && dueMs >= now - 24 * MS_HOUR      // "na hora" (+ tolerância)
-            : now >= triggerMs && dueMs > now;                 // "X antes" (só enquanto futuro)
-          if (!eligible) continue;
-
-          const label = offsetLabel(o);
-          const body = `${label} — ${r.title} (${dateStr}).`;
-
-          // push + notificação in-app (sendPushToUser cria a Notification e manda FCM p/ os devices)
-          if (owner?.id) {
-            await sendPushToUser(owner.id, `Lembrete: ${r.title}`, `${name}, ${body}`, { type: 'reminder', reminderId: r.id, offset: String(o) }).catch((e) => console.error('[reminders] push falhou:', e?.message));
-          }
-          // e-mail (cada antecedência avisa por e-mail — iPhone sem push também é lembrado)
-          if (owner?.email) {
-            await sendEmail({
-              to: owner.email,
-              // Teleconsulta: template próprio com CTA direto pra sala (App Link
-              // abre o app no Android; web oferece instalar).
-              subject: isTele ? `${label} — sua teleconsulta${docName ? ` com ${docName}` : ''}` : `Lembrete: ${r.title}`,
-              html: isTele
-                ? teleconsultaEmail({ name, doctorName: docName, dueDate: dateStr, teleId: r.id, kind: 'reminder' })
-                : reminderEmail(name, r.title, dateStr),
-            })
-              .catch((e) => console.error('[reminders] e-mail falhou:', e?.message));
-          }
-          console.log(`[reminders] disparo ${label} p/ ${owner?.email ?? owner?.id}: ${r.title}`);
-          fired.push(o);
-        }
-
-        // marca os offsets disparados (dedup persistente) — um UPDATE por lembrete com trabalho neste tick
-        if (fired.length) {
-          await prisma.reminder.update({ where: { id: r.id }, data: { sentOffsets: { push: fired } } }).catch((e) => console.error('[reminders] update sentOffsets falhou:', e?.message));
-        }
-      }
+      await sendDueReminders(Date.now());
     } catch (e) {
       console.error('[reminders] job error:', (e as Error).message);
     }
@@ -257,5 +376,5 @@ export function startReminderEmailJob(): void {
 
   setInterval(check, 5 * MS_MIN); // a cada 5 min — "na hora" dispara com no máx 5 min de atraso
   setTimeout(check, 30_000);      // 30s após iniciar
-  console.log('[reminders] job iniciado (antecedências configuráveis · push+email+in-app · a cada 5 min)');
+  console.log('[reminders] job iniciado (antecedências configuráveis · push+email+in-app · starting §13 · a cada 5 min)');
 }
