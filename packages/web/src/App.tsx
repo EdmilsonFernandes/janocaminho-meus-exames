@@ -65,6 +65,10 @@ import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
+// Landing premium de aquisição de médicos (24/10): vende a FERRAMENTA (brief, transcrição,
+// PIX) — NÃO marketplace. Callback OAuth Meet (#/para-medicos?meet=ok|erro) é repassado
+// pro /doctor pela própria página ANTES de renderizar (ver ParaMedicos.tsx).
+const ParaMedicosPage = lazy(() => import('./pages/ParaMedicos').then(m => ({ default: m.ParaMedicosPage })));
 const LandingPage = lazy(() => import('./pages/Landing').then(m => ({ default: m.LandingPage })));
 const FeaturesPage = lazy(() => import('./pages/Features').then(m => ({ default: m.FeaturesPage })));
 const SportsLandingPage = lazy(() => import('./pages/SportsLanding').then(m => ({ default: m.SportsLandingPage })));
@@ -1429,7 +1433,7 @@ export const App = () => {
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
-      <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
+      <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><ParaMedicosPage /></Suspense>} />
       {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
       <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />
       {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
