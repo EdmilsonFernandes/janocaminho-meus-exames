@@ -230,13 +230,14 @@ export const LandingPage = () => {
         background: (t) => (isSports
           ? 'linear-gradient(160deg, #06201e 0%, #093330 45%, #0f5f5a 100%)'
           : t.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, #0f1818 0%, #14211f 55%, #17302d 100%)'
-            : 'linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(240,250,249,1) 100%)'),
+            ? 'radial-gradient(ellipse at 50% -10%, rgba(32,178,170,.22) 0%, rgba(15,24,24,1) 80%)'
+            : 'radial-gradient(ellipse at 50% -10%, rgba(32,178,170,.18) 0%, rgba(240,250,249,.6) 40%, rgba(255,255,255,1) 85%)'),
         pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
       }}>
-        <Box sx={{ position: 'absolute', top: '-10%', right: '-5%', width: 520, height: 520, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.30),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.25),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
-        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 420, height: 420, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(212,165,116,.14),transparent 70%)' : 'radial-gradient(circle,rgba(212,165,116,.20),transparent 70%)', pointerEvents: 'none', filter: 'blur(40px)' }} />
-        <Box sx={{ position: 'absolute', top: '-5%', left: '-3%', width: 340, height: 340, borderRadius: '50%', background: 'radial-gradient(circle,rgba(250,253,252,.5),transparent 70%)', pointerEvents: 'none', filter: 'blur(30px)', opacity: isSports ? 0.25 : 1 }} />
+        {/* Glows de ambient lighting com blur suave estilo Linear / Apple Health */}
+        <Box sx={{ position: 'absolute', top: '-12%', right: '-4%', width: 560, height: 560, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.35),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.28),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 460, height: 460, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(212,165,116,.18),transparent 70%)' : 'radial-gradient(circle,rgba(212,165,116,.24),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        <Box sx={{ position: 'absolute', top: '15%', left: '20%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.12),transparent 70%)', pointerEvents: 'none', filter: 'blur(50px)' }} />
         {/* Vídeo de textura (v2) — sutil por cima do gradiente claro; some no reduced-motion e em erro de rede */}
         <Box
           component="video"
@@ -387,20 +388,28 @@ export const LandingPage = () => {
               </Box>
             ) : (
             <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', ...ORB_FLOAT }}>
+              {/* Glow backdrop behind mock */}
+              <Box sx={{
+                position: 'absolute', inset: { xs: '-10px', md: '-24px' },
+                background: 'radial-gradient(circle, rgba(32,178,170,0.25) 0%, rgba(212,165,116,0.18) 50%, transparent 70%)',
+                filter: 'blur(40px)', zIndex: 0, pointerEvents: 'none',
+              }} />
+
               {/* Badge flutuante 1 (topo-esquerda) */}
               <Box
                 sx={{
-                  position: 'absolute', top: { xs: -12, md: 12 }, left: { xs: 6, md: -20 }, zIndex: 4,
-                  bgcolor: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  position: 'absolute', top: { xs: -12, md: 8 }, left: { xs: 4, md: -24 }, zIndex: 4,
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20,32,32,0.92)' : 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '16px', px: 1.75, py: 1,
-                  boxShadow: '0 12px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(32,178,170,0.12)',
-                  border: '1px solid rgba(255,255,255,0.85)',
+                  boxShadow: '0 16px 36px rgba(0,0,0,0.10), 0 2px 8px rgba(32,178,170,0.15)',
+                  border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.35)' : 'rgba(255,255,255,0.95)',
                   display: 'flex', alignItems: 'center', gap: 1,
                   animation: 'orbFloat 4.8s ease-in-out infinite',
                 }}
               >
-                <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
-                <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: '"Poppins",sans-serif' }}>
+                <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.25)' }} />
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : INK, fontFamily: '"Poppins",sans-serif' }}>
                   Glicose: 92 mg/dL <Box component="span" sx={{ color: '#047857', fontWeight: 700, fontSize: 12 }}>· Normal</Box>
                 </Typography>
               </Box>
@@ -408,48 +417,51 @@ export const LandingPage = () => {
               {/* Badge flutuante 2 (base-direita) */}
               <Box
                 sx={{
-                  position: 'absolute', bottom: { xs: -14, md: 16 }, right: { xs: 6, md: -16 }, zIndex: 4,
-                  bgcolor: 'rgba(255,255,255,0.94)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)',
+                  position: 'absolute', bottom: { xs: -14, md: 12 }, right: { xs: 4, md: -20 }, zIndex: 4,
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20,32,32,0.92)' : 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)',
                   borderRadius: '16px', px: 1.75, py: 1,
-                  boxShadow: '0 12px 32px rgba(32,178,170,0.18), 0 2px 8px rgba(0,0,0,0.06)',
-                  border: '1px solid rgba(32,178,170,0.25)',
+                  boxShadow: '0 16px 36px rgba(32,178,170,0.22), 0 4px 12px rgba(0,0,0,0.08)',
+                  border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.45)' : 'rgba(32,178,170,0.3)',
                   display: 'flex', alignItems: 'center', gap: 0.8,
                   animation: 'orbFloat 5.2s ease-in-out 1s infinite',
                 }}
               >
                 <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
-                <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, fontFamily: '"Poppins",sans-serif' }}>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : INK, fontFamily: '"Poppins",sans-serif' }}>
                   Laudo lido em ~28s
                 </Typography>
               </Box>
 
               <Box sx={{
                 position: 'relative', width: '100%', maxWidth: 540,
-                borderRadius: '24px', overflow: 'hidden', p: '6px',
-                background: 'linear-gradient(135deg, rgba(32,178,170,.22), rgba(212,165,116,.16))',
-                border: '1px solid rgba(32,178,170,.30)',
-                boxShadow: '0 32px 72px rgba(32,178,170,.24), 0 12px 28px rgba(0,0,0,.08)',
+                borderRadius: '26px', overflow: 'hidden', p: '8px',
+                background: 'linear-gradient(135deg, rgba(32,178,170,.32), rgba(212,165,116,.24))',
+                border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,.4)' : 'rgba(255,255,255,.85)',
+                boxShadow: '0 32px 80px rgba(32,178,170,.28), 0 16px 36px rgba(0,0,0,.10)',
+                backdropFilter: 'blur(16px)',
+                zIndex: 1,
               }}>
-                <Box sx={{ position: 'relative', borderRadius: '18px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setTourOpen(true)}>
-                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.webp`} alt="Dr. Exame — seus exames com IA" fetchPriority="high" decoding="async" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '18px', transition: 'transform .35s ease', '&:hover': { transform: 'scale(1.02)' } }} />
+                <Box sx={{ position: 'relative', borderRadius: '20px', overflow: 'hidden', cursor: 'pointer' }} onClick={() => setTourOpen(true)}>
+                  <Box component="img" src={`${import.meta.env.BASE_URL}capa-ia.webp`} alt="Dr. Exame — seus exames com IA" fetchPriority="high" decoding="async" sx={{ width: '100%', height: 'auto', display: 'block', borderRadius: '20px', transition: 'transform .4s cubic-bezier(0.16, 1, 0.3, 1)', '&:hover': { transform: 'scale(1.02)' } }} />
                   <IconButton
                     onClick={(e) => { e.stopPropagation(); setTourOpen(true); }}
                     aria-label="Assistir tour do Dr. Exame"
                     sx={{
                       position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-                      bgcolor: 'rgba(32,178,170,.92)', color: '#fff',
-                      width: { xs: 64, md: 78 }, height: { xs: 64, md: 78 },
-                      boxShadow: '0 12px 36px rgba(32,178,170,.55), 0 0 0 10px rgba(255,255,255,0.22)',
+                      bgcolor: 'rgba(32,178,170,.94)', color: '#fff',
+                      width: { xs: 68, md: 84 }, height: { xs: 68, md: 84 },
+                      boxShadow: '0 16px 40px rgba(32,178,170,.6), 0 0 0 12px rgba(255,255,255,0.28)',
                       backdropFilter: 'blur(12px)',
-                      transition: 'transform .2s ease, background-color .2s ease',
-                      '&:hover': { bgcolor: 'primary.dark', transform: 'translate(-50%,-50%) scale(1.08)' },
+                      transition: 'transform .25s ease, background-color .25s ease, box-shadow .25s ease',
+                      '&:hover': { bgcolor: 'primary.dark', transform: 'translate(-50%,-50%) scale(1.09)', boxShadow: '0 20px 48px rgba(32,178,170,.75), 0 0 0 16px rgba(255,255,255,0.35)' },
                     }}
                   >
-                    <PlayArrowIcon sx={{ fontSize: { xs: 38, md: 46 } }} />
+                    <PlayArrowIcon sx={{ fontSize: { xs: 40, md: 50 } }} />
                   </IconButton>
                 </Box>
                 {/* Régua assinatura — mecanismo do produto em 1 visual, sem peso de rede */}
-                <Box sx={{ px: 2, pb: 1.5, pt: 1.75, bgcolor: 'rgba(255,255,255,.92)' }}>
+                <Box sx={{ px: 2, pb: 1.5, pt: 1.75, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(20,32,32,0.92)' : 'rgba(255,255,255,.94)', borderRadius: '0 0 18px 18px' }}>
                   <HeroRuler tone="light" compact goalLabel="meta do seu médico" />
                 </Box>
               </Box>
@@ -462,12 +474,13 @@ export const LandingPage = () => {
       {/* MOMENTO MÁGICO — "Decifre seu exame" AGORA DE VERDADE (F1.2): o visitante cola o
           texto e recebe os valores organizados na hora (IA extrai, flags determinísticas,
           3/dia por IP, cache, nada salvo). O demo encenado vira "ver exemplo" pro curioso. */}
-      <Box id="demo" sx={{ bgcolor: 'background.default', py: { xs: 6, md: 9 }, scrollMarginTop: 80 }}>
-        <Container maxWidth="lg">
+      <Box id="demo" sx={{ bgcolor: 'background.default', py: { xs: 7, md: 10 }, scrollMarginTop: 80, position: 'relative' }}>
+        <Box sx={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '80%', height: '100%', background: 'radial-gradient(ellipse at 50% 15%, rgba(32,178,170,0.09) 0%, transparent 65%)', pointerEvents: 'none' }} />
+        <Container maxWidth="lg" sx={{ position: 'relative' }}>
           <Box sx={{ textAlign: 'center', mb: { xs: 3.5, md: 5 } }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 800, color: INK, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 1 }}>Experimente agora</Typography>
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.7rem', md: '2.3rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Cole seu exame. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>De graça, sem cadastro.</Box></Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 600, mx: 'auto' }}>A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.</Typography>
+            <Chip icon={<AutoAwesomeIcon sx={{ fontSize: 16 }} />} label="EXPERIMENTE AGORA AO VIVO" sx={{ bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, fontWeight: 800, fontSize: 11.5, letterSpacing: '0.06em', mb: 1.5, px: 0.5 }} />
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.8rem', md: '2.5rem' }, fontWeight: 800, color: 'text.primary', mb: 1, letterSpacing: '-0.02em' }}>Cole seu exame. <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>De graça, sem cadastro.</Box></Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 620, mx: 'auto', lineHeight: 1.6 }}>A gente organiza cada valor na hora e mostra o que está dentro — e o que pede atenção. A interpretação completa com IA é o próximo passo, no app.</Typography>
           </Box>
           <DecifreReal />
           <Box sx={{ textAlign: 'center', mt: 2.5 }}>
@@ -485,27 +498,32 @@ export const LandingPage = () => {
       </Box>
 
       {/* TRUST STRIP - Glassmorphism */}
-      <Box sx={{ position: 'relative', zIndex: 10, mt: -2 }}>
+      <Box sx={{ position: 'relative', zIndex: 10, mt: { xs: -1, md: -2 } }}>
         <Container maxWidth="lg">
           <Box sx={{
-            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(26,36,36,.72)' : 'rgba(255,255,255,.65)'),
-            backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(26,36,36,.82)' : 'rgba(255,255,255,.75)'),
+            backdropFilter: 'blur(28px)', WebkitBackdropFilter: 'blur(28px)',
             borderRadius: '24px',
             border: '1px solid',
-            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.25)' : 'rgba(255,255,255,.8)'),
-            boxShadow: '0 4px 24px rgba(0,0,0,.04)', px: 3, py: 2.5
+            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.35)' : 'rgba(255,255,255,.9)'),
+            boxShadow: '0 16px 40px rgba(15,95,90,.08), 0 2px 8px rgba(0,0,0,.03)', px: { xs: 2.5, md: 4 }, py: 2.5
           }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 4 }} useFlexGap justifyContent="center" alignItems="center" sx={{ flexWrap: 'wrap' }}>
             {[
-              { Icon: VerifiedUserIcon, t: 'Conforme a LGPD' },
-              { Icon: AccessibilityNewIcon, t: 'Acessível em Libras' },
-              { Icon: MedicalServicesIcon, t: 'Portal do Médico' },
-              { Icon: CreditCardIcon, t: 'Sem cartão pra começar' },
-              { Icon: MonitorHeartIcon, t: 'Lê o Health Connect do Google' },
-            ].map(({ Icon, t }) => (
-              <Stack key={t} direction="row" spacing={1} alignItems="center">
-                <Icon sx={{ fontSize: 20, color: TEAL }} />
-                <Typography sx={{ fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{t}</Typography>
+              { Icon: VerifiedUserIcon, t: 'Conforme a LGPD', d: 'Dados sigilosos e protegidos' },
+              { Icon: AccessibilityNewIcon, t: 'Acessível em Libras', d: 'Inclusão em vídeo' },
+              { Icon: MedicalServicesIcon, t: 'Portal do Médico', d: 'Prontuário e telemedicina' },
+              { Icon: CreditCardIcon, t: 'Sem cartão pra começar', d: 'Gratuito e sem pegadinhas' },
+              { Icon: MonitorHeartIcon, t: 'Lê o Health Connect', d: 'Integração Google e smartwatch' },
+            ].map(({ Icon, t, d }) => (
+              <Stack key={t} direction="row" spacing={1.25} alignItems="center">
+                <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: 'rgba(32,178,170,.12)', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+                  <Icon sx={{ fontSize: 18, color: TEAL_DARK }} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>{t}</Typography>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>{d}</Typography>
+                </Box>
               </Stack>
             ))}
             </Stack>
@@ -552,50 +570,65 @@ export const LandingPage = () => {
           </Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2.5, maxWidth: 980, mx: 'auto' }}>
             {[
-              { icon: <DescriptionIcon sx={{ fontSize: 22, color: TEAL_DARK }} />, t: 'Um monte de sigla — e zero resposta', d: 'O PDF chega cheio de termos que ninguém traduziu. "Alterado" escrito assim não explica nada.' },
-              { icon: <ClockCounterClockwise size={22} color={TEAL_DARK} weight="duotone" />, t: 'A consulta demora; a dúvida, não', d: 'Enquanto você espera pela consulta, cada número fora da faixa vira busca ansiosa de madrugada.' },
-              { icon: <StackIcon size={22} color={TEAL_DARK} weight="duotone" />, t: 'Seu histórico mora espalhado', d: 'Exame no e-mail, no papel, no ano passado… ninguém consegue ver a evolução de verdade.' },
+              { icon: <DescriptionIcon sx={{ fontSize: 24, color: TEAL_DARK }} />, t: 'Um monte de sigla — e zero resposta', d: 'O PDF chega cheio de termos que ninguém traduziu. "Alterado" escrito assim não explica nada.' },
+              { icon: <ClockCounterClockwise size={24} color={TEAL_DARK} weight="duotone" />, t: 'A consulta demora; a dúvida, não', d: 'Enquanto você espera pela consulta, cada número fora da faixa vira busca ansiosa de madrugada.' },
+              { icon: <StackIcon size={24} color={TEAL_DARK} weight="duotone" />, t: 'Seu histórico mora espalhado', d: 'Exame no e-mail, no papel, no ano passado… ninguém consegue ver a evolução de verdade.' },
             ].map((c) => (
               <Reveal key={c.t}>
-                <Box sx={{ height: '100%', p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-                  <Box sx={{ width: 44, height: 44, borderRadius: '14px', display: 'grid', placeItems: 'center', background: 'rgba(32,178,170,.10)' }}>{c.icon}</Box>
+                <Box sx={{
+                  height: '100%', p: 3, borderRadius: '22px', border: '1px solid', borderColor: 'divider',
+                  bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', gap: 1.5,
+                  boxShadow: '0 4px 18px rgba(0,0,0,.03)',
+                  transition: 'all .28s cubic-bezier(0.16, 1, 0.3, 1)',
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    borderColor: 'rgba(32,178,170,.45)',
+                    boxShadow: '0 16px 36px rgba(15,95,90,.09)',
+                  }
+                }}>
+                  <Box sx={{ width: 48, height: 48, borderRadius: '14px', display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(32,178,170,.05))' }}>{c.icon}</Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 16.5, color: 'text.primary', lineHeight: 1.3 }}>{c.t}</Typography>
                   <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.6 }}>{c.d}</Typography>
                 </Box>
               </Reveal>
             ))}
           </Box>
-          <Typography sx={{ textAlign: 'center', color: 'text.secondary', mt: { xs: 3, md: 4 }, fontSize: { xs: 15.5, md: 16.5 } }}>
+          <Typography sx={{ textAlign: 'center', color: 'text.secondary', mt: { xs: 3.5, md: 4.5 }, fontSize: { xs: 15.5, md: 16.5 } }}>
             O Dr. Exame traduz na hora — e entrega <b style={{ color: 'text.primary' }}>perguntas prontas</b> pra sua consulta. Em 3 passos:
           </Typography>
         </Container>
       </Box>
 
       {/* COMO FUNCIONA — ≤4 passos, cada um começa por verbo (framework de estrutura §5). */}
-      <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 5, md: 7 }, scrollMarginTop: 80 }}>
+      <Box id="como-funciona" sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 6, md: 8 }, scrollMarginTop: 80 }}>
         <Container maxWidth="md">
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1.75, sm: 3 }} useFlexGap>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 2, sm: 3 }} useFlexGap>
             {[
               ['Envie o exame', 'PDF ou foto, de qualquer laboratório. Leva menos de 1 minuto.'],
               ['Receba a explicação', 'A IA extrai cada valor direto do laudo — nunca inventa — e explica em português simples, com a faixa de referência.'],
               ['Leve perguntas ao médico', 'Leitura de risco, tendências e as perguntas certas pra consulta. Educativo: a decisão é sempre do seu médico.'],
             ].map(([t, d], i) => (
-              <Stack key={t} direction="row" spacing={1.5} alignItems="flex-start" sx={{ flex: { sm: '1 1 0' } }}>
-                <Box sx={{ width: 30, height: 30, borderRadius: '50%', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontWeight: 800, fontSize: 14, mt: 0.1 }}>{i + 1}</Box>
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 15, fontWeight: 800, color: 'text.primary' }}>{t}</Typography>
-                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: 0.25, lineHeight: 1.55 }}>{d}</Typography>
-                </Box>
-              </Stack>
+              <Box key={t} sx={{
+                flex: { sm: '1 1 0' }, p: 3, borderRadius: '20px',
+                border: '1px solid', borderColor: 'divider', bgcolor: 'background.default',
+                display: 'flex', flexDirection: 'column', gap: 1,
+                boxShadow: '0 2px 10px rgba(0,0,0,.02)',
+                transition: 'all .25s ease',
+                '&:hover': { borderColor: 'rgba(32,178,170,.4)', transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(15,95,90,.06)' }
+              }}>
+                <Box sx={{ width: 34, height: 34, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontWeight: 800, fontSize: 15, mb: 0.5, boxShadow: '0 4px 12px rgba(32,178,170,.3)' }}>{i + 1}</Box>
+                <Typography sx={{ fontSize: 15.5, fontWeight: 800, color: 'text.primary' }}>{t}</Typography>
+                <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55 }}>{d}</Typography>
+              </Box>
             ))}
           </Stack>
         </Container>
       </Box>
 
       {/* FAIXA DE MÉTRICAS — contadores ANIMADOS ao entrar no viewport (wow imediato). */}
-      <Box sx={{ bgcolor: 'background.default' }}>
-        <Container maxWidth="lg" sx={{ py: { xs: 5, md: 7 } }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: { xs: 2.5, md: 4 }, textAlign: 'center' }}>
+      <Box sx={{ bgcolor: 'background.default', py: { xs: 6, md: 8 } }}>
+        <Container maxWidth="lg">
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: { xs: 2, md: 3 }, textAlign: 'center' }}>
             {[
               { n: 30, pre: '~', suf: 's', l: 'pra ler seu exame com IA' },
               { n: 7, pre: '', suf: '', l: 'riscos monitorados: diabetes, anemia, colesterol, renal…' },
@@ -603,25 +636,33 @@ export const LandingPage = () => {
               { n: 9, pre: '', suf: '', l: 'farmácias comparadas — menor preço do seu remédio' },
             ].map((m, idx) => (
               <ScrollReveal key={m.l} delay={idx * 0.08}>
-                <Typography sx={{ fontSize: { xs: '1.8rem', md: '2.4rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 0.75, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.02em' }}>
-                  <AnimatedNumber value={m.n} prefix={m.pre} suffix={m.suf} duration={1 + idx * 0.2} />
-                </Typography>
-                <Typography sx={{ fontSize: 14, color: 'text.secondary', maxWidth: 230, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
+                <Box sx={{
+                  p: { xs: 2.5, md: 3.5 }, borderRadius: '22px', bgcolor: 'background.paper',
+                  border: '1px solid', borderColor: 'divider',
+                  boxShadow: '0 4px 20px rgba(0,0,0,.03)',
+                  height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center',
+                  transition: 'all .25s ease',
+                  '&:hover': { transform: 'translateY(-3px)', borderColor: 'rgba(32,178,170,.4)', boxShadow: '0 12px 30px rgba(15,95,90,.08)' }
+                }}>
+                  <Typography sx={{ fontSize: { xs: '2.1rem', md: '2.8rem' }, fontWeight: 800, color: TEAL_DARK, lineHeight: 1, mb: 1, fontFamily: '"Poppins","Inter",sans-serif', letterSpacing: '-0.03em' }}>
+                    <AnimatedNumber value={m.n} prefix={m.pre} suffix={m.suf} duration={1 + idx * 0.2} />
+                  </Typography>
+                  <Typography sx={{ fontSize: 14, color: 'text.secondary', maxWidth: 220, mx: 'auto', lineHeight: 1.45 }}>{m.l}</Typography>
+                </Box>
               </ScrollReveal>
             ))}
           </Box>
         </Container>
       </Box>
 
-
       {/* PROVA SOCIAL — rostos e palavras de quem usa (critique P2: a página tinha
           ZERO prova humana; nota 5,0 na Play escondida no pé). Depoimentos REAIS da
           loja — copy factual, nada inventado. */}
-      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 5, md: 7 } }}>
+      <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 6, md: 8 } }}>
         <Container maxWidth="md">
-          <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 3 }}>
-            {[0, 1, 2, 3, 4].map((i) => <Box key={i} component="span" sx={{ color: '#f59e0b', fontSize: 18, lineHeight: 1 }}>★</Box>)}
-            <Typography component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" sx={{ fontWeight: 800, fontSize: 15, ml: 1, color: 'text.primary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>5,0 na Google Play · ver avaliações</Typography>
+          <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" sx={{ mb: 3.5 }}>
+            {[0, 1, 2, 3, 4].map((i) => <Box key={i} component="span" sx={{ color: '#f59e0b', fontSize: 20, lineHeight: 1 }}>★</Box>)}
+            <Typography component="a" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" sx={{ fontWeight: 800, fontSize: 15.5, ml: 1, color: 'text.primary', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}>5,0 na Google Play · ver avaliações</Typography>
           </Stack>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2.5 }}>
             {[
@@ -630,12 +671,21 @@ export const LandingPage = () => {
               { name: 'Rita de Cássia', text: 'Minha mãe é diabética e eu cuido dela. Ver a evolução dela no app me deixa tranquila entre as consultas.' },
             ].map((d, i) => (
               <ScrollReveal key={d.name} delay={i * 0.08}>
-                <Box sx={{ height: '100%', p: 2.5, borderRadius: '16px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Typography sx={{ fontSize: 15, color: 'text.primary', lineHeight: 1.6, flex: 1 }}>"{d.text}"</Typography>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.12)', color: TEAL_DARK, display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13, fontFamily: '"Poppins",sans-serif' }}>{d.name.charAt(0)}</Box>
+                <Box sx={{
+                  height: '100%', p: 3, borderRadius: '20px', border: '1px solid', borderColor: 'divider',
+                  bgcolor: 'background.default', display: 'flex', flexDirection: 'column', gap: 1.5,
+                  boxShadow: '0 4px 16px rgba(0,0,0,.02)',
+                  transition: 'all .25s ease',
+                  '&:hover': { transform: 'translateY(-3px)', borderColor: 'rgba(32,178,170,.35)', boxShadow: '0 12px 28px rgba(15,95,90,.07)' }
+                }}>
+                  <Stack direction="row" spacing={0.5}>
+                    {[0, 1, 2, 3, 4].map((s) => <Box key={s} component="span" sx={{ color: '#f59e0b', fontSize: 14 }}>★</Box>)}
+                  </Stack>
+                  <Typography sx={{ fontSize: 14.5, color: 'text.primary', lineHeight: 1.6, flex: 1, fontStyle: 'italic' }}>"{d.text}"</Typography>
+                  <Stack direction="row" spacing={1.25} alignItems="center">
+                    <Box sx={{ width: 36, height: 36, borderRadius: '50%', bgcolor: 'rgba(32,178,170,.14)', color: TEAL_DARK, display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif', border: '1.5px solid rgba(32,178,170,.3)' }}>{d.name.charAt(0)}</Box>
                     <Box sx={{ minWidth: 0 }}>
-                      <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{d.name}</Typography>
+                      <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>{d.name}</Typography>
                       <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>usuário do Dr. Exame</Typography>
                     </Box>
                   </Stack>
@@ -932,28 +982,45 @@ export const LandingPage = () => {
             ))}
           </Stack>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: 3, alignItems: 'center' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' }, gap: { xs: 2.5, md: 3 }, alignItems: 'stretch' }}>
             {planData(credits, planInfo).map((p) => (
               <Box key={p.name} sx={{
-                p: 3, borderRadius: '12px', bgcolor: 'background.paper',
+                p: { xs: 3, md: 3.5 }, borderRadius: '22px', bgcolor: 'background.paper',
                 border: p.highlight ? `2px solid ${TEAL}` : '1px solid',
                 borderColor: p.highlight ? TEAL : 'divider',
-                boxShadow: p.highlight ? '0 24px 56px rgba(32,178,170,.22)' : '0 2px 8px rgba(0,0,0,.04)',
+                boxShadow: p.highlight ? '0 24px 60px rgba(32,178,170,.26), 0 0 0 1px rgba(32,178,170,0.2)' : '0 4px 20px rgba(0,0,0,.04)',
                 position: 'relative', transform: p.highlight ? { xs: 'none', sm: 'scale(1.04)' } : 'none',
                 ...(p.highlight ? { bgcolor: 'transparent', background: 'linear-gradient(135deg,rgba(32,178,170,.14),rgba(212,165,116,.10))' } : {}),
-                transition: 'transform .2s ease, box-shadow .2s ease',
+                transition: 'transform .25s ease, box-shadow .25s ease',
+                display: 'flex', flexDirection: 'column',
               }}>
-                {p.highlight && <Chip label="RECOMENDADO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 12 }} />}
-                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', mb: 1 }}>{p.name}</Typography>
-                <Typography sx={{ fontWeight: 800, fontSize: 32, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}</Typography>
+                {p.highlight && <Chip label="MAIS ESCOLHIDO" size="small" sx={{ position: 'absolute', top: -13, left: '50%', transform: 'translateX(-50%)', bgcolor: TEAL, color: '#fff', fontWeight: 800, fontSize: 11.5, letterSpacing: '0.04em', px: 1, boxShadow: '0 4px 12px rgba(32,178,170,.4)' }} />}
+                <Typography variant="h6" sx={{ fontWeight: 800, fontSize: 19, color: 'text.primary', mb: 0.75 }}>{p.name}</Typography>
+                <Typography sx={{ fontWeight: 800, fontSize: 34, color: p.highlight ? TEAL : 'text.primary', mb: 0.5, lineHeight: 1.1 }}>{p.price}{p.period && <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>{` ${p.period}`}</Typography>}</Typography>
                 <Box sx={{ my: 2, height: 1, bgcolor: 'divider' }} />
-                {p.features.map((f: any) => (
-                  <Stack key={f.text} direction="row" spacing={1} alignItems="center" sx={{ py: 0.5 }}>
-                    <PlanFeatureIcon name={f.icon} highlight={p.highlight} />
-                    <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{f.text}</Typography>
-                  </Stack>
-                ))}
-                <Button fullWidth variant={p.highlight ? 'contained' : 'outlined'} color="primary" onClick={() => navigate('/registrar')} sx={{ mt: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 700, ...(p.highlight ? {} : { borderColor: '#d8f4f2', color: TEAL_DARK }) }}>{p.cta}</Button>
+                <Stack spacing={0.5} sx={{ flex: 1 }}>
+                  {p.features.map((f: any) => (
+                    <Stack key={f.text} direction="row" spacing={1.25} alignItems="center" sx={{ py: 0.6 }}>
+                      <PlanFeatureIcon name={f.icon} highlight={p.highlight} />
+                      <Typography sx={{ fontSize: 14, color: 'text.secondary', lineHeight: 1.4 }}>{f.text}</Typography>
+                    </Stack>
+                  ))}
+                </Stack>
+                <Button
+                  fullWidth
+                  variant={p.highlight ? 'contained' : 'outlined'}
+                  color="primary"
+                  onClick={() => navigate('/registrar')}
+                  sx={{
+                    mt: 3, borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.25, fontSize: 15,
+                    ...(p.highlight
+                      ? { background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 100%)', boxShadow: '0 8px 24px rgba(32,178,170,.35)' }
+                      : { borderColor: 'divider', color: 'text.primary', '&:hover': { borderColor: TEAL, bgcolor: 'rgba(32,178,170,.05)' } }
+                    )
+                  }}
+                >
+                  {p.cta}
+                </Button>
               </Box>
             ))}
           </Box>
