@@ -89,6 +89,15 @@ router.post('/asaas', async (req, res) => {
       },
     });
     if (!sub) {
+      const extRef = String(payment.externalReference ?? '');
+      if (extRef.startsWith('doctor_sub_')) {
+        const doctorId = extRef.replace('doctor_sub_', '').split('_')[0];
+        const expires = new Date(Date.now() + 30 * 86400000);
+        await prisma.doctor.update({ where: { id: doctorId }, data: { plan: 'premium', planExpiresAt: expires } }).catch(() => {});
+        console.log(`[asaas-webhook] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
+        res.status(200).json({ ok: true, doctorId });
+        return;
+      }
       // payment.id inexistente: 200-ack "ignorado" (não 404 — evita ciclo de retry do Asaas)
       console.warn(`[asaas-webhook] payment.id desconhecido — ignorado (${paymentId})`);
       res.status(200).json({ ok: true, ignored: 'payment.id desconhecido' });

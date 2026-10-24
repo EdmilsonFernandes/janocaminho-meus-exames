@@ -18,6 +18,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import { COPPER, copperText, RADIUS, SEM } from '../../theme';
 
 export interface ClinicalRiskCardProps {
@@ -27,7 +28,9 @@ export interface ClinicalRiskCardProps {
   exams?: any[];
   medsCount?: number;
   criticalMeds?: number;
-  onNavigateToAlterados?: () => void;
+  onNavigateToAlterados?: (targetTab?: string) => void;
+  onRefreshAnalysis?: () => void;
+  refreshing?: boolean;
   loading?: boolean;
 }
 
@@ -52,6 +55,8 @@ export const ClinicalRiskCard = ({
   medsCount = 0,
   criticalMeds = 0,
   onNavigateToAlterados,
+  onRefreshAnalysis,
+  refreshing = false,
   loading = false,
 }: ClinicalRiskCardProps) => {
   const theme = useTheme();
@@ -331,6 +336,34 @@ export const ClinicalRiskCard = ({
                 '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' },
               }}
             />
+          )}
+
+          {onRefreshAnalysis && (
+            <Tooltip title="Atualizar prioridade e reavaliar com exames recentes">
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={onRefreshAnalysis}
+                disabled={loading || refreshing}
+                startIcon={<AutorenewIcon sx={{ fontSize: 16, animation: (loading || refreshing) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />}
+                sx={{
+                  height: 28,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  borderRadius: '14px',
+                  color: (t) => copperText(t.palette.mode),
+                  borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
+                  '&:hover': {
+                    borderColor: isDark ? COPPER.mid : COPPER.deep,
+                    bgcolor: isDark ? alpha(COPPER.mid, 0.1) : alpha(COPPER.deep, 0.05),
+                  },
+                }}
+              >
+                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Atualizar análise</Box>
+                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Atualizar</Box>
+              </Button>
+            </Tooltip>
           )}
 
           <IconButton
@@ -739,12 +772,12 @@ export const ClinicalRiskCard = ({
                           fontSize: 10.5,
                         }}
                       />
-                      {onNavigateToAlterados && act.targetTab && (
+                      {onNavigateToAlterados && (
                         <Tooltip title="Examinar marcadores relacionados na aba Alterados">
                           <Button
                             size="small"
                             variant="text"
-                            onClick={onNavigateToAlterados}
+                            onClick={() => onNavigateToAlterados(act.targetTab || 'alterados')}
                             endIcon={<ArrowForwardIcon sx={{ fontSize: 14 }} />}
                             sx={{
                               fontSize: 11,
@@ -753,7 +786,7 @@ export const ClinicalRiskCard = ({
                               color: (t) => copperText(t.palette.mode),
                               p: 0.5,
                               minWidth: 0,
-                              display: { xs: 'none', sm: 'inline-flex' },
+                              display: 'inline-flex',
                             }}
                           >
                             Ver dados

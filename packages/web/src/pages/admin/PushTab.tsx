@@ -141,7 +141,7 @@ export const PushTab = () => {
     const activeFilter = audienceMode === 'global' ? {} : audience;
     fetch(`${API_URL}/admin/push/audience-preview`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-      body: JSON.stringify({ filter: activeFilter }),
+      body: JSON.stringify({ filter: activeFilter, includeUsers: true }),
     })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setPreview(d ? { users: d.users ?? 0, devices: d.devices ?? 0, sampleUsers: d.sampleUsers ?? [] } : null))

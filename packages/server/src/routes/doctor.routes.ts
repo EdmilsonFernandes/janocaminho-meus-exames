@@ -15,7 +15,7 @@ import { hashPassword, comparePassword } from '../auth/jwt';
 import { issueOtp, verifyOtp } from '../auth/otp';
 import { sendEmail } from '../utils/mailer';
 import { otpEmail } from '../utils/emailTemplate';
-import { config } from '../config';
+import { config, hasOpenPix, hasAsaas } from '../config';
 import { upload } from '../middleware/upload';
 import { saveDoctorPhoto, resolvePatientPhoto, resolveExamFile } from '../utils/storage';
 import { sendPushToUser } from '../utils/push';
@@ -23,6 +23,7 @@ import { hasMeetConfig, meetAuthUrl, meetRedirectUri, exchangeMeetCode, createMe
 import { hasLiveKitConfig, createLiveKitRoom } from '../utils/livekit';
 import { createId } from '@paralleldrive/cuid2';
 import { REMINDER_RECURRENCES } from '../utils/reminderConstants';
+import { createPixCharge } from '../payments/pix-provider';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
@@ -114,41 +115,46 @@ router.get('/me/plan', requireDoctor, async (req: any, res) => {
   res.json({ isPremium: !!isPremium, plan: doc?.plan ?? 'free', planExpiresAt: doc?.planExpiresAt, freeUsed, freeLimit: FREE_TIER_LIMIT });
 });
 
-// Checkout MP (R$29,90/mês) — PIX QR inline OU cartão/débito (popup no app, não redirect).
+// Checkout Dr. Exame Pro (R$29,90/mês) — PIX QR inline OU cartão/débito
 router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
   try {
-    const mpToken = config.mpAccessToken;
-    if (!mpToken) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
     const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
     const externalRef = `doctor_sub_${req.doctorId}`;
     const origin = config.webOrigin || '';
     const base = (config.webBasePath ?? '').replace(/\/$/, '');
 
     if (method === 'pix') {
-      // PIX — QR code inline (igual buy-credits do paciente)
-      const r = await fetch(`${config.mpApiBaseUrl}/v1/payments`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${mpToken}`, 'Content-Type': 'application/json', 'X-Idempotency-Key': crypto.randomUUID() },
-        body: JSON.stringify({
-          transaction_amount: 29.90, description: 'Dr. Exame Pro — Mensal', payment_method_id: 'pix',
-          payer: { email: 'doctor@dreamexame.app' },
-          external_reference: externalRef,
-          date_of_expiration: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-          notification_url: `${origin}${base}/api/billing/webhook`,
-          statement_descriptor: 'DR EXAME PRO',
-        }),
-      });
-      const pay: any = await r.json();
-      if (!r.ok) { res.status(502).json({ error: 'Falha ao gerar PIX.', detail: pay.message }); return; }
-      const td = pay?.point_of_interaction?.transaction_data;
-      const rawB64 = td?.qr_code_base64 ?? '';
-      res.json({
-        method: 'pix', paymentId: String(pay.id),
-        qrCode: td?.qr_code ?? '', qrBase64: rawB64 ? (rawB64.startsWith('data:') ? rawB64 : `data:image/png;base64,${rawB64}`) : '',
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      });
+      const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId } });
+      const expires = new Date(Date.now() + 15 * 60 * 1000);
+      try {
+        const charge = await createPixCharge({
+          amountBrlCents: 2990, // R$ 29,90
+          correlationID: externalRef,
+          externalReference: externalRef,
+          description: 'Dr. Exame Pro — Mensal',
+          payerEmail: doc?.email || 'doctor@janocaminho.com.br',
+          payerFirstName: (doc?.name || 'Doutor').split(' ')[0],
+          payerName: doc?.name || undefined,
+          expiresAt: expires,
+        });
+
+        res.json({
+          method: 'pix',
+          paymentId: charge.id,
+          qrCode: charge.qrCode,
+          qrBase64: charge.qrBase64,
+          expiresAt: charge.expiresAt.toISOString(),
+        });
+        return;
+      } catch (err: any) {
+        console.error('[doctor] Falha ao gerar PIX do Dr. Exame Pro:', err?.message);
+        res.status(502).json({ error: 'Falha ao gerar PIX.', detail: err?.message });
+        return;
+      }
     } else {
-      // CARTÃO / DÉBITO — Checkout Pro (popup redirect)
+      // CARTÃO / DÉBITO — Mercado Pago Checkout Pro (se configurado)
+      const mpToken = config.mpAccessToken;
+      if (!mpToken) { res.status(503).json({ error: 'Pagamento por cartão não configurado.' }); return; }
       const r = await fetch(`${config.mpApiBaseUrl}/checkout/preferences`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${mpToken}`, 'Content-Type': 'application/json' },
@@ -164,16 +170,52 @@ router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
       if (pref.init_point) res.json({ method: 'card', url: pref.init_point });
       else res.status(500).json({ error: 'Falha ao criar checkout.' });
     }
-  } catch { res.status(500).json({ error: 'Falha ao criar checkout.' }); }
+  } catch (err: any) { res.status(500).json({ error: 'Falha ao criar checkout.', detail: err?.message }); }
 });
 
 // Status de um pagamento PIX doctor (polling do frontend enquanto mostra o QR)
 router.get('/subscription/payment-status/:id', requireDoctor, async (req: any, res) => {
   try {
-    const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${req.params.id}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } });
-    if (!r.ok) { res.status(502).json({ error: 'falha' }); return; }
-    const pay: any = await r.json();
-    res.json({ status: pay.status, approved: pay.status === 'approved' });
+    const doc = await prisma.doctor.findUnique({
+      where: { id: req.doctorId },
+      select: { plan: true, planExpiresAt: true },
+    });
+    const isApproved = doc?.plan === 'premium' && doc?.planExpiresAt && doc.planExpiresAt.getTime() > Date.now();
+    if (isApproved) {
+      res.json({ status: 'approved', approved: true });
+      return;
+    }
+    // Provider OpenPix
+    if (hasOpenPix()) {
+      try {
+        const r = await fetch(`${config.openPixApiBaseUrl}/api/v1/charge/${encodeURIComponent(req.params.id)}`, {
+          headers: { Authorization: config.openPixAppId },
+        });
+        if (r.ok) {
+          const data: any = await r.json();
+          if (String(data?.charge?.status ?? '').toUpperCase() === 'COMPLETED') {
+            const expires = new Date(Date.now() + 30 * 86400000);
+            await prisma.doctor.update({ where: { id: req.doctorId }, data: { plan: 'premium', planExpiresAt: expires } });
+            res.json({ status: 'approved', approved: true });
+            return;
+          }
+        }
+      } catch {}
+    }
+    // Fallback se MP estiver configurado
+    if (config.mpAccessToken) {
+      const r = await fetch(`${config.mpApiBaseUrl}/v1/payments/${req.params.id}`, { headers: { Authorization: `Bearer ${config.mpAccessToken}` } }).catch(() => null);
+      if (r && r.ok) {
+        const pay: any = await r.json();
+        if (pay.status === 'approved') {
+          const expires = new Date(Date.now() + 30 * 86400000);
+          await prisma.doctor.update({ where: { id: req.doctorId }, data: { plan: 'premium', planExpiresAt: expires } });
+          res.json({ status: 'approved', approved: true });
+          return;
+        }
+      }
+    }
+    res.json({ status: 'pending', approved: false });
   } catch { res.status(500).json({ error: 'falha' }); }
 });
 

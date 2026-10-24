@@ -961,8 +961,8 @@ router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
     const filter = parseAudienceFilter(req.body?.filter);
     const ids = await resolveAudienceUserIds(filter);
     const devices = ids.length ? await prisma.deviceToken.count({ where: { userId: { in: ids } } }) : 0;
-    let sampleUsers: Array<{ id: string; name: string | null; email: string; planExpiresAt: Date | null; deviceCount: number; platforms: string[] }> = [];
-    if (ids.length) {
+    const response: { users: number; devices: number; sampleUsers?: any[] } = { users: ids.length, devices };
+    if (req.body?.includeUsers && ids.length) {
       const usersData = await prisma.user.findMany({
         where: { id: { in: ids.slice(0, 50) } },
         select: {
@@ -973,7 +973,7 @@ router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
           deviceTokens: { select: { platform: true } },
         },
       });
-      sampleUsers = usersData.map((u) => ({
+      response.sampleUsers = usersData.map((u) => ({
         id: u.id,
         name: u.name,
         email: u.email,
@@ -982,7 +982,7 @@ router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
         platforms: Array.from(new Set(u.deviceTokens.map((d) => d.platform).filter(Boolean))) as string[],
       }));
     }
-    res.json({ users: ids.length, devices, sampleUsers });
+    res.json(response);
   } catch (e) { next(e); }
 });
 
@@ -1120,7 +1120,23 @@ router.get('/audit', async (req: AuthedRequest, res, next) => {
     const conds: any[] = [];
     if (q.action) conds.push({ action: q.action });
     if (q.actorType) conds.push({ actorType: q.actorType });
-    if (q.userId) conds.push({ actorId: q.userId });
+    const userSearch = (q.userId || q.search || '').trim();
+    if (userSearch) {
+      const [matchedUsers, matchedDoctors] = await Promise.all([
+        prisma.user.findMany({
+          where: { OR: [{ id: userSearch }, { email: { contains: userSearch, mode: 'insensitive' } }, { name: { contains: userSearch, mode: 'insensitive' } }] },
+          select: { id: true },
+          take: 50,
+        }).catch(() => []),
+        prisma.doctor.findMany({
+          where: { OR: [{ id: userSearch }, { email: { contains: userSearch, mode: 'insensitive' } }, { name: { contains: userSearch, mode: 'insensitive' } }] },
+          select: { id: true },
+          take: 50,
+        }).catch(() => []),
+      ]);
+      const ids = [...new Set([userSearch, ...matchedUsers.map((u) => u.id), ...matchedDoctors.map((d) => d.id)])];
+      conds.push({ OR: [{ actorId: { in: ids } }, { targetId: { in: ids } }] });
+    }
     if (kind === 'logins') conds.push({ action: { startsWith: 'LOGIN' } });
     else if (kind === 'access') conds.push({ action: 'ACCESS' });
     else if (kind === 'admin') { conds.push({ action: { not: { startsWith: 'LOGIN' } } }, { action: { not: 'ACCESS' } }); }

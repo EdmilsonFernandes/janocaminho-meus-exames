@@ -93,6 +93,9 @@ interface RemoteView {
   isDoctor: boolean;
   track: RemoteTrack | null;
   muted: boolean;
+  /** §19 G3 (QA 24/10): presença também por ÁUDIO — participante só de mic (sem
+   *  câmera) ficaava eternamente "conectando…" p/ o outro lado. */
+  audio?: boolean;
 }
 
 const initials = (name?: string) => (name || '?').replace(/^Dr[aº.]?\s*/i, '').trim().charAt(0).toUpperCase() || '?';
@@ -796,6 +799,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         upsertRemote(p);
         if (track.kind === 'audio') {
           try { const el = track.attach(); el.style.display = 'none'; audioSink.current?.appendChild(el); } catch { /* noop */ }
+          // §19 G3: mic público = presença REAL (áudio-only também é "presente").
+          setRemotes((cur) => cur.map((r) => (r.identity === p.identity ? { ...r, audio: true } : r)));
           // Gravando e alguém entrou depois: reinclui o áudio novo no recorder.
           if (mediaRecorderRef.current && roomRef.current) {
             restartRoomRecording(roomRef.current);
@@ -807,7 +812,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         if (pub.source === Track.Source.Camera) setRemoteVideo(p, track);
       })
       .on(RoomEvent.TrackUnsubscribed, (track: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
-        if (track.kind === 'audio') { try { track.detach().forEach((el) => el.remove()); } catch { /* noop */ } return; }
+        if (track.kind === 'audio') { try { track.detach().forEach((el) => el.remove()); } catch { /* noop */ } setRemotes((cur) => cur.map((r) => (r.identity === p.identity ? { ...r, audio: false } : r))); return; }
         if (pub.source === Track.Source.Camera) setRemoteVideo(p, null);
       })
       .on(RoomEvent.TrackMuted, (pub: TrackPublication, p: Participant) => {
@@ -1677,7 +1682,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     : (otherJoined || remotes.length > 0)
       ? (remotes.length === 0 ? 'left'
         : (peerQuality === 'poor' || peerQuality === 'lost') ? 'reconnecting'
-        : (main?.track || main?.muted) ? 'present' : 'connecting')
+        : (main?.track || main?.muted || main?.audio) ? 'present' : 'connecting')
       : 'notjoined';
   const PRESENCE_META: Record<typeof peerPresence, { label: string; color: string; bg: string; border: string }> = {
     notjoined: { label: 'não entrou', color: 'rgba(255,255,255,.7)', bg: 'rgba(255,255,255,.10)', border: 'rgba(255,255,255,.25)' },
@@ -1772,7 +1777,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
               <Avatar
                 src={role === 'doctor'
-                  ? photoUrlFor(summary?.patientId || '')
+                  ? photoUrlFor(summary?.patient?.id || summary?.patientId || '')
                   : doctorPhotoUrl(summary?.doctor?.id || '')}
                 sx={{
                 width: 84, height: 84, fontSize: 30, fontWeight: 800,
@@ -2217,7 +2222,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Tooltip>
           )}
           {/* Paciente também pode consultar seus exames durante a chamada */}
-          {role === 'patient' && summary?.patientId && (
+          {role === 'patient' && (summary?.patientId || summary?.patient?.id) && (
             <Tooltip title={briefOpen ? "Fechar meus exames" : "Ver meus exames"} arrow>
               <IconButton aria-label="Ver meus exames" onClick={() => { hapticLight(); setBriefOpen((v) => !v); }}
                 sx={{
@@ -3077,9 +3082,31 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
         <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px' }} elevation={4}>
           <CardContent sx={{ p: 3, textAlign: 'center' }}>
-            <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '18px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)' }}>
-              <AccessTimeIcon sx={{ fontSize: 32, color: (t) => tealText(t.palette.mode) }} />
-            </Box>
+            {/* §19 G3 (QA 24/10): identificação na espera — quem vai atender / quem
+                espero, com FOTO REAL (mesma identidade das listas). Fallback ícone. */}
+            {(() => {
+              const otherName = role === 'patient'
+                ? (summary?.doctor?.name ? (summary.doctor.name.toLowerCase().startsWith('dr') ? summary.doctor.name : `Dr(a). ${summary.doctor.name}`) : null)
+                : summary?.patient?.name ?? null;
+              const otherPhoto = role === 'patient'
+                ? (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined)
+                : (summary?.patient?.id ? photoUrlFor(summary.patient.id) : undefined);
+              if (!otherName) return (
+                <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '18px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)' }}>
+                  <AccessTimeIcon sx={{ fontSize: 32, color: (t) => tealText(t.palette.mode) }} />
+                </Box>
+              );
+              return (
+                <Stack alignItems="center" spacing={1} sx={{ mb: 2 }}>
+                  <Avatar src={otherPhoto} alt={otherName} sx={{ width: 64, height: 64, borderRadius: '18px', fontSize: 24, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode) }}>
+                    {initials(otherName)}
+                  </Avatar>
+                  <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: '"Poppins",sans-serif' }}>
+                    {role === 'patient' ? `Consulta com ${otherName}` : `Aguardando ${otherName}`}
+                  </Typography>
+                </Stack>
+              );
+            })()}
             <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1 }}>
               {opensFmt ? `A consulta abre às ${opensFmt}` : 'A consulta ainda não abriu'}
             </Typography>

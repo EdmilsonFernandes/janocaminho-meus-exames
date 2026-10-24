@@ -688,7 +688,9 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
         // fix 23/10: idem — Doctor não tem crmState/avatarUrl (é crmUf/photoUrl)
         // → doctor sempre null → header do PACIENTE nunca mostrou nome/CRM do médico.
         // phone (23/10): fallback "ligar por telefone" quando a chamada cai.
-        select: { name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true },
+        // id (§19 G2 QA 24/10): sem id o client não monta doctorPhotoUrl() → avatar
+        // do médico virava letra na sala de espera/pós-chamada do paciente.
+        select: { id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true },
       }).catch(() => null) : null,
     ]);
     const fb: any = feedbackLog?.after ?? null;
@@ -729,6 +731,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       stt: hasStt(), // reviewer-L: client esconde checkbox de gravação quando false
       patient: patient ? { id: patient.id, name: patient.fullName, photoUrl: patient.photoUrl } : null,
       doctor: doctor ? {
+        id: doctor.id,
         name: doctor.name,
         crm: doctor.crm ? `${doctor.crm}${doctor.crmUf ? `/${doctor.crmUf}` : ''}` : undefined,
         specialty: doctor.specialty || undefined,

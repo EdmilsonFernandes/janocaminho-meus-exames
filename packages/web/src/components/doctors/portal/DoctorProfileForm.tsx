@@ -69,8 +69,20 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
               // Foto de perfil = Dr. Exame Pro (dono 23/10). Free: iniciais + cadeado
               // (o server nega upload/serviço — aqui só comunica o porquê).
               <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
-                <Avatar sx={{ width: 84, height: 84, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), fontSize: 30, fontWeight: 800, borderRadius: '16px' }}>{doctor?.name?.charAt(0) ?? '?'}</Avatar>
-                <Chip size="small" icon={<LockIcon sx={{ fontSize: '13px !important' }} />} label="Pro" sx={{ position: 'absolute', bottom: -8, left: '50%', transform: 'translateX(-50%)', height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', '& .MuiChip-icon': { color: '#6366f1' } }} />
+                <Avatar sx={{ width: 84, height: 84, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), fontSize: 32, fontWeight: 800, borderRadius: '20px' }}>{doctor?.name?.charAt(0) ?? '?'}</Avatar>
+                <Box
+                  sx={{
+                    position: 'absolute', bottom: -4, right: -4,
+                    bgcolor: '#0f5f5a', color: '#fff',
+                    borderRadius: '999px', px: 1, py: 0.3,
+                    display: 'flex', alignItems: 'center', gap: 0.4,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.22)',
+                    border: '2px solid', borderColor: 'background.paper',
+                  }}
+                >
+                  <LockIcon sx={{ fontSize: 11, color: '#5fc9c3' }} />
+                  <Typography sx={{ fontSize: 10, fontWeight: 800, color: '#fff', lineHeight: 1, letterSpacing: '0.04em' }}>PRO</Typography>
+                </Box>
               </Box>
             )}
             <Box>

@@ -7,7 +7,7 @@
 // tokens dark AA, floor 12px, retry, Material icons, chip com ellipsis.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Button, Card, CardContent, Chip, Collapse, Stack, Typography, useTheme } from '@mui/material';
-import AssignmentIcon from '@mui/icons-material/Assignment';
+import { Avatar } from '@mui/material';
 import FolderOpenIcon from '@mui/icons-material/FolderOpen';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -16,7 +16,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
-import { API_URL } from '../../config';
+import { API_URL, photoUrlFor } from '../../config';
 import { tealText } from '../../theme';
 import { fmtSleep, fmtSteps } from '../../utils/activityStats';
 
@@ -183,7 +183,11 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
     <Box sx={{ p: 2, pb: 3, maxWidth: 560, mx: 'auto' }}>
       {/* Cabeçalho do brief */}
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.25 }}>
-        <AssignmentIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />
+        {/* §19 G2 (QA 24/10): foto REAL do paciente no brief — mesma identidade do
+            prontuário/portal (photoUrlFor token). Fallback letra. */}
+        <Avatar src={patientId ? photoUrlFor(patientId) : undefined} alt={patientName ?? 'paciente'} sx={{ width: 36, height: 36, borderRadius: '12px', fontSize: 14, fontWeight: 800, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
+          {(patientName ?? 'P').charAt(0).toUpperCase()}
+        </Avatar>
         <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: '"Poppins",sans-serif', color: 'text.primary', flex: 1 }}>Brief clínico</Typography>
         {exams && exams.length > 0 && (
           <Chip size="small" label={`${totalAbnormal} alterados`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: theme.palette.mode === 'dark' ? 'rgba(248,113,113,.14)' : 'rgba(239,68,68,.10)', color: theme.palette.mode === 'dark' ? '#f87171' : '#b91c1c', borderRadius: '8px' }} />

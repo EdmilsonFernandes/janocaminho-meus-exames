@@ -41,6 +41,16 @@ router.post('/openpix', async (req, res) => {
       return;
     }
 
+    // DR. EXAME PRO (médico premium) — correlationID: doctor_sub_<doctorId>[_<timestamp>]
+    if (correlationID.startsWith('doctor_sub_')) {
+      const doctorId = correlationID.replace('doctor_sub_', '').split('_')[0];
+      const expires = new Date(Date.now() + 30 * 86400000);
+      await prisma.doctor.update({ where: { id: doctorId }, data: { plan: 'premium', planExpiresAt: expires } }).catch(() => {});
+      console.log(`[openpix-webhook] Dr. Exame Pro ativado — doctor ${doctorId}, +30d`);
+      res.status(200).json({ ok: true, doctorId });
+      return;
+    }
+
     const support = await getSubscriptionColumnSupport();
     const sub = await prisma.subscription.findFirst({
       where: { mpPaymentId: correlationID },

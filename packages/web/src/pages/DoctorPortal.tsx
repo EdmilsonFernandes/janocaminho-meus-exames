@@ -616,6 +616,24 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     ]);
     if (mine()) setDetailLoading(false);
   };
+
+  const refreshPatientDetail = async () => {
+    if (!selected) return;
+    setDetailLoading(true);
+    const pid = selected.patient.id;
+    const pScopes: string[] = selected.scopes ?? [];
+    const get = async (path: string) => { try { const r = await fetch(`${API_URL}/doctor/patients/${pid}${path}`, { headers: h }); return r.ok ? await r.json() : null; } catch { return null; } };
+    const wantExams = pScopes.includes('exams');
+    await Promise.allSettled([
+      ...(wantExams ? [get('/exams').then((d) => { if (d) setExams(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/items/abnormal').then((d) => { if (d) setAbnormalItems(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/risk').then((d) => { if (d) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
+      get('/medications').then((d) => { if (d) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
+      get('/teleconsultas').then((d) => { if (d) setPatientTele(d?.items ?? []); }),
+    ]);
+    setDetailLoading(false);
+    snackbar({ message: 'Análise clínica e exames atualizados!', severity: 'success' });
+  };
   // Checkout MP (Dr. Exame Pro R$29,90/mês) — PIX QR inline OU cartão redirect
   const startCheckout = async (method: 'pix' | 'card') => {
     setPayLoading(true);
@@ -1487,7 +1505,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               exams={exams}
               medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
               criticalMeds={medsInfo?.critical?.length ?? 0}
-              onNavigateToAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
+              onNavigateToAlterados={(targetTab) => {
+                const target = targetTab || 'alterados';
+                if (supportedTabs.includes(target)) { setTab(target); setSelExam(null); }
+                else if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); }
+              }}
+              onRefreshAnalysis={refreshPatientDetail}
+              refreshing={detailLoading}
               loading={detailLoading}
             />
 
