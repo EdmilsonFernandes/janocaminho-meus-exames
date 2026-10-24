@@ -23,6 +23,8 @@ import { decryptPII } from '../utils/crypto';
 import { hasStt, SttError } from '../utils/stt';
 import { acceptAudioFile } from '../middleware/uploadAudio';
 import { audioPathFor, finalizeTranscription, abortTranscription } from '../jobs/transcriptionQueue';
+// Onda 2 financeira (§18): ledger de honorários/estorno no encerramento de consulta paga.
+import { recordTeleconsultaEnded } from '../finance/ledger';
 // §14.1 (24/10): resumo pós-consulta revisado pelo médico — payload role-aware injetado
 // no GET /summary abaixo (paciente só lê a versão APROVADA; rascunho nunca vaza).
 import { consultSummaryFor } from './consult-summary.routes';
@@ -355,6 +357,15 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
     }
 
     const { endedAt, persisted, teleStatus, jointMs: storedJointMs } = await endTeleconsulta(r, { outcome, jointMs });
+    // ONDA 2 FINANCEIRA (§18): consulta PAGA encerrada de verdade → ledger. Completed
+    // (elegível por construção — o /end só completa com paciente+tempo) move a retenção
+    // p/ honorários+comissão; no_show/technical reserva o valor p/ estorno. No-op p/
+    // consulta sem cobrança/não paga. Falha NÃO derruba o /end (conciliação repara).
+    if (persisted) {
+      await recordTeleconsultaEnded(r.id, teleStatus).catch((e: any) => {
+        console.error('[finance] ledger do encerramento falhou (conciliação repara):', r.id, e?.message);
+      });
+    }
     await audit('TELECONSULTA_END', req, {
       actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
       actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,

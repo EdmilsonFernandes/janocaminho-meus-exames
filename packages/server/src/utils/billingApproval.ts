@@ -10,6 +10,7 @@
 import { prisma } from '../prisma';
 import { getSettings, loadSettings } from './settings';
 import { findSubscriptionByIdCompat, updateSubscriptionCompatWithDb } from './subscriptionCompat';
+import { recordTeleconsultaPayment } from '../finance/ledger';
 
 export type ApprovalKind =
   | { type: 'credits'; credits: number }
@@ -78,6 +79,13 @@ export async function approvePendingSubscription(
         data: { paidAt: new Date(), paymentRef: String(paymentId) },
       });
       await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
+    });
+    // ONDA 2 FINANCEIRA (§18.3): partidas duplas do pagamento (D patient_received /
+    // C held_unrealized) + congela commissionSnapshot + releaseEligibleAt. Fora da
+    // transação acima de propósito: falha aqui (ex. drift de coluna) NÃO pode derrubar
+    // a aprovação — o job de conciliação repara (idempotente por txnId).
+    await recordTeleconsultaPayment(kind.reminderId).catch((e: any) => {
+      console.error('[finance] ledger do pagamento falhou (conciliação repara):', kind.reminderId, e?.message);
     });
     console.log(`[billing] consulta particular paga — reminder ${kind.reminderId} (${String(paymentId)})`);
     return true;

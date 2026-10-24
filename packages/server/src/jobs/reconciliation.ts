@@ -27,6 +27,7 @@ import { hasAsaas } from '../config';
 import { activePixProvider } from '../payments/pix-provider';
 import { ASAAS_RECEIVED_STATUSES, getAsaasPaymentStatus } from '../payments/asaas-provider';
 import { approvePendingSubscription } from '../utils/billingApproval';
+import { runFinanceReconciliation } from '../finance/reconcile';
 
 const MS_MIN = 60_000;
 const MS_HOUR = 3_600_000;
@@ -69,6 +70,7 @@ export interface ReconciliationReport {
   paymentsReconciled: number; // pagamentos confirmados no provedor e aplicados no banco
   exceptionsCreated: number;  // novas exceções enfileiradas (as dedup não contam)
   candidates: number;         // subscriptions de teleconsulta avaliadas no tick
+  financeRepaired?: number;   // onda 2 (§18): partidas de ledger repostas (idempotente)
 }
 
 /** Lookup de status no Asaas — injetável p/ teste (stub sem rede); default = provider. */
@@ -184,6 +186,17 @@ export async function runReconciliation(
     if (await enqueueException('teleconsulta_ended_no_summary', r.id, { endedAt: r.endedAt })) {
       report.exceptionsCreated++;
     }
+  }
+
+  // ── Onda 2 (§18): conciliação financeira — teleStatus × ledger ────────────────
+  // Reposta o que faltar (idempotente por txnId) + divergências na fila de exceção.
+  // Drift-safe: tabela ledger_entries ausente em banco legado → ignora e segue.
+  try {
+    const fin = await runFinanceReconciliation(now);
+    report.financeRepaired = fin.repaired;
+    report.exceptionsCreated += fin.exceptionsCreated;
+  } catch (e) {
+    console.error('[reconciliation] finance pass falhou:', (e as Error)?.message);
   }
 
   return report;

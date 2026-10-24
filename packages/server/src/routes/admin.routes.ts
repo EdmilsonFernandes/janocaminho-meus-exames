@@ -20,6 +20,7 @@ import { generateExplanation } from '../analysis/explain';
 import { encryptPII } from '../utils/crypto';
 import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
+import { DEFAULT_COMMISSION_RULE } from '../finance/rules';
 
 const router = Router();
 router.use(requireAuth);
@@ -1631,6 +1632,80 @@ router.get('/teleconsultas/funnel', async (req: AuthedRequest, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+
+// ══════════════════════════════════════════════════════════════════════════════════
+// ONDA 2 — §18.2 CONFIG COMERCIAL DE COMISSÕES (24/10). Decisões D1-D9 pendentes →
+// defaults são HIPÓTESES editáveis (nunca número mágico no código). Histórico é
+// APPEND-ONLY: criar nova vigência encerra automaticamente a anterior (validTo=now).
+// O snapshot congelado em cada agendamento garante que mudança NUNCA recalcula o
+// passado (§15.3) — editar regra aqui só afeta AGENDAMENTOS FUTUROS.
+// ══════════════════════════════════════════════════════════════════════════════════
+
+// Histórico completo (geral doctorId=null + específicas), p/ o admin ver vigências.
+router.get('/commission-rules', async (_req, res, next) => {
+  try {
+    const rules = await prisma.commissionRule.findMany({
+      orderBy: [{ doctorId: { sort: 'asc', nulls: 'first' } }, { validFrom: 'desc' }],
+    }).catch(() => []); // drift-safe: tabela nova ausente em banco legado
+    // Regra vigente por escopo p/ leitura rápida da UI (resolução é no agendamento).
+    const now = new Date();
+    const vigente = (doctorId: string | null) =>
+      rules.find((r: any) => r.doctorId === doctorId && r.validFrom <= now && (r.validTo == null || r.validTo > now)) ?? null;
+    res.json({
+      rules,
+      active: { general: vigente(null), defaults: DEFAULT_COMMISSION_RULE },
+    });
+  } catch (e) { next(e); }
+});
+
+// Nova vigência (PUT semântico: sempre CRIA regra; a anterior é encerrada na hora —
+// histórico nunca é editado/apagado). doctorId opcional = regra específica.
+router.post('/commission-rules', async (req: AuthedRequest, res, next) => {
+  try {
+    const doctorId = req.body?.doctorId != null ? String(req.body.doctorId) : null;
+    const platformBps = Number(req.body?.platformBps ?? DEFAULT_COMMISSION_RULE.platformBps);
+    const feeBearer = req.body?.feeBearer === 'doctor' ? 'doctor' : 'platform';
+    const releaseDelayDays = Number(req.body?.releaseDelayDays ?? DEFAULT_COMMISSION_RULE.releaseDelayDays);
+    const minPayoutCents = Number(req.body?.minPayoutCents ?? DEFAULT_COMMISSION_RULE.minPayoutCents);
+    if (!Number.isInteger(platformBps) || platformBps < 0 || platformBps > 10_000) {
+      res.status(400).json({ error: 'platformBps deve ser inteiro entre 0 e 10000 (20% = 2000).' }); return;
+    }
+    if (!Number.isInteger(releaseDelayDays) || releaseDelayDays < 0 || releaseDelayDays > 90) {
+      res.status(400).json({ error: 'releaseDelayDays deve ser inteiro entre 0 e 90.' }); return;
+    }
+    if (!Number.isInteger(minPayoutCents) || minPayoutCents < 0) {
+      res.status(400).json({ error: 'minPayoutCents deve ser inteiro ≥ 0 (centavos).' }); return;
+    }
+    if (doctorId) {
+      const doc = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true } });
+      if (!doc) { res.status(400).json({ error: 'Médico não encontrado.' }); return; }
+    }
+    const now = new Date();
+    const rule = await prisma.$transaction(async (tx) => {
+      // Encerra TODAS as vigências abertas deste escopo (geral ou do médico) que já
+      // começaram — regra futura agendada (validFrom > now) permanece intocada.
+      const closed = await tx.commissionRule.updateMany({
+        where: {
+          ...(doctorId ? { doctorId } : { doctorId: null }),
+          validTo: null,
+          validFrom: { lte: now },
+        },
+        data: { validTo: now },
+      });
+      const created = await tx.commissionRule.create({
+        data: { doctorId, platformBps, feeBearer, releaseDelayDays, minPayoutCents, validFrom: now },
+      });
+      return { created, closedCount: closed.count };
+    });
+    await audit('ADMIN_COMMISSION_RULE_CREATE', req, {
+      targetType: 'COMMISSION_RULE', targetId: rule.created.id,
+      before: { closedRules: rule.closedCount },
+      after: { ...rule.created, validFrom: rule.created.validFrom.toISOString(), createdAt: undefined },
+    });
+    console.log(`[admin] regra de comissão ${doctorId ? `médico ${doctorId}` : 'GERAL'} criada: ${platformBps}bps, feeBearer=${feeBearer}, D+${releaseDelayDays} (${rule.closedCount} encerrada(s))`);
+    res.status(201).json({ rule: rule.created, closedRules: rule.closedCount });
+  } catch (e) { next(e); }
 });
 
 export default router;

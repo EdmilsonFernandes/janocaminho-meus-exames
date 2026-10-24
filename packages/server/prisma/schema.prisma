@@ -851,6 +851,12 @@ model Reminder {
 consultPriceCents Int?      // valor CONGELADO no agendamento (centavos); null/0 = sem cobrança
 paidAt            DateTime? // pagamento confirmado pelo webhook → "Paga ✓" pros dois lados
 paymentRef        String?   // id do pagamento no provedor (PIX/cartão)
+// ── Onda 2 financeira (24/10/26, §18 + docs/design/2026-10-24-finance-architecture.md):
+//    regra comercial CONGELADA no agendamento (§18.2/§15.3 — mudança de regra NUNCA
+//    recalcula o passado) e elegibilidade de liberação (paidAt + releaseDelayDays da
+//    snapshot). Ambos nullable = legado pré-migration (drift-safe).
+commissionSnapshot Json?      // {ruleId, platformBps, feeBearer, releaseDelayDays, minPayoutCents}
+releaseEligibleAt  DateTime?  // paidAt + releaseDelayDays (da snapshot) — liberação D+N
   createdAt DateTime @default(now())
   consultSummary ConsultSummary?
 
@@ -1384,4 +1390,77 @@ model ExceptionQueue {
   @@index([kind, status])
   @@index([reminderId])
   @@map("exception_queue")
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ONDA 2 — FUNDAÇÃO FINANCEIRA (24/10/26): §18 do spec de gaps + arquitetura A
+// (docs/design/2026-10-24-finance-architecture.md — conta única + repasse PIX).
+// Decisões D1-D9 PENDENTES → tudo PARAMETRIZADO (defaults = hipóteses, editáveis
+// no admin). SEM FK de propósito (mesmo padrão ExceptionQueue: scalar strings,
+// drift-safe, linha deletada não órfã a integridade).
+// ════════════════════════════════════════════════════════════════════════════════
+
+// Regra comercial de comissão (§18.2): GERAL (doctorId null) ou específica por médico.
+// Precedência na vigência: específica > geral (resolveCommissionRule em finance/rules.ts).
+// Vigência no APP (validFrom/validTo), SEM unique constraint rígido — criar nova
+// vigência encerra a anterior (admin.routes). Snapshot congelado em cada agendamento.
+model CommissionRule {
+  id               String    @id @default(cuid())
+  doctorId         String?   // null = regra GERAL (vale para todos sem específica)
+  platformBps      Int       @default(2000) // 2000 = 20% plataforma (hipótese D1 — editável)
+  feeBearer        String    @default("platform") // 'platform' | 'doctor' — quem paga taxa do provedor (D2)
+  releaseDelayDays Int       @default(3) // liberação D+N pós-atendimento (D3)
+  minPayoutCents   Int       @default(2000) // piso de repasse acumulado (D7)
+  validFrom        DateTime
+  validTo          DateTime? // null = vigente até ser encerrada por nova regra
+  createdAt        DateTime  @default(now())
+
+  @@index([doctorId, validFrom])
+  @@map("commission_rules")
+}
+
+// PARTIDA DUPLA — lançamento IMUTÁVEL (só INSERT; correção = compensatório, §18.3).
+// txnId agrupa as partidas de UM evento (balanceamento Σdebit=Σcredit POR txnId).
+// Contas (account): patient_received | held_unrealized | doctor_payable |
+// platform_revenue | provider_fees | payout_processing | payout_done | refund | reserve.
+// REGRA DE OURO: total pago pelo paciente NUNCA entra em platform_revenue.
+model LedgerEntry {
+  id          String   @id @default(cuid())
+  txnId       String   // determinístico (${evento}_${reminderId}) → idempotência por evento
+  reminderId  String?  // consulta (null = ajuste global)
+  doctorId    String?  // médico das obrigações (doctor_payable/repasses)
+  account     String
+  debitCents  Int      @default(0)
+  creditCents Int      @default(0)
+  refType     String?  // payment | reminder | refund | transfer | commission_rule | payout
+  refId       String?  // id no provedor/app (paymentRef, ruleId, payoutId…)
+  ruleSnapshot Json?   // regra vigente NA ÉPOCA — cópia, nunca FK viva
+  memo        String?
+  createdAt   DateTime @default(now())
+
+  @@unique([txnId, account, refId])
+  @@index([reminderId])
+  @@index([doctorId, createdAt])
+  @@index([account, createdAt])
+  @@map("ledger_entries")
+}
+
+// REPASSE (§18.6 — máquina de estados usada na ONDA 4; aqui só a fundação).
+// reminderId unique = 1 consulta → no máx 1 repasse (antiduplicação estrutural).
+// reserveTxnId = a reserva atômica no ledger ANTES da chamada ao provedor.
+model Payout {
+  id                String    @id @default(cuid())
+  reminderId        String    @unique
+  doctorId          String
+  amountCents       Int       // líquido a sair (snapshot do cálculo)
+  status            String    @default("requested") // requested|processing|completed|failed|cancelled|unknown
+  providerTransferId String?  // id da transferência no provedor (Asaas)
+  reserveTxnId      String    // txnId da reserva no ledger (atomicidade §18.6)
+  attempts          Int       @default(0)
+  lastError         String?
+  requestedAt       DateTime  @default(now())
+  completedAt       DateTime?
+
+  @@index([doctorId, status])
+  @@map("payouts")
 }

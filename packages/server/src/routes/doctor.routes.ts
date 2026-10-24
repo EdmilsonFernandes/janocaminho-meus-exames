@@ -37,6 +37,7 @@ import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
+import { resolveCommissionRule } from '../finance/rules';
 import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
@@ -1126,18 +1127,27 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { ownerId: true, fullName: true, owner: { select: { id: true, name: true, email: true } } } });
     if (!patient?.ownerId) { res.status(404).json({ error: 'Paciente sem conta vinculada.' }); return; }
     const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
+    // ONDA 2 FINANCEIRA (§18.2/§15.3): cobrança → congela a regra de comissão VIGENTE
+    // (específica do médico > geral > default) no agendamento. Mudança de regra nunca
+    // recalcula consulta antiga. Drift: coluna nova ausente → recria sem ela (no-op).
+    const commissionSnapshot = consultPriceCents ? await resolveCommissionRule(req.doctorId) : null;
+    const reminderData = {
+      ...(reminderId ? { id: reminderId } : {}), // id explícito = roomName previsível
+      ownerId: patient.ownerId, patientId: pid, title, dueDate,
+      type: 'teleconsulta', linkUrl: provider === 'livekit' ? null : linkUrl.slice(0, 500),
+      recurrence, provider, roomName,
+      consultPriceCents, // valor congelado no agendamento (null/0 = sem cobrança)
+      teleStatus: 'scheduled', // lifecycle 24/10: nasce agendada (join/liberação no /join)
+      createdByDoctorId: req.doctorId,
+      notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
+    } as any;
     const r = await prisma.reminder.create({
-      data: {
-        ...(reminderId ? { id: reminderId } : {}), // id explícito = roomName previsível
-        ownerId: patient.ownerId, patientId: pid, title, dueDate,
-        type: 'teleconsulta', linkUrl: provider === 'livekit' ? null : linkUrl.slice(0, 500),
-        recurrence, provider, roomName,
-        consultPriceCents, // valor congelado no agendamento (null/0 = sem cobrança)
-        teleStatus: 'scheduled', // lifecycle 24/10: nasce agendada (join/liberação no /join)
-        createdByDoctorId: req.doctorId,
-        notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
-      },
-    });
+      data: commissionSnapshot
+        ? { ...reminderData, commissionSnapshot }
+        : reminderData,
+    }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) && commissionSnapshot
+      ? prisma.reminder.create({ data: reminderData }) // legado sem a coluna — segue sem snapshot
+      : Promise.reject(e));
     // Push imediato: o paciente fica sabendo AGORA (não só na 1ª antecedência).
     const dateStr = dueDate.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     void sendPushToUser(patient.ownerId, `📋 Teleconsulta agendada${doctor?.name ? ` com ${doctor.name}` : ''}`, `${dateStr} — toque para autorizar e entrar na hora.`, { type: 'reminder', reminderId: r.id }).catch(() => {});
