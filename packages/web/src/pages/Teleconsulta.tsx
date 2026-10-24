@@ -25,6 +25,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import PaymentsIcon from '@mui/icons-material/Payments';
 import { Room, RoomEvent, Track, isBrowserSupported, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { Capacitor } from '@capacitor/core';
@@ -57,7 +59,9 @@ const COPPER_DARK = '#b88a54';
 const CONSENT_TEXT =
   'Autorizo o atendimento por telemedicina e a transmissão de imagens e dados nesta consulta, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento, e que ele fica registrado com data e hora.';
 
-type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'readonly' | 'fallback' | 'error';
+type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'readonly' | 'fallback' | 'error' | 'waiting' | 'payment';
+/** Outcome honesto do /end (lifecycle 24/10): 'completed' o server valida sozinho. */
+type TeleOutcome = 'completed' | 'no_show' | 'technical';
 type CamState = 'pending' | 'ok' | 'denied' | 'nodevice';
 interface Summary {
   id: string;
@@ -254,6 +258,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [nowTick, setNowTick] = useState(0);
   const [endOpen, setEndOpen] = useState(false);
+  // Lifecycle 24/10: join barrado antes da janela (TOO_EARLY) ou sem PIX pago
+  // (PAYMENT_REQUIRED) + dialog honesto de encerramento (outcome do /end).
+  const [opensAt, setOpensAt] = useState<string | null>(null); // countdown até a janela abrir
+  const [payPriceCents, setPayPriceCents] = useState<number | null>(null);
+  const [outcomeOpen, setOutcomeOpen] = useState(false); // "Como encerrar?"
+  const [outcomeSuggest, setOutcomeSuggest] = useState<'no_show' | 'technical' | null>(null); // sugestão do server
+  const [outcomeBusy, setOutcomeBusy] = useState(false);
   const [ended, setEnded] = useState<{ sec: number } | null>(null);
   const [fallbackLink, setFallbackLink] = useState('');
   const [unsupported, setUnsupported] = useState(false);
@@ -550,9 +561,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // endedAt, rota do agent1). Sem isto o card ficava "Entrar na consulta" pra
   // sempre (dono 21/10: "ela nunca encerra"). keepalive sobrevive ao unload.
   // Chamado no endCall, no disconnect de rede E no unload (agent3 a/b).
-  const markEnded = useCallback(() => {
-    fetch(`${API_URL}/teleconsulta/${reminderId}/end`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, keepalive: true })
-      .catch(() => { /* best-effort: rede caída — server fecha sozinho pelo audit */ });
+  const markEnded = useCallback(async (outcome?: TeleOutcome): Promise<{ ok: boolean; reason?: string | null; suggestion?: 'no_show' | 'technical' | null; error?: string | null }> => {
+    // Lifecycle 24/10: /end aceita outcome explícito — o server EXIGE quando o
+    // paciente não entrou ou o tempo conjunto ficou abaixo do mínimo (400 com
+    // reason+suggestion). Devolve o veredito p/ o endCall abrir o dialog honesto;
+    // callers best-effort (disconnect/unload) ignoram o resultado.
+    try {
+      const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/end`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
+        body: JSON.stringify(outcome ? { outcome } : {}),
+        keepalive: true,
+      });
+      if (res.ok) return { ok: true };
+      const d = await res.json().catch(() => null);
+      return { ok: false, reason: d?.reason ?? null, suggestion: d?.suggestion ?? null, error: d?.error ?? null };
+    } catch { return { ok: false }; /* best-effort: rede caída — server fecha sozinho pelo audit */ }
   }, [authToken, reminderId]);
 
   // agent2: "Reenviar convite" do painel de no-show — push pro paciente entrar agora.
@@ -630,10 +654,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     setLocalVideo(null);
     setRemotes([]);
     if (room) {
+      // Presença conjunta (lifecycle §2): reporta a SAÍDA da sala — sem webhook
+      // LiveKit no v1, o server conta presença pelos eventos join/leave do client.
+      // Fire-and-forget + keepalive (sobrevive ao unload). Só quando HAVIA sala:
+      // o teardown "preventivo" do connectRoom (roomRef null) não conta como saída.
+      fetch(`${API_URL}/teleconsulta/${reminderId}/leave`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` }, keepalive: true })
+        .catch(() => { /* best-effort */ });
       try { room.removeAllListeners(); } catch { /* noop */ }
       try { await room.disconnect(); } catch { /* noop */ }
     }
-  }, [stopAndUploadRecording, stopRingback, stopRecordingBeep]);
+  }, [authToken, reminderId, stopAndUploadRecording, stopRingback, stopRecordingBeep]);
 
   // ── Conexão LiveKit ──────────────────────────────────────────────────────────
   const connectRoom = useCallback(async (serverUrl: string, lkToken: string) => {
@@ -808,6 +838,20 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         setBanner(null);
         return;
       }
+      if (res.status === 402) {
+        // Lifecycle §2 (24/10): consulta particular sem PIX pago → não entra.
+        // Paciente volta aos lembretes (o dialog de PIX já existe lá); médico
+        // fica sabendo que o paciente ainda não pagou.
+        const d = await res.json().catch(() => ({} as any));
+        if (d?.code === 'PAYMENT_REQUIRED') {
+          setPayPriceCents(typeof d.priceCents === 'number' ? d.priceCents : null);
+          setPhase('payment');
+          setBanner(null);
+          hapticError();
+          return;
+        }
+        throw new Error('join-failed');
+      }
       if (res.status === 403) {
         const d = await res.json().catch(() => ({} as any));
         if (d?.code === 'CONSENT_REQUIRED') {
@@ -815,6 +859,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           setPhase('prejoin');
           setBanner(null);
           setToast({ text: 'Autorize a telemedicina para entrar.', k: Date.now() });
+          return;
+        }
+        // Lifecycle §1 (24/10): antes da janela (dueDate − 5 min, relógio do SERVER)
+        // → sala de espera com countdown até opensAt; nunca entra.
+        if (d?.code === 'TOO_EARLY') {
+          setOpensAt(typeof d.opensAt === 'string' ? d.opensAt : null);
+          setPhase('waiting');
+          setBanner(null);
           return;
         }
         // F4: consulta encerrada entre o load e o toque em "Entrar" → área read-only
@@ -1065,6 +1117,24 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     return () => clearInterval(t);
   }, [phase, startedAt]);
 
+  // Sala de espera (TOO_EARLY): countdown de 1s + re-tentativa automática do join
+  // a cada 30s quando a janela (opensAt, relógio do server) já chegou.
+  useEffect(() => {
+    if (phase !== 'waiting') return;
+    const t = setInterval(() => setNowTick((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, [phase]);
+
+  useEffect(() => {
+    if (phase !== 'waiting' || !opensAt) return;
+    const target = new Date(opensAt).getTime();
+    if (Number.isNaN(target)) return;
+    const iv = setInterval(() => {
+      if (Date.now() >= target) void startJoin();
+    }, 30_000);
+    return () => clearInterval(iv);
+  }, [phase, opensAt, startJoin]);
+
   // Back gesture (Android) durante a chamada → dialog de encerrar (nunca sai direto).
   useEffect(() => {
     if (phase !== 'incall') return;
@@ -1258,25 +1328,57 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     navigate(role === 'doctor' ? '/doctor' : '/lembretes');
   }, [navigate, onExited, role]);
 
-  const endCall = useCallback(async () => {
+  const endCall = useCallback(async (outcome?: TeleOutcome) => {
     setEndOpen(false);
+    setOutcomeOpen(false);
     const t0 = startedAtRef.current ?? Date.now();
     endedByUser.current = true;
     const durSec = Math.round((Date.now() - t0) / 1000);
     setEnded({ sec: durSec });
-    try { wakeLock.current?.release?.(); } catch { /* noop */ }
-    wakeLock.current = null;
-    await stopAndUploadRecording();
 
     // Se o usuário entrou e saiu em menos de 25s sem outro participante conectado:
     // Trata como saída da sala de espera — NÃO mata a consulta no servidor e NÃO pede avaliação!
     if (durSec < 25 && !otherJoined) {
+      try { wakeLock.current?.release?.(); } catch { /* noop */ }
+      wakeLock.current = null;
+      await stopAndUploadRecording();
       await teardownRoom();
       exitTo();
       return;
     }
 
-    markEnded(); // encerramento server-side (done + endedAt)
+    // Encerramento honesto (lifecycle 24/10): só EU na chamada → pergunta COMO
+    // encerrar ANTES de derrubar a sala (o server exige outcome explícito).
+    // "Voltar à chamada" devolve o usuário à sala intacta (gravação segue).
+    if (!outcome && !otherJoined) {
+      setOutcomeSuggest(null);
+      setOutcomeOpen(true);
+      return;
+    }
+
+    const res = await markEnded(outcome ?? 'completed');
+    if (!res.ok && res.reason) {
+      // Server recusou (400): paciente nunca entrou OU tempo conjunto abaixo do
+      // mínimo. Abre o dialog com a sugestão DO SERVER — nunca registra silencioso
+      // o que não aconteceu (escolha explícita rejeitada cai aqui de novo).
+      setOutcomeSuggest(res.suggestion ?? null);
+      setOutcomeOpen(true);
+      hapticError();
+      setToast({
+        text: res.reason === 'min_time_not_met'
+          ? 'Tempo conjunto abaixo do mínimo'
+          : res.error || 'O paciente não entrou nesta consulta.',
+        k: Date.now(),
+      });
+      return;
+    }
+    if (!res.ok) {
+      // Rede/500: mantém o fim local (best-effort — o auto-end do server fecha depois).
+      setToast({ text: 'Encerramento vai ser confirmado em instantes.', k: Date.now() });
+    }
+    try { wakeLock.current?.release?.(); } catch { /* noop */ }
+    wakeLock.current = null;
+    await stopAndUploadRecording();
     await teardownRoom();
     setPhase('ended');
     hapticSuccess();
@@ -1987,6 +2089,55 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Encerramento honesto (lifecycle 24/10): o server exige o motivo quando
+            o paciente não entrou ou o tempo a dois ficou abaixo do mínimo. Três
+            opções claras, zero jargão; a sugestão do server vem destacada. */}
+        <Dialog open={outcomeOpen} onClose={() => { setOutcomeOpen(false); endedByUser.current = false; }} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
+          <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17 }}>Como encerrar?</DialogTitle>
+          <DialogContent sx={{ pb: 0 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: 14, mb: 2, lineHeight: 1.6 }}>
+              {outcomeSuggest === 'technical'
+                ? 'O tempo de chamada a dois ficou abaixo do mínimo.'
+                : outcomeSuggest === 'no_show'
+                  ? 'O paciente não chegou a entrar na chamada.'
+                  : role === 'doctor'
+                    ? 'Você está sozinho(a) nesta chamada.'
+                    : 'A chamada não aconteceu como o esperado.'}
+            </Typography>
+            <Stack spacing={1} sx={{ pb: 1 }}>
+              {([
+                { v: 'completed' as const, label: 'Encerrar consulta', desc: 'A consulta aconteceu normalmente.' },
+                { v: 'no_show' as const, label: 'Paciente não compareceu', desc: 'O paciente não entrou na chamada.' },
+                { v: 'technical' as const, label: 'Tivemos problema técnico', desc: 'Conexão, áudio ou vídeo falharam.' },
+              ]).map((o) => (
+                <Button
+                  key={o.v}
+                  variant="outlined"
+                  disabled={outcomeBusy}
+                  onClick={() => { hapticLight(); setOutcomeBusy(true); void endCall(o.v).finally(() => setOutcomeBusy(false)); }}
+                  sx={{
+                    justifyContent: 'flex-start', textAlign: 'left', textTransform: 'none', borderRadius: '14px',
+                    py: 1.25, px: 2,
+                    borderColor: outcomeSuggest === o.v ? '#20b2aa' : 'divider',
+                    borderWidth: outcomeSuggest === o.v ? 2 : 1,
+                    bgcolor: outcomeSuggest === o.v ? 'rgba(32,178,170,0.08)' : 'transparent',
+                  }}
+                >
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+                      {o.label}{outcomeSuggest === o.v ? ' · sugerido' : ''}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.4 }}>{o.desc}</Typography>
+                  </Box>
+                </Button>
+              ))}
+            </Stack>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 2.5 }}>
+            <Button onClick={() => { setOutcomeOpen(false); endedByUser.current = false; }} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar à chamada</Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     );
   }
@@ -2450,6 +2601,84 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             {toast.text}
           </Box>
         )}
+      </Box>
+    );
+  }
+
+  // Lifecycle §1 (24/10): sala de espera — a janela do server ainda não abriu.
+  if (phase === 'waiting') {
+    void nowTick; // countdown re-renderiza a cada 1s
+    const opensMs = opensAt ? new Date(opensAt).getTime() : NaN;
+    const opensFmt = Number.isNaN(opensMs) ? null : new Date(opensMs).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const remainMs = Number.isNaN(opensMs) ? null : Math.max(0, opensMs - Date.now());
+    const remainTxt = remainMs == null ? '' : remainMs <= 45_000 ? 'Abre em instantes.' : `Faltam ${Math.ceil(remainMs / 60_000)} min.`;
+    return (
+      <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
+        <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px' }} elevation={4}>
+          <CardContent sx={{ p: 3, textAlign: 'center' }}>
+            <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '18px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)' }}>
+              <AccessTimeIcon sx={{ fontSize: 32, color: (t) => tealText(t.palette.mode) }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1 }}>
+              {opensFmt ? `A consulta abre às ${opensFmt}` : 'A consulta ainda não abriu'}
+            </Typography>
+            <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2.5, lineHeight: 1.6 }}>
+              {opensFmt ? `A entrada é liberada 5 minutos antes do horário. ${remainTxt}` : 'Tente novamente em instantes.'}
+            </Typography>
+            <Button variant="contained" fullWidth startIcon={<CallIcon />} onClick={() => void startJoin()} sx={primaryBtn}>
+              Atualizar
+            </Button>
+            <Button onClick={exitTo} sx={{ mt: 1.5, textTransform: 'none', fontWeight: 700, borderRadius: '999px', color: 'text.secondary' }}>
+              {role === 'doctor' ? 'Voltar ao Portal do Médico' : 'Voltar aos Meus Lembretes'}
+            </Button>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  // Lifecycle §2 (24/10): consulta particular com PIX pendente — o join é barrado
+  // até o pagamento. Paciente volta aos lembretes (o PIX vive lá); médico é
+  // informado e segue no portal.
+  if (phase === 'payment') {
+    const priceTxt = payPriceCents != null ? `R$ ${(payPriceCents / 100).toFixed(2).replace('.', ',')}` : '';
+    return (
+      <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'grid', placeItems: 'center', p: 2 }}>
+        <Card sx={{ maxWidth: 420, width: '100%', borderRadius: '20px' }} elevation={4}>
+          <CardContent sx={{ p: 3, textAlign: 'center' }}>
+            <Box sx={{ width: 64, height: 64, mx: 'auto', mb: 2, borderRadius: '18px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(212,165,116,.16)' }}>
+              <PaymentsIcon sx={{ fontSize: 32, color: COPPER }} />
+            </Box>
+            {role === 'patient' ? (
+              <>
+                <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1 }}>
+                  Consulta particular{priceTxt ? ` — ${priceTxt}` : ''}
+                </Typography>
+                <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2.5, lineHeight: 1.6 }}>
+                  O pagamento confirma a sua entrada. Pague com PIX na área de lembretes e volte para entrar na consulta.
+                </Typography>
+                <Button variant="contained" fullWidth onClick={() => { hapticLight(); exitTo(); }} sx={primaryBtn}>
+                  Ir para o pagamento
+                </Button>
+              </>
+            ) : (
+              <>
+                <Typography sx={{ fontWeight: 800, fontSize: 18, fontFamily: '"Poppins",sans-serif', mb: 1 }}>
+                  Paciente ainda não pagou{priceTxt ? ` (${priceTxt})` : ''}
+                </Typography>
+                <Typography color="text.secondary" sx={{ fontSize: 14, mb: 2.5, lineHeight: 1.6 }}>
+                  A entrada na chamada é liberada para o paciente após o pagamento do PIX.
+                </Typography>
+                <Button variant="contained" fullWidth onClick={() => { hapticLight(); exitTo(); }} sx={primaryBtn}>
+                  Voltar ao Portal do Médico
+                </Button>
+              </>
+            )}
+            <Button variant="outlined" fullWidth onClick={() => void startJoin()} sx={{ mt: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, height: 44, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.secondary' } }}>
+              Já paguei — verificar de novo
+            </Button>
+          </CardContent>
+        </Card>
       </Box>
     );
   }

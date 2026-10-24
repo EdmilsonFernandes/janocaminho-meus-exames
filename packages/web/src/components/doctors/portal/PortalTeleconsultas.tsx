@@ -33,10 +33,12 @@ import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HistoryIcon from '@mui/icons-material/History';
 import StarIcon from '@mui/icons-material/Star';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { AppCard } from '../../AppCard';
 import { tealText, COPPER, copperText } from '../../../theme';
 import { snackbar } from '../../ConfirmDialog';
-import { photoUrlFor } from '../../../config';
+import { photoUrlFor, APP_WEB_URL } from '../../../config';
+import { copyText } from '../../../utils/copyText';
 import type { TeleconsultaSummary } from '../../teleconsulta/types';
 
 interface PortalTeleconsultasProps {
@@ -50,6 +52,20 @@ interface PortalTeleconsultasProps {
   teleSummaries?: Record<string, TeleconsultaSummary>;
   initialSearch?: string;
 }
+
+// Lifecycle 24/10 (spec §1): teleStatus do server. Concluída (completed/no_show/
+// cancelled/technical) = NUNCA mais "Entrar" (o server bloqueia o join de todo
+// modo). Drift-safe: linha legada sem a coluna → undefined → só endedAt decide.
+const TELE_CONCLUDED = new Set(['completed', 'no_show', 'cancelled', 'technical']);
+const isTeleConcluded = (tc: any) => !!tc.endedAt || TELE_CONCLUDED.has(tc.teleStatus);
+/** Chip de estado do lifecycle — null = agendada (sem chip, sem ruído). */
+const teleStatusChip = (status: unknown): { label: string; sx: any } | null => {
+  if (status === 'in_progress') return { label: 'Em andamento', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '6px' } };
+  if (status === 'completed') return { label: 'Realizada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', borderRadius: '6px' } };
+  if (status === 'no_show') return { label: 'Paciente ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+  if (status === 'technical') return { label: 'Problema técnico', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
+  return null;
+};
 
 export const PortalTeleconsultas = ({
   teleconsultas = [],
@@ -82,20 +98,20 @@ export const PortalTeleconsultas = ({
   const todayList = useMemo(() => {
     return teleconsultas.filter((tc) => {
       const t = new Date(tc.dueDate).getTime();
-      return !tc.endedAt && t >= todayStart && t < todayEnd;
+      return !isTeleConcluded(tc) && t >= todayStart && t < todayEnd;
     });
   }, [teleconsultas, todayStart, todayEnd]);
 
   const upcomingList = useMemo(() => {
     return teleconsultas.filter((tc) => {
       const t = new Date(tc.dueDate).getTime();
-      return !tc.endedAt && t >= now.getTime();
+      return !isTeleConcluded(tc) && t >= now.getTime();
     });
   }, [teleconsultas, now]);
 
   const pastList = useMemo(() => {
     return teleconsultas.filter((tc) => {
-      if (tc.endedAt) return true; // encerrada → Histórico, mesmo agendada p/ hoje
+      if (isTeleConcluded(tc)) return true; // encerrada/concluída → Histórico, mesmo agendada p/ hoje
       const t = new Date(tc.dueDate).getTime();
       return t < now.getTime() && !(t >= todayStart && t < todayEnd);
     });
@@ -120,8 +136,8 @@ export const PortalTeleconsultas = ({
 
   // F4: split ativas × encerradas — as encerradas renderizam na seção "Histórico"
   // do fim (nunca misturadas com as agendadas, nem com botão de entrar).
-  const filteredActive = useMemo(() => filtered.filter((tc) => !tc.endedAt), [filtered]);
-  const filteredEnded = useMemo(() => filtered.filter((tc) => !!tc.endedAt), [filtered]);
+  const filteredActive = useMemo(() => filtered.filter((tc) => !isTeleConcluded(tc)), [filtered]);
+  const filteredEnded = useMemo(() => filtered.filter((tc) => isTeleConcluded(tc)), [filtered]);
 
   return (
     <Box sx={{ maxWidth: 1040, mx: 'auto', width: '100%', pb: 4 }}>
@@ -466,6 +482,8 @@ export const PortalTeleconsultas = ({
                               }}
                             />
                           )}
+                          {/* Lifecycle 24/10 (spec §1): estado real da consulta — in_progress = a dois na sala. */}
+                          {(() => { const c = teleStatusChip(tc.teleStatus); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
                           {/* Consulta particular (23/10): status do pagamento do paciente. */}
                           {(tc.consultPriceCents ?? 0) > 0 && (
                             tc.paidAt ? (
@@ -737,6 +755,8 @@ export const PortalTeleconsultas = ({
                             label={endedFmt ? `Encerrada ${endedFmt}` : 'Encerrada'}
                             sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', '& .MuiChip-icon': { color: '#178f89' } }}
                           />
+                            {/* Lifecycle 24/10: como a consulta TERMINOU (realizada / ausente / técnica). */}
+                            {(() => { const c = teleStatusChip(tc.teleStatus); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
                           {pend > 0 && (
                             <Chip size="small" label={`${pend} pedido(s)`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }} />
                           )}
@@ -815,6 +835,38 @@ export const PortalTeleconsultas = ({
                   <ListItemText>Copiar link da reunião</ListItemText>
                 </MenuItem>
               )}
+              {/* §6 share: WhatsApp + copiar link do APP (drexame/#/teleconsulta/:id) —
+                  link direto autenticável, independe de link externo (Meet) existir. */}
+              {(() => {
+                const matched = patients.find((p: any) => (p?.patient?.id || p?.id) === tc.patientId);
+                const pat = tc.patient || matched?.patient || matched;
+                const pName = pat?.fullName || pat?.name || 'Paciente';
+                const due = new Date(tc.dueDate);
+                const appLink = `${APP_WEB_URL}/#/teleconsulta/${tc.id}`;
+                const shareMsg = `Teleconsulta com ${pName} está agendada para ${due.toLocaleDateString('pt-BR')}, às ${due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (horário de Brasília). Acesse pelo link: ${appLink}`;
+                return (
+                  <>
+                    <MenuItem onClick={() => {
+                      window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank', 'noopener');
+                      setTeleMenu(null);
+                    }}>
+                      <ListItemIcon><WhatsAppIcon fontSize="small" sx={{ color: '#25d366' }} /></ListItemIcon>
+                      <ListItemText>Compartilhar no WhatsApp</ListItemText>
+                    </MenuItem>
+                    <MenuItem onClick={() => {
+                      setTeleMenu(null);
+                      void copyText(appLink).then((ok) => {
+                        snackbar(ok
+                          ? { message: 'Link da teleconsulta copiado!', severity: 'success' }
+                          : { message: 'Não deu pra copiar automático — copie manualmente.', severity: 'info' });
+                      });
+                    }}>
+                      <ListItemIcon><ContentCopyIcon fontSize="small" /></ListItemIcon>
+                      <ListItemText>Copiar link da teleconsulta</ListItemText>
+                    </MenuItem>
+                  </>
+                );
+              })()}
               <MenuItem onClick={() => { onCancelTele(tc.id, tc.patientId); setTeleMenu(null); }} sx={{ color: 'error.main' }}>
                 <ListItemIcon><DeleteOutlinedIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon>
                 <ListItemText>Cancelar consulta</ListItemText>
