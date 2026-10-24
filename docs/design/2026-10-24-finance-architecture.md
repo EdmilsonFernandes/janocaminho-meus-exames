@@ -250,3 +250,15 @@ model DoctorPayoutAccount {
 - Este doc NÃO apresenta saldo interno como custódia/escrow (§18.4) — o enquadramento definitivo é pergunta ao Asaas (D6), ANTES de qualquer movimentação real.
 - Nenhuma chamada de escrita ao Asaas foi feita nesta fase (só leitura de documentação; a única key existente é de produção).
 - Controle operacional ≠ escrituração contábil/fiscal (§18.3) — o ledger serve decisão e conciliação, não contabilidade formal.
+
+## DECISÕES COMERCIAIS — APROVADAS PELO DONO (24/10, "ok pra tudo")
+- D1: **20% plataforma / 80% médico** (default dos params)
+- D2: **taxa de transferência PIX: plataforma** (feeBearer=platform)
+- D3: **liberação D+3** pós-consulta elegível
+- D4: recuperação pós-repasse: **manual via combinação com o médico** (nunca desconto silencioso)
+- D5: responsabilidade fiscal → **definir com contador** (pendente externo)
+- D6: enquadramento Asaas (transferências/Token SMS/sandbox/taxa exata) → **dono pergunta ao suporte Asaas** (pendente externo — bloqueia só a onda 4 real)
+- D7: **mínimo de repasse R$ 20,00**
+- D8: estorno parcial: **plataforma absorve taxas não devolvidas**
+- D9: teleconsulta: **Asaas-only**
+Blocos externos restantes: D5 (contador) e D6 (suporte Asaas) — não travam ondas 2-3.
