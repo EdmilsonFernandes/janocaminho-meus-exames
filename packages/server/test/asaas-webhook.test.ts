@@ -47,7 +47,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     const { sub, paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
 
     fetchMock().mockResolvedValueOnce(asaasPaymentApi('RECEIVED'));
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
     expect(r.status).toBe(200);
     expect(r.body.approved).toBe(true);
 
@@ -65,8 +65,8 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     const { paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
 
     fetchMock().mockResolvedValueOnce(asaasPaymentApi('RECEIVED'));
-    await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
-    const r2 = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
+    const r2 = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
     expect(r2.status).toBe(200);
     expect(r2.body.approved).toBeUndefined(); // ignorado (já APPROVED)
     expect(await getUserCredits(user.id)).toBe(140); // não virou 280
@@ -74,7 +74,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
 
   it('payment.id inexistente → ignorado (200-ack), nada credita', async () => {
     const { user } = await createUser({ credits: 5 });
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload('pay_fantasma', 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload('pay_fantasma', 9.9));
     expect(r.status).toBe(200);
     expect(r.body.ignored).toBeTruthy();
     expect(await getUserCredits(user.id)).toBe(5);
@@ -84,7 +84,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     const { user } = await createUser({ credits: 0 });
     const { sub, paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
 
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 1.0)); // ≠ 9.90
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 1.0)); // ≠ 9.90
     expect(r.status).toBe(200);
     expect(r.body.ignored).toBe('valor divergente');
     const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
@@ -95,7 +95,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
   it('evento não-recebido (PAYMENT_CREATED) → ignorado', async () => {
     const { user } = await createUser({ credits: 0 });
     const { paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
-    const r = await api().post('/api/webhooks/asaas').send({
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send({
       event: 'PAYMENT_CREATED',
       payment: { id: paymentId, value: 9.9, status: 'PENDING' },
     });
@@ -111,7 +111,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     await updateSubscriptionCompat(sub.id, { mpPreferenceId: 'api_pack', mpPaymentId: paymentId, pixCredits: 500, pixExpiresAt: new Date(Date.now() + 5 * 60 * 1000) });
 
     fetchMock().mockResolvedValueOnce(asaasPaymentApi('RECEIVED'));
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 25));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 25));
     expect(r.status).toBe(200);
     expect(r.body.approved).toBe(true);
     expect(await getUserCredits(user.id)).toBe(0); // créditos de IA intactos
@@ -126,7 +126,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     // Payload de webhook PERFEITO (evento/valor corretos), mas o provider diz que o
     // payment segue PENDING — é exatamente o caso do webhook FORJADO (spoof).
     fetchMock().mockResolvedValueOnce(asaasPaymentApi('PENDING'));
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
     expect(r.status).toBe(400);
     expect(r.body.error).toBe('Pagamento não confirmado no provider.');
     const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
@@ -144,7 +144,7 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     const { sub, paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
 
     fetchMock().mockResolvedValueOnce(mpResponse({}, { ok: false, status: 502 }));
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
     expect(r.status).toBe(400);
     const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
     expect(dbSub?.status).toBe('PENDING');
@@ -156,9 +156,50 @@ describe('webhook Asaas: aprovação de PIX por payment.id', () => {
     const { paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
 
     fetchMock().mockResolvedValueOnce(asaasPaymentApi('CONFIRMED'));
-    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasPayload(paymentId, 9.9));
     expect(r.status).toBe(200);
     expect(r.body.approved).toBe(true);
+    expect(await getUserCredits(user.id)).toBe(140);
+  });
+
+  it('AUTENTICAÇÃO: SEM asaas-access-token → 401 fail closed (guard ANTES do provider)', async () => {
+    const { user } = await createUser({ credits: 0 });
+    const { sub, paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
+
+    fetchMock().mockClear(); // 401 não pode nem consultar o provider
+    const r = await api().post('/api/webhooks/asaas').send(asaasPayload(paymentId, 9.9));
+    expect(r.status).toBe(401);
+    expect(r.body.error).toBe('unauthorized webhook');
+    expect(fetchMock()).not.toHaveBeenCalled();
+    const dbSub = await prisma.subscription.findUnique({ where: { id: sub.id }, select: { status: true } });
+    expect(dbSub?.status).toBe('PENDING');
+    expect(await getUserCredits(user.id)).toBe(0);
+  });
+
+  it('AUTENTICAÇÃO: token ERRADO → 401; WEBHOOK_TOKEN_OVERRIDE válido → processa', async () => {
+    const { user } = await createUser({ credits: 0 });
+    const { paymentId } = await createPendingAsaasPix(user.id, 9.9, 140);
+
+    const wrong = await api()
+      .post('/api/webhooks/asaas')
+      .set('asaas-access-token', 'token-errado')
+      .send(asaasPayload(paymentId, 9.9));
+    expect(wrong.status).toBe(401);
+    expect(wrong.body.error).toBe('unauthorized webhook');
+
+    // Override (lido por request, não no boot): token de teste ≠ key real
+    process.env.WEBHOOK_TOKEN_OVERRIDE = 'wh-override-token';
+    try {
+      fetchMock().mockResolvedValueOnce(asaasPaymentApi('RECEIVED'));
+      const ok = await api()
+        .post('/api/webhooks/asaas')
+        .set('asaas-access-token', 'wh-override-token')
+        .send(asaasPayload(paymentId, 9.9));
+      expect(ok.status).toBe(200);
+      expect(ok.body.approved).toBe(true);
+    } finally {
+      delete process.env.WEBHOOK_TOKEN_OVERRIDE;
+    }
     expect(await getUserCredits(user.id)).toBe(140);
   });
 });

@@ -3,8 +3,10 @@
 // → read paymentId (= mpPaymentId = OpenPix correlationID, client-visible) → POST the
 // PUBLIC /api/webhooks/openpix with a forged {charge:{correlationID,status:'COMPLETED'},...}
 // → premium/credits without paying. Same for /api/webhooks/asaas (pay_*) and the plan
-// variant. The webhooks are unauthenticated and un-signed; the question is whether the
-// server-side provider re-check actually stops the forged payload.
+// variant. The OpenPix webhook is unauthenticated/un-signed (Asaas now ALSO requires
+// header asaas-access-token === ASAAS_API_KEY — 401 fail closed, see asaas-webhook.test);
+// the question here is whether the server-side provider re-check actually stops the
+// forged payload even when the attacker HAS the token (token vazado/cenário interno).
 // Provider API (globalThis.fetch) is mocked the same way as the project's own tests
 // (openpix-webhook.test.ts / asaas-webhook.test.ts patterns — helpers.mpResponse).
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
@@ -102,8 +104,10 @@ describe('PoC: webhook spoofing — premium/credits without payment', () => {
       pixCredits: 140,
     });
 
+    // Header VÁLIDO de propósito: atesta que MESMO com o token (vazamento interno) a
+    // defesa seguinte (confirmação no provider) continua bloqueando o payload forjado.
     fetchMock().mockResolvedValueOnce(asaasNotPaid());
-    const r = await api().post('/api/webhooks/asaas').send(asaasSpoof(paymentId, 9.9));
+    const r = await api().post('/api/webhooks/asaas').set('asaas-access-token', 'asaas-test-key').send(asaasSpoof(paymentId, 9.9));
     expect(r.status).toBe(400);
     expect(r.body.error).toBe('Pagamento não confirmado no provider.');
     expect(await getUserCredits(user.id)).toBe(0);

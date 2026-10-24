@@ -4,6 +4,8 @@
 //
 // SEGURANÇA (mesma defesa do OpenPix — o payload em si não vem assinado): só aprova
 // quando TODOS valem —
+//   0. header `asaas-access-token` BATE com o ASAAS_API_KEY (401 fail closed — docs
+//      Asaas: o webhook envia o access token da conta nesse header);
 //   1. existe Subscription PENDING com mpPaymentId == payment.id ("pay_..." — charge
 //      criada por nós; o id nunca é aceito do cliente);
 //   2. valor do pagamento (REAIS float → centavos) BATE com o registrado na Subscription;
@@ -19,6 +21,7 @@
 // Sem correlationID no payload → o kind (créditos/plano/API) deriva da PRÓPRIA
 // Subscription (tag mpPreferenceId='api_pack', periodDays>0, pixCredits) — drift-safe.
 import { Router } from 'express';
+import { timingSafeEqual } from 'node:crypto';
 import { prisma } from '../prisma';
 import { config, hasAsaas } from '../config';
 import { approvePendingSubscription } from '../utils/billingApproval';
@@ -30,7 +33,25 @@ const router = Router();
 // os demais são variantes aceitas por segurança — o evento continua sendo o filtro principal).
 const RECEIVED_STATUSES = new Set(['RECEIVED', 'RECEIVED_IN_CASH', 'CONFIRMED', 'DETERMINED']);
 
+/** Comparação constant-time (não vaza o token por timing de comparação byte a byte). */
+function tokenEquals(a: string, b: string): boolean {
+  const ba = Buffer.from(a);
+  const bb = Buffer.from(b);
+  return ba.length === bb.length && timingSafeEqual(ba, bb);
+}
+
 router.post('/asaas', async (req, res) => {
+  // AUTENTICAÇÃO DO WEBHOOK (audit financeiro §18 — gap D): o Asaas envia o header
+  // `asaas-access-token` com o access token da conta (mesmo valor do ASAAS_API_KEY).
+  // Header ausente, errado ou key NÃO configurada → 401 FAIL CLOSED (não processa,
+  // não consulta provider). WEBHOOK_TOKEN_OVERRIDE (env opcional, lida por request)
+  // permite token exclusivo de teste sem expor a key real.
+  const expectedWebhookToken = process.env.WEBHOOK_TOKEN_OVERRIDE?.trim() || config.asaasApiKey;
+  if (!expectedWebhookToken || !tokenEquals(req.get('asaas-access-token') ?? '', expectedWebhookToken)) {
+    console.warn('[asaas-webhook] 401 — asaas-access-token ausente/inválido (fail closed)');
+    res.status(401).json({ error: 'unauthorized webhook' });
+    return;
+  }
   try {
     const body = req.body ?? {};
     const payment = body.payment ?? {};
