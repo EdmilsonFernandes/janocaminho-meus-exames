@@ -58,6 +58,8 @@ interface SummaryReminderRef {
   title: string;
   endedAt: Date | null;
   doctorNote: string | null;
+  cid10Code: string | null;
+  cid10Desc: string | null;
   transcript: string | null; // DESCRIPTOGRAFADO aqui (só para o prompt — nunca persistido em texto)
 }
 
@@ -68,7 +70,7 @@ async function loadEndedTeleconsultaForDoctor(req: ConsultSummaryRequest, res: R
   const id = String(req.params.id);
   const row: any = await prisma.reminder.findUnique({
     where: { id },
-    select: { id: true, type: true, patientId: true, ownerId: true, title: true, endedAt: true, doctorNote: true, transcriptEnc: true, transcriptIv: true },
+    select: { id: true, type: true, patientId: true, ownerId: true, title: true, endedAt: true, doctorNote: true, cid10Code: true, cid10Desc: true, transcriptEnc: true, transcriptIv: true },
   }).catch((e: any) => /column .* does not exist/i.test(String(e?.message))
     ? prisma.reminder.findUnique({ where: { id }, select: { id: true, type: true, patientId: true, ownerId: true, title: true, endedAt: true } })
     : Promise.reject(e));
@@ -94,6 +96,8 @@ async function loadEndedTeleconsultaForDoctor(req: ConsultSummaryRequest, res: R
     title: row.title ?? '',
     endedAt: row.endedAt,
     doctorNote: row.doctorNote ?? null,
+    cid10Code: (row as any).cid10Code ?? null,
+    cid10Desc: (row as any).cid10Desc ?? null,
     transcript: row.transcriptEnc != null ? decryptPII(row.transcriptEnc, row.transcriptIv) : null,
   };
 }
@@ -158,6 +162,7 @@ function buildSummaryUserPrompt(r: SummaryReminderRef, examRequests: any[], exam
   const lines: string[] = [];
   lines.push(`MOTIVO DA CONSULTA (título do agendamento): ${r.title || 'não registrado'}`);
   lines.push(`NOTA DO MÉDICO SOBRE ESTA CONSULTA (QuickNote): ${r.doctorNote || 'não registrada'}`);
+  lines.push(`CID-10 REGISTRADO PELO MÉDICO (código oficial): ${r.cid10Code ? `${r.cid10Code}${r.cid10Desc ? ` — ${r.cid10Desc}` : ''}` : 'não registrado'}`);
   lines.push(`TRANSCRIÇÃO DA CHAMADA: ${r.transcript ? r.transcript.slice(0, 12_000) : 'AUSENTE — inclua a seção "Transcrição indisponível — registro manual"'}`);
   // Brief v2: registro estruturado do app — diferenciar [registro do app] de [relatado pelo
   // paciente]; a IA não inventa medicação/alergia que não consta aqui.

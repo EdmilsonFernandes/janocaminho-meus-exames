@@ -17,6 +17,7 @@ import { audit } from '../utils/audit';
 import { getTeleconsultaConfig } from '../utils/settings';
 import { computeJointMs, loadPresenceEvents, resolveAutoOutcome, type PresenceEvent } from '../utils/teleconsultaLifecycle';
 import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../utils/livekit';
+import { getCid10 } from '../utils/cid10';
 import { sendPushToUser } from '../utils/push';
 // F3 (20/10/26): gravação/transcrição premium + pós-chamada (contrato f3-arquitetura §3a-3d).
 import { decryptPII } from '../utils/crypto';
@@ -464,6 +465,8 @@ interface TeleconsultaRef {
   id: string;
   patientId: string;
   ownerId: string;
+  /** §19 G2 (QA 24/10): médico que agendou — alimenta o doctor do /summary. */
+  createdByDoctorId: string | null;
   recordConsentAt: Date | null;
   endedAt: Date | null;
   /** true = coluna endedAt ainda não existe no banco (legado pré-migration). */
@@ -482,7 +485,7 @@ interface TeleconsultaRef {
 async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Promise<TeleconsultaRef | undefined> {
   const id = String(req.params.id);
   const baseSelect = { id: true, type: true, patientId: true, ownerId: true };
-  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, recordConsentAt: true, endedAt: true, teleStatus: true, patientJoinedAt: true, jointMs: true } })
+  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, createdByDoctorId: true, recordConsentAt: true, endedAt: true, teleStatus: true, patientJoinedAt: true, jointMs: true } })
     .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
       ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
       : Promise.reject(e));
@@ -502,6 +505,9 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
     id: row.id,
     patientId: row.patientId,
     ownerId: row.ownerId,
+    // §19 G2 (QA 24/10): repassado p/ o /summary montar o doctor (nome/CRM/FOTO)
+    // do médico — sem isto o paciente via só a letra no lugar do avatar.
+    createdByDoctorId: (row as any).createdByDoctorId ?? null,
     recordConsentAt: row.recordConsentAt ?? null,
     endedAt: row.endedAt ?? null,
     endedAtColMissing: !('endedAt' in row),
@@ -588,12 +594,28 @@ router.put('/:id/doctor-note', requireJoinIdentity, async (req: JoinRequest, res
     if (req.joinRole !== 'doctor') { res.status(403).json({ error: 'A anotação clínica é do médico.' }); return; }
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const note = String(req.body?.note ?? '').slice(0, 4000);
-    await prisma.reminder.update({ where: { id: r.id }, data: { doctorNote: note || null } });
+    // CID-10 (P0.3, 24/10): ausente = não mexe; null/'' = limpa; código = valida na base
+    // oficial (dado estruturado confiável — o autocomplete é a única porta de entrada).
+    let cidData: { cid10Code: string | null; cid10Desc: string | null } | Record<string, never> = {};
+    if (req.body?.cid10Code !== undefined) {
+      const raw = String(req.body.cid10Code).trim();
+      if (raw === '') {
+        cidData = { cid10Code: null, cid10Desc: null };
+      } else {
+        const entry = getCid10(raw);
+        if (!entry) { res.status(400).json({ code: 'CID10_INVALID', error: 'Código CID-10 não consta na base oficial — use a busca.' }); return; }
+        cidData = { cid10Code: entry.c, cid10Desc: entry.d };
+      }
+    }
+    await prisma.reminder.update({ where: { id: r.id }, data: { doctorNote: note || null, ...cidData } });
     void audit('TELECONSULTA_DOCTOR_NOTE', req, {
       actorType: 'DOCTOR', actorId: req.doctorId, targetType: 'REMINDER', targetId: r.id,
-      after: { reminderId: r.id, chars: note.length },
+      after: { reminderId: r.id, chars: note.length, cid10: (cidData as any).cid10Code ?? undefined },
     });
-    res.json({ ok: true, doctorNote: note || null });
+    const saved = (cidData as any).cid10Code != null
+      ? { code: (cidData as any).cid10Code, desc: (cidData as any).cid10Desc }
+      : (cidData as any).cid10Code === null ? null : undefined;
+    res.json({ ok: true, doctorNote: note || null, cid10: saved });
   } catch (e) {
     next(e);
   }
@@ -666,7 +688,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true, doctorNote: true },
+      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true, doctorNote: true, cid10Code: true, cid10Desc: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
     const examRequests = await (prisma as any).examRequest.findMany({
@@ -718,8 +740,10 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       // do opt-in de gravação.
       consentAt: row?.consentAt ? new Date(row.consentAt).toISOString() : null,
       recordConsentAt: row?.recordConsentAt ? new Date(row.recordConsentAt).toISOString() : null,
-      // QuickNote: privado do médico — o paciente não lê a anotação clínica.
+      // QuickNote: privado do médico — o paciente não lê a anotação clínica. O CID-10
+      // segue a mesma regra (o paciente vê o diagnóstico no resumo APROVADO §14.1).
       doctorNote: req.joinRole === 'doctor' ? (row?.doctorNote ?? null) : undefined,
+      cid10: req.joinRole === 'doctor' ? (row?.cid10Code ? { code: row.cid10Code, desc: row.cid10Desc ?? '' } : null) : undefined,
       // §14.1 Resumo pós-consulta: médico vê draft+approved+versions; paciente SOMENTE
       // a versão aprovada (senão null — o rascunho nunca vaza ao paciente).
       consultSummary: await consultSummaryFor(r.id, req.joinRole === 'doctor' ? 'doctor' : 'patient'),

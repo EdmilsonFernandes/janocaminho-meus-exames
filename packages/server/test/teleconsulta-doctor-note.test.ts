@@ -53,4 +53,51 @@ describe('PUT /api/teleconsulta/:id/doctor-note', () => {
     expect(cleared.status).toBe(200);
     expect(cleared.body.doctorNote).toBeNull();
   });
+
+  // CID-10 (P0.3, 24/10): diagnóstico estruturado validado na base oficial DATASUS.
+  it('CID-10: salva válido, rejeita inválido, ausente não mexe, "" limpa; médico vê / paciente não', async () => {
+    const { token, docToken, r } = await seedTeleconsulta();
+
+    const ok = await api().put(`/api/teleconsulta/${r.id}/doctor-note`).set(H2(docToken)).send({ note: 'DM2 em uso de metformina', cid10Code: 'E11.9' });
+    expect(ok.status).toBe(200);
+    expect(ok.body.cid10).toMatchObject({ code: 'E11.9' });
+    const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { cid10Code: true, cid10Desc: true } });
+    expect(row?.cid10Code).toBe('E11.9');
+    expect(row?.cid10Desc).toContain('Diabetes');
+
+    // código inexistente → 400: o autocomplete é a única porta de entrada do dado
+    const bad = await api().put(`/api/teleconsulta/${r.id}/doctor-note`).set(H2(docToken)).send({ note: 'x', cid10Code: 'E11.99' });
+    expect(bad.status).toBe(400);
+    expect(bad.body.code).toBe('CID10_INVALID');
+
+    // nota SEM cid10Code no body NÃO apaga o CID salvo (ausente = não mexe)
+    const keep = await api().put(`/api/teleconsulta/${r.id}/doctor-note`).set(H2(docToken)).send({ note: 'só nota' });
+    expect(keep.status).toBe(200);
+    const kept = await prisma.reminder.findUnique({ where: { id: r.id }, select: { cid10Code: true } });
+    expect(kept?.cid10Code).toBe('E11.9');
+
+    // '' explícito limpa
+    const clr = await api().put(`/api/teleconsulta/${r.id}/doctor-note`).set(H2(docToken)).send({ note: 'x', cid10Code: '' });
+    expect(clr.status).toBe(200);
+    expect(clr.body.cid10).toBeNull();
+
+    // summary: mesma regra de privacidade do doctorNote (paciente lê o resumo APROVADO)
+    await api().put(`/api/teleconsulta/${r.id}/doctor-note`).set(H2(docToken)).send({ note: 'x', cid10Code: 'I10' });
+    const sumDoc = await api().get(`/api/teleconsulta/${r.id}/summary`).set(H2(docToken));
+    expect(sumDoc.body.cid10?.code).toBe('I10');
+    const sumPat = await api().get(`/api/teleconsulta/${r.id}/summary`).set(authHeader(token));
+    expect(sumPat.body.cid10).toBeUndefined();
+  });
+
+  it('GET /api/doctor/cid10 — autocomplete (base oficial, sem acento)', async () => {
+    const { docToken, token } = await seedTeleconsulta();
+    const s1 = await api().get('/api/doctor/cid10?q=hipertensao').set(H2(docToken));
+    expect(s1.status).toBe(200);
+    expect(s1.body.items.some((i: any) => i.c === 'I10')).toBe(true);
+    const s2 = await api().get('/api/doctor/cid10?q=e11').set(H2(docToken));
+    expect(s2.body.items[0].c).toBe('E11.0');
+    // paciente (token user) não usa a referência médica → 401/403
+    const denied = await api().get('/api/doctor/cid10?q=diabetes').set(authHeader(token));
+    expect([401, 403]).toContain(denied.status);
+  });
 });

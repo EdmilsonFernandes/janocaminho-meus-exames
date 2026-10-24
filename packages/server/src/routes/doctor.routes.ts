@@ -36,6 +36,7 @@ import { generateActionPlan } from '../analysis/risk-action-plan';
 import { generateConsolidatedSummary } from '../analysis/health-summary';
 import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
+import { searchCid10 } from '../utils/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
 import { resolveCommissionRule, coerceSnapshot } from '../finance/rules';
@@ -906,6 +907,14 @@ router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, n
       lastSyncAt,
     });
   } catch (e) { next(e); }
+});
+
+// CID-10 (P0.3, 24/10): autocomplete de diagnóstico — base oficial DATASUS (rev. 2008,
+// 12.451 subcategorias) vendorizada em utils/cid10.ts. Busca por código ou descrição
+// (sem acento). Referência clínica: não expõe dado de paciente — só requireDoctor.
+router.get('/cid10', requireDoctor, async (req: any, res) => {
+  const q = String(req.query?.q ?? '').slice(0, 60);
+  res.json({ items: searchCid10(q) });
 });
 
 // BRIEF V2 (24/10): contexto clínico do paciente pro médico — medicações em uso

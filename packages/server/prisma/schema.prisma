@@ -835,6 +835,11 @@ model Reminder {
   //    era localStorage "só neste aparelho" — P2-reviewer 19/10). Texto simples, sem PII
   //    além do que o médico escreve; visível só pro médico (summary role=doctor).
   doctorNote        String?
+  // CID-10 do diagnóstico registrado pelo médico (P0.3 estudo 24/10): código + descrição
+  // OFICIAL da base DATASUS vendorizada (utils/cid10.ts) — autocomplete na teleconsulta;
+  // dado estruturado longitudinal (evolução por CID, dossiê/glosa futuro).
+  cid10Code         String?
+  cid10Desc         String?
   // ── Ciclo de vida END (22/10/26): encerramento REAL da teleconsulta. endedAt≠null →
   //    join bloqueado (403 TELECONSULTA_ENDED — fim da re-entrada infinita). Gravado por
   //    POST /end (paciente ou médico), pelo feedback 1-toque ou pelo auto-end do job

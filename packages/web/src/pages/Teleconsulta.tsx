@@ -6,10 +6,11 @@
 // reload() (crasha o APK); zero jargão ("consulta/chamada", nunca room/track/token).
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Stack, TextField, Tooltip, Typography, useMediaQuery, useTheme, Avatar } from '@mui/material';
+import { Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, Paper, Stack, TextField, Tooltip, Typography, useMediaQuery, useTheme, Avatar } from '@mui/material';
 import CallEndIcon from '@mui/icons-material/CallEnd';
 import CallIcon from '@mui/icons-material/Call';
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import MicIcon from '@mui/icons-material/Mic';
 import MicOffIcon from '@mui/icons-material/MicOff';
 import VideocamIcon from '@mui/icons-material/Videocam';
@@ -300,6 +301,28 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [unsupported, setUnsupported] = useState(false);
   const [note, setNote] = useState('');
   const [noteSaved, setNoteSaved] = useState(false);
+  // ── CID-10 (P0.3, 24/10): diagnóstico estruturado no registro do médico —
+  // autocomplete contra a base oficial DATASUS (GET /api/doctor/cid10). Selecionado,
+  // vai no PUT doctor-note junto da nota; X limpa (cidDirty = usuário mexeu).
+  const [cidQuery, setCidQuery] = useState('');
+  const [cidResults, setCidResults] = useState<{ c: string; d: string }[]>([]);
+  const [cidSel, setCidSel] = useState<{ code: string; desc: string } | null>(null);
+  const [cidDirty, setCidDirty] = useState(false);
+  const cidSearchBusy = useRef(false);
+  // Debounce 350ms: busca na base oficial só com ≥2 caracteres e sem seleção ativa.
+  useEffect(() => {
+    if (role !== 'doctor' || cidSel || cidQuery.trim().length < 2) { setCidResults([]); return; }
+    const t = setTimeout(() => {
+      if (cidSearchBusy.current) return;
+      cidSearchBusy.current = true;
+      fetch(`${API_URL}/doctor/cid10?q=${encodeURIComponent(cidQuery.trim())}`, { headers: { Authorization: `Bearer ${authToken()}` } })
+        .then((r) => (r.ok ? r.json() : { items: [] }))
+        .then((d: { items?: { c: string; d: string }[] }) => setCidResults(d.items ?? []))
+        .catch(() => setCidResults([]))
+        .finally(() => { cidSearchBusy.current = false; });
+    }, 350);
+    return () => clearTimeout(t);
+  }, [cidQuery, cidSel, role]);
   // ── §14.1 Resumo pós-consulta (médico): gerar/editar/aprovar o rascunho da IA.
   // Erro de geração NUNCA bloqueia a nota manual (QuickNote segue independente).
   const [csBusy, setCsBusy] = useState<'generate' | 'save' | 'approve' | null>(null);
@@ -783,7 +806,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         // chegando depois de TrackSubscribed) ZERAVA o track e o vídeo sumia.
         const existing = cur.find((r) => r.identity === p.identity);
         const next = cur.filter((r) => r.identity !== p.identity);
-        next.push({ identity: p.identity, name: p.name || p.identity, isDoctor, track: existing?.track ?? null, muted: existing?.muted ?? false });
+        next.push({ identity: p.identity, name: p.name || p.identity, isDoctor, track: existing?.track ?? null, muted: existing?.muted ?? false, audio: existing?.audio ?? false });
         return next;
       });
     };
@@ -1142,6 +1165,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               // QuickNote: nota do PRONTUÁRIO (server) manda sobre o rascunho
               // local — o médico reabre a consulta e vê o que escreveu antes.
               if (d.doctorNote) setNote(d.doctorNote);
+              if (d.cid10?.code) setCidSel({ code: d.cid10.code, desc: d.cid10.desc });
             }
           })
           .catch(() => {});
@@ -1618,7 +1642,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       try {
         const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/doctor-note`, {
           method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
-          body: JSON.stringify({ note }),
+          body: JSON.stringify({ note, ...(cidDirty ? { cid10Code: cidSel?.code ?? '' } : {}) }),
         });
         if (!r.ok) throw new Error();
         setNoteSaved(true);
@@ -1629,7 +1653,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     try { localStorage.setItem(noteKey, note); } catch { /* noop */ }
     setNoteSaved(true);
     hapticSuccess();
-  }, [authToken, note, noteKey, reminderId, role]);
+  }, [authToken, cidDirty, cidSel, note, noteKey, reminderId, role]);
 
   // ── F3 (b/c): responder pedido do médico (3f PATCH /api/exam-requests/:id) ────
   // authorize = médico quer VER exame existente · schedule = exame novo (cria lembrete) · deny.
@@ -3031,6 +3055,45 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 slotProps={{ htmlInput: { 'aria-label': 'Anotações clínicas da consulta' } }}
                 sx={{ '& .MuiInputBase-root': { fontSize: 13.5, borderRadius: '12px' } }}
               />
+
+              {/* CID-10 (P0.3): diagnóstico estruturado — autocomplete na base oficial
+                  DATASUS. Chip quando selecionado; busca quando limpo. Só o médico. */}
+              {role === 'doctor' && (
+                <Box sx={{ mt: 1 }}>
+                  {cidSel ? (
+                    <Chip
+                      icon={<MedicalInformationIcon sx={{ fontSize: 15 }} />}
+                      label={`${cidSel.code} · ${cidSel.desc}`}
+                      onDelete={() => { setCidSel(null); setCidDirty(true); hapticLight(); }}
+                      sx={{ height: 30, maxWidth: '100%', fontSize: 12.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.12)', color: (t) => tealText(t.palette.mode), borderRadius: '10px', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
+                    />
+                  ) : (
+                    <>
+                      <TextField
+                        size="small" fullWidth value={cidQuery}
+                        onChange={(e) => setCidQuery(e.target.value)}
+                        placeholder="CID-10 do diagnóstico — código ou nome (ex.: E11, diabetes)"
+                        slotProps={{ htmlInput: { 'aria-label': 'Busca de código CID-10' } }}
+                        sx={{ '& .MuiInputBase-root': { fontSize: 13, borderRadius: '12px' } }}
+                      />
+                      {cidResults.length > 0 && (
+                        <Paper elevation={2} sx={{ mt: 0.5, borderRadius: '14px', overflow: 'hidden', border: '1px solid', borderColor: 'divider' }}>
+                          {cidResults.slice(0, 6).map((o) => (
+                            <Box
+                              key={o.c} component="button" type="button"
+                              onClick={() => { setCidSel({ code: o.c, desc: o.d }); setCidQuery(''); setCidResults([]); setCidDirty(true); hapticLight(); }}
+                              sx={{ display: 'block', width: '100%', textAlign: 'left', minHeight: 44, px: 1.5, py: 1, bgcolor: 'transparent', border: 0, borderBottom: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:last-child': { borderBottom: 0 }, '&:hover': { bgcolor: 'rgba(32,178,170,.07)' }, '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: -2 } }}
+                            >
+                              <Box component="span" sx={{ fontWeight: 800, fontSize: 13, color: (t) => tealText(t.palette.mode), mr: 1 }}>{o.c}</Box>
+                              <Box component="span" sx={{ fontSize: 12.5, color: 'text.primary' }}>{o.d}</Box>
+                            </Box>
+                          ))}
+                        </Paper>
+                      )}
+                    </>
+                  )}
+                </Box>
+              )}
 
               <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 1.5 }}>
                 <Button
