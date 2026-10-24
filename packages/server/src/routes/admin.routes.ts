@@ -1708,4 +1708,97 @@ router.post('/commission-rules', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ═════════════════════════════════════════════════════════════════════════════════
+// ONDA 3 — §18.8 VISÃO FINANCEIRA ADMIN (24/10/26). Leitura do ledger da onda 2.
+// Período = data do EVENTO financeiro (createdAt do lançamento). Caixa Asaas e
+// conciliação automática ficam p/ onda 4 (caixaAsaasCents/ultimaConciliacao = null —
+// declarado na UI, nunca zero falso).
+// Margem de contribuição = receita da plataforma LÍQUIDA (feeBearer=platform já
+// desconta a taxa da própria receita na conclusão; feeBearer=doctor tira do médico)
+// → margem = platform_revenue net. ≠ lucro líquido (caption obrigatória na UI).
+// ═════════════════════════════════════════════════════════════════════════════════
+router.get('/finance/overview', async (req: AuthedRequest, res, next) => {
+  try {
+    const now = new Date();
+    const parse = (v: unknown): Date | null => {
+      if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v.trim())) return null;
+      const d = new Date(v.trim() + 'T12:00:00');
+      return Number.isNaN(d.getTime()) ? null : d;
+    };
+    const from = parse(req.query.from) ?? new Date(now.getTime() - 30 * 86_400_000);
+    const to = new Date(parse(req.query.to) ?? now);
+    to.setHours(23, 59, 59, 999);
+    const doctorId = typeof req.query.doctorId === 'string' && req.query.doctorId.trim() ? req.query.doctorId.trim() : null;
+
+    // Filtro por médico: lançamentos ligados às teleconsultas DELE (toda linha do
+    // ledger de teleconsulta carrega reminderId; doctor_payable também doctorId).
+    let reminderIds: string[] | null = null;
+    if (doctorId) {
+      const rems = await prisma.reminder.findMany({ where: { createdByDoctorId: doctorId, type: 'teleconsulta' }, select: { id: true }, take: 5000 }).catch(() => []);
+      reminderIds = rems.map((r) => r.id);
+    }
+    const baseWhere = {
+      createdAt: { gte: from, lte: to },
+      ...(reminderIds ? { OR: [{ reminderId: { in: reminderIds } }, { account: 'doctor_payable', doctorId: doctorId! }] } : {}),
+    };
+    const agg = async (account: string) => {
+      const a = await prisma.ledgerEntry.aggregate({
+        where: { ...baseWhere, account },
+        _sum: { debitCents: true, creditCents: true },
+      }).catch(() => ({ _sum: { debitCents: 0, creditCents: 0 } }));
+      return { debitCents: a._sum.debitCents ?? 0, creditCents: a._sum.creditCents ?? 0, netCents: (a._sum.creditCents ?? 0) - (a._sum.debitCents ?? 0) };
+    };
+    const [patientReceived, reserve, doctorPayable, platformRevenue, providerFees, refund] = await Promise.all([
+      agg('patient_received'), agg('reserve'), agg('doctor_payable'), agg('platform_revenue'), agg('provider_fees'), agg('refund'),
+    ]);
+
+    // Série diária (volume recebido + receita da plataforma) — agrupada em JS p/
+    // ficar drift-safe (sem raw SQL de date_trunc).
+    const serieRows = await prisma.ledgerEntry.findMany({
+      where: { ...baseWhere, account: { in: ['patient_received', 'platform_revenue'] } },
+      select: { account: true, debitCents: true, creditCents: true, createdAt: true },
+      take: 20000,
+      orderBy: { createdAt: 'asc' },
+    }).catch(() => [] as { account: string; debitCents: number; creditCents: number; createdAt: Date }[]);
+    const byDay = new Map<string, { volumeCents: number; receitaCents: number }>();
+    for (const e of serieRows) {
+      const day = e.createdAt.toISOString().slice(0, 10);
+      const cur = byDay.get(day) ?? { volumeCents: 0, receitaCents: 0 };
+      if (e.account === 'patient_received') cur.volumeCents += e.debitCents;
+      if (e.account === 'platform_revenue') cur.receitaCents += e.creditCents;
+      byDay.set(day, cur);
+    }
+    const seriePorDia = Array.from(byDay.entries())
+      .sort(([a], [b]) => (a < b ? -1 : 1))
+      .map(([dia, v]) => ({ dia, ...v }));
+
+    // Divergências financeiras abertas (ExceptionQueue — triagem humana §18.3).
+    const [divergenciasAbertas, divergencias] = await Promise.all([
+      prisma.exceptionQueue.count({ where: { kind: { startsWith: 'teleconsulta_finance' }, status: 'open' } }).catch(() => 0),
+      prisma.exceptionQueue.findMany({
+        where: { kind: { startsWith: 'teleconsulta_finance' }, status: 'open' },
+        orderBy: { createdAt: 'desc' }, take: 20,
+        select: { id: true, kind: true, reminderId: true, createdAt: true },
+      }).catch(() => [] as { id: string; kind: string; reminderId: string | null; createdAt: Date }[]),
+    ]);
+
+    res.json({
+      periodo: { from: from.toISOString(), to: to.toISOString() },
+      doctorId,
+      volumeBrutoCents: patientReceived.debitCents, // total pago por pacientes (GMV — NÃO é receita)
+      aDevolverCents: reserve.netCents, // reservado p/ estorno ainda não executado
+      devolvidosCents: refund.netCents, // já devolvido (executado)
+      obrigacoesMedicosCents: doctorPayable.netCents, // a repassar (honorários)
+      receitaPlataformaCents: platformRevenue.netCents,
+      taxasCents: providerFees.netCents,
+      margemContribuicaoCents: platformRevenue.netCents, // ver comentário do bloco — ≠ lucro líquido
+      caixaAsaasCents: null, // onda 4
+      divergenciasAbertas,
+      divergencias: divergencias.map((d) => ({ id: d.id, kind: d.kind, reminderId: d.reminderId, createdAt: d.createdAt.toISOString() })),
+      seriePorDia,
+      ultimaConciliacao: null, // job não persiste timestamp ainda (onda 4) — declarado na UI
+    });
+  } catch (e) { next(e); }
+});
+
 export default router;

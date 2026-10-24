@@ -1019,6 +1019,12 @@ model Doctor {
 // Consulta particular (23/10/26): valor PADRÃO da teleconsulta particular (centavos).
 // Null/0 = sem cobrança. O valor é CONGELADO no Reminder no agendamento (paidAt/paymentRef lá).
 consultPriceCents  Int?
+// §18.5/§18.1 (Onda 3, 24/10/26): chave PIX de recebimento dos repasses (criptografada
+// AES-256-GCM como a PII — APP_ENCRYPTION_KEY). Exibição SEMPRE mascarada; troca exige
+// senha atual (auth reforçada) + audit TELECONSULTA_PAYOUT_DETAILS_CHANGED (não retroativo).
+payoutPixKeyEnc  String?
+payoutPixKeyIv   String?
+payoutPixKeyType String? // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
 
   @@map("doctors")
 }

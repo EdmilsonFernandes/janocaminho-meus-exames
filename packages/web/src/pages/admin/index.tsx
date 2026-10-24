@@ -53,6 +53,8 @@ import { PiiTab } from './PiiTab';
 import { LabsTab } from './LabsTab';
 import { PharmaciesTab } from './PharmaciesTab';
 import { TeleconsultasTab } from './TeleconsultasTab';
+import { TeleFinanceTab } from './TeleFinanceTab';
+import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
@@ -66,6 +68,7 @@ export type ModuleId =
   | 'doctors'
   | 'exams'
   | 'teleconsultas'
+  | 'telefinance'
   | 'support'
   | 'usage'
   | 'ia'
@@ -110,6 +113,7 @@ const MODULES: AdminModule[] = [
 
   // 4. Negócio & Ecossistema
   { id: 'financeiro', label: 'Planos & Receita (PIX/Cartão)', short: 'Financeiro', icon: <PaymentsOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'telefinance', label: 'Financeiro · Teleconsultas', short: 'Tele Fin', icon: <AccountBalanceOutlinedIcon />, group: 'Comercial & Negócio' },
   { id: 'config', label: 'Preços & Pacotes de Créditos', short: 'Preços', icon: <SettingsOutlinedIcon />, group: 'Comercial & Negócio' },
   { id: 'labs', label: 'Laboratórios Parceiros', short: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Comercial & Negócio' },
   { id: 'pharmacies', label: 'Farmácias & Parcerias', short: 'Farmácias', icon: <StorefrontOutlinedIcon />, group: 'Comercial & Negócio' },
@@ -403,6 +407,7 @@ export const AdminPage = () => {
             {mod === 'doctors' && <DoctorsTab />}
             {mod === 'exams' && <ExamsTab />}
             {mod === 'teleconsultas' && <TeleconsultasTab />}
+            {mod === 'telefinance' && <TeleFinanceTab />}
             {mod === 'labs' && <LabsTab />}
             {mod === 'pharmacies' && <PharmaciesTab />}
             {mod === 'ia' && <IaTab />}

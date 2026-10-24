@@ -40,6 +40,7 @@ import { priorityOf, refScaleSuspect } from '../utils/alertPriority';
 import { QuestionStatusBadge } from '../components/QuestionStatusBadge';
 import { confirmDialog, snackbar } from '../components/ConfirmDialog';
 import VideocamIcon from '@mui/icons-material/Videocam';
+import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
@@ -54,6 +55,7 @@ import { PortalInvites } from '../components/doctors/portal/PortalInvites';
 import { PortalQuestions } from '../components/doctors/portal/PortalQuestions';
 import { PortalOverview } from '../components/doctors/portal/PortalOverview';
 import { PortalTeleconsultas } from '../components/doctors/portal/PortalTeleconsultas';
+import { PortalFinanceiro } from '../components/doctors/portal/PortalFinanceiro';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DoctorPatientSwitcher } from '../components/doctors/DoctorPatientSwitcher';
@@ -397,7 +399,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   }, [teleOpen]);
   const openSeq = useRef(0); // guarda de race: só aplica estado do openPatient mais recente
   const [doctor, setDoctor] = useState<any>(null);
-  const [view, setView] = useState<'overview' | 'patients' | 'teleconsultas' | 'invites' | 'questions' | 'profile' | 'password'>('overview');
+  const [view, setView] = useState<'overview' | 'patients' | 'teleconsultas' | 'finance' | 'invites' | 'questions' | 'profile' | 'password'>('overview');
   const [photoVer, setPhotoVer] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarEl, setAvatarEl] = useState<HTMLElement | null>(null); // menu vertical do avatar (perfil/senha/sair)
@@ -903,6 +905,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <ListItemIcon sx={{ minWidth: 38 }}><Badge color="primary" badgeContent={doctorTele.length} max={99}><VideocamIcon sx={{ color: 'secondary.dark' }} /></Badge></ListItemIcon>
           <ListItemText primary="Teleconsultas" primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItemButton>
+        <ListItemButton selected={view === 'finance'} onClick={() => { setView('finance'); setSelected(null); setSelExam(null); onNav(); }}>
+          <ListItemIcon sx={{ minWidth: 38 }}><AccountBalanceWalletOutlinedIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon>
+          <ListItemText primary="Financeiro" primaryTypographyProps={{ fontWeight: 600 }} />
+        </ListItemButton>
         <ListItemButton selected={view === 'invites'} onClick={() => { setView('invites'); onNav(); }}>
           <ListItemIcon sx={{ minWidth: 38 }}><Badge color="error" variant="dot" invisible={invites.filter((i) => i.status === 'pending').length === 0}><PersonAddAlt1Icon sx={{ color: 'secondary.dark' }} /></Badge></ListItemIcon>
           <ListItemText primary={`Convites${invites.filter((i) => i.status === 'pending').length ? ` · ${invites.filter((i) => i.status === 'pending').length}` : ''}`} primaryTypographyProps={{ fontWeight: 600 }} />
@@ -939,6 +945,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'flex' }}>
       {/* Menu vertical do avatar (perfil/senha/sair) — aberto ao clicar no avatar do médico */}
       <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: '16px', minWidth: 210, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}>
+        <MenuItem onClick={() => { setView('finance'); setAvatarEl(null); }}><ListItemIcon><AccountBalanceWalletOutlinedIcon fontSize="small" /></ListItemIcon><ListItemText>Financeiro</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('password'); setAvatarEl(null); }}><ListItemIcon><LockIcon fontSize="small" /></ListItemIcon><ListItemText>Trocar senha</ListItemText></MenuItem>
         <Divider sx={{ my: 0.5 }} />
@@ -959,7 +966,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         {isDesktop ? (
           <Box sx={{ flex: 1 }}>
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'teleconsultas' ? 'Agenda de Teleconsultas' : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
+              <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 17, color: 'text.primary', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{view === 'overview' ? 'Painel' : view === 'patients' ? (selected ? 'Detalhe do paciente' : 'Pacientes') : view === 'teleconsultas' ? 'Agenda de Teleconsultas' : view === 'finance' ? 'Financeiro' : view === 'invites' ? 'Convites' : view === 'questions' ? 'Perguntas' : view === 'profile' ? 'Meu Perfil' : 'Trocar Senha'}</Typography>
               {planInfo?.isPremium && <Chip size="small" icon={<Diamond size={12} weight="fill" />} label="Pro" sx={{ bgcolor: 'rgba(99,102,241,.10)', color: (t: Theme) => premiumText(t.palette.mode), fontWeight: 700, height: 22, fontSize: 12, flexShrink: 0, '& .MuiChip-icon': { color: (t: Theme) => premiumText(t.palette.mode) } }} />}
             </Stack>
             {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
@@ -1069,6 +1076,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             initialSearch={teleSearch}
           />
         )}
+        {/* FINANCEIRO DO MÉDICO — §18.1 (Onda 3) */}
+        {view === 'finance' && <PortalFinanceiro token={token} />}
+
         {/* DR. EXAME PRO — banner premium (na aba Pacientes; no Painel fica integrado na coluna lateral) */}
         {planInfo && !planInfo.isPremium && view === 'patients' && !selected && !payDismissed && (
           <Box sx={{ mb: 2.5, p: 2.25, pr: 6, borderRadius: '20px', position: 'relative', background: 'linear-gradient(135deg,rgba(99,102,241,.10),rgba(99,102,241,.03))', border: '1px solid', borderColor: 'rgba(99,102,241,.25)', boxShadow: '0 8px 24px rgba(99,102,241,0.08)' }}>

@@ -37,7 +37,8 @@ import { generateSoap } from '../analysis/doctor-soap';
 import { suggestCid10 } from '../analysis/cid10';
 import { encryptedCpfData, maskStoredCpf } from '../utils/cpf';
 import { dedupSourceExams } from '../utils/dedup-source-exams';
-import { resolveCommissionRule } from '../finance/rules';
+import { resolveCommissionRule, coerceSnapshot } from '../finance/rules';
+import { computeCompletionSplit } from '../finance/ledger';
 import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
@@ -2038,6 +2039,275 @@ router.get('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => {
       take: 500,
     });
     res.json({ reviews });
+  } catch (e) { next(e); }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════
+// ONDA 3 — §18.1 FINANCEIRO DO MÉDICO (24/10/26). Só LEITURA do ledger da onda 2
+// (src/finance/*) + snapshot congelada por consulta; nenhum cálculo novo aqui além
+// de derivar saldos/estados por consulta. Período = data da CONSULTA (dueDate).
+// Sem jargão financeiro interno nas respostas (UI traduz; §18.11).
+// ═════════════════════════════════════════════════════════════════════════════════
+
+type FinanceStatus = 'previsto' | 'em_validacao' | 'liberado' | 'em_processamento' | 'repassado' | 'estornado';
+
+const PIX_KEY_TYPES = ['cpf', 'cnpj', 'email', 'phone', 'random'] as const;
+type PixKeyType = (typeof PIX_KEY_TYPES)[number];
+
+/** Chave PIX SEMPRE mascarada em toda resposta (§18.5) — nunca a chave completa. */
+export function maskPixKey(key: string, type: string | null | undefined): string {
+  const k = String(key ?? '').trim();
+  if (!k) return '';
+  if (type === 'email' && k.includes('@')) {
+    const domain = k.split('@')[1] || '';
+    const tld = domain.slice(domain.lastIndexOf('.'));
+    return '****@***' + tld;
+  }
+  if (/^\d+$/.test(k)) return '****' + k.slice(-4); // cpf/cnpj/telefone → últimos 4
+  if (k.includes('-')) return k.slice(0, 4) + '••••' + k.slice(-4); // chave aleatória
+  return '****';
+}
+
+/** from/to opcionais (YYYY-MM-DD); default = últimos 30 dias, `to` inclusivo (fim do dia). */
+function financeRange(q: Record<string, unknown>): { from: Date; to: Date } {
+  const now = new Date();
+  const parse = (v: unknown): Date | null => {
+    if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v.trim())) return null;
+    const d = new Date(v.trim() + 'T12:00:00');
+    return Number.isNaN(d.getTime()) ? null : d;
+  };
+  const from = parse(q.from) ?? new Date(now.getTime() - 30 * 86_400_000);
+  const to = new Date(parse(q.to) ?? now);
+  to.setHours(23, 59, 59, 999);
+  return { from, to };
+}
+
+interface FinanceRow {
+  reminderId: string;
+  title: string;
+  data: Date; // data da CONSULTA (dueDate) — base do período
+  valorContratadoCents: number;
+  descontosCents: number; // =0 por ora (sem descontos configuráveis na onda 3)
+  baseCents: number;
+  platformBps: number;
+  taxaPlataformaCents: number;
+  honorariosCents: number;
+  statusFinanceiro: FinanceStatus;
+  situacao: string; // texto curto da situação (sem jargão)
+  liberadoEm: Date | null;
+  payoutId: string | null;
+  repassadoEm: Date | null;
+}
+
+const STATUS_SITUACAO: Record<FinanceStatus, string> = {
+  previsto: 'Pago — aguardando a consulta ser realizada',
+  em_validacao: 'Atendimento concluído — em período de validação',
+  liberado: 'Disponível para repasse',
+  em_processamento: 'Repasse em processamento',
+  repassado: 'Repassado',
+  estornado: 'Devolvido (ou reservado para devolução) ao paciente',
+};
+
+/** Linhas financeiras por consulta do médico (dueDate no período, pagas). */
+async function doctorFinanceRows(doctorId: string, from: Date, to: Date): Promise<FinanceRow[]> {
+  const reminders = await prisma.reminder.findMany({
+    where: {
+      type: 'teleconsulta', createdByDoctorId: doctorId, consultPriceCents: { gt: 0 },
+      paidAt: { not: null }, dueDate: { gte: from, lte: to },
+    },
+    select: { id: true, title: true, dueDate: true, paidAt: true, teleStatus: true, consultPriceCents: true, commissionSnapshot: true, releaseEligibleAt: true },
+    orderBy: { dueDate: 'desc' },
+    take: 500,
+  });
+  if (!reminders.length) return [];
+  const ids = reminders.map((r) => r.id);
+  const [entries, payouts] = await Promise.all([
+    prisma.ledgerEntry.findMany({
+      where: { reminderId: { in: ids } },
+      select: { reminderId: true, txnId: true, account: true, debitCents: true, creditCents: true },
+    }).catch(() => [] as { reminderId: string | null; txnId: string; account: string; debitCents: number; creditCents: number }[]),
+    prisma.payout.findMany({ where: { reminderId: { in: ids } }, select: { id: true, reminderId: true, status: true, requestedAt: true, completedAt: true } }).catch(() => [] as { id: string; reminderId: string; status: string; requestedAt: Date; completedAt: Date | null }[]),
+  ]);
+  const byRem = new Map<string, { reminderId: string | null; txnId: string; account: string; debitCents: number; creditCents: number }[]>();
+  for (const e of entries) {
+    const list = byRem.get(e.reminderId ?? '') ?? [];
+    list.push(e);
+    byRem.set(e.reminderId ?? '', list);
+  }
+  const payoutByRem = new Map(payouts.map((p) => [p.reminderId, p]));
+  const now = Date.now();
+  const rows: FinanceRow[] = [];
+  for (const r of reminders) {
+    const total = r.consultPriceCents ?? 0;
+    const snap = coerceSnapshot(r.commissionSnapshot ?? (await resolveCommissionRule(doctorId)));
+    const split = computeCompletionSplit(total, snap);
+    const led = byRem.get(r.id) ?? [];
+    const hasRefund = led.some((e) => e.account === 'refund');
+    const hasReserve = led.some((e) => e.account === 'reserve');
+    const completion = led.find((e) => e.account === 'doctor_payable' && e.txnId.startsWith('completion_'));
+    const honorariosReais = completion ? completion.creditCents : null;
+    const payout = payoutByRem.get(r.id);
+    let status: FinanceStatus;
+    let liberadoEm: Date | null = null;
+    let repassadoEm: Date | null = null;
+    if (hasRefund || hasReserve) {
+      status = 'estornado';
+    } else if (r.teleStatus === 'completed') {
+      const rel = r.releaseEligibleAt ?? (r.paidAt ? new Date(r.paidAt.getTime() + snap.releaseDelayDays * 86_400_000) : null);
+      if (payout?.status === 'completed') { status = 'repassado'; repassadoEm = payout.completedAt; }
+      else if (payout && ['requested', 'processing', 'unknown'].includes(payout.status)) { status = 'em_processamento'; }
+      else { status = rel && rel.getTime() <= now ? 'liberado' : 'em_validacao'; liberadoEm = rel; }
+    } else {
+      status = 'previsto';
+    }
+    rows.push({
+      reminderId: r.id,
+      title: r.title || 'Consulta',
+      data: r.dueDate,
+      valorContratadoCents: total,
+      descontosCents: 0,
+      baseCents: total,
+      platformBps: snap.platformBps,
+      taxaPlataformaCents: split.platformGrossCents,
+      honorariosCents: status === 'estornado' ? 0 : (honorariosReais ?? split.doctorCents),
+      statusFinanceiro: status,
+      situacao: STATUS_SITUACAO[status],
+      liberadoEm,
+      payoutId: payout?.id ?? null,
+      repassadoEm,
+    });
+  }
+  return rows;
+}
+
+// Resumo por período — as 4 perguntas do médico (§18.11.3): a receber, a caminho,
+// já recebido e quando vem o próximo. Todos os valores = HONORÁRIOS do médico
+// (nunca o total pago pelo paciente).
+router.get('/finance/summary', requireDoctor, async (req: any, res, next) => {
+  try {
+    const { from, to } = financeRange(req.query);
+    const rows = await doctorFinanceRows(req.doctorId, from, to);
+    const sum = (st: FinanceStatus) => rows.filter((r) => r.statusFinanceiro === st).reduce((a, r) => a + r.honorariosCents, 0);
+    const previstosCents = sum('previsto');
+    const emValidacaoCents = sum('em_validacao');
+    const liberadosCents = sum('liberado');
+    const emProcessamentoCents = sum('em_processamento');
+    const repassadosCents = sum('repassado');
+
+    // Próximo repasse (estimativa): piso minPayoutCents da regra VIGENTE do médico.
+    // Liberado ≥ piso → pronto agora; senão a 1ª data de liberação que cruza o piso.
+    const rule = await resolveCommissionRule(req.doctorId);
+    let proximoRepasse: { quando: string; valorEstimadoCents: number } | null = null;
+    if (liberadosCents >= rule.minPayoutCents && liberadosCents > 0) {
+      proximoRepasse = { quando: new Date().toISOString(), valorEstimadoCents: liberadosCents };
+    } else {
+      let acc = liberadosCents;
+      const pendentes = rows
+        .filter((r) => r.statusFinanceiro === 'em_validacao' && r.liberadoEm)
+        .sort((a, b) => (a.liberadoEm as Date).getTime() - (b.liberadoEm as Date).getTime());
+      for (const p of pendentes) {
+        acc += p.honorariosCents;
+        if (acc >= rule.minPayoutCents) { proximoRepasse = { quando: (p.liberadoEm as Date).toISOString(), valorEstimadoCents: acc }; break; }
+      }
+    }
+
+    res.json({
+      periodo: { from: from.toISOString(), to: to.toISOString() },
+      periodoBase: 'data_da_consulta',
+      previstosCents, emValidacaoCents, liberadosCents, emProcessamentoCents, repassadosCents,
+      estornadosCents: rows.filter((r) => r.statusFinanceiro === 'estornado').reduce((a, r) => a + r.valorContratadoCents, 0),
+      proximoRepasse,
+    });
+  } catch (e) { next(e); }
+});
+
+// Extrato por consulta (§18.1): contratado/descontos/base/% plataforma/honorários/
+// situação + dados do repasse. `?format=csv` = export SEM dado clínico (título da
+// consulta ok; nunca notas/exames).
+router.get('/finance/statement', requireDoctor, async (req: any, res, next) => {
+  try {
+    const { from, to } = financeRange(req.query);
+    const status = typeof req.query.status === 'string' && req.query.status ? String(req.query.status) : null;
+    let rows = await doctorFinanceRows(req.doctorId, from, to);
+    if (status) rows = rows.filter((r) => r.statusFinanceiro === status);
+
+    if (req.query.format === 'csv') {
+      const brl = (c: number) => 'R$ ' + (c / 100).toFixed(2).replace('.', ',');
+      const dt = (d: Date) => d.toISOString().slice(0, 10).split('-').reverse().join('/');
+      const esc = (v: string) => v.replace(/;/g, ',').replace(/\r?\n/g, ' ');
+      const header = 'Data da consulta;Consulta;Situação;Valor contratado;Descontos;Base;Plataforma (%);Taxa da plataforma;Honorários;Repasse em';
+      const lines = rows.map((r) => [
+        dt(r.data), esc(r.title), STATUS_SITUACAO[r.statusFinanceiro], brl(r.valorContratadoCents), brl(r.descontosCents),
+        brl(r.baseCents), (r.platformBps / 100).toFixed(0) + '%', brl(r.taxaPlataformaCents), brl(r.honorariosCents),
+        r.repassadoEm ? dt(r.repassadoEm) : '',
+      ].join(';'));
+      const csv = '﻿' + [header].concat(lines).join('\r\n');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="extrato-financeiro.csv"');
+      res.send(csv);
+      return;
+    }
+
+    res.json({
+      periodo: { from: from.toISOString(), to: to.toISOString() },
+      periodoBase: 'data_da_consulta',
+      rows: rows.map((r) => ({ ...r, data: r.data.toISOString(), liberadoEm: r.liberadoEm ? r.liberadoEm.toISOString() : null, repassadoEm: r.repassadoEm ? r.repassadoEm.toISOString() : null })),
+    });
+  } catch (e) { next(e); }
+});
+
+// Dados de recebimento (§18.1/§18.5): chave PIX MASCARADA + histórico de trocas
+// (auditLog). Troca = auth reforçada (senha atual) + audit — nunca retroativo.
+router.get('/finance/payout-details', requireDoctor, async (req: any, res, next) => {
+  try {
+    const doc = await prisma.doctor.findUnique({
+      where: { id: req.doctorId },
+      select: { payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true },
+    });
+    const key = doc && doc.payoutPixKeyEnc ? decryptPII(doc.payoutPixKeyEnc, doc.payoutPixKeyIv) : null;
+    const changes = await prisma.auditLog.findMany({
+      where: { action: 'TELECONSULTA_PAYOUT_DETAILS_CHANGED', targetId: req.doctorId },
+      orderBy: { createdAt: 'desc' }, take: 20,
+      select: { createdAt: true, after: true },
+    }).catch(() => [] as { createdAt: Date; after: unknown }[]);
+    res.json({
+      hasPixKey: !!key,
+      pixKeyMasked: key ? maskPixKey(key, doc ? doc.payoutPixKeyType : null) : null,
+      pixKeyType: doc ? doc.payoutPixKeyType : null,
+      changes: changes.map((c) => ({ when: c.createdAt.toISOString(), after: (c.after as any) ? (c.after as any).pixKeyMasked : null })),
+    });
+  } catch (e) { next(e); }
+});
+
+// Troca da chave PIX — auth reforçada (§18.5): exige a senha ATUAL; grava audit
+// TELECONSULTA_PAYOUT_DETAILS_CHANGED (before/after mascarados); resposta mascarada.
+router.put('/finance/payout-details', requireDoctor, async (req: any, res, next) => {
+  try {
+    const body = req.body ?? {};
+    const currentPassword = body.currentPassword;
+    const key = String(body.pixKey ?? '').trim();
+    const type = String(body.pixKeyType ?? '').trim() as PixKeyType;
+    if (!currentPassword || typeof currentPassword !== 'string') { res.status(400).json({ error: 'Informe sua senha atual para confirmar a troca.' }); return; }
+    if (!PIX_KEY_TYPES.includes(type)) { res.status(400).json({ error: 'Tipo de chave PIX inválido.' }); return; }
+    if (key.length < 5) { res.status(400).json({ error: 'Chave PIX inválida.' }); return; }
+    if (type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(key)) { res.status(400).json({ error: 'E-mail inválido para chave PIX.' }); return; }
+    if ((type === 'cpf' || type === 'phone') && !/^\d{10,11}$/.test(key.replace(/\D/g, ''))) { res.status(400).json({ error: 'Chave PIX inválida para o tipo escolhido.' }); return; }
+    if (type === 'cnpj' && !/^\d{14}$/.test(key.replace(/\D/g, ''))) { res.status(400).json({ error: 'CNPJ deve ter 14 dígitos.' }); return; }
+
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { passwordHash: true, payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true } });
+    if (!doc || !(await comparePassword(currentPassword, doc.passwordHash))) {
+      res.status(403).json({ error: 'Senha atual incorreta.' }); return;
+    }
+    const enc = encryptPII(type === 'email' ? key.toLowerCase() : key);
+    if (!enc) { res.status(500).json({ error: 'Falha ao proteger a chave PIX.' }); return; }
+    const prevKey = doc.payoutPixKeyEnc ? decryptPII(doc.payoutPixKeyEnc, doc.payoutPixKeyIv) : null;
+    await prisma.doctor.update({ where: { id: req.doctorId }, data: { payoutPixKeyEnc: enc.enc, payoutPixKeyIv: enc.iv, payoutPixKeyType: type } });
+    await audit('TELECONSULTA_PAYOUT_DETAILS_CHANGED', req, {
+      actorType: 'DOCTOR', actorId: req.doctorId, targetType: 'DOCTOR', targetId: req.doctorId,
+      before: prevKey ? { pixKeyMasked: maskPixKey(prevKey, doc.payoutPixKeyType), pixKeyType: doc.payoutPixKeyType } : null,
+      after: { pixKeyMasked: maskPixKey(key, type), pixKeyType: type },
+    });
+    res.json({ hasPixKey: true, pixKeyMasked: maskPixKey(key, type), pixKeyType: type });
   } catch (e) { next(e); }
 });
 
