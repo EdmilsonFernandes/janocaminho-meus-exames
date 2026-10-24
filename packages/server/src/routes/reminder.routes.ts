@@ -72,6 +72,10 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 
     const enriched = rows.map((r) => ({
       ...r,
+      // B1 (§19, 24/10 reabertura): consulta particular PENDENTE não entrega o link
+      // externo na lista — o Meet/Teams é a sala do produto, e o 402 do /join é o
+      // único caminho de entrada até o paidAt. Paga (ou sem cobrança) → link normal.
+      ...(r.type === 'teleconsulta' && (r.consultPriceCents ?? 0) > 0 && !r.paidAt ? { linkUrl: null } : {}),
       doctor: r.createdByDoctorId ? docMap[r.createdByDoctorId] ?? null : null,
       consultSummaryApproved: approvedSummaryIds.has(r.id),
     }));

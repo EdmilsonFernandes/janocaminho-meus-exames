@@ -104,7 +104,12 @@ export async function rollRecurringReminders(now: number): Promise<void> {
           endedAt: null,
           // Lifecycle v2 (24/10): próxima ocorrência nasce 'scheduled', sem presença
           // e sem tempo conjunto da ocorrência anterior.
-          teleStatus: 'scheduled', patientJoinedAt: null, jointMs: 0 },
+          teleStatus: 'scheduled', patientJoinedAt: null, jointMs: 0,
+          // B1 (§19, 24/10 reabertura): o PIX pago vale UMA ocorrência — sem isto a
+          // série recorrente rolava com o paidAt da anterior e o paciente entrava na
+          // nova consulta SEM pagar (o valor continua cobrado: consultPriceCents
+          // permanece; o /join volta a exigir 402 até o PIX da nova ocorrência).
+          paidAt: null, paymentRef: null },
       }).catch((e) => { console.error('[reminders] roll falhou:', r.id, e?.message); });
     }
   } while (true);
