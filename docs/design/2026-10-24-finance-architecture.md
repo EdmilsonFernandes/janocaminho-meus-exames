@@ -262,3 +262,6 @@ model DoctorPayoutAccount {
 - D8: estorno parcial: **plataforma absorve taxas não devolvidas**
 - D9: teleconsulta: **Asaas-only**
 Blocos externos restantes: D5 (contador) e D6 (suporte Asaas) — não travam ondas 2-3.
+
+## D6 RESOLVIDO (24/10, verificação real na API pela EC2)
+- GET /v3/transfers → 200 (habilitado; totalCount 0). Key .env `$$` = escape docker-compose (runtime sadio, `$aact_p…` produção). Token SMS: só um envio real revela — Onda 4 trata falha como estado 'unknown' → ExceptionQueue (nunca reenvia cego).
