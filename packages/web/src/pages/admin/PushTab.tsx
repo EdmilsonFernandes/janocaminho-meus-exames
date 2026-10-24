@@ -91,14 +91,20 @@ const segLabel = (g: string, v: unknown) => {
 
 export const PushTab = () => {
   const notify = useNotify();
+  const [audienceMode, setAudienceMode] = useState<'global' | 'segmented'>('global');
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [route, setRoute] = useState('');
   const [audience, setAudience] = useState<Audience>({});
   const [scheduleAt, setScheduleAt] = useState('');
   const [sending, setSending] = useState(false);
-  const [preview, setPreview] = useState<{ users: number; devices: number } | null>(null);
+  const [preview, setPreview] = useState<{
+    users: number;
+    devices: number;
+    sampleUsers?: Array<{ id: string; name: string | null; email: string; planExpiresAt: Date | null; deviceCount: number; platforms: string[] }>;
+  } | null>(null);
   const [previewing, setPreviewing] = useState(false);
+  const [showUserList, setShowUserList] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   useEffect(() => { fetch(`${API_URL}/admin/push/campaigns`, { headers: { Authorization: `Bearer ${token()}` } }).then((r) => r.ok ? r.json() : { campaigns: [] }).then((d) => setCampaigns(d.campaigns ?? [])).catch(() => {}); }, []);
@@ -127,20 +133,22 @@ export const PushTab = () => {
     finally { setTxtSaving(false); }
   };
 
-  const segmented = hasAudience(audience);
+  const segmented = audienceMode === 'segmented' && hasAudience(audience);
 
-  // Preview de audiência com debounce (400ms) — só aposta contagem, nunca envia.
+  // Preview de audiência com debounce (400ms)
   const refreshPreview = useCallback(() => {
     setPreviewing(true);
+    const activeFilter = audienceMode === 'global' ? {} : audience;
     fetch(`${API_URL}/admin/push/audience-preview`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-      body: JSON.stringify({ filter: audience }),
+      body: JSON.stringify({ filter: activeFilter }),
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setPreview(d ? { users: d.users ?? 0, devices: d.devices ?? 0 } : null))
+      .then((d) => setPreview(d ? { users: d.users ?? 0, devices: d.devices ?? 0, sampleUsers: d.sampleUsers ?? [] } : null))
       .catch(() => setPreview(null))
       .finally(() => setPreviewing(false));
-  }, [audience]);
+  }, [audience, audienceMode]);
+
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -148,9 +156,15 @@ export const PushTab = () => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [refreshPreview]);
 
+  // Escolha de modelo: NUNCA altera o público se o usuário estiver em Global!
   const pick = (t: typeof TEMPLATES[number]) => {
-    setTitle(t.title); setBody(t.body); setRoute(t.route ?? ''); setResult(null);
-    if (t.aud) setAudience(t.aud);
+    setTitle(t.title);
+    setBody(t.body);
+    setRoute(t.route ?? '');
+    setResult(null);
+    if (audienceMode === 'segmented' && t.aud) {
+      setAudience(t.aud);
+    }
   };
 
   const toggle = (group: keyof Audience, value: string) =>
@@ -162,10 +176,10 @@ export const PushTab = () => {
     if (when && (Number.isNaN(when.getTime()) || when.getTime() < Date.now())) { notify('Horário de agendamento inválido (passado).', { type: 'warning' }); return; }
 
     const audDesc = segmented
-      ? `público: ${AUDIENCE_GROUPS.filter((g) => audience[g.key]).map((g) => g.options.find((o) => o.value === audience[g.key])?.label).join(' × ')}${preview ? ` (${preview.users} usuários)` : ''}`
-      : 'TODOS os dispositivos';
+      ? `público segmentado: ${AUDIENCE_GROUPS.filter((g) => audience[g.key]).map((g) => g.options.find((o) => o.value === audience[g.key])?.label).join(' × ')}${preview ? ` (${preview.users} usuários)` : ''}`
+      : `TODOS os usuários cadastrados (${preview?.users ?? 0} pessoas, ${preview?.devices ?? 0} aparelhos ativos)`;
     const whenDesc = when ? ` — agendada p/ ${when.toLocaleString('pt-BR')}` : '';
-    if (!(await confirmDialog({ title: when ? 'Agendar push' : 'Enviar push', message: <>Enviar pra <b>{audDesc}</b>{whenDesc}?<br /><br /><b>"{title.trim()}"</b><br />{body.trim()}</>, confirmLabel: when ? 'Agendar' : 'Enviar', tone: 'warning' }))) return;
+    if (!(await confirmDialog({ title: when ? 'Agendar push' : 'Enviar push agora', message: <>Enviar para <b>{audDesc}</b>{whenDesc}?<br /><br /><b>"{title.trim()}"</b><br />{body.trim()}</>, confirmLabel: when ? 'Agendar' : 'Enviar push', tone: 'warning' }))) return;
 
     setSending(true);
     try {
@@ -182,7 +196,7 @@ export const PushTab = () => {
       if (r.ok) {
         setResult(d.scheduled
           ? `⏰ Agendada p/ ${new Date(d.at).toLocaleString('pt-BR')}.`
-          : `✅ Enviado pra ${d.sent ?? 0} ${d.sent === 1 ? 'usuário' : 'usuários'}.`);
+          : `✅ Enviado com sucesso pra ${d.sent ?? 0} ${d.sent === 1 ? 'usuário' : 'usuários'}.`);
         notify(d.scheduled ? 'Campanha agendada.' : `Push enviado pra ${d.sent ?? 0}.`, { type: 'success' });
         fetch(`${API_URL}/admin/push/campaigns`, { headers: { Authorization: `Bearer ${token()}` } }).then((rr) => rr.ok ? rr.json() : { campaigns: [] }).then((dd) => setCampaigns(dd.campaigns ?? [])).catch(() => {});
       }
@@ -193,93 +207,231 @@ export const PushTab = () => {
 
   return (
     <Box>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-        Campanhas por <strong>público-alvo</strong> (plano, engajamento, exames, atividade do celular) ou <strong>global</strong> sem público. Sempre com preview de audiência antes de disparar.
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Dispare notificações para <strong>todos os usuários</strong> ou filtre por <strong>segmentos específicos</strong>. Com lista transparente de destinatários e pré-visualização em tempo real.
       </Typography>
 
-      {/* ── SEÇÃO 1: ENVIAR CAMPANHA ── */}
-      <Box sx={{ p: 2, borderRadius: '14px', border: '1px solid', borderColor: 'divider', mb: 2.5 }}>
-      <Typography sx={{ fontWeight: 800, mb: 0.5 }}>📣 Enviar campanha</Typography>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>Público → modelo ou texto → preview → disparo.</Typography>
+      {/* ── CARD PRINCIPAL COM FLUXO EM 3 PASSOS ── */}
+      <Box sx={{ p: { xs: 2, sm: 3 }, borderRadius: '18px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mb: 3, boxShadow: '0 4px 20px rgba(0,0,0,0.03)' }}>
 
-      {/* PÚBLICO-ALVO */}
-      <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>🎯 Público-alvo</Typography>
-      <Stack spacing={1} sx={{ mb: 1.5 }}>
-        {/* GLOBAL explícito (28/09, pedido do dono): antes "sem público = global" era
-            implícito — agora é uma opção visível de 1 clique, destacada. */}
-        <Stack direction="row" spacing={0.75} alignItems="center">
-          <Chip size="small" clickable onClick={() => setAudience({})} aria-pressed={!segmented}
-            label="🌍 Global — TODOS os usuários"
-            sx={{ height: 32, fontSize: 13, fontWeight: !segmented ? 800 : 700, bgcolor: !segmented ? 'rgba(32,178,170,.22)' : 'rgba(32,178,170,.06)', color: '#178f89', border: !segmented ? '2px solid rgba(32,178,170,.6)' : '1px solid rgba(32,178,170,.18)', '&:hover': { bgcolor: 'rgba(32,178,170,.16)' } }} />
-          {!segmented && <Typography variant="caption" sx={{ color: 'text.secondary' }}>sem filtros — broadcast p/ todos os dispositivos</Typography>}
-        </Stack>
-        {AUDIENCE_GROUPS.map((g) => (
-          <Stack key={g.key} direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
-            <Typography variant="caption" sx={{ width: 130, color: 'text.secondary', fontWeight: 700, flexShrink: 0 }}>{g.label}</Typography>
-            {g.options.map((o) => {
-              const on = audience[g.key] === o.value;
-              return (
-                <Chip key={o.value} size="small" clickable onClick={() => toggle(g.key, o.value)} aria-pressed={on} label={o.label}
-                  sx={{ height: 28, fontSize: 12, fontWeight: on ? 800 : 600, bgcolor: on ? 'rgba(32,178,170,.18)' : 'rgba(32,178,170,.06)', color: '#178f89', border: on ? '1.5px solid rgba(32,178,170,.5)' : '1px solid rgba(32,178,170,.18)', '&:hover': { bgcolor: 'rgba(32,178,170,.14)' } }} />
-              );
-            })}
+        {/* ── PASSO 1: DESTINATÁRIOS ── */}
+        <Box sx={{ pb: 3, mb: 3, borderBottom: '1px dashed', borderColor: 'divider' }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: '#178f89', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>1</Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>Escolha o público (Para quem enviar?)</Typography>
           </Stack>
-        ))}
-      </Stack>
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-        {previewing && <CircularProgress size={16} sx={{ color: '#178f89' }} />}
-        {!previewing && preview && (
-          <Alert severity={preview.devices > 0 ? 'info' : 'warning'} icon={<GroupsIcon fontSize="small" />} sx={{ py: 0.25, '.MuiAlert-message': { padding: 0, fontSize: 13 } }}>
-            {preview.users === 0 && preview.devices === 0 ? (
-              'Nenhum usuário alcançável ainda'
-            ) : (
-              <>
-                <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s){segmented ? '' : ' (global)'}
-                {preview.users > 0 && preview.devices === 0 && ' — push exige dispositivo registrado'}
-              </>
+
+          {/* Seletores principais de Modo */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 1.5, mb: 2 }}>
+            <Box
+              onClick={() => { setAudienceMode('global'); setAudience({}); }}
+              sx={{
+                p: 2, borderRadius: '14px', cursor: 'pointer', transition: 'all .2s ease',
+                border: '2px solid',
+                borderColor: audienceMode === 'global' ? '#178f89' : 'divider',
+                bgcolor: audienceMode === 'global' ? 'rgba(32,178,170,.08)' : 'background.default',
+                '&:hover': { borderColor: '#178f89' },
+              }}
+            >
+              <Typography sx={{ fontWeight: 800, fontSize: 15, color: audienceMode === 'global' ? '#178f89' : 'text.primary', mb: 0.5 }}>
+                🌍 Enviar para TODO MUNDO (Global)
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Dispara para todos os usuários cadastrados que possuem celulares com token push ativo.
+              </Typography>
+            </Box>
+
+            <Box
+              onClick={() => setAudienceMode('segmented')}
+              sx={{
+                p: 2, borderRadius: '14px', cursor: 'pointer', transition: 'all .2s ease',
+                border: '2px solid',
+                borderColor: audienceMode === 'segmented' ? '#178f89' : 'divider',
+                bgcolor: audienceMode === 'segmented' ? 'rgba(32,178,170,.08)' : 'background.default',
+                '&:hover': { borderColor: '#178f89' },
+              }}
+            >
+              <Typography sx={{ fontWeight: 800, fontSize: 15, color: audienceMode === 'segmented' ? '#178f89' : 'text.primary', mb: 0.5 }}>
+                🎯 Filtrar por Segmento Específico
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                Filtre por plano (Free/Premium), sumidos (14d+), exame alterado ou atividade do Health Connect.
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Filtros de segmento (só exibidos no modo segmentado) */}
+          {audienceMode === 'segmented' && (
+            <Box sx={{ p: 2, borderRadius: '14px', bgcolor: 'action.hover', mb: 2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', display: 'block', mb: 1, textTransform: 'uppercase' }}>
+                Filtros de Segmentação:
+              </Typography>
+              <Stack spacing={1}>
+                {AUDIENCE_GROUPS.map((g) => (
+                  <Stack key={g.key} direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
+                    <Typography variant="caption" sx={{ width: 130, color: 'text.secondary', fontWeight: 700, flexShrink: 0 }}>{g.label}</Typography>
+                    {g.options.map((o) => {
+                      const on = audience[g.key] === o.value;
+                      return (
+                        <Chip key={o.value} size="small" clickable onClick={() => toggle(g.key, o.value)} aria-pressed={on} label={o.label}
+                          sx={{ height: 28, fontSize: 12, fontWeight: on ? 800 : 600, bgcolor: on ? 'rgba(32,178,170,.22)' : 'background.paper', color: on ? '#0f5f5a' : 'text.primary', border: on ? '1.5px solid #178f89' : '1px solid rgba(0,0,0,0.12)', '&:hover': { bgcolor: 'rgba(32,178,170,.14)' } }} />
+                      );
+                    })}
+                  </Stack>
+                ))}
+              </Stack>
+            </Box>
+          )}
+
+          {/* Barra de contagem e botão de inspeção de destinatários */}
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.18)' }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {previewing ? (
+                <CircularProgress size={18} sx={{ color: '#178f89' }} />
+              ) : (
+                <GroupsIcon sx={{ color: '#178f89', fontSize: 20 }} />
+              )}
+              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: '#0f5f5a' }}>
+                {preview ? (
+                  <>Destinatários alcançáveis: <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s) com push ativo</>
+                ) : (
+                  'Calculando audiência…'
+                )}
+              </Typography>
+            </Stack>
+
+            {preview && preview.users > 0 && (
+              <Button size="small" variant="outlined" onClick={() => setShowUserList((v) => !v)}
+                sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '8px', borderColor: '#178f89', color: '#178f89' }}>
+                {showUserList ? 'Ocultar lista de pessoas ▲' : `Ver quem são os ${preview.users} destinatários ▼`}
+              </Button>
             )}
-          </Alert>
-        )}
-        {segmented && <Chip size="small" label="cap: 1 push manual/usuário/semana" variant="outlined" sx={{ height: 24, fontSize: 12, color: 'text.secondary' }} />}
-      </Stack>
-      {!segmented && (
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-          Sem público selecionado = <strong>global</strong> (todos os dispositivos, sem cap anti-spam).
-        </Typography>
-      )}
+          </Stack>
 
-      {/* TEMPLATES */}
-      <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>📋 Modelos prontos <Typography component="span" variant="caption" color="text.secondary">(o marcado com 🎯 pré-seleciona o público)</Typography></Typography>
-      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
-        {TEMPLATES.map((t) => (
-          <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${chipTitle(t.title)}${t.aud ? ' 🎯' : ''}`}
-            sx={{ height: 36, fontSize: 13, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.16)' } }} />
-        ))}
-      </Stack>
+          {/* Tabela transparente de destinatários (expandível) */}
+          {showUserList && preview?.sampleUsers && preview.sampleUsers.length > 0 && (
+            <Box sx={{ mt: 1.5, borderRadius: '12px', overflow: 'hidden', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+              <Box sx={{ px: 2, py: 1, bgcolor: 'action.hover', borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase' }}>
+                  Usuários que receberão este disparo (amostra de até 50):
+                </Typography>
+              </Box>
+              <Box sx={{ maxHeight: 220, overflowY: 'auto' }}>
+                {preview.sampleUsers.map((u) => {
+                  const isPremium = u.planExpiresAt && new Date(u.planExpiresAt).getTime() > Date.now();
+                  return (
+                    <Stack key={u.id} direction="row" justifyContent="space-between" alignItems="center" sx={{ px: 2, py: 1, borderBottom: '1px solid rgba(0,0,0,0.05)', fontSize: 13 }}>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary' }}>{u.name || 'Sem nome'}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>{u.email}</Typography>
+                      </Box>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Chip size="small" label={isPremium ? 'Premium' : 'Free'} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: isPremium ? 'rgba(32,178,170,.15)' : 'action.selected' }} />
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+                          📱 {u.deviceCount} aparelho(s) {u.platforms.length ? `(${u.platforms.join(', ')})` : ''}
+                        </Typography>
+                      </Stack>
+                    </Stack>
+                  );
+                })}
+              </Box>
+            </Box>
+          )}
+        </Box>
 
-      <Stack spacing={1.5}>
-        <TextField label="Título" value={title} onChange={(e) => setTitle(e.target.value)} size="small" fullWidth />
-        <TextField label="Corpo da mensagem" value={body} onChange={(e) => setBody(e.target.value)} size="small" fullWidth multiline minRows={2} helperText="Merge fields: {{nome}} · {{streak}} (dias seguidos) · {{passosOntem}} — resolvidos por usuário no envio." />
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-          <TextField label="Tela ao tocar (opcional)" value={route} onChange={(e) => setRoute(e.target.value)} size="small" fullWidth placeholder="/planos, /exams, /evolucao…" />
-          <TextField label="Agendar (opcional)" type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} size="small" fullWidth
-            slotProps={{ htmlInput: { min: new Date(Date.now() + 5 * 60000).toISOString().slice(0, 16) } }}
-            helperText={segmented ? 'Dispara sozinho na hora.' : 'Só com público selecionado.'} InputLabelProps={{ shrink: true }} />
-        </Stack>
-      </Stack>
+        {/* ── PASSO 2: MENSAGEM & PRÉVIA NO SMARTPHONE ── */}
+        <Box sx={{ pb: 3, mb: 3, borderBottom: '1px dashed', borderColor: 'divider' }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: '#178f89', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>2</Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>Mensagem & Prévia no Celular</Typography>
+          </Stack>
 
-      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-        <Button variant="contained" startIcon={sending ? <CircularProgress size={18} color="inherit" /> : (scheduleAt && segmented ? <ScheduleIcon /> : <SendIcon />)} onClick={send} disabled={sending || (!!scheduleAt && !segmented)}
-          sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>
-          {sending ? 'Enviando…' : scheduleAt && segmented ? 'Agendar campanha' : 'Enviar push'}
-        </Button>
-        {result && <Alert severity="success" icon={false} sx={{ py: 0.5, '.MuiAlert-message': { padding: 0 } }}>{result}</Alert>}
+          {/* Modelos prontos que NÃO mudam o público em Global */}
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Modelos prontos (clique para preencher o texto — seu público selecionado acima será mantido):
+          </Typography>
+          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mb: 2.5 }}>
+            {TEMPLATES.map((t) => (
+              <Chip key={t.title} clickable onClick={() => pick(t)} label={`${t.emoji} ${chipTitle(t.title)}`}
+                sx={{ height: 32, fontSize: 12.5, bgcolor: 'rgba(32,178,170,.08)', color: '#178f89', fontWeight: 600, '&:hover': { bgcolor: 'rgba(32,178,170,.18)' } }} />
+            ))}
+          </Stack>
+
+          {/* Grade: Formulário à esquerda + Celular à direita */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 0.8fr' }, gap: 3, alignItems: 'start' }}>
+            <Stack spacing={1.5}>
+              <TextField label="Título da notificação" value={title} onChange={(e) => setTitle(e.target.value)} size="small" fullWidth placeholder="Ex.: Exames de rotina em dia? 🩺" />
+              <TextField label="Corpo da mensagem" value={body} onChange={(e) => setBody(e.target.value)} size="small" fullWidth multiline minRows={3} helperText="Placeholders automáticos: {{nome}} · {{streak}} (dias seguidos) · {{passosOntem}} — preenchidos por usuário no envio." />
+              <TextField label="Tela ao tocar (opcional)" value={route} onChange={(e) => setRoute(e.target.value)} size="small" fullWidth placeholder="/exams, /evolucao, /planos, /linha-do-tempo…" />
+            </Stack>
+
+            {/* Mockup de celular com o push ao vivo */}
+            <Box sx={{
+              bgcolor: '#0f172a', borderRadius: '24px', p: 2, color: '#fff',
+              boxShadow: '0 16px 36px rgba(0,0,0,0.18)', maxWidth: 330, mx: 'auto', width: '100%',
+              border: '2px solid rgba(255,255,255,0.1)'
+            }}>
+              <Stack direction="row" justifyContent="space-between" sx={{ fontSize: 11, color: '#94a3b8', mb: 1.5, px: 0.5 }}>
+                <span>09:41</span>
+                <span>5G · 100%</span>
+              </Stack>
+              <Box sx={{
+                bgcolor: 'rgba(255,255,255,0.16)', backdropFilter: 'blur(16px)',
+                borderRadius: '16px', p: 1.5, border: '1px solid rgba(255,255,255,0.14)'
+              }}>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: '#5fc9c3', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    🩺 Dr. Exame
+                  </Typography>
+                  <Typography sx={{ fontSize: 10.5, color: '#cbd5e1' }}>Agora</Typography>
+                </Stack>
+                <Typography sx={{ fontSize: 13, fontWeight: 800, color: '#fff', mb: 0.3, lineHeight: 1.25 }}>
+                  {title.trim() || 'Título da Notificação'}
+                </Typography>
+                <Typography sx={{ fontSize: 12, color: '#e2e8f0', lineHeight: 1.4 }}>
+                  {body.trim() || 'Aqui aparecerá o texto do seu push exatamente como o paciente lerá na tela bloqueada do celular.'}
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1.5, color: '#64748b', fontSize: 11 }}>
+                Prévia da tela bloqueada (Android / iOS)
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+
+        {/* ── PASSO 3: CONFIRMAÇÃO & DISPARO ── */}
+        <Box>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: '#178f89', color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 13 }}>3</Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800, color: 'text.primary' }}>Revisão & Disparo</Typography>
+          </Stack>
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between">
+            <Box sx={{ flex: 1 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>
+                Disparar para: <Box component="span" sx={{ color: '#178f89', fontWeight: 800 }}>{audienceMode === 'global' ? '🌍 Todos os usuários da base' : '🎯 Segmento filtrado'}</Box>
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {preview ? `${preview.users} pessoa(s) receberão nos seus celulares ativos.` : 'Aguardando cálculo…'}
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={1.5} alignItems="center">
+              <TextField label="Agendar (opcional)" type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} size="small"
+                slotProps={{ htmlInput: { min: new Date(Date.now() + 5 * 60000).toISOString().slice(0, 16) } }}
+                InputLabelProps={{ shrink: true }} sx={{ width: { xs: '100%', sm: 220 } }} />
+
+              <Button variant="contained" startIcon={sending ? <CircularProgress size={18} color="inherit" /> : (scheduleAt ? <ScheduleIcon /> : <SendIcon />)}
+                onClick={send} disabled={sending || !title.trim() || !body.trim()}
+                sx={{ bgcolor: '#20b2aa', '&:hover': { bgcolor: '#178f89' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', px: 3, py: 1, whiteSpace: 'nowrap' }}>
+                {sending ? 'Enviando…' : scheduleAt ? 'Agendar campanha' : 'Disparar Push Agora'}
+              </Button>
+            </Stack>
+          </Stack>
+
+          {result && <Alert severity="success" sx={{ mt: 2 }}>{result}</Alert>}
+        </Box>
       </Box>
-
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 2 }}>
-        * O Firebase Admin precisa estar configurado no servidor. Sem o service account, conta a audiência mas não entrega a notificação de fato.
-      </Typography>
-      </Box>{/* fim seção 1: enviar campanha */}
 
       {/* ── SEÇÃO 2: CAMPANHAS RECENTES ── */}
       {campaigns.length > 0 && (

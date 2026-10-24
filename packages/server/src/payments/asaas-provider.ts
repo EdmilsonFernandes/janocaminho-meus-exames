@@ -238,3 +238,141 @@ export async function createAsaasCardCharge(
   const threeDSUrl = pay.threeDSecureUrl || pay.threeDSUrl || pay.authenticationUrl || null;
   return { paymentId, customerId, status: String(pay?.status ?? 'PENDING'), amountBrlCents: base.amountBrlCents, threeDSUrl: threeDSUrl ? String(threeDSUrl) : null };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────────
+// ONDA 4 — §18.5/§18.6/§18.7: REPASSE (transferência PIX), ESTORNO (refund) e
+// CAIXA (saldo). Docs consultadas 24/10: docs.asaas.com (transferências, estornar
+// cobrança, finance/balance). Idempotência oficial = externalReference (NÃO existe
+// header de idempotency-key na API) — a reserva atômica no ledger é NOSSA camada.
+// ─────────────────────────────────────────────────────────────────────────────────
+
+/** Tipos de chave PIX do app → enum do Asaas (pixAddressKeyType). */
+export const ASAAS_PIX_KEY_TYPE_MAP: Record<string, string> = {
+  cpf: 'CPF',
+  cnpj: 'CNPJ',
+  email: 'EMAIL',
+  phone: 'PHONE',
+  random: 'EVP',
+};
+
+export interface AsaasTransferInput {
+  pixKey: string; // chave DECRIPTADA (só existe em memória, nunca logada/gravada)
+  pixKeyType: string; // 'cpf'|'cnpj'|'email'|'phone'|'random' (map acima)
+  valueBrlCents: number; // centavos → convertido p/ reais float aqui
+  externalReference: string; // idempotência oficial (ex.: payout_<payoutId>)
+  description?: string;
+}
+
+export interface AsaasTransferResult {
+  transferId: string; // id Asaas ("trf_..."-like) — gravado em Payout.providerTransferId
+  status: string; // PENDING|SCHEDULED|BANK_PROCESSING|DONE|FAILED|CANCELLED|BLOCKED
+  authorized: boolean; // false = ação crítica aguardando TOKEN SMS (§2.2 da arq.)
+  failReason: string | null;
+}
+
+/** Transferência PIX p/ conta de outra instituição (repasse do médico).
+ *  `authorized:false` na resposta = transferência CRIADA mas aguardando token SMS —
+ *  o chamador decide (tratamos como falha supervisionável, nunca retry cego). */
+export async function createAsaasPixTransfer(input: AsaasTransferInput): Promise<AsaasTransferResult> {
+  if (!hasAsaas()) throw new Error('Asaas transfers: ASAAS_API_KEY ausente.');
+  const t = await asaasFetch<Record<string, any>>('/v3/transfers', {
+    method: 'POST',
+    body: JSON.stringify({
+      value: input.valueBrlCents / 100, // reais float (mesma convenção dos payments)
+      pixAddressKey: input.pixKey,
+      pixAddressKeyType: ASAAS_PIX_KEY_TYPE_MAP[input.pixKeyType] ?? 'EVP',
+      operationType: 'PIX',
+      description: String(input.description ?? '').slice(0, 100),
+      externalReference: input.externalReference, // idempotência oficial do Asaas
+    }),
+  });
+  return {
+    transferId: String(t?.id ?? ''),
+    status: String(t?.status ?? 'PENDING').toUpperCase(),
+    authorized: t?.authorized !== false,
+    failReason: t?.failReason ? String(t.failReason) : null,
+  };
+}
+
+export interface AsaasTransferLookup {
+  found: boolean;
+  transferId: string | null;
+  status: string | null; // DONE|FAILED|CANCELLED|PENDING|BANK_PROCESSING|...
+  failReason: string | null;
+}
+
+/** CONSULTA transferência por externalReference (conciliação do estado `unknown` —
+ *  §18.6: resposta perdida NUNCA reenvia; investiga aqui). Fail-closed: falha de
+ *  rede/query → { found:false, status:null } com flag `error` p/ NÃO decidir cedo. */
+export async function lookupAsaasTransferByExternalRef(
+  externalReference: string,
+): Promise<AsaasTransferLookup & { error: boolean }> {
+  try {
+    const res = await asaasFetch<{ data?: Record<string, any>[]; totalCount?: number }>(
+      `/v3/transfers?externalReference=${encodeURIComponent(externalReference)}`,
+    );
+    const row = Array.isArray(res?.data) ? res.data[0] : undefined;
+    if (!row) return { found: false, transferId: null, status: null, failReason: null, error: false };
+    return {
+      found: true,
+      transferId: row.id ? String(row.id) : null,
+      status: row.status ? String(row.status).toUpperCase() : null,
+      failReason: row.failReason ? String(row.failReason) : null,
+      error: false,
+    };
+  } catch {
+    // Query falhou (rede/key) → error=true: chamador NÃO resolve p/ failed (§18.6).
+    return { found: false, transferId: null, status: null, failReason: null, error: true };
+  }
+}
+
+export interface AsaasRefundResult {
+  status: string; // REFUNDED (estorno aplicado) | REFUND_REQUESTED | REFUND_IN_PROGRESS
+}
+
+/** ESTORNO TOTAL de uma cobrança (corpo vazio = total — §2.1 da arquitetura).
+ *  Exige SALDO DISPONÍVEL: sem saldo o Asaas responde 400 ("saldo suficiente") —
+ *  AsaasApiError com status 400; o chamador classifica (fila manual). */
+export async function refundAsaasPayment(paymentId: string): Promise<AsaasRefundResult> {
+  if (!hasAsaas()) throw new Error('Asaas refund: ASAAS_API_KEY ausente.');
+  const r = await asaasFetch<{ status?: string }>(
+    `/v3/payments/${encodeURIComponent(paymentId)}/refund`,
+    { method: 'POST', body: '' },
+  );
+  return { status: String(r?.status ?? 'REFUNDED').toUpperCase() };
+}
+
+export interface AsaasBalance {
+  balanceCents: number; // saldo disponível
+}
+
+/** CAIXA Asaas (§18.8): GET /v3/finance/balance — saldo disponível da conta.
+ *  ≠ lucro: é caixa externo (a caption da UI reforça). Sem campo `balance`
+ *  numérico → throw (o chamador cacheia null; a UI mostra "—", nunca R$ 0,00 falso). */
+export async function getAsaasFinanceBalance(): Promise<AsaasBalance> {
+  if (!hasAsaas()) throw new Error('Asaas balance: ASAAS_API_KEY ausente.');
+  const b = await asaasFetch<{ balance?: number }>(`/v3/finance/balance?date=${new Date().toISOString().slice(0, 10)}`);
+  const v = Number(b?.balance);
+  if (!Number.isFinite(v)) throw new Error('Asaas balance: resposta sem saldo válido');
+  return { balanceCents: Math.round(v * 100) };
+}
+
+/** Heurística de TOKEN SMS/2FA (§2.2 da arq.): resposta authorized=false OU erro
+ *  4xx citando token/autenticação — a conta exige ação crítica por SMS (config do
+ *  Asaas, dispensa só via suporte). Chamador NUNCA reenvia: fila específica. */
+export function isAsaasTokenSmsIssue(err: unknown, transfer?: AsaasTransferResult | null): boolean {
+  if (transfer && transfer.authorized === false) return true;
+  if (err instanceof AsaasApiError) {
+    if (err.status === 403 || err.status === 401) return false; // key/perm → outro caminho
+    const txt = `${err.message} ${err.errors.map((e) => `${e.code} ${e.description}`).join(' ')}`.toLowerCase();
+    return /token|autentic|2fa|dois fatores|sms/.test(txt);
+  }
+  return false;
+}
+
+/** Heurística de SALDO INSUFICIENTE p/ estorno (400 "disponibilizar saldo"). */
+export function isAsaasBalanceIssue(err: unknown): boolean {
+  if (!(err instanceof AsaasApiError)) return false;
+  const txt = `${err.message} ${err.errors.map((e) => `${e.code} ${e.description}`).join(' ')}`.toLowerCase();
+  return err.status === 400 && /saldo/.test(txt);
+}

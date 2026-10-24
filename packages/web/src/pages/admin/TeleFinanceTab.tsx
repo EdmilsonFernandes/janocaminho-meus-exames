@@ -1,13 +1,15 @@
-// §18.8 (Onda 3, 24/10) — VISÃO FINANCEIRA ADMIN (teleconsultas).
-// Os números derivam do ledger (onda 2): GMV nunca é receita; margem de contribuição
-// ≠ lucro líquido (caption obrigatória); caixa Asaas/última conciliação ficam p/
-// onda 4 — declarados "—", nunca R$ 0,00 falso. KPIs agrupados por VISÃO: Terceiros
-// (pacientes+ médicos) / Plataforma / Caixa. Série diária Recharts (reuso do repo).
-// Mobile-first 390 → amplia; sem scroll horizontal 320-1440.
+// §18.8 (Onda 3, 24/10) — VISÃO FINANCEIRA ADMIN (teleconsultas) + ONDA 4 (§18.5/§18.6):
+// REPASSES SUPERVISIONADOS — seção "Repasses a aprovar" (aprovação envia transferência
+// PIX REAL), lista de repasses com estados e toggle do modo automático (default OFF).
+// Os números derivam do ledger: GMV nunca é receita; margem de contribuição ≠ lucro
+// líquido; caixa Asaas real (cache 5min) — null mostra "—", nunca R$ 0,00 falso.
+// Mobile-first 390 → amplia; sem scroll horizontal 320-1440; ações de dinheiro sempre
+// mostram valor + destinatário (chave PIX sempre MASCARADA — §18.5).
 import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme,
-  Tooltip, Collapse, IconButton,
+  Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
+  Switch, FormControlLabel,
 } from '@mui/material';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
@@ -18,6 +20,7 @@ import PercentOutlinedIcon from '@mui/icons-material/PercentOutlined';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
+import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
 import { AccountBalanceWalletOutlined } from '@mui/icons-material';
 import {
   ResponsiveContainer, AreaChart, Area, Bar, XAxis, YAxis, Tooltip as RTooltip,
@@ -34,6 +37,23 @@ const brlShort = (cents: number) => {
 };
 const dia = (iso: string) => new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
 const isoDay = (d: Date) => d.toISOString().slice(0, 10);
+
+/** Estados do repasse (§18.6) em linguagem humana — nunca jargão (payout/transfer). */
+const PAYOUT_STATUS: Record<string, { label: string; tone: 'amber' | 'blue' | 'teal' | 'red' | 'violet' }> = {
+  requested: { label: 'Aguardando aprovação', tone: 'amber' },
+  processing: { label: 'Enviando', tone: 'blue' },
+  completed: { label: 'Concluído', tone: 'teal' },
+  failed: { label: 'Não concluído', tone: 'red' },
+  unknown: { label: 'Sem confirmação', tone: 'violet' },
+  cancelled: { label: 'Cancelado', tone: 'violet' },
+};
+const statusTone = (tone: string, mode: 'light' | 'dark') => ({
+  amber: mode === 'dark' ? '#fbbf24' : '#b45309',
+  blue: mode === 'dark' ? '#60a5fa' : '#1d4ed8',
+  teal: mode === 'dark' ? '#5fc9c3' : '#0e7490',
+  red: mode === 'dark' ? '#f87171' : '#b91c1c',
+  violet: mode === 'dark' ? '#a78bfa' : '#6d28d9',
+}[tone] ?? (mode === 'dark' ? '#94a3b8' : '#64748b'));
 
 type RangeKey = '7' | '30' | '90';
 
@@ -72,12 +92,29 @@ export const TeleFinanceTab = () => {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [showDiverg, setShowDiverg] = useState(false);
+  // ── Onda 4: repasses supervisionados ──
+  const [payouts, setPayouts] = useState<any[]>([]);
+  const [autoOn, setAutoOn] = useState(false);
+  const [payoutsBusy, setPayoutsBusy] = useState(false);
+  const [approveTarget, setApproveTarget] = useState<any | null>(null); // dialog de confirmação
+  const [autoConfirmOpen, setAutoConfirmOpen] = useState(false); // confirm do toggle auto
+  const [feedback, setFeedback] = useState<string | null>(null); // resultado da ação (sem jargão)
 
   const period = useMemo(() => {
     const to = new Date();
     const from = new Date(to.getTime() - Number(range) * 86_400_000);
     return { from: isoDay(from), to: isoDay(to) };
   }, [range]);
+
+  const loadPayouts = useCallback(async () => {
+    try {
+      const r = await fetch(`${API_URL}/admin/payouts`, { headers: { Authorization: `Bearer ${authToken()}` } });
+      if (!r.ok) return; // seção best-effort — o erro principal é do overview
+      const j = await r.json();
+      setPayouts(j.payouts ?? []);
+      setAutoOn(!!j.auto);
+    } catch { /* best-effort */ }
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true); setErr(null);
@@ -94,7 +131,7 @@ export const TeleFinanceTab = () => {
     }
   }, [period.from, period.to, doctorId]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); loadPayouts(); }, [load, loadPayouts]);
   useEffect(() => {
     (async () => {
       try {
@@ -108,6 +145,55 @@ export const TeleFinanceTab = () => {
     () => (data?.seriePorDia ?? []).map((d: any) => ({ ...d, diaFmt: dia(d.dia + 'T12:00:00') })),
     [data],
   );
+
+  const pendentes = useMemo(() => payouts.filter((p) => p.status === 'requested'), [payouts]);
+  const recentes = useMemo(() => payouts.filter((p) => p.status !== 'requested').slice(0, 8), [payouts]);
+
+  // Onda 4 — aprovação: envia transferência PIX REAL (confirm dialog já mostrou
+  // valor + destinatário mascarado). Resultado em linguagem humana, sem jargão.
+  const approve = useCallback(async () => {
+    if (!approveTarget) return;
+    setPayoutsBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/payouts/${approveTarget.id}/approve`, {
+        method: 'POST', headers: { Authorization: `Bearer ${authToken()}`, 'Content-Type': 'application/json' },
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j?.error ?? 'Falha ao aprovar repasse.');
+      setFeedback(
+        j?.payout?.status === 'completed' ? 'Repasse enviado e confirmado.'
+          : j?.payout?.status === 'unknown' ? 'Enviado sem confirmação — o sistema vai conciliar com o banco automaticamente (não reenvia).'
+          : `Repasse não concluído: ${j?.error ?? 'falha no provedor'}. A equipe recebeu o aviso.`,
+      );
+    } catch (e: any) {
+      setFeedback(e?.message ?? 'Falha ao aprovar repasse.');
+    } finally {
+      setApproveTarget(null);
+      setPayoutsBusy(false);
+      await loadPayouts();
+      load();
+    }
+  }, [approveTarget, loadPayouts, load]);
+
+  // Onda 4 — toggle do modo automático (default OFF; decisão do dono, com aviso).
+  const toggleAuto = useCallback(async (next: boolean) => {
+    setAutoConfirmOpen(false);
+    setPayoutsBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/payouts/auto`, {
+        method: 'POST', headers: { Authorization: `Bearer ${authToken()}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: next }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j?.error ?? 'Falha ao salvar.');
+      setAutoOn(!!j.auto);
+      setFeedback(next ? 'Repasse automático LIGADO — os próximos repasses elegíveis serão enviados sem aprovação.' : 'Repasse automático desligado — cada repasse volta a exigir aprovação.');
+    } catch (e: any) {
+      setFeedback(e?.message ?? 'Falha ao salvar.');
+    } finally {
+      setPayoutsBusy(false);
+    }
+  }, []);
 
   if (loading && !data) {
     return <Typography sx={{ p: 4, textAlign: 'center', color: 'text.secondary' }}>Carregando visão financeira…</Typography>;
@@ -158,12 +244,128 @@ export const TeleFinanceTab = () => {
       </KpiGroup>
 
       <KpiGroup title="Caixa" sub="Disponibilidade de saldo externo" accent="#64748b">
-        <Kpi icon={<AccountBalanceOutlinedIcon />} label="Caixa Asaas" value="—"
-          caption="Disponível na onda 4 (repasses automáticos) — saldo externo ≠ lucro" tone={mode === 'dark' ? '#94a3b8' : '#64748b'} />
-        <Kpi icon={<RefreshOutlinedIcon />} label="Última conciliação" value="—" caption="Conciliação periódica chega com a onda 4" tone={mode === 'dark' ? '#94a3b8' : '#64748b'} />
+        <Kpi icon={<AccountBalanceOutlinedIcon />} label="Caixa Asaas" value={data?.caixaAsaasCents == null ? '—' : brl(data.caixaAsaasCents)}
+          caption="Saldo disponível na conta (atualiza a cada 5 min) — caixa externo ≠ lucro"
+          tone={data?.caixaAsaasCents == null ? (mode === 'dark' ? '#94a3b8' : '#64748b') : tealText(mode)} />
+        <Kpi icon={<RefreshOutlinedIcon />} label="Última conciliação" value={data?.ultimaConciliacao ? dia(data.ultimaConciliacao) + ' ' + new Date(data.ultimaConciliacao).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—'}
+          caption="Checagem automática a cada 10 min (consultas × extrato × caixa)" tone={mode === 'dark' ? '#94a3b8' : '#64748b'} />
         <Kpi icon={<WarningAmberOutlinedIcon />} label="Divergências abertas" value={String(data?.divergenciasAbertas ?? 0)}
           caption={data?.divergenciasAbertas ? 'Requerem triagem humana' : 'Nenhuma pendência financeira'} tone={(data?.divergenciasAbertas ?? 0) > 0 ? (mode === 'dark' ? '#fbbf24' : '#b45309') : undefined} />
       </KpiGroup>
+
+      {/* ── Onda 4 (§18.5/§18.6): REPASSES — aprovação supervisionada ── */}
+      <Box sx={{ borderRadius: '16px', border: '1px solid', borderColor: 'divider', p: { xs: 1.5, sm: 2 } }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 1.5 }} alignItems={{ sm: 'center' }}>
+          <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+            <SendOutlinedIcon sx={{ fontSize: 20, color: tealText(mode) }} />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14 }}>Repasses a aprovar</Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                {pendentes.length
+                  ? `${pendentes.length} repasse(s) aguardando — aprovar envia a transferência PIX ao médico na hora`
+                  : 'Nenhum repasse aguardando aprovação'}
+              </Typography>
+            </Box>
+          </Stack>
+          {/* Auto GATED: default OFF — ligar é decisão do dono (confirm + audit) */}
+          <FormControlLabel
+            control={<Switch checked={autoOn} disabled={payoutsBusy} size="small"
+              onChange={(_e, v) => { if (v) setAutoConfirmOpen(true); else toggleAuto(false); }} />}
+            label={<Typography variant="caption" sx={{ fontWeight: 700 }}>Automático</Typography>}
+            sx={{ m: 0 }}
+          />
+        </Stack>
+
+        {pendentes.length > 0 && (
+          <Stack spacing={1.25} sx={{ mt: 1.5 }}>
+            {pendentes.map((p: any) => (
+              <Card key={p.id} variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: '14px', bgcolor: 'background.default', borderColor: 'rgba(245,158,11,.35)' }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 1, sm: 2 }} alignItems={{ sm: 'center' }}>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14.5 }}>{p.doctor?.name ?? 'Médico'}{p.doctor?.crm ? ` · CRM ${p.doctor.crm}` : ''}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                      {p.reminder ? `${p.reminder.title} · ${dia(p.reminder.dueDate)}` : 'Consulta'} · chave PIX {p.pixKeyMasked ?? 'não cadastrada'}
+                    </Typography>
+                  </Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 17, color: tealText(mode), whiteSpace: 'nowrap' }}>{brl(p.amountCents)}</Typography>
+                  <Button variant="contained" startIcon={<SendOutlinedIcon />} disabled={payoutsBusy || !p.pixKeyMasked}
+                    onClick={() => setApproveTarget(p)}
+                    sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44, px: 2.5 }}>
+                    Aprovar e enviar
+                  </Button>
+                </Stack>
+              </Card>
+            ))}
+          </Stack>
+        )}
+
+        {/* Histórico recente — estados com cor (nunca sucesso antes da confirmação) */}
+        {recentes.length > 0 && (
+          <Box sx={{ mt: 2 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 13, mb: 1 }}>Repasses recentes</Typography>
+            <Stack spacing={0.75}>
+              {recentes.map((p: any) => {
+                const st = PAYOUT_STATUS[p.status] ?? { label: p.status, tone: 'violet' as const };
+                return (
+                  <Stack key={p.id} direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0, sm: 1.5 }} alignItems={{ sm: 'center' }} sx={{ fontSize: 13 }}>
+                    <Chip label={st.label} size="small" sx={{ borderRadius: 8, fontWeight: 700, minHeight: 26, color: statusTone(st.tone, mode), border: `1px solid ${statusTone(st.tone, mode)}55`, bgcolor: 'transparent', width: { xs: '100%', sm: 190 }, justifyContent: 'flex-start' }} />
+                    <Typography component="span" sx={{ fontSize: 13, flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: { sm: 'nowrap' } }}>
+                      {p.doctor?.name ?? 'Médico'} · {brl(p.amountCents)}
+                    </Typography>
+                    <Typography component="span" sx={{ fontSize: 12.5, color: 'text.secondary', whiteSpace: 'nowrap' }}>{dia(p.requestedAt)}</Typography>
+                  </Stack>
+                );
+              })}
+            </Stack>
+          </Box>
+        )}
+
+        {feedback && (
+          <Card variant="outlined" sx={{ mt: 2, p: 1.5, borderRadius: '12px', bgcolor: 'transparent', borderColor: 'rgba(32,178,170,.4)' }}>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Typography sx={{ fontSize: 13.5, flex: 1 }}>{feedback}</Typography>
+              <IconButton size="small" aria-label="Fechar aviso" onClick={() => setFeedback(null)} sx={{ color: 'text.secondary' }}>
+                <ExpandMoreOutlinedIcon sx={{ transform: 'rotate(90deg)' }} fontSize="small" />
+              </IconButton>
+            </Stack>
+          </Card>
+        )}
+      </Box>
+
+      {/* Confirmação da aprovação — valor + destinatário ANTES de mover dinheiro (§18.5) */}
+      <Dialog open={!!approveTarget} onClose={() => setApproveTarget(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Aprovar repasse</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontWeight: 800, fontSize: 24, color: tealText(mode), my: 1 }}>{brl(approveTarget?.amountCents)}</Typography>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>Para: <strong>{approveTarget?.doctor?.name ?? 'médico'}</strong>{approveTarget?.doctor?.crm ? ` (CRM ${approveTarget.doctor.crm})` : ''}</Typography>
+          <Typography variant="body2" sx={{ mb: 0.5 }}>Chave PIX ({approveTarget?.pixKeyType ?? '—'}): <strong>{approveTarget?.pixKeyMasked ?? '—'}</strong></Typography>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>Consulta: {approveTarget?.reminder ? `${approveTarget.reminder.title} · ${dia(approveTarget.reminder.dueDate)}` : '—'}</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Ao confirmar, a transferência PIX é enviada pelo banco agora. Confira valor e destinatário — a operação é definitiva.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setApproveTarget(null)} disabled={payoutsBusy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}>Cancelar</Button>
+          <Button variant="contained" onClick={approve} disabled={payoutsBusy} startIcon={<SendOutlinedIcon />} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}>Aprovar e enviar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Confirmação do modo automático — default OFF; ligar muda fluxo de dinheiro */}
+      <Dialog open={autoConfirmOpen} onClose={() => setAutoConfirmOpen(false)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Ligar repasse automático?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 1 }}>
+            Com o modo automático, todo repasse elegível é <strong>enviado sem aprovação</strong>, na checagem de 10 minutos.
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Recomendado só depois de alguns repasses manuais validados. Você pode desligar a qualquer momento (fica registrado quem mudou).
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setAutoConfirmOpen(false)} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}>Manter manual</Button>
+          <Button variant="contained" color="warning" onClick={() => toggleAuto(true)} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}>Ligar automático</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Divergências (Exceções financeiras) — expansível */}
       {(data?.divergenciasAbertas ?? 0) > 0 && (

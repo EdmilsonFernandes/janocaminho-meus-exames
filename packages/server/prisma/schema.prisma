@@ -857,6 +857,10 @@ paymentRef        String?   // id do pagamento no provedor (PIX/cartão)
 //    snapshot). Ambos nullable = legado pré-migration (drift-safe).
 commissionSnapshot Json?      // {ruleId, platformBps, feeBearer, releaseDelayDays, minPayoutCents}
 releaseEligibleAt  DateTime?  // paidAt + releaseDelayDays (da snapshot) — liberação D+N
+// ── Onda 4 (24/10/26, §18.7): estorno EXECUTADO no provedor (Asaas refund DONE).
+//    Cache de leitura do evento ledger refund_<id> — a fonte é o ledger (§18.3);
+//    null = ainda não estornado. Idempotência do job de estorno por esta coluna.
+refundedAt         DateTime?  // estorno confirmado no provedor — consulta devolvida ao paciente
   createdAt DateTime @default(now())
   consultSummary ConsultSummary?
 
@@ -1465,6 +1469,7 @@ model Payout {
   attempts          Int       @default(0)
   lastError         String?
   requestedAt       DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt // onda 4: idade do estado (unknown >30min → concilia; >24h sem registro → failed)
   completedAt       DateTime?
 
   @@index([doctorId, status])

@@ -92,7 +92,9 @@ export const DEFAULT_SETTINGS = {
   // que o /join libera a sala) e tempo conjunto mínimo (s) p/ encerrar como 'completed'
   // (remuneração elegível — pago NÃO = realizado). Defaults explícitos; admin edita
   // live como os demais knobs (PATCH /admin/config/costs { category: 'teleconsulta' }).
-  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300 },
+  // Onda 4 (§18.5): payoutAuto = repasse AUTOMÁTICO sem aprovação admin. Default 0
+  // (DESLIGADO — v1 é supervisionado; ligar é decisão do dono no admin, com audit).
+  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -217,4 +219,12 @@ export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSecon
     entryWindowMin: Number(t.entryWindowMin) > 0 ? Number(t.entryWindowMin) : 5,
     minJointSeconds: Number(t.minJointSeconds) > 0 ? Number(t.minJointSeconds) : 300,
   };
+}
+
+/** Repasse AUTOMÁTICO (Onda 4 §18.5): default DESLIGADO (v1 supervisionada — cada
+ *  transferência exige aprovação admin). Ausência da chave NUNCA liga (mesma inversão
+ *  do sportsModeEnabled): só ligam 1/true explícitos, setados pelo admin com audit. */
+export function payoutAutoEnabled(): boolean {
+  const t: any = (getSettings() as any).teleconsulta ?? {};
+  return t != null && (t.payoutAuto === true || Number(t.payoutAuto) === 1);
 }

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dr. Exame — Entenda seus exames de sangue com Inteligência Artificial</title>
+  <!-- Google Fonts: Instrument Serif + Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal-primary: #178f89;
+      --teal-vibrant: #20b2aa;
+      --teal-light: #e6f7f6;
+      --teal-deep: #093330;
+      --teal-darkest: #051a18;
+      --ink: #0f5f5a;
+      --copper: #d4a574;
+      --copper-light: #fdf8f3;
+      --neutral-bg: #f8fbfa;
+      --neutral-surface: #ffffff;
+      --border-subtle: rgba(23, 143, 137, 0.15);
+      --border-glass: rgba(255, 255, 255, 0.8);
+      --text-main: #142826;
+      --text-muted: #527370;
+      --radius-pill: 999px;
+      --radius-card: 24px;
+      --shadow-soft: 0 12px 36px rgba(15, 95, 90, 0.08);
+      --shadow-glow: 0 16px 40px rgba(32, 178, 170, 0.28);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--neutral-bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .serif-italic {
+      font-family: 'Instrument Serif', Georgia, serif;
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    /* Top Banner de Homologação da Skill */
+    .skill-badge-banner {
+      background: linear-gradient(90deg, #093330 0%, #178f89 100%);
+      color: #bbf1ed;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .skill-badge-banner span {
+      background: rgba(255,255,255,0.18);
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header Sticky Glassmorphism */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(248, 251, 250, 0.85);
+      border-bottom: 1px solid var(--border-subtle);
+      transition: all 0.3s ease;
+    }
+    .nav-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 76px;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 800;
+      font-size: 20px;
+    }
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--teal-primary), var(--teal-vibrant));
+      display: grid;
+      place-items: center;
+      color: white;
+      box-shadow: 0 4px 12px rgba(32, 178, 170, 0.35);
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14.5px;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover {
+      color: var(--teal-primary);
+    }
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .btn-login {
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 700;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(135deg, var(--teal-primary) 0%, var(--teal-vibrant) 100%);
+      color: white;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 12px 26px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow-glow);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 48px rgba(32, 178, 170, 0.42);
+    }
+
+    /* Hero Section */
+    .hero {
+      position: relative;
+      padding: 72px 0 64px 0;
+      overflow: hidden;
+    }
+    .hero-glow-1 {
+      position: absolute;
+      top: -100px;
+      left: 10%;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(32, 178, 170, 0.18) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+    }
+    .hero-glow-2 {
+      position: absolute;
+      top: 50px;
+      right: 5%;
+      width: 450px;
+      height: 450px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212, 165, 116, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      z-index: -1;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(5, 150, 105, 0.1);
+      color: #047857;
+      border: 1px solid rgba(5, 150, 105, 0.25);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+    .hero-tag .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #059669;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25);
+    }
+    .hero h1 {
+      font-size: 54px;
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+      color: var(--text-main);
+      margin-bottom: 22px;
+    }
+    .hero h1 .highlight {
+      font-size: 1.12em;
+      color: var(--ink);
+    }
+    .hero-sub {
+      font-size: 18.5px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 32px;
+      max-width: 540px;
+    }
+    .hero-sub strong {
+      color: var(--text-main);
+    }
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: white;
+      color: var(--ink);
+      border: 1px solid var(--border-subtle);
+      padding: 12px 24px;
+      border-radius: var(--radius-pill);
+      font-weight: 700;
+      font-size: 15px;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover {
+      background: var(--teal-light);
+      border-color: var(--teal-primary);
+    }
+    .hero-proof {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13.5px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .stars {
+      color: #f59e0b;
+      letter-spacing: 2px;
+      font-size: 14px;
+    }
+
+    /* Hero Right Visual: Mockup 3D + Régua */
+    .hero-card-preview {
+      background: white;
+      border-radius: 28px;
+      padding: 24px;
+      box-shadow: 0 24px 60px rgba(15, 95, 90, 0.12), 0 4px 16px rgba(0,0,0,0.04);
+      border: 1px solid var(--border-subtle);
+      position: relative;
+    }
+    .floating-pill {
+      position: absolute;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      padding: 8px 16px;
+      border-radius: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.9);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pill-top { top: -14px; left: -14px; color: var(--ink); }
+    .pill-bottom { bottom: -16px; right: -12px; color: #b88a54; }
+
+    /* Interactive Demo Box: Decifre em 30s */
+    .magic-demo {
+      background: linear-gradient(180deg, #ffffff 0%, #f4faf9 100%);
+      border: 1.5px solid rgba(32, 178, 170, 0.25);
+      border-radius: 20px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .magic-demo-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .badge-instant {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--teal-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .exam-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(0,0,0,0.05);
+      font-size: 14px;
+    }
+    .status-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .status-normal { background: rgba(5,150,105,0.1); color: #047857; }
+    .status-alert { background: rgba(234,88,12,0.12); color: #c2410c; }
+
+    /* Ruler Visual Signature */
+    .ruler-wrap {
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px dashed rgba(23, 143, 137, 0.2);
+    }
+    .ruler-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+    }
+    .ruler-bar {
+      height: 10px;
+      background: linear-gradient(90deg, #e2e8f0 0%, #a7f3d0 35%, #fde68a 70%, #fecaca 100%);
+      border-radius: 6px;
+      position: relative;
+    }
+    .ruler-pin {
+      position: absolute;
+      top: -6px;
+      left: 45%;
+      width: 22px;
+      height: 22px;
+      background: var(--teal-primary);
+      border: 2px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    /* Trust Strip */
+    .trust-strip {
+      padding: 24px 0;
+      margin-top: 12px;
+    }
+    .trust-bar {
+      background: white;
+      border-radius: 20px;
+      padding: 18px 32px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .trust-item-icon {
+      color: var(--teal-primary);
+      font-size: 18px;
+    }
+
+    /* Bento Grid Ecosystem */
+    .section-title-wrap {
+      text-align: center;
+      margin: 80px 0 40px;
+    }
+    .section-eyebrow {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--teal-primary);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .section-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+    }
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-bottom: 72px;
+    }
+    .bento-card {
+      background: white;
+      border-radius: var(--radius-card);
+      padding: 32px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .bento-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 48px rgba(15, 95, 90, 0.12);
+    }
+    .bento-card.highlight {
+      background: linear-gradient(135deg, #093330 0%, #0f5f5a 100%);
+      color: white;
+      grid-column: span 2;
+    }
+    .bento-card.highlight h3, .bento-card.highlight p { color: white; }
+    .bento-card.highlight .bento-sub { color: rgba(255,255,255,0.8); }
+    .bento-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: var(--teal-light);
+      color: var(--teal-primary);
+      display: grid;
+      place-items: center;
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .bento-card.highlight .bento-icon {
+      background: rgba(255,255,255,0.15);
+      color: #5fc9c3;
+    }
+    .bento-card h3 {
+      font-size: 21px;
+      font-weight: 800;
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+    .bento-sub {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Testimonials */
+    .testimonials {
+      background: white;
+      border-top: 1px solid var(--border-subtle);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 72px 0;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .test-card {
+      background: var(--neutral-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .test-quote {
+      font-size: 15.5px;
+      line-height: 1.6;
+      color: var(--text-main);
+      margin-bottom: 20px;
+    }
+    .test-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .test-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--teal-light);
+      color: var(--teal-primary);
+      font-weight: 800;
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+    }
+    .test-name { font-weight: 700; font-size: 14.5px; }
+    .test-role { font-size: 12.5px; color: var(--text-muted); }
+
+    /* Final CTA */
+    .final-cta {
+      padding: 80px 0;
+    }
+    .cta-box {
+      background: linear-gradient(135deg, var(--teal-primary) 0%, var(--ink) 100%);
+      color: white;
+      border-radius: 36px;
+      padding: 64px 48px;
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(23, 143, 137, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-box h2 {
+      font-size: 40px;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: -0.025em;
+    }
+    .cta-box p {
+      font-size: 18px;
+      color: rgba(255,255,255,0.9);
+      max-width: 540px;
+      margin: 0 auto 32px;
+    }
+    .btn-white {
+      background: white;
+      color: var(--teal-primary);
+      font-weight: 800;
+      font-size: 16.5px;
+      padding: 16px 36px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+      transition: all 0.2s;
+    }
+    .btn-white:hover {
+      transform: translateY(-2px);
+      background: #f0fafa;
+    }
+
+    /* Footer Obsidian */
+    footer {
+      background: linear-gradient(180deg, #091c1b 0%, #051211 100%);
+      color: #9bc4c0;
+      padding: 56px 0 36px;
+      border-top: 1px solid rgba(32, 178, 170, 0.2);
+      text-align: center;
+      font-size: 13.5px;
+    }
+    .footer-whatsapp {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #25d366 0%, #128c7e 100%);
+      color: white;
+      text-decoration: none;
+      padding: 12px 28px;
+      border-radius: var(--radius-pill);
+      font-weight: 800;
+      font-size: 15px;
+      margin-bottom: 28px;
+      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.3);
+    }
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+    .footer-links a {
+      color: #5fc9c3;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid { grid-template-columns: 1fr; }
+      .bento-grid { grid-template-columns: 1fr; }
+      .bento-card.highlight { grid-column: span 1; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 38px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Skill Banner Reference -->
+  <div class="skill-badge-banner">
+    <span>LANDING-PAGE-GUIDE-V2</span>
+    Diretriz DESIGNNAS: 11 Elementos Essenciais & Direção Editorial Anti-Slop
+  </div>
+
+  <!-- Header Sticky com Glassmorphism -->
+  <header>
+    <div class="container nav-wrap">
+      <a href="#" class="logo">
+        <div class="logo-icon">🩺</div>
+        <span>Dr. Exame</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#como-funciona">Como Funciona</a></li>
+        <li><a href="#recursos">Recursos</a></li>
+        <li><a href="#remedios">Preço de Remédios</a></li>
+        <li><a href="#planos">Planos</a></li>
+        <li><a href="#faq">Dúvidas</a></li>
+      </ul>
+      <div class="nav-cta">
+        <a href="#/entrar" class="btn-login">Entrar</a>
+        <a href="#/registrar" class="btn-primary">Começar grátis →</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-glow-1"></div>
+    <div class="hero-glow-2"></div>
+    <div class="container">
+      <div class="hero-grid">
+        <!-- Esquerda: Copywriting de Alta Conversão -->
+        <div>
+          <div class="hero-tag">
+            <span class="dot"></span>
+            A IA que não inventa números · Direto do seu laudo
+          </div>
+          <h1>
+            Seu exame de sangue, explicado <span class="serif-italic highlight">em 30 segundos.</span>
+          </h1>
+          <p class="hero-sub">
+            Envie o PDF ou foto do laboratório. O <strong>Dr. Exame</strong> traduz siglas médicas para <strong>português simples</strong>, identifica o que pede atenção e monta as <strong>perguntas certas</strong> para a sua consulta médica.
+          </p>
+          <div class="hero-actions">
+            <a href="#/registrar" class="btn-primary">
+              Começar agora — 1º exame grátis
+            </a>
+            <a href="#demo" class="btn-secondary">
+              Ver exemplo ao vivo ↓
+            </a>
+          </div>
+          <div class="hero-proof">
+            <span class="stars">★★★★★</span>
+            <span><strong>5,0</strong> na Google Play</span>
+            <span>•</span>
+            <span>Conforme a <strong>LGPD</strong></span>
+            <span>•</span>
+            <span>Fontes: SBC, SBD e ADA</span>
+          </div>
+        </div>
+
+        <!-- Direita: Mockup Interativo e Régua de Assinatura -->
+        <div>
+          <div class="hero-card-preview">
+            <div class="floating-pill pill-top">
+              <span style="color:#059669;">●</span> Glicose 92 mg/dL · Normal
+            </div>
+            <div class="floating-pill pill-bottom">
+              ⚡ Laudo interpretado em 28s
+            </div>
+
+            <!-- Demo de Leitura Real -->
+            <div class="magic-demo">
+              <div class="magic-demo-header">
+                <span class="badge-instant">Análise Instantânea</span>
+                <span style="font-size: 12px; color: var(--text-muted);">Laudo Fleury / Dasa</span>
+              </div>
+              <div class="exam-row">
+                <span><strong>Hemoglobina Glicada</strong> (HbA1c)</span>
+                <span class="status-badge status-normal">5,4% · Ótimo</span>
+              </div>
+              <div class="exam-row">
+                <span><strong>Colesterol LDL</strong></span>
+                <span class="status-badge status-alert">142 mg/dL · Atenção</span>
+              </div>
+              <div class="exam-row">
+                <span><strong>Vitamina D (25-OH)</strong></span>
+                <span class="status-badge status-normal">38 ng/mL · Normal</span>
+              </div>
+
+              <!-- Régua Visual Signature -->
+              <div class="ruler-wrap">
+                <div class="ruler-title">Régua Clínica Comparativa</div>
+                <div class="ruler-bar">
+                  <div class="ruler-pin" title="Seu valor atual"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); margin-top:4px;">
+                  <span>Referência Lab</span>
+                  <span style="font-weight:700; color:var(--teal-primary);">Seu Valor</span>
+                  <span>Meta do Médico</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="text-align: center;">
+              <span style="font-size: 12px; color: var(--text-muted); font-weight: 600;">
+                🔒 Seus dados criptografados e sem compartilhamento externo
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Trust Strip -->
+  <div class="container trust-strip">
+    <div class="trust-bar">
+      <div class="trust-item">
+        <span class="trust-item-icon">🛡️</span>
+        <span>Conforme a LGPD Médica</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-item-icon">🤟</span>
+        <span>Acessível em Libras</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-item-icon">👨‍⚕️</span>
+        <span>Portal do Médico Integrado</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-item-icon">💳</span>
+        <span>Sem cartão para começar</span>
+      </div>
+      <div class="trust-item">
+        <span class="trust-item-icon">📱</span>
+        <span>Lê Google Health Connect</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento Grid de Benefícios e Ecossistema -->
+  <section class="container" id="recursos">
+    <div class="section-title-wrap">
+      <div class="section-eyebrow">Ecossistema Completo de Saúde</div>
+      <h2 class="section-title">Muito além de um PDF: <span class="serif-italic" style="color:var(--teal-primary);">sua saúde em perspectiva</span></h2>
+    </div>
+
+    <div class="bento-grid">
+      <div class="bento-card highlight">
+        <div class="bento-icon">📊</div>
+        <h3>Leitura de Risco com Tendência Temporal</h3>
+        <p class="bento-sub">
+          A IA cruza todos os seus exames antigos e atuais para apontar tendências em diabetes, colesterol, tireoide e saúde cardiovascular. Você vê claramente se um número está subindo, descendo ou estável ao longo dos anos.
+        </p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">💊</div>
+        <h3>Comparador de 9 Farmácias</h3>
+        <p class="bento-sub">
+          Adicione seu medicamento contínuo e encontre o menor preço em Drogasil, Pacheco, Pague Menos e outras farmácias parceiras. Economize todo mês.
+        </p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">📹</div>
+        <h3>Teleconsulta com Briefing do Médico</h3>
+        <p class="bento-sub">
+          Realize consultas por vídeo direto na plataforma. O médico recebe o resumo estruturado e as principais dúvidas que você anotou.
+        </p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">🏃</div>
+        <h3>Modo Saúde Esportiva</h3>
+        <p class="bento-sub">
+          Interpretação para quem treina: CK pós-treino, hematócrito, cistatina-C e biomarcadores hormonais avaliados no contexto do atleta.
+        </p>
+      </div>
+
+      <div class="bento-card">
+        <div class="bento-icon">👨‍👩‍👧</div>
+        <h3>Perfis de Família</h3>
+        <p class="bento-sub">
+          Gerencie os exames dos seus pais, filhos ou dependentes em uma única conta organizada e sem confusão de laudos.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Prova Social & Depoimentos -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-title-wrap" style="margin-top: 0;">
+        <div class="section-eyebrow">Quem Usa Recomenda</div>
+        <h2 class="section-title">Confiança de quem <span class="serif-italic" style="color:var(--ink);">já não se sente perdido</span></h2>
+      </div>
+
+      <div class="testimonials-grid">
+        <div class="test-card">
+          <p class="test-quote">
+            "Finalmente entendi o que o meu exame significava. O plano de ação com as perguntas pro médico me salvou na consulta — o doutor elogiou meu preparo."
+          </p>
+          <div class="test-author">
+            <div class="test-avatar">M</div>
+            <div>
+              <div class="test-name">Maria Albuquerque</div>
+              <div class="test-role">Usuária há 6 meses · 5 estrelas</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="test-card">
+          <p class="test-quote">
+            "Minha mãe é diabética e eu cuido de todos os remédios e laudos dela. O Dr. Exame mantém a linha do tempo organizada e nos avisa antes da receita vencer."
+          </p>
+          <div class="test-author">
+            <div class="test-avatar">R</div>
+            <div>
+              <div class="test-name">Rita de Cássia</div>
+              <div class="test-role">Cuidadora familiar · 5 estrelas</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="test-card">
+          <p class="test-quote">
+            "Treino musculação pesado e meus exames de CK e hematócrito sempre assustavam os clínicos gerais. O Modo Esportivo explicou tudo com embasamento científico."
+          </p>
+          <div class="test-author">
+            <div class="test-avatar">J</div>
+            <div>
+              <div class="test-name">João Pedro Martins</div>
+              <div class="test-role">Praticante de Crossfit · 5 estrelas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA Hero -->
+  <section class="final-cta">
+    <div class="container">
+      <div class="cta-box">
+        <h2>Pronto para entender sua saúde sem complicação?</h2>
+        <p>Crie sua conta gratuita em menos de 1 minuto e envie seu primeiro exame. Sem necessidade de cartão de crédito.</p>
+        <a href="#/registrar" class="btn-white">Começar agora — 1º exame grátis</a>
+        <div style="margin-top: 20px; font-size: 13px; opacity: 0.85;">
+          Disponível também na Google Play · Nota 5,0
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Rodapé Obsidian Glass -->
+  <footer>
+    <div class="container">
+      <a href="https://wa.me/551239334979" target="_blank" class="footer-whatsapp">
+        <span>💬</span> Fale com nossa equipe no WhatsApp: (12) 3933-4979
+      </a>
+      <p>© 2026 Dr. Exame (janocaminho.com.br) • Edmilson Fernandes • CNPJ: 44.771.427/0001-69</p>
+      <p style="margin-top: 6px; font-size: 12px; opacity: 0.7;">Análise puramente educativa e preventiva. Não substitui consulta ou diagnóstico médico presencial.</p>
+      <div class="footer-links">
+        <a href="#/doctor">Portal do Médico</a>
+        <a href="#/features">Recursos Completos</a>
+        <a href="#/termos">Termos & LGPD</a>
+        <a href="#/faq">Dúvidas Frequentes</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

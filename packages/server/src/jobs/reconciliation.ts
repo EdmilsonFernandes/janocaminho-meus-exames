@@ -28,10 +28,20 @@ import { activePixProvider } from '../payments/pix-provider';
 import { ASAAS_RECEIVED_STATUSES, getAsaasPaymentStatus } from '../payments/asaas-provider';
 import { approvePendingSubscription } from '../utils/billingApproval';
 import { runFinanceReconciliation } from '../finance/reconcile';
+import {
+  runPayoutPass, runPayoutAutoApprove, runRefundPass, runPayoutReconciliation,
+  type PayoutDeps, type RefundDeps,
+} from '../finance/payout';
 
 const MS_MIN = 60_000;
 const MS_HOUR = 3_600_000;
 const TELE_TAG = 'teleconsulta_';
+
+/** Timestamp da última passada concluída (overview admin: "última conciliação"). */
+let lastRunAt: number | null = null;
+export function getLastReconciliationAt(): number | null {
+  return lastRunAt;
+}
 
 /**
  * Enfileira uma exceção p/ revisão humana (central §14.5). Idempotente: no máx. 1
@@ -60,6 +70,20 @@ export async function enqueueException(
   }
 }
 
+/** Resolve (fecha) exceções abertas de um (kind, reminderId) — usado pelo próprio
+ *  fluxo quando a pendência que a criou foi resolvida (ex.: estorno executado). */
+export async function resolveExceptions(kind: string, reminderId: string | null): Promise<number> {
+  try {
+    const n = await prisma.exceptionQueue.updateMany({
+      where: { kind, reminderId, status: 'open' },
+      data: { status: 'resolved', resolvedAt: new Date() },
+    });
+    return n.count;
+  } catch {
+    return 0;
+  }
+}
+
 /** Cache NEGATIVO (em memória): payment verificado NÃO-pago no provedor não é
  *  re-consultado a cada tick (PIX expirado não volta a ser pagável — 24h de folga
  *  cobre qualquer virada tardia de status). Perde-se no restart → 1 re-query, ok. */
@@ -71,6 +95,10 @@ export interface ReconciliationReport {
   exceptionsCreated: number;  // novas exceções enfileiradas (as dedup não contam)
   candidates: number;         // subscriptions de teleconsulta avaliadas no tick
   financeRepaired?: number;   // onda 2 (§18): partidas de ledger repostas (idempotente)
+  payoutsCreated?: number;    // onda 4 (§18.5): repasses `requested` criados (reservados)
+  payoutsAutoApproved?: number; // onda 4 auto (gated teleconsulta.payoutAuto — default OFF)
+  refundsExecuted?: number;   // onda 4 (§18.7): estornos executados no provedor
+  payoutUnknownResolved?: number; // onda 4 (§18.6): unknown conciliado via provedor
 }
 
 /** Lookup de status no Asaas — injetável p/ teste (stub sem rede); default = provider. */
@@ -83,7 +111,7 @@ type AsaasLookup = (paymentId: string) => Promise<string | null>;
  */
 export async function runReconciliation(
   now: number,
-  opts: { asaasPaymentLookup?: AsaasLookup } = {},
+  opts: { asaasPaymentLookup?: AsaasLookup; payoutDeps?: PayoutDeps; refundDeps?: RefundDeps } = {},
 ): Promise<ReconciliationReport> {
   const report: ReconciliationReport = { paymentsReconciled: 0, exceptionsCreated: 0, candidates: 0 };
 
@@ -199,6 +227,32 @@ export async function runReconciliation(
     console.error('[reconciliation] finance pass falhou:', (e as Error)?.message);
   }
 
+  // ── Onda 4 (§18.5): repasses SUPERVISIONADOS — cria `requested` + reserva; o
+  //    envio só acontece via aprovação (admin OU auto se o dono ligou payoutAuto).
+  //    Roda DEPOIS da pass financeira (obrigação precisa estar no ledger).
+  try {
+    const payouts = await runPayoutPass(now);
+    report.payoutsCreated = payouts.created;
+    report.exceptionsCreated += payouts.exceptionsCreated;
+    const recon = await runPayoutReconciliation(now, opts.payoutDeps);
+    report.payoutUnknownResolved = recon.resolved + recon.notFoundFailed;
+    report.exceptionsCreated += recon.stuckAlerts;
+    const auto = await runPayoutAutoApprove(opts.payoutDeps);
+    report.payoutsAutoApproved = auto;
+  } catch (e) {
+    console.error('[reconciliation] payout pass falhou:', (e as Error)?.message);
+  }
+
+  // ── Onda 4 (§18.7): estornos reais (no_show/technical pago + reserva da onda 2).
+  try {
+    const refunds = await runRefundPass(now, opts.refundDeps ?? {});
+    report.refundsExecuted = refunds.refunded;
+    report.exceptionsCreated += refunds.exceptionsCreated;
+  } catch (e) {
+    console.error('[reconciliation] refund pass falhou:', (e as Error)?.message);
+  }
+
+  lastRunAt = now;
   return report;
 }
 
@@ -210,6 +264,9 @@ export function startReconciliationJob(): void {
       const report = await runReconciliation(Date.now());
       if (report.paymentsReconciled || report.exceptionsCreated) {
         console.log(`[reconciliation] tick: ${report.candidates} candidata(s), ${report.paymentsReconciled} conciliado(s), ${report.exceptionsCreated} exceção(ões)`);
+      }
+      if (report.payoutsCreated || report.payoutsAutoApproved || report.refundsExecuted || report.payoutUnknownResolved) {
+        console.log(`[reconciliation] onda 4: ${report.payoutsCreated} repasse(s) criado(s), ${report.payoutsAutoApproved} auto-aprovado(s), ${report.refundsExecuted} estorno(s), ${report.payoutUnknownResolved ?? 0} unknown conciliado(s)`);
       }
     } catch (e) {
       console.error('[reconciliation] job error:', (e as Error)?.message);

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, Collapse, IconButton } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
@@ -529,31 +529,33 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
     }}>
       {/* Fix #15 — play compacto do resumo em áudio DENTRO do hero (ícone, não card). */}
       {audioSummary && (
-        <IconButton
-          onClick={toggleAudio}
-          aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
-          title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio'}
-          sx={{
-            position: 'absolute', top: { xs: 10, sm: 14 }, right: { xs: 10, sm: 14 }, zIndex: 3,
-            width: 38, height: 38, p: 0, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
-            color: '#ffffff', flexShrink: 0,
-            boxShadow: audioPlaying ? '0 4px 16px rgba(32,178,170,.45)' : '0 2px 10px rgba(32,178,170,.3)',
-            transition: 'transform .2s cubic-bezier(.16,1,.3,1)',
-            '&:hover': { transform: 'scale(1.07)' },
-            '&:active': { transform: 'scale(.94)' },
-            ...(audioPlaying && !reduced ? {
-              animation: 'dxAudioPulse 2s ease-in-out infinite',
-              '@keyframes dxAudioPulse': {
-                '0%, 100%': { transform: 'scale(1)' },
-                '50%': { transform: 'scale(1.06)' },
-              },
-            } : {}),
-            '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-          }}
-        >
-          {audioPlaying ? <PauseIcon sx={{ fontSize: 20 }} /> : <PlayArrowIcon sx={{ fontSize: 22, ml: 0.25 }} />}
-        </IconButton>
+        <Tooltip title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio com IA'} arrow placement="left">
+          <IconButton
+            onClick={toggleAudio}
+            aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
+            title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio'}
+            sx={{
+              position: 'absolute', top: { xs: 10, sm: 14 }, right: { xs: 10, sm: 14 }, zIndex: 3,
+              width: 38, height: 38, p: 0, borderRadius: '50%',
+              background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
+              color: '#ffffff', flexShrink: 0,
+              boxShadow: audioPlaying ? '0 4px 16px rgba(32,178,170,.45)' : '0 2px 10px rgba(32,178,170,.3)',
+              transition: 'transform .2s cubic-bezier(.16,1,.3,1)',
+              '&:hover': { transform: 'scale(1.07)' },
+              '&:active': { transform: 'scale(.94)' },
+              ...(audioPlaying && !reduced ? {
+                animation: 'dxAudioPulse 2s ease-in-out infinite',
+                '@keyframes dxAudioPulse': {
+                  '0%, 100%': { transform: 'scale(1)' },
+                  '50%': { transform: 'scale(1.06)' },
+                },
+              } : {}),
+              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+            }}
+          >
+            {audioPlaying ? <PauseIcon sx={{ fontSize: 20 }} /> : <PlayArrowIcon sx={{ fontSize: 22, ml: 0.25 }} />}
+          </IconButton>
+        </Tooltip>
       )}
 
       <Stack direction="row" spacing={{ xs: 1.5, sm: 2.25 }} alignItems="center" sx={{ width: '100%', minWidth: 0, position: 'relative', zIndex: 1 }}>
@@ -647,9 +649,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
                 }}
               >
                 <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-                  {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● {SEVERITY.high}: {importante}</Box>}
+                  {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● No exame recente: {importante} {SEVERITY.high}</Box>}
                   {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
-                  {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {SEVERITY.mid}: {moderada}</Box>}
+                  {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {importante === 0 ? 'No exame recente: ' : ''}{moderada} {SEVERITY.mid}</Box>}
                 </Typography>
                 <Box component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'primary.main', bgcolor: (th) => alpha(th.palette.primary.main, 0.1), px: 0.75, py: 0.2, borderRadius: RADIUS.sm }}>
                   ver análise →
@@ -765,7 +767,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
       },
     }}>
       <Box sx={{ minWidth: 0, flex: 1, pr: 1.25 }}>
-        <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+        <Typography noWrap sx={{ fontSize: { xs: 10.5, sm: 12 }, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.02em' }}>
           {label}
         </Typography>
         <Typography noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5vw, 1.375rem)', sm: 22 }, color: 'text.primary', lineHeight: 1.2, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}>
@@ -1158,7 +1160,7 @@ const DashboardV2Inner = () => {
             value={d.loaded ? String(d.stats.exams) : '—'}
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro'
               : d.stats.abnormal === 0 ? 'todos normais'
-              : `${d.stats.abnormal} ${d.stats.abnormal === 1 ? 'requer' : 'requerem'} atenção`}
+              : `${d.stats.abnormal} ${d.stats.abnormal === 1 ? 'alterado' : 'alterados'}`}
             onClick={go('/exams')}
           />
           <BiologicalAgeCard idx={2} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
@@ -1168,7 +1170,7 @@ const DashboardV2Inner = () => {
             badgeBg={cardioLevel === 'alto' ? 'rgba(239, 68, 68, 0.12)' : cardioLevel === 'moderado' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)'}
             badgeColor={cardioLevel === 'alto' ? semC('bad') : cardioLevel === 'moderado' ? semC('warn') : semC('ok')}
             tone={cardioLevel ? (cardioFactors > 0 ? 'error' : 'success') : 'info'}
-            label="Risco do coração"
+            label="Risco Cardíaco"
             value={cardioLevel || (d.loaded ? 'Sem dados' : '—')}
             sub={cardioLevel
               ? (cardioFactors > 0 ? `${cardioFactors} fator${cardioFactors > 1 ? 'es' : ''} de risco` : 'sem fatores')

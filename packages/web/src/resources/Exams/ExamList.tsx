@@ -168,13 +168,20 @@ const ExamFilterToolbar = ({
           fullWidth
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder={translate('exams.search_ph')}
+          placeholder="Buscar exame (TSH, glicose...)"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
               </InputAdornment>
             ),
+            endAdornment: q ? (
+              <InputAdornment position="end">
+                <IconButton size="small" onClick={() => setQ('')} edge="end" aria-label="Limpar busca">
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
           }}
           sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: RADIUS.button, bgcolor: 'background.paper' } }}
         />
@@ -185,11 +192,13 @@ const ExamFilterToolbar = ({
           onChange={(_, v) => { if (v) setView(v); }}
           sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: 40 }}
         >
-          <ToggleButton value="date" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
-            <CalendarMonthIcon sx={{ fontSize: 16 }} /> Data
+          <ToggleButton value="date" aria-label="Visualizar por data" sx={{ px: { xs: 1, sm: 1.25 }, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+            <CalendarMonthIcon sx={{ fontSize: 16 }} />
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Data</Box>
           </ToggleButton>
-          <ToggleButton value="category" sx={{ px: 1.25, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
-            <FolderOutlinedIcon sx={{ fontSize: 16 }} /> Categoria
+          <ToggleButton value="category" aria-label="Visualizar por categoria" sx={{ px: { xs: 1, sm: 1.25 }, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+            <FolderOutlinedIcon sx={{ fontSize: 16 }} />
+            <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Categoria</Box>
           </ToggleButton>
         </ToggleButtonGroup>
       </Stack>

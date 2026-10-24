@@ -17,10 +17,14 @@ import { logCredit } from '../utils/credits';
 import { getConfigRows, getActiveProvider, AI_PROVIDERS, resolveProviderConfig, type AiProviderName } from '../llm/ai-config';
 import { refreshLlm, testLlmConnection } from '../llm';
 import { generateExplanation } from '../analysis/explain';
-import { encryptPII } from '../utils/crypto';
+import { encryptPII, decryptPII } from '../utils/crypto';
 import { cpfFingerprint, maskStoredCpf, revealStoredCpf } from '../utils/cpf';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 import { DEFAULT_COMMISSION_RULE } from '../finance/rules';
+import { approvePayout, getAsaasBalanceCached } from '../finance/payout';
+import { payoutAutoEnabled } from '../utils/settings';
+import { maskPixKey } from './doctor.routes';
+import { getLastReconciliationAt } from '../jobs/reconciliation';
 
 const router = Router();
 router.use(requireAuth);
@@ -957,7 +961,28 @@ router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
     const filter = parseAudienceFilter(req.body?.filter);
     const ids = await resolveAudienceUserIds(filter);
     const devices = ids.length ? await prisma.deviceToken.count({ where: { userId: { in: ids } } }) : 0;
-    res.json({ users: ids.length, devices });
+    let sampleUsers: Array<{ id: string; name: string | null; email: string; planExpiresAt: Date | null; deviceCount: number; platforms: string[] }> = [];
+    if (ids.length) {
+      const usersData = await prisma.user.findMany({
+        where: { id: { in: ids.slice(0, 50) } },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          planExpiresAt: true,
+          deviceTokens: { select: { platform: true } },
+        },
+      });
+      sampleUsers = usersData.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        planExpiresAt: u.planExpiresAt,
+        deviceCount: u.deviceTokens.length,
+        platforms: Array.from(new Set(u.deviceTokens.map((d) => d.platform).filter(Boolean))) as string[],
+      }));
+    }
+    res.json({ users: ids.length, devices, sampleUsers });
   } catch (e) { next(e); }
 });
 
@@ -1782,6 +1807,11 @@ router.get('/finance/overview', async (req: AuthedRequest, res, next) => {
       }).catch(() => [] as { id: string; kind: string; reminderId: string | null; createdAt: Date }[]),
     ]);
 
+    // Caixa Asaas REAL (GET /v3/finance/balance, cache 5min — onda 4 §18.8).
+    // Sem key / falha → null: a UI mostra "—", nunca R$ 0,00 falso.
+    const caixaAsaasCents = await getAsaasBalanceCached(Date.now()).catch(() => null);
+    const lastRec = getLastReconciliationAt();
+
     res.json({
       periodo: { from: from.toISOString(), to: to.toISOString() },
       doctorId,
@@ -1792,12 +1822,107 @@ router.get('/finance/overview', async (req: AuthedRequest, res, next) => {
       receitaPlataformaCents: platformRevenue.netCents,
       taxasCents: providerFees.netCents,
       margemContribuicaoCents: platformRevenue.netCents, // ver comentário do bloco — ≠ lucro líquido
-      caixaAsaasCents: null, // onda 4
+      caixaAsaasCents,
       divergenciasAbertas,
       divergencias: divergencias.map((d) => ({ id: d.id, kind: d.kind, reminderId: d.reminderId, createdAt: d.createdAt.toISOString() })),
       seriePorDia,
-      ultimaConciliacao: null, // job não persiste timestamp ainda (onda 4) — declarado na UI
+      ultimaConciliacao: lastRec ? new Date(lastRec).toISOString() : null,
     });
+  } catch (e) { next(e); }
+});
+
+// ═════════════════════════════════════════════════════════════════════════════════
+// ONDA 4 — §18.5/§18.6 REPASSES SUPERVISIONADOS (24/10/26). O job cria Payouts
+// `requested` (reserva atômica no ledger); o ENVIO é daqui (aprovação admin —
+// chamada REAL ao Asaas /v3/transfers, externalReference=payout_<id>). Auto é
+// GATED por AppSetting teleconsulta.payoutAuto (default OFF — decisão do dono).
+// PIX do médico NUNCA sai completo: resposta e audit carregam MASCARADA.
+// ═════════════════════════════════════════════════════════════════════════════════
+
+router.get('/payouts', async (req: AuthedRequest, res, next) => {
+  try {
+    const status = typeof req.query.status === 'string' && req.query.status.trim() ? req.query.status.trim() : null;
+    const payouts = await prisma.payout.findMany({
+      where: status ? { status } : undefined,
+      orderBy: { requestedAt: 'desc' },
+      take: 100,
+    }).catch(() => []);
+    const doctorIds = [...new Set(payouts.map((p: any) => p.doctorId))];
+    const doctors = doctorIds.length
+      ? await prisma.doctor.findMany({ where: { id: { in: doctorIds } }, select: { id: true, name: true, crm: true, payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true } })
+      : [];
+    const reminders = payouts.length
+      ? await prisma.reminder.findMany({
+          where: { id: { in: payouts.map((p: any) => p.reminderId) } },
+          select: { id: true, title: true, dueDate: true },
+        })
+      : [];
+    const doctorById = new Map(doctors.map((d: any) => [d.id, d]));
+    const reminderById = new Map(reminders.map((r: any) => [r.id, r]));
+    res.json({
+      auto: payoutAutoEnabled(), // toggle do dono (confirm + audit na UI)
+      payouts: payouts.map((p: any) => {
+        const d = doctorById.get(p.doctorId);
+        const key = d?.payoutPixKeyEnc ? decryptPII(d.payoutPixKeyEnc, d.payoutPixKeyIv) : null;
+        return {
+          id: p.id, status: p.status, amountCents: p.amountCents,
+          requestedAt: p.requestedAt.toISOString(), completedAt: p.completedAt?.toISOString() ?? null,
+          lastError: p.lastError, attempts: p.attempts,
+          doctor: d ? { id: d.id, name: d.name, crm: d.crm } : null,
+          pixKeyMasked: key ? maskPixKey(key, d!.payoutPixKeyType) : null,
+          pixKeyType: d?.payoutPixKeyType ?? null,
+          reminder: (() => { const r = reminderById.get(p.reminderId); return r ? { id: r.id, title: r.title, dueDate: r.dueDate.toISOString() } : null; })(),
+        };
+      }),
+    });
+  } catch (e) { next(e); }
+});
+
+// APROVAÇÃO — o ÚNICO ponto com chamada de escrita real ao Asaas fora do auto-gated.
+// Fluxo: valida requested+reserva → transfer PIX → DONE=completed / FAILED=failed
+// (desreserva) / sem resposta=unknown (conciliação resolve; NUNCA reenvia).
+router.post('/payouts/:id/approve', async (req: AuthedRequest, res, next) => {
+  try {
+    const payoutId = String(req.params.id);
+    const payout = await prisma.payout.findUnique({ where: { id: payoutId } }).catch(() => null);
+    if (!payout) { res.status(404).json({ error: 'Repasse não encontrado.' }); return; }
+    const doctor = payout ? await prisma.doctor.findUnique({ where: { id: payout.doctorId }, select: { name: true, payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true } }) : null;
+    const key = doctor?.payoutPixKeyEnc ? decryptPII(doctor.payoutPixKeyEnc, doctor.payoutPixKeyIv) : null;
+    const masked = key ? maskPixKey(key, doctor!.payoutPixKeyType) : null;
+    await audit('ADMIN_PAYOUT_APPROVE_REQUEST', req, {
+      targetType: 'PAYOUT', targetId: payoutId,
+      before: { status: payout.status },
+      after: { amountCents: payout.amountCents, pixKeyMasked: masked },
+    });
+    let outcome;
+    try {
+      outcome = await approvePayout(payoutId, { executor: `admin:${req.userId}` });
+    } catch (e: any) {
+      res.status(409).json({ error: e?.message ?? 'Aprovação recusada.' });
+      return;
+    }
+    await audit('ADMIN_PAYOUT_APPROVE_RESULT', req, {
+      targetType: 'PAYOUT', targetId: payoutId,
+      after: { status: outcome.status, transferId: outcome.transferId, error: outcome.error ?? null },
+    });
+    console.log(`[admin] repasse ${payoutId} aprovado por ${req.userId}: ${outcome.status}`);
+    res.json({ payout: { id: payoutId, status: outcome.status, transferId: outcome.transferId }, error: outcome.error ?? null });
+  } catch (e) { next(e); }
+});
+
+// Toggle do modo AUTO (default OFF — §18.5 "implemente primeiro o supervisionado").
+// Confirmação fica na UI; aqui registra audit do QUEM/ANTES/DEPOIS.
+router.post('/payouts/auto', async (req: AuthedRequest, res, next) => {
+  try {
+    const enabled = req.body?.enabled === true || req.body?.enabled === 1 || req.body?.enabled === '1';
+    const before = payoutAutoEnabled();
+    await saveSettings('teleconsulta', { payoutAuto: enabled ? 1 : 0 });
+    await audit('TELECONSULTA_PAYOUT_AUTO_TOGGLE', req, {
+      targetType: 'APP_SETTING', targetId: 'teleconsulta.payoutAuto',
+      before: { payoutAuto: before }, after: { payoutAuto: enabled },
+    });
+    console.log(`[admin] repasse automático ${enabled ? 'LIGADO' : 'DESLIGADO'} por ${req.userId}`);
+    res.json({ auto: payoutAutoEnabled() });
   } catch (e) { next(e); }
 });
 

@@ -89,6 +89,29 @@ const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: '
 /** Vídeo do hero — URL provisória (seed open-design); trocar por footage próprio quando houver. Se 404, hero volta ao estático (fallback silencioso). */
 const HERO_VIDEO_URL = 'https://plugin-assets.open-design.ai/plugins/innovation/hf_20260405_074625_a81f018a-956b-43fb-9aee-4d1508e30e6a-6993b9.mp4';
 
+/** Skill §Motion: animações de entrada escalonadas para o hero */
+const FADE_SLIDE_UP = {
+  '@keyframes fadeSlideUp': {
+    from: { opacity: 0, transform: 'translateY(28px)' },
+    to: { opacity: 1, transform: 'translateY(0)' },
+  },
+} as const;
+/** Prova social: avatar pulsante para atrair atenção */
+const AVATAR_PULSE = {
+  '@keyframes avatarPulse': {
+    '0%,100%': { boxShadow: '0 0 0 0px rgba(32,178,170,0.4)' },
+    '50%': { boxShadow: '0 0 0 8px rgba(32,178,170,0)' },
+  },
+} as const;
+/** CTA final: orbes com flutuação suave */
+const ORB_FLOAT = {
+  '@keyframes orbFloat': {
+    '0%,100%': { transform: 'translateY(0px) scale(1)' },
+    '50%': { transform: 'translateY(-18px) scale(1.04)' },
+  },
+} as const;
+
+
 
 // Planos da LANDING — preço/créditos/perks vêm da API (admin edita live; honesto por padrão:
 // o free é COMPLETO por uso; o mensal vende economia + perks, não "trancas").
@@ -237,47 +260,49 @@ export const LandingPage = () => {
                 discreto. Play Store sai do hero (concorria pelo clique) e fica no CTA
                 final, onde a intenção já está confirmada. Headline em A/B 50/50
                 (useHeroAb) — A controle, B específica (outcome + prazo). */}
-            <Box>
+            <Box sx={{ ...FADE_SLIDE_UP }}>
               {isSports ? (
                 <>
-                  <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 11.5, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5 }}>
+                  <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 11.5, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5, animation: 'fadeSlideUp .6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     VOCÊ ACOMPANHA SEUS TREINOS.
                   </Typography>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.6rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.05, mb: 2.5, letterSpacing: '-0.03em', color: '#fff' }}>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.6rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.05, mb: 2.5, letterSpacing: '-0.03em', color: '#fff', animation: 'fadeSlideUp .7s .1s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     <Box component="span" sx={{ display: 'block' }}>E seus <Box component="span" sx={{ ...SERIF_I, color: '#5fc9c3', fontSize: '1.06em' }}>exames?</Box></Box>
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520 }}>
+                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520, animation: 'fadeSlideUp .7s .2s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     Hormônios, hematócrito, colesterol, fígado e rim interpretados <b style={{ color: '#fff' }}>no contexto de quem treina</b> — a régua do laboratório de um lado, seu histórico do outro e <b style={{ color: '#fff' }}>a meta do SEU médico</b> no meio.
                   </Typography>
-                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1, animation: 'fadeSlideUp .7s .25s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="Declarações confidenciais (LGPD) · sem julgamento" sx={{ bgcolor: 'rgba(32,178,170,.18)', color: '#c9efec', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: '#5fc9c3' } }} />
                   </Stack>
                 </>
               ) : (
                 <>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary' }}>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary', animation: 'fadeSlideUp .7s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     {heroAb === 'A' ? (
                       <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>nunca antes.</Box></>
                     ) : (
                       <><Box component="span" sx={{ display: 'block' }}>Seu exame de sangue,</Box> explicado <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>em 30 segundos.</Box></>
                     )}
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500 }}>
+                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'text.secondary', mb: 3, lineHeight: 1.6, maxWidth: 500, animation: 'fadeSlideUp .7s .15s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     Envie o PDF ou a foto. O <b style={{ color: 'text.primary' }}>Dr. Exame</b> lê com IA, explica cada valor em <b style={{ color: 'text.primary' }}>português simples</b>, mostra sua <b style={{ color: 'text.primary' }}>leitura de risco</b> e monta o <b style={{ color: 'text.primary' }}>plano de ação</b> pra levar ao médico.
                   </Typography>
-                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1 }}>
+                  <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1, animation: 'fadeSlideUp .7s .25s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     <Chip icon={<LockIcon sx={{ fontSize: 17 }} />} label="A IA não inventa números — vêm do seu laudo" sx={{ bgcolor: 'rgba(5,150,105,.10)', color: '#047857', fontWeight: 700, fontSize: 13, pl: 1, '& .MuiChip-icon': { color: GREEN } }} />
                   </Stack>
                 </>
               )}
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5 }} alignItems={{ xs: 'stretch', sm: 'center' }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap sx={{ mb: 1.5, animation: 'fadeSlideUp .7s .32s cubic-bezier(0.16, 1, 0.3, 1) both' }} alignItems={{ xs: 'stretch', sm: 'center' }}>
                 <Button variant="contained" size="large" onClick={() => navigate('/registrar')} sx={{
                   borderRadius: '999px', px: 4, py: 1.5, fontSize: 17, textTransform: 'none', fontWeight: 800,
                   bgcolor: 'primary.dark',
                   background: 'linear-gradient(90deg, #178f89 0%, #20b2aa 50%, #178f89 100%)',
                   boxShadow: isSports ? '0 8px 28px rgba(0,0,0,.35), 0 8px 24px rgba(32,178,170,.35)' : '0 8px 24px rgba(32,178,170,.35)',
+                  transition: 'all .25s cubic-bezier(0.16, 1, 0.3, 1)',
                   '&:hover': {
-                    boxShadow: '0 10px 28px rgba(32,178,170,.45)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 12px 32px rgba(32,178,170,.50)',
                   }
                 }}>
                   Começar agora — é grátis
@@ -297,7 +322,7 @@ export const LandingPage = () => {
               </Stack>
               {/* Prova + risk-reversal numa linha só (1ª dobra enxuta: CTA → 1 linha de
                   prova → entrar). Nota/fontes/LGPD verificáveis; Play fica no CTA final (QR). */}
-              <Stack direction="row" spacing={1.25} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, rowGap: 0.75, '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
+              <Stack direction="row" spacing={1.25} alignItems="center" useFlexGap flexWrap="wrap" sx={{ mt: 1.5, mb: 1, rowGap: 0.75, animation: 'fadeSlideUp .7s .42s cubic-bezier(0.16, 1, 0.3, 1) both', '& span': { fontSize: 12.5, fontWeight: 700, color: isSports ? 'rgba(255,255,255,.8)' : 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 0.5 } }}>
                 {isSports ? (
                   <>
                     <Box component="span"><MenuBookIcon sx={{ fontSize: 14, mr: 0.25, color: '#5fc9c3' }} /> Diretrizes <b style={{ color: '#fff' }}>SBEM 2026</b> e Endocrine Society</Box>
@@ -361,7 +386,7 @@ export const LandingPage = () => {
                 </Box>
               </Box>
             ) : (
-            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', position: 'relative', ...ORB_FLOAT }}>
               {/* Badge flutuante 1 (topo-esquerda) */}
               <Box
                 sx={{
@@ -371,6 +396,7 @@ export const LandingPage = () => {
                   boxShadow: '0 12px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(32,178,170,0.12)',
                   border: '1px solid rgba(255,255,255,0.85)',
                   display: 'flex', alignItems: 'center', gap: 1,
+                  animation: 'orbFloat 4.8s ease-in-out infinite',
                 }}
               >
                 <Box sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: '#059669', boxShadow: '0 0 0 3px rgba(5,150,105,0.2)' }} />
@@ -388,6 +414,7 @@ export const LandingPage = () => {
                   boxShadow: '0 12px 32px rgba(32,178,170,0.18), 0 2px 8px rgba(0,0,0,0.06)',
                   border: '1px solid rgba(32,178,170,0.25)',
                   display: 'flex', alignItems: 'center', gap: 0.8,
+                  animation: 'orbFloat 5.2s ease-in-out 1s infinite',
                 }}
               >
                 <AutoAwesomeIcon sx={{ fontSize: 17, color: TEAL_DARK }} />
