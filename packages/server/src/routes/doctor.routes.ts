@@ -1315,12 +1315,33 @@ router.patch('/notes/:id/share', requireDoctor, async (req: any, res, next) => {
 // LEITURA DE RISCO do paciente (C1) — reusa latestRiskAssessment (ou computa se não há).
 router.get('/patients/:patientId/risk', requireDoctor, async (req: any, res, next) => {
   try {
-    if (!(await requireShare(req.doctorId, req.params.patientId))) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+    // Share direto (em vez do requireShare booleano) p/ respeitar o recorte examIds:
+    // em share por-exame, "dados novos" só conta se o exame novo for VISÍVEL ao médico.
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_risk', String(req.params.patientId));
+    const latestExam = await prisma.exam.findFirst({
+      where: { patientId: req.params.patientId, status: 'EXTRACTED', extractedAt: { not: null }, ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) },
+      orderBy: { extractedAt: 'desc' },
+      select: { extractedAt: true },
+    });
+    const latestExamExtractedAt = latestExam?.extractedAt ?? null;
     const latest = await latestRiskAssessment(String(req.params.patientId));
-    if (latest) { res.json(latest); return; }
-    const { result, trend, prior } = await buildRiskAssessment(String(req.params.patientId));
-    res.json({ id: null, createdAt: null, result, trend, prior });
+    // §12.4 (spec teleconsulta 24/10): exame extraído DEPOIS da última análise → recalcula
+    // AGORA (reuso do buildRiskAssessment com force — mesma rotina do paciente) e devolve
+    // a fresca. Nunca análise velha como atual; newDataReceived alimenta o banner do portal.
+    const stale = !!latest && !!latestExamExtractedAt && new Date(latest.createdAt) < new Date(latestExamExtractedAt);
+    if (!latest || stale) {
+      const built = await buildRiskAssessment(String(req.params.patientId), stale ? { force: true } : {});
+      const fresh = built.saved.id ? await latestRiskAssessment(String(req.params.patientId)) : null;
+      res.json({
+        ...(fresh ?? { id: null, createdAt: null, result: built.result, trend: built.trend, prior: built.prior }),
+        latestExamExtractedAt,
+        newDataReceived: stale,
+      });
+      return;
+    }
+    res.json({ ...latest, latestExamExtractedAt, newDataReceived: false });
   } catch (e) { next(e); }
 });
 

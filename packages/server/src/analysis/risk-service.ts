@@ -130,13 +130,23 @@ export async function buildRiskAssessment(patientId: string, opts: BuildOptions 
   result: RiskResult; saved: { id: string; createdAt: Date }; fromCache: boolean;
   trend: RiskTrend; prior: RiskPrior | null;
 }> {
-  // cache: devolve a avaliação recente se !force
+  // cache: devolve a avaliação recente se !force — DESDE QUE nenhum exame tenha sido
+  // extraído DEPOIS dela (§12.4 spec teleconsulta 24/10): análise mais velha que os
+  // dados nunca é servida como atual, nem dentro da janela de 24h. (Compara extractedAt
+  // — quando o dado ENTROU no sistema — e não performedAt, que é data de coleta.)
   if (!opts.force) {
-    const recent = await prisma.riskAssessment.findFirst({
-      where: { patientId, createdAt: { gt: new Date(Date.now() - CACHE_HOURS * 3600_000) } },
-      orderBy: { createdAt: 'desc' },
-    });
-    if (recent) {
+    const [recent, latestExam] = await Promise.all([
+      prisma.riskAssessment.findFirst({
+        where: { patientId, createdAt: { gt: new Date(Date.now() - CACHE_HOURS * 3600_000) } },
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.exam.findFirst({
+        where: { patientId, status: 'EXTRACTED', extractedAt: { not: null } },
+        orderBy: { extractedAt: 'desc' },
+        select: { extractedAt: true },
+      }),
+    ]);
+    if (recent && (!latestExam?.extractedAt || recent.createdAt > latestExam.extractedAt)) {
       const prior = await loadPriorExcept(patientId, recent.id);
       const { trend } = trendBetween(recent.riskLevel, prior);
       return { result: deserialize(recent), saved: { id: recent.id, createdAt: recent.createdAt }, fromCache: true, trend, prior };

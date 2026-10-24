@@ -109,6 +109,25 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ADICIONAR 1 EXAME ao share (§4 spec teleconsulta 24/10): o "1 toque" da notificação
+// "Novo exame processado — compartilhar com Dr. X?". Adiciona só o examId ao recorte —
+// sem re-compartilhar tudo, sem cobrar (não é criação/reativação) e sem email.
+router.post('/:id/exams', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const share = await prisma.doctorShare.findUnique({ where: { id: String(req.params.id) } });
+    if (!share || !pids.includes(share.patientId)) { res.status(404).json({ error: 'Compartilhamento não encontrado.' }); return; }
+    if (!share.active) { res.status(409).json({ error: 'Compartilhamento revogado — reative antes de compartilhar exames.' }); return; }
+    const examId = String(req.body?.examId ?? '');
+    if (!examId) { res.status(400).json({ error: 'examId obrigatório.' }); return; }
+    const exam = await prisma.exam.findFirst({ where: { id: examId, patientId: share.patientId, status: 'EXTRACTED' }, select: { id: true } });
+    if (!exam) { res.status(404).json({ error: 'Exame não encontrado (ou não extraído) para este paciente.' }); return; }
+    if (share.examIds.includes(examId)) { res.json({ share }); return; } // idempotente
+    const updated = await prisma.doctorShare.update({ where: { id: share.id }, data: { examIds: [...share.examIds, examId] } });
+    res.json({ share: updated });
+  } catch (e) { next(e); }
+});
+
 // EXCLUIR compartilhamento (diferente de revogar: REMOVE o registro em vez de só desativar).
 // Se o médico for pending-invite (cadastro errado, nunca claimado/registrou) e não tiver outros
 // shares, exclui o médico também → limpa o diretório de entradas erradas. Médico CLAIMADO (conta

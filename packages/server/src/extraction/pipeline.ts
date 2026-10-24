@@ -15,6 +15,7 @@ import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/c
 import { sendPushToUser } from '../utils/push';
 import { sendWhatsAppExamReady } from '../utils/whatsapp';
 import { sendNudgeEmail } from '../utils/nudgeMail';
+import { notifyNewExamShares } from './share-notify';
 import { ageBandAt, applyPediatricRange, type AgeBand } from '../analysis/pediatric-ranges';
 
 interface ItemRow {
@@ -314,6 +315,10 @@ async function runExtractionOnce(examId: string): Promise<void> {
         const pushBody = `${firstName}, "${title}" está pronto — ${items.length} valores analisados. Toque pra ver o que mudou.`;
         await sendPushToUser(patient.ownerId, pushTitle, pushBody, { type: 'exam_ready', examId: String(examId) }).catch((e) => console.error('[extraction] push exam_ready falhou:', e?.message));
         if (user?.phone) await sendWhatsAppExamReady(user.phone, { name: firstName, exam: title, count: items.length });
+        // §4 (spec teleconsulta): share POR-EXAME congela o recorte — exame novo não entra
+        // sozinho. Pergunta ao paciente (1 toque adiciona só este exame ao share). Share
+        // "todos" (examIds vazio) NÃO pergunta: o médico já vê o novo automaticamente.
+        await notifyNewExamShares(exam.patientId, patient.ownerId, String(examId), title);
         // EXAME VEIO POR E-MAIL (R2): fecha o ciclo no MESMO canal — quem encaminhou por
         // e-mail recebe o "pronto" por e-mail também (o push/WhatsApp já cobrem o resto).
         try {
@@ -389,6 +394,10 @@ async function runExtractionOnce(examId: string): Promise<void> {
           });
           await prisma.examItem.createMany({ data: sitems.map((r) => ({ ...r, examId: screated.id })) });
           console.log(`[extraction] split ${i + 2}/${splitLabs.length + 1}: exame ${screated.id} criado (${sitems.length} itens, coleta ${slab.performedAt ?? '?'})`);
+          // §4: split é um exame NOVO — mesmo prompt de share por-exame do caminho principal.
+          if (!splitRejected && patient?.ownerId) {
+            await notifyNewExamShares(exam.patientId, patient.ownerId, screated.id, String(slab.examTitle ?? exam.title));
+          }
         }
       } catch (e: any) { console.error('[extraction] split falhou (exame principal OK):', e?.message); }
       // Splits mudam o histórico do paciente (novos exames/datas) — invalida aqui também.

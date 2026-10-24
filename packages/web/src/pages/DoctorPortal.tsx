@@ -402,6 +402,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [menuOpen, setMenuOpen] = useState(false);
   const [avatarEl, setAvatarEl] = useState<HTMLElement | null>(null); // menu vertical do avatar (perfil/senha/sair)
   const [selExam, setSelExam] = useState<string | null>(null); // examId p/ o DoctorExamDetail import
+  // §12.4 (spec teleconsulta): "Novos dados recebidos — atualizando análise" — true quando
+  // o último exame extraído é mais recente que a última análise de risco (server já recalcula
+  // no GET /risk; o banner avisa o médico de que a prioridade mudou com dados novos).
+  const [riskInfo, setRiskInfo] = useState<{ newDataReceived: boolean; createdAt: string | null } | null>(null);
   // Funil do médico: convidar paciente (pré-cadastro) + lista de convites pendentes.
   const [invites, setInvites] = useState<any[]>([]);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -590,7 +594,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (tabOverride && pTabs.includes(tabOverride)) initial = tabOverride;
     setTab(initial);
     setSelExam(null);
-    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]); setMedsInfo(null); setPatientTele([]);
+    setDetailLoading(true); setExams([]); setAbnormalItems([]); setNotes([]); setQuestions([]); setMedsInfo(null); setPatientTele([]); setRiskInfo(null);
     const mySeq = ++openSeq.current;
     const mine = () => mySeq === openSeq.current;
     const pid = p.patient.id;
@@ -601,6 +605,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       ...(wantExams ? [get('/items/abnormal').then((d) => { if (d && mine()) setAbnormalItems(d.items ?? []); })] : []),
       // Atividade 30d (Health Connect do paciente) p/ o tile do resumo — silencioso se não houver.
       ...(wantExams ? [get('/activity').then((d) => { if (d && mine()) setActivity(d?.days ? d : null); })] : []),
+      // §12.4: análise de risco + flag "dados novos desde a última análise" (banner no prontuário).
+      ...(wantExams ? [get('/risk').then((d) => { if (d && mine()) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
       get('/questions').then((d) => { if (d && mine()) setQuestions(d.items ?? []); }),
       get('/notes').then((d) => { if (d && mine()) setNotes(d.items ?? []); }),
       get('/medications').then((d) => { if (d && mine()) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
@@ -1176,7 +1182,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               </Button>
             )}
 
-            {/* HERO DO PACIENTE — Identidade, Dados Vitais e Atalhos de Ação Imediata */}
+            {riskInfo?.newDataReceived && (
+          <Alert severity="info" sx={{ py: 0.75, borderRadius: '12px', '& .MuiAlert-message': { fontSize: 13, fontWeight: 600 } }}>
+            Novos dados recebidos — atualizando análise: a prioridade clínica foi recalculada com os exames mais recentes.
+          </Alert>
+        )}
+        {/* HERO DO PACIENTE — Identidade, Dados Vitais e Atalhos de Ação Imediata */}
             <PatientSummary
               patient={selected}
               loading={detailLoading}
