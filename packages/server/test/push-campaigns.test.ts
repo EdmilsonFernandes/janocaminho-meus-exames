@@ -190,7 +190,9 @@ describe('Admin push segmentado — rotas', () => {
 
     const r = await api().post('/api/admin/push/audience-preview').set(authHeader(admin.token)).send({ filter: { plan: 'premium' } });
     expect(r.status).toBe(200);
-    expect(r.body).toEqual({ users: 2, devices: 3 });
+    // toMatchObject: a resposta pode ganhar campos aditivos (ex.: estimativas) —
+    // o contrato testado são as contagens, não a exclusividade de chaves.
+    expect(r.body).toMatchObject({ users: 2, devices: 3 });
 
     const forbidden = await api().post('/api/admin/push/audience-preview').set(authHeader(a.token)).send({});
     expect(forbidden.status).toBe(403);
