@@ -498,8 +498,9 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
 // Valor foi CONGELADO no Reminder (consultPriceCents) no agendamento; aqui cria a
 // cobrança PIX no MESMO padrão do relatório avulso (Subscription PENDING + tag
 // 'teleconsulta_<reminderId>' — os webhooks derivam o kind por ela). A aprovação marca
-// Reminder.paidAt/paymentRef. Join NÃO é bloqueado por pagamento (v1: cobrança é
-// confiança, não gate); repasse ao médico é fora do app (sem split automático).
+// Reminder.paidAt/paymentRef. Desde o lifecycle (24/10/26, spec gaps §2) o /join
+// BLOQUEIA por pagamento (402 PAYMENT_REQUIRED quando consultPriceCents>0 sem paidAt);
+// repasse ao médico é fora do app (sem split automático).
 router.post('/teleconsulta/:id', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const r = await prisma.reminder.findUnique({ where: { id: String(req.params.id) } });

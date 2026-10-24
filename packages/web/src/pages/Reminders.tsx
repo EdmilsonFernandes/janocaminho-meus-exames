@@ -30,7 +30,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { API_URL, token, doctorPhotoUrl } from '../config';
+import { API_URL, APP_WEB_URL, token, doctorPhotoUrl } from '../config';
 import { hapticSuccess, hapticError, hapticLight } from '../utils/haptic';
 import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -236,6 +236,14 @@ export const RemindersPage = () => {
   const endedConsultations = consultations.filter((r) => !!r.endedAt).sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime());
   const upcomingConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   const pastConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+
+  // §13 complemento UX: aviso in-app "Sua consulta começa em 5 minutos". Sem polling
+  // novo — a lista já refetcha a cada 60s (focus + interval); banner = compute do estado.
+  const startingSoon = consultations.find((r) => {
+    if (r.endedAt || r.done || !(r.type === 'teleconsulta' || r.provider === 'livekit')) return false;
+    const due = new Date(r.dueDate).getTime();
+    return due >= now.getTime() && due <= now.getTime() + 5 * 60 * 1000;
+  });
 
   const upcomingRoutine = routineList.filter((r) => new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   const pastRoutine = routineList.filter((r) => new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
@@ -779,20 +787,42 @@ export const RemindersPage = () => {
                 )
               )}
 
-              {r.linkUrl && (
-                <IconButton
-                  size="small"
-                  aria-label="Compartilhar no WhatsApp"
-                  title="Compartilhar agendamento no WhatsApp"
-                  onClick={() => {
-                    const dt = fmtDate(r.dueDate);
-                    window.open(`https://wa.me/?text=${encodeURIComponent(`Teleconsulta "${r.title}" com ${docName} agendada para ${dt}. Link de acesso: ${r.linkUrl}`)}`, '_blank', 'noopener');
-                  }}
-                  sx={{ color: '#25d366', '&:hover': { bgcolor: 'rgba(37,211,102,.12)' } }}
-                >
-                  <WhatsAppIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-              )}
+              {/* §6 share: WhatsApp + copiar link — vale pra teleconsulta NO APP (link
+                  drexame/#/teleconsulta/:id, App Link) E pro link externo legado (linkUrl). */}
+              {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (() => {
+                const due = new Date(r.dueDate);
+                const shareLink = r.linkUrl || `${APP_WEB_URL}/#/teleconsulta/${r.id}`;
+                const shareMsg = `Sua teleconsulta com ${docName} está agendada para ${due.toLocaleDateString('pt-BR')}, às ${due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (horário de Brasília). Acesse pelo link: ${shareLink}`;
+                return (
+                  <>
+                    <IconButton
+                      size="small"
+                      aria-label="Compartilhar no WhatsApp"
+                      title="Compartilhar agendamento no WhatsApp"
+                      onClick={() => {
+                        hapticLight();
+                        window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank', 'noopener');
+                      }}
+                      sx={{ color: '#25d366', '&:hover': { bgcolor: 'rgba(37,211,102,.12)' } }}
+                    >
+                      <WhatsAppIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      aria-label="Copiar link da consulta"
+                      title="Copiar link da consulta"
+                      onClick={async () => {
+                        hapticLight();
+                        if (await copyText(shareLink)) snackbar({ message: 'Link da consulta copiado!', severity: 'success' });
+                        else snackbar({ message: 'Não deu pra copiar automático. Use "Compartilhar no WhatsApp" ou copie manualmente.', severity: 'info' });
+                      }}
+                      sx={{ color: 'text.secondary', '&:hover': { color: '#0d9488' } }}
+                    >
+                      <ContentCopyIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+                  </>
+                );
+              })()}
 
               <IconButton
                 size="small"
@@ -1048,6 +1078,34 @@ export const RemindersPage = () => {
           Lembretes ({routineList.length})
         </Button>
       </Box>
+
+      {/* §13: "Sua consulta começa em 5 minutos" — banner discreto em TODAS as abas
+          (a consulta pode estar a 5 min com o usuário em outro lugar da página). */}
+      {startingSoon && (
+        <Alert
+          severity="info"
+          icon={<VideocamIcon sx={{ fontSize: 20 }} />}
+          sx={{
+            mb: 2, borderRadius: '14px', alignItems: 'center',
+            border: '1px solid', borderColor: 'rgba(13,148,136,.35)',
+            bgcolor: 'rgba(13,148,136,.10)',
+            '& .MuiAlert-icon': { color: '#0d9488' },
+          }}
+          action={
+            <Button
+              color="inherit" size="small"
+              onClick={() => { hapticLight(); navigate(`/teleconsulta/${startingSoon.id}`); }}
+              sx={{ fontWeight: 800, borderRadius: '999px', bgcolor: '#0d9488', color: '#fff', '&:hover': { bgcolor: '#0f766e' } }}
+            >
+              Ir para a consulta
+            </Button>
+          }
+        >
+          <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: 'text.primary' }}>
+            Sua teleconsulta{startingSoon.doctor?.name ? ` com ${startingSoon.doctor.name}` : ''} começa em {Math.max(1, Math.ceil((new Date(startingSoon.dueDate).getTime() - now.getTime()) / 60000))} min
+          </Typography>
+        </Alert>
+      )}
 
       {/* CONTEÚDO DA ABA 1: CONSULTAS & TELEMEDICINA */}
       {currentTab === 'consultas' && (

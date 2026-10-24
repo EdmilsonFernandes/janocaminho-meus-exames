@@ -18,6 +18,7 @@ export interface TeleconsultaItem {
     specialty?: string;
   };
   done?: boolean;
+  endedAt?: string | null;
   createdAt?: string;
 }
 
@@ -65,8 +66,10 @@ export function useUpcomingTeleconsulta(): UpcomingTeleconsultaState {
       const data: any[] = await res.json();
       if (!Array.isArray(data)) return;
 
+      // §5 (dono 24/10): painel do paciente SÓ mostra teleconsulta pendente — done/encerrada
+      // sai daqui (histórico vive nos lembretes); "última teleconsulta" não polui o dashboard.
       const teleconsultas = data
-        .filter((r) => r && (r.type === 'teleconsulta' || r.provider === 'livekit'))
+        .filter((r) => r && (r.type === 'teleconsulta' || r.provider === 'livekit') && !r.done && !r.endedAt)
         .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
 
       if (teleconsultas.length === 0) {
@@ -120,10 +123,11 @@ export function useUpcomingTeleconsulta(): UpcomingTeleconsultaState {
         }
       }
 
-      // Fallback: se não achou futura, checa se tem recente (passou há menos de 48h)
+      // Fallback: pendente que venceu há MENOS de 24h (ainda dá pra entrar — link/janela).
+      // Encerrada/done já saiu no filtro acima; além de 24h o card some (anti-poluição §5).
       if (!chosen) {
         const past = teleconsultas
-          .filter((t) => new Date(t.dueDate).getTime() < nowMs && (nowMs - new Date(t.dueDate).getTime()) < 48 * 3600 * 1000)
+          .filter((t) => new Date(t.dueDate).getTime() < nowMs && (nowMs - new Date(t.dueDate).getTime()) < 24 * 3600 * 1000)
           .sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
         if (past[0]) {
           chosen = past[0];

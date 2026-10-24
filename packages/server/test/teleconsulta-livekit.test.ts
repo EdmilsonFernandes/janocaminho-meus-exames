@@ -30,7 +30,10 @@ async function createTeleconsultaReminder(ownerId: string, patientId: string, op
       ownerId,
       patientId,
       title: 'Teleconsulta',
-      dueDate: new Date(Date.now() + 24 * 3600_000),
+      // Lifecycle 24/10: /join libera só a partir de dueDate − 5min (TOO_EARLY antes).
+      // Default do fixture = VENCIDA (janela aberta) — os testes de janela vivem no
+      // lifecycle2 com dueDate futura explícita.
+      dueDate: new Date(Date.now() - 5 * 60_000),
       type: 'teleconsulta',
       linkUrl: opts.linkUrl ?? null,
       consentAt: opts.consentAt ?? null,

@@ -1,7 +1,8 @@
 // E2E (supertest) — Cobrança de consulta particular (23/10/26): médico define valor →
 // paciente paga no app (PIX MP mockado) → webhook marca paidAt/paymentRef no Reminder.
-// v1: join NÃO é bloqueado por pagamento (cobrança é confiança, não gate) e o repasse
-// ao médico é fora do app (sem split). Padrão: copiado do teleconsulta-doctor-note.test.
+// Lifecycle 24/10 (spec gaps §2): o /join AGORA bloqueia por pagamento (402
+// PAYMENT_REQUIRED sem paidAt — testado no teleconsulta-lifecycle2). Repasse ao médico
+// é fora do app (sem split). Padrão: copiado do teleconsulta-doctor-note.test.
 import { describe, it, expect, beforeEach, vi, type Mock } from 'vitest';
 import { prisma } from '../src/prisma';
 import { api, createUser, createDoctor, resetDb, authHeader, mpResponse } from './helpers';

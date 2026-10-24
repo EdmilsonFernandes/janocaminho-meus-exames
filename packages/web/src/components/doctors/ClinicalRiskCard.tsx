@@ -260,7 +260,10 @@ export const ClinicalRiskCard = ({
           pb: expanded ? 1.5 : 2.25,
         }}
       >
-        <Stack direction="row" alignItems="center" spacing={1.5}>
+        {/* fix dono 24/10 "prioridade clínica quebra layout": minWidth 0 + flex 1 nos
+            filhos do flex — sem isso o bloco de título NÃO encolhe no 390px e empurra o
+            badge/expand pra fora do card. Semântica de cor preservada. */}
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
           <Box
             sx={{
               width: 38,
@@ -275,7 +278,7 @@ export const ClinicalRiskCard = ({
           >
             <HealthAndSafetyIcon sx={{ fontSize: 22 }} />
           </Box>
-          <Box>
+          <Box sx={{ minWidth: 0 }}>
             <Stack direction="row" alignItems="center" spacing={1}>
               <Typography
                 sx={{
@@ -312,8 +315,9 @@ export const ClinicalRiskCard = ({
           </Box>
         </Stack>
 
-        <Stack direction="row" alignItems="center" spacing={1}>
-          {/* Badge de gravidade visível no header se colapsado */}
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
+          {/* Badge de gravidade visível no header se colapsado — capped no xs pra não
+              estourar o header (chip não encolhe sozinho; ellipsis no label). */}
           {!expanded && (
             <Chip
               label={`${riskAnalysis.level} · ${riskAnalysis.score}/100`}
@@ -323,6 +327,8 @@ export const ClinicalRiskCard = ({
                 fontSize: 11,
                 bgcolor: riskAnalysis.levelBg,
                 color: riskAnalysis.levelColor,
+                maxWidth: { xs: 168, sm: 'none' },
+                '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' },
               }}
             />
           )}
@@ -520,6 +526,7 @@ export const ClinicalRiskCard = ({
                       alignItems: 'center',
                       gap: 0.75,
                       flex: 1,
+                      minWidth: 0, // círculo/rótulo não estoura a régua no 390px
                       position: 'relative',
                       zIndex: 2,
                     }}
@@ -563,6 +570,9 @@ export const ClinicalRiskCard = ({
                             ? 'text.primary'
                             : 'text.secondary',
                         textAlign: 'center',
+                        wordBreak: 'break-word',
+                        lineHeight: 1.3,
+                        px: 0.25,
                       }}
                     >
                       {lvl}

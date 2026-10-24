@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, TextField, MenuItem, Button } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, TextField, MenuItem, Button, Collapse, IconButton } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 const H = () => ({ Authorization: `Bearer ${token()}` });
@@ -52,6 +53,8 @@ export const AuditTab = () => {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [skip, setSkip] = useState(0);
+  // §5 (dono 24/10): grupos consecutivos do mesmo ator abertos/fechados pelo admin.
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
 
   const load = useCallback(() => {
     setErr(false);
@@ -108,6 +111,45 @@ export const AuditTab = () => {
   const hasPrev = skip > 0;
   const hasNext = (d.auditLogs?.length ?? 0) >= TAKE;
 
+  /** Linha de UM evento (mesmo conteúdo de antes — chip + ator + data/ip + detalhe). */
+  const logRow = (l: any) => {
+    const info = accessInfo(l) ?? examInfo(l);
+    return (
+      <Box>
+        <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+          <Chip size="small" color={color(l.action)} label={actionLabel(l.action)} />
+          <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+            <strong>{d.actors?.[l.actorId]?.name ?? l.actorType}</strong>{d.actors?.[l.actorId]?.email ? ` · ${d.actors[l.actorId].email}` : (l.targetType && l.targetType !== 'USER' && l.targetType !== 'DOCTOR' ? ` → ${l.targetType}` : '')}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">{new Date(l.createdAt).toLocaleString('pt-BR')}{l.ip ? ` · ${l.ip}` : ''}</Typography>
+        </Stack>
+        {info && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontFamily: 'monospace' }}>{info}</Typography>}
+      </Box>
+    );
+  };
+
+  /** §5 (dono 24/10, "mesmo usuário agrupar pra não poluir"): entradas CONSECUTIVAS do
+   *  mesmo ator (actorType+actorId) viram UM item expansível; o histórico completo fica
+   *  visível dentro do Collapse (nenhum evento some — só deixa de repetir o ator N vezes). */
+  const groups: { key: string; actorLabel: string; logs: any[] }[] = [];
+  for (const l of d.auditLogs ?? []) {
+    const key = `${l.actorType}:${l.actorId ?? ''}`;
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) last.logs.push(l);
+    else groups.push({ key, actorLabel: d.actors?.[l.actorId]?.name ?? l.actorType, logs: [l] });
+  }
+
+  /** Rótulo do intervalo da rajada ("últimas 2 h") — lista vem newest-first. */
+  const spanLabel = (logs: any[]): string => {
+    const span = Math.max(0, new Date(logs[0].createdAt).getTime() - new Date(logs[logs.length - 1].createdAt).getTime());
+    if (span < 60_000) return 'no mesmo minuto';
+    if (span < 3_600_000) return `últimos ${Math.max(1, Math.round(span / 60_000))} min`;
+    if (span < 86_400_000) return `últimas ${Math.max(1, Math.round(span / 3_600_000))} h`;
+    return `últimos ${Math.max(1, Math.round(span / 86_400_000))} d`;
+  };
+
+  const toggleGroup = (gk: string) => setOpenGroups((s) => ({ ...s, [gk]: !s[gk] }));
+
   return (
     <Box>
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>🛡️ {d.count} evento(s) auditado(s)</Typography>
@@ -130,21 +172,52 @@ export const AuditTab = () => {
         </Stack>
       )}
 
-      {/* Lista */}
+      {/* Lista — ator consecutivo agrupado em item expansível (§5) */}
       <Stack spacing={1}>
-        {d.auditLogs?.map((l: any) => {
-          const info = accessInfo(l) ?? examInfo(l);
+        {groups.map((g, gi) => {
+          const gk = `${gi}:${g.key}`;
+          const open = !!openGroups[gk];
+          if (g.logs.length === 1) {
+            return (
+              <Card key={g.logs[0].id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
+                {logRow(g.logs[0])}
+              </CardContent></Card>
+            );
+          }
+          const first = g.logs[0];
           return (
-            <Card key={l.id} variant="outlined" sx={{ borderRadius: '12px' }}><CardContent sx={{ py: 1.25, '&:last-child': { pb: 1.25 } }}>
-              <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-                <Chip size="small" color={color(l.action)} label={actionLabel(l.action)} />
-                <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
-                  <strong>{d.actors?.[l.actorId]?.name ?? l.actorType}</strong>{d.actors?.[l.actorId]?.email ? ` · ${d.actors[l.actorId].email}` : (l.targetType && l.targetType !== 'USER' && l.targetType !== 'DOCTOR' ? ` → ${l.targetType}` : '')}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">{new Date(l.createdAt).toLocaleString('pt-BR')}{l.ip ? ` · ${l.ip}` : ''}</Typography>
-              </Stack>
-              {info && <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, fontFamily: 'monospace' }}>{info}</Typography>}
-            </CardContent></Card>
+            <Card key={gk} variant="outlined" sx={{ borderRadius: '12px' }}>
+              <CardContent
+                sx={{ py: 1.25, '&:last-child': { pb: 1.25 }, cursor: 'pointer' }}
+                onClick={() => toggleGroup(gk)}
+              >
+                <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                  <Chip size="small" color={color(first.action)} label={actionLabel(first.action)} />
+                  <Typography variant="body2" sx={{ flex: 1, minWidth: 0 }}>
+                    <strong>{g.actorLabel}</strong> · {g.logs.length} ações · {spanLabel(g.logs)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">{new Date(first.createdAt).toLocaleString('pt-BR')}</Typography>
+                  <IconButton
+                    size="small"
+                    aria-label={open ? `Recolher ${g.logs.length} ações de ${g.actorLabel}` : `Expandir ${g.logs.length} ações de ${g.actorLabel}`}
+                    aria-expanded={open}
+                    onClick={(e) => { e.stopPropagation(); toggleGroup(gk); }}
+                    sx={{ p: 0.5 }}
+                  >
+                    <ExpandMoreIcon sx={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />
+                  </IconButton>
+                </Stack>
+              </CardContent>
+              <Collapse in={open} timeout="auto" unmountOnExit>
+                <Stack spacing={1} sx={{ px: 2, pb: 1.5 }}>
+                  {g.logs.map((l: any) => (
+                    <Box key={l.id} sx={{ pl: 1.25, borderLeft: '2px solid', borderColor: 'divider' }}>
+                      {logRow(l)}
+                    </Box>
+                  ))}
+                </Stack>
+              </Collapse>
+            </Card>
           );
         })}
         {d.auditLogs?.length === 0 && <Typography color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>Nenhum evento com esses filtros.</Typography>}

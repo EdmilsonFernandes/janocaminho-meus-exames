@@ -16,7 +16,8 @@ import { api, createUser, createDoctor, resetDb, authHeader } from './helpers';
 
 vi.mocked(hasLiveKitConfig).mockReturnValue(true);
 
-/** Reminder type=teleconsulta ABERTA (endedAt=null). */
+/** Reminder type=teleconsulta ABERTA (endedAt=null). dueDate default = VENCIDA:
+ *  lifecycle 24/10 libera o /join a partir de dueDate − 5min (TOO_EARLY antes). */
 async function createTeleconsultaReminder(ownerId: string, patientId: string, opts: {
   consentAt?: Date | null;
   provider?: string | null;
@@ -28,7 +29,7 @@ async function createTeleconsultaReminder(ownerId: string, patientId: string, op
       ownerId,
       patientId,
       title: 'Teleconsulta',
-      dueDate: opts.dueDate ?? new Date(Date.now() + 24 * 3600_000),
+      dueDate: opts.dueDate ?? new Date(Date.now() - 5 * 60_000),
       type: 'teleconsulta',
       consentAt: opts.consentAt ?? null,
       notifyOffsetsMin: [1440, 60, 0],
@@ -68,11 +69,13 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
     const { user, patient, token } = await createUser();
     const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit', roomName: 't-end-1' });
 
-    const res = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token));
+    // Lifecycle 24/10: sem join e sem critério, /end exige outcome honesto ('no_show').
+    const res = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token)).send({ outcome: 'no_show' });
     expect(res.status).toBe(200);
     expect(res.body.ok).toBe(true);
     expect(res.body.alreadyEnded).toBe(false);
     expect(res.body.endedAt).toBeTruthy();
+    expect(res.body.teleStatus).toBe('no_show');
 
     const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { done: true, endedAt: true } });
     expect(row?.done).toBe(true);
@@ -87,7 +90,7 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
     const { user, patient, token } = await createUser();
     const r = await createTeleconsultaReminder(user.id, patient.id, { consentAt: new Date(), provider: 'livekit', roomName: 't-end-2' });
 
-    const end = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token));
+    const end = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token)).send({ outcome: 'no_show' });
     expect(end.status).toBe(200);
 
     const join = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(token));
@@ -113,7 +116,7 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
     await prisma.doctorShare.create({ data: { patientId: patient.id, doctorId: doc.doctor.id, scopes: ['exams'] } });
     const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' });
 
-    const first = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token));
+    const first = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token)).send({ outcome: 'no_show' });
     expect(first.status).toBe(200);
     const second = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(doc.token));
     expect(second.status).toBe(200);
@@ -130,7 +133,7 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
     await prisma.doctorShare.create({ data: { patientId: patient.id, doctorId: doc.doctor.id, scopes: ['exams'] } });
     const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' });
 
-    const res = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(doc.token));
+    const res = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(doc.token)).send({ outcome: 'no_show' });
     expect(res.status).toBe(200);
     const log = await prisma.auditLog.findFirst({ where: { action: 'TELECONSULTA_END', targetId: r.id } });
     expect(log?.actorType).toBe('DOCTOR');
@@ -147,7 +150,8 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
 
     const join = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(token)); // gera TELECONSULTA_JOIN
     expect(join.status).toBe(200);
-    const end = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token));
+    // Paciente entrou mas sem médico (tempo conjunto ~0 < 300s) → outcome honesto 'technical'.
+    const end = await api().post(`/api/teleconsulta/${r.id}/end`).set(authHeader(token)).send({ outcome: 'technical' });
     expect(end.status).toBe(200);
 
     const res = await api().get(`/api/teleconsulta/${r.id}/summary`).set(authHeader(token));

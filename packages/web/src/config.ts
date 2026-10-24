@@ -8,6 +8,11 @@ export const API_URL = Capacitor.isNativePlatform() ? NATIVE_API_URL : (import.m
 /** Link de telemedicina (preenchido via VITE_TELEMEDICINE_URL). Vazio → botão fica oculto. */
 export const TELEMEDICINE_URL = import.meta.env.VITE_TELEMEDICINE_URL || '';
 
+/** URL pública do app na web — base de links COMPARTILHÁVEIS (WhatsApp/e-mail, App Links
+ *  verificados no domínio drexame). NÃO deriva de API_URL: em dev/localhost o link é aberto
+ *  no celular de QUEM RECEBE → precisa apontar pro app público, nunca pro ambiente local. */
+export const APP_WEB_URL = 'https://drexame.janocaminho.com.br';
+
 export const token = () => localStorage.getItem('token');
 
 /** Exp (unix seg) de um JWT, ou null se não decodificar (não é JWT / formato inesperado). */
