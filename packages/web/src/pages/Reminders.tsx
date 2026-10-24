@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactElement } from 'react';
 import {
   Card, CardContent, Typography, Button, TextField, IconButton, Checkbox,
   Stack, Chip, Box, Collapse, Accordion, AccordionSummary, AccordionDetails,
-  Alert, Dialog, DialogTitle, DialogContent, DialogActions, Avatar
+  Alert, Dialog, DialogTitle, DialogContent, DialogActions, Avatar, CircularProgress
 } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -37,6 +37,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { tealText } from '../theme';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
+import { copyText } from '../utils/copyText';
 
 const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.12)}`;
 const livePulse = keyframes`0%{transform:scale(0.85);opacity:1}100%{transform:scale(2.2);opacity:0}`;
@@ -283,6 +284,11 @@ export const RemindersPage = () => {
   // /billing/payment-status/:id detecta a aprovação do webhook e marca "Paga ✓".
   const [payTele, setPayTele] = useState<any | null>(null);
   const [payBusyId, setPayBusyId] = useState<string | null>(null);
+  // Countdown + copy do PIX do dialog (24/10): expiração visível e clipboard à prova de WebView.
+  const [paySecs, setPaySecs] = useState(0);
+  const [pixCopied, setPixCopied] = useState(false);
+  const pixCodeRef = useRef<HTMLInputElement | null>(null);
+  const pixCopyTimer = useRef<any>(null);
 
   const payTeleconsulta = async (r: any) => {
     setPayBusyId(r.id);
@@ -290,6 +296,13 @@ export const RemindersPage = () => {
       const res = await fetch(`${API_URL}/billing/teleconsulta/${r.id}`, { method: 'POST', headers: { Authorization: `Bearer ${token()}` } });
       const d: any = await res.json().catch(() => ({}));
       if (res.status === 409 && d.pendingPix) { hapticLight(); setPayTele({ ...d.pendingPix, reminderId: r.id }); return; }
+      // 409 SEM pendingPix = "Consulta já paga." (paga em outra aba/device) → comemora, não é erro.
+      if (res.status === 409 && d.paidAt) {
+        setPayTele(null);
+        setItems((list) => list.map((it) => (it.id === r.id ? { ...it, paidAt: d.paidAt } : it)));
+        snackbar({ message: '✓ Consulta paga! Pagamento confirmado.', severity: 'success' });
+        return;
+      }
       if (!res.ok) throw new Error(d.error || 'Falha ao gerar a cobrança.');
       hapticLight();
       setPayTele({ reminderId: r.id, paymentId: d.paymentId, qrCode: d.qrCode, qrBase64: d.qrBase64, expiresAt: d.expiresAt, priceCents: d.priceCents });
@@ -318,6 +331,41 @@ export const RemindersPage = () => {
     }, 3000);
     return () => clearInterval(iv);
   }, [payTele?.paymentId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Countdown do PIX (server expira em 10min): zera → dialog vira "expirado" com botão
+  // "Gerar novo" (POST de novo: server só retoma PIX VIVO; expirado cria charge nova).
+  useEffect(() => {
+    const ms = payTele?.expiresAt ? new Date(payTele.expiresAt).getTime() : NaN;
+    if (!ms || isNaN(ms)) { setPaySecs(0); return; }
+    setPaySecs(Math.max(0, Math.floor((ms - Date.now()) / 1000)));
+    const tick = setInterval(() => setPaySecs((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(tick);
+  }, [payTele?.paymentId, payTele?.expiresAt]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => () => clearTimeout(pixCopyTimer.current), []);
+
+  /** Copy do código PIX à prova de WebView (bug dono 24/10: "copiar no APP dá erro" —
+   *  navigator.clipboard falha/rejeita no Capacitor e o toast antigo mentia "copiado").
+   *  copyText tenta Clipboard API → execCommand; se os 2 falharem, SELECIONA o código
+   *  no campo readOnly (toque-e-segure copia nativo) — feedback claro em TODO caminho. */
+  const doCopyPix = async () => {
+    const code = String(payTele?.qrCode ?? '');
+    if (!code) return;
+    if (await copyText(code)) {
+      setPixCopied(true);
+      clearTimeout(pixCopyTimer.current);
+      pixCopyTimer.current = setTimeout(() => setPixCopied(false), 2500);
+      snackbar({ message: 'Código PIX copiado!', severity: 'success' });
+    } else {
+      pixCodeRef.current?.focus();
+      pixCodeRef.current?.select();
+      hapticLight();
+      snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código acima para copiar.', severity: 'info' });
+    }
+  };
+  const payExpired = !!payTele?.expiresAt && paySecs <= 0;
+  const payMm = String(Math.floor(paySecs / 60)).padStart(2, '0');
+  const paySs = String(paySecs % 60).padStart(2, '0');
 
   // 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
   const renderConsultationCard = (r: any) => {
@@ -1472,7 +1520,8 @@ export const RemindersPage = () => {
       </Dialog>
 
       {/* CONSULTA PARTICULAR (23/10): PIX da teleconsulta — QR + copia-e-cola.
-          O poll acima detecta a aprovação e fecha sozinho ("Consulta paga"). */}
+          O poll acima detecta a aprovação e fecha sozinho ("Consulta paga"), sem reload.
+          24/10: countdown de expiração + estado "expirado" com gerar novo + copy WebView-safe. */}
       <Dialog open={!!payTele} onClose={() => setPayTele(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
         <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, display: 'flex', alignItems: 'center', gap: 1, pb: 0.5 }}>
           <PaymentsIcon sx={{ fontSize: 20, color: '#d4a574' }} /> Pagar consulta
@@ -1483,28 +1532,72 @@ export const RemindersPage = () => {
               R$ {fmtBrl(Number(payTele.priceCents))}
             </Typography>
           )}
-          <Typography sx={{ color: 'text.secondary', fontSize: 13, mb: 1.5 }}>
-            Escaneie o QR ou use o copia-e-cola. A confirmação é automática — pode fechar e voltar depois.
-          </Typography>
-          {payTele?.qrBase64 ? (
-            <Box component="img" src={payTele.qrBase64} alt="QR Code PIX da consulta" sx={{ width: 210, height: 210, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block' }} />
-          ) : null}
-          {payTele?.qrCode && (
-            <>
-              <TextField
-                value={payTele.qrCode}
-                multiline
-                size="small"
-                sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 11, fontFamily: 'monospace' } }}
-              />
+          {payExpired ? (
+            <Box sx={{ py: 1 }}>
+              <Alert severity="warning" icon={<HourglassEmptyIcon fontSize="small" />} sx={{ borderRadius: '12px', textAlign: 'left', fontSize: 13.5 }}>
+                O tempo deste PIX acabou e ele não pode mais ser pago. Gere um novo código para concluir o pagamento.
+              </Alert>
               <Button
-                size="small"
-                startIcon={<ContentCopyIcon />}
-                onClick={() => { try { void navigator.clipboard.writeText(String(payTele.qrCode ?? '')); snackbar({ message: 'Código PIX copiado!', severity: 'success' }); } catch { /* clipboard bloqueado */ } }}
-                sx={{ mt: 1, textTransform: 'none', fontWeight: 800, color: '#d4a574' }}
+                fullWidth
+                variant="contained"
+                disabled={payBusyId === payTele?.reminderId}
+                onClick={() => { const it = items.find((x) => x.id === payTele?.reminderId); if (it) void payTeleconsulta(it); }}
+                sx={{
+                  mt: 1.5, minHeight: 44, borderRadius: '999px', textTransform: 'none', fontWeight: 800,
+                  background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)', color: '#fff',
+                  '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
+                }}
               >
-                Copiar código PIX
+                {payBusyId === payTele?.reminderId ? 'Gerando novo PIX…' : 'Gerar novo PIX'}
               </Button>
+            </Box>
+          ) : (
+            <>
+              <Chip
+                size="small"
+                icon={<HourglassEmptyIcon sx={{ fontSize: '15px !important' }} />}
+                label={`Expira em ${payMm}:${paySs}`}
+                sx={{ mb: 1.5, borderRadius: '999px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(212,165,116,.14)', color: 'text.primary', border: '1px solid rgba(212,165,116,.3)' }}
+              />
+              <Typography sx={{ color: 'text.secondary', fontSize: 13, mb: 1.5 }}>
+                Escaneie o QR ou use o copia-e-cola. A confirmação é automática — pode fechar e voltar depois.
+              </Typography>
+              {payTele?.qrBase64 ? (
+                <Box component="img" src={payTele.qrBase64} alt="QR Code PIX da consulta" sx={{ width: 210, height: 210, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: '#fff', p: 1, mx: 'auto', display: 'block' }} />
+              ) : null}
+              {payTele?.qrCode && (
+                <>
+                  {/* readOnly: código nunca editável; tocar no campo já seleciona tudo —
+                      no WebView sem clipboard é o caminho "toque e segure p/ copiar". */}
+                  <TextField
+                    inputRef={pixCodeRef}
+                    value={payTele.qrCode}
+                    multiline
+                    size="small"
+                    inputProps={{ readOnly: true, 'aria-label': 'Código PIX copia e cola' }}
+                    onFocus={(e) => e.target.select()}
+                    sx={{ mt: 1.5, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 11, fontFamily: 'monospace' } }}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    startIcon={pixCopied ? <CheckCircleOutlineIcon /> : <ContentCopyIcon />}
+                    onClick={() => void doCopyPix()}
+                    sx={{
+                      mt: 1, minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800,
+                      background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)', color: '#fff',
+                      '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
+                      ...(pixCopied ? { background: 'success.main', '&:hover': { background: 'success.dark' } } : {}),
+                    }}
+                  >
+                    {pixCopied ? 'Copiado!' : 'Copiar código PIX'}
+                  </Button>
+                </>
+              )}
+              <Stack direction="row" alignItems="center" justifyContent="center" spacing={1} sx={{ mt: 2 }}>
+                <CircularProgress size={14} sx={{ color: '#d4a574' }} />
+                <Typography variant="body2" color="text.secondary">Aguardando pagamento…</Typography>
+              </Stack>
             </>
           )}
         </DialogContent>

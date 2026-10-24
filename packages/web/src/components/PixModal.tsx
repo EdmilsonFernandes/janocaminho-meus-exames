@@ -7,6 +7,8 @@ import QrCode2Icon from '@mui/icons-material/QrCode2';
 import ScheduleIcon from '@mui/icons-material/Schedule';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
+import { copyText } from '../utils/copyText';
+import { snackbar } from './ConfirmDialog';
 import { readsOf } from '../utils/creditsLabel';
 import { bumpCredits } from '../utils/credits-events';
 import { celebrate } from '../hooks/useCelebrate';
@@ -121,29 +123,18 @@ export const PixModal = ({ packId, plan, product, onClose, onApproved, existingP
   const ss = String(secs % 60).padStart(2, '0');
   const price = pix ? `R$ ${Number(pix.price).toFixed(2).replace('.', ',')}` : '';
 
-  /** navigator.clipboard + fallback execCommand (WebView antiga / contexto não seguro). */
+  /** Copy do PIX à prova de WebView (24/10): navigator.clipboard falha no APK → helper
+   *  copyText (Clipboard API → execCommand). Falhou tudo → avisa honesto + toque-e-segure;
+   *  antes o botão ficava mudo como se tivesse copiado. */
   const copyPix = async () => {
     const code = String(pix?.qrCode || '');
     if (!code) return;
-    let ok = false;
-    try { await navigator.clipboard.writeText(code); ok = true; } catch { ok = false; }
-    if (!ok) {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = code;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-      } catch { ok = false; }
-    }
-    if (ok) {
+    if (await copyText(code)) {
       setCopied(true);
       clearTimeout(copyTimer.current);
       copyTimer.current = setTimeout(() => setCopied(false), 2500);
+    } else {
+      snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código PIX acima para copiar.', severity: 'info' });
     }
   };
 

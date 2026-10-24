@@ -1880,6 +1880,30 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               helperText="Deixe vazio para não cobrar. O valor é congelado no agendamento e o paciente paga no app (PIX)."
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
+            {/* Presets (24/10): chips rápidos 120/150/170/190 — um toque preenche o campo
+                acima (campo livre continua valendo; server valida 500–2.000.000 cents).
+                Tocar no chip aceso LIMPA (volta pra "sem cobrança"). */}
+            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
+              {[120, 150, 170, 190].map((v) => {
+                const active = tele.price === `${v},00`;
+                return (
+                  <Chip
+                    key={v}
+                    label={`R$ ${v}`}
+                    clickable
+                    aria-pressed={active}
+                    onClick={() => setTele((t) => ({ ...t, price: active ? '' : `${v},00` }))}
+                    sx={{
+                      minHeight: 40, fontSize: 13, fontWeight: 800, borderRadius: '10px', px: 0.5,
+                      bgcolor: active ? 'rgba(212,165,116,.22)' : 'transparent',
+                      color: active ? 'secondary.dark' : 'text.secondary',
+                      border: '1px solid',
+                      borderColor: active ? 'rgba(212,165,116,.55)' : 'divider',
+                    }}
+                  />
+                );
+              })}
+            </Stack>
           </Stack>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
