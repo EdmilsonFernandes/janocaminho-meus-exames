@@ -7,6 +7,7 @@ import {
   Alert, CircularProgress,
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import PersonIcon from '@mui/icons-material/Person';
 import CheckIcon from '@mui/icons-material/Check';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
@@ -138,7 +139,7 @@ export const PatientSwitcher = () => {
                 : '0 0 0 1.5px #fff, 0 0 0 2.5px rgba(32,178,170,0.4), 0 2px 6px rgba(0,0,0,.12)',
             }}
           >
-            {current?.fullName?.charAt(0)?.toUpperCase() || '👤'}
+            {current?.fullName?.charAt(0)?.toUpperCase() ?? <PersonIcon sx={{ fontSize: 18 }} />}
           </Avatar>
         }
         endIcon={<KeyboardArrowDownIcon sx={{ opacity: 0.7, fontSize: 18 }} />}
