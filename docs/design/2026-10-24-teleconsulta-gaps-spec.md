@@ -148,3 +148,42 @@ Commit/build + ambiente + configs + resultados registrados; após última corre�
 ### 17.8 Matriz única de aprovação
 `Requisito | Cenário | Resultado esperado | Resultado obtido | Evidência | Pendência` — separando: testado automaticamente × validado com integração de teste × validado em DISPOSITIVO REAL × ainda não comprovado. Evidências sanitizadas + comandos + falhas + correções. **Recomendar liberação SÓ sem falha crítica conhecida** (pagamento/autorização/acesso/comunicação/integridade). Bloqueio exato + procedimento restante quando faltar ambiente. "Está tudo funcionando" sem comprovação = proibido.
 **Objetivo: concluir a jornada (médico+paciente consultam inteira, exceções tratadas sem estados contraditórios/perda de dados/efeitos financeiros duplicados) — NÃO abrir nova rodada de features.**
+
+## 18. MÓDULO FINANCEIRO — médico, paciente e plataforma (dono, 24/10 — novo escopo)
+**Organização: coordenador + 6 papéis (UX/UI, backend jornada, eng. financeira/Asaas, segurança, performance, QA) — ondas se preciso; parecida honesta de quem rodou. Fases: 1 Descoberta/contratos → 2 Fundação financeira (ledger+comissões) → 3 Interfaces médico/admin → 4 Repasses (supervisionado→automático).**
+
+### 18.1 Financeiro do médico (área)
+Resumo por período: previstos (pagos não realizados — NÃO é dinheiro disponível) · em validação pós-atendimento · liberados p/ repasse · em processamento · repassados · bloqueios/ajustes/estornos com justificativa · extrato por consulta (valor contratado, descontos, base, % plataforma, taxas por parte, honorários, situação repasse) · dados de recebimento/validação cadastral. Filtros período/consulta/situação + export sem dado clínico.
+
+### 18.2 Config comerciais (admin)
+% geral + condição específica por médico (precedência: específica vigente > geral vigente). Proposta INICIAL a confirmar: 20% plataforma / 80% médico, taxas de pagamento absorvidas pela plataforma — NÃO ativar condição real silenciosamente. Regra define: %, base, quem paga taxas (pagamento/repasse), descontos/cancelamentos/estornos, prazo/condições de liberação, vigência. **Snapshot da condição em cada agendamento** (mudança não recalcula o passado — §15.3). Médico vê quanto receberá ANTES de contratar + aceite registrado.
+
+### 18.3 Ledger interno
+Partidas balanceadas, lançamentos imutáveis, centavos inteiros. Contas: recebidos · vinculados (não realizadas) · obrigações c/ médicos · receita plataforma · taxas provedor · repasses processando/concluídos · estornos/reservas/ajustes. Saldo SEMPRE derivado de lançamentos; correção = lançamento compensatório (nunca apaga). Cada op vinculada a consulta/cobrança/médico/regra/ids provedor; unicidade+rastreabilidade. Controle operacional ≠ escrituração contábil/fiscal. **Total pago pelo paciente NÃO é receita da plataforma; saldo Asaas ≠ lucro.**
+
+### 18.4 Split × repasse posterior (decisão de arquitetura)
+Split Asaas = distribui entre CONTAS Asaas; transferência PIX = saída externa. Nossa regra (paga antes, médico elegível só pós-atendimento) → **verificar qual arquitetura a conta/contrato atual suporta**; não presumir que split retém parcela médica até conclusão. Avaliar as duas com requisitos/limites/taxas/impacto em estorno+conciliação. NÃO apresentar saldo interno como custódia/escrow — confirmar enquadramento com Asaas ANTES de movimentação real.
+
+### 18.5 Repasse automático (só quando TUDO)
+Pago confirmado + saldo disponível + consulta elegível + sem bloqueio/contestação + dados recebimento validados + prazo configurável cumprido + valor RESERVADO p/ a operação. Prazo/periodicidade configuráveis com previsão visível. Aprovação do resumo ≠ elegibilidade financeira (estados distintos). Titular do destino validado vs médico/PJ; troca de chave PIX = auth reforçada + histórico + aviso (não retroativo). Destino registrado protegido, exibição mascarada.
+
+### 18.6 Antiduplicação
+Reserva atômica antes do envio; concorrência/cliques/restart/timeout tratados; resposta perdida → RECONCILIAR com recursos do provedor (nunca reenviar cego); estados: solicitado/processando/concluído/falhou/cancelado/desconhecido (desconhecido = investigação, sem retransferir); "Repassado" só pós-confirmação confiável; webhooks autenticados + recuperação por consulta.
+
+### 18.7 Estornos
+Total e parcial, ANTES e DEPOIS do repasse; taxas não devolvidas (quem assume); recuperação de valor já repassado conforme contrato; nunca descontar silenciosamente honorários futuros; estorno×repasse concorrentes nunca usam o mesmo recurso; reserva operacional explícita (não é ganho do admin).
+
+### 18.8 Visão admin
+Separar: volume bruto · a devolver · obrigações c/ médicos · receita plataforma · taxas/custos · margem de contribuição (≠ lucro líquido) · caixa Asaas · comprometido + divergências. Filtros + config comercial + auditoria + fila exceções. Conciliação periódica (cobranças/taxas/transferências/saldo vs ledger) com data da última e diferenças abertas.
+
+### 18.9 Transparência paciente
+Valor contratado, pagamento, id da consulta, comprovantes, andamento de estorno. SEM extrato do médico; comprovante ≠ documento fiscal (responsabilidade fiscal conforme modelo contratual).
+
+### 18.10 Testes obrigatórios
+Geral×específica · mudança % sem retroativo · cálculos/arredondamentos/centavos/estorno parcial · **ledger balanceado em todo evento** · pago sem atendimento · elegível sem saldo · **2 repasses simultâneos** · **timeout pós-aceite do provedor** · webhook duplicado/atrasado/ausente · transferência rejeitada/desconhecida · troca de chave PIX em processamento · estorno antes/depois do repasse · concorrência estorno×repasse · médico só vê o próprio · recuperação pós-restart + conciliação de divergências. Sandbox, sem dinheiro real.
+
+### 18.11 Identidade visual/mobile (VALE PRA TUDO DAQUI PRA FRENTE)
+Mobile-first de verdade (começa em 320/360 e amplia; não desktop encolhido); larguras 320-1440 sem scroll horizontal; estados completos (loading/vazio/falha/pendência/bloqueio — nunca R$ 0,00 no lugar de "não carregado", nunca sucesso antes de confirmação); tabelas contidas no próprio componente; sem jargão (ledger/webhook/walletId NUNCA em tela); ações de dinheiro mostram valor+destinatário; APK/WebView validação distinta do browser (sem device = pendente declarado); revisão visual com screenshots ANTES de entregar; acessibilidade (contraste/foco/rotulagem/44px).
+
+### 18.12 Entrega
+Primeiro arquitetura + decisões comerciais pendentes; implementar o DEFINIDO; demonstrar a jornada (paga→registrado→consulta→elegível→repasse solicitado→confirmado→extratos conciliados); informar exato: implementado × testado em sandbox × dependente de habilitação contratual. **Repasse automático NÃO é "pronto" só porque existe chamada à API.** Skills financeiras (conciliação Anthropic/Stripe/Modern Treasury/Asaas docs): ler e aplicar ao problema certo, declarando onde cada prática entrou no código + qual teste comprova.
