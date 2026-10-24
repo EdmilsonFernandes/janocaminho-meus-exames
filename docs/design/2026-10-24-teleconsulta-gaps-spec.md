@@ -102,3 +102,19 @@ Tabela: `regra | cenário | esperado | teste | evidência` — cobrindo: janela 
 Geração/edição/aprovação/disponibilização do resumo; paciente BLOQUEADO em rascunho não-aprovado; transcrição incompleta sem invenção; falha de geração com recuperação sem apagar edições; queda+reconexão (um/ambos); eventos duplicados/atrasados/fora de ordem; 2 abas + encerramento simultâneo; paga que não ocorreu; mínimo atingido com intercorrência técnica; estorno/repasse repetido sem duplicidade; restart durante processamento; permissões por perfil. Item concluído só com evidência reproduzível.
 
 **Fila**: fase 5+ do pipeline (após CORE/PIX/UI/§12/§13 — depende do estado machine e do resumo; extrair subfases: 5a resumo versionado médico, 5b encerramento+financeiro, 5c central exceções, 5d checklist+continuidade).
+
+## 15. Complemento de fechamento — verificar ANTES de declarar conclusão (dono, 24/10 final)
+### 15.1 Dados antigos e consultas já inconsistentes
+- Correções valem para CONSULTAS EXISTENTES, não só novas. Rotina de DIAGNÓSTICO: estados contraditórios (encerrada com entrada disponível, paga sem atendimento, presença incompleta, análise desatualizada) → relatório; correção só quando SEGURO (simulação prévia, rastreabilidade, reversível); NUNCA alterar valores/histórico clínico por suposição; casos duvidosos → fila de revisão humana.
+### 15.2 Falhas entre banco, filas e provedores (conciliação)
+- Cenários: pago×consulta não atualizada · reagendada×lembrete antigo pendente · exame processado×brief não atualizado · encerrada×resumo não gerado. Recuperação/conciliação NA arquitetura existente (jobs idempotentes — sem infra nova sem necessidade demonstrada). Restart não perde tarefa nem duplica efeito.
+### 15.3 Configuração financeira consistente
+- Agendamento REGISTRA valor + VERSÃO das regras financeiras aplicáveis (ex.: `financeRulesVersion`); mudança de preço/config não altera retroativamente contratos fechados. Paciente/médico/admin leem o MESMO registro.
+### 15.4 Implantação e recuperação
+- Compatibilidade app antigo × backend novo × banco (respostas seguras pra clientes antigos: campos opcionais, 402/403 com codes estáveis). Migrações aditivas; rollback da aplicação NÃO apaga pagamentos/eventos de presença/documentos criados pós-deploy (nunca drop/destructive).
+### 15.5 Monitoramento verificável
+- Detectar falhas de pagamento/entrada/lembrete/análise/resumo com **correlation-id por consulta**; logs SEM conteúdo clínico/credenciais/links secretos. Validar também os MECANISMOS DE RECUPERAÇÃO, não só o caminho feliz.
+### 15.6 Entrega final consolidada
+- SEM cosmética nova agora: terminar escopo, testar, entregar **UMA matriz de requisitos** com evidências e pendências REAIS — diferenciando: `código implementado` × `teste automatizado aprovado` × `integração validada` × `comportamento ainda não comprovado` (nunca equivalentes).
+
+**Fila**: §15 atravessa TODAS as fases (diagnóstico de legado na fase CORE-deploy; conciliação nos jobs; financeRulesVersion no CORE; matriz única na fase de validação final).
