@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge, Chip } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge, Chip, TextareaAutosize } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import MicIcon from '@mui/icons-material/Mic';
@@ -381,15 +381,21 @@ export const ChatPage = () => {
 
       {/* INPUT com botão "+" (bottom sheet de ações) e DITADO POR VOZ — estilo Mercado Pago.
           Gravando: borda error + ponto pulsante; transcrição aparece NO INPUT (parcial ao vivo). */}
-      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); voice.stop(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: voice.isRecording ? 'error.main' : 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
+      {/* alignItems flex-end: quando a textarea cresce (multi-linha), os botões ficam
+          ancorados embaixo (enviar bottom-right — padrão WhatsApp/Telegram). */}
+      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); voice.stop(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-end', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: voice.isRecording ? 'error.main' : 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
         <IconButton onClick={() => setSheetOpen(true)} aria-label="Ações rápidas" title="Ações rápidas" sx={{ color: TEAL, p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
         {voice.isRecording && (
           <Box aria-hidden sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main', flexShrink: 0, animation: `${voicePulse} 1.2s ease-in-out infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
         )}
-        <Box component="input" value={input} disabled={busy || voice.isRecording} aria-label="Pergunta sobre seus exames" placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
+        {/* Textarea multiline (padrão WhatsApp): quebra linha e cresce pra CIMA até 5 linhas
+            com scroll interno — input nativo single-line rolava o texto pra DIREITA e o
+            usuário não via o que digitava (bug dono out/26). */}
+        <TextareaAutosize value={input} disabled={busy || voice.isRecording} aria-label="Pergunta sobre seus exames" placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
+          minRows={1} maxRows={5}
           onChange={(e: any) => setInput(e.target.value)}
           onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voice.stop(); send(); } }}
-          style={{ flex: 1, minWidth: 0, padding: '10px 4px', fontSize: 16, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit' }} />
+          style={{ flex: 1, minWidth: 0, width: '100%', resize: 'none', padding: '10px 4px', fontSize: 16, lineHeight: 1.5, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', color: 'inherit' }} />
         {/* FEATURE F — ditado por voz: mic à esquerda do Enviar; gravando vira "parar" (error.main). */}
         {voice.isVoiceAvailable && (
           <IconButton onClick={() => voice.toggle(input)} aria-label={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'} title={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}
