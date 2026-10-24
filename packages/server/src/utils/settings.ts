@@ -88,6 +88,11 @@ export const DEFAULT_SETTINGS = {
   // exames. Default DESLIGADO — paciente normal intocável. Kill-switch instantâneo via
   // admin (PATCH /admin/config/costs { category: 'sportsMode', enabled: 1 }), sem deploy.
   sportsMode: { enabled: false },
+  // TELECONSULTA (24/10/26, spec gaps §1): janela de entrada (min antes do dueDate em
+  // que o /join libera a sala) e tempo conjunto mínimo (s) p/ encerrar como 'completed'
+  // (remuneração elegível — pago NÃO = realizado). Defaults explícitos; admin edita
+  // live como os demais knobs (PATCH /admin/config/costs { category: 'teleconsulta' }).
+  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -202,4 +207,14 @@ export function guidelinesEnabled(): boolean {
 export function sportsModeEnabled(): boolean {
   const s = (getSettings() as any).sportsMode;
   return s != null && Number(s.enabled) === 1;
+}
+
+/** Config da teleconsulta (spec gaps §1): fallback defensivo pros defaults se o banco
+ *  tiver algo inválido/ausente (mesma família do getMonthlyPlan — nunca hardcode na rota). */
+export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number } {
+  const t: any = (getSettings() as any).teleconsulta ?? {};
+  return {
+    entryWindowMin: Number(t.entryWindowMin) > 0 ? Number(t.entryWindowMin) : 5,
+    minJointSeconds: Number(t.minJointSeconds) > 0 ? Number(t.minJointSeconds) : 300,
+  };
 }

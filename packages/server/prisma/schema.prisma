@@ -837,6 +837,12 @@ model Reminder {
   //    POST /end (paciente ou médico), pelo feedback 1-toque ou pelo auto-end do job
   //    (só 1 participante entrou e ninguém mais veio em 30min).
   endedAt           DateTime?  // encerramento da chamada; null = ainda aberta
+  // ── Ciclo de vida COMPLETO (24/10/26, spec docs/design/2026-10-24-teleconsulta-gaps-spec.md §1):
+  //    estado explícito + presença. teleStatus null = legado (equivale a 'scheduled'
+  //    para consultas abertas; endedAt continua sendo a fonte do "encerrada").
+  teleStatus       String?    // 'scheduled' | 'in_progress' | 'completed' | 'no_show' | 'cancelled' | 'technical'
+  patientJoinedAt  DateTime?  // 1º JOIN do PACIENTE (presença materializada; join de médico = auditLog)
+  jointMs          Int        @default(0) // tempo CONJUNTO acumulado (ms) — calculado no /end a partir dos eventos auditados
   // ── Fila de transcrição (22/10/26): retryCount conta as tentativas de STT do job
   //    transcriptionQueue (rede/timeout). ≥5 → abort definitivo (áudio fora + push);
   //    sucesso ou re-upload → 0. Int? por drift-safe, mas migration já DEFAULT 0.

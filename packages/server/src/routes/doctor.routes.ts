@@ -1133,6 +1133,7 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
         type: 'teleconsulta', linkUrl: provider === 'livekit' ? null : linkUrl.slice(0, 500),
         recurrence, provider, roomName,
         consultPriceCents, // valor congelado no agendamento (null/0 = sem cobrança)
+        teleStatus: 'scheduled', // lifecycle 24/10: nasce agendada (join/liberação no /join)
         createdByDoctorId: req.doctorId,
         notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
       },

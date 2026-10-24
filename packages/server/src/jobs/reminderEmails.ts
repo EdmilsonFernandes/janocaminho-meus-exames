@@ -2,6 +2,7 @@ import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
 import { reminderEmail, teleconsultaEmail } from '../utils/emailTemplate';
 import { sendPushToUser } from '../utils/push';
+import { computeJointMs, loadPresenceEvents, resolveAutoOutcome } from '../utils/teleconsultaLifecycle';
 
 const MS_MIN = 60_000;
 const MS_HOUR = 3_600_000;
@@ -99,23 +100,31 @@ export async function rollRecurringReminders(now: number): Promise<void> {
           retryCount: 0,
           // Ciclo de vida (22/10): a PRÓXIMA ocorrência nasce ABERTA — sem isto o
           // endedAt da ocorrência anterior bloquearia o join da nova p/ sempre.
-          endedAt: null },
+          endedAt: null,
+          // Lifecycle v2 (24/10): próxima ocorrência nasce 'scheduled', sem presença
+          // e sem tempo conjunto da ocorrência anterior.
+          teleStatus: 'scheduled', patientJoinedAt: null, jointMs: 0 },
       }).catch((e) => { console.error('[reminders] roll falhou:', r.id, e?.message); });
     }
   } while (true);
 }
 
 /**
- * AUTO-END de teleconsulta (22/10/26, nice-to-have): consulta INACABADA onde SÓ UM
+ * AUTO-END de teleconsulta (22/10/26 + lifecycle 24/10): consulta INACABADA onde SÓ UM
  * papel entrou (join no auditLog) e o último join foi há >30min — ninguém mais vem.
  * Encerra sozinha (endedAt = último join + 30min, done=true) para o card virar
  * "encerrada" e o /join parar de aceitar re-entrada infinita (dono 22/10: "entrou
- * 15x e ela nunca encerra"). Se AMBOS os papéis entraram, a chamada aconteceu —
- * encerramento é humano (POST /end ou feedback), job não mexe.
+ * 15x e ela nunca encerra"). Se AMBOS os papéis entraram, o encerramento é humano
+ * (POST /end ou feedback) — job não mexe.
  * NINGUÉM entrou (sem join no auditLog) + dueDate < now-30min + done=false → também
  * encerra (endedAt = dueDate + 30min): consulta vencida sem realização não fica
  * "aberta"/re-entrável p/ sempre.
- * Falha não derruba o job (catch por linha); banco legado sem a coluna → no-op.
+ * OUTCOME (24/10, spec gaps §1-§2): o job NUNCA marca 'completed' (exige ambos +
+ * tempo conjunto ≥ mínimo — decisão humana no /end). Presença decide: paciente nunca
+ * entrou → 'no_show'; entrou mas não houve atendimento conjunto → 'technical'.
+ * A janela de entrada do /join (dueDate − entryWindowMin) torna o "solo 30min"
+ * coerente: join só acontece colado no horário, então o auto-end cai ~dueDate+25min.
+ * Falha não derruba o job (catch por linha); banco legado sem as colunas → no-op.
  */
 export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
   // `endedAt: null` no where precisa da coluna — legado pré-migration rejeita a query
@@ -134,19 +143,30 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
     if (!joins.length) {
       // Ninguém nunca entrou: só encerra VENCIDA há >30min e não realizada (done=false).
       if (r.done || now - new Date(r.dueDate).getTime() < 30 * MS_MIN) continue;
+      const endAt = new Date(new Date(r.dueDate).getTime() + 30 * MS_MIN);
       await prisma.reminder.updateMany({
         where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
-        data: { endedAt: new Date(new Date(r.dueDate).getTime() + 30 * MS_MIN), done: true },
+        data: { endedAt: endAt, done: true, teleStatus: 'no_show', jointMs: 0 },
       }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
       continue;
     }
     const roles = new Set(joins.map((j: any) => (j.after as any)?.role).filter(Boolean));
-    if (roles.size >= 2) continue; // chamada aconteceu — fim é humano
+    if (roles.size >= 2) continue; // chamada aconteceu — fim é humano (outcome com critério)
     const lastJoinMs = new Date(joins[joins.length - 1].createdAt).getTime();
     if (now - lastJoinMs < 30 * MS_MIN) continue; // ainda dentro da janela de espera
+    // Outcome honesto pela presença (patientJoinedAt materializado; fallback = audit):
+    // paciente presente mas sem atendimento conjunto → technical; ausente → no_show.
+    const patientJoined = roles.has('patient') || !!(await prisma.reminder.findUnique({
+      where: { id: r.id }, select: { patientJoinedAt: true },
+    }).then((row: any) => row?.patientJoinedAt).catch(() => null));
+    const outcome = resolveAutoOutcome(patientJoined);
+    const endAt = new Date(lastJoinMs + 30 * MS_MIN);
+    // jointMs honesto: calculado dos eventos até o fim sintético (solo → 0 — nunca há
+    // intervalo com ambos; mantido p/ o registro ficar completo, não p/ elegibilidade).
+    const jointMs = computeJointMs(await loadPresenceEvents(r.id), endAt.getTime());
     await prisma.reminder.updateMany({
       where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
-      data: { endedAt: new Date(lastJoinMs + 30 * MS_MIN), done: true },
+      data: { endedAt: endAt, done: true, teleStatus: outcome, jointMs },
     }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
   }
 }
