@@ -85,7 +85,11 @@ async function seedJoinLog(reminderId: string, role: 'patient' | 'doctor', minut
   });
 }
 
-const ledgerRows = (reminderId: string) => prisma.ledgerEntry.findMany({ where: { reminderId }, orderBy: { createdAt: 'asc' } });
+const occKey = async (reminderId: string) => {
+  const r = await prisma.reminder.findUnique({ where: { id: reminderId }, select: { paidAt: true, paymentRef: true } });
+  return r?.paymentRef || (r?.paidAt ? String(new Date(r.paidAt).getTime()) : '');
+};
+const ledgerRows = (reminderId: string) =>  prisma.ledgerEntry.findMany({ where: { reminderId }, orderBy: { createdAt: 'asc' } });
 
 // ── UNIT: balanceamento e split puro ─────────────────────────────────────────────
 describe('finance: partidas balanceadas (unit)', () => {
@@ -198,7 +202,8 @@ describe('finance: /end → split · reserva · estorno (E2E)', () => {
     expect(end.body.teleStatus).toBe('completed');
 
     const rows = await ledgerRows(reminder.id);
-    const completion = rows.filter((r) => r.txnId === completionTxnId(reminder.id));
+    const completionKey = await occKey(reminder.id);
+    const completion = rows.filter((r) => r.txnId === completionTxnId(reminder.id, completionKey));
     expect(completion).toHaveLength(3);
     expect(completion.find((r) => r.account === 'held_unrealized')).toMatchObject({ debitCents: 25000, creditCents: 0 });
     expect(completion.find((r) => r.account === 'doctor_payable')).toMatchObject({ creditCents: 20000 }); // 80%
@@ -217,7 +222,7 @@ describe('finance: /end → split · reserva · estorno (E2E)', () => {
     const end = await api().post(`/api/teleconsulta/${reminder.id}/end`).set(authHeader(token)).send({ outcome: 'no_show' });
     expect(end.status).toBe(200);
     expect(end.body.teleStatus).toBe('no_show');
-    const reserve = await prisma.ledgerEntry.findMany({ where: { txnId: refundReserveTxnId(reminder.id) } });
+    const reserve = await prisma.ledgerEntry.findMany({ where: { txnId: refundReserveTxnId(reminder.id, await occKey(reminder.id)) } });
     expect(reserve).toHaveLength(2);
     expect(reserve.find((r) => r.account === 'held_unrealized')).toMatchObject({ debitCents: 25000 });
     expect(reserve.find((r) => r.account === 'reserve')).toMatchObject({ creditCents: 25000 });
@@ -236,8 +241,9 @@ describe('finance: /end → split · reserva · estorno (E2E)', () => {
     expect(refund.posted).toBe(true);
     const after = await ledgerRows(reminder.id);
     expect(after).toHaveLength(6); // + refund(2): NADA foi apagado
-    expect(after.filter((r) => r.txnId === paymentTxnId(reminder.id))).toHaveLength(2); // original intacto
-    const rf = after.filter((r) => r.txnId === refundTxnId(reminder.id));
+    const paymentKey = await occKey(reminder.id);
+    expect(after.filter((r) => r.txnId === paymentTxnId(reminder.id, paymentKey))).toHaveLength(2); // original intacto
+    const rf = after.filter((r) => r.txnId === refundTxnId(reminder.id, paymentKey));
     expect(rf.find((r) => r.account === 'reserve')).toMatchObject({ debitCents: 25000 }); // consome a reserva
     expect(rf.find((r) => r.account === 'refund')).toMatchObject({ creditCents: 25000 });
     expect((await accountBalance('reserve')).netCents).toBe(0); // reserva liquidada
@@ -262,7 +268,7 @@ describe('finance: /end → split · reserva · estorno (E2E)', () => {
     await api().post(`/api/teleconsulta/${reminder.id}/end`).set(authHeader(token)).send({});
     snap = (await prisma.reminder.findUnique({ where: { id: reminder.id }, select: { commissionSnapshot: true } }))!.commissionSnapshot as any;
     expect(snap.platformBps).toBe(3000); // snapshot NUNCA muda depois
-    const completion = await prisma.ledgerEntry.findMany({ where: { txnId: completionTxnId(reminder.id) } });
+    const completion = await prisma.ledgerEntry.findMany({ where: { txnId: completionTxnId(reminder.id, await occKey(reminder.id)) } });
     expect(completion.find((r) => r.account === 'doctor_payable')).toMatchObject({ creditCents: 14000 }); // 70% (30% plataforma)
     expect(completion.find((r) => r.account === 'platform_revenue')).toMatchObject({ creditCents: 6000 });
   });
@@ -363,7 +369,7 @@ describe('finance: conciliação de estado (reconcile)', () => {
     await prisma.ledgerEntry.deleteMany({ where: { reminderId: reminder.id, account: 'held_unrealized' } }); // "perde" a reserva
     const rep = await runFinanceReconciliation(Date.now());
     expect(rep.repaired).toBeGreaterThanOrEqual(1);
-    const reserve = await prisma.ledgerEntry.findMany({ where: { reminderId: reminder.id, txnId: refundReserveTxnId(reminder.id) } });
+    const reserve = await prisma.ledgerEntry.findMany({ where: { reminderId: reminder.id, txnId: refundReserveTxnId(reminder.id, await occKey(reminder.id)) } });
     expect(reserve).toHaveLength(2);
     // Divergência estrutural: ledger de conclusão sem teleStatus=completed → exceção
     const other = await seedTeleconsulta(10000);

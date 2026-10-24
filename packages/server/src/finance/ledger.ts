@@ -193,10 +193,15 @@ export function computeCompletionSplit(
 // ── Eventos de negócio (uma função por evento do §18; txnId determinístico) ────────
 
 // txnIds — determinísticos: postar 2× o mesmo evento NUNCA duplica (matriz §18.10).
-export const paymentTxnId = (reminderId: string) => `payment_${reminderId}`;
-export const completionTxnId = (reminderId: string) => `completion_${reminderId}`;
-export const refundReserveTxnId = (reminderId: string) => `refund_reserve_${reminderId}`;
-export const refundTxnId = (reminderId: string) => `refund_${reminderId}`;
+// occ = chave da OCORRÊNCIA (recorrência rola a mesma row): cada pagamento tem
+// paymentRef/paidAt próprios → a 2ª consulta recorrente POSTA no ledger com id
+// distinto. Sem occ mantém o id antigo — linhas já postadas nunca mudam de identidade.
+export const paymentTxnId = (reminderId: string, occ = '') => `payment_${reminderId}${occ ? '_' + occ : ''}`;
+export const completionTxnId = (reminderId: string, occ = '') => `completion_${reminderId}${occ ? '_' + occ : ''}`;
+export const refundReserveTxnId = (reminderId: string, occ = '') => `refund_reserve_${reminderId}${occ ? '_' + occ : ''}`;
+export const refundTxnId = (reminderId: string, occ = '') => `refund_${reminderId}${occ ? '_' + occ : ''}`;
+const occurrenceKey = (r: { paymentRef?: string | null; paidAt?: Date | string | null }): string =>
+  r.paymentRef || (r.paidAt ? String(new Date(r.paidAt).getTime()) : '');
 
 /** Colunas de leitura do Reminder p/ o ledger (+ drift: legado sem as colunas novas). */
 const REMINDER_FINANCE_SELECT = {
@@ -262,7 +267,7 @@ export async function recordTeleconsultaPayment(reminderId: string): Promise<Pos
   return (
     await postEntries(
       [{
-        txnId: paymentTxnId(reminderId),
+        txnId: paymentTxnId(reminderId, occurrenceKey(r)),
         reminderId: r.id,
         doctorId: r.createdByDoctorId,
         memo: 'Pagamento confirmado (consulta particular)',
@@ -293,7 +298,7 @@ export async function recordTeleconsultaCompletion(reminderId: string, opts: { p
   return (
     await postEntries(
       [{
-        txnId: completionTxnId(reminderId),
+        txnId: completionTxnId(reminderId, occurrenceKey(r)),
         reminderId: r.id,
         doctorId: r.createdByDoctorId,
         memo: 'Atendimento concluído — honorários + comissão',
@@ -322,7 +327,7 @@ export async function recordTeleconsultaRefundReserve(reminderId: string): Promi
   return (
     await postEntries(
       [{
-        txnId: refundReserveTxnId(reminderId),
+        txnId: refundReserveTxnId(reminderId, occurrenceKey(r)),
         reminderId: r.id,
         doctorId: r.createdByDoctorId,
         memo: `Atendimento não realizado (${r.teleStatus}) — valor reservado p/ estorno`,
@@ -360,7 +365,7 @@ export async function postRefundExecuted(reminderId: string, refundCents?: numbe
   return (
     await postEntries(
       [{
-        txnId: refundTxnId(reminderId),
+        txnId: refundTxnId(reminderId, occurrenceKey(r)),
         reminderId: r.id,
         doctorId: r.createdByDoctorId,
         memo: 'Estorno registrado (compensatório)',
