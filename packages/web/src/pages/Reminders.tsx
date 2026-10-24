@@ -234,9 +234,23 @@ export const RemindersPage = () => {
 
   // F4 pós-consulta: teleconsulta ENCERRADA (endedAt) sai das agendadas e vai direto
   // pro "Histórico de consultas" — nunca mistura com consulta futura nem mostra "Entrar".
+  // G1 (spec §19, 24/10): consulta ATIVA/PRÓXIMA pinada no TOPO da aba — nunca mais
+  // escondida atrás da seta do accordion. Ativa = aberta (!endedAt && !done) com hora
+  // já chegada ou chegando em até 24h (inclui a atrasada de hoje esperando médico/
+  // paciente — era ela que se perdia em "Consultas anteriores"). Várias ativas: a
+  // mais próxima primeiro. Encerradas saem do topo (ficam só no Histórico). Render
+  // deriva 100% do payload do GET /reminders (teleStatus/consultPriceCents/paidAt/
+  // endedAt) → consulta nova, reagendamento e cancelamento aparecem no refetch
+  // focus+60s sem sair/entrar na página.
+  const activeConsultations = consultations
+    .filter((r) => !r.endedAt && !r.done
+      && new Date(r.dueDate).getTime() >= now.getTime() - 2 * 60 * 60 * 1000   // atrasada ≤2h = ainda viva (janela da consulta)
+      && new Date(r.dueDate).getTime() <= now.getTime() + 24 * 60 * 60 * 1000) // hoje/amanhã — mais longe fica na lista normal
+    .sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const activeIds = new Set(activeConsultations.map((r) => r.id));
   const endedConsultations = consultations.filter((r) => !!r.endedAt).sort((a, b) => new Date(b.endedAt).getTime() - new Date(a.endedAt).getTime());
-  const upcomingConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
-  const pastConsultations = consultations.filter((r) => !r.endedAt && new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
+  const upcomingConsultations = consultations.filter((r) => !r.endedAt && !activeIds.has(r.id) && new Date(r.dueDate) >= now).sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
+  const pastConsultations = consultations.filter((r) => !r.endedAt && !activeIds.has(r.id) && new Date(r.dueDate) < now).sort((a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime());
 
   // §13 complemento UX: aviso in-app "Sua consulta começa em 5 minutos". Sem polling
   // novo — a lista já refetcha a cada 60s (focus + interval); banner = compute do estado.
@@ -376,7 +390,133 @@ export const RemindersPage = () => {
   const payMm = String(Math.floor(paySecs / 60)).padStart(2, '0');
   const paySs = String(paySecs % 60).padStart(2, '0');
 
-  // 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
+  // 0. G1 (spec §19): HERO de consulta ATIVA/PRÓXIMA — topo da aba, acima de qualquer
+// agrupamento. Médico (foto+nome+CRM), data/hora, situação da consulta E do
+// pagamento, e UMA próxima ação como CTA primário (44px): Pagar consulta →
+// Entrar na consulta (janela abre dueDate−5min, spec §1) → Aguardando liberação.
+  const renderActiveConsultationHero = (r: any) => {
+    const due = new Date(r.dueDate);
+    const isTele = r.type === 'teleconsulta' || r.provider === 'livekit' || !!r.linkUrl;
+    const inProgress = r.teleStatus === 'in_progress';
+    const isCalling = !!callingIds[r.id];
+    const opensAt = new Date(due.getTime() - 5 * 60 * 1000); // janela de entrada (§1)
+    const windowOpen = inProgress || isCalling || now >= opensAt;
+    const price = r.consultPriceCents ?? 0;
+    const needsPay = price > 0 && !r.paidAt;
+    const minsToOpen = Math.ceil((opensAt.getTime() - now.getTime()) / 60000);
+    const docId = r.doctor?.id || r.createdByDoctorId;
+    const docPhoto = docId ? doctorPhotoUrl(docId) : undefined;
+    const docName = r.doctor?.name
+      ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`)
+      : (r.title || 'Consulta');
+    const crm = r.doctor?.crm ? `CRM ${r.doctor.crm}${r.doctor?.crmUf ? `-${r.doctor.crmUf}` : ''}` : null;
+    const when = due.toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+    const opensAtStr = opensAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const enterConsult = () => {
+      hapticLight();
+      if (!r.consentAt) { setConsentFor(r); return; }
+      if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl);
+      else navigate(`/teleconsulta/${r.id}`);
+    };
+    return (
+      <Card
+        key={`active-hero-${r.id}`}
+        sx={(t) => {
+          const isDark = t.palette.mode === 'dark';
+          return {
+            borderRadius: '16px',
+            border: '1px solid',
+            borderLeft: '4px solid',
+            borderColor: isCalling ? '#059669' : isDark ? 'rgba(32,178,170,0.38)' : 'rgba(32,178,170,0.28)',
+            borderLeftColor: isCalling ? '#059669' : '#20b2aa',
+            bgcolor: isCalling
+              ? (isDark ? 'rgba(5,150,105,0.10)' : 'rgba(236,253,245,0.95)')
+              : isDark ? '#13201f' : '#ffffff',
+            boxShadow: isDark ? '0 6px 22px rgba(0,0,0,0.35)' : '0 6px 22px rgba(32,178,170,0.14)',
+            p: { xs: 2, sm: 2.5 },
+            ...(isCalling ? { animation: `${callingPulse} 1.5s ease-in-out infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } } : {}),
+          };
+        }}
+      >
+        <Stack spacing={1.5}>
+          {/* Médico: foto + nome + CRM · data/hora */}
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Avatar
+              src={docPhoto}
+              alt={docName}
+              sx={{ width: 48, height: 48, borderRadius: '14px', fontSize: 18, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}
+            >
+              {docName.charAt(0).toUpperCase()}
+            </Avatar>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 17 }, color: 'text.primary', lineHeight: 1.25 }}>
+                {docName}
+              </Typography>
+              <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap" useFlexGap>
+                {crm && (
+                  <Stack direction="row" alignItems="center" spacing={0.25}>
+                    <VerifiedIcon sx={{ fontSize: 13, color: '#20b2aa' }} />
+                    <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>{crm}</Typography>
+                  </Stack>
+                )}
+                <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                  {crm ? ' · ' : ''}{when}
+                </Typography>
+              </Stack>
+            </Box>
+          </Stack>
+          {/* Situação da consulta + situação do pagamento */}
+          <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap" useFlexGap>
+            {isCalling ? (
+              <Chip size="small" icon={<PhoneInTalkIcon sx={{ fontSize: 13 }} />} label="Te chamando agora" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(5,150,105,0.14)', color: '#059669', borderRadius: '8px', '& .MuiChip-icon': { color: '#059669' } }} />
+            ) : inProgress ? (
+              <Chip size="small" icon={<VideocamIcon sx={{ fontSize: 13 }} />} label="Em andamento" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '8px', '& .MuiChip-icon': { color: '#0d9488' } }} />
+            ) : (
+              <Chip size="small" icon={<EventAvailableIcon sx={{ fontSize: 13 }} />} label={due.getTime() < now.getTime() ? 'Hora marcada chegou' : 'Agendada'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.10)', color: '#0d9488', borderRadius: '8px', '& .MuiChip-icon': { color: '#0d9488' } }} />
+            )}
+            {price > 0 ? (
+              r.paidAt ? (
+                <Chip size="small" icon={<CheckCircleOutlineIcon sx={{ fontSize: 13 }} />} label="Consulta paga" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.14)', color: '#059669', borderRadius: '8px', '& .MuiChip-icon': { color: '#059669' } }} />
+              ) : (
+                <Chip size="small" icon={<PaymentsIcon sx={{ fontSize: 13 }} />} label={`Pagamento pendente — R$ ${fmtBrl(price)}`} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(212,165,116,0.20)', color: '#a16207', borderRadius: '8px', '& .MuiChip-icon': { color: '#a16207' } }} />
+              )
+            ) : (
+              <Chip size="small" label="Sem cobrança" sx={{ height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(148,163,184,0.14)', color: 'text.secondary', borderRadius: '8px' }} />
+            )}
+          </Stack>
+          {/* Próxima ação — CTA primário único */}
+          {isCalling ? (
+            <Button size="medium" variant="contained" startIcon={<PhoneInTalkIcon />} onClick={enterConsult}
+              sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 14, px: 2.5, background: 'linear-gradient(135deg,#10b981,#059669)', color: '#fff', alignSelf: { xs: 'stretch', sm: 'flex-start' }, '&:hover': { background: 'linear-gradient(135deg,#059669,#047857)' } }}>
+              Atender chamada
+            </Button>
+          ) : needsPay ? (
+            <Button size="medium" variant="contained" disabled={payBusyId === r.id} startIcon={<PaymentsIcon />}
+              onClick={() => { hapticLight(); void payTeleconsulta(r); }}
+              sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 14, px: 2.5, background: 'linear-gradient(135deg,#d4a574,#b88a54)', color: '#fff', alignSelf: { xs: 'stretch', sm: 'flex-start' }, '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' } }}>
+              {payBusyId === r.id ? 'Gerando PIX…' : `Pagar consulta — R$ ${fmtBrl(price)}`}
+            </Button>
+          ) : isTele && windowOpen ? (
+            <Button size="medium" variant="contained" startIcon={<VideocamIcon />} onClick={enterConsult}
+              sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 14, px: 2.5, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', boxShadow: '0 4px 14px rgba(32,178,170,0.35)', alignSelf: { xs: 'stretch', sm: 'flex-start' }, '&:hover': { background: 'linear-gradient(135deg,#178f89,#137a74)' } }}>
+              Entrar na consulta
+            </Button>
+          ) : isTele ? (
+            <Stack spacing={0.25} sx={{ alignSelf: { xs: 'stretch', sm: 'flex-start' }, width: { xs: '100%', sm: 'auto' } }}>
+              <Button size="medium" variant="outlined" disabled startIcon={<HourglassEmptyIcon />}
+                sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, px: 2.5, width: '100%', borderColor: 'rgba(32,178,170,0.4)', color: 'text.secondary' }}>
+                Aguardando liberação — abre {opensAtStr}
+              </Button>
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', pl: 1 }}>
+                {minsToOpen > 0 ? (minsToOpen >= 60 ? `Libera a entrada em ${Math.floor(minsToOpen / 60)}h${minsToOpen % 60 ? ` ${minsToOpen % 60}min` : ''}` : `Libera a entrada em ${minsToOpen} min`) : 'Abrindo…'}
+              </Typography>
+            </Stack>
+          ) : null}
+        </Stack>
+      </Card>
+    );
+  };
+// 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
   const renderConsultationCard = (r: any) => {
     const hasEnded = !!r.endedAt; // F4: encerrada no server → área read-only, nunca "Entrar na consulta"
     const isPast = new Date(r.dueDate) < now || hasEnded;
@@ -1144,7 +1284,21 @@ export const RemindersPage = () => {
             </Button>
           </Stack>
 
-          {upcomingConsultations.length === 0 ? (
+          {/* G1 (spec §19): consultas ATIVAS/PRÓXIMAS no topo — acima de qualquer agrupamento.
+            A teleconsulta criada pelo médico aparece aqui direto (refetch focus+60s),
+            sem precisar expandir seção nenhuma. */}
+          {activeConsultations.length > 0 && (
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <VideocamIcon sx={{ fontSize: 18, color: '#20b2aa' }} />
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+                  {activeConsultations.length > 1 ? `Consultas ativas (${activeConsultations.length})` : 'Sua consulta'}
+                </Typography>
+              </Stack>
+              {activeConsultations.map((r) => renderActiveConsultationHero(r))}
+            </Stack>
+          )}
+          {upcomingConsultations.length === 0 && activeConsultations.length === 0 ? (
             <Card variant="outlined" sx={{ borderRadius: '20px', mb: 3, borderStyle: 'dashed', textAlign: 'center', py: 4 }}>
               <CardContent>
                 <Box sx={{ fontSize: 44, mb: 1, opacity: 0.6 }}>🩺</Box>

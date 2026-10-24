@@ -367,7 +367,11 @@ export const PortalTeleconsultas = ({
             const pat = tc.patient || matchedPatient?.patient || matchedPatient;
             const patId = pat?.id || matchedPatient?.patient?.id || matchedPatient?.id || tc.patientId;
             const pName = pat?.fullName || pat?.name || 'Paciente';
-            const pPhoto = patId ? photoUrlFor(String(patId)) : (pat?.photoUrl || tc.patient?.photoUrl);
+            // G2 (spec §19): mesma identidade do prontuário — SEMPRE Patient.id via photoUrlFor
+          // (token). REF crua (pat.photoUrl) nunca em <img> (é chave S3/caminho de disco,
+          // não URL). Sem foto real → undefined → iniciais (fallback só sem foto/falha).
+          const hasPhoto = !!(pat?.photoUrl || tc.patient?.photoUrl);
+          const pPhoto = patId && hasPhoto ? photoUrlFor(String(patId), pat?.photoUrl || tc.patient?.photoUrl) : undefined;
             const dateObj = new Date(tc.dueDate);
             const dayNum = dateObj.toLocaleDateString('pt-BR', { day: '2-digit' });
             const monthShort = dateObj.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase();
@@ -727,7 +731,11 @@ export const PortalTeleconsultas = ({
               const pat = tc.patient || matchedPatient?.patient || matchedPatient;
               const patId = pat?.id || matchedPatient?.patient?.id || matchedPatient?.id || tc.patientId;
               const pName = pat?.fullName || pat?.name || 'Paciente';
-              const pPhoto = patId ? photoUrlFor(String(patId)) : (pat?.photoUrl || tc.patient?.photoUrl);
+              // G2 (spec §19): mesma identidade do prontuário — SEMPRE Patient.id via photoUrlFor
+          // (token). REF crua (pat.photoUrl) nunca em <img> (é chave S3/caminho de disco,
+          // não URL). Sem foto real → undefined → iniciais (fallback só sem foto/falha).
+          const hasPhoto = !!(pat?.photoUrl || tc.patient?.photoUrl);
+          const pPhoto = patId && hasPhoto ? photoUrlFor(String(patId), pat?.photoUrl || tc.patient?.photoUrl) : undefined;
               const ended = new Date(tc.endedAt);
               const endedFmt = Number.isNaN(ended.getTime())
                 ? ''
