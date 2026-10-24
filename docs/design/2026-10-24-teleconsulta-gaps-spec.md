@@ -127,3 +127,24 @@ Geração/edição/aprovação/disponibilização do resumo; paciente BLOQUEADO 
 5. **Implantação**: migrações, configs, jobs agendados, compatibilidade com consultas existentes, monitoramento, recuperação; sem segredos na entrega; seguir fluxo de publicação autorizado (código pronto ≠ produção validada).
 6. **Relatório final objetivo**: requisitos+evidências · testes+resultados · pendências+decisões · riscos/limitações · instruções curtas de validação (paciente/médico/admin) · situação exata: `pronto para homologação` | `homologado` | `implantado e verificado`. Proibido "100% concluído" com regra crítica sem validação; bloqueio registrado com precisão. Recomendação final fundamentada: **pronto pra uso ou impedimento? com quais evidências**.
 **SEM novas funcionalidades** — fechar, corrigir inconsistências, entregar fluxo completo verificável.
+
+## 17. FECHAMENTO OBRIGATÓRIO — homologação da jornada (dono, 24/10 — instrução final)
+**Ciclo mandatório: implementar → testar → achar falha → corrigir → REPETIR testes afetados → homologar jornada completa. Não encerrar após escrever código.**
+
+### 17.1 Referências e implementação real
+Skills relevantes + docs oficiais DOS provedores usados (vídeo=LiveKit, pagamento=Asaas/MP, email=Zoho SMTP, transcrição=GROQ Whisper) — identificar ANTES de definir. Requisitos regulatórios (CFM 2.314/2022) × regras comerciais × recomendações técnicas — conformidade integral NÃO se declara por checklist. Refs: Playwright contexts/best-practices (2 usuários simultâneos), MDN RTCPeerConnection.connectionState, docs.asaas.com/webhooks.
+### 17.2 Homologação simultânea (médico + paciente)
+2 usuários de teste, SESSÕES INDEPENDENTES (browser contexts distintos — nunca alternar perfis na mesma sessão). Jornada: agendamento/valor→PIX→confirmação→lembretes→link→auth→entrada na janela→espera→presença simultânea→áudio/vídeo→brief→transcrição autorizada→reconexão→encerramento→resumo revisado→acesso paciente→financeiro→auditoria. Conferir em CADA etapa: o que cada perfil vê + o que persistiu no backend.
+### 17.3 Prova de comunicação real
+Sala aberta/"connected" ≠ chamada funcional: áudio NOS DOIS SENTIDOS + vídeo + permissões + recuperação. Mídia sintética É VÁLIDA em automação mas DEVE ser identificada como tal + complementar com câmera/mic REAL quando houver device. Cam/mic desligados voluntariamente ≠ ausência (isoladamente).
+### 17.4 Consentimentos separados (versão, data, autoria)
+Teleconsulta × compartilhamento × gravação/transcrição — cada um com versão. Transcrição indisponível NUNCA perde atendimento/prontuário (registro manual pelo médico). Rascunhos/gravações/transcrições protegidos por autorização no SERVER; resumo IA só aparece como APROVADO pós-revisão médica.
+### 17.5 Regressões OBRIGATÓRIAS (bugs relatados verbatim)
+Médico sozinho sai antes · encerrada oferecendo entrada · copiar PIX falha no app · novo exame exige recompartilhar · brief/prioridade desatualizados · prioridade quebra layout · links perdem consulta pós-login · lembrete após cancelamento/horário antigo · transcrição com 1 participante · cobrança/remuneração fora das regras. + duplicidade de eventos, simultaneidade, reconexões, restart, falhas entre etapas.
+### 17.6 Definições pendentes (política financeira)
+Explicitar valores ainda não definidos (tempo mínimo conjunto default 300s no CORE — confirmar com dono; tolerância de atraso; ausência; cancelamento; estorno; interrupção técnica). Continuar o trabalho INDEPENDENTE delas; NÃO inventar valor; fluxo que dependa de decisão = PENDENTE declarado.
+### 17.7 Revisão sobre versão IDENTIFICADA
+Commit/build + ambiente + configs + resultados registrados; após última correção REPETIR testes afetados + jornada principal NA VERSÃO FINAL (evidência de versão anterior não vale). Sem cobranças reais nem mensagens a pacientes reais.
+### 17.8 Matriz única de aprovação
+`Requisito | Cenário | Resultado esperado | Resultado obtido | Evidência | Pendência` — separando: testado automaticamente × validado com integração de teste × validado em DISPOSITIVO REAL × ainda não comprovado. Evidências sanitizadas + comandos + falhas + correções. **Recomendar liberação SÓ sem falha crítica conhecida** (pagamento/autorização/acesso/comunicação/integridade). Bloqueio exato + procedimento restante quando faltar ambiente. "Está tudo funcionando" sem comprovação = proibido.
+**Objetivo: concluir a jornada (médico+paciente consultam inteira, exceções tratadas sem estados contraditórios/perda de dados/efeitos financeiros duplicados) — NÃO abrir nova rodada de features.**
