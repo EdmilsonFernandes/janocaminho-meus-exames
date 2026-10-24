@@ -67,3 +67,38 @@ Tabela: `regra | cenário | esperado | teste | evidência` — cobrindo: janela 
 - **Complementos UX**: aviso in-app "Sua consulta começa em 5 min"; sala de espera com estado REAL ("Aguardando médico/paciente/Pagamento pendente" — usa teleStatus do CORE); teste de câmera/mic ANTES de entrar (sem iniciar gravação/transcrição/tempo elegível); "X já está aguardando" pro outro; "Adicionar ao calendário" (.ics com data/fuso/link; reagendamento atualiza); ajuda clara se não conseguir entrar. Sem mensagens repetidas; validação de acesso sempre no backend.
 - **12 testes obrigatórios** (verbatim): ambos recebem no horário; envia com app fechado; reagendamento invalida lembrete antigo; cancelamento impede pendentes; reexecução não duplica; falha num não bloqueia o outro; criada <5min → imediato; fusos não alteram o instante; links autenticado/deslogado/pagamento pendente; link antigo/encaminhado não contorna; restart recupera pendentes sem obsoletos; teste câmera/mic não inicia transcrição nem tempo elegível. Relógio controlado + envio em ambiente de integração + evidências sem PII.
 - **Fila**: fase 3.5 (após CORE e junto com UI/WhatsApp — mesmo mecanismo de link; job do email + templates).
+
+## 14. Resumo pós-consulta, encerramento estruturado e exceções (dono, 24/10 — v2 do spec)
+**Skills**: usar as relevantes do ambiente (arquitetura/backend/UX/segurança/testes/a11y/review) — ler de verdade, sem declarar uso sem ler; respeitar orientações do repo.
+
+### 14.1 Resumo pós-consulta revisado pelo MÉDICO
+- IA prepara RASCUNHO estruturado dos dados autorizados: motivo, pontos discutidos, exames avaliados + datas, avaliação do médico, orientações/próximos passos, exames/encaminhamentos solicitados, retorno/pendências. Diferenciar relatado×exame×avaliação; transcrição incompleta → sinalizar; NUNCA inventar diagnóstico/prescrição/dose.
+- Rascunho é do MÉDICO: revisar/editar/aprovar; SÓ depois de aprovado o paciente vê. Salvar e continuar; autor+aprovação+data+VERSÕES (correção rastreável, sem sobrescrever aprovado silenciosamente). Falha na geração NÃO impede registro (manual + retry sem duplicar/apagar edições).
+
+### 14.2 Encerramento estruturado
+- SEPARAR: fim da chamada ≠ conclusão do atendimento ≠ aprovação do resumo ≠ elegibilidade financeira ≠ repasse. Tempo mínimo conjunto é necessário, não suficiente (exige conclusão do médico + sem intercorrência).
+- Resultados distintos: realizado / ausência / interrupção técnica / cancelamento — transições validadas no BACKEND. NUNCA auto-concluir por saída/tempo/PIX.
+
+### 14.3 Recuperação de falhas na chamada
+- Queda → estado real + "Reconectar à consulta" (mesma consulta, autorização/estado respeitados); anotações salvas e intervalos de presença validados PRESERVADOS; contar só presença simultânea; transcrição pausa/retoma conforme regras; sem duplicar sessões/cobranças/transcrições/tempo; sem reconexão após encerramento definitivo. Diferenciar falha temporária × saída voluntária × encerramento; não depender só do estado do browser.
+
+### 14.4 Situação financeira compreensível
+- Paciente: estado real do pagamento + estorno/crédito com orientação clara. Médico: valor contratado × em análise × elegível × REPASSE EFETIVO (só estados CONFIRMADOS pela integração — solicitado ≠ concluído).
+- Tratamento explícito: pago sem atendimento / falha técnica / ausência / abaixo do mínimo. Política inexistente → **decisão pendente destacada, nunca regra silenciosa**.
+
+### 14.5 Central de exceções no ADMIN
+- Visão operacional: pago sem atendimento · sem conclusão após período esperado · divergência de eventos de presença · falha de entrada · falha de resumo/transcrição · estorno/repasse pendente-erro · brief desatualizado/análise com falha · falha de lembrete. Cada ocorrência: consulta, motivo, horário, responsável, situação, histórico, resolução. Agrupar relacionadas (sem poluir, preservando eventos); reprocessamento seguro sem efeito financeiro duplicado; dados mínimos por perfil.
+
+### 14.6 Preparação antes da consulta (checklist contextual)
+- Motivo informado · share conferido · novos exames (processado/pendente explícito) · câmera/mic testados · pagamento · horário/acesso. Teste de dispositivos NÃO inicia gravação/transcrição/tempo elegível. Sem etapas desnecessárias; não bloquear por opcional; impedimento real explicado.
+
+### 14.7 Continuidade pós-consulta (paciente)
+- Pós-aprovação: visão simples com orientações e pendências DO MÉDICO; acompanhar ações (enviar exame solicitado, agendar retorno); IA organiza, NÃO cria conduta; pendente×concluído com origem+data; sem card sem ação útil. Notificações → conteúdo autenticado no app (sem dado clínico no email).
+
+### 14.8 Coerência entre perfis
+- Paciente/médico/admin veem a MESMA consulta de forma consistente (permissões respeitadas); estados claros de carregamento/processamento/falha/recuperação; nunca dado antigo como atual nem sucesso antes de confirmação do server; responsividade/a11y/WebView; brief preservado na chamada, sem interrupções excessivas.
+
+### 14.9 Testes obrigatórios (matriz §11 + estes)
+Geração/edição/aprovação/disponibilização do resumo; paciente BLOQUEADO em rascunho não-aprovado; transcrição incompleta sem invenção; falha de geração com recuperação sem apagar edições; queda+reconexão (um/ambos); eventos duplicados/atrasados/fora de ordem; 2 abas + encerramento simultâneo; paga que não ocorreu; mínimo atingido com intercorrência técnica; estorno/repasse repetido sem duplicidade; restart durante processamento; permissões por perfil. Item concluído só com evidência reproduzível.
+
+**Fila**: fase 5+ do pipeline (após CORE/PIX/UI/§12/§13 — depende do estado machine e do resumo; extrair subfases: 5a resumo versionado médico, 5b encerramento+financeiro, 5c central exceções, 5d checklist+continuidade).
