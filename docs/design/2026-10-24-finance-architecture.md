@@ -265,3 +265,5 @@ Blocos externos restantes: D5 (contador) e D6 (suporte Asaas) — não travam on
 
 ## D6 RESOLVIDO (24/10, verificação real na API pela EC2)
 - GET /v3/transfers → 200 (habilitado; totalCount 0). Key .env `$$` = escape docker-compose (runtime sadio, `$aact_p…` produção). Token SMS: só um envio real revela — Onda 4 trata falha como estado 'unknown' → ExceptionQueue (nunca reenvia cego).
+
+## D5 RESOLVIDO PELO DONO (24/10): intermediação — o MÉDICO emite a nota; plataforma (MEI do dono) é intermediadora de pagamento, zero burocracia adicional. Comprovante no app = transação (Asaas). Sem retenção de imposto do médico na plataforma.
