@@ -595,10 +595,12 @@ export const AuditTab = () => {
                         sx={{
                           pl: 1.5,
                           borderLeft: '3px solid',
-                          borderColor: (t) =>
-                            color(l.action) === 'default'
-                              ? t.palette.divider
-                              : t.palette[color(l.action)].main,
+                          // c capturado 1× — duas chamadas de color() quebravam o
+                          // narrowing do TS ('default' não indexa Palette) no CI.
+                          borderColor: (t) => {
+                            const c = color(l.action);
+                            return c === 'default' ? t.palette.divider : t.palette[c].main;
+                          },
                         }}
                       >
                         {logRow(l)}
