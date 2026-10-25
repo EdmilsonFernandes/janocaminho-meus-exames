@@ -28,11 +28,12 @@ const NAV = [
   // Minhas Consultas (mock aprovado): posição 3 da nav — teleconsultas do paciente.
   { icon: 'consultas', label: 'nav.consultas', to: '/consultas' },
   { icon: '', label: 'Dr. Exame', to: '/chat', robot: true },
-  // Lembretes volta pra barra (dono 24/10: "sumiu" no drawer) — 6 itens, robô central preservado.
+  // Lembretes volta pra barra (dono 24/10: "sumiu" no drawer). 5 abas + Mais = o limite
+  // do pill em 390px (6 slots × ~61px): com a 6ª aba o "Mais" era espremido a 37px e
+  // saía 100px da tela (incidente 25/10). Evolução fica no menu vertical (AppMenu).
   { icon: 'lembretes', label: 'nav.reminders', to: '/lembretes' },
-  { icon: 'trend', label: 'nav.evolution', to: '/evolucao' },
 ] as const;
-const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/linha-do-tempo', '/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
+const SECONDARY_ROUTES = ['/alterados', '/tendencias', '/evolucao', '/linha-do-tempo', '/medicoes', '/medicamentos', '/vacinas', '/lembretes', '/emergencia', '/conquistas', '/familia', '/patients', '/medicos', '/perguntas', '/relatorio', '/despesas', '/perfil', '/seguranca', '/privacidade', '/planos', '/suporte', '/admin'];
 
 export const MobileBottomNav = () => {
   const theme = useTheme();
@@ -62,7 +63,7 @@ export const MobileBottomNav = () => {
     <Box key={it.to} component="button" type="button" aria-current={on ? 'page' : undefined}
       aria-label={it.robot ? 'Dr. Exame — conversar com a IA' : translate(it.label)}
       onClick={() => { hapticNav(); (onClick ?? (() => navigate(it.to)))(); }} sx={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
@@ -125,7 +126,7 @@ export const MobileBottomNav = () => {
 
   const maisItem = (on: boolean, onClick?: () => void) => (
     <Box component="button" type="button" aria-label={translate('nav.more')} onClick={() => { hapticNav(); onClick?.(); }} sx={{
-      flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+      flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
       py: 0.5, cursor: 'pointer', userSelect: 'none',
       background: 'transparent', border: 'none', fontFamily: 'inherit', textAlign: 'center',
       borderRadius: '12px', outline: 'none',
