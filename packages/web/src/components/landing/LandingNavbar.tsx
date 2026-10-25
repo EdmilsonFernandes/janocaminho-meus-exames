@@ -26,6 +26,7 @@ import CreditCardIcon from '@mui/icons-material/CreditCard';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../DrExame';
+import { SmartAppBanner } from '../SmartAppBanner';
 
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -137,6 +138,7 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
           boxShadow: scrolled ? '0 1px 16px rgba(15,95,90,0.06)' : 'none',
         }}
       >
+        <SmartAppBanner />
         <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.25 }}>
           {/* Logo / Brand */}
           <Stack

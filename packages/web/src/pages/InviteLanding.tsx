@@ -4,10 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { API_URL } from '../config';
 import { DrExame } from '../components/DrExame';
 import { tealText } from '../theme';
-
-// Landing pública do convite do médico: paciente clica no link (WhatsApp/email), vê quem convidou,
-// cria conta/entra carregando o token — o aceite ativa o share médico↔paciente (backend).
-const PLAY_STORE = 'https://play.google.com/store/apps/details?id=com.janocaminho.drexame';
+import { openAppOrPlayStore } from '../utils/playStore';
 
 const Shell = ({ children }: { children: React.ReactNode }) => (
   <Box sx={{ minHeight: '100dvh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 3, bgcolor: 'background.default' }}>{children}</Box>
@@ -78,7 +75,7 @@ export const InviteLandingPage = () => {
       <Stack spacing={1.25} sx={{ mt: 3, width: '100%', maxWidth: 320 }}>
         <Button variant="contained" size="large" onClick={() => navigate(`/registrar?invite=${token}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.3 }}>Criar minha conta</Button>
         <Button variant="outlined" size="large" onClick={() => navigate(`/entrar?invite=${token}`)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, py: 1.3, borderColor: '#20b2aa', color: (t) => tealText(t.palette.mode) }}>Já tenho conta</Button>
-        {isAndroid && <Button href={PLAY_STORE} target="_blank" size="small" sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📱 Baixar app na Google Play</Button>}
+        {isAndroid && <Button onClick={() => openAppOrPlayStore(token ? `invite/${token}` : '')} size="small" sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📱 Abrir no App / Google Play</Button>}
         {isIOS && <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', mt: 1, lineHeight: 1.5 }}>📱 No iPhone: após criar a conta, no Safari toque em <b>Compartilhar → Adicionar à Tela de Início</b> para instalar como app.</Typography>}
       </Stack>
       <Typography variant="caption" color="text.secondary" sx={{ mt: 3, textAlign: 'center', maxWidth: 340 }}>Conteúdo educativo. Você controla o que compartilha com seu médico.</Typography>

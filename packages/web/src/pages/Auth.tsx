@@ -16,6 +16,7 @@ import { MfaChallengeDialog } from '../components/mfa/MfaChallengeDialog';
 import { BiometricService, getDeviceId } from '../components/BiometricService';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { tealText } from '../theme';
+import { isAndroidBrowser, openAppOrPlayStore } from '../utils/playStore';
 
 /* ---------- ícones inline (sem dependência de @mui/icons-material) ---------- */
 const I = {
@@ -431,6 +432,33 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
               {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/registrar')}>{translate('auth.create_account')}</Link>
             </Typography>
           )}
+          {isAndroidBrowser() && role === 'paciente' && (
+            <Box
+              onClick={() => openAppOrPlayStore('')}
+              sx={{
+                mt: 2,
+                py: 1.1,
+                px: 1.5,
+                borderRadius: '12px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1,
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.06)' : 'rgba(0,121,107,0.04)',
+                border: '1px dashed',
+                borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.3)' : 'rgba(32,178,170,0.35)',
+                transition: 'all 0.2s',
+                '&:hover': {
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(0,121,107,0.08)',
+                },
+              }}
+            >
+              <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>
+                📱 Abrir pelo Aplicativo Oficial (Google Play)
+              </Typography>
+            </Box>
+          )}
         </Box>
         )}
         </>
@@ -547,6 +575,58 @@ export const RegisterPage = () => {
         <>
       <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Crie sua conta gratuita em segundos.</Typography>
+        {isAndroidBrowser() && (
+          <Box
+            sx={{
+              p: 1.75,
+              borderRadius: '16px',
+              background: (t) => t.palette.mode === 'dark'
+                ? 'linear-gradient(135deg, rgba(32,178,170,0.18) 0%, rgba(15,118,110,0.10) 100%)'
+                : 'linear-gradient(135deg, #f0fdf9 0%, #e6fffa 100%)',
+              border: '1px solid',
+              borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.3)' : 'rgba(32,178,170,0.35)',
+              boxShadow: '0 4px 14px rgba(23,143,137,0.08)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1.25,
+            }}
+          >
+            <Stack direction="row" spacing={1.25} alignItems="center">
+              <DrExame size={38} sx={{ borderRadius: '10px', boxShadow: '0 2px 8px rgba(23,143,137,0.25)' }} />
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: 13.5, color: 'text.primary', lineHeight: 1.2 }}>
+                  Prefere se cadastrar pelo app oficial?
+                </Typography>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.25 }}>
+                  ★ 5,0 no Google Play · Acesso biométrico e notificações
+                </Typography>
+              </Box>
+            </Stack>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={() => openAppOrPlayStore(referral ? `registrar?ref=${referral}` : 'registrar')}
+              sx={{
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: 12.5,
+                py: 0.85,
+                background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
+                color: '#ffffff',
+                boxShadow: '0 2px 8px rgba(23,143,137,0.25)',
+                '&:hover': {
+                  background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                },
+              }}
+            >
+              Abrir no Google Play Store
+            </Button>
+            <Typography variant="caption" sx={{ textAlign: 'center', fontSize: 11, color: 'text.secondary' }}>
+              ou preencha os dados abaixo pelo navegador
+            </Typography>
+          </Box>
+        )}
         <TextField label="Seu nome" required value={name} autoComplete="name" onChange={(e) => setName(e.target.value)} sx={fieldSx}
           slotProps={{ input: { startAdornment: <InputAdornment position="start"><I.Person /></InputAdornment> } }} />
         <TextField label="CPF" required value={cpf} autoComplete="off" onChange={(e) => setCpf(formatCpf(e.target.value))} sx={fieldSx} error={!!cpf && cpf.length === 14 && !isValidCpf(cpf)} helperText={!!cpf && cpf.length === 14 && !isValidCpf(cpf) ? 'CPF inválido.' : 'Usado para confirmar que o exame pertence ao perfil.'}
