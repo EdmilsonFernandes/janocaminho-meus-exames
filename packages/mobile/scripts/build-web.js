@@ -28,6 +28,26 @@ if (r.status !== 0) {
 }
 
 console.log('[mobile] copiando dist -> www ...');
-fs.rmSync(dest, { recursive: true, force: true });
-fs.cpSync(src, dest, { recursive: true });
-console.log('[mobile] pronto: www/ atualizado a partir de packages/web/dist');
+if (!fs.existsSync(dest)) {
+  fs.mkdirSync(dest, { recursive: true });
+} else {
+  // Limpa o conteúdo de dest sem remover a pasta raiz (evita EBUSY no Windows)
+  for (const file of fs.readdirSync(dest)) {
+    try {
+      fs.rmSync(path.join(dest, file), { recursive: true, force: true });
+    } catch (e) {
+      console.warn('[mobile] aviso ao limpar:', file, e.message);
+    }
+  }
+}
+
+for (const entry of fs.readdirSync(src)) {
+  fs.cpSync(path.join(src, entry), path.join(dest, entry), { recursive: true });
+}
+
+if (!fs.existsSync(path.join(dest, 'index.html'))) {
+  console.error('[mobile] ERRO CRÍTICO: www/index.html não foi encontrado!');
+  process.exit(1);
+}
+
+console.log('[mobile] pronto: www/ atualizado com sucesso a partir de packages/web/dist');
