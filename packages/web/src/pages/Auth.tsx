@@ -414,9 +414,23 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
               </Box>
             </>
           )}
-          <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
-            {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate(role === 'medico' ? '/doctor?mode=register' : '/registrar')}>{translate('auth.create_account')}</Link>
-          </Typography>
+          {/* FUNIL DO MÉDICO: cadastro de médico mora no /doctor?mode=register (form próprio com
+              CRM+UF, busca no conselho e OTP). Aqui ele é AÇÃO (botão destacado), não link miúdo —
+              médico frio vindo do CTA da landing precisa ver o caminho de criar conta. */}
+          {role === 'medico' ? (
+            <Box sx={{ mt: 0.5, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <Button type="button" variant="outlined" size="large" fullWidth startIcon={<I.Doctor />} disabled={loading} onClick={() => navigate('/doctor?mode=register')} sx={tokenBtnSx}>
+                Criar conta com meu CRM
+              </Button>
+              <Typography align="center" sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                Primeiro acesso? Valide seu CRM e receba seus pacientes em minutos.
+              </Typography>
+            </Box>
+          ) : (
+            <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
+              {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/registrar')}>{translate('auth.create_account')}</Link>
+            </Typography>
+          )}
         </Box>
         )}
         </>

@@ -177,7 +177,7 @@ const Calculator = () => {
   );
 };
 
-const DiferencialCard = ({ icon, title, strong, soft, delay }: { icon: React.ReactNode; title: string; strong: string; soft: string; delay: number }) => {
+const DiferencialCard = ({ icon, title, strong, soft, delay, badge }: { icon: React.ReactNode; title: string; strong: string; soft: string; delay: number; badge?: string }) => {
   const t = useTheme();
   return (
     <Reveal delay={delay}>
@@ -189,6 +189,17 @@ const DiferencialCard = ({ icon, title, strong, soft, delay }: { icon: React.Rea
             color: tealText(t.palette.mode),
           }}>{icon}</Box>
           <Typography sx={{ fontFamily: (th: Theme) => th.typography.h6.fontFamily, fontWeight: 700, fontSize: 17, mb: 1 }}>{title}</Typography>
+          {badge && (
+            <Chip
+              size="small"
+              sx={{
+                mb: 1.25, borderRadius: '10px', fontWeight: 700, fontSize: 11.5, letterSpacing: '0.01em', height: 26, maxWidth: '100%',
+                color: copperText(t.palette.mode), bgcolor: alpha(COPPER.main, t.palette.mode === 'dark' ? 0.16 : 0.13),
+                '& .MuiChip-label': { px: 1.25, whiteSpace: 'normal', lineHeight: 1.35 },
+              }}
+              label={badge}
+            />
+          )}
           <Typography sx={{ fontWeight: 600, mb: 0.75, fontSize: 15 }}>{strong}</Typography>
           <Typography variant="body2" color="text.secondary">{soft}</Typography>
         </CardContent>
@@ -313,7 +324,7 @@ export const ParaMedicosPage: React.FC = () => {
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent={{ xs: 'center', md: 'flex-start' }} sx={{ mb: 3 }}>
                 <Button
                   variant="contained" size="large" endIcon={<ArrowForwardIcon />}
-                  onClick={() => navigate('/entrar/medico')}
+                  onClick={() => navigate('/doctor?mode=register')}
                   sx={{ minHeight: 48, px: 3, fontSize: 15.5 }}
                 >
                   Começar com meu CRM
@@ -355,8 +366,9 @@ export const ParaMedicosPage: React.FC = () => {
             delay={90}
             icon={<EditNoteIcon sx={{ fontSize: 26 }} />}
             title="Transcrição + Resumo IA"
+            badge="Prontuário com carimbo de IA: CID-10 na base oficial DATASUS · Res. CFM 2.454/2026"
             strong="A consulta termina e o rascunho do prontuário está pronto; você revisa e aprova."
-            soft="O áudio vira texto e o texto vira SOAP. Nada sai do seu consultório sem o seu ok."
+            soft="O áudio vira texto e o texto vira SOAP. Nada sai do seu consultório sem o seu ok — e o uso de IA como apoio fica registrado no documento."
           />
           <DiferencialCard
             delay={180}
@@ -404,7 +416,24 @@ export const ParaMedicosPage: React.FC = () => {
         </Reveal>
       </Section>
 
-      {/* ---------- 5. Como funciona ---------- */}
+      {/* ---------- 5. Convide seus pacientes com 1 link ---------- */}
+      <Section id="convite">
+        <SectionTitle sub="Seu paciente recebe o convite, cria a conta e já entra compartilhando os exames com você. Zero atrito.">
+          Convide seus pacientes com 1 link
+        </SectionTitle>
+        <Grid sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 4 }}>
+          <Passo n={1} delay={0} title="Gere o convite no portal" desc="Um link por paciente, com escopos claros (exames, evolução, alertas) e validade de 14 dias." />
+          <Passo n={2} delay={90} title="Paciente cria a conta" desc="Quem recebe o convite entra com a conta pronta e o compartilhamento já aceito — sem pendência, sem impresso." />
+          <Passo n={3} delay={180} title="Exames já na sua tela" desc="O histórico chega organizado no seu painel, com o brief clínico pronto antes da consulta." />
+        </Grid>
+        <Stack direction="row" spacing={1} justifyContent="center" flexWrap="wrap" useFlexGap sx={{ mt: 4 }}>
+          <Chip icon={<ShareIcon />} label="1 link por paciente" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
+          <Chip icon={<CheckIcon />} label="Compartilhamento aceito no cadastro" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
+          <Chip icon={<GppGoodOutlinedIcon />} label="Consentimento registrado (LGPD)" variant="outlined" sx={{ borderRadius: '10px', fontWeight: 600, borderColor: 'divider', '& .MuiChip-icon': { color: tealText(t.palette.mode) } }} />
+        </Stack>
+      </Section>
+
+      {/* ---------- 6. Como funciona ---------- */}
       <Section id="como-funciona" sx={{ bgcolor: dark ? alpha('#ffffff', 0.02) : alpha(TEAL, 0.035) }}>
         <SectionTitle sub="Do cadastro ao PIX em três passos — sem instalar nada, roda no navegador.">Como funciona</SectionTitle>
         <Grid sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 4 }}>
@@ -413,7 +442,7 @@ export const ParaMedicosPage: React.FC = () => {
           <Passo n={3} delay={180} title="Atenda com brief, transcrição e PIX" desc="Chegue sabendo o que está alterado, grave com uma permissão e receba no PIX no mesmo fluxo." />
         </Grid>
         <Box sx={{ textAlign: 'center', mt: 5 }}>
-          <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/entrar/medico')} sx={{ minHeight: 48, px: 3.5, fontSize: 15.5 }}>
+          <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/doctor?mode=register')} sx={{ minHeight: 48, px: 3.5, fontSize: 15.5 }}>
             Começar com meu CRM
           </Button>
         </Box>
@@ -465,7 +494,7 @@ export const ParaMedicosPage: React.FC = () => {
                   ))}
                 </Stack>
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>brief, agenda, cobrança — comece hoje</Typography>
-                <Button variant="outlined" color="inherit" size="large" onClick={() => navigate('/entrar/medico')} sx={{ minHeight: 46, borderColor: 'divider', color: 'text.primary', '&:hover': { borderColor: alpha(TEAL, 0.5), bgcolor: alpha(TEAL, 0.06) } }}>
+                <Button variant="outlined" color="inherit" size="large" onClick={() => navigate('/doctor?mode=register')} sx={{ minHeight: 46, borderColor: 'divider', color: 'text.primary', '&:hover': { borderColor: alpha(TEAL, 0.5), bgcolor: alpha(TEAL, 0.06) } }}>
                   Criar conta grátis
                 </Button>
               </CardContent>
@@ -502,7 +531,7 @@ export const ParaMedicosPage: React.FC = () => {
                     </Stack>
                   ))}
                 </Stack>
-                <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/entrar/medico')} sx={{ minHeight: 46, fontSize: 15 }}>
+                <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/doctor?mode=register')} sx={{ minHeight: 46, fontSize: 15 }}>
                   Testar o Pro
                 </Button>
               </CardContent>
@@ -520,7 +549,7 @@ export const ParaMedicosPage: React.FC = () => {
           <Typography variant="body1" color="text.secondary" sx={{ mb: 3.5 }}>
             Crie sua conta com CRM em minutos. Seus pacientes já podem estar compartilhando exames hoje.
           </Typography>
-          <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/entrar/medico')} sx={{ minHeight: 50, px: 4, fontSize: 16 }}>
+          <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={() => navigate('/doctor?mode=register')} sx={{ minHeight: 50, px: 4, fontSize: 16 }}>
             Começar com meu CRM
           </Button>
         </Container>

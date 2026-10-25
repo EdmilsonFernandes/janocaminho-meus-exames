@@ -1,0 +1,49 @@
+ASSUNTO: Seu paciente te manda foto de exame no WhatsApp?
+(Variante B p/ A/B: Exames dos seus pacientes, organizados ANTES da consulta)
+
+PRE-HEADER: App brasileiro que organiza os exames do seu paciente e prepara o brief ANTES da consulta. Teste em 5 minutos.
+
+--------------------------------------------------------------------------------
+
+Seu paciente te manda FOTO DE EXAME no WhatsApp?
+
+Chega na consulta espalhado: um print no WhatsApp, um PDF no e-mail, um papel
+amassado na bolsa. Você reflete, pede de novo, perde tempo de consulta.
+
+Olá, {{NOME}}. Sou Edmilson Fernandes, fundador do Dr. Exame — app
+brasileiro que organiza os exames do paciente e entrega pra você o que importa
+ANTES de atender.
+
+O que muda na sua consulta:
+
+- Brief com os alterados ANTES da consulta — o paciente sobe os PDFs, a IA
+  organiza o que saiu da faixa e você chega sabendo o que priorizar.
+- 1 link convida o paciente — ele recebe o convite, cria a conta e já entra
+  compartilhando os exames com você. Zero atrito, consentimento registrado (LGPD).
+- PIX na própria consulta — você define o valor, o paciente paga no cartão da
+  consulta. Sem maquininha, sem "depois eu te mando".
+- Transcrição + resumo que VOCÊ aprova — a IA prepara o rascunho do prontuário
+  e nada chega ao paciente sem o seu ok. CID-10 na base oficial DATASUS e uso
+  de IA registrado conforme a Res. CFM 2.454/2026.
+
+TESTAR EM 5 MINUTOS (criar conta com CRM — grátis, sem cartão, sem contrato):
+https://drexame.janocaminho.com.br/#/para-medicos
+
+Site: drexame.janocaminho.com.br
+Android: Google Play — "Dr. Exame"
+  https://play.google.com/store/apps/details?id=com.janocaminho.drexame
+No iPhone? Funciona direto no navegador (Safari) — o site já é responsivo.
+
+PS: não somos marketplace. Não listamos médicos, não direcionamos pacientes —
+seus pacientes continuam seus. O Dr. Exame é a ferramenta; a relação clínica é sua.
+
+Abraço,
+Edmilson Fernandes
+Fundador · Dr. Exame — janocaminho.com.br
+
+--------------------------------------------------------------------------------
+Dr. Exame — análise educativa, não substitui avaliação médica. A decisão clínica
+é sempre do médico.
+Conseguimos seu contato no site público do seu consultório{{FONTE}}. Contato
+profissional único. Não quer mais receber? Descadastrar em
+{{UNSUBSCRIBE_URL}} ou responda "REMOVER" — saio da lista na hora.

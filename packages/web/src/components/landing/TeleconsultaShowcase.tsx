@@ -13,6 +13,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import WatchIcon from '@mui/icons-material/Watch';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
+import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
+import PixIcon from '@mui/icons-material/Pix';
 import { DrExame } from '../DrExame';
 
 type Phase = 'prejoin' | 'connecting' | 'incall';
@@ -198,9 +200,19 @@ export const TeleconsultaShowcase = ({ onCta }: { onCta?: () => void }) => {
                 desc: 'Só com o seu consentimento: o áudio é efêmero e o texto organizado fica no prontuário.',
               },
               {
+                icon: <FactCheckOutlinedIcon sx={{ fontSize: 21 }} />,
+                title: 'Resumo que o seu médico aprova ✨',
+                desc: 'A IA prepara o rascunho, seu médico revisa — e só então o resumo chega até você. Transparência em cada linha.',
+              },
+              {
                 icon: <QrCode2Icon sx={{ fontSize: 21 }} />,
                 title: 'Consulta particular com PIX no app',
                 desc: 'O médico define o valor, você paga no card da consulta — sem repasse, sem burocracia.',
+              },
+              {
+                icon: <PixIcon sx={{ fontSize: 21 }} />,
+                title: 'Não deu certo? Seu PIX volta',
+                desc: 'Se a consulta não acontece, por falta ou falha técnica, o estorno é automático. Sem pedir, sem esperar.',
               },
               {
                 icon: <VerifiedIcon sx={{ fontSize: 21 }} />,
