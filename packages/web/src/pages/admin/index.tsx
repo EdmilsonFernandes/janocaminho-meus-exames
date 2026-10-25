@@ -32,6 +32,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import { DrExame } from '../../components/DrExame';
 import { API_URL, token } from '../../config';
 import { OverviewTab } from './OverviewTab';
 import { UsersTab } from './UsersTab';
@@ -202,24 +203,24 @@ export const AdminPage = () => {
               width: 38,
               height: 38,
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 4px 14px rgba(23, 143, 137, 0.35)',
+              flexShrink: 0,
+              display: 'grid',
+              placeItems: 'center',
+              background: 'linear-gradient(135deg, #20b2aa 0%, #0d9488 100%)',
+              boxShadow: '0 4px 14px rgba(32, 178, 170, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+              overflow: 'hidden',
             }}
           >
-            <Typography sx={{ fontWeight: 900, fontSize: 18, lineHeight: 1 }}>⚕️</Typography>
+            <DrExame size={28} sx={{ borderRadius: '20%' }} />
           </Box>
           <Box>
             <Stack direction="row" spacing={0.75} alignItems="center">
-              <Typography sx={{ fontWeight: 900, fontFamily: '"Poppins",sans-serif', color: 'text.primary', fontSize: 15.5, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
-                DR. EXAME
+              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', color: 'text.primary', fontSize: 16, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                Dr. Exame
               </Typography>
               <Chip
                 size="small"
-                label="ENTERPRISE"
+                label="ADMIN"
                 sx={{
                   height: 18,
                   fontSize: 9.5,
@@ -235,7 +236,7 @@ export const AdminPage = () => {
             <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.25 }}>
               <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22c55e' }} />
               <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11, fontWeight: 500 }}>
-                Console de Gestão
+                Gestão & Controle
               </Typography>
             </Stack>
           </Box>
