@@ -1771,9 +1771,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const statePatientName = (location.state as any)?.patientName as string | undefined;
   // Brief clínico (médico): patientId do summary — o bootstrap do médico não
   // popula o campo plano, mas patient.id vem no objeto do /summary.
-  const briefPatientId = summary?.patientId || summary?.patient?.id || '';
+  const briefPatientId = summary?.patientId || summary?.patient?.id || (location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId || '';
   const headerName = role === 'doctor'
-    ? (`Paciente: ${statePatientName || main?.name || '—'}`)
+    ? (`Paciente: ${statePatientName || summary?.patient?.name || (location.state as any)?.patient?.fullName || main?.name || '—'}`)
     : (doctor?.name || main?.name || 'Médico(a)');
   // P3-reviewer: CRM completo com UF (o joinName do server traz "116739/SP" — normalizamos p/ "116739-SP")
   const headerCrm = role === 'patient' && doctor?.crm
@@ -1823,6 +1823,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const otherName = role === 'doctor'
       ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || 'o paciente')
       : (doctor?.name || main?.name || 'o médico');
+    const otherPhoto = role === 'doctor'
+      ? (() => {
+          const pId = (location.state as any)?.patient?.id
+            || (location.state as any)?.reminder?.patientId
+            || summary?.patient?.id
+            || summary?.patientId;
+          return pId ? photoUrlFor(String(pId)) : undefined;
+        })()
+      : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined);
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
@@ -1835,9 +1844,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
               <Avatar
-                src={role === 'doctor'
-                  ? (summary?.patient?.id || summary?.patientId ? photoUrlFor(String(summary?.patient?.id || summary?.patientId || '')) : undefined)
-                  : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined)}
+                src={otherPhoto}
                 sx={{
                 width: 84, height: 84, fontSize: 30, fontWeight: 800,
                 bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)',
@@ -1863,7 +1870,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
              (reenviar convite via push / encerrar). Sala segue aberta se esperar. */
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
-              <Avatar sx={{ width: 84, height: 84, fontSize: 30, fontWeight: 800, bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)' }}>
+              <Avatar
+                src={otherPhoto}
+                sx={{ width: 84, height: 84, fontSize: 30, fontWeight: 800, bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)' }}
+              >
                 {initials(summary?.patient?.name || (location.state as any)?.patientName)}
               </Avatar>
               <Box>
@@ -1896,9 +1906,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             <Stack alignItems="center" spacing={2} sx={{ textAlign: 'center', maxWidth: 360 }}>
               <Box sx={{ position: 'relative' }}>
                 <Avatar
-                  src={role === 'doctor'
-                    ? ((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId ? photoUrlFor(String((location.state as any)?.patient?.id || (location.state as any)?.reminder?.patientId)) : undefined)
-                    : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined)}
+                  src={otherPhoto}
                   sx={{
                     width: 96,
                     height: 96,
@@ -1994,6 +2002,24 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         >
           <Stack direction="row" alignItems="center" spacing={1}>
             <DrExame size={26} />
+            {role === 'doctor' && (
+              <Avatar
+                src={otherPhoto}
+                sx={{
+                  width: 32,
+                  height: 32,
+                  fontSize: 12,
+                  fontWeight: 800,
+                  bgcolor: 'rgba(32,178,170,.2)',
+                  color: '#5fc9c3',
+                  border: '1.5px solid rgba(32,178,170,.4)',
+                  borderRadius: '10px',
+                  flexShrink: 0,
+                }}
+              >
+                {initials(otherName)}
+              </Avatar>
+            )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{headerName}</Typography>
               {headerCrm && <Typography noWrap sx={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{headerCrm}</Typography>}

@@ -92,6 +92,19 @@ export const PortalOverview = ({
     return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')} ${time}`;
   };
 
+  const fmtTeleTime = (d?: string | null) => {
+    if (!d) return '';
+    const dt = new Date(d);
+    return `${String(dt.getHours()).padStart(2, '0')}h${dt.getMinutes() === 0 ? '' : String(dt.getMinutes()).padStart(2, '0')}`;
+  };
+
+  const isTeleLiveNow = (d?: string | null) => {
+    if (!d) return false;
+    const due = new Date(d).getTime();
+    const diffMin = (Date.now() - due) / 60000;
+    return diffMin >= -15 && diffMin <= 60;
+  };
+
   // Renovação: exame antigo (>1 ano) ou nenhum exame compartilhado
   const stale = useMemo(() => patients
     .filter((p) => !p.hasAlerts && ((p.examsCount ?? 0) === 0 || (p.lastExamAt && Date.now() - new Date(p.lastExamAt).getTime() > 365 * 86400000)))
@@ -470,6 +483,7 @@ export const PortalOverview = ({
                 const patName = p.patient?.fullName ?? 'Paciente';
                 const alertSuffix = p.maxPriority === 'importante' ? ' · alta' : p.maxPriority === 'moderada' ? ' · moderada' : '';
                 const isCritical = p.maxPriority === 'importante';
+                const isLive = isTeleLiveNow(p.tele?.dueDate);
 
                 return (
                   <AppCard
@@ -482,15 +496,18 @@ export const PortalOverview = ({
                       onOpenPatient(p, p.hasAlert ? 'alterados' : p.hasQuestions ? 'questions' : undefined);
                     }}
                     sx={{
-                      border: '1.5px solid',
-                      borderColor: p.teleToday
-                        ? 'rgba(15,118,110,0.4)'
+                      border: '1px solid',
+                      borderColor: isLive
+                        ? 'rgba(239,68,68,0.4)'
                         : p.hasAlert
                         ? isCritical
                           ? 'rgba(239,68,68,0.35)'
                           : 'rgba(245,158,11,0.35)'
+                        : p.hasQuestions
+                        ? 'rgba(217,119,6,0.3)'
                         : 'divider',
                       p: { xs: 1.5, sm: 1.75 },
+                      boxShadow: isLive ? '0 4px 16px rgba(239,68,68,0.08)' : '0 2px 8px rgba(0,0,0,0.02)',
                     }}
                   >
                     <Stack direction="row" spacing={1.5} alignItems="center">
@@ -498,14 +515,22 @@ export const PortalOverview = ({
                         <Avatar
                           src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined}
                           sx={{
-                            width: 46,
-                            height: 46,
+                            width: 48,
+                            height: 48,
                             fontSize: 17,
                             fontWeight: 800,
                             bgcolor: 'rgba(32,178,170,.1)',
                             color: (t) => tealText(t.palette.mode),
                             border: '2px solid',
-                            borderColor: p.teleToday ? '#178f89' : p.hasAlert ? '#ef4444' : p.hasQuestions ? '#d97706' : 'rgba(32,178,170,.3)',
+                            borderColor: isLive
+                              ? '#ef4444'
+                              : p.hasAlert
+                              ? isCritical
+                                ? '#ef4444'
+                                : '#f59e0b'
+                              : p.hasQuestions
+                              ? '#d97706'
+                              : 'rgba(32,178,170,.3)',
                             borderRadius: '14px',
                           }}
                         >
@@ -520,12 +545,19 @@ export const PortalOverview = ({
                               width: 18,
                               height: 18,
                               borderRadius: '50%',
-                              bgcolor: '#178f89',
+                              bgcolor: isLive ? '#ef4444' : '#178f89',
                               color: '#fff',
                               display: 'grid',
                               placeItems: 'center',
                               border: '2px solid',
                               borderColor: 'background.paper',
+                              boxShadow: isLive ? '0 0 0 3px rgba(239, 68, 68, 0.35)' : 'none',
+                              animation: isLive ? 'telePulseRing 1.8s infinite' : 'none',
+                              '@keyframes telePulseRing': {
+                                '0%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.6)' },
+                                '70%': { boxShadow: '0 0 0 6px rgba(239, 68, 68, 0)' },
+                                '100%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0)' },
+                              },
                             }}
                           >
                             <VideocamIcon sx={{ fontSize: 11 }} />
@@ -550,25 +582,64 @@ export const PortalOverview = ({
 
                         {/* Chips compactos — um por pendência; o clique no card abre o prontuário */}
                         <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
-                          {p.tele && (
-                            <Chip
-                              size="small"
-                              icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                              label={`Consulta ${fmtTeleShort(p.tele.dueDate)}${p.tele.consentAt ? ' · autorizou gravação' : ' · aguardando autorização'}`}
-                              sx={{
-                                height: 24, fontSize: 12, fontWeight: 700, maxWidth: '100%',
-                                bgcolor: 'rgba(15,118,110,0.08)', color: '#178f89',
-                                '& .MuiChip-icon': { color: '#178f89' }, borderRadius: '8px',
-                              }}
-                            />
-                          )}
+                          {p.tele && (() => {
+                            const timeStr = fmtTeleTime(p.tele.dueDate);
+                            const dateStr = fmtTeleShort(p.tele.dueDate);
+
+                            if (isLive) {
+                              return (
+                                <Chip
+                                  size="small"
+                                  icon={<VideocamIcon sx={{ fontSize: 13 }} />}
+                                  label={`🔴 Consulta agora · ${timeStr}`}
+                                  sx={{
+                                    height: 24, fontSize: 11.5, fontWeight: 800, maxWidth: '100%',
+                                    bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626',
+                                    border: '1px solid rgba(239,68,68,0.3)',
+                                    '& .MuiChip-icon': { color: '#dc2626' }, borderRadius: '8px',
+                                  }}
+                                />
+                              );
+                            }
+
+                            if (p.teleToday) {
+                              return (
+                                <Chip
+                                  size="small"
+                                  icon={<VideocamIcon sx={{ fontSize: 13 }} />}
+                                  label={p.tele.consentAt ? `Consulta hoje ${timeStr}` : `Consulta hoje ${timeStr} · aguarda aceite`}
+                                  sx={{
+                                    height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                    bgcolor: p.tele.consentAt ? 'rgba(15,118,110,0.08)' : 'rgba(245,158,11,0.08)',
+                                    color: p.tele.consentAt ? '#178f89' : '#d97706',
+                                    border: '1px solid',
+                                    borderColor: p.tele.consentAt ? 'rgba(15,118,110,0.2)' : 'rgba(245,158,11,0.25)',
+                                    '& .MuiChip-icon': { color: 'inherit' }, borderRadius: '8px',
+                                  }}
+                                />
+                              );
+                            }
+
+                            return (
+                              <Chip
+                                size="small"
+                                icon={<VideocamIcon sx={{ fontSize: 13 }} />}
+                                label={`Consulta ${dateStr}`}
+                                sx={{
+                                  height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                  bgcolor: 'action.hover', color: 'text.secondary',
+                                  '& .MuiChip-icon': { color: 'text.secondary' }, borderRadius: '8px',
+                                }}
+                              />
+                            );
+                          })()}
                           {p.hasAlert && (
                             <Chip
                               size="small"
                               icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
                               label={`Exames alterados${alertSuffix}`}
                               sx={{
-                                height: 24, fontSize: 12, fontWeight: 700, maxWidth: '100%',
+                                height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
                                 bgcolor: isCritical ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
                                 color: isCritical ? '#ef4444' : '#d97706',
                                 '& .MuiChip-icon': { color: isCritical ? '#ef4444' : '#d97706' }, borderRadius: '8px',
@@ -581,7 +652,7 @@ export const PortalOverview = ({
                               icon={<QuestionAnswerIcon sx={{ fontSize: 13 }} />}
                               label={`${p.openQuestions} ${p.openQuestions > 1 ? 'dúvidas' : 'dúvida'}`}
                               sx={{
-                                height: 24, fontSize: 12, fontWeight: 700,
+                                height: 24, fontSize: 11.5, fontWeight: 700,
                                 bgcolor: 'rgba(245,158,11,0.08)', color: '#d97706',
                                 '& .MuiChip-icon': { color: '#d97706' }, borderRadius: '8px',
                               }}
@@ -593,7 +664,7 @@ export const PortalOverview = ({
                               icon={<CalendarBlank size={13} />}
                               label={(p.examsCount ?? 0) === 0 ? 'Sem exames compartilhados' : 'Exames > 1 ano'}
                               sx={{
-                                height: 24, fontSize: 12, fontWeight: 600,
+                                height: 24, fontSize: 11.5, fontWeight: 600,
                                 bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px',
                               }}
                             />
@@ -602,10 +673,10 @@ export const PortalOverview = ({
 
                       </Box>
 
-                      {/* Teleconsulta HOJE: entrada em 1 toque, sem abrir o prontuário */}
-                      {p.teleToday && (
+                      {/* Botão de Teleconsulta: proeminente quando Ao Vivo; discreto no desktop quando hoje */}
+                      {p.tele && (isLive || p.teleToday) && (
                         <Button
-                          variant="contained"
+                          variant={isLive ? 'contained' : 'outlined'}
                           size="small"
                           aria-label={`Entrar na teleconsulta com ${patName}`}
                           startIcon={<VideocamIcon />}
@@ -618,14 +689,22 @@ export const PortalOverview = ({
                             borderRadius: '999px',
                             textTransform: 'none',
                             fontWeight: 800,
-                            fontSize: 12.5,
-                            bgcolor: '#178f89',
-                            '&:hover': { bgcolor: '#137a74' },
+                            fontSize: 12,
+                            bgcolor: isLive ? '#ef4444' : 'transparent',
+                            borderColor: isLive ? '#ef4444' : 'rgba(15,118,110,0.4)',
+                            color: isLive ? '#ffffff' : '#178f89',
+                            boxShadow: isLive ? '0 2px 8px rgba(239,68,68,0.3)' : 'none',
+                            '&:hover': {
+                              bgcolor: isLive ? '#dc2626' : 'rgba(15,118,110,0.08)',
+                              borderColor: isLive ? '#dc2626' : '#178f89',
+                            },
                             flexShrink: 0,
                             px: 1.5,
+                            py: 0.5,
+                            display: isLive ? 'inline-flex' : { xs: 'none', sm: 'inline-flex' },
                           }}
                         >
-                          Entrar
+                          {isLive ? 'Entrar' : 'Entrar'}
                         </Button>
                       )}
                     </Stack>

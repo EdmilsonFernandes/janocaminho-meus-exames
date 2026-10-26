@@ -407,6 +407,16 @@ export const TeleconsultasTab = () => {
             hour: '2-digit',
             minute: '2-digit',
           });
+          const rawDocName = item.doctor?.name || '';
+          const cleanDocName = rawDocName
+            ? (rawDocName.toLowerCase().startsWith('dr') ? rawDocName : `Dr(a). ${rawDocName}`)
+            : 'Médico da Consulta';
+          const cleanCrm = item.doctor?.crm
+            ? item.doctor.crm.replace(/(\/|-)([A-Za-z]{2})\/\2$/i, '-$2')
+            : '';
+          const cleanSpecialtyCrm = `${item.doctor?.specialty || 'Clínica Geral'}${cleanCrm ? ` · ${cleanCrm}` : ''}`;
+          const patPhoto = item.patient?.id ? photoUrlFor(item.patient.id) : undefined;
+          const docPhoto = item.doctor?.id ? doctorPhotoUrl(item.doctor.id) : undefined;
 
           return (
             <Card
@@ -429,14 +439,24 @@ export const TeleconsultasTab = () => {
                 },
               }}
             >
-              <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
-                <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.25 }, '&:last-child': { pb: { xs: 2, sm: 2.25 } } }}>
+                <Stack
+                  direction={{ xs: 'column', md: 'row' }}
+                  spacing={{ xs: 1.5, md: 2 }}
+                  justifyContent="space-between"
+                  alignItems={{ xs: 'stretch', md: 'center' }}
+                >
                   {/* Participantes: Paciente & Médico */}
-                  <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1.25, sm: 2 }}
+                    alignItems={{ xs: 'stretch', sm: 'center' }}
+                    sx={{ flex: 1, minWidth: 0 }}
+                  >
                     {/* Paciente */}
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 200 }}>
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
                       <Avatar
-                        src={item.patient?.photoUrl ? photoUrlFor(item.patient.id) : undefined}
+                        src={patPhoto}
                         sx={{
                           width: 44,
                           height: 44,
@@ -445,26 +465,27 @@ export const TeleconsultasTab = () => {
                           fontWeight: 800,
                           fontSize: 16,
                           borderRadius: '12px',
+                          flexShrink: 0,
                         }}
                       >
                         {(item.patient?.name || 'P').charAt(0).toUpperCase()}
                       </Avatar>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }} noWrap>
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.25 }} noWrap>
                           {item.patient?.name || 'Paciente'}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
                           <PersonIcon sx={{ fontSize: 13 }} /> Paciente
                         </Typography>
                       </Box>
                     </Stack>
 
-                    <Typography sx={{ color: 'text.disabled', fontSize: 18, display: { xs: 'none', sm: 'block' } }}>→</Typography>
+                    <Typography sx={{ color: 'text.disabled', fontSize: 18, display: { xs: 'none', sm: 'block' }, flexShrink: 0 }}>→</Typography>
 
                     {/* Médico */}
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 200 }}>
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
                       <Avatar
-                        src={item.doctor?.photoUrl ? doctorPhotoUrl(item.doctor.id) : undefined}
+                        src={docPhoto}
                         sx={{
                           width: 44,
                           height: 44,
@@ -473,30 +494,43 @@ export const TeleconsultasTab = () => {
                           fontWeight: 800,
                           fontSize: 16,
                           borderRadius: '12px',
+                          flexShrink: 0,
                         }}
                       >
                         {(item.doctor?.name || 'M').charAt(0).toUpperCase()}
                       </Avatar>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }} noWrap>
-                          {item.doctor ? `Dr(a). ${item.doctor.name}` : 'Médico da Consulta'}
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.25 }} noWrap>
+                          {cleanDocName}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                          <LocalHospitalIcon sx={{ fontSize: 13 }} /> {item.doctor?.specialty || 'Clínica Geral'}{item.doctor?.crm ? ` · ${item.doctor.crm}` : ''}
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }} noWrap>
+                          <LocalHospitalIcon sx={{ fontSize: 13 }} /> {cleanSpecialtyCrm}
                         </Typography>
                       </Box>
                     </Stack>
                   </Stack>
 
                   {/* Avaliação & Data */}
-                  <Stack direction={{ xs: 'row', sm: 'column' }} alignItems={{ xs: 'center', sm: 'flex-end' }} spacing={0.5} sx={{ minWidth: 160 }}>
+                  <Stack
+                    direction={{ xs: 'row', md: 'column' }}
+                    alignItems={{ xs: 'center', md: 'flex-end' }}
+                    justifyContent={{ xs: 'space-between', md: 'center' }}
+                    spacing={0.5}
+                    sx={{
+                      minWidth: { xs: 0, md: 140 },
+                      pt: { xs: 1, md: 0 },
+                      borderTop: { xs: '1px dashed', md: 'none' },
+                      borderColor: 'divider',
+                      flexShrink: 0,
+                    }}
+                  >
                     <Stack direction="row" alignItems="center" spacing={1}>
                       <Rating value={item.rating} readOnly size="small" sx={{ color: '#f59e0b' }} />
-                      <Typography sx={{ fontWeight: 900, fontSize: 15, color: 'text.primary' }}>
+                      <Typography sx={{ fontWeight: 900, fontSize: 14.5, color: 'text.primary' }}>
                         {item.rating}/5
                       </Typography>
                     </Stack>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                       {dateStr}
                     </Typography>
                   </Stack>
@@ -512,6 +546,8 @@ export const TeleconsultasTab = () => {
                       bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
                       borderLeft: '3px solid',
                       borderLeftColor: item.rating >= 4 ? '#10b981' : item.rating === 3 ? '#f59e0b' : '#ef4444',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'anywhere',
                     }}
                   >
                     <Typography sx={{ fontSize: 13, color: 'text.primary', fontStyle: 'italic', lineHeight: 1.5 }}>

@@ -23,6 +23,7 @@ import { hasMeetConfig, meetAuthUrl, meetRedirectUri, exchangeMeetCode, createMe
 import { hasLiveKitConfig, createLiveKitRoom } from '../utils/livekit';
 import { createId } from '@paralleldrive/cuid2';
 import { REMINDER_RECURRENCES } from '../utils/reminderConstants';
+import { getTeleconsultaConfig } from '../utils/settings';
 import { createPixCharge } from '../payments/pix-provider';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
@@ -1112,6 +1113,11 @@ router.post('/patients/:patientId/notes', requireDoctor, async (req: any, res, n
   } catch (e) { next(e); }
 });
 
+/** §19 dono (26/10/26): sinal da tx de agendamento — médico já tem consulta na janela (→ 409). */
+class ScheduleConflict extends Error {
+  constructor(public readonly conflict: any) { super('SCHEDULE_CONFLICT'); }
+}
+
 // AGENDAR TELECONSULTA (lote "estilo Teams" 18/10/26; F2 LiveKit 19/10/26) — o médico
 // marca data/hora e escolhe o provedor: LiveKit embutido (default quando LIVEKIT_* no
 // env), sala Meet gerada (Google conectado) ou link EXTERNO colado (Teams/WhatsApp).
@@ -1173,6 +1179,36 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
       }
     }
 
+    // ── §19 dono (26/10/26): CONFLITO DE AGENDA. O médico não pode ter 2 teleconsultas
+    // SOBREPOSTAS, mesmo com pacientes diferentes. Uma teleconsulta OCUPA a janela
+    // dueDate ± slotMin (AppSetting 'teleconsulta.slotMin', default 30min — editável no
+    // admin junto dos demais knobs). OCUPAM a agenda: scheduled (done=false, sem endedAt;
+    // teleStatus null = legado = scheduled) e in_progress. Cancelada (DELETE apaga a
+    // linha) / encerrada (endedAt≠null) / done → LIVRE. NÃO é sistema de agenda — só a
+    // regra anti-sobreposição. Roda ANTES da criação de sala (fail fast) e TAMBÉM com
+    // force:true (forçar duplicata do mesmo paciente não pode furar o horário alheio).
+    const { slotMin } = getTeleconsultaConfig();
+    const conflictSelect = { id: true, dueDate: true, patient: { select: { fullName: true } } } as const;
+    const conflictWhere = {
+      createdByDoctorId: req.doctorId as string, type: 'teleconsulta' as const, done: false, endedAt: null,
+      dueDate: { gte: new Date(dueDate.getTime() - slotMin * 60_000), lte: new Date(dueDate.getTime() + slotMin * 60_000) },
+      OR: [{ teleStatus: null }, { teleStatus: 'scheduled' }, { teleStatus: 'in_progress' }],
+    };
+    const respondConflict = (c: { id: string; dueDate: Date; patient: { fullName: string } | null }) => {
+      const hhmm = c.dueDate.toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const who = c.patient?.fullName ?? 'outro paciente';
+      res.status(409).json({
+        error: `Você já tem uma teleconsulta às ${hhmm} (${who}) — escolha outro horário.`,
+        code: 'SCHEDULE_CONFLICT',
+        existing: { id: c.id, dueDate: c.dueDate, patientName: c.patient?.fullName ?? null },
+      });
+    };
+    // Drift: banco legado sem endedAt/teleStatus → regra degrada (sem conflito), igual
+    // aos demais gates do lifecycle (padrão subscriptions/TASK_RULES).
+    const early = (await prisma.reminder.findFirst({ where: conflictWhere, select: conflictSelect as any })
+      .catch((e: any) => (/column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e)) as any)) as { id: string; dueDate: Date; patient: { fullName: string } | null } | null;
+    if (early) { respondConflict(early); return; }
+
     let provider: string | null = null;
     let roomName: string | null = null;
     let reminderId: string | undefined;
@@ -1223,13 +1259,35 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
       createdByDoctorId: req.doctorId,
       notifyOffsetsMin: [1440, 60, 0], // 1 dia · 1h · na hora (padrão de consulta)
     } as any;
-    const r = await prisma.reminder.create({
-      data: commissionSnapshot
-        ? { ...reminderData, commissionSnapshot }
-        : reminderData,
-    }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) && commissionSnapshot
-      ? prisma.reminder.create({ data: reminderData }) // legado sem a coluna — segue sem snapshot
-      : Promise.reject(e));
+    // ── RACE-SAFETY (§19): dois POSTs simultâneos na MESMA janela não podem passar.
+    // Unique index não serve (janela móvel ±slotMin, não valor fixo de coluna) e o
+    // Prisma não expõe lock de linha — estratégia pragmática: transação INTERATIVA com
+    // RE-CHECK pós-insert (findFirst → create → findFirst de novo EXCLUINDO a própria
+    // linha; se surgiu outra ocupando a janela, o throw rola a tx BACK e o commit do
+    // 1º vencedor fica). Em Read Committed o re-check enxerga o commit concorrente →
+    // a disputa se decide em ms, sem precisar de serializável. Side effects EXTERNOS
+    // (sala LiveKit/Meet) ficam FORA da tx de propósito: sala órfã no rollback é
+    // inócua (emptyTimeout do LiveKit a destrói sozinha).
+    let r;
+    try {
+      r = await prisma.$transaction(async (tx) => {
+        const pre: any = await tx.reminder.findFirst({ where: conflictWhere, select: conflictSelect as any });
+        if (pre) throw new ScheduleConflict(pre);
+        const created = await tx.reminder.create({
+          data: commissionSnapshot
+            ? { ...reminderData, commissionSnapshot }
+            : reminderData,
+        }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) && commissionSnapshot
+          ? tx.reminder.create({ data: reminderData }) // legado sem a coluna — segue sem snapshot
+          : Promise.reject(e));
+        const post: any = await tx.reminder.findFirst({ where: { ...conflictWhere, id: { not: created.id } }, select: conflictSelect as any });
+        if (post) throw new ScheduleConflict(post); // perdedor da corrida — rollback
+        return created;
+      });
+    } catch (e) {
+      if (e instanceof ScheduleConflict) { respondConflict(e.conflict); return; }
+      next(e); return;
+    }
     // Push imediato: o paciente fica sabendo AGORA (não só na 1ª antecedência).
     const dateStr = dueDate.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     void sendPushToUser(patient.ownerId, `📋 Teleconsulta agendada${doctor?.name ? ` com ${doctor.name}` : ''}`, `${dateStr} — toque para autorizar e entrar na hora.`, { type: 'reminder', reminderId: r.id }).catch(() => {});
