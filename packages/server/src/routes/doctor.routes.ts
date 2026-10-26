@@ -1262,15 +1262,21 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     // ── RACE-SAFETY (§19): dois POSTs simultâneos na MESMA janela não podem passar.
     // Unique index não serve (janela móvel ±slotMin, não valor fixo de coluna) e o
     // Prisma não expõe lock de linha — estratégia pragmática: transação INTERATIVA com
-    // RE-CHECK pós-insert (findFirst → create → findFirst de novo EXCLUINDO a própria
-    // linha; se surgiu outra ocupando a janela, o throw rola a tx BACK e o commit do
-    // 1º vencedor fica). Em Read Committed o re-check enxerga o commit concorrente →
-    // a disputa se decide em ms, sem precisar de serializável. Side effects EXTERNOS
-    // (sala LiveKit/Meet) ficam FORA da tx de propósito: sala órfã no rollback é
-    // inócua (emptyTimeout do LiveKit a destrói sozinha).
+    // ADVISORY LOCK por médico (serializa a disputa) + re-check pré/pós-insert (belt-
+    // and-suspenders; o pós exclui a própria linha e protege contra escrita fora do
+    // lock). Se surgiu outra ocupando a janela, o throw rola a tx BACK e o commit do
+    // 1º vencedor fica. Side effects EXTERNOS (sala LiveKit/Meet) ficam FORA da tx
+    // de propósito: sala órfã no rollback é inócua (emptyTimeout do LiveKit a destrói).
     let r;
     try {
       r = await prisma.$transaction(async (tx) => {
+        // Lock consultivo POR MÉDICO (libera no commit/rollback): serializa agendamentos
+        // concorrentes. SEM ele o re-check sozinho não fecha — em Read Committed a tx B
+        // não vê o insert NÃO-commitado da tx A e as duas passam (reproduzido no teste
+        // "2 requests simultâneos"). Pós-lock, o pre-check já vê o commit do vencedor.
+        // $executeRaw (não $queryRaw): pg_advisory_xact_lock devolve void e o queryRaw
+        // do Prisma não deserializa coluna void (P2010 — descoberto no teste E2E).
+        await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'tele-schedule:' + String(req.doctorId)}))`;
         const pre: any = await tx.reminder.findFirst({ where: conflictWhere, select: conflictSelect as any });
         if (pre) throw new ScheduleConflict(pre);
         const created = await tx.reminder.create({

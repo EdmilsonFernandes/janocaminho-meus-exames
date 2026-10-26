@@ -2,7 +2,7 @@ import { prisma } from '../prisma';
 import { sendEmail } from '../utils/mailer';
 import { reminderEmail, teleconsultaEmail, teleconsultaStartingEmail } from '../utils/emailTemplate';
 import { sendPushToUser } from '../utils/push';
-import { computeJointMs, loadPresenceEvents, resolveAutoOutcome } from '../utils/teleconsultaLifecycle';
+import { computeJointMs, loadPresenceEvents, resolveNoShow } from '../utils/teleconsultaLifecycle';
 import { getTeleconsultaConfig } from '../utils/settings';
 
 const MS_MIN = 60_000;
@@ -116,23 +116,24 @@ export async function rollRecurringReminders(now: number): Promise<void> {
 }
 
 /**
- * AUTO-END de teleconsulta (22/10/26 + lifecycle 24/10): consulta INACABADA onde SÓ UM
- * papel entrou (join no auditLog) e o último join foi há >30min — ninguém mais vem.
- * Encerra sozinha (endedAt = último join + 30min, done=true) para o card virar
- * "encerrada" e o /join parar de aceitar re-entrada infinita (dono 22/10: "entrou
- * 15x e ela nunca encerra"). Se AMBOS os papéis entraram, o encerramento é humano
- * (POST /end ou feedback) — job não mexe.
- * NINGUÉM entrou (sem join no auditLog) + dueDate < now-30min + done=false → também
- * encerra (endedAt = dueDate + 30min): consulta vencida sem realização não fica
- * "aberta"/re-entrável p/ sempre.
- * OUTCOME (24/10, spec gaps §1-§2): o job NUNCA marca 'completed' (exige ambos +
- * tempo conjunto ≥ mínimo — decisão humana no /end). Presença decide: paciente nunca
- * entrou → 'no_show'; entrou mas não houve atendimento conjunto → 'technical'.
- * A janela de entrada do /join (dueDate − entryWindowMin) torna o "solo 30min"
- * coerente: join só acontece colado no horário, então o auto-end cai ~dueDate+25min.
- * Falha não derruba o job (catch por linha); banco legado sem as colunas → no-op.
+ * AUTO-END de teleconsulta (22/10/26 + lifecycle 24/10 + §5 dono 26/10): consulta
+ * INACABADA cuja tolerância de AUSÊNCIA venceu (dueDate + noShowToleranceMin, AppSetting
+ * 'teleconsulta' — default 10min; antes era 30min fixos). Encerra sozinha (done=true)
+ * para o card virar "não realizada" e o /join parar de aceitar re-entrada infinita.
+ * Se AMBOS os papéis entraram, o encerramento é humano (POST /end ou feedback — queda
+ * de conexão é caso do GRACE de reconexão de 5min do client, NÃO de ausência).
+ * ESTRATÉGIA DIFERENCIADA (§5): o outcome 'no_show' registra QUEM faltou (noShowBy):
+ *   ninguém apareceu ........ no_show / none
+ *   só o médico ............ no_show / patient (estorno já reservado pelo ledger)
+ *   só o paciente .......... no_show / doctor  + ExceptionQueue 'doctor_no_show'
+ *                             (triagem humana; política de estorno é do dono)
+ * A tolerância corre do DUE DATE (não do último join): o countdown do client e o job
+ * caem no MESMO instante — previsível pros dois lados. O job NUNCA marca 'completed'
+ * (exige ambos + tempo conjunto ≥ mínimo — decisão humana no /end).
+ * Falha não derruba o job (catch por linha); banco legado sem as colunas → degrada.
  */
 export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
+  const { noShowToleranceMin } = getTeleconsultaConfig();
   // `endedAt: null` no where precisa da coluna — legado pré-migration rejeita a query
   // inteira → catch → [] (no-op até a migration aplicada).
   const rows = await prisma.reminder.findMany({
@@ -146,34 +147,59 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
       orderBy: { createdAt: 'asc' },
       select: { createdAt: true, after: true },
     });
-    if (!joins.length) {
-      // Ninguém nunca entrou: só encerra VENCIDA há >30min e não realizada (done=false).
-      if (r.done || now - new Date(r.dueDate).getTime() < 30 * MS_MIN) continue;
-      const endAt = new Date(new Date(r.dueDate).getTime() + 30 * MS_MIN);
+    const dueMs = new Date(r.dueDate).getTime();
+    /** Encerra (race-safe + drift-safe: legado sem noShowBy grava o resto igual). */
+    const endAs = async (endAt: Date, noShowBy: 'patient' | 'doctor' | 'none', jointMs: number) => {
       await prisma.reminder.updateMany({
         where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
-        data: { endedAt: endAt, done: true, teleStatus: 'no_show', jointMs: 0 },
-      }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
+        data: { endedAt: endAt, done: true, teleStatus: 'no_show', noShowBy, jointMs },
+      }).catch(async (e) => {
+        if (/column .* does not exist/i.test(String((e as Error)?.message))) {
+          const { noShowBy: _drop, ...rest } = { endedAt: endAt, done: true, teleStatus: 'no_show', noShowBy, jointMs };
+          await prisma.reminder.updateMany({ where: { id: r.id, endedAt: null }, data: rest })
+            .catch((e2) => console.error('[reminders] auto-end falhou:', r.id, (e2 as Error)?.message));
+          return;
+        }
+        console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message);
+      });
+    };
+    if (!joins.length) {
+      // Ninguém nunca entrou: encerra VENCIDA além da tolerância e não realizada (done=false).
+      if (r.done) continue;
+      const decision = resolveNoShow({ dueMs, now, toleranceMin: noShowToleranceMin, patientJoined: false, doctorJoined: false });
+      if (decision.outcome !== 'no_show') continue; // tolerância ainda correndo
+      await endAs(new Date(decision.deadlineMs), decision.noShowBy ?? 'none', 0);
       continue;
     }
     const roles = new Set(joins.map((j: any) => (j.after as any)?.role).filter(Boolean));
-    if (roles.size >= 2) continue; // chamada aconteceu — fim é humano (outcome com critério)
+    if (roles.size >= 2) continue; // ambos entraram: desconexão = grace do client; fim é humano
+    // Presença materializada (carimbos) com fallback pro auditLog — consulta cujo join
+    // antecede o deploy da coluna continua resolvida pelos eventos auditados.
+    const stamps = await prisma.reminder.findUnique({ where: { id: r.id }, select: { patientJoinedAt: true, doctorJoinedAt: true } })
+      .catch(() => null as null | { patientJoinedAt: Date | null; doctorJoinedAt: Date | null });
+    const decision = resolveNoShow({
+      dueMs, now, toleranceMin: noShowToleranceMin,
+      patientJoined: roles.has('patient') || !!stamps?.patientJoinedAt,
+      doctorJoined: roles.has('doctor') || !!stamps?.doctorJoinedAt,
+    });
+    if (decision.outcome !== 'no_show') continue; // dentro da tolerância — quem chegou segue esperando
     const lastJoinMs = new Date(joins[joins.length - 1].createdAt).getTime();
-    if (now - lastJoinMs < 30 * MS_MIN) continue; // ainda dentro da janela de espera
-    // Outcome honesto pela presença (patientJoinedAt materializado; fallback = audit):
-    // paciente presente mas sem atendimento conjunto → technical; ausente → no_show.
-    const patientJoined = roles.has('patient') || !!(await prisma.reminder.findUnique({
-      where: { id: r.id }, select: { patientJoinedAt: true },
-    }).then((row: any) => row?.patientJoinedAt).catch(() => null));
-    const outcome = resolveAutoOutcome(patientJoined);
-    const endAt = new Date(lastJoinMs + 30 * MS_MIN);
-    // jointMs honesto: calculado dos eventos até o fim sintético (solo → 0 — nunca há
-    // intervalo com ambos; mantido p/ o registro ficar completo, não p/ elegibilidade).
+    // endedAt determinístico: a tolerância (join tardio além dela não estica o passado).
+    const endAt = new Date(Math.max(decision.deadlineMs, lastJoinMs));
+    // jointMs honesto: solo → 0 (nunca há intervalo com ambos; fica p/ registro completo).
     const jointMs = computeJointMs(await loadPresenceEvents(r.id), endAt.getTime());
-    await prisma.reminder.updateMany({
-      where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
-      data: { endedAt: endAt, done: true, teleStatus: outcome, jointMs },
-    }).catch((e) => console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message));
+    await endAs(endAt, decision.noShowBy ?? 'none', jointMs);
+    // §5: só o PACIENTE esperou (médico não veio) → fila de triagem humana. POLÍTICA
+    // PENDENTE (dono): estorno quando o médico falta; por ora o ledger reserva o valor
+    // como qualquer no_show e a fila sinaliza — decisão financeira é manual.
+    if (decision.noShowBy === 'doctor') {
+      await prisma.exceptionQueue.create({
+        data: {
+          kind: 'doctor_no_show', reminderId: r.id,
+          payload: { dueDate: new Date(dueMs).toISOString(), detectedAt: new Date(now).toISOString(), patientJoined: true, doctorJoined: false, source: 'auto_end' },
+        },
+      }).catch(() => { /* best-effort — o noShowBy na linha já registra */ });
+    }
   }
 }
 

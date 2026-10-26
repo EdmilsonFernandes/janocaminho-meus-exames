@@ -83,3 +83,70 @@ export function computeJointMs(events: PresenceEvent[], endMs: number): number {
 export function resolveAutoOutcome(patientJoined: boolean): 'no_show' | 'technical' {
   return patientJoined ? 'technical' : 'no_show';
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// §5 do dono (26/10/26) — ESTRATÉGIA DE AUSÊNCIA DIFERENCIADA (tolerância 10min).
+//
+// DUAS JANELAS, PROPÓSITOS DIFERENTES (não unificar):
+//   • TOLERÂNCIA de ausência (noShowToleranceMin, AppSetting 'teleconsulta', default
+//     10min): corre do DUE DATE. Decide quando uma consulta SEM a contraparte vira
+//     'no_show' — e REGISTRA quem faltou (noShowBy) p/ o card "não realizada" e a
+//     triagem financeira.
+//   • GRACE de reconexão (5min, client Teleconsulta.tsx): vale quando AMBOS já
+//     entraram e um CAIU (rede/kill do app) — desconexão NÃO é ausência; quem já
+//     apareceu tem direito de voltar. Caso dos dois: encerramento é HUMANO (/end com
+//     critério jointMs), o job não toca.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Quem faltou na consulta não realizada (gravado em Reminder.noShowBy). */
+export type NoShowBy = 'patient' | 'doctor' | 'none';
+
+/** Fatos de presença + relógio (puros — testáveis sem DB). */
+export interface NoShowFacts {
+  dueMs: number;           // horário marcado (epoch ms)
+  now: number;             // "agora" (epoch ms) — job injeta o relógio controlado
+  toleranceMin: number;    // tolerância de ausência (AppSetting teleconsulta.noShowToleranceMin)
+  patientJoined: boolean;  // paciente apareceu em ALGUM momento (join auditLog/carimbo)
+  doctorJoined: boolean;   // médico apareceu em ALGUM momento
+}
+
+/** Decisão da tolerância de ausência: outcome≠null só quando venceu E não foi caso dos dois. */
+export interface NoShowDecision {
+  expired: boolean;             // tolerância venceu (now ≥ dueDate + tolerância)
+  deadlineMs: number;           // dueDate + tolerância (p/ countdown do client)
+  outcome: 'no_show' | null;    // 'no_show' = encerra como ausência (job/auto-end)
+  noShowBy: NoShowBy | null;    // quem faltou — só preenchido com outcome='no_show'
+}
+
+/**
+ * Decide a ausência pela presença + relógio:
+ *   ninguém apareceu ............ no_show / none   (consulta "não realizada")
+ *   só o médico apareceu ........ no_show / patient (paciente faltou; estorno já é
+ *                                 o comportamento do ledger p/ no_show)
+ *   só o paciente apareceu ...... no_show / doctor  (médico faltou; ExceptionQueue
+ *                                 'doctor_no_show' p/ triagem — política financeira
+ *                                 do estorno é decisão do dono)
+ *   ambos apareceram ............ outcome null (queda de conexão = grace/5min no
+ *                                 client; encerramento é humano no /end com critério)
+ * tolerância NÃO vencida ....... outcome null (countdown segue no client).
+ * PURA: nenhum acesso a DB/prisma — testes injetam relógio (dueMs/now) à vontade.
+ */
+export function resolveNoShow(f: NoShowFacts): NoShowDecision {
+  const deadlineMs = f.dueMs + Math.max(0, f.toleranceMin) * 60_000;
+  const expired = f.now >= deadlineMs;
+  if (f.patientJoined && f.doctorJoined) return { expired, deadlineMs, outcome: null, noShowBy: null };
+  if (!expired) return { expired: false, deadlineMs, outcome: null, noShowBy: null };
+  const noShowBy: NoShowBy = f.patientJoined ? 'doctor' : f.doctorJoined ? 'patient' : 'none';
+  return { expired, deadlineMs, outcome: 'no_show', noShowBy };
+}
+
+/**
+ * Versão p/ o encerramento HUMANO (POST /end e feedback): dado outcome='no_show',
+ * registra quem faltou pela presença de cada papel. Ambos presentes → null
+ * (no_show explícito após chamada parcial é decisão humana, sem acusar ninguém).
+ */
+export function resolveNoShowBy(patientJoined: boolean, doctorJoined: boolean): NoShowBy | null {
+  if (patientJoined && doctorJoined) return null;
+  if (!patientJoined && !doctorJoined) return 'none';
+  return patientJoined ? 'doctor' : 'patient';
+}

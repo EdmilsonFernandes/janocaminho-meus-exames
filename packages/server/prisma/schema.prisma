@@ -850,6 +850,9 @@ model Reminder {
   //    para consultas abertas; endedAt continua sendo a fonte do "encerrada").
   teleStatus       String?    // 'scheduled' | 'in_progress' | 'completed' | 'no_show' | 'cancelled' | 'technical'
   patientJoinedAt  DateTime?  // 1º JOIN do PACIENTE (presença materializada; join de médico = auditLog)
+  // §5 dono (26/10/26) — estratégia de ausência DIFERENCIADA: no_show registra QUEM faltou.
+  doctorJoinedAt   DateTime?  // 1º JOIN do MÉDICO (simetria do patientJoinedAt — materializa presença p/ noShowBy='doctor')
+  noShowBy         String?    // 'patient' | 'doctor' | 'none' — gravado no /end e no auto-end quando teleStatus='no_show'
   jointMs          Int        @default(0) // tempo CONJUNTO acumulado (ms) — calculado no /end a partir dos eventos auditados
   // ── Fila de transcrição (22/10/26): retryCount conta as tentativas de STT do job
   //    transcriptionQueue (rede/timeout). ≥5 → abort definitivo (áudio fora + push);

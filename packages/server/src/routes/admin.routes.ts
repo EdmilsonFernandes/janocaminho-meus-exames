@@ -1147,13 +1147,19 @@ router.patch('/exams/:id/failure-feedback', async (req: AuthedRequest, res, next
       ? (existing.rawExtraction as Record<string, any>)
       : {};
 
+    // fix 26/10: `req.user` não existe em AuthedRequest (é userId) — email do admin
+    // revisor vem do banco (best-effort; sem userId = 'admin').
+    const reviewer = req.userId
+      ? ((await prisma.user.findUnique({ where: { id: req.userId }, select: { email: true } }))?.email ?? 'admin')
+      : 'admin';
+
     const updatedRaw = {
       ...raw,
       adminReview: {
         failureReason: failureReason || null,
         adminNotes: adminNotes || null,
         reviewedAt: new Date().toISOString(),
-        reviewedBy: req.user?.email || 'admin',
+        reviewedBy: reviewer,
       },
     };
 
@@ -1873,6 +1879,29 @@ router.post('/commission-rules', async (req: AuthedRequest, res, next) => {
     res.status(201).json({ rule: rule.created, closedRules: rule.closedCount });
   } catch (e) { next(e); }
 });
+
+// ADMIN: encerrar regra específica de médico (ele volta a seguir a regra geral)
+router.delete('/commission-rules/doctor/:doctorId', async (req: AuthedRequest, res, next) => {
+  try {
+    const doctorId = String(req.params.doctorId);
+    const now = new Date();
+    const closed = await prisma.commissionRule.updateMany({
+      where: {
+        doctorId,
+        validTo: null,
+        validFrom: { lte: now },
+      },
+      data: { validTo: now },
+    });
+    await audit('ADMIN_COMMISSION_RULE_RESET_DOCTOR', req, {
+      targetType: 'COMMISSION_RULE',
+      targetId: doctorId,
+      after: { closedRules: closed.count },
+    });
+    res.json({ ok: true, closedRules: closed.count });
+  } catch (e) { next(e); }
+});
+
 
 // ═════════════════════════════════════════════════════════════════════════════════
 // ONDA 3 — §18.8 VISÃO FINANCEIRA ADMIN (24/10/26). Leitura do ledger da onda 2.

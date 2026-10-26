@@ -94,7 +94,13 @@ export const DEFAULT_SETTINGS = {
   // live como os demais knobs (PATCH /admin/config/costs { category: 'teleconsulta' }).
   // Onda 4 (§18.5): payoutAuto = repasse AUTOMÁTICO sem aprovação admin. Default 0
   // (DESLIGADO — v1 é supervisionado; ligar é decisão do dono no admin, com audit).
-  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0 },
+  // §19 dono (26/10/26): slotMin = meia-janela de OCUPAÇÃO da agenda do médico (teleconsulta
+  // ocupa dueDate ± slotMin; 2 consultas SOBREPOSTAS → 409 SCHEDULE_CONFLICT, mesmo com
+  // pacientes diferentes). §5 dono (26/10/26): noShowToleranceMin = tolerância de AUSÊNCIA
+  // (dueDate + N min sem a contraparte → no_show com noShowBy = quem faltou). NÃO confundir
+  // com o grace de RECONEXÃO (5min, client): tolerância = quem NUNCA apareceu; grace = queda
+  // de quem já entrou (ambos presentes → desconexão é caso do /end humano, não de ausência).
+  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -213,11 +219,14 @@ export function sportsModeEnabled(): boolean {
 
 /** Config da teleconsulta (spec gaps §1): fallback defensivo pros defaults se o banco
  *  tiver algo inválido/ausente (mesma família do getMonthlyPlan — nunca hardcode na rota). */
-export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number } {
+export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number; slotMin: number; noShowToleranceMin: number } {
   const t: any = (getSettings() as any).teleconsulta ?? {};
   return {
     entryWindowMin: Number(t.entryWindowMin) > 0 ? Number(t.entryWindowMin) : 5,
     minJointSeconds: Number(t.minJointSeconds) > 0 ? Number(t.minJointSeconds) : 300,
+    // §19/§5 dono (26/10/26): janela de agenda (±min) e tolerância de ausência (min).
+    slotMin: Number(t.slotMin) > 0 ? Number(t.slotMin) : 30,
+    noShowToleranceMin: Number(t.noShowToleranceMin) > 0 ? Number(t.noShowToleranceMin) : 10,
   };
 }
 

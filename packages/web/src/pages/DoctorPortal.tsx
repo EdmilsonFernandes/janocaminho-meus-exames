@@ -710,10 +710,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         }),
       });
       let r = await scheduleOnce(false);
-      // Guarda anti-duplicata: já há teleconsulta HOJE com este paciente → confirma
-      // antes de criar a segunda (bug 3-salas 19/10 nasceu de cliques repetidos).
+      // 409 tem 2 famílias: CONFLITO DE AGENDA (§19 dono 26/10 — horário de OUTRO
+      // paciente; não se força, dialog segue aberto p/ trocar o horário) e duplicata
+      // do mesmo paciente/dia (confirma "criar outra" e reenvia com force:true).
       if (r.status === 409) {
         const d: any = await r.json().catch(() => ({}));
+        if (d?.code === 'SCHEDULE_CONFLICT') {
+          const hhmm = d?.existing?.dueDate ? new Date(d.existing.dueDate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+          const who = d?.existing?.patientName ? ` (${d.existing.patientName.split(' ')[0]})` : '';
+          snackbar({ message: `${d?.error || 'Você já tem uma teleconsulta nesse horário.'}${hhmm ? ` — às ${hhmm}${who}` : ''} Escolha outro horário.`, severity: 'warning' });
+          setTeleBusy(false);
+          return; // dialog de agendamento PERMANECE aberto — só troca o horário
+        }
+        // Guarda anti-duplicata: já há teleconsulta HOJE com este paciente → confirma
+        // antes de criar a segunda (bug 3-salas 19/10 nasceu de cliques repetidos).
         const go = await confirmDialog({
           title: 'Já existe teleconsulta hoje',
           message: `${d.error || 'Já existe uma teleconsulta com este paciente neste dia.'}${d.existing?.roomCode ? `\n\nSala atual: ${d.existing.roomCode}` : ''}`,

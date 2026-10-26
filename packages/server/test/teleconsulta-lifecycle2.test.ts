@@ -82,7 +82,7 @@ async function doctorWithShare(patientId: string, crm: string) {
 }
 
 const row = (id: string) => prisma.reminder.findUnique({
-  where: { id }, select: { teleStatus: true, endedAt: true, done: true, patientJoinedAt: true, jointMs: true },
+  where: { id }, select: { teleStatus: true, endedAt: true, done: true, patientJoinedAt: true, noShowBy: true, jointMs: true },
 });
 const startLogs = (id: string) => prisma.auditLog.count({ where: { action: 'TELECONSULTA_START', targetId: id } });
 
@@ -397,30 +397,34 @@ describe('POST /end — outcome honesto (completed exige critério)', () => {
 describe('autoEndStaleTeleconsultas — outcome pela presença (nunca completed)', () => {
   beforeEach(async () => { await resetDb(); await loadSettings(); });
 
-  it('só o PACIENTE entrou há >30min → technical (havia presença, não houve atendimento)', async () => {
+  it('só o PACIENTE entrou + tolerância vencida → no_show / doctor (§5 dono 26/10 — médico faltou)', async () => {
     const { user, patient } = await createUser();
-    const r = await createTele(user.id, patient.id, {});
+    const r = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() - 45 * 60_000) });
     await seedJoinLog(r.id, 'patient', 40);
 
     await autoEndStaleTeleconsultas(Date.now());
     const db = await row(r.id);
     expect(db?.endedAt).toBeTruthy();
-    expect(db?.teleStatus).toBe('technical');
+    expect(db?.teleStatus).toBe('no_show'); // §5: antes 'technical'; agora registra quem faltou
+    expect((db as any)?.noShowBy).toBe('doctor');
     expect(db?.jointMs).toBe(0); // sem intervalo com ambos
+    // Caso sensível → fila de triagem (estorno quando o MÉDICO falta é política do dono)
+    expect(await prisma.exceptionQueue.findFirst({ where: { kind: 'doctor_no_show', reminderId: r.id } })).toBeTruthy();
   });
 
-  it('só o MÉDICO entrou (paciente nunca) → no_show', async () => {
+  it('só o MÉDICO entrou (paciente nunca) → no_show / patient', async () => {
     const { user, patient } = await createUser();
-    const r = await createTele(user.id, patient.id, {});
+    const r = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() - 45 * 60_000) });
     await seedJoinLog(r.id, 'doctor', 40);
 
     await autoEndStaleTeleconsultas(Date.now());
     const db = await row(r.id);
     expect(db?.teleStatus).toBe('no_show');
+    expect((db as any)?.noShowBy).toBe('patient');
     expect(db?.done).toBe(true);
   });
 
-  it('NINGUÉM entrou + vencida >30min → no_show (comportamento de encerrar vencidas mantido)', async () => {
+  it('NINGUÉM entrou + vencida além da tolerância → no_show / none (endedAt = due + tolerância)', async () => {
     const { user, patient } = await createUser();
     const due = new Date(Date.now() - 40 * 60_000);
     const r = await createTele(user.id, patient.id, { dueDate: due });
@@ -428,8 +432,9 @@ describe('autoEndStaleTeleconsultas — outcome pela presença (nunca completed)
     await autoEndStaleTeleconsultas(Date.now());
     const db = await row(r.id);
     expect(db?.teleStatus).toBe('no_show');
+    expect((db as any)?.noShowBy).toBe('none');
     expect(db?.endedAt).toBeTruthy();
-    expect(new Date(db!.endedAt!).getTime()).toBe(due.getTime() + 30 * 60_000);
+    expect(new Date(db!.endedAt!).getTime()).toBe(due.getTime() + 10 * 60_000);
   });
 
   it('AMBOS entraram → job NÃO encerra (fim humano com critério)', async () => {

@@ -200,9 +200,9 @@ describe('POST /api/teleconsulta/:id/end — ciclo de vida', () => {
 describe('autoEndStaleTeleconsultas (job, nice-to-have)', () => {
   beforeEach(async () => { await resetDb(); });
 
-  it('só 1 papel entrou há >30min → encerra com endedAt = último join + 30min', async () => {
+  it('só 1 papel entrou + tolerância vencida (§5 dono 26/10: dueDate+10min) → encerra', async () => {
     const { user, patient } = await createUser();
-    const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' });
+    const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit', dueDate: new Date(Date.now() - 45 * 60_000) });
     await seedJoinLog(r.id, 'patient', 40);
 
     await autoEndStaleTeleconsultas(Date.now());
@@ -222,9 +222,9 @@ describe('autoEndStaleTeleconsultas (job, nice-to-have)', () => {
     expect(row?.endedAt).toBeNull();
   });
 
-  it('join recente (<30min) e sem join NENHUM → não encerra', async () => {
+  it('join recente/tolerância correndo e sem join NENHUM → não encerra', async () => {
     const { user, patient } = await createUser();
-    const a = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' });
+    const a = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' }); // due há 5min
     await seedJoinLog(a.id, 'patient', 10);
     const b = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit' });
 
@@ -233,7 +233,7 @@ describe('autoEndStaleTeleconsultas (job, nice-to-have)', () => {
     expect((await prisma.reminder.findUnique({ where: { id: b.id }, select: { endedAt: true } }))?.endedAt).toBeNull();
   });
 
-  it('NINGUÉM entrou + vencida há >30min (done=false) → encerra com endedAt = dueDate + 30min', async () => {
+  it('NINGUÉM entrou + vencida além da tolerância (done=false) → encerra com endedAt = dueDate + tolerância', async () => {
     const { user, patient } = await createUser();
     const due = new Date(Date.now() - 40 * 60_000);
     const r = await createTeleconsultaReminder(user.id, patient.id, { provider: 'livekit', dueDate: due });
@@ -242,12 +242,13 @@ describe('autoEndStaleTeleconsultas (job, nice-to-have)', () => {
     const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { endedAt: true, done: true } });
     expect(row?.done).toBe(true);
     expect(row?.endedAt).toBeTruthy();
-    expect(new Date(row!.endedAt!).getTime()).toBe(due.getTime() + 30 * 60_000);
+    // §5 dono (26/10): tolerância configurável (default 10min; antes 30min fixos).
+    expect(new Date(row!.endedAt!).getTime()).toBe(due.getTime() + 10 * 60_000);
   });
 
-  it('NINGUÉM entrou mas vencida há <30min, OU já done=true → segue aberta', async () => {
+  it('NINGUÉM entrou mas tolerância correndo, OU já done=true → segue aberta', async () => {
     const { user, patient } = await createUser();
-    const recent = await createTeleconsultaReminder(user.id, patient.id, { dueDate: new Date(Date.now() - 10 * 60_000) });
+    const recent = await createTeleconsultaReminder(user.id, patient.id, { dueDate: new Date(Date.now() - 5 * 60_000) });
     const markedDone = await createTeleconsultaReminder(user.id, patient.id, { dueDate: new Date(Date.now() - 40 * 60_000) });
     await prisma.reminder.update({ where: { id: markedDone.id }, data: { done: true } });
 
