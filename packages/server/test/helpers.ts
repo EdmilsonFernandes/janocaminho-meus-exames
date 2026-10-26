@@ -125,7 +125,7 @@ export async function createExam(patientId: string, opts: {
   kind?: 'LAB_PANEL' | 'IMAGING' | 'OTHER';
   sha?: string;
 } = {}) {
-  return prisma.exam.create({
+  const exam = await prisma.exam.create({
     data: {
       patientId,
       title: opts.title ?? 'Hemograma Completo',
@@ -138,6 +138,11 @@ export async function createExam(patientId: string, opts: {
     },
     select: { id: true, patientId: true, title: true, status: true, performedAt: true, fileSha256: true },
   });
+  // D3 24/10: consolidado exige ≥1 item estruturado (gate anti cobrança sem conteúdo).
+  // Default do helper: semeia 1 item (HEMOGLOBINA normal) — callers que testam o
+  // caso SEM item passam explicitamente withItem: false.
+  if (opts.withItem !== false) await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
+  return exam;
 }
 
 /** Cria um item de exame (analito). extractedPage é obrigatório (Int não-nulo). */
