@@ -30,6 +30,8 @@ describe('GET /api/admin/exams (regressão select)', () => {
     // owner SEM phone (campo não existe) e COM e-mail — o que a UI usa.
     expect(res.body.exams[0].patient.owner).toMatchObject({ email: expect.any(String) });
     expect(res.body.exams[0].patient.owner.phone).toBeUndefined();
+    // Dono 26/10: photoUrl do paciente vem no select (foto na lista do admin).
+    expect('photoUrl' in res.body.exams[0].patient).toBe(true);
     expect(Array.isArray(res.body.byStatus)).toBe(true);
     expect(Array.isArray(res.body.recentFailed)).toBe(true);
   });

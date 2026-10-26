@@ -39,6 +39,64 @@ export function notHeldReason(info: NotHeldInfo): string {
 const fmtDate = (d: Date) =>
   new Date(d).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
+const fmtBrl = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+/**
+ * ESTORNO EXECUTADO (onda 4, dono 26/10): o dinheiro voltou pro paciente — aviso
+ * duplo (push + e-mail) com o valor e o prazo do PSP, e e-mail pro médico (a
+ * consulta sai do "previsto" dele). Best-effort, igual ao notHeld.
+ */
+export async function notifyTeleconsultaRefunded(
+  reminder: { id: string; ownerId: string; patientId: string | null; createdByDoctorId?: string | null; dueDate: Date; title?: string | null },
+  refundCents: number,
+): Promise<void> {
+  const when = fmtDate(reminder.dueDate);
+  const title = reminder.title || 'Teleconsulta';
+  const value = fmtBrl(refundCents);
+
+  const [patient, user, doctor] = await Promise.all([
+    reminder.patientId
+      ? prisma.patient.findUnique({ where: { id: reminder.patientId }, select: { fullName: true } }).catch(() => null)
+      : Promise.resolve(null),
+    prisma.user.findUnique({ where: { id: reminder.ownerId }, select: { email: true, name: true } }).catch(() => null),
+    reminder.createdByDoctorId
+      ? prisma.doctor.findUnique({ where: { id: reminder.createdByDoctorId }, select: { name: true, email: true } }).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+  const patientName = patient?.fullName || user?.name || 'paciente';
+  const doctorName = doctor?.name || null;
+
+  await sendPushToUser(
+    reminder.ownerId,
+    '💸 Estorno realizado',
+    `${value} da sua consulta de ${when} voltou pro PIX — pode levar até 2 dias úteis conforme seu banco.`,
+    { type: 'teleconsulta', reminderId: reminder.id },
+  ).catch((e: unknown) => console.error('[teleconsulta-notify] push estorno falhou:', (e as Error)?.message));
+
+  const mailHtml = (toName: string, roleNote: string) => emailTemplate({
+    title: 'Estorno da teleconsulta',
+    content: `
+      <p>Olá, ${toName}.</p>
+      <p><strong>${title}</strong> — agendada para <strong>${when}</strong> — foi <strong>estornada</strong>.</p>
+      <p style="padding:12px 16px;border-radius:12px;background:rgba(32,178,170,.10);border-left:4px solid #20b2aa;font-size:15px;">
+        ${value} devolvidos ao paciente${doctorName ? ` pelo Dr. ${doctorName.replace(/^Dr\.?\s*/i, '')}` : ''}.
+      </p>
+      <p>${roleNote}</p>
+    `,
+  });
+
+  if (user?.email) {
+    const note = 'O valor volta para a conta PIX usada no pagamento — o prazo depende do seu banco (até 2 dias úteis).';
+    await sendEmail({ to: user.email, subject: 'Estorno da teleconsulta confirmado', html: mailHtml(patientName, note) })
+      .catch((e: unknown) => console.error('[teleconsulta-notify] e-mail estorno paciente falhou:', (e as Error)?.message));
+  }
+  if (doctor?.email) {
+    const note = 'A consulta sai do seu "previsto" no financeiro — nenhum valor foi atribuído a ela.';
+    await sendEmail({ to: doctor.email, subject: `[${patientName}] Teleconsulta estornada`, html: mailHtml(`Dr. ${doctorName?.replace(/^Dr\.?\s*/i, '') || 'médico'}`, note) })
+      .catch((e: unknown) => console.error('[teleconsulta-notify] e-mail estorno médico falhou:', (e as Error)?.message));
+  }
+}
+
 const subjectFor = (outcome: NotHeldInfo['outcome']) =>
   outcome === 'cancelled' ? 'Teleconsulta cancelada'
     : outcome === 'technical' ? 'Teleconsulta não realizada (problema técnico)'

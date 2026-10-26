@@ -37,7 +37,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import { API_URL, token } from '../../config';
+import { API_URL, token, photoUrlFor } from '../../config';
 import { TabLoader, SectionError } from './parts';
 
 const initials = (name?: string | null): string => {
@@ -87,6 +87,8 @@ interface ExamItemData {
   patient?: {
     id?: string;
     fullName: string;
+    /** Dono 26/10: foto do paciente na lista do admin (photoUrlFor gera URL autenticada). */
+    photoUrl?: string | number;
     owner?: { id?: string; email?: string; phone?: string } | null;
   } | null;
 }
@@ -142,6 +144,8 @@ export const ExamsTab = () => {
       {
         patientKey: string;
         patientName: string;
+        patientId?: string;
+        photoUrl?: string | number;
         ownerEmail?: string;
         ownerPhone?: string;
         exams: ExamItemData[];
@@ -157,6 +161,8 @@ export const ExamsTab = () => {
         groups[key] = {
           patientKey: key,
           patientName: name,
+          patientId: e.patient?.id,
+          photoUrl: e.patient?.photoUrl,
           ownerEmail: e.patient?.owner?.email,
           ownerPhone: e.patient?.owner?.phone,
           exams: [],
@@ -480,6 +486,7 @@ export const ExamsTab = () => {
                     >
                       <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
                         <Avatar
+                          src={group.patientId ? photoUrlFor(group.patientId, group.photoUrl) : undefined}
                           sx={{
                             width: 44,
                             height: 44,
@@ -657,8 +664,11 @@ export const ExamsTab = () => {
                 </Stack>
 
                 <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
-                  <Typography variant="caption" color="text.secondary">
-                    👤 <strong>{e.patient?.fullName ?? 'Paciente Não Identificado'}</strong> · {new Date(e.createdAt).toLocaleDateString('pt-BR')}
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                    <Avatar src={e.patient?.id ? photoUrlFor(e.patient.id, e.patient?.photoUrl) : undefined} sx={{ width: 22, height: 22, fontSize: 10, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488' }}>
+                      {initials(e.patient?.fullName ?? '?')}
+                    </Avatar>
+                    <strong>{e.patient?.fullName ?? 'Paciente Não Identificado'}</strong> · {new Date(e.createdAt).toLocaleDateString('pt-BR')}
                   </Typography>
 
                   <Stack direction="row" spacing={1}>

@@ -100,6 +100,34 @@ export const PixPaymentBlock = ({
     return () => clearInterval(iv);
   }, [charge?.paymentId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // REDE DE SEGURANÇA (brecha 26/10 — pagamento da Heloisa): o Asaas entrega o
+  // webhook em MINUTOS (às vezes a fila SEQUENTIALLY atrasa mais) — nesse gap o
+  // payment-status ainda diz pendente e a tela congelava em "aguardando" mesmo
+  // depois do PIX cair. Revalida o REMINDER (paidAt no /summary, fonte server)
+  // imediatamente ao montar o QR e a cada 20s: cobre webhook atrasado/perdido,
+  // conciliação manual e reabertura da tela. Duplicidade impossível: onPaid só
+  // transita (charge=null) e o caller refresca a lista.
+  useEffect(() => {
+    if (!charge?.paymentId) return;
+    let alive = true;
+    const verify = async () => {
+      try {
+        const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${token()}` } });
+        if (!alive || !res.ok) return;
+        const d = await res.json().catch(() => null);
+        if (d?.paidAt) {
+          setCharge(null);
+          hapticSuccess();
+          snackbar({ message: '✓ Consulta paga! Pagamento confirmado.', severity: 'success' });
+          onPaid?.();
+        }
+      } catch { /* offline: próximo tick */ }
+    };
+    void verify();
+    const iv = setInterval(() => void verify(), 20_000);
+    return () => { alive = false; clearInterval(iv); };
+  }, [charge?.paymentId, reminderId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Countdown MM:SS a partir do expiresAt do server.
   useEffect(() => {
     const ms = charge?.expiresAt ? new Date(charge.expiresAt).getTime() : NaN;

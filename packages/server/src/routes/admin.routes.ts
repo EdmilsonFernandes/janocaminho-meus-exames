@@ -3,6 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { config, hasAsaas } from '../config';
+import { postRefundExecuted } from '../finance/ledger';
+import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
 import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from '../utils/settings';
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
 import { invalidateLabsCache, slugify } from './labs.routes';
@@ -1184,6 +1187,9 @@ router.get('/exams', async (req, res, next) => {
             select: {
               id: true,
               fullName: true,
+              // Dono 26/10: foto do paciente na lista de exames do admin (photoUrlFor
+              // no client gera a URL autenticada; sem foto → iniciais no Avatar).
+              photoUrl: true,
               // HOTFIX 26/10 (500 no prod): select pedia owner.phone — campo NÃO
               // existe no model User (validação do Prisma derruba a rota INTEIRA).
               // Telefone de contato de paciente não modelado; admin usa e-mail.
@@ -1993,6 +1999,85 @@ router.delete('/commission-rules/doctor/:doctorId', async (req: AuthedRequest, r
 // desconta a taxa da própria receita na conclusão; feeBearer=doctor tira do médico)
 // → margem = platform_revenue net. ≠ lucro líquido (caption obrigatória na UI).
 // ═════════════════════════════════════════════════════════════════════════════════
+/** ONDA 4 (dono 26/10 — "faz o estorno e amarra essa jornada"): estorno EXECUTADO de
+ *  teleconsulta paga. Admin clica → chama o Asaas (POST /v3/payments/:id/refund) →
+ *  marca refundedAt + encerra a consulta se ainda aberta → escritura o ledger
+ *  (postRefundExecuted: consome reserva ou retenção → conta refund) → avisa paciente
+ *  (push+e-mail) e médico (e-mail). Idempotente pelo refundedAt. Falha no Asaas NÃO
+ *  marca NADA no sistema (dinheiro é real — só escreve quem CONFIRMOU o provider). */
+router.post('/teleconsulta/:id/refund', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const r = await prisma.reminder.findFirst({
+      where: { id, type: 'teleconsulta' },
+      select: { id: true, ownerId: true, patientId: true, createdByDoctorId: true, dueDate: true, title: true, paidAt: true, paymentRef: true, refundedAt: true, consultPriceCents: true, endedAt: true, teleStatus: true },
+    });
+    if (!r) { res.status(404).json({ error: 'Teleconsulta não encontrada.' }); return; }
+    if (!r.paidAt || !r.paymentRef) { res.status(400).json({ error: 'Esta consulta não tem pagamento confirmado.', code: 'NO_PAYMENT' }); return; }
+    if (r.refundedAt) { res.status(409).json({ error: 'Esta consulta já foi estornada.', code: 'ALREADY_REFUNDED', refundedAt: r.refundedAt.toISOString() }); return; }
+    if (!hasAsaas()) { res.status(503).json({ error: 'Asaas não configurado neste servidor.' }); return; }
+
+    // EXECUTA no provider — dinheiro de verdade: só escreve no sistema se o Asaas aceitar.
+    const asaasRes = await fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(r.paymentRef)}/refund`, {
+      method: 'POST',
+      headers: { access_token: config.asaasApiKey, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ value: Number((r.consultPriceCents! / 100).toFixed(2)) }),
+    }).catch(() => null);
+    if (!asaasRes || !asaasRes.ok) {
+      const errBody: any = asaasRes ? await asaasRes.json().catch(() => null) : null;
+      console.error('[refund] Asaas recusou o estorno:', r.paymentRef, asaasRes?.status, JSON.stringify(errBody?.errors ?? errBody ?? {}).slice(0, 300));
+      res.status(502).json({ error: 'O Asaas recusou o estorno — nada foi alterado no sistema.', code: 'PROVIDER_REFUSED', detail: errBody?.errors?.[0]?.description ?? null });
+      return;
+    }
+
+    const refundedAt = new Date();
+    await prisma.reminder.update({
+      where: { id: r.id },
+      // Consulta ABERTA (scheduled) que foi estornada = cancelada por devolução.
+      data: { refundedAt, ...(r.endedAt ? {} : { endedAt: refundedAt, done: true, teleStatus: 'cancelled' }) },
+    });
+    const posted = await postRefundExecuted(r.id).catch((e: any) => {
+      console.error('[refund] ledger do estorno falhou (conciliação repara):', r.id, e?.message);
+      return null;
+    });
+    void notifyTeleconsultaRefunded(r, r.consultPriceCents!).catch(() => {});
+    console.log(`[refund] teleconsulta ${r.id} estornada — ${r.paymentRef} (${(r.consultPriceCents! / 100).toFixed(2)} BRL, ledger ${posted?.posted ? 'ok' : 'pendente conciliação'})`);
+    res.json({ ok: true, refundedAt: refundedAt.toISOString(), ledger: { posted: posted?.posted ?? false, entries: posted?.entries ?? 0 } });
+  } catch (e) { next(e); }
+});
+
+/** Lista de consultas PAGAS p/ o painel de estorno (dono 26/10): quem pagou, quanto,
+ *  status e se já foi devolvida — 1 clique estorna (rota /refund acima). */
+router.get('/teleconsulta/paid', async (req: AuthedRequest, res, next) => {
+  try {
+    const rows = await prisma.reminder.findMany({
+      where: { type: 'teleconsulta', paidAt: { not: null } },
+      orderBy: { paidAt: 'desc' },
+      take: 120,
+      select: {
+        id: true, title: true, dueDate: true, paidAt: true, paymentRef: true, refundedAt: true,
+        consultPriceCents: true, teleStatus: true, endedAt: true, noShowBy: true,
+        patient: { select: { fullName: true } },
+        createdByDoctorId: true,
+      },
+    }).catch(() => []);
+    const docIds = [...new Set(rows.map((r: any) => r.createdByDoctorId).filter(Boolean))];
+    const docs = docIds.length
+      ? await prisma.doctor.findMany({ where: { id: { in: docIds as string[] } }, select: { id: true, name: true } }).catch(() => [] as { id: string; name: string }[])
+      : [];
+    const docMap = Object.fromEntries(docs.map((d) => [d.id, d.name]));
+    res.json({
+      items: rows.map((r: any) => ({
+        id: r.id, title: r.title, dueDate: r.dueDate, paidAt: r.paidAt, refundedAt: r.refundedAt,
+        priceCents: r.consultPriceCents, teleStatus: r.teleStatus, endedAt: r.endedAt, noShowBy: r.noShowBy,
+        paymentRef: r.paymentRef,
+        patientName: r.patient?.fullName ?? '—',
+        doctorName: r.createdByDoctorId ? docMap[r.createdByDoctorId] ?? null : null,
+      })),
+    });
+  } catch (e) { next(e); }
+});
+
 router.get('/finance/overview', async (req: AuthedRequest, res, next) => {
   try {
     const now = new Date();

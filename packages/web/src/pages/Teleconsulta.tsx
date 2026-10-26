@@ -1137,8 +1137,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // refetch do /summary (paidAt, relógio do server). Pago → auto-avança pro join
   // (que agora passa); pendente → toast claro + botão reabilita. NUNCA re-roda o
   // join às cegas (402 em loop = botão piscando sem feedback).
-  const recheckPay = useCallback(async () => {
-    if (recheckBusy) return;
+  const recheckPay = useCallback(async () => {    if (recheckBusy) return;
     setRecheckBusy(true);
     try {
       const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
@@ -1159,6 +1158,24 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       setRecheckBusy(false);
     }
   }, [authToken, hapticError, hapticSuccess, recheckBusy, reminderId, startJoin]);
+
+  // AUTO-RECHECK (brecha 26/10 — pagamento da Heloisa): o webhook do Asaas pode
+  // levar MINUTOS (fila SEQUENTIALLY atrasa ainda mais) — nesse gap a tela ficava
+  // "aguardando pagamento" mesmo com o PIX já pago no banco. Silencioso: só age
+  // quando o /summary traz paidAt (aí reaproveita o recheckPay, que auto-avança
+  // pra consulta); pendente NÃO faz barulho (botão manual segue p/ feedback).
+  useEffect(() => {
+    if (phase !== 'payment' || role !== 'patient') return;
+    const iv = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/summary`, { headers: { Authorization: `Bearer ${authToken()}` } });
+        if (!res.ok) return;
+        const d = await res.json().catch(() => null);
+        if (d?.paidAt) void recheckPay();
+      } catch { /* offline: próximo tick */ }
+    }, 20_000);
+    return () => clearInterval(iv);
+  }, [phase, role, reminderId, authToken, recheckPay]);
 
   // Botão do pré-join (paciente): consent Art.15 (só se ainda não consenter) + join.
   // F3 §1: se marcou o checkbox de gravação, registra o record-consent logo após o

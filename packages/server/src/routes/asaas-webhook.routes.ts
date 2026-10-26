@@ -24,6 +24,9 @@ import { Router } from 'express';
 import { timingSafeEqual } from 'node:crypto';
 import { prisma } from '../prisma';
 import { config, hasAsaas } from '../config';
+// Onda 4 (26/10): estorno conciliado pelo webhook REFUND_RECEIVED.
+import { postRefundExecuted } from '../finance/ledger';
+import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
 import { approvePendingSubscription } from '../utils/billingApproval';
 import { getSubscriptionColumnSupport } from '../utils/subscriptionCompat';
 
@@ -62,6 +65,28 @@ router.post('/asaas', async (req, res) => {
 
     if (!paymentId) {
       res.status(200).json({ ok: true, ignored: 'sem payment.id' });
+      return;
+    }
+    // ONDA 4 (dono 26/10): estorno feito DIRETO no painel do Asaas → REFUND_RECEIVED*
+    // fecha a conta no sistema (refundedAt + ledger refund + aviso paciente/médico).
+    // O botão de estorno do admin NÃO depende disto (ele marca na hora após o 200 do
+    // provider); esta branch é a rede de segurança p/ estornos manuais no painel.
+    if (event.startsWith('REFUND')) {
+      const r = await prisma.reminder.findFirst({
+        where: { paymentRef: paymentId },
+        select: { id: true, ownerId: true, patientId: true, createdByDoctorId: true, dueDate: true, title: true, paidAt: true, paymentRef: true, refundedAt: true, consultPriceCents: true, endedAt: true },
+      }).catch(() => null);
+      if (r && r.paidAt && !r.refundedAt) {
+        const refundedAt = new Date();
+        await prisma.reminder.update({
+          where: { id: r.id },
+          data: { refundedAt, ...(r.endedAt ? {} : { endedAt: refundedAt, done: true, teleStatus: 'cancelled' }) },
+        }).catch(() => {});
+        await postRefundExecuted(r.id).catch((e: any) => console.error('[asaas-webhook] ledger do estorno falhou:', r.id, e?.message));
+        void notifyTeleconsultaRefunded(r, r.consultPriceCents ?? 0).catch(() => {});
+        console.log(`[asaas-webhook] REFUND conciliado — reminder ${r.id} (${paymentId})`);
+      }
+      res.status(200).json({ ok: true, refund: !!r });
       return;
     }
     // Só evento de DINHEIRO RECEBIDO interessa (PAYMENT_CREATED/UPDATED etc. → ack sem efeito).

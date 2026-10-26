@@ -7,7 +7,7 @@
 // mostram valor + destinatário (chave PIX sempre MASCARADA — §18.5).
 import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import {
-  Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme,
+  Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme, Alert,
   Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
   Switch, FormControlLabel, Autocomplete, Avatar, InputAdornment, Table,
   TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -123,6 +123,37 @@ export const TeleFinanceTab = () => {
     } catch { /* best-effort */ }
   }, []);
 
+  // ── ONDA 4 (dono 26/10): consultas PAGAS + estorno em 1 clique ──────────────────
+  const [paidList, setPaidList] = useState<any[]>([]);
+  const [refundTarget, setRefundTarget] = useState<any | null>(null);
+  const [refundBusy, setRefundBusy] = useState(false);
+  const [refundNote, setRefundNote] = useState<string | null>(null);
+  const loadPaid = useCallback(async () => {
+    try {
+      const r = await fetch(`${API_URL}/admin/teleconsulta/paid`, { headers: { Authorization: `Bearer ${authToken()}` } });
+      if (!r.ok) return;
+      const j = await r.json();
+      setPaidList(j.items ?? []);
+    } catch { /* best-effort */ }
+  }, []);
+  const doRefund = async () => {
+    if (!refundTarget) return;
+    setRefundBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/admin/teleconsulta/${refundTarget.id}/refund`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` } });
+      const d = await r.json().catch(() => null);
+      if (r.ok) {
+        setRefundNote(`Estorno de ${(refundTarget.priceCents / 100).toFixed(2).replace('.', ',')} confirmado — paciente e médico avisados.`);
+        setRefundTarget(null);
+        loadPaid(); load(); // atualiza lista + KPIs (a devolver/devolvidos)
+      } else {
+        setRefundNote(d?.error || 'O provedor recusou o estorno — tente de novo.');
+      }
+    } catch {
+      setRefundNote('Sem conexão pra estornar agora.');
+    } finally { setRefundBusy(false); }
+  };
+
   const load = useCallback(async () => {
     setLoading(true); setErr(null);
     try {
@@ -138,7 +169,7 @@ export const TeleFinanceTab = () => {
     }
   }, [period.from, period.to, doctorId]);
 
-  useEffect(() => { load(); loadPayouts(); }, [load, loadPayouts]);
+  useEffect(() => { load(); loadPayouts(); loadPaid(); }, [load, loadPayouts, loadPaid]);
   useEffect(() => {
     (async () => {
       try {
@@ -405,6 +436,105 @@ export const TeleFinanceTab = () => {
       </Box>
 
       {/* Confirmação da aprovação — valor + destinatário ANTES de mover dinheiro (§18.5) */}
+      {/* ── ONDA 4 (dono 26/10): consultas pagas — estorno em 1 clique ──────────── */}
+      <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', mt: 3 }}>
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ px: 2.5, pt: 2, pb: 1 }}>
+          <UndoOutlinedIcon sx={{ fontSize: 20, color: '#e11d48' }} />
+          <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: '"Poppins",sans-serif', flex: 1 }}>
+            Consultas pagas — estorno em 1 clique
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {paidList.filter((p) => !p.refundedAt).length} pagas · {paidList.filter((p) => p.refundedAt).length} estornadas
+          </Typography>
+        </Stack>
+        {refundNote && (
+          <Alert severity={refundNote.startsWith('Estorno de') ? 'success' : 'warning'} sx={{ mx: 2.5, mb: 1, borderRadius: '12px', fontSize: 13 }} onClose={() => setRefundNote(null)}>
+            {refundNote}
+          </Alert>
+        )}
+        {paidList.length === 0 ? (
+          <Typography sx={{ px: 2.5, pb: 2, fontSize: 13, color: 'text.secondary' }}>
+            Nenhuma teleconsulta paga ainda — pagamentos aparecem aqui em tempo real (webhook Asaas).
+          </Typography>
+        ) : (
+          <TableContainer sx={{ maxHeight: 360, px: 1.5, pb: 1.5 }}>
+            <Table stickyHeader size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Paciente</TableCell>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Médico</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 12 }}>Valor</TableCell>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Pago em</TableCell>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Status</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 12 }}>Ação</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {paidList.map((p) => (
+                  <TableRow key={p.id} hover>
+                    <TableCell sx={{ fontSize: 13, fontWeight: 700, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patientName}</TableCell>
+                    <TableCell sx={{ fontSize: 12.5, color: 'text.secondary', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.doctorName || '—'}</TableCell>
+                    <TableCell align="right" sx={{ fontSize: 13, fontWeight: 800 }}>{brl(p.priceCents)}</TableCell>
+                    <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>
+                      {p.paidAt ? new Date(p.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
+                    </TableCell>
+                    <TableCell sx={{ fontSize: 12 }}>
+                      {p.refundedAt ? (
+                        <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
+                      ) : p.teleStatus === 'completed' ? (
+                        <Chip size="small" label="Realizada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669' }} />
+                      ) : p.teleStatus === 'no_show' ? (
+                        <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico ausente)' : ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309' }} />
+                      ) : p.teleStatus === 'cancelled' ? (
+                        <Chip size="small" label="Cancelada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b' }} />
+                      ) : (
+                        <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
+                      )}
+                    </TableCell>
+                    <TableCell align="right">
+                      {p.refundedAt ? (
+                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                          {new Date(p.refundedAt).toLocaleDateString('pt-BR')}
+                        </Typography>
+                      ) : (
+                        <Button
+                          size="small" color="error" variant="outlined"
+                          onClick={() => { setRefundNote(null); setRefundTarget(p); }}
+                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12, height: 28 }}
+                        >
+                          Estornar
+                        </Button>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Card>
+
+      {/* Confirmação do estorno (dinheiro real — nunca sem confirmar) */}
+      <Dialog open={!!refundTarget} onClose={() => { if (!refundBusy) setRefundTarget(null); }}>
+        <DialogTitle>Estornar pagamento</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6 }}>
+            Devolver <strong>{refundTarget ? brl(refundTarget.priceCents) : ''}</strong> pagos por{' '}
+            <strong>{refundTarget?.patientName}</strong>
+            {refundTarget?.doctorName ? ` (consulta do Dr. ${String(refundTarget.doctorName).replace(/^Dr\.?\s*/i, '')})` : ''}?
+          </Typography>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.6, mt: 1 }}>
+            O valor volta pro PIX do paciente via Asaas (até 2 dias úteis). Paciente e médico são avisados e a consulta é encerrada como cancelada.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button disabled={refundBusy} onClick={() => setRefundTarget(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar</Button>
+          <Button color="error" variant="contained" disabled={refundBusy} onClick={() => void doRefund()} sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px' }}>
+            {refundBusy ? 'Estornando…' : 'Estornar agora'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Dialog open={!!approveTarget} onClose={() => setApproveTarget(null)} fullWidth maxWidth="xs">
         <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Aprovar repasse</DialogTitle>
         <DialogContent>
