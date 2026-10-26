@@ -90,6 +90,19 @@ const requireDoctor = async (req: any, res: any, next: any) => {
   if (!auth?.startsWith('Bearer ')) { res.status(401).json({ error: 'Token obrigatório.' }); return; }
   const payload = verifyDoctorToken(auth.slice(7));
   if (!payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
+  const doc = await prisma.doctor.findUnique({
+    where: { id: payload.doctorId },
+    select: { id: true, blocked: true, blockedReason: true },
+  });
+  if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
+  if (doc.blocked) {
+    res.status(403).json({
+      blocked: true,
+      error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
+      reason: doc.blockedReason || undefined,
+    });
+    return;
+  }
   req.doctorId = payload.doctorId;
   next();
 };
@@ -351,6 +364,14 @@ router.post('/google', async (req: any, res: any, next: any) => {
     const doctor = await prisma.doctor.findFirst({ where: { email } });
     if (!doctor) { res.status(404).json({ error: 'Nenhuma conta de médico com este e-mail. Cadastre-se com seu CRM.' }); return; }
     if (!doctor.emailVerified || doctor.passwordHash === 'pending-invite') { res.status(403).json({ error: 'Complete seu cadastro com CRM primeiro.' }); return; }
+    if (doctor.blocked) {
+      res.status(403).json({
+        blocked: true,
+        error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
+        reason: doctor.blockedReason || undefined,
+      });
+      return;
+    }
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }
     res.json({ token: signDoctorToken(doctor.id), doctor: serializeDoctor({ id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty, email: doctor.email, photoUrl: doctor.photoUrl, cpfLast4: doctor.cpfLast4, identityLockedAt: doctor.identityLockedAt }) });
@@ -395,6 +416,15 @@ router.post('/login', async (req, res, next) => {
       res.status(401).json({ error: 'Credenciais inválidas.' }); return;
     }
     if (!doctor.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
+    if (doctor.blocked) {
+      void audit('LOGIN_BLOCKED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', targetId: doctor.id, after: { reason: doctor.blockedReason } });
+      res.status(403).json({
+        blocked: true,
+        error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
+        reason: doctor.blockedReason || undefined,
+      });
+      return;
+    }
     // MFA: se ativado, cria desafio
     const mfa = await evaluateMfaOnLogin('DOCTOR', doctor.id, { doctorId: doctor.id }, doctor.email);
     if (mfa) { res.json(mfa); return; }

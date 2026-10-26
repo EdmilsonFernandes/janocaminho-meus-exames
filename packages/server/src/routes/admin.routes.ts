@@ -1055,14 +1055,77 @@ router.post('/users/:id/reset-mfa', async (req: AuthedRequest, res, next) => {
 
 // ===== BACKOFFICE — endpoints read-only dos novos módulos (todos atrás de requireAdmin) =====
 
-// MÉDICOS — lista CRM/UF + validação e-mail + pacientes compartilhados ativos.
+// MÉDICOS — lista CRM/UF + validação e-mail + pacientes compartilhados ativos + status de bloqueio.
 router.get('/doctors', async (_req, res, next) => {
   try {
     const [doctors, total] = await Promise.all([
-      prisma.doctor.findMany({ orderBy: { createdAt: 'desc' }, take: 200, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, emailVerified: true, photoUrl: true, createdAt: true, _count: { select: { shares: { where: { active: true } } } } } }),
+      prisma.doctor.findMany({
+        orderBy: { createdAt: 'desc' },
+        take: 200,
+        select: {
+          id: true,
+          name: true,
+          crm: true,
+          crmUf: true,
+          specialty: true,
+          email: true,
+          emailVerified: true,
+          photoUrl: true,
+          createdAt: true,
+          blocked: true,
+          blockedAt: true,
+          blockedReason: true,
+          _count: { select: { shares: { where: { active: true } } } },
+        },
+      }),
       prisma.doctor.count(),
     ]);
     res.json({ doctors, total });
+  } catch (e) { next(e); }
+});
+
+// Bloquear médico (suspensão de acesso ao portal e teleconsultas)
+router.post('/doctors/:id/block', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const reason = req.body?.reason ? String(req.body.reason).trim() : null;
+    const doctor = await prisma.doctor.update({
+      where: { id },
+      data: {
+        blocked: true,
+        blockedAt: new Date(),
+        blockedReason: reason,
+      },
+      select: { id: true, name: true, crm: true, blocked: true, blockedAt: true, blockedReason: true },
+    });
+    void audit('ADMIN_BLOCK_DOCTOR', req, {
+      targetType: 'DOCTOR',
+      targetId: id,
+      after: { blocked: true, reason, crm: doctor.crm },
+    });
+    res.json({ ok: true, doctor });
+  } catch (e) { next(e); }
+});
+
+// Desbloquear médico (restaura acesso ao portal)
+router.post('/doctors/:id/unblock', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const doctor = await prisma.doctor.update({
+      where: { id },
+      data: {
+        blocked: false,
+        blockedAt: null,
+        blockedReason: null,
+      },
+      select: { id: true, name: true, crm: true, blocked: true, blockedAt: true, blockedReason: true },
+    });
+    void audit('ADMIN_UNBLOCK_DOCTOR', req, {
+      targetType: 'DOCTOR',
+      targetId: id,
+      after: { blocked: false, crm: doctor.crm },
+    });
+    res.json({ ok: true, doctor });
   } catch (e) { next(e); }
 });
 

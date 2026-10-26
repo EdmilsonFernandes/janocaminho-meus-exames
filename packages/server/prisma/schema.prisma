@@ -1040,6 +1040,10 @@ consultPriceCents  Int?
 payoutPixKeyEnc  String?
 payoutPixKeyIv   String?
 payoutPixKeyType String? // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
+  // Bloqueio de acesso pelo admin — suspensão de portal/teleconsulta
+  blocked          Boolean  @default(false)
+  blockedAt        DateTime?
+  blockedReason    String?
 
   @@map("doctors")
 }
