@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Box, Typography } from '@mui/material';
-import { DrExame } from './DrExame';
+import { DrExameRobot } from './DrExameRobot';
 
 /** Cicla mensagens a cada `interval` ms (micro-interação: reduz a sensação de espera). */
 function useRotatingText(msgs: string[], interval = 1800): { text: string; key: number } {
@@ -14,11 +14,20 @@ function useRotatingText(msgs: string[], interval = 1800): { text: string; key: 
 }
 
 /**
- * Tela ultra-premium de carregamento (Nível iFood / 99Food / Nubank).
- *  - Fundo: iluminação viva em movimento (mesh blobs animadas + aura neon).
- *  - Emblema 3D Glassmorphic: moldura de vidro temperado, brilho metálico e ondas de sonar holográficas.
- *  - ECG Neon em Tempo Real: traçado de batimento com ponto condutor de luz radiante.
- *  - Suporte a transição suave de saída (`isExiting`).
+ * BootSplash premium v3 (26/10 — "robô vivo"):
+ *  - Robô SVG VIVO: olhos piscando (CSS) + antena cobre com lag + micro bounce
+ *    com squash/stretch. SVG não depende de decode de bitmap no WebView Android
+ *    (fix 29/09 preservado por construção: nada de <img> PNG aqui).
+ *  - 3 anéis sonar concêntricos teal, defasados (como chamada recebida).
+ *  - Barra de progresso que RESPIRA (glow opacidade + drift) — substitui o ECG
+ *    + dots antigos (menos competição visual, um foco por tela).
+ *  - Perf: SEM filter:blur animado (mesh blobs antigos custavam GPU no Android);
+ *    aura agora é radial-gradient estático com respiração em transform/opacity.
+ *    Só propriedades de compositor; will-change só onde paga.
+ *  - Saída `isExiting`: fade + scale refinado (420ms, cubic-bezier padrão MUI).
+ *  - Fundo #031412 = MESMA cor do splash nativo (capacitor.config.ts) → handoff
+ *    seamless; nativo fica estático (sistema controla o fade — Android 12+).
+ *  - prefers-reduced-motion: entradas em fade simples, loops decorativos param.
  */
 export const BootSplash = ({
   title = 'Dr. Exame',
@@ -56,54 +65,38 @@ export const BootSplash = ({
         overflow: 'hidden',
         userSelect: 'none',
         pointerEvents: isExiting ? 'none' : 'auto',
-        animation: isExiting ? 'bootExit 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'none',
+        animation: isExiting ? 'bsExit 420ms cubic-bezier(0.4, 0, 0.2, 1) forwards' : 'none',
       }}
     >
-      {/* --- Camada de Iluminação Mesh Viva (Background Atmosphere) --- */}
+      {/* --- Aura teal respirando (radial-gradient SEM blur — barato no WebView) --- */}
       <Box
+        className="bs-aura"
         sx={{
           position: 'absolute',
-          top: '25%',
-          left: '30%',
-          width: '50vw',
-          height: '50vw',
-          maxWidth: 500,
-          maxHeight: 500,
+          top: '26%',
+          left: '50%',
+          ml: '-260px',
+          width: 520,
+          height: 520,
+          maxWidth: '130vw',
+          maxHeight: '130vw',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(20, 184, 166, 0.35) 0%, rgba(13, 148, 136, 0.15) 50%, transparent 70%)',
-          filter: 'blur(60px)',
-          animation: 'meshBlob1 8s ease-in-out infinite alternate',
+          background: 'radial-gradient(circle, rgba(32,178,170,0.22) 0%, rgba(23,143,137,0.08) 55%, transparent 75%)',
+          animation: 'bsAura 3.8s ease-in-out infinite alternate',
         }}
       />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: '20%',
-          right: '25%',
-          width: '45vw',
-          height: '45vw',
-          maxWidth: 450,
-          maxHeight: 450,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(45, 212, 191, 0.25) 0%, rgba(15, 118, 110, 0.1) 60%, transparent 80%)',
-          filter: 'blur(70px)',
-          animation: 'meshBlob2 10s ease-in-out infinite alternate',
-        }}
-      />
-
-      {/* Grid sutil de profundidade */}
+      {/* Grid pontilhado sutil de profundidade */}
       <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          backgroundImage:
-            'radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px)',
           backgroundSize: '32px 32px',
-          opacity: 0.6,
+          opacity: 0.55,
         }}
       />
 
-      {/* --- Palco Central --- */}
+      {/* --- Palco central --- */}
       <Box
         sx={{
           position: 'relative',
@@ -116,95 +109,71 @@ export const BootSplash = ({
           textAlign: 'center',
         }}
       >
-        {/* Container do Emblema 3D */}
+        {/* Emblema: entrada spring (mesmo fix 29/09, agora com SVG) + micro bounce */}
         <Box
+          className="bs-emblem"
           sx={{
             position: 'relative',
-            // ENTRADA DO ROBÔ (fix 29/09 — "amassado e preto, rápido e zoado"):
-            // - `bootRobotIn` com fill-mode `both` define o estado inicial NO CSS
-            //   (0% = opacity 0) → os primeiros frames de decode do PNG (Android
-            //   WebView pinta <img> não-decodificada PRETA/estirada) e o settle
-            //   do backdrop-filter ficam INVISÍVEIS atrás do fade.
-            // - cubic-bezier com overshoot (y>1) = spring suave (chegada elástica).
-            // - Float só DEPOIS (delay 560ms): sem conflito de transform — o último
-            //   da lista vence e ambos pontam em translateY(0) scale(1).
-            // - reduced-motion: fade simples, sem transform (e sem float decorativo).
             animation:
-              'bootRobotIn 560ms cubic-bezier(0.34, 1.3, 0.32, 1) both, bootFloat 3.6s ease-in-out 560ms infinite',
+              'bsIn 560ms cubic-bezier(0.34, 1.3, 0.32, 1) both, bsBounce 3.4s ease-in-out 560ms infinite',
             '@media (prefers-reduced-motion: reduce)': {
-              animation: 'bootRobotFade 360ms ease-out both',
+              animation: 'bsInFade 360ms ease-out both',
             },
           }}
         >
-          {/* Resplendor Neon Traseiro */}
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: -32,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(45, 212, 191, 0.45) 0%, rgba(20, 184, 166, 0.1) 65%, transparent 80%)',
-              filter: 'blur(16px)',
-              animation: 'bootPulseAura 2.4s ease-in-out infinite alternate',
-            }}
-          />
+          {/* 3 anéis sonar concêntricos defasados (chamada recebida) */}
+          {[
+            { op: 0.5, d: '0s' },
+            { op: 0.36, d: '0.45s' },
+            { op: 0.24, d: '0.9s' },
+          ].map((r, i) => (
+            <Box
+              key={i}
+              className="bs-ring"
+              sx={{
+                position: 'absolute',
+                inset: -16,
+                borderRadius: '50%',
+                border: '1.5px solid',
+                borderColor: `rgba(45, 212, 191, ${r.op})`,
+                animation: `bsRing 2.7s cubic-bezier(0, 0.2, 0.8, 1) ${r.d} infinite`,
+              }}
+            />
+          ))}
 
-          {/* Ondas Sonar / Radar Holográfico */}
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: -12,
-              borderRadius: '50%',
-              border: '1.5px solid rgba(45, 212, 191, 0.4)',
-              animation: 'bootSonar 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite',
-            }}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              inset: -12,
-              borderRadius: '50%',
-              border: '1.5px solid rgba(45, 212, 191, 0.3)',
-              animation: 'bootSonar 2.8s 0.9s cubic-bezier(0, 0.2, 0.8, 1) infinite',
-            }}
-          />
-
-          {/* Moldura Glassmorphic com Shimmer Sweep Metálico */}
+          {/* Moldura de vidro (sem backdrop-filter — caro no Android; look via camadas) */}
           <Box
             sx={{
               position: 'relative',
-              p: '6px',
+              width: 124,
+              height: 124,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               borderRadius: '50%',
-              background: 'linear-gradient(145deg, rgba(255,255,255,0.28) 0%, rgba(45,212,191,0.15) 50%, rgba(255,255,255,0.05) 100%)',
-              boxShadow: '0 20px 50px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255,255,255,0.4)',
-              backdropFilter: 'blur(16px)',
+              bgcolor: 'rgba(255,255,255,0.07)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 18px 44px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.35), 0 0 34px rgba(32,178,170,0.28)',
               overflow: 'hidden',
             }}
           >
-            {/* Varredura Shimmer */}
+            {/* Brilho metálico passando (shimmer) */}
             <Box
+              className="bs-shimmer"
               sx={{
                 position: 'absolute',
                 inset: 0,
-                background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)',
-                transform: 'translateX(-100%)',
-                animation: 'bootShimmer 3.2s infinite ease-in-out',
+                background: 'linear-gradient(105deg, transparent 32%, rgba(255,255,255,0.38) 50%, transparent 68%)',
+                transform: 'translateX(-110%)',
+                animation: 'bsShimmer 3.4s ease-in-out infinite',
                 pointerEvents: 'none',
               }}
             />
-
-            {/* Ícone Dr. Exame */}
-            <DrExame
-              size={112}
-              sx={{
-                borderRadius: '50%',
-                boxShadow: '0 8px 30px rgba(13, 148, 136, 0.6)',
-                border: '2px solid rgba(255,255,255,0.25)',
-              }}
-            />
+            <DrExameRobot size={100} />
           </Box>
         </Box>
 
-        {/* --- Título da Marca Premium com Gradiente --- */}
+        {/* --- Título com gradiente --- */}
         <Box sx={{ mt: 1 }}>
           <Typography
             variant="h3"
@@ -222,7 +191,7 @@ export const BootSplash = ({
             {title}
           </Typography>
 
-          {/* Badge de Status / Mensagens Rotativas */}
+          {/* Badge de status com mensagens rotativas (progresso perceptido) */}
           <Box
             sx={{
               mt: 1.2,
@@ -230,7 +199,6 @@ export const BootSplash = ({
               py: 0.75,
               borderRadius: '999px',
               bgcolor: 'rgba(255, 255, 255, 0.06)',
-              backdropFilter: 'blur(12px)',
               border: '1px solid rgba(45, 212, 191, 0.22)',
               boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
               display: 'inline-flex',
@@ -239,15 +207,15 @@ export const BootSplash = ({
               minHeight: 34,
             }}
           >
-            {/* Indicador Neon Pulsante */}
             <Box
+              className="bs-dot"
               sx={{
                 width: 7,
                 height: 7,
                 borderRadius: '50%',
                 bgcolor: '#2dd4bf',
                 boxShadow: '0 0 10px #2dd4bf',
-                animation: 'bootDotPulse 1.4s ease-in-out infinite',
+                animation: 'bsDotPulse 1.4s ease-in-out infinite',
               }}
             />
             <Typography
@@ -257,12 +225,56 @@ export const BootSplash = ({
                 fontWeight: 600,
                 color: 'rgba(240, 253, 250, 0.92)',
                 letterSpacing: '-0.01em',
-                animation: 'bootTextFade 0.35s ease-out forwards',
+                animation: 'bsTextFade 0.35s ease-out forwards',
               }}
             >
               {currentSub}
             </Typography>
           </Box>
+        </Box>
+
+        {/* --- Barra de progresso que respira --- */}
+        <Box
+          sx={{
+            mt: 0.5,
+            position: 'relative',
+            width: 210,
+            height: 6,
+            borderRadius: 999,
+            bgcolor: 'rgba(255,255,255,0.09)',
+            overflow: 'hidden',
+          }}
+        >
+          <Box
+            className="bs-glow"
+            sx={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              bottom: 0,
+              width: '58%',
+              borderRadius: 999,
+              background: 'linear-gradient(90deg, #178f89, #2dd4bf)',
+              transformOrigin: 'left center',
+              animation: 'bsBarBreathe 2.6s ease-in-out infinite',
+            }}
+          />
+          {/* Ponto de luz que percorre (leitura em andamento) */}
+          <Box
+            className="bs-drift"
+            sx={{
+              position: 'absolute',
+              top: 1,
+              left: '50%',
+              ml: '-7px',
+              width: 14,
+              height: 4,
+              borderRadius: 999,
+              bgcolor: '#9ff5ec',
+              boxShadow: '0 0 8px rgba(120, 240, 228, 0.9)',
+              animation: 'bsDrift 1.9s ease-in-out infinite alternate',
+            }}
+          />
         </Box>
 
         {/* Rodapé opcional: "pode sair" (esperas que continuam server-side — anti-ansiedade). */}
@@ -285,109 +297,64 @@ export const BootSplash = ({
             )}
           </Box>
         )}
-
-        {/* --- Monitor de ECG Neon em Tempo Real --- */}
-        <Box sx={{ position: 'relative', width: 220, height: 32, mt: 1 }}>
-          <svg viewBox="0 0 220 32" fill="none" style={{ width: '100%', height: '100%' }}>
-            {/* Linha de fundo semi-transparente */}
-            <path
-              d="M0 16 H60 L68 6 L76 26 L84 16 H130 L138 9 L146 23 L154 16 H220"
-              stroke="rgba(45, 212, 191, 0.2)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {/* Traçado Neon Dinâmico com Rastro */}
-            <path
-              d="M0 16 H60 L68 6 L76 26 L84 16 H130 L138 9 L146 23 L154 16 H220"
-              stroke="#2dd4bf"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{
-                strokeDasharray: 280,
-                filter: 'drop-shadow(0 0 6px #2dd4bf)',
-                animation: 'bootBeatTrace 2.2s linear infinite',
-              }}
-            />
-          </svg>
-        </Box>
-
-        {/* Esferas de carregamento de apoio */}
-        <Box sx={{ display: 'flex', gap: 0.8, mt: 0.5 }}>
-          {[0, 1, 2].map((i) => (
-            <Box
-              key={i}
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                bgcolor: '#2dd4bf',
-                animation: `bootDotWave 1.2s ${i * 0.18}s ease-in-out infinite`,
-              }}
-            />
-          ))}
-        </Box>
       </Box>
 
-      {/* --- Animações Keyframes CSS de Altíssima Desempenho (60 FPS) --- */}
+      {/* --- Keyframes: só transform/opacity (compositor, 60fps) --- */}
       <style>{`
-        /* Entrada do robô: spring (overshoot via cubic-bezier). Estado inicial
-           DEFINIDO no 0% + fill-mode both = nunca existe frame sem estilo/decode visível. */
-        @keyframes bootRobotIn {
+        /* Entrada spring (overshoot) — estado inicial no 0% + fill both (nunca há
+           frame sem estilo; herda a garantia do fix 29/09, agora com SVG). */
+        @keyframes bsIn {
           0% { opacity: 0; transform: translateY(10px) scale(0.86); }
           55% { opacity: 1; }
           100% { opacity: 1; transform: translateY(0) scale(1); }
         }
-        /* Entrada acessível (prefers-reduced-motion): só fade, sem transform. */
-        @keyframes bootRobotFade {
-          from { opacity: 0; }
-          to { opacity: 1; }
+        @keyframes bsInFade { from { opacity: 0; } to { opacity: 1; } }
+        /* Micro bounce com squash & stretch (volume preservado) */
+        @keyframes bsBounce {
+          0%, 100% { transform: translateY(0) scale(1, 1); }
+          50% { transform: translateY(-6px) scale(0.99, 1.015); }
         }
-        @keyframes bootFloat {
-          0%, 100% { transform: translateY(0) scale(1); }
-          50% { transform: translateY(-7px) scale(1.02); }
+        @keyframes bsAura {
+          0% { transform: scale(0.97); opacity: 0.55; }
+          100% { transform: scale(1.06); opacity: 0.95; }
         }
-        @keyframes bootPulseAura {
-          0% { transform: scale(0.95); opacity: 0.6; }
-          100% { transform: scale(1.15); opacity: 0.95; }
+        @keyframes bsRing {
+          0% { transform: scale(0.94); opacity: 0.8; }
+          100% { transform: scale(1.62); opacity: 0; }
         }
-        @keyframes bootSonar {
-          0% { transform: scale(1); opacity: 0.7; }
-          100% { transform: scale(1.75); opacity: 0; }
-        }
-        @keyframes bootShimmer {
+        @keyframes bsShimmer {
           0% { transform: translateX(-110%); }
-          30%, 100% { transform: translateX(110%); }
+          32%, 100% { transform: translateX(110%); }
         }
-        @keyframes bootDotPulse {
+        @keyframes bsDotPulse {
           0%, 100% { opacity: 0.4; transform: scale(0.85); }
           50% { opacity: 1; transform: scale(1.25); }
         }
-        @keyframes bootTextFade {
+        @keyframes bsTextFade {
           0% { opacity: 0; transform: translateY(4px); }
           100% { opacity: 1; transform: translateY(0); }
         }
-        @keyframes bootBeatTrace {
-          0% { stroke-dashoffset: 280; }
-          50% { stroke-dashoffset: 0; }
-          100% { stroke-dashoffset: -280; }
+        /* Barra respirando: brilho cresce/decresce sem sair do trilho */
+        @keyframes bsBarBreathe {
+          0%, 100% { opacity: 0.55; transform: scaleX(0.94); }
+          50% { opacity: 1; transform: scaleX(1); }
         }
-        @keyframes bootDotWave {
-          0%, 80%, 100% { opacity: 0.25; transform: scale(0.7); }
-          40% { opacity: 1; transform: scale(1.2); }
+        @keyframes bsDrift {
+          0% { transform: translateX(-92px); }
+          100% { transform: translateX(92px); }
         }
-        @keyframes meshBlob1 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(-30px, 40px) scale(1.15); }
-        }
-        @keyframes meshBlob2 {
-          0% { transform: translate(0, 0) scale(1); }
-          100% { transform: translate(40px, -30px) scale(1.1); }
-        }
-        @keyframes bootExit {
+        @keyframes bsExit {
           0% { opacity: 1; transform: scale(1); }
-          100% { opacity: 0; transform: scale(1.07); visibility: hidden; }
+          100% { opacity: 0; transform: scale(1.05); visibility: hidden; }
+        }
+        @keyframes bsBarGlow { 0%, 100% { opacity: 0.5; } 50% { opacity: 0.95; } }
+        /* prefers-reduced-motion: loops decorativos param; loading essencial respira em opacity */
+        @media (prefers-reduced-motion: reduce) {
+          .bs-ring, .bs-shimmer, .bs-dot, .bs-drift { animation: none !important; }
+          .bs-ring { opacity: 0.18; transform: none; }
+          .bs-glow { animation: bsBarGlow 2.6s ease-in-out infinite !important; transform: none !important; }
+          .bs-aura { animation: none !important; opacity: 0.6; }
+          .bs-emblem { animation: bsInFade 360ms ease-out both !important; }
         }
       `}</style>
     </Box>

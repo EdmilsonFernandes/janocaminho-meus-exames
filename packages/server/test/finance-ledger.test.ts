@@ -323,7 +323,7 @@ describe('finance: admin commission-rules (E2E)', () => {
     const docRow = await prisma.doctor.findUnique({ where: { id: first.doc.doctor.id }, select: { crm: true } });
     await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: docRow!.crm, scopes: ['exams'], patientId: patient.id });
     const post = await api().post(`/api/doctor/patients/${patient.id}/teleconsulta`).set(H2(first.doc.token))
-      .send({ dueDate: FUTURE(), title: 'Específica', linkUrl: 'https://meet.example.com/x', consultPriceCents: 10000 });
+      .send({ dueDate: new Date(Date.now() + 26 * 3600_000).toISOString(), title: 'Específica', linkUrl: 'https://meet.example.com/x', consultPriceCents: 10000 }); // +26h: fora do slot ±30min do agendamento anterior (gate SCHEDULE_CONFLICT)
     expect(post.status).toBe(201);
     expect(((await prisma.reminder.findUnique({ where: { id: post.body.reminder.id } }))!.commissionSnapshot as any).platformBps).toBe(1000);
   });

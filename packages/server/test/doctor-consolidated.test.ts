@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, resetDb, authHeader, createUser, createDoctor, createExam } from './helpers';
+import { api, resetDb, authHeader, createUser, createDoctor, createExam , createItem } from './helpers';
 import { prisma } from '../src/prisma';
 
 const docH = (t: string) => ({ Authorization: `Bearer ${t}` });
@@ -22,7 +22,8 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
 
   it('200 + {analysis, sourceExams} quando scope summary', async () => {
     const { docToken, patientId } = await setupShare('C1-SP', 'c1@t.com', 'pc1@t.com', ['summary']);
-    await createExam(patientId, { title: 'Hemograma' });
+    const _e1 = await createExam(patientId, { title: 'Hemograma' });
+    await createItem(_e1.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await makeReport(patientId, 'Relatório do paciente');
 
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
@@ -41,7 +42,8 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
 
   it('analysis:null quando paciente nunca gerou (sem 402, sem cobrança)', async () => {
     const { docToken, patientId } = await setupShare('C3-SP', 'c3@t.com', 'pc3@t.com', ['summary']);
-    await createExam(patientId);
+    const _e2 = await createExam(patientId);
+    await createItem(_e2.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
     expect(r.status).toBe(200);
     expect(r.body.analysis).toBeNull();
@@ -72,7 +74,8 @@ describe('Doctor Portal — gerar relatório consolidado (POST /doctor/patients/
 
   it('201 + relatório no framing médico (audience:doctor) quando scope summary', async () => {
     const { docToken, patientId } = await setupShare('G1-SP', 'g1@t.com', 'pg1@t.com', ['summary']);
-    await createExam(patientId, { title: 'Hemograma' });
+    const _e1 = await createExam(patientId, { title: 'Hemograma' });
+    await createItem(_e1.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
     expect(r.status).toBe(201);
     expect(r.body.analysis).toBeTruthy();
@@ -93,7 +96,8 @@ describe('Doctor Portal — gerar relatório consolidado (POST /doctor/patients/
 
   it('upsert: 2ª geração atualiza o mesmo registro (não acumula)', async () => {
     const { docToken, patientId } = await setupShare('G3-SP', 'g3@t.com', 'pg3@t.com', ['summary']);
-    await createExam(patientId);
+    const _e2 = await createExam(patientId);
+    await createItem(_e2.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
     await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
     const count = await prisma.aiAnalysis.count({ where: { patientId, type: 'SUMMARY', userMessage: 'audience:doctor' } });

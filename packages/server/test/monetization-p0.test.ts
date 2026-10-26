@@ -25,6 +25,7 @@ describe('monetização P0: paywall hit, voucher, trial, cap mensal, origem, del
   it('paywall: 402 no consolidado registra hit com feature e saldo', async () => {
     const { user, patient, token } = await createUser({ credits: 0 });
     const e = await createExam(patient.id, { sha: 'pw1' });
+    await createItem(e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await createItem(e.id, { valueNumeric: 14, refLow: 12, refHigh: 16 });
 
     const r = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
@@ -44,6 +45,7 @@ describe('monetização P0: paywall hit, voucher, trial, cap mensal, origem, del
     const { user, patient, token } = await createUser({ credits: 50 });
     await prisma.user.update({ where: { id: user.id }, data: { reportVouchers: 1 } });
     const e = await createExam(patient.id, { sha: 'rp1' });
+    await createItem(e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await createItem(e.id, { valueNumeric: 14, refLow: 12, refHigh: 16 });
 
     const r = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
@@ -82,6 +84,7 @@ describe('monetização P0: paywall hit, voucher, trial, cap mensal, origem, del
   it('cap mensal: saldo >= cap não paga o desafio mensal; badge volta a pagar quando o saldo baixa', async () => {
     const { user, patient, token } = await createUser({ credits: 150 }); // cap default 150
     const e = await createExam(patient.id, { sha: 'cap1' });
+    await createItem(e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await createItem(e.id, { valueNumeric: 14, refLow: 12, refHigh: 16 });
 
     // Saldo cheio: mensal NÃO paga (badge segue claimable — não é consumido).

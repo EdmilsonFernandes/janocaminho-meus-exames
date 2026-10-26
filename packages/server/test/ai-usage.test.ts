@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, createExam, getUserCredits } from './helpers';
+import { api, authHeader, resetDb, createUser, createExam, getUserCredits , createItem } from './helpers';
 import { prisma } from '../src/prisma';
 
 // espera o pós-resposta (chat debita créditos DEPOIS de encerrar o SSE)
@@ -14,6 +14,8 @@ describe('uso de IA visível: ai_usage_logs + carteira premium', () => {
   it('resumo de exame (1º grátis) registra uso SUMMARY com userId + modelo', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
     expect(r.status).toBe(201);
     const logs = await prisma.aiUsageLog.findMany({ where: { userId: user.id, feature: 'SUMMARY' } });
@@ -24,7 +26,8 @@ describe('uso de IA visível: ai_usage_logs + carteira premium', () => {
 
   it('consolidado de PREMIUM (perk): sem débito, mas gera linha "incluído no plano" na carteira + log de uso', async () => {
     const { user, patient, token } = await createUser({ credits: 100, premium: true });
-    await createExam(patient.id);
+    const _e = await createExam(patient.id);
+    await createItem(_e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
     expect(r.status).toBe(201);
     expect(await getUserCredits(user.id)).toBe(100); // perk consolidadoFree: zero débito
@@ -36,7 +39,8 @@ describe('uso de IA visível: ai_usage_logs + carteira premium', () => {
 
   it('consolidado de FREE cobra 20 e registra uso', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
-    await createExam(patient.id);
+    const _e = await createExam(patient.id);
+    await createItem(_e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
     expect(r.status).toBe(201);
     expect(await getUserCredits(user.id)).toBe(100 - 20);

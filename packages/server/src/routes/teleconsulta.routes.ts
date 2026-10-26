@@ -706,7 +706,9 @@ router.post('/:id/recording', requireJoinIdentity, async (req: JoinRequest, res,
 
     res.status(202).json({ pending: true });
   } catch (e) {
-    next(e);
+    // fileFilter do multer pode já ter respondido 400 (acceptAudioFile resolve
+    // null e a rota responde) — re-responder dava ERR_HTTP_HEADERS_SENT (CI 26/10).
+    if (!res.headersSent) next(e);
   }
 });
 

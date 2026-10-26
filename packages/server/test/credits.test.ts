@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { api, authHeader, resetDb, createUser, createExam, getUserCredits } from './helpers';
+import { api, authHeader, resetDb, createUser, createExam, getUserCredits , createItem } from './helpers';
 import { chargeCredits, CREDIT_COSTS } from '../src/utils/credits';
 import { prisma } from '../src/prisma';
 
@@ -22,6 +22,8 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
   it('POST /analyses: PRIMEIRO summary é grátis; 2º sem force → cache, não cobra', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
 
     // 1ª leitura é SEMPRE grátis (pesquisa ago/2026: a 1ª interpretação virou commodity)
     const r1 = await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });
@@ -37,6 +39,8 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
   it('POST /analyses com force=true REGENERA e cobra (o 1º grátis foi consumido)', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id });        // grátis (1º)
     await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id, force: true }); // cobra 10
     expect(await getUserCredits(user.id)).toBe(100 - CREDIT_COSTS.summary);
@@ -45,6 +49,8 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
   it('POST /analyses: saldo insuficiente a partir do 2º summary → 402 insufficient_credits', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
     const exam = await createExam(patient.id);
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
+    await createItem(exam.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await api().post('/api/analyses').set(authHeader(token)).send({ examId: exam.id }); // 1º grátis
     // Esvazia o saldo: o PRÓXIMO summary custa e não há crédito
     await prisma.user.update({ where: { id: user.id }, data: { credits: 5 } });
@@ -55,7 +61,8 @@ describe('créditos: débito atômico + cache (não cobrar 2x)', () => {
 
   it('POST /analyses/consolidated cobra 20 e usa cache de 1h', async () => {
     const { user, patient, token } = await createUser({ credits: 100 });
-    await createExam(patient.id); // precisa de ≥1 exame extraído
+    const _e = await createExam(patient.id);
+    await createItem(_e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 }); // precisa de ≥1 exame extraído
 
     const r1 = await api().post('/api/analyses/consolidated').set(authHeader(token)).send({ patientId: patient.id });
     expect(r1.status).toBe(201);

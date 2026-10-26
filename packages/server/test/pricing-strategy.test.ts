@@ -61,6 +61,7 @@ describe('pricing strategy: plano configurável + perks + fundador', () => {
   it('S5) premium gera relatório consolidado SEM débito (perk consolidatedFree)', async () => {
     const { user, patient, token } = await createUser({ credits: 77, premium: true });
     const e = await createExam(patient.id, { sha: 'pc1' });
+    await createItem(e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await createItem(e.id, { valueNumeric: 14, refLow: 12, refHigh: 16 });
 
     const r = await api().post(`/api/analyses/consolidated`).set(authHeader(token)).send({ patientId: patient.id });
@@ -72,6 +73,7 @@ describe('pricing strategy: plano configurável + perks + fundador', () => {
     await adminPatch({ category: 'premium', value: { consolidatedFree: 0, familyLimit: 10 } });
     const { user, patient, token } = await createUser({ credits: 77, premium: true });
     const e = await createExam(patient.id, { sha: 'pc2' });
+    await createItem(e.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await createItem(e.id, { valueNumeric: 14, refLow: 12, refHigh: 16 });
 
     const r = await api().post(`/api/analyses/consolidated`).set(authHeader(token)).send({ patientId: patient.id });

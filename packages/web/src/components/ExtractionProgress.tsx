@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { DrExame } from './DrExame';
-import { RobotAnalysis } from './RobotAnalysis';
+import { AnalysisScan } from './AnalysisScan';
 import { API_URL, token } from '../config';
 import { tealText } from '../theme';
 
@@ -54,16 +53,23 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
 
   return (
     <Box sx={{ textAlign: 'center', py: 5, px: 3, mt: 2, borderRadius: '12px', background: 'linear-gradient(135deg, rgba(32,178,170,.06), rgba(99,102,241,.04))', border: '1px solid rgba(0,0,0,.06)' }}>
-      {/* 28/09: cena premium "analisando" (robô na esteira de exames conferindo ✓) —
-          mesmo componente do relatório completo; estágios/timer/watchdog seguem. */}
-      <Box sx={{ maxWidth: 300, mx: 'auto' }}>
-        <RobotAnalysis label="Dr. Exame está analisando seu exame" />
+      {/* 26/10: cena premium "a IA está LENDO seu exame" (documento + scanner +
+          chips aparecendo um a um + Dr. Exame vivo) — substitui a esteira de cartões.
+          Estágios/timer/watchdog honestos seguem intactos abaixo. */}
+      <Box sx={{ maxWidth: 348, mx: 'auto' }}>
+        <AnalysisScan label="Dr. Exame está lendo seu exame" />
       </Box>
 
-      {/* Mensagem do estágio atual (rotativa a cada 5s) */}
-      <Typography color="text.secondary" sx={{ mb: 2, minHeight: 24, fontSize: 14 }}>
-        {STEPS[step].emoji} {STEPS[step].msg}
-      </Typography>
+      {/* Mensagem do estágio atual (rotativa a cada 5s, com crossfade suave) */}
+      <Box sx={{ mb: 2, minHeight: 24 }}>
+        <Typography
+          key={step}
+          color="text.secondary"
+          sx={{ fontSize: 14, animation: 'asStepFade 0.45s ease-out both' }}
+        >
+          {STEPS[step].emoji} {STEPS[step].msg}
+        </Typography>
+      </Box>
 
       {/* Timer decorrido — reduz ansiedade (usuário SABE quanto tempo passou) */}
       <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, mb: 1.5, px: 1.5, py: 0.5, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)' }}>
@@ -99,8 +105,8 @@ export const ExtractionProgress = ({ startedAt, examId }: { startedAt?: string; 
       )}
 
       <style>{`
-        @keyframes drBob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-8px) rotate(-3deg)}}
         @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+        @keyframes asStepFade{0%{opacity:0;transform:translateY(5px)}100%{opacity:1;transform:translateY(0)}}
       `}</style>
     </Box>
   );
