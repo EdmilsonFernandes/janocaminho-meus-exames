@@ -3,6 +3,7 @@ import { sendEmail } from '../utils/mailer';
 import { reminderEmail, teleconsultaEmail, teleconsultaStartingEmail } from '../utils/emailTemplate';
 import { sendPushToUser } from '../utils/push';
 import { computeJointMs, loadPresenceEvents, resolveNoShow } from '../utils/teleconsultaLifecycle';
+import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 import { getTeleconsultaConfig } from '../utils/settings';
 
 const MS_MIN = 60_000;
@@ -138,9 +139,9 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
   // inteira → catch → [] (no-op até a migration aplicada).
   const rows = await prisma.reminder.findMany({
     where: { type: 'teleconsulta', endedAt: null },
-    select: { id: true, dueDate: true, done: true },
+    select: { id: true, dueDate: true, done: true, ownerId: true, patientId: true, createdByDoctorId: true, title: true },
     take: 200,
-  }).catch(() => [] as { id: string; dueDate: Date; done: boolean }[]);
+  }).catch(() => [] as { id: string; dueDate: Date; done: boolean; ownerId: string; patientId: string | null; createdByDoctorId: string | null; title: string | null }[]);
   for (const r of rows) {
     const joins = await prisma.auditLog.findMany({
       where: { action: 'TELECONSULTA_JOIN', targetId: r.id },
@@ -148,27 +149,33 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
       select: { createdAt: true, after: true },
     });
     const dueMs = new Date(r.dueDate).getTime();
-    /** Encerra (race-safe + drift-safe: legado sem noShowBy grava o resto igual). */
-    const endAs = async (endAt: Date, noShowBy: 'patient' | 'doctor' | 'none', jointMs: number) => {
-      await prisma.reminder.updateMany({
+    /** Encerra (race-safe + drift-safe: legado sem noShowBy grava o resto igual).
+     *  Devolve qtde de linhas afetadas — >0 = ESTE tick foi o vencedor (só ele notifica,
+     *  senão /end manual + auto-end disparariam e-mail/push em dobro p/ ambos). */
+    const endAs = async (endAt: Date, noShowBy: 'patient' | 'doctor' | 'none', jointMs: number): Promise<number> => {
+      const out = await prisma.reminder.updateMany({
         where: { id: r.id, endedAt: null }, // race-safe: não pisa em end manual simultâneo
         data: { endedAt: endAt, done: true, teleStatus: 'no_show', noShowBy, jointMs },
-      }).catch(async (e) => {
+      }).catch(async (e): Promise<any> => {
         if (/column .* does not exist/i.test(String((e as Error)?.message))) {
           const { noShowBy: _drop, ...rest } = { endedAt: endAt, done: true, teleStatus: 'no_show', noShowBy, jointMs };
-          await prisma.reminder.updateMany({ where: { id: r.id, endedAt: null }, data: rest })
-            .catch((e2) => console.error('[reminders] auto-end falhou:', r.id, (e2 as Error)?.message));
-          return;
+          return prisma.reminder.updateMany({ where: { id: r.id, endedAt: null }, data: rest })
+            .catch((e2) => { console.error('[reminders] auto-end falhou:', r.id, (e2 as Error)?.message); return null; });
         }
         console.error('[reminders] auto-end falhou:', r.id, (e as Error)?.message);
+        return null;
       });
+      return out?.count ?? 0;
     };
+    /** Dono 26/10: no_show AUTO → paciente E médico sabem com o motivo (push+e-mail). */
+    const notifyNotHeld = (noShowBy: 'patient' | 'doctor' | 'none') =>
+      void notifyTeleconsultaNotHeld(r, { outcome: 'no_show', noShowBy }).catch(() => {});
     if (!joins.length) {
       // Ninguém nunca entrou: encerra VENCIDA além da tolerância e não realizada (done=false).
       if (r.done) continue;
       const decision = resolveNoShow({ dueMs, now, toleranceMin: noShowToleranceMin, patientJoined: false, doctorJoined: false });
       if (decision.outcome !== 'no_show') continue; // tolerância ainda correndo
-      await endAs(new Date(decision.deadlineMs), decision.noShowBy ?? 'none', 0);
+      if ((await endAs(new Date(decision.deadlineMs), decision.noShowBy ?? 'none', 0)) > 0) notifyNotHeld(decision.noShowBy ?? 'none');
       continue;
     }
     const roles = new Set(joins.map((j: any) => (j.after as any)?.role).filter(Boolean));
@@ -188,7 +195,7 @@ export async function autoEndStaleTeleconsultas(now: number): Promise<void> {
     const endAt = new Date(Math.max(decision.deadlineMs, lastJoinMs));
     // jointMs honesto: solo → 0 (nunca há intervalo com ambos; fica p/ registro completo).
     const jointMs = computeJointMs(await loadPresenceEvents(r.id), endAt.getTime());
-    await endAs(endAt, decision.noShowBy ?? 'none', jointMs);
+    if ((await endAs(endAt, decision.noShowBy ?? 'none', jointMs)) > 0) notifyNotHeld(decision.noShowBy ?? 'none');
     // §5: só o PACIENTE esperou (médico não veio) → fila de triagem humana. POLÍTICA
     // PENDENTE (dono): estorno quando o médico falta; por ora o ledger reserva o valor
     // como qualquer no_show e a fila sinaliza — decisão financeira é manual.

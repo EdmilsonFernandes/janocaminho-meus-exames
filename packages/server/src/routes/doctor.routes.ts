@@ -11,6 +11,7 @@ import jwt from 'jsonwebtoken';
 import path from 'path';
 import fs from 'fs';
 import { prisma } from '../prisma';
+import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 import { hashPassword, comparePassword } from '../auth/jwt';
 import { issueOtp, verifyOtp } from '../auth/otp';
 import { sendEmail } from '../utils/mailer';
@@ -1410,10 +1411,21 @@ router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, as
       where: { id: rid, patientId: pid },
     });
     if (!found) { res.status(404).json({ error: 'Teleconsulta não encontrada.' }); return; }
-    // F3 (20/10): pedidos de exame feitos NA chamada SOBREVIVEM à exclusão
+    if (found.endedAt) { res.status(409).json({ error: 'Esta consulta já foi encerrada — veja no histórico.' }); return; }
+    const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim().slice(0, 300) : null;
+    // F3 (20/10): pedidos de exame feitos NA chamada SOBREVIVEM ao cancelamento
     await prisma.examRequest.updateMany({ where: { reminderId: rid }, data: { reminderId: null } }).catch(() => {});
-    await prisma.reminder.delete({ where: { id: rid } });
-    res.json({ success: true, id: rid });
+    // Dono 26/10: cancelar NÃO apaga mais — a consulta vira 'cancelled' no histórico
+    // (paciente e médico veem estado+motivo) e ambos são notificados (push Android +
+    // e-mail) com quem cancelou e o motivo. Antes o lembrete sumia e o paciente só
+    // descobria não vendo mais a consulta na lista.
+    await prisma.reminder.update({
+      where: { id: rid },
+      data: { endedAt: new Date(), done: true, teleStatus: 'cancelled', noShowBy: null },
+    });
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } });
+    void notifyTeleconsultaNotHeld(found, { outcome: 'cancelled', byName: doc?.name ?? null, reason }).catch(() => {});
+    res.json({ success: true, id: rid, teleStatus: 'cancelled' });
   } catch (e) { next(e); }
 });
 

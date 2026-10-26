@@ -58,11 +58,18 @@ interface PortalTeleconsultasProps {
 // modo). Drift-safe: linha legada sem a coluna → undefined → só endedAt decide.
 const TELE_CONCLUDED = new Set(['completed', 'no_show', 'cancelled', 'technical']);
 const isTeleConcluded = (tc: any) => !!tc.endedAt || TELE_CONCLUDED.has(tc.teleStatus);
-/** Chip de estado do lifecycle — null = agendada (sem chip, sem ruído). */
-const teleStatusChip = (status: unknown): { label: string; sx: any } | null => {
+/** Chip de estado do lifecycle — null = agendada (sem chip, sem ruído).
+ *  Dono 26/10: 'cancelled' (cancelamento manual vira histórico, não apaga) e no_show
+ *  diferenciado por QUEM faltou ("Paciente ausente" quando faltou o MÉDICO era mentira). */
+const teleStatusChip = (status: unknown, noShowBy?: unknown): { label: string; sx: any } | null => {
   if (status === 'in_progress') return { label: 'Em andamento', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', borderRadius: '6px' } };
   if (status === 'completed') return { label: 'Realizada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', borderRadius: '6px' } };
-  if (status === 'no_show') return { label: 'Paciente ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+  if (status === 'cancelled') return { label: 'Cancelada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
+  if (status === 'no_show') {
+    if (noShowBy === 'doctor') return { label: 'Médico ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(239,68,68,0.12)', color: '#b91c1c', borderRadius: '6px' } };
+    if (noShowBy === 'none') return { label: 'Não realizada', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+    return { label: 'Paciente ausente', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', borderRadius: '6px' } };
+  }
   if (status === 'technical') return { label: 'Problema técnico', sx: { height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', borderRadius: '6px' } };
   return null;
 };
@@ -487,7 +494,7 @@ export const PortalTeleconsultas = ({
                             />
                           )}
                           {/* Lifecycle 24/10 (spec §1): estado real da consulta — in_progress = a dois na sala. */}
-                          {(() => { const c = teleStatusChip(tc.teleStatus); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
+                          {(() => { const c = teleStatusChip(tc.teleStatus, tc.noShowBy); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
                           {/* Consulta particular (23/10): status do pagamento do paciente. */}
                           {(tc.consultPriceCents ?? 0) > 0 && (
                             tc.paidAt ? (
@@ -765,7 +772,7 @@ export const PortalTeleconsultas = ({
                             sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', '& .MuiChip-icon': { color: '#178f89' } }}
                           />
                             {/* Lifecycle 24/10: como a consulta TERMINOU (realizada / ausente / técnica). */}
-                            {(() => { const c = teleStatusChip(tc.teleStatus); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
+                            {(() => { const c = teleStatusChip(tc.teleStatus, tc.noShowBy); return c ? <Chip size="small" label={c.label} sx={c.sx} /> : null; })()}
                           {pend > 0 && (
                             <Chip size="small" label={`${pend} pedido(s)`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#d97706' }} />
                           )}
