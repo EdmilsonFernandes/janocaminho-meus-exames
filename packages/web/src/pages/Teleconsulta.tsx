@@ -29,10 +29,54 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import ShareIcon from '@mui/icons-material/Share';
+import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { Room, RoomEvent, Track, isBrowserSupported, ConnectionQuality, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { DrExame } from '../components/DrExame';
+
+// ── Dicas humanizadas Dr. Exame durante o pré-join e sala de espera ───────────
+const PREP_TIPS = [
+  { icon: '💡', title: 'Boa iluminação', desc: 'Fique de frente para uma luz suave para o médico examinar com máxima clareza.' },
+  { icon: '🎧', title: 'Fones de ouvido', desc: 'Evitam ecos no ambiente e garantem total privacidade para a sua consulta.' },
+  { icon: '📋', title: 'Exames e sintomas', desc: 'Tenha em mãos suas dúvidas, nomes de remédios ou exames anteriores.' },
+  { icon: '🔒', title: 'Sigilo CFM 2.314/2022', desc: 'Transmissão criptografada de ponta a ponta com total segurança jurídica.' },
+];
+
+function playAudioTestChime() {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(659.25, now);
+    gain1.gain.setValueAtTime(0.001, now);
+    gain1.gain.exponentialRampToValueAtTime(0.2, now + 0.04);
+    gain1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.35);
+
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'sine';
+    osc2.frequency.setValueAtTime(880, now + 0.12);
+    gain2.gain.setValueAtTime(0.001, now + 0.12);
+    gain2.gain.exponentialRampToValueAtTime(0.22, now + 0.16);
+    gain2.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.12);
+    osc2.stop(now + 0.55);
+  } catch {
+    /* áudio bloqueado ou não suportado */
+  }
+}
+
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticError, hapticLight, hapticSuccess } from '../utils/haptic';
 import { tealText } from '../theme';
@@ -292,6 +336,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // Lifecycle 24/10: join barrado antes da janela (TOO_EARLY) ou sem PIX pago
   // (PAYMENT_REQUIRED) + dialog honesto de encerramento (outcome do /end).
   const [opensAt, setOpensAt] = useState<string | null>(null); // countdown até a janela abrir
+  // §5 dono (26/10): deadline da TOLERÂNCIA DE AUSÊNCIA (dueDate + noShowToleranceMin,
+  // relógio do SERVER — chega no /join) p/ o countdown "Paciente ausente — encerra em
+  // Xmin". Não confundir com o grace de RECONEXÃO (5min): tolerância é p/ quem NUNCA
+  // apareceu; o server encerra sozinho como no_show quando ela vence.
+  const [noShowDeadlineMs, setNoShowDeadlineMs] = useState<number | null>(null);
   const [payPriceCents, setPayPriceCents] = useState<number | null>(null);
   const [recheckBusy, setRecheckBusy] = useState(false); // "Já paguei" em voo (spinner + disabled)
   const payBlockedRef = useRef(false); // join 402 → fase payment É estável (nunca volta a prejoin/câmera)
@@ -388,6 +437,42 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [areaSummary, setAreaSummary] = useState<TeleSummary | null>(null); // §3 — área "Resumo da consulta"
   const [txState, setTxState] = useState<'pending' | 'ready' | 'error'>('pending'); // §3b transcrição
   const [txText, setTxText] = useState<string | null>(null);
+
+  // Estados de teste de som e rotação de dicas humanizadas
+  const [soundTested, setSoundTested] = useState(false);
+  const [prepTipIdx, setPrepTipIdx] = useState(0);
+
+  useEffect(() => {
+    if (phase !== 'prejoin' && (otherJoined || phase !== 'incall')) return;
+    const t = setInterval(() => {
+      setPrepTipIdx((prev) => (prev + 1) % PREP_TIPS.length);
+    }, 6000);
+    return () => clearInterval(t);
+  }, [phase, otherJoined]);
+
+  const togglePreviewCam = () => {
+    if (!previewStream.current) return;
+    const next = !camOn;
+    previewStream.current.getVideoTracks().forEach((t) => { t.enabled = next; });
+    setCamOn(next);
+    hapticLight();
+  };
+
+  const togglePreviewMic = () => {
+    if (!previewStream.current) return;
+    const next = !micOn;
+    previewStream.current.getAudioTracks().forEach((t) => { t.enabled = next; });
+    setMicOn(next);
+    hapticLight();
+  };
+
+  const testAudioSound = () => {
+    playAudioTestChime();
+    setSoundTested(true);
+    hapticSuccess();
+    setTimeout(() => setSoundTested(false), 2500);
+  };
+
   const [txAt, setTxAt] = useState<string | null>(null);
   const [txRetry, setTxRetry] = useState(0); // "Tentar de novo" religa o poll
   const seenReqIds = useRef<Set<string>>(new Set()); // ids já notificados (diff do poll 20s)
@@ -924,24 +1009,25 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // Participantes que JÁ estão na sala não disparam ParticipantConnected.
     room.remoteParticipants.forEach((p) => upsertRemote(p));
 
-    // Publica mídia local — cada uma degrada sozinha (câmera travada ≠ consulta perdida).
+    // Publica mídia local — respeita as escolhas do pré-join
     let camOk = true;
     let micOk = true;
-    try { await room.localParticipant.setMicrophoneEnabled(true); } catch { micOk = false; }
+    try { await room.localParticipant.setMicrophoneEnabled(micOn); } catch { micOk = false; }
     // Dono 23/10 (chamada REAL): mic falhava no AUTO-JOIN do APK — a permissão do
     // WebView às vezes não está pronta quando o connect dispara na carga da página
     // (sem gesto). Retry curto resolve a corrida; sem mic, o botão fica vermelho DE
     // VERDADE e sem track não existe gravação/transcrição (era o sintoma da Heloisa).
-    if (!micOk) {
+    if (!micOk && micOn) {
       for (let i = 0; i < 3 && !micOk; i++) {
         await new Promise((r) => setTimeout(r, 1500));
         try { await room.localParticipant.setMicrophoneEnabled(true); micOk = true; } catch { /* tenta de novo */ }
       }
     }
     try {
-      const pub = await room.localParticipant.setCameraEnabled(true);
+      const pub = await room.localParticipant.setCameraEnabled(camOn);
       setLocalVideo(pub?.videoTrack ?? null);
     } catch { camOk = false; }
+
     // §19 diagnóstico: saúde da track local publicada (mudo por engano = médico
     // não ouve). Dev-only. audioTrackPublications é Map — percorre, não indexa.
     {
@@ -1029,6 +1115,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       if (!res.ok) throw new Error('join-failed');
       payBlockedRef.current = false; // join liberado — não é mais barreira de pagamento
       const data = await res.json();
+      // §5 dono (26/10): deadline da tolerância de ausência (server-verdade) p/ o chip.
+      if (typeof data.noShowDeadlineMs === 'number') setNoShowDeadlineMs(data.noShowDeadlineMs);
       // fix #13c: o /join devolve stt (hasStt do server) mas o client não salvava —
       // sem isto o gate do banner/chip de gravação ficava cego até um /summary futuro.
       if (typeof data.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: data.stt } : cur));
@@ -1883,6 +1971,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                 <Typography sx={{ color: 'rgba(255,255,255,.6)', fontSize: 13, mt: 0.5, lineHeight: 1.5 }}>
                   Você está na sala há 5 minutos esperando. Reenvie o convite ou encerre a consulta — ela continua aberta se você preferir aguardar.
                 </Typography>
+                {/* §5 dono (26/10): countdown da tolerância — vencida, o server encerra
+                    sozinho como no_show (noShowBy='patient'; estorno já reservado). */}
+                {noShowDeadlineMs != null && noShowDeadlineMs > Date.now() && (
+                  <Chip size="small" label={`Paciente ausente — encerra em ${Math.max(1, Math.ceil((noShowDeadlineMs - Date.now()) / 60000))}min`} sx={{ height: 26, fontSize: 12, fontWeight: 800, color: '#fbbf24', bgcolor: 'rgba(251,191,36,.12)', border: '1px solid rgba(251,191,36,.35)' }} />
+                )}
               </Box>
               <Stack direction="row" spacing={1.5}>
                 <Button
@@ -1902,9 +1995,43 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Stack>
           </Box>
         ) : (
-          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
-            <Stack alignItems="center" spacing={2} sx={{ textAlign: 'center', maxWidth: 360 }}>
-              <Box sx={{ position: 'relative' }}>
+          <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: { xs: 2, sm: 3 } }}>
+            <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 420, width: '100%', zIndex: 2 }}>
+              {/* Avatar com Ondas Sonar Concéntricas */}
+              <Box sx={{ position: 'relative', width: 120, height: 120, display: 'grid', placeItems: 'center' }}>
+                {/* 3 Ondas Sonar */}
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: -12,
+                    borderRadius: '50%',
+                    border: '2px solid rgba(32,178,170,0.4)',
+                    animation: 'dxSonarWave 2.8s infinite cubic-bezier(0.22, 1, 0.36, 1)',
+                    '@keyframes dxSonarWave': {
+                      '0%': { transform: 'scale(0.85)', opacity: 0.9 },
+                      '100%': { transform: 'scale(1.7)', opacity: 0 },
+                    },
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: -12,
+                    borderRadius: '50%',
+                    border: '1.5px solid rgba(32,178,170,0.3)',
+                    animation: 'dxSonarWave 2.8s infinite cubic-bezier(0.22, 1, 0.36, 1) 0.9s',
+                  }}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    inset: -12,
+                    borderRadius: '50%',
+                    border: '1px solid rgba(32,178,170,0.2)',
+                    animation: 'dxSonarWave 2.8s infinite cubic-bezier(0.22, 1, 0.36, 1) 1.8s',
+                  }}
+                />
+
                 <Avatar
                   src={otherPhoto}
                   sx={{
@@ -1914,12 +2041,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                     fontWeight: 800,
                     bgcolor: 'rgba(32,178,170,.18)',
                     color: '#5fc9c3',
-                    border: '3px solid rgba(32,178,170,.5)',
-                    boxShadow: '0 0 32px rgba(32,178,170,0.35)',
+                    border: '3px solid rgba(32,178,170,.6)',
+                    boxShadow: '0 0 36px rgba(32,178,170,0.45)',
+                    position: 'relative',
+                    zIndex: 2,
                     animation: 'dxCallPulse 2.4s ease-in-out infinite',
                     '@keyframes dxCallPulse': {
-                      '0%,100%': { transform: 'scale(1)', boxShadow: '0 0 20px rgba(32,178,170,0.25)' },
-                      '50%': { transform: 'scale(1.05)', boxShadow: '0 0 36px rgba(32,178,170,0.5)' },
+                      '0%,100%': { transform: 'scale(1)' },
+                      '50%': { transform: 'scale(1.04)' },
                     },
                   }}
                 >
@@ -1927,52 +2056,178 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                     ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name)
                     : (doctor?.name || main?.name))}
                 </Avatar>
-                <CircularProgress
-                  size={108}
-                  thickness={1.5}
-                  sx={{
-                    color: '#20b2aa',
-                    position: 'absolute',
-                    top: -6,
-                    left: -6,
-                    opacity: 0.6,
-                  }}
-                />
               </Box>
-              <Box>
-                <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18, letterSpacing: '-0.01em' }}>
-                  {peerPresence === 'present' ? `Na chamada com ${otherName}` : `Aguardando ${otherName}…`}
+
+              <Box sx={{ width: '100%' }}>
+                <Typography sx={{ color: 'rgba(255,255,255,.98)', fontWeight: 800, fontSize: { xs: 18, sm: 20 }, letterSpacing: '-0.01em' }}>
+                  {peerPresence === 'present' ? `Conectando áudio com ${otherName}…` : `Aguardando ${otherName} entrar…`}
                 </Typography>
-                <Typography sx={{ color: 'rgba(255,255,255,.65)', fontSize: 13, mt: 0.5, lineHeight: 1.4 }}>
+                <Typography sx={{ color: 'rgba(255,255,255,.7)', fontSize: 13, mt: 0.5, lineHeight: 1.45, maxWidth: 360, mx: 'auto' }}>
                   {role === 'doctor'
-                    ? 'A sala já está conectada. Assim que o paciente entrar, o vídeo iniciará automaticamente.'
-                    : (doctor?.specialty ? `${doctor.specialty} · ` : '') + 'Conexão segura criptografada'}
+                    ? 'Você já está conectado na sala. Assim que o paciente acessar o link, o vídeo iniciará automaticamente.'
+                    : 'Sua sala criptografada está aberta. O médico foi avisado da sua entrada e entrará em instantes.'}
                 </Typography>
-                {/* §19 G3: presença real + horário agendado + ação útil */}
-                <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
+
+                {/* Timeline de Conexão em 3 Etapas Humanizada */}
+                <Box
+                  sx={{
+                    mt: 2,
+                    p: 1.5,
+                    borderRadius: '16px',
+                    bgcolor: 'rgba(255,255,255,0.05)',
+                    backdropFilter: 'blur(12px)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                  }}
+                >
+                  <Stack spacing={1} sx={{ textAlign: 'left' }}>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: '#10b981' }} />
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
+                        Sala Segura CFM 2.314/2022 ativa
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <CheckCircleIcon sx={{ fontSize: 16, color: '#10b981' }} />
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>
+                        Seu microfone e câmera prontos
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="center" spacing={1}>
+                      <Box
+                        sx={{
+                          width: 14,
+                          height: 14,
+                          display: 'grid',
+                          placeItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            width: 8,
+                            height: 8,
+                            borderRadius: '50%',
+                            bgcolor: '#38bdf8',
+                            boxShadow: '0 0 10px #38bdf8',
+                            animation: 'dxBlink 1.4s infinite ease-in-out',
+                            '@keyframes dxBlink': {
+                              '0%, 100%': { opacity: 1, transform: 'scale(1)' },
+                              '50%': { opacity: 0.4, transform: 'scale(0.8)' },
+                            },
+                          }}
+                        />
+                      </Box>
+                      <Typography sx={{ fontSize: 12, fontWeight: 700, color: '#38bdf8' }}>
+                        {peerPresence === 'present' ? `Sincronizando com ${otherName}…` : `Aguardando entrada de ${otherName}…`}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+                </Box>
+
+                {/* Chips de estado e deadline */}
+                <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="center" flexWrap="wrap" useFlexGap sx={{ mt: 1.5 }}>
                   <Chip size="small" label={`● ${presenceMeta.label}`} sx={{ height: 24, fontSize: 12, fontWeight: 800, color: presenceMeta.color, bgcolor: presenceMeta.bg, border: `1px solid ${presenceMeta.border}` }} />
                   {summary?.dueDate && (
                     <Chip size="small" label={`Agendada ${dueShort(summary.dueDate)}`} sx={{ height: 24, fontSize: 12, fontWeight: 700, color: 'rgba(255,255,255,.75)', bgcolor: 'rgba(0,0,0,.3)' }} />
                   )}
+                  {noShowDeadlineMs != null && noShowDeadlineMs > Date.now() && !otherJoined && (
+                    <Chip size="small" label={`${role === 'doctor' ? 'Paciente ausente' : 'Médico ainda não chegou'} — encerra em ${Math.max(1, Math.ceil((noShowDeadlineMs - Date.now()) / 60000))}min`} sx={{ height: 24, fontSize: 12, fontWeight: 800, color: '#fbbf24', bgcolor: 'rgba(251,191,36,.12)', border: '1px solid rgba(251,191,36,.35)' }} />
+                  )}
                 </Stack>
-                {role === 'doctor' && peerPresence === 'notjoined' && (
+
+                {/* Ações Inteligentes Durante a Espera */}
+                <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" flexWrap="wrap" sx={{ mt: 2 }}>
+                  {/* Testar Som */}
                   <Button
-                    size="small" variant="outlined" startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
-                    onClick={() => void shareConsult()}
+                    size="small"
+                    onClick={testAudioSound}
+                    startIcon={soundTested ? <CheckCircleIcon sx={{ fontSize: 16, color: '#10b981' }} /> : <VolumeUpIcon sx={{ fontSize: 16 }} />}
                     sx={{
-                      mt: 1.5, height: 40, px: 2.5, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 13,
-                      color: '#5fc9c3', borderColor: 'rgba(32,178,170,.5)', bgcolor: 'rgba(32,178,170,.08)',
-                      '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.16)' },
-                      '&:focus-visible': { outline: '2px solid #5fc9c3', outlineOffset: 2 },
+                      height: 38,
+                      px: 2,
+                      borderRadius: '999px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      color: soundTested ? '#10b981' : '#fff',
+                      bgcolor: soundTested ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.08)',
+                      border: '1px solid',
+                      borderColor: soundTested ? 'rgba(16,185,129,0.4)' : 'rgba(255,255,255,0.15)',
+                      '&:hover': { bgcolor: 'rgba(255,255,255,0.15)' },
                     }}
                   >
-                    Compartilhar link com o paciente
+                    {soundTested ? 'Som funcionando ✓' : 'Testar som'}
                   </Button>
+
+                  {/* Médico: Acessar Prontuário e Exames sem tempo morto */}
+                  {role === 'doctor' && (
+                    <Button
+                      size="small"
+                      startIcon={<AssignmentIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => setBriefOpen(true)}
+                      sx={{
+                        height: 38,
+                        px: 2,
+                        borderRadius: '999px',
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        color: '#5fc9c3',
+                        bgcolor: 'rgba(32,178,170,0.12)',
+                        border: '1px solid rgba(32,178,170,0.4)',
+                        '&:hover': { bgcolor: 'rgba(32,178,170,0.22)' },
+                      }}
+                    >
+                      Ver Prontuário & Exames
+                    </Button>
+                  )}
+
+                  {/* Médico: Compartilhar link */}
+                  {role === 'doctor' && peerPresence === 'notjoined' && (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<ShareIcon sx={{ fontSize: 16 }} />}
+                      onClick={() => void shareConsult()}
+                      sx={{
+                        height: 38,
+                        px: 2,
+                        borderRadius: '999px',
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        color: '#38bdf8',
+                        borderColor: 'rgba(56,189,248,0.5)',
+                        bgcolor: 'rgba(56,189,248,0.08)',
+                        '&:hover': { borderColor: '#38bdf8', bgcolor: 'rgba(56,189,248,0.16)' },
+                      }}
+                    >
+                      Reenviar link
+                    </Button>
+                  )}
+                </Stack>
+
+                {/* Dica humanizada no rodapé da espera para o paciente */}
+                {role === 'patient' && (
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 1.25,
+                      borderRadius: '12px',
+                      bgcolor: 'rgba(32,178,170,0.08)',
+                      border: '1px dashed rgba(32,178,170,0.25)',
+                    }}
+                  >
+                    <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, lineHeight: 1.4 }}>
+                      {PREP_TIPS[prepTipIdx].icon} <strong>{PREP_TIPS[prepTipIdx].title}:</strong> {PREP_TIPS[prepTipIdx].desc}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
             </Stack>
           </Box>
         )}
+
 
         {/* PiP local — arrastável, snap nos 4 cantos, espelhado */}
         <Box
@@ -3501,20 +3756,147 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             Sua teleconsulta vai começar
           </Typography>
 
-          {/* Preview espelhado */}
-          <Box sx={{ position: 'relative', aspectRatio: '16 / 9', borderRadius: '16px', overflow: 'hidden', bgcolor: '#0c1818', mb: 1 }}>
-            {camState === 'ok' ? (
+          {/* Preview espelhado com controles flutuantes modernos */}
+          <Box
+            sx={{
+              position: 'relative',
+              aspectRatio: '16 / 9',
+              borderRadius: '16px',
+              overflow: 'hidden',
+              bgcolor: '#0c1818',
+              mb: 1.25,
+              border: '1px solid',
+              borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+              boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
+            }}
+          >
+            {camState === 'ok' && camOn ? (
               <>
                 <video ref={previewVideo} playsInline autoPlay muted style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }} />
                 {phase === 'prejoin' && (
-                  <Chip size="small" label="Pré-visualização da câmera" sx={{ position: 'absolute', bottom: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, WebkitBackdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
+                  <Chip
+                    size="small"
+                    label="Pré-visualização da câmera"
+                    sx={{
+                      position: 'absolute',
+                      top: 10,
+                      left: 10,
+                      height: 24,
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      bgcolor: 'rgba(0,0,0,0.6)',
+                      color: '#fff',
+                      backdropFilter: 'blur(8px)',
+                      WebkitBackdropFilter: 'blur(8px)',
+                      borderRadius: '8px',
+                    }}
+                  />
                 )}
               </>
             ) : (
-              <Stack spacing={1} sx={{ position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', bgcolor: (t) => (t.palette.mode === 'dark' ? '#1a2424' : '#eef7f6') }}>
-                <DrExame size={96} />
+              <Stack
+                spacing={1}
+                sx={{
+                  position: 'absolute',
+                  inset: 0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: (t) => (t.palette.mode === 'dark' ? '#141d1d' : '#f0fdfa'),
+                }}
+              >
+                <Avatar
+                  src={role === 'doctor' ? doctorPhotoUrl(summary?.doctor?.id || '') : photoUrlFor(summary?.patient?.id || '')}
+                  sx={{
+                    width: 70,
+                    height: 70,
+                    fontSize: 26,
+                    fontWeight: 800,
+                    bgcolor: 'rgba(32,178,170,.18)',
+                    color: '#0d9488',
+                    border: '2px dashed rgba(32,178,170,.45)',
+                  }}
+                >
+                  {initials(role === 'doctor' ? doctor?.name : (summary?.patient?.name || statePatientName))}
+                </Avatar>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
+                  {camOn ? 'Iniciando câmera…' : 'Câmera desativada'}
+                </Typography>
               </Stack>
             )}
+
+            {/* Controles flutuantes de pré-join (Câmera, Mic, Teste de Som) */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                position: 'absolute',
+                bottom: 10,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                bgcolor: 'rgba(15,23,42,0.78)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                borderRadius: '999px',
+                p: '4px 8px',
+                border: '1px solid rgba(255,255,255,0.18)',
+                zIndex: 2,
+              }}
+            >
+              <Tooltip title={camOn ? 'Desativar câmera' : 'Ativar câmera'}>
+                <IconButton
+                  size="small"
+                  onClick={togglePreviewCam}
+                  sx={{
+                    color: '#fff',
+                    bgcolor: camOn ? 'rgba(255,255,255,0.12)' : 'rgba(239,68,68,0.85)',
+                    '&:hover': { bgcolor: camOn ? 'rgba(255,255,255,0.22)' : 'rgba(220,38,38,0.95)' },
+                    width: 34,
+                    height: 34,
+                  }}
+                >
+                  {camOn ? <VideocamIcon sx={{ fontSize: 18 }} /> : <VideocamOffIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title={micOn ? 'Mutar microfone' : 'Ativar microfone'}>
+                <IconButton
+                  size="small"
+                  onClick={togglePreviewMic}
+                  sx={{
+                    color: '#fff',
+                    bgcolor: micOn ? 'rgba(255,255,255,0.12)' : 'rgba(239,68,68,0.85)',
+                    '&:hover': { bgcolor: micOn ? 'rgba(255,255,255,0.22)' : 'rgba(220,38,38,0.95)' },
+                    width: 34,
+                    height: 34,
+                  }}
+                >
+                  {micOn ? <MicIcon sx={{ fontSize: 18 }} /> : <MicOffIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Testar som dos alto-falantes">
+                <Button
+                  size="small"
+                  onClick={testAudioSound}
+                  startIcon={soundTested ? <CheckCircleIcon sx={{ fontSize: 15, color: '#10b981' }} /> : <VolumeUpIcon sx={{ fontSize: 15 }} />}
+                  sx={{
+                    color: soundTested ? '#10b981' : '#fff',
+                    bgcolor: soundTested ? 'rgba(16,185,129,0.18)' : 'rgba(255,255,255,0.12)',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    borderRadius: '999px',
+                    height: 34,
+                    px: 1.25,
+                    minWidth: 0,
+                    '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
+                  }}
+                >
+                  {soundTested ? 'Som OK!' : 'Testar Som'}
+                </Button>
+              </Tooltip>
+            </Stack>
+
             {camState === 'denied' && (
               <Chip size="small" label="Câmera bloqueada" sx={{ position: 'absolute', top: 8, left: 8, height: 24, fontSize: 12, fontWeight: 800, bgcolor: GLASS, color: '#fff', backdropFilter: GLASS_FILTER, borderRadius: '8px' }} />
             )}
@@ -3578,41 +3960,166 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             {summary?.dueDate && <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>{dueShort(summary.dueDate)}</Typography>}
           </Stack>
 
-          {/* §19 G3: sala de espera do pré-join — quem é o outro lado (nome+foto),
-              horário agendado acima e estado REAL de presença. Paciente: server
-              doctorInRoom (join nos últimos 5 min). Médico: compartilha o link. */}
-          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mt: 1.5, p: 1.25, borderRadius: '12px', bgcolor: 'action.hover' }}>
-            {role === 'patient' ? (
-              <>
-                <Avatar src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined} sx={{ width: 40, height: 40, fontSize: 15, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
-                  {initials(doctor?.name)}
-                </Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography noWrap sx={{ fontSize: 13, fontWeight: 700 }}>{doctor?.name || 'Médico(a)'}</Typography>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>
-                    {summary?.doctorInRoom ? 'Já está na sala — pode entrar agora' : 'Aguardando o médico · a sala abre 5 min antes'}
-                  </Typography>
-                </Box>
-              </>
-            ) : (
-              <>
-                <Avatar src={photoUrlFor(summary?.patient?.id || summary?.patientId || '')} sx={{ width: 40, height: 40, fontSize: 15, fontWeight: 800, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), flexShrink: 0 }}>
-                  {initials(summary?.patient?.name || statePatientName)}
-                </Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography noWrap sx={{ fontSize: 13, fontWeight: 700 }}>{summary?.patient?.name || statePatientName || 'Paciente'}</Typography>
-                  <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>
-                    {summary?.consentAt ? 'Telemedicina autorizada · compartilhe o link' : 'Paciente ainda não autorizou · compartilhe o link'}
-                  </Typography>
-                </Box>
-                <Tooltip title="Compartilhar link da consulta com o paciente">
-                  <IconButton aria-label="Compartilhar link com o paciente" onClick={() => void shareConsult()} sx={{ color: (t) => tealText(t.palette.mode), width: 44, height: 44, flexShrink: 0, '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 2 } }}>
-                    <ShareIcon />
-                  </IconButton>
-                </Tooltip>
-              </>
-            )}
-          </Stack>
+          {/* Card de Presença Clínica & Status Humano da Sala */}
+          <Box
+            sx={{
+              mt: 1.5,
+              p: 1.5,
+              borderRadius: '16px',
+              border: '1.5px solid',
+              borderColor: summary?.doctorInRoom || (role === 'doctor' && otherJoined)
+                ? 'rgba(16,185,129,0.35)'
+                : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(13,148,136,0.18)',
+              bgcolor: summary?.doctorInRoom || (role === 'doctor' && otherJoined)
+                ? (t) => t.palette.mode === 'dark' ? 'rgba(16,185,129,0.08)' : 'rgba(236,253,245,0.85)'
+                : (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(240,253,250,0.6)',
+              boxShadow: summary?.doctorInRoom
+                ? '0 4px 16px rgba(16,185,129,0.12)'
+                : 'none',
+              transition: 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)',
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={1.5}>
+              {role === 'patient' ? (
+                <>
+                  <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                    <Avatar
+                      src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined}
+                      sx={{
+                        width: 46,
+                        height: 46,
+                        fontSize: 16,
+                        fontWeight: 800,
+                        bgcolor: 'rgba(32,178,170,.18)',
+                        color: (t) => tealText(t.palette.mode),
+                        border: '2px solid',
+                        borderColor: summary?.doctorInRoom ? '#10b981' : 'rgba(32,178,170,.4)',
+                      }}
+                    >
+                      {initials(doctor?.name)}
+                    </Avatar>
+                    {/* Indicador pulsante em tempo real */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        bottom: -1,
+                        right: -1,
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        bgcolor: summary?.doctorInRoom ? '#10b981' : '#f59e0b',
+                        border: '2px solid #fff',
+                        boxShadow: summary?.doctorInRoom ? '0 0 8px #10b981' : 'none',
+                        animation: summary?.doctorInRoom ? 'dxBeaconPulse 1.8s infinite ease-in-out' : 'none',
+                        '@keyframes dxBeaconPulse': {
+                          '0%, 100%': { transform: 'scale(1)', opacity: 1 },
+                          '50%': { transform: 'scale(1.25)', opacity: 0.8 },
+                        },
+                      }}
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap">
+                      <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary' }}>
+                        {doctor?.name || 'Médico(a)'}
+                      </Typography>
+                      {doctor?.specialty && (
+                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>
+                          · {doctor.specialty}
+                        </Typography>
+                      )}
+                    </Stack>
+                    <Typography sx={{ fontSize: 12, fontWeight: 600, color: summary?.doctorInRoom ? '#059669' : 'text.secondary', mt: 0.25, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {summary?.doctorInRoom ? (
+                        <>
+                          <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10b981' }} />
+                          Dr(a). já está na sala aguardando você!
+                        </>
+                      ) : (
+                        'Aguardando o médico · A sala abre 5 min antes'
+                      )}
+                    </Typography>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                    <Avatar
+                      src={photoUrlFor(summary?.patient?.id || summary?.patientId || '')}
+                      sx={{
+                        width: 46,
+                        height: 46,
+                        fontSize: 16,
+                        fontWeight: 800,
+                        bgcolor: 'rgba(32,178,170,.18)',
+                        color: (t) => tealText(t.palette.mode),
+                        border: '2px solid rgba(32,178,170,.4)',
+                      }}
+                    >
+                      {initials(summary?.patient?.name || statePatientName)}
+                    </Avatar>
+                  </Box>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 800 }}>
+                      {summary?.patient?.name || statePatientName || 'Paciente'}
+                    </Typography>
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
+                      {summary?.consentAt ? 'Telemedicina autorizada pelo paciente' : 'Aguardando confirmação do paciente'}
+                    </Typography>
+                  </Box>
+                  <Tooltip title="Compartilhar link de entrada com o paciente">
+                    <IconButton
+                      aria-label="Compartilhar link com o paciente"
+                      onClick={() => void shareConsult()}
+                      sx={{
+                        color: (t) => tealText(t.palette.mode),
+                        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                        width: 40,
+                        height: 40,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <ShareIcon sx={{ fontSize: 19 }} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+            </Stack>
+          </Box>
+
+          {/* Dica interativa humanizada do Dr. Exame */}
+          <Box
+            onClick={() => setPrepTipIdx((prev) => (prev + 1) % PREP_TIPS.length)}
+            sx={{
+              mt: 1.5,
+              p: 1.25,
+              borderRadius: '12px',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+              border: '1px dashed',
+              borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              cursor: 'pointer',
+              userSelect: 'none',
+              transition: 'background-color 0.2s ease',
+              '&:hover': {
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.035)',
+              },
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Box sx={{ fontSize: 18, lineHeight: 1 }}>{PREP_TIPS[prepTipIdx].icon}</Box>
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.primary', lineHeight: 1.3 }}>
+                  Dica de Preparo: {PREP_TIPS[prepTipIdx].title}
+                </Typography>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.35, mt: 0.25 }}>
+                  {PREP_TIPS[prepTipIdx].desc}
+                </Typography>
+              </Box>
+              <Typography sx={{ fontSize: 10, color: 'text.disabled', fontWeight: 600 }}>
+                {prepTipIdx + 1}/{PREP_TIPS.length}
+              </Typography>
+            </Stack>
+          </Box>
 
           {/* Consentimento (Art. 15 / CFM 2.314/22) — mesmo texto do dialog do Reminders */}
           {showConsent && (

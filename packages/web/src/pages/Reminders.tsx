@@ -193,7 +193,7 @@ export const RemindersPage = () => {
       if (r.linkUrl) {
         await openTelemedicinaRoom(r.linkUrl);
       } else {
-        navigate(`/teleconsulta/${r.id}`);
+        navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } });
       }
       load();
     } catch {
@@ -429,7 +429,7 @@ export const RemindersPage = () => {
       hapticLight();
       if (!r.consentAt) { setConsentFor(r); return; }
       if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl);
-      else navigate(`/teleconsulta/${r.id}`);
+      else navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } });
     };
     return (
       <Card
@@ -765,7 +765,7 @@ export const RemindersPage = () => {
                       size="small"
                       clickable
                       label={`${pendingReqs[r.id]} pedido(s) de exame`}
-                      onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                      onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
                       sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(245,158,11,.15)', color: '#b45309', borderRadius: '6px' }}
                     />
                   )}
@@ -784,7 +784,7 @@ export const RemindersPage = () => {
                       clickable
                       icon={<SummarizeIcon sx={{ fontSize: 14 }} />}
                       label="Ver resumo da consulta"
-                      onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                      onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
                       sx={{ height: 22, fontSize: 11.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.16)', color: '#0d9488', borderRadius: '6px', '& .MuiChip-icon': { color: '#0d9488' } }}
                     />
                   )}
@@ -808,7 +808,7 @@ export const RemindersPage = () => {
                   size="medium"
                   variant="contained"
                   startIcon={<PhoneInTalkIcon />}
-                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
                   sx={{
                     borderRadius: '12px',
                     textTransform: 'none',
@@ -830,7 +830,7 @@ export const RemindersPage = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<AssignmentIcon />}
-                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
                   sx={{
                     borderRadius: '12px',
                     textTransform: 'none',
@@ -855,7 +855,7 @@ export const RemindersPage = () => {
                     onClick={() => {
                       hapticLight();
                       if (r.linkUrl) void openTelemedicinaRoom(r.linkUrl);
-                      else navigate(`/teleconsulta/${r.id}`);
+                      else navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } });
                     }}
                     sx={{
                       borderRadius: '12px',
@@ -906,7 +906,7 @@ export const RemindersPage = () => {
                   size="small"
                   variant="outlined"
                   startIcon={<AssignmentIcon />}
-                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`, { state: { reminder: r, doctor: r.doctor } }); }}
                   sx={{
                     borderRadius: '12px',
                     textTransform: 'none',
@@ -1265,7 +1265,7 @@ export const RemindersPage = () => {
           action={
             <Button
               color="inherit" size="small"
-              onClick={() => { hapticLight(); navigate(`/teleconsulta/${startingSoon.id}`); }}
+              onClick={() => { hapticLight(); navigate(`/teleconsulta/${startingSoon.id}`, { state: { reminder: startingSoon, doctor: startingSoon.doctor } }); }}
               sx={{ fontWeight: 800, borderRadius: '999px', bgcolor: '#0d9488', color: '#fff', '&:hover': { bgcolor: '#0f766e' } }}
             >
               Ir para a consulta

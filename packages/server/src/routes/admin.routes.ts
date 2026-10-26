@@ -25,6 +25,7 @@ import { approvePayout, getAsaasBalanceCached } from '../finance/payout';
 import { payoutAutoEnabled } from '../utils/settings';
 import { maskPixKey } from './doctor.routes';
 import { getLastReconciliationAt } from '../jobs/reconciliation';
+import { runExtraction } from '../extraction/pipeline';
 
 const router = Router();
 router.use(requireAuth);
@@ -1065,19 +1066,143 @@ router.get('/doctors', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// EXAMES — lista (filtro ?status= opcional) + contagem por status + recentes com falha.
+// EXAMES — lista (filtro ?status= e ?search= opcionais) + contagem por status + recentes com falha.
 router.get('/exams', async (req, res, next) => {
   try {
-    const status = String(req.query.status ?? '');
-    const where: any = status ? { status } : {};
+    const status = String(req.query.status ?? '').trim();
+    const search = String(req.query.search ?? '').trim();
+
+    const where: any = {};
+    if (status && status !== 'ALL') {
+      where.status = status;
+    }
+    if (search) {
+      where.OR = [
+        { title: { contains: search, mode: 'insensitive' } },
+        { patient: { fullName: { contains: search, mode: 'insensitive' } } },
+      ];
+    }
+
     const [exams, byStatus, recentFailed] = await Promise.all([
-      prisma.exam.findMany({ where, orderBy: { createdAt: 'desc' }, take: 50, select: { id: true, title: true, kind: true, status: true, performedAt: true, createdAt: true, extractionError: true, _count: { select: { items: true } }, patient: { select: { fullName: true } } } }),
+      prisma.exam.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 150,
+        select: {
+          id: true,
+          title: true,
+          kind: true,
+          status: true,
+          performedAt: true,
+          createdAt: true,
+          extractionError: true,
+          failureKind: true,
+          rawExtraction: true,
+          patientId: true,
+          pageCount: true,
+          fileSizeBytes: true,
+          _count: { select: { items: true } },
+          patient: {
+            select: {
+              id: true,
+              fullName: true,
+              owner: { select: { id: true, email: true, phone: true } },
+            },
+          },
+        },
+      }),
       prisma.exam.groupBy({ by: ['status'], _count: true }),
-      prisma.exam.findMany({ where: { status: 'FAILED' }, orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, title: true, extractionError: true, createdAt: true } }),
+      prisma.exam.findMany({
+        where: { status: 'FAILED' },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+        select: {
+          id: true,
+          title: true,
+          extractionError: true,
+          failureKind: true,
+          rawExtraction: true,
+          createdAt: true,
+          patient: { select: { fullName: true } },
+        },
+      }),
     ]);
     res.json({ exams, byStatus, recentFailed });
   } catch (e) { next(e); }
 });
+
+// ADMIN: salvar diagnóstico / feedback de falha em exame
+router.patch('/exams/:id/failure-feedback', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const { failureKind, failureReason, adminNotes } = req.body || {};
+
+    const existing = await prisma.exam.findUnique({
+      where: { id },
+      select: { id: true, rawExtraction: true, failureKind: true, status: true },
+    });
+    if (!existing) return res.status(404).json({ error: 'Exame não encontrado' });
+
+    const raw = (typeof existing.rawExtraction === 'object' && existing.rawExtraction !== null)
+      ? (existing.rawExtraction as Record<string, any>)
+      : {};
+
+    const updatedRaw = {
+      ...raw,
+      adminReview: {
+        failureReason: failureReason || null,
+        adminNotes: adminNotes || null,
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: req.user?.email || 'admin',
+      },
+    };
+
+    const updated = await prisma.exam.update({
+      where: { id },
+      data: {
+        failureKind: failureKind || existing.failureKind,
+        rawExtraction: updatedRaw,
+      },
+      select: {
+        id: true,
+        failureKind: true,
+        rawExtraction: true,
+      },
+    });
+
+    await audit('EXAM_FAILURE_FEEDBACK', req, {
+      targetType: 'EXAM',
+      targetId: id,
+      after: { failureKind, failureReason, adminNotes },
+    });
+
+    res.json({ ok: true, exam: updated });
+  } catch (e) { next(e); }
+});
+
+// ADMIN: reprocessar extração de exame
+router.post('/exams/:id/reprocess', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const exam = await prisma.exam.findUnique({ where: { id }, select: { id: true, status: true } });
+    if (!exam) return res.status(404).json({ error: 'Exame não encontrado' });
+
+    await prisma.exam.update({
+      where: { id },
+      data: { status: 'EXTRACTING', extractionError: null },
+    });
+
+    runExtraction(exam.id).catch((e) => console.error('[admin:reprocess] extração falhou:', e?.message));
+
+    await audit('REPROCESS_EXAM', req, {
+      targetType: 'EXAM',
+      targetId: id,
+    });
+
+    res.json({ ok: true, id: exam.id, status: 'EXTRACTING' });
+  } catch (e) { next(e); }
+});
+
 
 // IA & ALERTAS — ai_analyses (volume histórico, tem dados) + AiUsageLog (custo/latência, novo).
 router.get('/ia-usage', async (_req, res, next) => {

@@ -15,7 +15,7 @@ import { prisma } from '../prisma';
 import { userPatientIds, type AuthedRequest } from '../middleware/auth';
 import { audit } from '../utils/audit';
 import { getTeleconsultaConfig } from '../utils/settings';
-import { computeJointMs, loadPresenceEvents, resolveAutoOutcome, type PresenceEvent } from '../utils/teleconsultaLifecycle';
+import { computeJointMs, loadPresenceEvents, resolveAutoOutcome, resolveNoShowBy, type PresenceEvent } from '../utils/teleconsultaLifecycle';
 import { hasLiveKitConfig, buildJoinToken, createLiveKitRoom } from '../utils/livekit';
 import { getCid10 } from '../utils/cid10';
 import { sendPushToUser } from '../utils/push';
@@ -221,6 +221,12 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       if (role === 'patient') {
         await prisma.reminder.updateMany({ where: { id: reminder.id, patientJoinedAt: null }, data: { patientJoinedAt: new Date() } });
       }
+      // §5 dono (26/10): simetria — 1º join do MÉDICO também é materializado (alimenta
+      // noShowBy='doctor' no /end e no auto-end). Guard próprio p/ drift: banco legado
+      // sem a coluna não aborta a transição de estado (auditLog segue como fonte).
+      if (role === 'doctor') {
+        try { await prisma.reminder.updateMany({ where: { id: reminder.id, doctorJoinedAt: null }, data: { doctorJoinedAt: new Date() } }); } catch { /* coluna ausente no legado */ }
+      }
       const joinLogs = await prisma.auditLog.findMany({
         where: { action: 'TELECONSULTA_JOIN', targetId: reminder.id },
         select: { after: true },
@@ -252,7 +258,16 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       const docName = req.joinName?.replace(/^Dr\.\s*/, '') || 'seu médico';
       void sendPushToUser(reminder.ownerId, `📞 ${docName} está te chamando`, 'Toque para atender a teleconsulta agora.', { type: 'teleconsulta', reminderId: reminder.id }).catch(() => {});
     }
-    res.json({ serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt(), endedAt: null, teleStatus });
+    // §5 dono (26/10): relógio da ausência p/ o client desenhar o countdown ("Paciente
+    // ausente — encerra em Xmin" / "Médico ainda não chegou"). Deadline do SERVER — o
+    // client nunca decide sozinho quando a tolerância vence.
+    const { noShowToleranceMin } = getTeleconsultaConfig();
+    res.json({
+      serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt(), endedAt: null, teleStatus,
+      dueDate: new Date(dueMs).toISOString(),
+      noShowToleranceMin,
+      noShowDeadlineMs: dueMs + noShowToleranceMin * 60_000,
+    });
   } catch (e) {
     next(e);
   }
@@ -280,9 +295,11 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
     const events = await loadPresenceEvents(r.id);
     const jointMs = computeJointMs(events, Date.now());
     const patientJoined = patientEverJoined(r, events);
+    const doctorJoined = events.some((e) => e.action === 'TELECONSULTA_JOIN' && e.role === 'doctor') || !!r.doctorJoinedAt;
     const minJointMs = getTeleconsultaConfig().minJointSeconds * 1000;
     const outcome = patientJoined && jointMs >= minJointMs ? 'completed' : resolveAutoOutcome(patientJoined);
-    await endTeleconsulta(r, { outcome, jointMs }).catch(() => { /* feedback não falha por lifecycle */ });
+    // §5 dono (26/10): feedback de consulta sem atendimento também registra quem faltou.
+    await endTeleconsulta(r, { outcome, jointMs, noShowBy: outcome === 'no_show' ? resolveNoShowBy(patientJoined, doctorJoined) : null }).catch(() => { /* feedback não falha por lifecycle */ });
     await audit('TELECONSULTA_FEEDBACK', req, {
       actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
       actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
@@ -317,6 +334,9 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
     const { minJointSeconds } = getTeleconsultaConfig();
     const minJointMs = minJointSeconds * 1000;
     const patientJoined = patientEverJoined(r, events);
+    // §5 dono (26/10): presença do MÉDICO (carimbo materializado; fallback auditLog —
+    // mesmo padrão do patientEverJoined) p/ registrar QUEM faltou no no_show.
+    const doctorJoined = events.some((e) => e.action === 'TELECONSULTA_JOIN' && e.role === 'doctor') || !!r.doctorJoinedAt;
     const criteriaMet = patientJoined && jointMs >= minJointMs;
     const suggestion: 'no_show' | 'technical' = patientJoined ? 'technical' : 'no_show';
     const reason = patientJoined ? 'min_time_not_met' : 'patient_not_joined';
@@ -357,7 +377,7 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
       outcome = (rawOutcome as any) ?? 'completed';
     }
 
-    const { endedAt, persisted, teleStatus, jointMs: storedJointMs } = await endTeleconsulta(r, { outcome, jointMs });
+    const { endedAt, persisted, teleStatus, jointMs: storedJointMs, noShowBy: storedNoShowBy } = await endTeleconsulta(r, { outcome, jointMs, noShowBy: outcome === 'no_show' ? resolveNoShowBy(patientJoined, doctorJoined) : null });
     // ONDA 2 FINANCEIRA (§18): consulta PAGA encerrada de verdade → ledger. Completed
     // (elegível por construção — o /end só completa com paciente+tempo) move a retenção
     // p/ honorários+comissão; no_show/technical reserva o valor p/ estorno. No-op p/
@@ -366,6 +386,18 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
       await recordTeleconsultaEnded(r.id, teleStatus).catch((e: any) => {
         console.error('[finance] ledger do encerramento falhou (conciliação repara):', r.id, e?.message);
       });
+    }
+    // §5 dono (26/10): MÉDICO não apareceu (paciente esperou sozinho) → caso sensível
+    // p/ triagem humana. POLÍTICA FINANCEIRA PENDENTE: estorno quando o MÉDICO falta é
+    // decisão do dono — por ora o ledger apenas reserva (como qualquer no_show) e a
+    // fila sinaliza p/ decisão manual. Só registro, nenhuma ação financeira extra.
+    if (persisted && teleStatus === 'no_show' && storedNoShowBy === 'doctor') {
+      await prisma.exceptionQueue.create({
+        data: {
+          kind: 'doctor_no_show', reminderId: r.id,
+          payload: { endedAt: endedAt?.toISOString() ?? null, endedBy: req.joinRole, patientJoined: true, doctorJoined },
+        },
+      }).catch(() => { /* fila é best-effort — o noShowBy na linha já registra */ });
     }
     await audit('TELECONSULTA_END', req, {
       actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
@@ -391,6 +423,7 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
       alreadyEnded: alreadyEnded || !persisted,
       teleStatus,
       jointMs: storedJointMs,
+      noShowBy: storedNoShowBy, // §5: quem faltou (só com no_show) — o card mostra "não realizada"
     });
   } catch (e) {
     next(e);
@@ -474,6 +507,9 @@ interface TeleconsultaRef {
   /** Estado do lifecycle (24/10): null = legado/scheduled. */
   teleStatus: string | null;
   patientJoinedAt: Date | null;
+  /** §5 dono (26/10): 1º join do MÉDICO + quem faltou (gravado quando no_show). */
+  doctorJoinedAt: Date | null;
+  noShowBy: string | null;
   jointMs: number;
   /** true = colunas teleStatus/patientJoinedAt/jointMs ausentes no banco (legado). */
   lifecycleColMissing: boolean;
@@ -485,7 +521,7 @@ interface TeleconsultaRef {
 async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Promise<TeleconsultaRef | undefined> {
   const id = String(req.params.id);
   const baseSelect = { id: true, type: true, patientId: true, ownerId: true };
-  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, createdByDoctorId: true, recordConsentAt: true, endedAt: true, teleStatus: true, patientJoinedAt: true, jointMs: true } })
+  const row: any = await prisma.reminder.findUnique({ where: { id }, select: { ...baseSelect, createdByDoctorId: true, recordConsentAt: true, endedAt: true, teleStatus: true, patientJoinedAt: true, doctorJoinedAt: true, noShowBy: true, jointMs: true } })
     .catch((e: any) => /column .* does not exist/i.test(String(e?.message))
       ? prisma.reminder.findUnique({ where: { id }, select: baseSelect })
       : Promise.reject(e));
@@ -513,6 +549,8 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
     endedAtColMissing: !('endedAt' in row),
     teleStatus: row.teleStatus ?? null,
     patientJoinedAt: row.patientJoinedAt ?? null,
+    doctorJoinedAt: row.doctorJoinedAt ?? null,
+    noShowBy: row.noShowBy ?? null,
     jointMs: row.jointMs ?? 0,
     lifecycleColMissing: !('teleStatus' in row),
   };
@@ -522,32 +560,44 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
  *  IDEMPOTENTE e race-safe: updateMany condicional (`endedAt: null`) nunca sobrescreve
  *  um encerramento anterior — o 2º end devolve o estado JÁ existente (inclusive o
  *  OUTCOME do vencedor). Drift: sem endedAt → só done; sem as colunas do lifecycle →
- *  grava endedAt/done e deixa teleStatus/jointMs de fora (outcome segue no audit). */
-async function endTeleconsulta(r: TeleconsultaRef, opts: { outcome: 'completed' | 'no_show' | 'technical'; jointMs: number }): Promise<{ endedAt: Date | null; persisted: boolean; teleStatus: string | null; jointMs: number }> {
+ *  grava endedAt/done e deixa teleStatus/jointMs de fora (outcome segue no audit).
+ *  §5 dono (26/10): outcome='no_show' grava QUEM faltou (noShowBy, coluna nova —
+ *  legado sem ela degrada gravando o resto, igual aos demais campos do lifecycle). */
+async function endTeleconsulta(r: TeleconsultaRef, opts: { outcome: 'completed' | 'no_show' | 'technical'; jointMs: number; noShowBy?: import('../utils/teleconsultaLifecycle').NoShowBy | null }): Promise<{ endedAt: Date | null; persisted: boolean; teleStatus: string | null; jointMs: number; noShowBy: string | null }> {
   if (r.endedAtColMissing) {
     await prisma.reminder.update({ where: { id: r.id }, data: { done: true } });
-    return { endedAt: r.endedAt, persisted: false, teleStatus: r.teleStatus, jointMs: r.jointMs };
+    return { endedAt: r.endedAt, persisted: false, teleStatus: r.teleStatus, jointMs: r.jointMs, noShowBy: r.noShowBy };
   }
-  if (r.endedAt) return { endedAt: new Date(r.endedAt), persisted: false, teleStatus: r.teleStatus, jointMs: r.jointMs }; // idempotente
+  if (r.endedAt) return { endedAt: new Date(r.endedAt), persisted: false, teleStatus: r.teleStatus, jointMs: r.jointMs, noShowBy: r.noShowBy }; // idempotente
   const now = new Date();
   const data: any = { endedAt: now, done: true };
   if (!r.lifecycleColMissing) { data.teleStatus = opts.outcome; data.jointMs = opts.jointMs; }
+  // §5 dono: noShowBy só faz sentido no no_show (completed/technical não acusam ninguém).
+  if (opts.outcome === 'no_show' && opts.noShowBy) data.noShowBy = opts.noShowBy;
   const updated = await prisma.reminder.updateMany({
     where: { id: r.id, endedAt: null },
     data,
+  }).catch(async (e: any) => {
+    // Drift: banco legado sem a coluna noShowBy → grava sem ela (presença segue no audit).
+    if (data.noShowBy != null && /column .* does not exist/i.test(String(e?.message))) {
+      const { noShowBy, ...rest } = data;
+      return prisma.reminder.updateMany({ where: { id: r.id, endedAt: null }, data: rest });
+    }
+    throw e;
   });
-  if (updated.count === 0) {
+  if ((updated as any).count === 0) {
     // Race: outro request encerrou entre o load e o update — devolve o estado vencedor.
-    const winner: any = await prisma.reminder.findUnique({ where: { id: r.id }, select: { endedAt: true, teleStatus: true, jointMs: true } })
+    const winner: any = await prisma.reminder.findUnique({ where: { id: r.id }, select: { endedAt: true, teleStatus: true, jointMs: true, noShowBy: true } })
       .catch(() => null);
     return {
       endedAt: winner?.endedAt ? new Date(winner.endedAt) : now,
       persisted: false,
       teleStatus: winner?.teleStatus ?? r.teleStatus,
       jointMs: winner?.jointMs ?? r.jointMs,
+      noShowBy: winner?.noShowBy ?? r.noShowBy,
     };
   }
-  return { endedAt: now, persisted: true, teleStatus: opts.outcome, jointMs: opts.jointMs };
+  return { endedAt: now, persisted: true, teleStatus: opts.outcome, jointMs: opts.jointMs, noShowBy: opts.noShowBy ?? null };
 }
 
 /** Critério de 'completed' (spec §2): AMBOS presentes + tempo conjunto ≥ mínimo.
@@ -705,15 +755,25 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
         // (header sem nome do paciente p/ o médico; brief clínico sem patientId).
         select: { id: true, fullName: true, photoUrl: true },
       }).catch(() => null) : null,
-      (r as any).createdByDoctorId ? prisma.doctor.findUnique({
-        where: { id: (r as any).createdByDoctorId },
-        // fix 23/10: idem — Doctor não tem crmState/avatarUrl (é crmUf/photoUrl)
-        // → doctor sempre null → header do PACIENTE nunca mostrou nome/CRM do médico.
-        // phone (23/10): fallback "ligar por telefone" quando a chamada cai.
-        // id (§19 G2 QA 24/10): sem id o client não monta doctorPhotoUrl() → avatar
-        // do médico virava letra na sala de espera/pós-chamada do paciente.
-        select: { id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true },
-      }).catch(() => null) : null,
+      (async () => {
+        const docId = (r as any).createdByDoctorId;
+        if (docId) {
+          const doc = await prisma.doctor.findUnique({
+            where: { id: docId },
+            select: { id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true },
+          }).catch(() => null);
+          if (doc) return doc;
+        }
+        if (r.patientId) {
+          const share = await prisma.doctorShare.findFirst({
+            where: { patientId: r.patientId, active: true },
+            orderBy: { createdAt: 'desc' },
+            select: { doctor: { select: { id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, phone: true } } },
+          }).catch(() => null);
+          if (share?.doctor) return share.doctor;
+        }
+        return null;
+      })(),
     ]);
     const fb: any = feedbackLog?.after ?? null;
     // Duração REAL (22/10/26): 1º join → endedAt (encerrada) OU 1º→último join (aberta
