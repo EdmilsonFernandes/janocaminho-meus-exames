@@ -65,7 +65,7 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
   };
 
   const whats = data
-    ? `https://wa.me/?text=${encodeURIComponent(`Olá! Compartilho meu resumo de saúde (Meus Exames):\n${data.link}\n\n🔑 Senha de acesso: ${data.pin}\n(Válido por 12 horas)`)}`
+    ? `https://wa.me/?text=${encodeURIComponent(`Olá, Doutor(a)! 👋\n\nOrganizei todo o meu histórico de exames laboratoriais na plataforma Dr. Exame com linha do tempo e inteligência clínica para facilitar nossa consulta.\n\n🔗 Acesse meu resumo seguro aqui:\n${data.link}\n\n🔑 Senha de acesso (PIN): ${data.pin}\n(Link criptografado válido por 12 horas)\n\n👨‍⚕️ Médico: você também pode acompanhar meus próximos exames gratuitamente criando sua conta no Portal do Médico Dr. Exame (drexame.janocaminho.com.br/doctor).`)}`
     : '';
 
   return (
@@ -104,14 +104,18 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
               {data.pin}
             </Typography>
             <Typography variant="caption" color="text.secondary">Dica: mande o link por um canal e a senha por outro (mais seguro).</Typography>
+
+            <Alert severity="info" sx={{ mt: 2, borderRadius: '12px', fontSize: 12 }}>
+              💡 <b>Dica para a consulta:</b> Envie no WhatsApp do médico ou da clínica antes da consulta. O médico poderá abrir no computador do consultório e ver gráficos comparativos de todos os seus exames.
+            </Alert>
           </Box>
         )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2.5 }}>
         {data && (
           <>
-            <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#25D366' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', '&:hover': { bgcolor: '#047857' } }}>
-              WhatsApp
+            <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#fff' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: '#128C7E' } }}>
+              Enviar no WhatsApp do Médico
             </Button>
             <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#ef4444', textTransform: 'none', fontWeight: 700 }}>
               {revoking ? 'Revogando…' : 'Revogar acesso'}

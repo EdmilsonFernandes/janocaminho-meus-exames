@@ -472,17 +472,59 @@ app.get('/api/public/shared/:token', shareLimiter, async (req, res) => {
     .replace(/\n/g, '<br>');
   const docHtml = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Resumo de Saúde — ${patientName}</title>
-    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;color:#15233b;background:#f8fafc;padding:24px}
-    .doc{max-width:720px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,.08)}
-    .header{background:linear-gradient(135deg,#336886,#1565c0);color:#fff;padding:28px 32px}
-    .header h1{font-size:22px;font-weight:800}.header .sub{font-size:13px;opacity:.85;margin-top:4px}
-    .body{padding:24px 32px;line-height:1.7;font-size:15px}
-    .info-bar{background:#f0f7ff;border-radius:10px;padding:12px 16px;margin-bottom:20px;border-left:4px solid #336886;font-size:14px}
-    .footer{text-align:center;padding:16px;font-size:11px;color:#aaa}
+    <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Arial,sans-serif;color:#15233b;background:#f1f5f9;padding:20px 16px}
+    .doc{max-width:740px;margin:0 auto;background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06)}
+    .header{background:linear-gradient(135deg,#0d9488,#0f766e);color:#fff;padding:26px 30px}
+    .header h1{font-size:22px;font-weight:800}.header .sub{font-size:13px;opacity:.9;margin-top:4px}
+    .body{padding:26px 30px;line-height:1.7;font-size:15px}
+    .info-bar{background:#f0fdfa;border-radius:10px;padding:14px 18px;margin-bottom:22px;border-left:4px solid #0d9488;font-size:14px}
+    .doctor-top-banner{background:linear-gradient(135deg,#0f766e 0%,#115e59 100%);color:#fff;padding:12px 20px;border-radius:12px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;box-shadow:0 2px 10px rgba(15,118,110,0.2)}
+    .doctor-cta-card{margin-top:28px;padding:22px 24px;border-radius:14px;background:#f0fdfa;border:1.5px solid #99f6e4;text-align:center}
+    .footer{text-align:center;padding:20px 16px;font-size:12px;color:#94a3b8;border-top:1px solid #f1f5f9}
     ul{padding-left:20px;margin:8px 0}</style></head><body>
-    <div class="doc"><div class="header"><h1>Resumo de Saúde</h1><div class="sub">Análise educativa — não substitui consulta médica</div></div>
-    <div class="body"><div class="info-bar"><b>Paciente:</b> ${patientName}<br><b>Exame:</b> ${a.exam?.title ?? ''} — ${date}${lab ? ' • ' + lab : ''}</div>${html}</div>
-    <div class="footer">Meus Exames • Análise educativa • Link expira em 12 horas</div></div></body></html>`;
+    <div class="doc">
+      <div class="header">
+        <h1>Resumo de Saúde Clínico</h1>
+        <div class="sub">Organizado via Dr. Exame · Compartilhado pelo paciente para apoio à consulta</div>
+      </div>
+      <div class="body">
+        <div class="doctor-top-banner">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:24px;">🩺</span>
+            <div>
+              <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;opacity:0.9;">Espaço do Médico · Dr. Exame</div>
+              <div style="font-size:13.5px;font-weight:600;">Médico(a): acompanhe prontuário completo, curvas e teleconsulta.</div>
+            </div>
+          </div>
+          <a href="https://drexame.janocaminho.com.br/doctor" target="_blank" style="background:#fff;color:#0f766e;text-decoration:none;padding:7px 16px;border-radius:999px;font-weight:800;font-size:12.5px;white-space:nowrap;display:inline-block;">
+            Acessar Portal do Médico →
+          </a>
+        </div>
+
+        <div class="info-bar">
+          <b>Paciente:</b> ${patientName}<br>
+          <b>Exame:</b> ${a.exam?.title ?? ''} — ${date}${lab ? ' • ' + lab : ''}
+        </div>
+        ${html}
+
+        <div class="doctor-cta-card">
+          <div style="font-size:26px;margin-bottom:6px;">👨‍⚕️🤝🔬</div>
+          <h3 style="font-size:16.5px;font-weight:800;color:#0f766e;margin-bottom:6px;">Médico: centralize os exames de todos os seus pacientes</h3>
+          <p style="font-size:13.5px;color:#334155;line-height:1.5;max-width:580px;margin:0 auto 16px;">
+            O Dr. Exame padroniza exames de múltiplos laboratórios em gráficos comparativos automáticos. Gratuito para médicos com CRM ativo.
+          </p>
+          <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+            <a href="https://drexame.janocaminho.com.br/doctor" target="_blank" style="background:#0d9488;color:#fff;text-decoration:none;padding:9px 20px;border-radius:10px;font-weight:800;font-size:13px;display:inline-block;">
+              Criar Acesso Médico Gratuito (CRM)
+            </a>
+            <a href="https://drexame.janocaminho.com.br/para-medicos" target="_blank" style="background:#fff;color:#0f766e;border:1px solid #0d9488;text-decoration:none;padding:9px 18px;border-radius:10px;font-weight:700;font-size:13px;display:inline-block;">
+              Conhecer Recursos Clínicos
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="footer">Dr. Exame • Plataforma de Inteligência Laboratorial • Link seguro criptografado expira em 12 horas</div>
+    </div></body></html>`;
   res.type('html').send(docHtml);
 });
 
