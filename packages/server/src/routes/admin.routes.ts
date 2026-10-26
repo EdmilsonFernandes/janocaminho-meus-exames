@@ -189,6 +189,14 @@ router.get('/credit-usage', async (req, res, next) => {
         transactions: u.creditTransactions.map((t) => ({ ...t, createdAt: t.createdAt.toISOString() })),
       }))
       .filter((r) => r.txCount > 0); // só quem tem movimento
+
+    // Ordenação padrão: quem transacionou mais recentemente vem primeiro!
+    rows.sort((a, b) => {
+      const ta = a.lastTxAt ? new Date(a.lastTxAt).getTime() : 0;
+      const tb = b.lastTxAt ? new Date(b.lastTxAt).getTime() : 0;
+      return tb - ta;
+    });
+
     res.json({ users: rows });
   } catch (e) { next(e); }
 });
@@ -961,8 +969,15 @@ router.post('/push/audience-preview', async (req: AuthedRequest, res, next) => {
   try {
     const filter = parseAudienceFilter(req.body?.filter);
     const ids = await resolveAudienceUserIds(filter);
-    const devices = ids.length ? await prisma.deviceToken.count({ where: { userId: { in: ids } } }) : 0;
-    const response: { users: number; devices: number; sampleUsers?: any[] } = { users: ids.length, devices };
+    const [devices, totalRegistered] = await Promise.all([
+      ids.length ? prisma.deviceToken.count({ where: { userId: { in: ids } } }) : 0,
+      prisma.user.count({ where: { blocked: false } }),
+    ]);
+    const response: { users: number; devices: number; totalRegistered: number; sampleUsers?: any[] } = {
+      users: ids.length,
+      devices,
+      totalRegistered,
+    };
     if (req.body?.includeUsers && ids.length) {
       const usersData = await prisma.user.findMany({
         where: { id: { in: ids.slice(0, 50) } },

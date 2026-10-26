@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, Chip, IconButton, Collapse,
-  LinearProgress, TextField, InputAdornment, MenuItem, Tooltip,
+  TableContainer, TableHead, TableRow, IconButton, Collapse,
+  LinearProgress, TextField, InputAdornment, MenuItem, Tooltip, Avatar,
   useMediaQuery, useTheme
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -10,6 +10,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
+import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
 import { API_URL, token } from '../../config';
 
 interface UsageRow {
@@ -51,7 +52,7 @@ export const UsageTab = () => {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'spent' | 'earned' | 'tx'>('spent');
+  const [sortBy, setSortBy] = useState<'recent' | 'spent' | 'earned' | 'tx'>('recent');
 
   useEffect(() => {
     setLoading(true);
@@ -63,6 +64,11 @@ export const UsageTab = () => {
   }, []);
 
   const sorted = [...rows].sort((a, b) => {
+    if (sortBy === 'recent') {
+      const ta = a.lastTxAt ? new Date(a.lastTxAt).getTime() : 0;
+      const tb = b.lastTxAt ? new Date(b.lastTxAt).getTime() : 0;
+      return tb - ta;
+    }
     if (sortBy === 'spent') return b.totalSpent - a.totalSpent;
     if (sortBy === 'earned') return b.totalEarned - a.totalEarned;
     return b.txCount - a.txCount;
@@ -165,12 +171,13 @@ export const UsageTab = () => {
           size="small"
           label="Ordenar por"
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as 'spent' | 'earned' | 'tx')}
-          sx={{ minWidth: 160, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper' } }}
+          onChange={(e) => setSortBy(e.target.value as 'recent' | 'spent' | 'earned' | 'tx')}
+          sx={{ minWidth: 210, '& .MuiOutlinedInput-root': { borderRadius: '12px', bgcolor: 'background.paper', fontSize: 13 } }}
         >
-          <MenuItem value="spent">Gasto total ↓</MenuItem>
-          <MenuItem value="earned">Ganho total ↓</MenuItem>
-          <MenuItem value="tx">Transações ↓</MenuItem>
+          <MenuItem value="recent">⚡ Mais recente primeiro</MenuItem>
+          <MenuItem value="spent">Gasto total IA ↓</MenuItem>
+          <MenuItem value="earned">Créditos comprados ↓</MenuItem>
+          <MenuItem value="tx">Transações realizadas ↓</MenuItem>
         </TextField>
       </Stack>
 
@@ -195,26 +202,43 @@ export const UsageTab = () => {
               }}
             >
               <CardContent sx={{ p: 1.75, '&:last-child': { pb: 1.75 } }}>
-                {/* Header: nome + saldo */}
+                {/* Header: avatar + nome + saldo */}
                 <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontSize: 15, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.name || r.email}
-                    </Typography>
-                    <Typography sx={{ fontSize: 12, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {r.email}
-                    </Typography>
-                  </Box>
-                  <Stack direction="row" alignItems="center" spacing={0.5}>
-                    <Chip
-                      size="small"
-                      label={`${r.credits.toLocaleString('pt-BR')} cr`}
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
+                    <Avatar sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
+                      {(r.name || r.email).slice(0, 2).toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.name || r.email}
+                      </Typography>
+                      <Typography sx={{ fontSize: 11.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {r.email}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Stack direction="row" alignItems="center" spacing={0.75}>
+                    <Box
                       sx={{
-                        height: 24, fontSize: 12, fontWeight: 800, whiteSpace: 'nowrap',
-                        bgcolor: r.credits > 100 ? 'rgba(4,120,87,.12)' : 'rgba(194,65,12,.12)',
-                        color: r.credits > 100 ? '#047857' : '#c2410c',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        px: 1,
+                        py: 0.35,
+                        borderRadius: '999px',
+                        fontSize: 11.5,
+                        fontWeight: 800,
+                        whiteSpace: 'nowrap',
+                        bgcolor: r.credits > 100
+                          ? (theme.palette.mode === 'dark' ? 'rgba(45, 212, 191, 0.16)' : 'rgba(20, 184, 166, 0.12)')
+                          : (theme.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(254, 243, 199, 0.95)'),
+                        border: `1px solid ${r.credits > 100 ? 'rgba(20, 184, 166, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
+                        color: r.credits > 100 ? (theme.palette.mode === 'dark' ? '#2dd4bf' : '#0f766e') : (theme.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
                       }}
-                    />
+                    >
+                      <span>⚡</span>
+                      <span>{r.credits.toLocaleString('pt-BR')} cr</span>
+                    </Box>
                     <IconButton size="small" sx={{ transform: expanded === r.userId ? 'rotate(180deg)' : 'none', transition: 'transform .2s', p: 0.25 }}>
                       <ExpandMoreIcon fontSize="small" />
                     </IconButton>
@@ -309,29 +333,44 @@ export const UsageTab = () => {
                         </IconButton>
                       </TableCell>
                       <TableCell>
-                        <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
-                          {r.name || r.email}
-                        </Typography>
-                        <Typography sx={{ fontSize: 12, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
-                          {r.email}
-                        </Typography>
+                        <Stack direction="row" alignItems="center" spacing={1.25}>
+                          <Avatar sx={{ width: 32, height: 32, fontSize: 12, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
+                            {(r.name || r.email).slice(0, 2).toUpperCase()}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
+                              {r.name || r.email}
+                            </Typography>
+                            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 220 }}>
+                              {r.email}
+                            </Typography>
+                          </Box>
+                        </Stack>
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                        <Chip
-                          size="small"
-                          label={`${r.credits.toLocaleString('pt-BR')} cr` }
-                          sx={{
-                            height: 22,
-                            fontSize: 12,
-                            fontWeight: 800,
-                            // 28/09 (dono): saldo cortado não dava pra ler a quantidade —
-                            // chip nunca encolhe/trunca, célula deixa esticar.
-                            whiteSpace: 'nowrap',
-                            maxWidth: 'none',
-                            bgcolor: r.credits > 100 ? 'rgba(4,120,87,.1)' : 'rgba(194,65,12,.1)',
-                            color: r.credits > 100 ? '#047857' : '#c2410c',
-                          }}
-                        />
+                        <Tooltip title={`Saldo atual: ${r.credits.toLocaleString('pt-BR')} créditos de IA`} arrow>
+                          <Box
+                            sx={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              px: 1.25,
+                              py: 0.4,
+                              borderRadius: '999px',
+                              fontSize: 12,
+                              fontWeight: 800,
+                              whiteSpace: 'nowrap',
+                              bgcolor: r.credits > 100
+                                ? (theme.palette.mode === 'dark' ? 'rgba(45, 212, 191, 0.16)' : 'rgba(20, 184, 166, 0.12)')
+                                : (theme.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(254, 243, 199, 0.95)'),
+                              border: `1px solid ${r.credits > 100 ? 'rgba(20, 184, 166, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
+                              color: r.credits > 100 ? (theme.palette.mode === 'dark' ? '#2dd4bf' : '#0f766e') : (theme.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
+                            }}
+                          >
+                            <span>⚡</span>
+                            <span>{r.credits.toLocaleString('pt-BR')} créditos</span>
+                          </Box>
+                        </Tooltip>
                       </TableCell>
                       <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                         <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#c2410c' }}>

@@ -9,7 +9,8 @@ import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react
 import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme,
   Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
-  Switch, FormControlLabel,
+  Switch, FormControlLabel, Autocomplete, Avatar, InputAdornment, Table,
+  TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
@@ -21,6 +22,9 @@ import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlin
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import SendOutlinedIcon from '@mui/icons-material/SendOutlined';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 import { AccountBalanceWalletOutlined } from '@mui/icons-material';
 import {
   ResponsiveContainer, AreaChart, Area, Bar, XAxis, YAxis, Tooltip as RTooltip,
@@ -88,7 +92,7 @@ export const TeleFinanceTab = () => {
   const mode = t.palette.mode as 'light' | 'dark';
   const [range, setRange] = useState<RangeKey>('30');
   const [doctorId, setDoctorId] = useState('');
-  const [doctors, setDoctors] = useState<{ id: string; name: string; crm: string }[]>([]);
+  const [doctors, setDoctors] = useState<{ id: string; name: string; crm: string; crmUf?: string; specialty?: string; photoUrl?: string }[]>([]);
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -100,6 +104,8 @@ export const TeleFinanceTab = () => {
   const [approveTarget, setApproveTarget] = useState<any | null>(null); // dialog de confirmação
   const [autoConfirmOpen, setAutoConfirmOpen] = useState(false); // confirm do toggle auto
   const [feedback, setFeedback] = useState<string | null>(null); // resultado da ação (sem jargão)
+  const [doctorModalOpen, setDoctorModalOpen] = useState(false);
+  const [doctorSearch, setDoctorSearch] = useState('');
 
   const period = useMemo(() => {
     const to = new Date();
@@ -137,7 +143,17 @@ export const TeleFinanceTab = () => {
     (async () => {
       try {
         const r = await fetch(`${API_URL}/admin/doctors`, { headers: { Authorization: `Bearer ${authToken()}` } });
-        if (r.ok) setDoctors(((await r.json()).doctors ?? []).map((d: any) => ({ id: d.id, name: d.name, crm: d.crm })));
+        if (r.ok) {
+          const list = (await r.json()).doctors ?? [];
+          setDoctors(list.map((d: any) => ({
+            id: d.id,
+            name: d.name,
+            crm: d.crm,
+            crmUf: d.crmUf,
+            specialty: d.specialty,
+            photoUrl: d.photoUrl,
+          })));
+        }
       } catch { /* filtro de médico é best-effort */ }
     })();
   }, []);
@@ -219,11 +235,62 @@ export const TeleFinanceTab = () => {
           <Chip key={r} label={r === '7' ? '7 dias' : r === '30' ? '30 dias' : '90 dias'} onClick={() => setRange(r)}
             sx={{ borderRadius: '10px', fontWeight: 700, minHeight: 32, ...(range === r ? { bgcolor: 'rgba(32,178,170,.16)', color: tealText(mode), border: '1px solid rgba(32,178,170,.4)' } : {}) }} />
         ))}
-        <TextField select size="small" label="Médico" value={doctorId} onChange={(e) => setDoctorId(e.target.value)}
-          sx={{ minWidth: { xs: 150, sm: 220 }, '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13.5 } }}>
-          <MenuItem value="">Todos os médicos</MenuItem>
-          {doctors.map((d) => (<MenuItem key={d.id} value={d.id}>{d.name} · CRM {d.crm}</MenuItem>))}
-        </TextField>
+        <Autocomplete
+          size="small"
+          options={doctors}
+          value={doctors.find((d) => d.id === doctorId) ?? null}
+          onChange={(_e, val) => setDoctorId(val?.id ?? '')}
+          getOptionLabel={(option) => `${option.name} · CRM ${option.crm}${option.crmUf ? `-${option.crmUf}` : ''}`}
+          isOptionEqualToValue={(option, val) => option.id === val.id}
+          noOptionsText="Nenhum médico encontrado"
+          sx={{ minWidth: { xs: 200, sm: 280 } }}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label="Filtrar por Médico"
+              placeholder="Digite nome ou CRM..."
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13.5 } }}
+            />
+          )}
+          renderOption={(props, option) => (
+            <Box component="li" {...props} key={option.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1 }}>
+              <Avatar
+                src={option.photoUrl}
+                sx={{ width: 30, height: 30, fontSize: 12, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}
+              >
+                {option.name[0]}
+              </Avatar>
+              <Box sx={{ minWidth: 0, flex: 1 }}>
+                <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {option.name}
+                </Typography>
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                  CRM {option.crm}{option.crmUf ? `-${option.crmUf}` : ''}{option.specialty ? ` · ${option.specialty}` : ''}
+                </Typography>
+              </Box>
+            </Box>
+          )}
+        />
+
+        {/* Botão para Relação Completa de Médicos em Tabela */}
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<TableChartOutlinedIcon sx={{ fontSize: 16 }} />}
+          onClick={() => setDoctorModalOpen(true)}
+          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, minHeight: 38 }}
+        >
+          Relação de Médicos ({doctors.length})
+        </Button>
+
+        {doctorId && (
+          <Chip
+            avatar={<Avatar src={doctors.find((d) => d.id === doctorId)?.photoUrl}>{doctors.find((d) => d.id === doctorId)?.name[0] ?? 'M'}</Avatar>}
+            label={`${doctors.find((d) => d.id === doctorId)?.name ?? 'Médico'} (Filtro Ativo)`}
+            onDelete={() => setDoctorId('')}
+            sx={{ borderRadius: '10px', fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: tealText(mode) }}
+          />
+        )}
         <Box sx={{ flex: 1 }} />
         <IconButton onClick={load} aria-label="Atualizar" sx={{ color: 'text.secondary' }}><RefreshOutlinedIcon fontSize="small" /></IconButton>
       </Stack>
@@ -425,6 +492,109 @@ export const TeleFinanceTab = () => {
           </Typography>
         )}
       </Box>
+
+      {/* Dialog: Relação Completa de Médicos com Fotos e CRM */}
+      <Dialog
+        open={doctorModalOpen}
+        onClose={() => setDoctorModalOpen(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}
+      >
+        <DialogTitle sx={{ pb: 1 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between">
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18 }}>
+                Relação de Médicos da Plataforma ({doctors.length})
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Selecione um médico para ver o extrato financeiro exclusivo ou configurar taxas específicas.
+              </Typography>
+            </Box>
+            <IconButton onClick={() => setDoctorModalOpen(false)} size="small">
+              <CloseIcon />
+            </IconButton>
+          </Stack>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Buscar por nome, CRM ou especialidade..."
+            value={doctorSearch}
+            onChange={(e) => setDoctorSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+          />
+          <TableContainer sx={{ maxHeight: 420 }}>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>Médico</TableCell>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>CRM</TableCell>
+                  <TableCell sx={{ fontWeight: 800, fontSize: 13 }}>Especialidade</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 13 }}>Ação</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {doctors
+                  .filter((d) => {
+                    if (!doctorSearch) return true;
+                    const q = doctorSearch.toLowerCase();
+                    return d.name.toLowerCase().includes(q) || d.crm.toLowerCase().includes(q) || (d.specialty && d.specialty.toLowerCase().includes(q));
+                  })
+                  .map((doc) => (
+                    <TableRow key={doc.id} hover selected={doc.id === doctorId}>
+                      <TableCell>
+                        <Stack direction="row" alignItems="center" spacing={1.25}>
+                          <Avatar src={doc.photoUrl} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}>
+                            {doc.name[0]}
+                          </Avatar>
+                          <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{doc.name}</Typography>
+                        </Stack>
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                        {doc.crm}{doc.crmUf ? `-${doc.crmUf}` : ''}
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 13, color: 'text.secondary' }}>
+                        {doc.specialty || 'Clínica Geral'}
+                      </TableCell>
+                      <TableCell align="right">
+                        <Button
+                          size="small"
+                          variant={doc.id === doctorId ? 'contained' : 'outlined'}
+                          onClick={() => {
+                            setDoctorId(doc.id);
+                            setDoctorModalOpen(false);
+                          }}
+                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}
+                        >
+                          {doc.id === doctorId ? 'Filtro Ativo' : 'Ver Extrato'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          {doctorId && (
+            <Button color="inherit" onClick={() => { setDoctorId(''); setDoctorModalOpen(false); }} sx={{ textTransform: 'none', fontWeight: 700 }}>
+              Limpar Filtro (Ver Todos)
+            </Button>
+          )}
+          <Button variant="contained" onClick={() => setDoctorModalOpen(false)} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}>
+            Fechar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 };

@@ -58,16 +58,19 @@ const AUDIENCE_GROUPS: { key: keyof Audience; label: string; options: { value: s
   },
 ];
 
-/** Templates prontos — voz do Dr. Exame. `aud` pré-seleciona o público do template. */
+/** Templates prontos — voz do Dr. Exame com base em todas as features atuais. */
 const TEMPLATES: { emoji: string; title: string; body: string; route?: string; aud?: Audience }[] = [
+  { emoji: '🔬', title: '{{nome}}, seu exame foi analisado com IA! 🔬', body: 'Seus marcadores mais recentes foram mapeados. Veja agora seu Score de Saúde e os pontos que requerem atenção.', route: '/', aud: { engagement: 'active7d' } },
+  { emoji: '🎙️', title: '🎙️ Ouça o resumo da sua saúde em 2 min', body: '{{nome}}, preparamos um áudio explicativo sobre os seus resultados clínicos. Dê o play agora no Dr. Exame!', route: '/' },
+  { emoji: '🩺', title: 'Segunda opinião médica em teleconsulta 🩺', body: '{{nome}}, converse com médicos especialistas diretamente pelo app, com laudo, pedido de exames e receita digital.', route: '/teleconsultas' },
+  { emoji: '⏳', title: '{{nome}}, seus marcadores estão desatualizados ⏳', body: 'Você possui exames com mais de 12 meses. Envie um exame de sangue recente para manter seu score atualizado.', route: '/exams', aud: { exams: 'stale90d' } },
+  { emoji: '⚡', title: 'Dúvidas sobre remédios ou exames? ⚡', body: 'Pergunte qualquer dúvida para a nossa IA médica 24 horas por dia. Seus créditos estão disponíveis!', route: '/chat' },
   { emoji: '🏆', title: '{{nome}}, meta batida ontem! 🎉', body: 'Foram {{passosOntem}} passos — a partir de 8 mil por dia é onde a ciência vê o maior ganho pra coração e metabolismo. Segue o ritmo! 💚', route: '/evolucao', aud: { activity: 'goalHitYesterday' } },
   { emoji: '🚶', title: '{{nome}}, o corpo sente a pausa', body: 'Sua média de passos caiu pela metade nos últimos 3 dias. 10 minutos de caminhada já ajudam pressão, açúcar e humor — dá pra encaixar um hoje?', route: '/evolucao', aud: { activity: 'lowActivity3d' } },
-  { emoji: '🔥', title: '{{streak}} dias seguidos, {{nome}}!', body: 'Constância é o que muda exame de verdade — e você está entregando. O Dr. Exame registrou (e aplaudiu).', route: '/', aud: { engagement: 'active7d' } },
+  { emoji: '🔥', title: '{{streak}} dias seguidos, {{nome}}!', body: 'Constância é o que muda exame de verdade — e você está entregando. O Dr. Exame registrou seu progresso.', route: '/', aud: { engagement: 'active7d' } },
   { emoji: '👑', title: 'Seu Premium expira em breve', body: 'Histórico completo, tendências e relatório pro médico continuam com você. Renove e não perca o ritmo.', route: '/planos', aud: { plan: 'premiumExpiring7d' } },
-  { emoji: '📋', title: '{{nome}}, seus exames continuam aqui', body: 'Faz um tempinho. Que tal conferir se algo mudou na sua evolução? Seu histórico está guardadinho.', route: '/evolucao', aud: { engagement: 'inactive14d' } },
   { emoji: '👥', title: 'Indique e ganhe créditos! 🎁', body: '{{nome}}, convide um amigo: ele ganha bônus no cadastro e você ganha quando ele ativar. Saúde fica melhor em dupla. 💚', route: '/indique' },
-  { emoji: '🩺', title: 'Exames de rotina em dia? 🩺', body: 'Previnir é mais fácil que remediar. Revise seus exames e mantenha tudo atualizado.', route: '/linha-do-tempo', aud: { exams: 'stale90d' } },
-  { emoji: '📋', title: 'Seus exames em um só lugar 📋', body: 'Envie seu último exame e deixe o Dr. Exame te ajudar a entender cada valor.', route: '/exams', aud: { engagement: 'noFirstExam' } },
+  { emoji: '📋', title: 'Envie seu primeiro exame 📋', body: 'Envie seu último exame e deixe o Dr. Exame te ajudar a entender cada valor.', route: '/exams', aud: { engagement: 'noFirstExam' } },
 ];
 
 const hasAudience = (a: Audience) => Object.values(a).some(Boolean);
@@ -101,6 +104,7 @@ export const PushTab = () => {
   const [preview, setPreview] = useState<{
     users: number;
     devices: number;
+    totalRegistered?: number;
     sampleUsers?: Array<{ id: string; name: string | null; email: string; planExpiresAt: Date | null; deviceCount: number; platforms: string[] }>;
   } | null>(null);
   const [previewing, setPreviewing] = useState(false);
@@ -144,7 +148,7 @@ export const PushTab = () => {
       body: JSON.stringify({ filter: activeFilter, includeUsers: true }),
     })
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setPreview(d ? { users: d.users ?? 0, devices: d.devices ?? 0, sampleUsers: d.sampleUsers ?? [] } : null))
+      .then((d) => setPreview(d ? { users: d.users ?? 0, devices: d.devices ?? 0, totalRegistered: d.totalRegistered, sampleUsers: d.sampleUsers ?? [] } : null))
       .catch(() => setPreview(null))
       .finally(() => setPreviewing(false));
   }, [audience, audienceMode]);
@@ -284,29 +288,47 @@ export const PushTab = () => {
           )}
 
           {/* Barra de contagem e botão de inspeção de destinatários */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.18)' }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              {previewing ? (
-                <CircularProgress size={18} sx={{ color: '#178f89' }} />
-              ) : (
-                <GroupsIcon sx={{ color: '#178f89', fontSize: 20 }} />
-              )}
-              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: '#0f5f5a' }}>
-                {preview ? (
-                  <>Destinatários alcançáveis: <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> dispositivo(s) com push ativo</>
+          <Box sx={{ p: 2, borderRadius: '14px', bgcolor: 'rgba(32,178,170,.06)', border: '1px solid rgba(32,178,170,.22)' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+              <Stack direction="row" spacing={1} alignItems="center">
+                {previewing ? (
+                  <CircularProgress size={18} sx={{ color: '#178f89' }} />
                 ) : (
-                  'Calculando audiência…'
+                  <GroupsIcon sx={{ color: '#178f89', fontSize: 22 }} />
                 )}
-              </Typography>
+                <Box>
+                  <Typography sx={{ fontSize: 14, fontWeight: 800, color: '#0f5f5a' }}>
+                    {preview ? (
+                      <>
+                        Destinatários alcançáveis: <strong>{preview.users}</strong> usuário(s) · <strong>{preview.devices}</strong> aparelho(s) com push ativo
+                        {preview.totalRegistered ? (
+                          <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary', ml: 0.75, fontSize: 12.5 }}>
+                            (de {preview.totalRegistered} cadastrados na plataforma)
+                          </Box>
+                        ) : null}
+                      </>
+                    ) : (
+                      'Calculando audiência…'
+                    )}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {preview && preview.users > 0 && (
+                <Button size="small" variant="outlined" onClick={() => setShowUserList((v) => !v)}
+                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '8px', borderColor: '#178f89', color: '#178f89' }}>
+                  {showUserList ? 'Ocultar lista de pessoas ▲' : `Ver quem são os ${preview.users} destinatários ▼`}
+                </Button>
+              )}
             </Stack>
 
-            {preview && preview.users > 0 && (
-              <Button size="small" variant="outlined" onClick={() => setShowUserList((v) => !v)}
-                sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '8px', borderColor: '#178f89', color: '#178f89' }}>
-                {showUserList ? 'Ocultar lista de pessoas ▲' : `Ver quem são os ${preview.users} destinatários ▼`}
-              </Button>
-            )}
-          </Stack>
+            {/* Aviso informativo de transparência sobre o número de aparelhos alcançáveis */}
+            <Box sx={{ mt: 1.25, pt: 1.25, borderTop: '1px dashed rgba(32,178,170,.25)' }}>
+              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', lineHeight: 1.45 }}>
+                💡 <strong>Por que o número de push é menor que a base total?</strong> Notificações Push são entregues diretamente no sistema operacional de celulares com o app móvel instalado ou notificações do navegador autorizadas. Usuários cadastrados apenas pela web sem permissão ativa não geram token de push no aparelho.
+              </Typography>
+            </Box>
+          </Box>
 
           {/* Tabela transparente de destinatários (expandível) */}
           {showUserList && preview?.sampleUsers && preview.sampleUsers.length > 0 && (

@@ -44,7 +44,6 @@ import { IaTab } from './IaTab';
 import { UsageTab } from './UsageTab';
 import { UsabilityTab } from './UsabilityTab';
 import { ReferralTab } from './ReferralTab';
-import { RiskTab } from './RiskTab';
 import { TechTab } from './TechTab';
 import { AuditTab } from './AuditTab';
 import { SupportTab } from './SupportTab';
@@ -73,7 +72,6 @@ export type ModuleId =
   | 'support'
   | 'usage'
   | 'ia'
-  | 'risk'
   | 'financeiro'
   | 'config'
   | 'labs'
@@ -110,7 +108,6 @@ const MODULES: AdminModule[] = [
   // 3. Inteligência Artificial
   { id: 'usage', label: 'Consumo de IA & Créditos', short: 'Consumo IA', icon: <BoltOutlinedIcon />, group: 'Inteligência Artificial' },
   { id: 'ia', label: 'Provedores & Modelos', short: 'Provedores', icon: <AutoAwesomeOutlinedIcon />, group: 'Inteligência Artificial' },
-  { id: 'risk', label: 'Risco Clínico & Qualidade', short: 'Risco Clínico', icon: <MonitorHeartOutlinedIcon />, group: 'Inteligência Artificial' },
 
   // 4. Negócio & Ecossistema
   { id: 'financeiro', label: 'Planos & Receita (PIX/Cartão)', short: 'Financeiro', icon: <PaymentsOutlinedIcon />, group: 'Comercial & Negócio' },
@@ -576,7 +573,6 @@ export const AdminPage = () => {
             {mod === 'pharmacies' && <PharmaciesTab />}
             {mod === 'ia' && <IaTab />}
             {mod === 'usage' && <UsageTab />}
-            {mod === 'risk' && <RiskTab />}
             {mod === 'financeiro' && <FinanceiroTab />}
             {mod === 'push' && <PushTab />}
             {mod === 'tech' && <TechTab />}
