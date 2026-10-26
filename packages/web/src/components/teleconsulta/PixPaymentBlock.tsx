@@ -109,20 +109,24 @@ export const PixPaymentBlock = ({
     return () => clearInterval(tick);
   }, [charge?.paymentId, charge?.expiresAt]);
 
+  // Regra de ouro do pagamento (26/10): nenhum caminho do copy derruba a tela —
+  // snackbar em try/catch; falha de copy → seleção manual + info (nunca vermelho).
   const doCopy = async () => {
     const code = String(charge?.qrCode ?? '');
     if (!code) return;
-    if (await copyText(code)) {
-      setCopied(true);
-      clearTimeout(copyTimer.current);
-      copyTimer.current = setTimeout(() => setCopied(false), 2500);
-      snackbar({ message: 'Código PIX copiado!', severity: 'success' });
-    } else {
-      pixCodeRef.current?.focus();
-      pixCodeRef.current?.select();
-      hapticLight();
-      snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código acima para copiar.', severity: 'info' });
-    }
+    try {
+      if (await copyText(code)) {
+        setCopied(true);
+        clearTimeout(copyTimer.current);
+        copyTimer.current = setTimeout(() => setCopied(false), 2500);
+        try { snackbar({ message: 'Código PIX copiado!', severity: 'success' }); } catch { /* toast nunca derruba o pagamento */ }
+      } else {
+        pixCodeRef.current?.focus();
+        pixCodeRef.current?.select();
+        hapticLight();
+        try { snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código acima para copiar.', severity: 'info' }); } catch { /* idem */ }
+      }
+    } catch { /* copyText nunca lança; defesa extra p/ nenhum path quebrar o card */ }
   };
 
   if (paidAt) {

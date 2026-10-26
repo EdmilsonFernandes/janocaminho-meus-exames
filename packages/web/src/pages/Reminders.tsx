@@ -379,21 +379,25 @@ export const RemindersPage = () => {
   /** Copy do código PIX à prova de WebView (bug dono 24/10: "copiar no APP dá erro" —
    *  navigator.clipboard falha/rejeita no Capacitor e o toast antigo mentia "copiado").
    *  copyText tenta Clipboard API → execCommand; se os 2 falharem, SELECIONA o código
-   *  no campo readOnly (toque-e-segure copia nativo) — feedback claro em TODO caminho. */
+   *  no campo readOnly (toque-e-segure copia nativo) — feedback claro em TODO caminho.
+   *  Regra de ouro (26/10): NENHUM caminho do copy pode derrubar a tela — snackbar em
+   *  try/catch e o dialog preserva QR + código + validade mesmo se algo falhar. */
   const doCopyPix = async () => {
     const code = String(payTele?.qrCode ?? '');
     if (!code) return;
-    if (await copyText(code)) {
-      setPixCopied(true);
-      clearTimeout(pixCopyTimer.current);
-      pixCopyTimer.current = setTimeout(() => setPixCopied(false), 2500);
-      snackbar({ message: 'Código PIX copiado!', severity: 'success' });
-    } else {
-      pixCodeRef.current?.focus();
-      pixCodeRef.current?.select();
-      hapticLight();
-      snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código acima para copiar.', severity: 'info' });
-    }
+    try {
+      if (await copyText(code)) {
+        setPixCopied(true);
+        clearTimeout(pixCopyTimer.current);
+        pixCopyTimer.current = setTimeout(() => setPixCopied(false), 2500);
+        try { snackbar({ message: 'Código PIX copiado!', severity: 'success' }); } catch { /* toast nunca derruba o pagamento */ }
+      } else {
+        pixCodeRef.current?.focus();
+        pixCodeRef.current?.select();
+        hapticLight();
+        try { snackbar({ message: 'Não deu pra copiar automático. Toque e segure o código acima para copiar.', severity: 'info' }); } catch { /* idem */ }
+      }
+    } catch { /* copyText nunca lança; defesa extra p/ nenhum path quebrar o dialog */ }
   };
   const payExpired = !!payTele?.expiresAt && paySecs <= 0;
   const payMm = String(Math.floor(paySecs / 60)).padStart(2, '0');

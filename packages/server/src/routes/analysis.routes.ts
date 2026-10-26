@@ -129,6 +129,23 @@ router.post('/consolidated', async (req: AuthedRequest, res, next) => {
       orderBy: { createdAt: 'desc' },
     });
     if (recent && !req.body?.force) { res.json({ ...recent, sourceExams }); return; }
+    // D3 incidente 24/10 (rogerpacheco1976): consolidado cobrava 20 (e podia
+    // queimar voucher) ANTES de descobrir que não havia o que consolidar —
+    // paciente viu "erro da IA" com reembolso, perdendo credibilidade. Gate
+    // ANTES de voucher/créditos: consolidado precisa de ITENS estruturados
+    // (exame ESCANEADO sem tabela gera resumo individual por texto, mas não
+    // entra no consolidado) — mensagem orienta, nunca parece falha da IA.
+    const markerCount = await prisma.examItem.count({ where: { exam: { patientId, status: 'EXTRACTED' } } });
+    if (markerCount === 0) {
+      const hasAnyExam = await prisma.exam.count({ where: { patientId, status: 'EXTRACTED' } }) > 0;
+      res.status(400).json({
+        error: 'nothing_to_consolidate',
+        message: hasAnyExam
+          ? 'Seu exame foi lido, mas sem valores estruturados (exame escaneado, sem tabela do laboratório). O resumo individual dele funciona — para o relatório consolidado, envie um exame com valores (PDF de laboratório).'
+          : 'Você ainda não tem exames lidos pelo Dr. Exame. Envie um exame (PDF ou foto) para gerar o relatório.',
+      });
+      return;
+    }
     // PERK PREMIUM (settings): relatório consolidado INCLUÍDO no plano — sem débito. Free paga
     // créditos normalmente (nada é travado; perk liga/desliga no admin sem estado órfão).
     const premiumIncluded = getPremiumPerks().consolidatedFree && (await isPremium(req.userId!));

@@ -146,6 +146,9 @@ export const ConsolidatedReportPage = () => {
   const [error, setError] = useState('');
   const [noCredits, setNoCredits] = useState(false);
   const [noExams, setNoExams] = useState(false);
+  // D3 24/10: exame escaneado SEM valores estruturados — consolidado não roda, mas
+  // dizer 'você não tem exames' pra quem ENVIOU é mentira e quebra a confiança.
+  const [scannedOnly, setScannedOnly] = useState<string | null>(null);
   // R2: geração em andamento em OUTRA sessão/visita (registry server-side) — quem sai
   // durante a geração e volta vê o aviso em vez do relatório antigo sem explicação.
   const [generatingSince, setGeneratingSince] = useState<number | null>(null);
@@ -310,7 +313,7 @@ export const ConsolidatedReportPage = () => {
   const doGenerate = (force: boolean) => {
     setLoading(true);
     setGenStart(Date.now());
-    setError(''); setNoCredits(false); setNoExams(false);
+    setError(''); setNoCredits(false); setNoExams(false); setScannedOnly(null);
     fetch(`${API_URL}/analyses/consolidated`, {
       method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid, force }),
     })
@@ -318,7 +321,10 @@ export const ConsolidatedReportPage = () => {
         if (r.ok) return r.json();
         const body = await r.json().catch(() => ({}));
         if (r.status === 402) { setNoCredits(true); return null; }   // sem créditos → card premium (não "insufficient_credits" cru)
-        if (r.status === 400) { setNoExams(true); return null; }     // sem exame → CTA enviar exame (não erro)
+        if (r.status === 400) {
+          if (body.error === 'nothing_to_consolidate' && body.message?.includes('escaneado')) { setScannedOnly(body.message); return null; } // exame sem valores → explica a verdade
+          setNoExams(true); return null;     // sem exame nenhum → CTA enviar exame (não erro)
+        }
         throw new Error(body.message || body.error || 'Falha ao gerar relatório');
       })
       .then((a) => { if (a) { setAnalysis(a); bumpCredits(); try { window.dispatchEvent(new CustomEvent('me:reportReady', { detail: { message: '✅ Seu relatório completo está pronto.' } })); } catch { /* best-effort */ } } })   // atualiza o saldo do header (consolidated consome)
@@ -488,6 +494,18 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
       )}
 
       {/* Sem exames — direcionar pra enviar (não erro) */}
+      {scannedOnly && (
+        <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', bgcolor: 'rgba(245,158,11,.06)', border: '1px solid rgba(245,158,11,.25)' }}>
+          <Stack direction='row' spacing={1.5} alignItems='flex-start'>
+            <Box sx={{ fontSize: 28 }}>🔍</Box>
+            <Box>
+              <Typography sx={{ fontWeight: 800 }}>Seu exame não tem valores de laboratório</Typography>
+              <Typography variant='body2' color='text.secondary' sx={{ mt: 0.5 }}>{scannedOnly}</Typography>
+              <Button size='small' variant='outlined' onClick={() => navigate('/exams/create')} sx={{ mt: 1.5, textTransform: 'none', fontWeight: 700, borderRadius: '999px' }}>Enviar PDF de laboratório</Button>
+            </Box>
+          </Stack>
+        </Box>
+      )}
       {noExams && (
         <Box sx={{ mt: 2, p: 2.5, borderRadius: '12px', textAlign: 'center', bgcolor: 'action.hover' }}>
           <Box sx={{ fontSize: 40 }}>📄</Box>

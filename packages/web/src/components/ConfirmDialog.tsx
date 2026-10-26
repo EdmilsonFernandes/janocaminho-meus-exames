@@ -126,7 +126,12 @@ const prefersReducedMotion = (): boolean => {
   try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch { return false; }
 };
 
-const SwipeableAlert = ({ severity, message, onClose }: { severity?: SnackbarOptions['severity']; message: React.ReactNode; onClose: () => void }) => {
+// forwardRef OBRIGATÓRIO (bug Heloisa 26/10): o Snackbar usa Transition=Grow, que
+// anexa o ref no filho p/ medir a animação (onEnter → reflow(node) → node.scrollTop).
+// Este componente era FC sem ref → nodeRef.current null → TypeError "reading 'scrollTop'"
+// → ErrorBoundary → tela "A client error occurred" no meio do pagamento PIX.
+const SwipeableAlert = React.forwardRef<HTMLDivElement, { severity?: SnackbarOptions['severity']; message: React.ReactNode; onClose: () => void }>(
+  function SwipeableAlert({ severity, message, onClose }, ref) {
   const [dx, setDx] = React.useState(0);
   const [leaving, setLeaving] = React.useState(false);
   const dragging = React.useRef(false);
@@ -170,6 +175,7 @@ const SwipeableAlert = ({ severity, message, onClose }: { severity?: SnackbarOpt
 
   return (
     <MuiAlert
+      ref={ref}
       elevation={3}
       severity={severity ?? 'info'}
       onClose={onClose}
@@ -190,7 +196,27 @@ const SwipeableAlert = ({ severity, message, onClose }: { severity?: SnackbarOpt
       {message}
     </MuiAlert>
   );
-};
+  }
+);
+
+/**
+ * Blindagem do toast (regra de ouro do pagamento 26/10: "gerou pagamento + erro não pode
+ * acontecer"): qualquer falha futura na camada Snackbar/Transition (Grow/reflow) é contida
+ * AQUI — o toast morre sozinho e o app continua de pé (dialog PIX incluso). Sem isso um
+ * bug de transição derruba a árvore inteira no ErrorBoundary.
+ */
+class ToastBoundary extends React.Component<{ crashKey?: string; onCrash?: () => void; children: React.ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: unknown) {
+    console.error('[ToastBoundary] snackbar contida (app segue de pé):', error);
+    this.props.onCrash?.();
+  }
+  componentDidUpdate(prev: { crashKey?: string }) {
+    if (prev.crashKey !== this.props.crashKey && this.state.hasError) this.setState({ hasError: false });
+  }
+  render() { return this.state.hasError ? null : this.props.children; }
+}
 
 /** Provider que renderiza os Dialogs premium e registra as fns globais. Envolver o App 1x. */
 export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode }) => {
@@ -225,9 +251,11 @@ export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode 
         onClose={() => closePrompt(null)}
         onSubmit={(v) => closePrompt(v)}
       />
-      <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
-        <SwipeableAlert severity={snack?.severity} message={snack?.message} onClose={() => setSnack(null)} />
-      </Snackbar>
+      <ToastBoundary crashKey={`${snack?.severity ?? ''}|${typeof snack?.message === 'string' ? snack.message : ''}`} onCrash={() => setSnack(null)}>
+        <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+          <SwipeableAlert severity={snack?.severity} message={snack?.message} onClose={() => setSnack(null)} />
+        </Snackbar>
+      </ToastBoundary>
     </React.Fragment>
   );
 };
