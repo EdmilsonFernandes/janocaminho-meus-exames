@@ -528,36 +528,68 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
       boxShadow: `0 2px 8px rgba(0,0,0,.04), 0 8px 32px ${scoreGlowColor(score)}`,
       transition: 'box-shadow .6s ease',
     }}>
-      {/* Fix #15 — play compacto do resumo em áudio DENTRO do hero (ícone, não card). */}
-      {audioSummary && (
-        <Tooltip title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio com IA'} arrow placement="left">
-          <IconButton
-            onClick={toggleAudio}
-            aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
-            title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio'}
-            sx={{
-              position: 'absolute', top: { xs: 10, sm: 14 }, right: { xs: 10, sm: 14 }, zIndex: 3,
-              width: 38, height: 38, p: 0, borderRadius: '50%',
-              background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
-              color: '#ffffff', flexShrink: 0,
-              boxShadow: audioPlaying ? '0 4px 16px rgba(32,178,170,.45)' : '0 2px 10px rgba(32,178,170,.3)',
-              transition: 'transform .2s cubic-bezier(.16,1,.3,1)',
-              '&:hover': { transform: 'scale(1.07)' },
-              '&:active': { transform: 'scale(.94)' },
-              ...(audioPlaying && !reduced ? {
-                animation: 'dxAudioPulse 2s ease-in-out infinite',
-                '@keyframes dxAudioPulse': {
-                  '0%, 100%': { transform: 'scale(1)' },
-                  '50%': { transform: 'scale(1.06)' },
-                },
-              } : {}),
-              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
-            }}
-          >
-            {audioPlaying ? <PauseIcon sx={{ fontSize: 20 }} /> : <PlayArrowIcon sx={{ fontSize: 22, ml: 0.25 }} />}
-          </IconButton>
-        </Tooltip>
-      )}
+      {/* Barra superior de status: Data do exame à esquerda + Play de áudio à direita (sem sobreposição) */}
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: '100%', mb: { xs: 1.5, sm: 1.75 }, position: 'relative', zIndex: 2 }}>
+        <Box
+          sx={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.75,
+            px: 1.25,
+            py: 0.45,
+            borderRadius: '8px',
+            bgcolor: (th) => alpha(th.palette.primary.main, th.palette.mode === 'dark' ? 0.16 : 0.08),
+            border: (th) => `1px solid ${alpha(th.palette.primary.main, th.palette.mode === 'dark' ? 0.35 : 0.22)}`,
+            fontSize: 11.5,
+            fontWeight: 800,
+            letterSpacing: '0.03em',
+            textTransform: 'uppercase',
+            color: (th) => (th.palette.mode === 'dark' ? '#2dd4bf' : '#0f766e'),
+          }}
+        >
+          {last && !noData ? (
+            <>
+              <ScienceIcon sx={{ fontSize: 13 }} /> Último exame: {last}
+            </>
+          ) : (
+            <>Sua saúde hoje</>
+          )}
+        </Box>
+
+        {/* Play compacto do resumo em áudio DENTRO do hero (alinhado graciosamente no canto superior direito) */}
+        {audioSummary && (
+          <Tooltip title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio com IA'} arrow placement="left">
+            <IconButton
+              onClick={toggleAudio}
+              aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
+              title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio'}
+              sx={{
+                width: { xs: 34, sm: 38 },
+                height: { xs: 34, sm: 38 },
+                p: 0,
+                borderRadius: '50%',
+                background: 'linear-gradient(135deg, #20b2aa 0%, #0f5f5a 100%)',
+                color: '#ffffff',
+                flexShrink: 0,
+                boxShadow: audioPlaying ? '0 4px 16px rgba(32,178,170,.45)' : '0 2px 10px rgba(32,178,170,.3)',
+                transition: 'transform .2s cubic-bezier(.16,1,.3,1)',
+                '&:hover': { transform: 'scale(1.07)' },
+                '&:active': { transform: 'scale(.94)' },
+                ...(audioPlaying && !reduced ? {
+                  animation: 'dxAudioPulse 2s ease-in-out infinite',
+                  '@keyframes dxAudioPulse': {
+                    '0%, 100%': { transform: 'scale(1)' },
+                    '50%': { transform: 'scale(1.06)' },
+                  },
+                } : {}),
+                '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+              }}
+            >
+              {audioPlaying ? <PauseIcon sx={{ fontSize: 18 }} /> : <PlayArrowIcon sx={{ fontSize: 20, ml: 0.2 }} />}
+            </IconButton>
+          </Tooltip>
+        )}
+      </Stack>
 
       <Stack direction="row" spacing={{ xs: 1.5, sm: 2.25 }} alignItems="center" sx={{ width: '100%', minWidth: 0, position: 'relative', zIndex: 1 }}>
         {/* Score Ring — gradiente cônico animado */}
@@ -617,12 +649,8 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          {/* Temporalidade clínica honesta: exibe a data real da coleta em vez de fingir tempo real */}
-          <Typography sx={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.02em', textTransform: 'uppercase', color: (th) => TONE_TEXT[st.tone][th.palette.mode === 'dark' ? 'dark' : 'light'] }}>
-            {last && !noData ? <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}><ScienceIcon sx={{ fontSize: 13 }} /> Exame em {last}</Box> : 'Sua saúde hoje'}
-          </Typography>
           <Typography sx={{
-            fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.125rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', mt: 0.25, textWrap: 'balance',
+            fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.15rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', textWrap: 'balance',
             // STATUS ENTRA DEPOIS do count-up: fade + translateY(4px→0), 200ms com delay
             // 850ms (stagger sutil). GPU-friendly (só opacity/transform). Fora dos estados
             // sem score (noData/indisponível não têm count-up — aparecem direto).
@@ -631,45 +659,129 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               '@keyframes dxStatusIn': { from: { opacity: 0, transform: 'translateY(4px)' } },
             } : {}),
           }}>{title}</Typography>
+
           {/* W2 — comemora o progresso (só quando SUBIU; nunca pune queda). */}
           {scoreGain > 0 && showGain && (
             <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.75, px: 1.25, py: 0.4, borderRadius: RADIUS.sm, bgcolor: 'rgba(212,165,116,.14)', border: '1px solid rgba(212,165,116,.35)', fontSize: 12.5, fontWeight: 800, color: (th) => copperText(th.palette.mode) }}>
               <BoltIcon sx={{ fontSize: 14 }} /> +{scoreGain} pontos desde sua última visita
             </Box>
           )}
-          <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
+
+          {/* Pílulas de severidade clínica (Pills ergonômicas que nunca quebram palavras) */}
+          <Stack direction="row" spacing={1} sx={{ mt: 1.1, flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
             {totalAtt > 0 ? (
+              <>
+                {importante > 0 && (
+                  <Box
+                    component="button"
+                    onClick={onDetails}
+                    title="Ver marcadores que requerem atenção"
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.25,
+                      py: 0.45,
+                      borderRadius: '999px',
+                      bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.16)' : 'rgba(254, 242, 242, 0.95)'),
+                      border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.4)' : 'rgba(239, 68, 68, 0.35)'}`,
+                      color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'),
+                      fontSize: 12,
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s cubic-bezier(.16,1,.3,1)',
+                      '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 3px 8px rgba(239,68,68,0.18)' },
+                      '&:active': { transform: 'scale(0.97)' },
+                    }}
+                  >
+                    <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#ef4444', boxShadow: '0 0 6px rgba(239,68,68,0.6)' }} />
+                    <span>{importante} {SEVERITY.high}</span>
+                  </Box>
+                )}
+
+                {moderada > 0 && (
+                  <Box
+                    component="button"
+                    onClick={onDetails}
+                    title="Ver marcadores com alterações leves"
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 0.75,
+                      px: 1.25,
+                      py: 0.45,
+                      borderRadius: '999px',
+                      bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(254, 243, 199, 0.95)'),
+                      border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.4)' : 'rgba(245, 158, 11, 0.35)'}`,
+                      color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
+                      fontSize: 12,
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      transition: 'all 0.2s cubic-bezier(.16,1,.3,1)',
+                      '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 3px 8px rgba(245,158,11,0.18)' },
+                      '&:active': { transform: 'scale(0.97)' },
+                    }}
+                  >
+                    <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f59e0b', boxShadow: '0 0 6px rgba(245,158,11,0.6)' }} />
+                    <span>{moderada} {SEVERITY.mid}</span>
+                  </Box>
+                )}
+              </>
+            ) : noData ? (
+              <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
+                {goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}
+              </Typography>
+            ) : score != null ? (
               <Box
-                component="button"
-                onClick={onDetails}
                 sx={{
-                  display: 'inline-flex', alignItems: 'center', gap: 0.75,
-                  background: 'none', border: 'none', p: 0, cursor: 'pointer', textAlign: 'left',
-                  fontFamily: 'inherit',
-                  '&:hover': { opacity: 0.85 },
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.25,
+                  py: 0.45,
+                  borderRadius: '999px',
+                  bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(34, 197, 94, 0.14)' : 'rgba(240, 253, 244, 0.95)'),
+                  border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(34, 197, 94, 0.35)' : 'rgba(34, 197, 94, 0.3)'}`,
+                  color: (th) => (th.palette.mode === 'dark' ? '#4ade80' : '#15803d'),
+                  fontSize: 12,
+                  fontWeight: 800,
+                  whiteSpace: 'nowrap',
                 }}
               >
-                <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-                  {importante > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#f87171' : '#b91c1c'), fontWeight: 700 }}>● No exame recente: {importante} {SEVERITY.high}</Box>}
-                  {importante > 0 && moderada > 0 && <Box component="span" sx={{ color: 'text.secondary' }}> · </Box>}
-                  {moderada > 0 && <Box component="span" sx={{ color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), fontWeight: 700 }}>● {importante === 0 ? 'No exame recente: ' : ''}{moderada} {SEVERITY.mid}</Box>}
-                </Typography>
-                <Box component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'primary.main', bgcolor: (th) => alpha(th.palette.primary.main, 0.1), px: 0.75, py: 0.2, borderRadius: RADIUS.sm }}>
-                  ver análise →
-                </Box>
+                <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#22c55e', boxShadow: '0 0 6px rgba(34,197,94,0.6)' }} />
+                <span>Todos marcadores normais</span>
               </Box>
-            ) : noData ? (
-              <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{goalSubtitle(getGoals()) ?? 'Envie um exame pra começarmos a construir sua visão de saúde.'}</Typography>
-            ) : score != null ? (
-              <Typography sx={{ fontSize: 14, color: 'success.main', fontWeight: 700 }}>● Nada crítico no momento</Typography>
             ) : null}
-            {/* Honestidade de estado: dados antigos avisam claramente */}
-            {staleWarning && !noData && (
-              <Typography sx={{ fontSize: 12, fontWeight: 600, lineHeight: 1.35, color: (th) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'] }}><HourglassTopIcon component="span" sx={{ fontSize: 13, mr: 0.25, verticalAlign: '-2px' }} /> {staleWarning}</Typography>
-            )}
           </Stack>
         </Box>
       </Stack>
+
+      {/* Faixa contextual isolada (Honestidade Clínica): dados antigos avisam com calma sem quebrar o layout */}
+      {staleWarning && !noData && (
+        <Box
+          sx={{
+            mt: 1.75,
+            p: 1.25,
+            borderRadius: '12px',
+            bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(254, 243, 199, 0.65)'),
+            border: (th) => `1px solid ${th.palette.mode === 'dark' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`,
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 1,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <HourglassTopIcon sx={{ fontSize: 16, color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#d97706'), flexShrink: 0, mt: 0.15 }} />
+          <Typography sx={{ fontSize: 12, lineHeight: 1.45, fontWeight: 500, color: (th) => (th.palette.mode === 'dark' ? '#fde68a' : '#78350f') }}>
+            {staleWarning}
+          </Typography>
+        </Box>
+      )}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 2.25, width: '100%', position: 'relative', zIndex: 1 }}>
         {noData ? (
