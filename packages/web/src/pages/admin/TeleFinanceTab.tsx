@@ -229,7 +229,8 @@ export const TeleFinanceTab = () => {
       </Stack>
 
       {/* ── §18.2 (Onda 2): CONDIÇÃO COMERCIAL — UI do GET/POST commission-rules ── */}
-      <CommissionRulesCard doctors={doctors} />
+      <CommissionRulesCard doctors={doctors} selectedDoctorId={doctorId} onSelectDoctor={setDoctorId} />
+
 
       {/* GMV — topo, com a verdade anti-dúbia: NÃO é receita */}
       <KpiGroup title="Volume movimentado" sub="Total pago por pacientes nas teleconsultas do período" accent="#20b2aa">

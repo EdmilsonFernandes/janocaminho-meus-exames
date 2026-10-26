@@ -590,6 +590,7 @@ export const PortalTeleconsultas = ({
                         height: 22,
                         fontSize: 11.5,
                         fontWeight: 700,
+                        whiteSpace: 'nowrap',
                         bgcolor: tc.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
                         color: tc.consentAt ? '#059669' : '#d97706',
                         '& .MuiChip-icon': { color: tc.consentAt ? '#059669' : '#d97706' },

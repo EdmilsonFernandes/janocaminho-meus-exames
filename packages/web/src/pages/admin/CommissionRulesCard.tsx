@@ -1,8 +1,7 @@
 // §18.2 (Onda 2, 24/10) — CONDIÇÃO COMERCIAL DE COMISSÕES: UI do admin para
-// GET/POST /admin/commission-rules (a API existia; este card fecha o GAP).
-// Regra GERAL vigente em destaque + específicas por médico. O POST cria nova
-// vigência (o server encerra a anterior) — histórico append-only; cada
-// agendamento congela o snapshot (§15.3): mudar aqui só afeta NOVOS.
+// GET/POST /admin/commission-rules e DELETE /admin/commission-rules/doctor/:doctorId
+// Regra GERAL vigente em destaque + específicas por médico.
+// Conectado com o seletor de médico do topo da aba financeira para visualização e customização direta.
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, Dialog,
@@ -12,6 +11,10 @@ import PercentOutlinedIcon from '@mui/icons-material/PercentOutlined';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import ExpandMoreOutlinedIcon from '@mui/icons-material/ExpandMoreOutlined';
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
+import RestartAltOutlinedIcon from '@mui/icons-material/RestartAltOutlined';
+import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined';
+import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
+import AddOutlinedIcon from '@mui/icons-material/AddOutlined';
 import { API_URL, token as authToken } from '../../config';
 import { tealText } from '../../theme';
 
@@ -38,7 +41,15 @@ const isVigente = (r: CommissionRule) => {
 const resumo = (r: RuleValues) =>
   `${pctFmt(r.platformBps)} plataforma · ${pctFmt(10_000 - r.platformBps)} médico · taxas: ${r.feeBearer === 'platform' ? 'plataforma' : 'médico'} · liberação D+${r.releaseDelayDays} · repasse mín. ${brl(r.minPayoutCents)}`;
 
-export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: string; crm: string }[] }) => {
+export const CommissionRulesCard = ({
+  doctors,
+  selectedDoctorId = '',
+  onSelectDoctor,
+}: {
+  doctors: { id: string; name: string; crm: string }[];
+  selectedDoctorId?: string;
+  onSelectDoctor?: (id: string) => void;
+}) => {
   const t = useTheme();
   const mode = t.palette.mode as 'light' | 'dark';
   const [rules, setRules] = useState<CommissionRule[]>([]);
@@ -52,6 +63,11 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
   const [formErr, setFormErr] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+
+  // Reset de médico específico (volta à regra geral)
+  const [resetDoctorTarget, setResetDoctorTarget] = useState<{ id: string; name: string } | null>(null);
+  const [resetBusy, setResetBusy] = useState(false);
+
   // Formulário — escopo '' = regra geral; senão id do médico (regra específica).
   const [scope, setScope] = useState('');
   const [pctStr, setPctStr] = useState('');
@@ -88,6 +104,15 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
     [doctors],
   );
 
+  const selectedDoctorObj = useMemo(
+    () => (selectedDoctorId ? doctors.find((d) => d.id === selectedDoctorId) : null),
+    [doctors, selectedDoctorId],
+  );
+  const activeDocRule = useMemo(
+    () => (selectedDoctorId ? specifics.find((s) => s.doctorId === selectedDoctorId) : null),
+    [specifics, selectedDoctorId],
+  );
+
   const applyValues = (base: RuleValues) => {
     setPctStr(String(base.platformBps / 100));
     setFeeBearer(base.feeBearer === 'doctor' ? 'doctor' : 'platform');
@@ -95,9 +120,15 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
     setMinStr((base.minPayoutCents / 100).toFixed(2).replace('.', ','));
   };
 
-  const openForm = () => {
-    setScope('');
-    applyValues(general ?? defaults ?? { platformBps: 2000, feeBearer: 'platform', releaseDelayDays: 3, minPayoutCents: 2000 });
+  const openForm = (targetScope?: string) => {
+    const sc = targetScope !== undefined ? targetScope : selectedDoctorId;
+    setScope(sc);
+    const spec = sc ? specifics.find((s) => s.doctorId === sc) : null;
+    if (spec) {
+      applyValues(spec);
+    } else {
+      applyValues(general ?? defaults ?? { platformBps: 2000, feeBearer: 'platform', releaseDelayDays: 3, minPayoutCents: 2000 });
+    }
     setFormErr(null);
     setFormOpen(true);
   };
@@ -148,6 +179,26 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
     }
   }, [pending, scope, load, doctorName]);
 
+  const confirmResetDoctor = useCallback(async () => {
+    if (!resetDoctorTarget) return;
+    setResetBusy(true);
+    try {
+      const res = await fetch(`${API_URL}/admin/commission-rules/doctor/${resetDoctorTarget.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${authToken()}` },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error ?? 'Falha ao reverter condição comercial.');
+      setResetDoctorTarget(null);
+      setFeedback(`Condição exclusiva de ${resetDoctorTarget.name} encerrada. O médico voltou a seguir a Regra Geral da plataforma.`);
+      await load();
+    } catch (e: any) {
+      setErr(e?.message ?? 'Falha ao reverter condição.');
+    } finally {
+      setResetBusy(false);
+    }
+  }, [resetDoctorTarget, load]);
+
   const cur = general ?? defaults;
   const medicoPct = (() => {
     const p = Number(String(pctStr).replace(',', '.'));
@@ -160,15 +211,22 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
         <Stack direction="row" spacing={0.75} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
           <PercentOutlinedIcon sx={{ fontSize: 20, color: tealText(mode) }} />
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14 }}>Condição comercial</Typography>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 14 }}>
+              Condição comercial de comissões
+            </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
               Como plataforma e médico dividem cada teleconsulta · mudar não recalcula o passado
             </Typography>
           </Box>
         </Stack>
-        <Button variant="contained" startIcon={<EditOutlinedIcon />} onClick={openForm} disabled={loading || !!err}
-          sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44, px: 2.5 }}>
-          Alterar condição
+        <Button
+          variant="contained"
+          startIcon={<EditOutlinedIcon />}
+          onClick={() => openForm()}
+          disabled={loading || !!err}
+          sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 40, px: 2.2 }}
+        >
+          {selectedDoctorId ? 'Alterar condição' : 'Alterar condição geral'}
         </Button>
       </Stack>
 
@@ -177,11 +235,113 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
       {!loading && err && (
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mt: 1.5 }}>
           <Typography variant="body2" sx={{ flex: 1, color: mode === 'dark' ? '#f87171' : '#b91c1c' }}>{err}</Typography>
-          <Button size="small" onClick={load} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}>Tentar de novo</Button>
+          <Button size="small" onClick={load} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, minHeight: 40 }}>Tentar de novo</Button>
         </Stack>
       )}
 
-      {!loading && !err && (
+      {/* CASO 1: Médico específico selecionado no topo do painel financeiro */}
+      {!loading && !err && selectedDoctorObj && (
+        <Card
+          variant="outlined"
+          sx={{
+            mt: 1.5,
+            p: { xs: 1.5, sm: 2 },
+            borderRadius: '14px',
+            bgcolor: activeDocRule
+              ? (mode === 'dark' ? 'rgba(212,165,116,0.06)' : 'rgba(212,165,116,0.08)')
+              : (mode === 'dark' ? 'rgba(32,178,170,0.04)' : 'rgba(32,178,170,0.06)'),
+            borderColor: activeDocRule ? 'rgba(212,165,116,0.6)' : 'rgba(32,178,170,0.4)',
+          }}
+        >
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+              <PersonOutlineOutlinedIcon sx={{ fontSize: 18, color: activeDocRule ? '#d4a574' : tealText(mode) }} />
+              <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
+                {selectedDoctorObj.name} · CRM {selectedDoctorObj.crm}
+              </Typography>
+              <Chip
+                size="small"
+                icon={activeDocRule ? <PercentOutlinedIcon sx={{ fontSize: 13 }} /> : <CheckCircleOutlineOutlinedIcon sx={{ fontSize: 13 }} />}
+                label={activeDocRule ? 'Condição Exclusiva Deste Médico' : 'Seguindo a Regra Geral'}
+                sx={{
+                  borderRadius: 8,
+                  fontWeight: 800,
+                  fontSize: 11.5,
+                  minHeight: 24,
+                  bgcolor: activeDocRule ? 'rgba(212,165,116,0.22)' : 'rgba(32,178,170,0.16)',
+                  color: activeDocRule ? '#b45309' : tealText(mode),
+                  border: `1px solid ${activeDocRule ? 'rgba(212,165,116,0.6)' : 'rgba(32,178,170,0.4)'}`,
+                }}
+              />
+            </Stack>
+
+            {onSelectDoctor && (
+              <Button
+                size="small"
+                onClick={() => onSelectDoctor('')}
+                sx={{ textTransform: 'none', fontSize: 11.5, p: 0, minHeight: 'auto', color: 'text.secondary', textDecoration: 'underline' }}
+              >
+                Ver condição geral de todos os médicos →
+              </Button>
+            )}
+          </Stack>
+
+          <Typography sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 16 }, mt: 1, lineHeight: 1.4, color: 'text.primary' }}>
+            {activeDocRule ? resumo(activeDocRule) : (cur ? resumo(cur) : '—')}
+          </Typography>
+
+          {activeDocRule ? (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.25 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Condição exclusiva ativa desde {dtFmt(activeDocRule.validFrom)} · Regra geral seria: {cur ? resumo(cur) : '—'}
+              </Typography>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<EditOutlinedIcon />}
+                  onClick={() => openForm(selectedDoctorId)}
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}
+                >
+                  Editar comissão deste médico
+                </Button>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  color="warning"
+                  startIcon={<RestartAltOutlinedIcon />}
+                  onClick={() => setResetDoctorTarget({ id: selectedDoctorId, name: selectedDoctorObj.name })}
+                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: 12 }}
+                >
+                  Voltar à Regra Geral
+                </Button>
+              </Stack>
+            </Stack>
+          ) : (
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" sx={{ mt: 1.25 }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Este médico não possui regra personalizada e segue 100% as diretrizes gerais da plataforma.
+              </Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<AddOutlinedIcon />}
+                onClick={() => openForm(selectedDoctorId)}
+                sx={{
+                  borderRadius: '10px', textTransform: 'none', fontWeight: 800, fontSize: 12,
+                  borderColor: 'rgba(212,165,116,0.6)', color: '#b45309',
+                  '&:hover': { bgcolor: 'rgba(212,165,116,0.08)', borderColor: '#b45309' },
+                }}
+              >
+                + Definir condição exclusiva para este médico
+              </Button>
+            </Stack>
+          )}
+        </Card>
+      )}
+
+      {/* CASO 2: Visualização Geral (Nenhum médico filtrado ou "Todos os médicos") */}
+      {!loading && !err && !selectedDoctorObj && (
         <Card variant="outlined" sx={{ mt: 1.5, p: { xs: 1.5, sm: 2 }, borderRadius: '14px', bgcolor: 'background.default', borderColor: 'rgba(32,178,170,.4)' }}>
           <Stack direction="row" spacing={0.75} alignItems="center" useFlexGap sx={{ flexWrap: 'wrap', gap: 0.75 }}>
             <Chip label={general ? 'Geral · vigente' : 'Padrão do sistema'} size="small"
@@ -201,22 +361,83 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
         </Card>
       )}
 
+      {/* Lista de Condições Específicas cadastradas */}
       {!loading && !err && (
-        <Box sx={{ mt: 1.5 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: 13, mb: 0.75 }}>Condições específicas por médico</Typography>
+        <Box sx={{ mt: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 0.75 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 13 }}>
+              Condições específicas por médico ({specifics.length})
+            </Typography>
+            <Button
+              size="small"
+              startIcon={<AddOutlinedIcon />}
+              onClick={() => openForm(doctors[0]?.id || '')}
+              sx={{ textTransform: 'none', fontSize: 12, fontWeight: 700, color: tealText(mode) }}
+            >
+              + Nova condição para médico
+            </Button>
+          </Stack>
           {specifics.length === 0 ? (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
               Nenhuma — todos os médicos usam a condição geral.
             </Typography>
           ) : (
-            <Stack spacing={0.75}>
-              {specifics.map((r) => (
-                <Stack key={r.id} direction={{ xs: 'column', sm: 'row' }} spacing={{ xs: 0.25, sm: 1.5 }} alignItems={{ sm: 'baseline' }} sx={{ minWidth: 0 }}>
-                  <Chip label={doctorName(r.doctorId as string)} size="small"
-                    sx={{ borderRadius: 8, fontWeight: 700, minHeight: 26, width: { xs: '100%', sm: 170 }, justifyContent: 'flex-start', color: '#d4a574', border: '1px solid rgba(212,165,116,.5)', bgcolor: 'transparent' }} />
-                  <Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', minWidth: 0 }}>{resumo(r)}</Typography>
-                </Stack>
-              ))}
+            <Stack spacing={1}>
+              {specifics.map((r) => {
+                const docId = r.doctorId as string;
+                const isCurrentSelected = selectedDoctorId === docId;
+                return (
+                  <Card
+                    key={r.id}
+                    variant="outlined"
+                    sx={{
+                      p: 1.25,
+                      borderRadius: '10px',
+                      borderColor: isCurrentSelected ? 'rgba(212,165,116,0.8)' : 'divider',
+                      bgcolor: isCurrentSelected ? (mode === 'dark' ? 'rgba(212,165,116,0.06)' : 'rgba(212,165,116,0.06)') : 'transparent',
+                    }}
+                  >
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                      <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                        <Chip
+                          label={doctorName(docId)}
+                          size="small"
+                          onClick={() => onSelectDoctor?.(docId)}
+                          sx={{
+                            borderRadius: 8,
+                            fontWeight: 800,
+                            minHeight: 24,
+                            cursor: 'pointer',
+                            color: '#b45309',
+                            border: '1px solid rgba(212,165,116,.6)',
+                            bgcolor: 'rgba(212,165,116,0.12)',
+                          }}
+                        />
+                        <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600 }}>
+                          {resumo(r)}
+                        </Typography>
+                      </Stack>
+                      <Stack direction="row" spacing={0.75} alignItems="center">
+                        <Button
+                          size="small"
+                          onClick={() => openForm(docId)}
+                          sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          size="small"
+                          color="warning"
+                          onClick={() => setResetDoctorTarget({ id: docId, name: doctorName(docId) })}
+                          sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                        >
+                          Voltar ao geral
+                        </Button>
+                      </Stack>
+                    </Stack>
+                  </Card>
+                );
+              })}
             </Stack>
           )}
         </Box>
@@ -224,9 +445,9 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
 
       {/* Histórico de vigências — append-only, nunca editado nem apagado */}
       {!loading && !err && historico.length > 0 && (
-        <Box sx={{ mt: 1.5 }}>
+        <Box sx={{ mt: 2 }}>
           <Stack direction="row" alignItems="center" spacing={1} sx={{ cursor: 'pointer' }} onClick={() => setShowHistory((v) => !v)}>
-            <Typography sx={{ fontWeight: 800, fontSize: 13, flex: 1 }}>Histórico de condições · {historico.length}</Typography>
+            <Typography sx={{ fontWeight: 800, fontSize: 13, flex: 1 }}>Histórico de condições cadastradas · {historico.length}</Typography>
             <IconButton size="small" aria-label="Expandir histórico de condições" aria-expanded={showHistory} sx={{ color: 'text.secondary', transform: showHistory ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
               <ExpandMoreOutlinedIcon fontSize="small" />
             </IconButton>
@@ -264,9 +485,37 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
         </Card>
       )}
 
+      {/* Modal de confirmação para Voltar à Regra Geral (remover personalização) */}
+      <Dialog open={!!resetDoctorTarget} onClose={() => setResetDoctorTarget(null)} fullWidth maxWidth="xs">
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>
+          Voltar à Regra Geral?
+        </DialogTitle>
+        <DialogContent sx={{ pt: 1 }}>
+          <Typography variant="body2" sx={{ mb: 1.5 }}>
+            Deseja encerrar a comissão personalizada de <strong>{resetDoctorTarget?.name}</strong>?
+          </Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+            A vigência exclusiva deste médico será finalizada e ele passará a seguir automaticamente a <strong>Regra Geral vigente</strong> da plataforma nos próximos agendamentos.
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+            Consultas antigas já faturadas permanecem inalteradas no livro-razão financeiro.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setResetDoctorTarget(null)} disabled={resetBusy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}>
+            Cancelar
+          </Button>
+          <Button variant="contained" color="warning" onClick={confirmResetDoctor} disabled={resetBusy} sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700 }}>
+            {resetBusy ? 'Encerrando…' : 'Confirmar e Voltar à Regra Geral'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Formulário da nova vigência */}
       <Dialog open={formOpen} onClose={() => setFormOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Alterar condição comercial</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>
+          {scope ? `Definir comissão para ${doctorName(scope)}` : 'Alterar condição comercial geral'}
+        </DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Stack spacing={1.5} sx={{ pt: 0.5 }}>
             <TextField select fullWidth size="small" label="Escopo" value={scope}
@@ -277,7 +526,7 @@ export const CommissionRulesCard = ({ doctors }: { doctors: { id: string; name: 
                 if (spec) applyValues(spec);
                 else if (!v) applyValues(general ?? defaults ?? { platformBps: 2000, feeBearer: 'platform', releaseDelayDays: 3, minPayoutCents: 2000 });
               }}
-              helperText="Regra específica substitui a geral para esse médico"
+              helperText="Regra específica substitui a geral exclusivamente para esse médico"
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontSize: 13.5 } }}>
               <MenuItem value="">Geral — todos os médicos</MenuItem>
               {doctors.map((d) => (<MenuItem key={d.id} value={d.id}>{d.name} · CRM {d.crm}</MenuItem>))}

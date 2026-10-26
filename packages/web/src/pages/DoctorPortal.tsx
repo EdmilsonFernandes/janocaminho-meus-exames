@@ -1319,69 +1319,105 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                     </Stack>
                   </Stack>
 
-                  {/* Detalhes da Próxima Teleconsulta — layout refinado */}
+                  {/* Detalhes da Teleconsulta — layout refinado e responsivo sem quebras */}
                   <Box sx={{
-                    p: 2, borderRadius: '14px',
+                    p: { xs: 1.75, sm: 2.25 }, borderRadius: '14px',
                     bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.05)',
                     border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(212,165,116,0.2)',
                   }}>
-                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ xs: 'stretch', md: 'center' }} justifyContent="space-between">
-                      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                        <Avatar
-                          src={pPhoto}
-                          alt={pName}
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            fontSize: 16,
-                            fontWeight: 800,
-                            bgcolor: 'rgba(32,178,170,0.14)',
-                            color: '#178f89',
-                            border: '2px solid rgba(32,178,170,0.3)',
-                            borderRadius: '12px',
-                            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                            flexShrink: 0,
-                          }}
-                        >
-                          {pName.charAt(0).toUpperCase()}
-                        </Avatar>
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                            <Typography sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.25 }}>
-                              {pName}
-                            </Typography>
-                            {upcoming.title && upcoming.title !== 'Teleconsulta médica' && (
-                              <Chip
-                                size="small"
-                                label={`📌 ${upcoming.title}`}
-                                sx={{ height: 20, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }}
-                              />
-                            )}
-                          </Stack>
-                          <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap" sx={{ mt: 0.5 }}>
-                            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Stack spacing={1.75}>
+                      {/* Topo do Card: Identificação do Paciente + Status Clínico com espaço garantido */}
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
+                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                          <Avatar
+                            src={pPhoto}
+                            alt={pName}
+                            sx={{
+                              width: 46,
+                              height: 46,
+                              fontSize: 16,
+                              fontWeight: 800,
+                              bgcolor: 'rgba(32,178,170,0.14)',
+                              color: '#178f89',
+                              border: '2px solid rgba(32,178,170,0.3)',
+                              borderRadius: '12px',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {pName.charAt(0).toUpperCase()}
+                          </Avatar>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
+                              <Typography sx={{ fontWeight: 800, fontSize: 15.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.25 }}>
+                                {pName}
+                              </Typography>
+                              {upcoming.title && upcoming.title !== 'Teleconsulta médica' && (
+                                <Chip
+                                  size="small"
+                                  label={`📌 ${upcoming.title}`}
+                                  sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }}
+                                />
+                              )}
+                            </Stack>
+                            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                               <ScheduleOutlinedIcon sx={{ fontSize: 14, color: '#178f89' }} />
                               {dt} {upcoming.recurrence ? `• Repete ${upcoming.recurrence}` : ''}
                             </Typography>
-                            {!teleEnded && (
-                              <Chip
-                                size="small"
-                                icon={upcoming.consentAt ? <CheckCircleOutlinedIcon sx={{ fontSize: 13 }} /> : <ScheduleOutlinedIcon sx={{ fontSize: 13 }} />}
-                                label={upcoming.consentAt ? 'Paciente autorizou (CFM)' : 'Aguardando aceite do paciente'}
-                                sx={{
-                                  height: 22, fontSize: 11.5, fontWeight: 800,
-                                  bgcolor: upcoming.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
-                                  color: upcoming.consentAt ? '#059669' : '#d97706',
-                                  border: `1px solid ${upcoming.consentAt ? 'rgba(16,185,129,0.25)' : 'rgba(245,158,11,0.3)'}`,
-                                  '& .MuiChip-icon': { color: 'inherit' },
-                                }}
-                              />
-                            )}
-                          </Stack>
+                          </Box>
+                        </Stack>
+
+                        {/* Status Clínico (Aguardando vs Autorizado) — Espaço Próprio sem quebrar texto */}
+                        <Box sx={{ flexShrink: 0, alignSelf: { xs: 'flex-start', md: 'center' } }}>
+                          {!teleEnded ? (
+                            <Chip
+                              size="small"
+                              icon={upcoming.consentAt ? <CheckCircleOutlinedIcon sx={{ fontSize: 14 }} /> : <ScheduleOutlinedIcon sx={{ fontSize: 14 }} />}
+                              label={upcoming.consentAt ? 'Paciente autorizou (CFM)' : 'Aguardando aceite do paciente'}
+                              sx={{
+                                height: 26, fontSize: 12, fontWeight: 800, px: 0.75,
+                                whiteSpace: 'nowrap',
+                                bgcolor: upcoming.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                                color: upcoming.consentAt ? '#059669' : '#d97706',
+                                border: `1px solid ${upcoming.consentAt ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.35)'}`,
+                                '& .MuiChip-icon': { color: 'inherit' },
+                              }}
+                            />
+                          ) : (
+                            <Chip
+                              size="small"
+                              icon={<CheckCircleOutlinedIcon sx={{ fontSize: 14 }} />}
+                              label="Consulta Concluída"
+                              sx={{ height: 26, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89' }}
+                            />
+                          )}
                         </Box>
                       </Stack>
 
-                      <Stack direction="row" useFlexGap flexWrap="wrap" spacing={1} alignItems="center" sx={{ justifyContent: { xs: 'flex-start', md: 'flex-end' }, flexShrink: 0 }}>
+                      {/* Notificação explicativa elegante quando aguardando aceite */}
+                      {!teleEnded && !upcoming.consentAt && (
+                        <Box sx={{
+                          display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: '10px',
+                          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(245,158,11,0.08)' : 'rgba(254,243,199,0.5)',
+                          border: '1px solid rgba(245,158,11,0.22)',
+                        }}>
+                          <ScheduleOutlinedIcon sx={{ fontSize: 16, color: '#d97706', flexShrink: 0 }} />
+                          <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>
+                            <strong>Aguardando aceite do paciente:</strong> O termo de consentimento (CFM 2.314/22) será assinado ao ingressar. A sala já está disponível.
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {/* Divisor suave entre dados da consulta e botões de ação */}
+                      <Box sx={{ borderTop: '1px solid', borderColor: 'divider', opacity: 0.6 }} />
+
+                      {/* Ações da Consulta — Responsivo em Web e Mobile */}
+                      <Stack
+                        direction={{ xs: 'column', sm: 'row' }}
+                        spacing={1.25}
+                        alignItems={{ xs: 'stretch', sm: 'center' }}
+                        justifyContent="space-between"
+                      >
                         {teleEnded ? (
                           <Button
                             variant="outlined"
@@ -1393,28 +1429,33 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
                               px: 2.2, py: 0.6, fontSize: 13,
                               '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.06)' },
+                              width: { xs: '100%', sm: 'auto' },
                             }}
                           >
-                            Ver resumo
+                            Ver resumo da consulta
                           </Button>
                         ) : (
-                          <>
-                            <Button
-                              variant="contained"
-                              size="small"
-                              startIcon={<VideocamIcon />}
-                              onClick={() => handleEnterTele(upcoming, pName)}
-                              sx={{
-                                borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                                background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
-                                '&:hover': { background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)' },
-                                px: 2.2, py: 0.65, fontSize: 13,
-                                color: '#ffffff',
-                                boxShadow: '0 3px 12px rgba(15,118,110,0.3)',
-                              }}
-                            >
-                              Entrar na consulta
-                            </Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            startIcon={<VideocamIcon />}
+                            onClick={() => handleEnterTele(upcoming, pName)}
+                            sx={{
+                              borderRadius: '999px', textTransform: 'none', fontWeight: 800,
+                              background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
+                              '&:hover': { background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)' },
+                              px: 2.75, py: 0.8, fontSize: 13,
+                              color: '#ffffff',
+                              boxShadow: '0 3px 12px rgba(15,118,110,0.3)',
+                              width: { xs: '100%', sm: 'auto' },
+                            }}
+                          >
+                            Entrar na consulta
+                          </Button>
+                        )}
+
+                        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                          {!teleEnded && (
                             <Button
                               size="small"
                               variant="outlined"
@@ -1424,36 +1465,38 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                                 textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '999px',
                                 borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode),
                                 '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,0.06)' },
+                                flex: { xs: 1, sm: 'none' },
                               }}
                             >
                               Pedir exame
                             </Button>
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<SummarizeIcon />}
-                              onClick={() => void openPost(upcoming.id)}
-                              sx={{
-                                borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
-                                borderColor: 'divider', color: 'text.secondary',
-                                '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
-                              }}
-                            >
-                              Resumo
-                            </Button>
-                          </>
-                        )}
-                        <Tooltip title="Mais ações">
-                          <IconButton
+                          )}
+                          <Button
+                            variant="outlined"
                             size="small"
-                            aria-label="Mais ações da teleconsulta"
-                            aria-haspopup="menu"
-                            onClick={(e) => setFichaTeleMenu(e.currentTarget)}
-                            sx={{ color: 'text.secondary' }}
+                            startIcon={<SummarizeIcon />}
+                            onClick={() => void openPost(upcoming.id)}
+                            sx={{
+                              borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
+                              borderColor: 'divider', color: 'text.secondary',
+                              '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
+                              flex: { xs: 1, sm: 'none' },
+                            }}
                           >
-                            <MoreVertIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
+                            Resumo
+                          </Button>
+                          <Tooltip title="Mais ações">
+                            <IconButton
+                              size="small"
+                              aria-label="Mais ações da teleconsulta"
+                              aria-haspopup="menu"
+                              onClick={(e) => setFichaTeleMenu(e.currentTarget)}
+                              sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                            >
+                              <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
                       </Stack>
                     </Stack>
                   </Box>
