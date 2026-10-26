@@ -85,16 +85,21 @@ router.post('/login', validate(schemas.login), async (req, res, next) => {
     const { username, email, password } = req.body ?? {};
     const mail = String(email ?? username ?? '').toLowerCase().trim();
     const user = await prisma.user.findUnique({ where: { email: mail } });
+    // Dono 26/10 ("tudo genérico coloca detalhes"): TODO login-fail é auditado com
+    // email tentado + MOTIVO legível + user-agent curto — o admin vê quem/por quê.
+    const uaShort = String(req.headers['user-agent'] ?? '').slice(0, 90);
+    const failAudit = (reason: string) =>
+      void audit('LOGIN_FAILED', req, { actorType: 'USER', targetType: 'USER', after: { email: mail, reason, ua: uaShort } });
     // BLOQUEADO vem ANTES da checagem de senha: o usuário bloqueado vê a mensagem de
     // contato com o suporte MESMO se errar a senha (não recebe "credenciais inválidas",
     // que o faria tentar trocar senha em vão). A mensagem amigável é montada no front (i18n).
-    if (user?.blocked) { res.status(403).json({ blocked: true }); return; }
+    if (user?.blocked) { failAudit('account_blocked'); res.status(403).json({ blocked: true }); return; }
     if (!user || !(await comparePassword(String(password ?? ''), user.passwordHash))) {
-      void audit('LOGIN_FAILED', req, { actorType: 'USER', targetType: 'USER', after: { email: mail } });
+      failAudit(user ? 'invalid_password' : 'user_not_found');
       res.status(401).json({ error: 'invalid_credentials' });
       return;
     }
-    if (!user.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true }); return; }
+    if (!user.emailVerified) { failAudit('email_unverified'); res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true }); return; }
     // MFA: se ativado, cria desafio (senha OK mas precisa do código TOTP pra entrar)
     const mfa = await evaluateMfaOnLogin('USER', user.id, { userId: user.id }, user.email);
     if (mfa) { res.json(mfa); return; }

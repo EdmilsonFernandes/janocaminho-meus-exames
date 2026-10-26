@@ -183,6 +183,36 @@ export const AuditTab = () => {
     return null;
   };
 
+  /** Motivos legíveis de login/bot (dono 26/10: "tudo genérico coloca detalhes"). */
+  const LOGIN_REASONS: Record<string, string> = {
+    invalid_password: 'senha incorreta',
+    user_not_found: 'e-mail não cadastrado',
+    doctor_not_found: 'CRM/e-mail não cadastrado',
+    invite_pending: 'cadastro incompleto (convite pendente)',
+    account_blocked: 'conta bloqueada pela administração',
+    email_unverified: 'e-mail não verificado',
+    velocity: 'velocidade suspeita (≥3 contas em 24h pelo mesmo navegador)',
+    email_pattern: 'padrão de e-mail típico de automação',
+  };
+
+  /** Detalhe do LOGIN_FAILED/BOT_BLOCKED: QUEM tentou entrar, POR QUE falhou e com
+   *  qual navegador — antes o evento só dizia "Tentativa de login falhou · USER". */
+  const loginInfo = (l: any): string | null => {
+    if (l.action !== 'LOGIN_FAILED' && l.action !== 'LOGIN_BLOCKED' && l.action !== 'BOT_BLOCKED') return null;
+    try {
+      const a = typeof l.after === 'string' ? JSON.parse(l.after) : l.after;
+      if (!a) return null;
+      const who = a.email || a.login || a.crm || '(sem identificador)';
+      const parts: string[] = [`tentou entrar como: ${who}`];
+      if (a.reason) parts.push(`motivo: ${LOGIN_REASONS[a.reason] ?? a.reason}`);
+      if (a.detail) parts.push(`detalhe: ${a.detail}`);
+      if (a.via && a.via !== 'password') parts.push(`via: ${a.via}`);
+      if (a.ua) parts.push(`navegador: ${a.ua}`);
+      return parts.join(' · ');
+    } catch {}
+    return null;
+  };
+
   const actorIcon = (type: string) => {
     switch (type) {
       case 'ADMIN':
@@ -213,7 +243,7 @@ export const AuditTab = () => {
 
   /** Linha de um evento auditado */
   const logRow = (l: any) => {
-    const info = accessInfo(l) ?? examInfo(l);
+    const info = loginInfo(l) ?? accessInfo(l) ?? examInfo(l);
     return (
       <Box sx={{ py: 0.75 }}>
         <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">

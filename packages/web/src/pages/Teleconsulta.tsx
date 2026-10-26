@@ -436,7 +436,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [reqBusy, setReqBusy] = useState<string | null>(null);
   const [schedFor, setSchedFor] = useState<string | null>(null); // req com quick-chips "Agendar" abertos (§3a)
   const [areaSummary, setAreaSummary] = useState<TeleSummary | null>(null); // §3 — área "Resumo da consulta"
-  const [txState, setTxState] = useState<'pending' | 'ready' | 'error'>('pending'); // §3b transcrição
+  const [txState, setTxState] = useState<'pending' | 'ready' | 'error' | 'none'>('pending'); // §3b transcrição — 'none' = consentiu mas NÃO há áudio/transcrição (bug 26/10: ficava shimmer eterno)
   const [txText, setTxText] = useState<string | null>(null);
 
   // Estados de teste de som e rotação de dicas humanizadas
@@ -1588,6 +1588,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     let stop = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let tries = 0;
+    let sawPromise = false; // viu transcript.at OU recordingAt em algum tick
     setTxState('pending');
     setTxText(null);
     setTxAt(null);
@@ -1602,6 +1603,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       const s = await loadAreaSummary();
       if (s) setAreaSummary(s);
       const at = normAt(s);
+      const rec = (s as any)?.recordingAt ?? null; // áudio no disco = STT vai rodar
+      if (at || rec) sawPromise = true;
+      // Bug 26/10 (dono): histórico ANTIGO sem áudio (consent sim, recordingAt e
+      // transcript null) decidia "processando" ETERNO — o upload nunca mais chega.
+      // Consulta encerrada há >15min sem promessa nenhuma → 'none' JÁ (sem 3min de
+      // shimmer). Pós-chamada fresco mantém o poll (upload pode estar subindo).
+      if (!at && !rec) {
+        const em = s?.endedAt ? new Date(s.endedAt).getTime() : null;
+        if (em != null && Date.now() - em > 15 * 60_000) { if (!stop) setTxState('none'); return; }
+      }
       if (at) {
         try {
           const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/transcript`, { headers: { Authorization: `Bearer ${authToken()}` } });
@@ -1613,7 +1624,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         } catch { /* cai no próximo tick */ }
       }
       tries += 1;
-      if (tries >= 12) { if (!stop) setTxState('error'); return; } // ~3 min e nada → estado erro
+      if (tries >= 12) { if (!stop) setTxState(sawPromise ? 'error' : 'none'); return; } // ~3 min: houve promessa → erro c/ retry; nunca houve → sem áudio
       timer = setTimeout(() => void tick(), 15000);
     };
     void tick();
@@ -3027,6 +3038,20 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             {hasRecording ? (
               <Box sx={{ mt: 3 }}>
                 <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Transcrição da Consulta</Typography>
+                {/* Bug 26/10 (dono): consentiu gravação mas NÃO há áudio/transcrição
+                    (consulta antiga sem upload) — antes era shimmer "processando"
+                    ETERNO. Estado honesto: não há transcrição a esperar. */}
+                {txState === 'none' && (
+                  <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
+                    <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                      <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>
+                        {pendingRecCount > 0
+                          ? 'A gravação desta consulta não chegou até nós — toque em “Retomar envio” acima; a transcrição sai depois do envio.'
+                          : 'Esta consulta não teve gravação de áudio recebida — não há transcrição a exibir.'}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                )}
                 {txState === 'pending' && (
                   <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }} >
                     <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>

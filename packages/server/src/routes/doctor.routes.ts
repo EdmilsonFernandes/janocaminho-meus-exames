@@ -366,6 +366,7 @@ router.post('/google', async (req: any, res: any, next: any) => {
     if (!doctor) { res.status(404).json({ error: 'Nenhuma conta de médico com este e-mail. Cadastre-se com seu CRM.' }); return; }
     if (!doctor.emailVerified || doctor.passwordHash === 'pending-invite') { res.status(403).json({ error: 'Complete seu cadastro com CRM primeiro.' }); return; }
     if (doctor.blocked) {
+      void audit('LOGIN_FAILED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', after: { email, via: 'google', reason: 'account_blocked', ua: String(req.headers['user-agent'] ?? '').slice(0, 90) } });
       res.status(403).json({
         blocked: true,
         error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
@@ -412,13 +413,17 @@ router.post('/login', async (req, res, next) => {
       if (norm) orClauses.push({ crm: norm.crm });
     }
     const doctor = await prisma.doctor.findFirst({ where: { OR: orClauses } });
-    if (!doctor || doctor.passwordHash === 'pending-invite' || !(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) {
-      void audit('LOGIN_FAILED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', after: { login: id } });
-      res.status(401).json({ error: 'Credenciais inválidas.' }); return;
-    }
-    if (!doctor.emailVerified) { res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
+    // Dono 26/10: login-fail do MÉDICO auditado com quem tentou + motivo legível
+    // (antes era só "login: X" sem dizer se era CRM/e-mail, senha errada ou convite pendente).
+    const docUa = String(req.headers['user-agent'] ?? '').slice(0, 90);
+    const docFailAudit = (reason: string) =>
+      void audit('LOGIN_FAILED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', after: { login: id, email: id.includes('@') ? id.toLowerCase() : undefined, crm: id.includes('-') ? id : undefined, reason, ua: docUa } });
+    if (!doctor) { docFailAudit('doctor_not_found'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
+    if (doctor.passwordHash === 'pending-invite') { docFailAudit('invite_pending'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
+    if (!(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) { docFailAudit('invalid_password'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
+    if (!doctor.emailVerified) { docFailAudit('email_unverified'); res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
     if (doctor.blocked) {
-      void audit('LOGIN_BLOCKED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', targetId: doctor.id, after: { reason: doctor.blockedReason } });
+      void audit('LOGIN_BLOCKED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', targetId: doctor.id, after: { email: doctor.email, reason: 'account_blocked', detail: doctor.blockedReason, ua: docUa } });
       res.status(403).json({
         blocked: true,
         error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
