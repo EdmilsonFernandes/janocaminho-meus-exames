@@ -5,7 +5,7 @@
 // médico (1 clique) e disclaimer "gerada por IA" no rodapé. Sem diarização
 // inventada: texto corrido em parágrafos.
 import { useMemo, useState, type ReactNode } from 'react';
-import { Box, Button, Chip, IconButton, InputAdornment, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Typography, useTheme } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
@@ -20,6 +20,12 @@ export interface TranscriptViewProps {
   text: string | null;
   transcriptAt: string | null;
   role: TeleconsultaRole;
+  /**
+   * 'processing' = STT ainda rodando (bug 26/10: antes o container pendurava
+   * "ainda não disponível" estático pra sempre). Card ANIMADO — quem chama é
+   * quem polla e troca pra texto quando chega. Default = deriva do text.
+   */
+  state?: 'ready' | 'processing';
 }
 
 const fmtAt = (d?: string | null) => {
@@ -73,7 +79,7 @@ const highlight = (para: string, rawQuery: string): ReactNode => {
   return parts;
 };
 
-export const TranscriptView = ({ text, transcriptAt, role }: TranscriptViewProps) => {
+export const TranscriptView = ({ text, transcriptAt, role, state }: TranscriptViewProps) => {
   const theme = useTheme();
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -100,6 +106,18 @@ export const TranscriptView = ({ text, transcriptAt, role }: TranscriptViewProps
       snackbar({ message: 'Não deu pra copiar agora.', severity: 'error' });
     }
   };
+
+  // STT vivo: spinner + promessa honesta (o container polla e troca quando chegar).
+  if (state === 'processing') {
+    return (
+      <Box sx={{ p: 2, borderRadius: '12px', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <CircularProgress size={18} sx={{ color: (t) => tealText(t.palette.mode), flexShrink: 0 }} aria-label="Processando transcrição" />
+        <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
+          Processando a transcrição — esta tela atualiza sozinha em instantes.
+        </Typography>
+      </Box>
+    );
+  }
 
   // Sem texto: estado amigável (o container esconde a seção quando NÃO houve gravação;
   // chegar aqui com null = houve gravação mas o texto ainda não existe/prontidão variada).

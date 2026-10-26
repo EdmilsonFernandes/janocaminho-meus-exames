@@ -26,6 +26,8 @@ import { acceptAudioFile } from '../middleware/uploadAudio';
 import { audioPathFor, finalizeTranscription, abortTranscription } from '../jobs/transcriptionQueue';
 // Onda 2 financeira (§18): ledger de honorários/estorno no encerramento de consulta paga.
 import { recordTeleconsultaEnded } from '../finance/ledger';
+// Dono 26/10: consulta não realizada/cancelada → push+e-mail com motivo p/ ambos.
+import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 // §14.1 (24/10): resumo pós-consulta revisado pelo médico — payload role-aware injetado
 // no GET /summary abaixo (paciente só lê a versão APROVADA; rascunho nunca vaza).
 import { consultSummaryFor } from './consult-summary.routes';
@@ -414,8 +416,21 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
     });
     // WhatsApp-style: médico encerrou → paciente sabe na hora (não fica "chamando" no
     // vazio). Paciente encerrou → médico vê no portal (sem infra de push p/ doctor).
-    if (persisted && req.joinRole === 'doctor') {
+    if (persisted && req.joinRole === 'doctor' && teleStatus === 'completed') {
       void sendPushToUser(r.ownerId, 'Consulta encerrada', 'O médico encerrou a teleconsulta. Toque para ver o resumo.', { type: 'teleconsulta', reminderId: r.id }).catch(() => {});
+    }
+    // Dono 26/10: consulta que NÃO aconteceu (no_show/technical) → paciente E médico
+    // sabem com o MOTIVO (push no Android + e-mail no web) — antes ficava mudo e o
+    // histórico pendurava sem explicação. Best-effort: nunca derruba o /end.
+    if (persisted && (teleStatus === 'no_show' || teleStatus === 'technical')) {
+      const enderName = req.joinRole === 'doctor'
+        ? (await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { name: true } }).catch(() => null))?.name
+        : null;
+      const ref = r as any; // TeleconsultaRef não tipa dueDate/title, mas o load os traz
+      void notifyTeleconsultaNotHeld(
+        { id: ref.id, ownerId: ref.ownerId, patientId: ref.patientId ?? null, createdByDoctorId: ref.createdByDoctorId ?? null, dueDate: ref.dueDate, title: ref.title ?? null },
+        { outcome: teleStatus, noShowBy: storedNoShowBy as 'patient' | 'doctor' | 'none' | null, byName: enderName },
+      ).catch(() => {});
     }
     res.json({
       ok: true,
@@ -719,12 +734,16 @@ router.get('/:id/transcript', requireJoinIdentity, async (req: JoinRequest, res,
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptEnc: true, transcriptIv: true, transcriptAt: true },
+      select: { transcriptEnc: true, transcriptIv: true, transcriptAt: true, recordingAt: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     const text = row ? decryptPII(row.transcriptEnc, row.transcriptIv) : null;
     res.json({
       text,
       transcriptAt: row?.transcriptAt ? new Date(row.transcriptAt).toISOString() : null,
+      // 26/10: status distingue "STT ainda rodando" (recordingAt no disco, job pega)
+      // de "não houve gravação" — antes o client via só null e pendurava "processando…"
+      // eterno no histórico do médico (chip Transcrição ✓ + texto que nunca vinha).
+      status: row?.transcriptAt ? 'ready' : row?.recordingAt ? 'processing' : 'none',
       disclaimer: 'Transcrição gerada por IA — revise com o médico.',
     });
   } catch (e) {
@@ -740,7 +759,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
     const row: any = await prisma.reminder.findUnique({
       where: { id: r.id },
-      select: { transcriptAt: true, endedAt: true, consentAt: true, recordConsentAt: true, doctorNote: true, cid10Code: true, cid10Desc: true },
+      select: { transcriptAt: true, recordingAt: true, endedAt: true, consentAt: true, recordConsentAt: true, doctorNote: true, cid10Code: true, cid10Desc: true },
     }).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e));
     // ExamRequest = model be1 (mesmo lote); `as any` tolera client não regenerado + catch → [].
     const examRequests = await (prisma as any).examRequest.findMany({
@@ -811,6 +830,9 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       consultSummary: await consultSummaryFor(r.id, req.joinRole === 'doctor' ? 'doctor' : 'patient'),
       durationSec,
       transcript: row?.transcriptAt ? { at: new Date(row.transcriptAt).toISOString() } : null,
+      // 26/10: gravação ainda no disco = STT pendente — o client diferencia "processando"
+      // (mostra card animado + polla) de "sem gravação" (esconde a seção).
+      recordingAt: row?.recordingAt ? new Date(row.recordingAt).toISOString() : null,
       examRequests,
       feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,
       durationHint,

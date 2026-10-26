@@ -17,6 +17,7 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import VideocamOffIcon from '@mui/icons-material/VideocamOff';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
 import SentimentNeutralIcon from '@mui/icons-material/SentimentNeutral';
@@ -1624,11 +1625,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // (pedidos + transcrição + duração) — mesmo GET /summary auth-dual do paciente.
   // Transcrição: poll curto (15s × 4) — a STT pode estar terminando logo após o
   // encerramento; sem gravação, transcript nunca aparece e a seção simplesmente some.
+  // Bug 26/10: esgotou as tentativas COM promessa de texto (at) → estado 'error'
+  // explícito (antes ficava "processando…" pra sempre, sem animação, no histórico).
   useEffect(() => {
     if ((phase !== 'ended' && phase !== 'readonly') || role !== 'doctor') return;
     let stop = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
     let tries = 0;
+    let sawAt = false;
+    setTxState('pending');
     const tick = async () => {
       if (stop) return;
       const s = await loadAreaSummary();
@@ -1636,6 +1641,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       if (s) setAreaSummary(s);
       const at = s?.transcript?.at ?? null;
       if (at) {
+        sawAt = true;
         try {
           const r = await fetch(`${API_URL}/teleconsulta/${reminderId}/transcript`, { headers: { Authorization: `Bearer ${authToken()}` } });
           if (r.ok) {
@@ -1646,12 +1652,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         } catch { /* próximo tick */ }
       }
       tries += 1;
-      if (tries >= 4) return; // ~1 min sem transcript → consulta sem gravação (seção oculta)
+      if (tries >= 4) { if (!stop && sawAt) setTxState('error'); return; } // promessa sem texto → erro visível c/ retry
       timer = setTimeout(() => void tick(), 15000);
     };
     void tick();
     return () => { stop = true; if (timer) clearTimeout(timer); };
-  }, [phase, role, authToken, reminderId, loadAreaSummary]);
+  }, [phase, role, authToken, reminderId, loadAreaSummary, txRetry]);
 
   // ── Ações da chamada ─────────────────────────────────────────────────────────
   // Dono 20/10: WebView não tem 🔒 na barra de endereço — mensagem precisa ser
@@ -2906,6 +2912,23 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       return (
         <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
           <Box sx={{ maxWidth: 640, mx: 'auto', px: 2, pt: 'calc(env(safe-area-inset-top) + 20px)', pb: 'calc(env(safe-area-inset-bottom) + 32px)' }}>
+            {/* Voltar (template oficial do app — pill do Sinais/relatório). Histórico
+                read-only só tinha o contained no rodapé (dono 26/10). */}
+            {readOnly && (
+              <Button
+                startIcon={<ArrowBackIcon />}
+                onClick={exitTo}
+                sx={{
+                  textTransform: 'none', fontWeight: 700, fontSize: 13,
+                  color: 'text.secondary', px: 1.5, py: 0.5, borderRadius: '99px',
+                  alignSelf: 'flex-start', mb: 0.5,
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,60,55,0.05)',
+                  '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(15,60,55,0.09)' },
+                }}
+              >
+                Voltar aos lembretes
+              </Button>
+            )}
             {/* Cabeçalho (superfície da página, sem card) */}
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <Box sx={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
@@ -3104,11 +3127,27 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // área rolável do paciente (o card centrado estourava com transcrição longa).
     const docReqs = areaSummary?.examRequests ?? [];
     const docTxReady = txState === 'ready';
-    const docTxPending = !docTxReady && !!areaSummary?.transcript?.at;
+    const docTxFailed = txState === 'error' && !!areaSummary?.transcript?.at;
+    const docTxPending = !docTxReady && !docTxFailed && !!areaSummary?.transcript?.at;
     const docPatientName = summary?.patient?.name || statePatientName || '';
     return (
       <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default' }}>
         <Box sx={{ maxWidth: 640, mx: 'auto', px: 2, pt: 'calc(env(safe-area-inset-top) + 20px)', pb: 'calc(env(safe-area-inset-bottom) + 32px)' }}>
+          {/* Voltar ao portal (template oficial do app — dono 26/10: área do médico
+              só tinha o "Voltar aos lembretes" da área de paciente, nada pra ele). */}
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={exitTo}
+            sx={{
+              textTransform: 'none', fontWeight: 700, fontSize: 13,
+              color: 'text.secondary', px: 1.5, py: 0.5, borderRadius: '99px',
+              alignSelf: 'flex-start', mb: 0.5,
+              bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,60,55,0.05)',
+              '&:hover': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.10)' : 'rgba(15,60,55,0.09)' },
+            }}
+          >
+            Voltar ao portal
+          </Button>
           {/* Cabeçalho (mesma estrutura da área do paciente) */}
           <Stack direction="row" alignItems="center" spacing={1.5}>
             <Box sx={{ position: 'relative', width: 56, height: 56, flexShrink: 0 }}>
@@ -3133,6 +3172,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <Chip size="small" label="Transcrição pronta" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px' }} />
             ) : docTxPending ? (
               <Chip size="small" label="Transcrição processando…" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
+            ) : docTxFailed ? (
+              <Chip size="small" label="Transcrição não carregou — tente de novo" sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', borderRadius: '8px' }} />
             ) : (
               <Chip size="small" label={areaSummary?.recordConsentAt || summary?.recordConsentAt ? 'Sem transcrição (áudio não capturado)' : 'Sem gravação'} sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px' }} />
             )}
@@ -3285,20 +3326,30 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Box>
           )}
 
-          {/* Transcrição — mesmo reader do paciente (role doctor = copiar tudo). */}
-          {(docTxReady || docTxPending) && (
+          {/* Transcrição — mesmo reader do paciente (role doctor = copiar tudo).
+              Bug 26/10: pendente era card ESTÁTICO eterno; agora animado + erro com retry. */}
+          {(docTxReady || docTxPending || docTxFailed) && (
             <Box sx={{ mt: 3 }}>
               <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.25 }}>Transcrição da Consulta</Typography>
               {docTxReady ? (
                 <TranscriptView text={txText} transcriptAt={txAt} role="doctor" />
-              ) : (
-                <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
+              ) : docTxFailed ? (
+                <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'rgba(245,158,11,.35)', boxShadow: 'none' }}>
                   <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
                     <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.55 }}>
-                      A transcrição por IA ainda está sendo processada — reabra esta consulta em instantes.
+                      Não conseguimos carregar a transcrição desta consulta agora.
                     </Typography>
+                    <Button
+                      size="small" variant="outlined"
+                      onClick={() => setTxRetry((n) => n + 1)}
+                      sx={{ mt: 1, textTransform: 'none', fontWeight: 800, fontSize: 12.5, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}
+                    >
+                      Tentar de novo
+                    </Button>
                   </CardContent>
                 </Card>
+              ) : (
+                <TranscriptView text={null} transcriptAt={txAt} role="doctor" state="processing" />
               )}
             </Box>
           )}

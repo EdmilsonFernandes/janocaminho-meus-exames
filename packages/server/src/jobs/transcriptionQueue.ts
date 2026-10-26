@@ -40,6 +40,15 @@ export async function finalizeTranscription(
 ): Promise<Date> {
   const buf = await fs.promises.readFile(audioPathFor(reminder.id));
   const text = await transcribeAudio(buf, { mime: 'audio/webm', filename: `${reminder.id}.webm` });
+  if (!text || !text.trim()) {
+    // STT vazio (consulta curta/silêncio): gravar transcriptAt aqui deixava o estado
+    // órfão "chip Transcrição ✓ no summary + text null no GET" que pendurava o
+    // histórico do médico em "processando…" pra sempre (bug 26/10 — encryptPII('')
+    // = null → transcriptEnc ficava null). Abort terminal honesto: arquivo fora,
+    // estado limpo, paciente avisado sem promessa de transcrição que não existe.
+    await abortTranscription(reminder, 'STT_EMPTY', 'Não capturamos fala nesta consulta — não há transcrição a gerar.');
+    return new Date();
+  }
   const cipher = encryptPII(text);
   const transcriptAt = new Date();
   await prisma.reminder.update({

@@ -54,6 +54,9 @@ export interface TeleconsultaSummary {
    *  Com endedAt, a teleconsulta vira área READ-ONLY (nunca reentra na sala). */
   endedAt?: string | null;
   transcript: { at: string | null } | null;
+  /** Bug 26/10: gravação ainda no disco = STT pendente → UI mostra "processando"
+   *  animado + poll (antes pendurava "ainda não disponível" pra sempre). */
+  recordingAt?: string | null;
   examRequests: ExamRequest[];
   feedback: { rating: number; note?: string | null; role?: string | null } | null;
   durationHint: string | null;

@@ -760,6 +760,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     } finally { setTeleBusy(false); }
   };
 
+  // Dono 26/10: cancelar ganhou MOTIVO (vai no push+e-mail pro paciente e no
+  // histórico "Cancelada") — Dialog próprio com campo, em vez do confirm seco.
+  const [cancelCtx, setCancelCtx] = useState<{ rid: string; pid: string } | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelBusy, setCancelBusy] = useState(false);
+
   const cancelTele = async (reminderId: string, patientId?: string) => {
     let pid = patientId || selected?.patient?.id;
     if (!pid) {
@@ -770,30 +776,74 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       snackbar({ message: 'Não foi possível identificar o paciente da consulta.', severity: 'error' });
       return;
     }
-    if (!(await confirmDialog({
-      title: 'Cancelar teleconsulta',
-      message: 'Deseja realmente cancelar esta teleconsulta? O horário será liberado e o paciente informado.',
-      confirmLabel: 'Sim, cancelar teleconsulta',
-    }))) return;
+    setCancelReason('');
+    setCancelCtx({ rid: reminderId, pid });
+  };
+
+  const doCancelTele = async () => {
+    if (!cancelCtx) return;
+    setCancelBusy(true);
     try {
-      const r = await fetch(`${API_URL}/doctor/patients/${pid}/teleconsulta/${reminderId}`, { method: 'DELETE', headers: h });
+      const r = await fetch(`${API_URL}/doctor/patients/${cancelCtx.pid}/teleconsulta/${cancelCtx.rid}`, {
+        method: 'DELETE', headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason.trim() || undefined }),
+      });
       if (r.ok) {
-        snackbar({ message: 'Teleconsulta cancelada com sucesso.', severity: 'info' });
-        setPatientTele((list) => list.filter((it) => it.id !== reminderId));
-        setDoctorTele((list) => list.filter((it) => it.id !== reminderId));
+        snackbar({ message: 'Teleconsulta cancelada — o paciente será avisado com o motivo.', severity: 'info' });
+        // Não remove mais das listas: a consulta vai pro HISTÓRICO com status 'cancelled'.
+        const stamp = { endedAt: new Date().toISOString(), done: true, teleStatus: 'cancelled' };
+        setPatientTele((l) => l.map((it: any) => (it.id === cancelCtx.rid ? { ...it, ...stamp } : it)));
+        setDoctorTele((l) => l.map((it: any) => (it.id === cancelCtx.rid ? { ...it, ...stamp } : it)));
         loadDoctorTele();
+        setCancelCtx(null);
       } else {
-        throw new Error('Falha ao cancelar.');
+        const d = await r.json().catch(() => null);
+        snackbar({ message: d?.error || 'Não foi possível cancelar a teleconsulta.', severity: 'error' });
       }
     } catch {
       snackbar({ message: 'Não foi possível cancelar a teleconsulta.', severity: 'error' });
-    }
+    } finally { setCancelBusy(false); }
   };
 
   /** F3: abre a área pós-consulta ("Resumo da consulta") — GET summary +
    *  transcript em paralelo, on-demand. Falha parcial não derruba a outra seção;
-   *  o summary em cache alimenta os chips "N pedidos"/"Transcrição ✓" da lista. */
+   *  o summary em cache alimenta os chips "N pedidos"/"Transcrição ✓" da lista.
+   *  Bug 26/10 ("transcrição pensando pra sempre"): o fetch único deixava o card
+   *  parado eternamente quando o STT ainda rodava — agora POLLA enquanto o dialog
+   *  estiver aberto e a transcrição seguir pendente (summary.recordingAt/at). */
+  const postOpenIdRef = useRef<string | null>(null);
+  const postTxPollRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopPostTxPoll = () => {
+    if (postTxPollRef.current) { clearTimeout(postTxPollRef.current); postTxPollRef.current = null; }
+  };
+  // Fechou o dialog por QUALQUER caminho (Fechar, pedir exame, navegação) → poll morre.
+  useEffect(() => {
+    if (!postOpenId) { postOpenIdRef.current = null; stopPostTxPoll(); }
+    return stopPostTxPoll;
+  }, [postOpenId]);
+  const schedulePostTxPoll = (teleId: string, tries: number) => {
+    stopPostTxPoll();
+    postTxPollRef.current = setTimeout(() => void (async () => {
+      if (postOpenIdRef.current !== teleId) return;
+      try {
+        const [sRes, tRes] = await Promise.allSettled([
+          fetch(`${API_URL}/teleconsulta/${teleId}/summary`, { headers: h }),
+          fetch(`${API_URL}/teleconsulta/${teleId}/transcript`, { headers: h }),
+        ]);
+        let s: any = null, t: any = null;
+        if (sRes.status === 'fulfilled' && sRes.value.ok) { s = await sRes.value.json(); setPostSummary(s); setTeleSummaries((m) => ({ ...m, [teleId]: s })); }
+        if (tRes.status === 'fulfilled' && tRes.value.ok) { t = await tRes.value.json(); if (t?.text) setPostTranscript({ text: t.text, transcriptAt: t?.transcriptAt ?? null }); }
+        if (postOpenIdRef.current !== teleId) return;
+        // Continua enquanto o server disser que o STT está vivo (status processing)
+        // ou houver promessa de texto (transcript.at) que ainda não chegou.
+        const stillPending = !t?.text && !!(s?.recordingAt || s?.transcript?.at || t?.status === 'processing');
+        if (stillPending && tries < 10) schedulePostTxPoll(teleId, tries + 1); // ~2 min
+      } catch { if (postOpenIdRef.current === teleId && tries < 10) schedulePostTxPoll(teleId, tries + 1); }
+    })(), 12_000);
+  };
   const openPost = async (teleId: string) => {
+    stopPostTxPoll();
+    postOpenIdRef.current = teleId;
     setPostOpenId(teleId); setPostLoading(true); setPostErr(false);
     setPostSummary(null); setPostTranscript(null);
     try {
@@ -802,18 +852,22 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         fetch(`${API_URL}/teleconsulta/${teleId}/transcript`, { headers: h }),
       ]);
       let anyOk = false;
+      let sData: any = null, tData: any = null;
       if (sRes.status === 'fulfilled' && sRes.value.ok) {
         anyOk = true;
-        const d: TeleconsultaSummary = await sRes.value.json();
-        setPostSummary(d);
-        setTeleSummaries((m) => ({ ...m, [teleId]: d }));
+        sData = await sRes.value.json();
+        setPostSummary(sData);
+        setTeleSummaries((m) => ({ ...m, [teleId]: sData }));
       }
       if (tRes.status === 'fulfilled' && tRes.value.ok) {
         anyOk = true;
-        const d = await tRes.value.json();
-        setPostTranscript({ text: d?.text ?? null, transcriptAt: d?.transcriptAt ?? null });
+        tData = await tRes.value.json();
+        setPostTranscript({ text: tData?.text ?? null, transcriptAt: tData?.transcriptAt ?? null });
       }
       if (!anyOk) setPostErr(true);
+      // STT pendente (áudio no disco ou at sem texto ainda) → polla com o dialog aberto.
+      const pending = !tData?.text && !!(sData?.recordingAt || sData?.transcript?.at || tData?.status === 'processing');
+      if (pending) schedulePostTxPoll(teleId, 1);
     } catch { setPostErr(true); }
     finally { setPostLoading(false); }
   };
@@ -2128,14 +2182,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 </Box>
               )}
 
-              {/* Transcrição */}
-              {(!!postTranscript?.text || !!postSummary?.transcript?.at) ? (
+              {/* Transcrição — bug 26/10: pendente agora é card ANIMADO + poll (antes
+                  ficava "ainda não disponível" estático pra sempre no histórico). */}
+              {!!postTranscript?.text ? (
                 <Box>
                   <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif', color: 'text.primary', mb: 1 }}>Transcrição</Typography>
                   <TranscriptView
-                    text={postTranscript?.text ?? null}
-                    transcriptAt={postTranscript?.transcriptAt ?? postSummary?.transcript?.at ?? null}
+                    text={postTranscript.text}
+                    transcriptAt={postTranscript.transcriptAt ?? postSummary?.transcript?.at ?? null}
                     role="doctor"
+                  />
+                </Box>
+              ) : (postSummary?.recordingAt || postSummary?.transcript?.at) ? (
+                <Box>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: '"Poppins",sans-serif', color: 'text.primary', mb: 1 }}>Transcrição</Typography>
+                  <TranscriptView
+                    text={null}
+                    transcriptAt={postSummary?.transcript?.at ?? null}
+                    role="doctor"
+                    state="processing"
                   />
                 </Box>
               ) : (
@@ -2162,6 +2227,36 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode) }}
           >
             Pedir exame
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dono 26/10 — motivo do cancelamento: vai no push+e-mail pro paciente e no
+          histórico ("Cancelada — motivo: …"). Opcional, máx 300 chars. */}
+      <Dialog open={!!cancelCtx} onClose={() => { if (!cancelBusy) setCancelCtx(null); }}>
+        <DialogTitle>Cancelar teleconsulta</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55, mb: 1.5 }}>
+            O horário será liberado e o <strong>paciente será avisado</strong> (notificação no app e e-mail) de que a consulta foi cancelada por você.
+          </Typography>
+          <TextField
+            autoFocus fullWidth multiline minRows={2} maxRows={4}
+            label="Motivo (opcional — vai no aviso ao paciente)"
+            placeholder="Ex.: conflito de agenda, imprevisto clínico…"
+            inputProps={{ maxLength: 300 }}
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', fontSize: 14 } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
+          <Button disabled={cancelBusy} onClick={() => setCancelCtx(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar</Button>
+          <Button
+            color="error" variant="contained" disabled={cancelBusy}
+            onClick={() => void doCancelTele()}
+            sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px' }}
+          >
+            {cancelBusy ? 'Cancelando…' : 'Cancelar teleconsulta'}
           </Button>
         </DialogActions>
       </Dialog>
