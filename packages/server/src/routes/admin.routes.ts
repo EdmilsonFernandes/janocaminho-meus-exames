@@ -1184,7 +1184,10 @@ router.get('/exams', async (req, res, next) => {
             select: {
               id: true,
               fullName: true,
-              owner: { select: { id: true, email: true, phone: true } },
+              // HOTFIX 26/10 (500 no prod): select pedia owner.phone — campo NÃO
+              // existe no model User (validação do Prisma derruba a rota INTEIRA).
+              // Telefone de contato de paciente não modelado; admin usa e-mail.
+              owner: { select: { id: true, email: true } },
             },
           },
         },
