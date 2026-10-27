@@ -26,6 +26,9 @@ export type AudienceFilter = {
   exams?: 'stale90d' | 'abnormal30d';
   /** Atividade física (Health Connect → measurements note='Health Connect'). */
   activity?: 'hcConnected' | 'lowActivity3d' | 'goalHitYesterday';
+  /** Perfil esportivo com hormônio DECLARADO (dono 26/10): sportsProfile ativo com
+   *  substância OU medicação "[Hormônio]" — p/ campanhas do público musculação/TRT. */
+  sports?: 'hormonal';
   /** Exclui quem recebeu push manual há menos de N dias (default 7; 0 = desliga). */
   excludeRecentManualDays?: number;
 };
@@ -51,6 +54,7 @@ export function parseAudienceFilter(raw: unknown): AudienceFilter {
     ...(pick('engagement', ['active7d', 'inactive14d', 'noFirstExam']) ? { engagement: pick('engagement', ['active7d', 'inactive14d', 'noFirstExam']) } : {}),
     ...(pick('exams', ['stale90d', 'abnormal30d']) ? { exams: pick('exams', ['stale90d', 'abnormal30d']) } : {}),
     ...(pick('activity', ['hcConnected', 'lowActivity3d', 'goalHitYesterday']) ? { activity: pick('activity', ['hcConnected', 'lowActivity3d', 'goalHitYesterday']) } : {}),
+    ...(pick('sports', ['hormonal']) ? { sports: pick('sports', ['hormonal']) } : {}),
     ...(Number.isFinite(days) ? { excludeRecentManualDays: Math.max(0, Math.min(90, Math.round(days))) } : {}),
   };
 }
@@ -122,6 +126,17 @@ export async function resolveAudienceUserIds(filter: AudienceFilter): Promise<st
 
   // ── atividade (Health Connect) ─────────────────────────────────────────────
   if (filter.activity === 'hcConnected') patientConds.push({ measurements: { some: { note: 'Health Connect' } } });
+
+  // ── perfil esportivo hormonal (dono 26/10): substância declarada no sportsProfile
+  //    ativo OU medicação "[Hormônio]" (mesma fonte do tema 'hormonal' das dicas).
+  if (filter.sports === 'hormonal') {
+    patientConds.push({
+      OR: [
+        { sportsProfile: { active: true, declaredSubstances: { not: { equals: [] } } } },
+        { medications: { some: { active: true, name: { startsWith: '[Hormônio]' } } } },
+      ],
+    });
+  }
 
   if (patientConds.length) where.patients = { some: { AND: patientConds } };
   const excludeDays = filter.excludeRecentManualDays ?? DEFAULT_EXCLUDE_DAYS;

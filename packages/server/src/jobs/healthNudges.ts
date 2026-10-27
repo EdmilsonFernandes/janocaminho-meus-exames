@@ -59,7 +59,7 @@ async function generateTip(patientId: string, ctx: TipContext, theme: TipTheme, 
 /** Monta o contexto REAL do paciente p/ a dica: health-summary + atividade HC + medicação + dicas recentes.
  *  (exportada p/ smoke test manual: `npx tsx scripts/smoke-tip.ts`) */
 export async function buildSmartTip(patientId: string, ownerId: string, firstName: string): Promise<{ body: string; theme: TipTheme } | null> {
-  const [hs, lastExam, meds, recentTips, acts, patientRow, lastMental] = await Promise.all([
+  const [hs, lastExam, meds, recentTips, acts, patientRow, lastMental, sportsProfile] = await Promise.all([
     getCachedHealthSummary(patientId).catch(() => null),
     prisma.exam.findFirst({ where: { patientId, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, select: { performedAt: true } }),
     prisma.medication.findMany({ where: { patientId, active: true }, select: { name: true }, take: 4 }),
@@ -69,7 +69,24 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
     // P2021 (tabela ausente em DB pré-migration) → null: tema 'mente' simplesmente não candidata.
     prisma.mentalHealthScreening.findFirst({ where: { patientId }, orderBy: { createdAt: 'desc' }, select: { type: true, total: true, createdAt: true } })
       .catch((e: any) => (e?.code === 'P2021' ? null : Promise.reject(e))),
+    // Dono 26/10 ("as notificações têm que entender o que ele toma"): perfil esportivo
+    // p/ contexto hormonal DECLARADO (drift-safe: tabela nova ausente → null, tema não candidata).
+    (prisma as any).sportsProfile.findUnique({ where: { patientId }, select: { declaredSubstances: true, archetype: true, active: true } })
+      .catch(() => null),
   ]);
+
+  // CONTEXTO HORMONAL (autorrelato): medicação "[Hormônio] X" (DeclaredSubstanceForm) e/ou
+  // declaredSubstances do sportsProfile ativo. União dedup, máx 4 — entra no tema 'hormonal'.
+  const hormonalSubs = new Set<string>();
+  for (const m of meds) {
+    const mh = /^\[Hormônio\]\s*(.+)$/i.exec(m.name);
+    if (mh) hormonalSubs.add(mh[1].trim());
+  }
+  const declared = Array.isArray((sportsProfile as any)?.declaredSubstances) ? (sportsProfile as any).declaredSubstances as unknown[] : [];
+  for (const s of declared) if (typeof s === 'string' && s.trim()) hormonalSubs.add(s.trim().replace(/^\[?Hormônio\]?\s*/i, ''));
+  const hormonal = hormonalSubs.size
+    ? { substances: [...hormonalSubs].slice(0, 4), archetype: (sportsProfile as any)?.archetype ?? null }
+    : null;
 
   // Perfil criança (mesma regra da GrowthSection: <19 anos com data de nascimento).
   const now = Date.now();
@@ -115,6 +132,7 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
     stepsAvgDay: stepDays ? Math.round(steps / stepDays) : null,
     restingHr,
     medications: meds.map((m) => m.name),
+    hormonal,
     segment: classifySegment(`${worsening[0]?.name ?? ''} ${improving[0]?.name ?? ''} ${hs?.clinicalSummary ?? ''}`),
     mental,
     childAgeMonths: isChild ? Math.floor(ageDays! / 30.4375) : null,

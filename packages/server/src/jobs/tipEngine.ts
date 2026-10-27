@@ -200,11 +200,14 @@ export function curatedFallback(c: TipContext, theme: TipTheme): string {
     case 'hormonal': {
       const subs = c.hormonal?.substances ?? [];
       const all = [...c.worsening, ...c.improving];
-      const find = (re: RegExp) => all.find((m) => re.test(m.name));
-      const hct = find(/hematocrito/i);
-      const hdl = find(/hdl/i);
-      const ck = find(/\bck\b|creatino?quinase/i);
-      const crea = find(/creatinina(?!.*quinase)/i);
+      // Régua da casa: nomes de analito chegam COM acento — regex sempre SEM acento
+      // (mesmo gotcha do normalizeKey: "Hematócrito" nunca casa /hematocrito/ cru).
+      const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+      const find = (re: RegExp) => all.find((m) => re.test(norm(m.name)));
+      const hct = find(/hematocrito/);
+      const hdl = find(/\bhdl\b|colesterol hdl/);
+      const ck = find(/\bck\b|creatinoquinase/);
+      const crea = find(/creatinina(?!.*quinase)/);
       if (hct) return `${c.firstName}, seu hematócrito está em ${fmt(hct.value)}${unit(hct)}${hct.refHigh != null ? ` (referência até ${fmt(hct.refHigh)})` : ''} — em uso declarado de hormônio esse é um número que o médico acompanha de perto. Vale levar na próxima consulta${subs.length ? ` (uso relatado: ${subs[0]})` : ''}.`;
       if (hdl) return `Seu HDL (${fmt(hdl.value)}${unit(hdl)}) é um marcador que costuma mudar com uso declarado de androgênios — seu médico interpreta no seu contexto. Leve a evolução dele na consulta${subs.length ? ` (uso relatado: ${subs[0]})` : ''}.`;
       if (ck) return `CK em ${fmt(ck.value)}${unit(ck)} pode subir muito com treino intenso recente — coleta sem treino forte nas 24h anteriores dá o valor mais confiável (padrão internacional de laboratório). Mostre a curva pro seu médico.`;
