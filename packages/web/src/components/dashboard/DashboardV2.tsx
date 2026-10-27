@@ -76,6 +76,7 @@ import { TeleconsultaCard } from './TeleconsultaCard';
 import { LiveTeleconsultaBanner } from './LiveTeleconsultaBanner';
 import { useUpcomingTeleconsulta } from '../../hooks/useUpcomingTeleconsulta';
 import { openTelemedicinaRoom } from '../../utils/telemedicina';
+import { heroPhase } from '../../utils/heroPhase';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 
 const readTotal = (r: Response) =>
@@ -486,7 +487,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
   const st = statusFromScore(score);
   const last = lastExam ? new Date(lastExam).toLocaleDateString('pt-BR') : null;
   const totalAtt = importante + moderada;
-  const noData = score == null && exams === 0;
+  // Antes do load NÃO existe "vazio" (score null + 0 exames é o estado inicial do hook).
+  const phase = heroPhase(loaded, score, exams);
+  const noData = phase === 'empty';
   const title = noData ? 'Começa com seu primeiro exame' : score == null ? 'Score indisponível' : st.label;
   const animatedScore = useCountUp(score); // 0 → score em ~800ms easeOutExpo (mesma curva do anel)
   const dashLen = ((score ?? 0) / 100) * RING_CIRC;
@@ -648,7 +651,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{
+          {phase === 'loading' ? <Shimmer w="70%" h={22} r={8} /> : (<Typography sx={{
             fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 'clamp(1.15rem, 5.5vw, 1.375rem)', sm: 22 }, lineHeight: 1.15, color: 'text.primary', textWrap: 'balance',
             // STATUS ENTRA DEPOIS do count-up: fade + translateY(4px→0), 200ms com delay
             // 850ms (stagger sutil). GPU-friendly (só opacity/transform). Fora dos estados
@@ -657,7 +660,7 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
               animation: 'dxStatusIn .2s cubic-bezier(.16,1,.3,1) .85s both',
               '@keyframes dxStatusIn': { from: { opacity: 0, transform: 'translateY(4px)' } },
             } : {}),
-          }}>{title}</Typography>
+          }}>{title}</Typography>)}
 
           {/* W2 — comemora o progresso (só quando SUBIU; nunca pune queda). */}
           {scoreGain > 0 && showGain && (
@@ -783,7 +786,9 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
       )}
 
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ mt: 2.25, width: '100%', position: 'relative', zIndex: 1 }}>
-        {noData ? (
+        {phase === 'loading' ? (
+          <Shimmer h={44} r={12} />
+        ) : noData ? (
           <>
             <GradientButton onClick={onFirstExam} endIcon={<ArrowForwardIcon />} sx={{ width: { xs: '100%', sm: 'auto' }, alignSelf: 'stretch' }}>
               Enviar primeiro exame
@@ -905,7 +910,7 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
 };
 
 /** Panorama de Marcadores — estilo Hospital Management / Department Occupancy */
-const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number; onOpen: (dest: 'exams' | 'tendencias') => void }) => {
+const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number; onOpen: (dest: 'exams' | 'tendencias') => void; loaded?: boolean }) => {
   const t = useTheme();
   const isDark = t.palette.mode === 'dark';
   const total = (buckets.bons + buckets.alerta + buckets.alterados) || totalMarkers;
@@ -951,15 +956,19 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen }: { buckets: { 
             Seus Marcadores
           </Typography>
           <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-            {total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
+            {!loaded ? 'Carregando seus marcadores…' : total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
           </Typography>
         </Box>
       </Stack>
 
       <Stack spacing={0.75}>
-        {row(SEVERITY.low, buckets.bons, bonsPct, (th: any) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'], '#10b981', 'exams')}
-        {row(SEVERITY.mid, buckets.alerta, alertaPct, (th: any) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'], '#f59e0b', 'tendencias')}
-        {row(SEVERITY.high, buckets.alterados, alteradosPct, (th: any) => TONE_TEXT.error[th.palette.mode === 'dark' ? 'dark' : 'light'], '#ef4444', 'tendencias', true)}
+        {loaded ? (
+          <>
+            {row(SEVERITY.low, buckets.bons, bonsPct, (th: any) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'], '#10b981', 'exams')}
+            {row(SEVERITY.mid, buckets.alerta, alertaPct, (th: any) => TONE_TEXT.warning[th.palette.mode === 'dark' ? 'dark' : 'light'], '#f59e0b', 'tendencias')}
+            {row(SEVERITY.high, buckets.alterados, alteradosPct, (th: any) => TONE_TEXT.error[th.palette.mode === 'dark' ? 'dark' : 'light'], '#ef4444', 'tendencias', true)}
+          </>
+        ) : [0, 1, 2].map((i) => <Shimmer key={i} h={36} r={8} />)}
       </Stack>
 
       <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
@@ -1385,7 +1394,7 @@ const DashboardV2Inner = () => {
               {!demo && <TeleconsultaCard />}
 
               {/* PANORAMA DOS MARCADORES */}
-              <MarkerDistributionCard buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => go(dest === 'tendencias' ? '/tendencias' : '/exams')()} />
+              <MarkerDistributionCard loaded={d.loaded} buckets={d.buckets} totalMarkers={d.markerCount} onOpen={(dest) => go(dest === 'tendencias' ? '/tendencias' : '/exams')()} />
 
               {/* AÇÕES RÁPIDAS */}
               <Section label="Ações rápidas" icon={<AutoAwesomeIcon sx={{ fontSize: 18 }} />}>

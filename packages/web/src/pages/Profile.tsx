@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import {
   Box, Card, CardContent, Typography, TextField, Button, Stack, Chip, MenuItem, Switch,
   FormControlLabel, Tabs, Tab, Divider, Grid, useTheme, Tooltip, IconButton
@@ -37,6 +37,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
+import { buildProfilePatch, profileFormFromPatient, type ProfileFormValues } from '../utils/profilePatch';
 import { DateFieldBR } from '../components/DateFieldBR';
 import { SportsModeCard } from '../components/SportsModeCard';
 import { tealText } from '../theme';
@@ -111,6 +112,11 @@ export const ProfilePage = () => {
   const [ethnicity, setEthnicity] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [saving, setSaving] = useState(false);
+  // O que veio do servidor: null = ainda carregando → "Salvar" bloqueado (ver utils/profilePatch).
+  const [baseline, setBaseline] = useState<ProfileFormValues | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const pidRef = useRef(pid);
+  pidRef.current = pid;
   const [photoVer, setPhotoVer] = useState(0);
   const [achAlerts, setAchAlerts] = useState(true);
 
@@ -125,55 +131,66 @@ export const ProfilePage = () => {
   });
 
   const load = async () => {
-    const h = { Authorization: `Bearer ${token()}` };
-    const me = await fetch(`${API_URL}/auth/me`, { headers: h });
-    if (me.ok) {
-      const mu = (await me.json())?.user;
-      setUser(mu);
-      setAchAlerts(mu?.achievementAlerts ?? true);
-      if (typeof mu?.librasEnabled === 'boolean') setLibrasOn(mu.librasEnabled);
-    }
-    if (pid) {
-      const pr = await fetch(`${API_URL}/patients/${pid}`, { headers: h });
-      if (pr.ok) {
-        const p = await pr.json();
-        setPatient(p);
-        setFullName(p.fullName ?? '');
-        setCpf(p.cpfMasked ?? '');
-        setPhone(p.phone ?? '');
-        setClinical(p.clinicalProfile ?? '');
-        setAllergies(p.allergies ?? '');
-        setGender(p.gender ?? '');
-        setHeightCm(p.heightCm != null ? String(p.heightCm) : '');
-        setEthnicity(p.ethnicity ?? '');
-        setBirthDate(p.dateOfBirth ? p.dateOfBirth.split('T')[0] : '');
+    const reqPid = pid;
+    setLoadFailed(false);
+    try {
+      const h = { Authorization: `Bearer ${token()}` };
+      const me = await fetch(`${API_URL}/auth/me`, { headers: h });
+      if (me.ok) {
+        const mu = (await me.json())?.user;
+        setUser(mu);
+        setAchAlerts(mu?.achievementAlerts ?? true);
+        if (typeof mu?.librasEnabled === 'boolean') setLibrasOn(mu.librasEnabled);
       }
+      if (reqPid) {
+        const pr = await fetch(`${API_URL}/patients/${reqPid}`, { headers: h });
+        if (pidRef.current !== reqPid) return; // trocou de perfil no meio: o load novo assume
+        if (!pr.ok) { setLoadFailed(true); return; }
+        const p = await pr.json();
+        const f = profileFormFromPatient(p);
+        setPatient(p);
+        setFullName(f.fullName);
+        setCpf(p.cpfMasked ?? '');
+        setPhone(f.phone);
+        setClinical(f.clinicalProfile);
+        setAllergies(f.allergies);
+        setGender(f.gender);
+        setHeightCm(f.heightCm);
+        setEthnicity(f.ethnicity);
+        setBirthDate(f.dateOfBirth);
+        setBaseline(f);
+      }
+    } catch {
+      if (pidRef.current === reqPid) setLoadFailed(true);
     }
   };
 
   useEffect(() => {
+    setBaseline(null); // perfil novo: nada salvável até ele carregar
     load();
     /* eslint-disable-next-line */
   }, [pid]);
 
   const saveProfile = async () => {
-    if (!pid) return;
+    if (!pid || !baseline) return;
     if (!patient?.hasCpf && cpf && !isValidCpf(cpf)) {
       notify('Informe um CPF válido.', { type: 'error' });
       return;
     }
-    setSaving(true);
-    const body: any = {
-      fullName,
-      phone,
-      clinicalProfile: clinical,
-      allergies: allergies || null,
-      gender,
-      heightCm: parseHeightCm(heightCm),
-      ethnicity,
-      dateOfBirth: birthDate || null,
-    };
+    // Só o que MUDOU desde o load — o PUT grava vazio como null (bug 27/10: apagava alergias).
+    const body: Record<string, unknown> = buildProfilePatch(baseline, {
+      fullName, phone, clinicalProfile: clinical, allergies, gender, heightCm, ethnicity, dateOfBirth: birthDate,
+    });
+    if (body.fullName === '') {
+      notify('Informe o nome completo.', { type: 'error' });
+      return;
+    }
     if (!patient?.hasCpf && cpf) body.cpf = cpf;
+    if (Object.keys(body).length === 0) {
+      notify('Nada mudou desde o último salvamento.', { type: 'info' });
+      return;
+    }
+    setSaving(true);
     const r = await fetch(`${API_URL}/patients/${pid}`, {
       method: 'PUT',
       headers: apiHeaders(true),
@@ -717,8 +734,8 @@ export const ProfilePage = () => {
               fullWidth
               size="large"
               startIcon={<SaveIcon />}
-              onClick={saveProfile}
-              disabled={saving}
+              onClick={loadFailed ? () => { void load(); } : saveProfile}
+              disabled={saving || (!baseline && !loadFailed)}
               sx={{
                 borderRadius: '14px',
                 py: 1.4,
@@ -728,9 +745,14 @@ export const ProfilePage = () => {
                 background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
                 boxShadow: '0 6px 18px rgba(32,178,170,.35)',
                 '&:hover': { background: 'linear-gradient(135deg, #178f89 0%, #0d9488 100%)' },
+                // O gradiente acima sobrepõe o disabled do MUI: carregando tem que PARECER travado.
+                '&.Mui-disabled': { background: 'none', bgcolor: 'action.disabledBackground', color: 'text.secondary', boxShadow: 'none' },
               }}
             >
-              {saving ? 'Salvando alterações…' : 'Salvar dados do perfil'}
+              {saving ? 'Salvando alterações…'
+                : loadFailed ? 'Não carregou — tentar de novo'
+                : !baseline ? 'Carregando seus dados…'
+                : 'Salvar dados do perfil'}
             </Button>
           </Box>
         </Stack>
