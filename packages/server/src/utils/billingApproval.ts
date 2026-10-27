@@ -8,6 +8,7 @@
 //   credits  → pacote de CRÉDITOS de IA (user.credits + CreditTransaction purchase)
 //   plan     → plano mensal (planExpiresAt + créditos mensais + vaga de fundador condicional)
 import { prisma } from '../prisma';
+import { config, hasAsaas } from '../config';
 import { getSettings, loadSettings } from './settings';
 import { findSubscriptionByIdCompat, updateSubscriptionCompatWithDb } from './subscriptionCompat';
 import { recordTeleconsultaPayment } from '../finance/ledger';
@@ -80,11 +81,24 @@ export async function approvePendingSubscription(
       });
       await updateSubscriptionCompatWithDb(tx, sub.id, { status: 'APPROVED', mpPaymentId: String(paymentId) });
     });
-    // ONDA 2 FINANCEIRA (§18.3): partidas duplas do pagamento (D patient_received /
-    // C held_unrealized) + congela commissionSnapshot + releaseEligibleAt. Fora da
-    // transação acima de propósito: falha aqui (ex. drift de coluna) NÃO pode derrubar
-    // a aprovação — o job de conciliação repara (idempotente por txnId).
-    await recordTeleconsultaPayment(kind.reminderId).catch((e: any) => {
+    // ONDA 2 FINANCEIRA (§18.3): partidas duplas do pagamento + congela commissionSnapshot
+    // + releaseEligibleAt. Fora da transação acima de propósito: falha aqui (ex. drift de
+    // coluna) NÃO pode derrubar a aprovação — o job de conciliação repara (idempotente por txnId).
+    // Dono 26/10 ("a taxa entra na ENTRADA"): busca o LÍQUIDO real do pagamento no Asaas
+    // (netValue) — o held passa a valer o que existe de verdade e o estorno dele nunca
+    // esbarra em "saldo insuficiente". Sem netValue (provider legado/MP) → held = bruto.
+    let netCents: number | undefined;
+    if (hasAsaas() && /^pay_/.test(String(paymentId))) {
+      try {
+        const pres = await fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(String(paymentId))}`, { headers: { access_token: config.asaasApiKey } });
+        if (pres.ok) {
+          const p: any = await pres.json();
+          const n = Math.round(Number(p?.netValue ?? 0) * 100);
+          if (n > 0) netCents = n;
+        }
+      } catch { /* sem info de taxa → bruto; o degrau do estorno cobre */ }
+    }
+    await recordTeleconsultaPayment(kind.reminderId, netCents).catch((e: any) => {
       console.error('[finance] ledger do pagamento falhou (conciliação repara):', kind.reminderId, e?.message);
     });
     console.log(`[billing] consulta particular paga — reminder ${kind.reminderId} (${String(paymentId)})`);

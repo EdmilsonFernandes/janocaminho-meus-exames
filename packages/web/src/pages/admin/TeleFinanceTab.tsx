@@ -622,7 +622,7 @@ export const TeleFinanceTab = () => {
                 <XAxis dataKey="diaFmt" tick={{ fontSize: 11, fill: mode === 'dark' ? '#94a3b8' : '#64748b' }} tickLine={false} axisLine={false} />
                 <YAxis tickFormatter={(v: number) => brlShort(v * 100)} tick={{ fontSize: 11, fill: mode === 'dark' ? '#94a3b8' : '#64748b' }} tickLine={false} axisLine={false} width={70} />
                 <RTooltip
-                  formatter={((v: any, name: any): [string, string] => [brl(Number(v ?? 0) * 100), String(name) === 'volumeCents' ? 'Volume pago' : 'Receita plataforma'])}
+                  formatter={((v: any, name: any): [string, string] => [brl(Number(v ?? 0)), String(name) === 'volumeCents' ? 'Volume pago' : 'Receita plataforma'])}
                   labelStyle={{ color: mode === 'dark' ? '#e8eef0' : '#2d3748', fontWeight: 700 }}
                   contentStyle={{ borderRadius: 10, border: '1px solid rgba(0,0,0,.1)', background: mode === 'dark' ? '#1a2424' : '#fff' }}
                 />

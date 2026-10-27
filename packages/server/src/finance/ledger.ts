@@ -260,9 +260,18 @@ async function ensureSnapshot(r: ReminderFinanceRow): Promise<CommissionSnapshot
  * commissionSnapshot (se faltar) e calcula releaseEligibleAt (paidAt + D+N).
  * Idempotente (txnId payment_<id>); no-op se não pago/sem preço.
  */
-export async function recordTeleconsultaPayment(reminderId: string): Promise<PostResult> {
+export async function recordTeleconsultaPayment(reminderId: string, netCents?: number): Promise<PostResult> {
   const r = await loadFinanceReminder(reminderId);
   if (!r || !r.paidAt || !(r.consultPriceCents! > 0)) return { txnId: paymentTxnId(reminderId), posted: false, entries: 0 };
+  // Dono 26/10 ("taxa entra na ENTRADA"): quando o provedor informa o LÍQUIDO
+  // (netValue do Asaas), o pagamento nasce em 3 pernas — recebido BRUTO /
+  // taxa → provider_fees / retido = LÍQUIDO. O held passa a valer só o que
+  // existe de verdade → estorno dele é sempre integral-de-verdade, sem saldo
+  // insuficiente. Sem netValue (provider legado/teste) → held = bruto e o
+  // degrau do estorno cobre a diferença.
+  const gross = r.consultPriceCents!;
+  const net = Math.max(0, Math.min(gross, Math.trunc(netCents ?? gross)));
+  const fee = gross - net;
   const snap = await ensureSnapshot(r);
   return (
     await postEntries(
@@ -270,11 +279,12 @@ export async function recordTeleconsultaPayment(reminderId: string): Promise<Pos
         txnId: paymentTxnId(reminderId, occurrenceKey(r)),
         reminderId: r.id,
         doctorId: r.createdByDoctorId,
-        memo: 'Pagamento confirmado (consulta particular)',
+        memo: fee > 0 ? 'Pagamento confirmado (consulta particular — líquido de tarifas)' : 'Pagamento confirmado (consulta particular)',
         ruleSnapshot: snap,
         entries: [
-          { account: 'patient_received', debitCents: r.consultPriceCents!, refType: 'payment', refId: r.paymentRef },
-          { account: 'held_unrealized', creditCents: r.consultPriceCents!, refType: 'reminder', refId: r.id },
+          { account: 'patient_received', debitCents: gross, refType: 'payment', refId: r.paymentRef },
+          { account: 'held_unrealized', creditCents: net, refType: 'reminder', refId: r.id },
+          ...(fee > 0 ? [{ account: 'provider_fees' as LedgerAccount, creditCents: fee, refType: 'payment', refId: r.paymentRef }] : []),
         ],
       }],
     )
@@ -352,7 +362,15 @@ export async function recordTeleconsultaRefundReserve(reminderId: string): Promi
 export async function postRefundExecuted(reminderId: string, refundCents?: number): Promise<PostResult> {
   const r = await loadFinanceReminder(reminderId);
   if (!r || !r.paidAt || !(r.consultPriceCents! > 0)) return { txnId: refundTxnId(reminderId), posted: false, entries: 0 };
-  const cents = Math.trunc(refundCents ?? r.consultPriceCents!);
+  // Base do estorno: o SALDO REAL da retenção (com taxa lançada na entrada, o held
+  // já vale o líquido — estorná-lo inteiro nunca esbarra em saldo insuficiente).
+  // Sem lançamento de taxa (pagamento legado/teste) o held vale o bruto original.
+  const heldAgg = await prisma.ledgerEntry.aggregate({
+    where: { reminderId: r.id, account: 'held_unrealized' },
+    _sum: { creditCents: true, debitCents: true },
+  }).catch(() => ({ _sum: { creditCents: 0, debitCents: 0 } }));
+  const heldNet = (heldAgg._sum.creditCents ?? 0) - (heldAgg._sum.debitCents ?? 0);
+  const cents = Math.trunc(refundCents ?? (heldNet > 0 ? heldNet : r.consultPriceCents!));
   if (!(cents > 0) || cents > (r.consultPriceCents ?? 0)) throw new Error(`Estorno inválido: ${cents} (total ${r.consultPriceCents}).`);
   // Há reserva p/ este reminder? (no_show/technical já reservado)
   const reserved = await prisma.ledgerEntry.aggregate({

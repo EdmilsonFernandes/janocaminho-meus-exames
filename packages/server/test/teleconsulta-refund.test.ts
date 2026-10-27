@@ -19,8 +19,9 @@ import { recordTeleconsultaPayment, recordTeleconsultaRefundReserve } from '../s
 
 const fetchMock = () => globalThis.fetch as unknown as Mock;
 
-/** Consulta paga (scheduled — o caso da Heloisa 26/10) com ledger de pagamento real. */
-async function seedPaidTeleconsulta(opts: { teleStatus?: string; endedAt?: Date } = {}) {
+/** Consulta paga (scheduled — o caso da Heloisa 26/10) com ledger de pagamento real.
+ *  netCents > 0 simula o MODELO NOVO: taxa lançada NA ENTRADA (netValue do Asaas). */
+async function seedPaidTeleconsulta(opts: { teleStatus?: string; endedAt?: Date; netCents?: number } = {}) {
   const { user, patient } = await createUser();
   const doc = await createDoctor({ email: `refund-doc-${Date.now().toString(36)}@test.com`, crm: `55220-SP` });
   await prisma.doctorShare.create({ data: { patientId: patient.id, doctorId: doc.doctor.id, scopes: ['exams'] } });
@@ -35,7 +36,7 @@ async function seedPaidTeleconsulta(opts: { teleStatus?: string; endedAt?: Date 
     },
     select: { id: true },
   });
-  await recordTeleconsultaPayment(r.id); // held_unrealized 500 (o estado real pós-webhook)
+  await recordTeleconsultaPayment(r.id, opts.netCents); // held = líquido quando netCents
   return { user, patient, doc, r, H: { Authorization: `Bearer ${doc.token}` } };
 }
 
@@ -205,6 +206,28 @@ describe('POST /api/admin/teleconsulta/:id/refund (onda 4)', () => {
     const mails = refundMails();
     expect(mails.some((m) => m.to === user.email)).toBe(true);
     expect(mails.some((m) => m.to === doc.doctor.email)).toBe(true);
+  });
+
+  it('MODELO NOVO (dono 26/10 — taxa na ENTRADA): netValue no pagamento → held=LÍQUIDO → estorno INTEGRAL do líquido, sem degrau e sem taxa duplicada', async () => {
+    const { r } = await seedPaidTeleconsulta({ netCents: 151 }); // bruto 500, tarifa 349 na entrada
+    const payLegs = await prisma.ledgerEntry.findMany({ where: { reminderId: r.id, txnId: { startsWith: 'payment_' } }, select: { account: true, creditCents: true, debitCents: true } });
+    expect(payLegs.some((e) => e.account === 'patient_received' && e.debitCents === 500)).toBe(true);
+    expect(payLegs.some((e) => e.account === 'held_unrealized' && e.creditCents === 151)).toBe(true);
+    expect(payLegs.some((e) => e.account === 'provider_fees' && e.creditCents === 349)).toBe(true);
+
+    mockAsaasRefund(200); // carteira cobre o líquido — 1ª tentativa passa, sem degrau
+    const H = await adminToken();
+    const res = await api().post(`/api/admin/teleconsulta/${r.id}/refund`).set(H).send();
+    expect(res.status).toBe(200);
+    expect(res.body.refundedValueCents).toBe(151);
+    expect(res.body.feeCents).toBe(349);
+
+    // held fecha em ZERO (ponto morto) e NÃO existe taxa de estorno duplicada.
+    const held = await prisma.ledgerEntry.aggregate({ where: { reminderId: r.id, account: 'held_unrealized' }, _sum: { creditCents: true, debitCents: true } });
+    expect((held._sum.creditCents ?? 0) - (held._sum.debitCents ?? 0)).toBe(0);
+    expect(await prisma.ledgerEntry.count({ where: { reminderId: r.id, txnId: `refund_fee_${r.id}` } })).toBe(0);
+    const fees = await prisma.ledgerEntry.aggregate({ where: { reminderId: r.id, account: 'provider_fees' }, _sum: { creditCents: true } });
+    expect(fees._sum.creditCents ?? 0).toBe(349); // só a taxa da ENTRADA
   });
 });
 
