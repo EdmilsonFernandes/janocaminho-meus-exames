@@ -346,6 +346,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [flashTele, setFlashTele] = useState<string | null>(null); // card recém-agendado pisca (feedback de sucesso)
   const [teleBusy, setTeleBusy] = useState(false);
   const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '', price: '' });
+  /** Erro INLINE do dialog de agendamento (toast global fica atrás do modal). */
+  const [teleError, setTeleError] = useState('');
   const [patientTele, setPatientTele] = useState<any[]>([]);
   const [doctorTele, setDoctorTele] = useState<any[]>([]);
   // F3 (20/10) — área pós-consulta: summary/transcript on-demand + cache p/ chips da lista.
@@ -719,6 +721,23 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       snackbar({ message: 'Cole o link da consulta (https://…) ou ative a chamada automática.', severity: 'warning' });
       return;
     }
+    // Cobrança: valida ANTES de enviar (bug 27/10 — a máscara faz "20" virar "0,20"
+    // e o 400 do server aparecia só no inspector: toast global renderiza ATRÁS do
+    // Dialog). Erro agora é INLINE no próprio dialog + validação pré-envio.
+    setTeleError('');
+    const priceCents = tele.price ? Number(tele.price.replace(/\D/g, '')) || null : null;
+    if (priceCents != null) {
+      if (priceCents < 2000) {
+        setTeleError(`Valor abaixo do mínimo de R$ 20,00 (garante estorno integral). Você digitou R$ ${(priceCents / 100).toFixed(2).replace('.', ',')} — ajuste o campo acima.`);
+        setTeleBusy(false);
+        return;
+      }
+      if (priceCents > 2_000_000) {
+        setTeleError('Valor acima do máximo de R$ 20.000,00. Ajuste o campo acima.');
+        setTeleBusy(false);
+        return;
+      }
+    }
     setTeleBusy(true);
     try {
       const due = new Date(`${tele.date}T${tele.time || '14:00'}`).toISOString();
@@ -730,7 +749,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           ...(useInApp ? { createLiveKit: true } : useMeet ? { createMeet: true } : { linkUrl: tele.link.trim() }),
           title: tele.title.trim() || `Teleconsulta com ${doctor?.name?.split(' ')[0] ?? 'seu médico'}`,
           recurrence: tele.recurrence || undefined,
-          consultPriceCents: tele.price ? Number(tele.price.replace(/\D/g, '')) || undefined : undefined, // cobrança opcional (centavos; vazio = sem cobrança)
+          consultPriceCents: priceCents ?? undefined, // cobrança opcional (centavos; vazio = sem cobrança) — parse validado acima
         }),
       });
       let r = await scheduleOnce(false);
@@ -780,6 +799,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         }, 350);
       }
     } catch (e: any) {
+      setTeleError(String(e?.message || 'Falha ao agendar.')); // dialog permanece aberto com o motivo
       snackbar({ message: e?.message || 'Falha ao agendar.', severity: 'error' });
     } finally { setTeleBusy(false); }
   };
@@ -1848,7 +1868,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       )}
 
       {/* MODAL DE AGENDAMENTO DE TELECONSULTA — UX Redesenhada com Design System */}
-      <Dialog open={teleOpen} onClose={() => setTeleOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 0.5 } }}>
+      <Dialog open={teleOpen} onClose={() => { setTeleOpen(false); setTeleError(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 0.5 } }}>
         <DialogTitle sx={{ pb: 1, fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Stack direction="row" alignItems="center" spacing={1}>
             <VideocamIcon sx={{ fontSize: 24, color: 'secondary.dark' }} />
@@ -2090,7 +2110,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               size="small"
               fullWidth
               inputProps={{ inputMode: 'numeric', placeholder: 'ex.: 150,00' }}
-              helperText="Deixe vazio para não cobrar. O valor é congelado no agendamento e o paciente paga no app (PIX)."
+              helperText="Opcional — deixe vazio para não cobrar. Mín. R$ 20,00 · máx. R$ 20.000,00. Congelado no agendamento; paciente paga no app (PIX)."
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
             {/* Presets (24/10): chips rápidos 120/150/170/190 — um toque preenche o campo
@@ -2119,6 +2139,9 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Stack>
           </Stack>
         </DialogContent>
+        {teleError && (
+          <Alert severity="error" sx={{ mx: 3, mb: 0.5, borderRadius: '12px', fontSize: 13.5, alignItems: 'flex-start' }}>{teleError}</Alert>
+        )}
         <DialogActions sx={{ px: 3, pb: 2.5 }}>
           <Button onClick={() => setTeleOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
           <Button
