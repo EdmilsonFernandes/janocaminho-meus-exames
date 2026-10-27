@@ -44,7 +44,11 @@ import { SportsMarkerCard, type EvolutionAnalyte, type CollectionContextChips } 
 import { SportsTimeline, type SportsEvent } from './SportsTimeline';
 import { SportsSinceLast } from './SportsSinceLast';
 import { SportsConsultPrep } from './SportsConsultPrep';
-import { SportsSubstances, type DeclaredSubstanceView } from './SportsSubstances';
+import type { DeclaredSubstanceView } from './SportsSubstances';
+import { SportsStackCard } from './SportsStackCard';
+import { DeclareSubstanceSheet, type SheetEditTarget } from './DeclareSubstanceSheet';
+import { POPULAR_SUBSTANCES, catalogFindByToken, artFor, type CatalogItem } from './substanceCatalog';
+import { SubstanceArt } from './SubstanceArt';
 import { priorityOf, PRIORITY_RANK } from '../../utils/alertPriority';
 
 /** Recorte do useDashboardData que o painel esportivo consome (MESMOS números do modo normal). */
@@ -122,6 +126,122 @@ const relDays = (d?: string | null) => {
 
 const MARKER_CAP = 30;
 
+/** Convite cobre tracejado (mock T1 — SEM substância declarada): chips 1-tap das mais
+ *  buscadas + "+ Outra…" (sheet em modo busca) + "Não uso nada" (dismiss 30d, flag
+ *  não-sensível). Declaração em 2 toques, 0 digitação obrigatória (spec jornada). */
+const SubstanceContextCard = ({ onPick, onOther, onDismiss }: {
+  onPick: (item: CatalogItem) => void;
+  onOther: () => void;
+  onDismiss: () => void;
+}) => {
+  const theme = useTheme();
+  const dark = theme.palette.mode === 'dark';
+  return (
+    <AppCard
+      sx={{
+        p: { xs: 2, sm: 2.5 },
+        borderRadius: '18px',
+        border: '1.5px dashed rgba(212,165,116,.55)',
+        bgcolor: dark ? 'rgba(212,165,116,.06)' : 'rgba(212,165,116,.08)',
+        boxShadow: 'none',
+      }}
+    >
+      <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
+        <Box sx={{
+          width: 32, height: 32, borderRadius: '10px', display: 'grid', placeItems: 'center', flexShrink: 0,
+          bgcolor: 'rgba(212,165,116,.16)', fontSize: 16,
+        }}>🧬</Box>
+        <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 15.5, lineHeight: 1.25 }}>
+          Usa algo que afeta seus exames?
+        </Typography>
+      </Stack>
+      <Typography sx={{ fontSize: 12.5, lineHeight: 1.55, color: 'text.secondary' }}>
+        Hormônio, suplemento ou medicação. <Box component="b" sx={{ color: 'text.primary' }}>20 segundos</Box> e a leitura dos seus exames passa a considerar — um toque abaixo:
+      </Typography>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
+        {POPULAR_SUBSTANCES.map(({ label, item }, i) => {
+          const primary = i === 0;
+          return (
+            <Box
+              key={label}
+              component="button"
+              type="button"
+              aria-label={`Declarar ${label}`}
+              onClick={() => onPick(item)}
+              sx={{
+                minHeight: 44,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                px: 1.75,
+                borderRadius: '999px',
+                fontSize: 13.5,
+                fontWeight: 700,
+                cursor: 'pointer',
+                touchAction: 'manipulation',
+                transition: 'all .15s ease',
+                '&:active': { transform: 'scale(.97)' },
+                ...(primary
+                  ? {
+                      border: '1.5px solid transparent',
+                      background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+                      color: '#fff',
+                      boxShadow: '0 6px 18px rgba(32,178,170,.3)',
+                    }
+                  : {
+                      border: `1.5px solid ${alpha('#20b2aa', 0.45)}`,
+                      color: tealText(theme.palette.mode),
+                      bgcolor: 'rgba(32,178,170,.09)',
+                    }),
+              }}
+            >
+              <SubstanceArt kind={artFor(item)} size={22} tone="teal" />
+              {label}
+            </Box>
+          );
+        })}
+        <Box
+          component="button"
+          type="button"
+          onClick={onOther}
+          sx={{
+            minHeight: 44,
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 0.5,
+            px: 1.75,
+            borderRadius: '999px',
+            fontSize: 13.5,
+            fontWeight: 600,
+            border: '1.5px solid rgba(157,180,178,.25)',
+            bgcolor: 'transparent',
+            color: 'text.secondary',
+            cursor: 'pointer',
+            touchAction: 'manipulation',
+            whiteSpace: 'nowrap',
+            '&:active': { transform: 'scale(.97)' },
+          }}
+        >
+          + Outra…
+        </Box>
+      </Box>
+      <Box
+        component="button"
+        type="button"
+        onClick={onDismiss}
+        sx={{
+          display: 'block', mx: 'auto', mt: 1.5, minHeight: 44,
+          border: 'none', bgcolor: 'transparent', cursor: 'pointer', px: 1,
+          fontSize: 11.5, fontWeight: 500, color: 'text.disabled',
+          textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation',
+        }}
+      >
+        Não uso nada — não mostrar mais
+      </Box>
+    </AppCard>
+  );
+};
+
 export const SportsDashboard = ({ pid, d, profile, firstName }: {
   pid: string | null;
   d: SportsDashData;
@@ -141,6 +261,20 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   // Métricas HC do spotlight da lente (ENDURANCE): FC repouso + distância 7d.
   const [hrRest, setHrRest] = useState<number | null>(null);
   const [dist7Km, setDist7Km] = useState<number | null>(null);
+
+  // ── REDISIGN hormonal v2 (2026-10-27): sheet de declaração + card/banner de contexto ──
+  // Estado global do sheet: chip 1-tap (preselect), "+ Outra…" (busca) e ✏️ do stack (edit).
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [sheetSub, setSheetSub] = useState<CatalogItem | null>(null);
+  const [sheetEdit, setSheetEdit] = useState<SheetEditTarget | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  // Dismiss do convite cobre: flag com 30 dias de TTL (apenas timestamp — nada sensível).
+  const [cardDismissed, setCardDismissed] = useState(() => {
+    try {
+      const ts = Number(localStorage.getItem('substanceCardDismissedAt') ?? 0);
+      return ts > 0 && Date.now() - ts < 30 * 86400000;
+    } catch { return false; } // private mode → mostra o card
+  });
 
   // LENTE (E5): esporte (fuzzy da modalidade) × contexto hormonal (wizard ou dedução
   // pelas substâncias — dado antigo continua funcionando). Muda ORDEM das abas,
@@ -207,8 +341,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         .catch(() => {});
     }
     // profile muda só ao togglar (o que desmonta este painel) — fetch idempotente via cache.
+    // reloadKey: pós save/delete do sheet/stack → recarrega meds + perfil (fetch-cache).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pid]);
+  }, [pid, reloadKey]);
 
   const ctx = parseCollectionContext(profile?.collectionContext);
   const loading = items == null || !d.loaded;
@@ -470,6 +605,34 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   const [mobileTab, setMobileTab] = useState<'marcadores' | 'timeline' | 'prep'>('marcadores');
   const [showRulerGuide, setShowRulerGuide] = useState(false);
 
+  // ── Ações do sheet de declaração (corrige A1: NUNCA mais navigate('/perfil')) ──
+  const bumpReload = () => setReloadKey((k) => k + 1);
+  const openSearch = () => { setSheetSub(null); setSheetEdit(null); setSheetOpen(true); };
+  const openEditSheet = (s: DeclaredSubstanceView) => {
+    setSheetSub(catalogFindByToken(s.name));
+    setSheetEdit({
+      id: s.id,
+      profileOnly: s.id.startsWith('sp-'),
+      endStatus: s.endStatus ?? null,
+      startedAt: s.startedAt ?? null,
+      endedAt: s.endedAt ?? null,
+      dosage: s.dosage ?? null,
+      prescriberName: null,
+    });
+    setSheetOpen(true);
+  };
+  const dismissCard = () => {
+    try { localStorage.setItem('substanceCardDismissedAt', String(Date.now())); } catch { /* private mode */ }
+    setCardDismissed(true);
+  };
+  // "editar" do banner contexto → vai pra aba Consulta e rola até o StackCard.
+  const goStack = () => {
+    setMobileTab('prep');
+    window.requestAnimationFrame(() => {
+      try { document.getElementById('sports-stack')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch { /* test */ }
+    });
+  };
+
   return (
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
@@ -506,6 +669,54 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         substances={substances}
         training={activityDays}
       />
+
+      {/* ── REDISIGN v2: CONTEXTO DE SUBSTÂNCIAS (spec §Dashboard / mock T1-T3).
+          SEM substância → convite cobre tracejado com chips 1-tap; COM substância →
+          banner teal "Levando em conta…". Mobile: só na aba Marcadores; desktop: sempre. ── */}
+      <Box sx={{
+        display: { xs: mobileTab === 'marcadores' ? 'block' : 'none', md: 'block' },
+        mt: 2, mb: 1,
+      }}>
+        {substances.length === 0 && !cardDismissed ? (
+          <SubstanceContextCard onPick={(item) => { setSheetSub(item); setSheetEdit(null); setSheetOpen(true); }} onOther={openSearch} onDismiss={dismissCard} />
+        ) : substances.length > 0 ? (
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{
+              p: 1.5,
+              borderRadius: '16px',
+              border: `1px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+              background: `linear-gradient(135deg, ${alpha('#20b2aa', theme.palette.mode === 'dark' ? 0.14 : 0.1)}, ${alpha('#20b2aa', 0.03)})`,
+            }}
+          >
+            <Box sx={{ fontSize: 19, flexShrink: 0 }}>🧬</Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 13.5, color: tealText(theme.palette.mode) }}>
+                Levando em conta o que você declara
+              </Typography>
+              <Typography sx={{ fontSize: 11, fontWeight: 500, color: 'text.secondary', lineHeight: 1.45 }}>
+                resumos, chat, checagens e brief do médico consideram seu stack ·{' '}
+                <Box component="button" type="button" onClick={goStack} sx={{ border: 'none', bgcolor: 'transparent', p: 0, cursor: 'pointer', font: 'inherit', color: theme.palette.mode === 'dark' ? '#e3bd8f' : '#8a6240', textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation' }}>
+                  editar
+                </Box>
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              onClick={openSearch}
+              sx={{
+                minHeight: 44, flexShrink: 0, borderRadius: '999px', textTransform: 'none', fontWeight: 700,
+                px: 1.5, color: tealText(theme.palette.mode),
+                bgcolor: alpha('#20b2aa', 0.1), '&:hover': { bgcolor: alpha('#20b2aa', 0.18) },
+              }}
+            >
+              Adicionar
+            </Button>
+          </Stack>
+        ) : null}
+      </Box>
 
       {/* ── QUICK STATS: SPOTLIGHT DA LENTE OU CARTEIRA + IDADE BIOLÓGICA ── */}
       {loading ? (
@@ -601,7 +812,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
             transition: 'all 0.15s ease',
           }}
         >
-          💬 Consulta & Drogas
+          💬 Consulta
         </Box>
       </Box>
 
@@ -830,7 +1041,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         <SportsTimeline events={timelineEvents} hasActivityData={activityDays.length > 0} />
       </Box>
 
-      {/* ── SEÇÃO 3: PREPARAÇÃO P/ CONSULTA + SUBSTÂNCIAS ── */}
+      {/* ── SEÇÃO 3: SEU STACK (topo da aba Consulta, mock T3) + PREPARAÇÃO P/ CONSULTA ── */}
       <Box
         sx={{
           display: { xs: mobileTab === 'prep' ? 'grid' : 'none', md: 'grid' },
@@ -840,9 +1051,27 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
           alignItems: 'start',
         }}
       >
-        <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} bias={archetype.questionBias} />
-        <SportsSubstances substances={substances} onDeclare={() => navigate('/perfil')} />
+        <SportsStackCard
+          pid={pid}
+          substances={substances}
+          onAdd={openSearch}
+          onEdit={openEditSheet}
+          onChanged={bumpReload}
+        />
+        <Box sx={{ gridColumn: { md: '1' }, minWidth: 0 }}>
+          <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} bias={archetype.questionBias} />
+        </Box>
       </Box>
+
+      {/* ── SHEET DE DECLARAÇÃO (redesign v2): única entrada de declaração do app ── */}
+      <DeclareSubstanceSheet
+        open={sheetOpen}
+        onClose={() => { setSheetOpen(false); setSheetSub(null); setSheetEdit(null); }}
+        pid={pid ?? ''}
+        preselect={sheetSub}
+        edit={sheetEdit}
+        onSaved={bumpReload}
+      />
 
       {/* Rodapé de responsabilidade ética */}
       <Typography variant="caption" sx={{ display: 'block', mt: 3, color: 'text.secondary', lineHeight: 1.5, textAlign: 'center' }}>

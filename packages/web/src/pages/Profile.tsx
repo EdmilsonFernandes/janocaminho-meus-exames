@@ -468,7 +468,7 @@ export const ProfilePage = () => {
 
               <Grid container spacing={2}>
                 {/* Nome Completo */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   {patient?.identityLocked ? (
                     <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -493,7 +493,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* CPF */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   {patient?.hasCpf ? (
                     <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                       <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -521,7 +521,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* Telefone */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Telefone / WhatsApp"
                     value={phone}
@@ -533,7 +533,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* Data de Nascimento */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <DateFieldBR
                     label="Data de nascimento"
                     value={birthDate}
@@ -556,7 +556,7 @@ export const ProfilePage = () => {
 
               <Grid container spacing={2}>
                 {/* Altura */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     label="Altura"
                     value={heightCm}
@@ -569,7 +569,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* Peso Atual integrado */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Box
                     sx={{
                       p: 1.25,
@@ -605,7 +605,7 @@ export const ProfilePage = () => {
 
                 {/* Banner de IMC Integrado quando há dados */}
                 {bmiInfo && (
-                  <Grid item xs={12}>
+                  <Grid size={{ xs: 12 }}>
                     <Box
                       sx={{
                         p: 1.5,
@@ -639,7 +639,7 @@ export const ProfilePage = () => {
                 )}
 
                 {/* Sexo */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     label="Sexo Biológico"
@@ -655,7 +655,7 @@ export const ProfilePage = () => {
                 </Grid>
 
                 {/* Etnia */}
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <TextField
                     select
                     label="Etnia (opcional)"

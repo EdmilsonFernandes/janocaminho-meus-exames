@@ -20,7 +20,21 @@
  */
 export type SubstanceClass = 'Hormônio' | 'Suplemento' | 'Medicação' | 'Outro';
 
-export interface CatalogItem { name: string; aliases?: string[]; cls: SubstanceClass; unitHint: string; impacto?: string; anvisa?: 'C5' | 'C1' }
+/** Via/apresentação p/ ilustração neutra (SubstanceArt) — nunca marca real. */
+export type SubstanceArtKind = 'ampola' | 'frasco' | 'comprimido' | 'caneta' | 'gel' | 'seringa';
+
+export interface CatalogItem {
+  name: string;
+  aliases?: string[];
+  cls: SubstanceClass;
+  unitHint: string;
+  impacto?: string;
+  anvisa?: 'C5' | 'C1';
+  /** Ilustração por via (redesign hormonal v2). Sem valor → artFor() deriva por classe. */
+  art?: SubstanceArtKind;
+  /** Entre as mais buscadas → alimenta os chips 1-tap do card de contexto. */
+  popular?: boolean;
+}
 
 /** Testosterona exógena (ésteres, Durateston, gel) — texto APROVADO do brief (§2). */
 const IMPACTO_TESTOSTERONA = 'Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar.';
@@ -39,66 +53,67 @@ const IMPACTO_ESTIMULANTE = 'Taquicardia e queda de potássio possíveis — ele
 
 export const SUBSTANCE_CATALOG: CatalogItem[] = [
   // ── Esteroides anabolizantes (androgênios) — lista C5 ──
-  { name: 'Testosterona (enantato)', aliases: ['Deposteron', 'Testenat'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Testosterona (cypionato)', aliases: ['Depo-Testosterona', 'Cipionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Testosterona (propionato)', aliases: ['Propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Testosterona (undecilato)', aliases: ['Nebido'], cls: 'Hormônio', unitHint: 'mg/mês', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Testosterona (gel)', aliases: ['Androgel', 'Testavana'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Durateston', aliases: ['Sustanon', 'fourtest'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
-  { name: 'Stanozolol', aliases: ['Winstrol', 'Estanozolol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
-  { name: 'Oxandrolona', aliases: ['Anavar', 'Lipidex'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
-  { name: 'Nandrolona (decanoato)', aliases: ['Deca-Durabolin', 'Deca'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
-  { name: 'Trembolona', aliases: ['Tren', 'Trenbolona'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: 'HDL reduzido e possível aumento da pressão — acompanhamento cardiovascular merece atenção.', anvisa: 'C5' },
-  { name: 'Drostanolona', aliases: ['Masteron', 'Drostanolona propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
-  { name: 'Oximetolona', aliases: ['Hemogenin', 'Anadrol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
-  { name: 'Metenolona', aliases: ['Primobolan', 'Primo'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
-  { name: 'Boldenona', aliases: ['Equipoise', 'Undecilenato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
-  { name: 'Mesterolona', aliases: ['Proviron'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
-  { name: 'Metandrostenolona', aliases: ['Dianabol', 'Dianabol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
-  { name: 'DHT (gel)', aliases: ['Andractim'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Testosterona (enantato)', aliases: ['Deposteron', 'Testenat'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'frasco', popular: true },
+  { name: 'Testosterona (cypionato)', aliases: ['Depo-Testosterona', 'Cipionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'frasco', popular: true },
+  { name: 'Testosterona (propionato)', aliases: ['Propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'frasco' },
+  { name: 'Testosterona (undecilato)', aliases: ['Nebido'], cls: 'Hormônio', unitHint: 'mg/mês', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'frasco' },
+  { name: 'Testosterona (gel)', aliases: ['Androgel', 'Testavana'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'gel' },
+  { name: 'Durateston', aliases: ['Sustanon', 'fourtest'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5', art: 'frasco', popular: true },
+  { name: 'Stanozolol', aliases: ['Winstrol', 'Estanozolol', 'Stano'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5', art: 'comprimido', popular: true },
+  { name: 'Oxandrolona', aliases: ['Anavar', 'Lipidex'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5', art: 'comprimido', popular: true },
+  { name: 'Nandrolona (decanoato)', aliases: ['Deca-Durabolin', 'Deca'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'frasco', popular: true },
+  { name: 'Trembolona', aliases: ['Tren', 'Trenbolona', 'trembo', 'fina'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: 'HDL reduzido e possível aumento da pressão — acompanhamento cardiovascular merece atenção.', anvisa: 'C5', art: 'ampola', popular: true },
+  { name: 'Trembolona (acetato)', aliases: ['trembo', 'fina', 'trena', 'acetato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: 'HDL reduzido e possível aumento da pressão — acompanhamento cardiovascular merece atenção.', anvisa: 'C5', art: 'ampola' },
+  { name: 'Drostanolona', aliases: ['Masteron', 'Drostanolona propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'ampola', popular: true },
+  { name: 'Oximetolona', aliases: ['Hemogenin', 'Anadrol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5', art: 'comprimido' },
+  { name: 'Metenolona', aliases: ['Primobolan', 'Primo'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'frasco' },
+  { name: 'Boldenona', aliases: ['Equipoise', 'EQ', 'undecilenato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'frasco' },
+  { name: 'Mesterolona', aliases: ['Proviron'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'comprimido' },
+  { name: 'Metandrostenolona', aliases: ['Dianabol', 'DBol', 'metandienona'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5', art: 'comprimido' },
+  { name: 'DHT (gel)', aliases: ['Andractim'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5', art: 'gel', popular: true },
 
   // ── Hormônio do crescimento e peptídeos (GH = lista C1) ──
-  { name: 'hGH (somatropina)', aliases: ['Genotropin', 'Norditropin', 'Jintropin', 'Hormônio do crescimento', 'GH'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: IMPACTO_EIXO_GH, anvisa: 'C1' },
-  { name: 'IGF-1 LR3', aliases: ['IGF'], cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
-  { name: 'CJC-1295', cls: 'Hormônio', unitHint: 'mcg/semana', impacto: IMPACTO_EIXO_GH },
-  { name: 'Ipamorelina', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
-  { name: 'GHRP-2', aliases: ['GHRP'], cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
-  { name: 'GHRP-6', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
-  { name: 'Sermorelina', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
-  { name: 'Insulina (uso declarado)', aliases: ['Insulina'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: 'A glicemia da coleta depende do horário da dose — vale informar o laboratório.' },
-  { name: 'BPC-157', cls: 'Outro', unitHint: 'mcg/dia' },
-  { name: 'TB-500', aliases: ['Timosina beta 4'], cls: 'Outro', unitHint: 'mg/semana' },
+  { name: 'hGH (somatropina)', aliases: ['Genotropin', 'Norditropin', 'Jintropin', 'Hormônio do crescimento', 'GH'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: IMPACTO_EIXO_GH, anvisa: 'C1', art: 'frasco', popular: true },
+  { name: 'IGF-1 LR3', aliases: ['IGF'], cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'CJC-1295', cls: 'Hormônio', unitHint: 'mcg/semana', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'Ipamorelina', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'GHRP-2', aliases: ['GHRP'], cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'GHRP-6', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'Sermorelina', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH, art: 'frasco' },
+  { name: 'Insulina (uso declarado)', aliases: ['Insulina'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: 'A glicemia da coleta depende do horário da dose — vale informar o laboratório.', art: 'caneta' },
+  { name: 'BPC-157', cls: 'Outro', unitHint: 'mcg/dia', art: 'frasco' },
+  { name: 'TB-500', aliases: ['Timosina beta 4'], cls: 'Outro', unitHint: 'mg/semana', art: 'frasco' },
 
   // ── GLP-1 / emagrecimento (uso declarado) ──
-  { name: 'Semaglutida', aliases: ['Ozempic', 'Wegovy'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1 },
-  { name: 'Tirzepatida', aliases: ['Mounjaro', 'Zepbound'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1 },
-  { name: 'Retatrutida', aliases: ['triple G'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1 },
-  { name: 'Liraglutida', aliases: ['Saxenda', 'Victoza'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_GLP1 },
-  { name: 'Dulaglutida', aliases: ['Trulicity'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1 },
+  { name: 'Semaglutida', aliases: ['Ozempic', 'Wegovy'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1, art: 'caneta', popular: true },
+  { name: 'Tirzepatida', aliases: ['Mounjaro', 'Zepbound'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1, art: 'caneta' },
+  { name: 'Retatrutida', aliases: ['triple G'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1, art: 'caneta' },
+  { name: 'Liraglutida', aliases: ['Saxenda', 'Victoza'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_GLP1, art: 'caneta' },
+  { name: 'Dulaglutida', aliases: ['Trulicity'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1, art: 'caneta' },
 
   // ── Antiestrogênios / moduladores (uso declarado) — SERMs/AIs: lista C5 ──
-  { name: 'Tamoxifeno', aliases: ['Nolvadex'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
-  { name: 'Clomifeno', aliases: ['Clomid', 'Indux'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
-  { name: 'Anastrozol', aliases: ['Arimidex'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
-  { name: 'Exemestano', aliases: ['Aromasin'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
+  { name: 'Tamoxifeno', aliases: ['Nolvadex'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5', art: 'comprimido' },
+  { name: 'Clomifeno', aliases: ['Clomid', 'Indux'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5', art: 'comprimido' },
+  { name: 'Anastrozol', aliases: ['Arimidex'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5', art: 'comprimido' },
+  { name: 'Exemestano', aliases: ['Aromasin'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5', art: 'comprimido' },
 
   // ── Termogênicos/estimulantes (uso declarado) ──
-  { name: 'Clenbuterol', aliases: ['Clen'], cls: 'Medicação', unitHint: 'mcg/dia', impacto: IMPACTO_ESTIMULANTE },
-  { name: 'ECA (efedrina+cafeína+aspirina)', aliases: ['Efedrina'], cls: 'Outro', unitHint: 'mg/dia', impacto: IMPACTO_ESTIMULANTE },
+  { name: 'Clenbuterol', aliases: ['Clen'], cls: 'Medicação', unitHint: 'mcg/dia', impacto: IMPACTO_ESTIMULANTE, art: 'comprimido' },
+  { name: 'ECA (efedrina+cafeína+aspirina)', aliases: ['Efedrina'], cls: 'Outro', unitHint: 'mg/dia', impacto: IMPACTO_ESTIMULANTE, art: 'comprimido' },
 
   // ── Suplementos ──
-  { name: 'Creatina (monohidratada)', aliases: ['Creatina'], cls: 'Suplemento', unitHint: 'g/dia', impacto: 'Creatinina pode subir SEM perda renal (via massa muscular) — cistatina C é a via sem interferência; converse com seu médico.' },
-  { name: 'Whey protein', aliases: ['Whey'], cls: 'Suplemento', unitHint: 'g/dia', impacto: 'Alto aporte proteico pode elevar ureia — contexto, não dano.' },
-  { name: 'Pré-treino', aliases: ['Pré workout'], cls: 'Suplemento', unitHint: 'dose/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.' },
-  { name: 'Beta-alanina', cls: 'Suplemento', unitHint: 'g/dia' },
-  { name: 'Cafeína (suplemento)', cls: 'Suplemento', unitHint: 'mg/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.' },
-  { name: 'BCAA / EAA', aliases: ['BCAA'], cls: 'Suplemento', unitHint: 'g/dia' },
-  { name: 'DHEA', cls: 'Suplemento', unitHint: 'mg/dia', impacto: 'Precursor hormonal — testosterona e DHEA-S podem subir.' },
-  { name: 'Termogênico', cls: 'Suplemento', unitHint: 'dose/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.' },
-  { name: 'Ômega-3', cls: 'Suplemento', unitHint: 'g/dia' },
-  { name: 'Vitamina D', cls: 'Suplemento', unitHint: 'UI/dia' },
-  { name: 'ZMA', cls: 'Suplemento', unitHint: 'dose/dia' },
-  { name: 'Tribulus terrestris', cls: 'Suplemento', unitHint: 'mg/dia' },
+  { name: 'Creatina (monohidratada)', aliases: ['Creatina'], cls: 'Suplemento', unitHint: 'g/dia', impacto: 'Creatinina pode subir SEM perda renal (via massa muscular) — cistatina C é a via sem interferência; converse com seu médico.', art: 'frasco', popular: true },
+  { name: 'Whey protein', aliases: ['Whey'], cls: 'Suplemento', unitHint: 'g/dia', impacto: 'Alto aporte proteico pode elevar ureia — contexto, não dano.', art: 'frasco' },
+  { name: 'Pré-treino', aliases: ['Pré workout'], cls: 'Suplemento', unitHint: 'dose/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.', art: 'frasco' },
+  { name: 'Beta-alanina', cls: 'Suplemento', unitHint: 'g/dia', art: 'frasco' },
+  { name: 'Cafeína (suplemento)', cls: 'Suplemento', unitHint: 'mg/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.', art: 'comprimido' },
+  { name: 'BCAA / EAA', aliases: ['BCAA'], cls: 'Suplemento', unitHint: 'g/dia', art: 'frasco' },
+  { name: 'DHEA', cls: 'Suplemento', unitHint: 'mg/dia', impacto: 'Precursor hormonal — testosterona e DHEA-S podem subir.', art: 'comprimido' },
+  { name: 'Termogênico', cls: 'Suplemento', unitHint: 'dose/dia', impacto: 'Estimulantes podem alterar frequência cardíaca e pressão na hora da coleta.', art: 'comprimido' },
+  { name: 'Ômega-3', cls: 'Suplemento', unitHint: 'g/dia', art: 'comprimido' },
+  { name: 'Vitamina D', cls: 'Suplemento', unitHint: 'UI/dia', art: 'comprimido' },
+  { name: 'ZMA', cls: 'Suplemento', unitHint: 'dose/dia', art: 'comprimido' },
+  { name: 'Tribulus terrestris', cls: 'Suplemento', unitHint: 'mg/dia', art: 'frasco' },
 ];
 
 /** Busca case/acento-insensível por nome OU alias — devolve itens p/ autocomplete. */
@@ -130,10 +145,57 @@ export function searchSubstances(q: string, limit = 8): CatalogItem[] {
  *  case/acento-insensível). Sem match no catálogo → null (a UI mostra a linha genérica:
  *  "impacto depende da substância" — nunca inventa efeito). */
 export function impactFor(declaredName: string): string | null {
-  const n = declaredName?.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() ?? '';
-  if (!n) return null;
-  const hit = SUBSTANCE_CATALOG.find((c) =>
-    c.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === n
-    || (c.aliases ?? []).some((a) => a.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === n));
-  return hit?.impacto ?? null;
+  return catalogFindByToken(declaredName)?.impacto ?? null;
 }
+
+/** Match exato por nome OU alias, case/acento-insensível — CORRIGE A3/A4 (redesign v2):
+ *  badge ANVISA/impacto/arte casam o que o usuário DIGITOU (alias de rua), não só o
+ *  `name` canônico do catálogo. Reuso de impactFor + pill do sheet + StackCard. */
+export function catalogFindByToken(tokenName: string): CatalogItem | null {
+  const n = tokenName?.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() ?? '';
+  if (!n) return null;
+  return SUBSTANCE_CATALOG.find((c) =>
+    c.name.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === n
+    || (c.aliases ?? []).some((a) => a.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim() === n)) ?? null;
+}
+
+/** INN/químico termina em -ona/-ida/-ifeno/… → o primeiro alias CAPITALIZADO vira o
+ *  comercial do label duplo; alias contido no próprio name não conta (ex.: 'Propionato'). */
+const CHEM_NAME_RX = /(ona|olol|ifeno|ozol|estano|tida|terol|elina|relina|nato|ilato|tropina|idratada|creatina|insulina|efedrina|alanina)$/i;
+
+/** Label duplo do sheet/stack (spec A3): "Masteron — Drostanolona" (comercial na frente,
+ *  químico atrás). Item cujo name JÁ é comercial (Durateston) → chemical null. */
+export function displayLabel(item: CatalogItem): { commercial: string; chemical: string | null } {
+  const alias = (item.aliases ?? []).find((a) => /^[A-Z0-9À-Ý]/.test(a));
+  const base = item.name.replace(/\s*\(.*\)$/, '').trim();
+  const aliasInside = !!alias && item.name.toLowerCase().includes(alias.toLowerCase());
+  if (alias && !aliasInside && CHEM_NAME_RX.test(base)) {
+    return { commercial: alias, chemical: item.name };
+  }
+  return { commercial: item.name, chemical: null };
+}
+
+/** Ilustração por via: campo `art` do catálogo; ausente → default por classe (injetável
+ *  sem arte específica cai no genérico). Fallback final = seringa. */
+export function artFor(item?: CatalogItem | null): SubstanceArtKind {
+  if (item?.art) return item.art;
+  switch (item?.cls) {
+    case 'Suplemento': return 'frasco';
+    case 'Hormônio':
+    case 'Medicação': return 'comprimido';
+    default: return 'seringa';
+  }
+}
+
+const byName = (n: string): CatalogItem => SUBSTANCE_CATALOG.find((c) => c.name === n)!;
+
+/** Chips 1-tap do card de contexto (spec jornada: 6-7 mais buscadas, label curto de rua). */
+export const POPULAR_SUBSTANCES: { label: string; item: CatalogItem }[] = [
+  { label: 'Durateston', item: byName('Durateston') },
+  { label: 'Deca', item: byName('Nandrolona (decanoato)') },
+  { label: 'Masteron', item: byName('Drostanolona') },
+  { label: 'Trembolona', item: byName('Trembolona') },
+  { label: 'Testosterona', item: byName('Testosterona (enantato)') },
+  { label: 'GH', item: byName('hGH (somatropina)') },
+  { label: 'Creatina', item: byName('Creatina (monohidratada)') },
+];
