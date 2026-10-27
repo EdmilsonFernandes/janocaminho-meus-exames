@@ -2,7 +2,7 @@
 // (pedido do dono 27/10: academia/musculação/hormônios pra atrair o público).
 // Os 3 perfis do blueprint AAS §2 (SEMPRE por declaração, nunca presumidos);
 // arte vetorial autoral PremiumGymArt; linguagem sem julgamento, sem marca,
-// sem "ciclo seguro"/dose (guardrails §6/§8 — lint do CI vigia).
+// SEM os termos vedados do §6/§8 (o lint do CI vigia esta pasta).
 import { Box, Container, Stack, Typography, Chip, Button, useTheme } from '@mui/material';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
