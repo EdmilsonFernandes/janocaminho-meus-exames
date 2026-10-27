@@ -87,4 +87,6 @@ packages/web/playwright/.cache/
 #   npx skills add https://github.com/pbakaus/impeccable --skill impeccable
 .agents/
 .claude/skills/impeccable
+# Skills arquivadas (junctions p/ .agents/skills, fora do contexto) — reativar: mv .claude/skills-archive/<pacote>/<skill> .claude/skills/
+.claude/skills-archive/
 releases/

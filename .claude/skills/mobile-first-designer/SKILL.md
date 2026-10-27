@@ -1,4 +1,4 @@
-  ---
+---
 name: mobile-first-designer
 description: Ensures screens work well on small phones (320px), tablets, APK, PWA, and mobile web. Checks overflow, touch targets, safe areas, keyboard handling, scroll, and bottom navigation. Use when task involves celular, mobile, APK, PWA, responsividade, tela pequena, touch, or bottom nav.
 ---

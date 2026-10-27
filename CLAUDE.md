@@ -16,10 +16,8 @@ Skills de UI/UX (`.claude/skills/`) continuam **sob demanda** — lidas só em t
 
 **Ops profundo (deploy/SSH/migrations/emergência/monetização):**
 @.ai/SKILL.md
-@.ai/agent-rules.md
 
-**Comando `/start`:**
-@.claude/commands/start.md
+> Não importados de propósito: `.ai/agent-rules.md` (SUPERSEDED — afirma extração por visão, errado) e `/start` (`.claude/commands/start.md`, checklist de boot que roda sob demanda).
 
 ## Workflow do Agente (SEMPRE seguir)
 1. **Procurar resposta**: Graphify CLI/skill (`graphify query "<pergunta>"`, `graphify explain "<nó>"`, `graphify path "<A>" "<B>"`) → se não achar → Context7 (docs de libs) → Serena (análise de código) → AI token (relay Z.ai, se precisar raciocínio extra).
@@ -91,17 +89,12 @@ Rules:
 
 Quando a tarefa envolver tela, layout, app, mobile, web, desktop, painel admin, design, responsividade ou experiência visual, carregar as skills abaixo conforme necessidade:
 
-- `.claude/skills/product-designer.md`
-- `.claude/skills/ui-ux-reviewer.md`
-- `.claude/skills/mobile-first-designer.md`
-- `.claude/skills/design-system-guardian.md`
-- `.claude/skills/frontend-refactor.md`
-- `.claude/skills/playwright-visual-qa.md`
-- `.claude/skills/accessibility-reviewer.md`
-- `.claude/skills/performance-reviewer.md`
-- `.claude/skills/cybersecurity-reviewer.md`
-- `.claude/skills/conversion-copywriter.md`
-- `.claude/skills/impeccable` (design/UI craft de alto nível — junction p/ `.agents/skills/`; instalada via `npx skills`. **Sempre disponível**, ativa em tarefas de UI/redesign/polimento. Invocar: `/impeccable`)
+- `product-designer` · `ui-ux-reviewer` · `mobile-first-designer` · `design-system-guardian` · `frontend-refactor`
+- `playwright-visual-qa` · `accessibility-reviewer` · `performance-reviewer` · `cybersecurity-reviewer` · `conversion-copywriter`
+- **Saúde:** `health-human-factors` (IEC 62366 — os 7 riscos de leitura de exame/alerta/medicação) · `health-compliance-review` (LGPD/ANVISA/CFM)
+- `impeccable` (design/UI craft de alto nível — junction p/ `.agents/skills/`; instalada via `npx skills`. **Sempre disponível**, ativa em tarefas de UI/redesign/polimento. Invocar: `/impeccable`)
+
+Cada skill mora em `.claude/skills/<nome>/SKILL.md` — `.md` solto na raiz de `skills/` NÃO carrega. A suíte ui-craft (29 skills que duplicam o impeccable, nunca usadas) foi arquivada em 27/10/26 em `.claude/skills-archive/ui-craft/`; reativar: `mv .claude/skills-archive/ui-craft/<skill> .claude/skills/`. As skills de ops multi-projeto (`ci-monitor`, `devops-multi`, `project-orchestrator`) moram no global `~/.claude/skills/`, fora deste repo público.
 
 ## Ordem recomendada para tarefas de tela
 
@@ -111,10 +104,11 @@ Quando a tarefa envolver tela, layout, app, mobile, web, desktop, painel admin, 
 4. ui-ux-reviewer para revisar layout, hierarquia, contraste, espaçamento e estados.
 5. mobile-first-designer para garantir responsividade.
 6. accessibility-reviewer para revisar contraste, labels, foco e navegação.
-7. frontend-refactor para implementar com código limpo.
-8. performance-reviewer quando houver lentidão, listas grandes ou tela pesada.
-9. cybersecurity-reviewer quando houver login, dados sensíveis, exames, upload, IA, admin ou API.
-10. playwright-visual-qa para validar visualmente.
+7. health-human-factors quando a tela mostra exame, alerta, medicação ou risco (decisão de saúde).
+8. frontend-refactor para implementar com código limpo.
+9. performance-reviewer quando houver lentidão, listas grandes ou tela pesada.
+10. cybersecurity-reviewer (+ health-compliance-review) quando houver login, dados sensíveis, exames, upload, IA, admin ou API.
+11. playwright-visual-qa para validar visualmente.
 
 ## Antes de alterar código de tela
 

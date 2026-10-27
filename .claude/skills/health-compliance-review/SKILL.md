@@ -1,3 +1,8 @@
+---
+name: health-compliance-review
+description: "Revisão de conformidade de saúde do Dr. Exame (LGPD dado sensível, ANVISA RDC 657/2022, CFM telemedicina) com checklist e evidência arquivo:linha. Use em 'compliance review', antes de deploy de feature que coleta ou exibe dado de saúde, IA gerando conteúdo clínico, push/e-mail com inferência de saúde, ou dados de dependentes e menores."
+---
+
 # Health Compliance Review (Dr. Exame — contexto BR)
 
 > Revisão de conformidade de saúde para mudanças no app. Disparo: "compliance review", revisão pré-deploy de feature com dado de saúde, ou duvidar de um fluxo novo de dado sensível.

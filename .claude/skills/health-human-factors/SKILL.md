@@ -1,3 +1,8 @@
+---
+name: health-human-factors
+description: "Revisão de usabilidade com segurança do paciente (IEC 62366-1, NIST, WCAG 2.1 AA) — os 7 riscos de leitura em app de saúde (unidade, faixa só por cor, falsa urgência ou calma, alvo personalizado sem motivo, dado velho parecendo atual, toque, carga cognitiva). Use em mudança de tela que afete decisão de saúde (exames, alertas, medicação, risco), 'human factors review' ou antes de AAB patient-facing."
+---
+
 # Health Human Factors (usabilidade com segurança do paciente)
 
 > Disparo: qualquer mudança de tela que afete DECISÃO de saúde do usuário (exames, alertas, medicação, risco, dosagem), "human factors review", ou antes de AAB patient-facing.
