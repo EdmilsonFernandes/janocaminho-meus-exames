@@ -534,6 +534,9 @@ export const LandingPage = () => {
       {/* VARIANTE ?sports=1 — o conteúdo esportivo vem IMEDIATAMENTE após o hero:
           quem escaneou o QR do cartaz de academia não vai rolar atrás da própria oferta. */}
       {isSports && <SportsSection variant="full" onGoDemo={() => goTo('demo')} />}
+      {/* Home default também fala com quem treina (dono 27/10) — compact não domina,
+          linka /saude-esportiva (seção completa GymAudienceSection lá). */}
+      {!isSports && <SportsSection variant="compact" onGoDemo={() => navigate('/saude-esportiva')} />}
 
       {/* PRODUCT PREVIEW (maior conversor — insight Kantesti/AI DiagMe: mostrar o
           produto por dentro logo no início, não só descrever). */}

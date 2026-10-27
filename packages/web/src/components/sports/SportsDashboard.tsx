@@ -841,7 +841,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         }}
       >
         <SportsConsultPrep items={items ?? []} goals={goals} patientId={pid} substances={substances} lastExamAt={d.lastExam} bias={archetype.questionBias} />
-        <SportsSubstances substances={substances} />
+        <SportsSubstances substances={substances} onDeclare={() => navigate('/perfil')} />
       </Box>
 
       {/* Rodapé de responsabilidade ética */}

@@ -34,7 +34,7 @@ const mmYyyy = (iso?: string | null): string | null => {
   return m ? `${m[2]}/${m[1]}` : null;
 };
 
-export const SportsSubstances = ({ substances }: { substances: DeclaredSubstanceView[] }) => (
+export const SportsSubstances = ({ substances, onDeclare }: { substances: DeclaredSubstanceView[]; onDeclare?: () => void }) => (
   <AppCard sx={{ p: { xs: 2, sm: 2.5 } }}>
     <Stack direction="row" justifyContent="space-between" alignItems="baseline" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap' }}>
       <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15 }}>
@@ -48,7 +48,8 @@ export const SportsSubstances = ({ substances }: { substances: DeclaredSubstance
 
     {substances.length === 0 ? (
       <EmptyState emoji="💊" title="Nenhuma substância declarada"
-        desc="Declare hormônios e suplementos no seu Perfil › Saúde Esportiva para contextualizar a leitura dos exames." />
+        desc="Declare hormônios e suplementos (Durateston, Deca, Masteron… ou o que usar) para contextualizar a leitura dos exames."
+        cta={onDeclare ? 'Declarar agora' : undefined} onCta={onDeclare} />
     ) : (
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 1.5 }}>
         {substances.map((s) => {
