@@ -118,16 +118,6 @@ export const MobileBottomNav = () => {
       }}>
         {translate(it.label)}
       </Typography>
-      {!it.robot && (
-        <Box sx={{
-          width: 4, height: 4, borderRadius: '50%',
-          bgcolor: '#20b2aa', mt: 0.2,
-          opacity: on ? 1 : 0,
-          transform: on ? 'scale(1)' : 'scale(0)',
-          boxShadow: '0 0 6px rgba(32,178,170,0.8)',
-          transition: 'transform .2s cubic-bezier(.16,1,.3,1), opacity .2s ease'
-        }} />
-      )}
     </Box>
   );
 
@@ -169,14 +159,6 @@ export const MobileBottomNav = () => {
       }}>
         {translate('nav.more')}
       </Typography>
-      <Box sx={{
-        width: 4, height: 4, borderRadius: '50%',
-        bgcolor: '#20b2aa', mt: 0.2,
-        opacity: on ? 1 : 0,
-        transform: on ? 'scale(1)' : 'scale(0)',
-        boxShadow: '0 0 6px rgba(32,178,170,0.8)',
-        transition: 'transform .2s cubic-bezier(.16,1,.3,1), opacity .2s ease'
-      }} />
     </Box>
   );
 
