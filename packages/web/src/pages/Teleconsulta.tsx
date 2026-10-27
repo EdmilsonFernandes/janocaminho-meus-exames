@@ -378,7 +378,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   }, [cidQuery, cidSel, role]);
   // ── §14.1 Resumo pós-consulta (médico): gerar/editar/aprovar o rascunho da IA.
   // Erro de geração NUNCA bloqueia a nota manual (QuickNote segue independente).
-  const [csBusy, setCsBusy] = useState<'generate' | 'save' | 'approve' | null>(null);
+  const [csBusy, setCsBusy] = useState<string | null>(null); // 'generate' | 'save' | 'approve'
   const [csDraft, setCsDraft] = useState('');
   const [csEditing, setCsEditing] = useState(false);
   const [csError, setCsError] = useState<string | null>(null);
