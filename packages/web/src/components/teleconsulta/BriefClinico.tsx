@@ -13,6 +13,7 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
 import DirectionsWalkIcon from '@mui/icons-material/DirectionsWalk';
 import MonitorWeightIcon from '@mui/icons-material/MonitorWeight';
@@ -75,6 +76,16 @@ interface ContextBrief {
   allergies: string | null;
   clinicalProfile: string | null;
   medications: { name: string; dosage: string | null; frequency: string | null }[];
+  /** Uso relatado de substâncias (blueprint AAS P0.4) — autorrelatado, NUNCA verificado/inferido. */
+  reportedUsage?: {
+    substances: {
+      name: string; declaredClass: string | null; dosageReported: string | null;
+      startedAt: string | null; endedAt: string | null; lastAdministeredAt: string | null;
+      endStatus: 'em_uso' | 'interrompi' | 'nao_sei'; prescriber: string | null; active: boolean;
+    }[];
+    collectionContext: unknown;
+    verified: false;
+  };
 }
 
 /** Carimbo relativo: "agora" · "há 12 min" · "há 3 h" · "ontem" · "há 4 dias". */
@@ -262,6 +273,45 @@ export const BriefClinico = ({ patientId, authToken, patientName, reason }: { pa
                       <Chip key={m.name} size="small" label={`${m.name}${m.dosage ? ` · ${m.dosage}` : ''}${m.frequency ? ` · ${m.frequency}` : ''}`} sx={{ height: 26, fontSize: 12.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), borderRadius: '8px', maxWidth: '100%', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }} />
                     ))}
                   </Stack>
+                </>
+              )}
+              {/* USO RELATADO (AAS P0.4): dado autorrelatado — badge "não verificado" sempre
+                  visível; janelas de uso + contexto de coleta p/ a leitura do médico. */}
+              {ctx.reportedUsage && ctx.reportedUsage.substances.length > 0 && (
+                <>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 1.5, mb: 0.75 }}>
+                    <FitnessCenterIcon sx={{ fontSize: 18, color: '#d4a574' }} />
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary', flex: 1 }}>
+                      Uso relatado ({ctx.reportedUsage.substances.length})
+                    </Typography>
+                    <Chip size="small" label="não verificado" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: dark ? 'rgba(212,165,116,.18)' : 'rgba(212,165,116,.14)', color: '#d4a574', borderRadius: '8px' }} />
+                  </Stack>
+                  <Stack spacing={0.5}>
+                    {ctx.reportedUsage.substances.map((s, i) => (
+                      <Stack key={`${s.name}-${i}`} direction="row" alignItems="center" spacing={1} sx={{ minHeight: 36 }}>
+                        <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', flex: 1 }}>
+                          {s.name}
+                          {s.declaredClass && s.declaredClass !== 'Hormônio' ? ` · ${s.declaredClass.toLowerCase()}` : ''}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0 }}>
+                          {[
+                            s.startedAt ? `desde ${s.startedAt}` : null,
+                            s.endStatus === 'interrompi' && s.endedAt ? `até ${s.endedAt}` : null,
+                            s.endStatus === 'em_uso' ? 'em uso' : null,
+                            s.prescriber ? `dr. ${s.prescriber}` : null,
+                          ].filter(Boolean).join(' · ') || 'sem datas'}
+                        </Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                  {ctx.reportedUsage.collectionContext ? (
+                    <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.75 }}>
+                      Contexto de coleta declarado: {String(ctx.reportedUsage.collectionContext)}
+                    </Typography>
+                  ) : null}
+                  <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.75, fontStyle: 'italic' }}>
+                    Declarado pelo paciente no app — exames acompanham; não tornam o uso seguro.
+                  </Typography>
                 </>
               )}
             </CardContent>

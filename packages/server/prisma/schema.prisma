@@ -411,6 +411,11 @@ model Medication {
   active    Boolean   @default(true)
   startedAt DateTime?
   notes     String?
+  // ── Fim-de-uso estruturado (blueprint AAS §7 — registro antigo = nao_sei, default compatível) ──
+  endStatus          MedicationEndStatus @default(nao_sei) // em_uso | interrompi | nao_sei (autorrelatado)
+  endedAt            DateTime?   // fim-de-uso relatado (mês/ano)
+  lastAdministeredAt DateTime?   // última administração relatada — NUNCA derivar meia-vida/conduta
+  prescriberName     String?     // médico acompanhante (autorrelatado; link DoctorShare fica p/ P1)
   // ── Enriquecimento p/ comparação de preços (SISTEMA preenche — usuário nunca digita) ──
   nameNormalized  String?  // "LOSARTANA POTASSICA 50 MG CX 30 CP"
   activeIngredient String? // princípio ativo canônico ("LOSARTANA POTASSICA")
@@ -712,6 +717,14 @@ model AiAnalysis {
 enum AnalysisType {
   SUMMARY
   CHAT
+}
+
+// Fim-de-uso autorrelatado de medicamento/substância (blueprint AAS §7).
+// "nao_sei" é default e registro válido — registro parcial > registro ausente.
+enum MedicationEndStatus {
+  em_uso
+  interrompi
+  nao_sei
 }
 
 // Avaliação de RISCO por condição (camada de regras clínicas — educativa, NÃO diagnóstica).

@@ -157,3 +157,67 @@ describe('medications + interactions (E2E)', () => {
     expect(unauth.status).toBe(401);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Fim-de-uso estruturado (blueprint AAS P0 — docs/design/2026-10-26 §7)
+// ---------------------------------------------------------------------------
+describe('medications: fim-de-uso estruturado (AAS P0)', () => {
+  beforeEach(async () => { await resetDb(); await ensureInteractionSeed(); });
+
+  itR('POST aceita endStatus/endedAt/lastAdministeredAt/prescriberName e o GET devolve (select explícito)', async () => {
+    const { patient, token } = await createUser();
+    const created = await api().post('/api/medications').set(authHeader(token)).send({
+      patientId: patient.id, name: '[Hormônio] Testosterona (decanoato)', dosage: 'relatado pelo usuário',
+      endStatus: 'interrompi', endedAt: '2026-09-15T00:00:00.000Z',
+      lastAdministeredAt: '2026-09-10T12:00:00.000Z', prescriberName: 'Dr. Silva',
+    });
+    expect(created.status).toBe(201);
+    expect(created.body.endStatus).toBe('interrompi');
+    expect(created.body.prescriberName).toBe('Dr. Silva');
+
+    const list = await api().get(`/api/medications?patientId=${patient.id}`).set(authHeader(token));
+    expect(list.status).toBe(200);
+    expect(list.body[0].endStatus).toBe('interrompi');
+    expect(list.body[0].endedAt).toBeTruthy();
+    expect(list.body[0].lastAdministeredAt).toBeTruthy();
+    expect(list.body[0].prescriberName).toBe('Dr. Silva');
+  });
+
+  itR('POST sem endStatus → default nao_sei ("não sei" é resposta válida, registro parcial > ausente)', async () => {
+    const { patient, token } = await createUser();
+    const created = await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: 'Creatina' });
+    expect(created.status).toBe(201);
+    expect(created.body.endStatus).toBe('nao_sei');
+    expect(created.body.endedAt).toBeNull();
+  });
+
+  itR('PATCH atualiza fim-de-uso; enum inválido é IGNORADO (cliente antigo não perde a edição)', async () => {
+    const { patient, token } = await createUser();
+    const created = await api().post('/api/medications').set(authHeader(token)).send({ patientId: patient.id, name: '[Hormônio] Nandrolona' });
+    const id = created.body.id;
+
+    const ok = await api().patch(`/api/medications/${id}`).set(authHeader(token)).send({ endStatus: 'em_uso', lastAdministeredAt: '2026-10-20T10:00:00.000Z' });
+    expect(ok.status).toBe(200);
+    expect(ok.body.endStatus).toBe('em_uso');
+    expect(ok.body.lastAdministeredAt).toBeTruthy();
+
+    const bad = await api().patch(`/api/medications/${id}`).set(authHeader(token)).send({ endStatus: 'parar_tudo', dosage: '200 mg/semana' });
+    expect(bad.status).toBe(200);
+    expect(bad.body.endStatus).toBe('em_uso'); // lixo não sobrescreve
+    expect(bad.body.dosage).toBe('200 mg/semana'); // resto da edição passa
+  });
+
+  itR('registro ANTERIOR à migration continua válido — lê como nao_sei (critério de aceite §9)', async () => {
+    const { patient, token } = await createUser();
+    // Simula linha criada antes das colunas: insert direto sem os campos novos
+    const legacy = await prisma.medication.create({
+      data: { patientId: patient.id, name: 'Metformina', dosage: '500 mg' },
+      select: { id: true },
+    });
+    const list = await api().get(`/api/medications?patientId=${patient.id}`).set(authHeader(token));
+    expect(list.status).toBe(200);
+    const row = list.body.find((m: any) => m.id === legacy.id);
+    expect(row).toBeTruthy();
+    expect(row.endStatus).toBe('nao_sei');
+  });
+});

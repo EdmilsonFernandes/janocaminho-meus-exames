@@ -26,6 +26,23 @@ import { logPaywallHit } from '../utils/paywall';
 
 const router = Router();
 
+// Fim-de-uso autorrelatado (blueprint AAS §7) — "nao_sei" é default e resposta VÁLIDA.
+const MEDICATION_END_STATUSES = ['em_uso', 'interrompi', 'nao_sei'] as const;
+
+// Select explícito da listagem (query rule do projeto: leitura implícita de todas as
+// colunas quebra se o client regenerado referenciar coluna ainda ausente no banco —
+// drift P3006). Superconjonto do que os consumidores usam (Medications.tsx,
+// SportsDashboard, DoctorPortal, DeclaredSubstanceForm) + campos novos do fim-de-uso.
+const MEDICATION_LIST_SELECT = {
+  id: true, patientId: true, name: true, dosage: true, frequency: true, active: true,
+  startedAt: true, notes: true,
+  endStatus: true, endedAt: true, lastAdministeredAt: true, prescriberName: true,
+  nameNormalized: true, activeIngredient: true, dosageValue: true, dosageUnit: true,
+  form: true, packQty: true, lab: true, ean: true, productType: true,
+  priceStatus: true, priceCheckedAt: true, catalogPhotoUrl: true,
+  createdAt: true, updatedAt: true,
+} as const;
+
 // FARMÁCIAS ATIVAS (name + logo + cor) — PÚBLICO (antes do requireAuth de propósito):
 // a landing usa os logos no mock do comparador sem login. Logos não são dado sensível.
 router.get('/pharmacies', async (_req, res, next) => {
@@ -87,7 +104,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     if (q.active != null) where.active = q.active === 'true';
     const [total, rows] = await prisma.$transaction([
       prisma.medication.count({ where }),
-      prisma.medication.findMany({ where, skip: start, take, orderBy: [{ active: 'desc' }, { name: 'asc' }] }),
+      prisma.medication.findMany({ where, skip: start, take, orderBy: [{ active: 'desc' }, { name: 'asc' }], select: MEDICATION_LIST_SELECT }),
     ]);
     // Resumo de preço por card (join batch — nunca 1 query por remédio). Inclui a FOTO
     // da oferta mais barata (pro card mostrar o produto, não só a inicial).
@@ -127,7 +144,8 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
-    const { patientId, name, dosage, frequency, startedAt, notes, packQty } = req.body ?? {};
+    const { patientId, name, dosage, frequency, startedAt, notes, packQty,
+      endStatus, endedAt, lastAdministeredAt, prescriberName } = req.body ?? {};
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
     if (!name || !String(name).trim()) { res.status(400).json({ error: 'Informe o nome do remédio (ex.: varfarina).' }); return; }
@@ -144,6 +162,11 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         frequency: frequency ? String(frequency).trim() : null,
         startedAt: startedAt ? new Date(startedAt) : null,
         notes: notes ? String(notes).trim() : null,
+        // ── Fim-de-uso estruturado (blueprint AAS §7) — autorrelatado, "não sei" é válido ──
+        endStatus: MEDICATION_END_STATUSES.includes(endStatus) ? endStatus : 'nao_sei',
+        endedAt: endedAt ? new Date(endedAt) : null,
+        lastAdministeredAt: lastAdministeredAt ? new Date(lastAdministeredAt) : null,
+        prescriberName: prescriberName ? String(prescriberName).trim() : null,
         packQty: finalPack,
         priceStatus: 'queued',
       },
@@ -246,7 +269,8 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     if (!m) { res.status(404).json({ error: 'Remédio não encontrado.' }); return; }
     const pids = await userPatientIds(req.userId!);
     if (!pids.includes(m.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
-    const { name, dosage, frequency, active, notes, packQty } = req.body ?? {};
+    const { name, dosage, frequency, active, notes, packQty,
+      endStatus, endedAt, lastAdministeredAt, prescriberName } = req.body ?? {};
     // packQty = pergunta contextual "qual embalagem você compra?" (FASE 2) → re-enfileira preço
     const requeuePrice = packQty != null && Number(packQty) !== m.packQty;
     const updated = await prisma.medication.update({
@@ -257,6 +281,12 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
         frequency: frequency != null ? String(frequency).trim() : undefined,
         notes: notes != null ? String(notes).trim() : undefined,
         active: typeof active === 'boolean' ? active : undefined,
+        // Fim-de-uso estruturado (AAS §7) — enum inválido NÃO derruba o PATCH (ignora, não 400:
+        // clientes antigos enviando lixo não devem perder edição de dose/frequência)
+        endStatus: MEDICATION_END_STATUSES.includes(endStatus) ? endStatus : undefined,
+        endedAt: endedAt != null ? (endedAt ? new Date(endedAt) : null) : undefined,
+        lastAdministeredAt: lastAdministeredAt != null ? (lastAdministeredAt ? new Date(lastAdministeredAt) : null) : undefined,
+        prescriberName: prescriberName != null ? (prescriberName ? String(prescriberName).trim() : null) : undefined,
         packQty: packQty != null ? (() => { const n = Math.round(Number(packQty) || 0); return n >= 1 && n <= 2000 ? n : null; })() : undefined,
         ...(requeuePrice ? { priceStatus: 'queued' as const } : {}),
       },
@@ -326,6 +356,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
     if (!charged) { res.status(402).json({ error: 'insufficient_credits', message: 'Sem créditos para a análise completa. Compre um pacote de créditos.' }); return; }
 
     let contextual: string | null = null;
+    let sportsUsed = false; // addendum esportivo entrou no prompt? (metadado, sem conteúdo sensível)
     try {
       // Contexto RICO: marcadores alterados + perfil clínico + datas dos exames —
       // a IA usa TUDO pra dar conselho personalizado (ex.: "toma levoid, tira a tireoide,
@@ -347,6 +378,13 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
       });
       const age = patient?.dateOfBirth ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 86400000)) : null;
 
+      // Contexto esportivo (blueprint AAS P0.3): substâncias declaradas + contexto de coleta
+      // entram na checagem de interações — mesmo addendum do chat/health-summary (kill-switch
+      // e degradação p/ vazio embutidos em sportsContextBlocks).
+      const { sportsContextBlocks } = await import('../analysis/sports-context');
+      const sports = await sportsContextBlocks(c.patient!.id, markers.map((s) => s.split('=')[0]));
+      sportsUsed = !!sports.addendum;
+
       const { getLlm, getModel } = await import('../llm');
       const sys = [
         'Você é o Dr. Exame. Seja DIRETO e BREVE — o paciente está no celular.',
@@ -365,6 +403,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
       const user = [
         `PACIENTE: ${age != null ? `${age} anos` : 'idade n/d'}, ${patient?.gender === 'female' ? 'feminino' : patient?.gender === 'male' ? 'masculino' : 'n/d'}.`,
         `PERFIL CLÍNICO (texto do paciente): "${patient?.clinicalProfile || 'não informado'}"`,
+        ...(sports.addendum ? ['', sports.addendum] : []),
         '',
         `REMÉDIOS ATIVOS: ${c.meds.map((m) => `${m.name}${m.dosage ? ` ${m.dosage}` : ''}`).join('; ') || 'nenhum'}.`,
         `INTERAÇÕES: ${c.hits.map((h) => `${h.drugA}+${h.drugB} (${h.severity})`).join('; ') || 'nenhuma'}.`,
@@ -386,6 +425,7 @@ router.post('/check/full', async (req: AuthedRequest, res, next) => {
       unmatched: c.unmatched,
       contextual,
       contextualAvailable: contextual != null,
+      sportsContextUsed: sportsUsed,
     });
   } catch (e) { next(e); }
 });

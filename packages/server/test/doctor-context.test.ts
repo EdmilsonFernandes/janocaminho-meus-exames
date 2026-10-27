@@ -56,3 +56,56 @@ describe('Doctor: contexto clínico (GET /context)', () => {
     expect(r.status).toBe(403);
   });
 });
+
+// Uso relatado (blueprint AAS P0.4): substâncias declaradas no brief — autorrelatado,
+// SEMPRE verified:false. Dado sensível (LGPD art.11): nunca logar/exportar.
+describe('Doctor context: uso relatado (AAS P0.4)', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  async function setup() {
+    const { patient } = await createUser();
+    const n = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: `${n.slice(-5)}-SP` });
+    await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: patient.id, scopes: ['exams'], active: true } });
+    return { patientId: patient.id, token };
+  }
+
+  it('substância declarada [Hormônio] vira reportedUsage com janelas de uso + verified:false', async () => {
+    const { patientId, token } = await setup();
+    await prisma.medication.create({ data: {
+      patientId,
+      name: '[Hormônio] Testosterona (enantato)', dosage: 'relatado',
+      startedAt: new Date('2026-06-01T00:00:00Z'), endedAt: new Date('2026-09-15T00:00:00Z'),
+      endStatus: 'interrompi', prescriberName: 'Dr. Silva', active: true,
+    } });
+    await prisma.sportsProfile.create({ data: { patientId, collectionContext: 'coleta 48h após treino, jejum', active: true } as never });
+
+    const r = await api().get(`/api/doctor/patients/${patientId}/context`).set(authH(token));
+    expect(r.status).toBe(200);
+    const ru = r.body.reportedUsage;
+    expect(ru).toBeTruthy();
+    expect(ru.verified).toBe(false);
+    expect(ru.substances).toHaveLength(1);
+    expect(ru.substances[0].name).toBe('Testosterona (enantato)'); // sem o prefixo [Classe]
+    expect(ru.substances[0].declaredClass).toBe('Hormônio');
+    expect(ru.substances[0].endStatus).toBe('interrompi');
+    expect(ru.substances[0].prescriber).toBe('Dr. Silva');
+    expect(ru.collectionContext).toBe('coleta 48h após treino, jejum');
+  });
+
+  it('medicamento COMUM (sem prefixo [Classe]) NÃO vira uso relatado — declaração explícita só', async () => {
+    const { patientId, token } = await setup();
+    await prisma.medication.create({ data: { patientId, name: 'Losartana', active: true } });
+    const r = await api().get(`/api/doctor/patients/${patientId}/context`).set(authH(token));
+    expect(r.status).toBe(200);
+    expect(r.body.reportedUsage).toBeUndefined();
+    expect(r.body.medications).toHaveLength(1);
+  });
+
+  it('sem substâncias E sem collectionContext → sem a chave (brief limpo)', async () => {
+    const { patientId, token } = await setup();
+    const r = await api().get(`/api/doctor/patients/${patientId}/context`).set(authH(token));
+    expect(r.status).toBe(200);
+    expect(r.body.reportedUsage).toBeUndefined();
+  });
+});

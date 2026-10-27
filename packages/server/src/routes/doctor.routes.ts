@@ -964,7 +964,7 @@ router.get('/patients/:patientId/context', requireDoctor, async (req: any, res, 
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const pid = String(req.params.patientId);
-    const [medications, patient] = await Promise.all([
+    const [medications, patient, reportedUsage] = await Promise.all([
       prisma.medication.findMany({
         where: { patientId: pid, active: true },
         orderBy: { createdAt: 'desc' },
@@ -976,11 +976,46 @@ router.get('/patients/:patientId/context', requireDoctor, async (req: any, res, 
       // em vez de derrubar o brief. Erro QUE NÃO é de coluna segue adiante (não engolir).
       (prisma.patient.findUnique({ where: { id: pid }, select: { allergies: true, clinicalProfile: true } }) as Promise<any>)
         .catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? null : Promise.reject(e)),
+      // USO RELATADO (blueprint AAS P0.4): substâncias declaradas p/ o brief da teleconsulta.
+      // Sempre badge "não verificado" — dado autorrelatado, nunca inferido do exame.
+      // Drift-safe igual ao allergies acima: colunas endStatus/endedAt/lastAdministeredAt/
+      // prescriberName são novas (migration 20261027010000) — deploy parcial degrada p/ null.
+      (Promise.all([
+        (prisma.medication.findMany({
+          where: { patientId: pid, name: { startsWith: '[' } },
+          orderBy: { createdAt: 'desc' },
+          take: 12,
+          select: { name: true, dosage: true, startedAt: true, endStatus: true, endedAt: true, lastAdministeredAt: true, prescriberName: true, active: true },
+        }) as Promise<any[]>).catch((e: any) => /column .* does not exist/i.test(String(e?.message)) ? [] : Promise.reject(e)),
+        prisma.sportsProfile.findUnique({ where: { patientId: pid }, select: { collectionContext: true, active: true } })
+          .catch(() => null),
+      ]) as Promise<[any[], any]>)
+        .then(([subs, profile]: [any[], any]) => {
+          if (!subs.length && !profile?.collectionContext) return null;
+          const fmt = (d: string | Date | null | undefined) => (d ? new Date(d).toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' }) : null);
+          return {
+            substances: subs.map((s) => ({
+              name: String(s.name).replace(/^\[[^\]]+\]\s*/, ''),
+              declaredClass: (String(s.name).match(/^\[([^\]]+)\]/) || [])[1] ?? null,
+              dosageReported: s.dosage ?? null, // autorrelatado — registro, nunca parâmetro
+              startedAt: fmt(s.startedAt),
+              endedAt: fmt(s.endedAt),
+              lastAdministeredAt: s.lastAdministeredAt ? new Date(s.lastAdministeredAt).toISOString() : null,
+              endStatus: s.endStatus ?? 'nao_sei',
+              prescriber: s.prescriberName ?? null,
+              active: s.active ?? true,
+            })),
+            collectionContext: profile?.collectionContext ?? null,
+            verified: false,
+          };
+        })
+        .catch(() => null),
     ]);
     res.json({
       medications: medications.map((m) => ({ name: m.name, dosage: m.dosage ?? null, frequency: m.frequency ?? null })),
       allergies: patient?.allergies ?? null,
       clinicalProfile: patient?.clinicalProfile ?? null,
+      ...(reportedUsage ? { reportedUsage } : {}),
     });
   } catch (e) { next(e); }
 });
