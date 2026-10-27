@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, CircularProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
+import { Stack, Typography, Box, Grid, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Button, LinearProgress, Chip, Collapse, IconButton, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { API_URL, token } from '../../config';
 import { SEM, copperText, tealText, RADIUS } from '../../theme';
@@ -51,7 +51,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
+import { DrExameRobot } from '../DrExameRobot';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import ScienceIcon from '@mui/icons-material/Science';
 import BoltIcon from '@mui/icons-material/Bolt';
@@ -340,10 +340,9 @@ export const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; o
   return (
     <AppCard kind="interactive" onClick={onClick} sx={{ p: 1.75, mb: 2, borderRadius: RADIUS.card }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <Box sx={{ position: 'relative', flexShrink: 0, width: 40, height: 40, display: 'grid', placeItems: 'center' }}>
-          {/* Spinner de processamento (infinite permitido) — desliga em prefers-reduced-motion */}
-          <CircularProgress size={34} thickness={4.5} sx={{ color: 'info.main', position: 'absolute', '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
-          <SmartToyIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+        {/* Dr. Exame vivo no lugar do spinner — animação própria do mascote respeita prefers-reduced-motion */}
+        <Box sx={{ flexShrink: 0, width: 44, height: 44, display: 'grid', placeItems: 'center' }}>
+          <DrExameRobot size={44} />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>

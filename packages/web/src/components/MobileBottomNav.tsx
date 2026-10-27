@@ -104,12 +104,19 @@ export const MobileBottomNav = () => {
         </Box>
       )}
       <Typography sx={{
-        fontSize: 12, fontWeight: on ? 800 : 500, mt: 0.2,
-        fontFamily: 'Poppins, sans-serif', maxWidth: '100%', overflow: 'hidden',
-        textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 0.5,
-        letterSpacing: on ? '-0.01em' : 'normal'
+        fontSize: { xs: 10.5, sm: 11.5 },
+        fontWeight: on ? 800 : 500,
+        mt: it.robot ? 0 : 0.2,
+        fontFamily: 'Poppins, sans-serif',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        px: 0.2,
+        letterSpacing: '-0.02em',
+        display: it.robot ? 'none' : 'block',
       }}>
-        {it.robot ? 'Dr. Exame' : translate(it.label)}
+        {translate(it.label)}
       </Typography>
       {!it.robot && (
         <Box sx={{
@@ -149,8 +156,16 @@ export const MobileBottomNav = () => {
         {on ? <MenuIcon /> : <MenuIcon sx={{ opacity: 0.65 }} />}
       </Box>
       <Typography sx={{
-        fontSize: 12, fontWeight: on ? 800 : 500, mt: 0.2,
-        fontFamily: 'Poppins, sans-serif', letterSpacing: on ? '-0.01em' : 'normal'
+        fontSize: { xs: 10.5, sm: 11.5 },
+        fontWeight: on ? 800 : 500,
+        mt: 0.2,
+        fontFamily: 'Poppins, sans-serif',
+        letterSpacing: '-0.02em',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        px: 0.2,
       }}>
         {translate('nav.more')}
       </Typography>

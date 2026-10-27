@@ -234,8 +234,8 @@ export const ValoresAlteradosPage = () => {
                 }}
               >
                 <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
                       <Box
                         sx={{
                           width: 38,
@@ -246,16 +246,17 @@ export const ValoresAlteradosPage = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
                         {showAll ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
                       </Box>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
-                          {showAll ? 'Recolher para os 3 mais relevantes' : `Ver histórico completo de alterações (+${hiddenGroups.length} exames)`}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
+                          {showAll ? 'Recolher para os 3 mais relevantes' : `Histórico de alterações (+${hiddenGroups.length})`}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {showAll ? 'Exibindo todos os exames alterados' : `Toque para conferir todo o histórico anterior`}
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11.5 }}>
+                          {showAll ? 'Exibindo todos os exames alterados' : `Toque para expandir todo o histórico`}
                         </Typography>
                       </Box>
                     </Stack>
@@ -265,7 +266,14 @@ export const ValoresAlteradosPage = () => {
                       label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
                       color="primary"
                       variant={showAll ? 'outlined' : 'filled'}
-                      sx={{ fontWeight: 800, borderRadius: RADIUS.pill, height: 26 }}
+                      sx={{
+                        fontWeight: 800,
+                        borderRadius: RADIUS.pill,
+                        height: 28,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        '& .MuiChip-label': { px: 1, whiteSpace: 'nowrap' },
+                      }}
                     />
                   </Stack>
                 </CardContent>

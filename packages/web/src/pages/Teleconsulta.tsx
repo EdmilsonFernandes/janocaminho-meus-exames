@@ -85,6 +85,7 @@ import { tealText } from '../theme';
 // médico e paciente. Contratos: docs/research/2026-10-20-f3-arquitetura.md §3.
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
 import { BriefClinico } from '../components/teleconsulta/BriefClinico';
+import { RobotAnalysis } from '../components/RobotAnalysis';
 import { TranscriptView } from '../components/teleconsulta/TranscriptView';
 import type { ConsultSummaryInfo, ExamRequest, ExamRequestAction, TeleconsultaSummary as TeleSummary } from '../components/teleconsulta/types';
 
@@ -3251,7 +3252,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Stack>
             <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', borderColor: 'divider', boxShadow: 'none' }}>
               <CardContent sx={{ p: 2.25, '&:last-child': { pb: 2.25 } }}>
-                {csEditing ? (
+                {csBusy === 'generate' ? (
+  <Box sx={{ py: 1 }}>
+    <RobotAnalysis label="Gerando brief clínico…" />
+  </Box>
+) : csEditing ? (
                   <Stack spacing={1.25}>
                     <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
                       Revise o rascunho antes de disponibilizar ao paciente. Nada é enviado sem sua aprovação.

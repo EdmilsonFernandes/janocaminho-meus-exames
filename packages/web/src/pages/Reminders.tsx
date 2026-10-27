@@ -793,14 +793,16 @@ export const RemindersPage = () => {
             </Stack>
 
             {/* Ações da Consulta */}
+            {/* Ações da Consulta */}
             <Stack
-              direction="row"
-              alignItems="center"
+              direction={{ xs: 'column', sm: 'row' }}
+              alignItems={{ xs: 'stretch', sm: 'center' }}
               spacing={1}
               sx={{
                 alignSelf: { xs: 'stretch', md: 'center' },
-                justifyContent: { xs: 'space-between', md: 'flex-end' },
+                justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                 pt: { xs: 1.5, md: 0 },
+                width: { xs: '100%', md: 'auto' },
               }}
             >
               {isCalling ? (
@@ -820,7 +822,8 @@ export const RemindersPage = () => {
                     color: '#ffffff',
                     '&:hover': { background: 'linear-gradient(135deg, #059669 0%, #047857 100%)' },
                     boxShadow: '0 4px 14px rgba(5,150,105,.4)',
-                    flex: { xs: 1, sm: 'none' },
+                    whiteSpace: 'nowrap',
+                    width: { xs: '100%', sm: 'auto' },
                   }}
                 >
                   Atender Chamada
@@ -841,7 +844,8 @@ export const RemindersPage = () => {
                     borderColor: '#0d9488',
                     color: '#0d9488',
                     '&:hover': { bgcolor: 'rgba(13,148,136,0.08)', borderColor: '#0f766e' },
-                    flex: { xs: 1, sm: 'none' },
+                    whiteSpace: 'nowrap',
+                    width: { xs: '100%', sm: 'auto' },
                   }}
                 >
                   Ver Resumo & Documentos
@@ -871,7 +875,8 @@ export const RemindersPage = () => {
                         background: 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
                         boxShadow: '0 6px 18px rgba(13,148,136,0.45)',
                       },
-                      flex: { xs: 1, sm: 'none' },
+                      whiteSpace: 'nowrap',
+                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
                     Entrar na Sala
@@ -895,7 +900,8 @@ export const RemindersPage = () => {
                       '&:hover': {
                         background: 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
                       },
-                      flex: { xs: 1, sm: 'none' },
+                      whiteSpace: 'nowrap',
+                      width: { xs: '100%', sm: 'auto' },
                     }}
                   >
                     Entrar na Sala
@@ -916,96 +922,118 @@ export const RemindersPage = () => {
                     py: 0.8,
                     borderColor: 'divider',
                     color: 'text.secondary',
-                    flex: { xs: 1, sm: 'none' },
+                    whiteSpace: 'nowrap',
+                    width: { xs: '100%', sm: 'auto' },
                   }}
                 >
                   Ver Consulta
                 </Button>
               ) : null}
 
-              {/* Consulta particular (23/10): "Pagar consulta" (cobre) ou "Paga ✓" (verde) — no histórico nunca cobra de novo. */}
-              {(r.consultPriceCents ?? 0) > 0 && (
-                (r.paidAt || hasEnded) ? (
-                  <Chip
-                    size="small"
-                    icon={<CheckCircleOutlineIcon />}
-                    label={r.paidAt ? 'Consulta paga' : 'Concluída'}
-                    sx={{ height: 26, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(16,185,129,.14)', color: '#059669', borderRadius: '9px', flex: { xs: 1, sm: 'none' }, justifyContent: 'center' }}
-                  />
-                ) : (
-                  <Button
-                    size="small"
-                    variant="contained"
-                    startIcon={<PaymentsIcon />}
-                    disabled={payBusyId === r.id}
-                    onClick={() => { hapticLight(); void payTeleconsulta(r); }}
-                    sx={{
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 800,
-                      fontSize: 13,
-                      px: 2,
-                      py: 0.8,
-                      background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)',
-                      color: '#fff',
-                      boxShadow: '0 4px 14px rgba(212,165,116,.4)',
-                      '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
-                      flex: { xs: 1, sm: 'none' },
-                    }}
-                  >
-                    {payBusyId === r.id ? 'Gerando PIX…' : `Pagar consulta — R$ ${fmtBrl(r.consultPriceCents)}`}
-                  </Button>
-                )
-              )}
-
-              {/* §6 share: WhatsApp + copiar link — vale pra teleconsulta NO APP (link
-                  drexame/#/teleconsulta/:id, App Link) E pro link externo legado (linkUrl). */}
-              {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (() => {
-                const due = new Date(r.dueDate);
-                const shareLink = r.linkUrl || `${APP_WEB_URL}/#/teleconsulta/${r.id}`;
-                const shareMsg = `Sua teleconsulta com ${docName} está agendada para ${due.toLocaleDateString('pt-BR')}, às ${due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (horário de Brasília). Acesse pelo link: ${shareLink}`;
-                return (
-                  <>
-                    <IconButton
-                      size="small"
-                      aria-label="Compartilhar no WhatsApp"
-                      title="Compartilhar agendamento no WhatsApp"
-                      onClick={() => {
-                        hapticLight();
-                        window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank', 'noopener');
-                      }}
-                      sx={{ color: '#25d366', '&:hover': { bgcolor: 'rgba(37,211,102,.12)' } }}
-                    >
-                      <WhatsAppIcon sx={{ fontSize: 20 }} />
-                    </IconButton>
-                    <IconButton
-                      size="small"
-                      aria-label="Copiar link da consulta"
-                      title="Copiar link da consulta"
-                      onClick={async () => {
-                        hapticLight();
-                        if (await copyText(shareLink)) snackbar({ message: 'Link da consulta copiado!', severity: 'success' });
-                        else snackbar({ message: 'Não deu pra copiar automático. Use "Compartilhar no WhatsApp" ou copie manualmente.', severity: 'info' });
-                      }}
-                      sx={{ color: 'text.secondary', '&:hover': { color: '#0d9488' } }}
-                    >
-                      <ContentCopyIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </>
-                );
-              })()}
-
-              <IconButton
-                size="small"
-                aria-label={`Cancelar agendamento`}
-                title="Cancelar agendamento"
-                onClick={async () => {
-                  if (await confirmDialog({ title: 'Cancelar agendamento', message: `Deseja cancelar o agendamento com ${docName}?`, confirmLabel: 'Cancelar agendamento' })) del(r);
-                }}
-                sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}
+              {/* Linha secundária de status e ações rápidas */}
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                justifyContent={{ xs: 'space-between', sm: 'flex-end' }}
+                sx={{ width: { xs: '100%', sm: 'auto' }, flexShrink: 0 }}
               >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+                {/* Consulta particular: "Pagar consulta" (cobre) ou "Paga ✓" (verde) */}
+                {(r.consultPriceCents ?? 0) > 0 && (
+                  (r.paidAt || hasEnded) ? (
+                    <Chip
+                      size="small"
+                      icon={<CheckCircleOutlineIcon />}
+                      label={r.paidAt ? 'Consulta paga' : 'Concluída'}
+                      sx={{
+                        height: 26,
+                        fontSize: 11.5,
+                        fontWeight: 800,
+                        bgcolor: 'rgba(16,185,129,.14)',
+                        color: '#059669',
+                        borderRadius: '9px',
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        '& .MuiChip-label': { px: 1, whiteSpace: 'nowrap' },
+                      }}
+                    />
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="contained"
+                      startIcon={<PaymentsIcon />}
+                      disabled={payBusyId === r.id}
+                      onClick={() => { hapticLight(); void payTeleconsulta(r); }}
+                      sx={{
+                        borderRadius: '12px',
+                        textTransform: 'none',
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        px: 1.75,
+                        py: 0.6,
+                        background: 'linear-gradient(135deg, #d4a574 0%, #b88a54 100%)',
+                        color: '#fff',
+                        boxShadow: '0 4px 14px rgba(212,165,116,.4)',
+                        '&:hover': { background: 'linear-gradient(135deg, #e0b183 0%, #c49260 100%)' },
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {payBusyId === r.id ? 'Gerando PIX…' : `Pagar — R$ ${fmtBrl(r.consultPriceCents)}`}
+                    </Button>
+                  )
+                )}
+
+                {/* Ações de utilidade: WhatsApp, Copiar, Excluir */}
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ ml: 'auto' }}>
+                  {(r.type === 'teleconsulta' || r.provider === 'livekit' || r.linkUrl) && (() => {
+                    const due = new Date(r.dueDate);
+                    const shareLink = r.linkUrl || `${APP_WEB_URL}/#/teleconsulta/${r.id}`;
+                    const shareMsg = `Sua teleconsulta com ${docName} está agendada para ${due.toLocaleDateString('pt-BR')}, às ${due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} (horário de Brasília). Acesse pelo link: ${shareLink}`;
+                    return (
+                      <>
+                        <IconButton
+                          size="small"
+                          aria-label="Compartilhar no WhatsApp"
+                          title="Compartilhar agendamento no WhatsApp"
+                          onClick={() => {
+                            hapticLight();
+                            window.open(`https://wa.me/?text=${encodeURIComponent(shareMsg)}`, '_blank', 'noopener');
+                          }}
+                          sx={{ color: '#25d366', '&:hover': { bgcolor: 'rgba(37,211,102,.12)' } }}
+                        >
+                          <WhatsAppIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          aria-label="Copiar link da consulta"
+                          title="Copiar link da consulta"
+                          onClick={async () => {
+                            hapticLight();
+                            if (await copyText(shareLink)) snackbar({ message: 'Link da consulta copiado!', severity: 'success' });
+                            else snackbar({ message: 'Não deu pra copiar automático. Use "Compartilhar no WhatsApp" ou copie manualmente.', severity: 'info' });
+                          }}
+                          sx={{ color: 'text.secondary', '&:hover': { color: '#0d9488' } }}
+                        >
+                          <ContentCopyIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </>
+                    );
+                  })()}
+
+                  <IconButton
+                    size="small"
+                    aria-label={`Cancelar agendamento`}
+                    title="Cancelar agendamento"
+                    onClick={async () => {
+                      if (await confirmDialog({ title: 'Cancelar agendamento', message: `Deseja cancelar o agendamento com ${docName}?`, confirmLabel: 'Cancelar agendamento' })) del(r);
+                    }}
+                    sx={{ color: 'text.disabled', '&:hover': { color: 'error.main' } }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Stack>
+              </Stack>
             </Stack>
           </Stack>
         </CardContent>

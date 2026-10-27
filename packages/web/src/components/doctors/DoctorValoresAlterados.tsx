@@ -268,8 +268,8 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                 }}
               >
                 <CardContent sx={{ py: 1.5, px: 2, '&:last-child': { pb: 1.5 } }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Stack direction="row" spacing={1.5} alignItems="center">
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5}>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1, minWidth: 0 }}>
                       <Box
                         sx={{
                           width: 38,
@@ -280,15 +280,16 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          flexShrink: 0,
                         }}
                       >
                         {showAll ? <KeyboardArrowUpIcon /> : <HistoryIcon />}
                       </Box>
-                      <Box>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
-                          {showAll ? 'Recolher para os 3 mais recentes' : `Ver histórico completo de alterações (+${hiddenGroups.length} exames)`}
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
+                          {showAll ? 'Recolher para os 3 mais recentes' : `Histórico de alterações (+${hiddenGroups.length})`}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontSize: 11.5 }}>
                           {showAll ? 'Exibindo todo o histórico' : `Exames anteriores com parâmetros fora da faixa`}
                         </Typography>
                       </Box>
@@ -299,7 +300,14 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                       label={showAll ? 'Recolher' : `+${hiddenGroups.length}`}
                       color="primary"
                       variant={showAll ? 'outlined' : 'filled'}
-                      sx={{ fontWeight: 800, borderRadius: '999px', height: 26 }}
+                      sx={{
+                        fontWeight: 800,
+                        borderRadius: '999px',
+                        height: 28,
+                        flexShrink: 0,
+                        whiteSpace: 'nowrap',
+                        '& .MuiChip-label': { px: 1, whiteSpace: 'nowrap' },
+                      }}
                     />
                   </Stack>
                 </CardContent>

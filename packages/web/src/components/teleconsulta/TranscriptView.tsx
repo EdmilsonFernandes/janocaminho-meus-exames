@@ -5,11 +5,12 @@
 // médico (1 clique) e disclaimer "gerada por IA" no rodapé. Sem diarização
 // inventada: texto corrido em parágrafos.
 import { useMemo, useState, type ReactNode } from 'react';
-import { Box, Button, Chip, CircularProgress, IconButton, InputAdornment, Stack, TextField, Typography, useTheme } from '@mui/material';
+import { Box, Button, Chip, IconButton, InputAdornment, Stack, TextField, Typography, useTheme } from '@mui/material';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 import NotesIcon from '@mui/icons-material/Notes';
+import { DrExameRobot } from '../DrExameRobot';
 import { snackbar } from '../ConfirmDialog';
 import { hapticLight } from '../../utils/haptic';
 import { tealText } from '../../theme';
@@ -107,13 +108,13 @@ export const TranscriptView = ({ text, transcriptAt, role, state }: TranscriptVi
     }
   };
 
-  // STT vivo: spinner + promessa honesta (o container polla e troca quando chegar).
+  // STT vivo: robô Dr. Exame + promessa honesta (o container polla e troca quando chegar).
   if (state === 'processing') {
     return (
-      <Box sx={{ p: 2, borderRadius: '12px', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-        <CircularProgress size={18} sx={{ color: (t) => tealText(t.palette.mode), flexShrink: 0 }} aria-label="Processando transcrição" />
+      <Box role="status" aria-live="polite" aria-label="Transcrevendo consulta" sx={{ p: 2, borderRadius: '12px', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ flexShrink: 0 }}><DrExameRobot size={32} /></Box>
         <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-          Processando a transcrição — esta tela atualiza sozinha em instantes.
+          Transcrevendo… esta tela atualiza sozinha em instantes.
         </Typography>
       </Box>
     );

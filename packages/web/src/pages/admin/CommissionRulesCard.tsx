@@ -397,43 +397,46 @@ export const CommissionRulesCard = ({
                       bgcolor: isCurrentSelected ? (mode === 'dark' ? 'rgba(212,165,116,0.06)' : 'rgba(212,165,116,0.06)') : 'transparent',
                     }}
                   >
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
-                      <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                    <Stack direction="column" spacing={1} sx={{ width: '100%' }}>
+                      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" sx={{ width: '100%' }}>
                         <Chip
                           label={doctorName(docId)}
                           size="small"
                           onClick={() => onSelectDoctor?.(docId)}
                           sx={{
-                            borderRadius: 8,
+                            borderRadius: '8px',
                             fontWeight: 800,
-                            minHeight: 24,
+                            minHeight: 26,
                             cursor: 'pointer',
                             color: '#b45309',
                             border: '1px solid rgba(212,165,116,.6)',
                             bgcolor: 'rgba(212,165,116,0.12)',
+                            flexShrink: 0,
+                            whiteSpace: 'nowrap',
+                            '& .MuiChip-label': { px: 1.25, whiteSpace: 'nowrap' },
                           }}
                         />
-                        <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 600 }}>
-                          {resumo(r)}
-                        </Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Button
+                            size="small"
+                            onClick={() => openForm(docId)}
+                            sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                          >
+                            Editar
+                          </Button>
+                          <Button
+                            size="small"
+                            color="warning"
+                            onClick={() => setResetDoctorTarget({ id: docId, name: doctorName(docId) })}
+                            sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
+                          >
+                            Voltar ao geral
+                          </Button>
+                        </Stack>
                       </Stack>
-                      <Stack direction="row" spacing={0.75} alignItems="center">
-                        <Button
-                          size="small"
-                          onClick={() => openForm(docId)}
-                          sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          size="small"
-                          color="warning"
-                          onClick={() => setResetDoctorTarget({ id: docId, name: doctorName(docId) })}
-                          sx={{ textTransform: 'none', fontSize: 11.5, fontWeight: 700, minHeight: 28, py: 0 }}
-                        >
-                          Voltar ao geral
-                        </Button>
-                      </Stack>
+                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontWeight: 500, lineHeight: 1.45 }}>
+                        {resumo(r)}
+                      </Typography>
                     </Stack>
                   </Card>
                 );

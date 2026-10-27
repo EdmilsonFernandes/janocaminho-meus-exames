@@ -2,8 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
-import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, CircularProgress, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
+import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha, lighten } from '@mui/material/styles';
+import { DrExameRobot } from '../../components/DrExameRobot';
 import ScienceIcon from '@mui/icons-material/Science';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ScheduleIcon from '@mui/icons-material/Schedule';
@@ -86,7 +87,9 @@ const ProcessingCard = ({ r, onCancel }: { r: any; onCancel?: (e: any) => void }
   return (
     <AppCard kind="interactive" onClick={() => navigate(`/exams/${r.id}/show`)} sx={{ overflow: 'hidden' }}>
       <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-        <CircularProgress size={32} thickness={5} sx={{ color: 'info.main', flexShrink: 0 }} />
+        <Box sx={{ flexShrink: 0, display: 'grid', placeItems: 'center' }}>
+          <DrExameRobot size={48} />
+        </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}>{r.title || 'Novo exame enviado'}</Typography>
           <Typography variant="caption" color="text.secondary">

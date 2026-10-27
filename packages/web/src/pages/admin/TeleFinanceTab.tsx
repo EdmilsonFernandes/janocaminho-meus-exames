@@ -10,7 +10,7 @@ import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme, Alert,
   Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
   Switch, FormControlLabel, Autocomplete, Avatar, InputAdornment, Table,
-  TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TableBody, TableCell, TableContainer, TableHead, TableRow, useMediaQuery,
 } from '@mui/material';
 import RefreshOutlinedIcon from '@mui/icons-material/RefreshOutlined';
 import PaidOutlinedIcon from '@mui/icons-material/PaidOutlined';
@@ -89,6 +89,7 @@ const KpiGroup = ({ title, sub, children, accent }: { title: string; sub?: strin
 
 export const TeleFinanceTab = () => {
   const t = useTheme();
+  const isMobile = useMediaQuery(t.breakpoints.down('sm'));
   const mode = t.palette.mode as 'light' | 'dark';
   const [range, setRange] = useState<RangeKey>('30');
   const [doctorId, setDoctorId] = useState('');
@@ -466,9 +467,68 @@ export const TeleFinanceTab = () => {
           <Typography sx={{ px: 2.5, pb: 2, fontSize: 13, color: 'text.secondary' }}>
             Nenhuma teleconsulta paga ainda — pagamentos aparecem aqui em tempo real (webhook Asaas).
           </Typography>
+        ) : isMobile ? (
+          <Box sx={{ px: 0.5, pb: 1 }}>
+            {paidList.map((p) => (
+              <Box
+                key={p.id}
+                sx={{
+                  p: 1.75,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                  '&:last-child': { borderBottom: 'none' },
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.5 }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 13.5 }} noWrap>{p.patientName}</Typography>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: '#0d9488', flexShrink: 0 }}>
+                    {brl(p.priceCents)}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.25 }}>
+                  <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: '65%' }}>
+                    {p.doctorName || '—'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0, fontSize: 11 }}>
+                    {p.paidAt ? new Date(p.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
+                  </Typography>
+                </Stack>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
+                  <Box sx={{ flexShrink: 0 }}>
+                    {p.refundedAt ? (
+                      <Chip size="small" label="Estornada ✓" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed', whiteSpace: 'nowrap' }} />
+                    ) : p.teleStatus === 'completed' ? (
+                      <Chip size="small" label="Realizada" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669', whiteSpace: 'nowrap' }} />
+                    ) : p.teleStatus === 'no_show' ? (
+                      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico)' : ''}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                    ) : p.teleStatus === 'cancelled' ? (
+                      <Chip size="small" label="Cancelada" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b', whiteSpace: 'nowrap' }} />
+                    ) : (
+                      <Chip size="small" label="Agendada (paga)" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488', whiteSpace: 'nowrap' }} />
+                    )}
+                  </Box>
+                  <Box sx={{ flexShrink: 0 }}>
+                    {p.refundedAt ? (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
+                        Estornado {new Date(p.refundedAt).toLocaleDateString('pt-BR')}
+                      </Typography>
+                    ) : (
+                      <Button
+                        size="small" color="error" variant="outlined"
+                        onClick={() => { setRefundNote(null); setRefundTarget(p); }}
+                        sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12, height: 28 }}
+                      >
+                        Estornar
+                      </Button>
+                    )}
+                  </Box>
+                </Stack>
+              </Box>
+            ))}
+          </Box>
         ) : (
           <TableContainer sx={{ maxHeight: 360, px: 1.5, pb: 1.5 }}>
-            <Table stickyHeader size="small">
+            <Table stickyHeader size="small" sx={{ minWidth: 640 }}>
               <TableHead>
                 <TableRow>
                   <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Paciente</TableCell>
@@ -482,13 +542,13 @@ export const TeleFinanceTab = () => {
               <TableBody>
                 {paidList.map((p) => (
                   <TableRow key={p.id} hover>
-                    <TableCell sx={{ fontSize: 13, fontWeight: 700, maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.patientName}</TableCell>
-                    <TableCell sx={{ fontSize: 12.5, color: 'text.secondary', maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.doctorName || '—'}</TableCell>
-                    <TableCell align="right" sx={{ fontSize: 13, fontWeight: 800 }}>{brl(p.priceCents)}</TableCell>
-                    <TableCell sx={{ fontSize: 12, color: 'text.secondary' }}>
+                    <TableCell sx={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>{p.patientName}</TableCell>
+                    <TableCell sx={{ fontSize: 12.5, color: 'text.secondary', whiteSpace: 'nowrap' }}>{p.doctorName || '—'}</TableCell>
+                    <TableCell align="right" sx={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap' }}>{brl(p.priceCents)}</TableCell>
+                    <TableCell sx={{ fontSize: 12, color: 'text.secondary', whiteSpace: 'nowrap' }}>
                       {p.paidAt ? new Date(p.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
                     </TableCell>
-                    <TableCell sx={{ fontSize: 12 }}>
+                    <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                       {p.refundedAt ? (
                         <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
                       ) : p.teleStatus === 'completed' ? (
@@ -501,7 +561,7 @@ export const TeleFinanceTab = () => {
                         <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
                       )}
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
                       {p.refundedAt ? (
                         <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
                           {new Date(p.refundedAt).toLocaleDateString('pt-BR')}

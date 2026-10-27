@@ -321,12 +321,36 @@ export const ExamsTab = () => {
               color="inherit"
               size="small"
               onClick={() => setStatusFilter(statusFilter === 'FAILED' ? 'ALL' : 'FAILED')}
-              sx={{ fontWeight: 800, textTransform: 'none' }}
+              sx={{
+                fontWeight: 800,
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                bgcolor: 'rgba(245,158,11,0.15)',
+                px: 1.5,
+                borderRadius: '8px',
+                '&:hover': { bgcolor: 'rgba(245,158,11,0.25)' },
+              }}
             >
-              {statusFilter === 'FAILED' ? 'Ver Todos' : 'Ver Apenas com Falha'}
+              {statusFilter === 'FAILED' ? 'Ver Todos' : 'Ver com Falha'}
             </Button>
           }
-          sx={{ mb: 2.5, borderRadius: '14px', border: '1px solid rgba(245,158,11,0.3)' }}
+          sx={{
+            mb: 2.5,
+            borderRadius: '14px',
+            border: '1px solid rgba(245,158,11,0.3)',
+            alignItems: { xs: 'flex-start', sm: 'center' },
+            flexDirection: { xs: 'column', sm: 'row' },
+            '& .MuiAlert-message': {
+              width: '100%',
+              fontSize: { xs: 12.5, sm: 13.5 },
+            },
+            '& .MuiAlert-action': {
+              pt: { xs: 1, sm: 0 },
+              pl: { xs: 0, sm: 2 },
+              mr: { xs: 'auto', sm: 0 },
+              alignSelf: { xs: 'flex-start', sm: 'center' },
+            },
+          }}
         >
           <strong>{failedCount} exame(s) com erro de extração</strong> encontrados. Você pode revisar o motivo e ajudar a calibrar os modelos da IA.
         </Alert>

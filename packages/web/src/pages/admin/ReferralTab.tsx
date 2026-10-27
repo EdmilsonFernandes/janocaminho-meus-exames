@@ -3,7 +3,7 @@ import {
   Box, Typography, Stack, Card, CardContent, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, Chip, LinearProgress, Button, Tooltip,
   TextField, InputAdornment, IconButton, Dialog, DialogTitle, DialogContent,
-  DialogActions, Divider, Alert, CircularProgress,
+  DialogActions, Divider, Alert, CircularProgress, useTheme, useMediaQuery,
 } from '@mui/material';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
@@ -87,6 +87,8 @@ const fmtDate = (iso: string) => {
 };
 
 export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [data, setData] = useState<ReferralData | null>(null);
   const [loading, setLoading] = useState(true);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -441,176 +443,315 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
 
       {/* ── TOP PROMOTORES ── */}
       <Card variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden' }}>
-        <Box sx={{ p: 2.5, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 15 }}>🏆 Top Promotores (Usuários que mais indicam)</Typography>
-            <Typography variant="caption" color="text.secondary">
+        <Box sx={{ p: 2, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 } }}>🏆 Top Promotores (Usuários que mais indicam)</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 11.5 }}>
               Clique em qualquer promotor para ver todos os indicados e gerenciar bônus.
             </Typography>
           </Box>
-          <Chip label={`${filteredPromoters.length} promotores`} size="small" sx={{ fontWeight: 700 }} />
+          <Chip label={`${filteredPromoters.length} promotores`} size="small" sx={{ fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }} />
         </Box>
-        <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: 640 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'action.hover' }}>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>#</TableCell>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Promotor (Padrinho)</TableCell>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Código</TableCell>
-                <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Total Indicados</TableCell>
-                <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Saldo Atual</TableCell>
-                <TableCell align="center" sx={{ py: 1.25, fontWeight: 800 }}>Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredPromoters.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Nenhum promotor encontrado com os filtros atuais.</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredPromoters.map((r, i) => (
-                  <TableRow
-                    key={r.referralCode}
-                    hover
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => openPromoterDetail(r.referralCode)}
-                  >
-                    <TableCell sx={{ fontWeight: 800, color: i < 3 ? '#178f89' : 'text.secondary' }}>
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{r.userName}</Typography>
-                      <Typography variant="caption" color="text.secondary">{r.userEmail}</Typography>
-                    </TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Tooltip title={copiedCode === r.referralCode ? 'Copiado!' : 'Copiar código'}>
-                        <Chip
-                          label={r.referralCode}
-                          size="small"
-                          onClick={() => copy(r.referralCode)}
-                          icon={<ContentCopyIcon sx={{ fontSize: '13px !important' }} />}
-                          sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer' }}
-                        />
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell align="right">
+
+        {isMobile ? (
+          <Box>
+            {filteredPromoters.length === 0 ? (
+              <Box sx={{ py: 4, px: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">Nenhum promotor encontrado com os filtros atuais.</Typography>
+              </Box>
+            ) : (
+              filteredPromoters.map((r, i) => (
+                <Box
+                  key={r.referralCode}
+                  onClick={() => openPromoterDetail(r.referralCode)}
+                  sx={{
+                    p: 1.75,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    '&:last-child': { borderBottom: 'none' },
+                    cursor: 'pointer',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1 }}>
+                    <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontSize: 16, fontWeight: 800, flexShrink: 0 }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}
+                      </Typography>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 13.5 }} noWrap>{r.userName}</Typography>
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{r.userEmail}</Typography>
+                      </Box>
+                    </Stack>
+                    <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#178f89' }}>
+                        {r.userCredits.toLocaleString('pt-BR')} cr
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled" sx={{ fontSize: 10 }}>saldo</Typography>
+                    </Box>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" sx={{ pt: 0.5 }}>
+                    <Tooltip title={copiedCode === r.referralCode ? 'Copiado!' : 'Copiar código'}>
+                      <Chip
+                        label={r.referralCode}
+                        size="small"
+                        onClick={(e) => { e.stopPropagation(); copy(r.referralCode); }}
+                        icon={<ContentCopyIcon sx={{ fontSize: '12px !important' }} />}
+                        sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer', height: 24, fontSize: 11.5 }}
+                      />
+                    </Tooltip>
+                    <Stack direction="row" spacing={1} alignItems="center">
                       <Chip
                         label={`${r.count} indicados`}
                         size="small"
                         color={r.count >= 5 ? 'primary' : 'default'}
-                        sx={{ fontWeight: 800 }}
+                        sx={{ fontWeight: 800, height: 24, fontSize: 11.5, flexShrink: 0 }}
                       />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
-                        {r.userCredits.toLocaleString('pt-BR')} cr
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center" onClick={(e) => e.stopPropagation()}>
                       <Button
                         size="small"
                         variant="text"
-                        startIcon={<VisibilityIcon fontSize="small" />}
-                        onClick={() => openPromoterDetail(r.referralCode)}
-                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12 }}
+                        onClick={(e) => { e.stopPropagation(); openPromoterDetail(r.referralCode); }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 11.5, minWidth: 'auto', p: 0.5 }}
                       >
-                        Ver indicados
+                        Ver →
                       </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              ))
+            )}
+          </Box>
+        ) : (
+          <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <Table size="small" sx={{ minWidth: 640 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>#</TableCell>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Promotor (Padrinho)</TableCell>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Código</TableCell>
+                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Total Indicados</TableCell>
+                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Saldo Atual</TableCell>
+                  <TableCell align="center" sx={{ py: 1.25, fontWeight: 800 }}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredPromoters.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} sx={{ py: 4, textAlign: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">Nenhum promotor encontrado com os filtros atuais.</Typography>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  filteredPromoters.map((r, i) => (
+                    <TableRow
+                      key={r.referralCode}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => openPromoterDetail(r.referralCode)}
+                    >
+                      <TableCell sx={{ fontWeight: 800, color: i < 3 ? '#178f89' : 'text.secondary', whiteSpace: 'nowrap' }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{r.userName}</Typography>
+                        <Typography variant="caption" color="text.secondary">{r.userEmail}</Typography>
+                      </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()} sx={{ whiteSpace: 'nowrap' }}>
+                        <Tooltip title={copiedCode === r.referralCode ? 'Copiado!' : 'Copiar código'}>
+                          <Chip
+                            label={r.referralCode}
+                            size="small"
+                            onClick={() => copy(r.referralCode)}
+                            icon={<ContentCopyIcon sx={{ fontSize: '13px !important' }} />}
+                            sx={{ fontFamily: 'monospace', fontWeight: 800, cursor: 'pointer' }}
+                          />
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                        <Chip
+                          label={`${r.count} indicados`}
+                          size="small"
+                          color={r.count >= 5 ? 'primary' : 'default'}
+                          sx={{ fontWeight: 800 }}
+                        />
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.secondary' }}>
+                          {r.userCredits.toLocaleString('pt-BR')} cr
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="center" onClick={(e) => e.stopPropagation()} sx={{ whiteSpace: 'nowrap' }}>
+                        <Button
+                          size="small"
+                          variant="text"
+                          startIcon={<VisibilityIcon fontSize="small" />}
+                          onClick={() => openPromoterDetail(r.referralCode)}
+                          sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12 }}
+                        >
+                          Ver indicados
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Card>
 
       {/* ── ÚLTIMOS CADASTROS VIA INDICAÇÃO ── */}
       <Card variant="outlined" sx={{ borderRadius: '16px', overflow: 'hidden' }}>
-        <Box sx={{ p: 2.5, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 15 }}>⏱️ Últimos Usuários que Vieram de Indicação</Typography>
-            <Typography variant="caption" color="text.secondary">
+        <Box sx={{ p: 2, pb: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: { xs: 14, sm: 15 } }}>⏱️ Últimos Usuários que Vieram de Indicação</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: 11.5 }}>
               Rastreamento de novos cadastros gerados por links de indicação.
             </Typography>
           </Box>
-          <Chip label={`${filteredRecent.length} cadastros`} size="small" sx={{ fontWeight: 700 }} />
+          <Chip label={`${filteredRecent.length} cadastros`} size="small" sx={{ fontWeight: 700, flexShrink: 0, whiteSpace: 'nowrap' }} />
         </Box>
-        <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-          <Table size="small" sx={{ minWidth: 680 }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'action.hover' }}>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Novo Usuário</TableCell>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Data</TableCell>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Status</TableCell>
-                <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Padrinho (Quem Indicou)</TableCell>
-                <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Exames</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredRecent.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} sx={{ py: 4, textAlign: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">Nenhum cadastro encontrado com os filtros atuais.</Typography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredRecent.map((u) => (
-                  <TableRow key={u.id} hover>
-                    <TableCell>
-                      <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{u.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{u.email}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography sx={{ fontSize: 12.5, color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                        {fmtDate(u.createdAt)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        {u.emailVerified ? (
-                          <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10.5, fontWeight: 700 }} />
-                        ) : (
-                          <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 600 }} />
-                        )}
-                        {u.isPremium && (
-                          <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309' }} />
-                        )}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
+
+        {isMobile ? (
+          <Box>
+            {filteredRecent.length === 0 ? (
+              <Box sx={{ py: 4, px: 2, textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">Nenhum cadastro encontrado com os filtros atuais.</Typography>
+              </Box>
+            ) : (
+              filteredRecent.map((u) => (
+                <Box
+                  key={u.id}
+                  sx={{
+                    p: 1.75,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    '&:last-child': { borderBottom: 'none' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 0.75 }}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13.5 }} noWrap>{u.name}</Typography>
+                      <Typography variant="caption" color="text.secondary" noWrap sx={{ display: 'block' }}>{u.email}</Typography>
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: 11.5, flexShrink: 0, whiteSpace: 'nowrap' }}>
+                      {fmtDate(u.createdAt)}
+                    </Typography>
+                  </Stack>
+
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" sx={{ my: 0.75 }}>
+                    <Stack direction="row" spacing={0.6} alignItems="center">
+                      {u.emailVerified ? (
+                        <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, whiteSpace: 'nowrap' }} />
+                      ) : (
+                        <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 600, whiteSpace: 'nowrap' }} />
+                      )}
+                      {u.isPremium && (
+                        <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                      )}
+                    </Stack>
+                    <Chip
+                      label={u.examCount > 0 ? `${u.examCount} exame(s)` : 'Sem exames'}
+                      size="small"
+                      color={u.examCount > 0 ? 'info' : 'default'}
+                      variant={u.examCount > 0 ? 'filled' : 'outlined'}
+                      sx={{ fontWeight: 700, height: 20, fontSize: 10.5, whiteSpace: 'nowrap' }}
+                    />
+                  </Stack>
+
+                  <Box sx={{ pt: 0.5 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Indicado por:{' '}
                       <Typography
-                        sx={{ fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#178f89', '&:hover': { textDecoration: 'underline' } }}
+                        component="span"
+                        variant="caption"
+                        sx={{ fontWeight: 800, cursor: 'pointer', color: '#178f89', '&:hover': { textDecoration: 'underline' } }}
                         onClick={() => openPromoterDetail(u.referredByCode)}
                       >
-                        {u.referrerName}
+                        {u.referrerName} [{u.referredByCode}]
                       </Typography>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'text.secondary' }}>
-                          [{u.referredByCode}]
-                        </Typography>
-                        {u.referrerEmail && (
-                          <Typography variant="caption" color="text.secondary">· {u.referrerEmail}</Typography>
-                        )}
-                      </Stack>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Chip
-                        label={u.examCount > 0 ? `${u.examCount} exame(s)` : 'Nenhum'}
-                        size="small"
-                        color={u.examCount > 0 ? 'info' : 'default'}
-                        variant={u.examCount > 0 ? 'filled' : 'outlined'}
-                        sx={{ fontWeight: 700, height: 22 }}
-                      />
+                    </Typography>
+                  </Box>
+                </Box>
+              ))
+            )}
+          </Box>
+        ) : (
+          <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+            <Table size="small" sx={{ minWidth: 680 }}>
+              <TableHead>
+                <TableRow sx={{ bgcolor: 'action.hover' }}>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Novo Usuário</TableCell>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Data</TableCell>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Status</TableCell>
+                  <TableCell sx={{ py: 1.25, fontWeight: 800 }}>Padrinho (Quem Indicou)</TableCell>
+                  <TableCell align="right" sx={{ py: 1.25, fontWeight: 800 }}>Exames</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredRecent.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} sx={{ py: 4, textAlign: 'center' }}>
+                      <Typography variant="body2" color="text.secondary">Nenhum cadastro encontrado com os filtros atuais.</Typography>
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                ) : (
+                  filteredRecent.map((u) => (
+                    <TableRow key={u.id} hover>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{u.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">{u.email}</Typography>
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                          {fmtDate(u.createdAt)}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          {u.emailVerified ? (
+                            <Chip label="Verificado" size="small" color="success" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, whiteSpace: 'nowrap' }} />
+                          ) : (
+                            <Chip label="Pendente" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 600, whiteSpace: 'nowrap' }} />
+                          )}
+                          {u.isPremium && (
+                            <Chip label="Premium" size="small" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.18)', color: '#b45309', whiteSpace: 'nowrap' }} />
+                          )}
+                        </Stack>
+                      </TableCell>
+                      <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                        <Typography
+                          sx={{ fontWeight: 700, fontSize: 13, cursor: 'pointer', color: '#178f89', '&:hover': { textDecoration: 'underline' } }}
+                          onClick={() => openPromoterDetail(u.referredByCode)}
+                        >
+                          {u.referrerName}
+                        </Typography>
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700, color: 'text.secondary' }}>
+                            [{u.referredByCode}]
+                          </Typography>
+                          {u.referrerEmail && (
+                            <Typography variant="caption" color="text.secondary">· {u.referrerEmail}</Typography>
+                          )}
+                        </Stack>
+                      </TableCell>
+                      <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
+                        <Chip
+                          label={u.examCount > 0 ? `${u.examCount} exame(s)` : 'Nenhum'}
+                          size="small"
+                          color={u.examCount > 0 ? 'info' : 'default'}
+                          variant={u.examCount > 0 ? 'filled' : 'outlined'}
+                          sx={{ fontWeight: 700, height: 22, whiteSpace: 'nowrap' }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
       </Card>
 
       {/* ── MODAL: DETALHES DO PROMOTOR & SEUS INDICADOS ── */}

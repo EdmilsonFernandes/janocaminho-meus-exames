@@ -492,7 +492,7 @@ export const AdminPage = () => {
                 <Stack direction="row" spacing={0.75} useFlexGap flexWrap="nowrap" sx={{ overflowX: 'auto' }}>
                   <Box
                     sx={{
-                      display: 'flex',
+                      display: { xs: 'none', sm: 'flex' },
                       alignItems: 'center',
                       gap: 0.6,
                       px: 1.25,
@@ -501,6 +501,7 @@ export const AdminPage = () => {
                       bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
                       border: '1px solid',
                       borderColor: 'divider',
+                      flexShrink: 0,
                     }}
                   >
                     <Typography sx={{ fontSize: 12 }}>👥</Typography>
@@ -514,7 +515,7 @@ export const AdminPage = () => {
 
                   <Box
                     sx={{
-                      display: 'flex',
+                      display: { xs: 'none', md: 'flex' },
                       alignItems: 'center',
                       gap: 0.6,
                       px: 1.25,
@@ -523,6 +524,7 @@ export const AdminPage = () => {
                       bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
                       border: '1px solid',
                       borderColor: 'divider',
+                      flexShrink: 0,
                     }}
                   >
                     <Typography sx={{ fontSize: 12 }}>📋</Typography>
@@ -545,6 +547,7 @@ export const AdminPage = () => {
                       bgcolor: 'rgba(23, 143, 137, 0.1)',
                       border: '1px solid rgba(23, 143, 137, 0.25)',
                       color: '#178f89',
+                      flexShrink: 0,
                     }}
                   >
                     <Typography sx={{ fontSize: 12 }}>💰</Typography>
