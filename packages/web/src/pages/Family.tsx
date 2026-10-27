@@ -1068,7 +1068,11 @@ export const FamilyPage = () => {
                     (refLow != null && num != null && num < refLow) ||
                     (refHigh != null && num != null && num > refHigh);
 
-                  const color = MEMBER_COLORS[mIdx % MEMBER_COLORS.length];
+                  // Vincula cor de forma consistente ao ID do paciente (mesma ordem da legenda)
+                  const pIdx = (data?.patients ?? []).findIndex(
+                    (p) => String(p.id) === String(m.patientId) || (p.fullName && m.name && p.fullName.toLowerCase().includes(m.name.toLowerCase()))
+                  );
+                  const color = pIdx >= 0 ? MEMBER_COLORS[pIdx % MEMBER_COLORS.length] : MEMBER_COLORS[mIdx % MEMBER_COLORS.length];
                   return { ...m, numeric: num, posPct, isAbn, color };
                 });
 
@@ -1131,22 +1135,13 @@ export const FamilyPage = () => {
                           position: 'absolute',
                           left: `${normalLeft}%`,
                           width: `${normalWidth}%`,
-                          height: 24,
-                          bgcolor: dark ? 'rgba(16, 185, 129, 0.18)' : 'rgba(16, 185, 129, 0.12)',
-                          border: '1px solid rgba(16, 185, 129, 0.35)',
+                          height: 20,
+                          bgcolor: dark ? 'rgba(16, 185, 129, 0.20)' : 'rgba(16, 185, 129, 0.14)',
+                          border: '1px dashed rgba(16, 185, 129, 0.45)',
                           borderRadius: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          color: dark ? '#34d399' : '#065f46',
-                          letterSpacing: '0.02em',
                           pointerEvents: 'none',
                         }}
-                      >
-                        {refLow != null && refHigh != null ? `Ideal (${refLow} - ${refHigh})` : 'Faixa Ideal'}
-                      </Box>
+                      />
 
                       {/* Conector Dumbbell entre os membros */}
                       {memberPositions.length > 1 && (
@@ -1164,68 +1159,75 @@ export const FamilyPage = () => {
                       )}
 
                       {/* Pins dos membros */}
-                      {memberPositions.map((m: any, mIdx: number) => {
-                        const firstName = (m.name || '').split(' ')[0] || `Membro ${mIdx + 1}`;
-                        return (
-                          <Tooltip
-                            key={mIdx}
-                            title={`${m.name || firstName}: ${m.value} ${row.unit || ''} ${m.isAbn ? '(Atenção/Alterado)' : '(Normal)'}`}
-                            arrow
-                          >
-                            <Box
-                              sx={{
-                                position: 'absolute',
-                                left: `${m.posPct}%`,
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)',
-                                zIndex: 3,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                              }}
+                      {(() => {
+                        const isClose = memberPositions.length >= 2 && Math.abs(memberPositions[0].posPct - memberPositions[1].posPct) < 24;
+                        return memberPositions.map((m: any, mIdx: number) => {
+                          const firstName = (m.name || '').split(' ')[0] || `Membro ${mIdx + 1}`;
+                          const placeBelow = isClose && mIdx === 1;
+
+                          return (
+                            <Tooltip
+                              key={mIdx}
+                              title={`${m.name || firstName}: ${m.value} ${row.unit || ''} ${m.isAbn ? '(Atenção/Alterado)' : '(Normal)'}`}
+                              arrow
                             >
-                              {/* Tag com Nome e Valor */}
                               <Box
                                 sx={{
                                   position: 'absolute',
-                                  bottom: 22,
-                                  bgcolor: m.isAbn ? '#dc2626' : '#0f172a',
-                                  color: '#ffffff',
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  fontFamily: 'monospace',
-                                  px: 0.85,
-                                  py: 0.3,
-                                  borderRadius: '4px',
-                                  whiteSpace: 'nowrap',
-                                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                                  left: `${m.posPct}%`,
+                                  top: '50%',
+                                  transform: 'translate(-50%, -50%)',
+                                  zIndex: 3,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  alignItems: 'center',
+                                  cursor: 'pointer',
                                 }}
                               >
-                                {firstName}: {m.value} {m.isAbn ? '⚠️' : ''}
-                              </Box>
+                                {/* Tag com Nome e Valor — escalonada para evitar colisão */}
+                                <Box
+                                  sx={{
+                                    position: 'absolute',
+                                    ...(placeBelow ? { top: 18 } : { bottom: 18 }),
+                                    bgcolor: m.isAbn ? '#dc2626' : '#0f172a',
+                                    color: '#ffffff',
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    fontFamily: 'monospace',
+                                    px: 0.85,
+                                    py: 0.25,
+                                    borderRadius: '4px',
+                                    whiteSpace: 'nowrap',
+                                    boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                                    border: '1px solid',
+                                    borderColor: m.color,
+                                  }}
+                                >
+                                  {firstName}: {m.value} {m.isAbn ? '⚠️' : ''}
+                                </Box>
 
-                              {/* Círculo do Pin */}
-                              <Box
-                                sx={{
-                                  width: 18,
-                                  height: 18,
-                                  borderRadius: '50%',
-                                  bgcolor: m.isAbn ? '#ef4444' : m.color,
-                                  border: '2px solid #ffffff',
-                                  boxShadow: m.isAbn
-                                    ? '0 0 0 3px rgba(239, 68, 68, 0.45)'
-                                    : `0 0 0 2px ${m.color}`,
-                                  transition: 'transform 0.2s ease',
-                                  '&:hover': {
-                                    transform: 'scale(1.25)',
-                                  },
-                                }}
-                              />
-                            </Box>
-                          </Tooltip>
-                        );
-                      })}
+                                {/* Círculo do Pin com cor consistente */}
+                                <Box
+                                  sx={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: '50%',
+                                    bgcolor: m.isAbn ? '#ef4444' : m.color,
+                                    border: '2px solid #ffffff',
+                                    boxShadow: m.isAbn
+                                      ? '0 0 0 3px rgba(239, 68, 68, 0.45)'
+                                      : `0 0 0 2.5px ${m.color}`,
+                                    transition: 'transform 0.2s ease',
+                                    '&:hover': {
+                                      transform: 'scale(1.25)',
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            </Tooltip>
+                          );
+                        });
+                      })()}
                     </Box>
 
                     {/* Coluna 3: Status Clínico Comparativo */}

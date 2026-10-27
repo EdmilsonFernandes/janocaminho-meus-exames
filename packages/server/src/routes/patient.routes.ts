@@ -279,42 +279,81 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
-// COMPARATIVO familiar por analito (último valor de cada membro; só analitos em 2+ pessoas)
+// COMPARATIVO familiar por analito (último valor de cada membro; analitos presentes em 2+ membros)
 router.get('/family-compare', async (req: AuthedRequest, res, next) => {
   try {
     const patients = await prisma.patient.findMany({
       where: { ownerId: req.userId },
       select: { id: true, fullName: true, relationship: true },
     });
+
+    // Ordena membros consistentemente: Titular primeiro, depois cônjuge/filhos
+    patients.sort((a, b) => {
+      const isTitularA = a.relationship === 'Titular' || !a.relationship;
+      const isTitularB = b.relationship === 'Titular' || !b.relationship;
+      if (isTitularA && !isTitularB) return -1;
+      if (!isTitularA && isTitularB) return 1;
+      return (a.fullName || '').localeCompare(b.fullName || '');
+    });
+
     const byAnalyte = new Map<string, any>();
+
     for (const p of patients) {
-      const exam = await prisma.exam.findFirst({
+      // Busca exames extraídos mais recentes para capturar todos os analitos comparáveis
+      const exams = await prisma.exam.findMany({
         where: { patientId: p.id, status: 'EXTRACTED', performedAt: { not: null } },
         orderBy: { performedAt: 'desc' },
         include: { items: true },
+        take: 15,
       });
-      if (!exam) continue;
-      for (const it of exam.items) {
-        const e = byAnalyte.get(it.nameCanonical) ?? { unit: it.unit, members: [] as any[] };
-        e.members.push({
-          patientId: p.id,
-          name: p.fullName,
-          relationship: p.relationship,
-          value: it.valueText ?? String(it.valueNumeric ?? ''),
-          valueNumeric: it.valueNumeric,
-          refLow: it.refLow,
-          refHigh: it.refHigh,
-          refText: it.refText,
-          refAppliesTo: it.refAppliesTo,
-          unit: it.unit,
-          flag: it.flag,
-          date: exam.performedAt,
-        });
-        byAnalyte.set(it.nameCanonical, e);
+
+      const seenInPatient = new Set<string>();
+
+      for (const exam of exams) {
+        for (const it of exam.items) {
+          const canonical = (it.nameCanonical || it.name || '').trim();
+          if (!canonical) continue;
+          if (seenInPatient.has(canonical.toUpperCase())) continue; // mantém o valor mais recente deste paciente
+          seenInPatient.add(canonical.toUpperCase());
+
+          const e = byAnalyte.get(canonical) ?? { unit: it.unit, members: [] as any[] };
+          e.members.push({
+            patientId: p.id,
+            name: p.fullName,
+            relationship: p.relationship,
+            value: it.valueText ?? String(it.valueNumeric ?? ''),
+            valueNumeric: it.valueNumeric,
+            refLow: it.refLow,
+            refHigh: it.refHigh,
+            refText: it.refText,
+            refAppliesTo: it.refAppliesTo,
+            unit: it.unit,
+            flag: it.flag,
+            date: exam.performedAt,
+          });
+          byAnalyte.set(canonical, e);
+        }
       }
     }
-    const rows = [...byAnalyte.entries()].filter(([, v]) => v.members.length >= 2).map(([analyte, v]) => ({ analyte, unit: v.unit, members: v.members }));
-    rows.sort((a, b) => b.members.length - a.members.length);
+
+    // Ordena membros de cada analito para que o Titular venha sempre na mesma posição do array
+    const patientOrder = new Map(patients.map((p, idx) => [p.id, idx]));
+    const rows = [...byAnalyte.entries()]
+      .filter(([, v]) => v.members.length >= 2)
+      .map(([analyte, v]) => {
+        v.members.sort((a: any, b: any) => (patientOrder.get(a.patientId) ?? 99) - (patientOrder.get(b.patientId) ?? 99));
+        return { analyte, unit: v.unit, members: v.members };
+      });
+
+    // Ordena: analitos com divergências/alertas primeiro, depois pelo número de membros
+    rows.sort((a, b) => {
+      const abnA = a.members.some((m: any) => ['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag));
+      const abnB = b.members.some((m: any) => ['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag));
+      if (abnA && !abnB) return -1;
+      if (!abnA && abnB) return 1;
+      return b.members.length - a.members.length;
+    });
+
     res.json({ rows });
   } catch (e) { next(e); }
 });
