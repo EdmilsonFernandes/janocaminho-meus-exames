@@ -1832,7 +1832,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
 
                 {tab === 'notes' && !selExam && (
-                  <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} patient={patient} />
+                  <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} patient={selected?.patient} />
                 )}
           </Box>
         )}
