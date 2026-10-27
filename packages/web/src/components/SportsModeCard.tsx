@@ -34,7 +34,7 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   // Fonte da verdade do toggle é o SERVIDOR (E4.1). O useStore é só cache local — cego,
   // deixava o Switch OFF num device onde o modo já estava ativo noutro (dessincronizado).
   // Hidrata UMA vez ao montar, sem pisar em toggle que o usuário já mexeu nesta sessão.
-  const { profile } = useSportsProfile();
+  const { profile } = useSportsProfile(pid);
   const hydratedRef = useRef(false);
   const touchedRef = useRef(false);
   // Convite do dashboard (?sports=1): chega aqui pelo CTA "Ver como fica" → liga o
@@ -61,7 +61,7 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
     // E4.1: os DOIS sentidos persistem no servidor (commit 3938a58f gravava só o "on" —
     // desligar deixava active=true e o dashboard continuava esportivo). Dados declarados
     // permanecem (LGPD); só o flag de exibição muda.
-    const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ active: next }) });
+    const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid || undefined, active: next }) });
     if (!r.ok) {
       setOn(false);
       notify(r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível salvar o modo esportivo.', { type: 'error' });

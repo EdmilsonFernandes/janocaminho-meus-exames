@@ -18,6 +18,7 @@ import { alpha } from '@mui/material/styles';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../../config';
+import { sportsProfileUrl } from '../../hooks/useSportsProfile';
 import {
   SUBSTANCE_CATALOG, searchSubstances, displayLabel, artFor, catalogFindByToken,
   type CatalogItem,
@@ -97,11 +98,11 @@ const inferCls = (raw: string): CatalogItem['cls'] => {
 
 // ── Helpers do SportsProfile (compartilhados com DeclaredSubstanceForm — UMA implementação) ──
 
-/** Lista de strings de um campo jsonb do SportsProfile (GET devolve o TITULAR: se não é
- *  o paciente do form, parte de vazio — nunca mistura perfis). */
+/** Lista de strings de um campo jsonb do SportsProfile DO PACIENTE do form (GET com
+ *  ?patientId= desde 27/10/26; a guarda de patientId abaixo fica como defesa). */
 export const readProfileList = async (pid: string, key: 'supplements' | 'declaredSubstances'): Promise<string[]> => {
   try {
-    const r = await fetch(`${API_URL}/sports/profile`, { headers: { Authorization: `Bearer ${token()}` } });
+    const r = await fetch(sportsProfileUrl(pid), { headers: { Authorization: `Bearer ${token()}` } });
     if (!r.ok) return [];
     const d = await r.json();
     const p = d?.profile;

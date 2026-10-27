@@ -46,12 +46,20 @@ const optJson = (v: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull | und
   return Prisma.DbNull; // '', false, etc. → limpa
 };
 
-// PERFIL do paciente TITULAR (null quando nunca declarado — resposta leve).
+// PERFIL do paciente SELECIONADO (null quando nunca declarado — resposta leve).
+// ?patientId= só vale se for do próprio user (mesma regra do PUT); sem o parâmetro =
+// TITULAR (compat de APK antigo). Bug 27/10/26: lia sempre o titular e a lente esportiva
+// dele aparecia no painel de qualquer dependente — inclusive de uma criança de 4 anos.
 router.get('/profile', async (req: AuthedRequest, res, next) => {
   try {
     const pid = await firstPatientId(req.userId!);
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
-    const profile = await prisma.sportsProfile.findUnique({ where: { patientId: pid } });
+    const wanted = typeof req.query.patientId === 'string' && req.query.patientId ? req.query.patientId : pid;
+    if (wanted !== pid && !(await userPatientIds(req.userId!)).includes(wanted)) {
+      res.status(403).json({ error: 'Sem permissão para este paciente.' });
+      return;
+    }
+    const profile = await prisma.sportsProfile.findUnique({ where: { patientId: wanted } });
     res.json({ profile, enabled: sportsModeEnabled() });
   } catch (e) { next(e); }
 });

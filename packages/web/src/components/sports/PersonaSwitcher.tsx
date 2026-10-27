@@ -5,6 +5,7 @@ import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders } from '../../config';
 import { hapticLight } from '../../utils/haptic';
 import { tealText } from '../../theme';
+import { useSelectedPatient } from '../../patient-context';
 
 /**
  * PersonaSwitcher — Alternador de perspectiva do paciente entre Saúde Geral e Lente Esportiva.
@@ -12,6 +13,7 @@ import { tealText } from '../../theme';
  */
 export const PersonaSwitcher = ({ active }: { active: boolean }) => {
   const notify = useNotify();
+  const [pid] = useSelectedPatient(); // a lente é do paciente selecionado, não do titular
 
   const handleToggle = async (next: boolean) => {
     if (next === active) return;
@@ -20,7 +22,7 @@ export const PersonaSwitcher = ({ active }: { active: boolean }) => {
       const r = await fetch(`${API_URL}/sports/profile`, {
         method: 'PUT',
         headers: apiHeaders(true),
-        body: JSON.stringify({ active: next }),
+        body: JSON.stringify({ patientId: pid || undefined, active: next }),
       });
       if (!r.ok) {
         notify('Não foi possível alternar o modo no momento.', { type: 'error' });

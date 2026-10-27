@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { Box, Button, Chip, Stack, Typography } from '@mui/material';
 import { useNotify } from 'react-admin';
 import { API_URL, apiHeaders, token } from '../../config';
+import { sportsProfileUrl } from '../../hooks/useSportsProfile';
 import { tealText } from '../../theme';
 
 /** Esportes do wizard (texto vai p/ modality — o fuzzy da lente casa todos). */
@@ -51,7 +52,7 @@ export const SportsProfileWizard = ({
   useEffect(() => {
     if (!pid) return;
     let alive = true;
-    fetch(`${API_URL}/sports/profile`, { headers: { Authorization: `Bearer ${token()}` } })
+    fetch(sportsProfileUrl(pid), { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!alive || !d?.profile) return;
@@ -78,7 +79,7 @@ export const SportsProfileWizard = ({
       // (jejum/treino24h/última dose do fluxo de coleta NÃO podem se perder).
       let cc: Record<string, unknown> = {};
       if (initial) {
-        const r = await fetch(`${API_URL}/sports/profile`, { headers: { Authorization: `Bearer ${token()}` } });
+        const r = await fetch(sportsProfileUrl(pid), { headers: { Authorization: `Bearer ${token()}` } });
         if (r.ok) {
           const d = await r.json();
           if (isPlainObject(d?.profile?.collectionContext)) cc = { ...d.profile.collectionContext };
@@ -88,7 +89,7 @@ export const SportsProfileWizard = ({
       cc.hormonalContext = hormonal ?? null;
       const r = await fetch(`${API_URL}/sports/profile`, {
         method: 'PUT', headers: apiHeaders(true),
-        body: JSON.stringify({ modality, collectionContext: cc }),
+        body: JSON.stringify({ patientId: pid, modality, collectionContext: cc }),
       });
       if (!r.ok) { notify('Não foi possível salvar.', { type: 'error' }); return; }
       setInitial({ modality, level, hormonal });

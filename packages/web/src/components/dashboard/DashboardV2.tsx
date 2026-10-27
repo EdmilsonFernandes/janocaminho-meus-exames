@@ -995,7 +995,7 @@ const DashboardV2Inner = () => {
   const tele = useUpcomingTeleconsulta();
   // E4.1 — perfil esportivo (GET /sports/profile, cache de sessão): só o TOGGLE ativo
   // no servidor troca o painel. Sem perfil / offline / active=false → dashboard normal.
-  const sports = useSportsProfile();
+  const sports = useSportsProfile(pid); // do paciente SELECIONADO (nunca herda a lente do titular)
   // MODO EXEMPLO: swap 1:1 do payload (ver demoData.ts). NÃO persiste — dado fictício
   // de saúde jamais "vira seu"; sair/recarregar volta pro app real. O hook real continua
   // rodando (hooks incondicionais) e o firstName continua o DO USUÁRIO (saudação real).
