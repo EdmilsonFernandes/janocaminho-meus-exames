@@ -28,6 +28,13 @@ export const HCT_EDU_TEXT = 'Em reposição prescrita, diretrizes recomendam ava
 /** Padrão TGO-muscular do treino intenso (matriz INTENSA — educativo, NÃO descarta investigação). */
 export const TGO_MUSCULAR_TEXT = 'TGO elevada com TGP e GGT normais sugere origem MUSCULAR (a enzima também está no músculo) — padrão descrito após treino intenso. Educativo: não descarta investigação médica.';
 
+/** §6 blueprint AAS (2026-10-26) — COEXISTÊNCIA Hct ≥54% × HDL <20 mg/dL em quem declarou
+ *  andrógeno: intensidade 3 ("procure avaliação médica com prioridade"). Linguagem EXATA
+ *  aprovada (research §3) — não editar sem revisar o blueprint. Coexistência eleva a ênfase
+ *  do convite à avaliação, nunca introduz linguagem de gravidade diagnóstica. */
+export const COEXIST_REVERSIBLE_TEXT =
+  'Este padrão costuma ser reversível com tempo e acompanhamento médico — a decisão sobre continuar, pausar ou ajustar qualquer coisa é sempre médica.';
+
 interface EduBlock { key: string; title: string; text: string }
 
 export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWarning, worsened, items, substances, training }: {
@@ -87,9 +94,21 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
   const hdl = findItem(/hdl/i);
   if (isLow(hdl) && androgenDeclared(substances)) related.push('HDL baixo · andrógeno declarado');
 
+  // ── Coexistência §6 (blueprint AAS): Hct ≥54% × HDL <20 mg/dL + andrógeno declarado ──
+  // Só dispara com substância hormonal declarada E dado real dos items. Sem PA no payload
+  // (entrada manual de pressão ainda não existe). HDL em mmol/L é convertido p/ mg/dL.
+  const hdlMgDl = hdl?.lastValue == null
+    ? null
+    : hdl.unit && /mmol/i.test(hdl.unit) ? hdl.lastValue * 38.67 : hdl.lastValue;
+  const coexistence = !!(
+    androgenDeclared(substances) &&
+    hct?.lastValue != null && hct.lastValue >= 54 &&
+    hdlMgDl != null && hdlMgDl < 20
+  );
+
   // Nada pedindo atenção → linha positiva curta (não some sem dizer nada).
   // Nada pedindo atenção → linha positiva curta (não some sem dizer nada).
-  if (attention === 0) {
+  if (attention === 0 && !coexistence) {
     return (
       <AppCard
         kind="accent"
@@ -162,6 +181,29 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
         </Box>
 
         <Box sx={{ flex: 1, minWidth: 0 }}>
+          {/* COEXISTÊNCIA §6 (blueprint AAS): alerta de PRIORIDADE MÉDICA — acima da
+              hierarquia comum do banner (mesmo sistema de cores, tom mais forte SEM.bad). */}
+          {coexistence && hct?.lastValue != null && hdlMgDl != null && (
+            <Box
+              sx={{
+                p: { xs: 1.25, sm: 1.5 },
+                mb: 1.5,
+                borderRadius: '12px',
+                bgcolor: (t) => alpha(SEM.bad[t.palette.mode], 0.08),
+                border: (t) => `1px solid ${alpha(SEM.bad[t.palette.mode], 0.35)}`,
+              }}
+            >
+              <Typography sx={{ fontWeight: 800, fontSize: 14, lineHeight: 1.3, color: (t) => SEM.bad[t.palette.mode] }}>
+                Procure avaliação médica com prioridade — combinação de marcadores
+              </Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.primary', mt: 0.5, lineHeight: 1.55 }}>
+                Você relatou uso de esteroides. Estes resultados combinados (hematócrito {fmtNum(hct.lastValue)}% e HDL {fmtNum(hdlMgDl)} mg/dL) estão fora das faixas habituais — em quem usa AAS, essa combinação é conhecida e pode estar ligada ao uso. Leve este resumo ao seu médico; ele vai avaliar o contexto completo.
+              </Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5, lineHeight: 1.55 }}>
+                {COEXIST_REVERSIBLE_TEXT}
+              </Typography>
+            </Box>
+          )}
           <Typography component="h2" sx={{ fontWeight: 800, fontSize: { xs: 15, sm: 16 }, lineHeight: 1.25, color: 'text.primary' }}>
             {attention} {attention === 1 ? 'marcador' : 'marcadores'}: {importante > 0 ? SEVERITY.high : SEVERITY.mid}
           </Typography>

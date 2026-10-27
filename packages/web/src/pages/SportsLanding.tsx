@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Container, Typography, Button, Stack, Chip, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import SpeedIcon from '@mui/icons-material/Speed';
 import ScienceIcon from '@mui/icons-material/Science';
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import ShieldIcon from '@mui/icons-material/Shield';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
 import { DrExame } from '../components/DrExame';
+import { SportsLandingHero, useSportsLandingVariant } from '../components/landing/SportsLandingHero';
 
-const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
 const INK = '#0f5f5a';
-const SERIF_I = { fontFamily: "'Instrument Serif', Georgia, serif", fontStyle: 'italic', fontWeight: 400 } as const;
 
 // 4 Cenários Clínicos Demonstrativos Reais
 const sportsScenarios = {
@@ -111,6 +107,8 @@ export const SportsLandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'ck' | 'renal' | 'trt' | 'ferro'>('ck');
   const [scrolled, setScrolled] = useState(false);
+  // Landing ×3 (blueprint §8): A default · B ?v=b · C ?v=c — captura utm_landing first-party.
+  const variant = useSportsLandingVariant();
 
   useEffect(() => {
     document.title = 'Dr. Exame • Saúde Esportiva & Exames para Atletas e Musculação';
@@ -162,105 +160,9 @@ export const SportsLandingPage: React.FC = () => {
         </Container>
       </Box>
 
-      {/* HERO SECTION ESPORTIVA */}
-      <Box sx={{
-        position: 'relative', overflow: 'hidden',
-        background: 'linear-gradient(180deg, rgba(240,250,249,0.8) 0%, #f8fafc 100%)',
-        pt: { xs: 6, md: 10 }, pb: { xs: 7, md: 10 },
-        borderBottom: '1px solid rgba(15,95,90,0.08)'
-      }}>
-        <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <Chip
-            icon={<FitnessCenterIcon sx={{ fontSize: 17 }} />}
-            label="Medicina Esportiva & Performance Inteligente"
-            sx={{
-              bgcolor: 'rgba(13,148,136,0.12)',
-              color: TEAL_DARK,
-              fontWeight: 800,
-              fontSize: 13,
-              mb: 2.5,
-              pl: 1,
-              '& .MuiChip-icon': { color: TEAL_DARK }
-            }}
-          />
-          <Typography variant="h1" sx={{
-            fontSize: { xs: '2.1rem', sm: '3rem', md: '3.6rem' },
-            fontWeight: 900,
-            color: 'text.primary',
-            letterSpacing: '-0.025em',
-            lineHeight: 1.15,
-            maxWidth: 920,
-            mx: 'auto',
-            mb: 2.5
-          }}>
-            Você treina. Seus exames merecem <Box component="span" sx={{ ...SERIF_I, color: TEAL_DARK }}>interpretação esportiva.</Box>
-          </Typography>
-          <Typography sx={{
-            fontSize: { xs: 16, sm: 19 },
-            color: 'text.secondary',
-            maxWidth: 760,
-            mx: 'auto',
-            lineHeight: 1.6,
-            mb: 4
-          }}>
-            Os laboratórios convencionais comparam seus exames com a média de pessoas sedentárias. No Dr. Exame, seus laudos são avaliados no contexto do seu treino, sua suplementação e sua rotina de performance — sem alarmismos nem falsos diagnósticos.
-          </Typography>
-
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 5 }}>
-            <Button
-              variant="contained"
-              size="large"
-              onClick={() => navigate('/registrar')}
-              endIcon={<ArrowForwardIcon />}
-              sx={{
-                bgcolor: TEAL_DARK,
-                borderRadius: '999px',
-                px: 4, py: 1.6,
-                fontSize: 16, fontWeight: 800,
-                textTransform: 'none',
-                boxShadow: '0 8px 24px rgba(23,143,137,0.3)',
-                '&:hover': { bgcolor: INK }
-              }}
-            >
-              Começar Grátis com Créditos de Presente
-            </Button>
-            <Button
-              variant="outlined"
-              size="large"
-              onClick={() => {
-                const el = document.getElementById('simulador');
-                el?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              sx={{
-                borderRadius: '999px',
-                px: 3.5, py: 1.6,
-                fontSize: 15, fontWeight: 700,
-                borderColor: 'rgba(15,95,90,0.25)',
-                color: INK,
-                textTransform: 'none'
-              }}
-            >
-              Testar Simulador Interativo
-            </Button>
-          </Stack>
-
-          {/* Selos de Confiança */}
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} justifyContent="center" alignItems="center" sx={{ fontSize: 13, color: 'text.secondary' }}>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <CheckCircleIcon sx={{ fontSize: 18, color: '#10b981' }} />
-              <span>Sem cartão de crédito no cadastro</span>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ShieldIcon sx={{ fontSize: 18, color: TEAL_DARK }} />
-              <span>Privacidade LGPD · Zero julgamento clínico</span>
-            </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
-              <ScienceIcon sx={{ fontSize: 18, color: '#6366f1' }} />
-              <span>Baseado em diretrizes SBEM 2026 e Endocrine Society</span>
-            </Stack>
-          </Stack>
-        </Container>
-      </Box>
+      {/* HERO ×3 (A default · B ?v=b · C ?v=c) — copy do blueprint AAS §8; simulador+FAQ abaixo inalterados */}
+      <SportsLandingHero variant={variant} />
+      
 
       {/* SEÇÃO DO SIMULADOR INTERATIVO */}
       <Box id="simulador" sx={{ py: { xs: 8, md: 11 }, bgcolor: '#ffffff' }}>

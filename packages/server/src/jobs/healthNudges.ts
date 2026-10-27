@@ -71,19 +71,28 @@ export async function buildSmartTip(patientId: string, ownerId: string, firstNam
       .catch((e: any) => (e?.code === 'P2021' ? null : Promise.reject(e))),
     // Dono 26/10 ("as notificações têm que entender o que ele toma"): perfil esportivo
     // p/ contexto hormonal DECLARADO (drift-safe: tabela nova ausente → null, tema não candidata).
-    (prisma as any).sportsProfile.findUnique({ where: { patientId }, select: { declaredSubstances: true, archetype: true, active: true } })
+    // BUG 7871e8b8: select pedia `archetype` — campo INEXISTENTE no model → a query
+    // rejeitava (não é P2021) e derrubava a dica IA p/ fallback SEMPRE. Archetype é
+    // derivado no client (resolveArchetype) — aqui vai null.
+    (prisma as any).sportsProfile.findUnique({ where: { patientId }, select: { declaredSubstances: true, active: true } })
       .catch(() => null),
   ]);
 
   // CONTEXTO HORMONAL (autorrelato): medicação "[Hormônio] X" (DeclaredSubstanceForm) e/ou
   // declaredSubstances do sportsProfile ativo. União dedup, máx 4 — entra no tema 'hormonal'.
+  // OPT-OUT (blueprint P2 guardrail): toggle SportsProfile.active === false DESLIGA o tema
+  // hormonal — o usuário que desligou o modo esportivo não pode continuar recebendo dica
+  // que revela o contexto que ele pediu para desativar (mesma regra do sports-context).
+  const sportsOn = (sportsProfile as any)?.active !== false;
   const hormonalSubs = new Set<string>();
-  for (const m of meds) {
-    const mh = /^\[Hormônio\]\s*(.+)$/i.exec(m.name);
-    if (mh) hormonalSubs.add(mh[1].trim());
+  if (sportsOn) {
+    for (const m of meds) {
+      const mh = /^\[Hormônio\]\s*(.+)$/i.exec(m.name);
+      if (mh) hormonalSubs.add(mh[1].trim());
+    }
+    const declared = Array.isArray((sportsProfile as any)?.declaredSubstances) ? (sportsProfile as any).declaredSubstances as unknown[] : [];
+    for (const s of declared) if (typeof s === 'string' && s.trim()) hormonalSubs.add(s.trim().replace(/^\[?Hormônio\]?\s*/i, ''));
   }
-  const declared = Array.isArray((sportsProfile as any)?.declaredSubstances) ? (sportsProfile as any).declaredSubstances as unknown[] : [];
-  for (const s of declared) if (typeof s === 'string' && s.trim()) hormonalSubs.add(s.trim().replace(/^\[?Hormônio\]?\s*/i, ''));
   const hormonal = hormonalSubs.size
     ? { substances: [...hormonalSubs].slice(0, 4), archetype: (sportsProfile as any)?.archetype ?? null }
     : null;

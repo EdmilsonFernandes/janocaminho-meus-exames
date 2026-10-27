@@ -42,6 +42,7 @@ import { SportsAlertBanner } from './SportsAlertBanner';
 import { PersonaSwitcher } from './PersonaSwitcher';
 import { SportsMarkerCard, type EvolutionAnalyte, type CollectionContextChips } from './SportsMarkerCard';
 import { SportsTimeline, type SportsEvent } from './SportsTimeline';
+import { SportsSinceLast } from './SportsSinceLast';
 import { SportsConsultPrep } from './SportsConsultPrep';
 import { SportsSubstances, type DeclaredSubstanceView } from './SportsSubstances';
 import { priorityOf, PRIORITY_RANK } from '../../utils/alertPriority';
@@ -332,12 +333,30 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
   }, [exams]);
 
   // Linha do tempo unificada: exames + substâncias + treinos HC.
+  // AAS §4: exame colhido DENTRO de janela de uso relatado ganha o contexto no card
+  // (leitura honesta: "coleta durante uso" ≠ causalidade) e interrupção vira evento.
   const timelineEvents: SportsEvent[] = useMemo(() => {
-    const evts: SportsEvent[] = exams.map((e) => ({
-      id: e.id, date: e.performedAt, title: e.title ?? 'Exame', type: 'exam' as const, abnormalCount: abnByExam[e.id] ?? 0,
-    }));
+    // Janelas de uso: startedAt → endedAt | fim aberto (em uso/não sei = até hoje).
+    const windows = substances
+      .filter((s) => s.startedAt)
+      .map((s) => ({
+        id: s.id, name: s.name,
+        start: new Date(s.startedAt!).getTime(),
+        end: s.endStatus === 'interrompi' && s.endedAt ? new Date(s.endedAt).getTime() : Number.POSITIVE_INFINITY,
+      }));
+    const useAt = (t: number) => windows.find((w) => t >= w.start && t <= w.end);
+    const evts: SportsEvent[] = exams.map((e) => {
+      const w = e.performedAt ? useAt(new Date(e.performedAt).getTime()) : undefined;
+      return {
+        id: e.id, date: e.performedAt, title: e.title ?? 'Exame', type: 'exam' as const, abnormalCount: abnByExam[e.id] ?? 0,
+        duringUse: w?.name ?? null,
+      };
+    });
     for (const s of substances) {
       if (s.startedAt) evts.push({ id: `s-${s.id}`, date: s.startedAt, title: `Início: ${s.name}`, detail: s.klass ?? 'Substância declarada', type: 'substancia' });
+      if (s.endStatus === 'interrompi' && s.endedAt) {
+        evts.push({ id: `se-${s.id}`, date: s.endedAt, title: `Interrompi: ${s.name}`, detail: 'fim de uso relatado', type: 'substancia' });
+      }
     }
     for (const a of activityDays.slice(0, 6)) {
       evts.push({ id: `a-${a.date}`, date: `${a.date}T12:00:00`, title: `Treino · ${a.min} min`, detail: 'Health Connect', type: 'atividade' });
@@ -662,6 +681,15 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
             </Box>
           </AppCard>
         )}
+
+        {/* ── §4: O QUE MUDOU + LEVAR AO MÉDICO (blueprint AAS) ── */}
+        <SportsSinceLast
+          items={items ?? []}
+          abnormalCount={d.stats.abnormal}
+          substancesCount={substances.filter((s) => s.endStatus !== 'interrompi').length}
+          onPrep={() => setMobileTab('prep')}
+          onReport={() => navigate('/relatorio')}
+        />
 
         {/* ── BARRA DE FILTROS POR DOMÍNIO (Scroll Horizontal Suave com Snap) ── */}
         <Box

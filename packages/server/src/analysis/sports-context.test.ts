@@ -61,7 +61,8 @@ describe('sportsKnowledgeContext — loader knowledge/sports por analito', () =>
   });
 
   it('NÃO casa wholesale: analitos sem card esportivo não puxam nada', () => {
-    expect(matchSportsKnowledge(['GLICEMIA', 'TSH', 'VITAMINA_D'])).toHaveLength(0);
+    // GLICEMIA agora TEM card (P1 AAS glicemia-hba1c) — usar só analitos sem card.
+    expect(matchSportsKnowledge(['TSH', 'VITAMINA_D', 'FERRITINA'])).toHaveLength(0);
   });
 
   it('bloco traz as regras duras (prescrito, sem faixa AAS, sem dose/ciclo) e cita [FONTE ANO]', () => {

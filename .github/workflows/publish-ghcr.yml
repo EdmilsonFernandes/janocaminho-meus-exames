@@ -55,6 +55,12 @@ jobs:
       - run: cd packages/server && npx prisma generate
       - run: cd packages/server && npx prisma db push --skip-generate
       - run: npm test --workspace packages/server
+      # Lint de linguagem vedada (AAS — blueprint §8/P1-7): termos proibidos em texto público.
+      # grep sem match sai 1 → `!` inverte → step verde. Qualquer match (exit 0) quebra o gate.
+      - name: Lint linguagem vedada (AAS)
+        run: |
+          ! grep -rniE "ciclo seguro|dose segura|comece tpc|reduza a dose|pause o ciclo|faça uma sangria|evite todos os efeitos colaterais" \
+            packages/web/src packages/server/knowledge packages/server/src --include="*.ts" --include="*.tsx" --include="*.md"
       # Typecheck do WEB no gate (deps já instaladas): quando quebra, o erro aparece
       # com annotation no log do runner — dentro do docker buildx fica ilegível
       # (debug do TS1381 de 30/09: docker falhava e o log era 403 sem gh auth).

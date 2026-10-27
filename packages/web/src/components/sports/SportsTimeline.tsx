@@ -20,6 +20,8 @@ export interface SportsEvent {
   detail?: string | null;
   type: 'exam' | 'substancia' | 'atividade';
   abnormalCount?: number;
+  /** AAS §4: exame colhido dentro de janela de uso relatado — contexto, não causalidade. */
+  duringUse?: string | null;
 }
 
 export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
@@ -32,7 +34,12 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
   const sorted = [...events]
     .filter((e) => e.date)
     .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
-  const shown = sorted.slice(0, max);
+  // Substâncias declaradas NUNCA são cortadas pela paginação (§4: janela de uso é
+  // o contexto da leitura) — o corte prefere exames, que são os numerosos.
+  const subs = sorted.filter((e) => e.type === 'substancia');
+  const others = sorted.filter((e) => e.type !== 'substancia');
+  const shown = [...subs, ...others.slice(0, Math.max(1, max - subs.length))]
+    .sort((a, b) => new Date(b.date!).getTime() - new Date(a.date!).getTime());
 
   const dot = (type: SportsEvent['type'], alerta: boolean) => {
     if (type === 'substancia') return { color: '#d4a574', icon: <MedicationIcon sx={{ fontSize: 12, color: '#fff' }} /> };
@@ -96,6 +103,15 @@ export const SportsTimeline = ({ events, hasActivityData, max = 8 }: {
                       </Box>
                       <Stack spacing={0.5} sx={{ flexShrink: 0 }}>
                         {e.type === 'exam' && alerta && <Chip size="small" label={`${e.abnormalCount} alterado${e.abnormalCount === 1 ? '' : 's'}`} sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'error.main', color: '#fff' }} />}
+                        {e.duringUse && (
+                          <Chip
+                            size="small"
+                            label={`durante uso: ${e.duringUse.length > 18 ? `${e.duringUse.slice(0, 17)}…` : e.duringUse}`}
+                            title={`Coleta durante uso relatado de ${e.duringUse} (não verificado)`}
+                            sx={{ height: 22, maxWidth: 150, fontSize: 10.5, fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(212,165,116,.14)', color: '#d4a574', border: '1px dashed rgba(212,165,116,.55)', '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }}
+                            variant="outlined"
+                          />
+                        )}
                         {stale && <Chip size="small" label="antigo" sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
                       </Stack>
                     </Stack>
