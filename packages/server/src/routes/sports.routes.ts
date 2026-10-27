@@ -4,6 +4,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds, firstPatientId } from '../middleware/auth';
 import { sportsModeEnabled } from '../utils/settings';
 import { doctorWithCrm } from '../utils/doctorTitle';
+import { isMinorAt } from '../utils/legalAge';
 
 /**
  * SAÚDE ESPORTIVA (E1) — perfil DECLARADO pelo paciente (opt-in, 1:1 com o titular).
@@ -46,6 +47,14 @@ const optJson = (v: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull | und
   return Prisma.DbNull; // '', false, etc. → limpa
 };
 
+// Saúde Esportiva é só p/ MAIOR de idade (decisão do dono 27/10/26): o front esconde
+// convite e alternador (eligible=false) e o PUT recusa ativar. Sem data de nascimento
+// não bloqueia — não dá pra afirmar menoridade.
+const isMinorPatient = async (patientId: string): Promise<boolean> => {
+  const p = await prisma.patient.findUnique({ where: { id: patientId }, select: { dateOfBirth: true } });
+  return isMinorAt(p?.dateOfBirth) === true;
+};
+
 // PERFIL do paciente SELECIONADO (null quando nunca declarado — resposta leve).
 // ?patientId= só vale se for do próprio user (mesma regra do PUT); sem o parâmetro =
 // TITULAR (compat de APK antigo). Bug 27/10/26: lia sempre o titular e a lente esportiva
@@ -60,7 +69,7 @@ router.get('/profile', async (req: AuthedRequest, res, next) => {
       return;
     }
     const profile = await prisma.sportsProfile.findUnique({ where: { patientId: wanted } });
-    res.json({ profile, enabled: sportsModeEnabled() });
+    res.json({ profile, enabled: sportsModeEnabled(), eligible: !(await isMinorPatient(wanted)) });
   } catch (e) { next(e); }
 });
 
@@ -113,6 +122,12 @@ router.put('/profile', async (req: AuthedRequest, res, next) => {
     }
 
     const b = req.body ?? {};
+    // Menor de 18: só DESLIGAR passa — `active` nasce true no schema, então criar/editar
+    // o perfil sem active:false já ativaria a lente.
+    if (b.active !== false && await isMinorPatient(wanted)) {
+      res.status(403).json({ error: 'sports_minor', message: 'Saúde Esportiva é para maiores de 18 anos.' });
+      return;
+    }
     try {
       const data: Record<string, unknown> = {
         modality: optStr(b.modality, LIMITS.modality),

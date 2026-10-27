@@ -34,7 +34,7 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   // Fonte da verdade do toggle é o SERVIDOR (E4.1). O useStore é só cache local — cego,
   // deixava o Switch OFF num device onde o modo já estava ativo noutro (dessincronizado).
   // Hidrata UMA vez ao montar, sem pisar em toggle que o usuário já mexeu nesta sessão.
-  const { profile } = useSportsProfile(pid);
+  const { profile, eligible } = useSportsProfile(pid);
   const hydratedRef = useRef(false);
   const touchedRef = useRef(false);
   // Convite do dashboard (?sports=1): chega aqui pelo CTA "Ver como fica" → liga o
@@ -44,11 +44,12 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
   const invitedRef = useRef(false);
   useEffect(() => {
     if (searchParams.get('sports') !== '1' || invitedRef.current || touchedRef.current) return;
+    if (eligible === null) return; // espera o GET dizer a idade — menor de 18 não liga
     invitedRef.current = true;
     setSearchParams({}, { replace: true });
-    if (premium && enabled && profile?.active !== true) void toggle(true);
+    if (premium && enabled && eligible && profile?.active !== true) void toggle(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, profile?.active]);
+  }, [searchParams, profile?.active, eligible]);
   useEffect(() => {
     if (!profile || hydratedRef.current || touchedRef.current) return;
     hydratedRef.current = true;
@@ -64,7 +65,9 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
     const r = await fetch(`${API_URL}/sports/profile`, { method: 'PUT', headers: apiHeaders(true), body: JSON.stringify({ patientId: pid || undefined, active: next }) });
     if (!r.ok) {
       setOn(false);
-      notify(r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível salvar o modo esportivo.', { type: 'error' });
+      const code = r.status === 403 ? (await r.json().catch(() => null))?.error : null;
+      notify(code === 'sports_minor' ? 'Saúde Esportiva é para maiores de 18 anos.'
+        : r.status === 403 ? 'Saúde Esportiva está desativada no momento.' : 'Não foi possível salvar o modo esportivo.', { type: 'error' });
       return;
     }
     notify(next ? 'Modo esportivo ativado ✨' : 'Modo esportivo desativado', { type: next ? 'success' : 'info' });
@@ -74,6 +77,18 @@ export const SportsModeCardBase = ({ pid, enabled, premium }: { pid: string; ena
 
   // ── gate 1: kill-switch admin (default OFF) → o card nem existe ──
   if (!enabled) return null;
+
+  // ── gate 1b: menor de 18 (decisão do dono 27/10/26) → sem alternador; o servidor também recusa ──
+  if (eligible === false) {
+    return (
+      <Box sx={{ mt: 2.5, pt: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Box sx={{ p: 2, borderRadius: '12px', textAlign: 'center', border: '1px dashed', borderColor: 'divider' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>Saúde Esportiva</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>Disponível a partir dos 18 anos.</Typography>
+        </Box>
+      </Box>
+    );
+  }
 
   // ── gate 2: sem premium → card de upgrade com o QUE entra (3 bullets do painel) ──
   if (!premium) {

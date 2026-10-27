@@ -1312,7 +1312,8 @@ const DashboardV2Inner = () => {
           {/* LENTE ESPORTIVA — desceu do topo (fix #1) e só aparece pra quem JÁ TEM perfil
               esportivo (fix #3): sem perfil o toggle é ruído de um recurso desconhecido —
               o convite (aquisição) mora no FIM da página. */}
-          {!demo && !!sports.profile && (
+          {/* Só p/ maior de idade CONFIRMADO (eligible true): menor nem vê o alternador. */}
+          {!demo && !!sports.profile && sports.eligible === true && (
             <Box>
               <PersonaSwitcher active={false} />
             </Box>
@@ -1321,7 +1322,7 @@ const DashboardV2Inner = () => {
           {/* 3. GRID ASSIMÉTRICO 2 COLUNAS (Desktop 65/35, Mobile 1 coluna fluida) —
               spacing 3.5 = gap 28px entre seções (polish v2). */}
           <StaggerIn delay={200}>
-          <Grid container spacing={3.5} sx={{ mt: !demo && !!sports.profile ? 3.5 : 0 }}>
+          <Grid container spacing={3.5} sx={{ mt: !demo && !!sports.profile && sports.eligible === true ? 3.5 : 0 }}>
           {/* COLUNA PRINCIPAL (65%) */}
           <Grid size={{ xs: 12, md: 7, lg: 8 }}>
             <Stack spacing={3.5}>
@@ -1408,7 +1409,7 @@ const DashboardV2Inner = () => {
                   página (fix #1/#16) — não disputa atenção com dado clínico. Descartável
                   1x, só com exames e só pra quem AINDA NÃO tem perfil (quem tem usa o
                   PersonaSwitcher acima). CTA → Perfil com wizard aberto. */}
-              {!demo && !sports.profile && <SportsUpsellCard pid={pid} hasExams={(d?.stats?.exams ?? 0) > 0} />}
+              {!demo && !sports.profile && sports.eligible === true && <SportsUpsellCard pid={pid} hasExams={(d?.stats?.exams ?? 0) > 0} />}
 
               {/* CONQUISTAS */}
               <GamificationBadges examsCount={d.stats.exams} score={d.score} />

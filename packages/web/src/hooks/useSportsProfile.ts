@@ -35,13 +35,18 @@ interface SportsProfileState {
   profile: SportsProfile | null;
   /** Kill-switch admin (AppSetting sportsMode.enabled) — vem junto no GET. */
   enabled: boolean;
+  /** Maior de idade (decisão do dono 27/10/26). null = ainda não sabe (sem resposta do GET). */
+  eligible: boolean | null;
 }
 
 /** URL do perfil esportivo de um paciente (sem pid = titular — compat de APK antigo). */
 export const sportsProfileUrl = (pid?: string | null): string =>
   `${API_URL}/sports/profile${pid ? `?patientId=${encodeURIComponent(pid)}` : ''}`;
 
-const EMPTY: SportsProfileState = { profile: null, enabled: false };
+const EMPTY: SportsProfileState = { profile: null, enabled: false, eligible: null };
+
+/** Lente ligada = perfil ativo E paciente maior de idade (row legado de menor não liga). */
+export const lensActive = (s: SportsProfileState): boolean => s.profile?.active === true && s.eligible !== false;
 const cache = new Map<string, SportsProfileState>();
 const inflight = new Map<string, Promise<SportsProfileState>>();
 /** Último paciente pedido por um hook — é o que o evento de mudança refaz (o PUT do
@@ -64,7 +69,7 @@ async function fetchProfile(pid: string, force = false): Promise<SportsProfileSt
       const r = await fetch(sportsProfileUrl(pid), { headers: { Authorization: `Bearer ${token()}` } });
       if (!r.ok) return cache.get(pid) ?? EMPTY; // 401/403/etc → mantém o que havia DESTE paciente (nunca bloqueia)
       const d = await r.json();
-      const s = { profile: d.profile ?? null, enabled: d.enabled !== 0 };
+      const s = { profile: d.profile ?? null, enabled: d.enabled !== 0, eligible: d.eligible !== false };
       cache.set(pid, s);
       return s;
     } catch {
@@ -116,7 +121,7 @@ export function subscribeForTests(fn: (s: SportsProfileState) => void, pid = '')
 }
 
 /** Perfil esportivo do paciente `pid` (sem pid = titular). `active` = true SÓ com perfil
- *  criado E toggle ligado — do PRÓPRIO paciente, nunca herdado do titular. */
+ *  criado E toggle ligado E maior de idade — do PRÓPRIO paciente, nunca herdado do titular. */
 export function useSportsProfile(pid?: string | null): SportsProfileState & { active: boolean } {
   const key = pid ?? '';
   const [state, setState] = useState<{ key: string; s: SportsProfileState }>(() => ({ key, s: cache.get(key) ?? EMPTY }));
@@ -132,5 +137,5 @@ export function useSportsProfile(pid?: string | null): SportsProfileState & { ac
     void fetchProfile(key, true).then((s) => { if (alive) setState({ key, s }); });
     return () => { alive = false; subscribers.delete(sub); };
   }, [key]);
-  return { ...current, active: current.profile?.active === true };
+  return { ...current, active: lensActive(current) };
 }

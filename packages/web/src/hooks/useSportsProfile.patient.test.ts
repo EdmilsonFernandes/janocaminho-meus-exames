@@ -65,6 +65,23 @@ describe('useSportsProfile — perfil do paciente selecionado', () => {
     off();
   });
 
+  it('menor de idade (eligible=false do servidor) nunca liga a lente, mesmo com row legado ativo', async () => {
+    const seen: unknown[] = [];
+    const off = mod.subscribeForTests((s) => seen.push(s), 'kid');
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ profile: { ...TITULAR_ATIVO, patientId: 'kid' }, enabled: 1, eligible: false }) });
+    await mod.handleSportsProfileChanged('kid');
+    const s = seen[seen.length - 1] as Parameters<typeof mod.lensActive>[0];
+    expect(s.eligible).toBe(false);
+    expect(mod.lensActive(s)).toBe(false);
+    off();
+  });
+
+  it('servidor antigo (sem eligible) → trata como elegível; desconhecido não bloqueia', () => {
+    expect(mod.lensActive({ profile: TITULAR_ATIVO, enabled: true, eligible: true })).toBe(true);
+    expect(mod.lensActive({ profile: TITULAR_ATIVO, enabled: true, eligible: null })).toBe(true);
+    expect(mod.lensActive({ profile: { ...TITULAR_ATIVO, active: false }, enabled: true, eligible: true })).toBe(false);
+  });
+
   it('o cache do titular continua dele (falha depois mantém o último estado DELE)', async () => {
     fetchMock.mockResolvedValueOnce(ok(TITULAR_ATIVO));
     await mod.handleSportsProfileChanged('tit');
