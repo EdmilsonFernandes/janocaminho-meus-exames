@@ -128,6 +128,7 @@ export const TeleFinanceTab = () => {
   const [refundTarget, setRefundTarget] = useState<any | null>(null);
   const [refundBusy, setRefundBusy] = useState(false);
   const [refundNote, setRefundNote] = useState<string | null>(null);
+  const [refundError, setRefundError] = useState<string | null>(null);
   const loadPaid = useCallback(async () => {
     try {
       const r = await fetch(`${API_URL}/admin/teleconsulta/paid`, { headers: { Authorization: `Bearer ${authToken()}` } });
@@ -139,18 +140,27 @@ export const TeleFinanceTab = () => {
   const doRefund = async () => {
     if (!refundTarget) return;
     setRefundBusy(true);
+    setRefundError(null);
     try {
       const r = await fetch(`${API_URL}/admin/teleconsulta/${refundTarget.id}/refund`, { method: 'POST', headers: { Authorization: `Bearer ${authToken()}` } });
       const d = await r.json().catch(() => null);
       if (r.ok) {
-        setRefundNote(`Estorno de ${(refundTarget.priceCents / 100).toFixed(2).replace('.', ',')} confirmado — paciente e médico avisados.`);
+        const cents = d?.refundedValueCents ?? refundTarget.priceCents;
+        const fee = d?.feeCents ?? 0;
+        setRefundNote(
+          fee > 0
+            ? `Estorno parcial de ${brl(cents)} confirmado (tarifa de ${brl(fee)} não é devolvida pelo provedor) — paciente e médico avisados.`
+            : `Estorno de ${brl(cents)} confirmado — paciente e médico avisados.`,
+        );
         setRefundTarget(null);
         loadPaid(); load(); // atualiza lista + KPIs (a devolver/devolvidos)
       } else {
-        setRefundNote(d?.error || 'O provedor recusou o estorno — tente de novo.');
+        // Erro DENTRO do dialog (bug 26/10: ficava atrás do overlay e o admin só via
+        // no DevTools) + também na seção quando fechar. Nada foi alterado no sistema.
+        setRefundError(d?.error || d?.detail || 'O provedor recusou o estorno — tente de novo.');
       }
     } catch {
-      setRefundNote('Sem conexão pra estornar agora.');
+      setRefundError('Sem conexão pra estornar agora.');
     } finally { setRefundBusy(false); }
   };
 
@@ -515,7 +525,7 @@ export const TeleFinanceTab = () => {
       </Card>
 
       {/* Confirmação do estorno (dinheiro real — nunca sem confirmar) */}
-      <Dialog open={!!refundTarget} onClose={() => { if (!refundBusy) setRefundTarget(null); }}>
+      <Dialog open={!!refundTarget} onClose={() => { if (!refundBusy) { setRefundTarget(null); setRefundError(null); } }}>
         <DialogTitle>Estornar pagamento</DialogTitle>
         <DialogContent>
           <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.6 }}>
@@ -526,6 +536,11 @@ export const TeleFinanceTab = () => {
           <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.6, mt: 1 }}>
             O valor volta pro PIX do paciente via Asaas (até 2 dias úteis). Paciente e médico são avisados e a consulta é encerrada como cancelada.
           </Typography>
+          {refundError && (
+            <Alert severity="error" sx={{ mt: 1.5, borderRadius: '12px', fontSize: 13 }} role="alert">
+              {refundError}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
           <Button disabled={refundBusy} onClick={() => setRefundTarget(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar</Button>

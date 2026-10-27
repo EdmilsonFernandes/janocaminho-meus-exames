@@ -509,8 +509,9 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
         data.consultPriceCents = null;
       } else {
         const cents = Number(req.body.consultPriceCents);
-        if (!Number.isInteger(cents) || cents < 500 || cents > 2_000_000) {
-          res.status(400).json({ error: 'Valor inválido: use centavos entre R$ 5,00 e R$ 20.000,00 (ou 0 para não cobrar).' });
+        const minCents = getTeleconsultaConfig().priceMinCents; // estorno Asaas: tarifa não volta — min dá folga
+        if (!Number.isInteger(cents) || cents < minCents || cents > 2_000_000) {
+          res.status(400).json({ error: `Valor inválido: mínimo R$ ${(minCents / 100).toFixed(2).replace('.', ',')} (garante estorno integral), máximo R$ 20.000,00 — ou 0 para não cobrar.` });
           return;
         }
         data.consultPriceCents = cents;
@@ -1175,8 +1176,9 @@ router.post('/patients/:patientId/teleconsulta', requireDoctor, async (req: any,
     let consultPriceCents: number | null = null;
     if (req.body?.consultPriceCents != null && Number(req.body.consultPriceCents) !== 0) {
       const cents = Number(req.body.consultPriceCents);
-      if (!Number.isInteger(cents) || cents < 500 || cents > 2_000_000) {
-        res.status(400).json({ error: 'Valor da cobrança inválido (centavos; mínimo R$ 5,00, máximo R$ 20.000,00).' });
+      const minCents = getTeleconsultaConfig().priceMinCents;
+      if (!Number.isInteger(cents) || cents < minCents || cents > 2_000_000) {
+        res.status(400).json({ error: `Valor da cobrança inválido (mínimo R$ ${(minCents / 100).toFixed(2).replace('.', ',')} — garante estorno integral; máximo R$ 20.000,00).` });
         return;
       }
       consultPriceCents = cents;

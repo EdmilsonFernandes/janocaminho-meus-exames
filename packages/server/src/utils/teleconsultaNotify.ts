@@ -44,15 +44,22 @@ const fmtBrl = (cents: number) => (cents / 100).toLocaleString('pt-BR', { style:
 /**
  * ESTORNO EXECUTADO (onda 4, dono 26/10): o dinheiro voltou pro paciente — aviso
  * duplo (push + e-mail) com o valor e o prazo do PSP, e e-mail pro médico (a
- * consulta sai do "previsto" dele). Best-effort, igual ao notHeld.
+ * consulta sai do "previsto" dele). Quando o estorno é PARCIAL (degrau automático:
+ * tarifa do PIX não é devolvida pelo Asaas), a tarifa vem EXPLÍCITA — transparência
+ * total sobre por que voltou menos do que foi pago. Best-effort, igual ao notHeld.
  */
 export async function notifyTeleconsultaRefunded(
   reminder: { id: string; ownerId: string; patientId: string | null; createdByDoctorId?: string | null; dueDate: Date; title?: string | null },
   refundCents: number,
+  feeCents = 0,
 ): Promise<void> {
   const when = fmtDate(reminder.dueDate);
   const title = reminder.title || 'Teleconsulta';
   const value = fmtBrl(refundCents);
+  const partial = feeCents > 0;
+  const feeNote = partial
+    ? ` (tarifa de ${fmtBrl(feeCents)} do provedor de pagamento não é devolvida — já descontada do estorno)`
+    : '';
 
   const [patient, user, doctor] = await Promise.all([
     reminder.patientId
@@ -69,7 +76,7 @@ export async function notifyTeleconsultaRefunded(
   await sendPushToUser(
     reminder.ownerId,
     '💸 Estorno realizado',
-    `${value} da sua consulta de ${when} voltou pro PIX — pode levar até 2 dias úteis conforme seu banco.`,
+    `${value} da sua consulta de ${when} voltou pro PIX${feeNote} — pode levar até 2 dias úteis conforme seu banco.`,
     { type: 'teleconsulta', reminderId: reminder.id },
   ).catch((e: unknown) => console.error('[teleconsulta-notify] push estorno falhou:', (e as Error)?.message));
 
@@ -79,14 +86,14 @@ export async function notifyTeleconsultaRefunded(
       <p>Olá, ${toName}.</p>
       <p><strong>${title}</strong> — agendada para <strong>${when}</strong> — foi <strong>estornada</strong>.</p>
       <p style="padding:12px 16px;border-radius:12px;background:rgba(32,178,170,.10);border-left:4px solid #20b2aa;font-size:15px;">
-        ${value} devolvidos ao paciente${doctorName ? ` pelo Dr. ${doctorName.replace(/^Dr\.?\s*/i, '')}` : ''}.
+        ${value} devolvidos ao paciente${partial ? feeNote : ''}.
       </p>
       <p>${roleNote}</p>
     `,
   });
 
   if (user?.email) {
-    const note = 'O valor volta para a conta PIX usada no pagamento — o prazo depende do seu banco (até 2 dias úteis).';
+    const note = `O valor volta para a conta PIX usada no pagamento — o prazo depende do seu banco (até 2 dias úteis).${partial ? ' A tarifa do provedor de pagamento não é devolvida a ninguém (regra do Asaas) — por isso o estorno veio menor que o pago.' : ''}`;
     await sendEmail({ to: user.email, subject: 'Estorno da teleconsulta confirmado', html: mailHtml(patientName, note) })
       .catch((e: unknown) => console.error('[teleconsulta-notify] e-mail estorno paciente falhou:', (e as Error)?.message));
   }

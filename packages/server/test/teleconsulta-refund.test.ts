@@ -62,8 +62,28 @@ const mockAsaasRefund = (status: number) => {
 const refundMails = () => vi.mocked(sendEmail).mock.calls.map((c) => c[0]).filter((m) => /estorn/i.test(m.subject));
 /** Partidas APENAS do estorno executado (exclui o txn da reserva 'refund_reserve_'). */
 const refundLegs = (reminderId: string) =>
-  prisma.ledgerEntry.findMany({ where: { reminderId, txnId: { startsWith: 'refund_' } }, select: { txnId: true, account: true, debitCents: true } })
-    .then((rows) => rows.filter((e) => !e.txnId.includes('reserve')));
+  prisma.ledgerEntry.findMany({ where: { reminderId, txnId: { startsWith: 'refund_' } }, select: { txnId: true, account: true, debitCents: true, creditCents: true } })
+    .then((rows) => rows.filter((e) => !e.txnId.includes('reserve') && !e.txnId.includes('fee')));
+
+/** Mocka o Asaas: refund recusado por SALDO na 1ª chamada, aprovado na 2ª (parcial),
+ *  e o GET do pagamento devolve o netValue (líquido = pago − tarifa). */
+const mockAsaasSaldoThenNet = (netValue: number) => {
+  let refundCalls = 0;
+  fetchMock().mockImplementation(async (url: any, init?: any) => {
+    const u = String(url);
+    if (u.includes('/v3/payments/') && u.endsWith('/refund')) {
+      refundCalls += 1;
+      if (refundCalls === 1) {
+        return new Response(JSON.stringify({ errors: [{ code: 'invalid_value', description: 'Não é possível efetuar o estorno pois não há saldo suficiente.' }] }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response(JSON.stringify({ object: 'refund', status: 'DONE', value: netValue }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (u.includes('/v3/payments/')) {
+      return new Response(JSON.stringify({ id: 'pay_refundtest_001', status: 'RECEIVED', value: 5, netValue }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    return new Response('{}', { status: 200 });
+  });
+};
 
 describe('POST /api/admin/teleconsulta/:id/refund (onda 4)', () => {
   beforeEach(async () => {
@@ -150,6 +170,41 @@ describe('POST /api/admin/teleconsulta/:id/refund (onda 4)', () => {
     const H = await adminToken();
     const res = await api().post(`/api/admin/teleconsulta/${r.id}/refund`).set(H).send();
     expect(res.status).toBe(400);
+  });
+
+  it('DEGRAU (dono 26/10, caso real R$5): integral recusado por SALDO → estorna o LÍQUIDO automático com taxa transparente', async () => {
+    const { user, doc, r } = await seedPaidTeleconsulta(); // 500 cents pagos
+    mockAsaasSaldoThenNet(1.51); // tarifa comeu 3,49 → líquido 1,51
+
+    const H = await adminToken();
+    const res = await api().post(`/api/admin/teleconsulta/${r.id}/refund`).set(H).send();
+    expect(res.status).toBe(200);
+    expect(res.body.partial).toBe(true);
+    expect(res.body.refundedValueCents).toBe(151);
+    expect(res.body.feeCents).toBe(349);
+
+    const row = await prisma.reminder.findUnique({ where: { id: r.id }, select: { refundedAt: true, teleStatus: true } });
+    expect(row?.refundedAt).toBeTruthy();
+
+    // Ledger fecha: estorno PARCIAL (D held 151 / C refund 151) + taxa explícita
+    // (D held 349 / C provider_fees 349) — held zera no ponto morto.
+    const legs = await refundLegs(r.id);
+    expect(legs.some((e) => e.account === 'held_unrealized' && e.debitCents === 151)).toBe(true);
+    expect(legs.some((e) => e.account === 'refund' && e.creditCents === 151)).toBe(true);
+    const feeLegs = await prisma.ledgerEntry.findMany({ where: { reminderId: r.id, txnId: `refund_fee_${r.id}` }, select: { account: true, debitCents: true, creditCents: true } });
+    expect(feeLegs.some((e) => e.account === 'held_unrealized' && e.debitCents === 349)).toBe(true);
+    expect(feeLegs.some((e) => e.account === 'provider_fees' && e.creditCents === 349)).toBe(true);
+    const held = await prisma.ledgerEntry.aggregate({ where: { reminderId: r.id, account: 'held_unrealized' }, _sum: { creditCents: true, debitCents: true } });
+    expect((held._sum.creditCents ?? 0) - (held._sum.debitCents ?? 0)).toBe(0); // ponto morto
+
+    // Notificações com o valor DEVOLVIDO real + tarifa explícita.
+    await new Promise((r2) => setTimeout(r2, 300));
+    const push = vi.mocked(sendPushToUser).mock.calls[0];
+    expect(String(push?.[2])).toContain('1,51');
+    expect(String(push?.[2])).toContain('3,49');
+    const mails = refundMails();
+    expect(mails.some((m) => m.to === user.email)).toBe(true);
+    expect(mails.some((m) => m.to === doc.doctor.email)).toBe(true);
   });
 });
 

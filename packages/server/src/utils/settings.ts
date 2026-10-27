@@ -100,7 +100,7 @@ export const DEFAULT_SETTINGS = {
   // (dueDate + N min sem a contraparte → no_show com noShowBy = quem faltou). NÃO confundir
   // com o grace de RECONEXÃO (5min, client): tolerância = quem NUNCA apareceu; grace = queda
   // de quem já entrou (ambos presentes → desconexão é caso do /end humano, não de ausência).
-  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10 },
+  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -219,7 +219,7 @@ export function sportsModeEnabled(): boolean {
 
 /** Config da teleconsulta (spec gaps §1): fallback defensivo pros defaults se o banco
  *  tiver algo inválido/ausente (mesma família do getMonthlyPlan — nunca hardcode na rota). */
-export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number; slotMin: number; noShowToleranceMin: number } {
+export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number; slotMin: number; noShowToleranceMin: number; priceMinCents: number } {
   const t: any = (getSettings() as any).teleconsulta ?? {};
   return {
     entryWindowMin: Number(t.entryWindowMin) > 0 ? Number(t.entryWindowMin) : 5,
@@ -227,6 +227,9 @@ export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSecon
     // §19/§5 dono (26/10/26): janela de agenda (±min) e tolerância de ausência (min).
     slotMin: Number(t.slotMin) > 0 ? Number(t.slotMin) : 30,
     noShowToleranceMin: Number(t.noShowToleranceMin) > 0 ? Number(t.noShowToleranceMin) : 10,
+    // Estorno Asaas (26/10): a tarifa do PIX NÃO volta no estorno — consulta barata
+    // demais nasce sem saldo pra se devolver (doc Asaas). Default R$20 dá folga.
+    priceMinCents: Number(t.priceMinCents) >= 100 ? Number(t.priceMinCents) : 2000,
   };
 }
 

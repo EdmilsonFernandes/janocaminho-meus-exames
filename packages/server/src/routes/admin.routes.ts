@@ -4,7 +4,7 @@ import path from 'path';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { config, hasAsaas } from '../config';
-import { postRefundExecuted } from '../finance/ledger';
+import { postRefundExecuted, postEntries } from '../finance/ledger';
 import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
 import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from '../utils/settings';
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
@@ -2018,31 +2018,80 @@ router.post('/teleconsulta/:id/refund', async (req: AuthedRequest, res, next) =>
     if (!hasAsaas()) { res.status(503).json({ error: 'Asaas não configurado neste servidor.' }); return; }
 
     // EXECUTA no provider — dinheiro de verdade: só escreve no sistema se o Asaas aceitar.
-    const asaasRes = await fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(r.paymentRef)}/refund`, {
-      method: 'POST',
-      headers: { access_token: config.asaasApiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ value: Number((r.consultPriceCents! / 100).toFixed(2)) }),
-    }).catch(() => null);
+    // DEGRAU AUTOMÁTICO (dono 26/10): tenta o INTEGRAL primeiro (melhor pro paciente —
+    // carteira com saldo de outras cobranças devolve 100%). Recusou por SALDO →
+    // estorna o LÍQUIDO do pagamento (netValue = pago − tarifa, que o Asaas não
+    // devolve): a carteira SEMPRE cobre o líquido — a matemática fecha por construção.
+    const asaasHeaders = { access_token: config.asaasApiKey, 'Content-Type': 'application/json' };
+    const postRefund = (valueCents: number) =>
+      fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(r.paymentRef!)}/refund`, {
+        method: 'POST', headers: asaasHeaders,
+        body: JSON.stringify({ value: Number((valueCents / 100).toFixed(2)) }),
+      }).catch(() => null);
+    const refundErrText = async (res: Response | null) => {
+      const b: any = res ? await res.json().catch(() => null) : null;
+      return { status: res?.status ?? 0, detail: String(b?.errors?.[0]?.description ?? '') };
+    };
+
+    let asaasRes = await postRefund(r.consultPriceCents!);
+    let refundedValueCents = r.consultPriceCents!;
     if (!asaasRes || !asaasRes.ok) {
-      const errBody: any = asaasRes ? await asaasRes.json().catch(() => null) : null;
-      console.error('[refund] Asaas recusou o estorno:', r.paymentRef, asaasRes?.status, JSON.stringify(errBody?.errors ?? errBody ?? {}).slice(0, 300));
-      res.status(502).json({ error: 'O Asaas recusou o estorno — nada foi alterado no sistema.', code: 'PROVIDER_REFUSED', detail: errBody?.errors?.[0]?.description ?? null });
-      return;
+      const first = await refundErrText(asaasRes);
+      // Busca o LÍQUIDO real da cobrança (entrou = devolvível sem saldo extra).
+      const payRes = await fetch(`${config.asaasApiBaseUrl}/v3/payments/${encodeURIComponent(r.paymentRef!)}`, { headers: asaasHeaders }).catch(() => null);
+      const pay: any = payRes && payRes.ok ? await payRes.json().catch(() => null) : null;
+      const netCents = Math.round(Number(pay?.netValue ?? 0) * 100);
+      if (/saldo/i.test(first.detail) && netCents > 0 && netCents < r.consultPriceCents!) {
+        asaasRes = await postRefund(netCents);
+        if (asaasRes && asaasRes.ok) {
+          refundedValueCents = netCents;
+          console.log(`[refund] integral recusado (saldo) — estorno PARCIAL do líquido: ${(netCents / 100).toFixed(2)} de ${(r.consultPriceCents! / 100).toFixed(2)} (${r.paymentRef})`);
+        }
+      }
+      if (!asaasRes || !asaasRes.ok) {
+        const second = asaasRes ? await refundErrText(asaasRes) : first;
+        const detail = second.detail || first.detail || null;
+        console.error('[refund] Asaas recusou o estorno:', r.paymentRef, second.status || first.status, JSON.stringify(detail).slice(0, 300));
+        const isSaldo = /saldo/i.test(detail ?? '');
+        res.status(502).json({
+          error: isSaldo
+            ? 'Saldo insuficiente na carteira Asaas (a tarifa do PIX não é devolvida pelo provedor). Adicione saldo à carteira e tente de novo.'
+            : 'O Asaas recusou o estorno — nada foi alterado no sistema.',
+          code: 'PROVIDER_REFUSED',
+          detail,
+        });
+        return;
+      }
     }
 
     const refundedAt = new Date();
+    const feeCents = r.consultPriceCents! - refundedValueCents; // parcial = tarifa não-devolvida
     await prisma.reminder.update({
       where: { id: r.id },
       // Consulta ABERTA (scheduled) que foi estornada = cancelada por devolução.
       data: { refundedAt, ...(r.endedAt ? {} : { endedAt: refundedAt, done: true, teleStatus: 'cancelled' }) },
     });
-    const posted = await postRefundExecuted(r.id).catch((e: any) => {
+    const posted = await postRefundExecuted(r.id, refundedValueCents).catch((e: any) => {
       console.error('[refund] ledger do estorno falhou (conciliação repara):', r.id, e?.message);
       return null;
     });
-    void notifyTeleconsultaRefunded(r, r.consultPriceCents!).catch(() => {});
-    console.log(`[refund] teleconsulta ${r.id} estornada — ${r.paymentRef} (${(r.consultPriceCents! / 100).toFixed(2)} BRL, ledger ${posted?.posted ? 'ok' : 'pendente conciliação'})`);
-    res.json({ ok: true, refundedAt: refundedAt.toISOString(), ledger: { posted: posted?.posted ?? false, entries: posted?.entries ?? 0 } });
+    // Parcial: o que sobrou na retenção É a taxa — vira custo de provedor explícito
+    // (fecha a partidas duplas: held D taxa / provider_fees C taxa).
+    if (feeCents > 0) {
+      await postEntries([{
+        txnId: `refund_fee_${r.id}`,
+        reminderId: r.id, doctorId: r.createdByDoctorId,
+        memo: 'Tarifa do provedor não devolvida no estorno (Asaas)',
+        ruleSnapshot: {},
+        entries: [
+          { account: 'held_unrealized', debitCents: feeCents, refType: 'reminder', refId: r.id },
+          { account: 'provider_fees', creditCents: feeCents, refType: 'reminder', refId: r.id },
+        ],
+      }]).catch((e: any) => console.error('[refund] ledger da taxa falhou:', r.id, e?.message));
+    }
+    void notifyTeleconsultaRefunded(r, refundedValueCents, feeCents).catch(() => {});
+    console.log(`[refund] teleconsulta ${r.id} estornada — ${r.paymentRef} (${(refundedValueCents / 100).toFixed(2)} BRL de ${(r.consultPriceCents! / 100).toFixed(2)}, ledger ${posted?.posted ? 'ok' : 'pendente conciliação'})`);
+    res.json({ ok: true, refundedAt: refundedAt.toISOString(), refundedValueCents, feeCents, partial: feeCents > 0, ledger: { posted: posted?.posted ?? false, entries: posted?.entries ?? 0 } });
   } catch (e) { next(e); }
 });
 
