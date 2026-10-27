@@ -53,6 +53,21 @@ describe('evolutionSummary — summarizeTrends + headline', () => {
     expect(trendHeadline({ counts: { melhorou: 0, piorou: 0, estavel: 0 }, total: 0 })).toMatch(/ao menos 2 exames/i);
   });
 
+  // Falsa calma (bug 27/10/26): "evoluindo bem ✅" saía acima de "9 requer atenção".
+  it('com marcadores fora da faixa AGORA, nunca diz "evoluindo bem"', () => {
+    const h = trendHeadline({ counts: { melhorou: 3, piorou: 0, estavel: 1 }, total: 4 }, 9);
+    expect(h).not.toMatch(/evoluindo bem/i);
+    expect(h).not.toContain('✅');
+    expect(h).toMatch(/9 marcadores ainda pedem atenção/);
+  });
+
+  it('atenção sem mudança e com mistura também avisam; singular correto', () => {
+    expect(trendHeadline({ counts: { melhorou: 0, piorou: 0, estavel: 5 }, total: 5 }, 1)).toMatch(/1 marcador ainda pede atenção/);
+    expect(trendHeadline({ counts: { melhorou: 2, piorou: 1, estavel: 0 }, total: 3 }, 2)).toMatch(/2 marcadores ainda pedem atenção/);
+    // piora dominante continua com a frase de piora (já manda conversar com o médico)
+    expect(trendHeadline({ counts: { melhorou: 0, piorou: 2, estavel: 0 }, total: 2 }, 3)).toMatch(/pioraram \(2\)/);
+  });
+
   it('VERDICT_META expõe os 3 vereditos', () => {
     expect(Object.keys(VERDICT_META).sort()).toEqual(['estavel', 'melhorou', 'piorou']);
   });

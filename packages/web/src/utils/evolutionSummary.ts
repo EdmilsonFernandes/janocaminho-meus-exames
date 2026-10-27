@@ -52,12 +52,21 @@ export const summarizeTrends = (items: TrendItem[]): EvolutionSummary => {
   return { counts, total: items.length };
 };
 
-/** Frase de leitura NÃO-alarmista (educativa) a partir das contagens. */
-export const trendHeadline = (s: EvolutionSummary): string => {
+/** Frase de leitura NÃO-alarmista (educativa) a partir das contagens.
+ *  `attention` = marcadores fora da faixa AGORA (o "Requer atenção" da tela). Falsa calma
+ *  (bug 27/10/26): "evoluindo bem — continue assim ✅" saía acima de "9 requer atenção" —
+ *  tendência boa não apaga valor ainda fora da faixa. */
+export const trendHeadline = (s: EvolutionSummary, attention = 0): string => {
   const { melhorou: m, piorou: p } = s.counts;
   if (s.total === 0) return 'Envie ao menos 2 exames de datas diferentes pra ver sua evolução.';
-  if (p === 0 && m > 0) return 'Seus marcadores estão evoluindo bem — continue assim. ✅';
   if (p > m) return `Alguns marcadores pioraram (${p}) — vale conversar com seu médico na próxima consulta.`;
+  if (attention > 0) {
+    const n = attention === 1 ? '1 marcador ainda pede' : `${attention} marcadores ainda pedem`;
+    if (m > 0 && p === 0) return `Houve melhora, mas ${n} atenção — leve à próxima consulta.`;
+    if (m > 0 && p > 0) return `Mistura de melhoras e pioras, e ${n} atenção — acompanhe os destaques abaixo.`;
+    return `Sem grandes mudanças, mas ${n} atenção — vale conversar com seu médico.`;
+  }
+  if (p === 0 && m > 0) return 'Seus marcadores estão evoluindo bem — continue assim. ✅';
   if (m > 0 && p > 0) return 'Mistura de melhoras e pioras — acompanhe os destaques abaixo.';
   return 'Tudo estável entre as coletas — mantenha o acompanhamento.';
 };

@@ -158,7 +158,7 @@ export const EvolutionPage = () => {
             }}>
               <Box sx={{ width: 3, minHeight: 32, borderRadius: '999px', bgcolor: '#f59e0b', flexShrink: 0, mt: 0.25 }} />
               <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.5 }}>
-                {trendHeadline(summary)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.
+                {trendHeadline(summary, counts.out)} <strong>·</strong> Conteúdo educativo — a decisão final é do médico.
               </Typography>
             </Box>
           </ScrollReveal>

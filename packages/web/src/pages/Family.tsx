@@ -46,6 +46,7 @@ import { DrExame } from '../components/DrExame';
 import { setSelectedPatient } from '../patient-context';
 import { SEM, tealText } from '../theme';
 import { formatCpf, isValidCpf } from '../utils/cpf';
+import { familyMemberStatus } from '../utils/familyMemberStatus';
 
 interface FamPatient {
   id: string;
@@ -482,7 +483,8 @@ export const FamilyPage = () => {
             const isTit = /titular/i.test(p.relationship || '') || p === titular;
             const age = ageFrom(p.dateOfBirth);
             const sColor = scoreColor(p.score, dark);
-            const isHealthy = p.abnormalCount === 0;
+            // Sem exame NÃO é "na meta" (falsa calma — ver utils/familyMemberStatus).
+            const status = familyMemberStatus(p);
 
             return (
               <Grid key={p.id} size={{ xs: 12, md: 6 }}>
@@ -636,7 +638,7 @@ export const FamilyPage = () => {
                         borderRadius: '14px',
                         bgcolor: dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                         border: '1px solid',
-                        borderColor: isHealthy ? 'rgba(5, 150, 105, 0.2)' : 'rgba(239, 68, 68, 0.25)',
+                        borderColor: status === 'na-meta' ? 'rgba(5, 150, 105, 0.2)' : status === 'atencao' ? 'rgba(239, 68, 68, 0.25)' : 'divider',
                         mb: 2,
                       }}
                     >
@@ -645,17 +647,19 @@ export const FamilyPage = () => {
                           variant="body2"
                           sx={{
                             fontWeight: 800,
-                            color: isHealthy ? (dark ? SEM.ok.dark : SEM.ok.light) : (dark ? SEM.bad.dark : SEM.bad.light),
+                            color: status === 'na-meta' ? (dark ? SEM.ok.dark : SEM.ok.light) : status === 'atencao' ? (dark ? SEM.bad.dark : SEM.bad.light) : 'text.secondary',
                             fontSize: 13,
                             display: 'flex',
                             alignItems: 'center',
                             gap: 0.6,
                           }}
                         >
-                          {isHealthy ? <CheckCircleIcon sx={{ fontSize: 16 }} /> : <WarningAmberIcon sx={{ fontSize: 16 }} />}
-                          {isHealthy
-                            ? 'Todos os marcadores na meta'
-                            : `${p.abnormalCount} marcador(es) precisam de atenção`}
+                          {status === 'na-meta' ? <CheckCircleIcon sx={{ fontSize: 16 }} />
+                            : status === 'atencao' ? <WarningAmberIcon sx={{ fontSize: 16 }} />
+                            : <UploadFileIcon sx={{ fontSize: 16 }} />}
+                          {status === 'na-meta' ? 'Todos os marcadores na meta'
+                            : status === 'atencao' ? `${p.abnormalCount} marcador(es) precisam de atenção`
+                            : 'Nenhum exame enviado ainda'}
                         </Typography>
                         {fmtDate(p.performedAt) && (
                           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
@@ -684,7 +688,9 @@ export const FamilyPage = () => {
                         </Stack>
                       ) : (
                         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
-                          {p.examTitle ? `Último laudo: ${p.examTitle}` : 'Histórico monitorado pelo Dr. Exame'}
+                          {p.examTitle ? `Último laudo: ${p.examTitle}`
+                            : status === 'sem-exame' ? 'Envie o primeiro para começar o acompanhamento.'
+                            : 'Histórico monitorado pelo Dr. Exame'}
                         </Typography>
                       )}
                     </Box>
