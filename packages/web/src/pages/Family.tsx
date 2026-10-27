@@ -115,6 +115,7 @@ export const FamilyPage = () => {
   const [cmp, setCmp] = useState<any[]>([]);
   const [err, setErr] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [activeFamilyCategory, setActiveFamilyCategory] = useState<string>('all');
 
   // Modal rápido de adicionar dependente
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -752,111 +753,557 @@ export const FamilyPage = () => {
         </Grid>
       </Box>
 
-      {/* 4. COMPARATIVO CLÍNICO POR ANALITO (Valores entre os membros) */}
-      {cmp.length > 0 && (
-        <Card
-          variant="outlined"
-          sx={{
-            mb: 4,
-            borderRadius: '22px',
-            borderColor: 'divider',
-            bgcolor: 'background.paper',
-            p: { xs: 2.5, sm: 3 },
-          }}
-        >
-          <Box sx={{ mb: 2.5 }}>
-            <Typography
-              component="h3"
-              sx={{
-                fontWeight: 900,
-                fontFamily: 'Poppins, sans-serif',
-                fontSize: 18,
-                color: 'text.primary',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
-              <span>🔬</span> Comparativo Direto entre Membros
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              Valores mais recentes dos exames laboratoriais realizados em comum na família.
-            </Typography>
-          </Box>
+      {/* 4. COMPARATIVO CLÍNICO POR ANALITO (DUMBBELL NORMAL-RANGE CHART) */}
+      {cmp.length > 0 && (() => {
+        // Categorias clínicas
+        const CATEGORY_MAP: Record<string, { label: string; icon: string; keys: string[] }> = {
+          blood: {
+            label: 'Hemograma & Sangue',
+            icon: '🩸',
+            keys: ['HEMOGLOBINA', 'HEMACIAS', 'HEMATOCRITO', 'VCM', 'HCM', 'CHCM', 'RDW', 'LEUCOCITOS', 'PLAQUETAS', 'NEUTROFILOS', 'LINFOCITOS', 'MONOCITOS', 'EOSINOFILOS', 'BASOFILOS', 'VHS', 'SANGUE'],
+          },
+          hormones: {
+            label: 'Hormônios & Tireoide',
+            icon: '⚡',
+            keys: ['TSH', 'T4', 'T3', 'TESTOSTERONA', 'CORTISOL', 'PROLACTINA', 'DHEA', 'ESTRADIOL', 'PROGESTERONA', 'TIREOIDE', 'PTH', 'FSH', 'LH'],
+          },
+          metabolic: {
+            label: 'Perfil Lipídico & Glicêmico',
+            icon: '🥗',
+            keys: ['COLESTEROL', 'HDL', 'LDL', 'VLDL', 'TRIGLICERIDEOS', 'GLICOSE', 'GLICADA', 'HBA1C', 'INSULINA', 'HOMA', 'LIPIDICO'],
+          },
+          organ: {
+            label: 'Fígado & Rim',
+            icon: '🧪',
+            keys: ['CREATININA', 'UREIA', 'TGO', 'TGP', 'AST', 'ALT', 'GAMA', 'FOSFATASE', 'ACIDO URICO', 'BILIRRUBINA', 'ALBUMINA', 'SODIO', 'POTASSIO', 'CALCIO'],
+          },
+        };
 
-          <Grid container spacing={2}>
-            {cmp.map((row) => (
-              <Grid key={row.analyte} size={{ xs: 12, sm: 6 }}>
-                <Box
+        const FALLBACK_REFS: Record<string, { low: number; high: number; unit: string }> = {
+          HEMOGLOBINA: { low: 12.0, high: 16.0, unit: 'g/dL' },
+          HEMACIAS: { low: 4.0, high: 5.8, unit: 'mi/mm³' },
+          HEMATOCRITO: { low: 36.0, high: 52.0, unit: '%' },
+          VCM: { low: 80.0, high: 100.0, unit: 'fL' },
+          LEUCOCITOS: { low: 4000, high: 10000, unit: '/mm³' },
+          PLAQUETAS: { low: 150000, high: 450000, unit: '/mm³' },
+          GLICOSE: { low: 70, high: 99, unit: 'mg/dL' },
+          COLESTEROL_TOTAL: { low: 120, high: 190, unit: 'mg/dL' },
+          HDL: { low: 40, high: 60, unit: 'mg/dL' },
+          LDL: { low: 50, high: 100, unit: 'mg/dL' },
+          TRIGLICERIDEOS: { low: 50, high: 150, unit: 'mg/dL' },
+          CREATININA: { low: 0.6, high: 1.2, unit: 'mg/dL' },
+          UREIA: { low: 15, high: 45, unit: 'mg/dL' },
+          TSH: { low: 0.4, high: 4.5, unit: 'mUI/L' },
+          T4_LIVRE: { low: 0.8, high: 1.8, unit: 'ng/dL' },
+        };
+
+        const MEMBER_COLORS = ['#0284C7', '#EC4899', '#8B5CF6', '#F59E0B', '#10B981'];
+
+        // Classificar cada analito em uma categoria
+        const categorizedRows: Record<string, any[]> = { all: cmp, blood: [], hormones: [], metabolic: [], organ: [], others: [] };
+        cmp.forEach((row) => {
+          const upper = (row.analyte || '').toUpperCase();
+          let matched = false;
+          for (const [catKey, catDef] of Object.entries(CATEGORY_MAP)) {
+            if (catDef.keys.some((k) => upper.includes(k))) {
+              categorizedRows[catKey].push(row);
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) categorizedRows.others.push(row);
+        });
+
+        const activeCat = activeFamilyCategory;
+        const currentRows = (categorizedRows[activeCat] && categorizedRows[activeCat].length > 0)
+          ? categorizedRows[activeCat]
+          : cmp;
+
+        // Cálculos para o Card de Síntese Clínica Familiar
+        const totalItems = cmp.length;
+        const divergentItems: { analyte: string; memberName: string; value: string; flag: string }[] = [];
+        cmp.forEach((row) => {
+          row.members.forEach((m: any) => {
+            if (['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag)) {
+              divergentItems.push({
+                analyte: prettyName(row.analyte),
+                memberName: (m.name || '').split(' ')[0],
+                value: `${m.value} ${row.unit || ''}`.trim(),
+                flag: m.flag,
+              });
+            }
+          });
+        });
+
+        const normalCount = totalItems - new Set(divergentItems.map((d) => d.analyte)).size;
+        const alignmentPct = totalItems > 0 ? Math.round((normalCount / totalItems) * 100) : 100;
+
+        return (
+          <Card
+            variant="outlined"
+            sx={{
+              mb: 4,
+              borderRadius: '24px',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
+              p: { xs: 2.25, sm: 3.5 },
+              boxShadow: dark ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 20px rgba(15, 23, 42, 0.04)',
+            }}
+          >
+            {/* Cabeçalho Proposta 5 */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2.5 }}>
+              <Box>
+                <Typography
+                  component="h3"
                   sx={{
-                    p: 1.75,
-                    borderRadius: '14px',
-                    bgcolor: dark ? '#101c27' : '#f8fafc',
-                    border: '1px solid',
-                    borderColor: 'divider',
+                    fontWeight: 900,
+                    fontFamily: 'Poppins, sans-serif',
+                    fontSize: { xs: 17, sm: 20 },
+                    color: 'text.primary',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.25,
                   }}
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.25 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
-                      {prettyName(row.analyte)}
-                    </Typography>
-                    {row.unit && (
-                      <Chip
-                        size="small"
-                        label={row.unit}
-                        sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'action.hover' }}
+                  <Diversity3Icon sx={{ color: 'primary.main', fontSize: 24 }} />
+                  Comparativo Familiar Inteligente
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, maxWidth: 640 }}>
+                  Gráfico de faixas clínicas normativas (Dumbbell Range Chart). Identifique se cada membro está calibrado
+                  na zona ideal de saúde e onde ocorrem divergências familiares.
+                </Typography>
+              </Box>
+              <Chip
+                icon={<AutoAwesomeIcon sx={{ fontSize: '15px !important', color: '#0F766E !important' }} />}
+                label="🏆 Visão Normativa Avançada"
+                sx={{
+                  bgcolor: dark ? 'rgba(15, 118, 110, 0.2)' : '#CCFBF1',
+                  color: dark ? '#5EEAD4' : '#0F766E',
+                  fontWeight: 800,
+                  fontSize: 12,
+                  height: 30,
+                  borderRadius: '999px',
+                }}
+              />
+            </Box>
+
+            {/* Abas de Categorias Clínicas */}
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                overflowX: 'auto',
+                pb: 1,
+                mb: 2.5,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                '&::-webkit-scrollbar': { height: 4 },
+                '&::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 4 },
+              }}
+            >
+              <Button
+                variant={activeCat === 'all' ? 'contained' : 'text'}
+                size="small"
+                onClick={() => setActiveFamilyCategory('all')}
+                sx={{
+                  borderRadius: '999px',
+                  textTransform: 'none',
+                  fontWeight: 700,
+                  fontSize: 12.5,
+                  px: 2,
+                  whiteSpace: 'nowrap',
+                  bgcolor: activeCat === 'all' ? 'primary.main' : 'transparent',
+                  color: activeCat === 'all' ? '#fff' : 'text.secondary',
+                }}
+              >
+                Todos os Marcadores ({cmp.length})
+              </Button>
+              {Object.entries(CATEGORY_MAP).map(([key, cat]) => {
+                const count = categorizedRows[key]?.length || 0;
+                if (count === 0) return null;
+                const isSelected = activeCat === key;
+                return (
+                  <Button
+                    key={key}
+                    variant={isSelected ? 'contained' : 'text'}
+                    size="small"
+                    onClick={() => setActiveFamilyCategory(key)}
+                    sx={{
+                      borderRadius: '999px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: 12.5,
+                      px: 2,
+                      whiteSpace: 'nowrap',
+                      bgcolor: isSelected ? 'primary.main' : 'transparent',
+                      color: isSelected ? '#fff' : 'text.secondary',
+                    }}
+                  >
+                    {cat.icon} {cat.label} ({count})
+                  </Button>
+                );
+              })}
+            </Stack>
+
+            {/* Legenda dos Membros e Faixa Verde */}
+            <Box
+              sx={{
+                p: { xs: 1.5, sm: 2 },
+                mb: 3,
+                borderRadius: '14px',
+                bgcolor: dark ? '#0f172a' : '#f8fafc',
+                border: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 2,
+              }}
+            >
+              <Stack direction="row" spacing={2.5} flexWrap="wrap" gap={1.5} alignItems="center">
+                {data?.patients?.map((p, idx) => {
+                  const color = MEMBER_COLORS[idx % MEMBER_COLORS.length];
+                  return (
+                    <Box key={p.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box
+                        sx={{
+                          width: 14,
+                          height: 14,
+                          borderRadius: '50%',
+                          bgcolor: color,
+                          border: '2px solid white',
+                          boxShadow: `0 0 0 2px ${color}`,
+                        }}
                       />
-                    )}
-                  </Box>
+                      <Typography sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary' }}>
+                        {p.fullName.split(' ')[0]} {p.relationship ? `(${p.relationship})` : ''}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+              </Stack>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box
+                  sx={{
+                    width: 24,
+                    height: 10,
+                    bgcolor: 'rgba(16, 185, 129, 0.25)',
+                    border: '1px dashed #10B981',
+                    borderRadius: '2px',
+                  }}
+                />
+                <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>
+                  Faixa Verde = Intervalo Clínico Saudável de Referência
+                </Typography>
+              </Box>
+            </Box>
 
-                  <Stack spacing={0.9}>
-                    {row.members.map((m: any, i: number) => {
-                      const isAbn = ['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag);
-                      const isWarn = isAbn;
-                      const statusCol = isAbn ? (dark ? SEM.bad.dark : SEM.bad.light) : (dark ? SEM.ok.dark : SEM.ok.light);
+            {/* Linhas Dumbbell por Analito */}
+            <Stack spacing={2.5}>
+              {currentRows.map((row) => {
+                const normUpper = (row.analyte || '').toUpperCase();
+                const fallback = FALLBACK_REFS[normUpper] || null;
 
-                      return (
+                const firstLow = row.members.find((m: any) => m.refLow != null)?.refLow;
+                const firstHigh = row.members.find((m: any) => m.refHigh != null)?.refHigh;
+                const refLow = firstLow != null ? Number(firstLow) : fallback?.low ?? null;
+                const refHigh = firstHigh != null ? Number(firstHigh) : fallback?.high ?? null;
+
+                // Extração dos valores numéricos para escala
+                const numericMembers = row.members
+                  .map((m: any) => {
+                    let num = m.valueNumeric != null ? Number(m.valueNumeric) : null;
+                    if (num == null && m.value) {
+                      const parsed = parseFloat(String(m.value).replace(',', '.').replace(/[^\d.]/g, ''));
+                      if (!isNaN(parsed)) num = parsed;
+                    }
+                    return { ...m, numeric: num };
+                  })
+                  .filter((m: any) => m.numeric != null);
+
+                let minScale = 0;
+                let maxScale = 100;
+                let normalLeft = 20;
+                let normalWidth = 60;
+
+                if (refLow != null && refHigh != null && refHigh > refLow) {
+                  const span = refHigh - refLow;
+                  minScale = Math.max(0, refLow - span * 0.4);
+                  maxScale = refHigh + span * 0.4;
+
+                  numericMembers.forEach((m: any) => {
+                    if (m.numeric < minScale) minScale = Math.max(0, m.numeric - span * 0.1);
+                    if (m.numeric > maxScale) maxScale = m.numeric + span * 0.1;
+                  });
+
+                  const totalSpan = maxScale - minScale || 1;
+                  normalLeft = Math.max(0, Math.min(100, ((refLow - minScale) / totalSpan) * 100));
+                  normalWidth = Math.max(6, Math.min(100 - normalLeft, ((refHigh - refLow) / totalSpan) * 100));
+                } else if (numericMembers.length > 0) {
+                  const vals = numericMembers.map((m: any) => m.numeric);
+                  const minVal = Math.min(...vals);
+                  const maxVal = Math.max(...vals);
+                  const diff = maxVal - minVal || 1;
+                  minScale = Math.max(0, minVal - diff * 0.5);
+                  maxScale = maxVal + diff * 0.5;
+                  normalLeft = 25;
+                  normalWidth = 50;
+                }
+
+                const totalSpan = maxScale - minScale || 1;
+
+                // Posições dos membros no track
+                const memberPositions = row.members.map((m: any, mIdx: number) => {
+                  let num = m.valueNumeric != null ? Number(m.valueNumeric) : null;
+                  if (num == null && m.value) {
+                    const parsed = parseFloat(String(m.value).replace(',', '.').replace(/[^\d.]/g, ''));
+                    if (!isNaN(parsed)) num = parsed;
+                  }
+                  const posPct = num != null
+                    ? Math.max(4, Math.min(96, ((num - minScale) / totalSpan) * 100))
+                    : 15 + mIdx * 30;
+
+                  const isAbn = ['HIGH', 'LOW', 'ABNORMAL', 'CRITICAL'].includes(m.flag) ||
+                    (refLow != null && num != null && num < refLow) ||
+                    (refHigh != null && num != null && num > refHigh);
+
+                  const color = MEMBER_COLORS[mIdx % MEMBER_COLORS.length];
+                  return { ...m, numeric: num, posPct, isAbn, color };
+                });
+
+                const connectorLeft = Math.min(...memberPositions.map((m: any) => m.posPct));
+                const connectorRight = Math.max(...memberPositions.map((m: any) => m.posPct));
+                const connectorWidth = Math.max(0, connectorRight - connectorLeft);
+
+                const divergentMember = memberPositions.find((m: any) => m.isAbn);
+
+                return (
+                  <Box
+                    key={row.analyte}
+                    sx={{
+                      py: 2,
+                      px: { xs: 1.5, sm: 2.25 },
+                      borderRadius: '16px',
+                      bgcolor: dark ? '#0a101d' : '#ffffff',
+                      border: '1px solid',
+                      borderColor: dark ? 'rgba(255,255,255,0.06)' : '#f1f5f9',
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', md: '210px 1fr 160px' },
+                      alignItems: 'center',
+                      gap: 2.5,
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: 'primary.main',
+                        boxShadow: dark ? '0 4px 16px rgba(0,0,0,0.4)' : '0 4px 16px rgba(15, 23, 42, 0.05)',
+                      },
+                    }}
+                  >
+                    {/* Coluna 1: Nome do Marcador & Referência */}
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+                        {prettyName(row.analyte)}
+                      </Typography>
+                      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontFamily: 'monospace', mt: 0.25 }}>
+                        {refLow != null && refHigh != null
+                          ? `Ref: ${refLow} - ${refHigh} ${row.unit || ''}`
+                          : row.unit ? `Unidade: ${row.unit}` : 'Marcador Laboratorial'}
+                      </Typography>
+                    </Box>
+
+                    {/* Coluna 2: Dumbbell Track com Zona Verde e Pins dos Membros */}
+                    <Box sx={{ position: 'relative', height: 46, display: 'flex', alignItems: 'center', width: '100%' }}>
+                      {/* Linha base */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          height: 4,
+                          bgcolor: dark ? '#1e293b' : '#e2e8f0',
+                          borderRadius: 2,
+                        }}
+                      />
+
+                      {/* Zona Verde de Referência */}
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          left: `${normalLeft}%`,
+                          width: `${normalWidth}%`,
+                          height: 24,
+                          bgcolor: dark ? 'rgba(16, 185, 129, 0.18)' : 'rgba(16, 185, 129, 0.12)',
+                          border: '1px solid rgba(16, 185, 129, 0.35)',
+                          borderRadius: '6px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          color: dark ? '#34d399' : '#065f46',
+                          letterSpacing: '0.02em',
+                          pointerEvents: 'none',
+                        }}
+                      >
+                        {refLow != null && refHigh != null ? `Ideal (${refLow} - ${refHigh})` : 'Faixa Ideal'}
+                      </Box>
+
+                      {/* Conector Dumbbell entre os membros */}
+                      {memberPositions.length > 1 && (
                         <Box
-                          key={i}
                           sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            p: '7px 10px',
-                            borderRadius: '10px',
-                            bgcolor: isAbn
-                              ? dark
-                                ? 'rgba(239, 68, 68, 0.12)'
-                                : 'rgba(239, 68, 68, 0.06)'
-                              : dark
-                              ? 'rgba(5, 150, 105, 0.12)'
-                              : 'rgba(5, 150, 105, 0.05)',
-                            border: `1px solid ${alpha(statusCol, 0.3)}`,
+                            position: 'absolute',
+                            left: `${connectorLeft}%`,
+                            width: `${connectorWidth}%`,
+                            height: 3,
+                            bgcolor: dark ? '#64748b' : '#94a3b8',
+                            borderRadius: 2,
+                            zIndex: 2,
                           }}
-                        >
-                          <Typography variant="body2" sx={{ fontWeight: 700, fontSize: 13, color: 'text.primary' }}>
-                            {(m.name ?? '').split(' ')[0]}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontWeight: 800,
-                              fontSize: 13.5,
-                              color: statusCol,
-                              fontVariantNumeric: 'tabular-nums',
-                            }}
+                        />
+                      )}
+
+                      {/* Pins dos membros */}
+                      {memberPositions.map((m: any, mIdx: number) => {
+                        const firstName = (m.name || '').split(' ')[0] || `Membro ${mIdx + 1}`;
+                        return (
+                          <Tooltip
+                            key={mIdx}
+                            title={`${m.name || firstName}: ${m.value} ${row.unit || ''} ${m.isAbn ? '(Atenção/Alterado)' : '(Normal)'}`}
+                            arrow
                           >
-                            {m.value}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
-        </Card>
-      )}
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                left: `${m.posPct}%`,
+                                top: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                zIndex: 3,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {/* Tag com Nome e Valor */}
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: 22,
+                                  bgcolor: m.isAbn ? '#dc2626' : '#0f172a',
+                                  color: '#ffffff',
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  fontFamily: 'monospace',
+                                  px: 0.85,
+                                  py: 0.3,
+                                  borderRadius: '4px',
+                                  whiteSpace: 'nowrap',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                                }}
+                              >
+                                {firstName}: {m.value} {m.isAbn ? '⚠️' : ''}
+                              </Box>
+
+                              {/* Círculo do Pin */}
+                              <Box
+                                sx={{
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: '50%',
+                                  bgcolor: m.isAbn ? '#ef4444' : m.color,
+                                  border: '2px solid #ffffff',
+                                  boxShadow: m.isAbn
+                                    ? '0 0 0 3px rgba(239, 68, 68, 0.45)'
+                                    : `0 0 0 2px ${m.color}`,
+                                  transition: 'transform 0.2s ease',
+                                  '&:hover': {
+                                    transform: 'scale(1.25)',
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </Tooltip>
+                        );
+                      })}
+                    </Box>
+
+                    {/* Coluna 3: Status Clínico Comparativo */}
+                    <Box sx={{ textAlign: { xs: 'left', md: 'right' } }}>
+                      {divergentMember ? (
+                        <Chip
+                          size="small"
+                          label={`⚠️ ${(divergentMember.name || '').split(' ')[0]} ${divergentMember.flag === 'LOW' ? 'Baixo' : 'Elevado'}`}
+                          sx={{
+                            bgcolor: dark ? 'rgba(239, 68, 68, 0.18)' : '#FEF2F2',
+                            color: dark ? '#fca5a5' : '#b91c1c',
+                            fontWeight: 800,
+                            fontSize: 11.5,
+                            borderRadius: '6px',
+                            border: '1px solid',
+                            borderColor: dark ? 'rgba(239, 68, 68, 0.3)' : '#fecaca',
+                          }}
+                        />
+                      ) : (
+                        <Chip
+                          size="small"
+                          label="✓ Ambos Normais"
+                          sx={{
+                            bgcolor: dark ? 'rgba(16, 185, 129, 0.18)' : '#ECFDF5',
+                            color: dark ? '#6ee7b7' : '#065f46',
+                            fontWeight: 800,
+                            fontSize: 11.5,
+                            borderRadius: '6px',
+                            border: '1px solid',
+                            borderColor: dark ? 'rgba(16, 185, 129, 0.3)' : '#a7f3d0',
+                          }}
+                        />
+                      )}
+                    </Box>
+                  </Box>
+                );
+              })}
+            </Stack>
+
+            {/* Banner de Síntese Clínica Familiar */}
+            <Box
+              sx={{
+                mt: 3.5,
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: '16px',
+                bgcolor: dark ? 'rgba(15, 118, 110, 0.12)' : '#f0fdf4',
+                border: '1px solid',
+                borderColor: dark ? 'rgba(15, 118, 110, 0.3)' : '#bbf7d0',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 2,
+              }}
+            >
+              <Typography sx={{ fontSize: 26, lineHeight: 1 }}>🧠</Typography>
+              <Box>
+                <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: dark ? '#6ee7b7' : '#065f46' }}>
+                  Diagnóstico Clínico Cruzado da Família: {alignmentPct}% de Alinhamento Saudável
+                </Typography>
+                <Typography variant="body2" sx={{ color: dark ? '#a7f3d0' : '#047857', mt: 0.5, lineHeight: 1.55 }}>
+                  Dos {totalItems} biomarcadores avaliados em conjunto, {normalCount} estão devidamente calibrados dentro da faixa ideal.
+                  {divergentItems.length > 0 ? (
+                    <>
+                      {' '}Recomenda-se atenção pontual para{' '}
+                      <strong>
+                        {divergentItems[0].analyte} de {divergentItems[0].memberName} ({divergentItems[0].value})
+                      </strong>
+                      {divergentItems.length > 1 ? ` e outros ${divergentItems.length - 1} marcador(es)` : ''}.
+                    </>
+                  ) : (
+                    ' Todos os parâmetros comparados encontram-se em excelente estabilidade clínica para todos os membros!'
+                  )}
+                </Typography>
+              </Box>
+            </Box>
+          </Card>
+        );
+      })()}
+
 
       {/* 5. TRILHAS DE CUIDADO PREVENTIVO & ORIENTAÇÕES DO DR. EXAME */}
       <Card

@@ -426,6 +426,177 @@ app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin
 // PUT ainda exige a flag global (kill-switch AppSetting sportsMode) — ver sports.routes.
 app.use('/api/sports', sportsRoutes);
 
+// ── CONVITE VIRAL DO MÉDICO (WHATSAPP MAGIC LINK) ──
+// Validação pública do convite gerado pelo paciente
+app.get('/api/public/doctor-invite/:token', async (req, res) => {
+  try {
+    const token = String(req.params.token);
+    const key = `doc_invite:${token}`;
+    const setting = await prisma.appSetting.findUnique({ where: { key } });
+    if (!setting) {
+      res.status(404).json({ error: 'not_found', message: 'Convite não encontrado ou inválido.' });
+      return;
+    }
+    const inv = setting.value as any;
+    if (inv.status === 'revoked') {
+      res.status(410).json({ error: 'revoked', message: 'Este convite foi revogado pelo paciente.' });
+      return;
+    }
+    if (inv.status === 'accepted') {
+      res.status(409).json({ error: 'accepted', message: 'Este convite já foi utilizado.' });
+      return;
+    }
+    if (new Date(inv.expiresAt).getTime() < Date.now()) {
+      res.status(410).json({ error: 'expired', message: 'Este convite expirou (validade de 30 dias).' });
+      return;
+    }
+
+    res.json({
+      valid: true,
+      patientName: inv.patientName,
+      scopes: inv.scopes,
+      expiresAt: inv.expiresAt,
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: 'server_error', message: e?.message });
+  }
+});
+
+// Médico existente aceita o convite e se conecta ao prontuário
+app.post('/api/public/doctor-invite/:token/accept', async (req, res) => {
+  try {
+    const token = String(req.params.token);
+    const key = `doc_invite:${token}`;
+    const setting = await prisma.appSetting.findUnique({ where: { key } });
+    if (!setting) { res.status(404).json({ error: 'Convite não encontrado.' }); return; }
+
+    const inv = setting.value as any;
+    if (inv.status !== 'pending') { res.status(409).json({ error: `Convite ${inv.status}.` }); return; }
+    if (new Date(inv.expiresAt).getTime() < Date.now()) { res.status(410).json({ error: 'Convite expirado.' }); return; }
+
+    const { email, password } = req.body ?? {};
+    if (!email || !password) { res.status(400).json({ error: 'E-mail e senha são obrigatórios.' }); return; }
+
+    const doctor = await prisma.doctor.findFirst({ where: { email: String(email).trim().toLowerCase() } });
+    if (!doctor || !doctor.passwordHash) { res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
+
+    const { comparePassword } = await import('./auth/jwt');
+    const match = await comparePassword(password, doctor.passwordHash);
+    if (!match) { res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
+    if (doctor.blocked) { res.status(403).json({ error: 'Conta médica suspensa.' }); return; }
+
+    // Cria/reativa o vínculo de compartilhamento
+    await prisma.doctorShare.upsert({
+      where: { patientId_doctorId: { patientId: inv.patientId, doctorId: doctor.id } },
+      update: { active: true, scopes: inv.scopes, examIds: inv.examIds, revokedAt: null },
+      create: { patientId: inv.patientId, doctorId: doctor.id, scopes: inv.scopes, examIds: inv.examIds, active: true },
+    });
+
+    inv.status = 'accepted';
+    inv.acceptedDoctorId = doctor.id;
+    inv.acceptedAt = new Date().toISOString();
+    await prisma.appSetting.update({ where: { key }, data: { value: inv } });
+
+    const jwt = (await import('jsonwebtoken')).default;
+    const docToken = jwt.sign({ doctorId: doctor.id, type: 'doctor' }, config.jwtSecret, { expiresIn: '7d' });
+
+    res.json({
+      success: true,
+      token: docToken,
+      doctor: { id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty },
+      patientId: inv.patientId,
+    });
+  } catch (e: any) { res.status(500).json({ error: e?.message }); }
+});
+
+// Novo médico se cadastra rapidamente pelo link e já entra vinculado ao paciente
+app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
+  try {
+    const token = String(req.params.token);
+    const key = `doc_invite:${token}`;
+    const setting = await prisma.appSetting.findUnique({ where: { key } });
+    if (!setting) { res.status(404).json({ error: 'Convite não encontrado.' }); return; }
+
+    const inv = setting.value as any;
+    if (inv.status !== 'pending') { res.status(409).json({ error: `Convite ${inv.status}.` }); return; }
+    if (new Date(inv.expiresAt).getTime() < Date.now()) { res.status(410).json({ error: 'Convite expirado.' }); return; }
+
+    const { name, crm, crmUf, email, password, specialty } = req.body ?? {};
+    if (!name || !crm || !email || !password) {
+      res.status(400).json({ error: 'Nome, CRM, e-mail e senha são obrigatórios.' });
+      return;
+    }
+
+    const { normalizeCrmKey } = await import('./routes/doctor.routes');
+    const norm = normalizeCrmKey(crm, crmUf);
+    const crmKey = norm?.crm ?? String(crm).trim();
+    const uf = norm?.uf ?? (crmUf ? String(crmUf).toUpperCase() : null);
+    const cleanEmail = String(email).trim().toLowerCase();
+
+    // Verifica se já existe médico com este CRM ou E-mail
+    const existing = await prisma.doctor.findFirst({
+      where: { OR: [{ crm: crmKey }, { email: cleanEmail }] },
+    });
+
+    const { hashPassword } = await import('./auth/jwt');
+    const passwordHash = await hashPassword(password);
+    let doctor: any;
+
+    if (existing) {
+      // Se for médico criado como pending-invite (placeholder), claimamos a conta
+      if (existing.passwordHash === 'pending-invite') {
+        doctor = await prisma.doctor.update({
+          where: { id: existing.id },
+          data: {
+            name: String(name).trim(),
+            email: cleanEmail,
+            crm: crmKey,
+            crmUf: uf,
+            specialty: specialty || existing.specialty,
+            passwordHash,
+          },
+        });
+      } else {
+        res.status(409).json({ error: 'already_registered', message: 'Médico já cadastrado com este CRM ou e-mail. Faça login para continuar.' });
+        return;
+      }
+    } else {
+      doctor = await prisma.doctor.create({
+        data: {
+          name: String(name).trim(),
+          crm: crmKey,
+          crmUf: uf,
+          email: cleanEmail,
+          passwordHash,
+          specialty: specialty ? String(specialty).trim() : null,
+        },
+      });
+    }
+
+    // Cria/ativa vínculo com o paciente
+    await prisma.doctorShare.upsert({
+      where: { patientId_doctorId: { patientId: inv.patientId, doctorId: doctor.id } },
+      update: { active: true, scopes: inv.scopes, examIds: inv.examIds, revokedAt: null },
+      create: { patientId: inv.patientId, doctorId: doctor.id, scopes: inv.scopes, examIds: inv.examIds, active: true },
+    });
+
+    inv.status = 'accepted';
+    inv.acceptedDoctorId = doctor.id;
+    inv.acceptedAt = new Date().toISOString();
+    await prisma.appSetting.update({ where: { key }, data: { value: inv } });
+
+    const jwt = (await import('jsonwebtoken')).default;
+    const docToken = jwt.sign({ doctorId: doctor.id, type: 'doctor' }, config.jwtSecret, { expiresIn: '7d' });
+
+    res.status(201).json({
+      success: true,
+      token: docToken,
+      doctor: { id: doctor.id, name: doctor.name, crm: doctor.crm, specialty: doctor.specialty },
+      patientId: inv.patientId,
+    });
+  } catch (e: any) { res.status(500).json({ error: e?.message }); }
+});
+
 // ROTA PÚBLICA: médico vê o resumo compartilhado (sem login, expira em 12 horas)
 app.get('/api/public/shared/:token', shareLimiter, async (req, res) => {
   const token = String(req.params.token);

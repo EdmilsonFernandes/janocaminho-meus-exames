@@ -30,7 +30,7 @@ import {
   ResponsiveContainer, AreaChart, Area, Bar, XAxis, YAxis, Tooltip as RTooltip,
   CartesianGrid, ComposedChart, Line,
 } from 'recharts';
-import { API_URL, token as authToken } from '../../config';
+import { API_URL, token as authToken, doctorPhotoUrl } from '../../config';
 import { tealText } from '../../theme';
 import { CommissionRulesCard } from './CommissionRulesCard';
 
@@ -296,7 +296,7 @@ export const TeleFinanceTab = () => {
           renderOption={(props, option) => (
             <Box component="li" {...props} key={option.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1 }}>
               <Avatar
-                src={option.photoUrl}
+                src={doctorPhotoUrl(option.id)}
                 sx={{ width: 30, height: 30, fontSize: 12, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}
               >
                 {option.name[0]}
@@ -326,7 +326,7 @@ export const TeleFinanceTab = () => {
 
         {doctorId && (
           <Chip
-            avatar={<Avatar src={doctors.find((d) => d.id === doctorId)?.photoUrl}>{doctors.find((d) => d.id === doctorId)?.name[0] ?? 'M'}</Avatar>}
+            avatar={<Avatar src={doctorPhotoUrl(doctorId)}>{doctors.find((d) => d.id === doctorId)?.name[0] ?? 'M'}</Avatar>}
             label={`${doctors.find((d) => d.id === doctorId)?.name ?? 'Médico'} (Filtro Ativo)`}
             onDelete={() => setDoctorId('')}
             sx={{ borderRadius: '10px', fontWeight: 700, bgcolor: 'rgba(32,178,170,.14)', color: tealText(mode) }}
@@ -698,14 +698,15 @@ export const TeleFinanceTab = () => {
                     <TableRow key={doc.id} hover selected={doc.id === doctorId}>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={1.25}>
-                          <Avatar src={doc.photoUrl} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}>
+                          <Avatar src={doctorPhotoUrl(doc.id)} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 700, bgcolor: 'primary.main', color: '#fff' }}>
                             {doc.name[0]}
                           </Avatar>
                           <Typography sx={{ fontWeight: 700, fontSize: 13.5 }}>{doc.name}</Typography>
                         </Stack>
                       </TableCell>
                       <TableCell sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
-                        {doc.crm}{doc.crmUf ? `-${doc.crmUf}` : ''}
+                        {/* CRM normalizado: crm já vem "12345-SP" — UF separada só quando falta (bug "126454-SP-SP"). */}
+                        {doc.crmUf && !doc.crm.toUpperCase().endsWith(`-${doc.crmUf.toUpperCase()}`) ? `${doc.crm}-${doc.crmUf}` : doc.crm}
                       </TableCell>
                       <TableCell sx={{ fontSize: 13, color: 'text.secondary' }}>
                         {doc.specialty || 'Clínica Geral'}

@@ -17,17 +17,19 @@ import { confirmDialog } from './ConfirmDialog';
  * saúde, então NÃO mandamos pra serviço externo de QR (vazaria o token). PIN segue separado.
  * Permite REVOGAR o acesso (limpa token+PIN → corte imediato).
  */
-export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string; open: boolean; onClose: () => void }) => {
+export const ShareDialog = ({ analysisId, patientId, open, onClose }: { analysisId?: string; patientId?: string; open: boolean; onClose: () => void }) => {
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down('sm'));
+  const [shareMode, setShareMode] = useState<'magic' | 'pin'>('magic');
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<{ link: string; pin: string } | null>(null);
+  const [magicData, setMagicData] = useState<{ token: string; inviteUrl: string; message: string } | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [revoking, setRevoking] = useState(false);
   const [revoked, setRevoked] = useState(false);
   const [error, setError] = useState('');
 
-  const generate = async () => {
+  const generatePinShare = async () => {
     if (!analysisId) return;
     setLoading(true); setError(''); setData(null); setQr(null); setRevoked(false);
     try {
@@ -41,14 +43,34 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
     setLoading(false);
   };
 
+  const generateMagicInvite = async () => {
+    setLoading(true); setError(''); setMagicData(null);
+    try {
+      const r = await fetch(`${API_URL}/doctor-shares/invite-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ patientId }),
+      });
+      if (!r.ok) throw new Error('Falha ao gerar convite mágico');
+      const d = await r.json();
+      setMagicData(d);
+    } catch (e: any) { setError(e.message); }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    if (open) {
+      if (shareMode === 'magic') void generateMagicInvite();
+      else void generatePinShare();
+    }
+  }, [open, shareMode, analysisId, patientId]);
+
   // QR client-side (não vaza o token p/ terceiros).
   useEffect(() => {
     if (!data?.link) { setQr(null); return; }
     QRCode.toDataURL(data.link, { margin: 1, width: 240, color: { dark: '#0f5f5a', light: '#ffffff' } })
       .then(setQr).catch(() => setQr(null));
   }, [data]);
-
-  useEffect(() => { if (open) generate(); /* eslint-disable-next-line */ }, [open, analysisId]);
 
   const copy = (text: string) => navigator.clipboard?.writeText(text);
 
@@ -64,66 +86,157 @@ export const ShareDialog = ({ analysisId, open, onClose }: { analysisId?: string
     setRevoking(false);
   };
 
-  const whats = data
+  const whatsPin = data
     ? `https://wa.me/?text=${encodeURIComponent(`Olá, Doutor(a)! 👋\n\nOrganizei todo o meu histórico de exames laboratoriais na plataforma Dr. Exame com linha do tempo e inteligência clínica para facilitar nossa consulta.\n\n🔗 Acesse meu resumo seguro aqui:\n${data.link}\n\n🔑 Senha de acesso (PIN): ${data.pin}\n(Link criptografado válido por 12 horas)\n\n👨‍⚕️ Médico: você também pode acompanhar meus próximos exames gratuitamente criando sua conta no Portal do Médico Dr. Exame (drexame.janocaminho.com.br/doctor).`)}`
     : '';
 
+  const whatsMagic = magicData
+    ? `https://wa.me/?text=${encodeURIComponent(magicData.message)}`
+    : '';
+
   return (
-    <Dialog open={open} onClose={onClose} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, minWidth: { xs: 320, sm: 440 } } }}>
+    <Dialog open={open} onClose={onClose} fullScreen={fullScreen} PaperProps={{ sx: { borderRadius: fullScreen ? 0 : 3, minWidth: { xs: 320, sm: 480 } } }}>
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1 }}>
-        🔗 Compartilhar com o médico
+        <Typography sx={{ fontWeight: 800, fontSize: 18, color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <span>📲</span> Compartilhar com o Médico
+        </Typography>
         <IconButton onClick={onClose} size="small"><CloseIcon /></IconButton>
       </DialogTitle>
-      <DialogContent>
-        {loading && <Box sx={{ textAlign: 'center', py: 2 }}><CircularProgress size={26} /></Box>}
-        {error && <Alert severity="error">{error}</Alert>}
 
-        {revoked && (
-          <Alert severity="info" sx={{ borderRadius: '12px' }} icon={<LockIcon />}>Acesso revogado. O link e o QR não funcionam mais. Gere um novo se precisar.</Alert>
-        )}
+      <DialogContent sx={{ pt: 1 }}>
+        {/* Seletor de Modo */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2.5, p: 0.5, bgcolor: 'action.hover', borderRadius: '12px' }}>
+          <Button
+            fullWidth
+            size="small"
+            onClick={() => setShareMode('magic')}
+            sx={{
+              borderRadius: '8px',
+              py: 0.75,
+              fontSize: 12.5,
+              fontWeight: 700,
+              textTransform: 'none',
+              bgcolor: shareMode === 'magic' ? 'background.paper' : 'transparent',
+              color: shareMode === 'magic' ? '#0f766e' : 'text.secondary',
+              boxShadow: shareMode === 'magic' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+              '&:hover': { bgcolor: shareMode === 'magic' ? 'background.paper' : 'transparent' },
+            }}
+          >
+            🚀 WhatsApp (Sem CRM)
+          </Button>
+          <Button
+            fullWidth
+            size="small"
+            onClick={() => setShareMode('pin')}
+            sx={{
+              borderRadius: '8px',
+              py: 0.75,
+              fontSize: 12.5,
+              fontWeight: 700,
+              textTransform: 'none',
+              bgcolor: shareMode === 'pin' ? 'background.paper' : 'transparent',
+              color: shareMode === 'pin' ? '#0f766e' : 'text.secondary',
+              boxShadow: shareMode === 'pin' ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
+              '&:hover': { bgcolor: shareMode === 'pin' ? 'background.paper' : 'transparent' },
+            }}
+          >
+            🔑 Laudo com PIN (12h)
+          </Button>
+        </Stack>
 
-        {data && (
+        {loading && <Box sx={{ textAlign: 'center', py: 3 }}><CircularProgress size={28} sx={{ color: '#0f766e' }} /></Box>}
+        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>{error}</Alert>}
+
+        {/* MODO 1: CONVITE VIRAL WHATSAPP (SEM CRM) */}
+        {shareMode === 'magic' && magicData && !loading && (
           <Box>
-            <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }}>✅ Link seguro gerado! Válido por <b>12 horas</b>.</Alert>
-
-            {/* QR — médico escaneia presencialmente (recepcionista, consulta) */}
-            {qr && (
-              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
-                <Box component="img" src={qr} alt="QR de acesso" sx={{ width: 168, height: 168, borderRadius: '12px', p: 1, bgcolor: '#fff', border: '1px solid #e2e8f0' }} />
-                <Typography variant="caption" sx={{ mt: 0.5, display: 'inline-flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}><QrCode2Icon sx={{ fontSize: 14 }} /> Mostre este QR — o médico escaneia e digita a senha.</Typography>
-              </Box>
-            )}
-
-            <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>Link de acesso</Typography>
-            <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
-              <TextField value={data.link} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 12 } }} />
-              <IconButton onClick={() => copy(data.link)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
-            </Stack>
-            <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>🔑 Senha (envie ao médico separadamente do link)</Typography>
-            <Typography sx={{ fontSize: 30, fontWeight: 800, letterSpacing: 8, color: '#0369a1', textAlign: 'center', py: 1, my: 0.5, bgcolor: '#f0f8fc', borderRadius: '12px', border: '1px dashed #0369a1' }}>
-              {data.pin}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">Dica: mande o link por um canal e a senha por outro (mais seguro).</Typography>
-
-            <Alert severity="info" sx={{ mt: 2, borderRadius: '12px', fontSize: 12 }}>
-              💡 <b>Dica para a consulta:</b> Envie no WhatsApp do médico ou da clínica antes da consulta. O médico poderá abrir no computador do consultório e ver gráficos comparativos de todos os seus exames.
+            <Alert severity="success" sx={{ mb: 2, borderRadius: '12px', fontSize: 13 }}>
+              ✨ <b>Zero fricção:</b> Você não precisa saber o CRM do médico! Ele clica no link, preenche os dados profissionais e já se conecta direto ao seu prontuário.
             </Alert>
+
+            <Typography variant="subtitle2" sx={{ color: '#0f766e', fontWeight: 800, mb: 0.5 }}>Link exclusivo do seu prontuário</Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 2, alignItems: 'center' }}>
+              <TextField value={magicData.inviteUrl} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 12 } }} />
+              <IconButton onClick={() => copy(magicData.inviteUrl)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
+            </Stack>
+
+            <Box sx={{ p: 2, bgcolor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', mb: 2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: '#16a34a', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                Mensagem que será enviada no WhatsApp:
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#14532d', fontSize: 12.5, fontStyle: 'italic', whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                {magicData.message}
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              fullWidth
+              startIcon={<WhatsAppIcon sx={{ color: '#fff' }} />}
+              onClick={() => window.open(whatsMagic, '_blank')}
+              sx={{
+                py: 1.25,
+                bgcolor: '#25D366',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 14,
+                textTransform: 'none',
+                borderRadius: '10px',
+                boxShadow: '0 4px 14px rgba(37, 211, 102, 0.3)',
+                '&:hover': { bgcolor: '#128C7E' },
+              }}
+            >
+              Abrir WhatsApp e Enviar ao Médico
+            </Button>
           </Box>
         )}
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        {data && (
+
+        {/* MODO 2: LINK COM PIN (12 HORAS) */}
+        {shareMode === 'pin' && (
           <>
-            <Button variant="contained" startIcon={<WhatsAppIcon sx={{ color: '#fff' }} />} onClick={() => window.open(whats, '_blank')} sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: '#128C7E' } }}>
-              Enviar no WhatsApp do Médico
-            </Button>
-            <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#ef4444', textTransform: 'none', fontWeight: 700 }}>
-              {revoking ? 'Revogando…' : 'Revogar acesso'}
-            </Button>
+            {revoked && (
+              <Alert severity="info" sx={{ borderRadius: '12px' }} icon={<LockIcon />}>Acesso revogado. O link e o QR não funcionam mais.</Alert>
+            )}
+
+            {data && !loading && (
+              <Box>
+                <Alert severity="success" sx={{ mb: 2, borderRadius: '12px' }}>✅ Link seguro gerado! Válido por <b>12 horas</b>.</Alert>
+
+                {qr && (
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+                    <Box component="img" src={qr} alt="QR de acesso" sx={{ width: 140, height: 140, borderRadius: '12px', p: 1, bgcolor: '#fff', border: '1px solid #e2e8f0' }} />
+                    <Typography variant="caption" sx={{ mt: 0.5, color: 'text.secondary' }}>Mostre este QR no consultório</Typography>
+                  </Box>
+                )}
+
+                <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>Link de acesso</Typography>
+                <Stack direction="row" spacing={1} sx={{ mb: 1.5, alignItems: 'center' }}>
+                  <TextField value={data.link} size="small" fullWidth InputProps={{ readOnly: true }} sx={{ '& .MuiInputBase-input': { fontSize: 12 } }} />
+                  <IconButton onClick={() => copy(data.link)} color="primary" title="Copiar link"><ContentCopyIcon /></IconButton>
+                </Stack>
+                <Typography variant="subtitle2" sx={{ color: '#0369a1' }}>🔑 Senha (PIN de 6 dígitos)</Typography>
+                <Typography sx={{ fontSize: 26, fontWeight: 800, letterSpacing: 6, color: '#0369a1', textAlign: 'center', py: 0.75, my: 0.5, bgcolor: '#f0f8fc', borderRadius: '10px', border: '1px dashed #0369a1' }}>
+                  {data.pin}
+                </Typography>
+
+                <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                  <Button variant="contained" fullWidth startIcon={<WhatsAppIcon sx={{ color: '#fff' }} />} onClick={() => window.open(whatsPin, '_blank')} sx={{ bgcolor: '#25D366', color: '#fff', fontWeight: 700, textTransform: 'none', '&:hover': { bgcolor: '#128C7E' } }}>
+                    Enviar no WhatsApp
+                  </Button>
+                  <Button disabled={revoking} startIcon={<LockIcon />} onClick={revoke} sx={{ color: '#ef4444', textTransform: 'none', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                    {revoking ? 'Revogando…' : 'Revogar'}
+                  </Button>
+                </Stack>
+              </Box>
+            )}
           </>
         )}
-        <Button onClick={onClose}>Fechar</Button>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, pb: 2 }}>
+        <Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>Fechar</Button>
       </DialogActions>
     </Dialog>
   );
 };
+

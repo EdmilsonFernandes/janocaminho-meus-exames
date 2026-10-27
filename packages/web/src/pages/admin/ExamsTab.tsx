@@ -59,6 +59,18 @@ const STATUS_COLOR: Record<string, 'success' | 'error' | 'warning' | 'info' | 'd
   REJECTED: 'error',
 };
 
+/** Dono 26/10 ("sempre português"): status da extração em PT na UI do admin. */
+const STATUS_LABEL: Record<string, string> = {
+  UPLOADED: 'Enviado',
+  EXTRACTING: 'Extraindo',
+  EXTRACTED: 'Extraído',
+  FAILED: 'Falha',
+  DUPLICATE: 'Duplicado',
+  REJECTED: 'Rejeitado',
+  IDENTITY_REJECTED: 'CPF divergente',
+};
+const statusLabel = (s: string) => STATUS_LABEL[s] ?? s;
+
 const FAILURE_REASONS = [
   { id: 'low_quality', label: 'Foto ilegível, baixa resolução ou tremida' },
   { id: 'cut_off', label: 'Documento cortado ou sem cabeçalho do laboratório' },
@@ -362,7 +374,7 @@ export const ExamsTab = () => {
               return (
                 <Chip
                   key={s.status}
-                  label={`${s.status}: ${s._count}`}
+                  label={`${statusLabel(s.status)}: ${s._count}`}
                   onClick={() => setStatusFilter(active ? 'ALL' : s.status)}
                   variant={active ? 'filled' : 'outlined'}
                   color={col}
@@ -562,7 +574,7 @@ export const ExamsTab = () => {
                                   <Chip
                                     size="small"
                                     color={STATUS_COLOR[e.status] ?? 'default'}
-                                    label={e.status}
+                                    label={statusLabel(e.status)}
                                     sx={{ height: 20, fontSize: 11, fontWeight: 800 }}
                                   />
                                   <Typography sx={{ fontWeight: 700, fontSize: 13.5, color: 'text.primary' }}>
@@ -652,7 +664,7 @@ export const ExamsTab = () => {
                   <Chip
                     size="small"
                     color={STATUS_COLOR[e.status] ?? 'default'}
-                    label={e.status}
+                    label={statusLabel(e.status)}
                     sx={{ height: 22, fontSize: 11.5, fontWeight: 700 }}
                   />
                   <Typography sx={{ fontWeight: 700, flex: 1, minWidth: 0, wordBreak: 'break-word', fontSize: 14 }}>

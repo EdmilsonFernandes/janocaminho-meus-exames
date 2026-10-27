@@ -11,7 +11,7 @@ import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined';
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined';
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined';
 import AccessTimeOutlinedIcon from '@mui/icons-material/AccessTimeOutlined';
-import { API_URL, token } from '../../config';
+import { API_URL, token, photoUrlFor } from '../../config';
 
 interface UsageRow {
   userId: string;
@@ -205,7 +205,7 @@ export const UsageTab = () => {
                 {/* Header: avatar + nome + saldo */}
                 <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
                   <Stack direction="row" alignItems="center" spacing={1} sx={{ flex: 1, minWidth: 0 }}>
-                    <Avatar sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
+                    <Avatar src={(r as any).hasPhoto && (r as any).patientId ? photoUrlFor((r as any).patientId) : undefined} sx={{ width: 34, height: 34, fontSize: 13, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
                       {(r.name || r.email).slice(0, 2).toUpperCase()}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -334,7 +334,7 @@ export const UsageTab = () => {
                       </TableCell>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={1.25}>
-                          <Avatar sx={{ width: 32, height: 32, fontSize: 12, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
+                          <Avatar src={(r as any).hasPhoto && (r as any).patientId ? photoUrlFor((r as any).patientId) : undefined} sx={{ width: 32, height: 32, fontSize: 12, fontWeight: 800, bgcolor: 'primary.main', color: '#fff' }}>
                             {(r.name || r.email).slice(0, 2).toUpperCase()}
                           </Avatar>
                           <Box sx={{ minWidth: 0 }}>

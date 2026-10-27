@@ -69,7 +69,7 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
               // Foto de perfil = Dr. Exame Pro (dono 23/10). Free: iniciais + cadeado
               // (o server nega upload/serviço — aqui só comunica o porquê).
               <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
-                <Avatar sx={{ width: 84, height: 84, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), fontSize: 32, fontWeight: 800, borderRadius: '20px' }}>{doctor?.name?.charAt(0) ?? '?'}</Avatar>
+                <Avatar src={doctor?.photoUrl ? doctorPhotoUrl(doctor.id, photoVer) : undefined} sx={{ width: 84, height: 84, bgcolor: 'rgba(32,178,170,.15)', color: (t) => tealText(t.palette.mode), fontSize: 32, fontWeight: 800, borderRadius: '20px' }}>{doctor?.name?.charAt(0) ?? '?'}</Avatar>
                 <Box
                   sx={{
                     position: 'absolute', bottom: -4, right: -4,

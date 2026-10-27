@@ -45,7 +45,13 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     if (q.done !== undefined) where.done = q.done === 'true';
     const [total, rows] = await prisma.$transaction([
       prisma.reminder.count({ where }),
-      prisma.reminder.findMany({ where, skip: start, take, orderBy: { dueDate: 'asc' } }),
+      prisma.reminder.findMany({
+        where,
+        skip: start,
+        take,
+        orderBy: { dueDate: 'asc' },
+        include: { patient: { select: { id: true, fullName: true, relationship: true, photoUrl: true } } },
+      }),
     ]);
 
     // Enriquecimento com dados do médico (se agendado via Portal do Médico)
@@ -77,6 +83,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       // único caminho de entrada até o paidAt. Paga (ou sem cobrança) → link normal.
       ...(r.type === 'teleconsulta' && (r.consultPriceCents ?? 0) > 0 && !r.paidAt ? { linkUrl: null } : {}),
       doctor: r.createdByDoctorId ? docMap[r.createdByDoctorId] ?? null : null,
+      patient: r.patient ? { id: r.patient.id, name: r.patient.fullName, relationship: r.patient.relationship, photoUrl: r.patient.photoUrl } : null,
       consultSummaryApproved: approvedSummaryIds.has(r.id),
     }));
 

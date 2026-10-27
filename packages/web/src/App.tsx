@@ -102,6 +102,7 @@ import { AdminPage } from './pages/admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
 import { InviteLandingPage } from './pages/InviteLanding';
+import { DoctorInviteLandingPage } from './pages/DoctorInviteLanding';
 import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
@@ -1438,6 +1439,8 @@ export const App = () => {
       <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/entender-exames-de-sangue" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
       <Route path="/convite/:token" element={<InviteLandingPage />} />
+      <Route path="/dr/vinculo" element={<DoctorInviteLandingPage />} />
+      <Route path="/doctor/vincular" element={<DoctorInviteLandingPage />} />
       <Route path="/termos" element={<TermsPage />} />
       <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
       <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />

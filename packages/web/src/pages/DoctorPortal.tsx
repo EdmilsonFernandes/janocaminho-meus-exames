@@ -617,20 +617,44 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     if (mine()) setDetailLoading(false);
   };
 
+  const focusTab = (targetTab: string) => {
+    setTab(targetTab);
+    setSelExam(null);
+    setTimeout(() => {
+      const el = document.getElementById('patient-tabs-section');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 60);
+  };
+
   const refreshPatientDetail = async () => {
     if (!selected) return;
     setDetailLoading(true);
     const pid = selected.patient.id;
     const pScopes: string[] = selected.scopes ?? [];
-    const get = async (path: string) => { try { const r = await fetch(`${API_URL}/doctor/patients/${pid}${path}`, { headers: h }); return r.ok ? await r.json() : null; } catch { return null; } };
+    const get = async (path: string) => {
+      try {
+        const sep = path.includes('?') ? '&' : '?';
+        const r = await fetch(`${API_URL}/doctor/patients/${pid}${path}${sep}_t=${Date.now()}`, {
+          headers: { ...h, 'Cache-Control': 'no-cache' },
+          cache: 'no-store',
+        });
+        return r.ok ? await r.json() : null;
+      } catch { return null; }
+    };
     const wantExams = pScopes.includes('exams');
     await Promise.allSettled([
       ...(wantExams ? [get('/exams').then((d) => { if (d) setExams(d.items ?? []); })] : []),
       ...(wantExams ? [get('/items/abnormal').then((d) => { if (d) setAbnormalItems(d.items ?? []); })] : []),
+      ...(wantExams ? [get('/activity').then((d) => { if (d) setActivity(d?.days ? d : null); })] : []),
       ...(wantExams ? [get('/risk').then((d) => { if (d) setRiskInfo({ newDataReceived: !!d.newDataReceived, createdAt: d.createdAt ?? null }); })] : []),
+      get('/questions').then((d) => { if (d) setQuestions(d.items ?? []); }),
+      get('/notes').then((d) => { if (d) setNotes(d.items ?? []); }),
       get('/medications').then((d) => { if (d) setMedsInfo({ medications: d.medications ?? [], critical: d.critical ?? [] }); }),
       get('/teleconsultas').then((d) => { if (d) setPatientTele(d?.items ?? []); }),
     ]);
+    void loadPatients();
     setDetailLoading(false);
     snackbar({ message: 'Análise clínica e exames atualizados!', severity: 'success' });
   };
@@ -1184,11 +1208,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             direita em 390px). No desktop (row) flex-start continua: colunas alinham ao topo. */}
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'flex-start' } }}>
 
-        {/* LISTA DE PACIENTES — mobile: SOME quando paciente selecionado (o "← Voltar" do
-            header retorna à lista; antes a lista empilhava EM CIMA do prontuário — feedback
-            do dono). Desktop: rail master/detail permanece ao lado (comportamento que já
-            estava certo na web). */}
-        {view === 'patients' && !loading && (!selected || isDesktop) && (
+        {/* LISTA DE PACIENTES — SOME quando paciente selecionado, liberando largura total pro prontuário (feedback do dono). */}
+        {view === 'patients' && !loading && !selected && (
           <Box sx={{ width: { xs: '100%', md: selected ? 320 : '100%' }, flexShrink: 0 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5 }}>
               <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary' }}>Pacientes ({patients.length})</Typography>
@@ -1289,11 +1310,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               notes={notes}
               patients={patients}
               onSwitchPatient={(pid) => { const np = patients.find((x: any) => (x.patient?.id || x.id) === pid); if (np) openPatient(np); }}
-              onOpenExam={(id) => setSelExam(id)}
-              onAlterados={() => { if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); } }}
-              onOpenExams={() => { setTab('exams'); setSelExam(null); }}
-              onOpenQuestions={() => { setTab('questions'); setSelExam(null); }}
-              onOpenNotes={() => { setTab('notes'); setSelExam(null); }}
+              onOpenExam={(id) => { setSelExam(id); focusTab('exams'); }}
+              onAlterados={() => focusTab('alterados')}
+              onOpenExams={() => focusTab('exams')}
+              onOpenQuestions={() => focusTab('questions')}
+              onOpenNotes={() => focusTab('notes')}
+              onOpenActivity={() => focusTab('exams')}
               medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
               criticalMeds={medsInfo?.critical?.length ?? 0}
               onOpenMeds={() => setMedsOpen(true)}
@@ -1660,7 +1682,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             />
 
             {supportedTabs.length > 0 && (
-              <Box sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
+              <Box id="patient-tabs-section" sx={{ position: 'sticky', top: 'env(safe-area-inset-top)', zIndex: 10, bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider', mx: -2, px: 2, mt: { xs: -0.5, lg: 0 }, mb: 2 }}>
                 <Tabs
                   /* A aba ativa pode ser um destino de TILE (questions/notes) que não está na
                      barra — value=false evita warning do MUI e mantém nenhuma aba marcada. */

@@ -139,99 +139,211 @@ export const MeasurementsPage = () => {
     return d.avg7 != null ? `média 7d ${fmtAvg(d.avg7, t.u)}` : '';
   };
 
+  // Classificação Inteligente de UX: Métricas com dados vivos ficam no topo;
+  // Métricas sem nenhum registro vão para a grade compacta de adição rápida.
+  const activeTypes = TILE_TYPES.filter((t) => !!byType.get(t.v)?.latest);
+  const emptyTypes = TILE_TYPES.filter((t) => !byType.get(t.v)?.latest);
+  const hasWeight = weights.length > 0;
+
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
       <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
 
-      {/* PESO — destaque com tendência (vazio COMPACTO: não gasta uma tela com empty state) */}
-      <Card sx={{
-        mb: 2, borderRadius: '16px', overflow: 'hidden',
-        background: (t) => t.palette.mode === 'dark'
-          ? 'linear-gradient(135deg, rgba(20,35,35,0.85), rgba(15,25,25,0.75))'
-          : 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(255,255,255,.9))',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        border: '1px solid', borderColor: 'rgba(32,178,170,.22)',
-        boxShadow: '0 8px 24px rgba(32,178,170,0.06)'
-      }}>
-        <CardContent>
-          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: weights.length === 0 ? 0 : 1 }}>
-            <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
-            <Typography variant="h6">Peso</Typography>
-          </Stack>
-          {weights.length === 0 ? (
-            <Stack direction="row" alignItems="center" spacing={1.25} useFlexGap flexWrap="wrap">
-              <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>Nenhum registro ainda — registre e acompanhe sua tendência.</Typography>
-              <Button size="small" variant="outlined" startIcon={<AddIcon />} onClick={() => openForm('WEIGHT')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Registrar</Button>
+      {/* SEÇÃO 1: PESO (se tiver dados, aparece em destaque) */}
+      {hasWeight && (
+        <Card sx={{
+          mb: 2.5, borderRadius: '16px', overflow: 'hidden',
+          background: (t) => t.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(20,35,35,0.85), rgba(15,25,25,0.75))'
+            : 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(255,255,255,.9))',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          border: '1px solid', borderColor: 'rgba(32,178,170,.22)',
+          boxShadow: '0 8px 24px rgba(32,178,170,0.06)'
+        }}>
+          <CardContent>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
+              <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
+              <Typography variant="h6">Peso Corporal</Typography>
             </Stack>
-          ) : (
-            <>
-              <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
-                <Stack direction="row" alignItems="baseline" spacing={0.5}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 32, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>{latestWeight.value}</Typography>
-                  <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
-                </Stack>
-                {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
-                  const up = Number(latestWeight.value) > Number(prevWeight.value);
-                  const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
-                  return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#9a3412' : '#166534' }} />;
-                })()}
-                <Sparkline points={[...weights].reverse().slice(-10).map((m) => ({ value: Number(m.value), date: m.measuredAt }))} width={96} height={32} />
+            <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
+              <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                <Typography sx={{ fontWeight: 800, fontSize: 32, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>{latestWeight.value}</Typography>
+                <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
               </Stack>
-              <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
-              {weights.length > 1 && (
-                <Stack spacing={0.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
-                  {weights.slice(1, 5).map((m) => (
-                    <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center">
-                      <Typography variant="body2" color="text.secondary">{fmtDate(m.measuredAt)}</Typography>
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Typography sx={{ fontWeight: 700 }}>{m.value} kg</Typography>
-                        <IconButton size="small" onClick={() => del(m.id)} sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
-                      </Stack>
+              {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
+                const up = Number(latestWeight.value) > Number(prevWeight.value);
+                const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
+                return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#9a3412' : '#166534' }} />;
+              })()}
+              <Sparkline points={[...weights].reverse().slice(-10).map((m) => ({ value: Number(m.value), date: m.measuredAt }))} width={96} height={32} />
+            </Stack>
+            <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
+            {weights.length > 1 && (
+              <Stack spacing={0.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                {weights.slice(1, 4).map((m) => (
+                  <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center">
+                    <Typography variant="body2" color="text.secondary">{fmtDate(m.measuredAt)}</Typography>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography sx={{ fontWeight: 700 }}>{m.value} kg</Typography>
+                      <IconButton size="small" onClick={() => del(m.id)} sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
                     </Stack>
-                  ))}
-                </Stack>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* CENTRAL DE SINAIS — um tile por métrica (último valor + média 7d + sparkline).
-          Toque → histórico completo. A lista bruta diária agora mora no detalhe. */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25, mb: 2 }}>
-        {TILE_TYPES.map((t) => {
-          const d = byType.get(t.v);
-          const hasData = !!d?.latest;
-          return (
-            <AppCard
-              key={t.v}
-              kind="interactive"
-              role="button"
-              tabIndex={0}
-              onClick={() => navigate(`/medicoes/historico/${t.v}`)}
-              onKeyDown={(e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/medicoes/historico/${t.v}`); } }}
-              aria-label={`Ver histórico de ${t.l}`}
-              sx={{ p: 1.5, height: '100%', display: 'flex', flexDirection: 'column', gap: 0.5, '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 } }}
-            >
-              <Stack direction="row" alignItems="center" spacing={0.5} sx={{ minWidth: 0 }}>
-                <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
-                <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: t.color }}>{t.l}</Typography>
+                  </Stack>
+                ))}
               </Stack>
-              {hasData ? (
-                <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
-                  {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}> {t.u}</Typography>
-                </Typography>
-              ) : (
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 20, lineHeight: 1.1, color: 'text.disabled' }}>—</Typography>
-              )}
-              <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', minHeight: 13 }}>{tileSub(t, d)}</Typography>
-              <Box sx={{ mt: 'auto', minHeight: 26, display: 'flex', alignItems: 'flex-end' }}>
-                {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={84} height={24} />}
-              </Box>
-              {t.synced && hasData && <Typography sx={{ fontSize: 12, color: 'text.disabled' }}>via Health Connect</Typography>}
-            </AppCard>
-          );
-        })}
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* SEÇÃO 2: MÉTRICAS ATIVAS COM DADOS (HEALTH CONNECT & SENSORES) */}
+      {activeTypes.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography
+            sx={{
+              fontSize: 12.5,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+              color: 'text.secondary',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.75,
+              mb: 1.5,
+            }}
+          >
+            <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#10b981' }} />
+            Métricas Sincronizadas Hoje (Health Connect & Dispositivos)
+          </Typography>
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.5 }}>
+            {activeTypes.map((t) => {
+              const d = byType.get(t.v);
+              return (
+                <AppCard
+                  key={t.v}
+                  kind="interactive"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => navigate(`/medicoes/historico/${t.v}`)}
+                  sx={{
+                    p: 2,
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.75,
+                    borderRadius: '16px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
+                    transition: 'transform 0.2s ease, border-color 0.2s ease',
+                    '&:hover': { transform: 'translateY(-2px)', borderColor: '#0d9488' },
+                  }}
+                >
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ minWidth: 0 }}>
+                    <Stack direction="row" alignItems="center" spacing={0.75} sx={{ minWidth: 0 }}>
+                      <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
+                      <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
+                    </Stack>
+                    <Chip size="small" label="Ao Vivo" sx={{ height: 18, fontSize: 9.5, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#065f46' }} />
+                  </Stack>
+
+                  <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 22, sm: 26 }, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', my: 0.5 }}>
+                    {fmtVal(d!.latest)}<Typography component="span" sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 600 }}> {t.u}</Typography>
+                  </Typography>
+
+                  <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', minHeight: 14 }}>{tileSub(t, d)}</Typography>
+
+                  <Box sx={{ mt: 'auto', minHeight: 28, display: 'flex', alignItems: 'flex-end' }}>
+                    {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={110} height={28} />}
+                  </Box>
+                </AppCard>
+              );
+            })}
+          </Box>
+        </Box>
+      )}
+
+      {/* SEÇÃO 3: OUTRAS MEDIÇÕES (SEM DADOS ATUAIS - GRADE COMPACTA DE ADIÇÃO) */}
+      <Box sx={{ mb: 3 }}>
+        <Typography
+          sx={{
+            fontSize: 12.5,
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+            color: 'text.secondary',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.75,
+            mb: 1.5,
+          }}
+        >
+          <span>➕</span> Adicionar Outras Medições Rápidas (Sem Dados Atuais)
+        </Typography>
+
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 1.25 }}>
+          {/* Se Peso estiver sem dados, entra aqui como tile compacto */}
+          {!hasWeight && (
+            <Card
+              variant="outlined"
+              onClick={() => openForm('WEIGHT')}
+              sx={{
+                p: 1.5,
+                borderRadius: '12px',
+                borderStyle: 'dashed',
+                borderColor: 'divider',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#f8fafc',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 85,
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
+              }}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <MonitorWeightIcon sx={{ fontSize: 16, color: '#20b2aa' }} />
+                  <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>Peso</Typography>
+                </Stack>
+                <Chip size="small" label="+ Adicionar" sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>Último: não informado</Typography>
+            </Card>
+          )}
+
+          {emptyTypes.map((t) => (
+            <Card
+              key={t.v}
+              variant="outlined"
+              onClick={() => openForm(t.v)}
+              sx={{
+                p: 1.5,
+                borderRadius: '12px',
+                borderStyle: 'dashed',
+                borderColor: 'divider',
+                bgcolor: (tTheme) => tTheme.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#f8fafc',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                minHeight: 85,
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
+              }}
+            >
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                <Stack direction="row" spacing={0.5} alignItems="center">
+                  <Box sx={{ color: t.color, display: 'inline-flex' }}>{t.icon}</Box>
+                  <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
+                </Stack>
+                <Chip size="small" label={t.synced ? '+ Conectar' : '+ Adicionar'} sx={{ height: 20, fontSize: 10, fontWeight: 700, bgcolor: 'background.paper', color: '#0f766e', border: '1px solid rgba(15,118,110,0.3)' }} />
+              </Stack>
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                {t.synced ? 'Via Health Connect' : 'Último: não informado'}
+              </Typography>
+            </Card>
+          ))}
+        </Box>
       </Box>
 
       {/* SAÚDE MENTAL — entrada do PHQ-9/GAD-7 (recurso gratuito, 2 min). Card aqui na

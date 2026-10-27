@@ -149,4 +149,86 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// ── CONVITE VIRAL AO MÉDICO VIA WHATSAPP (SEM FRICÇÃO DE CRM) ──
+// Gera um link mágico seguro para o paciente enviar no WhatsApp do médico.
+router.post('/invite-link', async (req: AuthedRequest, res, next) => {
+  try {
+    const { patientId, scopes, examIds } = req.body ?? {};
+    const pids = await userPatientIds(req.userId!);
+    const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
+    if (!pid) { res.status(400).json({ error: 'Nenhum paciente selecionado.' }); return; }
+
+    const patient = await prisma.patient.findUnique({
+      where: { id: pid },
+      select: { id: true, fullName: true, relationship: true },
+    });
+    if (!patient) { res.status(404).json({ error: 'Paciente não encontrado.' }); return; }
+
+    // Token criptograficamente seguro e opaco (18 bytes = 36 hex)
+    const { randomBytes } = await import('crypto');
+    const token = randomBytes(18).toString('hex');
+    const selectedScopes = Array.isArray(scopes) && scopes.length ? scopes : ['exams', 'evolution', 'alerts', 'summary'];
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 dias
+
+    const payload = {
+      token,
+      patientId: patient.id,
+      ownerId: req.userId!,
+      patientName: patient.fullName,
+      scopes: selectedScopes,
+      examIds: Array.isArray(examIds) ? examIds : [],
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      expiresAt,
+      acceptedDoctorId: null,
+      acceptedAt: null,
+    };
+
+    await prisma.appSetting.upsert({
+      where: { key: `doc_invite:${token}` },
+      update: { value: payload as any },
+      create: { key: `doc_invite:${token}`, value: payload as any },
+    });
+
+    const inviteUrl = `${webUrl('/#/dr/vinculo')}?token=${token}`;
+    const message = `Olá Dr(a)! 👋\n\nOrganizei meus exames laboratoriais e histórico de saúde na plataforma Dr. Exame.\n\nCriei um acesso direto e seguro para visualizar meus laudos, comparativos e gráficos de evolução aqui:\n${inviteUrl}\n\nAo abrir pelo link, sua conta já se conecta automaticamente ao meu prontuário!`;
+
+    res.status(201).json({
+      token,
+      inviteUrl,
+      message,
+      patientName: patient.fullName,
+      expiresAt,
+    });
+  } catch (e) { next(e); }
+});
+
+// Revogar convite viral
+router.delete('/invite-link/:token', async (req: AuthedRequest, res, next) => {
+  try {
+    const token = String(req.params.token);
+    const key = `doc_invite:${token}`;
+    const setting = await prisma.appSetting.findUnique({ where: { key } });
+    if (!setting) { res.status(404).json({ error: 'Convite não encontrado.' }); return; }
+
+    const inv = setting.value as any;
+    if (inv.ownerId !== req.userId) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+
+    inv.status = 'revoked';
+    inv.revokedAt = new Date().toISOString();
+    await prisma.appSetting.update({ where: { key }, data: { value: inv } });
+
+    // Se o médico já tiver aceitado, revoga o DoctorShare também para corte imediato de acesso
+    if (inv.acceptedDoctorId) {
+      await prisma.doctorShare.updateMany({
+        where: { patientId: inv.patientId, doctorId: inv.acceptedDoctorId },
+        data: { active: false, revokedAt: new Date() },
+      });
+    }
+
+    res.json({ ok: true, revoked: true });
+  } catch (e) { next(e); }
+});
+
 export default router;
+

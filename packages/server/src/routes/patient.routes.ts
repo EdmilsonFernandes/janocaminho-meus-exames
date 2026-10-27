@@ -282,14 +282,34 @@ router.get('/family-overview', async (req: AuthedRequest, res, next) => {
 // COMPARATIVO familiar por analito (último valor de cada membro; só analitos em 2+ pessoas)
 router.get('/family-compare', async (req: AuthedRequest, res, next) => {
   try {
-    const patients = await prisma.patient.findMany({ where: { ownerId: req.userId }, select: { id: true, fullName: true } });
+    const patients = await prisma.patient.findMany({
+      where: { ownerId: req.userId },
+      select: { id: true, fullName: true, relationship: true },
+    });
     const byAnalyte = new Map<string, any>();
     for (const p of patients) {
-      const exam = await prisma.exam.findFirst({ where: { patientId: p.id, status: 'EXTRACTED', performedAt: { not: null } }, orderBy: { performedAt: 'desc' }, include: { items: true } });
+      const exam = await prisma.exam.findFirst({
+        where: { patientId: p.id, status: 'EXTRACTED', performedAt: { not: null } },
+        orderBy: { performedAt: 'desc' },
+        include: { items: true },
+      });
       if (!exam) continue;
       for (const it of exam.items) {
         const e = byAnalyte.get(it.nameCanonical) ?? { unit: it.unit, members: [] as any[] };
-        e.members.push({ name: p.fullName, value: it.valueText ?? String(it.valueNumeric ?? ''), flag: it.flag, date: exam.performedAt });
+        e.members.push({
+          patientId: p.id,
+          name: p.fullName,
+          relationship: p.relationship,
+          value: it.valueText ?? String(it.valueNumeric ?? ''),
+          valueNumeric: it.valueNumeric,
+          refLow: it.refLow,
+          refHigh: it.refHigh,
+          refText: it.refText,
+          refAppliesTo: it.refAppliesTo,
+          unit: it.unit,
+          flag: it.flag,
+          date: exam.performedAt,
+        });
         byAnalyte.set(it.nameCanonical, e);
       }
     }

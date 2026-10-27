@@ -58,6 +58,7 @@ export interface PatientSummaryProps {
   onOpenExams?: () => void;
   onOpenQuestions?: () => void;
   onOpenNotes?: () => void;
+  onOpenActivity?: () => void;
   /** Atividade 30d (Health Connect do paciente) — null quando não sincroniza; tile some.
    *  Totais do período em destaque (pedido do dono); médias seguem como contexto. */
   activity?: { days: number; avgSteps: number; avgKcal: number; avgKm: number; totalSteps?: number; totalKcal?: number; totalKm?: number } | null;
@@ -90,7 +91,7 @@ interface Tile {
  * botão "Trocar" (Dialog reusando DoctorPatientSwitcher) e 4 teclas clínicas.
  * Cores via theme.palette.primary + alpha (sem hex cru).
  */
-export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, activity, medsCount, criticalMeds, onOpenMeds, onScheduleTele, loading }: PatientSummaryProps) => {
+export const PatientSummary = ({ patient, exams, abnormal, questions, notes, patients, onSwitchPatient, onAlterados, onOpenExams, onOpenQuestions, onOpenNotes, onOpenActivity, activity, medsCount, criticalMeds, onOpenMeds, onScheduleTele, loading }: PatientSummaryProps) => {
   const theme = useTheme();
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const primary = theme.palette.primary.main;
@@ -140,6 +141,7 @@ export const PatientSummary = ({ patient, exams, abnormal, questions, notes, pat
         `${(activity.totalKm ?? activity.avgKm).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km · ${fmtCompact(activity.totalKcal ?? Math.round(activity.avgKcal * activity.days))} kcal`,
       ],
       color: 'text.primary',
+      onClick: onOpenActivity,
     }] : []),
     {
       key: 'alt',

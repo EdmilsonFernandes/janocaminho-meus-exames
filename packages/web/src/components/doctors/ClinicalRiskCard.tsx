@@ -643,7 +643,24 @@ export const ClinicalRiskCard = ({
               }
               return 0;
             };
-            const top = [...abnormalItems].sort((a, b) => sev(b) - sev(a)).slice(0, 5);
+            // Agrupa por biomarcador (normalizado) para manter apenas a medição mais recente de cada um
+            const latestByMarker = new Map<string, any>();
+            for (const it of abnormalItems) {
+              const key = (it.nameCanonical || it.name || '').trim().toLowerCase().replace(/\s*\([^)]*\)\s*$/, '');
+              if (!key) continue;
+              const existing = latestByMarker.get(key);
+              if (!existing) {
+                latestByMarker.set(key, it);
+              } else {
+                const exDate = new Date(existing.examDate || existing.performedAt || existing.createdAt || 0).getTime();
+                const itDate = new Date(it.examDate || it.performedAt || it.createdAt || 0).getTime();
+                if (itDate >= exDate) {
+                  latestByMarker.set(key, it);
+                }
+              }
+            }
+            const uniqueAbnormal = Array.from(latestByMarker.values());
+            const top = uniqueAbnormal.sort((a, b) => sev(b) - sev(a)).slice(0, 5);
             if (!top.length) return null;
             return (
               <Box sx={{ pt: 2 }}>

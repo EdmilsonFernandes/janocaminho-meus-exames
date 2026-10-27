@@ -185,60 +185,174 @@ export const MinhasConsultasPage = () => {
             </CardContent>
           </Card>
         ) : (
-          <Card variant="outlined" sx={{ borderRadius: '20px', p: { xs: 1, sm: 1.5 }, borderColor: 'rgba(13,148,136,.25)' }}>
-            {historico.map((r, i) => {
+          <Stack spacing={1.5}>
+            {historico.map((r) => {
               const docId = r.doctor?.id || r.createdByDoctorId || r.doctorId;
               const docName = r.doctor?.name
                 ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`)
                 : r.title || 'Consulta médica';
               const ended = r.endedAt ? new Date(r.endedAt) : new Date(r.dueDate);
+              const photo = r.doctor?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined);
+              const crmDisplay = r.doctor?.crm ? `CRM ${r.doctor.crm}${r.doctor?.crmUf ? `-${r.doctor.crmUf}` : ''}` : null;
+
+              // Identificação clara do Paciente atendido (Titular vs Dependente)
+              const patientName = r.patient?.name || 'Edmilson';
+              const isTitular = !r.patient?.relationship || r.patient?.relationship === 'self' || r.patient?.relationship?.toLowerCase() === 'titular';
+              const relationship = isTitular ? 'Titular' : (r.patient?.relationship || 'Dependente');
+
               return (
-                <Stack
+                <Card
                   key={r.id}
-                  component="button"
-                  type="button"
-                  direction="row"
-                  alignItems="center"
-                  spacing={1.25}
+                  variant="outlined"
                   onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
                   sx={{
-                    width: '100%', textAlign: 'left', cursor: 'pointer',
-                    background: 'transparent', border: 'none', fontFamily: 'inherit',
-                    py: 1.5, px: 1,
-                    borderBottom: i < historico.length - 1 ? '1px solid' : 'none',
-                    borderColor: 'divider',
-                    borderRadius: '12px',
-                    '&:hover': { bgcolor: 'action.hover' },
+                    borderRadius: '16px',
+                    p: { xs: 1.75, sm: 2 },
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'background.paper' : '#ffffff',
+                    borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    '&:hover': {
+                      borderColor: '#0d9488',
+                      boxShadow: '0 6px 18px rgba(13,148,136,0.10)',
+                      transform: 'translateY(-1px)',
+                    },
                   }}
                 >
-                  <Avatar
-                    src={safeAvatar(docId ? doctorPhotoUrl(docId) : undefined, docName)}
-                    alt={docName}
-                    sx={{ width: 40, height: 40, borderRadius: '12px', fontSize: 15, fontWeight: 800, bgcolor: 'rgba(99,102,241,.12)', color: '#6366f1', flexShrink: 0 }}
-                  >
-                    {docName.charAt(0)?.toUpperCase()}
-                  </Avatar>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary' }}>{docName}</Typography>
-                    <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.15 }}>
-                      {ended.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                      {r.doctor?.specialty ? ` · ${r.doctor.specialty}` : ''}
-                    </Typography>
-                  </Box>
-                  {r.consultSummaryApproved && (
-                    <Chip size="small" label="Resumo disponível" sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0f766e', borderRadius: '999px', display: { xs: 'none', sm: 'inline-flex' } }} />
-                  )}
-                  <Chip
-                    size="small"
-                    icon={<CheckCircleRoundedIcon sx={{ fontSize: '13px !important' }} />}
-                    label="Concluída"
-                    sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(99,102,241,.12)', color: '#818cf8', border: '1px solid rgba(165,180,252,.25)', borderRadius: '999px', '& .MuiChip-icon': { color: '#a5b4fc' } }}
-                  />
-                  <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: '#0d9488', flexShrink: 0 }} />
-                </Stack>
+                  <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.75} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
+                    {/* Perfil do Médico & Paciente */}
+                    <Stack direction="row" spacing={1.75} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+                      <Box sx={{ position: 'relative', width: { xs: 46, sm: 52 }, height: { xs: 46, sm: 52 }, flexShrink: 0 }}>
+                        <Avatar
+                          src={safeAvatar(photo, docName)}
+                          alt={docName}
+                          sx={{
+                            width: '100%',
+                            height: '100%',
+                            borderRadius: '50%',
+                            fontSize: 18,
+                            fontWeight: 800,
+                            bgcolor: 'rgba(13,148,136,.12)',
+                            color: '#0f766e',
+                            border: '2px solid #e0f2fe',
+                          }}
+                        >
+                          {docName.charAt(0)?.toUpperCase()}
+                        </Avatar>
+                        {crmDisplay && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              bottom: 0,
+                              right: 0,
+                              width: 14,
+                              height: 14,
+                              borderRadius: '50%',
+                              bgcolor: '#10b981',
+                              border: '2px solid white',
+                            }}
+                            title="Médico verificado no CFM"
+                          />
+                        )}
+                      </Box>
+
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                          <Typography noWrap sx={{ fontSize: { xs: 14.5, sm: 15.5 }, fontWeight: 800, color: 'text.primary' }}>
+                            {docName}
+                          </Typography>
+                          {crmDisplay && (
+                            <Chip
+                              size="small"
+                              label={crmDisplay}
+                              sx={{
+                                height: 20,
+                                fontSize: 11,
+                                fontWeight: 700,
+                                fontFamily: 'monospace',
+                                bgcolor: 'action.hover',
+                                color: 'text.secondary',
+                                borderRadius: '4px',
+                              }}
+                            />
+                          )}
+                        </Stack>
+
+                        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mt: 0.5, rowGap: 0.5 }}>
+                          {r.doctor?.specialty && (
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                              🩺 {r.doctor.specialty}
+                            </Typography>
+                          )}
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            📅 {ended.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })} às {ended.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                          <Chip
+                            size="small"
+                            label={`👤 Paciente: ${patientName} (${relationship})`}
+                            sx={{
+                              height: 22,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              bgcolor: isTitular ? 'rgba(32,178,170,.12)' : 'rgba(236,72,153,.12)',
+                              color: isTitular ? '#0f766e' : '#be185d',
+                              border: '1px solid',
+                              borderColor: isTitular ? 'rgba(32,178,170,.25)' : 'rgba(236,72,153,.25)',
+                              borderRadius: '999px',
+                            }}
+                          />
+                        </Stack>
+                      </Box>
+                    </Stack>
+
+                    {/* Ações e Status */}
+                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'space-between', sm: 'flex-end' }, pt: { xs: 1, sm: 0 }, borderTop: { xs: '1px dashed rgba(0,0,0,0.06)', sm: 'none' } }}>
+                      {r.consultSummaryApproved && (
+                        <Chip
+                          size="small"
+                          label="Resumo disponível"
+                          sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0f766e', borderRadius: '999px' }}
+                        />
+                      )}
+                      <Chip
+                        size="small"
+                        icon={<CheckCircleRoundedIcon sx={{ fontSize: '14px !important' }} />}
+                        label="✓ Concluída"
+                        sx={{
+                          height: 24,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          bgcolor: 'rgba(16,185,129,.12)',
+                          color: '#065f46',
+                          border: '1px solid rgba(16,185,129,.25)',
+                          borderRadius: '999px',
+                          '& .MuiChip-icon': { color: '#059669' },
+                        }}
+                      />
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        endIcon={<ArrowForwardRoundedIcon sx={{ fontSize: 15 }} />}
+                        sx={{
+                          borderRadius: '8px',
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: 12,
+                          color: 'text.primary',
+                          borderColor: 'divider',
+                          px: 1.5,
+                          '&:hover': { bgcolor: 'action.hover', borderColor: '#0d9488' },
+                        }}
+                      >
+                        Ver Prontuário
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Card>
               );
             })}
-          </Card>
+          </Stack>
         )
       )}
     </PageContainer>
