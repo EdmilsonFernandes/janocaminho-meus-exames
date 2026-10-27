@@ -9,13 +9,18 @@
  *
  * `unitHint` orienta o FORMATO (unidade) do campo dose, não a quantidade.
  *
+ * `anvisa` (P0.2): classe da lista de controle da Anvisa (C5 = esteroides anabolizantes
+ * e moduladores; C1 = GH/somatropina) — alimenta um BADGE educativo na UI: informativo,
+ * SEM julgamento e SEM número de resolução (conferir DOU/AnvisaLegis antes de citar RDC
+ * em texto público — blueprint AAS §9 P2). Sem classificação → sem campo.
+ *
  * `impacto` (E5 §2) = O QUE ESPERAR NOS EXAMES — educativo-descritivo, baseado no
  * monitoramento da literatura (HAARLEM/JCEM) e em diretrizes. PROIBIDO por contrato:
  * doses, "range seguro", recomendação de uso/ajuste. Sem texto validado → sem campo.
  */
 export type SubstanceClass = 'Hormônio' | 'Suplemento' | 'Medicação' | 'Outro';
 
-export interface CatalogItem { name: string; aliases?: string[]; cls: SubstanceClass; unitHint: string; impacto?: string }
+export interface CatalogItem { name: string; aliases?: string[]; cls: SubstanceClass; unitHint: string; impacto?: string; anvisa?: 'C5' | 'C1' }
 
 /** Testosterona exógena (ésteres, Durateston, gel) — texto APROVADO do brief (§2). */
 const IMPACTO_TESTOSTERONA = 'Testosterona total acima da referência é esperada durante uso; LH/FSH suprimidos (feedback); hematócrito tende a subir — acompanhar.';
@@ -33,27 +38,27 @@ const IMPACTO_ANTIESTROGENO = 'Alteram eixo hormonal (LH/FSH, estradiol) — int
 const IMPACTO_ESTIMULANTE = 'Taquicardia e queda de potássio possíveis — eletrocardiograma e eletrólitos merecem atenção médica.';
 
 export const SUBSTANCE_CATALOG: CatalogItem[] = [
-  // ── Esteroides anabolizantes (androgênios) ──
-  { name: 'Testosterona (enantato)', aliases: ['Deposteron', 'Testenat'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Testosterona (cypionato)', aliases: ['Depo-Testosterona', 'Cipionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Testosterona (propionato)', aliases: ['Propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Testosterona (undecilato)', aliases: ['Nebido'], cls: 'Hormônio', unitHint: 'mg/mês', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Testosterona (gel)', aliases: ['Androgel', 'Testavana'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Durateston', aliases: ['Sustanon', 'fourtest'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA },
-  { name: 'Stanozolol', aliases: ['Winstrol', 'Estanozolol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA },
-  { name: 'Oxandrolona', aliases: ['Anavar', 'Lipidex'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA },
-  { name: 'Nandrolona (decanoato)', aliases: ['Deca-Durabolin', 'Deca'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO },
-  { name: 'Trembolona', aliases: ['Tren', 'Trenbolona'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: 'HDL reduzido e possível aumento da pressão — acompanhamento cardiovascular merece atenção.' },
-  { name: 'Drostanolona', aliases: ['Masteron', 'Drostanolona propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO },
-  { name: 'Oximetolona', aliases: ['Hemogenin', 'Anadrol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA },
-  { name: 'Metenolona', aliases: ['Primobolan', 'Primo'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO },
-  { name: 'Boldenona', aliases: ['Equipoise', 'Undecilenato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO },
-  { name: 'Mesterolona', aliases: ['Proviron'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ANDROGENO },
-  { name: 'Metandrostenolona', aliases: ['Dianabol', 'Dianabol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA },
-  { name: 'DHT (gel)', aliases: ['Andractim'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_ANDROGENO },
+  // ── Esteroides anabolizantes (androgênios) — lista C5 ──
+  { name: 'Testosterona (enantato)', aliases: ['Deposteron', 'Testenat'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Testosterona (cypionato)', aliases: ['Depo-Testosterona', 'Cipionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Testosterona (propionato)', aliases: ['Propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Testosterona (undecilato)', aliases: ['Nebido'], cls: 'Hormônio', unitHint: 'mg/mês', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Testosterona (gel)', aliases: ['Androgel', 'Testavana'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Durateston', aliases: ['Sustanon', 'fourtest'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_TESTOSTERONA, anvisa: 'C5' },
+  { name: 'Stanozolol', aliases: ['Winstrol', 'Estanozolol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
+  { name: 'Oxandrolona', aliases: ['Anavar', 'Lipidex'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
+  { name: 'Nandrolona (decanoato)', aliases: ['Deca-Durabolin', 'Deca'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Trembolona', aliases: ['Tren', 'Trenbolona'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: 'HDL reduzido e possível aumento da pressão — acompanhamento cardiovascular merece atenção.', anvisa: 'C5' },
+  { name: 'Drostanolona', aliases: ['Masteron', 'Drostanolona propionato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Oximetolona', aliases: ['Hemogenin', 'Anadrol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
+  { name: 'Metenolona', aliases: ['Primobolan', 'Primo'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Boldenona', aliases: ['Equipoise', 'Undecilenato'], cls: 'Hormônio', unitHint: 'mg/semana', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Mesterolona', aliases: ['Proviron'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
+  { name: 'Metandrostenolona', aliases: ['Dianabol', 'Dianabol'], cls: 'Hormônio', unitHint: 'mg/dia', impacto: IMPACTO_ORAL_17AA, anvisa: 'C5' },
+  { name: 'DHT (gel)', aliases: ['Andractim'], cls: 'Hormônio', unitHint: 'g/dia', impacto: IMPACTO_ANDROGENO, anvisa: 'C5' },
 
-  // ── Hormônio do crescimento e peptídeos ──
-  { name: 'hGH (somatropina)', aliases: ['Genotropin', 'Norditropin', 'Jintropin', 'Hormônio do crescimento', 'GH'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: IMPACTO_EIXO_GH },
+  // ── Hormônio do crescimento e peptídeos (GH = lista C1) ──
+  { name: 'hGH (somatropina)', aliases: ['Genotropin', 'Norditropin', 'Jintropin', 'Hormônio do crescimento', 'GH'], cls: 'Hormônio', unitHint: 'UI/dia', impacto: IMPACTO_EIXO_GH, anvisa: 'C1' },
   { name: 'IGF-1 LR3', aliases: ['IGF'], cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
   { name: 'CJC-1295', cls: 'Hormônio', unitHint: 'mcg/semana', impacto: IMPACTO_EIXO_GH },
   { name: 'Ipamorelina', cls: 'Hormônio', unitHint: 'mcg/dia', impacto: IMPACTO_EIXO_GH },
@@ -71,11 +76,11 @@ export const SUBSTANCE_CATALOG: CatalogItem[] = [
   { name: 'Liraglutida', aliases: ['Saxenda', 'Victoza'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_GLP1 },
   { name: 'Dulaglutida', aliases: ['Trulicity'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_GLP1 },
 
-  // ── Antiestrogênios / moduladores (uso declarado) ──
-  { name: 'Tamoxifeno', aliases: ['Nolvadex'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO },
-  { name: 'Clomifeno', aliases: ['Clomid', 'Indux'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO },
-  { name: 'Anastrozol', aliases: ['Arimidex'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_ANTIESTROGENO },
-  { name: 'Exemestano', aliases: ['Aromasin'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO },
+  // ── Antiestrogênios / moduladores (uso declarado) — SERMs/AIs: lista C5 ──
+  { name: 'Tamoxifeno', aliases: ['Nolvadex'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
+  { name: 'Clomifeno', aliases: ['Clomid', 'Indux'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
+  { name: 'Anastrozol', aliases: ['Arimidex'], cls: 'Medicação', unitHint: 'mg/semana', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
+  { name: 'Exemestano', aliases: ['Aromasin'], cls: 'Medicação', unitHint: 'mg/dia', impacto: IMPACTO_ANTIESTROGENO, anvisa: 'C5' },
 
   // ── Termogênicos/estimulantes (uso declarado) ──
   { name: 'Clenbuterol', aliases: ['Clen'], cls: 'Medicação', unitHint: 'mcg/dia', impacto: IMPACTO_ESTIMULANTE },

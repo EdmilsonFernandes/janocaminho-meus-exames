@@ -21,9 +21,18 @@ export interface DeclaredSubstanceView {
   klass?: string | null;
   dosage?: string | null;
   startedAt?: string | null;
+  /** P0.2 — fim de uso estruturado (Medication.endStatus/endedAt). */
+  endStatus?: 'em_uso' | 'interrompi' | 'nao_sei' | null;
+  endedAt?: string | null;
 }
 
 const CLASS_TINT: Record<string, string> = { 'Hormônio': '#d4a574', 'Suplemento': '#20b2aa', 'Outro': '#64748b' };
+
+/** P0.2 — endedAt ISO (yyyy-mm-…) → "mm/aaaa" pro subtexto "interrompido em …". */
+const mmYyyy = (iso?: string | null): string | null => {
+  const m = /^(\d{4})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[2]}/${m[1]}` : null;
+};
 
 export const SportsSubstances = ({ substances }: { substances: DeclaredSubstanceView[] }) => (
   <AppCard sx={{ p: { xs: 2, sm: 2.5 } }}>
@@ -46,6 +55,7 @@ export const SportsSubstances = ({ substances }: { substances: DeclaredSubstance
           const tint = CLASS_TINT[s.klass ?? ''] ?? '#64748b';
           // Impacto nos exames: catálogo (match exato nome/alias) OU linha genérica.
           const impacto = impactFor(s.name) ?? 'Impacto depende da substância — sua declaração já contextualiza a análise.';
+          const endedLabel = s.endStatus === 'interrompi' ? mmYyyy(s.endedAt) : null;
           return (
             <Box key={s.id} sx={{
               borderRadius: RADIUS.tile, p: 1.5, minWidth: 0,
@@ -63,7 +73,7 @@ export const SportsSubstances = ({ substances }: { substances: DeclaredSubstance
                     )}
                   </Stack>
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', lineHeight: 1.35 }}>
-                    {s.klass ?? 'Declarada'}{s.dosage ? ` · ${s.dosage}` : ''}{s.startedAt ? ` · desde ${new Date(s.startedAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}` : ''}
+                    {s.klass ?? 'Declarada'}{s.dosage ? ` · ${s.dosage}` : ''}{s.startedAt ? ` · desde ${new Date(s.startedAt).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })}` : ''}{endedLabel ? ` · interrompido em ${endedLabel}` : ''}
                   </Typography>
                   <Typography variant="caption" sx={{ display: 'block', mt: 0.5, lineHeight: 1.45, color: 'text.secondary' }}>
                     <Box component="b" sx={{ fontWeight: 800, color: 'text.primary' }}>Impacto nos exames:</Box> {impacto}

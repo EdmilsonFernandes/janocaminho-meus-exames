@@ -87,7 +87,7 @@ function substancesFromMeds(meds: unknown, pid: string): DeclaredSubstanceView[]
     .map((m: any) => {
       const mm = DECLARED_MED_RX.exec(m.name)!;
       const dosage = typeof m.dosage === 'string' ? m.dosage.replace(/ — declarado pelo paciente|declarado pelo paciente/g, '').trim() : null;
-      return { id: String(m.id), name: mm[2].trim() || m.name, klass: mm[1], dosage: dosage || null, startedAt: m.startedAt ?? null };
+      return { id: String(m.id), name: mm[2].trim() || m.name, klass: mm[1], dosage: dosage || null, startedAt: m.startedAt ?? null, endStatus: m.endStatus ?? null, endedAt: m.endedAt ?? null };
     });
 }
 function substancesFromProfile(cc: unknown): DeclaredSubstanceView[] {
