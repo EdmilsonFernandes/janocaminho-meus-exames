@@ -1,13 +1,42 @@
 import { useState } from 'react';
-import { Box, Stack, Typography, Button, Card, CardContent, TextField, MenuItem, Divider, Alert, CircularProgress, IconButton } from '@mui/material';
-import LockIcon from '@mui/icons-material/Lock';
+import { Box, Stack, Typography, Button, Card, CardContent, TextField, Chip, IconButton } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import { API_URL, doctorPhotoUrl } from '../../../config';
-import { PhotoUpload } from '../../PhotoUpload';
-import { MfaSetupCard } from '../../mfa/MfaSetupCard';
-import { SPECIALTIES } from '../../../utils/medicalData';
 import { tealText } from '../../../theme';
+
+/** Modelos rápidos clínicos para o médico preencher com 1 clique. */
+const getTemplates = (patient?: any) => [
+  {
+    icon: '⚖️',
+    label: 'Peso / Sinais',
+    text: `Peso: ${patient?.weight ? `${patient.weight} kg` : '___ kg'} · PA: ___x___ mmHg · FC: ___ bpm`,
+  },
+  {
+    icon: '🩺',
+    label: 'Conduta',
+    text: 'Conduta: Paciente orientado sobre o quadro clínico. Manter medicações habituais e estilo de vida saudável.',
+  },
+  {
+    icon: '💊',
+    label: 'Ajuste de Remédio',
+    text: 'Ajuste medicamentoso: Ajustada dosagem de [Medicamento]. Orientado posologia e horários.',
+  },
+  {
+    icon: '📅',
+    label: 'Retorno 60d',
+    text: 'Retorno solicitado em 60 dias com novos exames laboratoriais de acompanhamento.',
+  },
+  {
+    icon: '🥗',
+    label: 'Estilo de Vida',
+    text: 'Orientações: Reforçado hábito de hidratação, controle de sal/açúcar e prática regular de atividade física.',
+  },
+  {
+    icon: '⚠️',
+    label: 'Sinais de Alerta',
+    text: 'Sinais de alerta explicados. Se dor aguda, falta de ar ou PA > 140x90, buscar pronto atendimento.',
+  },
+];
 
 /** Empty state compacto das views do portal. */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
@@ -18,10 +47,37 @@ export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }
 );
 
 /** #1 Anotações clínicas (histórico de atendimento) — adicionar / editar / excluir. */
-export const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }: { notes: any[]; newNote: string; setNewNote: (s: string) => void; onAdd: () => void; onDelete: (id: string) => void; onSave: (id: string, content: string) => void }) => {
+export const NotesTab = ({
+  notes,
+  newNote,
+  setNewNote,
+  onAdd,
+  onDelete,
+  onSave,
+  patient,
+}: {
+  notes: any[];
+  newNote: string;
+  setNewNote: (s: string) => void;
+  onAdd: () => void;
+  onDelete: (id: string) => void;
+  onSave: (id: string, content: string) => void;
+  patient?: any;
+}) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
   const btnSx = { borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: 'primary.dark', '&:hover': { bgcolor: 'primary.main' } } as const;
+
+  const templates = getTemplates(patient);
+
+  const applyTemplate = (tplText: string) => {
+    if (!newNote.trim()) {
+      setNewNote(tplText);
+    } else {
+      setNewNote(`${newNote.trim()}\n\n${tplText}`);
+    }
+  };
+
   return (
     <Box>
       <Card
@@ -38,9 +94,74 @@ export const NotesTab = ({ notes, newNote, setNewNote, onAdd, onDelete, onSave }
         }}
       >
         <CardContent sx={{ p: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1.25, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>📝 Nova anotação</Typography>
-          <TextField value={newNote} onChange={(e) => setNewNote(e.target.value)} multiline minRows={2} fullWidth size="small" placeholder="Conduta, observação clínica, retorno solicitado…" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
-          <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ mt: 1.25, px: 2.5, ...btnSx }}>Adicionar anotação</Button>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
+              📝 Nova anotação clínica
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Prontuário rápido
+            </Typography>
+          </Stack>
+
+          {/* Modelos rápidos pré-formatados com 1 clique */}
+          <Box sx={{ mb: 1.5 }}>
+            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+              ⚡ Modelos rápidos (toque para preencher):
+            </Typography>
+            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+              {templates.map((tpl) => (
+                <Chip
+                  key={tpl.label}
+                  size="small"
+                  icon={<span style={{ fontSize: 13 }}>{tpl.icon}</span>}
+                  label={tpl.label}
+                  onClick={() => applyTemplate(tpl.text)}
+                  sx={{
+                    borderRadius: '999px',
+                    fontWeight: 600,
+                    fontSize: 12,
+                    bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)'),
+                    color: (t) => tealText(t.palette.mode),
+                    border: '1px solid',
+                    borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.3)' : 'rgba(32,178,170,0.25)'),
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    '&:hover': {
+                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.16)'),
+                      borderColor: '#20b2aa',
+                      transform: 'translateY(-1px)',
+                    },
+                  }}
+                />
+              ))}
+            </Stack>
+          </Box>
+
+          <TextField
+            value={newNote}
+            onChange={(e) => setNewNote(e.target.value)}
+            multiline
+            minRows={2.5}
+            fullWidth
+            size="small"
+            placeholder="Conduta, observação clínica, sinais vitais, retorno solicitado…"
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+          />
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.25 }}>
+            <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ px: 2.5, ...btnSx }}>
+              Adicionar anotação
+            </Button>
+            {newNote.trim() && (
+              <Button
+                size="small"
+                variant="text"
+                onClick={() => setNewNote('')}
+                sx={{ textTransform: 'none', color: 'text.secondary', borderRadius: '999px' }}
+              >
+                Limpar
+              </Button>
+            )}
+          </Stack>
         </CardContent>
       </Card>
       {notes.length === 0 && <Empty label="Nenhuma anotação ainda. Use o campo acima pra registrar uma conduta." icon="📝" />}

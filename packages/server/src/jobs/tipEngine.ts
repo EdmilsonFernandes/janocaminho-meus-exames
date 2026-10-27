@@ -11,7 +11,7 @@
  *    continua específica (template com nome, valor e tendência do marcador).
  */
 
-export type TipTheme = 'melhora' | 'atencao' | 'cardio' | 'movimento' | 'mente' | 'crianca' | 'exame-velho' | 'rotina';
+export type TipTheme = 'hormonal' | 'melhora' | 'atencao' | 'cardio' | 'movimento' | 'mente' | 'crianca' | 'exame-velho' | 'rotina';
 export type Segment = 'colesterol' | 'glicemia' | 'pressao' | 'anemia' | 'tireoide' | 'renal' | 'rotina';
 
 export interface TipMarker {
@@ -47,12 +47,17 @@ export interface TipContext {
   childAgeMonths?: number | null;
   /** Dias desde a última peso/altura registrada (null = nunca mediou ou não é criança). */
   childLastMeasureDays?: number | null;
+  /** CONTEXTO HORMONAL DECLARADO (dono 26/10 — "notificações entendem o que ele toma"):
+   *  substâncias autorrelatadas (sportsProfile.declaredSubstances + Medication [Hormônio]).
+   *  Presença ≠ prescrição: o app educa sobre monitoramento, NUNCA sobre dose/ciclo/pausa. */
+  hormonal?: { substances: string[]; archetype?: string | null } | null;
 }
 
 const fmt = (v: number | null | undefined): string =>
   v == null ? '?' : Number.isInteger(v) ? String(v) : v.toFixed(1).replace('.', ',');
 
 const THEME_LABEL: Record<TipTheme, string> = {
+  hormonal: 'monitoramento de exames em uso declarado de hormônios (contexto autorrelatado)',
   melhora: 'comemorar uma melhora real de marcador',
   atencao: 'marcador que piorou (atenção, sem alarmismo)',
   cardio: 'risco cardiometabólico',
@@ -90,6 +95,9 @@ export function isSedentaryWeek(c: TipContext): boolean {
 /** Candidatos na ordem de prioridade — o primeiro COM dado e fora das 2 últimas dicas vence. */
 function themeCandidates(c: TipContext): { theme: TipTheme; has: boolean }[] {
   return [
+    // Hormonal: PRIORIDADE MÁXIMA quando há uso declarado — é o tema mais relevante
+    // pra quem monitora (e a rotação de 2 dicas evita martelar toda terça/sexta).
+    { theme: 'hormonal', has: !!c.hormonal && c.hormonal.substances.length > 0 },
     { theme: 'melhora', has: c.improving.length > 0 },
     { theme: 'atencao', has: c.worsening.length > 0 },
     { theme: 'cardio', has: !!c.cardioLevel && c.cardioLevel !== 'baixo' },
@@ -136,6 +144,10 @@ export function buildTipPrompt(c: TipContext, theme: TipTheme, recentBodies: str
       (c.restingHr != null ? `; FC repouso ${Math.round(c.restingHr)} bpm` : ''));
   }
   if (c.medications.length) lines.push(`- Medicações ativas: ${c.medications.join(', ')}`);
+  if (c.hormonal?.substances.length) {
+    lines.push(`- USO DECLARADO (autorrelato do paciente, NÃO verificado/prescrito): ${c.hormonal.substances.slice(0, 4).join(', ')}${c.hormonal.archetype ? ` · perfil: ${c.hormonal.archetype}` : ''}`);
+    lines.push('- Marcadores tipicamente acompanhados nesse contexto: hematócrito/hemoglobina, HDL/LDL, TGO/TGP/GGT, PSA, testosterona/estradiol, LH/FSH (só cite os que tiverem VALOR acima)');
+  }
   if (theme === 'mente' && c.mental) {
     if (c.mental.never) {
       lines.push(`- Rastreamento de saúde mental: ${c.firstName} NUNCA respondeu o PHQ-9/GAD-7 do app (2 min, validado, gratuito)`);
@@ -152,6 +164,7 @@ export function buildTipPrompt(c: TipContext, theme: TipTheme, recentBodies: str
       : `- Última medição de peso/altura há ${c.childLastMeasureDays} dia(s)`);
   }
   switch (theme) {
+    case 'hormonal': lines.push('Tarefa: 1 dica EDUCATIVA de monitoramento ligando o uso declarado ao(s) marcador(es) com valor real dele. REGRA INEGOCIÁVEL: NUNCA mencione dose, ciclo, ajuste, pausa ou "parar de tomar" como orientação do app — a conduta é do médico dele; frases sempre no molde "vale levar pro médico / converse com quem prescreveu". Sem julgamento do uso. Máx 2 frases.'); break;
     case 'melhora': lines.push('Tarefa: comemore de forma específica a melhora e dê 1 micro-dica para manter o ritmo.'); break;
     case 'atencao': lines.push('Tarefa: chame atenção para o marcador que piorou (sem alarmismo) e dê 1 ação concreta.'); break;
     case 'cardio': lines.push('Tarefa: dica prática que ataque diretamente o risco cardiometabólico dele.'); break;
@@ -182,6 +195,22 @@ const FALLBACK_BY_SEGMENT: Record<Segment, string> = {
 export function curatedFallback(c: TipContext, theme: TipTheme): string {
   const unit = (m: TipMarker) => (m.unit ? ` ${m.unit}` : '');
   switch (theme) {
+    // Frases REVISADAS: mesmo molde do SportsAlertBanner/knowledge esportivo (E6 ok —
+    // nenhuma claim clínica nova; nunca dose/ciclo/pausa; conduta é do médico).
+    case 'hormonal': {
+      const subs = c.hormonal?.substances ?? [];
+      const all = [...c.worsening, ...c.improving];
+      const find = (re: RegExp) => all.find((m) => re.test(m.name));
+      const hct = find(/hematocrito/i);
+      const hdl = find(/hdl/i);
+      const ck = find(/\bck\b|creatino?quinase/i);
+      const crea = find(/creatinina(?!.*quinase)/i);
+      if (hct) return `${c.firstName}, seu hematócrito está em ${fmt(hct.value)}${unit(hct)}${hct.refHigh != null ? ` (referência até ${fmt(hct.refHigh)})` : ''} — em uso declarado de hormônio esse é um número que o médico acompanha de perto. Vale levar na próxima consulta${subs.length ? ` (uso relatado: ${subs[0]})` : ''}.`;
+      if (hdl) return `Seu HDL (${fmt(hdl.value)}${unit(hdl)}) é um marcador que costuma mudar com uso declarado de androgênios — seu médico interpreta no seu contexto. Leve a evolução dele na consulta${subs.length ? ` (uso relatado: ${subs[0]})` : ''}.`;
+      if (ck) return `CK em ${fmt(ck.value)}${unit(ck)} pode subir muito com treino intenso recente — coleta sem treino forte nas 24h anteriores dá o valor mais confiável (padrão internacional de laboratório). Mostre a curva pro seu médico.`;
+      if (crea) return `Creatinina ${fmt(crea.value)}${unit(crea)}: massa muscular e suplementação de creatina influenciam esse número — não é só rim. Seu médico interpreta no seu caso; a tendência importa mais que um valor isolado.`;
+      return `${c.firstName}, como você declarou uso de hormônio${subs.length ? ` (${subs[0]}${subs.length > 1 ? ` e +${subs.length - 1}` : ''})` : ''}, os exames certos na mesa do médico valem mais que qualquer palpite: hematócrito, HDL, TGO/TGP e PSA são os que ele mais olha. Vale confirmar se estão em dia.`;
+    }
     case 'melhora': {
       const m = c.improving[0];
       if (!m) break;

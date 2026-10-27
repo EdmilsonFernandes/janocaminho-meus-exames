@@ -30,7 +30,7 @@ import { categorizeExam } from '../../utils/medicalData';
 import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
 import { ExtractionProgress } from '../../components/ExtractionProgress';
-import { RobotAnalysis } from '../../components/RobotAnalysis';
+import { AnalysisScan } from '../../components/AnalysisScan';
 import { CreditBadge, CREDIT_COSTS } from '../../components/CreditBadge';
 import { notifyInsufficientCredits } from '../../utils/credits-events';
 import type { ClinicalGoalView } from '@meus-exames/shared';
@@ -663,7 +663,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   botão (dono: "gerar resumo não veio animação"). Cena do robô durante
                   a regeneração; o resumo volta quando termina. */}
               {genLoading ? (
-                <Box sx={{ py: 2 }}><RobotAnalysis label="Dr. Exame está regenerando seu resumo" /></Box>
+                <Box sx={{ py: 2 }}><AnalysisScan label="Dr. Exame está regenerando seu resumo" /></Box>
               ) : (
                 <HealthSummary analysis={summary} />
               )}
@@ -685,7 +685,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                   {genLoading ? <CircularProgress size={22} /> : 'Gerar resumo'}
                 </Button>{' '}
                 <CreditBadge amount={CREDIT_COSTS.summary} />
-                {genLoading && <Box sx={{ mt: 2 }}><RobotAnalysis label="Dr. Exame está analisando seu exame" /></Box>}
+                {genLoading && <Box sx={{ mt: 3, pt: 1 }}><AnalysisScan label="Dr. Exame está analisando seu exame" /></Box>}
               </CardContent>
             </Card>
           )}

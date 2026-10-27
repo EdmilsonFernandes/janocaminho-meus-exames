@@ -1547,20 +1547,22 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                               Pedir exame
                             </Button>
                           )}
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<SummarizeIcon />}
-                            onClick={() => void openPost(upcoming.id)}
-                            sx={{
-                              borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
-                              borderColor: 'divider', color: 'text.secondary',
-                              '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
-                              flex: { xs: 1, sm: 'none' },
-                            }}
-                          >
-                            Resumo
-                          </Button>
+                          {!teleEnded && (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              startIcon={<SummarizeIcon />}
+                              onClick={() => void openPost(upcoming.id)}
+                              sx={{
+                                borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
+                                borderColor: 'divider', color: 'text.secondary',
+                                '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
+                                flex: { xs: 1, sm: 'none' },
+                              }}
+                            >
+                              Resumo
+                            </Button>
+                          )}
                           <Tooltip title="Mais ações">
                             <IconButton
                               size="small"
@@ -1830,7 +1832,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 )}
 
                 {tab === 'notes' && !selExam && (
-                  <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} />
+                  <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} patient={patient} />
                 )}
           </Box>
         )}
