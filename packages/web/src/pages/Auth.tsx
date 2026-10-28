@@ -528,7 +528,9 @@ export const RegisterPage = () => {
         body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, inviteToken: invite || undefined, deviceId: getDeviceId(), source: signupSource() || undefined }),
       });
       const d = await r.json();
-      if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
+      // AUD-090: NÃO navegar em caso de 409 — navigate('/') levava ao dashboard com a
+      // sessão ANTERIOR de outro usuário persistida no navegador (login cruzado).
+      if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); return; }
       if (r.status === 429) { notify('Muitas tentativas de cadastro deste dispositivo. Aguarde alguns minutos e tente novamente.', { type: 'warning' }); return; }
       if (!r.ok) throw new Error(d.message || d.error || 'Falha no cadastro');
       if (d.needsVerification) { setVerifyEmail(d.email); notify('Enviamos um código de ativação no seu e-mail (cheque o spam).', { type: 'success' }); return; }

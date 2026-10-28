@@ -553,6 +553,16 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
     const uf = norm?.uf ?? (crmUf ? String(crmUf).toUpperCase() : null);
     const cleanEmail = String(email).trim().toLowerCase();
 
+    // AUD-003: este endpoint criava conta médica com CRM fake ("000000-ZZ"), e-mail sem
+    // formato e senha fraca — e já emitia JWT 7d + share. Espelha as regras do cadastro
+    // completo (doctor.routes.ts:300 + validate.ts): senha mín. 6, e-mail válido,
+    // CRM 4-7 dígitos e UF real da federação.
+    const VALID_UFS = new Set(['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']);
+    const crmDigits = crmKey.split('-')[0] ?? '';
+    if (String(password).length < 6) { res.status(400).json({ error: 'Senha mínima de 6 caracteres.' }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { res.status(400).json({ error: 'E-mail inválido.' }); return; }
+    if (!/^\d{4,7}$/.test(crmDigits) || !uf || !VALID_UFS.has(uf)) { res.status(400).json({ error: 'CRM inválido — informe número e UF (ex.: 123456-SP).' }); return; }
+
     // Verifica se já existe médico com este CRM ou E-mail
     const existing = await prisma.doctor.findFirst({
       where: { OR: [{ crm: crmKey }, { email: cleanEmail }] },
