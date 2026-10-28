@@ -54,12 +54,14 @@ async function requireJoinIdentity(req: JoinRequest, res: Response, next: NextFu
   try { payload = jwt.verify(token, config.jwtSecret); } catch { res.status(401).json({ error: 'Token inválido ou expirado' }); return; }
 
   if (payload?.type === 'doctor') {
-    // Médico: valida existência (token de doctor deletado não entra).
+    // Médico: valida existência (token de doctor deletado não entra) e bloqueio
+    // (AUD-004: admin suspende o médico, mas o join ainda deixava entrar com token 7d).
     const doc = await prisma.doctor.findUnique({
       where: { id: payload.doctorId },
-      select: { id: true, name: true, crm: true, crmUf: true },
+      select: { id: true, name: true, crm: true, crmUf: true, blocked: true },
     });
     if (!doc) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
+    if (doc.blocked) { res.status(403).json({ code: 'DOCTOR_BLOCKED', error: 'Conta médica suspensa. Contate o suporte.' }); return; }
     req.doctorId = doc.id;
     req.joinRole = 'doctor';
     req.joinName = `Dr. ${doc.name}${doc.crm ? ` (${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''})` : ''}`;
@@ -105,11 +107,17 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       return;
     }
 
-    // Ownership — médico: share ATIVO com o paciente (cópia local de 3 linhas do
-    // requireShare de doctor.routes.ts, que é de outro dono).
+    // Ownership — médico: share ATIVO e NÃO EXPIRADO com o paciente (AUD-002: antes só
+    // checava active — share vencido continuava abrindo a sala, inconsistente com o
+    // portal em doctor.routes.ts que valida expiresAt).
     if (role === 'doctor') {
       const share = await prisma.doctorShare.findFirst({
-        where: { doctorId: req.doctorId!, patientId: reminder.patientId, active: true },
+        where: {
+          doctorId: req.doctorId!,
+          patientId: reminder.patientId,
+          active: true,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
         select: { id: true },
       });
       if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
