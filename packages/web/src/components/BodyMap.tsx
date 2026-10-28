@@ -1322,7 +1322,7 @@ export const BodyMap = ({
                                 borderRadius: '12px',
                                 bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
                                 border: '1px solid',
-                                borderColor: isExpanded ? alpha(activeColor, 0.55) : t.palette.divider,
+                                borderColor: isExpanded ? alpha(activeColor, 0.55) : 'divider',
                                 borderLeft: `4px solid ${mCol}`,
                                 boxShadow: isExpanded
                                   ? `0 4px 14px ${alpha(activeColor, 0.16)}`
