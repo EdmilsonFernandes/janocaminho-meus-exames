@@ -70,7 +70,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
 
     // Exige compartilhamento ATIVO com o médico (só pergunta a médico que aceitou ver os exames)
-    const share = await prisma.doctorShare.findFirst({ where: { patientId: pid, doctorId: String(doctorId), active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { patientId: pid, doctorId: String(doctorId), active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share) { res.status(403).json({ error: 'Compartilhe seus exames com este médico antes de enviar perguntas.' }); return; }
 
     // ===== Fatia 1: dedup estável por sentKey + expiração automática =====

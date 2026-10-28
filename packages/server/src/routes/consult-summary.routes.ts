@@ -77,7 +77,7 @@ async function loadEndedTeleconsultaForDoctor(req: ConsultSummaryRequest, res: R
   if (!row || row.type !== 'teleconsulta') { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
 
   const share = await prisma.doctorShare.findFirst({
-    where: { doctorId: req.doctorId!, patientId: row.patientId, active: true },
+    where: { doctorId: req.doctorId!, patientId: row.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
     select: { id: true, examIds: true },
   });
   if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }

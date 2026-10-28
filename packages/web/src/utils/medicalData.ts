@@ -16,6 +16,34 @@ export const CONVENIOS = [
   'Amil Dental', 'Bio Saude', 'Cassi', 'Geap', 'Outro',
 ];
 
+/**
+ * Catálogo de operadoras de saúde (§5, 28/10/26) — nome canônico + slug.
+ * Exibimos o NOME (uso nominativo — seguro juridicamente); o slug prepara o dia em
+ * que houver asset de marca AUTORIZADO por parceria: aí o chip mostra o logo.
+ * Alimenta: form de consulta, filtro da busca de especialistas e DoctorInsurance.
+ */
+export const INSURANCE_CATALOG: { slug: string; name: string }[] = [
+  { slug: 'unimed', name: 'Unimed' },
+  { slug: 'bradesco-saude', name: 'Bradesco Saúde' },
+  { slug: 'sulamerica', name: 'SulAmérica' },
+  { slug: 'amil', name: 'Amil' },
+  { slug: 'notre-dame-intermedica', name: 'Notre Dame Intermédica' },
+  { slug: 'hapvida', name: 'HapVida' },
+  { slug: 'porto-seguro-saude', name: 'Porto Seguro Saúde' },
+  { slug: 'golden-cross', name: 'Golden Cross' },
+  { slug: 'prevent-senior', name: 'Prevent Senior' },
+  { slug: 'careplus', name: 'Careplus' },
+  { slug: 'omint', name: 'Omint' },
+  { slug: 'mediservice', name: 'Mediservice' },
+  { slug: 'cassi', name: 'Cassi' },
+  { slug: 'geap', name: 'Geap' },
+  { slug: 'trasmontano', name: 'Trasmontano' },
+  { slug: 'assim-saude', name: 'Assim Saúde' },
+  { slug: 'amil-dental', name: 'Amil Dental' },
+  { slug: 'bio-saude', name: 'Bio Saúde' },
+];
+export const INSURANCE_OPERATOR_NAMES = INSURANCE_CATALOG.map((o) => o.name);
+
 /** Unidades federativas (UF) — pro dropdown do CRM ao compartilhar c/ médico. */
 export const UFS = [
   'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS',

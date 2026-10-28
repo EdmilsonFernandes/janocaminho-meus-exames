@@ -62,6 +62,12 @@ import examRequestRoutes from './routes/examRequest.routes';
 // /teleconsulta/:id/summary/generate, PUT /summary, POST /summary/approve) — mesmo
 // padrão D8 (montado em /api, sem overlap com teleconsulta.routes.ts).
 import consultSummaryRoutes from './routes/consult-summary.routes';
+// MEUS MÉDICOS / MINHAS CONSULTAS / ENCONTRAR ESPECIALISTAS (28/10/26): área do paciente
+// — vínculo privado (sem conceder acesso a exames), consultas registradas e busca no
+// DIRETÓRIO PRÓPRIO (zero integração paga — decisão do dono).
+import myDoctorsRoutes from './routes/my-doctors.routes';
+import myConsultationsRoutes from './routes/my-consultations.routes';
+import specialistsRoutes from './routes/specialists.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -419,6 +425,9 @@ app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/doctor-shares', doctorShareRoutes);
+app.use('/api/my-doctors', myDoctorsRoutes); // vínculo privado paciente↔médico (§1)
+app.use('/api/my-consultations', myConsultationsRoutes); // consultas registradas pelo paciente (§2)
+app.use('/api/specialists', specialistsRoutes); // busca no diretório próprio (§3)
 app.use('/api/doctor-questions', doctorQuestionRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)

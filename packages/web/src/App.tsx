@@ -78,6 +78,8 @@ const InvitePage = lazy(() => import('./pages/Invite').then(m => ({ default: m.I
 const RemindersPage = lazy(() => import('./pages/Reminders').then(m => ({ default: m.RemindersPage })));
 const MinhasConsultasPage = lazy(() => import('./pages/MinhasConsultas').then(m => ({ default: m.MinhasConsultasPage })));
 const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ default: m.QuestionsPage })));
+// Encontrar especialistas (§3, 28/10/26): busca no diretório próprio (zero integração paga).
+const EncontrarEspecialistasPage = lazy(() => import('./pages/EncontrarEspecialistas').then(m => ({ default: m.EncontrarEspecialistasPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
 import { MeasurementsPage } from './pages/Measurements';
@@ -130,6 +132,7 @@ import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
 import { InsufficientCreditsDialog } from './components/InsufficientCreditsDialog';
 import { NotificationsPage } from './pages/Notifications';
+import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import { MedicosPage } from './pages/Medicos';
 import { SupportPage } from './pages/Support';
 import { ApiPanelPage } from './pages/ApiPanel';
@@ -837,7 +840,7 @@ const AppMenu = () => {
     <MenuSectionAccordion
       title="Consultas e médicos"
       icon={<MedicalServicesOutlinedIcon />}
-      routes={['/consultas', '/lembretes', '/medicos', '/perguntas']}
+      routes={['/consultas', '/lembretes', '/medicos', '/encontrar', '/perguntas']}
       badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? '1' : undefined}
     >
       <NavItem
@@ -848,6 +851,7 @@ const AppMenu = () => {
         badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : undefined}
       />
       <NavItem to="/medicos" primaryText={translate('menu.doctors', { _: 'Meus médicos' })} icon={<MedicalServicesOutlinedIcon />} />
+      <NavItem to="/encontrar" primaryText={translate('menu.find_specialists', { _: 'Encontrar especialistas' })} icon={<TravelExploreRoundedIcon />} />
       <NavItem to="/perguntas" primaryText={translate('menu.questions', { _: 'Perguntas para o médico' })} icon={<QuestionAnswerOutlinedIcon />} />
     </MenuSectionAccordion>
 
@@ -1499,6 +1503,7 @@ export const App = () => {
       <Route path="/notificacoes" element={<NotificationsPage />} />
       <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
       <Route path="/medicos" element={<MedicosPage />} />
+      <Route path="/encontrar" element={<Suspense fallback={<PageSkeleton />}><EncontrarEspecialistasPage /></Suspense>} />
       <Route path="/conquistas" element={<ConquistasPage />} />
       <Route path="/suporte" element={<SupportPage />} />
       <Route path="/suporte/:id" element={<SupportPage />} />

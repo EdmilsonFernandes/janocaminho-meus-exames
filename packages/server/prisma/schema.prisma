@@ -280,6 +280,9 @@ model Patient {
   createdAt    DateTime  @default(now())
   exams        Exam[]
   reminders    Reminder[]
+  // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
+  doctorLinks        PatientDoctorLink[]
+  patientConsultations PatientConsultation[]
   measurements Measurement[]
   vaccines     Vaccine[]
   expenses     Expense[]
@@ -1023,6 +1026,11 @@ model Doctor {
   googleRefreshTokenIv   String?
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
+  // "Meus médicos" (28/10/26): vínculo privado (sem acesso a exames), consultas
+  // registradas pelo paciente e convênios informados (modelagem §5).
+  links                PatientDoctorLink[]
+  patientConsultations PatientConsultation[]
+  insurances           DoctorInsurance[]
   notes        DoctorNote[]
   reviews      DoctorReview[]
   questions    DoctorQuestion[]
@@ -1091,6 +1099,9 @@ model DoctorShare {
   creditsCharged Int @default(0) // créditos debitados do paciente ao criar o share (pro extrato)
   openQuestionLimit Int @default(5) // máx. perguntas EM ABERTO simultâneas (= lote de sugestões do relatório)
   examIds    String[] @default([]) // exames compartilhados. VAZIO = TODOS (backward-compat); não-vazio = só esses
+  // §6 (28/10/26): compartilhar POR TEMPO. Null = sem expiração (legado). O gate de
+  // acesso (isShareEffective) trata expiresAt passado como revogado — sem migrate de dados.
+  expiresAt  DateTime?
 
   @@unique([patientId, doctorId])
   @@index([doctorId, active])
@@ -1228,6 +1239,89 @@ model DoctorQuestionMessage {
 
   @@index([questionId, createdAt])
   @@map("doctor_question_messages")
+}
+
+// ── MEUS MÉDICOS / MINHAS CONSULTAS / ENCONTRAR ESPECIALISTAS (28/10/26) ──────────
+// Separação PRINCIPAL do design: o VÍNCULO privado (paciente↔médico) é DISTINTO do
+// compartilhamento (acesso a dados). Salvar um médico em "Meus médicos" NÃO concede
+// acesso a exames — o acesso continua sendo EXCLUSIVAMENTE o DoctorShare existente.
+// Notas do paciente e provenance vivem AQUI (nunca no catálogo público Doctor).
+
+// Vínculo privado paciente↔médico. Sem FK para dados públicos além do doctorId: remover
+// o vínculo NÃO toca no cadastro público (a recíproca também: FK Cascade só apaga o link).
+model PatientDoctorLink {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId     String
+  doctor       Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientNotes String?  // anotações PARTICULARES do paciente — nunca vistas pelo médico
+  source       String   @default("manual") // manual | search | share | invite
+  // Provenance do vínculo (sem dado sensível): {provider?: 'platform', retrievedAt}.
+  // Contrato: NADA de provedor externo é persistido além de metadados anônimos.
+  sourceInfo   Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([patientId, doctorId])
+  @@index([patientId])
+  @@map("patient_doctor_links")
+}
+
+// Consulta registrada PELO PACIENTE (§2). Não é agendamento no consultório — a UI
+// deixa isso explícito; não há promessa de reserva externa. Snapshot denormalizado
+// (doctorName/specialty) para sobreviver a Doctor pending excluído (doctorId SetNull).
+model PatientConsultation {
+  id                String    @id @default(cuid())
+  patientId         String
+  patient           Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  ownerId           String    // User dono (multi-paciente/família), igual Reminder
+  doctorId          String?   // FK opcional — médico do diretório quando vinculado
+  doctor            Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  doctorName        String    // snapshot no momento do registro
+  specialty         String?   // snapshot
+  scheduledAt       DateTime
+  timezone          String    @default("America/Sao_Paulo") // fuso informado (§2)
+  mode              String    @default("presencial") // presencial | teleconsulta
+  placeName         String?   // clínica/consultório
+  address           String?
+  linkUrl           String?   // link de teleconsulta EXTERNO (http/https validado)
+  paymentType       String    @default("particular") // particular | convenio
+  insuranceOperator String?
+  insurancePlan     String?
+  priceCents        Int?
+  reason            String?   // motivo da consulta
+  privateNotes      String?   // observações privadas do paciente
+  status            String    @default("scheduled") // scheduled | completed | cancelled | no_show
+  examIds           String[]  @default([]) // exames selecionados p/ a consulta (posse validada)
+  reminderId        String?   // SEM FK (padrão TeleconsultaQueue): Reminder é deletável
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([patientId, scheduledAt])
+  @@index([ownerId, status])
+  @@map("patient_consultations")
+}
+
+// Aceitação de convênio por MÉDICO + LOCAL + OPERADORA + PLANO (§5). Não assume que
+// operadora aceita = todos os planos / todos os endereços (cada row é uma combinação).
+// verificationStatus: confirmed (médico/clínica) | external (fonte externa permitida)
+// | patient_reported (informado pelo paciente, sem confirmação independente).
+model DoctorInsurance {
+  id                 String    @id @default(cuid())
+  doctorId           String
+  doctor             Doctor    @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  locationName       String?   // local de atendimento (null = geral/não especificado)
+  operator           String    // ex.: "Unimed"
+  plan               String?   // plano específico (null = não especificado)
+  verificationStatus String    @default("patient_reported")
+  source             String?   // quem informou (ex.: "patient:<id>" ou "portal")
+  verifiedAt         DateTime? // data da verificação/registro
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([doctorId, operator])
+  @@map("doctor_insurances")
 }
 
 // ===== BACKOFFICE — models de gestão (FKs escalares, append-only/standalone p/ não acoplar) =====

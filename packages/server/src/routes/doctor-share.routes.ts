@@ -11,6 +11,15 @@ import { logPaywallHit } from '../utils/paywall';
 const router = Router();
 router.use(requireAuth);
 
+// §6 (28/10/26): duração do compartilhamento. undefined = campo não veio (mantém o atual
+// no PATCH); null = explícito "sem expiração" (default/legado); Date válido = expira em.
+function parseShareExpiry(v: unknown): Date | null | undefined {
+  if (v === null) return null;
+  if (typeof v !== 'string' && typeof v !== 'number') return undefined;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? undefined : d;
+}
+
 // LISTAR compartilhamentos do paciente (com cota de perguntas: openQuestions/questionLimit)
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
@@ -41,7 +50,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 // CRIAR compartilhamento (paciente compartilha dados com médico)
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
-    const { doctorCrm, doctorUf, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId, examIds } = req.body ?? {};
+    const { doctorCrm, doctorUf, doctorName, doctorSpecialty, doctorEmail, scopes, convenio, patientId, examIds, expiresAt } = req.body ?? {};
     const pids = await userPatientIds(req.userId!);
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
@@ -61,9 +70,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     if (!doctor) { res.status(404).json({ error: 'Médico não encontrado. Informe nome + CRM pra cadastrá-lo.' }); return; }
 
     // share (upsert — se já existe, reativa)
+    const expiry = parseShareExpiry(expiresAt);
     const existing = await prisma.doctorShare.findUnique({ where: { patientId_doctorId: { patientId: pid, doctorId: doctor.id } } });
     if (existing) {
-      const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null, ...(Array.isArray(examIds) ? { examIds } : {}) } });
+      const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null, ...(Array.isArray(examIds) ? { examIds } : {}), ...(expiry !== undefined ? { expiresAt: expiry } : {}) } });
       res.json({ share: updated, doctor }); return;
     }
     // Custo de compartilhar = soma dos escopos selecionados (parametrizado em app_settings).
@@ -77,7 +87,16 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       void logPaywallHit(req.userId!, 'SHARE');
       if (!(await chargeCredits(req.userId!, shareCost, 'share', 'Compartilhamento com médico'))) { res.status(402).json({ error: 'insufficient_credits', message: 'Saldo insuficiente.' }); return; }
     }
-    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost, examIds: Array.isArray(examIds) ? examIds : [] } });
+    const share = await prisma.doctorShare.create({ data: { patientId: pid, doctorId: doctor.id, scopes: selectedScopes, convenio: convenio ? String(convenio) : null, creditsCharged: shareCost, examIds: Array.isArray(examIds) ? examIds : [], expiresAt: expiry ?? null } });
+
+    // "Meus médicos" (28/10/26): compartilhar também SALVA o médico na lista do paciente.
+    // O vínculo por si NÃO dá acesso — o acesso é exatamente este share (best-effort:
+    // falha do vínculo nunca derruba o compartilhamento).
+    await prisma.patientDoctorLink.upsert({
+      where: { patientId_doctorId: { patientId: pid, doctorId: doctor.id } },
+      update: {},
+      create: { patientId: pid, doctorId: doctor.id, source: 'share' },
+    }).catch(() => {});
 
     // notifica o médico por e-mail
     if (doctor.email && !doctor.email.includes('@invite.com')) {
@@ -101,9 +120,13 @@ router.patch('/:id', async (req: AuthedRequest, res, next) => {
     const share = await prisma.doctorShare.findUnique({ where: { id: String(req.params.id) } });
     if (!share || !pids.includes(share.patientId)) { res.status(404).json({ error: 'Compartilhamento não encontrado.' }); return; }
     const { scopes, active, examIds } = req.body ?? {};
+    const expiry = parseShareExpiry((req.body ?? {}).expiresAt);
+    if ((req.body ?? {}).expiresAt !== undefined && expiry === undefined) {
+      res.status(400).json({ error: 'Data de expiração inválida.' }); return;
+    }
     const updated = await prisma.doctorShare.update({
       where: { id: share.id },
-      data: { scopes: scopes ?? undefined, active: active ?? undefined, revokedAt: active === false ? new Date() : undefined, ...(Array.isArray(examIds) ? { examIds } : {}) },
+      data: { scopes: scopes ?? undefined, active: active ?? undefined, revokedAt: active === false ? new Date() : undefined, ...(Array.isArray(examIds) ? { examIds } : {}), ...(expiry !== undefined ? { expiresAt: expiry } : {}) },
     });
     res.json({ share: updated });
   } catch (e) { next(e); }
@@ -142,8 +165,13 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
     // cleanup: médico pending-invite sem outros shares → remove (era só um cadastro de compartilhamento)
     const doctor = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { passwordHash: true } });
     if (doctor?.passwordHash === 'pending-invite') {
-      const remaining = await prisma.doctorShare.count({ where: { doctorId } });
-      if (remaining === 0) await prisma.doctor.delete({ where: { id: doctorId } }).catch(() => {});
+      // "Meus médicos" (28/10/26): médico SALVO na lista de alguém (vínculo) também
+      // segura o cadastro público — só some se ninguém usa mais nada dele.
+      const [remaining, links] = await Promise.all([
+        prisma.doctorShare.count({ where: { doctorId } }),
+        prisma.patientDoctorLink.count({ where: { doctorId } }),
+      ]);
+      if (remaining === 0 && links === 0) await prisma.doctor.delete({ where: { id: doctorId } }).catch(() => {});
     }
     res.json({ ok: true });
   } catch (e) { next(e); }

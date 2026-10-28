@@ -580,7 +580,7 @@ router.get('/photo/:id', requirePhotoToken, async (req, res) => {
 router.get('/patients', requireDoctor, async (req: any, res, next) => {
   try {
     const shares = await prisma.doctorShare.findMany({
-      where: { doctorId: req.doctorId, active: true },
+      where: { doctorId: req.doctorId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] },
       include: { patient: { select: { id: true, fullName: true, relationship: true, dateOfBirth: true, photoUrl: true, gender: true, clinicalProfile: true, owner: { select: { id: true, name: true } } } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -646,7 +646,7 @@ function calcAge(dob: Date | string): number {
 router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, next) => {
     void auditLog(req, 'doctor_viewed_exams', String(req.params.patientId));
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão para ver exames deste paciente.' }); return; }
     const exams = await prisma.exam.findMany({
       where: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) },
@@ -668,7 +668,7 @@ router.get('/patients/:patientId/exams', requireDoctor, async (req: any, res, ne
 // DETALHE de um exame (TODOS os itens) — só se scope 'exams'. Igual à página do paciente.
 router.get('/patients/:patientId/exams/:examId', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     // Per-exam sharing: paciente selecionou exames específicos → médico só vê esses.
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
@@ -691,7 +691,7 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     const payload = tok ? verifyDoctorToken(tok) : null;
     const doctorId = payload?.doctorId;
     if (!doctorId) { res.status(401).json({ error: 'Sem permissão.' }); return; }
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({ where: { id: req.params.examId, patientId: req.params.patientId }, select: { filePath: true } });
@@ -707,7 +707,7 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
 // share ativo com scope 'exams' + per-exam sharing (examIds não-vazio = só esses).
 router.get('/patients/:patientId/exams/:examId/report-pdf', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const exam = await prisma.exam.findFirst({
@@ -746,7 +746,7 @@ router.get('/patients/:patientId/exams/:examId/report-pdf', requireDoctor, async
 // Mesma query + mesmo shape que item.routes.ts:283-294, scoping a 1 paciente + examIds.
 router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const rows = await prisma.examItem.findMany({
       where: { isAbnormal: true, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
@@ -764,7 +764,7 @@ router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any
 // de tendências do portal do médico.
 router.get('/patients/:patientId/items/distinct-names', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_trends_names', String(req.params.patientId));
     // `from` (epoch ms): janela de período das tendências (6m/1a/2a). O count do dropdown
@@ -812,7 +812,7 @@ router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: a
   try {
     const nameCanonical = String(req.query.nameCanonical ?? '');
     if (!nameCanonical) { res.status(400).json({ error: 'nameCanonical obrigatório' }); return; }
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_trends', String(req.params.patientId));
     const rows = await prisma.examItem.findMany({
@@ -854,7 +854,7 @@ router.get('/patients/:patientId/items/timeseries', requireDoctor, async (req: a
 // Scope 'exams' (mesma família dos dados de saúde do paciente); 404-equivalente = {days:0}.
 router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const since = new Date(Date.now() - 30 * 86400000);
     const rows = await prisma.measurement.findMany({
@@ -894,7 +894,7 @@ router.get('/patients/:patientId/activity', requireDoctor, async (req: any, res,
 router.get('/patients/:patientId/vitals', requireDoctor, async (req: any, res, next) => {
   void auditLog(req, 'doctor_viewed_vitals', String(req.params.patientId));
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const pid = String(req.params.patientId);
     const since = new Date(Date.now() - 90 * 86400000);
@@ -961,7 +961,7 @@ router.get('/cid10', requireDoctor, async (req: any, res) => {
 router.get('/patients/:patientId/context', requireDoctor, async (req: any, res, next) => {
   void auditLog(req, 'doctor_viewed_context', String(req.params.patientId));
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const pid = String(req.params.patientId);
     const [medications, patient, reportedUsage] = await Promise.all([
@@ -1022,7 +1022,7 @@ router.get('/patients/:patientId/context', requireDoctor, async (req: any, res, 
 
 router.post('/patients/:patientId/analyses/consolidated', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const pid = String(req.params.patientId);
     const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(pid, 'doctor');
@@ -1043,7 +1043,7 @@ router.post('/patients/:patientId/analyses/consolidated', requireDoctor, async (
 // isola da cópia do paciente userMessage:null e dos briefs). analysis pode ser null (ainda não gerou).
 router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const sourceExams = dedupSourceExams(await prisma.exam.findMany({
       where: { patientId: req.params.patientId, status: 'EXTRACTED' },
@@ -1060,7 +1060,7 @@ router.get('/patients/:patientId/analyses/consolidated/latest', requireDoctor, a
 // se a migration da tabela ainda não rolou (drift gate, P2021).
 router.get('/patients/:patientId/mental-screenings/latest', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const sel = { id: true, type: true, total: true, createdAt: true } as const;
     const [phq9, gad7] = await Promise.all([
@@ -1077,7 +1077,7 @@ router.get('/patients/:patientId/mental-screenings/latest', requireDoctor, async
 // EVOLUÇÃO do paciente (só se scope 'evolution')
 router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('evolution')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const raw = await prisma.examItem.findMany({
       where: { exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) }, valueNumeric: { not: null } },
@@ -1119,7 +1119,7 @@ router.get('/patients/:patientId/evolution', requireDoctor, async (req: any, res
 router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res, next) => {
     void auditLog(req, 'doctor_viewed_summaries', String(req.params.patientId));
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const raw = await prisma.aiAnalysis.findMany({
       where: { patientId: req.params.patientId, type: 'SUMMARY', examId: null }, // só consolidado (ignora por-exame)
@@ -1139,7 +1139,7 @@ router.get('/patients/:patientId/summaries', requireDoctor, async (req: any, res
 router.get('/patients/:patientId/health-summary', requireDoctor, async (req: any, res, next) => {
     void auditLog(req, 'doctor_viewed_health_summary', String(req.params.patientId));
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('alerts')) { res.status(403).json({ error: 'Sem permissão para ver o estado deste paciente.' }); return; }
     const summary = await buildCurrentHealthSummary(String(req.params.patientId));
     // Resumo clínico 1-parágrafo (determinístico, instantâneo)
@@ -1155,7 +1155,7 @@ router.get('/patients/:patientId/health-summary', requireDoctor, async (req: any
 
 // === ANOTAÇÕES CLÍNICAS (histórico de atendimento) — disponível p/ qualquer paciente compartilhado ===
 const requireShare = async (doctorId: string, patientId: string) => {
-  const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId, active: true } });
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
   return !!share;
 };
 
@@ -1570,7 +1570,7 @@ router.get('/patients/:patientId/risk', requireDoctor, async (req: any, res, nex
   try {
     // Share direto (em vez do requireShare booleano) p/ respeitar o recorte examIds:
     // em share por-exame, "dados novos" só conta se o exame novo for VISÍVEL ao médico.
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_risk', String(req.params.patientId));
     const latestExam = await prisma.exam.findFirst({
@@ -1629,7 +1629,7 @@ router.post('/patients/:patientId/action-plan', requireDoctor, checkPremiumFeatu
 // Marca com userMessage='audience:doctor' pra diferenciar do resumo leigo do paciente (mesma tabela).
 router.post('/patients/:patientId/summary/generate', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_generated_summary', String(req.params.patientId));
     const { summary, contentMd, modelUsed, usage } = await generateConsolidatedSummary(String(req.params.patientId), 'doctor');
@@ -1900,7 +1900,7 @@ router.post('/patients/:patientId/consultation', requireDoctor, async (req: any,
 // ex.: anticoagulante ↔ exame de coagulação). Read-only, igual ao resto do portal.
 router.get('/patients/:patientId/medications', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     void auditLog(req, 'doctor_viewed_medications', String(req.params.patientId));
     const medications = await prisma.medication.findMany({ where: { patientId: req.params.patientId }, orderBy: [{ active: 'desc' }, { name: 'asc' }] });
@@ -1921,7 +1921,7 @@ router.get('/patients/:patientId/medications', requireDoctor, async (req: any, r
 const TRIAL_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 router.get('/patients/:patientId/clinical-trials', requireDoctor, async (req: any, res, next) => {
   try {
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('summary')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     const pid = String(req.params.patientId);
     const [patient, meds, abnormalItems] = await Promise.all([
@@ -1990,7 +1990,7 @@ const requireGoalAccess = async (req: any, res: any, patientId: string): Promise
     res.status(403).json({ error: 'Token não corresponde a este médico.' });
     return false;
   }
-  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
   if (!share) { res.status(403).json({ error: 'Sem permissão para este paciente.' }); return false; }
   return true;
 };
@@ -2148,7 +2148,7 @@ router.get('/:doctorId/sports-context', requireDoctor, async (req: any, res, nex
     const patientId = String(req.query.patientId ?? '');
     if (!patientId) { res.status(400).json({ error: 'patientId obrigatório.' }); return; }
     if (String(req.params.doctorId ?? '') !== String(req.doctorId)) { res.status(403).json({ error: 'Token não corresponde a este médico.' }); return; }
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('sports')) { res.status(403).json({ error: 'Sem permissão para o contexto esportivo deste paciente.' }); return; }
 
     const profile = await prisma.sportsProfile.findUnique({ where: { patientId } });
@@ -2189,7 +2189,7 @@ const requireReviewAccess = async (req: any, res: any, patientId: string, kind: 
     return false;
   }
   const needed = kind === 'goal' ? 'sports' : 'exams';
-  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+  const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
   if (!share?.scopes.includes(needed)) {
     res.status(403).json({ error: 'Sem permissão para revisar achados deste paciente.' });
     return false;
@@ -2220,7 +2220,7 @@ router.post('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => 
         select: { examId: true, exam: { select: { id: true } } },
       });
       if (!item) { res.status(404).json({ error: 'Achado não encontrado para este paciente.' }); return; }
-      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
       if (share?.examIds?.length && !share.examIds.includes(item.exam.id)) {
         res.status(403).json({ error: 'Exame fora do recorte compartilhado.' }); return;
       }
@@ -2229,7 +2229,7 @@ router.post('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => 
       if (!examId) { res.status(400).json({ error: 'examId obrigatório para kind=exam.' }); return; }
       const exam = await prisma.exam.findFirst({ where: { id: examId, patientId, status: 'EXTRACTED' }, select: { id: true } });
       if (!exam) { res.status(404).json({ error: 'Exame não encontrado para este paciente.' }); return; }
-      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+      const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
       if (share?.examIds?.length && !share.examIds.includes(examId)) {
         res.status(403).json({ error: 'Exame fora do recorte compartilhado.' }); return;
       }
@@ -2261,7 +2261,7 @@ router.get('/:doctorId/reviews', requireDoctor, async (req: any, res, next) => {
     if (String(req.params.doctorId ?? '') !== String(req.doctorId)) {
       res.status(403).json({ error: 'Token não corresponde a este médico.' }); return;
     }
-    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true } });
+    const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share) { res.status(403).json({ error: 'Sem permissão para este paciente.' }); return; }
     const reviews = await prisma.doctorReview.findMany({
       where: { doctorId: req.doctorId, patientId },

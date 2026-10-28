@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Avatar, Box, Button, Card, CardContent, Chip, Stack, Typography,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
 import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded';
@@ -15,6 +15,9 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
 import { safeAvatar } from '../utils/safeAvatar';
 import { ConsultaAtivaCard } from '../components/teleconsulta/ConsultaAtivaCard';
+// §2 (28/10/26): "Minhas consultas" — registro particular do paciente, ao lado das
+// teleconsultas do produto. Prefill vem de Meus médicos / Encontrar especialistas.
+import { MinhasConsultasRegistradas } from '../components/consultas/MinhasConsultasRegistradas';
 
 /**
  * Minhas Consultas (rota /consultas, item 3 da bottom nav) — tela dedicada do
@@ -33,6 +36,11 @@ export const MinhasConsultasPage = () => {
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
   const [tab, setTab] = useState<'abertas' | 'historico'>('abertas');
+  // §2 (28/10/26): duas áreas — Teleconsultas (sala virtual do produto) × Minhas
+  // consultas (registro particular: presencial ou link externo, convênio, exames).
+  const location = useLocation() as { state?: { tab?: string; prefillDoctor?: { doctorId?: string; doctorName?: string; specialty?: string } | null } };
+  const [area, setArea] = useState<'tele' | 'minhas'>(location.state?.tab === 'minhas' ? 'minhas' : 'tele');
+  const prefillDoctor = location.state?.prefillDoctor ?? null;
   // médico na sala (chamando): id → true. Ref p/ haptic só na transição.
   const [callingIds, setCallingIds] = useState<Record<string, boolean>>({});
   const callingRef = useRef<Record<string, boolean>>({});
@@ -105,6 +113,24 @@ export const MinhasConsultasPage = () => {
         title="Minhas Consultas"
         subtitle="Suas teleconsultas com sala virtual, pagamento e histórico em um só lugar."
       />
+
+      {/* Seletor de área (28/10/26): Teleconsultas do produto × registro particular */}
+      <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+        <Button
+          onClick={() => { hapticLight(); setArea('tele'); }} aria-pressed={area === 'tele'}
+          sx={areaPill(area === 'tele')}
+        >
+          Teleconsultas
+        </Button>
+        <Button
+          onClick={() => { hapticLight(); setArea('minhas'); }} aria-pressed={area === 'minhas'}
+          sx={areaPill(area === 'minhas')}
+        >
+          Minhas consultas
+        </Button>
+      </Stack>
+
+      {area === 'tele' && (<>
 
       {/* Tabs em pill (mock) */}
       <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
@@ -355,6 +381,25 @@ export const MinhasConsultasPage = () => {
           </Stack>
         )
       )}
+      </>)}
+
+      {area === 'minhas' && <MinhasConsultasRegistradas prefillDoctor={prefillDoctor} />}
     </PageContainer>
   );
 };
+
+/** Pill de seleção de área — mesmo estilo das tabs Abertas/Histórico. */
+const areaPill = (on: boolean) => ({
+  minHeight: 40,
+  px: 2.5,
+  borderRadius: '999px',
+  textTransform: 'none' as const,
+  fontWeight: 800,
+  fontSize: 13.5,
+  color: on ? '#fff' : 'text.secondary',
+  background: on ? 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)' : 'transparent',
+  border: '1px solid',
+  borderColor: on ? 'transparent' : 'divider',
+  boxShadow: on ? '0 4px 14px rgba(32,178,170,.35)' : 'none',
+  '&:hover': { bgcolor: on ? undefined : 'action.hover' },
+});

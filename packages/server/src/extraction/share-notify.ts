@@ -18,7 +18,7 @@ import { sendPushToUser } from '../utils/push';
 export async function notifyNewExamShares(patientId: string, ownerId: string, examId: string, examTitle: string): Promise<void> {
   try {
     const shares = await prisma.doctorShare.findMany({
-      where: { patientId, active: true, examIds: { isEmpty: false } },
+      where: { patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }], examIds: { isEmpty: false } },
       select: { id: true, scopes: true, examIds: true, doctor: { select: { id: true, name: true } } },
     });
     if (!shares.length) return;

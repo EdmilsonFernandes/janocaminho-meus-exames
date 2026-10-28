@@ -73,8 +73,12 @@ export const MedicosPage = () => {
   const translate = useTranslate();
   const notify = useNotify();
   const [pid] = useSelectedPatient();
-  const [shares, setShares] = useState<any[]>([]);
+  // "Meus médicos" (28/10/26): lista MERGEADA — vínculo + share + contagem de consultas
+  // numa chamada (GET /my-doctors). `shares` state não existe mais: shares vêm em item.share.
+  const [myItems, setMyItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [notesFor, setNotesFor] = useState<any | null>(null); // dialog de anotações particulares
+  const [notesText, setNotesText] = useState('');
   const [showForm, setShowForm] = useState(false);
   // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
@@ -156,8 +160,9 @@ export const MedicosPage = () => {
   }, [pid]);
 
   const load = () => {
-    fetch(`${API_URL}/doctor-shares`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => r.json()).then((d) => { setShares(d.items ?? []); setLoading(false); })
+    // Fonte única: my-doctors traz vínculos E shares (órfãos legados entram como linked=false).
+    fetch(`${API_URL}/my-doctors`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => r.json()).then((d) => { setMyItems(d.items ?? []); setLoading(false); })
       .catch(() => setLoading(false));
 
     if (pid) {
@@ -203,9 +208,9 @@ export const MedicosPage = () => {
   const insufficient = credits != null && credits < shareCost;
   const existingDocs = useMemo(() => {
     const seen = new Set<string>(); const list: any[] = [];
-    for (const s of shares) { const crm = s.doctor?.crm; if (crm && !seen.has(crm)) { seen.add(crm); list.push(s.doctor); } }
+    for (const it of myItems) { const crm = it.doctor?.crm; if (crm && !seen.has(crm)) { seen.add(crm); list.push(it.doctor); } }
     return list;
-  }, [shares]);
+  }, [myItems]);
   const reuseDoc = (crmVal: string) => {
     const d = existingDocs.find((x) => x.crm === crmVal);
     if (!d) return;
@@ -240,7 +245,8 @@ export const MedicosPage = () => {
   };
   const reactivate = async (id: string) => {
     setMenuEl(null);
-    await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: true }) });
+    // §6: renovar também LIMPA a expiração (reativar um share expirado sem limpar = porta continua fechada).
+    await fetch(`${API_URL}/doctor-shares/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: true, expiresAt: null }) });
     notify('Acesso reativado.', { type: 'success' }); load();
   };
   // EXCLUIR (diferente de revogar): remove o compartilhamento da lista. Se o médico for só um
@@ -257,8 +263,65 @@ export const MedicosPage = () => {
     load();
   };
 
-  // Filtro + agrupamento por especialidade
-  const myShares = shares.filter((s) => !pid || s.patientId === pid);
+  // ── "Meus médicos" (28/10/26) ────────────────────────────────────────────────────
+  /** Abre o form de compartilhamento já preenchido com o médico salvo (sem acesso). */
+  const openShareFormFor = (doctor: any) => {
+    setName(doctor.name || '');
+    const m = String(doctor.crm || '').match(/^(.*?)-([A-Za-z]{2})$/);
+    if (m) { setCrm(m[1]); setUf(m[2].toUpperCase()); } else { setCrm(doctor.crm || ''); setUf(''); }
+    setSpec(doctor.specialty || '');
+    setEmail(!doctor.email || String(doctor.email).includes('@invite') ? '' : doctor.email);
+    setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' });
+    setShowForm(true);
+  };
+  /** "Registrar consulta com este médico" → /consultas já preenchido. */
+  const registrarConsulta = (item: any) => {
+    setMenuEl(null);
+    navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorId: item.doctor.id, doctorName: item.doctor.name, specialty: item.doctor.specialty ?? '' } } });
+  };
+  const salvarNotas = async () => {
+    if (!notesFor) return;
+    await fetch(`${API_URL}/my-doctors/${notesFor.id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+      body: JSON.stringify({ patientNotes: notesText }),
+    });
+    notify('Anotações salvas — só você vê isso.', { type: 'success' });
+    setNotesFor(null); load();
+  };
+  /** Remove o VÍNCULO (não o cadastro nem o share — pergunta se quer revogar junto). */
+  const removerVinculo = async (item: any) => {
+    setMenuEl(null);
+    if (!(await confirmDialog({
+      title: 'Remover de Meus médicos',
+      message: 'O médico sai da sua lista. Seus exames compartilhados com ele NÃO são revogados aqui — se houver acesso ativo, perguntaremos em seguida.',
+      confirmLabel: 'Remover',
+    }))) return;
+    const r = await fetch(`${API_URL}/my-doctors/${item.id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token()}` } });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.shareStillActive && d.shareId) {
+      if (await confirmDialog({
+        title: 'Revogar o acesso também?',
+        message: 'Este médico ainda tem acesso ativo aos seus exames. Revogar agora?',
+        confirmLabel: 'Revogar acesso',
+      })) {
+        await fetch(`${API_URL}/doctor-shares/${d.shareId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ active: false }) });
+        notify('Médico removido e acesso revogado.', { type: 'success' });
+      } else {
+        notify('Médico removido da lista (acesso continua ativo).', { type: 'info' });
+      }
+    } else if (r.ok) {
+      notify('Médico removido da sua lista.', { type: 'success' });
+    }
+    load();
+  };
+
+  // Filtro + agrupamento por especialidade. Fonte: my-doctors (só itens COM share).
+  // `active` derivado do estado efetivo (§6: expirado ≠ ativo ≠ revogado).
+  const myShares = useMemo(() => myItems
+    .filter((it) => (!pid || it.patientId === pid) && it.share)
+    .map((it) => ({ ...it.share, active: it.share.state === 'active', doctor: it.doctor, patientId: it.patientId, createdAt: it.createdAt, __item: it })), [myItems, pid]);
+  // Salvos SEM compartilhamento (§1: estar na lista NÃO dá acesso a exames).
+  const semAcesso = useMemo(() => myItems.filter((it) => (!pid || it.patientId === pid) && !it.share), [myItems, pid]);
   const specialties = useMemo(() => [...new Set(myShares.map((s) => s.doctor?.specialty).filter(Boolean))].sort(), [myShares]);
   const filtered = useMemo(() => myShares.filter((s) => {
     const q = search.trim().toLowerCase();
@@ -269,11 +332,12 @@ export const MedicosPage = () => {
   }), [myShares, search, specFilter, activeOnly]);
   const grouped = useMemo(() => {
     const active = filtered.filter((s) => s.active);
-    const revoked = filtered.filter((s) => !s.active);
+    const expired = filtered.filter((s) => !s.active && s.__item?.share?.state === 'expired'); // §6: expirou sozinho (diferente de revogado)
+    const revoked = filtered.filter((s) => !s.active && s.__item?.share?.state !== 'expired');
     const map = new Map<string, any[]>();
     for (const s of active) { const sp = s.doctor?.specialty || 'Outros'; if (!map.has(sp)) map.set(sp, []); map.get(sp)!.push(s); }
     const groups = [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-    return { active: groups, revoked };
+    return { active: groups, expired, revoked };
   }, [filtered]);
 
   const activeCount = myShares.filter((s) => s.active).length;
@@ -304,7 +368,7 @@ export const MedicosPage = () => {
                 </Typography>
                 <Chip
                   size="small"
-                  label={`${activeCount} com acesso ativo`}
+                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'} • ${activeCount} com acesso`}
                   sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)' }}
                 />
               </Stack>
@@ -313,26 +377,48 @@ export const MedicosPage = () => {
               </Typography>
             </Box>
 
-            <Button
-              variant="contained"
-              startIcon={<PersonAddIcon />}
-              onClick={() => setShowForm(true)}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.18)',
-                color: '#fff',
-                fontWeight: 800,
-                textTransform: 'none',
-                borderRadius: '999px',
-                px: 2.5,
-                py: 1,
-                backdropFilter: 'blur(8px)',
-                border: '1px solid rgba(255,255,255,0.35)',
-                whiteSpace: 'nowrap',
-                '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
-              }}
-            >
-              + Compartilhar
-            </Button>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+              <Button
+                variant="contained"
+                startIcon={<SearchIcon />}
+                onClick={() => { hapticLight(); navigate('/encontrar'); }}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.18)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  textTransform: 'none',
+                  borderRadius: '999px',
+                  px: 2.5,
+                  py: 1,
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              >
+                🔍 Encontrar especialistas
+              </Button>
+              <Button
+                variant="contained"
+                startIcon={<PersonAddIcon />}
+                onClick={() => setShowForm(true)}
+                sx={{
+                  bgcolor: 'rgba(255,255,255,0.18)',
+                  color: '#fff',
+                  fontWeight: 800,
+                  textTransform: 'none',
+                  borderRadius: '999px',
+                  px: 2.5,
+                  py: 1,
+                  backdropFilter: 'blur(8px)',
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  whiteSpace: 'nowrap',
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                }}
+              >
+                + Compartilhar
+              </Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
@@ -422,7 +508,10 @@ export const MedicosPage = () => {
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
           <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 320, mx: 'auto' }}>{translate('docs.empty_desc')}</Typography>
-          <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4 }}>{translate('docs.share_now')}</Button>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center">
+            <Button variant="contained" size="large" startIcon={<PersonAddIcon />} onClick={() => setShowForm(true)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4 }}>{translate('docs.share_now')}</Button>
+            <Button variant="outlined" size="large" startIcon={<SearchIcon />} onClick={() => navigate('/encontrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, borderColor: 'rgba(255,255,255,0.5)', color: '#0f766e' }}>Encontrar especialistas</Button>
+          </Stack>
         </CardContent></Card>
       )}
 
@@ -481,7 +570,7 @@ export const MedicosPage = () => {
                         <Typography sx={{ fontWeight: 800, color: 'text.primary', fontSize: 16, fontFamily: 'Poppins, sans-serif' }}>
                           {s.doctor?.name}
                         </Typography>
-                        <IconButton size="small" aria-label={`Mais opções de ${s.doctor?.name}`} title="Mais opções" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}>
+                        <IconButton size="small" aria-label={`Mais opções de ${s.doctor?.name}`} title="Mais opções" onClick={(e) => { e.stopPropagation(); setMenuEl({ id: s.id, item: (s as any).__item ?? null, el: e.currentTarget }); }} sx={{ flexShrink: 0, mt: -0.5 }}>
                           <MoreVertIcon fontSize="small" />
                         </IconButton>
                       </Stack>
@@ -558,6 +647,79 @@ export const MedicosPage = () => {
         </Box>
       ))}
 
+      {/* Salvos SEM acesso a exames (§1: "adicionar não concede acesso") */}
+      {!loading && semAcesso.length > 0 && (
+        <Box sx={{ mb: 3 }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, fontFamily: 'Poppins, sans-serif' }}>
+            <span>🔖 Salvos sem acesso ({semAcesso.length})</span>
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
+            Estão na sua lista, mas <strong>não veem seus exames</strong> — compartilhe só quando quiser.
+          </Typography>
+          <Stack spacing={1.25}>
+            {semAcesso.map((it: any) => (
+              <Card key={it.id} sx={{ borderRadius: '16px', border: '1px dashed', borderColor: 'rgba(32,178,170,0.45)', bgcolor: 'background.paper' }}>
+                <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Avatar src={it.doctor?.id ? doctorPhotoUrl(it.doctor.id) : undefined} sx={{ width: 44, height: 44, fontWeight: 800, bgcolor: '#0f5f5a', flexShrink: 0 }}>
+                      {it.doctor?.name?.charAt(0)?.toUpperCase()}
+                    </Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }} onClick={() => setDetail(it.doctor)} sx={{ cursor: 'pointer' }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
+                        {it.doctor?.name}
+                      </Typography>
+                      <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
+                        <Chip size="small" label={`CRM ${it.doctor?.crm}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a' }} />
+                        {it.doctor?.specialty && <Typography variant="caption" color="text.secondary">{it.doctor.specialty}</Typography>}
+                        {it.consultationCount > 0 && (
+                          <Chip size="small" label={`${it.consultationCount} ${it.consultationCount === 1 ? 'consulta' : 'consultas'}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary' }} />
+                        )}
+                      </Stack>
+                    </Box>
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <Button size="small" variant="contained" onClick={() => openShareFormFor(it.doctor)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 12, px: 1.5, minHeight: 36 }}>
+                        Compartilhar
+                      </Button>
+                      <IconButton size="small" aria-label={`Opções de ${it.doctor?.name}`} onClick={(e) => setMenuEl({ id: '', item: it, el: e.currentTarget })}>
+                        <MoreVertIcon fontSize="small" />
+                      </IconButton>
+                    </Stack>
+                  </Stack>
+                  {it.patientNotes && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontStyle: 'italic' }}>
+                      📝 {it.patientNotes}
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
+
+      {/* Expirados (§6: compartilhamento por tempo — venceu sozinho) */}
+      {!loading && grouped.expired.length > 0 && (
+        <Box sx={{ mt: 2, opacity: 0.75 }}>
+          <Typography sx={{ fontWeight: 700, fontSize: 12, color: 'text.secondary', mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>⏳ Expirados ({grouped.expired.length})</Typography>
+          <Stack spacing={0.75}>
+            {grouped.expired.map((s: any) => (
+              <Card key={s.id} sx={{ borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.default' }}>
+                <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 1, '&:last-child': { pb: 1 } }}>
+                  <Avatar sx={{ width: 40, height: 40, fontSize: 16, bgcolor: 'action.hover', flexShrink: 0 }}>{s.doctor?.name?.charAt(0)}</Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13, color: 'text.secondary' }}>{s.doctor?.name}</Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      CRM {s.doctor?.crm}{s.expiresAt ? ` • expirou em ${new Date(s.expiresAt).toLocaleDateString('pt-BR')}` : ''}
+                    </Typography>
+                  </Box>
+                  <Button size="small" onClick={() => reactivate(s.id)} sx={{ textTransform: 'none', color: (t) => tealText(t.palette.mode), fontSize: 12, fontWeight: 700 }}>Renovar</Button>
+                </CardContent>
+              </Card>
+            ))}
+          </Stack>
+        </Box>
+      )}
+
       {/* Revogados (seção colapsada no fim) */}
       {!loading && grouped.revoked.length > 0 && (
         <Box sx={{ mt: 2, opacity: 0.7 }}>
@@ -587,7 +749,34 @@ export const MedicosPage = () => {
         <MenuItem onClick={() => deleteShare(menuEl!.id)} sx={{ color: 'error.main' }}>
           <DeleteIcon sx={{ fontSize: 18, mr: 1 }} /> Excluir compartilhamento
         </MenuItem>
+        {menuEl?.item?.linked && [
+          <Divider key="d1" sx={{ my: 0.5 }} />,
+          <MenuItem key="n" onClick={() => { const it = menuEl!.item; setMenuEl(null); setNotesText(it.patientNotes ?? ''); setNotesFor(it); }}>
+            ✏️ Minhas anotações
+          </MenuItem>,
+          <MenuItem key="c" onClick={() => registrarConsulta(menuEl!.item)}>
+            🗓️ Registrar consulta
+          </MenuItem>,
+          <MenuItem key="r" onClick={() => void removerVinculo(menuEl!.item)} sx={{ color: 'error.main' }}>
+            🔖 Remover de Meus médicos
+          </MenuItem>,
+        ]}
       </MuiMenu>
+
+      {/* Anotações particulares do paciente (§1) — nunca visíveis ao médico */}
+      <Dialog open={!!notesFor} onClose={() => setNotesFor(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, pb: 0.5 }}>✏️ Minhas anotações</DialogTitle>
+        <DialogContent>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Sobre Dr(a). {notesFor?.doctor?.name}. Privado — o médico e ninguém mais vê isso.
+          </Typography>
+          <TextField multiline minRows={4} fullWidth size="small" placeholder="Ex.: atende bem, sala 12, prefere manhã…" value={notesText} onChange={(e) => setNotesText(e.target.value)} />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setNotesFor(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          <Button variant="contained" onClick={() => void salvarNotas()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>Salvar</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Detalhes do médico (perfil público — clicável no nome do card) */}
       <Dialog open={!!detail} onClose={() => setDetail(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
