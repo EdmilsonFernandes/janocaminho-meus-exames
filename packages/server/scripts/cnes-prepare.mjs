@@ -31,30 +31,27 @@ const CITYS = cityArg.split(';').map(deaccent).filter(Boolean);
 const csv = (f) => `${dir}/${f.replace('{cmpt}', cmpt)}.csv`;
 const unq = (v) => String(v ?? '').replace(/^"|"$/g, '').trim();
 
-// parser streaming de CSV latin1 com cabeçalho → gera objetos {col: valor}
+// parser streaming de CSV latin1 → objetos {col: valor}. O readline entrega LINHAS
+// completas (campos do CNES não têm \n embutido), então 1 linha = 1 row — sem
+// acumulação (a versão com buffer multipart engolia linhas: só ~0,2% passavam).
 async function* rows(file) {
   const rl = createInterface({ input: createReadStream(file).setEncoding('latin1'), crlfDelay: Infinity });
   let header = null;
-  let buf = '';
   for await (const line of rl) {
-    buf = buf ? `${buf}\n${line}` : line;
+    if (!line.trim()) continue;
     const cells = [];
-    let cur = '', inQ = false, complete = true;
-    for (let i = 0; i < buf.length; i++) {
-      const ch = buf[i];
-      if (ch === '"') { if (inQ && buf[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
+    let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { if (inQ && line[i + 1] === '"') { cur += '"'; i++; } else inQ = !inQ; }
       else if (ch === ';' && !inQ) { cells.push(cur); cur = ''; }
-      else if (ch === '\n' && !inQ) { cells.push(cur); cur = ''; break; }
       else cur += ch;
     }
-    if (inQ || (cur !== '' && cells.length && buf[buf.length - 1] !== '\n')) { complete = false; }
-    if (!complete) continue;
-    const final = cur;
-    if (!header) { header = cells.map(unq); buf = ''; continue; }
+    cells.push(cur);
+    if (!header) { header = cells.map(unq); continue; }
     const row = {};
     header.forEach((h, i) => { row[h] = unq(cells[i] ?? ''); });
     yield row;
-    buf = '';
   }
 }
 
@@ -63,8 +60,9 @@ const muniWanted = new Map(); // code → {name, uf}
 for await (const r of rows(csv('tbMunicipio{cmpt}'))) {
   const nm = deaccent(r.NO_MUNICIPIO);
   for (const c of CITYS) {
-    // match exato/startsWith (includes casaria "SANTOS" ↔ "SANTOS DUMONT")
-    if ((nm === c || nm.startsWith(c + ' ') || nm.startsWith(c)) && (!uf || r.CO_SIGLA_ESTADO === uf)) {
+    // match EXATO: a lista traz nomes completos — exato elimina homônimos
+    // ("CAMPINAS" ≠ "CAMPINAS DO PIAUI", "SANTOS" ≠ "SANTOS DUMONT")
+    if (nm === c && (!uf || r.CO_SIGLA_ESTADO === uf)) {
       muniWanted.set(r.CO_MUNICIPIO, { name: r.NO_MUNICIPIO, uf: r.CO_SIGLA_ESTADO });
     }
   }
