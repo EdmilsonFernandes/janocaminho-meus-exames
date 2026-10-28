@@ -110,6 +110,11 @@ describe('Fix P0 auditoria 2026-10-28', () => {
     expect(denied.status).toBe(403);
     expect(denied.body.error).toBe('Sem permissão.');
 
+    // R2 da revisão independente: rotas pós-chamada usam loadAccessibleTeleconsulta —
+    // share vencido também não acessa resumo/transcrição/feedback/etc.
+    const summaryDenied = await api().get(`/api/teleconsulta/${r.id}/summary`).set(authHeader(doctorToken));
+    expect(summaryDenied.status).toBe(403);
+
     // Fluxo legítimo preservado: share ativo sem expiração → 200.
     await prisma.doctorShare.updateMany({ where: { doctorId: doctor.id }, data: { expiresAt: null } });
     const okJoin = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(doctorToken));

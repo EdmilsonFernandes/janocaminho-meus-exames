@@ -584,8 +584,15 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
   if (!row || row.type !== 'teleconsulta') { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
 
   if (req.joinRole === 'doctor') {
+    // AUD-002 (revisão R2): mesma regra do /join — share ativo E não expirado vale para
+    // TODAS as rotas pós-chamada (/end, /summary, /transcript, /feedback, /nudge, /doctor-note).
     const share = await prisma.doctorShare.findFirst({
-      where: { doctorId: req.doctorId!, patientId: row.patientId, active: true },
+      where: {
+        doctorId: req.doctorId!,
+        patientId: row.patientId,
+        active: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       select: { id: true },
     });
     if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
