@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock · Mapa do Corpo v2 — Dr. Exame</title>
+<meta name="description" content="Proposta de redesign do Mapa do Corpo: status clínico claro, variação neutra, pins sem sobreposição e lista por gravidade.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#20b2aa; --teal-d:#0f766e; --teal-bg:#e6f6f5;
+    --ink:#0f172a; --mute:#64748b; --line:#e2e8f0; --bg:#f4f7f9; --card:#fff;
+    --red:#dc2626; --red-bg:#fef2f2; --amb:#b45309; --amb-bg:#fff7ed; --amb-line:#f3d3b0;
+    --grn:#059669; --grn-bg:#ecfdf5; --gry:#94a3b8;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:32px 20px 64px;-webkit-font-smoothing:antialiased}
+  h1.page{font:800 22px Poppins,sans-serif;letter-spacing:-.02em}
+  .lead{color:var(--mute);font-size:14px;margin:6px 0 20px;max-width:720px}
+  .fixes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;max-width:1040px;margin-bottom:28px}
+  .fix{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;line-height:1.4}
+  .fix b{display:block;font-size:12px;color:var(--teal-d);margin-bottom:2px}
+  .fix s{color:var(--mute)}
+  .label{font:700 11px Inter;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 8px}
+  .stage{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+  .desk{width:1010px;max-width:100%}
+  .phone{width:390px;max-width:100%}
+
+  /* ===== componente ===== */
+  .bm-wrap{container-type:inline-size}
+  .bm{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 1px 2px rgba(15,23,42,.04)}
+  .bm-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+  .bm-title{font:800 19px Poppins,sans-serif;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+  .bm-sub{color:var(--mute);font-size:13px;margin-top:3px}
+  .bm-sum{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+  @container (max-width:639px){.bm-head{flex-direction:column;gap:10px}.bm-sum{justify-content:flex-start}.bm-title{font-size:18px}}
+  .pill{display:inline-flex;align-items:center;gap:5px;font:700 11.5px Inter;padding:4px 9px;border-radius:999px;white-space:nowrap}
+  .pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+  .p-red{background:var(--red-bg);color:var(--red)} .p-amb{background:var(--amb-bg);color:var(--amb)} .p-grn{background:var(--grn-bg);color:var(--grn)} .p-gry{background:#f1f5f9;color:var(--mute)}
+
+  .tabs-w{position:relative;margin:16px -20px 0}
+  .tabs-w::after{content:"";position:absolute;right:0;top:0;bottom:0;width:36px;background:linear-gradient(90deg,transparent,#fff);pointer-events:none}
+  .tabs{display:flex;gap:6px;overflow-x:auto;padding:2px 20px 6px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#f8fafc;color:var(--ink);font:600 12.5px Inter;padding:7px 11px;border-radius:999px;cursor:pointer;transition:.15s}
+  .tab .d{width:8px;height:8px;border-radius:50%}
+  .tab .n{font:800 10.5px Inter;min-width:17px;height:17px;border-radius:9px;display:grid;place-items:center;color:#fff;padding:0 4px}
+  .tab.off{color:var(--mute);background:#fff}
+  .tab:hover{border-color:#b6c3d1}
+  .tab.on{background:var(--ink);color:#fff;border-color:var(--ink);box-shadow:0 2px 10px rgba(15,23,42,.25)}
+  .tab:focus-visible,.pin:focus-visible,.row-h:focus-visible,.more:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:14px}
+  @container (min-width:640px){.grid{grid-template-columns:288px 1fr;gap:24px}}
+
+  .body-col{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .body{position:relative;width:100%;max-width:288px;aspect-ratio:720/964;border-radius:20px;overflow:hidden;background:#04101f;box-shadow:0 14px 34px rgba(4,16,31,.35),0 0 0 1px rgba(95,201,195,.25)}
+  @container (max-width:639px){.body{max-width:230px}}
+  .body img{width:100%;height:100%;object-fit:cover;display:block;opacity:.92}
+  .body::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(2,8,20,.6));pointer-events:none}
+
+  .pin{position:absolute;transform:translate(-50%,-50%);width:30px;height:30px;border:0;background:none;padding:0;cursor:pointer;z-index:5;display:grid;place-items:center}
+  .pin .core{width:24px;height:24px;border-radius:50%;background:#071a30;border:2px solid var(--c);display:grid;place-items:center;font-size:12px;line-height:1;transition:transform .18s cubic-bezier(.34,1.56,.64,1),box-shadow .18s}
+  .pin.sem .core{opacity:.5;border-style:dashed}
+  .pin:hover .core{transform:scale(1.12)}
+  .pin.sel{z-index:9}
+  .pin.sel .core{transform:scale(1.2);box-shadow:0 0 0 3px rgba(255,255,255,.9),0 0 14px 2px var(--c)}
+  .pin.sel::before{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--c);animation:ping 1.8s ease-out infinite}
+  @keyframes ping{0%{transform:scale(.85);opacity:.9}100%{transform:scale(1.7);opacity:0}}
+  @media (prefers-reduced-motion:reduce){.pin.sel::before{animation:none;opacity:.5}}
+  .tag{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.96);color:var(--ink);font:700 11px Inter;padding:3px 8px;border-radius:8px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.35);pointer-events:none}
+  .tag{left:50%;top:auto;bottom:34px;transform:translateX(-50%)}
+  .pin[data-v=b] .tag{bottom:auto;top:34px}
+  .pin[data-h=l] .tag{left:-6px;transform:none}
+  .pin[data-h=r] .tag{left:auto;right:-6px;transform:none}
+
+  .legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;font-size:12px;color:var(--mute);font-weight:500}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .legend i{width:9px;height:9px;border-radius:50%}
+
+  .panel{border:1.5px solid var(--bc);background:var(--bg2);border-radius:18px;padding:16px;min-width:0}
+  .ph{display:flex;align-items:center;gap:12px}
+  .pico{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:23px;background:#fff;border:1px solid var(--bc);flex-shrink:0}
+  .ph h3{font:800 17px Poppins,sans-serif;letter-spacing:-.01em}
+  .ph small{color:var(--mute);font-size:12.5px}
+  .ph .pill{margin-left:auto}
+  .sec{font:700 10.5px Inter;letter-spacing:.09em;text-transform:uppercase;color:var(--mute);margin:16px 2px 8px}
+
+  .row{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;overflow:hidden;border-left:4px solid var(--c)}
+  .row-h{width:100%;display:grid;grid-template-columns:1fr auto 18px;align-items:center;gap:10px;padding:11px 12px;background:none;border:0;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+  .nm{font:700 13px Inter;letter-spacing:.01em;text-transform:uppercase;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .val{display:flex;align-items:baseline;gap:4px;justify-content:flex-end;white-space:nowrap}
+  .val b{font:800 17px Poppins,sans-serif;color:var(--c)}
+  .val em{font:500 11.5px Inter;font-style:normal;color:var(--mute)}
+  .chev{color:var(--mute);transition:transform .2s;font-size:12px;text-align:center}
+  .row.open .chev{transform:rotate(180deg)}
+  .det{display:none;padding:2px 14px 14px 14px;border-top:1px dashed var(--line)}
+  .row.open .det{display:block}
+  .meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--mute);margin:10px 0 8px}
+  .meta b{color:var(--ink);font-weight:600}
+  .delta{display:inline-flex;align-items:center;gap:3px;font:600 11px Inter;color:var(--mute);background:#f1f5f9;border-radius:6px;padding:2px 6px;white-space:nowrap}
+  .rbar{position:relative;height:8px;border-radius:5px;background:#e8edf2;margin:16px 0 6px}
+  .rbar .ok{position:absolute;top:0;bottom:0;background:#a7e3cf;border-radius:5px}
+  .rbar .mk{position:absolute;top:-5px;width:4px;height:18px;border-radius:3px;background:var(--c);transform:translateX(-50%);box-shadow:0 0 0 2px #fff}
+  .rbar .mk::after{content:attr(data-v);position:absolute;bottom:20px;left:50%;transform:translateX(-50%);font:700 10.5px Inter;color:var(--c);white-space:nowrap}
+  .rlab{display:flex;justify-content:space-between;font-size:11px;color:var(--mute)}
+  .go{display:inline-flex;margin-top:10px;font:700 12.5px Inter;color:var(--teal-d);background:none;border:0;cursor:pointer;padding:0}
+  .more{width:100%;margin-top:2px;padding:10px;border:1.5px dashed var(--bc);background:transparent;border-radius:12px;font:700 12.5px Inter;color:var(--grn);cursor:pointer}
+  .empty{text-align:center;padding:26px 12px;color:var(--mute);font-size:13.5px}
+  .empty b{display:block;color:var(--ink);font:700 15px Poppins;margin-bottom:4px}
+  .empty button{margin-top:12px;background:var(--teal);color:#fff;border:0;border-radius:999px;padding:9px 18px;font:700 13px Inter;cursor:pointer}
+  .foot{text-align:center;color:#94a3b8;font-size:11.5px;margin-top:14px}
+</style>
+</head>
+<body>
+<h1 class="page">Mapa do Corpo — proposta v2</h1>
+<p class="lead">Mock interativo (clique nos pins e nas abas). Mesmo componente renderizado em desktop e mobile. Imagem real do app.</p>
+
+<div class="fixes">
+  <div class="fix"><b>Cor só clínica</b>Variação virou chip cinza (<s>+37% vermelho</s> → ↑37%). Cor = faixa de referência.</div>
+  <div class="fix"><b>Unidade 1×</b><s>mEq/L mEq/L</s> → "136 mEq/L".</div>
+  <div class="fix"><b>Pins limpos</b>Tamanho fixo, sem halos gigantes; só o selecionado pulsa e ganha rótulo.</div>
+  <div class="fix"><b>Abas com contador</b>Número de alterados por órgão, scroll com fade (<s>"Músculos" cortado</s>).</div>
+  <div class="fix"><b>Por gravidade</b>"Precisa de atenção" primeiro; normais recolhidos. Faixa visual no item.</div>
+  <div class="fix"><b>Sem ruído</b>Removidos "Bio-Scan", "13 Regiões", selo e emoji duplicados. Resumo real no topo.</div>
+</div>
+
+<div class="stage">
+  <div class="desk"><p class="label">Desktop</p><div class="bm-wrap" id="m-desk"></div></div>
+  <div class="phone"><p class="label">Mobile · 390px</p><div class="bm-wrap" id="m-mob"></div></div>
+</div>
+
+<script>
+const C={alt:'#dc2626',atn:'#d97706',ok:'#059669',sem:'#94a3b8'};
+const BG={alt:'#fff5f5',atn:'#fffaf4',ok:'#f4fbf8',sem:'#f8fafc'};
+const BC={alt:'#f5c2c2',atn:'#f3d3b0',ok:'#bfe6d6',sem:'#e2e8f0'};
+const LBL={alt:'Fora da faixa',atn:'Atenção',ok:'Normal',sem:'Sem exames'};
+const PILL={alt:'p-red',atn:'p-amb',ok:'p-grn',sem:'p-gry'};
+const M=(n,v,u,lo,hi,l,d,pv,pd)=>({n,v,u,lo,hi,l,d,pv,pd});
+const R=[
+ {k:'cerebro',t:'Cérebro',e:'🧠',x:50,y:9.5,m:[]},
+ {k:'tireoide',t:'Tireoide',e:'🦋',x:50,y:17.5,m:[M('T4 livre',1.1,'ng/dL',0.8,1.8,'ok',3,1.07,'12/06')]},
+ {k:'pulmoes',t:'Pulmões',e:'🫁',x:37,y:24,m:[]},
+ {k:'coracao',t:'Coração & vasos',e:'🫀',x:57,y:28,m:[
+   M('Sódio',136,'mEq/L',135,145,'atn',-1,137,'12/06'),
+   M('Triglicérides',89,'mg/dL',0,150,'ok',37,65,'12/06'),
+   M('Colesterol total',106,'mg/dL',0,190,'ok',-19,131,'12/06'),
+   M('LDL',58,'mg/dL',0,130,'ok',-12,66,'12/06'),
+   M('HDL',52,'mg/dL',40,100,'ok',4,50,'12/06'),
+   M('Não-HDL',54,'mg/dL',0,160,'ok',-18,66,'12/06'),
+   M('VLDL',18,'mg/dL',0,30,'ok',29,14,'12/06'),
+   M('Potássio',4.2,'mEq/L',3.5,5.1,'ok',2,4.1,'12/06')]},
+ {k:'figado',t:'Fígado',e:'🧪',x:41,y:34,m:[M('TGO',28,'U/L',0,40,'ok',-3,29,'12/06'),M('TGP',31,'U/L',0,41,'ok',8,29,'12/06'),M('GGT',22,'U/L',0,60,'ok',-4,23,'12/06')]},
+ {k:'estomago',t:'Estômago',e:'🥣',x:60,y:35,m:[]},
+ {k:'pancreas',t:'Pâncreas',e:'⚡',x:50,y:41,m:[M('Glicemia de jejum',88,'mg/dL',70,99,'ok',-2,90,'12/06'),M('HbA1c',5.2,'%',4,5.6,'ok',0,5.2,'12/06')]},
+ {k:'rins',t:'Rins',e:'💧',x:59,y:45.5,m:[M('Creatinina',1.32,'mg/dL',0.7,1.3,'atn',6,1.25,'12/06'),M('Ureia',34,'mg/dL',15,45,'ok',-5,36,'12/06'),M('eGFR',74,'mL/min',60,130,'ok',-3,76,'12/06')]},
+ {k:'intestino',t:'Intestino',e:'🌀',x:50,y:51,m:[]},
+ {k:'hormonios',t:'Hormônios',e:'🧬',x:50,y:58,m:[M('TSH',5.8,'µUI/mL',0.4,4.0,'alt',38,4.2,'12/06'),M('Testosterona total',480,'ng/dL',264,916,'ok',-6,510,'12/06')]},
+ {k:'sangue',t:'Sangue',e:'🩸',x:25,y:41,m:[M('Hemoglobina',12.1,'g/dL',13.5,17.5,'alt',-7,13,'12/06'),M('Hematócrito',37,'%',41,53,'alt',-6,39.5,'12/06'),M('Leucócitos',6.4,'mil/mm³',4,11,'ok',3,6.2,'12/06'),M('Plaquetas',240,'mil/mm³',150,450,'ok',-2,245,'12/06')]},
+ {k:'musculos',t:'Músculos',e:'💪',x:44,y:67,m:[]},
+ {k:'ossos',t:'Ossos',e:'🦴',x:57,y:77,m:[M('Vitamina D',38,'ng/mL',30,100,'ok',12,34,'12/06'),M('Cálcio',9.4,'mg/dL',8.6,10.2,'ok',0,9.4,'12/06')]}
+];
+const rank={alt:3,atn:2,ok:1,sem:0};
+R.forEach(r=>{r.m.sort((a,b)=>rank[b.l]-rank[a.l]);r.l=r.m.reduce((w,x)=>rank[x.l]>rank[w]?x.l:w,r.m.length?'ok':'sem');r.al=r.m.filter(x=>x.l==='alt'||x.l==='atn').length;});
+const fmt=n=>String(n).replace('.',',');
+
+function mount(el,start){
+  let sel=start,open=null,showAll=false;
+  const nAlt=R.filter(r=>r.l==='alt').length,nAtn=R.filter(r=>r.l==='atn').length;
+  el.innerHTML=`<div class="bm">
+    <div class="bm-head"><div><div class="bm-title">🩺 Mapa do seu corpo</div>
+      <div class="bm-sub">Toque num órgão para ver os exames ligados a ele.</div></div>
+      <div class="bm-sum">${nAlt?`<span class="pill p-red"><i></i>${nAlt} fora da faixa</span>`:''}${nAtn?`<span class="pill p-amb"><i></i>${nAtn} em atenção</span>`:''}</div></div>
+    <div class="tabs-w"><div class="tabs" role="tablist"></div></div>
+    <div class="grid"><div class="body-col"><div class="body"><img src="../../packages/web/public/body-xray.webp" alt="Ilustração anatômica do corpo humano"></div>
+      <div class="legend"><span><i style="background:${C.alt}"></i>Fora da faixa</span><span><i style="background:${C.atn}"></i>Atenção</span><span><i style="background:${C.ok}"></i>Normal</span><span><i style="background:${C.sem}"></i>Sem exames</span></div></div>
+      <div class="panel"></div></div>
+    <p class="foot">Os destaques relacionam regiões aos seus exames e não representam diagnóstico clínico.</p></div>`;
+  const tabs=el.querySelector('.tabs'),body=el.querySelector('.body'),panel=el.querySelector('.panel');
+
+  function draw(){
+    const cur=R.find(r=>r.k===sel);
+    tabs.innerHTML=R.map(r=>`<button class="tab ${r.k===sel?'on':''} ${r.l==='sem'?'off':''}" role="tab" aria-selected="${r.k===sel}" data-k="${r.k}">
+      <span class="d" style="background:${C[r.l]}"></span>${r.t.split(' &')[0]}${r.al?`<span class="n" style="background:${C[r.l]}">${r.al}</span>`:''}</button>`).join('');
+    body.querySelectorAll('.pin').forEach(p=>p.remove());
+    R.forEach(r=>{const b=document.createElement('button');b.className='pin '+(r.k===sel?'sel ':'')+(r.l==='sem'?'sem':'');
+      b.style.cssText=`left:${r.x}%;top:${r.y}%;--c:${C[r.l]}`;b.dataset.k=r.k;b.dataset.v=r.y<14?'b':'t';b.dataset.h=r.x<30?'l':r.x>70?'r':'c';
+      b.setAttribute('aria-label',`${r.t}: ${LBL[r.l]}`);
+      b.innerHTML=`<span class="core">${r.e}</span>${r.k===sel?`<span class="tag">${r.t.split(' &')[0]}</span>`:''}`;body.appendChild(b);});
+    panel.style.setProperty('--bc',BC[cur.l]);panel.style.setProperty('--bg2',BG[cur.l]);
+    const total=cur.m.length;
+    let h=`<div class="ph"><div class="pico">${cur.e}</div><div><h3>${cur.t}</h3><small>${total?`${total} exames mapeados`:'Nenhum exame vinculado'}</small></div><span class="pill ${PILL[cur.l]}"><i></i>${LBL[cur.l]}</span></div>`;
+    if(!total){h+=`<div class="empty"><b>Sem exames para ${cur.t.split(' &')[0].toLowerCase()}</b>Envie um laudo e o Dr. Exame mapeia os marcadores automaticamente.<br><button>Enviar exame</button></div>`;}
+    else{
+      const att=cur.m.filter(x=>x.l!=='ok'),nor=cur.m.filter(x=>x.l==='ok');
+      const row=x=>{const id=cur.k+x.n,isO=open===id,span=x.hi-x.lo,dmin=x.lo===0?0:x.lo-span*.6,dmax=x.hi+span*.6,
+        pos=Math.max(3,Math.min(97,(x.v-dmin)/(dmax-dmin)*100)),a=(x.lo-dmin)/(dmax-dmin)*100,b=(x.hi-dmin)/(dmax-dmin)*100,
+        ref=x.lo===0?`< ${fmt(x.hi)}`:`${fmt(x.lo)} – ${fmt(x.hi)}`;
+        return `<div class="row ${isO?'open':''}" style="--c:${C[x.l]}"><button class="row-h" data-id="${id}" aria-expanded="${isO}">
+          <span class="nm">${x.n}</span><span class="val"><b>${fmt(x.v)}</b><em>${x.u}</em></span><span class="chev">▾</span></button>
+          <div class="det"><div class="meta"><span>Referência: <b>${ref} ${x.u}</b></span>
+            <span class="delta" title="Variação vs. exame anterior">${x.d>0?'↑':x.d<0?'↓':'→'} ${Math.abs(x.d)}% · ${x.pd}</span></div>
+            <div class="rbar"><div class="ok" style="left:${a}%;width:${b-a}%"></div><div class="mk" style="left:${pos}%" data-v="${fmt(x.v)}"></div></div>
+            <div class="rlab"><span>${x.lo===0?'0':fmt(x.lo)}</span><span>${fmt(x.hi)}</span></div>
+            <button class="go">Ver evolução →</button></div></div>`;};
+      if(att.length)h+=`<div class="sec">Precisa de atenção · ${att.length}</div>`+att.map(row).join('');
+      if(nor.length){const vis=showAll?nor:nor.slice(0,Math.max(0,3-att.length));
+        h+=`<div class="sec">Dentro da faixa · ${nor.length}</div>`+vis.map(row).join('');
+        if(nor.length>vis.length)h+=`<button class="more">Ver mais ${nor.length-vis.length} exames normais</button>`;}
+    }
+    panel.innerHTML=h;
+  }
+  el.addEventListener('click',e=>{
+    const t=e.target.closest('[data-k]');if(t){sel=t.dataset.k;open=null;showAll=false;draw();
+      if(t.classList.contains('tab'))t.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});return;}
+    const r=e.target.closest('.row-h');if(r){open=open===r.dataset.id?null:r.dataset.id;draw();return;}
+    if(e.target.closest('.more')){showAll=true;draw();}
+  });
+  draw();
+}
+mount(document.getElementById('m-desk'),'coracao');
+mount(document.getElementById('m-mob'),'sangue');
+</script>
+</body>
+</html>

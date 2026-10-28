@@ -94,21 +94,88 @@ const SYSTEM_ICON: Record<string, ComponentType<any>> = {
   ossos: AccessibilityNewIcon,
 };
 
-// Coordenadas anatômicas no raio-x frontal (%) com numeração 1 a 13 (dentro do contorno do tronco)
+// Coordenadas anatômicas no raio-x frontal (%) calibradas para o design v2
 const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' | 'right'; num: number }> = {
   cerebro: { x: 50, y: 9.5, num: 1 },
   tireoide: { x: 50, y: 17.5, num: 2 },
-  pulmoes: { x: 38, y: 23.5, side: 'left', num: 3 },
-  coracao: { x: 56, y: 27.5, side: 'right', num: 4 },
-  figado: { x: 42, y: 34, side: 'left', num: 5 },       // Hipocôndrio direito dentro do tronco (longe do braço)
-  estomago: { x: 58, y: 34.5, side: 'right', num: 6 },   // Hipocôndrio esquerdo dentro do tronco
-  pancreas: { x: 50, y: 40.5, num: 7 },                 // Região epigástrica central
-  rins: { x: 58, y: 44.5, side: 'right', num: 8 },      // Flanco interno / loja renal (longe do braço/punho)
-  intestino: { x: 50, y: 49.5, num: 9 },                // Região umbilical/mesogástrica
-  hormonios: { x: 50, y: 57, num: 10 },                 // Pélvis e sistema endócrino
-  sangue: { x: 26, y: 41, side: 'left', num: 11 },      // Fossa cubital (veia do braço p/ punção laboratorial)
-  musculos: { x: 44, y: 67, side: 'left', num: 12 },    // Coxa / quadríceps
-  ossos: { x: 56, y: 76, side: 'right', num: 13 },      // Joelho / tíbia
+  pulmoes: { x: 37, y: 24, side: 'left', num: 3 },
+  coracao: { x: 57, y: 28, side: 'right', num: 4 },
+  figado: { x: 41, y: 34, side: 'left', num: 5 },
+  estomago: { x: 60, y: 35, side: 'right', num: 6 },
+  pancreas: { x: 50, y: 41, num: 7 },
+  rins: { x: 59, y: 45.5, side: 'right', num: 8 },
+  intestino: { x: 50, y: 51, num: 9 },
+  hormonios: { x: 50, y: 58, num: 10 },
+  sangue: { x: 25, y: 41, side: 'left', num: 11 },
+  musculos: { x: 44, y: 67, side: 'left', num: 12 },
+  ossos: { x: 57, y: 77, side: 'right', num: 13 },
+};
+
+const withUnit = (val: string | number | null | undefined, unit: string | null | undefined): string => {
+  if (val == null || val === '') return '—';
+  const valStr = String(val).trim();
+  if (!unit || !unit.trim()) return valStr;
+  const u = unit.trim();
+  if (valStr.toLowerCase().endsWith(u.toLowerCase())) return valStr;
+  return `${valStr} ${u}`;
+};
+
+const parseNum = (str: string | null | undefined): number | null => {
+  if (!str) return null;
+  const clean = str.replace(',', '.').replace(/[^0-9.-]/g, '');
+  const n = parseFloat(clean);
+  return Number.isFinite(n) ? n : null;
+};
+
+interface RangePositionResult {
+  bandLo: number;
+  bandHi: number;
+  value: number;
+}
+
+const rangePosition = (
+  valueText: string | null | undefined,
+  refText: string | null | undefined
+): RangePositionResult | null => {
+  if (!valueText || !refText) return null;
+  const val = parseNum(valueText);
+  if (val == null) return null;
+
+  let lo: number | null = null;
+  let hi: number | null = null;
+
+  const rangeMatch = refText.match(/([0-9]+(?:[.,][0-9]+)?)\s*(?:a|-|–|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+  if (rangeMatch) {
+    lo = parseNum(rangeMatch[1]);
+    hi = parseNum(rangeMatch[2]);
+  } else {
+    const lessMatch = refText.match(/(?:<|inferior a|menor que|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+    if (lessMatch) {
+      lo = 0;
+      hi = parseNum(lessMatch[1]);
+    } else {
+      const greaterMatch = refText.match(/(?:>|superior a|maior que)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+      if (greaterMatch) {
+        lo = parseNum(greaterMatch[1]);
+        if (lo != null) hi = lo * 2;
+      }
+    }
+  }
+
+  if (lo == null || hi == null || hi <= lo) return null;
+
+  const span = hi - lo;
+  const dmin = lo === 0 ? 0 : lo - span * 0.6;
+  const dmax = hi + span * 0.6;
+  const total = dmax - dmin;
+  if (total <= 0) return null;
+
+  const clamp = (pct: number) => Math.max(3, Math.min(97, pct));
+  const bandLo = clamp(((lo - dmin) / total) * 100);
+  const bandHi = clamp(((hi - dmin) / total) * 100);
+  const valPos = clamp(((val - dmin) / total) * 100);
+
+  return { bandLo, bandHi, value: valPos };
 };
 
 const formatDate = (isoString: string | null) => {
@@ -400,6 +467,21 @@ export const BodyMap = ({
     );
   }
 
+  const nAlt = useMemo(() => safeList.filter((r) => r.level === 'alterado').length, [safeList]);
+  const nAtn = useMemo(() => safeList.filter((r) => r.level === 'atencao').length, [safeList]);
+
+  const attentionMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'alterado' || m.level === 'atencao'),
+    [sortedMarkers]
+  );
+  const normalMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'ok'),
+    [sortedMarkers]
+  );
+  const initialNormalLimit = attentionMarkers.length > 0 ? Math.max(1, 3 - attentionMarkers.length) : 3;
+  const visibleNormalMarkers = showAllMarkers ? normalMarkers : normalMarkers.slice(0, initialNormalLimit);
+  const hiddenNormalCount = Math.max(0, normalMarkers.length - visibleNormalMarkers.length);
+
   const activeColor = activeRegion ? getLevelColor(activeRegion.level) : '#20b2aa';
 
   return (
@@ -410,224 +492,281 @@ export const BodyMap = ({
         overflow: 'hidden',
       }}
     >
-      {/* Keyframes de pulso sutil, bio-scanner laser e aceleração GPU */}
+      {/* Keyframes de pulso sutil e aceleração GPU */}
       <style>{`
         @keyframes subtleOrganPulse {
           0%, 100% { transform: scale(1); opacity: 0.95; }
-          50% { transform: scale(1.18); opacity: 0.65; }
+          50% { transform: scale(1.15); opacity: 0.7; }
         }
         @keyframes organRingPing {
-          0% { transform: scale(0.8); opacity: 0.85; }
-          70%, 100% { transform: scale(2.3); opacity: 0; }
+          0% { transform: scale(0.85); opacity: 0.9; }
+          75%, 100% { transform: scale(2.0); opacity: 0; }
         }
         @keyframes bioScanLaser {
           0% { top: 0%; opacity: 0; }
-          10% { opacity: 0.95; }
-          90% { opacity: 0.95; }
+          10% { opacity: 0.85; }
+          90% { opacity: 0.85; }
           100% { top: 98%; opacity: 0; }
         }
-        @keyframes radarSpin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
         @keyframes panelGlowFlash {
-          0% { transform: scale(0.99); box-shadow: 0 0 0 3px rgba(95,201,195,0.6); }
-          50% { transform: scale(1.008); box-shadow: 0 0 0 6px rgba(95,201,195,0.3); }
+          0% { transform: scale(0.995); box-shadow: 0 0 0 3px rgba(95,201,195,0.5); }
+          50% { transform: scale(1.005); box-shadow: 0 0 0 5px rgba(95,201,195,0.25); }
           100% { transform: scale(1); }
         }
-        .organ-pulse-active {
-          animation: subtleOrganPulse 3s ease-in-out infinite;
-        }
         .organ-ring-ping {
-          animation: organRingPing 2.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+          animation: organRingPing 2.2s cubic-bezier(0, 0, 0.2, 1) infinite;
         }
         .bio-scan-laser-beam {
-          animation: bioScanLaser 4.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-        }
-        .radar-reticle {
-          animation: radarSpin 12s linear infinite;
+          animation: bioScanLaser 4.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
         }
         .panel-flash-glow {
-          animation: panelGlowFlash 0.7s ease-out;
+          animation: panelGlowFlash 0.5s ease-out;
         }
         @media (prefers-reduced-motion: reduce) {
-          .organ-pulse-active, .organ-ring-ping, .bio-scan-laser-beam, .radar-reticle, .panel-flash-glow {
+          .organ-ring-ping, .bio-scan-laser-beam, .panel-flash-glow {
             animation: none !important;
           }
         }
       `}</style>
 
-      {/* Cabeçalho do Card com layout 100% responsivo para mobile sem quebras */}
+      {/* Cabeçalho do Card v2 — Resumo de status clínico real sem quebras em mobile */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: { xs: 'flex-start', sm: 'center' },
           justifyContent: 'space-between',
-          mb: 2,
-          gap: { xs: 1.25, sm: 1.5 },
+          mb: 1.75,
+          gap: { xs: 1, sm: 1.5 },
         }}
       >
         <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography
-              component="h2"
-              sx={{
-                fontFamily: 'Poppins, sans-serif',
-                fontWeight: 800,
-                fontSize: { xs: 'clamp(15px, 4.2vw, 17.5px)', sm: 18 },
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 0.75,
-                lineHeight: 1.2,
-                color: 'text.primary',
-              }}
-            >
-              <Box component="span" sx={{ fontSize: { xs: 18, sm: 20 }, lineHeight: 1 }}>🫀</Box>
-              Mapa do seu Corpo
-            </Typography>
-            <Box
-              component="span"
-              sx={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: dark ? '#5fc9c3' : '#0f766e',
-                bgcolor: dark ? 'rgba(32, 178, 170, 0.15)' : 'rgba(32, 178, 170, 0.1)',
-                border: '1px solid',
-                borderColor: dark ? 'rgba(32, 178, 170, 0.35)' : 'rgba(32, 178, 170, 0.25)',
-                px: 1,
-                py: 0.25,
-                borderRadius: '999px',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              13 Regiões
-            </Box>
-          </Box>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontSize: { xs: 11.5, sm: 12 }, lineHeight: 1.35 }}>
-            Toque nos órgãos ou pontos brilhantes para rolar direto aos exames e laudos vinculados.
+          <Typography
+            component="h2"
+            sx={{
+              fontFamily: 'Poppins, sans-serif',
+              fontWeight: 800,
+              fontSize: { xs: 17, sm: 18.5 },
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 0.75,
+              lineHeight: 1.2,
+              color: 'text.primary',
+            }}
+          >
+            <Box component="span" sx={{ fontSize: { xs: 19, sm: 21 }, lineHeight: 1 }}>🩺</Box>
+            Mapa do seu Corpo
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              display: 'block',
+              mt: 0.35,
+              fontSize: { xs: 12, sm: 12.5 },
+              lineHeight: 1.35,
+            }}
+          >
+            Toque num órgão para ver os exames ligados a ele.
           </Typography>
         </Box>
-        <Chip
-          size="small"
-          icon={
-            <Box
-              sx={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                bgcolor: '#20b2aa',
-                boxShadow: '0 0 8px #20b2aa',
-                animation: 'subtleOrganPulse 2s infinite',
-                ml: '8px !important',
-              }}
-            />
-          }
-          label="Bio-Scan Clínico"
-          sx={{
-            fontWeight: 800,
-            fontSize: 11,
-            bgcolor: dark ? 'rgba(32, 178, 170, 0.15)' : 'rgba(32, 178, 170, 0.12)',
-            color: dark ? '#5fc9c3' : '#0f766e',
-            border: '1px solid',
-            borderColor: dark ? 'rgba(32, 178, 170, 0.35)' : 'rgba(32, 178, 170, 0.3)',
-            borderRadius: '999px',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-            alignSelf: { xs: 'flex-start', sm: 'center' },
-          }}
-        />
-      </Box>
 
-      {/* Seletor Rápido Horizontal de Chips das 13 Regiões Numeradas (Deslize suave sem scrollbar feia) */}
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 0.75,
-          overflowX: 'auto',
-          pb: 0.5,
-          mb: 1.5,
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          '&::-webkit-scrollbar': { display: 'none' },
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
-        {safeList.map((reg) => {
-          const spot = ANATOMICAL_HOTSPOTS[reg.key];
-          const isSelected = reg.key === selectedKey;
-          const col = getLevelColor(reg.level);
-          const num = spot?.num || 1;
-
-          return (
+        {/* Pílulas de resumo com contadores clínicos reais */}
+        <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', flexShrink: 0, gap: 0.5 }}>
+          {nAlt > 0 && (
             <Chip
-              key={reg.key}
-              clickable
               size="small"
-              onClick={() => handleSelect(reg.key, true)}
-              avatar={
+              icon={
                 <Box
                   sx={{
-                    width: 18,
-                    height: 18,
+                    width: 7,
+                    height: 7,
                     borderRadius: '50%',
-                    bgcolor: isSelected ? 'common.white' : col,
-                    color: isSelected ? 'text.primary' : 'common.white',
-                    fontSize: 10,
-                    fontWeight: 800,
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontFamily: 'Poppins, sans-serif',
+                    bgcolor: dark ? SEM.bad.dark : SEM.bad.light,
+                    ml: '8px !important',
                   }}
-                >
-                  {num}
-                </Box>
+                />
               }
-              label={reg.label.split('&')[0].trim()}
+              label={`${nAlt} fora da faixa`}
               sx={{
                 fontWeight: 700,
                 fontSize: 11.5,
-                bgcolor: isSelected ? (dark ? '#0f2942' : '#0f172a') : (dark ? 'rgba(255,255,255,0.06)' : '#f8fafc'),
-                color: isSelected ? '#ffffff' : 'text.primary',
-                border: isSelected ? '1px solid #5fc9c3' : '1px solid',
-                borderColor: isSelected ? '#5fc9c3' : 'divider',
-                boxShadow: isSelected ? '0 2px 8px rgba(95,201,195,0.3)' : 'none',
-                transition: 'all 0.2s',
-                flexShrink: 0,
+                bgcolor: dark ? 'rgba(239, 68, 68, 0.16)' : '#fef2f2',
+                color: dark ? '#fca5a5' : '#dc2626',
+                border: '1px solid',
+                borderColor: dark ? 'rgba(239, 68, 68, 0.35)' : '#fecaca',
+                borderRadius: '999px',
+                height: 26,
               }}
             />
-          );
-        })}
+          )}
+          {nAtn > 0 && (
+            <Chip
+              size="small"
+              icon={
+                <Box
+                  sx={{
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    bgcolor: dark ? SEM.warn.dark : SEM.warn.light,
+                    ml: '8px !important',
+                  }}
+                />
+              }
+              label={`${nAtn} em atenção`}
+              sx={{
+                fontWeight: 700,
+                fontSize: 11.5,
+                bgcolor: dark ? 'rgba(245, 158, 11, 0.16)' : '#fff7ed',
+                color: dark ? '#fcd34d' : '#b45309',
+                border: '1px solid',
+                borderColor: dark ? 'rgba(245, 158, 11, 0.35)' : '#fed7aa',
+                borderRadius: '999px',
+                height: 26,
+              }}
+            />
+          )}
+        </Stack>
+      </Box>
+
+      {/* Seletor Rápido Horizontal de Abas — Com contador de alertas e scroll suave */}
+      <Box
+        sx={{
+          position: 'relative',
+          mx: { xs: -2, sm: -2.5 },
+          px: { xs: 2, sm: 2.5 },
+          mb: 2,
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 32,
+            background: (t) =>
+              `linear-gradient(90deg, transparent, ${t.palette.mode === 'dark' ? '#0f172a' : '#ffffff'})`,
+            pointerEvents: 'none',
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 0.75,
+            overflowX: 'auto',
+            pb: 0.75,
+            pt: 0.25,
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+            '&::-webkit-scrollbar': { display: 'none' },
+            WebkitOverflowScrolling: 'touch',
+          }}
+        >
+          {safeList.map((reg) => {
+            const isSelected = reg.key === selectedKey;
+            const col = getLevelColor(reg.level);
+            const alertCount = reg.markers.filter((m) => m.level === 'alterado' || m.level === 'atencao').length;
+
+            return (
+              <Box
+                key={reg.key}
+                component="button"
+                type="button"
+                onClick={() => handleSelect(reg.key, true)}
+                sx={{
+                  flexShrink: 0,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  px: 1.35,
+                  py: 0.7,
+                  borderRadius: '999px',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: isSelected
+                    ? (dark ? '#5fc9c3' : '#0f172a')
+                    : (dark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                  bgcolor: isSelected
+                    ? (dark ? '#0f2942' : '#0f172a')
+                    : (dark ? 'rgba(255,255,255,0.04)' : '#f8fafc'),
+                  color: isSelected
+                    ? '#ffffff'
+                    : (reg.level === 'sem_dados' ? 'text.secondary' : 'text.primary'),
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: isSelected ? 700 : 600,
+                  fontSize: 12.5,
+                  lineHeight: 1,
+                  boxShadow: isSelected ? '0 2px 8px rgba(15,23,42,0.25)' : 'none',
+                  transition: 'all 0.15s ease',
+                  outline: 'none',
+                  '&:hover': {
+                    borderColor: isSelected ? undefined : (dark ? 'rgba(255,255,255,0.25)' : '#cbd5e1'),
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 7.5,
+                    height: 7.5,
+                    borderRadius: '50%',
+                    bgcolor: col,
+                    flexShrink: 0,
+                  }}
+                />
+                <span>{reg.label.split('&')[0].trim()}</span>
+                {alertCount > 0 && (
+                  <Box
+                    component="span"
+                    sx={{
+                      minWidth: 17,
+                      height: 17,
+                      px: 0.5,
+                      borderRadius: '999px',
+                      bgcolor: col,
+                      color: '#ffffff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: 'inline-grid',
+                      placeItems: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {alertCount}
+                  </Box>
+                )}
+              </Box>
+            );
+          })}
+        </Box>
       </Box>
 
       {/* Grade Principal: Corpo Anatômico + Detalhes do Órgão */}
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 320px) 1fr' },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(250px, 290px) 1fr' },
           gap: { xs: 2.5, md: 3 },
           alignItems: 'start',
         }}
       >
-        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Hotspots Interativos e Bio-Scanner */}
+        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Pins Limpos e Calibrados */}
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-
           <Box
             sx={{
               position: 'relative',
               width: '100%',
-              maxWidth: { xs: 260, sm: 290 },
+              maxWidth: { xs: 230, sm: 275 },
               aspectRatio: '720/964',
               borderRadius: '20px',
               overflow: 'hidden',
               background: '#04101f',
-              boxShadow: '0 16px 40px rgba(0,0,0,0.35), 0 0 0 1px rgba(95,201,195,0.25)',
+              boxShadow: '0 14px 34px rgba(4,16,31,0.35), 0 0 0 1px rgba(95,201,195,0.25)',
               userSelect: 'none',
               touchAction: 'manipulation',
             }}
           >
-
-            {/* Imagem anatômica (Raio-X Clínico em Alta Resolução) */}
+            {/* Imagem anatômica (Raio-X Clínico) */}
             <Box
               component="img"
               src={`${import.meta.env.BASE_URL}body-xray.webp`}
@@ -639,11 +778,11 @@ export const BodyMap = ({
                 height: '100%',
                 objectFit: 'cover',
                 display: 'block',
-                opacity: 0.94,
+                opacity: 0.93,
               }}
             />
 
-            {/* Feixe Laser Bio-Scanner Animado que percorre o corpo */}
+            {/* Feixe Laser sutil */}
             <Box
               className="bio-scan-laser-beam"
               sx={{
@@ -651,37 +790,37 @@ export const BodyMap = ({
                 left: 0,
                 right: 0,
                 height: '2px',
-                background: 'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.25) 15%, #ffffff 50%, rgba(95,201,195,0.25) 85%, transparent 100%)',
-                boxShadow: '0 0 14px 3px rgba(95,201,195,0.85), 0 0 28px rgba(95,201,195,0.4)',
+                background:
+                  'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.2) 20%, #ffffff 50%, rgba(95,201,195,0.2) 80%, transparent 100%)',
+                boxShadow: '0 0 12px 2px rgba(95,201,195,0.8)',
                 pointerEvents: 'none',
                 zIndex: 6,
               }}
             />
 
-            {/* Vinheta cônica/radial para visual de diagnóstico cibernético */}
+            {/* Vinheta cônica/radial suave */}
             <Box
               sx={{
                 position: 'absolute',
                 inset: 0,
-                background: 'radial-gradient(ellipse at 50% 45%, transparent 52%, rgba(2, 8, 20, 0.62))',
+                background: 'radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(2, 8, 20, 0.6))',
                 pointerEvents: 'none',
               }}
             />
 
-            {/* Hotspots dos Órgãos Posicionados com Precisão e Clicáveis */}
+            {/* Hotspots dos Órgãos: Pins limpos, tamanho uniforme e tag inteligente anti-corte */}
             {safeList.map((reg) => {
               const spot = ANATOMICAL_HOTSPOTS[reg.key];
               if (!spot) return null;
 
               const isSelected = reg.key === selectedKey;
               const col = getLevelColor(reg.level);
-              const hasAlert = reg.level === 'alterado' || reg.level === 'atencao';
-              const hasData = reg.level !== 'sem_dados';
+              const isSemDados = reg.level === 'sem_dados';
 
               return (
                 <Tooltip
                   key={reg.key}
-                  title={`${reg.emoji} ${reg.label} — ${LEVEL_LABEL[reg.level]} (toque para ver exames)`}
+                  title={`${reg.emoji} ${reg.label} — ${LEVEL_LABEL[reg.level]}`}
                   arrow
                   placement="top"
                   enterTouchDelay={0}
@@ -696,8 +835,8 @@ export const BodyMap = ({
                       left: `${spot.x}%`,
                       top: `${spot.y}%`,
                       transform: 'translate(-50%, -50%)',
-                      width: isSelected ? 46 : 38,
-                      height: isSelected ? 46 : 38,
+                      width: 32,
+                      height: 32,
                       border: 0,
                       background: 'none',
                       p: 0,
@@ -705,37 +844,23 @@ export const BodyMap = ({
                       zIndex: isSelected ? 12 : 5,
                       display: 'grid',
                       placeItems: 'center',
-                      transition: 'transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.2s ease, height 0.2s ease',
+                      transition: 'transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)',
                       '&:hover': {
                         transform: 'translate(-50%, -50%) scale(1.15)',
                       },
                       '&:focus-visible': {
                         outline: `2px solid #5fc9c3`,
-                        outlineOffset: 3,
+                        outlineOffset: 2,
                       },
                     }}
                   >
-                    {/* Retícula/Mira cibernética giratória no órgão ativo */}
+                    {/* Anel de pulso no selecionado */}
                     {isSelected && (
-                      <Box
-                        className="radar-reticle"
-                        sx={{
-                          position: 'absolute',
-                          inset: 1,
-                          borderRadius: '50%',
-                          border: `1.5px dashed ${alpha(col, 0.85)}`,
-                          pointerEvents: 'none',
-                        }}
-                      />
-                    )}
-
-                    {/* Halo de pulso sutil em caso de alteração/atenção */}
-                    {hasAlert && (
                       <Box
                         className="organ-ring-ping"
                         sx={{
                           position: 'absolute',
-                          inset: 4,
+                          inset: -2,
                           borderRadius: '50%',
                           border: `2px solid ${col}`,
                           pointerEvents: 'none',
@@ -743,63 +868,63 @@ export const BodyMap = ({
                       />
                     )}
 
-                    {/* Núcleo do Hotspot Colorido com Desenho Anatômico do Órgão e Badge com Número */}
+                    {/* Núcleo do Pin anatômico */}
                     <Box
-                      className={hasAlert ? 'organ-pulse-active' : undefined}
                       sx={{
-                        position: 'relative',
-                        width: isSelected ? 34 : 28,
-                        height: isSelected ? 34 : 28,
+                        width: 24,
+                        height: 24,
                         borderRadius: '50%',
-                        background: `radial-gradient(circle, ${alpha(col, 0.4)} 0%, #061428 100%)`,
-                        border: `1.5px solid ${col}`,
+                        bgcolor: '#071a30',
+                        border: `2px ${isSemDados ? 'dashed' : 'solid'} ${col}`,
+                        opacity: isSemDados ? 0.6 : 1,
                         display: 'grid',
                         placeItems: 'center',
+                        transform: isSelected ? 'scale(1.18)' : 'scale(1)',
                         boxShadow: isSelected
-                          ? `0 0 18px 4px ${col}, 0 0 32px ${alpha(col, 0.75)}`
-                          : hasData
-                          ? `0 0 10px 2px ${alpha(col, 0.65)}`
+                          ? `0 0 0 3px rgba(255,255,255,0.9), 0 0 14px 2px ${col}`
                           : 'none',
-                        transition: 'all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        transition: 'all 0.18s ease',
                       }}
                     >
-                      {/* Desenho do Órgão com iluminação bioluminescente */}
                       <Typography
                         component="span"
                         sx={{
-                          fontSize: isSelected ? 16 : 13,
+                          fontSize: 12,
                           lineHeight: 1,
-                          filter: `drop-shadow(0 0 5px ${col})`,
                           userSelect: 'none',
                         }}
                       >
                         {reg.emoji}
                       </Typography>
+                    </Box>
 
-                      {/* Badge Elegante com o Número 1 a 13 */}
+                    {/* Tag de nome inteligente: alinhamento lateral adaptativo para evitar corte em mobile */}
+                    {isSelected && (
                       <Box
                         sx={{
                           position: 'absolute',
-                          top: -3,
-                          right: -3,
-                          width: 14,
-                          height: 14,
-                          borderRadius: '50%',
-                          bgcolor: '#0f172a',
-                          border: `1.5px solid ${col}`,
-                          color: '#ffffff',
-                          fontFamily: 'Poppins, sans-serif',
-                          fontSize: 8.5,
-                          fontWeight: 800,
-                          display: 'grid',
-                          placeItems: 'center',
-                          boxShadow: '0 2px 5px rgba(0,0,0,0.6)',
-                          zIndex: 3,
+                          whiteSpace: 'nowrap',
+                          bgcolor: 'rgba(255,255,255,0.96)',
+                          color: '#0f172a',
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 700,
+                          fontSize: 11,
+                          px: 1,
+                          py: 0.35,
+                          borderRadius: '8px',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
+                          pointerEvents: 'none',
+                          zIndex: 10,
+                          top: spot.y < 14 ? 34 : 'auto',
+                          bottom: spot.y < 14 ? 'auto' : 34,
+                          left: spot.x < 30 ? -4 : spot.x > 70 ? 'auto' : '50%',
+                          right: spot.x > 70 ? -4 : 'auto',
+                          transform: spot.x < 30 || spot.x > 70 ? 'none' : 'translateX(-50%)',
                         }}
                       >
-                        {spot.num}
+                        {reg.label.split('&')[0].trim()}
                       </Box>
-                    </Box>
+                    )}
                   </Box>
                 </Tooltip>
               );
@@ -819,7 +944,6 @@ export const BodyMap = ({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? SEM.ok.dark : SEM.ok.light }} />
               Normal
-
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, fontSize: 11.5, color: 'text.secondary' }}>
               <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dark ? '#64748b' : '#94a3b8' }} />
@@ -842,61 +966,44 @@ export const BodyMap = ({
             <Box
               className={panelFlash ? 'panel-flash-glow' : undefined}
               sx={{
-                borderRadius: '16px',
+                borderRadius: '18px',
                 p: { xs: 2, sm: 2.5 },
-                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(32,178,170,0.03)'),
-                border: '2px solid',
-                borderColor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.45 : 0.35),
-                boxShadow: (t) => `0 6px 24px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.18 : 0.09)}`,
-                transition: 'border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease',
+                bgcolor: (t) =>
+                  t.palette.mode === 'dark'
+                    ? alpha(activeColor, 0.08)
+                    : activeRegion.level === 'alterado'
+                    ? '#fff5f5'
+                    : activeRegion.level === 'atencao'
+                    ? '#fffaf4'
+                    : activeRegion.level === 'ok'
+                    ? '#f4fbf8'
+                    : '#f8fafc',
+                border: '1.5px solid',
+                borderColor: (t) =>
+                  alpha(
+                    activeColor,
+                    t.palette.mode === 'dark' ? 0.45 : activeRegion.level === 'alterado' ? 0.35 : 0.25
+                  ),
+                boxShadow: (t) => `0 4px 18px ${alpha(activeColor, t.palette.mode === 'dark' ? 0.15 : 0.06)}`,
+                transition: 'all 0.2s ease',
               }}
             >
-              {/* Banner Destacado: Órgão Selecionado no Mapa */}
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 0.8,
-                  px: 1.25,
-                  py: 0.45,
-                  mb: 1.5,
-                  borderRadius: '999px',
-                  bgcolor: alpha(activeColor, dark ? 0.22 : 0.12),
-                  border: '1px solid',
-                  borderColor: alpha(activeColor, 0.45),
-                  color: activeColor,
-                  fontWeight: 800,
-                  fontSize: 11,
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                <Box
-                  component="span"
-                  sx={{
-                    width: 7,
-                    height: 7,
-                    borderRadius: '50%',
-                    bgcolor: activeColor,
-                    boxShadow: `0 0 8px ${activeColor}`,
-                  }}
-                />
-                🎯 Exames do Órgão Selecionado: {activeRegion.label}
-              </Box>
-
               {/* Header do Sistema */}
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1.5, flexWrap: 'wrap' }}>
                 <Stack direction="row" alignItems="center" spacing={1.25}>
                   <Box
                     sx={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: '12px',
+                      width: 44,
+                      height: 44,
+                      borderRadius: '14px',
                       display: 'grid',
                       placeItems: 'center',
-                      bgcolor: alpha(activeColor, 0.14),
+                      bgcolor: dark ? 'rgba(255,255,255,0.08)' : '#ffffff',
+                      border: '1px solid',
+                      borderColor: alpha(activeColor, 0.3),
                       color: activeColor,
                       fontSize: 22,
+                      flexShrink: 0,
                     }}
                   >
                     {(() => {
@@ -905,13 +1012,13 @@ export const BodyMap = ({
                     })()}
                   </Box>
                   <Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: 16, lineHeight: 1.2 }}>
-                      {activeRegion.emoji} {activeRegion.label}
+                    <Typography sx={{ fontWeight: 800, fontSize: 16.5, lineHeight: 1.2 }}>
+                      {activeRegion.label}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
                       {activeRegion.markers.length > 0
                         ? `${activeRegion.markers.length} exame${activeRegion.markers.length > 1 ? 's' : ''} mapeado${activeRegion.markers.length > 1 ? 's' : ''}`
-                        : 'Nenhum exame relacionado no momento'}
+                        : 'Nenhum exame vinculado no momento'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -922,7 +1029,7 @@ export const BodyMap = ({
                   sx={{
                     fontWeight: 800,
                     fontSize: 12,
-                    bgcolor: alpha(activeColor, 0.12),
+                    bgcolor: alpha(activeColor, dark ? 0.2 : 0.12),
                     color: activeColor,
                     borderColor: alpha(activeColor, 0.35),
                     borderWidth: 1,
@@ -933,244 +1040,518 @@ export const BodyMap = ({
 
               <Divider sx={{ my: 1.5, borderColor: alpha(activeColor, 0.15) }} />
 
-              {/* Lista de Marcadores Clínicos do Órgão — Formato Compacto com Divulgação Progressiva */}
+              {/* Lista de Marcadores Clínicos por Gravidade */}
               {sortedMarkers.length > 0 ? (
-                <Stack spacing={1} sx={{ mt: 1.5 }}>
-                  {visibleMarkers.map((m) => {
-                    const mCol = getLevelColor(m.level);
-                    const isAbnormal = m.level === 'alterado' || m.level === 'atencao';
-                    const examDate = formatDate(m.performedAt);
-                    const mKey = m.nameCanonical || m.name;
-                    const isExpanded = expandedMarker === mKey;
-
-                    return (
-                      <Box
-                        key={mKey}
+                <Stack spacing={1.5} sx={{ mt: 1 }}>
+                  {/* Seção 1: Marcadores que precisam de atenção */}
+                  {attentionMarkers.length > 0 && (
+                    <Box>
+                      <Typography
                         sx={{
-                          borderRadius: '12px',
-                          bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
-                          border: '1px solid',
-                          borderColor: (t) =>
-                            isExpanded ? alpha(activeColor, 0.55) : isAbnormal ? alpha(mCol, 0.35) : t.palette.divider,
-                          boxShadow: isExpanded
-                            ? `0 4px 14px ${alpha(activeColor, 0.16)}`
-                            : '0 1px 4px rgba(0,0,0,0.03)',
-                          transition: 'all 0.18s ease',
-                          overflow: 'hidden',
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 700,
+                          fontSize: 11,
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                          mb: 1,
+                          px: 0.5,
                         }}
                       >
-                        {/* Linha Compacta Clínica (clicável para expandir) */}
-                        <Box
-                          onClick={() => setExpandedMarker(isExpanded ? null : mKey)}
-                          role="button"
-                          tabIndex={0}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            p: { xs: '10px 12px', sm: '10px 14px' },
-                            cursor: 'pointer',
-                            gap: 1.25,
-                            '&:hover': {
-                              bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
-                            },
-                          }}
-                        >
-                          {/* Indicador de status + Nome */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2, minWidth: 0, flex: 1 }}>
+                        Precisa de atenção · {attentionMarkers.length}
+                      </Typography>
+                      <Stack spacing={1}>
+                        {attentionMarkers.map((m) => {
+                          const mCol = getLevelColor(m.level);
+                          const examDate = formatDate(m.performedAt);
+                          const mKey = m.nameCanonical || m.name;
+                          const isExpanded = expandedMarker === mKey;
+
+                          return (
                             <Box
+                              key={mKey}
                               sx={{
-                                width: 9,
-                                height: 9,
-                                borderRadius: '50%',
-                                bgcolor: mCol,
-                                flexShrink: 0,
-                                boxShadow: `0 0 6px ${alpha(mCol, 0.65)}`,
-                              }}
-                            />
-                            <Typography
-                              sx={{
-                                fontWeight: isAbnormal ? 800 : 700,
-                                fontSize: { xs: 13, sm: 13.5 },
-                                color: 'text.primary',
+                                borderRadius: '12px',
+                                bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
+                                border: '1px solid',
+                                borderColor: isExpanded ? alpha(activeColor, 0.55) : alpha(mCol, 0.35),
+                                borderLeft: `4px solid ${mCol}`,
+                                boxShadow: isExpanded
+                                  ? `0 4px 14px ${alpha(activeColor, 0.16)}`
+                                  : '0 1px 3px rgba(0,0,0,0.03)',
+                                transition: 'all 0.18s ease',
                                 overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
                               }}
                             >
-                              {m.name}
-                            </Typography>
-                          </Box>
-
-                          {/* Valor + Unidade + Variação + Seta */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
-                            <Box sx={{ textAlign: 'right' }}>
-                              <Typography
-                                sx={{
-                                  fontWeight: 800,
-                                  fontSize: { xs: 14.5, sm: 15.5 },
-                                  color: mCol,
-                                  fontVariantNumeric: 'tabular-nums',
-                                  lineHeight: 1.1,
-                                }}
-                              >
-                                {m.valueText}
-                                {m.unit && (
-                                  <Typography
-                                    component="span"
-                                    variant="caption"
-                                    sx={{ ml: 0.5, color: 'text.secondary', fontWeight: 600, fontSize: 11 }}
-                                  >
-                                    {m.unit}
-                                  </Typography>
-                                )}
-                              </Typography>
-                            </Box>
-
-                            {m.deltaPct != null && (
-                              <Chip
-                                size="small"
-                                label={`${m.deltaPct > 0 ? '+' : ''}${m.deltaPct.toFixed(0)}%`}
-                                sx={{
-                                  height: 20,
-                                  fontSize: 10.5,
-                                  fontWeight: 800,
-                                  bgcolor: m.deltaPct > 0 ? alpha(SEM.bad.light, 0.12) : alpha(SEM.ok.light, 0.12),
-                                  color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light,
-                                  px: 0.25,
-                                }}
-                              />
-                            )}
-
-                            <IconButton
-                              size="small"
-                              aria-label={isExpanded ? 'Recolher detalhes' : 'Ver detalhes'}
-                              sx={{
-                                p: 0.25,
-                                color: 'text.secondary',
-                                transform: isExpanded ? 'rotate(180deg)' : 'none',
-                                transition: 'transform 0.2s ease',
-                              }}
-                            >
-                              <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
-                            </IconButton>
-                          </Box>
-                        </Box>
-
-                        {/* Detalhes Expansíveis sob Demanda */}
-                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                          <Box
-                            sx={{
-                              p: { xs: '10px 14px 12px', sm: '10px 16px 14px' },
-                              bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.05 : 0.025),
-                              borderTop: '1px solid',
-                              borderColor: (t) => alpha(activeColor, 0.12),
-                            }}
-                          >
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-                                <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
-                              </Typography>
-                              {examDate && (
-                                <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85 }}>
-                                  Data: {examDate}
-                                </Typography>
-                              )}
-                            </Box>
-
-                            {/* Variação em relação ao exame anterior */}
-                            {m.prior && (
                               <Box
+                                onClick={() => setExpandedMarker(isExpanded ? null : mKey)}
+                                role="button"
+                                tabIndex={0}
                                 sx={{
                                   display: 'flex',
                                   alignItems: 'center',
-                                  gap: 1,
-                                  mt: 1,
-                                  p: '6px 10px',
-                                  borderRadius: '8px',
-                                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'),
-                                  fontSize: 12,
+                                  justifyContent: 'space-between',
+                                  p: { xs: '10px 12px', sm: '11px 14px' },
+                                  cursor: 'pointer',
+                                  gap: 1.25,
+                                  '&:hover': {
+                                    bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
+                                  },
                                 }}
                               >
-                                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                                  Exame anterior: {m.prior.valueText} {m.unit}
-                                </Typography>
-                                {m.deltaPct != null && (
-                                  <Box
-                                    sx={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: 0.25,
-                                      fontWeight: 800,
-                                      fontSize: 11.5,
-                                      color: m.deltaPct > 0 ? SEM.bad.light : SEM.ok.light,
-                                    }}
-                                  >
-                                    {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
-                                    {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
-                                  </Box>
-                                )}
-                              </Box>
-                            )}
-
-                            {/* Ações Rápidas */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1.25, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
-                              {m.examId && (
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  onClick={() => handleGoExam(m.examId!)}
+                                <Typography
                                   sx={{
-                                    fontSize: 11.5,
                                     fontWeight: 700,
-                                    textTransform: 'none',
-                                    color: 'text.secondary',
-                                    py: 0.25,
-                                    px: 1,
-                                    minHeight: 28,
-                                    '&:hover': { color: 'text.primary' },
+                                    fontSize: { xs: 13, sm: 13.5 },
+                                    color: 'text.primary',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: 0,
+                                    flex: 1,
                                   }}
                                 >
-                                  Ver laudo original
-                                </Button>
-                              )}
-                              <Button
-                                size="small"
-                                variant="text"
-                                onClick={() => handleGoTrend(m.nameCanonical)}
-                                endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                                  {m.name}
+                                </Typography>
+
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: 800,
+                                      fontSize: { xs: 14.5, sm: 15.5 },
+                                      color: mCol,
+                                      fontVariantNumeric: 'tabular-nums',
+                                      lineHeight: 1.1,
+                                    }}
+                                  >
+                                    {withUnit(m.valueText, m.unit)}
+                                  </Typography>
+
+                                  <IconButton
+                                    size="small"
+                                    aria-label={isExpanded ? 'Recolher detalhes' : 'Ver detalhes'}
+                                    sx={{
+                                      p: 0.25,
+                                      color: 'text.secondary',
+                                      transform: isExpanded ? 'rotate(180deg)' : 'none',
+                                      transition: 'transform 0.2s ease',
+                                    }}
+                                  >
+                                    <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+
+                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                <Box
+                                  sx={{
+                                    p: { xs: '10px 14px 12px', sm: '10px 16px 14px' },
+                                    bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.05 : 0.025),
+                                    borderTop: '1px dashed',
+                                    borderColor: 'divider',
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25 }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, minWidth: 0 }}>
+                                      <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
+                                    </Typography>
+                                    {examDate && (
+                                      <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85, whiteSpace: 'nowrap' }}>
+                                        Data: {examDate}
+                                      </Typography>
+                                    )}
+                                  </Box>
+
+                                  {(() => {
+                                    const pos = rangePosition(m.valueText, m.refText);
+                                    if (!pos) return null;
+                                    return (
+                                      <Box
+                                        aria-hidden
+                                        sx={{
+                                          position: 'relative',
+                                          height: 8,
+                                          borderRadius: 999,
+                                          mt: 1.25,
+                                          mb: 0.5,
+                                          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'),
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            bottom: 0,
+                                            left: `${pos.bandLo}%`,
+                                            width: `${pos.bandHi - pos.bandLo}%`,
+                                            borderRadius: 999,
+                                            bgcolor: alpha(dark ? SEM.ok.dark : SEM.ok.light, 0.45),
+                                          }}
+                                        />
+                                        <Box
+                                          sx={{
+                                            position: 'absolute',
+                                            top: -3,
+                                            left: `${pos.value}%`,
+                                            width: 14,
+                                            height: 14,
+                                            ml: '-7px',
+                                            borderRadius: '50%',
+                                            bgcolor: mCol,
+                                            border: '2px solid',
+                                            borderColor: 'background.paper',
+                                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                                          }}
+                                        />
+                                      </Box>
+                                    );
+                                  })()}
+
+                                  {m.prior && (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        mt: 1,
+                                        p: '6px 10px',
+                                        borderRadius: '8px',
+                                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'),
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>
+                                        Anterior: {withUnit(m.prior.valueText, m.unit)}
+                                        {formatDate(m.prior.performedAt) ? ` · ${formatDate(m.prior.performedAt)}` : ''}
+                                      </Typography>
+                                      {m.deltaPct != null && (
+                                        <Box
+                                          sx={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 0.25,
+                                            fontWeight: 800,
+                                            fontSize: 11.5,
+                                            color: 'text.secondary',
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
+                                          {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
+                                        </Box>
+                                      )}
+                                    </Box>
+                                  )}
+
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1.25, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+                                    {m.examId && (
+                                      <Button
+                                        size="small"
+                                        variant="text"
+                                        onClick={() => handleGoExam(m.examId!)}
+                                        sx={{
+                                          fontSize: 11.5,
+                                          fontWeight: 700,
+                                          textTransform: 'none',
+                                          color: 'text.secondary',
+                                          py: 0.25,
+                                          px: 1,
+                                          minHeight: 28,
+                                          '&:hover': { color: 'text.primary' },
+                                        }}
+                                      >
+                                        Ver laudo original
+                                      </Button>
+                                    )}
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => handleGoTrend(m.nameCanonical)}
+                                      endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                                      sx={{
+                                        fontSize: 11.5,
+                                        fontWeight: 700,
+                                        textTransform: 'none',
+                                        color: 'primary.main',
+                                        py: 0.25,
+                                        px: 1,
+                                        minHeight: 28,
+                                      }}
+                                    >
+                                      Ver evolução
+                                    </Button>
+                                  </Box>
+                                </Box>
+                              </Collapse>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {/* Seção 2: Marcadores dentro da faixa normal */}
+                  {normalMarkers.length > 0 && (
+                    <Box>
+                      <Typography
+                        sx={{
+                          fontFamily: 'Inter, sans-serif',
+                          fontWeight: 700,
+                          fontSize: 11,
+                          letterSpacing: '0.08em',
+                          textTransform: 'uppercase',
+                          color: 'text.secondary',
+                          mb: 1,
+                          px: 0.5,
+                        }}
+                      >
+                        Dentro da faixa · {normalMarkers.length}
+                      </Typography>
+                      <Stack spacing={1}>
+                        {visibleNormalMarkers.map((m) => {
+                          const mCol = getLevelColor(m.level);
+                          const examDate = formatDate(m.performedAt);
+                          const mKey = m.nameCanonical || m.name;
+                          const isExpanded = expandedMarker === mKey;
+
+                          return (
+                            <Box
+                              key={mKey}
+                              sx={{
+                                borderRadius: '12px',
+                                bgcolor: (t) => (t.palette.mode === 'dark' ? '#141e28' : '#ffffff'),
+                                border: '1px solid',
+                                borderColor: isExpanded ? alpha(activeColor, 0.55) : t.palette.divider,
+                                borderLeft: `4px solid ${mCol}`,
+                                boxShadow: isExpanded
+                                  ? `0 4px 14px ${alpha(activeColor, 0.16)}`
+                                  : '0 1px 3px rgba(0,0,0,0.03)',
+                                transition: 'all 0.18s ease',
+                                overflow: 'hidden',
+                              }}
+                            >
+                              <Box
+                                onClick={() => setExpandedMarker(isExpanded ? null : mKey)}
+                                role="button"
+                                tabIndex={0}
                                 sx={{
-                                  fontSize: 11.5,
-                                  fontWeight: 700,
-                                  textTransform: 'none',
-                                  color: 'primary.main',
-                                  py: 0.25,
-                                  px: 1,
-                                  minHeight: 28,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  p: { xs: '10px 12px', sm: '11px 14px' },
+                                  cursor: 'pointer',
+                                  gap: 1.25,
+                                  '&:hover': {
+                                    bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.08 : 0.04),
+                                  },
                                 }}
                               >
-                                Ver evolução
-                              </Button>
-                            </Box>
-                          </Box>
-                        </Collapse>
-                      </Box>
-                    );
-                  })}
+                                <Typography
+                                  sx={{
+                                    fontWeight: 600,
+                                    fontSize: { xs: 13, sm: 13.5 },
+                                    color: 'text.primary',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    minWidth: 0,
+                                    flex: 1,
+                                  }}
+                                >
+                                  {m.name}
+                                </Typography>
 
-                  {/* Botão de Ver Mais / Menos para órgãos com 4 ou mais exames */}
-                  {hiddenCount > 0 && (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                                  <Typography
+                                    sx={{
+                                      fontWeight: 700,
+                                      fontSize: { xs: 14.5, sm: 15.5 },
+                                      color: mCol,
+                                      fontVariantNumeric: 'tabular-nums',
+                                      lineHeight: 1.1,
+                                    }}
+                                  >
+                                    {withUnit(m.valueText, m.unit)}
+                                  </Typography>
+
+                                  <IconButton
+                                    size="small"
+                                    aria-label={isExpanded ? 'Recolher detalhes' : 'Ver detalhes'}
+                                    sx={{
+                                      p: 0.25,
+                                      color: 'text.secondary',
+                                      transform: isExpanded ? 'rotate(180deg)' : 'none',
+                                      transition: 'transform 0.2s ease',
+                                    }}
+                                  >
+                                    <KeyboardArrowDownIcon sx={{ fontSize: 18 }} />
+                                  </IconButton>
+                                </Box>
+                              </Box>
+
+                              <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                <Box
+                                  sx={{
+                                    p: { xs: '10px 14px 12px', sm: '10px 16px 14px' },
+                                    bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.05 : 0.025),
+                                    borderTop: '1px dashed',
+                                    borderColor: 'divider',
+                                  }}
+                                >
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', columnGap: 1.5, rowGap: 0.25 }}>
+                                    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500, minWidth: 0 }}>
+                                      <strong>Referência:</strong> {m.refText || 'Não informada pelo laboratório'}
+                                    </Typography>
+                                    {examDate && (
+                                      <Typography variant="caption" sx={{ color: 'text.secondary', opacity: 0.85, whiteSpace: 'nowrap' }}>
+                                        Data: {examDate}
+                                      </Typography>
+                                    )}
+                                  </Box>
+
+                                  {(() => {
+                                    const pos = rangePosition(m.valueText, m.refText);
+                                    if (!pos) return null;
+                                    return (
+                                      <Box
+                                        aria-hidden
+                                        sx={{
+                                          position: 'relative',
+                                          height: 8,
+                                          borderRadius: 999,
+                                          mt: 1.25,
+                                          mb: 0.5,
+                                          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,23,42,0.08)'),
+                                        }}
+                                      >
+                                        <Box
+                                          sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            bottom: 0,
+                                            left: `${pos.bandLo}%`,
+                                            width: `${pos.bandHi - pos.bandLo}%`,
+                                            borderRadius: 999,
+                                            bgcolor: alpha(dark ? SEM.ok.dark : SEM.ok.light, 0.45),
+                                          }}
+                                        />
+                                        <Box
+                                          sx={{
+                                            position: 'absolute',
+                                            top: -3,
+                                            left: `${pos.value}%`,
+                                            width: 14,
+                                            height: 14,
+                                            ml: '-7px',
+                                            borderRadius: '50%',
+                                            bgcolor: mCol,
+                                            border: '2px solid',
+                                            borderColor: 'background.paper',
+                                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                                          }}
+                                        />
+                                      </Box>
+                                    );
+                                  })()}
+
+                                  {m.prior && (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        mt: 1,
+                                        p: '6px 10px',
+                                        borderRadius: '8px',
+                                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.025)'),
+                                        fontSize: 12,
+                                      }}
+                                    >
+                                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>
+                                        Anterior: {withUnit(m.prior.valueText, m.unit)}
+                                        {formatDate(m.prior.performedAt) ? ` · ${formatDate(m.prior.performedAt)}` : ''}
+                                      </Typography>
+                                      {m.deltaPct != null && (
+                                        <Box
+                                          sx={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 0.25,
+                                            fontWeight: 800,
+                                            fontSize: 11.5,
+                                            color: 'text.secondary',
+                                            whiteSpace: 'nowrap',
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          {m.deltaPct > 0 ? <TrendingUpIcon sx={{ fontSize: 14 }} /> : <TrendingDownIcon sx={{ fontSize: 14 }} />}
+                                          {Math.abs(m.deltaPct).toFixed(1).replace('.', ',')}%
+                                        </Box>
+                                      )}
+                                    </Box>
+                                  )}
+
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 1, mt: 1.25, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+                                    {m.examId && (
+                                      <Button
+                                        size="small"
+                                        variant="text"
+                                        onClick={() => handleGoExam(m.examId!)}
+                                        sx={{
+                                          fontSize: 11.5,
+                                          fontWeight: 700,
+                                          textTransform: 'none',
+                                          color: 'text.secondary',
+                                          py: 0.25,
+                                          px: 1,
+                                          minHeight: 28,
+                                          '&:hover': { color: 'text.primary' },
+                                        }}
+                                      >
+                                        Ver laudo original
+                                      </Button>
+                                    )}
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => handleGoTrend(m.nameCanonical)}
+                                      endIcon={<OpenInNewIcon sx={{ fontSize: 12 }} />}
+                                      sx={{
+                                        fontSize: 11.5,
+                                        fontWeight: 700,
+                                        textTransform: 'none',
+                                        color: 'primary.main',
+                                        py: 0.25,
+                                        px: 1,
+                                        minHeight: 28,
+                                      }}
+                                    >
+                                      Ver evolução
+                                    </Button>
+                                  </Box>
+                                </Box>
+                              </Collapse>
+                            </Box>
+                          );
+                        })}
+                      </Stack>
+                    </Box>
+                  )}
+
+                  {/* Botão para expandir os exames normais */}
+                  {hiddenNormalCount > 0 && (
                     <Button
                       size="small"
                       onClick={() => setShowAllMarkers(!showAllMarkers)}
                       endIcon={showAllMarkers ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                       sx={{
-                        mt: 0.75,
+                        mt: 0.5,
                         py: 0.9,
                         width: '100%',
                         borderRadius: '10px',
                         textTransform: 'none',
-                        fontWeight: 800,
+                        fontWeight: 700,
                         fontSize: 12.5,
                         color: activeColor,
                         bgcolor: (t) => alpha(activeColor, t.palette.mode === 'dark' ? 0.12 : 0.07),
@@ -1185,7 +1566,7 @@ export const BodyMap = ({
                     >
                       {showAllMarkers
                         ? 'Mostrar menos exames ↑'
-                        : `Ver mais ${hiddenCount} exame${hiddenCount > 1 ? 's' : ''} normais deste órgão ↓`}
+                        : `Ver mais ${hiddenNormalCount} exame${hiddenNormalCount > 1 ? 's' : ''} normais deste órgão ↓`}
                     </Button>
                   )}
                 </Stack>
