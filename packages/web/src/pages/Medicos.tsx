@@ -100,8 +100,8 @@ export const MedicosPage = () => {
   const [search, setSearch] = useState('');
   const [specFilter, setSpecFilter] = useState('');
   const [activeOnly, setActiveOnly] = useState(false);
-  // Menu ⋯
-  const [menuEl, setMenuEl] = useState<{ id: string; el: HTMLElement } | null>(null);
+  // Menu ⋯ — item = merge my-doctors completo (pode ser null p/ share órfão legado)
+  const [menuEl, setMenuEl] = useState<{ id: string; item?: any; el: HTMLElement } | null>(null);
   // Detalhes do médico (perfil público — clicável no nome do card)
   const [detail, setDetail] = useState<any | null>(null);
   // Pergunta paga ao médico (2 créditos) — vira thread no portal do médico
@@ -664,7 +664,7 @@ export const MedicosPage = () => {
                     <Avatar src={it.doctor?.id ? doctorPhotoUrl(it.doctor.id) : undefined} sx={{ width: 44, height: 44, fontWeight: 800, bgcolor: '#0f5f5a', flexShrink: 0 }}>
                       {it.doctor?.name?.charAt(0)?.toUpperCase()}
                     </Avatar>
-                    <Box sx={{ flex: 1, minWidth: 0 }} onClick={() => setDetail(it.doctor)} sx={{ cursor: 'pointer' }}>
+                    <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setDetail(it.doctor)}>
                       <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
                         {it.doctor?.name}
                       </Typography>
