@@ -12,6 +12,7 @@ import LinkOutlinedIcon from '@mui/icons-material/LinkOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import EventAvailableOutlinedIcon from '@mui/icons-material/EventAvailableOutlined';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import PersonSearchOutlinedIcon from '@mui/icons-material/PersonSearchOutlined';
 import { COPPER, copperText, SEM } from '../../../theme';
 import { usePrefersReducedMotion } from '../../useCardPress';
 import {
@@ -104,6 +105,22 @@ const Hint = ({ children }: { children: ReactNode }) => (
   <Typography sx={{ fontSize: 13, lineHeight: 1.5, color: 'text.secondary', mt: 1 }}>{children}</Typography>
 );
 
+/** Agenda sem nenhum paciente compartilhado: explica em vez de um formulário sem saída
+ *  (o rodapé pedia "Selecione o paciente" sem ter quem escolher). */
+const NoPatientsState = () => (
+  <Box sx={{ textAlign: 'center', maxWidth: 380, mx: 'auto', py: { xs: 8, sm: 4 } }}>
+    <Avatar sx={{ width: 56, height: 56, mx: 'auto', mb: 2, bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}>
+      <PersonSearchOutlinedIcon />
+    </Avatar>
+    <Typography component="h3" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 17, lineHeight: 1.35, color: 'text.primary', mb: 1 }}>
+      Nenhum paciente para agendar ainda
+    </Typography>
+    <Typography sx={{ fontSize: 14, lineHeight: 1.55, color: 'text.secondary' }}>
+      A teleconsulta é marcada com quem compartilhou os exames com você. Quando um paciente compartilhar, ele aparece aqui.
+    </Typography>
+  </Box>
+);
+
 export const TeleScheduleDialog = ({
   open, onClose, patient, patientOptions, onPatientChange, tele, setTele, caps, autoRoom, setAutoRoom,
   onConnectGoogle, defaultPriceCents, doctorFirstName, busy, error, onSubmit,
@@ -152,6 +169,8 @@ export const TeleScheduleDialog = ({
   });
   const summary = teleSummary({ date: tele.date, time: tele.time, mode, charge, price: tele.price });
   const initial = (patient?.name || '?').trim().charAt(0).toUpperCase();
+  // Aberto pela Agenda sem nenhum paciente compartilhado → estado vazio, não formulário.
+  const noPatients = !patient && !patientOptions?.length;
 
   return (
     <Dialog
@@ -188,15 +207,18 @@ export const TeleScheduleDialog = ({
           alt=""
           sx={{ width: 44, height: 44, fontWeight: 800, fontFamily: 'Poppins, sans-serif', bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}
         >
-          {initial}
+          {/* Sem paciente ainda: ícone da chamada — o "?" parecia erro ao lado do estado vazio */}
+          {patient ? initial : <VideocamOutlinedIcon sx={{ fontSize: 22 }} />}
         </Avatar>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography id="tele-schedule-title" component="h2" noWrap sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 18, lineHeight: 1.25, color: 'text.primary' }}>
             Nova teleconsulta
           </Typography>
-          <Typography noWrap sx={{ fontSize: 13.5, color: 'text.secondary' }}>
-            {patient ? `com ${patient.name}` : 'Escolha o paciente'}
-          </Typography>
+          {!noPatients && (
+            <Typography noWrap sx={{ fontSize: 13.5, color: 'text.secondary' }}>
+              {patient ? `com ${patient.name}` : 'Escolha o paciente'}
+            </Typography>
+          )}
         </Box>
         <IconButton aria-label="Fechar" onClick={onClose} sx={{ width: 44, height: 44, color: 'text.secondary', flexShrink: 0 }}>
           <CloseIcon />
@@ -213,241 +235,247 @@ export const TeleScheduleDialog = ({
           '& .MuiOutlinedInput-notchedOutline legend': { fontSize: 12 },
         }}
       >
-        {patientOptions && patientOptions.length > 0 && (
-          <Box sx={{ mb: 3 }}>
-            <TextField
-              select
-              fullWidth
-              size={fieldSize}
-              label="Paciente"
-              value={patient?.id ?? ''}
-              onChange={(e) => onPatientChange?.(e.target.value)}
-            >
-              {patientOptions.map((p) => (
-                <MenuItem key={p.id} value={p.id} sx={{ minHeight: 48 }}>
-                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
-                    <Avatar src={p.photo} alt="" sx={{ width: 28, height: 28, fontSize: 12, fontWeight: 800, bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}>
-                      {p.name.charAt(0).toUpperCase()}
-                    </Avatar>
-                    <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>{p.name}</Typography>
-                  </Stack>
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
-        )}
-
-        <Section id="tele-sec-quando" title="Quando">
-          {/* Atalhos: uma linha com rolagem no celular (sangra até a borda); quebra no desktop */}
-          <Box
-            role="group"
-            aria-label="Atalhos de horário"
-            sx={{
-              display: 'flex', gap: 1, mb: 2,
-              flexWrap: { xs: 'nowrap', sm: 'wrap' },
-              overflowX: { xs: 'auto', sm: 'visible' },
-              mx: { xs: -2, sm: 0 }, px: { xs: 2, sm: 0 },
-              scrollSnapType: { xs: 'x proximity', sm: 'none' },
-              scrollPaddingInline: '16px',
-              scrollbarWidth: 'none',
-              '&::-webkit-scrollbar': { display: 'none' },
-            }}
-          >
-            {shortcuts.map((s) => {
-              const active = tele.date === s.date && tele.time === s.time;
-              return (
-                <ButtonBase
-                  key={s.key}
-                  aria-pressed={active}
-                  onClick={() => setTele((t) => ({ ...t, date: s.date, time: s.time }))}
-                  sx={[pillSx(active), { scrollSnapAlign: 'start' }]}
+        {noPatients ? (
+          <NoPatientsState />
+        ) : (
+          <>
+            {patientOptions && patientOptions.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size={fieldSize}
+                  label="Paciente"
+                  value={patient?.id ?? ''}
+                  onChange={(e) => onPatientChange?.(e.target.value)}
                 >
-                  {s.label}
-                </ButtonBase>
-              );
-            })}
-          </Box>
-          <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)' }}>
-            <TextField
-              type="date"
-              label="Data"
-              value={tele.date}
-              onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))}
-              size={fieldSize}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: localYmd(now) } }}
-            />
-            <TextField
-              type="time"
-              label="Horário"
-              value={tele.time}
-              onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))}
-              size={fieldSize}
-              fullWidth
-              error={isPast}
-              helperText={isPast ? 'Esse horário já passou' : undefined}
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-          </Box>
-        </Section>
-
-        <Section id="tele-sec-como" title="Como">
-          {options.length > 1 && (
-            <ToggleButtonGroup
-              exclusive
-              fullWidth
-              value={mode}
-              onChange={(_, v: CallMode | null) => { if (v) setAutoRoom(v !== 'link'); }}
-              aria-label="Tipo de chamada"
-              sx={(t) => ({
-                '& .MuiToggleButton-root': {
-                  minHeight: 44, gap: 0.75, textTransform: 'none', fontWeight: 700, fontSize: 14,
-                  color: 'text.secondary', borderColor: 'divider',
-                  '&.Mui-selected, &.Mui-selected:hover': { bgcolor: copperWash(t), color: copperText(t.palette.mode), borderColor: COPPER_BORDER },
-                },
-                '& .MuiToggleButton-root:first-of-type': { borderRadius: '12px 0 0 12px' },
-                '& .MuiToggleButton-root:last-of-type': { borderRadius: '0 12px 12px 0' },
-              })}
-            >
-              {options.map((m) => (
-                <ToggleButton key={m} value={m}>
-                  {MODE_ICON[m]}
-                  {MODE_LABEL[m]}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          )}
-          {mode === 'app' && <Hint>Recomendado — vídeo seguro dentro do Dr. Exame; o paciente entra pelo app, sem link.</Hint>}
-          {mode === 'meet' && <Hint>A sala do Google Meet é criada e enviada ao paciente automaticamente.</Hint>}
-          {mode === 'link' && (
-            <TextField
-              label="Link da chamada"
-              placeholder="https://meet.google.com/…"
-              value={tele.link}
-              onChange={(e) => setTele((t) => ({ ...t, link: e.target.value }))}
-              size={fieldSize}
-              fullWidth
-              error={linkInvalid}
-              helperText={linkInvalid ? 'O link precisa começar com https://' : 'Meet, Teams ou WhatsApp — o paciente recebe no app.'}
-              slotProps={{ htmlInput: { inputMode: 'url', autoCapitalize: 'none', autoCorrect: 'off' } }}
-              sx={{ mt: options.length > 1 ? 1.5 : 0 }}
-            />
-          )}
-          {mode === 'link' && caps?.configured && !caps.connected && !caps.livekit && (
-            <Button
-              onClick={onConnectGoogle}
-              startIcon={<VideoCallOutlinedIcon />}
-              sx={{ mt: 1, minHeight: 44, textTransform: 'none', fontWeight: 700, borderRadius: '12px', color: (t) => copperText(t.palette.mode) }}
-            >
-              Conectar Google Meet para gerar a sala sozinho
-            </Button>
-          )}
-        </Section>
-
-        <Section id="tele-sec-detalhes" title="Detalhes">
-          <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1.5fr) minmax(0, 1fr)' } }}>
-            <TextField
-              label="Motivo (opcional)"
-              placeholder={`Teleconsulta com Dr(a). ${doctorFirstName ?? ''}`.trim()}
-              value={tele.title}
-              onChange={(e) => setTele((t) => ({ ...t, title: e.target.value }))}
-              size={fieldSize}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-            <TextField
-              select
-              label="Repetir"
-              value={tele.recurrence || ''}
-              onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))}
-              size={fieldSize}
-              fullWidth
-              slotProps={{
-                inputLabel: { shrink: true },
-                select: { displayEmpty: true, renderValue: (v) => RECURRENCES.find(([k]) => k === v)?.[1] ?? 'Não repete' },
-              }}
-            >
-              {RECURRENCES.map(([v, l]) => <MenuItem key={v} value={v} sx={{ minHeight: 44 }}>{l}</MenuItem>)}
-            </TextField>
-          </Box>
-        </Section>
-
-        <Section id="tele-sec-cobranca" title="Cobrança">
-          <FormControlLabel
-            labelPlacement="start"
-            disableTypography
-            control={(
-              <Switch
-                checked={charge}
-                onChange={(e) => toggleCharge(e.target.checked)}
-                slotProps={{ input: { 'aria-describedby': 'tele-charge-desc' } }}
-                sx={{
-                  // Desligado legível (o padrão sumia no papel branco): trilho ≥3:1 nos dois temas.
-                  '& .MuiSwitch-track': { opacity: 1, bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.38)' : 'rgba(15,23,42,.45)') },
-                  '& .MuiSwitch-switchBase.Mui-checked': { color: COPPER.deep },
-                  '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COPPER.main, opacity: 0.6 },
-                }}
-              />
-            )}
-            label={(
-              <Box sx={{ minWidth: 0 }}>
-                <Typography component="span" sx={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'text.primary' }}>Cobrar do paciente</Typography>
-                <Typography component="span" id="tele-charge-desc" sx={{ display: 'block', fontSize: 13, lineHeight: 1.45, color: 'text.secondary' }}>
-                  Pago no app via PIX; o valor fica fixo no agendamento.
-                </Typography>
+                  {patientOptions.map((p) => (
+                    <MenuItem key={p.id} value={p.id} sx={{ minHeight: 48 }}>
+                      <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+                        <Avatar src={p.photo} alt="" sx={{ width: 28, height: 28, fontSize: 12, fontWeight: 800, bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}>
+                          {p.name.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>{p.name}</Typography>
+                      </Stack>
+                    </MenuItem>
+                  ))}
+                </TextField>
               </Box>
             )}
-            sx={{ m: 0, width: '100%', minHeight: 48, justifyContent: 'space-between', gap: 2 }}
-          />
-          <Collapse in={charge} unmountOnExit>
-            <TextField
-              inputRef={priceRef}
-              label="Valor da consulta"
-              value={priceText}
-              onChange={(e) => {
-                const masked = maskReaisInput(e.target.value);
-                setPriceText(masked);
-                setPriceCents(parseReaisToCents(masked));
-              }}
-              onBlur={() => { if (priceCents) setPriceText(centsToPriceField(priceCents)); }}
-              size={fieldSize}
-              fullWidth
-              error={issue === 'min' || issue === 'max'}
-              helperText={
-                issue === 'min' ? `Mínimo ${formatBRL(minCents)} — garante o estorno integral ao paciente.`
-                  : issue === 'max' ? `Máximo ${formatBRL(PRICE_MAX_CENTS)}.`
-                  : `Mínimo ${formatBRL(minCents)}.`
-              }
-              slotProps={{
-                input: { startAdornment: <InputAdornment position="start">R$</InputAdornment> },
-                htmlInput: { inputMode: 'decimal', placeholder: '150,00' },
-              }}
-              sx={{ mt: 1.5 }}
-            />
-            <Box role="group" aria-label="Valores sugeridos" sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 1.5 }}>
-              {PRESETS.map((v) => {
-                const active = priceCents === v * 100;
-                return (
-                  <ButtonBase
-                    key={v}
-                    aria-pressed={active}
-                    onClick={() => { setPriceText(centsToPriceField(v * 100)); setPriceCents(v * 100); }}
-                    sx={[pillSx(active), { px: 0.5, borderRadius: '12px', fontVariantNumeric: 'tabular-nums' }]}
-                  >
-                    R$ {v}
-                  </ButtonBase>
-                );
-              })}
-            </Box>
-          </Collapse>
-        </Section>
 
-        <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 3 }}>
-          <VerifiedUserOutlinedIcon sx={{ fontSize: 18, mt: '1px', color: (t) => copperText(t.palette.mode) }} />
-          <Typography sx={{ fontSize: 12.5, lineHeight: 1.5, color: 'text.secondary' }}>
-            O paciente recebe push agora e lembretes antes, e assina o termo de consentimento (Art. 15 CFM) no app antes de entrar.
-          </Typography>
-        </Stack>
+            <Section id="tele-sec-quando" title="Quando">
+              {/* Atalhos: uma linha com rolagem no celular (sangra até a borda); quebra no desktop */}
+              <Box
+                role="group"
+                aria-label="Atalhos de horário"
+                sx={{
+                  display: 'flex', gap: 1, mb: 2,
+                  flexWrap: { xs: 'nowrap', sm: 'wrap' },
+                  overflowX: { xs: 'auto', sm: 'visible' },
+                  mx: { xs: -2, sm: 0 }, px: { xs: 2, sm: 0 },
+                  scrollSnapType: { xs: 'x proximity', sm: 'none' },
+                  scrollPaddingInline: '16px',
+                  scrollbarWidth: 'none',
+                  '&::-webkit-scrollbar': { display: 'none' },
+                }}
+              >
+                {shortcuts.map((s) => {
+                  const active = tele.date === s.date && tele.time === s.time;
+                  return (
+                    <ButtonBase
+                      key={s.key}
+                      aria-pressed={active}
+                      onClick={() => setTele((t) => ({ ...t, date: s.date, time: s.time }))}
+                      sx={[pillSx(active), { scrollSnapAlign: 'start' }]}
+                    >
+                      {s.label}
+                    </ButtonBase>
+                  );
+                })}
+              </Box>
+              <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: 'minmax(0, 1.35fr) minmax(0, 1fr)' }}>
+                <TextField
+                  type="date"
+                  label="Data"
+                  value={tele.date}
+                  onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))}
+                  size={fieldSize}
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: localYmd(now) } }}
+                />
+                <TextField
+                  type="time"
+                  label="Horário"
+                  value={tele.time}
+                  onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))}
+                  size={fieldSize}
+                  fullWidth
+                  error={isPast}
+                  helperText={isPast ? 'Esse horário já passou' : undefined}
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+              </Box>
+            </Section>
+
+            <Section id="tele-sec-como" title="Como">
+              {options.length > 1 && (
+                <ToggleButtonGroup
+                  exclusive
+                  fullWidth
+                  value={mode}
+                  onChange={(_, v: CallMode | null) => { if (v) setAutoRoom(v !== 'link'); }}
+                  aria-label="Tipo de chamada"
+                  sx={(t) => ({
+                    '& .MuiToggleButton-root': {
+                      minHeight: 44, gap: 0.75, textTransform: 'none', fontWeight: 700, fontSize: 14,
+                      color: 'text.secondary', borderColor: 'divider',
+                      '&.Mui-selected, &.Mui-selected:hover': { bgcolor: copperWash(t), color: copperText(t.palette.mode), borderColor: COPPER_BORDER },
+                    },
+                    '& .MuiToggleButton-root:first-of-type': { borderRadius: '12px 0 0 12px' },
+                    '& .MuiToggleButton-root:last-of-type': { borderRadius: '0 12px 12px 0' },
+                  })}
+                >
+                  {options.map((m) => (
+                    <ToggleButton key={m} value={m}>
+                      {MODE_ICON[m]}
+                      {MODE_LABEL[m]}
+                    </ToggleButton>
+                  ))}
+                </ToggleButtonGroup>
+              )}
+              {mode === 'app' && <Hint>Recomendado — vídeo seguro dentro do Dr. Exame; o paciente entra pelo app, sem link.</Hint>}
+              {mode === 'meet' && <Hint>A sala do Google Meet é criada e enviada ao paciente automaticamente.</Hint>}
+              {mode === 'link' && (
+                <TextField
+                  label="Link da chamada"
+                  placeholder="https://meet.google.com/…"
+                  value={tele.link}
+                  onChange={(e) => setTele((t) => ({ ...t, link: e.target.value }))}
+                  size={fieldSize}
+                  fullWidth
+                  error={linkInvalid}
+                  helperText={linkInvalid ? 'O link precisa começar com https://' : 'Meet, Teams ou WhatsApp — o paciente recebe no app.'}
+                  slotProps={{ htmlInput: { inputMode: 'url', autoCapitalize: 'none', autoCorrect: 'off' } }}
+                  sx={{ mt: options.length > 1 ? 1.5 : 0 }}
+                />
+              )}
+              {mode === 'link' && caps?.configured && !caps.connected && !caps.livekit && (
+                <Button
+                  onClick={onConnectGoogle}
+                  startIcon={<VideoCallOutlinedIcon />}
+                  sx={{ mt: 1, minHeight: 44, textTransform: 'none', fontWeight: 700, borderRadius: '12px', color: (t) => copperText(t.palette.mode) }}
+                >
+                  Conectar Google Meet para gerar a sala sozinho
+                </Button>
+              )}
+            </Section>
+
+            <Section id="tele-sec-detalhes" title="Detalhes">
+              <Box sx={{ display: 'grid', gap: 1.5, gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1.5fr) minmax(0, 1fr)' } }}>
+                <TextField
+                  label="Motivo (opcional)"
+                  placeholder={`Teleconsulta com Dr(a). ${doctorFirstName ?? ''}`.trim()}
+                  value={tele.title}
+                  onChange={(e) => setTele((t) => ({ ...t, title: e.target.value }))}
+                  size={fieldSize}
+                  fullWidth
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <TextField
+                  select
+                  label="Repetir"
+                  value={tele.recurrence || ''}
+                  onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))}
+                  size={fieldSize}
+                  fullWidth
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    select: { displayEmpty: true, renderValue: (v) => RECURRENCES.find(([k]) => k === v)?.[1] ?? 'Não repete' },
+                  }}
+                >
+                  {RECURRENCES.map(([v, l]) => <MenuItem key={v} value={v} sx={{ minHeight: 44 }}>{l}</MenuItem>)}
+                </TextField>
+              </Box>
+            </Section>
+
+            <Section id="tele-sec-cobranca" title="Cobrança">
+              <FormControlLabel
+                labelPlacement="start"
+                disableTypography
+                control={(
+                  <Switch
+                    checked={charge}
+                    onChange={(e) => toggleCharge(e.target.checked)}
+                    slotProps={{ input: { 'aria-describedby': 'tele-charge-desc' } }}
+                    sx={{
+                      // Desligado legível (o padrão sumia no papel branco): trilho ≥3:1 nos dois temas.
+                      '& .MuiSwitch-track': { opacity: 1, bgcolor: (t: Theme) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.38)' : 'rgba(15,23,42,.45)') },
+                      '& .MuiSwitch-switchBase.Mui-checked': { color: COPPER.deep },
+                      '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: COPPER.main, opacity: 0.6 },
+                    }}
+                  />
+                )}
+                label={(
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography component="span" sx={{ display: 'block', fontSize: 15, fontWeight: 600, color: 'text.primary' }}>Cobrar do paciente</Typography>
+                    <Typography component="span" id="tele-charge-desc" sx={{ display: 'block', fontSize: 13, lineHeight: 1.45, color: 'text.secondary' }}>
+                      Pago no app via PIX; o valor fica fixo no agendamento.
+                    </Typography>
+                  </Box>
+                )}
+                sx={{ m: 0, width: '100%', minHeight: 48, justifyContent: 'space-between', gap: 2 }}
+              />
+              <Collapse in={charge} unmountOnExit>
+                <TextField
+                  inputRef={priceRef}
+                  label="Valor da consulta"
+                  value={priceText}
+                  onChange={(e) => {
+                    const masked = maskReaisInput(e.target.value);
+                    setPriceText(masked);
+                    setPriceCents(parseReaisToCents(masked));
+                  }}
+                  onBlur={() => { if (priceCents) setPriceText(centsToPriceField(priceCents)); }}
+                  size={fieldSize}
+                  fullWidth
+                  error={issue === 'min' || issue === 'max'}
+                  helperText={
+                    issue === 'min' ? `Mínimo ${formatBRL(minCents)} — garante o estorno integral ao paciente.`
+                      : issue === 'max' ? `Máximo ${formatBRL(PRICE_MAX_CENTS)}.`
+                      : `Mínimo ${formatBRL(minCents)}.`
+                  }
+                  slotProps={{
+                    input: { startAdornment: <InputAdornment position="start">R$</InputAdornment> },
+                    htmlInput: { inputMode: 'decimal', placeholder: '150,00' },
+                  }}
+                  sx={{ mt: 1.5 }}
+                />
+                <Box role="group" aria-label="Valores sugeridos" sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 1, mt: 1.5 }}>
+                  {PRESETS.map((v) => {
+                    const active = priceCents === v * 100;
+                    return (
+                      <ButtonBase
+                        key={v}
+                        aria-pressed={active}
+                        onClick={() => { setPriceText(centsToPriceField(v * 100)); setPriceCents(v * 100); }}
+                        sx={[pillSx(active), { px: 0.5, borderRadius: '12px', fontVariantNumeric: 'tabular-nums' }]}
+                      >
+                        R$ {v}
+                      </ButtonBase>
+                    );
+                  })}
+                </Box>
+              </Collapse>
+            </Section>
+
+            <Stack direction="row" spacing={1} alignItems="flex-start" sx={{ mt: 3 }}>
+              <VerifiedUserOutlinedIcon sx={{ fontSize: 18, mt: '1px', color: (t) => copperText(t.palette.mode) }} />
+              <Typography sx={{ fontSize: 12.5, lineHeight: 1.5, color: 'text.secondary' }}>
+                O paciente recebe push agora e lembretes antes, e assina o termo de consentimento (Art. 15 CFM) no app antes de entrar.
+              </Typography>
+            </Stack>
+          </>
+        )}
       </DialogContent>
 
       {/* RODAPÉ — resumo do que vai ser agendado (ou o motivo do bloqueio) + CTA */}
@@ -458,42 +486,62 @@ export const TeleScheduleDialog = ({
         }}
       >
         {error && <Alert severity="error" sx={{ mb: 1.25, borderRadius: '12px', fontSize: 13.5 }}>{error}</Alert>}
-        <Stack direction="row" spacing={1} alignItems="center" role="status" aria-live="polite" sx={{ mb: 1.25, minWidth: 0 }}>
-          {reason
-            ? <ErrorOutlineIcon sx={{ fontSize: 18, flexShrink: 0, color: (t) => SEM.warn[t.palette.mode] }} />
-            : <EventAvailableOutlinedIcon sx={{ fontSize: 18, flexShrink: 0, color: (t) => copperText(t.palette.mode) }} />}
-          <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: (t) => (reason ? SEM.warn[t.palette.mode] : t.palette.text.primary) }}>
-            {reason ?? summary}
-          </Typography>
-        </Stack>
-        <Stack direction="row" spacing={1.25} justifyContent="flex-end">
-          {!fullScreen && (
-            <Button onClick={onClose} sx={{ minHeight: 48, px: 2.25, textTransform: 'none', fontWeight: 700, borderRadius: '14px', color: 'text.secondary' }}>
-              Cancelar
+        {noPatients ? (
+          <Stack direction="row" justifyContent="flex-end">
+            <Button
+              variant="outlined"
+              fullWidth={fullScreen}
+              onClick={onClose}
+              sx={(t) => ({
+                minHeight: 48, px: 3, borderRadius: '14px', textTransform: 'none',
+                fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15,
+                color: copperText(t.palette.mode), borderColor: COPPER_BORDER,
+                '@media (hover: hover)': { '&:hover': { borderColor: COPPER.main, bgcolor: copperWash(t) } },
+              })}
+            >
+              Entendi
             </Button>
-          )}
-          <Button
-            variant="contained"
-            disableElevation
-            fullWidth={fullScreen}
-            disabled={!!reason || busy}
-            onClick={onSubmit}
-            sx={{
-              minHeight: 48, px: 3, borderRadius: '14px', whiteSpace: 'nowrap', textTransform: 'none',
-              fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15, color: '#fff',
-              background: `linear-gradient(135deg, ${CTA_TOP} 0%, ${COPPER.textAA} 100%)`,
-              boxShadow: '0 6px 16px rgba(138,95,46,.32), inset 0 1px 0 rgba(255,255,255,.16)',
-              transition: 'box-shadow .2s ease, transform .12s ease',
-              '@media (hover: hover)': {
-                '&:hover': { background: `linear-gradient(135deg, #8d612f 0%, #7a5226 100%)`, boxShadow: '0 8px 20px rgba(138,95,46,.40), inset 0 1px 0 rgba(255,255,255,.16)' },
-              },
-              '&:active': { transform: 'scale(.985)' },
-              '&.Mui-disabled': { background: 'none', bgcolor: 'action.disabledBackground', color: 'text.disabled', boxShadow: 'none' },
-            }}
-          >
-            {busy ? (<><CircularProgress size={18} sx={{ color: 'inherit', mr: 1 }} />Agendando…</>) : 'Agendar e avisar paciente'}
-          </Button>
-        </Stack>
+          </Stack>
+        ) : (
+          <>
+            <Stack direction="row" spacing={1} alignItems="center" role="status" aria-live="polite" sx={{ mb: 1.25, minWidth: 0 }}>
+              {reason
+                ? <ErrorOutlineIcon sx={{ fontSize: 18, flexShrink: 0, color: (t) => SEM.warn[t.palette.mode] }} />
+                : <EventAvailableOutlinedIcon sx={{ fontSize: 18, flexShrink: 0, color: (t) => copperText(t.palette.mode) }} />}
+              <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 600, fontVariantNumeric: 'tabular-nums', color: (t) => (reason ? SEM.warn[t.palette.mode] : t.palette.text.primary) }}>
+                {reason ?? summary}
+              </Typography>
+            </Stack>
+            <Stack direction="row" spacing={1.25} justifyContent="flex-end">
+              {!fullScreen && (
+                <Button onClick={onClose} sx={{ minHeight: 48, px: 2.25, textTransform: 'none', fontWeight: 700, borderRadius: '14px', color: 'text.secondary' }}>
+                  Cancelar
+                </Button>
+              )}
+              <Button
+                variant="contained"
+                disableElevation
+                fullWidth={fullScreen}
+                disabled={!!reason || busy}
+                onClick={onSubmit}
+                sx={{
+                  minHeight: 48, px: 3, borderRadius: '14px', whiteSpace: 'nowrap', textTransform: 'none',
+                  fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 15, color: '#fff',
+                  background: `linear-gradient(135deg, ${CTA_TOP} 0%, ${COPPER.textAA} 100%)`,
+                  boxShadow: '0 6px 16px rgba(138,95,46,.32), inset 0 1px 0 rgba(255,255,255,.16)',
+                  transition: 'box-shadow .2s ease, transform .12s ease',
+                  '@media (hover: hover)': {
+                    '&:hover': { background: `linear-gradient(135deg, #8d612f 0%, #7a5226 100%)`, boxShadow: '0 8px 20px rgba(138,95,46,.40), inset 0 1px 0 rgba(255,255,255,.16)' },
+                  },
+                  '&:active': { transform: 'scale(.985)' },
+                  '&.Mui-disabled': { background: 'none', bgcolor: 'action.disabledBackground', color: 'text.disabled', boxShadow: 'none' },
+                }}
+              >
+                {busy ? (<><CircularProgress size={18} sx={{ color: 'inherit', mr: 1 }} />Agendando…</>) : 'Agendar e avisar paciente'}
+              </Button>
+            </Stack>
+          </>
+        )}
       </Box>
     </Dialog>
   );

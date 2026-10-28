@@ -34,11 +34,14 @@ const addDays = (d: Date, n: number): Date => {
 
 export interface TeleShortcut { key: string; label: string; date: string; time: string }
 
-/** Atalhos de horário — só futuros. "Hoje" = próxima hora cheia (até 22h). */
+/** Atalhos de horário — só futuros. "Hoje" = próxima hora cheia (até 22h). De madrugada
+ *  (antes das 6h) vira "Hoje 10h": à 0h30 o atalho oferecia "Hoje 1h", e para quem ainda
+ *  não dormiu o "amanhã" é o hoje de manhã. */
 export const buildTeleShortcuts = (now: Date): TeleShortcut[] => {
   const out: TeleShortcut[] = [];
   const h = now.getHours();
-  if (h < 22) out.push({ key: 'hoje', label: `Hoje ${h + 1}h`, date: localYmd(now), time: `${pad(h + 1)}:00` });
+  const todayHour = h < 6 ? 10 : h + 1;
+  if (todayHour <= 22) out.push({ key: 'hoje', label: `Hoje ${todayHour}h`, date: localYmd(now), time: `${pad(todayHour)}:00` });
   const tomorrow = localYmd(addDays(now, 1));
   out.push({ key: 'amanha-10', label: 'Amanhã 10h', date: tomorrow, time: '10:00' });
   out.push({ key: 'amanha-14', label: 'Amanhã 14h', date: tomorrow, time: '14:00' });

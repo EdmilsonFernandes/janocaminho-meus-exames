@@ -26,6 +26,14 @@ describe('localYmd + atalhos — fuso LOCAL (bug 27/10/26: toISOString é UTC)',
     expect(s[2]).toMatchObject({ date: '2026-10-30', time: '10:00' });
     expect(s[3]).toMatchObject({ date: '2026-11-03', time: '14:00' }); // virada de mês
   });
+
+  it('de madrugada "Hoje" vira 10h (não "Hoje 1h"); a partir das 6h volta à próxima hora cheia', () => {
+    const s = buildTeleShortcuts(new Date(2026, 9, 28, 0, 30));
+    expect(s[0]).toEqual({ key: 'hoje', label: 'Hoje 10h', date: '2026-10-28', time: '10:00' });
+    expect(s[1]).toMatchObject({ key: 'amanha-10', date: '2026-10-29' });
+    expect(buildTeleShortcuts(new Date(2026, 9, 28, 5, 59))[0].label).toBe('Hoje 10h');
+    expect(buildTeleShortcuts(new Date(2026, 9, 28, 6, 0))[0].label).toBe('Hoje 7h');
+  });
 });
 
 describe('valor em reais (bug 27/10/26: máscara de centavos fazia "20" virar "0,20")', () => {
