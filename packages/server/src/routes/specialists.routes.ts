@@ -80,7 +80,12 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       }),
       // Facets de cidade (do diretório inteiro, não do filtro): o usuário vê ONDE tem
       // médico antes de digitar — contra a frustação de buscar cidade sem resultado.
-      prisma.doctor.findMany({ where: { blocked: false, clinicCity: { not: null } }, select: { clinicCity: true } }),
+      // Une CNES (directory) + doctors — só a coluna cidade (barato).
+      prisma.directoryFacility.findMany({ select: { city: true }, take: 80000 })
+        .then(async (dirRows) => {
+          const docRows = await prisma.doctor.findMany({ where: { blocked: false, clinicCity: { not: null } }, select: { clinicCity: true } });
+          return [...dirRows.map((r) => ({ clinicCity: r.city })), ...docRows];
+        }),
     ]);
 
     const cities = Object.entries(
@@ -133,8 +138,13 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     try {
       const hasCnes = await prisma.directoryFacility.findFirst({ select: { id: true } }).then((r) => !!r).catch(() => false);
       if (hasCnes && !operator && !withPrice && !claimedOnly) {
+        // Filtro de cidade NO BANCO (contains insensitive): os nomes do CNES vêm sem
+        // acento ("SAO JOSE DOS CAMPOS") e cityNorm é deaccent — casa direto, sem
+        // carregar o catálogo inteiro (com multi-cidade isso vira dezenas de milhares).
         const facs = await prisma.directoryFacility.findMany({
+          where: cityNorm ? { city: { contains: cityNorm, mode: 'insensitive' } } : {},
           select: { id: true, cnesCode: true, name: true, city: true, uf: true, address: true, district: true, phone: true, lat: true, lng: true },
+          take: 20000,
         });
         const facsIn = cityNorm
           ? facs.filter((f) => deaccent(f.city).includes(cityNorm))

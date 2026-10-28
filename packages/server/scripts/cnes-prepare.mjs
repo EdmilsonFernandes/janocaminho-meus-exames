@@ -25,7 +25,8 @@ if (!dir || !cityArg) {
   exit(1);
 }
 const deaccent = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-const CITY = deaccent(cityArg);
+// multi-cidade: --city "sao paulo;campinas;rio de janeiro" \u2014 1 stream processa todas.
+const CITYS = cityArg.split(';').map(deaccent).filter(Boolean);
 
 const csv = (f) => `${dir}/${f.replace('{cmpt}', cmpt)}.csv`;
 const unq = (v) => String(v ?? '').replace(/^"|"$/g, '').trim();
@@ -57,28 +58,33 @@ async function* rows(file) {
   }
 }
 
-// 1. município alvo (código IBGE)
-let cityCode = null, cityName = '', cityUf = uf;
+// 1. municípios alvo (códigos IBGE) — todas as cidades da lista
+const muniWanted = new Map(); // code → {name, uf}
 for await (const r of rows(csv('tbMunicipio{cmpt}'))) {
-  if (deaccent(r.NO_MUNICIPIO).includes(CITY) && (!uf || r.CO_SIGLA_ESTADO === uf)) {
-    cityCode = r.CO_MUNICIPIO; cityName = r.NO_MUNICIPIO; cityUf = r.CO_SIGLA_ESTADO; break;
+  const nm = deaccent(r.NO_MUNICIPIO);
+  for (const c of CITYS) {
+    // match exato/startsWith (includes casaria "SANTOS" ↔ "SANTOS DUMONT")
+    if ((nm === c || nm.startsWith(c + ' ') || nm.startsWith(c)) && (!uf || r.CO_SIGLA_ESTADO === uf)) {
+      muniWanted.set(r.CO_MUNICIPIO, { name: r.NO_MUNICIPIO, uf: r.CO_SIGLA_ESTADO });
+    }
   }
 }
-if (!cityCode) { console.error(`município não achado: ${cityArg}`); exit(1); }
-console.log(`município: ${cityName}/${cityUf} (IBGE ${cityCode})`);
+if (!muniWanted.size) { console.error(`nenhum município achado: ${cityArg}`); exit(1); }
+console.log(`municípios (${muniWanted.size}): ${[...muniWanted.values()].map((m) => m.name + '/' + m.uf).join(', ')}`);
 
-// 2. facilities da cidade (ativas: sem motivo de desativação)
+// 2. facilities das cidades (ativas: sem motivo de desativação)
 const facilities = [];
 const unitToCnes = new Map();
 for await (const r of rows(csv('tbEstabelecimento{cmpt}'))) {
-  if (r.CO_MUNICIPIO_GESTOR !== cityCode) continue;
+  const muni = muniWanted.get(r.CO_MUNICIPIO_GESTOR);
+  if (!muni) continue;
   if (r.CO_MOTIVO_DESAB) continue; // desativado
   const cnes = r.CO_CNES || r.CO_UNIDADE;
   unitToCnes.set(r.CO_UNIDADE, cnes);
   facilities.push({
     cnesCode: cnes,
     name: r.NO_FANTASIA || r.NO_RAZAO_SOCIAL || 'Estabelecimento de saúde',
-    city: cityName, uf: cityUf,
+    city: muni.name, uf: muni.uf,
     address: [r.NO_LOGRADOURO, r.NU_ENDERECO, r.NO_COMPLEMENTO].filter(Boolean).join(', ') || null,
     district: r.NO_BAIRRO || null,
     phone: (r.NU_TELEFONE || '').replace(/\D/g, '') || null,
