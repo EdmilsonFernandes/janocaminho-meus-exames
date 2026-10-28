@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, IconButton, Alert, Divider, Switch, Checkbox, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
+import { Box, Card, CardContent, Typography, Button, TextField, CircularProgress, Stack, Chip, Avatar, Autocomplete, IconButton, Alert, Divider, Switch, Checkbox, FormControlLabel, MenuItem, Menu as MuiMenu, Dialog, DialogTitle, DialogContent, DialogActions, InputAdornment } from '@mui/material';
 import { useNotify, useTranslate } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../config';
 import { bumpCredits } from '../utils/credits-events';
@@ -83,6 +83,10 @@ export const MedicosPage = () => {
   // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
   const [clinicCity, setClinicCity] = useState(''); // cidade da clínica (enriquece a busca "perto de você")
+  // Combo IBGE (5.571 municípios, vendored) — carregado SOB DEMANDA ao abrir o form
+  // (code-split: os ~170KB não entram no bundle inicial desta página, que é eager no App).
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
+  useEffect(() => { if (showForm) void import('../utils/brazilCities').then((m) => setCityOptions(m.BRAZIL_CITIES)).catch(() => {}); }, [showForm]);
   const [scopes, setScopes] = useState<string[]>([]);
   const [examIds, setExamIds] = useState<string[]>([]);
   const [examOptions, setExamOptions] = useState<{ id: string; title: string; performedAt: string | null }[]>([]);
@@ -869,7 +873,15 @@ export const MedicosPage = () => {
                 {specialtyOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
-              <TextField label="Cidade da clínica (opcional)" value={clinicCity} onChange={(e) => setClinicCity(e.target.value)} size="small" placeholder="Ex.: São José dos Campos" sx={{ flex: '1 1 200px' }} />
+              <Autocomplete
+                freeSolo disablePortal autoComplete
+                options={cityOptions}
+                inputValue={clinicCity}
+                onInputChange={(_, v) => setClinicCity(v)}
+                renderInput={(p) => <TextField {...p} label="Cidade da clínica (opcional)" size="small" placeholder="Ex.: São José dos Campos" />}
+                sx={{ flex: '1 1 200px' }}
+                noOptionsText="Cidade não encontrada — pode digitar livre"
+              />
             </Stack>
             {spec === 'Outro' && (
               <TextField label="Qual especialidade?" value={specOther} onChange={(e) => setSpecOther(e.target.value)} size="small" fullWidth required placeholder="Ex.: Cirurgia de Cabeça e Pescoço" />

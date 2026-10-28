@@ -67,8 +67,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         data: {
           name: String(doctorName), crm: crmKey, crmUf: uf, specialty: doctorSpecialty || null,
           // §4 (28/10/26): cidade/clínica informadas pelo paciente enriquecem o diretório
-          // (busca "perto de você") — só entram no CADASTRO NOVO; o que o médico publicou prevalece.
-          clinicCity: typeof (req.body ?? {}).doctorClinicCity === 'string' ? String(req.body.doctorClinicCity).trim().slice(0, 80) || null : null,
+          // (busca "perto de você") — só entram no CADASTRO NOVO; o que o médico publicou
+          // prevalece. Combo IBGE manda "Nome (UF)" — stripamos o sufixo no storage.
+          clinicCity: typeof (req.body ?? {}).doctorClinicCity === 'string' ? String(req.body.doctorClinicCity).replace(/\s*\([A-Za-z]{2}\)\s*$/, '').trim().slice(0, 80) || null : null,
           clinicName: typeof (req.body ?? {}).doctorClinicName === 'string' ? String(req.body.doctorClinicName).trim().slice(0, 120) || null : null,
           email: (doctorEmail || `pending-${Date.now()}@invite.com`).toLowerCase(), passwordHash: 'pending-invite',
         },

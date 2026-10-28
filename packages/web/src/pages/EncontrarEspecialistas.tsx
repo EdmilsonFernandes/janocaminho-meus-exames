@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Alert, Avatar, Box, Button, Card, CardContent, Chip, CircularProgress, FormControlLabel,
+  Alert, Autocomplete, Avatar, Box, Button, Card, CardContent, Chip, CircularProgress,
   InputAdornment, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
@@ -40,6 +40,10 @@ export const EncontrarEspecialistasPage = () => {
   // onde vale buscar antes de digitar) + nota honesta quando a cidade não tem nada.
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [cityNote, setCityNote] = useState<string | null>(null);
+  // Combo IBGE (5.571 municípios, vendored): carregado SOB DEMANDA (code-split — não
+  // pesa o bundle inicial). O "(UF)" vai pro server, que stripa antes de comparar/salvar.
+  const [cityOptions, setCityOptions] = useState<string[]>([]);
+  useEffect(() => { void import('../utils/brazilCities').then((m) => setCityOptions(m.BRAZIL_CITIES)).catch(() => {}); }, []);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -129,7 +133,16 @@ export const EncontrarEspecialistasPage = () => {
                 <MenuItem value=""><em>Todas</em></MenuItem>
                 {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
-              <TextField label="Cidade (perto de você)" value={city} onChange={(e) => setCity(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} placeholder="Ex.: São José dos Campos" />
+              {/* Combo IBGE (5.571 municípios) com digitação livre — o server stripa o "(UF)" */}
+              <Autocomplete
+                freeSolo disablePortal autoComplete
+                options={cityOptions}
+                inputValue={city}
+                onInputChange={(_, v) => setCity(v)}
+                renderInput={(p) => <TextField {...p} label="Cidade (perto de você)" size="small" placeholder="Ex.: São José dos Campos" />}
+                sx={{ flex: '1 1 190px' }}
+                noOptionsText="Cidade não encontrada — pode digitar livre"
+              />
             </Stack>
             {cities.length > 0 && (
               <Box>
@@ -152,10 +165,6 @@ export const EncontrarEspecialistasPage = () => {
               {INSURANCE_OPERATOR_NAMES.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
             </TextField>
             <Stack direction="row" spacing={2} flexWrap="wrap">
-              <FormControlLabel
-                control={<Box component="input" type="checkbox" checked={withPrice} onChange={(e) => setWithPrice((e.target as HTMLInputElement).checked)} sx={{ display: 'none' }} />}
-                label="" sx={{ display: 'none' }}
-              />
               <FilterChip label="Com preço particular publicado" active={withPrice} onClick={() => setWithPrice((v) => !v)} />
               <FilterChip label="Com portal ativo (teleconsulta)" active={claimedOnly} onClick={() => setClaimedOnly((v) => !v)} />
             </Stack>

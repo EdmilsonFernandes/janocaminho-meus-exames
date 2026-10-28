@@ -135,7 +135,8 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
 
-    const city = typeof clinicCity === 'string' ? clinicCity.trim().slice(0, 80) : '';
+    // Combo IBGE manda "Nome (UF)" — storage fica só com o nome (padrão do Doctor.clinicCity).
+    const city = typeof clinicCity === 'string' ? clinicCity.replace(/\s*\([A-Za-z]{2}\)\s*$/, '').trim().slice(0, 80) : '';
     const clinic = typeof clinicName === 'string' ? clinicName.trim().slice(0, 120) : '';
 
     let doctor: { id: string; clinicCity: string | null; clinicName: string | null } | null = null;

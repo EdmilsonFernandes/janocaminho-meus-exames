@@ -115,4 +115,18 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     expect(r.body.items).toHaveLength(0);
     expect(r.body.cityNote).toContain('Tente sem cidade');
   });
+
+  it('V1.2: cidade vinda do combo IBGE com "(UF)" é stripada na busca e no cadastro', async () => {
+    const { token } = await createUser({});
+    await mkDoctor({ claimed: true, city: 'São José dos Campos' });
+    const r = await api().get('/api/specialists').query({ city: 'São José dos Campos (SP)' }).set(authHeader(token));
+    expect(r.body.items).toHaveLength(1);
+
+    // cadastro manual também grava sem o sufixo (storage limpo)
+    const rd = await api().post('/api/my-doctors').set(authHeader(token))
+      .send({ doctorName: 'Dr Combo', doctorCrm: '71717', doctorUf: 'SP', clinicCity: 'Campinas (SP)' });
+    expect(rd.status).toBe(201);
+    const doc = await prisma.doctor.findUnique({ where: { crm: '71717-SP' } });
+    expect(doc?.clinicCity).toBe('Campinas');
+  });
 });

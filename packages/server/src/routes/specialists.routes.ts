@@ -64,7 +64,8 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       where.id = { in: [...new Set(ins.map((i) => i.doctorId))] };
     }
 
-    const cityNorm = city ? deaccent(city) : null;
+    // cityNorm: deaccent + strip do sufixo " (UF)" (o combo IBGE manda "Nome (SP)").
+    const cityNorm = city ? deaccent(city.replace(/\s*\([A-Za-z]{2}\)\s*$/, '').trim()) : null;
     const [doctorsRaw, cityFacetRows] = await Promise.all([
       prisma.doctor.findMany({
         where,
