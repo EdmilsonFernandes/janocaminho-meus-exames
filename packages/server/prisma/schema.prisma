@@ -1478,8 +1478,8 @@ model DirectoryProfessional {
   cboCode     String?  // CO_CBO (ex.: 225120 cardiologia)
   cboName     String?  // NO_CBO legível
   // Registro no conselho de classe quando o vínculo traz (tbCargaHorariaSus):
-  // p/ MÉDICOS (conselho 10 = CR MEDICINA) o card mostra CRM real e o "Salvar" preenche automático.
-  councilType String?  // CO_CONSELHO_CLASSE (10=CRM etc. — código bruto do CNES)
+  // p/ MÉDICOS (conselho CRM) o card mostra CRM real e o "Salvar" preenche automático.
+  councilType String?  // CO_CONSELHO_CLASSE (1=CRM etc. — código bruto do CNES)
   councilUf   String?  // SG_UF_CRM
   councilReg  String?  // NU_REGISTRO (nº no conselho)
   source      String   @default("cnes")

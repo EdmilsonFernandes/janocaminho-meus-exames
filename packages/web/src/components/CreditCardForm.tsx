@@ -112,13 +112,16 @@ const expiryOk = (mm: string, yy: string): boolean => {
 
 const fmtBRL = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
 
-export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, onClose, onApproved, onFinished, onSwitchToPix }: {
+export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, couponCode, couponDiscountCents, onClose, onApproved, onFinished, onSwitchToPix }: {
   open: boolean;
   packId: string | null;
   packLabel: string;
   price: number;
   /** true = cobrança do PLANO MENSAL ({plan:'monthly'} no server), não de pack. */
   plan?: boolean;
+  /** Cupom aplicado no PaymentChooser (T3): vai no POST pay-card — o server revalida. */
+  couponCode?: string | null;
+  couponDiscountCents?: number | null;
   /** card = crédito · debit = débito à vista (mesmo form, billingType muda no server) */
   method: 'card' | 'debit';
   /** X/ESC — cancelar (volta pra escolha de forma de pagamento) */
@@ -284,6 +287,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({
           ...(plan ? { plan: 'monthly' } : { pack: packId }), method,
+          ...(couponCode ? { couponCode } : {}),
           card: { number: digits(number), holderName: holderName.trim().toUpperCase(), expiryMonth: mm, expiryYear: yy, ccv: digits(ccv) },
           holder: { name: holderName.trim(), cpf: digits(cpf), postalCode: digits(cep), addressNumber: addressNumber.trim() },
         }),
@@ -665,7 +669,7 @@ export const CreditCardForm = ({ open, packId, packLabel, price, method, plan, o
 
         <Button variant="contained" fullWidth disabled={!allOk || submitting} onClick={submit}
           sx={{ mt: 2.5, minHeight: 52, borderRadius: '12px', fontWeight: 800, fontSize: 16, textTransform: 'none' }}>
-          {submitting ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : <>Pagar {fmtBRL(price)}</>}
+          {submitting ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : <>Pagar {fmtBRL(couponDiscountCents != null && couponDiscountCents > 0 ? price - couponDiscountCents / 100 : price)}</>}
         </Button>
 
         <Box sx={{ mt: 2 }}>

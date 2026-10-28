@@ -12,6 +12,7 @@ import { config, hasAsaas } from '../config';
 import { getSettings, loadSettings } from './settings';
 import { findSubscriptionByIdCompat, updateSubscriptionCompatWithDb } from './subscriptionCompat';
 import { recordTeleconsultaPayment } from '../finance/ledger';
+import { recordCouponRedemption } from './coupons';
 
 export type ApprovalKind =
   | { type: 'credits'; credits: number }
@@ -52,6 +53,8 @@ export async function approvePendingSubscription(
       await tx.user.update({ where: { id: sub.userId }, data: { credits: { increment: credits } } });
       await tx.creditTransaction.create({ data: { userId: sub.userId, delta: credits, kind: 'purchase', label: `Compra de créditos (+${credits})`, refId: sub.id } });
     });
+    // Cupom (T3): incrementa uses + grava a redenção — só no pagamento CONFIRMADO.
+    await recordCouponRedemption(sub, 'credits');
     console.log(`[billing] créditos +${credits} p/ user ${sub.userId} (sub ${sub.id})`);
     return true;
   }
@@ -114,6 +117,8 @@ export async function approvePendingSubscription(
     await tx.user.update({ where: { id: sub.userId }, data: { planExpiresAt: expires, credits: { increment: monthlyCredits } } });
     await tx.creditTransaction.create({ data: { userId: sub.userId, delta: monthlyCredits, kind: 'plan_monthly', label: 'Plano Premium (mensal)', refId: sub.id } });
   });
+  // Cupom (T3): incrementa uses + grava a redenção — só no pagamento CONFIRMADO.
+  await recordCouponRedemption(sub, 'plan_monthly');
   // FUNDADOR: se essa cobrança foi no preço promocional, consome 1 vaga (condicional ao
   // limite — 2 webhooks simultâneos na última vaga: no máximo 1 incrementa; aprovar a
   // mais é aceitável e documentado). Créditos/vigência não dependem disso.

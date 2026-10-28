@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dialog, DialogContent, IconButton, Typography, Stack, Box, Button, Fade, alpha } from '@mui/material';
+import { Dialog, DialogContent, IconButton, Typography, Stack, Box, Button, Fade, alpha, TextField, InputAdornment } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import BoltIcon from '@mui/icons-material/Bolt';
 import QrCode2Icon from '@mui/icons-material/QrCode2';
@@ -9,7 +9,8 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import ShieldOutlinedIcon from '@mui/icons-material/ShieldOutlined';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
-import { fetchPublicConfig } from '../config';
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
+import { fetchPublicConfig, API_URL, token } from '../config';
 import { CreditCardForm } from './CreditCardForm';
 
 /** Seletor de forma de pagamento premium (padrão Revolut/Nubank bottom-sheet):
@@ -43,7 +44,7 @@ const extractCredits = (label: string): number => {
 };
 
 export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, onPix, onCardApproved }: {
-  packId: string | null; packLabel: string; packPrice: number; plan?: boolean; onClose: () => void; onPix: () => void; onCardApproved: () => void;
+  packId: string | null; packLabel: string; packPrice: number; plan?: boolean; onClose: () => void; onPix: (couponCode?: string) => void; onCardApproved: () => void;
 }) => {
   // Kill-switch payments.cardEnabled (AppSetting) — default ligado (form Asaas no ar).
   const [cardEnabled, setCardEnabled] = useState(true);
@@ -53,12 +54,42 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
   const [selected, setSelected] = useState<PayMethod>('pix');
   const [cardMethod, setCardMethod] = useState<null | 'card' | 'debit'>(null);
 
+  // CUPOM (T3): valida ANTES de pagar (só pré-visualização — o server revalida no
+  // checkout). kind casa com o produto: plano mensal vs créditos.
+  const [couponInput, setCouponInput] = useState('');
+  const [coupon, setCoupon] = useState<{ code: string; discountCents: number; finalCents: number } | null>(null);
+  const [couponErr, setCouponErr] = useState('');
+  const [couponBusy, setCouponBusy] = useState(false);
+  useEffect(() => { setCouponInput(''); setCoupon(null); setCouponErr(''); }, [packId, packPrice]);
+
+  const applyCoupon = async () => {
+    const code = couponInput.trim();
+    if (!code || couponBusy) return;
+    setCouponBusy(true); setCouponErr('');
+    try {
+      const r = await fetch(`${API_URL}/billing/coupon/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({ code, kind: plan ? 'plan_monthly' : 'credits', amountCents: Math.round(packPrice * 100) }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.error || 'Cupom inválido.');
+      setCoupon({ code: d.code, discountCents: Number(d.discountCents ?? 0), finalCents: Number(d.finalCents ?? Math.round(packPrice * 100)) });
+    } catch (e: any) {
+      setCoupon(null);
+      setCouponErr(e?.message || 'Não foi possível validar o cupom agora.');
+    }
+    setCouponBusy(false);
+  };
+
   const credits = extractCredits(packLabel);
-  const fmtPrice = `R$ ${packPrice.toFixed(2).replace('.', ',')}`;
+  const finalPrice = coupon ? coupon.finalCents / 100 : packPrice;
+  const fmtPrice = `R$ ${finalPrice.toFixed(2).replace('.', ',')}`;
+  const fmtCents = (c: number) => `R$ ${(c / 100).toFixed(2).replace('.', ',')}`;
   const m = METHODS[selected];
 
   const confirm = () => {
-    if (selected === 'pix') { onPix(); onClose(); }
+    if (selected === 'pix') { onPix(coupon?.code); onClose(); }
     else setCardMethod(selected);
   };
 
@@ -67,10 +98,11 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
     return (
       <CreditCardForm
         open={!!packId} packId={packId} packLabel={packLabel} price={packPrice} method={cardMethod} plan={plan}
+        couponCode={coupon?.code ?? null} couponDiscountCents={coupon?.discountCents ?? null}
         onClose={() => setCardMethod(null)}          /* X = volta pra escolha */
         onApproved={onCardApproved}                   /* aprovado: pai notifica/recarrega já */
         onFinished={() => { setCardMethod(null); onClose(); }} /* Concluir: fecha tudo */
-        onSwitchToPix={() => { setCardMethod(null); onPix(); onClose(); }}
+        onSwitchToPix={() => { setCardMethod(null); onPix(coupon?.code); onClose(); }}
       />
     );
   }
@@ -130,14 +162,80 @@ export const PaymentChooser = ({ packId, packLabel, packPrice, plan, onClose, on
                 ~{Math.floor(credits / 2)} perguntas no chat · recebe como {credits} 💎
               </Typography>
             )}
+            {coupon && (
+              <Typography sx={{ fontSize: 12, fontWeight: 800, color: '#16a34a', mt: 0.25 }}>
+                Cupom {coupon.code} · −{fmtCents(coupon.discountCents)}
+              </Typography>
+            )}
           </Box>
-          <Typography sx={{
-            fontFamily: '"Poppins",sans-serif', fontWeight: 900, fontSize: 18,
-            color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68',
-            letterSpacing: '-0.02em', whiteSpace: 'nowrap',
-          }}>
-            {fmtPrice}
-          </Typography>
+          <Box sx={{ textAlign: 'right' }}>
+            {coupon && (
+              <Typography sx={{ fontSize: 12, color: 'text.secondary', textDecoration: 'line-through', lineHeight: 1.2 }}>
+                {fmtCents(Math.round(packPrice * 100))}
+              </Typography>
+            )}
+            <Typography sx={{
+              fontFamily: '"Poppins",sans-serif', fontWeight: 900, fontSize: 18,
+              color: (t) => t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68',
+              letterSpacing: '-0.02em', whiteSpace: 'nowrap',
+            }}>
+              {fmtPrice}
+            </Typography>
+          </Box>
+        </Box>
+
+        {/* ── Cupom de desconto (T3): valida antes de pagar; desconto confirmado
+             pelo server no checkout (aqui é só pré-visualização honesta). ── */}
+        <Box sx={{ px: 2.5, pt: 1.5 }}>
+          {coupon ? (
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{
+              p: { xs: 1, sm: '8px 12px' }, minHeight: 48, borderRadius: '12px',
+              border: '1px solid', borderColor: 'rgba(22,163,74,.4)', bgcolor: 'rgba(22,163,74,.06)',
+            }}>
+              <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                <SellOutlinedIcon sx={{ fontSize: 18, color: '#16a34a' }} />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography noWrap sx={{ fontSize: 13, fontWeight: 800 }}>
+                    {coupon.code} aplicado
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+                    desconto de −{fmtCents(coupon.discountCents)}
+                  </Typography>
+                </Box>
+              </Stack>
+              <Button
+                size="small" onClick={() => { setCoupon(null); setCouponInput(''); }}
+                sx={{ minWidth: 44, minHeight: 36, flexShrink: 0, textTransform: 'none', fontWeight: 700, color: 'text.secondary', borderRadius: '10px' }}
+              >
+                Remover
+              </Button>
+            </Stack>
+          ) : (
+            <Stack direction="row" spacing={1} alignItems="flex-start">
+              <TextField
+                size="small" placeholder="Cupom de desconto" value={couponInput}
+                onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponErr(''); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); void applyCoupon(); } }}
+                disabled={couponBusy}
+                sx={{
+                  flex: 1, minWidth: 0,
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 44, bgcolor: (t) => t.palette.mode === 'dark' ? 'transparent' : 'action.hover' },
+                  '& input': { fontSize: 14, fontWeight: 700, letterSpacing: '.03em' },
+                }}
+              />
+              <Button
+                variant="outlined" disabled={!couponInput.trim() || couponBusy} onClick={() => void applyCoupon()}
+                sx={{ minWidth: 96, minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 800, flexShrink: 0, borderColor: 'rgba(32,178,170,.5)', color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : '#0f6e68') }}
+              >
+                {couponBusy ? '...' : 'Aplicar'}
+              </Button>
+            </Stack>
+          )}
+          {couponErr && !coupon && (
+            <Typography sx={{ fontSize: 12, color: 'error.main', fontWeight: 600, mt: 0.75, px: 0.5 }} role="alert">
+              {couponErr}
+            </Typography>
+          )}
         </Box>
 
         {/* ── Section label ── */}

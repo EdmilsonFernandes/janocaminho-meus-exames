@@ -16,6 +16,9 @@ import { decryptPII } from '../utils/crypto';
 // PIX de teleconsulta (extraído 27/10/26 — fila imediata spec §3.2 reusa o MESMO fluxo):
 // criação/retomada da cobrança + helpers do pagador/notification_url (antes locais aqui).
 import { createTeleconsultaPix, payerCpfFor, publicNotifyUrl } from '../utils/teleconsultaPix';
+// CUPOM DE DESCONTO (T3 insights Conexa, 28/10/26): validação (pré-visualização do front)
+// e aplicação REAL no checkout — server-side SEMPRE (o front só mostra o desconto).
+import { CouponError, validateCouponForUser, type CouponKind } from '../utils/coupons';
 
 const router = Router();
 
@@ -23,6 +26,35 @@ const router = Router();
 // 2026-08-23 eliminou os 7 hardcodes de 19,90). Só MENSAL (sem anual: não compromete 12
 // meses no ar). Pack = mesma moeda/saldo; mudar pack NÃO invalida créditos já comprados.
 const packById = (id: string) => getCreditPacks().find((p) => p.id === id);
+
+/** Aplica cupom opcional ao valor-base (centavos) → preço final em reais + desconto.
+ *  Sem couponCode → preço cheio (sem query extra). Lança CouponError (status HTTP). */
+const applyCouponOrFull = async (opts: { couponCode?: unknown; userId: string; kind: CouponKind; baseCents: number }) => {
+  const raw = String(opts.couponCode ?? '').trim();
+  if (!raw) return { price: opts.baseCents / 100, discountCents: 0, couponCode: null as string | null };
+  const v = await validateCouponForUser({ code: raw, userId: opts.userId, kind: opts.kind, amountCents: opts.baseCents });
+  return { price: v.finalCents / 100, discountCents: v.discountCents, couponCode: v.code };
+};
+
+/** Devolve CouponError com o status certo (404/409/410/400); outros erros seguem pro next. */
+const isCouponError = (e: unknown): e is CouponError => e instanceof CouponError;
+
+// ===== CUPONS (T3) =====
+// POST /billing/coupon/validate {code, kind, amountCents} — pré-visualização ANTES de
+// pagar: o front mostra "−R$ X" / "−Y%" e o valor final. A APLICAÇÃO real acontece no
+// checkout (POST /checkout · /buy-credits · /pay-card com couponCode), que revalida.
+router.post('/coupon/validate', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const kind = String(req.body?.kind ?? '') === 'plan_monthly' ? 'plan_monthly' : 'credits';
+    const amountCents = Math.round(Number(req.body?.amountCents ?? 0));
+    if (!Number.isFinite(amountCents) || amountCents <= 0) { res.status(400).json({ error: 'amountCents inválido.' }); return; }
+    const v = await validateCouponForUser({ code: String(req.body?.code ?? ''), userId: req.userId!, kind, amountCents });
+    res.json({ ok: true, code: v.code, kind: v.kind, discountCents: v.discountCents, finalCents: v.finalCents });
+  } catch (e) {
+    if (isCouponError(e)) { res.status(e.status).json({ error: e.message }); return; }
+    next(e);
+  }
+});
 
 router.get('/plans', (_req, res) => {
   const plan = getMonthlyPlan();
@@ -207,7 +239,13 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: eff.price, periodDays: plan.periodDays, status: 'PENDING' });
+    // Cupom (T3): aplica sobre o preço efetivo (fundador empilha — desconto é do dono).
+    let pay;
+    try {
+      pay = await applyCouponOrFull({ couponCode: req.body?.couponCode, userId: user.id, kind: 'plan_monthly', baseCents: Math.round(eff.price * 100) });
+    } catch (e) { if (isCouponError(e)) { res.status(e.status).json({ error: e.message }); return; } throw e; }
+
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pay.price, periodDays: plan.periodDays, status: 'PENDING', ...(pay.couponCode ? { couponCode: pay.couponCode, couponDiscountCents: pay.discountCents } : {}) });
 
     const back = `${config.webOrigin}${config.webBasePath}/planos`;
     const monthlyCredits = getSettings().grants.monthly;
@@ -219,7 +257,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
         'X-Idempotency-Key': crypto.randomUUID(),
       },
       body: JSON.stringify({
-        items: [{ id: plan.label === 'Mensal' ? 'monthly' : 'monthly', title: `Dr. Exame Premium — Plano ${plan.label} (${monthlyCredits} créditos IA${eff.founder ? ' · Plano Fundador' : ''})`, quantity: 1, unit_price: eff.price, currency_id: 'BRL' }],
+        items: [{ id: plan.label === 'Mensal' ? 'monthly' : 'monthly', title: `Dr. Exame Premium — Plano ${plan.label} (${monthlyCredits} créditos IA${eff.founder ? ' · Plano Fundador' : ''})`, quantity: 1, unit_price: pay.price, currency_id: 'BRL' }],
         payer: { email: user.email, name: user.name },
         back_urls: { success: `${back}?status=success`, failure: `${back}?status=failure`, pending: `${back}?status=pending` },
         auto_return: 'approved',
@@ -235,7 +273,7 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
     }
     const pref: any = await prefResp.json();
     await updateSubscriptionCompat(sub.id, { mpPreferenceId: pref.id ?? null });
-    res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, subscriptionId: sub.id });
+    res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, subscriptionId: sub.id, discountCents: pay.discountCents || undefined });
   } catch (e) { next(e); }
 });
 
@@ -287,12 +325,18 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         where: { userId: user.id, status: 'PENDING', periodDays: { gt: 0 }, pixExpiresAt: { lt: new Date() } },
         data: { status: 'CANCELLED' },
       });
-      const sub = await createSubscriptionCompat({ userId: user.id, amount: eff.price, periodDays: monthlyPlan.periodDays, status: 'PENDING' });
+      // Cupom (T3): validado DE NOVO server-side na criação da cobrança (aplica no
+      // preço da charge, não em estorno). Retomada acima ignora cupom (PIX já existe).
+      let pay;
+      try {
+        pay = await applyCouponOrFull({ couponCode: req.body?.couponCode, userId: user.id, kind: 'plan_monthly', baseCents: Math.round(eff.price * 100) });
+      } catch (e) { if (isCouponError(e)) { res.status(e.status).json({ error: e.message }); return; } throw e; }
+      const sub = await createSubscriptionCompat({ userId: user.id, amount: pay.price, periodDays: monthlyPlan.periodDays, status: 'PENDING', ...(pay.couponCode ? { couponCode: pay.couponCode, couponDiscountCents: pay.discountCents } : {}) });
       const expires = new Date(Date.now() + 10 * 60 * 1000);
       let charge;
       try {
         charge = await createPixCharge({
-          amountBrlCents: Math.round(eff.price * 100),
+          amountBrlCents: Math.round(pay.price * 100),
           correlationID: `plan_${sub.id}`, // legível no dashboard do provider
           externalReference: sub.id, // SEM "|créditos" — webhooks diferenciam plano pelo periodDays
           description: 'Dr. Exame — Plano Premium Mensal',
@@ -317,7 +361,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       } else {
         await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
       }
-      res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), credits: monthlyCredits, price: eff.price, plan: true });
+      res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), credits: monthlyCredits, price: pay.price, discountCents: pay.discountCents || undefined, plan: true });
       return;
     }
 
@@ -333,6 +377,13 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       ? { id: 'report', credits: 1, price: Number(reportCfg?.price) > 0 ? Number(reportCfg?.price) : 9.9, label: String(reportCfg?.label || 'Relatório completo'), popular: false }
       : packById(String(req.body?.pack ?? ''));
     if (!pack) { res.status(400).json({ error: 'Pacote inválido' }); return; }
+
+    // Cupom (T3): packs de CRÉDITOS aceitam; relatório avulso não (produto único).
+    if (isReport && String(req.body?.couponCode ?? '').trim()) { res.status(400).json({ error: 'Cupom não se aplica a relatórios avulsos.' }); return; }
+    let pay;
+    try {
+      pay = await applyCouponOrFull({ couponCode: req.body?.couponCode, userId: user.id, kind: 'credits', baseCents: Math.round(pack.price * 100) });
+    } catch (e) { if (isCouponError(e)) { res.status(e.status).json({ error: e.message }); return; } throw e; }
 
     // ===== LOCK (PIX de créditos): 1 PIX pendente por vez — vale p/ QUALQUER método =====
     if (subscriptionColumns.hasPixResume) {
@@ -384,7 +435,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     }).catch(() => {}); // não bloqueia o fluxo se o cleanup falhar
 
     // registro p/ idempotência no webhook (periodDays=0 marca "pacote de créditos")
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: pack.price, periodDays: 0, status: 'PENDING' });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pay.price, periodDays: 0, status: 'PENDING', ...(pay.couponCode ? { couponCode: pay.couponCode, couponDiscountCents: pay.discountCents } : {}) });
     // TAG da ordem de RELATÓRIO (mesmo padrão do 'api_pack'): os webhooks Asaas/OpenPix
     // derivam o kind pela PRÓPRIA Subscription — sem a tag creditariam CRÉDITOS errados.
     if (isReport) await updateSubscriptionCompat(sub.id, { mpPreferenceId: 'report_pack' });
@@ -402,7 +453,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         method: 'POST',
         headers: { Authorization: `Bearer ${config.mpAccessToken}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          items: [{ id: pack.id, title: `Dr. Exame — ${pack.credits} créditos de IA`, quantity: 1, unit_price: pack.price, currency_id: 'BRL' }],
+          items: [{ id: pack.id, title: `Dr. Exame — ${pack.credits} créditos de IA`, quantity: 1, unit_price: pay.price, currency_id: 'BRL' }],
           payer: { email: user.email, name: user.name },
           external_reference: externalReference,
           back_urls: {
@@ -422,7 +473,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
         return;
       }
       const pref: any = await prefResp.json();
-      res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, credits: pack.credits, price: pack.price });
+      res.json({ init_point: pref.init_point ?? pref.sandbox_init_point, credits: pack.credits, price: pay.price, discountCents: pay.discountCents || undefined });
       return;
     }
 
@@ -433,7 +484,7 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
     let charge: PixChargeResult;
     try {
       charge = await createPixCharge({
-        amountBrlCents: Math.round(pack.price * 100),
+        amountBrlCents: Math.round(pay.price * 100),
         correlationID,
         externalReference, // MP: subId|credits[|REPORT] — webhook MP depende deste formato
         description: isReport ? 'Dr. Exame — Relatório completo avulso' : `Dr. Exame — ${pack.credits} créditos de IA para análise de exames`,
@@ -473,7 +524,8 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       qrBase64: qrImg,
       expiresAt: expires.toISOString(),
       credits: pack.credits,
-      price: pack.price,
+      price: pay.price,
+      discountCents: pay.discountCents || undefined,
       report: isReport || undefined, // front: chip "1 relatório completo" em vez de créditos
     });
   } catch (e) { next(e); }
@@ -566,6 +618,12 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
     const user = await prisma.user.findUnique({ where: { id: req.userId! } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
 
+    // Cupom (T3): revalida server-side e aplica no VALOR da charge Asaas (não em estorno).
+    let pay;
+    try {
+      pay = await applyCouponOrFull({ couponCode: req.body?.couponCode, userId: user.id, kind: isPlan ? 'plan_monthly' : 'credits', baseCents: Math.round(amount * 100) });
+    } catch (e) { if (isCouponError(e)) { res.status(e.status).json({ error: e.message }); return; } throw e; }
+
     // Validação SERVER-SIDE (Luhn, validade futura, CVV, CPF, CEP/nº) — o front valida
     // também, mas aqui é a barreira real. Erros já em PT-BR p/ exibir direto no form.
     const card = req.body?.card ?? {};
@@ -608,14 +666,14 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
       data: { status: 'CANCELLED' },
     }).catch(() => {});
 
-    const sub = await createSubscriptionCompat({ userId: user.id, amount, periodDays, status: 'PENDING' });
+    const sub = await createSubscriptionCompat({ userId: user.id, amount: pay.price, periodDays, status: 'PENDING', ...(pay.couponCode ? { couponCode: pay.couponCode, couponDiscountCents: pay.discountCents } : {}) });
     // Plano: externalReference = subId puro (sem "|créditos") — webhooks diferenciam pelo periodDays.
     const externalReference = isPlan ? sub.id : `${sub.id}|${creditsAmount}`;
 
     let charge;
     try {
       charge = await createAsaasCardCharge({
-        amountBrlCents: Math.round(amount * 100),
+        amountBrlCents: Math.round(pay.price * 100),
         correlationID: externalReference,
         description: `Dr. Exame — ${chargeLabel}`,
         userId: user.id,
@@ -673,7 +731,7 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
       // Plano aprova como PLANO (webhook parity); pack como créditos.
       await approvePendingSubscription(sub.id, isPlan ? { type: 'plan' } : { type: 'credits', credits: creditsAmount }, charge.paymentId);
       console.log(`[pay-card] aprovado — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}) ${isPlan ? 'PLANO 30d' : `+${creditsAmount} créditos`}`);
-      res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: creditsAmount, plan: isPlan || undefined });
+      res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: creditsAmount, plan: isPlan || undefined, discountCents: pay.discountCents || undefined });
       return;
     }
     console.log(`[pay-card] pendente — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}, 3DS: ${charge.threeDSUrl ? 'sim' : 'não'})`);

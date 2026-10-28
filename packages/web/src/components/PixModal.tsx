@@ -25,7 +25,7 @@ type Phase = 'loading' | 'waiting' | 'approved' | 'expired' | 'error';
  *  '__plan__' como sentinel no caller).
  *  `product='report'` (18/10): RELATÓRIO AVULSO — compra única de 1 voucher, não é pack
  *  de créditos. Mesmo fluxo PIX/lock; chip e confirmação falam "relatório". */
-export const PixModal = ({ packId, plan, product, onClose, onApproved, existingPix }: { packId: string | null; plan?: boolean; product?: 'report'; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
+export const PixModal = ({ packId, plan, product, couponCode, onClose, onApproved, existingPix }: { packId: string | null; plan?: boolean; product?: 'report'; couponCode?: string; onClose: () => void; onApproved: () => void; existingPix?: any }) => {
   const [pix, setPix] = useState<any>(null);
   const [phase, setPhase] = useState<Phase>('loading');
   const [errMsg, setErrMsg] = useState('');
@@ -70,7 +70,7 @@ export const PixModal = ({ packId, plan, product, onClose, onApproved, existingP
       try {
         const r = await fetch(`${API_URL}/billing/buy-credits`, {
           method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-          body: JSON.stringify(product === 'report' ? { product: 'report' } : plan ? { plan: 'monthly' } : { pack: packId }),
+          body: JSON.stringify(product === 'report' ? { product: 'report' } : plan ? { plan: 'monthly', ...(couponCode ? { couponCode } : {}) } : { pack: packId, ...(couponCode ? { couponCode } : {}) }),
         });
         const d = await r.json();
         if (cancelled) return;

@@ -29,6 +29,7 @@ import { payoutAutoEnabled } from '../utils/settings';
 import { maskPixKey } from './doctor.routes';
 import { getLastReconciliationAt } from '../jobs/reconciliation';
 import { runExtraction } from '../extraction/pipeline';
+import { normalizeCouponCode } from '../utils/coupons';
 
 const router = Router();
 router.use(requireAuth);
@@ -2337,6 +2338,84 @@ router.post('/payouts/auto', async (req: AuthedRequest, res, next) => {
     });
     console.log(`[admin] repasse automático ${enabled ? 'LIGADO' : 'DESLIGADO'} por ${req.userId}`);
     res.json({ auto: payoutAutoEnabled() });
+  } catch (e) { next(e); }
+});
+
+// ===== CUPONS DE DESCONTO (T3 insights Conexa, 28/10/26) =====
+// CRUD mínimo atrás do gate admin: criar, listar, desativar/ajustar. Sem seeds — o
+// admin cria na mão (founder/indicação). Regras de validação/aplicação vivem em
+// utils/coupons (o checkout SEMPRE revalida server-side).
+router.get('/coupons', async (_req, res, next) => {
+  try {
+    const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: 'desc' }, take: 200 });
+    res.json({ coupons });
+  } catch (e) { next(e); }
+});
+
+router.post('/coupons', async (req: AuthedRequest, res, next) => {
+  try {
+    const code = normalizeCouponCode(String(req.body?.code ?? ''));
+    const kind = String(req.body?.kind ?? '');
+    const value = Math.round(Number(req.body?.value));
+    const appliesTo = String(req.body?.appliesTo ?? 'any');
+    const maxUsesRaw = req.body?.maxUses;
+    const maxUses = maxUsesRaw == null || maxUsesRaw === '' ? null : Math.round(Number(maxUsesRaw));
+    const notes = req.body?.notes != null ? String(req.body?.notes).slice(0, 200) : null;
+    const expiresRaw = req.body?.expiresAt;
+    const expiresAt = expiresRaw ? new Date(String(expiresRaw)) : null;
+
+    if (code.length < 2 || code.length > 32) { res.status(400).json({ error: 'Código inválido (2-32 caracteres A-Z/0-9).' }); return; }
+    if (kind !== 'percent' && kind !== 'fixed_cents') { res.status(400).json({ error: 'kind deve ser percent ou fixed_cents.' }); return; }
+    if (!Number.isFinite(value) || value <= 0 || (kind === 'percent' && value > 100)) {
+      res.status(400).json({ error: kind === 'percent' ? 'Valor deve ser 1-100 (%).' : 'Valor deve ser > 0 (centavos).' });
+      return;
+    }
+    if (!['any', 'plan_monthly', 'credits'].includes(appliesTo)) { res.status(400).json({ error: 'appliesTo inválido.' }); return; }
+    if (maxUses != null && (!Number.isFinite(maxUses) || maxUses < 1)) { res.status(400).json({ error: 'maxUses deve ser ≥ 1 ou vazio (ilimitado).' }); return; }
+    if (expiresAt && Number.isNaN(expiresAt.getTime())) { res.status(400).json({ error: 'Validade inválida.' }); return; }
+
+    const exists = await prisma.coupon.findUnique({ where: { code }, select: { id: true } });
+    if (exists) { res.status(409).json({ error: `Já existe um cupom com o código ${code}.` }); return; }
+
+    const coupon = await prisma.coupon.create({ data: { code, kind, value, appliesTo, maxUses, expiresAt, notes, active: true } });
+    await audit('ADMIN_COUPON_CREATE', req, { targetType: 'COUPON', targetId: coupon.id, after: { code, kind, value, appliesTo, maxUses, expiresAt: expiresAt?.toISOString() ?? null } });
+    console.log(`[admin] cupom ${code} criado por ${req.userId}`);
+    res.status(201).json({ coupon });
+  } catch (e) { next(e); }
+});
+
+router.patch('/coupons/:id', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id ?? '');
+    const before = await prisma.coupon.findUnique({ where: { id } });
+    if (!before) { res.status(404).json({ error: 'Cupom não encontrado.' }); return; }
+
+    const data: Record<string, unknown> = {};
+    if (req.body?.active != null) data.active = req.body.active === true || req.body.active === 1 || req.body.active === '1';
+    if (req.body?.maxUses !== undefined) {
+      const raw = req.body.maxUses;
+      const maxUses = raw == null || raw === '' ? null : Math.round(Number(raw));
+      if (maxUses != null && (!Number.isFinite(maxUses) || maxUses < 1)) { res.status(400).json({ error: 'maxUses deve ser ≥ 1 ou vazio (ilimitado).' }); return; }
+      data.maxUses = maxUses;
+    }
+    if (req.body?.expiresAt !== undefined) {
+      if (req.body.expiresAt == null || req.body.expiresAt === '') data.expiresAt = null;
+      else {
+        const d = new Date(String(req.body.expiresAt));
+        if (Number.isNaN(d.getTime())) { res.status(400).json({ error: 'Validade inválida.' }); return; }
+        data.expiresAt = d;
+      }
+    }
+    if (req.body?.notes !== undefined) data.notes = req.body.notes == null ? null : String(req.body.notes).slice(0, 200);
+    if (!Object.keys(data).length) { res.status(400).json({ error: 'Nada para atualizar.' }); return; }
+
+    const coupon = await prisma.coupon.update({ where: { id }, data });
+    await audit('ADMIN_COUPON_UPDATE', req, {
+      targetType: 'COUPON', targetId: id,
+      before: { active: before.active, maxUses: before.maxUses, expiresAt: before.expiresAt?.toISOString() ?? null },
+      after: { active: coupon.active, maxUses: coupon.maxUses, expiresAt: coupon.expiresAt?.toISOString() ?? null },
+    });
+    res.json({ coupon });
   } catch (e) { next(e); }
 });
 
