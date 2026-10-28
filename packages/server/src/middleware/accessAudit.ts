@@ -15,11 +15,16 @@ const AREAS = /\/api\/(exams|analyses|chat|admin|patients|data|doctor|billing|ri
  *  (sempre grava — é LGPD, não log técnico). */
 export function accessAudit(req: Request, res: Response, next: NextFunction): void {
   const start = Date.now();
+  // AUD-030: capturar o path AGORA — no evento 'finish' os routers já reescreveram
+  // req.url/req.path para o RELATIVO do mount (ex.: GET /api/patients chegava ao listener
+  // como '/'), a allowlist nunca casava e NENHUMA linha ACCESS era gravada (trilha LGPD
+  // de acesso a dado de saúde muda desde a reorganização dos routers). originalUrl é
+  // estável; split('?') descarta querystring (PIN/token não vão pra auditoria).
+  const fullPath = (req.originalUrl || req.url || '/').split('?')[0];
   res.on('finish', () => {
-    const path = req.path || '/';
-    if (!AREAS.test(path)) return;          // allowlist de áreas
+    if (!AREAS.test(fullPath)) return;      // allowlist de áreas
     const ar = req as AuthedRequest & { doctorId?: string };
-    const meta = { method: req.method, path, status: res.statusCode, ms: Date.now() - start };
+    const meta = { method: req.method, path: fullPath, status: res.statusCode, ms: Date.now() - start };
     if (ar.userId) {
       void audit('ACCESS', ar, { actorType: 'USER', actorId: ar.userId, targetType: 'ROUTE', after: meta });
     } else if (ar.doctorId) {
