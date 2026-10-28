@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, FormControlLabel, Switch, Tooltip } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Tooltip } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -55,6 +55,7 @@ import { PortalInvites } from '../components/doctors/portal/PortalInvites';
 import { PortalQuestions } from '../components/doctors/portal/PortalQuestions';
 import { PortalOverview } from '../components/doctors/portal/PortalOverview';
 import { PortalTeleconsultas } from '../components/doctors/portal/PortalTeleconsultas';
+import { TeleScheduleDialog } from '../components/doctors/portal/TeleScheduleDialog';
 import { PortalFinanceiro } from '../components/doctors/portal/PortalFinanceiro';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { formatCpf, isValidCpf } from '../utils/cpf';
@@ -348,6 +349,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [tele, setTele] = useState({ date: '', time: '14:00', link: '', title: '', recurrence: '', price: '' });
   /** Erro INLINE do dialog de agendamento (toast global fica atrás do modal). */
   const [teleError, setTeleError] = useState('');
+  // Mexeu no formulário depois de um erro → o aviso velho some (não fica "mentindo").
+  useEffect(() => { setTeleError(''); }, [tele]);
   const [patientTele, setPatientTele] = useState<any[]>([]);
   const [doctorTele, setDoctorTele] = useState<any[]>([]);
   // F3 (20/10) — área pós-consulta: summary/transcript on-demand + cache p/ chips da lista.
@@ -391,7 +394,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   // Meet automático (lote Teams 18/10): status da integração + preferência do diálogo.
-  const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean; livekit?: boolean } | null>(null);
+  const [meetStatus, setMeetStatus] = useState<{ configured: boolean; connected: boolean; livekit?: boolean; priceMinCents?: number } | null>(null);
   const [createMeet, setCreateMeet] = useState(true);
 
   useEffect(() => {
@@ -459,6 +462,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   // Banner "Dr. Exame Pro" dismissível (persiste no localStorage). Só re-aparece se limparem a flag.
   const [payDismissed, setPayDismissed] = useState<boolean>(() => { try { return localStorage.getItem('doctorPayDismissed') === '1'; } catch { return false; } });
   const h = { Authorization: `Bearer ${token}` };
+  // Diálogo de agendar: paciente do cabeçalho (fixo no detalhe; escolhido na Agenda).
+  const teleOptions = patients.map((p) => {
+    const id = String(p.patient?.id || p.id);
+    return { id, name: p.patient?.fullName || p.name || 'Paciente', photo: photoUrlFor(id) };
+  });
+  const teleTarget = selected?.patient?.id
+    ? { id: String(selected.patient.id), name: selected.patient.fullName || 'Paciente', photo: photoUrlFor(String(selected.patient.id)) }
+    : teleOptions.find((p) => p.id === String(telePatId)) ?? null;
+  /** Conectar Google Meet (OAuth) — erro INLINE no diálogo (o toast fica atrás dele). */
+  const connectGoogleMeet = async () => {
+    const r = await fetch(`${API_URL}/doctor/google/auth`, { headers: h });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok && d.url) window.location.href = d.url;
+    else setTeleError(d.error || 'Não deu pra iniciar a conexão com o Google.');
+  };
   // Web (md+): menu vertical PERMANENTE à esquerda (igual ao app do paciente) + sem rodapé.
   // Mobile: mantém o Drawer overlay + rodapé (Pacientes · Perfil · Mais).
   const theme = useTheme();
@@ -726,9 +744,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     // Dialog). Erro agora é INLINE no próprio dialog + validação pré-envio.
     setTeleError('');
     const priceCents = tele.price ? Number(tele.price.replace(/\D/g, '')) || null : null;
+    const priceMinCents = meetStatus?.priceMinCents ?? 2000; // AppSetting teleconsulta (via /google/status)
     if (priceCents != null) {
-      if (priceCents < 2000) {
-        setTeleError(`Valor abaixo do mínimo de R$ 20,00 (garante estorno integral). Você digitou R$ ${(priceCents / 100).toFixed(2).replace('.', ',')} — ajuste o campo acima.`);
+      if (priceCents < priceMinCents) {
+        setTeleError(`Valor abaixo do mínimo de R$ ${(priceMinCents / 100).toFixed(2).replace('.', ',')} (garante estorno integral). Você digitou R$ ${(priceCents / 100).toFixed(2).replace('.', ',')} — ajuste o campo acima.`);
         setTeleBusy(false);
         return;
       }
@@ -1867,306 +1886,25 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         </Drawer>
       )}
 
-      {/* MODAL DE AGENDAMENTO DE TELECONSULTA — UX Redesenhada com Design System */}
-      <Dialog open={teleOpen} onClose={() => { setTeleOpen(false); setTeleError(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px', p: 0.5 } }}>
-        <DialogTitle sx={{ pb: 1, fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <VideocamIcon sx={{ fontSize: 24, color: 'secondary.dark' }} />
-            <span>Agendar Teleconsulta</span>
-          </Stack>
-          <Chip size="small" label={selected?.patient?.fullName ?? (patients.find((p) => (p.patient?.id || p.id) === telePatId)?.patient?.fullName || 'Nova Consulta')} sx={{ fontWeight: 700, bgcolor: 'rgba(212,165,116,.15)', color: 'secondary.dark' }} />
-        </DialogTitle>
-        <DialogContent>
-          {!selected && patients.length > 0 && (
-            <TextField
-              select
-              size="small"
-              label="Selecione o paciente"
-              value={telePatId}
-              onChange={(e) => setTelePatId(e.target.value)}
-              fullWidth
-              InputLabelProps={{ shrink: true }}
-              sx={{ mb: 2, mt: 1 }}
-            >
-              {patients.map((p) => {
-                const id = p.patient?.id || p.id;
-                const name = p.patient?.fullName || p.name || 'Paciente';
-                // fix dono 23/10: src com a REF crua nunca carregava — a foto do
-                // paciente é servida via token (photoUrlFor), como no resto do portal.
-                const photo = id ? photoUrlFor(String(id)) : undefined;
-                return (
-                  <MenuItem key={id} value={id}>
-                    <Stack direction="row" spacing={1.25} alignItems="center">
-                      <Avatar
-                        src={photo}
-                        sx={{
-                          width: 28,
-                          height: 28,
-                          fontSize: 12,
-                          bgcolor: 'rgba(32,178,170,.15)',
-                          color: '#178f89',
-                          fontWeight: 800,
-                        }}
-                      >
-                        {name.charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Typography sx={{ fontSize: 14, fontWeight: 700, color: 'text.primary' }}>{name}</Typography>
-                    </Stack>
-                  </MenuItem>
-                );
-              })}
-            </TextField>
-          )}
-          <Typography sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.5, mb: 2 }}>
-            O paciente recebe notificação por push imediata, avisos com antecedência e assina o termo de consentimento (Art. 15 CFM) diretamente no app antes de entrar na sala.
-          </Typography>
-
-          <Stack spacing={2}>
-            {/* Atalhos rápidos de data — apenas horários futuros */}
-            <Box>
-              <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.75 }}>
-                Atalhos rápidos:
-              </Typography>
-              <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                {(() => {
-                  const now = new Date();
-                  const currentHour = now.getHours();
-                  const todayDate = now.toISOString().split('T')[0];
-                  const nextH = Math.min(23, currentHour + 1);
-                  const nextHourStr = `${nextH.toString().padStart(2, '0')}:00`;
-                  const tom = new Date(Date.now() + 86400000);
-                  const in3 = new Date(Date.now() + 3 * 86400000);
-                  const nextW = new Date(Date.now() + 7 * 86400000);
-
-                  const shortcuts = [];
-                  if (currentHour < 22) {
-                    shortcuts.push({ label: `Hoje ${nextHourStr}`, get: () => ({ date: todayDate, time: nextHourStr }) });
-                  }
-                  shortcuts.push({ label: 'Amanhã 10h', get: () => ({ date: tom.toISOString().split('T')[0], time: '10:00' }) });
-                  shortcuts.push({ label: 'Amanhã 14h', get: () => ({ date: tom.toISOString().split('T')[0], time: '14:00' }) });
-                  shortcuts.push({ label: 'Em 3 dias 10h', get: () => ({ date: in3.toISOString().split('T')[0], time: '10:00' }) });
-                  shortcuts.push({ label: 'Próxima semana', get: () => ({ date: nextW.toISOString().split('T')[0], time: '14:00' }) });
-
-                  return shortcuts.map((chip) => (
-                    <Chip
-                      key={chip.label}
-                      label={chip.label}
-                      size="small"
-                      onClick={() => {
-                        const val = chip.get();
-                        setTele((prev) => ({ ...prev, date: val.date, time: val.time }));
-                      }}
-                      sx={{ fontWeight: 700, cursor: 'pointer', '&:hover': { bgcolor: 'rgba(212,165,116,.2)' } }}
-                    />
-                  ));
-                })()}
-              </Stack>
-            </Box>
-
-            {/* Campos de Data e Hora com restrição mínima de data */}
-            <Stack direction="row" spacing={1.5}>
-              <TextField
-                type="date"
-                label="Data da consulta"
-                value={tele.date}
-                onChange={(e) => setTele((t) => ({ ...t, date: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ min: new Date().toISOString().split('T')[0] }}
-                sx={{ flex: 1.2 }}
-                size="small"
-              />
-              <TextField
-                type="time"
-                label="Horário"
-                value={tele.time}
-                onChange={(e) => setTele((t) => ({ ...t, time: e.target.value }))}
-                InputLabelProps={{ shrink: true }}
-                sx={{ flex: 0.8 }}
-                size="small"
-              />
-            </Stack>
-
-            {/* Alerta explícito de data/hora no passado */}
-            {(() => {
-              if (!tele.date) return null;
-              const dt = new Date(`${tele.date}T${tele.time || '14:00'}`);
-              const isPast = !isNaN(dt.getTime()) && dt.getTime() <= Date.now();
-              if (!isPast) return null;
-              return (
-                <Box sx={{ p: 1.25, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: '#dc2626', fontSize: 13, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <span>⚠️</span>
-                  <span>Este horário já passou. Escolha um horário futuro para agendar.</span>
-                </Box>
-              );
-            })()}
-
-            {/* Provedor da chamada: LiveKit no app > Google Meet > link manual */}
-            <Box sx={{ p: 1.75, borderRadius: '12px', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.08)', border: '1px solid', borderColor: 'rgba(212,165,116,0.25)' }}>
-              {meetStatus?.livekit ? (
-                <Stack spacing={0.5} sx={{ mb: meetStatus?.connected ? 1.5 : 0 }}>
-                  <FormControlLabel
-                    control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />}
-                    label={<Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Chamada dentro do app <Chip size="small" label="recomendado" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89', ml: 0.5 }} /></Typography>}
-                    sx={{ m: 0 }}
-                  />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', pl: 4.5 }}>
-                    Vídeo seguro roda DENTRO do Dr. Exame — paciente entra pelo app, sem link externo. Desligue para usar Meet/link.
-                  </Typography>
-                </Stack>
-              ) : null}
-
-              {!meetStatus?.livekit && meetStatus?.connected ? (
-                <Stack spacing={0.5}>
-                  <FormControlLabel
-                    control={<Switch checked={createMeet} onChange={(e) => setCreateMeet(e.target.checked)} size="small" />}
-                    label={<Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary' }}>Criar sala Google Meet automaticamente ✨</Typography>}
-                    sx={{ m: 0 }}
-                  />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', pl: 4.5 }}>
-                    Uma sala exclusiva (meet.google.com) será gerada pela API do Google e vinculada à teleconsulta.
-                  </Typography>
-                </Stack>
-              ) : !meetStatus?.livekit && meetStatus?.configured ? (
-                <Stack spacing={1}>
-                  <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary' }}>
-                    Gere salas do Google Meet com 1 clique:
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    onClick={async () => {
-                      const r = await fetch(`${API_URL}/doctor/google/auth`, { headers: h });
-                      const d = await r.json().catch(() => ({}));
-                      if (r.ok && d.url) window.location.href = d.url;
-                      else snackbar({ message: d.error || 'Não deu pra iniciar conexão com o Google.', severity: 'error' });
-                    }}
-                    sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px', alignSelf: 'flex-start', px: 2.5, py: 0.8, background: 'linear-gradient(135deg,#d4a574,#b88a54)' }}
-                  >
-                    Conectar conta Google ✨
-                  </Button>
-                </Stack>
-              ) : null}
-
-              {!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && (
-                <TextField
-                  label="Link da chamada externa"
-                  placeholder="https://meet.google.com/… ou Teams / WhatsApp"
-                  value={tele.link}
-                  onChange={(e) => setTele((t) => ({ ...t, link: e.target.value }))}
-                  size="small"
-                  fullWidth
-                  sx={{ mt: 1.5 }}
-                  helperText={meetStatus?.connected || meetStatus?.livekit ? 'Desative a chamada automática se desejar colar um link manual.' : 'Cole o link de acesso da videochamada.'}
-                />
-              )}
-            </Box>
-
-            {/* Título & Recorrência (Select sem sobreposição) */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <TextField label="Motivo / Título (opcional)" placeholder={`Teleconsulta com Dr(a). ${doctor?.name?.split(' ')[0] ?? ''}`} value={tele.title} onChange={(e) => setTele((t) => ({ ...t, title: e.target.value }))} size="small" sx={{ flex: 1.2 }} />
-              <TextField
-                select
-                label="Repetir consulta"
-                value={tele.recurrence || ''}
-                onChange={(e) => setTele((t) => ({ ...t, recurrence: e.target.value }))}
-                size="small"
-                sx={{ flex: 0.8 }}
-                InputLabelProps={{ shrink: true }}
-                SelectProps={{
-                  displayEmpty: true,
-                  renderValue: (val) => {
-                    const v = (val as string) || '';
-                    if (!v) return 'Não repete';
-                    const map: Record<string, string> = {
-                      semanal: 'Semanal',
-                      mensal: 'Mensal',
-                      semestral: 'Semestral',
-                      anual: 'Anual',
-                    };
-                    return map[v] || 'Não repete';
-                  },
-                }}
-              >
-                {[
-                  ['', 'Não repete'],
-                  ['semanal', 'Semanal'],
-                  ['mensal', 'Mensal'],
-                  ['semestral', 'Semestral'],
-                  ['anual', 'Anual'],
-                ].map(([v, l]) => (
-                  <MenuItem key={v} value={v}>{l}</MenuItem>
-                ))}
-              </TextField>
-            </Stack>
-
-            {/* Consulta particular (23/10): cobrança opcional — pré-preenchida com o
-                valor padrão do médico (perfil). Vazio = sem cobrança. */}
-            <TextField
-              label="Cobrar do paciente (R$)"
-              value={tele.price}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '');
-                setTele((t) => ({ ...t, price: digits ? (Number(digits) / 100).toFixed(2).replace('.', ',') : '' }));
-              }}
-              size="small"
-              fullWidth
-              inputProps={{ inputMode: 'numeric', placeholder: 'ex.: 150,00' }}
-              helperText="Opcional — deixe vazio para não cobrar. Mín. R$ 20,00 · máx. R$ 20.000,00. Congelado no agendamento; paciente paga no app (PIX)."
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-            />
-            {/* Presets (24/10): chips rápidos 120/150/170/190 — um toque preenche o campo
-                acima (campo livre continua valendo; server valida 500–2.000.000 cents).
-                Tocar no chip aceso LIMPA (volta pra "sem cobrança"). */}
-            <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
-              {[120, 150, 170, 190].map((v) => {
-                const active = tele.price === `${v},00`;
-                return (
-                  <Chip
-                    key={v}
-                    label={`R$ ${v}`}
-                    clickable
-                    aria-pressed={active}
-                    onClick={() => setTele((t) => ({ ...t, price: active ? '' : `${v},00` }))}
-                    sx={{
-                      minHeight: 40, fontSize: 13, fontWeight: 800, borderRadius: '10px', px: 0.5,
-                      bgcolor: active ? 'rgba(212,165,116,.22)' : 'transparent',
-                      color: active ? 'secondary.dark' : 'text.secondary',
-                      border: '1px solid',
-                      borderColor: active ? 'rgba(212,165,116,.55)' : 'divider',
-                    }}
-                  />
-                );
-              })}
-            </Stack>
-          </Stack>
-        </DialogContent>
-        {teleError && (
-          <Alert severity="error" sx={{ mx: 3, mb: 0.5, borderRadius: '12px', fontSize: 13.5, alignItems: 'flex-start' }}>{teleError}</Alert>
-        )}
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button onClick={() => setTeleOpen(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
-          <Button
-            variant="contained"
-            onClick={() => void scheduleTele()}
-            disabled={
-              teleBusy ||
-              !tele.date ||
-              (() => {
-                const dt = new Date(`${tele.date}T${tele.time || '14:00'}`);
-                return !isNaN(dt.getTime()) && dt.getTime() <= Date.now();
-              })() ||
-              (!(createMeet && (meetStatus?.livekit || meetStatus?.connected)) && !/^https?:\/\//i.test(tele.link.trim()))
-            }
-            sx={{
-              borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3,
-              background: 'linear-gradient(135deg,#d4a574,#b88a54)',
-              boxShadow: '0 4px 14px rgba(212,165,116,.4)',
-              '&:hover': { background: 'linear-gradient(135deg,#e0b183,#c49260)' },
-            }}
-          >
-            {teleBusy ? 'Agendando…' : 'Confirmar e avisar paciente'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* AGENDAR TELECONSULTA — redesenho 27/10/26: tela cheia no celular, cobre, rodapé com resumo/motivo (TeleScheduleDialog) */}
+      <TeleScheduleDialog
+        open={teleOpen}
+        onClose={() => { setTeleOpen(false); setTeleError(''); }}
+        patient={teleTarget}
+        patientOptions={!selected && teleOptions.length > 0 ? teleOptions : undefined}
+        onPatientChange={setTelePatId}
+        tele={tele}
+        setTele={setTele}
+        caps={meetStatus}
+        autoRoom={createMeet}
+        setAutoRoom={setCreateMeet}
+        onConnectGoogle={() => void connectGoogleMeet()}
+        defaultPriceCents={doctor?.consultPriceCents != null ? Number(doctor.consultPriceCents) : null}
+        doctorFirstName={doctor?.name?.split(' ')[0]}
+        busy={teleBusy}
+        error={teleError}
+        onSubmit={() => void scheduleTele()}
+      />
 
       {/* F3 — ÁREA PÓS-CONSULTA: "Resumo da consulta". Transcrição + pedidos + feedback/duração */}
       <Dialog open={!!postOpenId} onClose={() => setPostOpenId(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>

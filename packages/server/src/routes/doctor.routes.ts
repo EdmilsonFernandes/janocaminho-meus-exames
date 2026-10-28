@@ -1476,7 +1476,9 @@ router.delete('/patients/:patientId/teleconsulta/:reminderId', requireDoctor, as
 router.get('/google/status', requireDoctor, async (req: any, res) => {
   const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { googleRefreshTokenEnc: true } });
   // livekit: capability p/ o portal ligar o toggle "chamada dentro do app" (P0-reviewer).
-  res.json({ configured: hasMeetConfig(), connected: !!doc?.googleRefreshTokenEnc, livekit: hasLiveKitConfig() });
+  // priceMinCents: mínimo da cobrança (AppSetting teleconsulta) — o diálogo de agendar
+  // mostra/valida no campo em vez de só descobrir no 400 (27/10/26).
+  res.json({ configured: hasMeetConfig(), connected: !!doc?.googleRefreshTokenEnc, livekit: hasLiveKitConfig(), priceMinCents: getTeleconsultaConfig().priceMinCents });
 });
 
 // GET /google/auth → devolve a URL de consentimento (o portal navega; link de browser
