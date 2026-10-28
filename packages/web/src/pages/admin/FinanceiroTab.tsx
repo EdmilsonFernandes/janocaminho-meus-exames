@@ -35,6 +35,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
 
@@ -135,6 +136,75 @@ export const FinanceiroTab = () => {
   const [payloadRow, setPayloadRow] = useState<any | null>(null);
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // ===== CUPONS DE DESCONTO (T3, 28/10/26) =====
+  const [coupons, setCoupons] = useState<any[] | null>(null);
+  const [couponsOpen, setCouponsOpen] = useState(false);
+  const [cCode, setCCode] = useState('');
+  const [cKind, setCKind] = useState<'percent' | 'fixed_cents'>('percent');
+  const [cValue, setCValue] = useState('');
+  const [cApplies, setCApplies] = useState('any');
+  const [cMaxUses, setCMaxUses] = useState('');
+  const [cExpires, setCExpires] = useState('');
+  const [cNotes, setCNotes] = useState('');
+  const [cBusy, setCBusy] = useState(false);
+
+  const loadCoupons = useCallback(async () => {
+    try {
+      const r = await fetch(`${API_URL}/admin/coupons`, { headers: authH() });
+      const d = await r.json().catch(() => ({}));
+      setCoupons(r.ok ? d.coupons ?? [] : []);
+    } catch {
+      setCoupons([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCoupons();
+  }, [loadCoupons]);
+
+  const createCoupon = async () => {
+    if (!cCode.trim() || !cValue.trim() || cBusy) return;
+    setCBusy(true);
+    try {
+      const body: Record<string, unknown> = {
+        code: cCode.trim(),
+        kind: cKind,
+        value: cKind === 'percent' ? Number(cValue.replace(',', '.')) : Math.round(Number(cValue.replace(',', '.')) * 100),
+        appliesTo: cApplies,
+      };
+      if (cMaxUses.trim()) body.maxUses = Number(cMaxUses);
+      if (cExpires) body.expiresAt = new Date(`${cExpires}T23:59:59`).toISOString();
+      if (cNotes.trim()) body.notes = cNotes.trim();
+      const r = await fetch(`${API_URL}/admin/coupons`, {
+        method: 'POST',
+        headers: { ...authH(), 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.error || 'Falha ao criar cupom.');
+      notify(`Cupom ${d.coupon?.code ?? cCode.trim()} criado.`, { type: 'success' });
+      setCCode(''); setCValue(''); setCMaxUses(''); setCExpires(''); setCNotes('');
+      void loadCoupons();
+    } catch (e: any) {
+      notify(e?.message || 'Falha ao criar cupom.', { type: 'error' });
+    }
+    setCBusy(false);
+  };
+
+  const toggleCoupon = async (c: any) => {
+    try {
+      const r = await fetch(`${API_URL}/admin/coupons/${c.id}`, {
+        method: 'PATCH',
+        headers: { ...authH(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !c.active }),
+      });
+      if (!r.ok) throw new Error();
+      void loadCoupons();
+    } catch {
+      notify('Falha ao atualizar cupom.', { type: 'error' });
+    }
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -878,6 +948,128 @@ export const FinanceiroTab = () => {
           </Button>
         </Stack>
       </Stack>
+
+      {/* 6. CUPONS DE DESCONTO (T3) — seção compacta: criar + listar + ativar/desativar */}
+      <Paper elevation={0} sx={{ mt: 3, borderRadius: '12px', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+        <Stack
+          direction="row" alignItems="center" justifyContent="space-between" sx={{ px: 2, py: 1.5, cursor: 'pointer', userSelect: 'none' }}
+          onClick={() => setCouponsOpen((v) => !v)}
+        >
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '6px', bgcolor: 'rgba(23, 143, 137, 0.1)', color: '#178f89', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <SellOutlinedIcon sx={{ fontSize: 17 }} />
+            </Box>
+            <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
+              Cupons de desconto
+            </Typography>
+            <Chip size="small" label={`${coupons?.filter((c) => c.active).length ?? 0} ativos`} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, bgcolor: 'rgba(23, 143, 137, 0.08)', color: '#178f89', borderRadius: '6px' }} />
+          </Stack>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600 }}>
+            {couponsOpen ? 'Ocultar ▲' : 'Gerenciar ▼'}
+          </Typography>
+        </Stack>
+
+        {couponsOpen && (
+          <Box sx={{ px: 2, pb: 2 }}>
+            {/* Form de criação (compacto, 1 linha no desktop) */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} alignItems={{ sm: 'center' }} sx={{ mb: 1.5 }}>
+              <TextField size="small" label="Código" placeholder="FUNDADOR10" value={cCode}
+                onChange={(e) => setCCode(e.target.value.toUpperCase())}
+                sx={{ width: { xs: '100%', sm: 150 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
+              <TextField size="small" select label="Tipo" value={cKind} onChange={(e) => setCKind(e.target.value as 'percent' | 'fixed_cents')}
+                sx={{ width: { xs: '100%', sm: 110 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}>
+                <MenuItem value="percent">%</MenuItem>
+                <MenuItem value="fixed_cents">R$</MenuItem>
+              </TextField>
+              <TextField size="small" label={cKind === 'percent' ? 'Desconto (%)' : 'Desconto (R$)'} placeholder={cKind === 'percent' ? '10' : '5,00'} value={cValue}
+                onChange={(e) => setCValue(e.target.value)}
+                sx={{ width: { xs: '100%', sm: 130 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
+              <TextField size="small" select label="Aplica a" value={cApplies} onChange={(e) => setCApplies(e.target.value)}
+                sx={{ width: { xs: '100%', sm: 140 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }}>
+                <MenuItem value="any">Qualquer produto</MenuItem>
+                <MenuItem value="plan_monthly">Assinatura mensal</MenuItem>
+                <MenuItem value="credits">Créditos</MenuItem>
+              </TextField>
+              <TextField size="small" label="Máx. usos" placeholder="∞" value={cMaxUses} onChange={(e) => setCMaxUses(e.target.value)}
+                sx={{ width: { xs: '100%', sm: 100 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
+              <TextField size="small" type="date" label="Validade" value={cExpires} onChange={(e) => setCExpires(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
+                sx={{ width: { xs: '100%', sm: 150 }, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
+              <Button variant="contained" disabled={!cCode.trim() || !cValue.trim() || cBusy} onClick={() => void createCoupon()}
+                sx={{ minWidth: { sm: 100 }, minHeight: 40, textTransform: 'none', fontWeight: 800, borderRadius: '8px', bgcolor: '#178f89', '&:hover': { bgcolor: '#0f6e68' } }}>
+                Criar
+              </Button>
+            </Stack>
+            <TextField size="small" fullWidth label="Observação (opcional — ex.: founder, indicação)" value={cNotes} onChange={(e) => setCNotes(e.target.value)}
+              sx={{ mb: 1.5, maxWidth: 420, '& .MuiOutlinedInput-root': { borderRadius: '8px' } }} />
+
+            {/* Lista */}
+            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.03)' : '#f8fafc') }}>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Código</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Desconto</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Aplica a</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Usos</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Validade</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: 11.5 }}>Status</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: 700, fontSize: 11.5 }}>Ação</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {(coupons ?? []).map((c) => {
+                    const expired = c.expiresAt && new Date(c.expiresAt).getTime() <= Date.now();
+                    const soldOut = c.maxUses != null && c.uses >= c.maxUses;
+                    return (
+                      <TableRow key={c.id}>
+                        <TableCell sx={{ py: 1, fontFamily: 'monospace', fontWeight: 700, fontSize: 12.5 }}>{c.code}</TableCell>
+                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
+                          {c.kind === 'percent' ? `−${c.value}%` : `−R$ ${(c.value / 100).toFixed(2).replace('.', ',')}`}
+                        </TableCell>
+                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
+                          {c.appliesTo === 'any' ? 'Qualquer' : c.appliesTo === 'plan_monthly' ? 'Mensal' : 'Créditos'}
+                        </TableCell>
+                        <TableCell sx={{ py: 1, fontSize: 12.5 }}>
+                          {c.uses}{c.maxUses != null ? ` / ${c.maxUses}` : ' / ∞'}
+                        </TableCell>
+                        <TableCell sx={{ py: 1, fontSize: 12.5, color: 'text.secondary' }}>
+                          {c.expiresAt ? new Date(c.expiresAt).toLocaleDateString('pt-BR') : '—'}
+                        </TableCell>
+                        <TableCell sx={{ py: 1 }}>
+                          <Chip size="small"
+                            label={!c.active ? 'Inativo' : expired ? 'Expirado' : soldOut ? 'Esgotado' : 'Ativo'}
+                            sx={{ height: 22, fontSize: 11, fontWeight: 700, borderRadius: '6px',
+                              bgcolor: !c.active || expired || soldOut ? 'rgba(100,116,139,.1)' : 'rgba(22,163,74,.1)',
+                              color: !c.active || expired || soldOut ? '#475569' : '#15803d' }} />
+                        </TableCell>
+                        <TableCell align="right" sx={{ py: 1 }}>
+                          <Button size="small" variant="outlined" onClick={() => void toggleCoupon(c)}
+                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '8px', minWidth: 88 }}>
+                            {c.active ? 'Desativar' : 'Ativar'}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {(coupons ?? []).length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          Nenhum cupom criado ainda.
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1, fontSize: 11 }}>
+              Desconto aplica no preço de criação da cobrança (PIX/cartão). Contagem de uso só incrementa quando o pagamento é confirmado. 1 uso por usuário por tipo de produto.
+            </Typography>
+          </Box>
+        )}
+      </Paper>
 
       {/* Payload bruto do Mercado Pago / Gateway (auditoria) */}
       {payloadRow && (

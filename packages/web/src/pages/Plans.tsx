@@ -58,6 +58,8 @@ export const PlansPage = () => {
   // PIX PENDENTE (padrão gateway): retoma o mesmo QR/timer se o usuário saiu e voltou.
   const [pendingPix, setPendingPix] = useState<any>(null);
   const [, forceTick] = useState(0); // re-render a cada 1s pro timer do PIX vivo
+  // Cupom aplicado no PaymentChooser (T3): o server revalida no checkout de verdade.
+  const [coupon, setCoupon] = useState<string | null>(null);
 
   const checkPendingPix = () => {
     fetch(`${API_URL}/billing/pending-payment`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -411,15 +413,16 @@ export const PlansPage = () => {
           em vez de pack (05/10 — MP redirect saiu do ar). */}
       <PaymentChooser packId={chooserPack} packLabel={chooserLabel} packPrice={chooserPrice} plan={chooserPack === '__plan__'}
         onClose={() => setChooserPack(null)}
-        onPix={() => setPixPack(chooserPack)}
+        onPix={(code) => { setCoupon(code ?? null); setPixPack(chooserPack); }}
         onCardApproved={() => { notify(chooserPack === '__plan__' ? 'Premium ativado! 👑' : 'Créditos adicionados! 🎉', { type: 'success' }); load(); checkPendingPix(); }} />
       {/* '__pending__' = retomar PIX existente (não gera ordem nova — o server é idempotente) */}
       <PixModal
         packId={pixPack}
         plan={pixPack === '__plan__'}
+        couponCode={pixPack === '__pending__' ? undefined : (coupon ?? undefined)}
         existingPix={pixPack === '__pending__' ? pendingPix : undefined}
-        onClose={() => { setPixPack(null); checkPendingPix(); }}
-        onApproved={() => { setPixPack(null); setPendingPix(null); notify(pixPack === '__plan__' ? 'Premium ativado! 👑' : 'Créditos adicionados! 🎉', { type: 'success' }); load(); }}
+        onClose={() => { setPixPack(null); setCoupon(null); checkPendingPix(); }}
+        onApproved={() => { setPixPack(null); setPendingPix(null); setCoupon(null); notify(pixPack === '__plan__' ? 'Premium ativado! 👑' : 'Créditos adicionados! 🎉', { type: 'success' }); load(); }}
       />
         </>
       )}
