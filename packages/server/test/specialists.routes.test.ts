@@ -129,4 +129,38 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     const doc = await prisma.doctor.findUnique({ where: { crm: '71717-SP' } });
     expect(doc?.clinicCity).toBe('Campinas');
   });
+
+  it('V1.3 CNES: catálogo oficial entra DEPOIS dos internos, com cidade sem acento e filtro de especialidade', async () => {
+    const { token } = await createUser({});
+    const interno = await mkDoctor({ claimed: true, specialty: 'Cardiologista', city: 'São José dos Campos' });
+    // seed CNES: 1 facility em SJC + 2 profissionais (cardio + pediatra)
+    const fac = await prisma.directoryFacility.create({
+      data: { cnesCode: '2077933', name: 'CLINICA TESTE CNES', city: 'São José dos Campos', uf: 'SP', address: 'AV DAS BANDEIRAS 100', phone: '1233210000', importedAt: new Date() },
+    });
+    await prisma.directoryProfessional.createMany({
+      data: [
+        { facilityId: fac.id, name: 'MARIA DA SILVA', cboCode: '225120', cboName: 'Médico cardiologista', importedAt: new Date() },
+        { facilityId: fac.id, name: 'JOAO SOUZA', cboCode: '225142', cboName: 'Médico pediatra', importedAt: new Date() },
+      ],
+    });
+
+    // sem especialidade: interno primeiro + 2 do CNES
+    const rAll = await api().get('/api/specialists').query({ city: 'sao jose' }).set(authHeader(token));
+    expect(rAll.body.cnesCount).toBe(2);
+    expect(rAll.body.items[0].id).toBe(interno.id);
+    const cnes = rAll.body.items.find((i: any) => i.origin === 'cnes');
+    expect(cnes.provenance.source).toBe('cnes_datasus');
+    expect(cnes.clinicCity).toContain('São José dos Campos');
+    expect(cnes.phone).toBe('1233210000');
+
+    // filtro de especialidade casa com o CBO ("Cardiologista" → "Médico cardiologista")
+    const rCardio = await api().get('/api/specialists').query({ city: 'sao jose', specialty: 'Cardiologista' }).set(authHeader(token));
+    const cnesCardio = rCardio.body.items.filter((i: any) => i.origin === 'cnes');
+    expect(cnesCardio).toHaveLength(1);
+    expect(cnesCardio[0].name).toBe('MARIA DA SILVA');
+
+    // filtros exclusivos do produto (convênio) excluem o bloco CNES
+    const rOp = await api().get('/api/specialists').query({ city: 'sao jose', operator: 'unimed' }).set(authHeader(token));
+    expect(rOp.body.cnesCount).toBe(0);
+  });
 });

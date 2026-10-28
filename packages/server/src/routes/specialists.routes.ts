@@ -124,13 +124,74 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     // claimedOnly aplicado pós-query p/ manter o count total honesto do filtro bruto.
     const filtered = claimedOnly ? items.filter((i) => i.claimed) : items;
 
+    // ── CNES/DATASUS (V1.3, 28/10/26): catálogo oficial de DESCOBERTA — entra DEPOIS
+    // dos internos (dado confirmado > dado oficial bruto > crowdsourced). Filtros que
+    // só existem no produto (convênio/preço/portal) excluem o bloco CNES. Tabela é
+    // opcional no deploy (import por região) — ausência nunca quebra a busca.
+    let cnesItems: any[] = [];
+    let cnesMore = false;
+    try {
+      const hasCnes = await prisma.directoryFacility.findFirst({ select: { id: true } }).then((r) => !!r).catch(() => false);
+      if (hasCnes && !operator && !withPrice && !claimedOnly) {
+        const facs = await prisma.directoryFacility.findMany({
+          select: { id: true, cnesCode: true, name: true, city: true, uf: true, address: true, district: true, phone: true, lat: true, lng: true },
+        });
+        const facsIn = cityNorm
+          ? facs.filter((f) => deaccent(f.city).includes(cityNorm))
+          : facs;
+        const facById = new Map(facsIn.map((f) => [f.id, f]));
+        if (facsIn.length) {
+          let profs = await prisma.directoryProfessional.findMany({
+            where: {
+              facilityId: { in: [...facById.keys()] },
+              ...(text ? { name: { contains: text, mode: 'insensitive' } } : {}),
+            },
+            take: 400,
+          });
+          if (specialty) {
+            const s = deaccent(specialty);
+            profs = profs.filter((p) => p.cboName && deaccent(p.cboName).includes(s));
+          }
+          cnesMore = profs.length >= 400;
+          cnesItems = profs.slice(0, 15).map((p) => {
+            const f = facById.get(p.facilityId)!;
+            return {
+              origin: 'cnes',
+              id: p.id,
+              name: p.name,
+              specialty: p.cboName,
+              cboCode: p.cboCode,
+              clinicName: f.name,
+              clinicCity: `${f.city} - ${f.uf}`,
+              address: [f.address, f.district].filter(Boolean).join(' · ') || null,
+              phone: f.phone,
+              lat: f.lat,
+              lng: f.lng,
+              provenance: {
+                source: 'cnes_datasus',
+                label: 'CNES/DATASUS — base oficial do Ministério da Saúde (sem CRM no catálogo)',
+                updatedAt: p.importedAt,
+              },
+            };
+          });
+        }
+      }
+    } catch (e: any) {
+      console.error('[specialists] bloco CNES falhou (segue só interno):', e?.message);
+    }
+
+    const internal = filtered.slice(0, take);
+    const allEmpty = internal.length === 0 && cnesItems.length === 0;
+
     res.json({
-      items: filtered.slice(0, take),
+      items: [...internal, ...cnesItems],
       total: filtered.length,
       cities,
-      cityNote: cityNorm && filtered.length === 0
+      cityNote: cityNorm && allEmpty
         ? 'Nenhum médico com esta cidade no diretório. Tente sem cidade — ou cadastre seu médico com a cidade dele pra ajudar o próximo paciente.'
         : null,
+      cnesCount: cnesItems.length,
+      cnesMore,
     });
   } catch (e) { next(e); }
 });

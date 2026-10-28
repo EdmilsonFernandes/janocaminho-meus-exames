@@ -1375,6 +1375,52 @@ model DoctorInsurance {
   @@map("doctor_insurances")
 }
 
+// ── CATÁLOGO PÚBLICO CNES/DATASUS (28/10/26) ───────────────────────────────────────
+// Descoberta ("achar médico perto de você") com dados ABERTOS oficiais do Ministério
+// da Saúde. Camada SEPARADA do diretório de CRM (doctors): estabelecimento não é
+// médico — um CNES tem vários profissionais; um profissional atende em vários CNES.
+// Quem sabe o CRM promove a entrada pro diretório real (Doctor) via my-doctors.
+// Import por região (script scripts/cnes-import.mjs + conversão .dbc na EC2);
+// provenance SEMPRE 'cnes' com data do arquivo. NUNCA sobrescrito por paciente.
+model DirectoryFacility {
+  id          String    @id @default(cuid())
+  cnesCode    String    @unique
+  name        String    // NO_FANTASIA (fallback razão social)
+  city        String    // município IBGE (nome, sem UF — bate com o combo)
+  uf          String
+  address     String?   // logradouro + número
+  district    String?
+  phone       String?
+  lat         String?   // coordenada do estabelecimento (quando o CNES traz)
+  lng         String?
+  facilityTyp String?   // TP_UNID do CNES (22=hospital, etc.) p/ filtro futuro
+  source      String    @default("cnes")
+  importedAt  DateTime
+  updatedAt   DateTime  @updatedAt
+
+  professionals DirectoryProfessional[]
+
+  @@index([city, uf])
+  @@index([uf])
+  @@map("directory_facilities")
+}
+
+model DirectoryProfessional {
+  id          String   @id @default(cuid())
+  facilityId  String
+  facility    DirectoryFacility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+  name        String   // NO_PROFISSIONAL do CNES
+  cboCode     String?  // CO_CBO (ex.: 225120 cardiologia)
+  cboName     String?  // NO_CBO legível
+  source      String   @default("cnes")
+  importedAt  DateTime
+
+  @@index([facilityId])
+  @@index([name])
+  @@index([cboCode])
+  @@map("directory_professionals")
+}
+
 // ===== BACKOFFICE — models de gestão (FKs escalares, append-only/standalone p/ não acoplar) =====
 
 // Auditoria universal (LGPD): quem fez o quê, quando. Append-only.

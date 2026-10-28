@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert, Autocomplete, Avatar, Box, Button, Card, CardContent, Chip, CircularProgress,
-  InputAdornment, MenuItem, Stack, TextField, Typography,
+  Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
@@ -10,6 +10,7 @@ import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded';
 import BookmarkAddedRoundedIcon from '@mui/icons-material/BookmarkAddedRounded';
 import { useNotify } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../config';
+import { UFS } from '../utils/medicalData';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
@@ -92,6 +93,39 @@ export const EncontrarEspecialistasPage = () => {
       .then((d) => setSavedIds(new Set((d.items ?? []).map((i: any) => i.doctor.id))))
       .catch(() => {});
   }, []);
+
+  // ── CNES (V1.3): salvar achado do catálogo oficial pede o CRM (o CNES não lista) —
+  // aí vira Doctor do diretório com cidade/clínica já preenchidas (provenance paciente).
+  const [cnesFor, setCnesFor] = useState<any | null>(null);
+  const [cnesCrm, setCnesCrm] = useState('');
+  const [cnesUf, setCnesUf] = useState('');
+  const [cnesSaving, setCnesSaving] = useState(false);
+  const salvarCnesComCrm = async () => {
+    if (!cnesFor || !cnesCrm.replace(/\D/g, '') || cnesUf.length !== 2) {
+      notify('Informe CRM e UF pra salvar com o cadastro oficial.', { type: 'warning' });
+      return;
+    }
+    setCnesSaving(true);
+    try {
+      const r = await fetch(`${API_URL}/my-doctors`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          doctorCrm: cnesCrm.replace(/\D/g, ''), doctorUf: cnesUf,
+          doctorName: cnesFor.name,
+          doctorSpecialty: cnesFor.specialty?.replace(/^Médic[oa]\s*/i, '') ?? undefined,
+          clinicCity: cnesFor.clinicCity?.split(' - ')[0],
+          clinicName: cnesFor.clinicName,
+          source: 'search',
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
+      hapticSuccess();
+      notify(`Dr(a). ${String(cnesFor.name).split(' ')[0]} salvo — sem acesso aos exames.`, { type: 'success' });
+      setCnesFor(null); setCnesCrm(''); setCnesUf('');
+    } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); }
+    finally { setCnesSaving(false); }
+  };
 
   const salvar = async (s: SpecialistItem) => {
     hapticLight();
@@ -206,7 +240,57 @@ export const EncontrarEspecialistasPage = () => {
         </Box>
       )}
       <Stack spacing={1.5}>
-        {!loading && items.map((s) => {
+        {!loading && items.map((s: any) => {
+          // ── Card CNES (catálogo oficial): sem CRM — salvar pede o CRM, registra consulta
+          // com nome livre. Visual distinto (borda tracejada + badge oficial) pra nunca
+          // confundir com médico do diretório do produto.
+          if (s.origin === 'cnes') {
+            return (
+              <Card key={s.id} sx={{
+                borderRadius: '16px', border: '1.5px dashed', borderColor: 'rgba(32,178,170,0.5)',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.05)' : 'rgba(240,253,250,0.6)',
+              }}>
+                <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+                  <Stack direction="row" spacing={1.75} alignItems="flex-start">
+                    <Avatar sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(15,95,90,0.15)', color: '#0f766e', flexShrink: 0 }}>🩺</Avatar>
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
+                          {s.name}
+                        </Typography>
+                        <Chip size="small" label="CNES oficial" sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e' }} />
+                      </Stack>
+                      {s.specialty && (
+                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>
+                          🩺 {s.specialty}
+                        </Typography>
+                      )}
+                      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.25 }}>
+                        📍 {s.clinicName} • {s.clinicCity}
+                      </Typography>
+                      {s.address && (
+                        <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>{s.address}</Typography>
+                      )}
+                      <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 10.5 }}>
+                        🏛️ {s.provenance.label}
+                      </Typography>
+                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
+                        <Button size="small" variant="contained" onClick={() => { hapticLight(); setCnesFor(s); }}
+                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
+                          Salvar com CRM
+                        </Button>
+                        <Button size="small" variant="outlined"
+                          onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
+                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
+                          Registrar consulta
+                        </Button>
+                      </Stack>
+                    </Box>
+                  </Stack>
+                </CardContent>
+              </Card>
+            );
+          }
           const salvo = savedIds.has(s.id);
           return (
             <Card key={s.id} sx={{
@@ -301,10 +385,41 @@ export const EncontrarEspecialistasPage = () => {
 
       {!loading && items.length > 0 && (
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2.5, color: 'text.disabled' }}>
-          Diretório do Dr. Exame — dados publicados por médicos com portal ou informados por pacientes (CRM).
-          Sabendo o CRM do seu médico, cadastre em Meus médicos pra ajudar o próximo paciente.
+          Diretório do Dr. Exame (médicos com portal ou cadastrados por pacientes com CRM) + catálogo oficial CNES/DATASUS.
+          Sabendo o CRM do seu médico, salve ele — isso ajuda o próximo paciente a achar.
         </Typography>
       )}
+
+      {/* Dialog: salvar achado do CNES com o CRM (o catálogo oficial não lista CRM) */}
+      <Dialog open={!!cnesFor} onClose={() => setCnesFor(null)} fullWidth maxWidth="xs" PaperProps={{ sx: { borderRadius: '12px' } }}>
+        <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 16, pb: 0.5 }}>
+          Salvar {cnesFor?.name?.split(' ')[0]} com o CRM
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}>
+            {cnesFor?.clinicName} • {cnesFor?.clinicCity}. O catálogo oficial não traz o CRM — se você sabe,
+            ele entra no diretório com o cadastro certinho (sem acesso aos seus exames).
+          </Typography>
+          <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+            <TextField
+              label="CRM (número)" required value={cnesCrm}
+              onChange={(e) => setCnesCrm(e.target.value.replace(/[^\d]/g, ''))}
+              size="small" sx={{ flex: '1 1 120px' }} inputProps={{ inputMode: 'numeric' }}
+            />
+            <TextField select label="UF" required value={cnesUf} onChange={(e) => setCnesUf(e.target.value)} size="small" sx={{ width: 100 }}>
+              <MenuItem value=""><em>—</em></MenuItem>
+              {UFS.map((u) => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+            </TextField>
+          </Stack>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setCnesFor(null)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          <Button variant="contained" onClick={() => void salvarCnesComCrm()} disabled={cnesSaving}
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
+            {cnesSaving ? <CircularProgress size={20} color="inherit" /> : 'Salvar médico'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {loading && <Box sx={{ display: 'none' }}><CircularProgress size={20} /></Box>}
     </PageContainer>
