@@ -90,7 +90,14 @@ router.get('/export-all', async (req: AuthedRequest, res, next) => {
         const r = await resolveExamFile(e.filePath);
         const dt = (e.performedAt ? new Date(e.performedAt) : new Date(e.createdAt)).toISOString().slice(0, 10);
         const name = `Exames-PDF/${dt}-${patientSlug(patientName(e.patientId), e.patientId)}-${e.id.slice(-6)}.pdf`;
-        if (r.kind === 'file' && fs.existsSync(r.file as string)) zip.append(fs.createReadStream(r.file as string), { name });
+        // AUD-001 (revisão R5): existsSync + createReadStream têm janela TOCTOU — arquivo
+        // sumindo entre os dois dispara 'error' não tratado no stream do archiver
+        // (uncaught exception). Handler vazio: item é pulado pelo catch externo.
+        if (r.kind === 'file' && fs.existsSync(r.file as string)) {
+          const fsStream = fs.createReadStream(r.file as string);
+          fsStream.on('error', () => { /* janela TOCTOU — catch externo pula o item */ });
+          zip.append(fsStream, { name });
+        }
         else if (r.kind === 'url') {
           const resp = await fetch(r.url as string);
           if (resp.ok && resp.body) zip.append(Readable.fromWeb(resp.body as never), { name });
