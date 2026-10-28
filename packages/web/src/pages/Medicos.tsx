@@ -82,6 +82,7 @@ export const MedicosPage = () => {
   const [showForm, setShowForm] = useState(false);
   // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
+  const [clinicCity, setClinicCity] = useState(''); // cidade da clínica (enriquece a busca "perto de você")
   const [scopes, setScopes] = useState<string[]>([]);
   const [examIds, setExamIds] = useState<string[]>([]);
   const [examOptions, setExamOptions] = useState<{ id: string; title: string; performedAt: string | null }[]>([]);
@@ -222,6 +223,30 @@ export const MedicosPage = () => {
     setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' });
   };
 
+  // §1 (28/10/26 V1.1): salvar SEM compartilhar — médico entra em Meus médicos sem
+  // ver exame nenhum (o acesso continua sendo ato separado). Pede o mínimo: CRM+UF+nome.
+  const salvarSemCompartilhar = async () => {
+    if (!crm || uf.length !== 2) { notify('Informe o CRM e selecione o estado (UF).', { type: 'error' }); return; }
+    if (!name) { notify('Informe o nome do médico (use "Buscar" ou preencha manualmente).', { type: 'error' }); return; }
+    setSaving(true);
+    try {
+      const r = await fetch(`${API_URL}/my-doctors`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorName: name,
+          doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec,
+          ...(clinicCity.trim() ? { clinicCity: clinicCity.trim() } : {}),
+          patientId: pid,
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
+      notify('Médico salvo em Meus médicos — sem acesso aos seus exames.', { type: 'success' });
+      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setClinicCity(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
+      load();
+    } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); } finally { setSaving(false); }
+  };
+
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!crm || uf.length !== 2) { notify('Informe o CRM e selecione o estado (UF).', { type: 'error' }); return; }
@@ -229,7 +254,7 @@ export const MedicosPage = () => {
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, scopes, convenio, patientId: pid, examIds: scopes.includes('exams') ? examIds : [] }) });
+      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, doctorClinicCity: clinicCity, scopes, convenio, patientId: pid, examIds: scopes.includes('exams') ? examIds : [] }) });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
       notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
@@ -844,6 +869,7 @@ export const MedicosPage = () => {
                 {specialtyOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
+              <TextField label="Cidade da clínica (opcional)" value={clinicCity} onChange={(e) => setClinicCity(e.target.value)} size="small" placeholder="Ex.: São José dos Campos" sx={{ flex: '1 1 200px' }} />
             </Stack>
             {spec === 'Outro' && (
               <TextField label="Qual especialidade?" value={specOther} onChange={(e) => setSpecOther(e.target.value)} size="small" fullWidth required placeholder="Ex.: Cirurgia de Cabeça e Pescoço" />
@@ -886,8 +912,12 @@ export const MedicosPage = () => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+        <DialogActions sx={{ px: 3, pb: 2.5, gap: { xs: 2, sm: 1 } }}>
           <Button onClick={() => setShowForm(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+          {/* §1: salvar SEM conceder acesso — o fluxo que não obriga a compartilhar */}
+          <Button onClick={salvarSemCompartilhar} disabled={saving} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), mr: 'auto' }}>
+            Só salvar (sem acesso)
+          </Button>
           <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
             {saving ? <CircularProgress size={20} color="inherit" /> : shareCost > 0 ? `Compartilhar (${shareCost} 💎)` : 'Compartilhar →'}
           </Button>

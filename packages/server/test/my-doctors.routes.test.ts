@@ -34,6 +34,22 @@ describe('my-doctors: vínculo privado (§1)', () => {
     expect(r.status).toBe(400);
   });
 
+  it('V1.1: salvar manual com cidade enriquece o diretório — e NÃO sobrescreve o médico', async () => {
+    const { token } = await createUser({});
+    await api().post('/api/my-doctors').set(authHeader(token))
+      .send({ doctorName: 'Dr Local', doctorCrm: '90909', doctorUf: 'SP', clinicCity: 'São José dos Campos' });
+    const novo = await prisma.doctor.findUnique({ where: { crm: '90909-SP' } });
+    expect(novo?.clinicCity).toBe('São José dos Campos'); // entra na busca "perto de você"
+
+    // médico que JÁ publicou cidade (portal) prevalece — paciente não sobrescreve
+    const claimed = await prisma.doctor.create({
+      data: { name: 'Dr Portal', crm: '80808-SP', email: 'portal@exemplo.com', passwordHash: 'hash-real', clinicCity: 'Campinas' },
+    });
+    await api().post('/api/my-doctors').set(authHeader(token)).send({ doctorId: claimed.id, clinicCity: 'Guarulhos' });
+    const depois = await prisma.doctor.findUnique({ where: { id: claimed.id } });
+    expect(depois?.clinicCity).toBe('Campinas');
+  });
+
   it('GET mergeia: vínculo+share (state) e share órfão (legado, linked=false)', async () => {
     const { patient, token } = await createUser({ credits: 100 });
     // fluxo novo: compartilhar cria share E vínculo

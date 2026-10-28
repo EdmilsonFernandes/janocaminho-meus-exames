@@ -91,4 +91,28 @@ describe('specialists: busca no diretório próprio (§3)', () => {
   it('sem auth → 401 (busca é do paciente logado, não pública)', async () => {
     expect((await api().get('/api/specialists')).status).toBe(401);
   });
+
+  it('V1.1 "perto de você": cidade SEM acento casa com acentuada + facets de cidade', async () => {
+    const { token } = await createUser({});
+    await mkDoctor({ claimed: true, city: 'São José dos Campos' });
+    await mkDoctor({ city: 'Campinas' });
+
+    const r = await api().get('/api/specialists?city=sao jose').set(authHeader(token));
+    expect(r.status).toBe(200);
+    expect(r.body.items).toHaveLength(1);
+    expect(r.body.items[0].clinicCity).toBe('São José dos Campos');
+
+    // facets: cidades que TÊM médico no diretório, com contagem
+    const sjc = r.body.cities.find((c: any) => c.city.includes('José'));
+    expect(sjc?.count).toBe(1);
+    expect(r.body.cities.some((c: any) => c.city === 'Campinas')).toBe(true);
+  });
+
+  it('V1.1: cidade sem resultado devolve cityNote honesta (não é dead-end)', async () => {
+    const { token } = await createUser({});
+    await mkDoctor({ city: 'Campinas' });
+    const r = await api().get('/api/specialists?city=Curitiba').set(authHeader(token));
+    expect(r.body.items).toHaveLength(0);
+    expect(r.body.cityNote).toContain('Tente sem cidade');
+  });
 });

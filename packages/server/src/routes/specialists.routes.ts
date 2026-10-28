@@ -23,6 +23,10 @@ const INS_VERIFICATION_LABEL: Record<string, string> = {
   patient_reported: 'Informado por paciente — sem confirmação independente',
 };
 
+/** Cidade sem acento/case ("São José dos Campos" ↔ "sao jose") — comparação de proximidade
+ *  textual da V1 (diretório pequeno; coluna normalizada quando escalar). */
+const deaccent = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
@@ -43,8 +47,9 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       ];
     }
     if (specialty) where.specialty = { equals: specialty, mode: 'insensitive' };
-    if (city) where.clinicCity = { contains: city, mode: 'insensitive' };
     if (withPrice) where.consultPriceCents = { not: null };
+    // Cidade NÃO entra no where: comparação é pós-query com deaccent (ILIKE não tira
+    // acento e unaccent pode não estar instalado) — com folga de 300 rows quando filtra.
 
     // Convênio: filtra por aceitação REGISTRADA (médico+operadora[+plano]). Ausente no
     // filtro = todos (o paciente entende que a lista não cobre o universo médico).
@@ -59,11 +64,11 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       where.id = { in: [...new Set(ins.map((i) => i.doctorId))] };
     }
 
-    const [total, doctors] = await Promise.all([
-      prisma.doctor.count({ where }),
+    const cityNorm = city ? deaccent(city) : null;
+    const [doctorsRaw, cityFacetRows] = await Promise.all([
       prisma.doctor.findMany({
         where,
-        take,
+        take: cityNorm ? 300 : take, // folga p/ compensar o filtro de cidade em JS
         orderBy: { createdAt: 'desc' },
         select: {
           id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true,
@@ -72,7 +77,25 @@ router.get('/', async (req: AuthedRequest, res, next) => {
           insurances: { orderBy: [{ verificationStatus: 'asc' }, { operator: 'asc' }] },
         },
       }),
+      // Facets de cidade (do diretório inteiro, não do filtro): o usuário vê ONDE tem
+      // médico antes de digitar — contra a frustação de buscar cidade sem resultado.
+      prisma.doctor.findMany({ where: { blocked: false, clinicCity: { not: null } }, select: { clinicCity: true } }),
     ]);
+
+    const cities = Object.entries(
+      cityFacetRows.reduce<Record<string, number>>((acc, d) => {
+        const c = (d.clinicCity ?? '').trim();
+        if (c) acc[c] = (acc[c] ?? 0) + 1;
+        return acc;
+      }, {}),
+    )
+      .map(([city, count]) => ({ city, count }))
+      .sort((a, b) => b.count - a.count || a.city.localeCompare(b.city, 'pt-BR'))
+      .slice(0, 8);
+
+    const doctors = cityNorm
+      ? doctorsRaw.filter((d) => d.clinicCity && deaccent(d.clinicCity).includes(cityNorm))
+      : doctorsRaw;
 
     const items = doctors
       .map(({ passwordHash, insurances, ...d }) => {
@@ -100,7 +123,14 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     // claimedOnly aplicado pós-query p/ manter o count total honesto do filtro bruto.
     const filtered = claimedOnly ? items.filter((i) => i.claimed) : items;
 
-    res.json({ items: filtered, total: claimedOnly ? filtered.length : total });
+    res.json({
+      items: filtered.slice(0, take),
+      total: filtered.length,
+      cities,
+      cityNote: cityNorm && filtered.length === 0
+        ? 'Nenhum médico com esta cidade no diretório. Tente sem cidade — ou cadastre seu médico com a cidade dele pra ajudar o próximo paciente.'
+        : null,
+    });
   } catch (e) { next(e); }
 });
 

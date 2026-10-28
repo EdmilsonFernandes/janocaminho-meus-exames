@@ -126,16 +126,21 @@ router.get('/', async (req: AuthedRequest, res, next) => {
 
 // SALVAR — por doctorId (resultado da busca no diretório) ou CRM+nome (cadastro manual,
 // dedupe §5 prioriza CRM/UF; cria pending-invite igual doctor-share POST — sem cobrar).
+// clinicCity/clinicName opcionais ENRIQUECEM o diretório (provenance paciente): só
+// preenchem campo VAZIO do médico — nunca sobrescrevem o que o próprio médico publicou.
 router.post('/', async (req: AuthedRequest, res, next) => {
   try {
     const pids = await userPatientIds(req.userId!);
-    const { patientId, doctorId, doctorCrm, doctorUf, doctorName, doctorSpecialty, source } = req.body ?? {};
+    const { patientId, doctorId, doctorCrm, doctorUf, doctorName, doctorSpecialty, clinicCity, clinicName, source } = req.body ?? {};
     const pid = patientId && pids.includes(patientId) ? patientId : pids[0];
     if (!pid) { res.status(400).json({ error: 'Nenhum paciente vinculado.' }); return; }
 
-    let doctor: { id: string } | null = null;
+    const city = typeof clinicCity === 'string' ? clinicCity.trim().slice(0, 80) : '';
+    const clinic = typeof clinicName === 'string' ? clinicName.trim().slice(0, 120) : '';
+
+    let doctor: { id: string; clinicCity: string | null; clinicName: string | null } | null = null;
     if (doctorId) {
-      doctor = await prisma.doctor.findUnique({ where: { id: String(doctorId) }, select: { id: true, blocked: true } });
+      doctor = await prisma.doctor.findUnique({ where: { id: String(doctorId) }, select: { id: true, blocked: true, clinicCity: true, clinicName: true } });
       if (!doctor || (doctor as any).blocked) { res.status(404).json({ error: 'Médico não encontrado ou indisponível.' }); return; }
     } else {
       const norm = normalizeCrmKey(doctorCrm, doctorUf);
@@ -143,7 +148,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         res.status(400).json({ error: 'Informe CRM+UF e nome, ou salve direto de um resultado da busca.' });
         return;
       }
-      doctor = await prisma.doctor.findUnique({ where: { crm: norm.crm }, select: { id: true } });
+      doctor = await prisma.doctor.findUnique({ where: { crm: norm.crm }, select: { id: true, clinicCity: true, clinicName: true } });
       if (!doctor) {
         doctor = await prisma.doctor.create({
           data: {
@@ -151,12 +156,23 @@ router.post('/', async (req: AuthedRequest, res, next) => {
             crm: norm.crm,
             crmUf: norm.uf,
             specialty: doctorSpecialty ? String(doctorSpecialty).slice(0, 60) : null,
+            clinicCity: city || null,
+            clinicName: clinic || null,
             email: `pending-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@invite.com`,
             passwordHash: 'pending-invite',
           },
-          select: { id: true },
+          select: { id: true, clinicCity: true, clinicName: true },
         });
       }
+    }
+
+    // Enriquecimento orgânico (§4 fonte nº1 = cadastro do paciente): preenche SÓ o que
+    // estiver vazio — dado publicado pelo médico no portal sempre prevalece.
+    const patch: Record<string, string> = {};
+    if (city && !doctor.clinicCity) patch.clinicCity = city;
+    if (clinic && !doctor.clinicName) patch.clinicName = clinic;
+    if (Object.keys(patch).length) {
+      await prisma.doctor.update({ where: { id: doctor.id }, data: patch }).catch(() => {});
     }
 
     // Idempotente: salvar 2× o mesmo médico = mesmo vínculo (unique patientId+doctorId).

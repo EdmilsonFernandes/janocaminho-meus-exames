@@ -29,13 +29,17 @@ export const EncontrarEspecialistasPage = () => {
   const notify = useNotify();
   const [q, setQ] = useState('');
   const [specialty, setSpecialty] = useState('');
-  const [city, setCity] = useState('São José dos Campos');
+  const [city, setCity] = useState('');
   const [operator, setOperator] = useState('');
   const [withPrice, setWithPrice] = useState(false);
   const [claimedOnly, setClaimedOnly] = useState(false);
 
   const [items, setItems] = useState<SpecialistItem[]>([]);
   const [total, setTotal] = useState(0);
+  // Facets: cidades que JÁ têm médicos no diretório (chips clicáveis — o usuário vê
+  // onde vale buscar antes de digitar) + nota honesta quando a cidade não tem nada.
+  const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
+  const [cityNote, setCityNote] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,6 +61,8 @@ export const EncontrarEspecialistasPage = () => {
       const d = await r.json();
       setItems(d.items ?? []);
       setTotal(d.total ?? 0);
+      setCities(d.cities ?? []);
+      setCityNote(d.cityNote ?? null);
     } catch {
       setError('A busca falhou. Verifique sua conexão e tente de novo — ou cadastre o médico manualmente em Meus médicos.');
       setItems([]);
@@ -123,8 +129,24 @@ export const EncontrarEspecialistasPage = () => {
                 <MenuItem value=""><em>Todas</em></MenuItem>
                 {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
-              <TextField label="Cidade" value={city} onChange={(e) => setCity(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} placeholder="Ex.: São José dos Campos" />
+              <TextField label="Cidade (perto de você)" value={city} onChange={(e) => setCity(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} placeholder="Ex.: São José dos Campos" />
             </Stack>
+            {cities.length > 0 && (
+              <Box>
+                <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.5, color: 'text.secondary' }}>
+                  Onde já temos médicos:
+                </Typography>
+                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                  {city && (
+                    <Chip size="small" clickable label="✕ Todas as cidades" onClick={() => setCity('')}
+                      sx={{ minHeight: 34, height: 34, fontWeight: 700, fontSize: 12, borderRadius: '999px', bgcolor: 'rgba(239,68,68,0.08)', color: '#b91c1c', border: '1px solid rgba(239,68,68,0.3)' }} />
+                  )}
+                  {cities.map((c) => (
+                    <FilterChip key={c.city} label={`${c.city} (${c.count})`} active={deaccentEq(c.city, city)} onClick={() => setCity(c.city)} />
+                  ))}
+                </Stack>
+              </Box>
+            )}
             <TextField select label="Convênio aceito (informado)" value={operator} onChange={(e) => setOperator(e.target.value)} size="small" sx={{ maxWidth: { sm: 260 } }}>
               <MenuItem value=""><em>Qualquer / não filtrar</em></MenuItem>
               {INSURANCE_OPERATOR_NAMES.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
@@ -157,7 +179,7 @@ export const EncontrarEspecialistasPage = () => {
             <Box sx={{ fontSize: 44, mb: 1 }}>🔍</Box>
             <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Nenhum especialista encontrado</Typography>
             <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 360, mx: 'auto', fontSize: 13.5 }}>
-              Nosso diretório ainda está crescendo. Tente só a especialidade sem cidade, ou cadastre seu médico manualmente — com CRM ele entra na busca pra todo mundo.
+              {cityNote ?? 'Nosso diretório ainda está crescendo. Tente só a especialidade sem cidade, ou cadastre seu médico manualmente — com CRM ele entra na busca pra todo mundo.'}
             </Typography>
             <Button variant="outlined" onClick={() => navigate('/medicos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, borderColor: '#20b2aa', color: '#0f766e' }}>
               Cadastrar em Meus médicos
@@ -279,6 +301,11 @@ export const EncontrarEspecialistasPage = () => {
     </PageContainer>
   );
 };
+
+/** Igualdade de cidade sem acento/case — espelha o deaccent do server (V1 "perto de você"). */
+const deaccentEq = (a: string, b: string) =>
+  a.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .includes(b.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()) && !!b.trim();
 
 /** Chip de filtro reutilizável (toque ≥44px, estado on/off claro). */
 const FilterChip = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (

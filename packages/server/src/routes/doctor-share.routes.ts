@@ -64,7 +64,14 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     let doctor = crmKey ? await prisma.doctor.findUnique({ where: { crm: crmKey } }) : null;
     if (!doctor && doctorName && crmKey) {
       doctor = await prisma.doctor.create({
-        data: { name: String(doctorName), crm: crmKey, crmUf: uf, specialty: doctorSpecialty || null, email: (doctorEmail || `pending-${Date.now()}@invite.com`).toLowerCase(), passwordHash: 'pending-invite' },
+        data: {
+          name: String(doctorName), crm: crmKey, crmUf: uf, specialty: doctorSpecialty || null,
+          // §4 (28/10/26): cidade/clínica informadas pelo paciente enriquecem o diretório
+          // (busca "perto de você") — só entram no CADASTRO NOVO; o que o médico publicou prevalece.
+          clinicCity: typeof (req.body ?? {}).doctorClinicCity === 'string' ? String(req.body.doctorClinicCity).trim().slice(0, 80) || null : null,
+          clinicName: typeof (req.body ?? {}).doctorClinicName === 'string' ? String(req.body.doctorClinicName).trim().slice(0, 120) || null : null,
+          email: (doctorEmail || `pending-${Date.now()}@invite.com`).toLowerCase(), passwordHash: 'pending-invite',
+        },
       }).catch(() => null);
     }
     if (!doctor) { res.status(404).json({ error: 'Médico não encontrado. Informe nome + CRM pra cadastrá-lo.' }); return; }
