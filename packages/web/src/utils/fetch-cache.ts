@@ -41,6 +41,23 @@ function scheduleSave() {
   }, 2000);
 }
 
+// AUD-091: o cache era key=URL e não por usuário — numa máquina/navegador compartilhado,
+// o dado clínico cacheado de uma conta era servido para OUTRA (estado misto no AppBar).
+// A chave passa a levar o id do token atual; cache de A nunca casa com B. Entradas antigas
+// (sem prefixo) simplesmente nunca mais casam e são coletadas pelo limite de 80.
+function cacheKeyFor(urlStr: string): string {
+  try {
+    const tok = localStorage.getItem('token') ?? '';
+    const payloadB64 = tok.split('.')[1];
+    if (payloadB64) {
+      const claims = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
+      if (claims?.userId) return `${claims.userId}:${urlStr}`;
+      if (claims?.doctorId) return `${claims.doctorId}:${urlStr}`;
+    }
+  } catch { /* token ausente/ilegível — chave crua (comportamento anterior) */ }
+  return urlStr;
+}
+
 const originalFetch = window.fetch;
 
 window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
@@ -68,7 +85,7 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
     // Cacheia respostas GET /api/ bem-sucedidas (2xx).
     if (isCacheable && res.ok) {
       res.clone().json().then((body) => {
-        cache.set(urlStr, { body, ts: Date.now() });
+        cache.set(cacheKeyFor(urlStr), { body, ts: Date.now() });
         scheduleSave();
       }).catch(() => { /* não-JSON — ignora */ });
     }
@@ -77,7 +94,7 @@ window.fetch = (async function (input: RequestInfo | URL, init?: RequestInit): P
     // Fetch falhou (offline, timeout, server unreachable).
     if (isCacheable) {
       // Tem cache? → serve (dados de antes — offline-ready).
-      const cached = cache.get(urlStr);
+      const cached = cache.get(cacheKeyFor(urlStr));
       if (cached) {
         return new Response(JSON.stringify(cached.body), {
           status: 200,
