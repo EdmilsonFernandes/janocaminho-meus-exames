@@ -196,4 +196,4 @@ model DoctorVerification {
 4. Chave de dev: no `packages/server/.env` (gitignored). Passou pelo chat → gerar outra no painel depois dos testes.
 5. Começo: **todo médico passa pela fila do dono**, mesmo com tudo verde (`autoApprove = 0`); virar automático = 1 clique no admin, sem deploy.
 6. E-mails premium ao médico: "recebemos, está em análise" e "aprovado" (+ recusado), no design system.
-7. UaiID: a calibração é **por empresa** (`/v1/tenant/profile`, tela `dashboard/motor`) e o mesmo painel atende o Wibx QA → criar uma empresa própria do Dr. Exame (chave, webhook e calibração próprias — perfil Conservador ali sem afetar o Wibx).
+7. UaiID: a calibração é **por empresa** (`/v1/tenant/profile`, tela `dashboard/motor`). O webhook do Wibx no painel era só exemplo — a empresa é do Dr. Exame, então o perfil (ex.: Conservador) é escolha do dono ali mesmo. A fila humana do Dr. Exame (`autoApprove = 0`) vale independente do perfil.
