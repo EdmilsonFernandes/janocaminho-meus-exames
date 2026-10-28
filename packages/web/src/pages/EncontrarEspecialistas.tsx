@@ -331,7 +331,7 @@ export const EncontrarEspecialistasPage = () => {
                     <Box sx={{ mt: 0.75 }}>
                       {s.insurances.length > 0 ? (
                         <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                          {s.insurances.slice(0, 4).map((ins, idx) => (
+                          {s.insurances.slice(0, 4).map((ins: any, idx: number) => (
                             <Chip key={idx} size="small"
                               label={`${ins.operator}${ins.plan ? ` • ${ins.plan}` : ''}${ins.verificationStatus === 'confirmed' ? ' ✓' : ''}`}
                               title={ins.verificationLabel}
