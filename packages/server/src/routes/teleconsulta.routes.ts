@@ -275,18 +275,38 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
   }
 });
 
-/** FEEDBACK pós-chamada — POST /api/teleconsulta/:id/feedback {rating 1-5, note?}.
+/** FEEDBACK pós-chamada — POST /api/teleconsulta/:id/feedback {rating 1-5, note?, audioQuality?}.
  *  1-toque "como foi a chamada" (dono 19/10). Ambos os papéis; sem consent (pós-ato).
- *  Persistência = audit (sem schema novo; F3 pode promover a coluna/relatório). */
+ *  Persistência = audit (sem schema novo; F3 pode promover a coluna/relatório).
+ *  T1 insights (27/10): audioQuality ('otimo'|'ok'|'ruim') opcional — inválido/ausente
+ *  é IGNORADO (nunca 400 por causa do áudio). Chega num 2º POST (após o rating 1-toque),
+ *  por isso o log de feedback virou UPSERT por ator+teleconsulta: 1 log por avaliação. */
+const AUDIO_QUALITY_VALUES = new Set(['otimo', 'ok', 'ruim']);
 router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, next) => {
   try {
     const rating = Number(req.body?.rating);
+    const hasNote = typeof req.body?.note === 'string';
     const note = String(req.body?.note ?? '').slice(0, 300) || null;
-    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+    const ratingOk = Number.isInteger(rating) && rating >= 1 && rating <= 5;
+    const aqRaw = req.body?.audioQuality;
+    const audioQuality = typeof aqRaw === 'string' && AUDIO_QUALITY_VALUES.has(aqRaw) ? aqRaw : null;
+    if (!ratingOk && !audioQuality) {
       res.status(400).json({ error: 'Avaliação inválida (1 a 5).' });
       return;
     }
     const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    // UPSERT do audit: rating 1-toque + "Salvar avaliação"/áudio no 2º POST ANTES criavam
+    // logs duplicados (o funil do admin contava 2x). Merge preserva o que não veio no body.
+    const actorType = req.joinRole === 'doctor' ? 'DOCTOR' : 'USER';
+    const actorId = (req.joinRole === 'doctor' ? req.doctorId : req.userId) ?? null;
+    const existing = await prisma.auditLog.findFirst({
+      where: { action: 'TELECONSULTA_FEEDBACK', actorType, actorId, targetId: r.id },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (!ratingOk && !existing) {
+      res.status(400).json({ error: 'Avaliação inválida (1 a 5).' });
+      return;
+    }
     // Dono 21/10: feedback = a consulta ACONTECEU → marca done (o card para de
     // mostrar "Entrar na consulta" e vira "Ver consulta realizada").
     // Dono 22/10: feedback também ENCERRA (endedAt) — avaliar é o fim do ato; sem
@@ -302,13 +322,26 @@ router.post('/:id/feedback', requireJoinIdentity, async (req: JoinRequest, res, 
     const outcome = patientJoined && jointMs >= minJointMs ? 'completed' : resolveAutoOutcome(patientJoined);
     // §5 dono (26/10): feedback de consulta sem atendimento também registra quem faltou.
     await endTeleconsulta(r, { outcome, jointMs, noShowBy: outcome === 'no_show' ? resolveNoShowBy(patientJoined, doctorJoined) : null }).catch(() => { /* feedback não falha por lifecycle */ });
-    await audit('TELECONSULTA_FEEDBACK', req, {
-      actorType: req.joinRole === 'doctor' ? 'DOCTOR' : 'USER',
-      actorId: req.joinRole === 'doctor' ? req.doctorId : req.userId,
-      targetType: 'REMINDER',
-      targetId: r.id,
-      after: { rating, note, role: req.joinRole },
-    });
+    const prev = ((existing?.after ?? {}) as Record<string, unknown>);
+    const after = {
+      ...prev,
+      ...(ratingOk ? { rating } : {}),
+      ...(hasNote ? { note } : {}),
+      ...(audioQuality ? { audioQuality } : {}),
+      role: req.joinRole,
+    } as Record<string, any>;
+    if (existing) {
+      // best-effort como o audit(): falha de merge nunca derruba o feedback.
+      await prisma.auditLog.update({ where: { id: existing.id }, data: { after } }).catch(() => { /* noop */ });
+    } else {
+      await audit('TELECONSULTA_FEEDBACK', req, {
+        actorType,
+        actorId: actorId ?? undefined,
+        targetType: 'REMINDER',
+        targetId: r.id,
+        after,
+      });
+    }
     res.status(201).json({ ok: true });
   } catch (e) {
     next(e);
@@ -834,7 +867,7 @@ router.get('/:id/summary', requireJoinIdentity, async (req: JoinRequest, res, ne
       // (mostra card animado + polla) de "sem gravação" (esconde a seção).
       recordingAt: row?.recordingAt ? new Date(row.recordingAt).toISOString() : null,
       examRequests,
-      feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null } : null,
+      feedback: fb && fb.rating != null ? { rating: fb.rating, note: fb.note ?? null, role: fb.role ?? null, audioQuality: fb.audioQuality ?? null } : null,
       durationHint,
       stt: hasStt(), // reviewer-L: client esconde checkbox de gravação quando false
       patient: patient ? { id: patient.id, name: patient.fullName, photoUrl: patient.photoUrl } : null,

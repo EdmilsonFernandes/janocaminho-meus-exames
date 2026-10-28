@@ -47,6 +47,7 @@ interface FeedbackItem {
   teleId: string;
   createdAt: string;
   rating: number;
+  audioQuality: 'otimo' | 'ok' | 'ruim' | null;
   note: string | null;
   role: 'patient' | 'doctor';
   patient: { id: string; name: string; photoUrl?: string } | null;
@@ -58,7 +59,9 @@ interface FeedbacksResponse {
   total: number;
   avgRating: number;
   positivePct: number;
-  counts: Record<number, number>;
+  ratingCounts: Record<number, number>;
+  audioQualityCounts: { otimo: number; ok: number; ruim: number };
+  audioRated: number;
   items: FeedbackItem[];
 }
 
@@ -164,7 +167,11 @@ export const TeleconsultasTab = () => {
   const total = data?.total || 0;
   const avg = data?.avgRating || 5.0;
   const posPct = data?.positivePct || 100;
-  const counts = data?.counts || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  // T1 insights: o server sempre mandou `ratingCounts` (o front lia `counts` —
+  // distribuição ficava zerada). Corrigido junto com o agregado de áudio.
+  const counts = data?.ratingCounts || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  const audioCounts = data?.audioQualityCounts || { otimo: 0, ok: 0, ruim: 0 };
+  const audioRated = data?.audioRated || 0;
 
   return (
     <Box sx={{ width: '100%' }}>
@@ -295,6 +302,20 @@ export const TeleconsultasTab = () => {
                   );
                 })}
               </Stack>
+              {/* T1 insights (27/10): CSAT de áudio pós-consulta — agregado simples */}
+              {audioRated > 0 && (
+                <>
+                  <Box sx={{ height: 1, bgcolor: 'divider', my: 1 }} />
+                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+                    Áudio das consultas
+                  </Typography>
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    <Chip size="small" label={`Ótimo 🎧 ${audioCounts.otimo}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0d9488' }} />
+                    <Chip size="small" label={`OK ${audioCounts.ok}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.14)', color: '#b88a54' }} />
+                    <Chip size="small" label={`Ruim ${audioCounts.ruim}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(239,68,68,0.10)', color: '#dc2626' }} />
+                  </Stack>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>

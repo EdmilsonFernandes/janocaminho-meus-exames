@@ -129,7 +129,7 @@ interface Summary {
   patientId?: string;
   doctorInRoom?: boolean; // WhatsApp-style: médico já entrou → pré-join vira "chamada recebida"
   stt?: boolean; // reviewer-L: server transcreve? false esconde o checkbox de gravação
-  feedback?: { rating: number; note?: string | null; role?: string | null } | null; // F4: avaliação já registrada
+  feedback?: { rating: number; note?: string | null; role?: string | null; audioQuality?: string | null } | null; // F4: avaliação já registrada (+ T1: áudio)
   durationSec?: number | null; // F4: duração real (1º join → endedAt) — server /summary
 }
 // Data rápida p/ "Agendar" (§2b): 09:00 do dia escolhido, fuso do usuário.
@@ -388,14 +388,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [fbRating, setFbRating] = useState<number | null>(null);
   const [fbNote, setFbNote] = useState('');
   const [fbSent, setFbSent] = useState(false);
-  const sendFeedback = async (rating: number, customNote?: string) => {
+  // T1 insights (27/10): CSAT de áudio pós-consulta — 1 dos 3 valores, opcional.
+  const [fbAudio, setFbAudio] = useState<string | null>(null);
+  const sendFeedback = async (rating: number, customNote?: string, audioQuality?: string) => {
     setFbRating(rating);
     const text = customNote !== undefined ? customNote : fbNote;
     try {
       // reviewer-J: authToken() é role-aware — token() mandaria Bearer null no portal.
       await fetch(`${API_URL}/teleconsulta/${reminderId}/feedback`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
-        body: JSON.stringify({ rating, note: text.trim() || undefined }),
+        body: JSON.stringify({ rating, note: text.trim() || undefined, ...(audioQuality ? { audioQuality } : {}) }),
       });
     } catch { /* best-effort: a UX não trava por audit */ }
     setFbSent(true);
@@ -2839,6 +2841,61 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     const actualSec = ended?.sec ?? summary?.durationSec ?? areaSummary?.durationSec ?? 0;
     const wasRealCall = actualSec >= 25 || otherJoined;
 
+    // T1 insights (27/10): CSAT de áudio pós-consulta — pergunta EXTRA do paciente
+    // (abaixo do rating), 3 chips grandes (toque 44px), opcional (pode pular).
+    // Envia no mesmo POST do feedback: o server faz merge (upsert do audit).
+    const AUDIO_OPTS = [
+      { v: 'otimo', label: 'Ótimo 🎧' },
+      { v: 'ok', label: 'OK' },
+      { v: 'ruim', label: 'Ruim' },
+    ] as const;
+    const activeAudio = fbAudio || existingFb?.audioQuality || null;
+    const sendAudioQuality = (q: string) => {
+      setFbAudio(q);
+      hapticLight();
+      void sendFeedback(fbRating ?? existingFb?.rating ?? 5, undefined, q);
+    };
+    const audioAnswered = activeAudio != null;
+    const audioBlock = role === 'patient' ? (audioAnswered ? (
+      <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.secondary', fontSize: 12 }}>
+        Áudio da consulta: <Box component="span" sx={{ fontWeight: 800, color: 'text.primary' }}>
+          {AUDIO_OPTS.find((o) => o.v === activeAudio)?.label ?? activeAudio}
+        </Box>
+      </Typography>
+    ) : (
+      <Box sx={{ mt: 1.25, mb: 1 }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary', mb: 0.75, textAlign: 'center' }}>
+          Como estava o áudio da consulta?
+        </Typography>
+        <Stack direction="row" justifyContent="center" useFlexGap spacing={0.75} sx={{ mb: 0.5 }}>
+          {AUDIO_OPTS.map((o) => {
+            const sel = activeAudio === o.v;
+            return (
+              <Chip
+                key={o.v}
+                label={o.label}
+                clickable
+                aria-label={`Áudio: ${o.label}`}
+                onClick={() => sendAudioQuality(o.v)}
+                sx={{
+                  height: 44, px: 2.5, fontSize: 14, fontWeight: 800, borderRadius: '999px',
+                  bgcolor: sel ? 'rgba(32,178,170,0.18)' : 'rgba(0,0,0,0.04)',
+                  color: sel ? '#178f89' : 'text.primary',
+                  border: '1px solid',
+                  borderColor: sel ? '#20b2aa' : 'divider',
+                  '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,0.10)' },
+                  '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 2 },
+                }}
+              />
+            );
+          })}
+        </Stack>
+        <Typography variant="caption" sx={{ display: 'block', fontSize: 11.5, color: 'text.disabled', textAlign: 'center' }}>
+          Opcional — pode pular.
+        </Typography>
+      </Box>
+    )) : null;
+
     // Feedback 1-toque com opções prontas — não exibe se a chamada foi só uma saída rápida (<25s e sem outro participante)
     const feedbackBlock = isRated ? (
       <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.22)', textAlign: 'center' }}>
@@ -2861,6 +2918,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             “{activeNote}”
           </Typography>
         )}
+        {audioBlock}
       </Box>
     ) : wasRealCall ? (
       <Box sx={{ mt: 2.5, p: 2, borderRadius: '16px', bgcolor: 'rgba(32,178,170,0.06)', border: '1px solid rgba(32,178,170,0.18)', textAlign: 'center' }}>
@@ -2881,6 +2939,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             </Tooltip>
           ))}
         </Stack>
+        {fbRating != null && audioBlock}
         <Stack direction="row" flexWrap="wrap" justifyContent="center" useFlexGap spacing={0.75} sx={{ mb: 1.25 }}>
           {PRESET_TAGS.map((tag) => (
             <Chip

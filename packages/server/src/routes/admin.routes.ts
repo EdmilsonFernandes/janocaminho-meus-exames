@@ -1746,15 +1746,22 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
     const doctorMap = new Map(doctors.map((d) => [d.id, d]));
 
     const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    // T1 insights (27/10): CSAT de áudio pós-consulta — agregado simples por valor.
+    const audioQualityCounts: Record<'otimo' | 'ok' | 'ruim', number> = { otimo: 0, ok: 0, ruim: 0 };
     let sum = 0;
 
     const items = logs.map((l) => {
       const fb: any = l.after ?? {};
-      const rating = Number(fb.rating) || 5;
-      if (rating >= 1 && rating <= 5) {
+      const ratingRaw = Number(fb.rating);
+      const rating = ratingRaw >= 1 && ratingRaw <= 5 ? ratingRaw : 5;
+      if (ratingRaw >= 1 && ratingRaw <= 5) {
         counts[rating] = (counts[rating] || 0) + 1;
         sum += rating;
       }
+      const audioQuality = typeof fb.audioQuality === 'string' && fb.audioQuality in audioQualityCounts
+        ? (fb.audioQuality as 'otimo' | 'ok' | 'ruim')
+        : null;
+      if (audioQuality) audioQualityCounts[audioQuality] += 1;
       const rem = l.targetId ? reminderMap.get(l.targetId) : null;
       const pat = rem?.patientId ? patientMap.get(rem.patientId) : null;
       const doc = rem?.createdByDoctorId ? doctorMap.get(rem.createdByDoctorId) : null;
@@ -1764,6 +1771,7 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
         teleId: l.targetId,
         createdAt: l.createdAt,
         rating,
+        audioQuality,
         note: fb.note || null,
         role: fb.role || (l.actorType === 'DOCTOR' ? 'doctor' : 'patient'),
         patient: pat ? { id: pat.id, name: pat.fullName, photoUrl: pat.photoUrl } : null,
@@ -1782,6 +1790,8 @@ router.get('/teleconsultas/feedbacks', async (req: AuthedRequest, res, next) => 
       avgRating,
       positivePct,
       ratingCounts: counts,
+      audioQualityCounts,
+      audioRated: audioQualityCounts.otimo + audioQualityCounts.ok + audioQualityCounts.ruim,
       items,
     });
   } catch (e) {

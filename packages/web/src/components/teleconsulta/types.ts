@@ -58,7 +58,7 @@ export interface TeleconsultaSummary {
    *  animado + poll (antes pendurava "ainda não disponível" pra sempre). */
   recordingAt?: string | null;
   examRequests: ExamRequest[];
-  feedback: { rating: number; note?: string | null; role?: string | null } | null;
+  feedback: { rating: number; note?: string | null; role?: string | null; audioQuality?: string | null } | null;
   durationHint: string | null;
   /** Duração real (22/10): 1º join → endedAt (ou 1º→último join quando aberta). */
   durationSec?: number | null;
