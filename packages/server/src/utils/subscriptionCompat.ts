@@ -7,6 +7,7 @@ type ColumnRow = { column_name: string };
 export interface SubscriptionColumnSupport {
   hasPixResume: boolean;
   hasRawWebhook: boolean;
+  hasCoupon: boolean; // couponCode + couponDiscountCents (T3 cupons 28/10/26)
 }
 
 export interface SubscriptionRecord {
@@ -19,13 +20,15 @@ export interface SubscriptionRecord {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  couponCode?: string | null;
+  couponDiscountCents?: number | null;
 }
 
 let subscriptionColumnsPromise: Promise<Set<string>> | null = null;
 
 const BASE_COLUMNS = ['id', 'userId', 'mpPaymentId', 'mpPreferenceId', 'amount', 'periodDays', 'status', 'createdAt', 'updatedAt'] as const;
 type BaseColumn = typeof BASE_COLUMNS[number];
-type SubscriptionMutation = Partial<Pick<SubscriptionRecord, 'mpPaymentId' | 'mpPreferenceId' | 'status'>> & {
+type SubscriptionMutation = Partial<Pick<SubscriptionRecord, 'mpPaymentId' | 'mpPreferenceId' | 'status' | 'couponCode' | 'couponDiscountCents'>> & {
   rawWebhook?: Prisma.JsonValue | null;
   pixQrCode?: string | null;
   pixQrBase64?: string | null;
@@ -39,10 +42,14 @@ async function loadSubscriptionColumns(): Promise<Set<string>> {
   const rows = await prisma.$queryRaw<ColumnRow[]>`
     SELECT column_name
     FROM information_schema.columns
-    WHERE table_schema = current_schema()
-      AND table_name = 'subscriptions'
+    WHERE table_name = 'subscriptions'
+      AND (table_schema = current_schema() OR table_schema = 'public')
   `;
-  return new Set(rows.map((row) => row.column_name));
+  const set = new Set(rows.map((row) => row.column_name));
+  for (const col of Array.from(set)) {
+    set.add(col.toLowerCase());
+  }
+  return set;
 }
 
 export async function getSubscriptionColumns(): Promise<Set<string>> {
@@ -57,9 +64,11 @@ export async function getSubscriptionColumns(): Promise<Set<string>> {
 
 export async function getSubscriptionColumnSupport(): Promise<SubscriptionColumnSupport> {
   const columns = await getSubscriptionColumns();
+  const has = (name: string) => columns.has(name) || columns.has(name.toLowerCase());
   return {
-    hasPixResume: ['pixExpiresAt', 'pixQrCode', 'pixQrBase64', 'pixCredits'].every((column) => columns.has(column)),
-    hasRawWebhook: columns.has('rawWebhook'),
+    hasPixResume: ['pixExpiresAt', 'pixQrCode', 'pixQrBase64', 'pixCredits'].every(has),
+    hasRawWebhook: has('rawWebhook'),
+    hasCoupon: has('couponCode') && has('couponDiscountCents'),
   };
 }
 
@@ -71,8 +80,15 @@ export async function createSubscriptionCompat(data: {
   /** Tag JSON em rawWebhook (ex.: {kind:'api_pack'}) — só entra quando a coluna existe.
    *  Usada pelo buy-api-pack pra separar PIX de CHAMADAS de PIX de CRÉDITOS na retomada. */
   rawWebhook?: any;
+  /** Cupom aplicado no checkout (T3 28/10/26) — gravado JÁ na criação p/ o webhook
+   *  incrementar uses + criar a CouponRedemption na aprovação. Só quando as colunas existem. */
+  couponCode?: string;
+  couponDiscountCents?: number;
 }): Promise<SubscriptionRecord> {
   const support = await getSubscriptionColumnSupport();
+  const couponData = support.hasCoupon && data.couponCode
+    ? { couponCode: data.couponCode, couponDiscountCents: Math.max(0, data.couponDiscountCents ?? 0) }
+    : {};
   if (support.hasPixResume && support.hasRawWebhook) {
     return prisma.subscription.create({
       data: {
@@ -81,6 +97,7 @@ export async function createSubscriptionCompat(data: {
         periodDays: data.periodDays,
         status: data.status ?? 'PENDING',
         ...(data.rawWebhook != null ? { rawWebhook: data.rawWebhook } : {}),
+        ...couponData,
       },
       select: {
         id: true,
@@ -92,16 +109,22 @@ export async function createSubscriptionCompat(data: {
         status: true,
         createdAt: true,
         updatedAt: true,
+        ...(support.hasCoupon ? { couponCode: true, couponDiscountCents: true } : {}),
       },
     });
   }
 
   const now = new Date();
   const id = crypto.randomUUID();
+  const couponCols = support.hasCoupon && data.couponCode
+    ? { sql: ', "couponCode", "couponDiscountCents"', values: [data.couponCode, Math.max(0, data.couponDiscountCents ?? 0)] as (string | number | Date)[] }
+    : { sql: '', values: [] as (string | number | Date)[] };
+  const placeholders = [1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `$${n}`).join(', ')
+    + (couponCols.values.length ? ', $10, $11' : '');
   const rows = await prisma.$queryRawUnsafe<SubscriptionRecord[]>(
-    `INSERT INTO "subscriptions" (${BASE_COLUMN_SQL})
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-     RETURNING ${BASE_COLUMN_SQL}`,
+    `INSERT INTO "subscriptions" (${BASE_COLUMN_SQL}${couponCols.sql})
+     VALUES (${placeholders})
+     RETURNING ${BASE_COLUMN_SQL}${couponCols.sql}`,
     id,
     data.userId,
     null,
@@ -111,6 +134,7 @@ export async function createSubscriptionCompat(data: {
     data.status ?? 'PENDING',
     now,
     now,
+    ...couponCols.values,
   );
   return rows[0]!;
 }
@@ -130,6 +154,7 @@ export async function findSubscriptionByIdCompat(id: string): Promise<Subscripti
         status: true,
         createdAt: true,
         updatedAt: true,
+        ...(support.hasCoupon ? { couponCode: true, couponDiscountCents: true } : {}),
       },
     });
   }
@@ -160,6 +185,7 @@ export async function updateSubscriptionCompatWithDb(db: any, id: string, data: 
     'status',
     ...(support.hasRawWebhook ? ['rawWebhook'] : []),
     ...(support.hasPixResume ? ['pixQrCode', 'pixQrBase64', 'pixExpiresAt', 'pixCredits'] : []),
+    ...(support.hasCoupon ? ['couponCode', 'couponDiscountCents'] : []),
   ]);
   const filteredUpdates = updates
     .filter(([column]) => allowedColumns.has(column) && columns.has(column))

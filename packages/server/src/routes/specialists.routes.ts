@@ -138,16 +138,14 @@ router.get('/', async (req: AuthedRequest, res, next) => {
     try {
       const hasCnes = await prisma.directoryFacility.findFirst({ select: { id: true } }).then((r) => !!r).catch(() => false);
       if (hasCnes && !operator && !withPrice && !claimedOnly) {
-        // Filtro de cidade NO BANCO (contains insensitive): os nomes do CNES vêm sem
-        // acento ("SAO JOSE DOS CAMPOS") e cityNorm é deaccent — casa direto, sem
-        // carregar o catálogo inteiro (com multi-cidade isso vira dezenas de milhares).
+        // Filtro de cidade: comparação pós-query com deaccent (Postgres ILIKE não
+        // remove acentos sem unaccent) — compatível com acentos nos testes e em produção.
         const facs = await prisma.directoryFacility.findMany({
-          where: cityNorm ? { city: { contains: cityNorm, mode: 'insensitive' } } : {},
           select: { id: true, cnesCode: true, name: true, city: true, uf: true, address: true, district: true, phone: true, lat: true, lng: true },
           take: 20000,
         });
         const facsIn = cityNorm
-          ? facs.filter((f) => deaccent(f.city).includes(cityNorm))
+          ? facs.filter((f) => f.city && deaccent(f.city).includes(cityNorm))
           : facs;
         const facById = new Map(facsIn.map((f) => [f.id, f]));
         if (facsIn.length) {
