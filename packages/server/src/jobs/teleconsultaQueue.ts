@@ -147,7 +147,7 @@ export async function runTeleconsultaQueueTick(now: Date = new Date()): Promise<
     const waitingEntries = (await tx.teleconsultaQueue.findMany({
       where: { status: 'waiting' },
       orderBy: { enteredAt: 'asc' },
-      select: { id: true, patientId: true, ownerId: true, consentAt: true, maxPriceCents: true, enteredAt: true },
+      select: { id: true, patientId: true, ownerId: true, consentAt: true, maxPriceCents: true, enteredAt: true, specialtyFilter: true, preferredDoctorId: true },
     })).filter((e) => !requeuedIds.has(e.id));
     if (waitingEntries.length) {
       const freshCutoff = new Date(now.getTime() - PRESENCE_TTL_MS);
@@ -155,7 +155,7 @@ export async function runTeleconsultaQueueTick(now: Date = new Date()): Promise<
         where: { online: true, lastHeartbeatAt: { gte: freshCutoff } },
         select: {
           doctorId: true, lastOnlineAt: true,
-          doctor: { select: { id: true, name: true, blocked: true, consultPriceCents: true, instantPriceCents: true } },
+          doctor: { select: { id: true, name: true, blocked: true, specialty: true, consultPriceCents: true, instantPriceCents: true } },
         },
       });
       // Médicos já ocupados neste tick (offer feita) + offers/aceites vivos do banco.
@@ -204,7 +204,19 @@ export async function runTeleconsultaQueueTick(now: Date = new Date()): Promise<
 
       for (const entry of waitingEntries) {
         const budget = entry.maxPriceCents ?? 0; // null = só grátis (spec §3.4)
-        const pick = pool.find((c) => {
+        // v1.1: escolha do paciente — filtro de especialidade (match EXATO) e médico
+        // preferido primeiro. Preferência é MACIA: o escolhido só vence se estiver no
+        // pool (online, não bloqueado, não ocupado); fora dele → FIFO normal do filtro.
+        let ordered = pool;
+        if (entry.specialtyFilter) {
+          const f = entry.specialtyFilter;
+          ordered = ordered.filter((c) => c.doctor!.specialty === f);
+        }
+        if (entry.preferredDoctorId) {
+          const preferred = ordered.find((c) => c.doctorId === entry.preferredDoctorId);
+          if (preferred) ordered = [preferred, ...ordered.filter((c) => c.doctorId !== entry.preferredDoctorId)];
+        }
+        const pick = ordered.find((c) => {
           if (busyOffer.has(c.doctorId)) return false;
           const price = c.doctor!.instantPriceCents ?? c.doctor!.consultPriceCents ?? 0;
           if (price > budget) return false;

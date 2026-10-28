@@ -13,10 +13,10 @@
  * Regras: mobile-first 360-412px, 1 coluna, toque ≥44px, hooks ANTES de qualquer
  * early-return, nunca reload(). Erros via snackbar() (helper global do app).
  */
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type SyntheticEvent } from 'react';
 import {
   Box, Button, Card, CardContent, Checkbox, Chip, CircularProgress, FormControlLabel,
-  Skeleton, Stack, Typography, useTheme,
+  InputBase, Skeleton, Stack, Typography, useTheme,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MedicalServicesRoundedIcon from '@mui/icons-material/MedicalServicesRounded';
@@ -28,7 +28,8 @@ import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
 import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
-import { API_URL, token } from '../config';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import { API_URL, token, doctorPhotoUrl } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { CONSENT_TEXT } from '../constants/consent';
 import { confirmDialog, snackbar } from './ConfirmDialog';
@@ -46,10 +47,22 @@ interface QueueEntry {
   etaMin?: number | null;
 }
 interface QueuePayment { qrCode: string; qrBase64?: string; expiresAt?: string }
+/** v1.1: médico online visível na lista (ordenado pelo server — mais atendimentos
+ *  hoje primeiro, empate = preço asc). Foto via GET /api/doctor/photo/:id (?t=). */
+interface QueueDoctor {
+  id: string;
+  name: string;
+  specialty: string | null;
+  city: string | null;
+  photoAvailable: boolean;
+  priceCents: number;
+  crmUf: string | null;
+}
 interface QueueStatus {
   online: boolean;
   entry: QueueEntry | null;
   doctorsOnline: number;
+  doctors?: QueueDoctor[]; // v1.1 (ausente em server antigo → trata como [])
   priceRangeCents: { min: number; max: number } | null;
   matched: { reminderId: string; doctorName: string; priceCents: number; payment: QueuePayment | null } | null;
 }
@@ -73,6 +86,110 @@ const pulseDotSx = (size = 8) => ({
   '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
 }) as const;
 
+// ── v1.1: lista de médicos (mock T1-T4 aprovado) ─────────────────────────────
+/** Ícone por especialidade (match por radical sem acento; fallback 🩻). */
+const SPECIALTY_EMOJI_RULES: [string, string][] = [
+  ['cardio', '🫀'], ['clinic', '🩺'], ['clin', '🩺'], ['psiq', '🧠'], ['endoc', '🦋'],
+  ['ped', '👶'], ['ortop', '🦴'], ['dermat', '✋'], ['ginec', '🌸'], ['nutro', '🥗'],
+  ['uro', '💧'], ['neuro', '🧬'], ['oftalmo', '👁️'], ['otorrino', '👂'], ['geria', '🧑‍🦳'],
+  ['onco', '🎗️'], ['reuma', '🦾'], ['cirurg', '🔪'], ['anestes', '💉'], ['famil', '🏠'],
+];
+const specialtyEmoji = (s: string | null | undefined): string => {
+  const k = (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  for (const [rad, emoji] of SPECIALTY_EMOJI_RULES) if (k.includes(rad)) return emoji;
+  return '🩻';
+};
+/** Gradiente teal DETERMINÍSTICO por id (avatar fallback — sempre família teal). */
+const AVATAR_GRADIENTS = [
+  'linear-gradient(135deg,#20b2aa,#178f89)', 'linear-gradient(135deg,#2dd4bf,#0f766e)',
+  'linear-gradient(135deg,#5fc9c3,#20b2aa)', 'linear-gradient(135deg,#0d9488,#134e4a)',
+  'linear-gradient(135deg,#14b8a6,#115e59)',
+];
+const gradFor = (id: string) => AVATAR_GRADIENTS[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_GRADIENTS.length];
+/** "Dra. Ana Cardoso" → "A" (inicial do nome próprio). */
+const initialOf = (name: string) => (name.trim().split(/\s+/).find((w) => !/^dr[a]?\.?$/i.test(w)) || name).charAt(0).toUpperCase();
+/** Título honesto: já vem "Dr./Dra." do cadastro; senão prefixa. */
+const doctorTitle = (name: string) => (/^dr[a]?\.?\s/i.test(name.trim()) ? name.trim() : `Dr(a). ${name}`);
+const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+
+/** Chip de filtro (mock T1/T2): min-height 44px (toque), ativo = gradiente teal. */
+const chipSx = (on: boolean, _isDark: boolean) => ({
+  height: 44, borderRadius: '999px', flexShrink: 0, px: 0.5,
+  fontWeight: 800, fontSize: 12.5,
+  bgcolor: on ? 'transparent' : 'transparent',
+  ...(on
+    ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', border: '1.5px solid transparent' }
+    : { color: 'text.secondary', border: '1.5px solid', borderColor: 'rgba(157,180,178,.35)' }),
+}) as const;
+
+/** Avatar 52px: foto (rota autenticada existente) SOBRE a inicial em gradiente —
+ *  onError esconde o <img> e a inicial fica visível (nunca quebra o layout). */
+const DoctorAvatar = ({ d }: { d: QueueDoctor }) => (
+  <Box sx={{ position: 'relative', width: 52, height: 52, flexShrink: 0 }}>
+    <Box aria-hidden="true" sx={{ width: 52, height: 52, borderRadius: '16px', background: gradFor(d.id), display: 'grid', placeItems: 'center', fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 19, color: '#fff', position: 'absolute', inset: 0 }}>
+      {initialOf(d.name)}
+    </Box>
+    {d.photoAvailable && (
+      <Box
+        component="img"
+        src={doctorPhotoUrl(d.id)}
+        alt=""
+        loading="lazy"
+        onError={(e: SyntheticEvent<HTMLImageElement>) => { e.currentTarget.style.display = 'none'; }}
+        sx={{ position: 'absolute', inset: 0, width: 52, height: 52, borderRadius: '16px', objectFit: 'cover' }}
+      />
+    )}
+    <Box component="span" aria-hidden="true" sx={{ position: 'absolute', right: -2, bottom: -2, width: 14, height: 14, borderRadius: '50%', bgcolor: '#22c55e', border: '2.5px solid', borderColor: 'background.paper' }} />
+  </Box>
+);
+
+/** Card de médico (mock T1): avatar · nome (+badge) · especialidade·CRM · cidade · preço. */
+const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: boolean; onClick: () => void; isDark: boolean }) => (
+  <Stack
+    component="button"
+    type="button"
+    onClick={onClick}
+    aria-label={`Falar com ${doctorTitle(d.name)} — ${d.specialty ?? 'médico'}${d.priceCents > 0 ? `, R$ ${fmtBrl(d.priceCents)}` : ', grátis'}`}
+    direction="row"
+    alignItems="center"
+    spacing={1.5}
+    sx={{
+      display: 'flex', width: '100%', textAlign: 'left', border: 'none', borderTop: '1px solid', borderColor: 'divider',
+      bgcolor: 'transparent', cursor: 'pointer', p: '13px 2px', minWidth: 0,
+      '&:first-of-type': { borderTop: 'none', pt: '6px' },
+      '&:hover': { bgcolor: isDark ? 'rgba(32,178,170,.06)' : 'rgba(32,178,170,.04)' },
+    }}
+  >
+    <DoctorAvatar d={d} />
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Stack direction="row" alignItems="center" spacing={0.75}>
+        <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+          {doctorTitle(d.name)}
+        </Typography>
+        {fastest && (
+          <Box component="span" sx={{ flexShrink: 0, fontSize: 9, fontWeight: 800, letterSpacing: '.06em', textTransform: 'uppercase', px: 0.8, py: 0.25, borderRadius: '6px', bgcolor: 'rgba(34,197,94,.15)', color: isDark ? '#4ade80' : '#16a34a' }}>
+            mais rápido
+          </Box>
+        )}
+      </Stack>
+      <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: isDark ? '#5fd8d1' : '#0f766e', mt: 0.25 }}>
+        {d.specialty || 'Clínica Geral'}{d.crmUf ? ` · CRM-${d.crmUf}` : ''}
+      </Typography>
+      {d.city && (
+        <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', mt: 0.15 }}>
+          📍 {d.city}
+        </Typography>
+      )}
+    </Box>
+    <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+      <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
+        {d.priceCents > 0 ? `R$ ${fmtBrl(d.priceCents)}` : 'Grátis'}
+      </Typography>
+      <Typography sx={{ fontSize: 10.5, fontWeight: 500, color: 'text.secondary' }}>na hora</Typography>
+    </Box>
+  </Stack>
+);
+
 // ── Card completo ─────────────────────────────────────────────────────────────
 export const FalarAgora = ({ sx }: { sx?: object }) => {
   const theme = useTheme();
@@ -90,6 +207,12 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
   const [copied, setCopied] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [terminalSeen, setTerminalSeen] = useState<'expired' | null>(null); // mantém a tela "expirou" até o usuário tentar de novo
+  // v1.1: escolha do médico (mock T1-T4) — chips/grid de especialidade são VISUAIS;
+  // o POST leva preferredDoctorId (+ specialty do filtro ativo no toque do card).
+  const [espFilter, setEspFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [showAllEsp, setShowAllEsp] = useState(false);
+  const [choice, setChoice] = useState<{ doctorId: string; name: string; priceCents: number; specialty: string | null } | null>(null);
   const prevStatusRef = useRef<string | null>(null);
   const copyTimer = useRef<any>(null);
 
@@ -135,22 +258,47 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
     if (!pid) { snackbar({ message: 'Selecione o paciente antes de entrar na fila.', severity: 'warning' }); return; }
     setJoinBusy(true);
     try {
-      const maxPrice = status?.priceRangeCents?.max && status.priceRangeCents.max > 0 ? status.priceRangeCents.max : undefined;
+      // Teto da autorização: médico ESCOLHIDO → o preço dele; sem escolha → faixa max.
+      const maxPrice = choice
+        ? (choice.priceCents > 0 ? choice.priceCents : undefined)
+        : status?.priceRangeCents?.max && status.priceRangeCents.max > 0 ? status.priceRangeCents.max : undefined;
       const r = await fetch(`${API_URL}/teleconsulta-queue`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ patientId: pid, consent: true, ...(maxPrice != null ? { maxPriceCents: maxPrice } : {}) }),
+        body: JSON.stringify({
+          patientId: pid, consent: true,
+          ...(maxPrice != null ? { maxPriceCents: maxPrice } : {}),
+          // v1.1: escolha opcional — preferredDoctorId (+ specialty só quando o card
+          // foi tocado sob um filtro de especialidade ativo; "Todos" não restringe).
+          ...(choice ? { preferredDoctorId: choice.doctorId, ...(choice.specialty ? { specialty: choice.specialty } : {}) } : {}),
+        }),
       });
       const d: any = await r.json().catch(() => ({}));
       if (r.status === 409 && d?.code === 'QUEUE_ACTIVE') { snackbar({ message: 'Você já está na fila — mostrando sua posição.', severity: 'info' }); setUi('idle'); void poll(); return; }
       if (!r.ok) throw new Error(d?.error || 'Não foi possível entrar na fila.');
       hapticLight();
+      setChoice(null);
       setUi('idle');
       void poll();
     } catch (e: any) {
       hapticError();
       snackbar({ message: e?.message || 'Não foi possível entrar na fila.', severity: 'error' });
     } finally { setJoinBusy(false); }
+  };
+
+  // Toque num card → fluxo de consent com o médico escolhido (preferredDoctorId).
+  const pickDoctor = (d: QueueDoctor) => {
+    hapticLight();
+    setConsentOk(false);
+    setChoice({ doctorId: d.id, name: d.name, priceCents: d.priceCents, specialty: espFilter });
+    setUi('confirming');
+  };
+  // CTA "sem preferência" — fila FIFO pura (o match decide quem atende).
+  const pickNoPreference = () => {
+    hapticLight();
+    setConsentOk(false);
+    setChoice(null);
+    setUi('confirming');
   };
 
   const leaveQueue = async () => {
@@ -199,6 +347,25 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
   const doctorsOnline = status?.doctorsOnline ?? 0;
   const range = fmtRange(status?.priceRangeCents ?? null);
   const rangeMax = status?.priceRangeCents?.max ?? 0; // teto da autorização de valor (spec §5)
+  // v1.1: lista de médicos online (ordenada pelo server — todos online, melhor primeiro).
+  const doctors = status?.doctors ?? [];
+  const espCounts = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const d of doctors) if (d.specialty) m.set(d.specialty, (m.get(d.specialty) ?? 0) + 1);
+    return m;
+  }, [doctors]);
+  const espList = useMemo(() => [...espCounts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')), [espCounts]);
+  // Layout adaptativo (mock aprovado): >7 médicos OU >5 especialidades → grade+bussa.
+  const useGrid = doctors.length > 7 || espList.length > 5;
+  const visibleDoctors = useMemo(() => {
+    let list = doctors;
+    if (espFilter) list = list.filter((d) => d.specialty === espFilter);
+    const q = norm(search.trim());
+    if (q) list = list.filter((d) => norm(d.name).includes(q) || norm(d.specialty ?? '').includes(q));
+    return list;
+  }, [doctors, espFilter, search]);
+  const ctaDoctor = visibleDoctors.length === 1 ? visibleDoctors[0] : null; // CTA vira "falar com ele"
+  const firstPrice = doctors[0] ? (doctors[0].priceCents > 0 ? `R$ ${fmtBrl(doctors[0].priceCents)}` : 'grátis') : '';
   const waitSec = entry?.enteredAt ? Math.max(0, Math.floor((nowTick - new Date(entry.enteredAt).getTime()) / 1000)) : 0;
   const matched = status?.matched ?? null;
 
@@ -279,37 +446,202 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
           </Stack>
         )}
 
-        {/* ── IDLE ── */}
-        {phase === 'idle' && (
+        {/* ── IDLE ── v1.1: lista de médicos (mock T1-T4) · vazio honesto sem médicos */}
+        {phase === 'idle' && doctors.length === 0 && (
           <Box sx={{ mt: 1.75 }}>
             <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55 }}>
-              {range ? `Atendimento por vídeo agora, ${range}. ` : 'Atendimento por vídeo agora. '}
-              {doctorsOnline > 0
-                ? 'Você vê a posição na fila em tempo real e pode cancelar quando quiser.'
-                : 'Nenhum médico online agora — você pode esperar na fila ou tentar mais tarde.'}
+              Nenhum médico online agora. A fila imediata funciona quando há médicos em
+              plantão — você pode agendar para depois ou voltar mais tarde.
             </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
+              <Button
+                fullWidth
+                variant="contained"
+                startIcon={<MedicalServicesRoundedIcon />}
+                onClick={() => { hapticLight(); navigate('/medicos'); }}
+                sx={gradBtn}
+              >
+                Agendar para depois
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                disabled={joinBusy || !pid}
+                onClick={() => pickNoPreference()}
+                sx={{ minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'divider', color: 'text.secondary' }}
+              >
+                Entrar na fila mesmo assim
+              </Button>
+            </Stack>
+          </Box>
+        )}
+        {phase === 'idle' && doctors.length > 0 && (
+          <Box sx={{ mt: 1.75 }}>
+            {/* Hero (mock): N online + faixa de preço */}
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 0.5 }}>
+              <Box component="span" sx={pulseDotSx(9)} aria-hidden="true" />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography component="h3" noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15.5, color: 'text.primary' }}>
+                  {doctors.length} {doctors.length === 1 ? 'médico online agora' : 'médicos online agora'}
+                </Typography>
+                <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>
+                  Atendimento por vídeo{range ? ` · ${range}` : ' · grátis'} — escolha quem te atende
+                </Typography>
+              </Box>
+            </Stack>
+
+            {/* Muitas especialidades (T4): busca + grade 2col + "ver todas" */}
+            {useGrid && (
+              <>
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ mt: 1, px: 1.5, py: 0.25, minHeight: 44, borderRadius: '12px', bgcolor: isDark ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.02)', border: '1px solid', borderColor: 'divider' }}
+                >
+                  <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.disabled', flexShrink: 0 }} />
+                  <InputBase
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Buscar especialidade ou médico…"
+                    inputProps={{ 'aria-label': 'Buscar médico por nome ou especialidade' }}
+                    sx={{ flex: 1, fontSize: 13, color: 'text.primary' }}
+                  />
+                </Stack>
+                {!search && (
+                  <Box sx={{ mt: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
+                    {(showAllEsp ? espList : espList.slice(0, 6)).map(([esp, n]) => (
+                      <Stack
+                        key={esp}
+                        component="button"
+                        type="button"
+                        onClick={() => { hapticLight(); setEspFilter(espFilter === esp ? null : esp); }}
+                        aria-label={`Filtrar por ${esp} — ${n} online`}
+                        direction="row"
+                        alignItems="center"
+                        spacing={1}
+                        sx={{
+                          minHeight: 56, p: 1.25, borderRadius: '14px', cursor: 'pointer', textAlign: 'left',
+                          border: '1px solid', borderColor: espFilter === esp ? 'rgba(32,178,170,.55)' : 'rgba(32,178,170,.25)',
+                          bgcolor: espFilter === esp ? 'rgba(32,178,170,.14)' : 'rgba(32,178,170,.06)',
+                        }}
+                      >
+                        <Box component="span" aria-hidden="true" sx={{ fontSize: 18, flexShrink: 0 }}>{specialtyEmoji(esp)}</Box>
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography noWrap sx={{ fontWeight: 800, fontSize: 12.5, color: 'text.primary' }}>{esp}</Typography>
+                          <Typography sx={{ fontWeight: 700, fontSize: 10.5, color: isDark ? '#5fd8d1' : '#0f766e' }}>{n} online</Typography>
+                        </Box>
+                      </Stack>
+                    ))}
+                  </Box>
+                )}
+                {!search && espList.length > 6 && (
+                  <Button
+                    fullWidth
+                    variant="text"
+                    onClick={() => { hapticLight(); setShowAllEsp((v) => !v); }}
+                    sx={{ mt: 0.75, minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13, color: isDark ? '#7ce8e0' : '#0f766e', border: '1.5px dashed rgba(45,212,191,.4)' }}
+                  >
+                    {showAllEsp ? 'Recolher especialidades' : `Ver todas as ${espList.length} especialidades →`}
+                  </Button>
+                )}
+              </>
+            )}
+
+            {/* Poucos médicos (T1/T2): chips de especialidade com contagem */}
+            {!useGrid && espList.length > 0 && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1, mb: 0.5, overflowX: 'auto', pb: 0.5, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+                <Chip
+                  clickable
+                  label={`Todos ${doctors.length}`}
+                  aria-pressed={espFilter === null}
+                  onClick={() => { hapticLight(); setEspFilter(null); }}
+                  sx={chipSx(espFilter === null, isDark)}
+                />
+                {espList.map(([esp, n]) => (
+                  <Chip
+                    key={esp}
+                    clickable
+                    label={`${esp} ${n}`}
+                    aria-pressed={espFilter === esp}
+                    onClick={() => { hapticLight(); setEspFilter(espFilter === esp ? null : esp); }}
+                    sx={{ ...chipSx(espFilter === esp, isDark), flexShrink: 0 }}
+                  />
+                ))}
+              </Stack>
+            )}
+
+            {/* Lista (sempre presente no modo chips; no modo grade só com filtro/busca) */}
+            {(!useGrid || !!espFilter || !!search.trim()) && (
+              <Box sx={{ mt: useGrid ? 1 : 0.5 }}>
+                {visibleDoctors.length > 0 ? visibleDoctors.map((d, i) => (
+                  <DoctorRow
+                    key={d.id}
+                    d={d}
+                    isDark={isDark}
+                    fastest={i === 0 && doctors.length > 1 && !espFilter && !search.trim()}
+                    onClick={() => pickDoctor(d)}
+                  />
+                )) : (
+                  <Box sx={{ border: '1.5px dashed', borderColor: 'rgba(157,180,178,.35)', borderRadius: '14px', p: 1.75, textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.5 }}>
+                      Ninguém de {espFilter ? <b>{espFilter}</b> : 'busca'} online agora.
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={() => { hapticLight(); setEspFilter(null); setSearch(''); }}
+                      sx={{ mt: 0.5, textTransform: 'none', fontWeight: 800, fontSize: 12.5, color: isDark ? '#5fd8d1' : '#0f766e' }}
+                    >
+                      Ver os {doctors.length} de todas as especialidades
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {/* CTA final (mock): 1 visível → falar com ele; senão "sem preferência" */}
             <Button
               fullWidth
               variant="contained"
               startIcon={<MedicalServicesRoundedIcon />}
               disabled={joinBusy || !pid}
-              onClick={() => { hapticLight(); setConsentOk(false); setUi('confirming'); }}
-              sx={{ ...gradBtn, mt: 1.5 }}
+              onClick={() => (ctaDoctor ? pickDoctor(ctaDoctor) : pickNoPreference())}
+              sx={{ ...gradBtn, mt: 1.25 }}
             >
-              Entrar na fila
+              {ctaDoctor
+                ? `Falar com ${doctorTitle(ctaDoctor.name)}${ctaDoctor.priceCents > 0 ? ` — R$ ${fmtBrl(ctaDoctor.priceCents)}` : ' — grátis'}`
+                : `Sem preferência — falar com o primeiro${firstPrice && firstPrice !== 'grátis' ? ` (R$ ${firstPrice.replace(/^R\$ /, '')})` : firstPrice === 'grátis' ? ' (grátis)' : ''}`}
             </Button>
+            <Typography sx={{ mt: 1, fontSize: 11, fontWeight: 500, color: 'text.secondary', textAlign: 'center', lineHeight: 1.5 }}>
+              🔒 Consulta registrada · CFM 2.314 · cobrança só quando um médico aceitar
+            </Typography>
           </Box>
         )}
 
-        {/* ── CONFIRMING: faixa + consentimento integral + autorização de valor ── */}
+        {/* ── CONFIRMING: médico escolhido (v1.1) + consentimento + autorização ── */}
         {phase === 'confirming' && (
           <Box sx={{ mt: 1.75 }} component="section" aria-label="Consentimento e autorização de valor">
+            {choice && (
+              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 1.25, p: 1, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.08)', border: '1px solid rgba(32,178,170,.25)' }}>
+                <DoctorAvatar d={{ id: choice.doctorId, name: choice.name, specialty: choice.specialty, city: null, photoAvailable: doctors.find((x) => x.id === choice.doctorId)?.photoAvailable ?? false, priceCents: choice.priceCents, crmUf: null }} />
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+                    {doctorTitle(choice.name)}
+                  </Typography>
+                  <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', mt: 0.15 }}>
+                    {choice.specialty ? `${choice.specialty} · ` : ''}{choice.priceCents > 0 ? `R$ ${fmtBrl(choice.priceCents)} na hora` : 'Atendimento grátis'}
+                  </Typography>
+                </Box>
+              </Stack>
+            )}
             <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
               <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary' }}>
-                {range ? `Valor: ${range}` : 'Valor definido pelo médico que atender'}
+                {choice
+                  ? (choice.priceCents > 0 ? `Valor: R$ ${fmtBrl(choice.priceCents)} (médico escolhido)` : 'Valor: grátis')
+                  : range ? `Valor: ${range}` : 'Valor definido pelo médico que atender'}
               </Typography>
-              {rangeMax > 0 && (
-                <Chip size="small" label={`autorizo até R$ ${fmtBrl(rangeMax)}`} sx={{ height: 24, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.15)', color: isDark ? '#d4a574' : '#8a5a1f', border: '1px solid rgba(212,165,116,.35)' }} />
+              {(choice ? choice.priceCents > 0 : rangeMax > 0) && (
+                <Chip size="small" label={`autorizo até R$ ${fmtBrl(choice ? choice.priceCents : rangeMax)}`} sx={{ height: 24, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(212,165,116,.15)', color: isDark ? '#d4a574' : '#8a5a1f', border: '1px solid rgba(212,165,116,.35)' }} />
               )}
             </Stack>
             <Box
@@ -324,8 +656,8 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             <FormControlLabel
               sx={{ alignItems: 'flex-start', mt: 1.25, '& .MuiFormControlLabel-label': { fontSize: 12.5, lineHeight: 1.5, color: 'text.secondary' } }}
               control={<Checkbox checked={consentOk} onChange={(e) => setConsentOk(e.target.checked)} sx={{ pt: 0.25, mt: -0.5, color: 'primary.main', '&.Mui-checked': { color: '#178f89' } }} />}
-              label={rangeMax > 0
-                ? `Li e aceito o consentimento acima e autorizo a cobrança de até R$ ${fmtBrl(rangeMax)} pelo atendimento (pago por PIX só quando um médico aceitar).`
+              label={(choice ? choice.priceCents : rangeMax) > 0
+                ? `Li e aceito o consentimento acima e autorizo a cobrança de até R$ ${fmtBrl(choice ? choice.priceCents : rangeMax)} pelo atendimento (pago por PIX só quando um médico aceitar).`
                 : 'Li e aceito o consentimento acima. O valor, se houver cobrança, será combinado e pago por PIX só quando um médico aceitar.'}
             />
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1 }}>
@@ -497,7 +829,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 fullWidth
                 variant="contained"
                 startIcon={<ReplayRoundedIcon />}
-                onClick={() => { hapticLight(); setTerminalSeen(null); setUi('confirming'); setConsentOk(false); void poll(); }}
+                onClick={() => { hapticLight(); setTerminalSeen(null); setChoice(null); setUi('confirming'); setConsentOk(false); void poll(); }}
                 sx={gradBtn}
               >
                 Tentar de novo

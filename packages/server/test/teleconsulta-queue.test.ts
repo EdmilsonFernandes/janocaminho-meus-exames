@@ -449,6 +449,86 @@ describe('Fila imediata — rotas + tick (spec 2026-10-27 §2/§3/§8)', () => {
     await runTeleconsultaQueueTick(new Date());
     expect((await entryOf(entry2.id))?.status).toBe('accepted');
   });
+
+  // 15 ─ v1.1: status expõe doctors[] (especialidade/cidade/preço) ordenado por
+  // atendimentos HOJE desc ("online primeiro e melhor primeiro"), empate = preço asc.
+  itR('GET status lista doctors[] com specialty/city/price, ordenado por atendimentos hoje desc', async () => {
+    const { user, patient, token } = await createUser();
+    const other = await createUser(); // pacientes das teleconsultas que Ana já atendeu
+    const { doctor: ana } = await createDoctor({ crm: crm(), name: 'Ana Ativa', specialty: 'Cardiologia', crmUf: 'SP' });
+    const { doctor: bruno } = await createDoctor({ crm: crm(), name: 'Bruno Novo', specialty: 'Clínica Geral', crmUf: 'SP' });
+    await prisma.doctor.update({ where: { id: ana.id }, data: { city: 'São José dos Campos', instantPriceCents: 20000 } });
+    await prisma.doctor.update({ where: { id: bruno.id }, data: { instantPriceCents: 15000 } });
+    // Ana atendeu 2 HOJE (contam na ordenação); Bruno 0 — Ana vem primeiro MESMO
+    // sendo mais cara (experiência da fila vence o empate por preço).
+    await seedMatchReminder(user.id, patient.id, ana.id);
+    await seedMatchReminder(user.id, other.patient.id, ana.id);
+    await seedPresence(ana.id);
+    await seedPresence(bruno.id);
+
+    const res = await api().get('/api/teleconsulta-queue/status').set(H(token));
+    expect(res.status).toBe(200);
+    expect(res.body.doctorsOnline).toBe(2);
+    expect(res.body.doctors).toHaveLength(2);
+    expect(res.body.doctors[0]).toMatchObject({
+      id: ana.id, name: 'Ana Ativa', specialty: 'Cardiologia',
+      city: 'São José dos Campos', photoAvailable: false, priceCents: 20000, crmUf: 'SP',
+    });
+    expect(res.body.doctors[1]).toMatchObject({ id: bruno.id, priceCents: 15000, city: null });
+    // Faixa de preço derivada da mesma lista
+    expect(res.body.priceRangeCents).toEqual({ min: 15000, max: 20000 });
+
+    // Empate de carga → preço ASC vence (Bruno 150 < Ana 200 num empate forçado: ambos 0 hoje).
+    const p3 = await createUser();
+    const { doctor: caro } = await createDoctor({ crm: crm(), name: 'Caro', specialty: 'Dermatologia' });
+    const { doctor: barato } = await createDoctor({ crm: crm(), name: 'Barato', specialty: 'Dermatologia' });
+    await prisma.doctor.update({ where: { id: caro.id }, data: { instantPriceCents: 30000 } });
+    await prisma.doctor.update({ where: { id: barato.id }, data: { instantPriceCents: 5000 } });
+    await seedPresence(caro.id);
+    await seedPresence(barato.id);
+    const res2 = await api().get('/api/teleconsulta-queue/status').set(H(p3.token));
+    const ids = res2.body.doctors.map((d: any) => d.id);
+    expect(ids.indexOf(barato.id)).toBeLessThan(ids.indexOf(caro.id)); // empate → preço asc
+  });
+
+  // 16 ─ v1.1: POST com specialty — o match SÓ casa médico da especialidade exata
+  // (ortopedista seria o 1º do pool por presença antiga; filtro o pula).
+  itR('POST com specialty filtra o match (médico de outra especialidade é pulado)', async () => {
+    const { user, patient, token } = await createUser();
+    const { doctor: orto } = await createDoctor({ crm: crm(), specialty: 'Ortopedia' });
+    const { doctor: cardio } = await createDoctor({ crm: crm(), specialty: 'Cardiologia' });
+    await seedPresence(orto.id, { heartbeatAgoMs: 60_000 }); // lastOnlineAt antigo → 1º do pool
+    await seedPresence(cardio.id, { heartbeatAgoMs: 0 });
+
+    const res = await api().post('/api/teleconsulta-queue').set(H(token)).send({
+      patientId: patient.id, consent: true, specialty: 'Cardiologia',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body.entry).toMatchObject({ status: 'waiting' });
+
+    await runTeleconsultaQueueTick(new Date());
+    const row = await prisma.teleconsultaQueue.findFirst({ where: { patientId: patient.id }, select: { status: true, matchedDoctorId: true, specialtyFilter: true } });
+    expect(row).toMatchObject({ status: 'matched', matchedDoctorId: cardio.id, specialtyFilter: 'Cardiologia' });
+  });
+
+  // 17 ─ v1.1: POST com preferredDoctorId — o escolhido recebe a offer PRIMEIRO
+  // (mesmo com outro médico na frente do pool por presença antiga).
+  itR('POST com preferredDoctorId casa com o médico escolhido primeiro', async () => {
+    const { user, patient, token } = await createUser();
+    const { doctor: primeiro } = await createDoctor({ crm: crm(), name: 'Primeiro Pool' });
+    const { doctor: escolhido } = await createDoctor({ crm: crm(), name: 'Escolhido' });
+    await seedPresence(primeiro.id, { heartbeatAgoMs: 60_000 }); // seria o match natural
+    await seedPresence(escolhido.id, { heartbeatAgoMs: 0 });
+
+    const res = await api().post('/api/teleconsulta-queue').set(H(token)).send({
+      patientId: patient.id, consent: true, preferredDoctorId: escolhido.id,
+    });
+    expect(res.status).toBe(201);
+
+    await runTeleconsultaQueueTick(new Date());
+    const row = await prisma.teleconsultaQueue.findFirst({ where: { patientId: patient.id }, select: { status: true, matchedDoctorId: true, preferredDoctorId: true } });
+    expect(row).toMatchObject({ status: 'matched', matchedDoctorId: escolhido.id, preferredDoctorId: escolhido.id });
+  });
 });
 
 // ── Rotas do médico: polling de chamadas + aceite com deadline (§2) ──────────────────

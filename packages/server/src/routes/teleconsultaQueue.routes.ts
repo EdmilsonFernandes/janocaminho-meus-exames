@@ -72,16 +72,52 @@ async function requireQueueDoctor(req: AnyRequest, res: Response, next: NextFunc
 const router = Router();
 
 /** GET /api/teleconsulta-queue/status — tela "Falar agora": faixa de preço dos médicos
- *  online, posição na fila e offer atual (com PIX vivo quando aguardando pagamento). */
+ *  online, posição na fila e offer atual (com PIX vivo quando aguardando pagamento).
+ *  v1.1: inclui `doctors[]` — médicos online (heartbeat fresco, não bloqueados) com
+ *  especialidade/cidade/preço p/ o paciente ESCOLHER. Ordenação: mais atendimentos
+ *  imediatos HOJE desc ("online primeiro e melhor primeiro"), empate = preço asc.
+ *  Foto NÃO vem aqui (peso): `photoAvailable` + rota GET /api/doctor/photo/:id (?t=). */
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const now = new Date();
     const presence = await prisma.doctorOnlinePresence.findMany({
-      where: freshPresenceWhere(now),
-      select: { doctorId: true, doctor: { select: { consultPriceCents: true, instantPriceCents: true } } },
+      where: { ...freshPresenceWhere(now), doctor: { blocked: false } },
+      select: {
+        doctorId: true,
+        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true } },
+      },
     });
-    const prices = presence.map((p) => p.doctor?.instantPriceCents ?? p.doctor?.consultPriceCents ?? 0);
-    const priceRangeCents = presence.length ? { min: Math.min(...prices), max: Math.max(...prices) } : null;
+    // Carga de HOJE (mesma query do match §3) — ordena a lista: quem já atendeu mais
+    // pela fila hoje vem primeiro (mais experiente da fila). Degrada sem ordem extra.
+    const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
+    const loadRows = await prisma.reminder.groupBy({
+      by: ['createdByDoctorId'],
+      where: { type: 'teleconsulta', createdByDoctorId: { not: null }, dueDate: { gte: dayStart } },
+      _count: { _all: true },
+    }).catch(() => [] as { createdByDoctorId: string | null; _count: { _all: number } }[]);
+    const load = new Map<string, number>();
+    for (const l of loadRows) if (l.createdByDoctorId) load.set(l.createdByDoctorId, l._count._all);
+
+    const doctors = presence
+      .map((p) => ({
+        d: p.doctor,
+        priceCents: p.doctor?.instantPriceCents ?? p.doctor?.consultPriceCents ?? 0,
+        load: load.get(p.doctorId) ?? 0,
+      }))
+      .filter((x): x is { d: NonNullable<typeof x.d>; priceCents: number; load: number } => !!x.d)
+      .sort((a, b) => b.load - a.load || a.priceCents - b.priceCents || a.d.name.localeCompare(b.d.name, 'pt-BR'))
+      .map((x) => ({
+        id: x.d.id,
+        name: x.d.name,
+        specialty: x.d.specialty ?? null,
+        city: x.d.city ?? null,
+        photoAvailable: !!x.d.photoUrl,
+        priceCents: x.priceCents,
+        crmUf: x.d.crmUf ?? null,
+      }));
+
+    const prices = doctors.map((d) => d.priceCents);
+    const priceRangeCents = doctors.length ? { min: Math.min(...prices), max: Math.max(...prices) } : null;
 
     // Entrada ativa do PACIENTE (qualquer paciente da conta — a fila é por pessoa).
     const ids = await userPatientIds(req.userId!);
@@ -105,7 +141,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       position = ahead + 1;
     }
     // ETA heurístico: ~10min por atendimento dividido entre os médicos online.
-    const doctorsOnline = presence.length;
+    const doctorsOnline = doctors.length;
     const etaMin = entry?.status === 'waiting' && doctorsOnline > 0
       ? Math.max(1, Math.ceil((position ?? 1) / doctorsOnline) * 10)
       : null;
@@ -133,15 +169,19 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       online: !!entry,
       entry: entry ? { id: entry.id, status: entry.status, position, enteredAt: entry.enteredAt.toISOString(), etaMin } : null,
       doctorsOnline,
+      doctors, // v1.1: lista visível p/ escolha (ordenada: mais atendimentos hoje → preço)
       priceRangeCents,
       matched,
     });
   } catch (e) { next(e); }
 });
 
-/** POST /api/teleconsulta-queue {patientId, consent:true, maxPriceCents?} — entrada na
- *  fila. Consent (Art.15/CFM 2.314) é dado AQUI e persistido na entry (auditável).
- *  Sem cobrança na entrada — o PIX só nasce no MATCH (§3.2). */
+/** POST /api/teleconsulta-queue {patientId, consent:true, maxPriceCents?, specialty?,
+ *  preferredDoctorId?} — entrada na fila. Consent (Art.15/CFM 2.314) é dado AQUI e
+ *  persistido na entry (auditável). Sem cobrança na entrada — o PIX só nasce no MATCH
+ *  (§3.2). v1.1: escolha opcional — `specialty` (match SÓ com a especialidade exata)
+ *  e `preferredDoctorId` (o escolhido recebe a offer primeiro; offline/ocupado no
+ *  momento → FIFO normal do filtro — preferência macia, sem FK). */
 router.post('/', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const ids = await userPatientIds(req.userId!);
@@ -150,6 +190,19 @@ router.post('/', requireAuth, async (req: AuthedRequest, res, next) => {
     if (req.body?.consent !== true) {
       res.status(400).json({ error: 'Autorize a telemedicina (Art. 15, Res. CFM 2.314/2022) antes de entrar na fila.', code: 'CONSENT_REQUIRED' });
       return;
+    }
+    // v1.1: filtros opcionais — sanitizados (trim + teto de tamanho, nada de regex/HTML).
+    let specialtyFilter: string | null = null;
+    if (req.body?.specialty != null) {
+      const s = String(req.body.specialty).trim();
+      if (s.length > 80) { res.status(400).json({ error: 'Especialidade inválida.', code: 'BAD_SPECIALTY' }); return; }
+      specialtyFilter = s || null;
+    }
+    let preferredDoctorId: string | null = null;
+    if (req.body?.preferredDoctorId != null) {
+      const d = String(req.body.preferredDoctorId).trim();
+      if (d.length > 64) { res.status(400).json({ error: 'Médico inválido.', code: 'BAD_DOCTOR' }); return; }
+      preferredDoctorId = d || null;
     }
     let maxPriceCents: number | null = null;
     if (req.body?.maxPriceCents != null) {
@@ -178,12 +231,14 @@ router.post('/', requireAuth, async (req: AuthedRequest, res, next) => {
         ownerId: req.userId!,
         consentAt: new Date(),
         maxPriceCents,
+        specialtyFilter,
+        preferredDoctorId,
       },
       select: { id: true, status: true, enteredAt: true, maxPriceCents: true, attempts: true },
     });
     await audit('QUEUE_ENTER', req, {
       actorType: 'USER', actorId: req.userId, targetType: 'PATIENT', targetId: pid,
-      after: { entryId: entry.id, maxPriceCents, consentAt: true },
+      after: { entryId: entry.id, maxPriceCents, specialtyFilter, preferredDoctorId, consentAt: true },
     });
     // Push neutro de confirmação (LGPD: sem dado clínico; sem reminderId ainda).
     void sendPushToUser(req.userId!, 'Solicitação recebida', 'Você está na fila de atendimento. Avisaremos quando um médico estiver disponível.', { type: 'teleconsulta-queue' }).catch(() => {});
@@ -243,7 +298,7 @@ doctorRouter.get('/queue/pricing', async (req: AnyRequest, res, next) => {
   try {
     const doc = await prisma.doctor.findUnique({
       where: { id: req.doctorId! },
-      select: { consultPriceCents: true, instantPriceCents: true },
+      select: { consultPriceCents: true, instantPriceCents: true, city: true },
     });
     const eff = doc?.instantPriceCents ?? doc?.consultPriceCents ?? null;
     const priceCents = eff && eff > 0 ? eff : null;
@@ -259,29 +314,46 @@ doctorRouter.get('/queue/pricing', async (req: AnyRequest, res, next) => {
       consultPriceCents: doc?.consultPriceCents ?? null,
       instantPriceCents: doc?.instantPriceCents ?? null, // null = herda o valor da consulta
       inheritsConsult: doc?.instantPriceCents == null,
+      city: doc?.city ?? null, // v1.1: cidade de atendimento online (editável no dialog)
     });
   } catch (e) { next(e); }
 });
 
 /** PUT /api/doctor/instant-price — v1.1: valor PRÓPRIO do atendimento imediato.
- *  {instantPriceCents: int} — null/0 = herdar o valor da consulta. Mesma faixa (R$20–20.000). */
+ *  {instantPriceCents: int} — null/0 = herdar o valor da consulta. Mesma faixa (R$20–20.000).
+ *  v1.1: aceita TAMBÉM {city?: string|null} (trim, máx 60 — null/'' limpa). Chaves
+ *  AUSENTES não tocam o campo: {city:'X'} salva a cidade sem alterar o valor. */
 doctorRouter.put('/instant-price', async (req: AnyRequest, res, next) => {
   try {
-    const v = req.body?.instantPriceCents;
-    let data: number | null;
-    if (v === null || v === undefined || Number(v) === 0) data = null;
-    else {
-      const cents = Number(v);
-      const minCents = getTeleconsultaConfig().priceMinCents;
-      if (!Number.isInteger(cents) || cents < minCents || cents > 2_000_000) {
-        res.status(400).json({ error: `Valor inválido: mínimo R$ ${(minCents / 100).toFixed(2).replace('.', ',')} (garante estorno integral), máximo R$ 20.000,00 — ou 0 para usar o valor da consulta.`, code: 'PRICE_FLOOR' });
-        return;
+    const body = req.body ?? {};
+    let data: number | null | undefined;
+    if (body.instantPriceCents !== undefined) {
+      const v = body.instantPriceCents;
+      if (v === null || Number(v) === 0) data = null;
+      else {
+        const cents = Number(v);
+        const minCents = getTeleconsultaConfig().priceMinCents;
+        if (!Number.isInteger(cents) || cents < minCents || cents > 2_000_000) {
+          res.status(400).json({ error: `Valor inválido: mínimo R$ ${(minCents / 100).toFixed(2).replace('.', ',')} (garante estorno integral), máximo R$ 20.000,00 — ou 0 para usar o valor da consulta.`, code: 'PRICE_FLOOR' });
+          return;
+        }
+        data = cents;
       }
-      data = cents;
     }
-    await prisma.doctor.update({ where: { id: req.doctorId! }, data: { instantPriceCents: data } });
-    const eff = data ?? (await prisma.doctor.findUnique({ where: { id: req.doctorId! }, select: { consultPriceCents: true } }))?.consultPriceCents ?? null;
-    res.json({ ok: true, instantPriceCents: data, effectiveCents: eff && eff > 0 ? eff : null });
+    let city: string | null | undefined; // undefined = não tocar
+    if (body.city !== undefined) {
+      const c = body.city === null ? '' : String(body.city).trim();
+      if (c.length > 60) { res.status(400).json({ error: 'Cidade inválida (máx. 60 caracteres).', code: 'BAD_CITY' }); return; }
+      city = c || null;
+    }
+    if (data === undefined && city === undefined) {
+      res.status(400).json({ error: 'Envie { instantPriceCents } e/ou { city }.', code: 'BAD_REQUEST' });
+      return;
+    }
+    await prisma.doctor.update({ where: { id: req.doctorId! }, data: { ...(data !== undefined ? { instantPriceCents: data } : {}), ...(city !== undefined ? { city } : {}) } });
+    const after = await prisma.doctor.findUnique({ where: { id: req.doctorId! }, select: { consultPriceCents: true, instantPriceCents: true, city: true } });
+    const eff = after?.instantPriceCents ?? after?.consultPriceCents ?? null;
+    res.json({ ok: true, instantPriceCents: after?.instantPriceCents ?? null, effectiveCents: eff && eff > 0 ? eff : null, city: after?.city ?? null });
   } catch (e) { next(e); }
 });
 

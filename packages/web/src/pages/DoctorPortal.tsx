@@ -771,9 +771,12 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [atendBusy, setAtendBusy] = useState(false);
   // v1.1: pricing do imediato — dialog antes de ligar (valor que a fila cobra + líquido + editar).
   const [pricingDlg, setPricingDlg] = useState(false);
-  const [pricing, setPricing] = useState<{ priceCents: number | null; netCents: number | null; platformBps: number | null; instantPriceCents: number | null; inheritsConsult: boolean } | null>(null);
+  const [pricing, setPricing] = useState<{ priceCents: number | null; netCents: number | null; platformBps: number | null; instantPriceCents: number | null; inheritsConsult: boolean; city?: string | null } | null>(null);
   const [priceInput, setPriceInput] = useState('');
   const [priceBusy, setPriceBusy] = useState(false);
+  // v1.1: cidade de atendimento ONLINE — o paciente vê "📍 cidade" no card da fila.
+  const [cityInput, setCityInput] = useState('');
+  const [cityBusy, setCityBusy] = useState(false);
   const [queueOffer, setQueueOffer] = useState<QueueCallOffer | null>(null);
   const [queueStats, setQueueStats] = useState<{ waiting: number; myAccepted: number }>({ waiting: 0, myAccepted: 0 });
   const [acceptedCall, setAcceptedCall] = useState<{ reminderId: string; patientName: string } | null>(null);
@@ -834,11 +837,31 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   }, [atendOn]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openPricingDlg = async () => {
-    setPricingDlg(true); setPriceInput('');
+    setPricingDlg(true); setPriceInput(''); setCityInput('');
     try {
       const r = await fetch(`${API_URL}/doctor/queue/pricing`, { headers: h });
-      setPricing(r.ok ? await r.json() : null);
+      if (r.ok) {
+        const d = await r.json();
+        setPricing(d);
+        setCityInput(d?.city ?? '');
+      } else setPricing(null);
     } catch { setPricing(null); }
+  };
+
+  // v1.1: salva a cidade junto (PUT instant-price aceita {city} isolado — não toca no valor).
+  const saveCity = async () => {
+    const city = cityInput.trim();
+    if (city.length > 60) { snackbar({ message: 'Cidade muito longa (máx. 60 caracteres).', severity: 'warning' }); return; }
+    setCityBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor/instant-price`, { method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ city: city || null }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.error || 'Cidade inválida.');
+      const pr = await fetch(`${API_URL}/doctor/queue/pricing`, { headers: h }).then((x) => x.json()).catch(() => null);
+      setPricing(pr);
+      snackbar({ message: city ? 'Cidade de atendimento salva.' : 'Cidade removida.', severity: 'success' });
+    } catch (e: any) { snackbar({ message: e?.message || 'Não foi possível salvar a cidade.', severity: 'error' }); }
+    finally { setCityBusy(false); }
   };
 
   const saveInstantPrice = async () => {
@@ -1435,6 +1458,24 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   Salvar valor
                 </Button>
               </Stack>
+              {/* v1.1: cidade de atendimento online — aparece no card da fila do paciente */}
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TextField
+                  size="small" fullWidth placeholder="ex.: São José dos Campos"
+                  value={cityInput}
+                  onChange={(e) => setCityInput(e.target.value.slice(0, 60))}
+                  inputProps={{ 'aria-label': 'Cidade de atendimento online', maxLength: 60 }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                />
+                <Button size="small" variant="outlined" disabled={cityBusy || cityInput.trim() === (pricing.city ?? '')} onClick={() => void saveCity()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, minHeight: 44, flexShrink: 0 }}>
+                  Salvar cidade
+                </Button>
+              </Stack>
+              {pricing.city && (
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                  Pacientes veem: <b style={{ color: '#20b2aa' }}>📍 {pricing.city}</b> no seu card da fila.
+                </Typography>
+              )}
               <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
                 Enquanto online, chamados chegam aqui com <b>45s</b> para aceitar. Mín. R$ 20,00 (garante estorno integral); 0 = usar o valor da consulta.
               </Typography>

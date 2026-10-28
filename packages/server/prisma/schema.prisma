@@ -1075,6 +1075,9 @@ model Doctor {
   phone        String?   // telefone/WhatsApp p/ agendamento
   clinicName   String?   // nome do consultório/clínica
   clinicCity   String?   // cidade (ex.: "São Paulo - SP")
+  // Fila imediata v1.1 (28/10/26): cidade de atendimento ONLINE (dialog "Atender
+  // agora") — o paciente vê "📍 cidade" no card da fila. Diferente de clinicCity.
+  city         String?
   bio          String?   // apresentação curta / referências
   email        String   @unique
   emailVerified Boolean @default(false) // valida e-mail no cadastro (igual o paciente) — antes logava direto
@@ -1208,6 +1211,11 @@ model TeleconsultaQueue {
   status          String    @default("waiting") // waiting|matched|accepted|expired|cancelled|no_doctors|ended
   consentAt       DateTime  // consent Art.15/CFM 2.314 dado NA ENTRADA (auditável) — copiado pro Reminder no match
   maxPriceCents   Int?      // teto autorizado pelo paciente (null = só consultas grátis)
+  // v1.1 (28/10/26): escolha opcional na entrada — filtro visual de especialidade
+  // (match SÓ com doctor.specialty exata) e/ou médico preferido (offer primeiro a
+  // ele; sem FK de propósito: preferência macia, cai pro FIFO se não elegível).
+  specialtyFilter   String?
+  preferredDoctorId String?
   matchedDoctorId String?
   matchedDoctor   Doctor?   @relation(fields: [matchedDoctorId], references: [id])
   reminderId      String?   // SEM FK: Reminder é deletável (portal) — fila nunca bloqueia o DELETE
