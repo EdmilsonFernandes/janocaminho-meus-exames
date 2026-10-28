@@ -74,6 +74,7 @@ import { PersonaSwitcher } from '../sports/PersonaSwitcher';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 import { TeleconsultaCard } from './TeleconsultaCard';
 import { LiveTeleconsultaBanner } from './LiveTeleconsultaBanner';
+import { FalarAgoraCompact } from '../FalarAgora';
 import { useUpcomingTeleconsulta } from '../../hooks/useUpcomingTeleconsulta';
 import { openTelemedicinaRoom } from '../../utils/telemedicina';
 import { heroPhase } from '../../utils/heroPhase';
@@ -1186,6 +1187,9 @@ const DashboardV2Inner = () => {
     <PageContainer width="wide" sx={{ bgcolor: 'transparent', minHeight: '100dvh' }}>
       <DashboardHeader firstName={firstName} />
       {!demo && <LiveTeleconsultaBanner />}
+      {/* Fila imediata "Falar agora" (spec 2026-10-27 §5) — strip compacto; some
+          quando não há médicos online nem entrada ativa (mínimo invasivo). */}
+      {!demo && <FalarAgoraCompact />}
       {/* 1. HERO — IMEDIATAMENTE após a saudação (fix #1): o dado mais importante
           abre a tela. Resumo em áudio vira play compacto DENTRO do hero (fix #15).
           STAGGER: hero entra primeiro (0ms), KPI 100ms, grid 200ms, banner 300ms. */}

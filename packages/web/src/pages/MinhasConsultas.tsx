@@ -15,6 +15,7 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
 import { safeAvatar } from '../utils/safeAvatar';
 import { ConsultaAtivaCard } from '../components/teleconsulta/ConsultaAtivaCard';
+import { FalarAgora } from '../components/FalarAgora';
 // §2 (28/10/26): "Minhas consultas" — registro particular do paciente, ao lado das
 // teleconsultas do produto. Prefill vem de Meus médicos / Encontrar especialistas.
 import { MinhasConsultasRegistradas } from '../components/consultas/MinhasConsultasRegistradas';
@@ -113,6 +114,9 @@ export const MinhasConsultasPage = () => {
         title="Minhas Consultas"
         subtitle="Suas teleconsultas com sala virtual, pagamento e histórico em um só lugar."
       />
+
+      {/* Fila imediata "Falar agora" (spec 2026-10-27 §5) — topo, acima da lista. */}
+      <FalarAgora sx={{ mb: 2.5 }} />
 
       {/* Seletor de área (28/10/26): Teleconsultas do produto × registro particular */}
       <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>

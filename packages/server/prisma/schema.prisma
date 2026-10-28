@@ -280,12 +280,13 @@ model Patient {
   createdAt    DateTime  @default(now())
   exams        Exam[]
   reminders    Reminder[]
-  // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
-  doctorLinks        PatientDoctorLink[]
-  patientConsultations PatientConsultation[]
+  queueEntries TeleconsultaQueue[]
   measurements Measurement[]
   vaccines     Vaccine[]
   expenses     Expense[]
+  // "Meus médicos" (28/10/26): vínculos privados + consultas registradas pelo paciente.
+  doctorLinks        PatientDoctorLink[]
+  patientConsultations PatientConsultation[]
   doctorShares DoctorShare[]
   doctorQuestions DoctorQuestion[]
   riskAssessments RiskAssessment[]
@@ -1026,6 +1027,10 @@ model Doctor {
   googleRefreshTokenIv   String?
   createdAt    DateTime @default(now())
   shares       DoctorShare[]
+  // ── Fila de teleconsulta imediata (27/10/26, spec 2026-10-27-fila-imediata-spec.md):
+  //    presença "atender agora" (heartbeat 30s, expira 90s) + offers feitos a este médico.
+  onlinePresence DoctorOnlinePresence?
+  queueMatches   TeleconsultaQueue[]
   // "Meus médicos" (28/10/26): vínculo privado (sem acesso a exames), consultas
   // registradas pelo paciente e convênios informados (modelagem §5).
   links                PatientDoctorLink[]
@@ -1055,6 +1060,9 @@ model Doctor {
 // Consulta particular (23/10/26): valor PADRÃO da teleconsulta particular (centavos).
 // Null/0 = sem cobrança. O valor é CONGELADO no Reminder no agendamento (paidAt/paymentRef lá).
 consultPriceCents  Int?
+// Fila imediata (28/10, v1.1): valor PRÓPRIO do atendimento imediato. Null = usa
+// consultPriceCents (fallback). Mín/máx iguais (R$ 20–20.000) — congela no match.
+instantPriceCents  Int?
 // §18.5/§18.1 (Onda 3, 24/10/26): chave PIX de recebimento dos repasses (criptografada
 // AES-256-GCM como a PII — APP_ENCRYPTION_KEY). Exibição SEMPRE mascarada; troca exige
 // senha atual (auth reforçada) + audit TELECONSULTA_PAYOUT_DETAILS_CHANGED (não retroativo).
@@ -1106,6 +1114,49 @@ model DoctorShare {
   @@unique([patientId, doctorId])
   @@index([doctorId, active])
   @@map("doctor_shares")
+}
+
+// ── FILA DE TELECONSULTA IMEDIATA ("Falar agora", 27/10/26 — spec
+//    docs/design/2026-10-27-fila-imediata-spec.md §1). Paciente entra na fila vendo a
+//    faixa de preço dos médicos ONLINE; o tick faz o match FIFO e cria a teleconsulta.
+//    Share efêmero do match = DoctorShare.convenio='fila-imediata' (revogado no fim).
+//    Migration 20261027a_teleconsulta_queue (aditiva/idempotente) cria também os
+//    partial uniques: 1 entrada ativa por paciente + 1 offer por médico.
+model DoctorOnlinePresence {
+  id              String    @id @default(cuid())
+  doctorId        String    @unique
+  doctor          Doctor    @relation(fields: [doctorId], references: [id])
+  online          Boolean   @default(false)
+  lastHeartbeatAt DateTime? // heartbeat esperado a cada 30s; >90s = offline (tick passo 1)
+  lastOnlineAt    DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("doctor_online_presence")
+}
+
+model TeleconsultaQueue {
+  id              String    @id @default(cuid())
+  patientId       String
+  patient         Patient   @relation(fields: [patientId], references: [id])
+  ownerId         String
+  status          String    @default("waiting") // waiting|matched|accepted|expired|cancelled|no_doctors|ended
+  consentAt       DateTime  // consent Art.15/CFM 2.314 dado NA ENTRADA (auditável) — copiado pro Reminder no match
+  maxPriceCents   Int?      // teto autorizado pelo paciente (null = só consultas grátis)
+  matchedDoctorId String?
+  matchedDoctor   Doctor?   @relation(fields: [matchedDoctorId], references: [id])
+  reminderId      String?   // SEM FK: Reminder é deletável (portal) — fila nunca bloqueia o DELETE
+  offerExpiresAt  DateTime? // deadline do aceite (knob teleconsulta.queueOfferTtlSec, default 45s)
+  attempts        Int       @default(0) // offers feitos; ≥3 = expired 'no_accept' (anti-gaming)
+  enteredAt       DateTime  @default(now()) // FIFO — preservado em re-oferta/decline
+  matchedAt       DateTime?
+  acceptedAt      DateTime?
+  endedAt         DateTime?
+  cancelReason    String?
+
+  @@index([status, enteredAt])
+  @@index([status, matchedDoctorId])
+  @@map("teleconsulta_queue")
 }
 
 // Convite de paciente feito pelo médico (pré-cadastro no agendamento) com share PRÉ-autorizado.

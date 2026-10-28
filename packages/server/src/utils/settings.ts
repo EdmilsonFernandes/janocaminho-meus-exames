@@ -100,7 +100,10 @@ export const DEFAULT_SETTINGS = {
   // (dueDate + N min sem a contraparte → no_show com noShowBy = quem faltou). NÃO confundir
   // com o grace de RECONEXÃO (5min, client): tolerância = quem NUNCA apareceu; grace = queda
   // de quem já entrou (ambos presentes → desconexão é caso do /end humano, não de ausência).
-  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000 },
+  // FILA IMEDIATA (27/10/26, spec fila-imediata §1/§3): queuePatientTimeoutMin = espera máx
+  // do paciente na fila (min) antes de expirar; queueOfferTtlSec = deadline de aceite da
+  // offer pelo médico (s) — attempts≥3 em offers perdidas = expired 'no_accept'.
+  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000, queuePatientTimeoutMin: 10, queueOfferTtlSec: 45 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -219,7 +222,7 @@ export function sportsModeEnabled(): boolean {
 
 /** Config da teleconsulta (spec gaps §1): fallback defensivo pros defaults se o banco
  *  tiver algo inválido/ausente (mesma família do getMonthlyPlan — nunca hardcode na rota). */
-export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number; slotMin: number; noShowToleranceMin: number; priceMinCents: number } {
+export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSeconds: number; slotMin: number; noShowToleranceMin: number; priceMinCents: number; queuePatientTimeoutMin: number; queueOfferTtlSec: number } {
   const t: any = (getSettings() as any).teleconsulta ?? {};
   return {
     entryWindowMin: Number(t.entryWindowMin) > 0 ? Number(t.entryWindowMin) : 5,
@@ -230,6 +233,9 @@ export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSecon
     // Estorno Asaas (26/10): a tarifa do PIX NÃO volta no estorno — consulta barata
     // demais nasce sem saldo pra se devolver (doc Asaas). Default R$20 dá folga.
     priceMinCents: Number(t.priceMinCents) >= 100 ? Number(t.priceMinCents) : 2000,
+    // Fila imediata (27/10/26): espera máx do paciente (min) e TTL da offer (s).
+    queuePatientTimeoutMin: Number(t.queuePatientTimeoutMin) > 0 ? Number(t.queuePatientTimeoutMin) : 10,
+    queueOfferTtlSec: Number(t.queueOfferTtlSec) > 0 ? Number(t.queueOfferTtlSec) : 45,
   };
 }
 

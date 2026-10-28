@@ -62,6 +62,10 @@ import examRequestRoutes from './routes/examRequest.routes';
 // /teleconsulta/:id/summary/generate, PUT /summary, POST /summary/approve) — mesmo
 // padrão D8 (montado em /api, sem overlap com teleconsulta.routes.ts).
 import consultSummaryRoutes from './routes/consult-summary.routes';
+// FILA IMEDIATA ("Falar agora", 27/10/26): rotas do paciente em /api/teleconsulta-queue
+// e do médico espelhadas em /api/doctor (online-presence/queue/calls — sem overlap com
+// doctor.routes). O MATCH é do job (src/jobs/teleconsultaQueue.ts).
+import teleconsultaQueueRoutes, { doctorRouter as teleconsultaQueueDoctorRoutes } from './routes/teleconsultaQueue.routes';
 // MEUS MÉDICOS / MINHAS CONSULTAS / ENCONTRAR ESPECIALISTAS (28/10/26): área do paciente
 // — vínculo privado (sem conceder acesso a exames), consultas registradas e busca no
 // DIRETÓRIO PRÓPRIO (zero integração paga — decisão do dono).
@@ -357,6 +361,7 @@ app.use('/api/analyses', analysisRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/teleconsulta', teleconsultaRoutes);
+app.use('/api/teleconsulta-queue', teleconsultaQueueRoutes);
 app.use('/api', examRequestRoutes);
 app.use('/api', consultSummaryRoutes);
 app.use('/api/billing', billingRoutes);
@@ -424,6 +429,7 @@ app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
+app.use('/api/doctor', teleconsultaQueueDoctorRoutes); // fila imediata: online-presence + queue/calls (sem overlap)
 app.use('/api/doctor-shares', doctorShareRoutes);
 app.use('/api/my-doctors', myDoctorsRoutes); // vínculo privado paciente↔médico (§1)
 app.use('/api/my-consultations', myConsultationsRoutes); // consultas registradas pelo paciente (§2)

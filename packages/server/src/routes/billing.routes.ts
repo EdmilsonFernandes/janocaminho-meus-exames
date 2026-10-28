@@ -13,17 +13,9 @@ import { createAsaasCardCharge, AsaasApiError } from '../payments/asaas-provider
 import { validateCardCharge, cardLast4, onlyDigits, isValidCardNumber } from '../utils/card-validation';
 import { upload } from '../middleware/upload';
 import { decryptPII } from '../utils/crypto';
-
-/** CPF do pagador (paciente TITULAR da conta, descriptografado) — o Asaas exige CPF
- *  no customer p/ cobrança PIX (400 invalid_object sem ele, provado em prod 04/10).
- *  Undefined = sem CPF no cadastro → o provider pula o Asaas e o fallback assume. */
-async function payerCpfFor(userId: string): Promise<string | undefined> {
-  const titular = await prisma.patient.findFirst({
-    where: { ownerId: userId, relationship: 'Titular' },
-    select: { cpfEncrypted: true, cpfIv: true },
-  });
-  return decryptPII(titular?.cpfEncrypted, titular?.cpfIv) ?? undefined;
-}
+// PIX de teleconsulta (extraído 27/10/26 — fila imediata spec §3.2 reusa o MESMO fluxo):
+// criação/retomada da cobrança + helpers do pagador/notification_url (antes locais aqui).
+import { createTeleconsultaPix, payerCpfFor, publicNotifyUrl } from '../utils/teleconsultaPix';
 
 const router = Router();
 
@@ -31,13 +23,6 @@ const router = Router();
 // 2026-08-23 eliminou os 7 hardcodes de 19,90). Só MENSAL (sem anual: não compromete 12
 // meses no ar). Pack = mesma moeda/saldo; mudar pack NÃO invalida créditos já comprados.
 const packById = (id: string) => getCreditPacks().find((p) => p.id === id);
-
-/** notification_url só vale se for HTTPS público — localhost/HTTP faz o MP rejeitar
- *  ("notification_url attribute must be url valid"). Em dev (localhost) devolve undefined. */
-const publicNotifyUrl = (): string | undefined => {
-  const u = config.mpNotificationUrl;
-  return u && /^https:\/\/(?!localhost|127\.0\.0\.1)(?!.*\.local\b)/i.test(u) ? u : undefined;
-};
 
 router.get('/plans', (_req, res) => {
   const plan = getMonthlyPlan();
@@ -513,63 +498,22 @@ router.post('/teleconsulta/:id', requireAuth, async (req: AuthedRequest, res, ne
     if (r.paidAt) { res.status(409).json({ error: 'Consulta já paga.', paidAt: r.paidAt.toISOString() }); return; }
     const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { id: true, name: true, email: true } });
     if (!user) { res.status(404).json({ error: 'Usuário não encontrado' }); return; }
-    if (!pixProviderReady()) { res.status(503).json({ error: 'Pagamentos não configurados.' }); return; }
 
-    const subscriptionColumns = await getSubscriptionColumnSupport();
-    // RETOMADA (padrão gateway, igual plano/relatório): PIX vivo desta consulta → 409 com o MESMO QR/timer.
-    if (subscriptionColumns.hasPixResume) {
-      await cancelStalePendingPixes().catch(() => {});
-      const existing = await prisma.subscription.findFirst({
-        where: { userId: user.id, status: 'PENDING', mpPreferenceId: `teleconsulta_${r.id}`, pixExpiresAt: { gt: new Date() } },
-        orderBy: { createdAt: 'desc' },
-        select: { id: true, mpPaymentId: true, pixQrCode: true, pixQrBase64: true, pixExpiresAt: true },
-      });
-      if (existing?.pixQrCode && existing?.pixQrBase64 && existing?.pixExpiresAt) {
-        res.status(409).json({
-          error: 'Você já tem um PIX pendente desta consulta. Conclua o pagamento ou aguarde expirar.',
-          pendingPix: {
-            id: existing.id, paymentId: existing.mpPaymentId ?? '', qrCode: existing.pixQrCode,
-            qrBase64: existing.pixQrBase64, expiresAt: existing.pixExpiresAt.toISOString(), priceCents,
-          },
-        });
-        return;
-      }
-    }
-
-    const sub = await createSubscriptionCompat({ userId: user.id, amount: priceCents / 100, periodDays: 0, status: 'PENDING' });
-    // Tag da ordem (mesmo padrão 'report_pack'): webhooks Asaas/OpenPix casam por
-    // mpPaymentId e derivam o kind pela tag; o MP casa pelo external_reference abaixo.
-    await updateSubscriptionCompat(sub.id, { mpPreferenceId: `teleconsulta_${r.id}` });
-    const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
-    let charge: PixChargeResult;
-    try {
-      charge = await createPixCharge({
-        amountBrlCents: priceCents,
-        correlationID: `teleconsulta_${sub.id}`, // único por ordem (OpenPix casa por mpPaymentId)
-        externalReference: `${sub.id}|0|TELE:${r.id}`, // MP: webhook casa por subId|…|TELE:<reminderId>
-        description: `Dr. Exame — Consulta particular: ${r.title.slice(0, 60)}`,
-        payerEmail: user.email,
-        payerFirstName: (user.name || 'Cliente').split(' ')[0],
-        userId: user.id,
-        payerName: user.name || undefined,
-        payerCpfCnpj: await payerCpfFor(user.id),
-        expiresAt: expires,
-        notificationUrl: publicNotifyUrl(),
-      });
-    } catch (e) {
-      console.error('[teleconsulta] PIX falhou (' + activePixProvider() + '):', (e as Error).message);
-      await updateSubscriptionCompat(sub.id, { status: 'FAILED' });
-      res.status(503).json({ error: 'Pagamento indisponível no momento — tente novamente em alguns minutos. Se persistir, fale com o suporte.' });
+    // Fluxo extraído p/ utils/teleconsultaPix (fila imediata chama no MATCH — spec §3.2).
+    // Contrato preservado: PIX vivo → 409 com o MESMO QR/timer; provedor falhou → 503.
+    const result = await createTeleconsultaPix({ id: r.id, ownerId: r.ownerId, title: r.title, consultPriceCents: r.consultPriceCents }, { id: user.id, name: user.name, email: user.email });
+    if (result.ok) {
+      res.json({ paymentId: result.paymentId, qrCode: result.qrCode, qrBase64: result.qrBase64, expiresAt: result.expiresAt, priceCents: result.priceCents, reminderId: result.reminderId });
       return;
     }
-    console.log('[teleconsulta] PIX criado:', charge.id, '| provider:', activePixProvider(), '| reminder:', r.id);
-    const qrImg = charge.qrBase64 ? (charge.qrBase64.startsWith('data:') ? charge.qrBase64 : `data:image/png;base64,${charge.qrBase64}`) : '';
-    if (subscriptionColumns.hasPixResume) {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id, pixQrCode: charge.qrCode, pixQrBase64: qrImg, pixExpiresAt: expires });
-    } else {
-      await updateSubscriptionCompat(sub.id, { mpPaymentId: charge.id });
+    if (result.kind === 'pending') {
+      res.status(409).json({
+        error: 'Você já tem um PIX pendente desta consulta. Conclua o pagamento ou aguarde expirar.',
+        pendingPix: result.pendingPix,
+      });
+      return;
     }
-    res.json({ paymentId: charge.id, qrCode: charge.qrCode, qrBase64: qrImg, expiresAt: expires.toISOString(), priceCents, reminderId: r.id });
+    res.status(503).json({ error: result.message });
   } catch (e) { next(e); }
 });
 

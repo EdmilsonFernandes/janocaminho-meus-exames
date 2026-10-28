@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, type KeyboardEvent, type ReactElement, type ReactNode } from 'react';
-import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Tooltip } from '@mui/material';
+import { Box, Card, CardContent, Typography, TextField, Button, CircularProgress, Stack, Chip, Avatar, Menu, MenuItem, Alert, Divider, InputAdornment, IconButton, Link, Drawer, List, ListItemButton, ListItemText, ListItemIcon, Accordion, AccordionSummary, AccordionDetails, Badge, InputBase, Paper, useMediaQuery, useTheme, Dialog, DialogTitle, DialogContent, DialogActions, Tabs, Tab, Tooltip, Switch } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import type { Theme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -110,6 +110,47 @@ const PayCountdown = ({ expiresAt, onExpire }: { expiresAt: string; onExpire: ()
       <Typography component="span" sx={{ fontWeight: 800, color: secs < 60 ? 'error.main' : premiumText(t.palette.mode), fontFamily: 'monospace', fontSize: 18 }}>{String(mm).padStart(2, '0')}:{String(ss).padStart(2, '0')}</Typography>
     </Box>
   );
+};
+
+/* ── ATENDER AGORA (fila imediata — spec 2026-10-27 §6) ────────────────────── */
+/** Offer do GET /doctor/queue/calls (contrato spec §2; campos extras tolerados). */
+interface QueueCallOffer {
+  callId: string;
+  patientName: string;
+  patientAge?: number | null;
+  queueWaitSec?: number | null;
+  priceCents?: number | null;
+  /** Líquido pro médico quando a snapshot traz (senão mostra o preço cheio). */
+  netPriceCents?: number | null;
+  acceptDeadlineIso?: string | null;
+  briefUrl?: string | null;
+}
+/** Countdown circular (determinate) do chamado imediato — o TOTAL é capturado no
+ *  1º mount (a deadline já vem parcialmente consumida); 0 não decide nada: o
+ *  polling devolve offer=null e o dialog fecha sozinho ("expirou"). */
+const OfferCountdown = ({ deadlineIso }: { deadlineIso: string | null }) => {
+  const [secs, setSecs] = useState(() => (deadlineIso ? Math.max(0, Math.ceil((new Date(deadlineIso).getTime() - Date.now()) / 1000)) : 0));
+  const totalRef = useRef(secs > 0 ? secs : 45);
+  useEffect(() => {
+    if (!deadlineIso) return;
+    const iv = setInterval(() => setSecs(Math.max(0, Math.ceil((new Date(deadlineIso).getTime() - Date.now()) / 1000))), 250);
+    return () => clearInterval(iv);
+  }, [deadlineIso]);
+  const pct = Math.max(0, Math.min(100, (secs / Math.max(1, totalRef.current)) * 100));
+  return (
+    <Stack direction="row" alignItems="center" spacing={1.25} aria-live="off">
+      <Box sx={{ position: 'relative', display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+        <CircularProgress variant="determinate" value={pct} size={52} thickness={4} sx={{ color: pct <= 25 ? 'error.main' : '#178f89' }} />
+        <Typography sx={{ position: 'absolute', fontSize: 14, fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: pct <= 25 ? 'error.main' : 'text.primary' }}>{secs}</Typography>
+      </Box>
+      <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 700 }}>segundos<br />para aceitar</Typography>
+    </Stack>
+  );
+};
+const fmtWait = (sec?: number | null) => {
+  const s = Math.max(0, Math.floor(sec ?? 0));
+  if (s < 60) return `${s}s`;
+  return `${Math.floor(s / 60)} min`;
 };
 
 /* Ícones das abas — PHOSPHOR duotone (premium, distintos, peso visual rico).
@@ -722,6 +763,167 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     }
   };
 
+  // ── ATENDER AGORA — fila imediata (spec 2026-10-27 §6) ─────────────────────
+  // Toggle de presença: ON → heartbeat 30s + polling de chamados 5s; OFF/unload/
+  // unmount → PUT online:false (keepalive). Heartbeat falha 3× → OFF + aviso.
+  const [atendOn, setAtendOn] = useState(false);
+  const [atendBusy, setAtendBusy] = useState(false);
+  // v1.1: pricing do imediato — dialog antes de ligar (valor que a fila cobra + líquido + editar).
+  const [pricingDlg, setPricingDlg] = useState(false);
+  const [pricing, setPricing] = useState<{ priceCents: number | null; netCents: number | null; platformBps: number | null; instantPriceCents: number | null; inheritsConsult: boolean } | null>(null);
+  const [priceInput, setPriceInput] = useState('');
+  const [priceBusy, setPriceBusy] = useState(false);
+  const [queueOffer, setQueueOffer] = useState<QueueCallOffer | null>(null);
+  const [queueStats, setQueueStats] = useState<{ waiting: number; myAccepted: number }>({ waiting: 0, myAccepted: 0 });
+  const [acceptedCall, setAcceptedCall] = useState<{ reminderId: string; patientName: string } | null>(null);
+  const [acceptBusy, setAcceptBusy] = useState(false);
+  const hbFails = useRef(0);
+  const prevOfferId = useRef<string | null>(null);
+
+  const pollQueueCalls = async () => {
+    try {
+      const r = await fetch(`${API_URL}/doctor/queue/calls`, { headers: h });
+      if (!r.ok) return;
+      const d = await r.json();
+      const offer: QueueCallOffer | null = d?.offer ?? null;
+      setQueueOffer(offer);
+      setQueueStats({ waiting: d?.stats?.waiting ?? 0, myAccepted: d?.stats?.myAccepted ?? 0 });
+      // Offer sumiu SEM decisão do médico → expirou no server: dialog fecha sozinho.
+      if (prevOfferId.current && !offer) snackbar({ message: 'Chamado expirou.', severity: 'warning' });
+      prevOfferId.current = offer?.callId ?? null;
+    } catch { /* offline: próximo tick */ }
+  };
+
+  useEffect(() => {
+    if (!atendOn) return;
+    const hb = async () => {
+      try {
+        const r = await fetch(`${API_URL}/doctor/online-presence/heartbeat`, { method: 'POST', headers: h });
+        if (r.ok) { hbFails.current = 0; return; }
+        throw new Error('offline');
+      } catch {
+        hbFails.current += 1;
+        if (hbFails.current >= 3) {
+          setAtendOn(false);
+          setQueueOffer(null);
+          prevOfferId.current = null;
+          snackbar({ message: 'Conexão instável — "Atender agora" foi pausado. Ative de novo quando estabilizar.', severity: 'warning' });
+        }
+      }
+    };
+    const goOffline = () => {
+      try {
+        fetch(`${API_URL}/doctor/online-presence`, {
+          method: 'PUT', keepalive: true,
+          headers: { ...h, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ online: false }),
+        }).catch(() => {});
+      } catch { /* best-effort — presença expira sozinha (90s sem heartbeat) */ }
+    };
+    void pollQueueCalls();
+    const ivHb = setInterval(() => void hb(), 30_000);
+    const ivPoll = setInterval(() => { if (document.visibilityState === 'visible') void pollQueueCalls(); }, 5_000);
+    const onUnload = () => goOffline();
+    window.addEventListener('beforeunload', onUnload);
+    return () => {
+      clearInterval(ivHb); clearInterval(ivPoll);
+      window.removeEventListener('beforeunload', onUnload);
+      goOffline();
+    };
+  }, [atendOn]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const openPricingDlg = async () => {
+    setPricingDlg(true); setPriceInput('');
+    try {
+      const r = await fetch(`${API_URL}/doctor/queue/pricing`, { headers: h });
+      setPricing(r.ok ? await r.json() : null);
+    } catch { setPricing(null); }
+  };
+
+  const saveInstantPrice = async () => {
+    const digits = priceInput.replace(/\D/g, '');
+    if (!digits) { snackbar({ message: 'Digite um valor (ex.: 180,00) — ou 0 para usar o da consulta.', severity: 'warning' }); return; }
+    setPriceBusy(true);
+    try {
+      const cents = Number(digits);
+      const r = await fetch(`${API_URL}/doctor/instant-price`, { method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ instantPriceCents: cents }) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.error || 'Valor inválido.');
+      const pr = await fetch(`${API_URL}/doctor/queue/pricing`, { headers: h }).then((x) => x.json()).catch(() => null);
+      setPricing(pr);
+      setPriceInput('');
+      snackbar({ message: 'Valor do imediato atualizado.', severity: 'success' });
+    } catch (e: any) { snackbar({ message: e?.message || 'Não foi possível salvar o valor.', severity: 'error' }); }
+    finally { setPriceBusy(false); }
+  };
+
+  const toggleAtend = async (on: boolean) => {
+    setAtendBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor/online-presence`, {
+        method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ online: on }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || d?.online !== on) throw new Error(d?.error || 'Falha ao atualizar sua presença.');
+      setAtendOn(on);
+      hbFails.current = 0;
+      setQueueOffer(null);
+      prevOfferId.current = null;
+      if (on) snackbar({ message: 'Você está online na fila imediata — os chamados aparecem automaticamente aqui.', severity: 'success' });
+    } catch (e: any) {
+      snackbar({ message: e?.message || 'Não foi possível atualizar sua presença agora.', severity: 'error' });
+    } finally { setAtendBusy(false); }
+  };
+
+  const declineCall = async () => {
+    const id = queueOffer?.callId;
+    setQueueOffer(null); // otimista — recusa é silenciosa (sem snackbar)
+    prevOfferId.current = null;
+    if (!id) return;
+    try { await fetch(`${API_URL}/doctor/queue/calls/${id}/decline`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({}) }); } catch { /* silencioso */ }
+  };
+
+  const acceptCall = async () => {
+    const offer = queueOffer;
+    if (!offer) return;
+    setAcceptBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor/queue/calls/${offer.callId}/accept`, { method: 'POST', headers: h });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(d?.error || 'Chamado expirou.');
+      setQueueOffer(null);
+      prevOfferId.current = null;
+      setAcceptedCall({ reminderId: d.reminderId, patientName: offer.patientName });
+      snackbar({ message: 'Chamado aceito — a sala abre quando o paciente concluir o pagamento.', severity: 'success' });
+      // Abre o painel do paciente (share efêmero criado no match): recarrega a
+      // lista e casa pelo nome normalizado; sem match, a linha "pagando" garante o
+      // caminho "Entrar na sala".
+      try {
+        const pr = await fetch(`${API_URL}/doctor/patients`, { headers: h });
+        if (pr.ok) {
+          const pd = await pr.json();
+          const items: any[] = pd.items ?? [];
+          const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+          const row = items.find((x) => norm(x.patient?.fullName || '') === norm(offer.patientName || ''));
+          if (row) {
+            setPatients([...items].sort((a: any, b: any) => (a.patient?.fullName ?? '').localeCompare(b.patient?.fullName ?? '', 'pt-BR', { sensitivity: 'base' })));
+            void openPatient(row);
+          } else void loadPatients();
+        }
+      } catch { /* painel é best-effort — a sala é o caminho garantido */ }
+    } catch (e: any) {
+      snackbar({ message: e?.message || 'Chamado expirou.', severity: 'warning' });
+      void pollQueueCalls();
+    } finally { setAcceptBusy(false); }
+  };
+
+  const enterAcceptedRoom = () => {
+    if (!acceptedCall) return;
+    navigate(`/teleconsulta/${acceptedCall.reminderId}?role=doctor`, {
+      state: { reminder: { id: acceptedCall.reminderId }, patientName: acceptedCall.patientName, patient: { name: acceptedCall.patientName } },
+    });
+  };
+
   /** Agenda a teleconsulta (POST /doctor/patients/:id/teleconsulta) — cria o lembrete
    *  na conta do paciente (push imediato + antecedências 1d/1h/na hora). */
   const scheduleTele = async () => {
@@ -1132,7 +1334,202 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             </Box>
           </>
         )}
+
+        {/* ATENDER AGORA — presença na fila imediata (header, à direita). Enquanto
+            houver chamada aceita aguardando pagamento, o toggle dá lugar à linha
+            "Paciente concluindo pagamento…" com atalho p/ a sala. */}
+        {acceptedCall || (atendOn && queueStats.myAccepted > 0) ? (
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0, pl: { xs: 0.5, md: 1.5 }, minWidth: 0 }}>
+            <Box
+              component="span"
+              aria-hidden="true"
+              sx={{
+                width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e', flexShrink: 0,
+                animation: 'atendPulse 1.6s infinite ease-in-out',
+                '@keyframes atendPulse': { '0%, 100%': { opacity: 0.35, transform: 'scale(0.85)' }, '50%': { opacity: 1, transform: 'scale(1.2)' } },
+                '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+              }}
+            />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography noWrap sx={{ fontSize: { xs: 11.5, md: 12.5 }, fontWeight: 800, color: 'success.main', lineHeight: 1.2 }}>
+                Paciente concluindo pagamento…
+              </Typography>
+              {acceptedCall && (
+                <Stack direction="row" spacing={0.75} sx={{ mt: 0.25 }}>
+                  <Button size="small" variant="contained" onClick={enterAcceptedRoom} sx={{ minHeight: 30, px: 1.25, borderRadius: '8px', textTransform: 'none', fontWeight: 800, fontSize: 11.5, bgcolor: '#178f89', '&:hover': { bgcolor: '#0f766e' } }}>
+                    Entrar na sala
+                  </Button>
+                  <Button size="small" onClick={() => setAcceptedCall(null)} aria-label="Dispensar aviso de pagamento" sx={{ minHeight: 30, px: 0.75, textTransform: 'none', fontWeight: 700, fontSize: 11, color: 'text.disabled', minWidth: 0 }}>
+                    ok
+                  </Button>
+                </Stack>
+              )}
+            </Box>
+          </Stack>
+        ) : (
+          <Tooltip title={atendOn ? `Atender agora · fila imediata ativo — ${queueStats.waiting} paciente(s) aguardando` : 'Atender agora · fila imediata — receba chamados de pacientes sem agendamento'} arrow>
+            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0, pl: { xs: 0.5, md: 1.5 } }}>
+              {atendOn && (
+                <Box
+                  component="span"
+                  aria-hidden="true"
+                  sx={{
+                    width: 8, height: 8, borderRadius: '50%', bgcolor: '#22c55e',
+                    animation: 'atendPulse 1.6s infinite ease-in-out',
+                    '@keyframes atendPulse': { '0%, 100%': { opacity: 0.35, transform: 'scale(0.85)' }, '50%': { opacity: 1, transform: 'scale(1.2)' } },
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+                  }}
+                />
+              )}
+              <Typography noWrap sx={{ fontSize: { xs: 11.5, md: 12.5 }, fontWeight: 800, color: atendOn ? 'success.main' : 'text.secondary' }}>
+                Atender agora
+              </Typography>
+              <Switch
+                size="small"
+                color="success"
+                checked={atendOn}
+                disabled={atendBusy}
+                onChange={(e) => (e.target.checked ? void openPricingDlg() : void toggleAtend(false))}
+                inputProps={{ 'aria-label': 'Atender agora · fila imediata' }}
+              />
+            </Stack>
+          </Tooltip>
+        )}
       </Box>
+
+      {/* v1.1: PRICING antes de ligar "Atender agora" — valor que a fila cobra,
+          líquido com a comissão e edição do valor próprio do imediato. */}
+      <Dialog open={pricingDlg} onClose={() => setPricingDlg(false)} maxWidth="xs" fullWidth aria-label="Atendimento imediato — valor e condições" PaperProps={{ sx: { borderRadius: '20px', p: 1.5 } }}>
+        <DialogTitle sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 18, display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
+          ⚡ Atendimento imediato
+        </DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.75, pt: 0.5 }}>
+          {pricing == null ? (
+            <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Carregando seu valor…</Typography>
+          ) : (
+            <>
+              <Box sx={{ p: 1.75, borderRadius: '14px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.06)'), border: '1px solid rgba(32,178,170,.25)' }}>
+                <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Paciente paga (fila imediata)</Typography>
+                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 26 }}>
+                  {pricing.priceCents != null ? `R$ ${(pricing.priceCents / 100).toFixed(2).replace('.', ',')}` : 'Sem cobrança'}
+                </Typography>
+                {pricing.netCents != null && pricing.platformBps != null && (
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
+                    Você recebe <b style={{ color: '#20b2aa' }}>R$ {(pricing.netCents / 100).toFixed(2).replace('.', ',')}</b> líquido{pricing.platformBps > 0 ? ` (taxa ${(pricing.platformBps / 100).toFixed(1)}%)` : ''}
+                  </Typography>
+                )}
+                <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.5 }}>
+                  {pricing.instantPriceCents == null ? 'Usando o valor da sua consulta agendada — defina um valor próprio abaixo se quiser.' : 'Valor próprio do imediato.'}
+                </Typography>
+              </Box>
+              <Stack direction="row" spacing={1} alignItems="center">
+                <TextField
+                  size="small" fullWidth placeholder="novo valor (ex.: 180,00)"
+                  value={priceInput}
+                  onChange={(e) => setPriceInput(e.target.value.replace(/[^\d,\.]/g, ''))}
+                  inputProps={{ inputMode: 'decimal', 'aria-label': 'Novo valor do atendimento imediato' }}
+                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                />
+                <Button size="small" variant="outlined" disabled={priceBusy || !priceInput.trim()} onClick={() => void saveInstantPrice()} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, minHeight: 44, flexShrink: 0 }}>
+                  Salvar valor
+                </Button>
+              </Stack>
+              <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                Enquanto online, chamados chegam aqui com <b>45s</b> para aceitar. Mín. R$ 20,00 (garante estorno integral); 0 = usar o valor da consulta.
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button onClick={() => setPricingDlg(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Depois</Button>
+          <Button
+            variant="contained" disabled={atendBusy}
+            onClick={() => { setPricingDlg(false); void toggleAtend(true); }}
+            sx={{ textTransform: 'none', fontWeight: 800, borderRadius: '999px', px: 3, minHeight: 44 }}
+          >
+            Ficar online
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* CHAMADO IMEDIATO — offer da fila (spec §6): nome/idade, espera, preço
+          (líquido quando a snapshot traz), countdown até acceptDeadlineIso,
+          Aceitar/Recusar. Fecha sozinho quando o polling devolve offer=null. */}
+      <Dialog
+        open={!!queueOffer}
+        onClose={(_e, reason) => { if (reason === 'backdropClick' || reason === 'escapeKeyDown') return; setQueueOffer(null); }}
+        maxWidth="xs"
+        fullWidth
+        aria-label="Chamado imediato de teleconsulta"
+        PaperProps={{ sx: { borderRadius: '20px', p: 1 } }}
+      >
+        {queueOffer && (
+          <>
+            <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, pb: 1 }}>
+              🔔 Chamado imediato
+            </DialogTitle>
+            <DialogContent>
+              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1.5 }}>
+                <Avatar sx={{ bgcolor: 'rgba(32,178,170,.12)', color: '#178f89', fontWeight: 800, width: 44, height: 44, fontSize: 18 }}>
+                  {queueOffer.patientName?.charAt(0)?.toUpperCase() || 'P'}
+                </Avatar>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                  <Typography noWrap sx={{ fontWeight: 800, fontSize: 16, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
+                    {queueOffer.patientName || 'Paciente'}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+                    {[
+                      queueOffer.patientAge != null ? `${queueOffer.patientAge} anos` : null,
+                      queueOffer.queueWaitSec != null ? `esperando há ${fmtWait(queueOffer.queueWaitSec)}` : null,
+                    ].filter(Boolean).join(' · ')}
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.07)', border: '1px solid rgba(32,178,170,.2)' }}>
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                    Valor da consulta
+                  </Typography>
+                  <Typography sx={{ fontSize: 18, fontWeight: 900, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
+                    R$ {((queueOffer.priceCents ?? 0) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </Typography>
+                  {queueOffer.netPriceCents != null && (
+                    <Typography sx={{ fontSize: 11.5, color: 'text.secondary' }}>
+                      seu líquido: R$ {(queueOffer.netPriceCents / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </Typography>
+                  )}
+                </Box>
+                <OfferCountdown deadlineIso={queueOffer.acceptDeadlineIso ?? null} />
+              </Stack>
+
+              {queueOffer.briefUrl && (
+                <Link href={queueOffer.briefUrl} target="_blank" rel="noopener" underline="hover" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 1.25, fontSize: 12.5, fontWeight: 700 }}>
+                  Ver brief clínico do paciente <OpenInNewIcon sx={{ fontSize: 13 }} />
+                </Link>
+              )}
+            </DialogContent>
+            <DialogActions sx={{ justifyContent: 'center', pb: 2.5, px: 2.5, gap: 1 }}>
+              <Button
+                variant="outlined"
+                onClick={() => void declineCall()}
+                sx={{ flex: 1, minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, borderColor: 'divider', color: 'text.secondary', '&:hover': { borderColor: 'text.secondary' } }}
+              >
+                Recusar
+              </Button>
+              <Button
+                variant="contained"
+                disabled={acceptBusy}
+                startIcon={acceptBusy ? <CircularProgress size={16} color="inherit" /> : null}
+                onClick={() => void acceptCall()}
+                sx={{ flex: 1, minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: 13.5, bgcolor: '#178f89', color: '#fff', '&:hover': { bgcolor: '#0f766e' } }}
+              >
+                {acceptBusy ? 'Aceitando…' : 'Aceitar'}
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
       <Box sx={{ maxWidth: LAYOUT.content, mx: 'auto', p: { xs: 2, md: 3 }, pb: { xs: 11, md: 4 }, bgcolor: 'background.default', minHeight: '100dvh', overflowX: 'hidden', width: '100%' }}>
         {view === 'profile' && <DoctorProfileForm token={token} doctor={doctor} onBack={() => setView('patients')} onSaved={(d) => setDoctor(d)} onPhoto={() => setPhotoVer((v) => v + 1)} photoVer={photoVer} isPremium={!!planInfo?.isPremium} />}

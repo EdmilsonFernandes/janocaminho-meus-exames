@@ -81,6 +81,7 @@ function playAudioTestChime() {
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticError, hapticLight, hapticSuccess } from '../utils/haptic';
 import { tealText } from '../theme';
+import { CONSENT_TEXT } from '../constants/consent';
 // F3 — componentes compartilhados da área de teleconsulta (fe2): 1 padrão só p/
 // médico e paciente. Contratos: docs/research/2026-10-20-f3-arquitetura.md §3.
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
@@ -108,8 +109,7 @@ const GLASS = 'rgba(15,24,24,.68)';
 const GLASS_FILTER = 'blur(18px) saturate(160%)';
 const COPPER = '#d4a574';
 const COPPER_DARK = '#b88a54';
-const CONSENT_TEXT =
-  'Autorizo o atendimento por telemedicina e a transmissão de imagens e dados nesta consulta, conforme a Resolução CFM 2.314/2022. Sei que posso negar ou revogar este consentimento a qualquer momento, e que ele fica registrado com data e hora. Sei também que a plataforma usa inteligência artificial como apoio à organização dos meus exames e do registro da consulta, sob responsabilidade do médico que me atende (Res. CFM 2.454/2026) — a decisão e a comunicação são sempre do médico.';
+// CONSENT_TEXT: movido p/ src/constants/consent.ts (fonte única — fila imediata reusa).
 
 type Phase = 'loading' | 'prejoin' | 'connecting' | 'incall' | 'ended' | 'readonly' | 'fallback' | 'error' | 'waiting' | 'payment';
 /** Outcome honesto do /end (lifecycle 24/10): 'completed' o server valida sozinho. */
