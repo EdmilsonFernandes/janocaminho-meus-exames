@@ -24,6 +24,7 @@ describe('subscriptionCompat', () => {
     await expect(getSubscriptionColumnSupport()).resolves.toEqual({
       hasPixResume: false,
       hasRawWebhook: false,
+      hasCoupon: false,
     });
   });
 
@@ -43,11 +44,14 @@ describe('subscriptionCompat', () => {
       { column_name: 'pixQrCode' },
       { column_name: 'pixQrBase64' },
       { column_name: 'pixCredits' },
+      { column_name: 'couponCode' },
+      { column_name: 'couponDiscountCents' },
     ] as never);
 
     await expect(getSubscriptionColumnSupport()).resolves.toEqual({
       hasPixResume: true,
       hasRawWebhook: true,
+      hasCoupon: true,
     });
   });
 });
