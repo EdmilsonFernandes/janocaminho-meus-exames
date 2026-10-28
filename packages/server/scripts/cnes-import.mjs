@@ -69,36 +69,43 @@ const CITY_WANT = deaccent(cityFilter);
 // --- estabelecimentos ---
 const facs = parseCsv(facilitiesCsv)
   .map((r) => {
-    const code = pick(r, ['CO_CNES', 'CNES', 'CNES_COD']);
+    const code = pick(r, ['cnesCode', 'CO_CNES', 'CNES', 'CNES_COD']);
     if (!code) return null;
-    const city = pick(r, ['NO_MUNICIPIO', 'MUNICIPIO', 'MUNNOME'])
+    const city = pick(r, ['city', 'NO_MUNICIPIO', 'MUNICIPIO', 'MUNNOME'])
       || muniByCode.get(pick(r, ['CO_MUNICIPIO_GESTOR', 'CODMUN', 'CO_MUNICIPIO']).slice(0, 6)) || '';
-    const uf = (pick(r, ['SG_UF', 'UF', 'UFMUN']).slice(0, 2) || ufFilter).toUpperCase();
+    const uf = (pick(r, ['uf', 'SG_UF', 'UF', 'UFMUN']).slice(0, 2) || ufFilter).toUpperCase();
     return {
       cnesCode: code,
-      name: pick(r, ['NO_FANTASIA', 'NOMEFANT', 'FANTASIA']) || pick(r, ['NO_RAZAO_SOCIAL', 'RAZSOC', 'RAZAO_SOCIAL']) || 'Estabelecimento de saúde',
+      name: pick(r, ['name', 'NO_FANTASIA', 'NOMEFANT', 'FANTASIA']) || pick(r, ['NO_RAZAO_SOCIAL', 'RAZSOC', 'RAZAO_SOCIAL']) || 'Estabelecimento de saúde',
       city: city.replace(/\s*-\s*[A-Z]{2}$/, ''),
       uf,
-      address: [pick(r, ['DS_LOGRADOURO', 'NO_LOGRADOURO', 'LOGRADOURO']), pick(r, ['NU_ENDERECO', 'NUMERO'])].filter(Boolean).join(', ') || null,
-      district: pick(r, ['NO_BAIRRO', 'BAIRRO']) || null,
-      phone: pick(r, ['NU_TELEFONE', 'TELEFONE']) || null,
-      lat: pick(r, ['NU_LATITUDE', 'LATITUDE']) || null,
-      lng: pick(r, ['NU_LONGITUDE', 'LONGITUDE']) || null,
-      facilityTyp: pick(r, ['TP_UNID', 'TIPO_UNIDADE']) || null,
+      address: pick(r, ['address']) || [pick(r, ['DS_LOGRADOURO', 'NO_LOGRADOURO', 'LOGRADOURO']), pick(r, ['NU_ENDERECO', 'NUMERO'])].filter(Boolean).join(', ') || null,
+      district: pick(r, ['district', 'NO_BAIRRO', 'BAIRRO']) || null,
+      phone: (pick(r, ['phone', 'NU_TELEFONE', 'TELEFONE']) || '').replace(/\D/g, '') || null,
+      lat: pick(r, ['lat', 'NU_LATITUDE', 'LATITUDE']) || null,
+      lng: pick(r, ['lng', 'NU_LONGITUDE', 'LONGITUDE']) || null,
+      facilityTyp: pick(r, ['facilityTyp', 'TP_UNID', 'TIPO_UNIDADE']) || null,
     };
   })
   .filter((f) => f && deaccent(f.city).includes(CITY_WANT) && (!ufFilter || f.uf === ufFilter));
 console.log(`facilities na região "${cityFilter}": ${facs.length}`);
 if (!facs.length) { console.error('nenhum estabelecimento — confira filtro/layout'); exit(1); }
 
-// --- profissionais (vínculo por CO_CNES) ---
+// --- profissionais (vínculo por CNES; CRM/conselho quando o CNES traz) ---
 const facByCode = new Map(facs.map((f) => [f.cnesCode, f]));
 const profs = parseCsv(professionalsCsv)
   .map((r) => {
-    const cnes = pick(r, ['CO_CNES', 'CNES', 'CNES_COD']);
-    const name = pick(r, ['NO_PROFISSIONAL', 'NOMEPROF', 'PROFISSIONAL', 'NO_PROF']);
+    const cnes = pick(r, ['cnesCode', 'CO_CNES', 'CNES', 'CNES_COD']);
+    const name = pick(r, ['name', 'NO_PROFISSIONAL', 'NOMEPROF', 'PROFISSIONAL', 'NO_PROF']);
     if (!cnes || !name || !facByCode.has(cnes)) return null;
-    return { cnes, name, cboCode: pick(r, ['CO_CBO', 'CBO']) || null, cboName: pick(r, ['NO_CBO', 'DS_CBO', 'CBO_DESC']) || null };
+    return {
+      cnes, name,
+      cboCode: pick(r, ['cboCode', 'CO_CBO', 'CBO']) || null,
+      cboName: pick(r, ['cboName', 'NO_CBO', 'DS_CBO', 'CBO_DESC']) || null,
+      councilType: pick(r, ['councilType', 'CO_CONSELHO_CLASSE']) || null,
+      councilUf: pick(r, ['councilUf', 'SG_UF_CRM']) || null,
+      councilReg: pick(r, ['councilReg', 'NU_REGISTRO']) || null,
+    };
   })
   .filter(Boolean);
 console.log(`profissionais vinculados: ${profs.length}`);
@@ -124,7 +131,7 @@ try {
     const CHUNK = 2000;
     for (let i = 0; i < profs.length; i += CHUNK) {
       const rows = profs.slice(i, i + CHUNK)
-        .map((p) => ({ facilityId: facIdByCode.get(p.cnes)!, name: p.name, cboCode: p.cboCode, cboName: p.cboName, source: 'cnes', importedAt }))
+        .map((p) => ({ facilityId: facIdByCode.get(p.cnes)!, name: p.name, cboCode: p.cboCode, cboName: p.cboName, councilType: p.councilType, councilUf: p.councilUf, councilReg: p.councilReg, source: 'cnes', importedAt }))
         .filter((p) => p.facilityId);
       if (rows.length) profCount += (await tx.directoryProfessional.createMany({ data: rows })).count;
     }

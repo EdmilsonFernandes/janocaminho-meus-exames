@@ -94,8 +94,29 @@ export const EncontrarEspecialistasPage = () => {
       .catch(() => {});
   }, []);
 
-  // ── CNES (V1.3): salvar achado do catálogo oficial pede o CRM (o CNES não lista) —
-  // aí vira Doctor do diretório com cidade/clínica já preenchidas (provenance paciente).
+  // ── CNES (V1.3): salvar achado do catálogo oficial. O vínculo CNES traz o CRM de
+  // médicos (conselho 10) → salvar DIRETO com CRM; demais profissões pedem CRM num
+  // dialog (vira Doctor com cidade/clínica preenchidas, provenance paciente).
+  const salvarCnesDireto = async (s: any) => {
+    hapticLight();
+    try {
+      const r = await fetch(`${API_URL}/my-doctors`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          doctorCrm: String(s.crm).replace(/\D/g, ''), doctorUf: s.crmUf,
+          doctorName: s.name,
+          doctorSpecialty: s.specialty?.replace(/^Médic[oa]\s*/i, '') ?? undefined,
+          clinicCity: s.clinicCity?.split(' - ')[0],
+          clinicName: s.clinicName,
+          source: 'search',
+        }),
+      });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
+      hapticSuccess();
+      notify(`Dr(a). ${String(s.name).split(' ')[0]} salvo — sem acesso aos exames.`, { type: 'success' });
+    } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); }
+  };
   const [cnesFor, setCnesFor] = useState<any | null>(null);
   const [cnesCrm, setCnesCrm] = useState('');
   const [cnesUf, setCnesUf] = useState('');
@@ -258,6 +279,9 @@ export const EncontrarEspecialistasPage = () => {
                         <Typography sx={{ fontWeight: 800, fontSize: 14.5, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
                           {s.name}
                         </Typography>
+                        {s.crm && (
+                          <Chip size="small" label={`CRM ${String(s.crm).replace(/\D/g, '')}-${s.crmUf ?? ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', borderRadius: '4px' }} />
+                        )}
                         <Chip size="small" label="CNES oficial" sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e' }} />
                       </Stack>
                       {s.specialty && (
@@ -275,10 +299,17 @@ export const EncontrarEspecialistasPage = () => {
                         🏛️ {s.provenance.label}
                       </Typography>
                       <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
-                        <Button size="small" variant="contained" onClick={() => { hapticLight(); setCnesFor(s); }}
-                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
-                          Salvar com CRM
-                        </Button>
+                        {s.crm ? (
+                          <Button size="small" variant="contained" onClick={() => void salvarCnesDireto(s)}
+                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
+                            Salvar em Meus médicos
+                          </Button>
+                        ) : (
+                          <Button size="small" variant="contained" onClick={() => { hapticLight(); setCnesFor(s); }}
+                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
+                            Salvar com CRM
+                          </Button>
+                        )}
                         <Button size="small" variant="outlined"
                           onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
                           sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>

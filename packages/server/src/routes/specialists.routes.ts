@@ -155,12 +155,16 @@ router.get('/', async (req: AuthedRequest, res, next) => {
           cnesMore = profs.length >= 400;
           cnesItems = profs.slice(0, 15).map((p) => {
             const f = facById.get(p.facilityId)!;
+            // tbConselhoClasse: '10' = CR MEDICINA → o vínculo traz o nº do CRM + UF.
+            const isCrm = String(p.councilType ?? '').padStart(2, '0') === '10';
             return {
               origin: 'cnes',
               id: p.id,
               name: p.name,
               specialty: p.cboName,
               cboCode: p.cboCode,
+              crm: isCrm ? p.councilReg : null,
+              crmUf: isCrm ? p.councilUf : null,
               clinicName: f.name,
               clinicCity: `${f.city} - ${f.uf}`,
               address: [f.address, f.district].filter(Boolean).join(' · ') || null,
@@ -169,7 +173,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
               lng: f.lng,
               provenance: {
                 source: 'cnes_datasus',
-                label: 'CNES/DATASUS — base oficial do Ministério da Saúde (sem CRM no catálogo)',
+                label: 'CNES/DATASUS — base oficial do Ministério da Saúde',
                 updatedAt: p.importedAt,
               },
             };

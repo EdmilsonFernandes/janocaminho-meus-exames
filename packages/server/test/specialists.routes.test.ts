@@ -163,4 +163,25 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     const rOp = await api().get('/api/specialists').query({ city: 'sao jose', operator: 'unimed' }).set(authHeader(token));
     expect(rOp.body.cnesCount).toBe(0);
   });
+
+  it('V1.3+: vínculo com conselho CR MEDICINA (código 10) expõe o CRM no card CNES', async () => {
+    const { token } = await createUser({});
+    const fac = await prisma.directoryFacility.create({
+      data: { cnesCode: '9990001', name: 'CLINICA CRM', city: 'São José dos Campos', uf: 'SP', importedAt: new Date() },
+    });
+    await prisma.directoryProfessional.createMany({
+      data: [
+        // médico: conselho 10 (CR MEDICINA) com nº de registro → CRM visível
+        { facilityId: fac.id, name: 'DRA COM CRM', cboCode: '225120', cboName: 'Médico cardiologista', councilType: '10', councilUf: 'SP', councilReg: '123456', importedAt: new Date() },
+        // enfermeira: conselho 05 (CR ENFERMAGEM) → sem CRM (não é médica)
+        { facilityId: fac.id, name: 'ENF SEM CRM', cboCode: '223505', cboName: 'Enfermeiro', councilType: '05', councilUf: 'SP', councilReg: '98765', importedAt: new Date() },
+      ],
+    });
+    const r = await api().get('/api/specialists').query({ city: 'sao jose' }).set(authHeader(token));
+    const comCrm = r.body.items.find((i: any) => i.origin === 'cnes' && i.name === 'DRA COM CRM');
+    const semCrm = r.body.items.find((i: any) => i.origin === 'cnes' && i.name === 'ENF SEM CRM');
+    expect(comCrm.crm).toBe('123456');
+    expect(comCrm.crmUf).toBe('SP');
+    expect(semCrm.crm ?? null).toBeNull(); // conselho de enfermagem NÃO vira CRM
+  });
 });
