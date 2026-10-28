@@ -297,6 +297,7 @@ model Patient {
   clinicalGoals ClinicalGoal[]
   reviews       DoctorReview[]
   examRequests  ExamRequest[]
+  checklistItems CollectionChecklistItem[]
 
   @@index([ownerId])
   @@map("patients")
@@ -324,6 +325,28 @@ model ExamRequest {
 
   @@index([patientId, status])
   @@map("exam_requests")
+}
+
+// CHECKLIST DE COLETA (T2, 28/10/26) — o médico define exames que o paciente deve coletar.
+// O item vira lembrete (engine de reminders) com push neutro na data; quando um exame
+// EXTRAÍDO contém item com nameCanonical correspondente, marca coletado ✓ automaticamente.
+// collectedExamId é SEM FK (exame pode ser excluído — o ✓ e o timestamp ficam de pé).
+model CollectionChecklistItem {
+  id               String    @id @default(cuid())
+  patientId        String
+  patient          Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId         String?   // null = auto (paciente criou) — v1: só médico cria
+  analyteName      String    // exibição ("Hemoglobina glicada")
+  analyteCanonical String    // match key normalizada (canonicalName) — casa c/ ExamItem.nameCanonical
+  instruction      String?   // orientação curta ("jejum 12h")
+  dueAt            DateTime
+  status           String    @default("pending") // pending | collected | expired
+  collectedAt      DateTime?
+  collectedExamId  String?   // SEM FK
+  createdAt        DateTime  @default(now())
+
+  @@index([patientId, status, dueAt])
+  @@map("collection_checklist_items")
 }
 
 // SAÚDE ESPORTIVA (E2, out/2026) — CAMADA 2 da política de referências (RELATORIO §4):
@@ -809,11 +832,53 @@ model Subscription {
   periodDays     Int
   status         String   @default("PENDING") // PENDING | APPROVED | CANCELLED
   rawWebhook     Json?    // payload bruto do Mercado Pago (auditoria — admin vê em disputa/"pagou?")
+  // CUPOM DE DESCONTO (T3 insights Conexa, 28/10/26): código aplicado no checkout +
+  // desconto concedido NA CRIAÇÃO da cobrança (amount = valor JÁ descontado). O webhook
+  // lê estes campos na aprovação p/ incrementar uses + gravar a CouponRedemption.
+  couponCode          String?
+  couponDiscountCents Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([userId])
   @@map("subscriptions")
+}
+
+// CUPOM DE DESCONTO (founder/indicação) — aplicável à assinatura mensal e à compra de
+// créditos. code guardado UPPERCASE sem acento (mesmo normalize do CRM). Redenção única
+// por usuário POR TIPO (@@unique) — v1 simples e segura (validação server-side SEMPRE
+// no checkout; o front só pré-visualiza via /billing/coupon/validate).
+model Coupon {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  kind      String    // 'percent' | 'fixed_cents'
+  value     Int       // percent: 1-100; fixed_cents: centavos
+  appliesTo String    @default("any") // 'any' | 'plan_monthly' | 'credits'
+  maxUses   Int?      // null = ilimitado
+  uses      Int       @default(0)
+  expiresAt DateTime?
+  active    Boolean   @default(true)
+  notes     String?   // "founder", "indicação ana" etc
+  createdAt DateTime  @default(now())
+  redemptions CouponRedemption[]
+
+  @@index([active, code])
+  @@map("coupons")
+}
+
+model CouponRedemption {
+  id                  String   @id @default(cuid())
+  couponId            String
+  coupon              Coupon   @relation(fields: [couponId], references: [id])
+  userId              String
+  kind                String   // o que pagou: plan_monthly | credits
+  amountCentsOriginal Int
+  discountCents       Int
+  createdAt           DateTime @default(now())
+
+  @@unique([couponId, userId, kind]) // 1 uso por usuário por tipo (simples)
+  @@index([userId])
+  @@map("coupon_redemptions")
 }
 
 model Reminder {

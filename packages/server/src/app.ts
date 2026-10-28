@@ -72,6 +72,9 @@ import teleconsultaQueueRoutes, { doctorRouter as teleconsultaQueueDoctorRoutes 
 import myDoctorsRoutes from './routes/my-doctors.routes';
 import myConsultationsRoutes from './routes/my-consultations.routes';
 import specialistsRoutes from './routes/specialists.routes';
+// CHECKLIST DE COLETA (T2, 28/10/26): plano de exames a coletar definido pelo médico —
+// paciente vê em /api/collection-checklist; rotas do médico em /api/doctor/patients/:id/checklist.
+import collectionChecklistRoutes, { doctorRouter as collectionChecklistDoctorRouter } from './routes/collection.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -430,10 +433,12 @@ app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
 app.use('/api/doctor', teleconsultaQueueDoctorRoutes); // fila imediata: online-presence + queue/calls (sem overlap)
+app.use('/api/doctor', collectionChecklistDoctorRouter); // checklist de coleta: patients/:id/checklist (sem overlap)
 app.use('/api/doctor-shares', doctorShareRoutes);
 app.use('/api/my-doctors', myDoctorsRoutes); // vínculo privado paciente↔médico (§1)
 app.use('/api/my-consultations', myConsultationsRoutes); // consultas registradas pelo paciente (§2)
 app.use('/api/specialists', specialistsRoutes); // busca no diretório próprio (§3)
+app.use('/api/collection-checklist', collectionChecklistRoutes); // plano de coleta do paciente (T2)
 app.use('/api/doctor-questions', doctorQuestionRoutes);
 app.use('/api/achievements', achievementRoutes);
 app.use('/api/tickets', ticketRoutes); // chamados de suporte do paciente (admin gerencia em /api/admin/tickets)

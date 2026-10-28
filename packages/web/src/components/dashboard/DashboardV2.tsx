@@ -73,6 +73,7 @@ import { SportsUpsellCard } from '../sports/SportsUpsellCard';
 import { PersonaSwitcher } from '../sports/PersonaSwitcher';
 import { DashboardErrorBoundary } from './DashboardErrorBoundary';
 import { TeleconsultaCard } from './TeleconsultaCard';
+import { UpcomingCollectionsCard } from './UpcomingCollectionsCard';
 import { LiveTeleconsultaBanner } from './LiveTeleconsultaBanner';
 import { FalarAgoraCompact } from '../FalarAgora';
 import { useUpcomingTeleconsulta } from '../../hooks/useUpcomingTeleconsulta';
@@ -1336,6 +1337,10 @@ const DashboardV2Inner = () => {
               {!demo && (!d.loaded
                 ? <SkeletonCard variant="content" />
                 : <NextStepsCard exams={d.stats.exams} />)}
+
+              {/* PRÓXIMAS COLETAS (T2, checklist de coleta): plano do médico — card compacto,
+                  só existe quando há coleta pendente (componente resolve null sozinho). */}
+              {!demo && <UpcomingCollectionsCard />}
 
               {/* O QUE MUDOU — card único com 2 abas (Exames | Hábitos). Antes eram dois
                   cards irmãos dizendo a mesma coisa ("o que mudou" × "desde seu último exame").

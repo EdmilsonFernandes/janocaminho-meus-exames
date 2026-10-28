@@ -51,6 +51,7 @@ import { OtpInput } from '../components/OtpInput';
 import { DoctorProfileForm } from '../components/doctors/portal/DoctorProfileForm';
 import { DoctorChangePasswordForm } from '../components/doctors/portal/DoctorChangePasswordForm';
 import { NotesTab, Empty } from '../components/doctors/portal/NotesTab';
+import { CollectionChecklistPanel } from '../components/doctors/portal/CollectionChecklistPanel';
 import { PortalInvites } from '../components/doctors/portal/PortalInvites';
 import { PortalQuestions } from '../components/doctors/portal/PortalQuestions';
 import { PortalOverview } from '../components/doctors/portal/PortalOverview';
@@ -2269,6 +2270,13 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
                 {tab === 'notes' && !selExam && (
                   <NotesTab notes={notes} newNote={newNote} setNewNote={setNewNote} onAdd={addNote} onDelete={delNote} onSave={saveNote} patient={selected?.patient} />
+                )}
+
+                {/* PLANO DE COLETA (T2, 28/10/26): exames que o paciente deve coletar —
+                    lembrete c/ push e ✓ automático quando o exame chega. Junto das notas
+                    (mesmo contexto clínico do painel do paciente). */}
+                {tab === 'notes' && !selExam && selected?.patient && (
+                  <CollectionChecklistPanel patientId={selected.patient.id} token={token} />
                 )}
           </Box>
         )}

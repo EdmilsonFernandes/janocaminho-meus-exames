@@ -17,6 +17,7 @@ import { sendWhatsAppExamReady } from '../utils/whatsapp';
 import { sendNudgeEmail } from '../utils/nudgeMail';
 import { notifyNewExamShares } from './share-notify';
 import { ageBandAt, applyPediatricRange, type AgeBand } from '../analysis/pediatric-ranges';
+import { markCollectedFromExtractedExam } from '../utils/collectionChecklist';
 
 interface ItemRow {
   panel: string | null;
@@ -277,6 +278,10 @@ async function runExtractionOnce(examId: string): Promise<void> {
     // Extração mudou os dados do paciente → invalida o cache do health-summary na hora
     // (antes: até 5min de score/"o que mudou" defasados após subir exame novo).
     invalidateHealthSummary(exam.patientId);
+    // CHECKLIST DE COLETA (T2, 28/10): exame EXTRAÍDO entrega analito pendente → marca ✓
+    // (match por nameCanonical, batch updateMany). Best-effort — nunca derruba a extração.
+    await markCollectedFromExtractedExam(exam.patientId, String(examId)).catch((e: any) =>
+      console.error('[extraction] checklist mark-collected falhou:', e?.message));
     // Extração consome créditos (CREDIT_COSTS.extraction = 0 hoje, mas mantém o gate p/ futura cobrança).
     if (patient?.ownerId) { try { await chargeCredits(patient.ownerId, CREDIT_COSTS.extraction); } catch { /* não bloqueia */ } }
 
@@ -394,6 +399,11 @@ async function runExtractionOnce(examId: string): Promise<void> {
           });
           await prisma.examItem.createMany({ data: sitems.map((r) => ({ ...r, examId: screated.id })) });
           console.log(`[extraction] split ${i + 2}/${splitLabs.length + 1}: exame ${screated.id} criado (${sitems.length} itens, coleta ${slab.performedAt ?? '?'})`);
+          // Checklist de coleta: split é exame EXTRAÍDO como qualquer outro (T2).
+          if (!splitRejected) {
+            await markCollectedFromExtractedExam(exam.patientId, screated.id).catch((e: any) =>
+              console.error('[extraction] checklist mark-collected (split) falhou:', e?.message));
+          }
           // §4: split é um exame NOVO — mesmo prompt de share por-exame do caminho principal.
           if (!splitRejected && patient?.ownerId) {
             await notifyNewExamShares(exam.patientId, patient.ownerId, screated.id, String(slab.examTitle ?? exam.title));

@@ -5,6 +5,7 @@ import { sendPushToUser } from '../utils/push';
 import { computeJointMs, loadPresenceEvents, resolveNoShow } from '../utils/teleconsultaLifecycle';
 import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 import { getTeleconsultaConfig } from '../utils/settings';
+import { expireStaleChecklistItems } from '../utils/collectionChecklist';
 
 const MS_MIN = 60_000;
 const MS_HOUR = 3_600_000;
@@ -409,6 +410,13 @@ export function startReminderEmailJob(): void {
       await autoEndStaleTeleconsultas(Date.now());
     } catch (e) {
       console.error('[reminders] auto-end error:', (e as Error).message);
+    }
+    try {
+      // CHECKLIST DE COLETA (T2): vence pendentes com prazo passado (sem push — o GET
+      // também expira lazy, isto cobre o caso "ninguém abre o app").
+      await expireStaleChecklistItems(Date.now());
+    } catch (e) {
+      console.error('[reminders] checklist-expire error:', (e as Error).message);
     }
   };
 
