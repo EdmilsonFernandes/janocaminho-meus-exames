@@ -28,13 +28,13 @@ const municipiosJson = arg('municipios');
 const cityFilter = arg('city'); // nome (sem acento ok) — filtrar por cidade/região
 const ufFilter = (arg('uf') || '').toUpperCase();
 const dryRun = argv.includes('--dry-run');
-if (!facilitiesCsv || !professionalsCsv || !municipiosJson || !cityFilter) {
-  console.error('uso: --facilities est.csv --professionals pf.csv --municipios municipios.json --city "nome" [--uf SP] [--dry-run]');
+if (!facilitiesCsv || !professionalsCsv || !cityFilter) {
+  console.error('uso: --facilities est.csv --professionals pf.csv [--municipios municipios.json] --city "nome" [--uf SP] [--dry-run]');
   exit(1);
 }
 
 const deaccent = (s) => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-const pick = (row, keys) => { for (const k of keys) { const hit = Object.keys(row).find((c) => c.toUpperCase() === k); if (hit && String(row[hit]).trim()) return String(row[hit]).trim(); } return ''; };
+const pick = (row, keys) => { for (const k of keys) { const hit = Object.keys(row).find((c) => c.toUpperCase() === k.toUpperCase()); if (hit && String(row[hit]).trim()) return String(row[hit]).trim(); } return ''; };
 
 // --- CSV parser (latin1, ';' separador, aspas) ---
 function parseCsv(file) {
@@ -61,9 +61,15 @@ function splitLine(line) {
   return out;
 }
 
-// --- municípios: código IBGE 6d → nome (mirror kelvins tem codigo_ibge) ---
-const munis = JSON.parse(readFileSync(municipiosJson, 'utf8').replace(/^﻿/, ''));
-const muniByCode = new Map(munis.map((m) => [String(m.codigo_ibge), m.nome]));
+// --- municípios: código IBGE 6d → nome (opcional: CSVs do cnes-prepare já trazem a
+// cidade resolvida; o mapa só é necessário pro layout ESTBEF legado) ---
+let muniByCode = new Map();
+if (municipiosJson) {
+  try {
+    const munis = JSON.parse(readFileSync(municipiosJson, 'utf8').replace(/^﻿/, ''));
+    muniByCode = new Map(munis.map((m) => [String(m.codigo_ibge), m.nome]));
+  } catch { /* CSV ou ausente — segue sem mapa (layout novo não precisa) */ }
+}
 const CITY_WANT = deaccent(cityFilter);
 
 // --- estabelecimentos ---
@@ -131,7 +137,7 @@ try {
     const CHUNK = 2000;
     for (let i = 0; i < profs.length; i += CHUNK) {
       const rows = profs.slice(i, i + CHUNK)
-        .map((p) => ({ facilityId: facIdByCode.get(p.cnes)!, name: p.name, cboCode: p.cboCode, cboName: p.cboName, councilType: p.councilType, councilUf: p.councilUf, councilReg: p.councilReg, source: 'cnes', importedAt }))
+        .map((p) => ({ facilityId: facIdByCode.get(p.cnes), name: p.name, cboCode: p.cboCode, cboName: p.cboName, councilType: p.councilType, councilUf: p.councilUf, councilReg: p.councilReg, source: 'cnes', importedAt }))
         .filter((p) => p.facilityId);
       if (rows.length) profCount += (await tx.directoryProfessional.createMany({ data: rows })).count;
     }
