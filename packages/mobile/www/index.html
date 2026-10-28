@@ -160,18 +160,18 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-C_SsaClC.js"></script>
+    <script type="module" crossorigin src="./assets/index-CRh7PmfV.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-D72RPpHM.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-DeYvtrsC.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-DO1zrmmq.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-C13x5o-V.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/esm-CPTVwzXp.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-7mJYw2Gx.js">
-    <link rel="modulepreload" crossorigin href="./assets/DrExame-CqgC0vG9.js">
-    <link rel="modulepreload" crossorigin href="./assets/GradientButton-BEj_imxz.js">
-    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-DBftOrLm.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-DkA5HrCh.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BxLP9VpS.js">
+    <link rel="modulepreload" crossorigin href="./assets/DrExame-Qy9JEfU9.js">
+    <link rel="modulepreload" crossorigin href="./assets/GradientButton-CB7uU6xR.js">
+    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-BZr8-23w.js">
     <link rel="modulepreload" crossorigin href="./assets/config-BjbnzQH-.js">
-    <link rel="modulepreload" crossorigin href="./assets/theme-BLWai1za.js">
+    <link rel="modulepreload" crossorigin href="./assets/theme-CF80DVJN.js">
     <link rel="modulepreload" crossorigin href="./assets/haptic-pAnRyHYU.js">
   </head>
   <body>
@@ -230,9 +230,20 @@
     </script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
-      /* Font smoothing na raiz — iPhone/Safari usa o WEB (não APK); no Android WebView é
-         no-op. Fontes Inter/Poppins ficam mais nítidas em fundo claro. */
-      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      /* Regra Mobile-First Anti-Vazamento Horizontal (impede o site de descolar/arrastar para os lados no celular) */
+      html, body {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0;
+        padding: 0;
+        -webkit-overflow-scrolling: touch;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
       /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
          Dr. Exame/Enviar exame ficam na DIREITA). Auditoria 2026-08-16: duas lições —
          (1) o plugin ATUAL renderiza prefixo `vp-*` (vp-access-button), as regras antigas só
