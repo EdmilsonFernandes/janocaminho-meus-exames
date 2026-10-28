@@ -217,7 +217,7 @@ export const LandingPage = () => {
   };
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', overflow: 'hidden' }}>
+    <Box sx={{ bgcolor: 'background.default', minHeight: '100dvh', overflowX: 'hidden', width: '100%', maxWidth: '100%' }}>
 
       {/* NAVBAR flutuante com MEGA MENU estilo Kantesti (Web e Mobile/APK safe) */}
       <LandingNavbar scrolled={scrolled} isSports={isSports} onGoToSection={goTo} />
@@ -226,18 +226,18 @@ export const LandingPage = () => {
           mesmo fundo profundo dos cartazes de academia — continuidade da campanha QR).
           Mode-aware: theme=dark ganha fundo profundo teal (texto claro segue legível). */}
       <Box sx={{
-        position: 'relative', overflow: 'hidden',
+        position: 'relative', overflow: 'hidden', width: '100%', maxWidth: '100%',
         background: (t) => (isSports
           ? 'linear-gradient(160deg, #06201e 0%, #093330 45%, #0f5f5a 100%)'
           : t.palette.mode === 'dark'
             ? 'radial-gradient(ellipse at 50% -10%, rgba(32,178,170,.22) 0%, rgba(15,24,24,1) 80%)'
             : 'radial-gradient(ellipse at 50% -10%, rgba(32,178,170,.18) 0%, rgba(240,250,249,.6) 40%, rgba(255,255,255,1) 85%)'),
-        pt: { xs: 11, md: 14 }, pb: { xs: 7, md: 10 },
+        pt: { xs: 17, sm: 18, md: 15 }, pb: { xs: 7, md: 10 },
       }}>
-        {/* Glows de ambient lighting com blur suave estilo Linear / Apple Health */}
-        <Box sx={{ position: 'absolute', top: '-12%', right: '-4%', width: 560, height: 560, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.35),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.28),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
-        <Box sx={{ position: 'absolute', bottom: '-15%', left: '-8%', width: 460, height: 460, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(212,165,116,.18),transparent 70%)' : 'radial-gradient(circle,rgba(212,165,116,.24),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
-        <Box sx={{ position: 'absolute', top: '15%', left: '20%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.12),transparent 70%)', pointerEvents: 'none', filter: 'blur(50px)' }} />
+        {/* Glows de ambient lighting com blur suave estilo Linear / Apple Health — contidos para nunca vazar largura em mobile */}
+        <Box sx={{ display: { xs: 'none', sm: 'block' }, position: 'absolute', top: '-12%', right: '-4%', width: 560, height: 560, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(32,178,170,.35),transparent 70%)' : 'radial-gradient(circle,rgba(32,178,170,.28),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        <Box sx={{ display: { xs: 'none', sm: 'block' }, position: 'absolute', bottom: '-15%', left: '-8%', width: 460, height: 460, borderRadius: '50%', background: isSports ? 'radial-gradient(circle,rgba(212,165,116,.18),transparent 70%)' : 'radial-gradient(circle,rgba(212,165,116,.24),transparent 70%)', pointerEvents: 'none', filter: 'blur(60px)' }} />
+        <Box sx={{ display: { xs: 'none', sm: 'block' }, position: 'absolute', top: '15%', left: '20%', width: 380, height: 380, borderRadius: '50%', background: 'radial-gradient(circle,rgba(32,178,170,.12),transparent 70%)', pointerEvents: 'none', filter: 'blur(50px)' }} />
         {/* Vídeo de textura (v2) — sutil por cima do gradiente claro; some no reduced-motion e em erro de rede */}
         <Box
           component="video"
@@ -254,7 +254,7 @@ export const LandingPage = () => {
             '@media (prefers-reduced-motion: reduce)': { display: 'none' },
           }}
         />
-        <Container maxWidth="lg" sx={{ position: 'relative' }}>
+        <Container maxWidth="lg" sx={{ position: 'relative', px: { xs: 2, sm: 3 } }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.05fr .95fr' }, gap: { xs: 5, md: 6 }, alignItems: 'center' }}>
             {/* Coluna texto — CRO v3: UM objetivo de conversão (criar conta). Um CTA
                 primário, um secundário de mesma página (âncora, não navega), retornante
@@ -267,10 +267,10 @@ export const LandingPage = () => {
                   <Typography sx={{ fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', fontSize: { xs: 11.5, sm: 13 }, fontWeight: 700, letterSpacing: { xs: '0.14em', sm: '0.2em' }, color: '#d4a574', mb: 1.5, animation: 'fadeSlideUp .6s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     VOCÊ ACOMPANHA SEUS TREINOS.
                   </Typography>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.6rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.05, mb: 2.5, letterSpacing: '-0.03em', color: '#fff', animation: 'fadeSlideUp .7s .1s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.8rem' }, fontWeight: 800, lineHeight: 1.1, mb: 2.5, letterSpacing: '-0.03em', color: '#fff', animation: 'fadeSlideUp .7s .1s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     <Box component="span" sx={{ display: 'block' }}>E seus <Box component="span" sx={{ ...SERIF_I, color: '#5fc9c3', fontSize: '1.06em' }}>exames?</Box></Box>
                   </Typography>
-                  <Typography sx={{ fontSize: { xs: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520, animation: 'fadeSlideUp .7s .2s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                  <Typography sx={{ fontSize: { xs: 15.5, sm: 16.5, md: 19 }, color: 'rgba(255,255,255,.85)', mb: 3, lineHeight: 1.6, maxWidth: 520, animation: 'fadeSlideUp .7s .2s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     Hormônios, hematócrito, colesterol, fígado e rim interpretados <b style={{ color: '#fff' }}>no contexto de quem treina</b> — a régua do laboratório de um lado, seu histórico do outro e <b style={{ color: '#fff' }}>a meta do SEU médico</b> no meio.
                   </Typography>
                   <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', mb: 3, rowGap: 1, animation: 'fadeSlideUp .7s .25s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
@@ -279,7 +279,7 @@ export const LandingPage = () => {
                 </>
               ) : (
                 <>
-                  <Typography variant="h1" sx={{ fontSize: { xs: '2.3rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.08, mb: 2.5, letterSpacing: '-0.03em', color: 'text.primary', animation: 'fadeSlideUp .7s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
+                  <Typography variant="h1" sx={{ fontSize: { xs: '2.05rem', sm: '2.7rem', md: '3.4rem' }, fontWeight: 800, lineHeight: 1.12, mb: 2, letterSpacing: '-0.03em', color: 'text.primary', animation: 'fadeSlideUp .7s cubic-bezier(0.16, 1, 0.3, 1) both' }}>
                     {heroAb === 'A' ? (
                       <><Box component="span" sx={{ display: 'block' }}>Entenda seus exames</Box> como <Box component="span" sx={{ ...SERIF_I, color: (t) => (t.palette.mode === 'dark' ? '#5fc9c3' : INK), fontSize: '1.06em' }}>nunca antes.</Box></>
                     ) : (

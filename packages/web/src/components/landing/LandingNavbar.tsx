@@ -125,21 +125,25 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
           top: 0,
           left: 0,
           right: 0,
+          width: '100%',
+          maxWidth: '100%',
+          boxSizing: 'border-box',
           zIndex: 1100,
           transition: 'background-color .25s ease, border-color .25s ease, box-shadow .25s ease',
           paddingTop: 'env(safe-area-inset-top)',
-          // Mode-aware: quem salva theme=dark não pode ganhar navbar branca com texto claro.
           bgcolor: (t) => (scrolled
-            ? (t.palette.mode === 'dark' ? 'rgba(26,36,36,0.92)' : 'rgba(255,255,255,0.92)')
-            : 'transparent'),
-          backdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
-          WebkitBackdropFilter: scrolled ? 'blur(20px) saturate(1.4)' : 'none',
-          borderBottom: scrolled ? '1px solid rgba(32,178,170,0.12)' : '1px solid transparent',
-          boxShadow: scrolled ? '0 1px 16px rgba(15,95,90,0.06)' : 'none',
+            ? (t.palette.mode === 'dark' ? 'rgba(26,36,36,0.95)' : 'rgba(255,255,255,0.96)')
+            : (t.palette.mode === 'dark' ? 'rgba(15,24,24,0.85)' : 'rgba(255,255,255,0.88)')),
+          backdropFilter: 'blur(16px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.4)',
+          borderBottom: (t) => scrolled
+            ? (t.palette.mode === 'dark' ? '1px solid rgba(32,178,170,0.18)' : '1px solid rgba(0,0,0,0.08)')
+            : '1px solid transparent',
+          boxShadow: scrolled ? '0 1px 16px rgba(15,95,90,0.08)' : 'none',
         }}
       >
         <SmartAppBanner />
-        <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.25 }}>
+        <Container maxWidth="lg" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1, px: { xs: 1.5, sm: 3 } }}>
           {/* Logo / Brand */}
           <Stack
             direction="row"
@@ -293,19 +297,27 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             </Button>
           </Stack>
 
-          {/* Action CTAs */}
-          <Stack direction="row" spacing={1} alignItems="center">
+          {/* Action CTAs — No mobile fica apenas o hamburguer limpo; no tablet/desktop exibe Entrar + Criar conta */}
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0 }}>
             <Button
               onClick={() => navigate('/entrar')}
-              sx={{ color: INK, fontWeight: 700, textTransform: 'none', minHeight: 40, px: 1.75, fontSize: 14 }}
+              sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
+                color: INK,
+                fontWeight: 700,
+                textTransform: 'none',
+                minHeight: 40,
+                px: 1.75,
+                fontSize: 14,
+              }}
             >
               Entrar
             </Button>
-            {/* Outlined (não gradiente): a 1ª dobra tem UM CTA primário — o do hero. */}
             <Button
               variant="outlined"
               onClick={() => navigate('/registrar')}
               sx={{
+                display: { xs: 'none', sm: 'inline-flex' },
                 borderRadius: '999px',
                 px: 2.5,
                 py: 0.75,
@@ -324,9 +336,15 @@ export const LandingNavbar = ({ scrolled, isSports = false, onGoToSection }: Lan
             <IconButton
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menu"
-              sx={{ display: { xs: 'flex', md: 'none' }, color: 'text.primary', ml: 0.5 }}
+              sx={{
+                display: { xs: 'inline-flex', md: 'none' },
+                color: 'text.primary',
+                p: 1,
+                borderRadius: '10px',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+              }}
             >
-              <MenuIcon />
+              <MenuIcon sx={{ fontSize: 24 }} />
             </IconButton>
           </Stack>
         </Container>

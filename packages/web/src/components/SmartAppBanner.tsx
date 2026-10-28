@@ -71,14 +71,17 @@ export const SmartAppBanner: React.FC<SmartAppBannerProps> = ({
     <Box
       sx={{
         width: '100%',
+        maxWidth: '100%',
+        overflow: 'hidden',
+        boxSizing: 'border-box',
         bgcolor: (t) => t.palette.mode === 'dark' ? '#111b1a' : '#ffffff',
         borderBottom: '1px solid',
         borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : 'rgba(0,0,0,0.08)',
         boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-        py: 1,
-        px: 1.5,
+        py: 0.85,
+        px: { xs: 1, sm: 1.5 },
         zIndex: 1200,
-        position: position === 'top' ? 'relative' : 'relative',
+        position: 'relative',
         animation: 'slideDownBanner .3s cubic-bezier(0.16, 1, 0.3, 1)',
         '@keyframes slideDownBanner': {
           from: { opacity: 0, transform: 'translateY(-10px)' },
@@ -86,7 +89,7 @@ export const SmartAppBanner: React.FC<SmartAppBannerProps> = ({
         },
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ maxWidth: 600, mx: 'auto' }}>
+      <Stack direction="row" alignItems="center" spacing={{ xs: 1, sm: 1.25 }} sx={{ maxWidth: 600, mx: 'auto', width: '100%', overflow: 'hidden' }}>
         {/* Botão Fechar */}
         <IconButton
           size="small"

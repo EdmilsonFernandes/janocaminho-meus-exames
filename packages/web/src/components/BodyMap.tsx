@@ -113,15 +113,17 @@ const ANATOMICAL_HOTSPOTS: Record<string, { x: number; y: number; side?: 'left' 
 
 const withUnit = (val: string | number | null | undefined, unit: string | null | undefined): string => {
   if (val == null || val === '') return '—';
-  const valStr = String(val).trim();
-  if (!unit || !unit.trim()) return valStr;
+  const valStr = typeof val === 'object' ? '—' : String(val).trim();
+  if (!unit || typeof unit !== 'string' || !unit.trim()) return valStr;
   const u = unit.trim();
   if (valStr.toLowerCase().endsWith(u.toLowerCase())) return valStr;
   return `${valStr} ${u}`;
 };
 
-const parseNum = (str: string | null | undefined): number | null => {
-  if (!str) return null;
+const parseNum = (str: string | number | null | undefined): number | null => {
+  if (str == null) return null;
+  if (typeof str === 'number') return Number.isFinite(str) ? str : null;
+  if (typeof str !== 'string') return null;
   const clean = str.replace(',', '.').replace(/[^0-9.-]/g, '');
   const n = parseFloat(clean);
   return Number.isFinite(n) ? n : null;
@@ -134,51 +136,55 @@ interface RangePositionResult {
 }
 
 const rangePosition = (
-  valueText: string | null | undefined,
+  valueText: string | number | null | undefined,
   refText: string | null | undefined
 ): RangePositionResult | null => {
-  if (!valueText || !refText) return null;
-  const val = parseNum(valueText);
-  if (val == null) return null;
+  try {
+    if (!valueText || !refText || typeof refText !== 'string') return null;
+    const val = parseNum(valueText);
+    if (val == null) return null;
 
-  let lo: number | null = null;
-  let hi: number | null = null;
+    let lo: number | null = null;
+    let hi: number | null = null;
 
-  const rangeMatch = refText.match(/([0-9]+(?:[.,][0-9]+)?)\s*(?:a|-|–|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
-  if (rangeMatch) {
-    lo = parseNum(rangeMatch[1]);
-    hi = parseNum(rangeMatch[2]);
-  } else {
-    const lessMatch = refText.match(/(?:<|inferior a|menor que|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
-    if (lessMatch) {
-      lo = 0;
-      hi = parseNum(lessMatch[1]);
+    const rangeMatch = refText.match(/([0-9]+(?:[.,][0-9]+)?)\s*(?:a|-|–|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+    if (rangeMatch) {
+      lo = parseNum(rangeMatch[1]);
+      hi = parseNum(rangeMatch[2]);
     } else {
-      const greaterMatch = refText.match(/(?:>|superior a|maior que)\s*([0-9]+(?:[.,][0-9]+)?)/i);
-      if (greaterMatch) {
-        lo = parseNum(greaterMatch[1]);
-        if (lo != null) hi = lo * 2;
+      const lessMatch = refText.match(/(?:<|inferior a|menor que|até|ate)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+      if (lessMatch) {
+        lo = 0;
+        hi = parseNum(lessMatch[1]);
+      } else {
+        const greaterMatch = refText.match(/(?:>|superior a|maior que)\s*([0-9]+(?:[.,][0-9]+)?)/i);
+        if (greaterMatch) {
+          lo = parseNum(greaterMatch[1]);
+          if (lo != null) hi = lo * 2;
+        }
       }
     }
+
+    if (lo == null || hi == null || hi <= lo) return null;
+
+    const span = hi - lo;
+    const dmin = lo === 0 ? 0 : lo - span * 0.6;
+    const dmax = hi + span * 0.6;
+    const total = dmax - dmin;
+    if (total <= 0) return null;
+
+    const clamp = (pct: number) => Math.max(3, Math.min(97, pct));
+    const bandLo = clamp(((lo - dmin) / total) * 100);
+    const bandHi = clamp(((hi - dmin) / total) * 100);
+    const valPos = clamp(((val - dmin) / total) * 100);
+
+    return { bandLo, bandHi, value: valPos };
+  } catch {
+    return null;
   }
-
-  if (lo == null || hi == null || hi <= lo) return null;
-
-  const span = hi - lo;
-  const dmin = lo === 0 ? 0 : lo - span * 0.6;
-  const dmax = hi + span * 0.6;
-  const total = dmax - dmin;
-  if (total <= 0) return null;
-
-  const clamp = (pct: number) => Math.max(3, Math.min(97, pct));
-  const bandLo = clamp(((lo - dmin) / total) * 100);
-  const bandHi = clamp(((hi - dmin) / total) * 100);
-  const valPos = clamp(((val - dmin) / total) * 100);
-
-  return { bandLo, bandHi, value: valPos };
 };
 
-const formatDate = (isoString: string | null) => {
+const formatDate = (isoString: string | null | undefined) => {
   if (!isoString) return null;
   try {
     const d = new Date(isoString);
@@ -321,28 +327,37 @@ export const BodyMap = ({
   // Normalização defensiva: sem dados ou formato inesperado não crasha
   const safeList: BodyRegionView[] = useMemo(() => {
     if (!Array.isArray(regions)) return [];
-    return regions.map((r) => ({
-      key: r?.key || 'desconhecido',
-      label: r?.label || 'Sistema',
-      emoji: r?.emoji || '🩺',
-      level: (r?.level as RegionLevel) || 'sem_dados',
-      markers: Array.isArray(r?.markers)
-        ? r.markers.map((m) => ({
-            nameCanonical: m?.nameCanonical || '',
-            name: m?.name || 'Marcador',
-            level: (m?.level as MarkerLevel) || 'ok',
-            valueText: m?.valueText || '—',
-            unit: m?.unit || '',
-            refText: m?.refText || null,
-            performedAt: m?.performedAt || null,
-            prior: m?.prior || null,
-            deltaPct: typeof m?.deltaPct === 'number' ? m.deltaPct : null,
-            trend: m?.trend || null,
-            examId: m?.examId || null,
-            historical: !!m?.historical,
-          }))
-        : [],
-    }));
+    return regions
+      .filter((r): r is BodyRegionView => Boolean(r && typeof r === 'object' && r.key))
+      .map((r) => ({
+        key: String(r.key || 'desconhecido'),
+        label: String(r.label || 'Sistema'),
+        emoji: String(r.emoji || '🩺'),
+        level: (r.level as RegionLevel) || 'sem_dados',
+        markers: Array.isArray(r.markers)
+          ? r.markers
+              .filter((m) => Boolean(m && typeof m === 'object'))
+              .map((m) => ({
+                nameCanonical: String(m.nameCanonical || ''),
+                name: String(m.name || 'Marcador'),
+                level: (m.level as MarkerLevel) || 'ok',
+                valueText: m.valueText != null ? (typeof m.valueText === 'object' ? '—' : String(m.valueText)) : '—',
+                unit: m.unit != null ? String(m.unit) : '',
+                refText: m.refText != null ? String(m.refText) : null,
+                performedAt: m.performedAt != null ? String(m.performedAt) : null,
+                prior: m.prior && typeof m.prior === 'object'
+                  ? {
+                      valueText: m.prior.valueText != null ? String(m.prior.valueText) : null,
+                      performedAt: m.prior.performedAt != null ? String(m.prior.performedAt) : null,
+                    }
+                  : null,
+                deltaPct: typeof m.deltaPct === 'number' && Number.isFinite(m.deltaPct) ? m.deltaPct : null,
+                trend: m.trend != null ? String(m.trend) : null,
+                examId: m.examId != null ? String(m.examId) : null,
+                historical: !!m.historical,
+              }))
+          : [],
+      }));
   }, [regions]);
 
   const [selectedKey, setSelectedKey] = useState<string>(() => {
@@ -367,6 +382,7 @@ export const BodyMap = ({
   }, [safeList, selectedKey]);
 
   const activeRegion = useMemo(() => {
+    if (safeList.length === 0) return null;
     return safeList.find((r) => r.key === selectedKey) || safeList[0] || null;
   }, [safeList, selectedKey]);
 
@@ -444,8 +460,8 @@ export const BodyMap = ({
     }
   };
 
-  // Se não estiver carregado ou vazio, exibe fallback leve
-  if (loaded && safeList.length === 0) {
+  // Se não houver regiões mapeadas ou enquanto carrega, exibe fallback leve
+  if (safeList.length === 0) {
     return (
       <AppCard>
         <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16 }}>
@@ -714,7 +730,7 @@ export const BodyMap = ({
                     flexShrink: 0,
                   }}
                 />
-                <span>{reg.label.split('&')[0].trim()}</span>
+                <span>{(reg.label || '').split('&')[0]?.trim() || reg.label || 'Órgão'}</span>
                 {alertCount > 0 && (
                   <Box
                     component="span"
@@ -1007,7 +1023,7 @@ export const BodyMap = ({
                     }}
                   >
                     {(() => {
-                      const Icon = SYSTEM_ICON[activeRegion.key] || MedicalServicesIcon;
+                      const Icon = (activeRegion?.key && SYSTEM_ICON[activeRegion.key]) || MedicalServicesIcon;
                       return <Icon sx={{ fontSize: 22 }} />;
                     })()}
                   </Box>
@@ -1025,7 +1041,7 @@ export const BodyMap = ({
 
                 <Chip
                   size="small"
-                  label={LEVEL_LABEL[activeRegion.level]}
+                  label={LEVEL_LABEL[activeRegion.level] || 'Normal'}
                   sx={{
                     fontWeight: 800,
                     fontSize: 12,
@@ -1224,7 +1240,7 @@ export const BodyMap = ({
                                         Anterior: {withUnit(m.prior.valueText, m.unit)}
                                         {formatDate(m.prior.performedAt) ? ` · ${formatDate(m.prior.performedAt)}` : ''}
                                       </Typography>
-                                      {m.deltaPct != null && (
+                                      {typeof m.deltaPct === 'number' && Number.isFinite(m.deltaPct) && (
                                         <Box
                                           sx={{
                                             display: 'inline-flex',
@@ -1472,7 +1488,7 @@ export const BodyMap = ({
                                         Anterior: {withUnit(m.prior.valueText, m.unit)}
                                         {formatDate(m.prior.performedAt) ? ` · ${formatDate(m.prior.performedAt)}` : ''}
                                       </Typography>
-                                      {m.deltaPct != null && (
+                                      {typeof m.deltaPct === 'number' && Number.isFinite(m.deltaPct) && (
                                         <Box
                                           sx={{
                                             display: 'inline-flex',
@@ -1573,11 +1589,11 @@ export const BodyMap = ({
               ) : (
                 /* Estado sem exames para a região com Sugestões Clínicas Preventivas */
                 (() => {
-                  const advice = ORGAN_CLINICAL_GUIDE[activeRegion.key] || {
+                  const advice = (activeRegion?.key && ORGAN_CLINICAL_GUIDE[activeRegion.key]) || {
                     exams: [
                       { name: 'Check-up Laboratorial Geral', type: 'Sangue', purpose: 'Avaliação bioquímica e metabólica básica' },
                     ],
-                    why: `Monitorar o sistema ${activeRegion.label} permite detectar variações precoces antes de qualquer sintoma clínico.`,
+                    why: `Monitorar o sistema ${activeRegion?.label || 'corporal'} permite detectar variações precoces antes de qualquer sintoma clínico.`,
                     recommendation: 'Converse com seu médico em sua próxima consulta de rotina.',
                   };
 

@@ -218,9 +218,20 @@
     <script type="module" src="/src/main.tsx"></script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
-      /* Font smoothing na raiz — iPhone/Safari usa o WEB (não APK); no Android WebView é
-         no-op. Fontes Inter/Poppins ficam mais nítidas em fundo claro. */
-      html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+      /* Regra Mobile-First Anti-Vazamento Horizontal (impede o site de descolar/arrastar para os lados no celular) */
+      html, body {
+        overflow-x: hidden !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0;
+        padding: 0;
+        -webkit-overflow-scrolling: touch;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
       /* VLibras no canto INFERIOR ESQUERDO, MENOR e ACIMA do rodapé mobile (zona livre — os FABs
          Dr. Exame/Enviar exame ficam na DIREITA). Auditoria 2026-08-16: duas lições —
          (1) o plugin ATUAL renderiza prefixo `vp-*` (vp-access-button), as regras antigas só
