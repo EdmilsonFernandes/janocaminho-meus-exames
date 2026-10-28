@@ -47,7 +47,9 @@ function scheduleSave() {
 // (sem prefixo) simplesmente nunca mais casam e são coletadas pelo limite de 80.
 function cacheKeyFor(urlStr: string): string {
   try {
-    const tok = localStorage.getItem('token') ?? '';
+    // Portal médico guarda o token em 'doctorToken' (revisão R4) — sem ele, dois médicos
+    // na mesma máquina ainda compartilhariam o cache offline.
+    const tok = localStorage.getItem('doctorToken') ?? localStorage.getItem('token') ?? '';
     const payloadB64 = tok.split('.')[1];
     if (payloadB64) {
       const claims = JSON.parse(atob(payloadB64.replace(/-/g, '+').replace(/_/g, '/')));
