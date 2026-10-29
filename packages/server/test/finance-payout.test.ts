@@ -14,6 +14,8 @@
 //    fecha sozinha quando ele volta a poder atender (prazo legacy vale no relógio do pass)
 //  · KYC também na APROVAÇÃO: payout já requested de médico bloqueado/sem verificação →
 //    approve recusa (DOCTOR_CANNOT_PRACTICE; rota 409) e o auto pula — segue requested p/ humano
+//  · starvation (revisão final I9): a janela de 200 do pass só traz consulta SEM payout e de médico que pode
+//    receber (retido não ocupa vaga, mas MANTÉM a exceção); no auto, 20 retidos não travam os demais
 //  · SMS-token → failed + payout_needs_sms_token (nunca reenvia)
 //  · auto: default OFF; ligado → job aprova pelo MESMO caminho
 //  · caixa Asaas: cache 5min (1 fetch em 2 leituras; expira → refetch)
@@ -555,6 +557,126 @@ describe('runPayoutAutoApprove — gated por teleconsulta.payoutAuto', () => {
     expect(sent).toHaveLength(1);
     expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1); // sem duplicar
     expect(await ledgerGloballyBalanced()).toBe(true);
+  });
+});
+
+// ───────────────────── I9 — o funil não "morre de fome" (revisão final do KYC) ─────────────────────
+// O pass lia as 200 consultas elegíveis mais antigas e só DEPOIS filtrava (no JS) as que já tinham Payout e as de
+// médico retido; o auto pegava 20 payouts `requested` sem ordem nem filtro. Bastava o backlog antigo estar pago/retido
+// para ninguém mais receber. Agora a própria query exclui os dois grupos.
+
+/** Teleconsultas elegíveis em massa (createMany, 1 só INSERT) — todas com paidAt ANTERIOR ao de seedEligible (5 dias). */
+async function bulkEligible(doctorId: string, n: number, tag: string, withLedger: boolean) {
+  const { user, patient } = await createUser();
+  const ids = Array.from({ length: n }, (_, i) => `bulk-${tag}-${String(i).padStart(4, '0')}`);
+  const base = Date.now() - 20 * 24 * HOUR;
+  await prisma.reminder.createMany({
+    data: ids.map((id, i) => ({
+      id, ownerId: user.id, patientId: patient.id, title: 'Tele em massa', type: 'teleconsulta',
+      dueDate: new Date(base), teleStatus: 'completed', done: true, endedAt: new Date(base),
+      paidAt: new Date(base + i * 1000), paymentRef: 'pay_bulk', consultPriceCents: 25000, createdByDoctorId: doctorId,
+      commissionSnapshot: { ruleId: null, platformBps: 2000, feeBearer: 'platform', releaseDelayDays: 3, minPayoutCents: 2000 },
+      releaseEligibleAt: new Date(base + 3 * 24 * HOUR),
+    })) as any,
+  });
+  if (withLedger) { // obrigação sintética de 20k por consulta (o que o ledger da conclusão deixaria em doctor_payable)
+    await prisma.ledgerEntry.createMany({
+      data: ids.map((id) => ({ txnId: `bulk_completion_${id}`, reminderId: id, doctorId, account: 'doctor_payable', creditCents: 20000, refType: 'reminder', refId: id })),
+    });
+  }
+  return ids;
+}
+
+describe('I9 — starvation do repasse', () => {
+  beforeEach(async () => { await resetDb(); await loadSettings(); }, 30_000);
+
+  it('mais de 200 consultas antigas JÁ PAGAS não impedem de pagar uma elegível mais nova', async () => {
+    const doc = await seedDoctor();
+    const old = await bulkEligible(doc.id, 205, 'paid', false);
+    await prisma.payout.createMany({ data: old.map((id) => ({ reminderId: id, doctorId: doc.id, amountCents: 20000, status: 'completed', reserveTxnId: payoutReserveTxnId(id) })) });
+    const novo = await seedEligible(doc.id);
+
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(1);
+    expect(await prisma.payout.count()).toBe(206);
+    expect(await prisma.payout.findUnique({ where: { reminderId: novo.id } })).toMatchObject({ status: 'requested', doctorId: doc.id, amountCents: 20000 });
+    expect((await runPayoutPass(Date.now() + MIN)).created).toBe(0); // e segue idempotente
+  });
+
+  it('médico RETIDO com backlog antigo não bloqueia outro médico — e a exceção do retido continua aberta', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { verificationStatus: 'pending' } });
+    const ok = await seedDoctor();
+    await bulkEligible(held.id, 205, 'held', true); // 205 mais antigas que a do outro médico, todas com obrigação no ledger
+    const rOk = await seedEligible(ok.id);
+
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(1);
+    expect(p.exceptionsCreated).toBe(1); // a do retido
+    expect(await prisma.payout.findMany({ select: { reminderId: true, doctorId: true } })).toEqual([{ reminderId: rOk.id, doctorId: ok.id }]);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${ok.id}`)).toBe(0);
+
+    await runPayoutPass(Date.now() + MIN); // re-tick: a exceção do retido não duplica
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+  });
+
+  it('retido SEM obrigação no ledger não gera exceção (nada a reter)', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { blocked: true } });
+    await bulkEligible(held.id, 3, 'semledger', false);
+    const p = await runPayoutPass(Date.now());
+    expect(p.exceptionsCreated).toBe(0);
+    expect(await prisma.exceptionQueue.count({ where: { kind: 'payout_doctor_unverified' } })).toBe(0);
+  });
+
+  it('auto-aprovação: 20 payouts retidos NÃO ocupam as vagas — o 21º, de quem pode receber, é aprovado; os retidos seguem com a exceção', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { verificationStatus: 'rejected' } });
+    // 20 requested de médico retido, criados ANTES (ordem física do heap = a que um findMany sem ORDER BY devolveria primeiro)
+    const heldIds = Array.from({ length: 20 }, (_, i) => `held-rem-${i}`);
+    await prisma.payout.createMany({
+      data: heldIds.map((id, i) => ({ reminderId: id, doctorId: held.id, amountCents: 20000, status: 'requested', reserveTxnId: payoutReserveTxnId(id), requestedAt: new Date(Date.now() - (100 - i) * MIN) })),
+    });
+    const ok = await seedDoctor();
+    const rOk = await seedEligible(ok.id);
+    await runPayoutPass(Date.now()); // cria o requested do médico que pode receber (com reserva)
+    expect(await prisma.payout.count({ where: { status: 'requested' } })).toBe(21);
+
+    await saveSettings('teleconsulta', { payoutAuto: 1 });
+    const sent: string[] = [];
+    const deps = { transferSender: async (i: any) => { sent.push(i.externalReference); return { transferId: 'trf_21', status: 'DONE', authorized: true, failReason: null }; } };
+    const { runPayoutAutoApprove } = await import('../src/finance/payout');
+    expect(await runPayoutAutoApprove(deps as any)).toBe(1);
+
+    const pOk = await prisma.payout.findFirstOrThrow({ where: { reminderId: rOk.id } });
+    expect(sent).toEqual([`payout_${pOk.id}`]);
+    expect(pOk.status).toBe('completed');
+    expect(await prisma.payout.count({ where: { status: 'requested', doctorId: held.id, attempts: 0 } })).toBe(20); // intactos
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${ok.id}`)).toBe(0);
+
+    expect(await runPayoutAutoApprove(deps as any)).toBe(0); // 2º tick: nada novo, sem duplicar a exceção
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+  });
+
+  it('auto-aprovação: pega os MAIS ANTIGOS primeiro (ORDER BY requestedAt) e no máximo 20 por tick', async () => {
+    const doc = await seedDoctor();
+    await saveSettings('teleconsulta', { payoutAuto: 1 });
+    const rid = (k: number) => `ord-rem-${String(k).padStart(2, '0')}`;
+    const base = Date.now() - 3 * HOUR;
+    // k=0 é o MAIS ANTIGO; inseridos do mais novo p/ o mais antigo (ordem física ≠ ordem de idade); reserva sintética
+    // no ledger (approvePayout exige a reserva — o ledger não olha o Reminder)
+    for (let k = 21; k >= 0; k--) {
+      await prisma.payout.create({ data: { reminderId: rid(k), doctorId: doc.id, amountCents: 5000, reserveTxnId: payoutReserveTxnId(rid(k)), requestedAt: new Date(base + k * MIN) } });
+      await prisma.ledgerEntry.create({ data: { txnId: payoutReserveTxnId(rid(k)), reminderId: rid(k), doctorId: doc.id, account: 'payout_processing', creditCents: 5000, refType: 'payout', refId: rid(k) } });
+    }
+    const deps = { transferSender: async () => ({ transferId: 'trf_ord', status: 'DONE', authorized: true, failReason: null }) };
+    const { runPayoutAutoApprove } = await import('../src/finance/payout');
+    expect(await runPayoutAutoApprove(deps as any)).toBe(20);
+    const left = await prisma.payout.findMany({ where: { status: 'requested' }, orderBy: { requestedAt: 'asc' }, select: { reminderId: true } });
+    expect(left.map((l) => l.reminderId)).toEqual([rid(20), rid(21)]); // sobraram os 2 MAIS NOVOS
+    expect(await runPayoutAutoApprove(deps as any)).toBe(2); // próximo tick leva o resto
   });
 });
 

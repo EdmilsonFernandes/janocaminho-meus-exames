@@ -14,6 +14,7 @@
 // admin (POST /admin/payouts/:id/approve) — chamada REAL ao Asaas permitida aí.
 // Auto (AppSetting teleconsulta.payoutAuto, default FALSE) usa o MESMO caminho.
 // Estorno: no_show/technical pago com reserva (onda 2) → refund TOTAL no Asaas.
+import { Prisma } from '@prisma/client';
 import { prisma } from '../prisma';
 import { postEntries, postRefundExecuted, type LedgerTxn } from './ledger';
 import { coerceSnapshot } from './rules';
@@ -21,7 +22,7 @@ import { decryptPII } from '../utils/crypto';
 import { enqueueException, resolveExceptions } from '../jobs/reconciliation';
 import { maskPixKey } from '../routes/doctor.routes';
 import { payoutAutoEnabled } from '../utils/settings';
-import { doctorCanPractice } from '../utils/doctorAccess';
+import { doctorMayPractice, practiceStatuses } from '../utils/doctorAccess';
 import {
   AsaasApiError, createAsaasPixTransfer, lookupAsaasTransferByExternalRef,
   getAsaasPaymentStatus, getAsaasFinanceBalance, isAsaasBalanceIssue, isAsaasTokenSmsIssue,
@@ -46,8 +47,38 @@ export const DOCTOR_CANNOT_PRACTICE = 'DOCTOR_CANNOT_PRACTICE';
  *  atender (approved, ou legacy dentro do prazo) e não está bloqueado. `now` = relógio de quem
  *  decide (o pass usa o seu; a aprovação, o relógio real). */
 function doctorCanReceivePayout(d: { blocked: boolean; verificationStatus: string }, now: number = Date.now()): boolean {
-  return !d.blocked && doctorCanPractice(d.verificationStatus, new Date(now));
+  return doctorMayPractice(d, new Date(now));
 }
+
+/** Janela de candidatos do pass por tick, e lote do auto-aprovar. */
+const PASS_WINDOW = 200;
+const AUTO_APPROVE_BATCH = 20;
+
+const isSchemaDrift = (e: unknown): boolean => /(column|relation) .* does not exist/i.test(String((e as Error)?.message));
+/** Banco legado sem a coluna/tabela nova → o passo degrada p/ "nada a fazer" (padrão drift-safe do projeto). */
+const emptyOnDrift = <T>(e: unknown): T[] => { if (isSchemaDrift(e)) return []; throw e; };
+
+/** SQL (alias `d` = doctors): médico RETIDO = bloqueado OU status fora de practiceStatuses(now). É a negação SQL de
+ *  doctorMayPractice (utils/doctorAccess) — mesma regra do gate HTTP, para a query já excluir/achar os retidos. */
+const heldDoctorSql = (statuses: string[]): Prisma.Sql =>
+  Prisma.sql`(d.blocked = true OR d."verificationStatus" NOT IN (${Prisma.join(statuses)}))`;
+
+/**
+ * SQL (alias `r` = reminders): consulta ELEGÍVEL ao repasse (§18.5) que ainda NÃO tem Payout e cuja obrigação do médico
+ * no ledger (credit − debit em doctor_payable) é > 0 — o mesmo critério que o pass aplicava depois, no JS. Filtrar
+ * AQUI (e não depois de ler as 200 mais antigas) é o que impede a "morte de fome" (revisão final I9): consulta já
+ * paga e consulta de médico retido não ocupam a janela. O corte `releaseEligibleAt <= agora` vai por epoch (ms) e
+ * não por Date: o Prisma liga Date em $queryRaw como timestamptz e a coluna é timestamp (UTC) — comparar assim
+ * dependeria do fuso da sessão do Postgres.
+ */
+const eligibleUnpaidSql = (nowMs: number): Prisma.Sql => Prisma.sql`
+  r.type = 'teleconsulta' AND r."teleStatus" = 'completed' AND r."paidAt" IS NOT NULL
+  AND r."consultPriceCents" > 0 AND r."createdByDoctorId" IS NOT NULL
+  AND r."releaseEligibleAt" <= (to_timestamp(${nowMs}::double precision / 1000.0) AT TIME ZONE 'UTC')
+  AND r."refundedAt" IS NULL
+  AND NOT EXISTS (SELECT 1 FROM payouts p WHERE p."reminderId" = r.id)
+  AND (SELECT COALESCE(SUM(le."creditCents"), 0) - COALESCE(SUM(le."debitCents"), 0)
+         FROM ledger_entries le WHERE le."reminderId" = r.id AND le.account = 'doctor_payable') > 0`;
 
 /** Injetáveis p/ teste (mock completo — ZERO chamada real ao Asaas na suíte). */
 export interface PayoutDeps {
@@ -69,39 +100,47 @@ export interface PayoutPassReport {
  * (credit−debit em doctor_payable) — nunca recalculado da regra viva. Cria Payout
  * status=requested + RESERVA ATÔMICA no ledger (antiduplicação §18.6: unique
  * reminderId no Payout + txnId determinístico + transação). NÃO envia (supervisão).
+ *
+ * JANELA (revisão final I9): as ≤200 candidatas mais antigas já vêm SEM Payout e SÓ de médico que pode receber —
+ * o filtro é da query, não do JS depois do `take`. Médico RETIDO (bloqueado / sem verificação) não ocupa vaga, mas
+ * a retenção continua VISÍVEL ao dono: quem tem ganho elegível sem Payout ganha a exceção payout_doctor_unverified
+ * (consulta separada e limitada) e ela fecha sozinha quando ele volta a poder atender (loop abaixo).
  */
 export async function runPayoutPass(now: number): Promise<PayoutPassReport> {
   const report: PayoutPassReport = { created: 0, skippedBelowMin: 0, exceptionsCreated: 0 };
+  const statuses = practiceStatuses(new Date(now)); // prazo do legado no relógio DO PASS
 
+  // 1) Retidos com ganho elegível: exceção visível ao dono (dedup por enqueueException).
+  const held = await prisma.$queryRaw<{ doctorId: string }[]>(Prisma.sql`
+    SELECT DISTINCT r."createdByDoctorId" AS "doctorId"
+    FROM reminders r JOIN doctors d ON d.id = r."createdByDoctorId"
+    WHERE ${eligibleUnpaidSql(now)} AND ${heldDoctorSql(statuses)}
+    LIMIT ${PASS_WINDOW}`).catch((e) => emptyOnDrift<{ doctorId: string }>(e));
+  for (const h of held) {
+    if (await enqueueException('payout_doctor_unverified', `payout:doctor:${h.doctorId}`, { doctorId: h.doctorId })) report.exceptionsCreated++;
+  }
+
+  // 2) Janela de candidatas: elegíveis, sem Payout, de médico que pode receber (ou cujo cadastro sumiu — o loop trata).
+  const candidateIds = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+    SELECT r.id FROM reminders r
+    WHERE ${eligibleUnpaidSql(now)}
+      AND NOT EXISTS (SELECT 1 FROM doctors d WHERE d.id = r."createdByDoctorId" AND ${heldDoctorSql(statuses)})
+    ORDER BY r."paidAt" ASC, r.id ASC
+    LIMIT ${PASS_WINDOW}`).catch((e) => emptyOnDrift<{ id: string }>(e));
+  if (!candidateIds.length) return report;
   const rows = await prisma.reminder.findMany({
-    where: {
-      type: 'teleconsulta',
-      teleStatus: 'completed',
-      paidAt: { not: null },
-      consultPriceCents: { gt: 0 },
-      createdByDoctorId: { not: null },
-      releaseEligibleAt: { lte: new Date(now) },
-      refundedAt: null,
-    },
+    where: { id: { in: candidateIds.map((c) => c.id) } },
     select: {
       id: true, createdByDoctorId: true, dueDate: true, title: true,
       commissionSnapshot: true,
     },
     orderBy: { paidAt: 'asc' },
-    take: 200,
   }).catch((e: any) => (/column .* does not exist/i.test(String(e?.message)) ? [] : Promise.reject(e)));
   if (!rows.length) return report;
-
-  const existing = await prisma.payout.findMany({
-    where: { reminderId: { in: rows.map((r) => r.id) } },
-    select: { reminderId: true, status: true },
-  }).catch(() => [] as { reminderId: string; status: string }[]);
-  const taken = new Set(existing.map((p) => p.reminderId));
 
   // Obrigação REAL do médico por consulta (ledger) — a autoridade é o lançamento.
   const amounts = new Map<string, number>();
   for (const r of rows) {
-    if (taken.has(r.id)) continue;
     const agg = await prisma.ledgerEntry.aggregate({
       where: { reminderId: r.id, account: 'doctor_payable' },
       _sum: { creditCents: true, debitCents: true },
@@ -125,7 +164,8 @@ export async function runPayoutPass(now: number): Promise<PayoutPassReport> {
       where: { id: doctorId },
       select: { payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true, blocked: true, verificationStatus: true },
     }).catch(() => null);
-    // KYC (spec §7): repasse só p/ quem pode atender (approved ou legacy no prazo) e não bloqueado.
+    // KYC (spec §7): repasse só p/ quem pode atender (approved ou legacy no prazo) e não bloqueado. A janela acima já
+    // exclui os retidos; isto é a rede de segurança p/ o status ter mudado entre as duas leituras.
     if (doctor && !doctorCanReceivePayout(doctor, now)) {
       if (await enqueueException('payout_doctor_unverified', `payout:doctor:${doctorId}`, { doctorId })) report.exceptionsCreated++;
       continue;
@@ -427,16 +467,29 @@ export async function approvePayout(
   }
 }
 
-/** AUTO (§18.5): aprova todos os requested pelo MESMO caminho do admin. Só roda se
- *  o dono ligou teleconsulta.payoutAuto no admin (default OFF). Payout de médico bloqueado
- *  ou sem verificação (KYC, spec §7) é PULADO: segue `requested` p/ um humano. */
+/** AUTO (§18.5): aprova os requested pelo MESMO caminho do admin. Só roda se o dono ligou
+ *  teleconsulta.payoutAuto no admin (default OFF). Payout de médico bloqueado ou sem verificação
+ *  (KYC, spec §7) segue `requested` p/ um humano e NÃO é candidato: antes, 20 retidos sem ordem nem
+ *  filtro enchiam o lote e travavam a aprovação de todos os outros (revisão final I9). Os candidatos
+ *  são os `requested` de quem pode receber, do mais antigo p/ o mais novo (requestedAt), em lotes de
+ *  20; a exceção payout_doctor_unverified dos retidos continua aberta (consulta separada e limitada). */
 export async function runPayoutAutoApprove(deps?: PayoutDeps): Promise<number> {
   if (!payoutAutoEnabled()) return 0;
-  const pending = await prisma.payout.findMany({
-    where: { status: 'requested' },
-    select: { id: true },
-    take: 20,
-  }).catch(() => [] as { id: string }[]);
+  const statuses = practiceStatuses(new Date());
+
+  const held = await prisma.$queryRaw<{ doctorId: string }[]>(Prisma.sql`
+    SELECT DISTINCT p."doctorId" AS "doctorId"
+    FROM payouts p JOIN doctors d ON d.id = p."doctorId"
+    WHERE p.status = 'requested' AND ${heldDoctorSql(statuses)}
+    LIMIT ${PASS_WINDOW}`).catch(() => [] as { doctorId: string }[]);
+  for (const h of held) await enqueueException('payout_doctor_unverified', `payout:doctor:${h.doctorId}`, { doctorId: h.doctorId });
+
+  const pending = await prisma.$queryRaw<{ id: string }[]>(Prisma.sql`
+    SELECT p.id FROM payouts p
+    WHERE p.status = 'requested'
+      AND NOT EXISTS (SELECT 1 FROM doctors d WHERE d.id = p."doctorId" AND ${heldDoctorSql(statuses)})
+    ORDER BY p."requestedAt" ASC, p.id ASC
+    LIMIT ${AUTO_APPROVE_BATCH}`).catch(() => [] as { id: string }[]);
   let approved = 0;
   for (const p of pending) {
     try {
