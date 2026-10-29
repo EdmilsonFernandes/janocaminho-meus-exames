@@ -271,6 +271,10 @@ export const DoctorPortalPage = () => {
     );
   }
 
+  // Volta do UaiID SEM sessão (ex.: verificou pelo celular via "Copiar link", onde não há login): sem este aviso o
+  // médico cairia na tela de login sem saber o que houve. Com sessão, o gate de verificação consome o `kyc=1`.
+  const returnedFromKyc = /[?&]kyc=1(?:&|$)/.test(window.location.hash);
+
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
       <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
@@ -284,6 +288,12 @@ export const DoctorPortalPage = () => {
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Portal do Médico</Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{mode === 'register' ? 'Crie sua conta de profissional de saúde' : 'Acesso restrito a profissionais'}</Typography>
         </Stack>
+
+        {returnedFromKyc && mode === 'login' && (
+          <Alert severity="info" role="status" sx={{ mb: 2, borderRadius: '12px' }}>
+            Terminou a verificação de identidade? Entre na sua conta para ver o resultado.
+          </Alert>
+        )}
 
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>
