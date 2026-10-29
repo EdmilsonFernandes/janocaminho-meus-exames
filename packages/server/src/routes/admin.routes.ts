@@ -6,7 +6,7 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { config, hasAsaas } from '../config';
 import { postRefundExecuted, postEntries } from '../finance/ledger';
 import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
-import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from '../utils/settings';
+import { getSettings, saveSettings, getMonthlyPlan, getDoctorKycConfig, type SettingCategory } from '../utils/settings';
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
@@ -30,6 +30,7 @@ import { maskPixKey } from './doctor.routes';
 import { getLastReconciliationAt } from '../jobs/reconciliation';
 import { runExtraction } from '../extraction/pipeline';
 import { normalizeCouponCode } from '../utils/coupons';
+import { notifyDoctorKyc } from '../kyc/notify';
 
 const router = Router();
 router.use(requireAuth);
@@ -275,7 +276,23 @@ router.patch('/config/costs', async (req, res, next) => {
         if (!isNaN(n)) patch[k] = n;
       }
       if (Object.keys(patch).length === 0) { res.status(400).json({ error: 'Nenhum valor numérico válido enviado.' }); return; }
+      // KYC do médico: prazo dos legados e auto-aprovação decidem quem pode atender → validar + auditar.
+      let kycBefore: ReturnType<typeof getDoctorKycConfig> | null = null;
+      if (category === 'doctorKyc') {
+        const bad = (msg: string) => res.status(400).json({ code: 'KYC_CONFIG_INVALID', error: msg });
+        const unknown = Object.keys(patch).filter((k) => k !== 'legacyGraceUntilMs' && k !== 'autoApprove');
+        if (unknown.length) { bad(`Campo desconhecido em doctorKyc: ${unknown.join(', ')}.`); return; }
+        if ('autoApprove' in patch && patch.autoApprove !== 0 && patch.autoApprove !== 1) { bad('autoApprove deve ser 0 ou 1.'); return; }
+        if ('legacyGraceUntilMs' in patch) {
+          const ms = patch.legacyGraceUntilMs;
+          if (ms !== 0 && !(Number.isInteger(ms) && ms > Date.now() && ms < Date.UTC(2100, 0, 1))) {
+            bad('legacyGraceUntilMs deve ser 0 (sem prazo) ou uma data futura em milissegundos.'); return;
+          }
+        }
+        kycBefore = getDoctorKycConfig();
+      }
       const s = await saveSettings(category as SettingCategory, patch);
+      if (kycBefore) await audit('KYC_CONFIG_CHANGED', req, { targetType: 'SETTINGS', targetId: 'doctorKyc', before: kycBefore, after: getDoctorKycConfig() });
       console.log('[admin] config atualizada (persistida no banco):', category, patch);
       res.json({ ...s, plans: { monthly: { ...getMonthlyPlan(), credits: s.grants.monthly } } });
       return;
@@ -1107,6 +1124,86 @@ router.get('/doctors', async (_req, res, next) => {
       prisma.doctor.count(),
     ]);
     res.json({ doctors, total });
+  } catch (e) { next(e); }
+});
+
+// KYC do médico (spec verificação §3): decisões humanas. needs_admin decide AQUI; uaiid_review
+// decide no painel do UaiID (aqui só leitura). Legados: aprovação em lote.
+router.get('/doctors/verification-queue', async (_req, res, next) => {
+  try {
+    const review = await prisma.doctorVerification.findMany({
+      where: { decision: { in: ['needs_admin', 'uaiid_review'] }, decidedBy: null, doctorId: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: {
+        id: true, providerId: true, crm: true, status: true, reasonCode: true, decision: true, documentName: true,
+        cfmName: true, nameRatio: true, score: true, createdAt: true,
+        doctor: { select: { id: true, name: true, crm: true, crmUf: true, email: true, verificationStatus: true } },
+      },
+    });
+    const crms = [...new Set(review.map((a) => a.crm))];
+    const counts = crms.length
+      ? await prisma.doctorVerification.groupBy({ by: ['crm'], where: { crm: { in: crms } }, _count: { _all: true } })
+      : [];
+    const byCrm = new Map(counts.map((c) => [c.crm, c._count._all]));
+    const legacy = await prisma.doctor.findMany({
+      where: { verificationStatus: 'legacy' },
+      orderBy: { createdAt: 'asc' },
+      take: 500,
+      select: { id: true, name: true, crm: true, crmUf: true, email: true, createdAt: true },
+    });
+    res.json({
+      review: review.map((a) => ({ ...a, priorAttempts: (byCrm.get(a.crm) ?? 1) - 1, decideIn: a.decision === 'uaiid_review' ? 'uaiid' : 'drexame' })),
+      legacy,
+    });
+  } catch (e) { next(e); }
+});
+
+router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const doc = await prisma.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
+    if (!doc) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    const note = req.body?.note ? String(req.body.note).slice(0, 500) : null;
+    const latest = await prisma.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+    await prisma.$transaction([
+      prisma.doctor.update({ where: { id }, data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! } }),
+      ...(latest ? [prisma.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } })] : []),
+    ]);
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: doc.verificationStatus }, after: { status: 'approved', crm: doc.crm, note } });
+    void notifyDoctorKyc(doc, 'approved'); // e-mail premium "Sua conta foi aprovada"
+    res.json({ ok: true, status: 'approved' });
+  } catch (e) { next(e); }
+});
+
+router.post('/doctors/:id/verification/reject', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const reason = String(req.body?.reason ?? '').trim().slice(0, 500);
+    if (!reason) { res.status(400).json({ code: 'REASON_REQUIRED', error: 'Informe o motivo.' }); return; }
+    const doc = await prisma.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
+    if (!doc) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    const latest = await prisma.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+    await prisma.$transaction([
+      prisma.doctor.update({ where: { id }, data: { verificationStatus: 'rejected', verifiedAt: null, verifiedBy: null } }),
+      ...(latest ? [prisma.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'rejected', decidedBy: req.userId!, reasonCode: 'admin_rejected' } })] : []),
+    ]);
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: doc.verificationStatus }, after: { status: 'rejected', crm: doc.crm, reason } });
+    void notifyDoctorKyc(doc, 'rejected', 'admin_rejected', reason); // o motivo escrito pelo dono vai no e-mail do médico (dono, 28/10)
+    res.json({ ok: true, status: 'rejected' });
+  } catch (e) { next(e); }
+});
+
+router.post('/doctors/verification/approve-legacy', async (req: AuthedRequest, res, next) => {
+  try {
+    const ids: string[] = Array.isArray(req.body?.ids) ? req.body.ids.map(String).slice(0, 500) : [];
+    if (!ids.length) { res.status(400).json({ code: 'IDS_REQUIRED', error: 'Informe os médicos.' }); return; }
+    const r = await prisma.doctor.updateMany({
+      where: { id: { in: ids }, verificationStatus: 'legacy' },
+      data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! },
+    });
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', after: { status: 'approved', via: 'legacy_bulk', ids, count: r.count } });
+    res.json({ ok: true, approved: r.count });
   } catch (e) { next(e); }
 });
 
