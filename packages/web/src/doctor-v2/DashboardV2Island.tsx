@@ -161,7 +161,6 @@ export default function DashboardV2Island() {
         }
         if (d?.buckets) setBuckets(d.buckets);
         if (typeof d?.credits === 'number') setCredits(d.credits);
-        }
         // Pendências (lógica do PendenciasCard do app real): teleconsulta aberta +
         // lembrete vencido + perguntas aguardando médico.
         try {
