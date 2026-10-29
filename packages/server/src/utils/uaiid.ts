@@ -10,16 +10,34 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export type UaiidErrorCode = 'KYC_UNAVAILABLE' | 'KYC_ATTEMPT_LIMIT';
 export class UaiidError extends Error {
-  constructor(public readonly code: UaiidErrorCode, public readonly retryAfterHours?: number) {
+  /**
+   * `status` = HTTP status devolvido pelo UaiID quando a falha veio de uma resposta; undefined em
+   * rede/timeout/sem chave. Nunca guardar chave, CPF nem corpo da resposta aqui.
+   */
+  constructor(
+    public readonly code: UaiidErrorCode,
+    public readonly retryAfterHours?: number,
+    public readonly status?: number,
+  ) {
     super(code);
     this.name = 'UaiidError';
   }
 }
 
 const baseUrl = () => (process.env.UAIID_BASE_URL || 'https://api.uaiid.com.br').replace(/\/+$/, '');
-const timeoutMs = () => Number(process.env.UAIID_TIMEOUT_MS) || 8000;
+/** Inteiro em [1000, 60000] ms; qualquer outro valor (NaN, negativo, 0, decimal, Infinity) → 8000. Assim AbortSignal.timeout nunca lança RangeError. */
+const timeoutMs = () => {
+  const n = Number(process.env.UAIID_TIMEOUT_MS);
+  return Number.isInteger(n) && n >= 1000 && n <= 60000 ? n : 8000;
+};
 const apiKey = () => process.env.UAIID_API_KEY || '';
 const num = (v: unknown): number | null => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+/** Data ISO da API → Date; ausente ou inválida → null (nunca Invalid Date). */
+const toDate = (v: unknown): Date | null => {
+  if (typeof v !== 'string' || !v) return null;
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : d;
+};
 
 export interface UaiidCreateInput { cpf: string; fullName: string; externalReference: string; returnUrl: string; idempotencyKey: string }
 export interface UaiidCreated { verificationId: string; verifyUrl: string; expiresAt: Date | null; reused: boolean }
@@ -42,12 +60,14 @@ export async function createUaiidVerification(input: UaiidCreateInput): Promise<
   }).catch(() => null);
   if (!res) throw new UaiidError('KYC_UNAVAILABLE');
   const data: any = await res.json().catch(() => ({}));
-  if (res.status === 429) throw new UaiidError('KYC_ATTEMPT_LIMIT', num(data?.retry_after_hours) ?? undefined);
-  if (!res.ok || !data?.verification_id || !data?.verify_url) throw new UaiidError('KYC_UNAVAILABLE');
+  if (res.status === 429) throw new UaiidError('KYC_ATTEMPT_LIMIT', num(data?.retry_after_hours) ?? undefined, res.status);
+  // verify_url é para onde o front redireciona o médico: só https (nada de http:, javascript:, //host).
+  const verifyUrl = typeof data?.verify_url === 'string' ? data.verify_url : '';
+  if (!res.ok || !data?.verification_id || !verifyUrl.startsWith('https://')) throw new UaiidError('KYC_UNAVAILABLE', undefined, res.status);
   return {
     verificationId: String(data.verification_id),
-    verifyUrl: String(data.verify_url),
-    expiresAt: data.expires_at ? new Date(data.expires_at) : null,
+    verifyUrl,
+    expiresAt: toDate(data.expires_at),
     reused: !!data.reused_session,
   };
 }
@@ -82,11 +102,11 @@ export async function getUaiidVerification(id: string): Promise<UaiidVerificatio
     nameRatio: num(r.declared_vs_document?.name_ratio),
     cpfSituacao: typeof r.receita_federal?.situacao_cadastral === 'string' ? r.receita_federal.situacao_cadastral : null,
     externalReference: d.external_reference ?? null,
-    completedAt: d.completed_at ? new Date(d.completed_at) : null,
+    completedAt: toDate(d.completed_at),
   };
 }
 
-/** Confere o X-Uai-Signature sobre o corpo CRU (security.py:104 do UaiID). */
+/** Confere o X-Uai-Signature sobre o corpo CRU (security.py:104 do UaiID). Falha fechada: nunca lança. */
 export function verifyUaiidSignature(
   rawBody: Buffer | string,
   header: string | undefined,
@@ -94,15 +114,20 @@ export function verifyUaiidSignature(
   nowSec = Math.floor(Date.now() / 1000),
   toleranceSec = 300,
 ): boolean {
-  if (!header || !secret) return false;
-  const parts = new Map(header.split(',').map((p) => {
-    const i = p.indexOf('=');
-    return [p.slice(0, i).trim(), p.slice(i + 1).trim()] as const;
-  }));
+  if (typeof header !== 'string' || typeof secret !== 'string' || !header || !secret) return false;
+  // corpo já parseado (express.json por engano), undefined etc. → não dá para conferir o corpo cru
+  if (!Buffer.isBuffer(rawBody) && typeof rawBody !== 'string') return false;
+  const parts = new Map<string, string>();
+  for (const part of header.split(',')) {
+    const i = part.indexOf('=');
+    if (i < 0) continue; // sem "=" não é par chave=valor
+    parts.set(part.slice(0, i).trim(), part.slice(i + 1).trim());
+  }
   const t = Number(parts.get('t'));
   const v1 = parts.get('v1') ?? '';
   if (!Number.isInteger(t) || !/^[0-9a-f]{64}$/i.test(v1)) return false;
-  if (Math.abs(nowSec - t) > toleranceSec) return false;
+  // escrito assim (e não `> tolerância → false`) para que NaN em nowSec/toleranceSec também reprove
+  if (!(Math.abs(nowSec - t) <= toleranceSec)) return false;
   const body = Buffer.isBuffer(rawBody) ? rawBody : Buffer.from(rawBody, 'utf8');
   const expected = createHmac('sha256', secret).update(`${t}.`).update(body).digest();
   const given = Buffer.from(v1, 'hex');
