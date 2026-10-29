@@ -24,8 +24,10 @@ export function nextDoctorStatus(current: string, proposed: DoctorKycStatus): Do
  *
  * Corrida (exigência do dono, spec §5b): webhook + on-demand + poll podem terminar JUNTOS.
  * O GET (rede) roda fora; a leitura→decisão→gravação roda numa transação com advisory lock
- * POR providerId (padrão jobs/teleconsultaQueue:78) — os concorrentes viram fila, o 2º já vê
- * a decisão gravada pelo 1º e não reenvia e-mail. E-mails/audit ficam FORA da tx (padrão
+ * POR MÉDICO (`kyc-doctor:<id>`, a MESMA das decisões do dono em admin.routes — revisão final I1: com travas
+ * diferentes um sync atrasado lia o estado ANTES da recusa/aprovação do dono, esperava o lock de linha e gravava
+ * por cima) — os concorrentes viram fila, o 2º já vê a decisão gravada pelo 1º e não reenvia e-mail.
+ * Tentativa sem médico (conta apagada) usa a trava do providerId. E-mails/audit ficam FORA da tx (padrão
  * doctor.routes:1342): falha externa não rola estado atrás.
  */
 export async function syncVerification(
@@ -34,14 +36,16 @@ export async function syncVerification(
   opts: { documentName?: string | null; now?: Date } = {},
 ): Promise<{ ok: boolean; doctorStatus?: string }> {
   const now = opts.now ?? new Date();
-  const known = await prisma.doctorVerification.findUnique({ where: { providerId }, select: { id: true } });
+  const known = await prisma.doctorVerification.findUnique({ where: { providerId }, select: { id: true, doctorId: true } });
   if (!known) { log.warn('verificação desconhecida', { providerId, source }); return { ok: false }; }
+  const lockKey = known.doctorId ? `kyc-doctor:${known.doctorId}` : `kyc-sync:${providerId}`;
   const remote = await getUaiidVerification(providerId);
   if (!remote) return { ok: false }; // UaiID fora → não marca lastSyncedAt; o job tenta de novo
 
   const result = await prisma.$transaction(async (tx) => {
-    // Serializa syncs do mesmo providerId. $executeRaw (não $queryRaw): advisory lock devolve void (P2010).
-    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-sync:' + providerId}))`;
+    // Serializa syncs do mesmo médico E as decisões do dono (mesma chave em admin.routes). $executeRaw (não
+    // $queryRaw): advisory lock devolve void (P2010).
+    await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
     const attempt = await tx.doctorVerification.findUnique({
       where: { providerId },
       select: { id: true, doctorId: true, documentName: true, cfmName: true, cfmSituation: true, expiresAt: true, decision: true, decidedBy: true },

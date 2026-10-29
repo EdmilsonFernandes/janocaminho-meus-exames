@@ -5,8 +5,9 @@ vi.mock('../src/utils/uaiid', async (orig) => ({
   getUaiidVerification: vi.fn(),
 }));
 
+import bcrypt from 'bcryptjs';
 import { prisma } from '../src/prisma';
-import { resetDb, createDoctor } from './helpers';
+import { resetDb, createDoctor, holdKycDoctorLock, api, authHeader, mintToken } from './helpers';
 import { getUaiidVerification, type UaiidVerification } from '../src/utils/uaiid';
 import { sendEmail } from '../src/utils/mailer';
 import { syncVerification, nextDoctorStatus } from '../src/kyc/sync';
@@ -252,6 +253,73 @@ describe('syncVerification — e-mail só na transição (spec §5b)', () => {
     vi.mocked(getUaiidVerification).mockRejectedValueOnce(new Error('boom')).mockResolvedValue(remote({ nameRatio: 1 }));
     await expect(syncVerification(providerId, 'webhook')).rejects.toThrow('boom');
     expect(await syncVerification(providerId, 'poll')).toEqual({ ok: true, doctorStatus: 'approved' });
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Revisão final, I1: o sync usava a trava `kyc-sync:<providerId>` e as decisões do dono `kyc-decide:<doctorId>` —
+// duas travas, nenhuma exclusão mútua. Um sync atrasado (webhook repetido, poll, GET do portal) lia o estado
+// ANTES da recusa do dono, esperava o lock de linha e gravava POR CIMA: o médico recusado voltava à fila.
+// Agora os dois usam `kyc-doctor:<doctorId>`.
+// ---------------------------------------------------------------------------------------------
+async function createAdmin() {
+  const passwordHash = await bcrypt.hash('senha123', 10);
+  const u = await prisma.user.create({
+    data: { email: `admin-race-${Date.now().toString(36)}@exemplo.com`, name: 'Admin Race', passwordHash, role: 'ADMIN', credits: 0, emailVerified: true },
+    select: { id: true },
+  });
+  return { id: u.id, token: mintToken(u.id) };
+}
+const pause = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+describe('syncVerification × decisão do dono — mesma trava por médico (revisão final I1)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    vi.mocked(getUaiidVerification).mockReset();
+    vi.mocked(sendEmail).mockClear();
+  });
+
+  it('o sync espera a trava `kyc-doctor:<id>` (a mesma da decisão do dono) e só então lê e grava', async () => {
+    const { doctor, providerId } = await seed();
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote());
+    const lock = await holdKycDoctorLock(doctor.id);
+    let done = false;
+    const sync = syncVerification(providerId, 'webhook', { documentName: 'Maria Silva Souza' }).then((r) => { done = true; return r; });
+    await pause(500);
+    expect(done).toBe(false); // preso na trava do médico
+    expect((await doctorRow(doctor.id))?.verificationStatus).toBe('in_progress'); // nada gravado enquanto ela está presa
+    await lock.release();
+    expect(await sync).toMatchObject({ ok: true, doctorStatus: 'needs_admin' });
+  });
+
+  it('a recusa do dono espera a MESMA trava e sobrevive a um sync concorrente, em qualquer ordem', async () => {
+    const admin = await createAdmin();
+    const { doctor, providerId } = await seed();
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote()); // tudo verde: o sync levaria o médico à fila
+    const lock = await holdKycDoctorLock(doctor.id);
+    let syncDone = false;
+    let rejectDone = false;
+    const sync = syncVerification(providerId, 'webhook', { documentName: 'Maria Silva Souza' }).then((r) => { syncDone = true; return r; });
+    const reject = api().post(`/api/admin/doctors/${doctor.id}/verification/reject`).set(authHeader(admin.token)).send({ reason: 'não é o titular' })
+      .then((r) => { rejectDone = true; return r; });
+    await pause(600);
+    expect(syncDone).toBe(false);
+    expect(rejectDone).toBe(false); // com a trava antiga (kyc-decide) a recusa passava direto aqui
+    await lock.release();
+    const [, rr] = await Promise.all([sync, reject]);
+    expect(rr.status).toBe(200);
+    // invariante: a decisão do dono nunca é desfeita por um sync concorrente (qualquer que seja quem pegou a trava 1º)
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'rejected' });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId } })).toMatchObject({ decision: 'rejected', decidedBy: admin.id });
+  });
+
+  it('tentativa sem médico (conta apagada) ainda sincroniza: trava do providerId', async () => {
+    const { doctor, providerId } = await seed();
+    await prisma.doctorVerification.update({ where: { providerId }, data: { doctorId: null } });
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote());
+    expect(await syncVerification(providerId, 'poll')).toEqual({ ok: true });
+    expect((await doctorRow(doctor.id))?.verificationStatus).toBe('in_progress'); // sem vínculo, nada muda no médico
   });
 });
 

@@ -206,3 +206,22 @@ export async function createDoctor(opts: { name?: string; crm: string; crmUf?: s
   if (login.status !== 200) throw new Error(`createDoctor: login falhou ${login.status} ${JSON.stringify(login.body)}`);
   return { doctor: login.body.doctor, token: login.body.token };
 }
+
+/**
+ * Segura a trava POR MÉDICO do KYC (a de kyc/sync.ts E das decisões do dono) numa transação aberta, até `release()`.
+ * Prova que duas rotas usam a MESMA trava: com ela presa ambas ficam pendentes; com travas diferentes passariam direto
+ * (revisão final do KYC, I1: sync e decisão do dono usavam travas diferentes e um sync atrasado desfazia a recusa).
+ */
+export async function holdKycDoctorLock(doctorId: string): Promise<{ release: () => Promise<void> }> {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => { release = r; });
+  let locked!: () => void;
+  const lockedP = new Promise<void>((r) => { locked = r; });
+  const tx = prisma.$transaction(async (t) => {
+    await t.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + doctorId}))`;
+    locked();
+    await gate;
+  }, { timeout: 30_000, maxWait: 10_000 });
+  await lockedP;
+  return { release: async () => { release(); await tx; } };
+}

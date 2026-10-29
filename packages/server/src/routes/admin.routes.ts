@@ -1168,7 +1168,7 @@ router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res,
     const id = String(req.params.id);
     const note = req.body?.note ? String(req.body.note).slice(0, 500) : null;
     const out = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-decide:' + id}))`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`; // MESMA trava do kyc/sync.ts (I1)
       const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
       if (!doc) return { notFound: true as const };
       if (doc.verificationStatus === 'approved') return { unchanged: true as const };
@@ -1193,7 +1193,7 @@ router.post('/doctors/:id/verification/reject', async (req: AuthedRequest, res, 
     const reason = String(req.body?.reason ?? '').trim().slice(0, 500);
     if (!reason) { res.status(400).json({ code: 'REASON_REQUIRED', error: 'Informe o motivo.' }); return; }
     const out = await prisma.$transaction(async (tx) => {
-      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-decide:' + id}))`;
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`; // MESMA trava do kyc/sync.ts (I1)
       const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
       if (!doc) return { notFound: true as const };
       if (doc.verificationStatus === 'rejected') return { unchanged: true as const }; // idempotente: 1º motivo é o que vale
