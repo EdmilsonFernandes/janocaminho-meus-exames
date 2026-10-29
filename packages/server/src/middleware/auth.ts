@@ -58,10 +58,15 @@ export async function doctorHasPatientLink(doctorId: string, patientId: string, 
 }
 
 /**
- * Auth da foto do PACIENTE (GET /api/patients/:id/photo). Token de paciente (ou qualquer outro token válido
- * que não seja de médico): igual ao requirePhotoToken. Token de MÉDICO (type:'doctor'): o JWT sozinho não
- * basta — carrega o médico (DOCTOR_ACCESS_SELECT), aplica a política única (bloqueado → 403 DOCTOR_BLOCKED;
- * não pode atender → 403 VERIFICATION_REQUIRED) e exige vínculo com o paciente da URL (403 NO_SHARE).
+ * Auth da foto do PACIENTE (GET /api/patients/:id/photo). O JWT sozinho NUNCA basta (revisão final I8, 1ª e 2ª rodadas):
+ *  - só vale SESSÃO — de usuário ({userId}) ou de médico ({doctorId, type:'doctor'}). Outro JWT assinado com o mesmo
+ *    segredo (reset de senha: purpose:'reset'; state do OAuth do Meet: type:'doctor-meet'; tipo desconhecido) → 403 INVALID_TOKEN;
+ *  - token de MÉDICO: carrega o médico (DOCTOR_ACCESS_SELECT), aplica a política única (bloqueado → 403 DOCTOR_BLOCKED;
+ *    não pode atender → 403 VERIFICATION_REQUIRED) e exige vínculo com o paciente da URL (403 NO_SHARE);
+ *  - token de USUÁRIO: só o DONO do paciente (titular ou dependente/familiar — Patient.ownerId; uma consulta indexada,
+ *    que já confere conta não bloqueada e tokenVersion como o requireAuth) ou um ADMIN (o painel admin usa token de
+ *    usuário). Qualquer outro → 403 NOT_OWNER. Antes qualquer conta de paciente (inclusive gratuita) abria a foto de
+ *    qualquer paciente pelo CUID — o cenário original do I8 (médico bloqueado/pendente que aprendeu o patientId) seguia aberto.
  * Falha de banco = fail-closed (500 pelo errorHandler), nunca "abre". O parâmetro da rota é :id.
  */
 export async function requirePatientPhotoToken(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -69,16 +74,35 @@ export async function requirePatientPhotoToken(req: Request, res: Response, next
   if (!tok) { res.status(401).type('html').send('não autorizado'); return; }
   let payload: any;
   try { payload = verifyToken(tok); } catch { res.status(401).type('html').send('não autorizado'); return; }
-  if (payload?.type !== 'doctor') { next(); return; }
+  const isDoctor = payload?.type === 'doctor';
+  if (payload?.purpose || (payload?.type != null && !isDoctor)) {
+    res.status(403).json({ code: 'INVALID_TOKEN', error: 'Este token não vale para a foto do paciente.' });
+    return;
+  }
+  const patientId = String(req.params.id);
   try {
-    const doctorId = typeof payload.doctorId === 'string' ? payload.doctorId : '';
-    const doc = doctorId ? await prisma.doctor.findUnique({ where: { id: doctorId }, select: DOCTOR_ACCESS_SELECT }) : null;
-    if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
-    const denial = doctorAccessDenial(doc);
-    if (denial) { res.status(denial.status).json(denial.body); return; }
-    if (!(await doctorHasPatientLink(doc.id, String(req.params.id)))) {
-      res.status(403).json({ code: 'NO_SHARE', error: 'Sem acesso à foto deste paciente.' });
+    if (isDoctor) {
+      const doctorId = typeof payload.doctorId === 'string' ? payload.doctorId : '';
+      const doc = doctorId ? await prisma.doctor.findUnique({ where: { id: doctorId }, select: DOCTOR_ACCESS_SELECT }) : null;
+      if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+      const denial = doctorAccessDenial(doc);
+      if (denial) { res.status(denial.status).json(denial.body); return; }
+      if (!(await doctorHasPatientLink(doc.id, patientId))) {
+        res.status(403).json({ code: 'NO_SHARE', error: 'Sem acesso à foto deste paciente.' });
+        return;
+      }
+      next();
       return;
+    }
+    const userId = typeof payload?.userId === 'string' ? payload.userId : '';
+    if (!userId) { res.status(401).type('html').send('não autorizado'); return; }
+    // Mesma regra de sessão do requireAuth: conta não bloqueada e, se o token traz `ver`, igual ao tokenVersion atual
+    // (senha trocada/resetada derruba o token). Token legado sem `ver` segue tolerado.
+    const session = { blocked: false, ...(payload.ver != null ? { tokenVersion: payload.ver } : {}) };
+    const owned = await prisma.patient.findFirst({ where: { id: patientId, ownerId: userId, owner: session }, select: { id: true } });
+    if (!owned) {
+      const admin = await prisma.user.findFirst({ where: { id: userId, role: 'ADMIN', ...session }, select: { id: true } });
+      if (!admin) { res.status(403).json({ code: 'NOT_OWNER', error: 'Sem acesso à foto deste paciente.' }); return; }
     }
     next();
   } catch (e) { next(e); }

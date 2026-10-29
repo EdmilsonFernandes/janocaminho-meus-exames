@@ -2,13 +2,19 @@
 // (pendente, recusado, BLOQUEADO por fraude, ou sem nenhum vínculo com o paciente) abria a foto de qualquer
 // paciente cujo CUID conhecesse (a resposta do convite devolve o patientId a um médico ainda pendente).
 // Token de médico agora passa pelo gate (DOCTOR_ACCESS_SELECT + doctorAccessDenial) E precisa de vínculo com o paciente.
+// 2ª rodada: token de USUÁRIO também — só o dono do paciente (titular/dependente) ou ADMIN; JWT que não é sessão
+// (reset, state do OAuth, tipo desconhecido) nunca abre; cache da resposta é private.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../src/prisma';
 import { config } from '../src/config';
+import { signToken, signResetToken } from '../src/auth/jwt';
 import { resolvePatientPhoto } from '../src/utils/storage';
 import { saveSettings } from '../src/utils/settings';
-import { api, authHeader, resetDb, createUser, createDoctor } from './helpers';
+import { api, authHeader, resetDb, createUser, createPatient, createDoctor, mintToken } from './helpers';
 
 let seq = 61000;
 const crm = () => `${seq++}-SP`;
@@ -38,13 +44,76 @@ describe('foto do paciente — token de médico passa pelo gate e exige vínculo
     expect((await viaQuery(patient.id, 'lixo')).status).toBe(401);
   });
 
-  it('token de PACIENTE: inalterado — qualquer token válido abre (header ou ?t=)', async () => {
+  // 2ª rodada (re-revisão, Important #1): a trava só existia para token de MÉDICO; qualquer JWT de paciente (até de conta
+  // gratuita) abria a foto de qualquer paciente pelo CUID — o cenário original do I8 seguia aberto.
+  it('token de USUÁRIO: o DONO abre (titular e dependente/familiar; header e ?t=) e a resposta é cache PRIVATE', async () => {
+    const dono = await userWithPhoto();
+    const dependente = await createPatient(dono.user.id, { fullName: 'Filha Teste' });
+    await prisma.patient.update({ where: { id: dependente.id }, data: { photoUrl: 'photos/filha.jpg' } });
+    for (const id of [dono.patient.id, dependente.id]) {
+      for (const r of [await viaHeader(id, dono.token), await viaQuery(id, dono.token)]) {
+        expect(r.status).toBe(302);
+        expect(r.headers.location).toBe(FOTO);
+        expect(r.headers['cache-control']).toBe('private, max-age=600'); // redirect p/ URL pré-assinada: cache curto, nunca public
+      }
+    }
+  });
+
+  it('token de OUTRO paciente (conta gratuita que aprendeu o CUID) → 403 NOT_OWNER, em header e ?t=', async () => {
     const dono = await userWithPhoto();
     const outro = await createUser();
-    for (const r of [await viaHeader(dono.patient.id, dono.token), await viaQuery(dono.patient.id, dono.token), await viaHeader(dono.patient.id, outro.token)]) {
-      expect(r.status).toBe(302);
-      expect(r.headers.location).toBe(FOTO);
+    for (const r of [await viaHeader(dono.patient.id, outro.token), await viaQuery(dono.patient.id, outro.token)]) {
+      expect(r.status).toBe(403);
+      expect(r.body.code).toBe('NOT_OWNER');
     }
+    expect((await viaHeader('cl0000000000000000000fake', outro.token)).status).toBe(403); // id inexistente: nem confirma que existe
+  });
+
+  it('ADMIN abre a foto de qualquer paciente (o painel admin usa token de usuário); admin BLOQUEADO não', async () => {
+    const dono = await userWithPhoto();
+    const admin = await prisma.user.create({ data: { email: `admin-foto-${Date.now().toString(36)}@exemplo.com`, name: 'Admin Foto', passwordHash: 'x', role: 'ADMIN', credits: 0, emailVerified: true }, select: { id: true } });
+    const adminToken = mintToken(admin.id);
+    const r = await viaHeader(dono.patient.id, adminToken);
+    expect(r.status).toBe(302);
+    expect(r.headers.location).toBe(FOTO);
+    await prisma.user.update({ where: { id: admin.id }, data: { blocked: true } });
+    expect((await viaHeader(dono.patient.id, adminToken)).body.code).toBe('NOT_OWNER');
+  });
+
+  it('JWT que NÃO é sessão (reset de senha com purpose, state do OAuth do Meet, tipo desconhecido) → 403 INVALID_TOKEN, mesmo do dono', async () => {
+    const dono = await userWithPhoto();
+    const reset = signResetToken(dono.user.id, 0);
+    const meet = jwt.sign({ type: 'doctor-meet', doctorId: 'cl0000000000000000000fake' }, config.jwtSecret, { expiresIn: '10m' });
+    const estranho = jwt.sign({ userId: dono.user.id, type: 'algo-novo' }, config.jwtSecret, { expiresIn: '10m' });
+    for (const tok of [reset, meet, estranho]) {
+      const r = await viaQuery(dono.patient.id, tok);
+      expect(r.status).toBe(403);
+      expect(r.body.code).toBe('INVALID_TOKEN');
+    }
+    const semUserId = jwt.sign({ foo: 'bar' }, config.jwtSecret, { expiresIn: '10m' }); // assinado, mas não é sessão de ninguém
+    expect((await viaQuery(dono.patient.id, semUserId)).status).toBe(401);
+  });
+
+  it('sessão REVOGADA ou conta BLOQUEADA não abre a foto (mesma regra do requireAuth: tokenVersion e blocked)', async () => {
+    const dono = await userWithPhoto();
+    expect((await viaHeader(dono.patient.id, dono.token)).status).toBe(302);
+    const velho = signToken({ userId: dono.user.id, ver: 7 }); // tokenVersion atual do usuário é 0
+    expect((await viaHeader(dono.patient.id, velho)).body.code).toBe('NOT_OWNER');
+    await prisma.user.update({ where: { id: dono.user.id }, data: { blocked: true } });
+    expect((await viaHeader(dono.patient.id, dono.token)).body.code).toBe('NOT_OWNER');
+  });
+
+  it('arquivo em disco: a resposta leva `private, max-age=86400` (nunca public/immutable)', async () => {
+    const dono = await userWithPhoto();
+    const arquivo = path.join(os.tmpdir(), `foto-gate-${Date.now().toString(36)}.png`);
+    fs.writeFileSync(arquivo, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64'));
+    try {
+      vi.mocked(resolvePatientPhoto).mockResolvedValue({ kind: 'file', file: arquivo } as any);
+      const r = await viaQuery(dono.patient.id, dono.token);
+      expect(r.status).toBe(200);
+      expect(r.headers['cache-control']).toBe('private, max-age=86400');
+      expect(String(r.headers['cache-control'])).not.toMatch(/public|immutable/);
+    } finally { fs.rmSync(arquivo, { force: true }); }
   });
 
   it.each(['pending', 'in_progress', 'uaiid_review', 'needs_admin', 'rejected'])('médico %s, MESMO com share ativo → 403 VERIFICATION_REQUIRED', async (verificationStatus) => {

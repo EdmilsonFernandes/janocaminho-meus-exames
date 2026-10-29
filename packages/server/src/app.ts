@@ -337,16 +337,17 @@ app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVe
 
 app.use('/api/auth', authRoutes);
 // Foto do paciente: AUTENTICADA via ?t= (token na query — <img src> não envia header). Antes era
-// pública por CUID (LGPD facial). requirePatientPhotoToken aceita ?t= ou header; token de paciente = só a
-// assinatura do JWT (leve, sem DB por avatar); token de MÉDICO passa pelo gate KYC + exige vínculo com o
-// paciente (revisão final, I8).
+// pública por CUID (LGPD facial). requirePatientPhotoToken aceita ?t= ou header; só abre p/ o DONO do paciente
+// (titular/dependente), ADMIN, ou médico que passa pelo gate KYC E tem vínculo com o paciente (revisão final, I8).
 app.get('/api/patients/:id/photo', requirePatientPhotoToken, async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
     // Cache HTTP: avatares raramente mudam e o front busta com ?v=. Cache de 1 dia no ARQUIVO
     // local elimina o round-trip ao EC2 a cada render (era o "demora pra carregar a foto").
-    // ETag permanece; redirect S3 (URL pré-assinada que expira) usa cache curto; 404 não cacheia.
+    // PRIVATE (nunca `public`/`immutable`): é resposta AUTENTICADA com dado facial — um cache compartilhado não pode
+    // guardá-la e servi-la depois sem credencial (RFC 9111 §3.5; revisão final m7). ETag permanece; redirect S3
+    // (URL pré-assinada que expira) usa cache curto; 404 não cacheia.
     const etag = `"${id}:${p?.photoUrl ?? 'none'}"`;
     res.setHeader('ETag', etag);
     if (req.headers['if-none-match'] === etag) { res.status(304).end(); return; }
@@ -354,14 +355,14 @@ app.get('/api/patients/:id/photo', requirePatientPhotoToken, async (req, res) =>
     // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
       const r = await resolvePatientPhoto(p.photoUrl);
-      if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada (memo 13min no storage)
-      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.resolve(r.file)); return; }
+      if (r.kind === 'url') { res.setHeader('Cache-Control', 'private, max-age=600'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada (memo 13min no storage)
+      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'private, max-age=86400'); res.sendFile(path.resolve(r.file)); return; }
     }
     // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)
     const dir = path.resolve(config.photosDir);
     if (fs.existsSync(dir)) {
       const files = fs.readdirSync(dir).filter((f) => f.startsWith(`patient-${id}.`));
-      if (files.length) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.join(dir, files[0])); return; }
+      if (files.length) { res.setHeader('Cache-Control', 'private, max-age=86400'); res.sendFile(path.join(dir, files[0])); return; }
     }
     res.setHeader('Cache-Control', 'no-store');
     res.status(404).type('html').send('sem foto');
