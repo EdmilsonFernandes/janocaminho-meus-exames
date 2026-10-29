@@ -17,6 +17,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import ScienceIcon from '@mui/icons-material/Science';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
+import SearchIcon from '@mui/icons-material/Search';
 import MedicationIcon from '@mui/icons-material/Medication';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import RepeatIcon from '@mui/icons-material/Repeat';
@@ -113,6 +114,7 @@ export const RemindersPage = () => {
   const [linkUrl, setLinkUrl] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
+  const [consultSubTab, setConsultSubTab] = useState<'proximas' | 'historico'>('proximas');
   const [consentFor, setConsentFor] = useState<any | null>(null);
   const [pendingReqs, setPendingReqs] = useState<Record<string, number>>({});
   // INCOMING CALL (dono 21/10: "quando chama é simplório, chama e depois para"):
@@ -1310,119 +1312,215 @@ export const RemindersPage = () => {
       {currentTab === 'consultas' && (
         <Box>
           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif' }}>
-              Minhas Consultas Agendadas
-            </Typography>
+            <Box>
+              <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif' }}>
+                Minhas Consultas
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Teleconsultas por vídeo e consultas presenciais registradas
+              </Typography>
+            </Box>
             <Button
               variant="contained"
               size="small"
-              onClick={() => { setRtype('consulta'); setFormOpen(true); }}
-              startIcon={<AddAlarmIcon />}
+              onClick={() => { hapticLight(); navigate('/consultas', { state: { tab: 'minhas' } }); }}
+              startIcon={<MedicalServicesIcon />}
               sx={{
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 800,
-                bgcolor: '#0d9488',
-                '&:hover': { bgcolor: '#0f766e' },
+                bgcolor: '#0f766e',
+                px: 2,
+                py: 0.7,
+                boxShadow: '0 4px 12px rgba(15,118,110,0.25)',
+                '&:hover': { bgcolor: '#115e59' },
               }}
             >
-              Nova Consulta
+              + Anotar consulta
             </Button>
           </Stack>
 
-          {/* G1 (spec §19): consultas ATIVAS/PRÓXIMAS no topo — acima de qualquer agrupamento.
-            A teleconsulta criada pelo médico aparece aqui direto (refetch focus+60s),
-            sem precisar expandir seção nenhuma. */}
-          {activeConsultations.length > 0 && (
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <VideocamIcon sx={{ fontSize: 18, color: '#20b2aa' }} />
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
-                  {activeConsultations.length > 1 ? `Consultas ativas (${activeConsultations.length})` : 'Sua consulta'}
-                </Typography>
-              </Stack>
-              {activeConsultations.map((r) => renderActiveConsultationHero(r))}
-            </Stack>
+          {/* Sub-abas de Clareza (System Design): Próximas vs Histórico */}
+          <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+            <Button
+              size="small"
+              onClick={() => { hapticLight(); setConsultSubTab('proximas'); }}
+              sx={{
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+                px: 2,
+                py: 0.6,
+                bgcolor: consultSubTab === 'proximas' ? '#0f766e' : 'transparent',
+                color: consultSubTab === 'proximas' ? '#fff' : 'text.secondary',
+                border: '1px solid',
+                borderColor: consultSubTab === 'proximas' ? '#0f766e' : 'divider',
+                '&:hover': {
+                  bgcolor: consultSubTab === 'proximas' ? '#115e59' : 'action.hover',
+                },
+              }}
+            >
+              Próximas ({activeConsultations.length + upcomingConsultations.length})
+            </Button>
+            <Button
+              size="small"
+              onClick={() => { hapticLight(); setConsultSubTab('historico'); }}
+              sx={{
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: 13,
+                px: 2,
+                py: 0.6,
+                bgcolor: consultSubTab === 'historico' ? '#0f766e' : 'transparent',
+                color: consultSubTab === 'historico' ? '#fff' : 'text.secondary',
+                border: '1px solid',
+                borderColor: consultSubTab === 'historico' ? '#0f766e' : 'divider',
+                '&:hover': {
+                  bgcolor: consultSubTab === 'historico' ? '#115e59' : 'action.hover',
+                },
+              }}
+            >
+              Histórico ({pastConsultations.length + endedConsultations.length})
+            </Button>
+          </Stack>
+
+          {/* VISUALIZAÇÃO: PRÓXIMAS */}
+          {consultSubTab === 'proximas' && (
+            <Box>
+              {activeConsultations.length > 0 && (
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <VideocamIcon sx={{ fontSize: 18, color: '#20b2aa' }} />
+                    <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 14, color: 'text.primary' }}>
+                      {activeConsultations.length > 1 ? `Consultas ativas (${activeConsultations.length})` : 'Sua consulta agora'}
+                    </Typography>
+                  </Stack>
+                  {activeConsultations.map((r) => renderActiveConsultationHero(r))}
+                </Stack>
+              )}
+
+              {upcomingConsultations.length > 0 ? (
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  {upcomingConsultations.map((r) => renderConsultationCard(r))}
+                </Stack>
+              ) : activeConsultations.length === 0 ? (
+                <Card
+                  variant="outlined"
+                  sx={{
+                    borderRadius: '20px',
+                    mb: 3,
+                    borderStyle: 'dashed',
+                    textAlign: 'center',
+                    py: 4,
+                    px: { xs: 2, sm: 3 },
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(240,253,250,0.5)',
+                  }}
+                >
+                  <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                    <Box sx={{ fontSize: 44, mb: 1 }}>📅</Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 16.5, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
+                      Agenda livre nos próximos dias
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 380, mx: 'auto', fontSize: 13.5, lineHeight: 1.5 }}>
+                      Você não possui consultas futuras marcadas. Seus próximos compromissos médicos aparecerão aqui com lembretes automáticos.
+                    </Typography>
+
+                    {(pastConsultations.length + endedConsultations.length) > 0 && (
+                      <Box
+                        onClick={() => { hapticLight(); setConsultSubTab('historico'); }}
+                        sx={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          py: 0.75,
+                          px: 2,
+                          mb: 2.5,
+                          borderRadius: '999px',
+                          bgcolor: 'rgba(15,118,110,0.08)',
+                          border: '1px solid rgba(15,118,110,0.2)',
+                          cursor: 'pointer',
+                          '&:hover': { bgcolor: 'rgba(15,118,110,0.14)' },
+                        }}
+                      >
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f766e' }}>
+                          📋 Você possui {pastConsultations.length + endedConsultations.length} {pastConsultations.length + endedConsultations.length === 1 ? 'consulta salva' : 'consultas salvas'} no histórico
+                        </Typography>
+                        <ArrowForwardIcon sx={{ fontSize: 14, color: '#0f766e' }} />
+                      </Box>
+                    )}
+
+                    <Stack direction="row" spacing={1.25} justifyContent="center" flexWrap="wrap" useFlexGap>
+                      <Button
+                        variant="contained"
+                        onClick={() => { hapticLight(); navigate('/consultas', { state: { tab: 'minhas' } }); }}
+                        startIcon={<MedicalServicesIcon />}
+                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', px: 3, '&:hover': { bgcolor: '#115e59' } }}
+                      >
+                        + Anotar consulta
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => { hapticLight(); navigate('/encontrar'); }}
+                        startIcon={<SearchIcon />}
+                        sx={{
+                          borderRadius: '999px',
+                          textTransform: 'none',
+                          fontWeight: 800,
+                          borderColor: '#0f766e',
+                          color: '#0f766e',
+                          px: 2.5,
+                          '&:hover': { bgcolor: 'rgba(15,118,110,0.06)' },
+                        }}
+                      >
+                        Buscar especialista
+                      </Button>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ) : null}
+            </Box>
           )}
-          {upcomingConsultations.length === 0 && activeConsultations.length === 0 ? (
-            <Card variant="outlined" sx={{ borderRadius: '20px', mb: 3, borderStyle: 'dashed', textAlign: 'center', py: 4 }}>
-              <CardContent>
-                <Box sx={{ fontSize: 44, mb: 1, opacity: 0.6 }}>🩺</Box>
-                <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Nenhuma consulta agendada</Typography>
-                <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 360, mx: 'auto', fontSize: 13.5 }}>
-                  Suas teleconsultas com médicos e consultas de rotina aparecerão aqui com sala virtual e prontuário.
-                </Typography>
-                <Stack direction="row" spacing={1.25} justifyContent="center" flexWrap="wrap" useFlexGap>
-                  <Button
-                    variant="contained"
-                    onClick={() => { setRtype('consulta'); setFormOpen(true); }}
-                    startIcon={<AddAlarmIcon />}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0d9488', px: 3 }}
-                  >
-                    Agendar consulta
-                  </Button>
-                  {routineList.length > 0 && (
-                    <Button
-                      variant="outlined"
-                      onClick={() => setTab('lembretes')}
-                      sx={{
-                        borderRadius: '999px',
-                        textTransform: 'none',
-                        fontWeight: 800,
-                        borderColor: '#0284c7',
-                        color: '#0284c7',
-                        px: 2.5,
-                        '&:hover': { bgcolor: 'rgba(2,132,199,0.08)' },
-                      }}
-                    >
-                      Ver {routineList.length} lembretes ativos →
-                    </Button>
+
+          {/* VISUALIZAÇÃO: HISTÓRICO */}
+          {consultSubTab === 'historico' && (
+            <Box>
+              {pastConsultations.length === 0 && endedConsultations.length === 0 ? (
+                <Card variant="outlined" sx={{ borderRadius: '20px', mb: 3, borderStyle: 'dashed', textAlign: 'center', py: 4, px: 2 }}>
+                  <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+                    <Box sx={{ fontSize: 40, mb: 1 }}>📁</Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Histórico vazio</Typography>
+                    <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+                      Suas consultas concluídas e atendimentos passados aparecerão aqui organizados com prontuário e pedidos de exame.
+                    </Typography>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Stack spacing={2} sx={{ mb: 3 }}>
+                  {endedConsultations.length > 0 && (
+                    <Box>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#0f766e', mb: 1.25 }}>
+                        Concluídas com Prontuário ({endedConsultations.length})
+                      </Typography>
+                      <Stack spacing={1.5}>
+                        {endedConsultations.map((r) => renderConsultationCard(r))}
+                      </Stack>
+                    </Box>
+                  )}
+                  {pastConsultations.length > 0 && (
+                    <Box sx={{ mt: endedConsultations.length > 0 ? 2 : 0 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'text.secondary', mb: 1.25 }}>
+                        Consultas Anteriores Registradas ({pastConsultations.length})
+                      </Typography>
+                      <Stack spacing={1.5}>
+                        {pastConsultations.map((r) => renderConsultationCard(r))}
+                      </Stack>
+                    </Box>
                   )}
                 </Stack>
-              </CardContent>
-            </Card>
-          ) : (
-            <Stack spacing={2} sx={{ mb: 3 }}>
-              {upcomingConsultations.map((r) => renderConsultationCard(r))}
-            </Stack>
-          )}
-
-          {pastConsultations.length > 0 && (
-            <Accordion elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '16px !important', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <HistoryIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
-                    Consultas anteriores ({pastConsultations.length})
-                  </Typography>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <Stack spacing={1.5}>
-                  {pastConsultations.map((r) => renderConsultationCard(r))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
-          )}
-
-          {/* F4: HISTÓRICO DE CONSULTAS ENCERRADAS — separado das agendadas (spec: não
-              misturar). Cada card abre a área read-only (transcrição, pedidos, feedback). */}
-          {endedConsultations.length > 0 && (
-            <Accordion elevation={0} sx={{ mt: 1.5, border: '1px solid', borderColor: 'rgba(15,118,110,0.25)', borderRadius: '16px !important', '&:before': { display: 'none' } }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <HistoryIcon sx={{ color: '#178f89', fontSize: 20 }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
-                    Histórico de consultas ({endedConsultations.length})
-                  </Typography>
-                </Stack>
-              </AccordionSummary>
-              <AccordionDetails sx={{ pt: 0 }}>
-                <Stack spacing={1.5}>
-                  {endedConsultations.map((r) => renderConsultationCard(r))}
-                </Stack>
-              </AccordionDetails>
-            </Accordion>
+              )}
+            </Box>
           )}
         </Box>
       )}
@@ -1587,7 +1685,8 @@ export const RemindersPage = () => {
         </Box>
       )}
 
-      {/* FORMULÁRIO DE CADASTRO ADAPTADO */}
+      {/* FORMULÁRIO DE CADASTRO ADAPTADO — exclusivo para medicamentos e lembretes de exames */}
+      {currentTab !== 'consultas' && (
       <Card
         sx={{
           mt: 3,
@@ -1761,6 +1860,7 @@ export const RemindersPage = () => {
           </Collapse>
         </CardContent>
       </Card>
+      )}
 
       {/* MODAL DE CONSENTIMENTO TELEMEDICINA ART. 15 */}
       <Dialog open={!!consentFor} onClose={() => setConsentFor(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>

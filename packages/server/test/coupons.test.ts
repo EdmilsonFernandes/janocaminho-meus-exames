@@ -11,8 +11,7 @@ const fetchMock = () => globalThis.fetch as unknown as Mock;
 
 /** Cria user ADMIN logado (mesmo padrão admin-credits.test.ts). */
 async function createAdmin(): Promise<{ id: string; token: string }> {
-  const { user, token } = await createUser();
-  await prisma.user.update({ where: { id: user.id }, data: { role: 'ADMIN' } });
+  const { user, token } = await createUser({ role: 'ADMIN' });
   return { id: user.id, token };
 }
 

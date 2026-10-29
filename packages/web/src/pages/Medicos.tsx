@@ -373,79 +373,105 @@ export const MedicosPage = () => {
 
   return (
     <PageContainer width={760} sx={{ pb: { xs: 14, sm: 6 } }}>
-      {/* HERO BANNER PREMIUM */}
+      {/* HERO BANNER ULTRA PREMIUM */}
       <Card
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #093f3c 0%, #0f5f5a 60%, #178f89 100%)',
           color: '#fff',
           overflow: 'hidden',
-          boxShadow: '0 12px 32px rgba(15,95,90,0.22)',
+          boxShadow: '0 16px 36px rgba(15,95,90,0.24)',
+          position: 'relative',
+          border: '1px solid rgba(255,255,255,0.12)',
         }}
       >
-        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
-                  <MedicalServicesIcon sx={{ fontSize: 28, color: '#fff' }} />
+        {/* Glow decorativo sutil de fundo */}
+        <Box sx={{
+          position: 'absolute', top: -40, right: -40, width: 180, height: 180,
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,0.3) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <CardContent sx={{ p: { xs: 2.25, sm: 3.25 } }}>
+          <Stack spacing={2}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.16)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', backdropFilter: 'blur(8px)' }}>
+                  <MedicalServicesIcon sx={{ fontSize: 26, color: '#fff' }} />
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
-                  Meus Médicos
-                </Typography>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, sm: 22 }, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                    Meus Médicos
+                  </Typography>
+                  <Typography sx={{ opacity: 0.85, fontSize: 13, mt: 0.25 }}>
+                    Seus profissionais de confiança e permissões de acesso
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Badges de estatística sem corte */}
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 <Chip
                   size="small"
-                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'} • ${activeCount} com acesso`}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)' }}
+                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'}`}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800, fontSize: 12, height: 26, backdropFilter: 'blur(6px)' }}
+                />
+                <Chip
+                  size="small"
+                  label={`${activeCount} com acesso`}
+                  sx={{ bgcolor: activeCount > 0 ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.12)', color: activeCount > 0 ? '#a7f3d0' : '#fff', fontWeight: 800, fontSize: 12, height: 26, border: '1px solid rgba(52,211,153,0.3)' }}
                 />
               </Stack>
-              <Typography sx={{ opacity: 0.9, fontSize: 14, maxWidth: 520, lineHeight: 1.4 }}>
-                Controle o que cada médico pode ver. Altere permissões ou revogue o acesso a qualquer momento.
-              </Typography>
-            </Box>
+            </Stack>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <Typography sx={{ opacity: 0.9, fontSize: 13.5, maxWidth: 580, lineHeight: 1.5 }}>
+              Controle o que cada médico pode visualizar. Você escolhe quais exames compartilhar e pode alterar ou revogar permissões a qualquer momento.
+            </Typography>
+
+            {/* Ações principais em grid/linha moderna */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ pt: 0.5 }}>
               <Button
                 variant="contained"
                 startIcon={<SearchIcon />}
                 onClick={() => { hapticLight(); navigate('/encontrar'); }}
                 sx={{
-                  bgcolor: 'rgba(255,255,255,0.18)',
-                  color: '#fff',
+                  flex: 1,
+                  bgcolor: '#ffffff',
+                  color: '#0f5f5a',
                   fontWeight: 800,
+                  fontSize: 13.5,
                   textTransform: 'none',
                   borderRadius: '999px',
+                  py: 1.1,
                   px: 2.5,
-                  py: 1,
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+                  '&:hover': { bgcolor: '#f0fdfa', color: '#093f3c' },
                 }}
               >
-                🔍 Encontrar especialistas
+                Encontrar novos especialistas
               </Button>
               <Button
                 variant="contained"
                 startIcon={<PersonAddIcon />}
                 onClick={() => setShowForm(true)}
                 sx={{
+                  flex: 1,
                   bgcolor: 'rgba(255,255,255,0.18)',
                   color: '#fff',
                   fontWeight: 800,
+                  fontSize: 13.5,
                   textTransform: 'none',
                   borderRadius: '999px',
+                  py: 1.1,
                   px: 2.5,
-                  py: 1,
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255,255,255,0.35)',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' },
                 }}
               >
-                + Compartilhar
+                Compartilhar com meu médico
               </Button>
             </Stack>
           </Stack>
@@ -531,8 +557,8 @@ export const MedicosPage = () => {
       {/* Loading */}
       {loading && <ListSkeleton count={4} />}
 
-      {/* Empty state */}
-      {!loading && myShares.length === 0 && (
+      {/* Empty state geral (somente quando não há médicos de nenhum tipo) */}
+      {!loading && myShares.length === 0 && semAcesso.length === 0 && (
         <Card sx={{ borderRadius: '16px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
@@ -542,6 +568,29 @@ export const MedicosPage = () => {
             <Button variant="outlined" size="large" startIcon={<SearchIcon />} onClick={() => navigate('/encontrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, borderColor: 'rgba(255,255,255,0.5)', color: '#0f766e' }}>Encontrar especialistas</Button>
           </Stack>
         </CardContent></Card>
+      )}
+
+      {/* Aviso acolhedor quando há médicos salvos mas nenhum com acesso liberado ainda */}
+      {!loading && myShares.length === 0 && semAcesso.length > 0 && (
+        <Alert
+          severity="info"
+          icon={<MedicalServicesIcon sx={{ color: '#0f766e' }} />}
+          sx={{
+            borderRadius: '16px',
+            mb: 3,
+            bgcolor: 'rgba(15,118,110,0.06)',
+            border: '1px solid rgba(15,118,110,0.2)',
+            color: 'text.primary',
+            '& .MuiAlert-icon': { color: '#0f766e' },
+          }}
+        >
+          <Typography sx={{ fontWeight: 800, fontSize: 13.5, mb: 0.25 }}>
+            Nenhum médico com acesso aos seus exames no momento
+          </Typography>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+            Os médicos abaixo estão salvos na sua lista de confiança. Quando desejar que um deles consulte seus laudos e exames, toque em <strong>Compartilhar</strong>.
+          </Typography>
+        </Alert>
       )}
 
       {/* Lista agrupada por especialidade */}

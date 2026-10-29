@@ -4,6 +4,7 @@
 // painel esportivo que a categorização genérica não cobre (SHBG, LH, FSH, IGF-1,
 // cistatina C, CK total — canônicos do E3.4/E3.5).
 import { categorize } from '../../utils/medicalData';
+import { catalogFindByToken } from './substanceCatalog';
 
 export type SportsDomainKey = 'hormonal' | 'hemograma' | 'cardio' | 'musculo_figado' | 'renal' | 'outros';
 
@@ -94,18 +95,24 @@ export function sportsDomainOf(analyte: string): SportsDomainKey {
 // ── Famílias de substância declarada (lógica PURA p/ banner/prep/lente — testável) ──
 
 /** Substância da família ANDROGÊNICA/AAS (impacto conhecido em Hct/HDL/eixo). */
-const ANDROGEN_RX = /testosterona|durateston|sustanon|enantato|cipionato|cypionato|propionato|undecilato|nebido|nandrolona|trembolona|trenbolona|stanozolol|winstrol|oxandrolona|oximetolona|hemogenin|anadrol|metandrostenolona|dianabol|drostanolona|masteron|metenolona|primobolan|boldenona|equipoise|mesterolona|proviron|dht/i;
+const ANDROGEN_RX = /testosterona|durateston|sustanon|enantato|cipionato|cypionato|propionato|undecilato|nebido|nandrolona|trembolona|trenbolona|stanozolol|winstrol|oxandrolona|oximetolona|hemogenin|anadrol|metandrostenolona|metandienona|dianabol|drostanolona|masteron|metenolona|primobolan|boldenona|equipoise|mesterolona|proviron|dht|fluoximesterona|clostebol|mibolerona|bolasterona|cloroxomesterona|etilestrenol|formebolona|metandranona|metandriol|noretandrolona|oximesterona/i;
+
+/** Nome declarado + nome canônico do catálogo: o sheet grava o nome COMERCIAL
+ *  ("Deca-Durabolin", "Anavar", "Deposteron"), que nem sempre contém o princípio ativo. */
+const withCanonical = (name: string): string => `${name} ${catalogFindByToken(name)?.name ?? ''}`;
 
 /** Há androgênio/AAS declarado entre as substâncias? (banner: chip HDL×andrógeno;
  *  prep: pergunta de conduta em Hct 48-54; lente: viés hormonal.) */
 export function androgenDeclared(substances: { name: string }[] | undefined | null): boolean {
-  return (substances ?? []).some((s) => ANDROGEN_RX.test(s?.name ?? ''));
+  return (substances ?? []).some((s) => ANDROGEN_RX.test(withCanonical(s?.name ?? '')));
 }
 
 /** Há HORMÔNIO declarado (classe "[Hormônio]" do form OU família eixo GH/androgênio)? */
 export function hormoneDeclared(substances: { name: string; klass?: string | null }[] | undefined | null): boolean {
-  return (substances ?? []).some((s) =>
-    s?.klass === 'Hormônio' || ANDROGEN_RX.test(s?.name ?? '') || /hgh|somatropina|igf-?1|ghrp|cjc|ipamorelina|sermorelina/i.test(s?.name ?? ''));
+  return (substances ?? []).some((s) => {
+    const n = withCanonical(s?.name ?? '');
+    return s?.klass === 'Hormônio' || ANDROGEN_RX.test(n) || /hgh|somatropina|igf-?1|ghrp|cjc|ipamorelina|sermorelina/i.test(n);
+  });
 }
 
 // ── LENTE POR ARQUÉTIPO (E5 "lente por arquétipo" — matriz esporte × contexto hormonal,

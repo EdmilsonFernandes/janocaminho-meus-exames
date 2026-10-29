@@ -111,61 +111,83 @@ export const MinhasConsultasPage = () => {
     <PageContainer width="content" sx={{ pb: { xs: 12, sm: 5 } }}>
       <PageHeader
         icon={<VideocamRoundedIcon />}
-        title="Minhas Consultas"
-        subtitle="Suas teleconsultas com sala virtual, pagamento e histórico em um só lugar."
+        title="Consultas e Atendimentos"
+        subtitle="Acesse suas teleconsultas por vídeo ou organize sua agenda de consultas presenciais."
       />
 
-      {/* Fila imediata "Falar agora" (spec 2026-10-27 §5) — topo, acima da lista. */}
-      <FalarAgora sx={{ mb: 2.5 }} />
-
-      {/* Seletor de área (28/10/26): Teleconsultas do produto × registro particular */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+      {/* Seletor principal de categoria: Teleconsultas Dr. Exame vs Minha Agenda Pessoal */}
+      <Box sx={{
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#e8f1f0',
+        p: 0.6, borderRadius: '16px', mb: 3, display: 'flex', gap: 0.75,
+      }}>
         <Button
-          onClick={() => { hapticLight(); setArea('tele'); }} aria-pressed={area === 'tele'}
-          sx={areaPill(area === 'tele')}
+          fullWidth
+          onClick={() => { hapticLight(); setArea('tele'); }}
+          aria-pressed={area === 'tele'}
+          startIcon={<VideocamRoundedIcon />}
+          sx={{
+            py: 1, px: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: { xs: 12.5, sm: 14 },
+            color: area === 'tele' ? '#fff' : 'text.secondary',
+            bgcolor: area === 'tele' ? '#0f766e' : 'transparent',
+            boxShadow: area === 'tele' ? '0 4px 12px rgba(15,118,110,0.3)' : 'none',
+            '&:hover': { bgcolor: area === 'tele' ? '#115e59' : 'rgba(0,0,0,0.04)' },
+            transition: 'all 0.2s ease',
+          }}
         >
-          Teleconsultas
+          Teleconsultas por Vídeo
         </Button>
         <Button
-          onClick={() => { hapticLight(); setArea('minhas'); }} aria-pressed={area === 'minhas'}
-          sx={areaPill(area === 'minhas')}
+          fullWidth
+          onClick={() => { hapticLight(); setArea('minhas'); }}
+          aria-pressed={area === 'minhas'}
+          startIcon={<EventAvailableRoundedIcon />}
+          sx={{
+            py: 1, px: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: { xs: 12.5, sm: 14 },
+            color: area === 'minhas' ? '#fff' : 'text.secondary',
+            bgcolor: area === 'minhas' ? '#0f766e' : 'transparent',
+            boxShadow: area === 'minhas' ? '0 4px 12px rgba(15,118,110,0.3)' : 'none',
+            '&:hover': { bgcolor: area === 'minhas' ? '#115e59' : 'rgba(0,0,0,0.04)' },
+            transition: 'all 0.2s ease',
+          }}
         >
-          Minhas consultas
+          Minha Agenda de Saúde
         </Button>
-      </Stack>
+      </Box>
 
       {area === 'tele' && (<>
+        {/* Fila imediata "Falar agora" — plantão médico Dr. Exame */}
+        <FalarAgora sx={{ mb: 2.5 }} />
 
-      {/* Tabs em pill (mock) */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
-        {TABS.map((t) => {
-          const on = tab === t.v;
-          return (
-            <Button
-              key={t.v}
-              onClick={() => { hapticLight(); setTab(t.v); }}
-              startIcon={t.v === 'historico' ? <HistoryRoundedIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} /> : <EventAvailableRoundedIcon sx={{ display: { xs: 'none', sm: 'inline-flex' } }} />}
-              aria-pressed={on}
-              sx={{
-                minHeight: 40,
-                px: 2.5,
-                borderRadius: '999px',
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: 13.5,
-                color: on ? '#fff' : 'text.secondary',
-                background: on ? 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)' : 'transparent',
-                border: '1px solid',
-                borderColor: on ? 'transparent' : 'divider',
-                boxShadow: on ? '0 4px 14px rgba(32,178,170,.35)' : 'none',
-                '&:hover': { bgcolor: on ? undefined : 'action.hover' },
-              }}
-            >
-              {t.l} ({t.n})
-            </Button>
-          );
-        })}
-      </Stack>
+        {/* Sub-abas: Abertas vs Histórico */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2.5 }}>
+          {TABS.map((t) => {
+            const on = tab === t.v;
+            return (
+              <Button
+                key={t.v}
+                onClick={() => { hapticLight(); setTab(t.v); }}
+                startIcon={t.v === 'historico' ? <HistoryRoundedIcon /> : <EventAvailableRoundedIcon />}
+                aria-pressed={on}
+                sx={{
+                  minHeight: 38,
+                  px: 2.2,
+                  borderRadius: '999px',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: 13,
+                  color: on ? '#fff' : 'text.secondary',
+                  bgcolor: on ? '#0f766e' : (theme) => theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f5',
+                  boxShadow: on ? '0 2px 10px rgba(15,118,110,0.25)' : 'none',
+                  border: '1px solid',
+                  borderColor: on ? 'transparent' : 'divider',
+                  '&:hover': { bgcolor: on ? '#115e59' : 'action.hover' },
+                }}
+              >
+                {t.l === 'Abertas' ? 'Próximas / Agendadas' : 'Histórico concluído'} ({t.n})
+              </Button>
+            );
+          })}
+        </Stack>
 
       {/* ── ABERTAS ── */}
       {tab === 'abertas' && (

@@ -162,156 +162,191 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
       });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
-      notify(editing ? 'Consulta atualizada.' : 'Consulta registrada!', { type: 'success' });
+      notify(editing ? 'Consulta atualizada.' : 'Consulta anotada na sua agenda!', { type: 'success' });
       onSaved(); onClose();
     } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); }
     finally { setSaving(false); }
   };
 
   const pill = (on: boolean) => ({
-    minHeight: 40, px: 2.5, borderRadius: '999px', textTransform: 'none' as const, fontWeight: 800, fontSize: 13.5,
+    minHeight: 40, px: 2, borderRadius: '999px', textTransform: 'none' as const, fontWeight: 800, fontSize: 13,
     flex: 1,
     color: on ? '#fff' : 'text.secondary',
-    background: on ? 'linear-gradient(135deg,#20b2aa,#178f89)' : 'transparent',
+    background: on ? 'linear-gradient(135deg,#0f766e,#14b8a6)' : 'transparent',
     border: '1px solid', borderColor: on ? 'transparent' : 'divider',
-    boxShadow: on ? '0 4px 14px rgba(32,178,170,.35)' : 'none',
+    boxShadow: on ? '0 4px 14px rgba(15,118,110,.25)' : 'none',
+    transition: 'all 0.18s ease',
   });
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" scroll="body"
-      PaperProps={{ sx: { borderRadius: '16px' } }}>
-      <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, pb: 0.5 }}>
-        {editing ? '✏️ Editar consulta' : '📝 Registrar consulta'}
+      PaperProps={{ sx: { borderRadius: '20px', p: { xs: 0.5, sm: 1 } } }}>
+      <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 18, pb: 0.5 }}>
+        {editing ? '✏️ Editar consulta anotada' : '📅 Anotar consulta médica'}
       </DialogTitle>
       <DialogContent>
-        <Stack spacing={1.75} sx={{ mt: 1 }}>
-          <Typography variant="caption" color="text.secondary">
-            Registro particular — o agendamento no consultório continua sendo por conta própria.
-          </Typography>
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Alert severity="info" sx={{ borderRadius: '14px', fontSize: 12.5, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(240,253,250,0.85)', color: (t) => t.palette.mode === 'dark' ? '#5eead4' : '#0f766e', border: '1px solid rgba(32,178,170,0.3)', '& .MuiAlert-icon': { color: '#0f766e' } }}>
+            <strong>Diário pessoal de saúde:</strong> anote aqui as consultas que você já marcou no consultório ou convênio. Assim você separa os exames certos para levar no dia e recebe lembretes no celular.
+          </Alert>
 
           {/* Médico: lista Meus médicos + livre */}
-          <Stack direction="row" spacing={1}>
-            <Button size="small" onClick={() => { hapticLight(); setFromList(true); }} sx={{ ...pill(fromList), flex: '0 0 auto', px: 2 }}>Da minha lista</Button>
-            <Button size="small" onClick={() => { hapticLight(); setFromList(false); setDoctor(null); }} sx={{ ...pill(!fromList), flex: '0 0 auto', px: 2 }}>Digitar nome</Button>
-          </Stack>
-          {fromList ? (
-            <Autocomplete
-              options={myDoctors} value={doctor} onChange={(_, v) => setDoctor(v)}
-              getOptionLabel={(o) => o.doctor.name}
-              renderOption={(props, o) => {
-                const { key, ...rest } = props as any;
-                return (
-                  <Box component="li" key={key} {...rest}>
-                    <Box sx={{ flex: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{o.doctor.name}</Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        CRM {o.doctor.crm}{o.doctor.specialty ? ` • ${o.doctor.specialty}` : ''}
-                      </Typography>
-                    </Box>
-                  </Box>
-                );
-              }}
-              renderInput={(p) => <TextField {...p} label="Médico" size="small" required placeholder="Escolha dos seus médicos salvos" />}
-              noOptionsText="Nenhum médico salvo — use “Digitar nome” ou salve em Meus médicos"
-            />
-          ) : (
-            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <TextField label="Nome do médico" required value={doctorName} onChange={(e) => setDoctorName(e.target.value)} size="small" sx={{ flex: '1 1 180px' }} />
-              <TextField select label="Especialidade" value={specialty} onChange={(e) => setSpecialty(e.target.value)} size="small" sx={{ flex: '1 1 160px' }}>
-                <MenuItem value=""><em>—</em></MenuItem>
-                {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
-              </TextField>
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.75, color: 'text.secondary' }}>
+              Profissional que vai te atender:
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 1.25 }}>
+              <Button size="small" onClick={() => { hapticLight(); setFromList(true); }} sx={{ ...pill(fromList), flex: '0 0 auto', px: 2 }}>
+                👨‍⚕️ Dos meus médicos
+              </Button>
+              <Button size="small" onClick={() => { hapticLight(); setFromList(false); setDoctor(null); }} sx={{ ...pill(!fromList), flex: '0 0 auto', px: 2 }}>
+                ✍️ Digitar outro médico
+              </Button>
             </Stack>
-          )}
+            {fromList ? (
+              <Autocomplete
+                options={myDoctors} value={doctor} onChange={(_, v) => setDoctor(v)}
+                getOptionLabel={(o) => o.doctor.name}
+                renderOption={(props, o) => {
+                  const { key, ...rest } = props as any;
+                  return (
+                    <Box component="li" key={key} {...rest}>
+                      <Box sx={{ flex: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{o.doctor.name}</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          CRM {o.doctor.crm}{o.doctor.specialty ? ` • ${o.doctor.specialty}` : ''}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                }}
+                renderInput={(p) => <TextField {...p} label="Selecione o médico" size="small" required placeholder="Escolha um médico da sua lista" />}
+                noOptionsText="Nenhum médico salvo — use “Digitar outro médico” ou salve em Meus Médicos"
+              />
+            ) : (
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+                <TextField label="Nome do médico" required value={doctorName} onChange={(e) => setDoctorName(e.target.value)} size="small" sx={{ flex: '1 1 180px' }} placeholder="Ex.: Dr. Roberto Silva" />
+                <TextField select label="Especialidade" value={specialty} onChange={(e) => setSpecialty(e.target.value)} size="small" sx={{ flex: '1 1 160px' }}>
+                  <MenuItem value=""><em>Não especificada</em></MenuItem>
+                  {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                </TextField>
+              </Stack>
+            )}
+          </Box>
 
           {/* Data/hora + fuso */}
-          <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-            <TextField
-              label="Data e hora" type="datetime-local" required value={scheduledAt}
-              onChange={(e) => setScheduledAt(e.target.value)} size="small"
-              sx={{ flex: '1 1 200px' }} slotProps={{ inputLabel: { shrink: true } }}
-            />
-            <TextField select label="Fuso" value={timezone} onChange={(e) => setTimezone(e.target.value)} size="small" sx={{ flex: '1 1 170px' }}>
-              {TIMEZONES_BR.map((t) => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
-            </TextField>
-          </Stack>
-
-          {/* Modo */}
-          <Stack direction="row" spacing={1}>
-            <Button size="small" onClick={() => { hapticLight(); setMode('presencial'); }} sx={pill(mode === 'presencial')}>🏥 Presencial</Button>
-            <Button size="small" onClick={() => { hapticLight(); setMode('teleconsulta'); }} sx={pill(mode === 'teleconsulta')}>🎥 Teleconsulta</Button>
-          </Stack>
-          {mode === 'presencial' ? (
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.75, color: 'text.secondary' }}>
+              Quando será a consulta?
+            </Typography>
             <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <TextField label="Clínica / consultório" value={placeName} onChange={(e) => setPlaceName(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} />
-              <TextField label="Endereço (opcional)" value={address} onChange={(e) => setAddress(e.target.value)} size="small" sx={{ flex: '2 1 220px' }} />
+              <TextField
+                label="Data e horário agendado" type="datetime-local" required value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)} size="small"
+                sx={{ flex: '1 1 210px' }} slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <TextField select label="Fuso horário" value={timezone} onChange={(e) => setTimezone(e.target.value)} size="small" sx={{ flex: '1 1 160px' }}>
+                {TIMEZONES_BR.map((t) => <MenuItem key={t.value} value={t.value}>{t.label}</MenuItem>)}
+              </TextField>
             </Stack>
-          ) : (
-            <TextField label="Link da teleconsulta (opcional)" placeholder="https://…" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} size="small" />
-          )}
+          </Box>
+
+          {/* Formato do atendimento */}
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.75, color: 'text.secondary' }}>
+              Formato da consulta:
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 1.25 }}>
+              <Button size="small" onClick={() => { hapticLight(); setMode('presencial'); }} sx={pill(mode === 'presencial')}>
+                🏥 No consultório (Presencial)
+              </Button>
+              <Button size="small" onClick={() => { hapticLight(); setMode('teleconsulta'); }} sx={pill(mode === 'teleconsulta')}>
+                💻 Por vídeo (Teleconsulta externa)
+              </Button>
+            </Stack>
+            {mode === 'presencial' ? (
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
+                <TextField label="Clínica / Consultório (opcional)" placeholder="Ex.: Centro Médico São Lucas" value={placeName} onChange={(e) => setPlaceName(e.target.value)} size="small" sx={{ flex: '1 1 180px' }} />
+                <TextField label="Endereço (opcional)" placeholder="Ex.: Av. Brasil, 500 - Sala 32" value={address} onChange={(e) => setAddress(e.target.value)} size="small" sx={{ flex: '2 1 220px' }} />
+              </Stack>
+            ) : (
+              <TextField label="Link da videochamada (opcional)" placeholder="https://meet.google.com/… ou link do consultório" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} size="small" helperText="Você pode colar o link do WhatsApp, Meet ou Teams enviado pelo médico" />
+            )}
+          </Box>
 
           {/* Pagamento */}
-          <Stack direction="row" spacing={1}>
-            <Button size="small" onClick={() => { hapticLight(); setPaymentType('particular'); }} sx={pill(paymentType === 'particular')}>💳 Particular</Button>
-            <Button size="small" onClick={() => { hapticLight(); setPaymentType('convenio'); }} sx={pill(paymentType === 'convenio')}>🏥 Convênio</Button>
-          </Stack>
-          {paymentType === 'convenio' && (
-            <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap>
-              <Autocomplete
-                freeSolo options={INSURANCE_OPERATOR_NAMES} value={operator}
-                onChange={(_, v) => setOperator(typeof v === 'string' ? v : v ?? null)}
-                onInputChange={(_, v) => { if (typeof v === 'string') setOperator(v); }}
-                renderInput={(p) => <TextField {...p} label="Operadora" required size="small" />}
-                sx={{ flex: '1 1 160px' }}
-              />
-              <TextField label="Plano (opcional)" placeholder="Ex.: Nacional" value={plan} onChange={(e) => setPlan(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} />
+          <Box>
+            <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.75, color: 'text.secondary' }}>
+              Forma de atendimento:
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ mb: 1.25 }}>
+              <Button size="small" onClick={() => { hapticLight(); setPaymentType('particular'); }} sx={pill(paymentType === 'particular')}>
+                💳 Consulta Particular
+              </Button>
+              <Button size="small" onClick={() => { hapticLight(); setPaymentType('convenio'); }} sx={pill(paymentType === 'convenio')}>
+                🛡️ Pelo Convênio / Plano
+              </Button>
             </Stack>
-          )}
-          <TextField
-            label="Valor pago (R$, opcional)" placeholder="150,00" value={price}
-            onChange={(e) => setPrice(e.target.value.replace(/[^\d,.]/g, ''))} size="small"
-            sx={{ maxWidth: 200 }} inputProps={{ inputMode: 'decimal' }}
-          />
+            {paymentType === 'convenio' && (
+              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 1.25 }}>
+                <Autocomplete
+                  freeSolo options={INSURANCE_OPERATOR_NAMES} value={operator}
+                  onChange={(_, v) => setOperator(typeof v === 'string' ? v : v ?? null)}
+                  onInputChange={(_, v) => { if (typeof v === 'string') setOperator(v); }}
+                  renderInput={(p) => <TextField {...p} label="Operadora / Convênio" required size="small" placeholder="Ex.: Unimed, Bradesco, Amil..." />}
+                  sx={{ flex: '1 1 180px' }}
+                />
+                <TextField label="Nome do plano (opcional)" placeholder="Ex.: Nacional, Especial" value={plan} onChange={(e) => setPlan(e.target.value)} size="small" sx={{ flex: '1 1 150px' }} />
+              </Stack>
+            )}
+            <TextField
+              label="Valor pago ou coparticipação (R$, opcional)" placeholder="Ex.: 150,00" value={price}
+              onChange={(e) => setPrice(e.target.value.replace(/[^\d,.]/g, ''))} size="small"
+              sx={{ maxWidth: 240 }} inputProps={{ inputMode: 'decimal' }}
+            />
+          </Box>
 
           <Divider />
-          <TextField label="Motivo (opcional)" placeholder="Ex.: retorno com exames de tireoide" value={reason} onChange={(e) => setReason(e.target.value)} size="small" />
-          <TextField label="Observações privadas (só você vê)" multiline minRows={2} value={notes} onChange={(e) => setNotes(e.target.value)} size="small" />
 
-          {/* Exames selecionados — mesmo padrão visual do form de compartilhar */}
+          {/* Motivo e notas */}
+          <TextField label="Motivo da consulta (opcional)" placeholder="Ex.: Retorno com exames de sangue, checkup anual..." value={reason} onChange={(e) => setReason(e.target.value)} size="small" />
+          <TextField label="Anotações pessoais (perguntas para fazer ao médico)" placeholder="Ex.: Perguntar sobre a dosagem da vitamina D, relatar dores de cabeça..." multiline minRows={2} value={notes} onChange={(e) => setNotes(e.target.value)} size="small" />
+
+          {/* Exames selecionados */}
           <Box>
             <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.75, color: (t) => tealText(t.palette.mode) }}>
-              Exames desta consulta (para ter em mãos / compartilhar depois)
+              📋 Exames para ter em mãos nesta consulta:
             </Typography>
             {exams.length === 0 ? (
-              <Typography variant="caption" color="text.secondary">Nenhum exame processado ainda.</Typography>
+              <Typography variant="caption" color="text.secondary">Nenhum exame cadastrado no Dr. Exame ainda.</Typography>
             ) : (
-              <Box sx={{ maxHeight: 160, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: 0.5 }}>
+              <Box sx={{ maxHeight: 160, overflowY: 'auto', border: '1px solid', borderColor: 'divider', borderRadius: '12px', p: 0.75, bgcolor: 'background.default' }}>
                 {exams.map((ex) => (
                   <FormControlLabel key={ex.id} sx={{ display: 'flex', m: 0, px: 0.5, borderRadius: '8px', '&:hover': { bgcolor: 'action.hover' } }}
-                    control={<Checkbox size="small" sx={{ p: 0.5 }} checked={examIds.includes(ex.id)}
+                    control={<Checkbox size="small" sx={{ p: 0.5, color: '#0f766e', '&.Mui-checked': { color: '#0f766e' } }} checked={examIds.includes(ex.id)}
                       onChange={() => setExamIds((p) => p.includes(ex.id) ? p.filter((x) => x !== ex.id) : [...p, ex.id])} />}
-                    label={<Typography variant="caption" sx={{ wordBreak: 'break-word' }}>📄 {ex.title}{ex.performedAt ? ` — ${new Date(ex.performedAt).toLocaleDateString('pt-BR')}` : ''}</Typography>} />
+                    label={<Typography variant="caption" sx={{ wordBreak: 'break-word', fontWeight: examIds.includes(ex.id) ? 700 : 500 }}>📄 {ex.title}{ex.performedAt ? ` — ${new Date(ex.performedAt).toLocaleDateString('pt-BR')}` : ''}</Typography>} />
                 ))}
               </Box>
             )}
-            {examIds.length > 0 && <Chip size="small" sx={{ mt: 0.5 }} label={`${examIds.length} exame(s) selecionado(s)`} onDelete={() => setExamIds([])} />}
+            {examIds.length > 0 && <Chip size="small" sx={{ mt: 0.75, fontWeight: 700, bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e' }} label={`${examIds.length} exame(s) separado(s)`} onDelete={() => setExamIds([])} />}
           </Box>
 
-          {/* Lembrete — só faz sentido p/ consulta futura */}
+          {/* Lembrete */}
           <FormControlLabel
             control={<Switch size="small" checked={remind && !!isFuture} disabled={!isFuture}
-              onChange={(e) => setRemind(e.target.checked)} />}
+              onChange={(e) => setRemind(e.target.checked)} sx={{ '& .Mui-checked': { color: '#0f766e' }, '& .Mui-checked + .MuiSwitch-track': { bgcolor: '#0f766e' } }} />}
             label={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>
-              {isFuture ? 'Me lembrar antes da consulta (notificação)' : 'Consulta no passado — sem lembrete'}
+              {isFuture ? '🔔 Ativar lembrete no celular antes da consulta' : 'Consulta no passado (histórico — sem lembrete)'}
             </Typography>}
           />
         </Stack>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2.5 }}>
-        <Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+      <DialogActions sx={{ px: 3, pb: 2.5, pt: 1, gap: 1 }}>
+        <Button onClick={onClose} sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary' }}>Cancelar</Button>
         <Button variant="contained" onClick={submit} disabled={saving}
-          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
-          {saving ? <CircularProgress size={20} color="inherit" /> : editing ? 'Salvar alterações' : 'Registrar consulta'}
+          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3.5, py: 1, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } }}>
+          {saving ? <CircularProgress size={20} color="inherit" /> : editing ? 'Salvar alterações' : 'Salvar na minha agenda'}
         </Button>
       </DialogActions>
     </Dialog>

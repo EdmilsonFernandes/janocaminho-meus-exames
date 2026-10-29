@@ -2,14 +2,21 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Alert, Autocomplete, Avatar, Box, Button, Card, CardContent, Chip, CircularProgress,
-  Dialog, DialogActions, DialogContent, DialogTitle, InputAdornment, MenuItem, Stack, TextField, Typography,
+  Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputAdornment, MenuItem, Stack, TextField, Typography,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
 import AddTaskRoundedIcon from '@mui/icons-material/AddTaskRounded';
 import BookmarkAddedRoundedIcon from '@mui/icons-material/BookmarkAddedRounded';
+import BookmarkAddOutlinedIcon from '@mui/icons-material/BookmarkAddOutlined';
+import VideocamRoundedIcon from '@mui/icons-material/VideocamRounded';
+import LocationOnOutlinedIcon from '@mui/icons-material/LocationOnOutlined';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import VerifiedRoundedIcon from '@mui/icons-material/VerifiedRounded';
 import { useNotify } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../config';
+import { useSelectedPatient } from '../patient-context';
 import { UFS } from '../utils/medicalData';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
@@ -23,13 +30,15 @@ import type { SpecialistItem } from '../types/consultations';
 
 // §3 "Encontrar especialistas" (28/10/26): busca no DIRETÓRIO PRÓPRIO do Dr. Exame —
 // 100% desenvolvimento nosso (nenhum provedor pago, sem scraping; decisão do dono).
-// Honestidade é regra: cada card mostra a FONTE dos dados (portal do médico vs
-// cadastro de pacientes) e o que não sabemos aparece como "não informado —
-// confirme com o consultório" (ausência ≠ recusa).
+// Padrão de UX inspirado em grandes apps de saúde (Amil, SulAmérica, Fleury):
+//  - Busca fluida com filtros rápidos em pílulas deslizantes;
+//  - Cards limpos com foto, badges semânticos e identificação clara de fontes;
+//  - Vínculo direto ao paciente selecionado (useSelectedPatient).
 
 export const EncontrarEspecialistasPage = () => {
   const navigate = useNavigate();
   const notify = useNotify();
+  const [pid] = useSelectedPatient();
   const [q, setQ] = useState('');
   const [specialty, setSpecialty] = useState('');
   const [city, setCity] = useState('');
@@ -39,12 +48,10 @@ export const EncontrarEspecialistasPage = () => {
 
   const [items, setItems] = useState<SpecialistItem[]>([]);
   const [total, setTotal] = useState(0);
-  // Facets: cidades que JÁ têm médicos no diretório (chips clicáveis — o usuário vê
-  // onde vale buscar antes de digitar) + nota honesta quando a cidade não tem nada.
+  // Facets: cidades que JÁ têm médicos no diretório (chips clicáveis)
   const [cities, setCities] = useState<{ city: string; count: number }[]>([]);
   const [cityNote, setCityNote] = useState<string | null>(null);
-  // Combo IBGE (5.571 municípios, vendored): carregado SOB DEMANDA (code-split — não
-  // pesa o bundle inicial). O "(UF)" vai pro server, que stripa antes de comparar/salvar.
+  // Combo IBGE (5.571 municípios, vendored): carregado SOB DEMANDA
   const [cityOptions, setCityOptions] = useState<string[]>([]);
   useEffect(() => { void import('../utils/brazilCities').then((m) => setCityOptions(m.BRAZIL_CITIES)).catch(() => {}); }, []);
   const [loading, setLoading] = useState(false);
@@ -71,40 +78,40 @@ export const EncontrarEspecialistasPage = () => {
       setCities(d.cities ?? []);
       setCityNote(d.cityNote ?? null);
     } catch {
-      setError('A busca falhou. Verifique sua conexão e tente de novo — ou cadastre o médico manualmente em Meus médicos.');
+      setError('A busca não retornou resultados no momento. Verifique sua conexão ou tente outros filtros.');
       setItems([]);
     } finally { setLoading(false); setSearched(true); }
   };
 
-  // Primeira carga automática (região inicial de validação: SJC/SP — spec §8)
+  // Primeira carga automática
   useEffect(() => { void doSearch(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
-  // Busca com debounce enquanto digita (diretriz UX: não exigir Enter)
+  // Busca com debounce enquanto digita
   useEffect(() => {
     if (!searched) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { void doSearch(); }, 450);
+    debounceRef.current = setTimeout(() => { void doSearch(); }, 400);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q, specialty, city, operator, withPrice, claimedOnly]);
 
-  // Quem já está salvo (botão vira "Salvo ✓")
-  useEffect(() => {
+  // Médicos já salvos pelo paciente atual
+  const refreshSaved = () => {
     fetch(`${API_URL}/my-doctors`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json())
-      .then((d) => setSavedIds(new Set((d.items ?? []).map((i: any) => i.doctor.id))))
+      .then((d) => setSavedIds(new Set((d.items ?? []).map((i: any) => i.doctor?.id).filter(Boolean))))
       .catch(() => {});
-  }, []);
+  };
+  useEffect(() => { refreshSaved(); }, [pid]);
 
-  // ── CNES (V1.3): salvar achado do catálogo oficial. O vínculo CNES traz o CRM de
-  // médicos (conselho 10) → salvar DIRETO com CRM; demais profissões pedem CRM num
-  // dialog (vira Doctor com cidade/clínica preenchidas, provenance paciente).
+  // ── Salvar CNES direto (Conselho 10 = Medicina com CRM)
   const salvarCnesDireto = async (s: any) => {
     hapticLight();
     try {
       const r = await fetch(`${API_URL}/my-doctors`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({
+          patientId: pid,
           doctorCrm: String(s.crm).replace(/\D/g, ''), doctorUf: s.crmUf,
           doctorName: s.name,
           doctorSpecialty: s.specialty?.replace(/^Médic[oa]\s*/i, '') ?? undefined,
@@ -116,16 +123,18 @@ export const EncontrarEspecialistasPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
       hapticSuccess();
-      notify(`Dr(a). ${String(s.name).split(' ')[0]} salvo — sem acesso aos exames.`, { type: 'success' });
+      refreshSaved();
+      notify(`Dr(a). ${String(s.name).split(' ')[0]} salvo em Meus Médicos com sucesso!`, { type: 'success' });
     } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); }
   };
+
   const [cnesFor, setCnesFor] = useState<any | null>(null);
   const [cnesCrm, setCnesCrm] = useState('');
   const [cnesUf, setCnesUf] = useState('');
   const [cnesSaving, setCnesSaving] = useState(false);
   const salvarCnesComCrm = async () => {
     if (!cnesFor || !cnesCrm.replace(/\D/g, '') || cnesUf.length !== 2) {
-      notify('Informe CRM e UF pra salvar com o cadastro oficial.', { type: 'warning' });
+      notify('Informe CRM e UF para salvar com o cadastro oficial.', { type: 'warning' });
       return;
     }
     setCnesSaving(true);
@@ -133,6 +142,7 @@ export const EncontrarEspecialistasPage = () => {
       const r = await fetch(`${API_URL}/my-doctors`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
         body: JSON.stringify({
+          patientId: pid,
           doctorCrm: cnesCrm.replace(/\D/g, ''), doctorUf: cnesUf,
           doctorName: cnesFor.name,
           doctorSpecialty: cnesFor.specialty?.replace(/^Médic[oa]\s*/i, '') ?? undefined,
@@ -144,7 +154,8 @@ export const EncontrarEspecialistasPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
       hapticSuccess();
-      notify(`Dr(a). ${String(cnesFor.name).split(' ')[0]} salvo — sem acesso aos exames.`, { type: 'success' });
+      refreshSaved();
+      notify(`Dr(a). ${String(cnesFor.name).split(' ')[0]} salvo em Meus Médicos!`, { type: 'success' });
       setCnesFor(null); setCnesCrm(''); setCnesUf('');
     } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); }
     finally { setCnesSaving(false); }
@@ -155,13 +166,14 @@ export const EncontrarEspecialistasPage = () => {
     try {
       const r = await fetch(`${API_URL}/my-doctors`, {
         method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
-        body: JSON.stringify({ doctorId: s.id, source: 'search' }),
+        body: JSON.stringify({ doctorId: s.id, source: 'search', patientId: pid }),
       });
       if (!r.ok) throw new Error();
       hapticSuccess();
       setSavedIds((p) => new Set(p).add(s.id));
-      notify(`Dr(a). ${s.name.split(' ')[0]} salvo em Meus médicos. Ele NÃO ganha acesso aos seus exames.`, { type: 'success' });
-    } catch { notify('Não consegui salvar. Tente de novo.', { type: 'error' }); }
+      refreshSaved();
+      notify(`Dr(a). ${s.name.split(' ')[0]} salvo em Meus Médicos. Você pode compartilhar exames quando quiser.`, { type: 'success' });
+    } catch { notify('Não foi possível salvar o médico. Tente novamente.', { type: 'error' }); }
   };
 
   // ── Empty search que afrouxa filtros (Lucian UX/UI #092): com 0 resultados e filtros
@@ -198,62 +210,166 @@ export const EncontrarEspecialistasPage = () => {
         subtitle="Busca no diretório do Dr. Exame — médicos com portal ativo e cadastros feitos por pacientes."
       />
 
-      {/* FILTROS */}
-      <Card sx={{ borderRadius: '16px', border: '1px solid', borderColor: 'divider', mb: 2.5 }}>
-        <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-          <Stack spacing={1.5}>
+      {/* BARRA DE BUSCA E FILTROS RÁPIDOS — Padrão Amil / SulAmérica */}
+      <Card sx={{
+        borderRadius: '24px',
+        border: '1px solid',
+        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(15,95,90,0.15)',
+        boxShadow: (t) => t.palette.mode === 'dark' ? '0 8px 28px rgba(0,0,0,0.4)' : '0 8px 24px rgba(15,95,90,0.06)',
+        mb: 3,
+        overflow: 'hidden',
+      }}>
+        <CardContent sx={{ p: { xs: 2, sm: 2.75 } }}>
+          <Stack spacing={2}>
+            {/* Campo de Busca Amplo com Lupa e Limpar */}
             <TextField
-              placeholder="Nome do médico ou clínica…" value={q} onChange={(e) => setQ(e.target.value)}
-              size="small" fullWidth slotProps={{
+              placeholder="Buscar por nome do médico, clínica ou especialidade..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              fullWidth
+              slotProps={{
                 input: {
-                  startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
-                  sx: { borderRadius: '999px' },
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ fontSize: 22, color: '#0f766e', ml: 0.5 }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: q ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setQ('')} aria-label="Limpar busca">
+                        <CloseRoundedIcon sx={{ fontSize: 18 }} />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                  sx: {
+                    borderRadius: '16px',
+                    fontSize: 15,
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                    py: 0.5,
+                  },
                 },
               }}
             />
+
+            {/* Linha de Seleção: Especialidade e Cidade (IBGE) */}
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <TextField select label="Especialidade" value={specialty} onChange={(e) => setSpecialty(e.target.value)} size="small" sx={{ flex: '1 1 160px' }}>
-                <MenuItem value=""><em>Todas</em></MenuItem>
+              <TextField
+                select
+                label="Especialidade Médica"
+                value={specialty}
+                onChange={(e) => setSpecialty(e.target.value)}
+                size="small"
+                sx={{
+                  flex: '1 1 180px',
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                }}
+              >
+                <MenuItem value=""><em>Todas as especialidades</em></MenuItem>
                 {SPECIALTIES.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
-              {/* Combo IBGE (5.571 municípios) com digitação livre — o server stripa o "(UF)" */}
+
               <Autocomplete
-                freeSolo disablePortal autoComplete
+                freeSolo
+                disablePortal
+                autoComplete
                 options={cityOptions}
                 inputValue={city}
                 onInputChange={(_, v) => setCity(v)}
-                renderInput={(p) => <TextField {...p} label="Cidade (perto de você)" size="small" placeholder="Ex.: São José dos Campos" />}
-                sx={{ flex: '1 1 190px' }}
-                noOptionsText="Cidade não encontrada — pode digitar livre"
+                renderInput={(p) => (
+                  <TextField
+                    {...p}
+                    label="Cidade (perto de você)"
+                    size="small"
+                    placeholder="Ex.: São Paulo, Rio, Campinas..."
+                    InputProps={{
+                      ...p.InputProps,
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationOnOutlinedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+                  />
+                )}
+                sx={{ flex: '1 1 200px' }}
+                noOptionsText="Cidade não encontrada — pode digitar livremente"
               />
+
+              <TextField
+                select
+                label="Convênio aceito"
+                value={operator}
+                onChange={(e) => setOperator(e.target.value)}
+                size="small"
+                sx={{
+                  flex: '1 1 180px',
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                }}
+              >
+                <MenuItem value=""><em>Qualquer convênio</em></MenuItem>
+                {INSURANCE_OPERATOR_NAMES.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
+              </TextField>
             </Stack>
-            {cities.length > 0 && (
-              <Box>
-                <Typography variant="caption" sx={{ fontWeight: 800, display: 'block', mb: 0.5, color: 'text.secondary' }}>
-                  Onde já temos médicos:
+
+            {/* Pílulas de Filtro Rápido (Estilo Amil / SulAmérica) */}
+            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
+              <FilterChip
+                label="🎥 Teleconsulta online"
+                active={claimedOnly}
+                onClick={() => setClaimedOnly((v) => !v)}
+              />
+              <FilterChip
+                label="💳 Preço particular informado"
+                active={withPrice}
+                onClick={() => setWithPrice((v) => !v)}
+              />
+              {city && (
+                <Chip
+                  size="small"
+                  clickable
+                  label={`📍 ${city} ✕`}
+                  onClick={() => setCity('')}
+                  sx={{
+                    height: 32,
+                    fontWeight: 700,
+                    fontSize: 12,
+                    borderRadius: '999px',
+                    bgcolor: 'rgba(239,68,68,0.08)',
+                    color: '#b91c1c',
+                    border: '1px solid rgba(239,68,68,0.25)',
+                  }}
+                />
+              )}
+            </Stack>
+
+            {/* Cidades com médicos cadastrados */}
+            {cities.length > 0 && !city && (
+              <Box sx={{ pt: 0.5 }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
+                  Cidades mais buscadas:
                 </Typography>
                 <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                  {city && (
-                    <Chip size="small" clickable label="✕ Todas as cidades" onClick={() => setCity('')}
-                      sx={{ minHeight: 34, height: 34, fontWeight: 700, fontSize: 12, borderRadius: '999px', bgcolor: 'rgba(239,68,68,0.08)', color: '#b91c1c', border: '1px solid rgba(239,68,68,0.3)' }} />
-                  )}
-                  {cities.map((c) => (
-                    <FilterChip key={c.city} label={`${c.city} (${c.count})`} active={deaccentEq(c.city, city)} onClick={() => setCity(c.city)} />
+                  {cities.slice(0, 8).map((c) => (
+                    <Chip
+                      key={c.city}
+                      size="small"
+                      clickable
+                      label={`${c.city} (${c.count})`}
+                      onClick={() => setCity(c.city)}
+                      sx={{
+                        height: 26,
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        borderRadius: '999px',
+                        bgcolor: 'rgba(0,0,0,0.04)',
+                        '&:hover': { bgcolor: 'rgba(15,118,110,0.1)', color: '#0f766e' },
+                      }}
+                    />
                   ))}
                 </Stack>
               </Box>
             )}
-            <TextField select label="Convênio aceito (informado)" value={operator} onChange={(e) => setOperator(e.target.value)} size="small" sx={{ maxWidth: { sm: 260 } }}>
-              <MenuItem value=""><em>Qualquer / não filtrar</em></MenuItem>
-              {INSURANCE_OPERATOR_NAMES.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
-            </TextField>
-            <Stack direction="row" spacing={2} flexWrap="wrap">
-              <FilterChip label="Com preço particular publicado" active={withPrice} onClick={() => setWithPrice((v) => !v)} />
-              <FilterChip label="Com portal ativo (teleconsulta)" active={claimedOnly} onClick={() => setClaimedOnly((v) => !v)} />
-            </Stack>
-            <Typography variant="caption" color="text.secondary">
-              ⚠️ Não filtrar por convênio não significa que o médico não atenda — quando não sabemos, dizemos “não informado”.
-            </Typography>
           </Stack>
         </CardContent>
       </Card>
@@ -362,8 +478,8 @@ export const EncontrarEspecialistasPage = () => {
                         )}
                         <Button size="small" variant="outlined"
                           onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
-                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
-                          Registrar consulta
+                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, borderColor: '#0f766e', color: '#0f766e' }}>
+                          + Anotar consulta
                         </Button>
                       </Stack>
                     </Box>
@@ -436,18 +552,21 @@ export const EncontrarEspecialistasPage = () => {
                     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
                       <Button
                         size="small" variant={salvo ? 'outlined' : 'contained'} disabled={salvo}
-                        startIcon={salvo ? <BookmarkAddedRoundedIcon /> : <BookmarkAddedRoundedIcon />}
+                        startIcon={salvo ? <BookmarkAddedRoundedIcon /> : <BookmarkAddOutlinedIcon />}
                         onClick={() => void salvar(s)}
-                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, ...(salvo ? { color: '#0f766e', borderColor: 'rgba(32,178,170,0.5)' } : {}) }}
+                        sx={{
+                          borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40,
+                          ...(salvo ? { color: '#0f766e', borderColor: 'rgba(32,178,170,0.5)', bgcolor: 'rgba(32,178,170,0.06)' } : { bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } })
+                        }}
                       >
-                        {salvo ? 'Salvo ✓' : 'Meus médicos'}
+                        {salvo ? 'Salvo em Meus médicos ✓' : '+ Salvar em Meus médicos'}
                       </Button>
                       <Button
                         size="small" variant="outlined" startIcon={<AddTaskRoundedIcon />}
                         onClick={() => navigate('/consultas', { state: { prefillDoctor: { doctorId: s.id, doctorName: s.name, specialty: s.specialty ?? '' }, tab: 'minhas' } })}
-                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}
+                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, borderColor: '#0f766e', color: '#0f766e', '&:hover': { bgcolor: 'rgba(15,118,110,0.06)' } }}
                       >
-                        Registrar consulta
+                        + Anotar consulta
                       </Button>
                       {s.phone && (
                         <Button size="small" component="a" href={`https://wa.me/${s.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener"

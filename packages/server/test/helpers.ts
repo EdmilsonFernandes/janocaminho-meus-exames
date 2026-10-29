@@ -53,8 +53,8 @@ const uniq = (p: string) => {
   return at === -1 ? `${p}${sfx}` : `${p.slice(0, at)}${sfx}${p.slice(at)}`;
 };
 
-export function testCpf(seed = counter++): string {
-  const base = String(100000000 + seed).slice(-9);
+export function testCpf(seed = (Date.now() % 10000000) + (counter++)): string {
+  const base = String(100000000 + (Math.abs(seed) % 899999999)).slice(-9);
   const digit = (digits: string) => {
     let sum = 0;
     for (let i = 0; i < digits.length; i++) sum += Number(digits[i]) * (digits.length + 1 - i);
@@ -80,26 +80,38 @@ export async function createUser(opts: {
   credits?: number;
   premium?: boolean;
   cpf?: string;
+  role?: string;
 } = {}): Promise<TestUser> {
   const email = opts.email ?? uniq('user@exemplo.com');
   const passwordHash = await bcrypt.hash(opts.password ?? 'senha123', 10);
+  const name = opts.name ?? 'Usuário Teste';
   const user = await prisma.user.create({
     data: {
       email,
-      name: opts.name ?? 'Usuário Teste',
+      name,
       passwordHash,
       credits: opts.credits ?? 100,
       emailVerified: true,
-      role: 'OWNER',
+      role: opts.role ?? 'OWNER',
       planExpiresAt: opts.premium ? new Date(Date.now() + 30 * 86400_000) : null,
+      patients: {
+        create: {
+          fullName: name,
+          relationship: 'Titular',
+          ...encryptedCpfData(opts.cpf ?? testCpf())!,
+          identityLockedAt: new Date(),
+        },
+      },
     },
-    select: { id: true, email: true, name: true },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      patients: { select: { id: true, fullName: true }, take: 1 },
+    },
   });
-  const patient = await prisma.patient.create({
-    data: { ownerId: user.id, fullName: user.name, relationship: 'Titular', ...encryptedCpfData(opts.cpf ?? testCpf())!, identityLockedAt: new Date() },
-    select: { id: true, fullName: true },
-  });
-  return { user, patient, token: mintToken(user.id) };
+  const patient = user.patients[0]!;
+  return { user: { id: user.id, email: user.email, name: user.name }, patient, token: mintToken(user.id) };
 }
 
 /** Cria um paciente extra (dependente) vinculado ao user. */
