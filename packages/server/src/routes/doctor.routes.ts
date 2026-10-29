@@ -29,7 +29,7 @@ import { createPixCharge } from '../payments/pix-provider';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
-import { lookupCfm, cfmState } from '../utils/cfm';
+import { lookupCfm, cfmState, BR_UFS } from '../utils/cfm';
 import { notifyKycAdmin } from '../kyc/notify';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
@@ -69,6 +69,21 @@ export function normalizeCrmKey(crm?: string, uf?: string): { crm: string; uf: s
   if (!ufClean) return { crm: raw, uf: null };
   const base = raw.replace(/[-/\s]\s*[A-Za-z]{2}\s*$/, '').trim() || raw;
   return { crm: `${base}-${ufClean}`, uf: ufClean };
+}
+
+/**
+ * CRM CANÔNICO do cadastro (principal e convite) — revisão final do KYC (I6b/I7). Número = só dígitos (3–7; sem
+ * pontuação, letras ou UF); UF = `uf` informada OU, se ausente, o sufixo do próprio CRM ("12345-SP"), e tem de
+ * pertencer a BR_UFS; chave = `${número}-${UF}`. "116739-sp", "116.739" e "116739-SP-RJ" viram UMA chave (antes eram
+ * chaves distintas: burlavam CRM_IN_USE_UNVERIFIED e o agrupamento das tentativas de KYC) e "000000-ZZ" não passa.
+ * É a mesma chave que o lookup do paciente (`${dígitos}-${UF}`) e o KYC (dígitos + UF) usam. null = inválido.
+ */
+export function canonicalCrm(crm: unknown, uf?: unknown): { key: string; digits: string; uf: string } | null {
+  const raw = String(crm ?? '').trim();
+  const digits = raw.replace(/[-/\s]*[A-Za-z]{2}\s*$/, '').replace(/\D/g, '');
+  const ufIn = String(uf || raw.match(/([A-Za-z]{2})\s*$/)?.[1] || '').trim().toUpperCase();
+  if (!/^\d{3,7}$/.test(digits) || !BR_UFS.has(ufIn)) return null;
+  return { key: `${digits}-${ufIn}`, digits, uf: ufIn };
 }
 
 const router = Router();

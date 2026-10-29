@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { getSettings } from './utils/settings';
-import { lookupCfm, cfmState, BR_UFS } from './utils/cfm';
+import { lookupCfm, cfmState } from './utils/cfm';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -48,7 +48,7 @@ import notificationRoutes from './routes/notification.routes';
 import consultaRoutes from './routes/consulta';
 import dataRoutes from './routes/data.routes';
 import adminRoutes from './routes/admin.routes';
-import doctorRoutes from './routes/doctor.routes';
+import doctorRoutes, { canonicalCrm } from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
 import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
@@ -559,60 +559,64 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
 
     // AUD-003 parte 1 (spec §7): CRM/UF válidos + CFM não inativo. A conta nasce 'pending' (default
     // do schema) → o token abaixo só abre o onboarding; dado de paciente só após o KYC (gate).
-    const crmDigits = String(crm).replace(/[-/\s]*[A-Za-z]{2}\s*$/, '').replace(/\D/g, '');
-    const ufIn = String(crmUf || String(crm).match(/([A-Za-z]{2})\s*$/)?.[1] || '').trim().toUpperCase();
-    if (!/^\d{3,7}$/.test(crmDigits) || !BR_UFS.has(ufIn)) {
+    // Chave CANÔNICA "numero-UF" (a mesma do cadastro principal e do lookup): variantes ("116739-sp", "116.739")
+    // caem na mesma conta em vez de gerar chaves paralelas.
+    const parsed = canonicalCrm(crm, crmUf);
+    if (!parsed) {
       res.status(422).json({ code: 'CRM_INVALID', error: 'CRM ou UF inválidos.' });
       return;
     }
-    const cfm = await lookupCfm(crmDigits, ufIn).catch(() => null);
+    const cfm = await lookupCfm(parsed.digits, parsed.uf).catch(() => null);
     if (cfm && cfmState(cfm.situation) === 'inactive') {
       res.status(422).json({ code: 'CRM_INACTIVE', error: `CRM consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` });
       return;
     }
 
-    const { normalizeCrmKey } = await import('./routes/doctor.routes');
-    const norm = normalizeCrmKey(crm, crmUf);
-    const crmKey = norm?.crm ?? String(crm).trim();
-    const uf = norm?.uf ?? (crmUf ? String(crmUf).toUpperCase() : null);
+    const crmKey = parsed.key;
     const cleanEmail = String(email).trim().toLowerCase();
 
-    // Verifica se já existe médico com este CRM ou E-mail
-    const existing = await prisma.doctor.findFirst({
-      where: { OR: [{ crm: crmKey }, { email: cleanEmail }] },
-    });
+    // Revisão final I6b: o placeholder é reivindicado SÓ pelo CRM (antes: CRM OU e-mail, e o claim reescrevia crm/crmUf).
+    // Os placeholders da busca de CRM do paciente têm e-mail PREVISÍVEL (pending-<crm>@invite.com) e qualquer paciente
+    // cria um token de convite — casar por e-mail deixava um médico do CRM B sequestrar o placeholder da Dra. A (com os
+    // shares dos pacientes dela) e reescrevê-lo p/ o CRM B. O CRM de uma conta existente NUNCA muda aqui.
+    const [byCrm, byEmail] = await Promise.all([
+      prisma.doctor.findUnique({ where: { crm: crmKey } }),
+      prisma.doctor.findUnique({ where: { email: cleanEmail } }),
+    ]);
+    const emailInUse = () => res.status(409).json({ code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' });
+    const alreadyRegistered = () => res.status(409).json({ error: 'already_registered', message: 'Médico já cadastrado com este CRM ou e-mail. Faça login para continuar.' });
 
     const { hashPassword } = await import('./auth/jwt');
-    const passwordHash = await hashPassword(password);
     let doctor: any;
 
-    if (existing) {
-      // Se for médico criado como pending-invite (placeholder), claimamos a conta
-      if (existing.passwordHash === 'pending-invite') {
-        doctor = await prisma.doctor.update({
-          where: { id: existing.id },
-          data: {
-            name: String(name).trim(),
-            email: cleanEmail,
-            crm: crmKey,
-            crmUf: uf,
-            specialty: specialty || existing.specialty,
-            passwordHash,
-            verificationStatus: 'pending',
-          },
-        });
-      } else {
-        res.status(409).json({ error: 'already_registered', message: 'Médico já cadastrado com este CRM ou e-mail. Faça login para continuar.' });
-        return;
-      }
+    if (byCrm) {
+      // Só placeholder (criado por paciente, sem senha) é reivindicável; conta real do CRM → faça login.
+      if (byCrm.passwordHash !== 'pending-invite') { alreadyRegistered(); return; }
+      // O e-mail é único: se já é de OUTRA conta, não há como reivindicar com ele.
+      if (byEmail && byEmail.id !== byCrm.id) { emailInUse(); return; }
+      doctor = await prisma.doctor.update({
+        where: { id: byCrm.id },
+        data: {
+          name: String(name).trim(),
+          email: cleanEmail,
+          specialty: specialty || byCrm.specialty,
+          passwordHash: await hashPassword(password),
+          verificationStatus: 'pending',
+        },
+      });
+    } else if (byEmail) {
+      // CRM novo, mas o e-mail já é de uma conta: placeholder de OUTRO CRM (e-mail previsível) NÃO é reivindicado.
+      if (byEmail.passwordHash === 'pending-invite') { emailInUse(); return; }
+      alreadyRegistered();
+      return;
     } else {
       doctor = await prisma.doctor.create({
         data: {
           name: String(name).trim(),
           crm: crmKey,
-          crmUf: uf,
+          crmUf: parsed.uf,
           email: cleanEmail,
-          passwordHash,
+          passwordHash: await hashPassword(password),
           specialty: specialty ? String(specialty).trim() : null,
         },
       });
