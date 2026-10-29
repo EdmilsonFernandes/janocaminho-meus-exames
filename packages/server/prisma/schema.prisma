@@ -1141,8 +1141,45 @@ payoutPixKeyType String? // 'cpf' | 'cnpj' | 'email' | 'phone' | 'random'
   blocked          Boolean  @default(false)
   blockedAt        DateTime?
   blockedReason    String?
+  // KYC (spec 2026-10-28-verificacao-medico-spec.md §1-2): só approved (ou legacy no prazo) atende.
+  verificationStatus String    @default("pending") // pending|in_progress|uaiid_review|needs_admin|approved|rejected|legacy
+  verifiedAt         DateTime?
+  verifiedBy         String?   // 'auto' | id do admin
+  verifications      DoctorVerification[]
 
   @@map("doctors")
+}
+
+// Tentativa de KYC do médico no UaiID (spec §2). Sem imagem/biometria/nº de documento/CPF —
+// isso fica no UaiID. doctorId SetNull: a evidência sobrevive à exclusão da conta (CRM liberado).
+model DoctorVerification {
+  id           String    @id @default(cuid())
+  doctorId     String?
+  doctor       Doctor?   @relation(fields: [doctorId], references: [id], onDelete: SetNull)
+  crm          String    // snapshot "numero-UF" do CRM tentado
+  provider     String    @default("uaiid")
+  providerId   String    @unique // verification_id do UaiID
+  status       String    // created|consent_pending|collecting|processing|challenge|manual_review|approved|rejected|expired|cancelled
+  reasonCode   String?
+  score        Int?
+  documentName String?   // nome do documento (webhook assinado)
+  nameRatio    Float?    // result.declared_vs_document.name_ratio (declarado = nome do CFM)
+  cfmName      String?   // snapshot do CFM na criação = nome declarado ao UaiID
+  cfmSituation String?
+  nameMatch    Boolean?
+  cpfSituacao  String?
+  decision     String?   // decisão Dr. Exame (= status proposto ao médico)
+  decidedBy    String?   // 'auto' | id do admin (decisão humana não é sobrescrita)
+  expiresAt    DateTime?
+  lastSyncedAt DateTime?
+  syncSource   String?   // webhook|poll|on_demand
+  createdAt    DateTime  @default(now())
+  completedAt  DateTime?
+
+  @@index([doctorId, createdAt])
+  @@index([status, lastSyncedAt])
+  @@index([crm, createdAt])
+  @@map("doctor_verifications")
 }
 
 // Desafio MFA no login (transient — cria na senha OK, consome no verify do código).
