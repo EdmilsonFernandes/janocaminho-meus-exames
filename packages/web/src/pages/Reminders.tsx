@@ -1704,7 +1704,7 @@ export const RemindersPage = () => {
                 <AddAlarmIcon fontSize="small" />
               </Box>
               <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 14.5, sm: 16 }, lineHeight: 1.25 }}>
-                {currentTab === 'consultas' ? 'Novo agendamento de consulta' : currentTab === 'medicamentos' ? 'Novo horário de remédio' : 'Novo lembrete de saúde'}
+                {currentTab === 'medicamentos' ? 'Novo horário de remédio' : 'Novo lembrete de saúde'}
               </Typography>
             </Stack>
             <Button
