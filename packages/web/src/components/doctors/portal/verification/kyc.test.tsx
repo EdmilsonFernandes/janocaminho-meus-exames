@@ -16,7 +16,7 @@ vi.mock('../../../../config', () => ({ API_URL: '/api' }));
 
 import {
   KYC_COPY, KYC_TIMING,
-  attemptPhase, classifyStartResponse, formatCrm, formatGraceDate, hasKycParam, humanBlockedReason, initials,
+  attemptPhase, classifyStartResponse, cpfProblem, formatCrm, formatGraceDate, hasKycParam, humanBlockedReason, initials,
   isLegacyExpired, isPracticing, normalizeDoctorInfo, normalizeVerification, parseBlocked, resolveKycView, safeVerifyUrl,
   type KycAttempt, type KycSnapshot, type KycViewInput,
 } from './kycState';
@@ -278,18 +278,61 @@ describe('classifyStartResponse — POST /api/doctor/verification', () => {
     expect(safeVerifyUrl('//evil.test/x')).toBeNull();
   });
 
-  it('409 ALREADY_APPROVED / IN_REVIEW → só reler o estado (não é erro para o médico)', () => {
-    expect(classifyStartResponse(409, { code: 'ALREADY_APPROVED' })).toEqual({ kind: 'refresh' });
-    expect(classifyStartResponse(409, { code: 'IN_REVIEW', status: 'needs_admin' })).toEqual({ kind: 'refresh' });
+  it('409 ALREADY_APPROVED / IN_REVIEW → reler o estado; o aviso amigável só aparece se a tela não mudar', () => {
+    const a = classifyStartResponse(409, { code: 'ALREADY_APPROVED' });
+    expect(a.kind).toBe('refresh');
+    if (a.kind === 'refresh') {
+      expect(a.notice.code).toBe('ALREADY_APPROVED');
+      expect(a.notice.message).toBe('Sua identidade já foi verificada. Atualizamos o status para você.');
+    }
+    const r = classifyStartResponse(409, { code: 'IN_REVIEW', status: 'needs_admin' });
+    expect(r.kind).toBe('refresh');
+    if (r.kind === 'refresh') {
+      expect(r.notice.code).toBe('IN_REVIEW');
+      expect(r.notice.message).toBe('Sua verificação já está em análise. Atualizamos o status para você.');
+      expect(r.notice.blocksStart).toBe(false);
+    }
   });
 
-  it('400 CPF_REQUIRED → fale com o suporte', () => {
+  it('400 CPF_REQUIRED (médico do convite, sem CPF no cadastro) → pede o CPF na própria tela, não manda para o suporte', () => {
     const o = classifyStartResponse(400, { code: 'CPF_REQUIRED' });
     expect(o.kind).toBe('error');
     if (o.kind === 'error') {
       expect(o.error.code).toBe('CPF_REQUIRED');
-      expect(o.error.message).toBe('Precisamos do seu CPF para verificar. Fale com o suporte para atualizar seu cadastro.');
+      expect(o.error.message).toBe('Precisamos do seu CPF para verificar.');
+      expect(o.error.needsCpf).toBe(true);
+      expect(o.error.supportOnly).toBe(false);
+      expect(o.error.blocksStart).toBe(false);
+    }
+  });
+
+  it('400 CPF_INVALID → erro no campo (continua pedindo o CPF; nunca ecoa o que foi digitado)', () => {
+    const o = classifyStartResponse(400, { code: 'CPF_INVALID', error: 'CPF 529.982.247-25 inválido' });
+    expect(o.kind).toBe('error');
+    if (o.kind === 'error') {
+      expect(o.error.code).toBe('CPF_INVALID');
+      expect(o.error.message).toBe('CPF inválido. Confira os números e tente de novo.');
+      expect(o.error.needsCpf).toBe(true);
+      expect(JSON.stringify(o)).not.toContain('529');
+    }
+  });
+
+  it('409 CPF_IN_USE → "Este CPF já está cadastrado em outra conta. Fale com o suporte." + botão do suporte', () => {
+    const o = classifyStartResponse(409, { code: 'CPF_IN_USE' });
+    expect(o.kind).toBe('error');
+    if (o.kind === 'error') {
+      expect(o.error.code).toBe('CPF_IN_USE');
+      expect(o.error.message).toBe('Este CPF já está cadastrado em outra conta. Fale com o suporte.');
+      expect(o.error.needsCpf).toBe(true);
       expect(o.error.supportOnly).toBe(true);
+      expect(o.error.blocksStart).toBe(false);
+    }
+  });
+
+  it('os outros erros não pedem CPF', () => {
+    for (const [status, body] of [[503, { code: 'KYC_UNAVAILABLE' }], [429, { code: 'KYC_ATTEMPT_LIMIT', retryAfterHours: 2 }], [500, {}]] as const) {
+      const o = classifyStartResponse(status, body);
+      expect(o.kind === 'error' && o.error.needsCpf).toBe(false);
     }
   });
 
@@ -376,11 +419,32 @@ describe('parseBlocked / humanBlockedReason / normalizeDoctorInfo', () => {
   });
 
   it('normalizeDoctorInfo: nome + CRM formatado; falha/offline vira null', () => {
-    expect(normalizeDoctorInfo({ doctor: { name: 'Maria Souza', crm: '116739', crmUf: 'SP', email: 'm@x.com' } })).toEqual({ name: 'Maria Souza', crm: '116739-SP' });
-    expect(normalizeDoctorInfo({ doctor: { name: 'Maria Souza', crm: '116739-SP', crmUf: null } })).toEqual({ name: 'Maria Souza', crm: '116739-SP' });
+    expect(normalizeDoctorInfo({ doctor: { name: 'Maria Souza', crm: '116739', crmUf: 'SP', email: 'm@x.com' } })).toEqual({ name: 'Maria Souza', crm: '116739-SP', cpfOnFile: null });
+    expect(normalizeDoctorInfo({ doctor: { name: 'Maria Souza', crm: '116739-SP', crmUf: null } })).toEqual({ name: 'Maria Souza', crm: '116739-SP', cpfOnFile: null });
     expect(normalizeDoctorInfo({ doctor: { name: '', crm: null } })).toBeNull();
     expect(normalizeDoctorInfo({ items: [], data: [], total: 0 })).toBeNull();
     expect(normalizeDoctorInfo(null)).toBeNull();
+  });
+});
+
+describe('CPF no cadastro (médico do convite) — /me e validação do campo', () => {
+  const doc = (extra: Record<string, unknown>) => normalizeDoctorInfo({ doctor: { name: 'Maria Souza', crm: '116739', crmUf: 'SP', ...extra } });
+
+  it('cpfOnFile: máscara preenchida = tem CPF; hasCpf:false SEM máscara = não tem; sem sinal = não dá para saber', () => {
+    expect(doc({ cpfMasked: '***.***.***-25', hasCpf: false })?.cpfOnFile).toBe(true); // o /me atual manda hasCpf:false mesmo com CPF — a máscara vence
+    expect(doc({ cpfMasked: null, hasCpf: true })?.cpfOnFile).toBe(true);
+    expect(doc({ cpfMasked: null, hasCpf: false })?.cpfOnFile).toBe(false);
+    expect(doc({ cpfMasked: '', hasCpf: false })?.cpfOnFile).toBe(false);
+    expect(doc({})?.cpfOnFile).toBeNull();
+  });
+
+  it('cpfProblem: faltam números → short; dígitos verificadores errados → invalid; CPF bom → null', () => {
+    expect(cpfProblem('')).toBe('short');
+    expect(cpfProblem('123.456')).toBe('short');
+    expect(cpfProblem('123.456.789-00')).toBe('invalid');
+    expect(cpfProblem('111.111.111-11')).toBe('invalid');
+    expect(cpfProblem('529.982.247-25')).toBeNull();
+    expect(cpfProblem('52998224725')).toBeNull();
   });
 });
 
@@ -428,8 +492,8 @@ const darkTheme = createTheme({ palette: { mode: 'dark' } });
 const render = (el: React.ReactElement, theme = lightTheme) => renderToString(<ThemeProvider theme={theme}>{el}</ThemeProvider>);
 const noop = () => undefined;
 const controls = (over: Partial<KycStartControls> = {}): KycStartControls =>
-  ({ onStart: noop, onCopyLink: noop, starting: false, error: null, copied: null, ...over });
-const maria = { name: 'Maria Souza', crm: '116739-SP' };
+  ({ onStart: async () => 'handled', onCopyLink: async () => 'handled', starting: false, error: null, copied: null, needsCpf: false, clearError: noop, ...over });
+const maria = { name: 'Maria Souza', crm: '116739-SP', cpfOnFile: true };
 const primaryButtons = (html: string) => (html.match(/<button[^>]*MuiButton-containedPrimary/g) ?? []).length;
 const startError = (status: number, body: unknown) => {
   const o = classifyStartResponse(status, body);
@@ -504,8 +568,9 @@ describe('KycIntro — "Vamos validar sua identidade"', () => {
     expect(unavailable).toContain('A verificação está indisponível no momento. Tente em alguns minutos.');
     expect(unavailable).toContain('role="alert"');
     const cpf = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ error: startError(400, { code: 'CPF_REQUIRED' }) })} />);
-    expect(cpf).toContain('Precisamos do seu CPF para verificar. Fale com o suporte para atualizar seu cadastro.');
-    const net = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ error: { code: 'NETWORK', message: KYC_COPY.errors.network, retryAfterHours: null, supportOnly: false, blocksStart: false } })} />);
+    expect(cpf).toContain('Precisamos do seu CPF para verificar.');
+    expect(cpf).not.toContain('Fale com o suporte para atualizar seu cadastro');
+    const net = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ error: { code: 'NETWORK', message: KYC_COPY.errors.network, retryAfterHours: null, supportOnly: false, blocksStart: false, needsCpf: false } })} />);
     expect(net).toContain('Sem conexão. Tente novamente.');
   });
 
@@ -517,6 +582,88 @@ describe('KycIntro — "Vamos validar sua identidade"', () => {
     expect(manual).toContain('Toque e segure o link abaixo para copiar.');
     expect(manual).toContain('value="https://uaiid.test/v/abc"');
     expect(manual).toContain('readOnly');
+  });
+});
+
+describe('KycIntro — campo de CPF (o médico que entrou pelo convite não tem CPF no cadastro)', () => {
+  const noCpfDoctor = { ...maria, cpfOnFile: false };
+  const withCpf = render(<KycIntro doctor={noCpfDoctor} onLogout={noop} start={controls({ needsCpf: true })} />);
+
+  it('sem CPF no cadastro: campo com rótulo, máscara, teclado numérico e o texto de apoio', () => {
+    expect(withCpf).toContain('Seu CPF');
+    expect(withCpf).toContain('placeholder="000.000.000-00"');
+    expect(withCpf).toMatch(/inputMode="numeric"/i);
+    expect(withCpf).toMatch(/autoComplete="off"/i);
+    expect(withCpf).toMatch(/maxLength="14"/i);
+    expect(withCpf).toContain('Usamos o CPF só para confirmar sua identidade com o documento');
+  });
+
+  it('é um formulário: Enter no campo aciona o CTA (submit) — e continua UMA ação primária', () => {
+    expect(withCpf).toContain('<form');
+    expect(withCpf).toMatch(/<button[^>]*type="submit"[^>]*>(?:(?!<\/button>).)*Validar minha identidade/);
+    expect(primaryButtons(withCpf)).toBe(1);
+  });
+
+  it('rótulo associado ao campo e texto de apoio ligado por aria-describedby; sem erro, sem aria-invalid', () => {
+    expect(withCpf).toMatch(/<label[^>]*for="kyc-cpf"/i);
+    expect(withCpf).toContain('id="kyc-cpf"');
+    expect(withCpf).toContain('aria-describedby="kyc-cpf-help"');
+    expect(withCpf).toContain('id="kyc-cpf-help"');
+    expect(withCpf).not.toContain('aria-invalid');
+  });
+
+  it('com CPF no cadastro (ou sem sinal) o campo NÃO aparece', () => {
+    const none = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ needsCpf: false })} />);
+    expect(none).not.toContain('Seu CPF');
+    expect(none).not.toContain('kyc-cpf');
+  });
+
+  it('400 CPF_REQUIRED do POST: o pedido aparece acima do campo (sem aviso vermelho)', () => {
+    const html = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ needsCpf: true, error: startError(400, { code: 'CPF_REQUIRED' }) })} />);
+    expect(html).toContain('Precisamos do seu CPF para verificar.');
+    expect(html).toContain('Seu CPF');
+    expect(html).toContain('Usamos o CPF só para confirmar sua identidade com o documento');
+    expect(html).not.toContain('aria-invalid');
+    expect(html).not.toContain('MuiAlert-root');
+  });
+
+  it('400 CPF_INVALID: o erro vai EMBAIXO do campo (uma vez só), marcado como inválido e anunciado', () => {
+    const html = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ needsCpf: true, error: startError(400, { code: 'CPF_INVALID' }) })} />);
+    expect((html.match(/CPF inválido\. Confira os números e tente de novo\./g) ?? []).length).toBe(1);
+    expect(html).toContain('aria-invalid="true"');
+    expect(html).toContain('role="alert"');
+    expect(html).not.toContain('MuiAlert-root');
+    expect(html).not.toContain('Usamos o CPF só para confirmar'); // o erro ocupa o lugar do texto de apoio
+  });
+
+  it('409 CPF_IN_USE: mensagem do plano + botão do suporte (mailto) junto do campo', () => {
+    const html = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ needsCpf: true, error: startError(409, { code: 'CPF_IN_USE' }) })} />);
+    expect(html).toContain('Este CPF já está cadastrado em outra conta. Fale com o suporte.');
+    expect(html).toContain('aria-invalid="true"');
+    expect(html).toContain('href="mailto:contato@janocaminho.com.br"');
+    expect(ctaDisabled(html, 'Validar minha identidade')).toBe(false); // dá para corrigir o número e tentar de novo
+  });
+
+  it('409 IN_REVIEW: aviso informativo (não de erro) se a tela não mudar depois de reler', () => {
+    const r = classifyStartResponse(409, { code: 'IN_REVIEW', status: 'needs_admin' });
+    if (r.kind !== 'refresh') throw new Error('esperava refresh');
+    const html = render(<KycIntro doctor={maria} onLogout={noop} start={controls({ error: r.notice })} />);
+    expect(html).toContain('Sua verificação já está em análise. Atualizamos o status para você.');
+    expect(html).toContain('MuiAlert-standardInfo');
+    expect(html).not.toContain('MuiAlert-standardError');
+  });
+
+  it('Continuar e Recusado nunca pedem CPF (já existe tentativa, logo já existe CPF)', () => {
+    const cont = render(<KycContinue doctor={maria} onLogout={noop} start={controls({ needsCpf: true })} />);
+    expect(cont).not.toContain('Seu CPF');
+    const rej = render(<KycRejected doctor={maria} onLogout={noop} attempt={att('rejected', { message: 'x', reasonCode: 'face_mismatch' })} start={controls({ needsCpf: true })} />);
+    expect(rej).not.toContain('Seu CPF');
+  });
+
+  it('renderiza também no escuro', () => {
+    const dark = render(<KycIntro doctor={noCpfDoctor} onLogout={noop} start={controls({ needsCpf: true, error: startError(400, { code: 'CPF_INVALID' }) })} />, darkTheme);
+    expect(dark).toContain('Seu CPF');
+    expect(dark).toContain('CPF inválido');
   });
 });
 
@@ -720,7 +867,7 @@ describe('KycLoading / KycLoadError / região viva', () => {
 });
 
 describe('LegacyVerifyBanner — médico antigo no prazo', () => {
-  const base = { graceUntilMs: null, onVerify: noop, onDismiss: noop, busy: false, error: null };
+  const base = { graceUntilMs: null, onVerify: async () => 'handled' as const, onDismiss: noop, busy: false, error: null };
 
   it('sem prazo: "Verifique sua identidade" + botão + dispensar', () => {
     const html = render(<LegacyVerifyBanner kind="verify" {...base} />);
@@ -734,6 +881,18 @@ describe('LegacyVerifyBanner — médico antigo no prazo', () => {
   it('com prazo: "até DD/MM/AAAA"', () => {
     const html = render(<LegacyVerifyBanner kind="verify" {...base} graceUntilMs={new Date(2026, 10, 28, 12).getTime()} />);
     expect(html).toContain('Verifique sua identidade até 28/11/2026');
+  });
+
+  it('sem CPF no cadastro (400 CPF_REQUIRED do "Verificar agora"): o campo aparece no próprio banner', () => {
+    const html = render(<LegacyVerifyBanner kind="verify" {...base} needsCpf error={startError(400, { code: 'CPF_REQUIRED' })} />);
+    expect(html).toContain('Seu CPF');
+    expect(html).toContain('id="kyc-cpf-banner"');
+    expect(html).toContain('Precisamos do seu CPF para verificar.');
+    expect(html).toContain('Usamos o CPF só para confirmar sua identidade com o documento');
+    const without = render(<LegacyVerifyBanner kind="verify" {...base} />);
+    expect(without).not.toContain('Seu CPF');
+    const review = render(<LegacyVerifyBanner kind="review" {...base} needsCpf />);
+    expect(review).not.toContain('Seu CPF');
   });
 
   it('já enviou os dados: avisa que está em análise e não pede de novo', () => {
@@ -821,6 +980,17 @@ describe('guardas de código — o que a jornada NUNCA pode fazer', () => {
       expect(code(f), f).not.toMatch(/posthog|analytics|\btrack\(/);
       expect(code(f), f).not.toMatch(/searchParams\.get\(\s*['"]status['"]/);
     }
+  });
+
+  it('o CPF nunca vai para storage, URL ou log: só no corpo do POST, em dígitos', () => {
+    for (const f of SOURCES) {
+      expect(code(f), f).not.toMatch(/localStorage/);
+      expect(code(f), f).not.toMatch(/(?:local|session)Storage[^;\n]*cpf/i);
+      expect(code(f), f).not.toMatch(/\$\{[^}]*cpf[^}]*\}/i); // nunca interpolado em template (URL, log, chave)
+    }
+    const hook = code('useDoctorVerification.ts');
+    expect(hook).toMatch(/body: JSON\.stringify\(cpf \? \{ cpf \} : \{\}\)/);
+    expect(hook).toMatch(/normalizeCpf\(opts\.cpf\)/);
   });
 
   it('a única leitura da URL é o kyc=1 (via hasKycParam) e ela é consumida com navigate("/doctor", { replace })', () => {

@@ -16,10 +16,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../../../../config';
 import { copyText } from '../../../../utils/copyText';
+import { normalizeCpf } from '../../../../utils/cpf';
 import {
   KYC_TIMING, NETWORK_START_ERROR, classifyStartResponse, hasKycParam, isPracticing,
   normalizeDoctorInfo, normalizeVerification, parseBlocked, resolveKycView,
-  type KycDoctorInfo, type KycSnapshot, type KycStartError, type KycView,
+  type KycDoctorInfo, type KycSnapshot, type KycStartError, type KycView, type StartResult,
 } from './kycState';
 
 /* ── abrir o UaiID ───────────────────────────────────────────────────────────────── */
@@ -97,8 +98,15 @@ export interface DoctorVerification {
   /** O "Conferindo" passou de 90 s. */
   checkingSlow: boolean;
   refresh: () => Promise<void>;
-  /** 'open' abre o UaiID; 'copy' só cria a sessão e copia o link (para abrir no celular). */
-  start: (mode?: 'open' | 'copy') => Promise<void>;
+  /** O campo de CPF deve aparecer: o cadastro (convite) não tem CPF — sabido pelo /me ou pelo 400 CPF_REQUIRED do POST. */
+  needsCpf: boolean;
+  /**
+   * 'open' abre o UaiID; 'copy' só cria a sessão e copia o link (para abrir no celular). `opts.cpf` vai SÓ no corpo do POST
+   * (dígitos), quando o médico não tem CPF no cadastro — nunca fica em estado, storage ou log.
+   */
+  start: (mode?: 'open' | 'copy', opts?: { cpf?: string }) => Promise<StartResult>;
+  /** Some com o aviso do último POST (ex.: o médico editou o CPF depois de um "CPF inválido"). */
+  clearStartError: () => void;
   /** "Ir para o portal" na tela "Conta aprovada". */
   acknowledgeApproved: () => void;
   /** "Atualizar" depois dos 90 s: relê e reabre a janela de 90 s. */
@@ -122,6 +130,7 @@ export function useDoctorVerification(token: string, onLogout: () => void): Doct
   const [starting, setStarting] = useState(false);
   const [startError, setStartError] = useState<KycStartError | null>(null);
   const [copied, setCopied] = useState<{ url: string; ok: boolean } | null>(null);
+  const [cpfRequired, setCpfRequired] = useState(false);
   const [checkSince, setCheckSince] = useState<number | null>(null);
   const [checkingSlow, setCheckingSlow] = useState(false);
 
@@ -269,52 +278,63 @@ export function useDoctorVerification(token: string, onLogout: () => void): Doct
     })();
   }, [needsWho]);
 
-  const start = useCallback(async (mode: 'open' | 'copy' = 'open'): Promise<void> => {
-    if (startingRef.current) return;
+  const start = useCallback(async (mode: 'open' | 'copy' = 'open', opts: { cpf?: string } = {}): Promise<StartResult> => {
+    if (startingRef.current) return 'failed';
     startingRef.current = true;
     setStarting(true);
     setStartError(null);
     setCopied(null);
     try {
+      // O CPF viaja SÓ no corpo do POST, em dígitos: não vai para estado, storage, URL nem log.
+      const cpf = opts.cpf ? normalizeCpf(opts.cpf) : '';
       let res: Response;
       try {
         res = await fetch(`${API_URL}/doctor/verification`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${tokenRef.current}`, 'Content-Type': 'application/json' },
-          body: '{}',
+          body: JSON.stringify(cpf ? { cpf } : {}),
         });
       } catch {
         if (aliveRef.current) setStartError(NETWORK_START_ERROR);
-        return;
+        return 'failed';
       }
       const outcome = classifyStartResponse(res.status, await readJson(res));
-      if (!aliveRef.current) return;
+      if (!aliveRef.current) return 'handled';
       switch (outcome.kind) {
-        case 'logout': onLogoutRef.current(); return;
-        case 'blocked': setBlocked({ reason: outcome.reason }); return;
-        case 'refresh': await load(true); return;
-        case 'error': setStartError(outcome.error); return;
+        case 'logout': onLogoutRef.current(); return 'handled';
+        case 'blocked': setBlocked({ reason: outcome.reason }); return 'handled';
+        case 'refresh': setStartError(outcome.notice); await load(true); return 'handled'; // o aviso só aparece se a tela não mudar
+        case 'error':
+          setStartError(outcome.error);
+          if (outcome.error.needsCpf) setCpfRequired(true);
+          return 'failed';
         case 'ok': {
+          setCpfRequired(false);
           if (mode === 'copy') {
             const ok = await copyText(outcome.verifyUrl);
             if (aliveRef.current) setCopied({ url: outcome.verifyUrl, ok });
-            return;
+            return 'copied';
           }
           launchedRef.current = true;
           await openVerifyUrl(outcome.verifyUrl);
-          return;
+          return 'opened';
         }
       }
+      return 'handled';
     } finally {
       startingRef.current = false;
       if (aliveRef.current) setStarting(false);
     }
   }, [load]);
 
+  const clearStartError = useCallback(() => setStartError(null), []);
+  /* sem CPF no cadastro (sabido pelo /me) ou o POST pediu: o campo aparece antes mesmo do 1º clique */
+  const needsCpf = cpfRequired || doctor?.cpfOnFile === false;
+
   const refresh = useCallback(() => load(true), [load]);
   const acknowledgeApproved = useCallback(() => { setCelebrated(true); writeSeen(null); }, []);
   const retryChecking = useCallback(() => { setCheckSince(Date.now()); setCheckingSlow(false); void load(true); }, [load]);
   const resume = useCallback(() => { setKycFlag(false); setReturned(false); void start('open'); }, [start]);
 
-  return { view, snapshot, doctor, blocked, refreshing, starting, startError, copied, checkingSlow, refresh, start, acknowledgeApproved, retryChecking, resume };
+  return { view, snapshot, doctor, blocked, refreshing, starting, startError, copied, checkingSlow, needsCpf, refresh, start, clearStartError, acknowledgeApproved, retryChecking, resume };
 }

@@ -12,6 +12,8 @@
  * a verdade é sempre o `GET /api/doctor/verification`.
  */
 
+import { isValidCpf, normalizeCpf } from '../../../../utils/cpf';
+
 /** `Doctor.verificationStatus` no servidor. */
 export type KycStatus = 'pending' | 'in_progress' | 'uaiid_review' | 'needs_admin' | 'approved' | 'rejected' | 'legacy';
 
@@ -143,11 +145,22 @@ export const KYC_COPY = {
   },
   errors: {
     unavailable: 'A verificação está indisponível no momento. Tente em alguns minutos.',
-    cpfRequired: 'Precisamos do seu CPF para verificar. Fale com o suporte para atualizar seu cadastro.',
+    cpfRequired: 'Precisamos do seu CPF para verificar.',
     network: 'Sem conexão. Tente novamente.',
     generic: 'Não foi possível iniciar a verificação agora. Tente novamente em instantes.',
     limitWait: (hours: number) => `Você atingiu o limite de tentativas. Tente de novo em cerca de ${hours} h.`,
     limitSupport: 'Você atingiu o limite de tentativas de verificação. Fale com o suporte para liberar uma nova tentativa.',
+    inReview: 'Sua verificação já está em análise. Atualizamos o status para você.',
+    alreadyApproved: 'Sua identidade já foi verificada. Atualizamos o status para você.',
+  },
+  /** Médico que entrou pelo convite não tem CPF no cadastro: o servidor aceita `{ cpf }` no POST (só dígitos). */
+  cpf: {
+    label: 'Seu CPF',
+    placeholder: '000.000.000-00',
+    helper: 'Usamos o CPF só para confirmar sua identidade com o documento',
+    short: 'Informe os 11 números do seu CPF.',
+    invalid: 'CPF inválido. Confira os números e tente de novo.',
+    inUse: 'Este CPF já está cadastrado em outra conta. Fale com o suporte.',
   },
 } as const;
 
@@ -178,14 +191,30 @@ export function normalizeVerification(raw: unknown): KycSnapshot | null {
 }
 
 /** Quem está sendo verificado (GET /api/doctor/me) — só para personalizar; falha = sem pill. */
-export interface KycDoctorInfo { name: string | null; crm: string | null }
+export interface KycDoctorInfo {
+  name: string | null;
+  crm: string | null;
+  /**
+   * O cadastro já tem CPF? true/false só quando o /me deixa claro (`cpfMasked` preenchido = tem; `hasCpf:false` sem máscara = não tem);
+   * null = não dá para saber — nesse caso o campo de CPF só aparece depois do 400 CPF_REQUIRED.
+   */
+  cpfOnFile: boolean | null;
+}
 
 export function normalizeDoctorInfo(raw: unknown): KycDoctorInfo | null {
   const d = isObj(raw) && isObj(raw.doctor) ? raw.doctor : null;
   if (!d) return null;
   const name = str(d.name);
   const crm = formatCrm(str(d.crm), str(d.crmUf));
-  return name || crm ? { name, crm } : null;
+  const cpfOnFile = str(d.cpfMasked) ? true : d.hasCpf === true ? true : d.hasCpf === false ? false : null;
+  return name || crm ? { name, crm, cpfOnFile } : null;
+}
+
+/** O que falta no CPF digitado: menos de 11 números ('short') ou dígitos verificadores errados ('invalid'). */
+export function cpfProblem(value: string): 'short' | 'invalid' | null {
+  const digits = normalizeCpf(value);
+  if (digits.length < 11) return 'short';
+  return isValidCpf(digits) ? null : 'invalid';
 }
 
 /** "116739-SP" (chave numero-UF); completa com a UF quando só veio o número. */
@@ -342,7 +371,8 @@ export function safeVerifyUrl(u: unknown): string | null {
   return /^https?:\/\/[^\s]+$/i.test(t) ? t : null;
 }
 
-export type KycStartErrorCode = 'KYC_UNAVAILABLE' | 'CPF_REQUIRED' | 'KYC_ATTEMPT_LIMIT' | 'NETWORK' | 'UNKNOWN';
+export type KycStartErrorCode =
+  | 'KYC_UNAVAILABLE' | 'CPF_REQUIRED' | 'CPF_INVALID' | 'CPF_IN_USE' | 'KYC_ATTEMPT_LIMIT' | 'IN_REVIEW' | 'ALREADY_APPROVED' | 'NETWORK' | 'UNKNOWN';
 
 export interface KycStartError {
   code: KycStartErrorCode;
@@ -353,11 +383,17 @@ export interface KycStartError {
   supportOnly: boolean;
   /** O CTA fica desabilitado (limite de tentativas). */
   blocksStart: boolean;
+  /** Mostrar (ou manter) o campo de CPF — o erro é daquele campo. */
+  needsCpf: boolean;
 }
+
+/** O que o `start()` devolve à tela: abriu o UaiID, copiou o link, falhou (erro na tela) ou o estado mudou (releitura/saída). */
+export type StartResult = 'opened' | 'copied' | 'failed' | 'handled';
 
 export type StartOutcome =
   | { kind: 'ok'; verifyUrl: string }
-  | { kind: 'refresh' }
+  /** 409 ALREADY_APPROVED / IN_REVIEW: reler o estado; `notice` aparece só se a tela não mudar. */
+  | { kind: 'refresh'; notice: KycStartError }
   | { kind: 'blocked'; reason: string | null }
   | { kind: 'logout' }
   | { kind: 'error'; error: KycStartError };
@@ -374,8 +410,10 @@ export function humanBlockedReason(reason: string | null | undefined): string | 
   return r && /\s/.test(r) && r.length <= 240 ? r : null;
 }
 
+const mk = (code: KycStartErrorCode, message: string, o: Partial<Omit<KycStartError, 'code' | 'message'>> = {}): KycStartError =>
+  ({ code, message, retryAfterHours: null, supportOnly: false, blocksStart: false, needsCpf: false, ...o });
 const err = (code: KycStartErrorCode, message: string, o: Partial<Omit<KycStartError, 'code' | 'message'>> = {}): StartOutcome =>
-  ({ kind: 'error', error: { code, message, retryAfterHours: null, supportOnly: false, blocksStart: false, ...o } });
+  ({ kind: 'error', error: mk(code, message, o) });
 
 export function classifyStartResponse(status: number, body: unknown): StartOutcome {
   const b = isObj(body) ? body : {};
@@ -388,8 +426,12 @@ export function classifyStartResponse(status: number, body: unknown): StartOutco
   if (status === 401) return { kind: 'logout' };
   const blocked = parseBlocked(status, body);
   if (blocked) return { kind: 'blocked', reason: blocked.reason };
-  if (status === 409 && (code === 'ALREADY_APPROVED' || code === 'IN_REVIEW')) return { kind: 'refresh' };
-  if (status === 400 && code === 'CPF_REQUIRED') return err('CPF_REQUIRED', KYC_COPY.errors.cpfRequired, { supportOnly: true });
+  if (status === 409 && code === 'ALREADY_APPROVED') return { kind: 'refresh', notice: mk('ALREADY_APPROVED', KYC_COPY.errors.alreadyApproved) };
+  if (status === 409 && code === 'IN_REVIEW') return { kind: 'refresh', notice: mk('IN_REVIEW', KYC_COPY.errors.inReview) };
+  // CPF: o médico que entrou pelo convite não tem CPF no cadastro → o campo aparece na própria Intro e o POST leva `{ cpf }`
+  if (status === 400 && code === 'CPF_REQUIRED') return err('CPF_REQUIRED', KYC_COPY.errors.cpfRequired, { needsCpf: true });
+  if (status === 400 && code === 'CPF_INVALID') return err('CPF_INVALID', KYC_COPY.cpf.invalid, { needsCpf: true });
+  if (status === 409 && code === 'CPF_IN_USE') return err('CPF_IN_USE', KYC_COPY.cpf.inUse, { needsCpf: true, supportOnly: true });
   if (status === 429 && code === 'KYC_ATTEMPT_LIMIT') {
     const h = b.retryAfterHours;
     // Duas variantes: espera (recusa recente → horas) ou limite estourado (sem horas → só o suporte libera).
@@ -405,4 +447,4 @@ export function classifyStartResponse(status: number, body: unknown): StartOutco
 }
 
 /** Falha de rede no POST. */
-export const NETWORK_START_ERROR: KycStartError = { code: 'NETWORK', message: KYC_COPY.errors.network, retryAfterHours: null, supportOnly: false, blocksStart: false };
+export const NETWORK_START_ERROR: KycStartError = mk('NETWORK', KYC_COPY.errors.network);

@@ -32,11 +32,13 @@ const KycJourney = ({ kyc, onLogout }: { kyc: DoctorVerification; onLogout: () =
   const { view, snapshot, doctor } = kyc;
   const attempt = snapshot?.attempt ?? null;
   const start: KycStartControls = {
-    onStart: () => { void kyc.start('open'); },
-    onCopyLink: () => { void kyc.start('copy'); },
+    onStart: (cpf) => kyc.start('open', { cpf }),
+    onCopyLink: (cpf) => kyc.start('copy', { cpf }),
     starting: kyc.starting,
     error: kyc.startError,
     copied: kyc.copied,
+    needsCpf: kyc.needsCpf,
+    clearError: kyc.clearStartError,
   };
 
   let screen: ReactNode;
@@ -94,10 +96,12 @@ export const DoctorVerificationGate = ({ token, onLogout, children }: { token: s
           <LegacyVerifyBanner
             kind={banner}
             graceUntilMs={kyc.snapshot?.legacyGraceUntilMs ?? null}
-            onVerify={() => { void kyc.start('open'); }}
+            onVerify={(cpf) => kyc.start('open', { cpf })}
             onDismiss={() => setBannerDismissed(true)}
             busy={kyc.starting}
             error={kyc.startError}
+            needsCpf={kyc.needsCpf}
+            clearError={kyc.clearStartError}
           />
         ) : null}
         {children}

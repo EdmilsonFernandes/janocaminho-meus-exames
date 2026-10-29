@@ -32,7 +32,17 @@ const THEMES = FAST ? ['light'] : ['light', 'dark'];
 const TOKEN = `qa.doctor.token.${'x'.repeat(28)}`;
 const VERIFY_URL = 'https://verify.uaiid.test/v/qa-session-1';
 const EXPIRES = '2026-11-05T12:00:00.000Z';
-const DOCTOR = { id: 'doc_qa_1', name: 'Maria Souza', crm: '116739', crmUf: 'SP', specialty: 'Cardiologia', email: 'maria@qa.test', photoUrl: null };
+// o /me real manda a máscara do CPF e hasCpf:false (não seleciona cpfHash/cpfEncrypted) — a máscara é o sinal de "tem CPF"
+const DOCTOR = { id: 'doc_qa_1', name: 'Maria Souza', crm: '116739', crmUf: 'SP', specialty: 'Cardiologia', email: 'maria@qa.test', photoUrl: null, cpfMasked: '***.***.***-25', hasCpf: false };
+// quem entrou pelo convite não tem CPF no cadastro: sem máscara
+const INVITE_DOCTOR = { ...DOCTOR, cpfMasked: null, hasCpf: false };
+const INVITE_ME = { status: 200, body: { doctor: INVITE_DOCTOR } };
+const CPF_OK = '52998224725'; // 529.982.247-25 — dígitos verificadores válidos
+const CPF_OK_FMT = '529.982.247-25';
+const CPF_USED = '11144477735'; // 111.444.777-35 — válido; é o "já cadastrado em outra conta" dos cenários
+const CPF_BAD = '12345678900'; // dígitos verificadores errados
+const jsonBody = (req) => { try { return JSON.parse(req.postData() || '{}'); } catch { return null; } };
+const CREATED = { status: 201, body: { verifyUrl: VERIFY_URL, expiresAt: EXPIRES, status: 'in_progress' } };
 // o que o UaiID anexa à volta (id interno do médico incluso): NUNCA pode ser lido, exibido nem enviado a lugar nenhum
 const RETURN_QS = 'kyc=1&status=approved&verification_id=3f2a9c1e-0000-4000-8000-000000000001&external_reference=doc_qa_1';
 const DASH_MARK = 'Acesso médico · leitura';
@@ -90,7 +100,7 @@ async function mount(ctx, b) {
       'access-control-allow-headers': req.headers()['access-control-request-headers'] || 'authorization,content-type',
     };
     if (m === 'OPTIONS') return route.fulfill({ status: 204, headers: cors });
-    b.requests.push({ method: m, path: p, url: req.url() });
+    b.requests.push({ method: m, path: p, url: req.url(), body: m === 'POST' ? (req.postData() ?? null) : null });
     const send = (r) => route.fulfill({ status: r.status, headers: cors, contentType: 'application/json', body: JSON.stringify(r.body) });
 
     if (p === '/doctor/verification' && m === 'GET') {
@@ -100,7 +110,7 @@ async function mount(ctx, b) {
     }
     if (p === '/doctor/verification' && m === 'POST') {
       if (b.postAbort) return route.abort('failed');
-      return send(typeof b.post === 'function' ? b.post() : b.post);
+      return send(typeof b.post === 'function' ? b.post(req) : b.post);
     }
     if (p === '/doctor/me' && m === 'GET') return send(b.me);
     if (p === '/doctor/me/plan') return send({ status: 200, body: { isPremium: false } });
@@ -140,9 +150,10 @@ async function newCtx(browser, { w, h, theme, reducedMotion = false, clipboard =
 }
 
 function watch(page) {
-  const w = { pageErrors: [], consoleErrors: [], urls: [] };
+  const w = { pageErrors: [], consoleErrors: [], consoleAll: [], urls: [] };
   page.on('pageerror', (e) => w.pageErrors.push(String(e).slice(0, 240)));
   page.on('console', (msg) => {
+    w.consoleAll.push(msg.text());
     if (msg.type() !== 'error') return;
     const t = msg.text();
     if (/Failed to load resource/i.test(t)) return; // 4xx/5xx simulados de propósito
@@ -153,6 +164,16 @@ function watch(page) {
 }
 
 const bodyText = (page) => page.evaluate(() => document.body.textContent || '');
+
+/** O CPF só pode existir no CORPO do POST: nem em storage, nem em URL de request, nem na barra de endereço, nem em console. */
+async function assertCpfNeverLeaks(page, w, label) {
+  const stores = await page.evaluate(() => { try { return JSON.stringify({ l: { ...localStorage }, s: { ...sessionStorage } }); } catch { return ''; } });
+  const leak = (str) => [CPF_OK, CPF_OK_FMT, CPF_USED, '111.444.777-35'].some((c) => String(str).includes(c));
+  check(!leak(stores), `${label}: o CPF não está em localStorage nem sessionStorage`);
+  check(!w.urls.some(leak), `${label}: o CPF não aparece na URL de nenhum request`);
+  check(!w.consoleAll.some(leak), `${label}: o CPF não aparece no console`);
+  check(!leak(page.url()), `${label}: o CPF não aparece na barra de endereço`);
+}
 const lum = (rgb) => {
   const m = rgb.match(/\d+(\.\d+)?/g)?.map(Number) ?? [255, 255, 255];
   const [r, g, b] = m.slice(0, 3).map((v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; });
@@ -355,12 +376,18 @@ const STATIC = [
     check: async (page) => { check(!(await page.getByRole('button', { name: 'Validar minha identidade' }).isDisabled()), '503: CTA volta a ficar habilitado (dá para tentar de novo)'); },
   },
   {
-    id: 'intro-cpf',
+    id: 'intro-cpf-pedido-pelo-servidor',
+    // o /me traz a máscara (o front acha que tem CPF), mas o servidor responde 400 CPF_REQUIRED: o campo aparece DEPOIS do clique
     backend: () => makeBackend({ verification: V('pending'), post: { status: 400, body: { code: 'CPF_REQUIRED', error: 'Cadastre seu CPF no perfil antes de verificar a identidade.' } } }),
     texts: ['Validar minha identidade'],
-    act: async (page) => { await page.getByRole('button', { name: 'Validar minha identidade' }).click(); await waitText(page, 'Precisamos do seu CPF'); },
-    afterTexts: ['Precisamos do seu CPF para verificar. Fale com o suporte para atualizar seu cadastro.'],
-    once: true,
+    notTexts: ['Seu CPF'],
+    act: async (page) => { await page.getByRole('button', { name: 'Validar minha identidade' }).click(); await waitText(page, 'Seu CPF'); },
+    afterTexts: ['Precisamos do seu CPF para verificar.', 'Seu CPF', 'Usamos o CPF só para confirmar sua identidade com o documento'],
+    afterNot: ['Fale com o suporte para atualizar seu cadastro'],
+    check: async (page) => {
+      check((await page.locator('.MuiAlert-root').count()) === 0, 'sem aviso vermelho: é um pedido, não um erro');
+      check((await page.getByLabel('Seu CPF').count()) === 1, 'o campo de CPF apareceu na Intro');
+    },
   },
   {
     id: 'suspensa',
@@ -445,6 +472,97 @@ const STATIC = [
     backend: () => makeBackend({ getAbort: true }),
     texts: ['Não foi possível carregar', 'Sem conexão. Tente novamente.', 'Tentar de novo', 'Sair'],
     notTexts: [DASH_MARK, 'Vamos validar'],
+  },
+  {
+    id: 'intro-cpf-campo',
+    backend: () => makeBackend({ verification: V('pending'), me: INVITE_ME }),
+    texts: ['Seu CPF', 'Usamos o CPF só para confirmar sua identidade com o documento', 'Validar minha identidade'],
+    notTexts: [DASH_MARK, 'CPF inválido'],
+    primary: 1,
+    act: async (page) => { await page.getByLabel('Seu CPF').fill(CPF_OK); },
+    check: async (page, b) => {
+      const f = page.getByLabel('Seu CPF');
+      check((await f.inputValue()) === CPF_OK_FMT, `a máscara 000.000.000-00 formata o que o médico digita (${await f.inputValue()})`);
+      check((await f.getAttribute('inputmode')) === 'numeric', 'teclado numérico no celular (inputmode=numeric)');
+      check((await f.getAttribute('autocomplete')) === 'off', 'sem autopreenchimento/salvamento do navegador');
+      check((await f.getAttribute('aria-invalid')) === null, 'CPF válido: campo sem marca de erro');
+      check(b.count('POST', '/doctor/verification') === 0, 'só digitar não chama o servidor');
+      const box = await f.boundingBox();
+      check(!!box && box.height >= 48, `campo com alvo de toque >= 48 px (${Math.round(box?.height ?? 0)})`);
+      const fs = await f.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+      check(fs >= 16, `fonte do campo >= 16 px (o iOS não dá zoom ao focar): ${fs}`);
+    },
+  },
+  {
+    id: 'intro-cpf-invalido',
+    backend: () => makeBackend({ verification: V('pending'), me: INVITE_ME }),
+    texts: ['Seu CPF'],
+    act: async (page) => { await page.getByLabel('Seu CPF').fill(CPF_BAD); },
+    afterTexts: ['CPF inválido. Confira os números e tente de novo.'],
+    afterNot: ['Usamos o CPF só para confirmar'],
+    check: async (page, b) => {
+      check((await page.getByLabel('Seu CPF').getAttribute('aria-invalid')) === 'true', 'campo marcado como inválido (aria-invalid=true)');
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await sleep(500);
+      check(b.count('POST', '/doctor/verification') === 0, 'CPF inválido: o envio é barrado no próprio campo (nenhum POST)');
+    },
+  },
+  {
+    id: 'intro-cpf-curto',
+    backend: () => makeBackend({ verification: V('pending'), me: INVITE_ME }),
+    texts: ['Seu CPF'],
+    act: async (page) => {
+      await page.getByLabel('Seu CPF').fill('123');
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await waitText(page, 'Informe os 11 números do seu CPF.');
+    },
+    afterTexts: ['Informe os 11 números do seu CPF.'],
+    check: async (page, b) => {
+      check((await page.evaluate(() => document.activeElement?.id)) === 'kyc-cpf', 'o foco volta para o campo de CPF');
+      check(b.count('POST', '/doctor/verification') === 0, 'CPF incompleto: nenhum POST');
+    },
+  },
+  {
+    id: 'intro-cpf-em-uso',
+    backend: () => makeBackend({
+      verification: V('pending'),
+      me: INVITE_ME,
+      post: (req) => (jsonBody(req)?.cpf === CPF_USED ? { status: 409, body: { code: 'CPF_IN_USE', error: 'CPF já cadastrado.' } } : CREATED),
+    }),
+    texts: ['Seu CPF'],
+    act: async (page) => {
+      await page.getByLabel('Seu CPF').fill(CPF_USED);
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await waitText(page, 'Este CPF já está cadastrado em outra conta. Fale com o suporte.');
+    },
+    afterTexts: ['Este CPF já está cadastrado em outra conta. Fale com o suporte.', 'Falar com o suporte'],
+    check: async (page, b) => {
+      check((await page.getByLabel('Seu CPF').getAttribute('aria-invalid')) === 'true', 'campo marcado como inválido');
+      check((await page.locator('form a[href="mailto:contato@janocaminho.com.br"]').count()) === 1, 'botão do suporte (mailto) junto do campo');
+      check(!(await page.getByRole('button', { name: 'Validar minha identidade' }).isDisabled()), 'dá para corrigir o número e tentar de novo (CTA habilitado)');
+      const posts = b.requests.filter((r) => r.method === 'POST' && r.path === '/doctor/verification');
+      check(posts.length === 1 && posts[0].body === JSON.stringify({ cpf: CPF_USED }), `o POST levou só os dígitos: ${posts[0]?.body}`);
+      check((await page.locator('.MuiAlert-root').count()) === 0, 'o erro é do campo: não aparece também num aviso solto');
+    },
+  },
+  {
+    id: 'intro-cpf-invalido-servidor',
+    backend: () => makeBackend({
+      verification: V('pending'),
+      me: INVITE_ME,
+      post: () => ({ status: 400, body: { code: 'CPF_INVALID', error: 'CPF inválido.' } }),
+    }),
+    texts: ['Seu CPF'],
+    act: async (page) => {
+      await page.getByLabel('Seu CPF').fill(CPF_OK);
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await waitText(page, 'CPF inválido. Confira os números e tente de novo.');
+    },
+    afterTexts: ['CPF inválido. Confira os números e tente de novo.'],
+    check: async (page, b) => {
+      check((await page.getByLabel('Seu CPF').getAttribute('aria-invalid')) === 'true', 'campo marcado como inválido');
+      check(b.count('POST', '/doctor/verification') === 1, 'o servidor foi consultado uma vez (o CPF passou na checagem local)');
+    },
   },
 ];
 
@@ -840,6 +958,122 @@ const DYNAMIC = [
       await sleep(400);
       const anim = await page.evaluate(() => [...document.querySelectorAll('main *')].map((el) => getComputedStyle(el).animationName).filter((n) => n && n !== 'none'));
       check(anim.length > 0, 'sem a preferência, o mascote pulsa (controle do teste anterior)');
+      await ctx.close();
+    },
+  },
+  {
+    id: 'cpf-convite-envia-so-digitos-e-nao-vaza',
+    run: async (browser) => {
+      const ctx = await newCtx(browser, { w: 375, h: 800, theme: 'light' });
+      const b = makeBackend({ verification: V('pending'), me: INVITE_ME });
+      await mount(ctx, b);
+      const page = await ctx.newPage();
+      const w = watch(page);
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      check(await waitText(page, 'Seu CPF'), 'médico do convite (sem CPF no cadastro): o campo já aparece na Intro, antes do 1º clique');
+      const f = page.getByLabel('Seu CPF');
+      await f.click();
+      await page.keyboard.type(CPF_OK, { delay: 15 });
+      check((await f.inputValue()) === CPF_OK_FMT, `digitando, a máscara vai formatando (${await f.inputValue()})`);
+      await page.keyboard.type('99');
+      check((await f.inputValue()) === CPF_OK_FMT, 'não aceita mais que 11 números');
+      await page.keyboard.press('Enter'); // é um formulário: Enter envia
+      await page.waitForURL(VERIFY_URL, { timeout: 15_000 }).catch(() => {});
+      check(page.url() === VERIFY_URL, 'Enter envia e abre o UaiID na mesma aba');
+      const posts = b.requests.filter((r) => r.method === 'POST' && r.path === '/doctor/verification');
+      check(posts.length === 1 && posts[0].body === JSON.stringify({ cpf: CPF_OK }), `o POST leva { cpf } só em dígitos (${posts[0]?.body})`);
+      // o médico volta ao app: nada do CPF ficou por aí
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      await waitText(page, 'Vamos validar sua identidade');
+      await assertCpfNeverLeaks(page, w, 'depois do envio');
+      check((await page.getByLabel('Seu CPF').inputValue()) === '', 'ao voltar, o campo está vazio (o CPF não fica na tela)');
+      check(w.pageErrors.length === 0, 'sem erro de página');
+      await ctx.close();
+    },
+  },
+  {
+    id: 'cpf-reativo-400-depois-do-clique',
+    run: async (browser) => {
+      // o /me não deixa claro (tem máscara) mas o servidor pede o CPF: o campo aparece depois do 400
+      const ctx = await newCtx(browser, { w: 375, h: 800, theme: 'light' });
+      const b = makeBackend({
+        verification: V('pending'),
+        post: (req) => (jsonBody(req)?.cpf ? CREATED : { status: 400, body: { code: 'CPF_REQUIRED', error: 'Cadastre seu CPF no perfil antes de verificar a identidade.' } }),
+      });
+      await mount(ctx, b);
+      const page = await ctx.newPage();
+      const w = watch(page);
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      await waitText(page, 'Validar minha identidade');
+      check(!(await bodyText(page)).includes('Seu CPF'), 'com CPF no cadastro o campo NÃO aparece');
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      check(await waitText(page, 'Seu CPF'), '400 CPF_REQUIRED → o campo aparece na própria Intro');
+      check((await bodyText(page)).includes('Precisamos do seu CPF para verificar.'), 'com o pedido "Precisamos do seu CPF para verificar."');
+      check(!(await bodyText(page)).includes('Fale com o suporte para atualizar seu cadastro'), 'sem mandar o médico para o suporte');
+      check((await page.locator('.MuiAlert-root').count()) === 0, 'sem aviso vermelho: é um pedido, não um erro');
+      await page.getByLabel('Seu CPF').fill(CPF_OK);
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await page.waitForURL(VERIFY_URL, { timeout: 15_000 }).catch(() => {});
+      check(page.url() === VERIFY_URL, 'com o CPF, abre o UaiID');
+      const bodies = b.requests.filter((r) => r.method === 'POST' && r.path === '/doctor/verification').map((r) => r.body);
+      check(bodies.length === 2 && bodies[0] === '{}' && bodies[1] === JSON.stringify({ cpf: CPF_OK }), `1º POST sem CPF, 2º com { cpf } em dígitos (${JSON.stringify(bodies)})`);
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      await waitText(page, 'Validar minha identidade');
+      await assertCpfNeverLeaks(page, w, 'fluxo reativo');
+      await ctx.close();
+    },
+  },
+  {
+    id: 'cpf-erro-do-servidor-some-ao-editar',
+    run: async (browser) => {
+      const ctx = await newCtx(browser, { w: 375, h: 800, theme: 'light' });
+      const b = makeBackend({
+        verification: V('pending'),
+        me: INVITE_ME,
+        post: (req) => (jsonBody(req)?.cpf === CPF_USED ? { status: 409, body: { code: 'CPF_IN_USE' } } : CREATED),
+      });
+      await mount(ctx, b);
+      const page = await ctx.newPage();
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      await waitText(page, 'Seu CPF');
+      await page.getByLabel('Seu CPF').fill(CPF_USED);
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      check(await waitText(page, 'Este CPF já está cadastrado em outra conta. Fale com o suporte.'), '409 CPF_IN_USE → mensagem embaixo do campo');
+      await page.getByLabel('Seu CPF').fill(CPF_OK);
+      check(await waitGone(page, 'Este CPF já está cadastrado em outra conta'), 'editar o número tira o erro velho (não fica "mentindo")');
+      check((await bodyText(page)).includes('Usamos o CPF só para confirmar sua identidade com o documento'), 'e volta o texto de apoio');
+      await page.getByRole('button', { name: 'Validar minha identidade' }).click();
+      await page.waitForURL(VERIFY_URL, { timeout: 15_000 }).catch(() => {});
+      check(page.url() === VERIFY_URL, 'com o CPF corrigido, abre o UaiID');
+      await ctx.close();
+    },
+  },
+  {
+    id: 'cpf-banner-do-medico-antigo',
+    run: async (browser) => {
+      // médico antigo (legado) que entrou pelo convite: o "Verificar agora" também pede o CPF, no próprio banner
+      const ctx = await newCtx(browser, { w: 375, h: 800, theme: 'light' });
+      const b = makeBackend({
+        verification: V('legacy', null, { legacyGraceUntilMs: new Date(2026, 10, 28, 12).getTime() }),
+        post: (req) => (jsonBody(req)?.cpf ? { status: 201, body: { verifyUrl: VERIFY_URL, expiresAt: EXPIRES, status: 'legacy' } } : { status: 400, body: { code: 'CPF_REQUIRED' } }),
+      });
+      await mount(ctx, b);
+      const page = await ctx.newPage();
+      const w = watch(page);
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      check(await waitText(page, DASH_MARK, 25_000), 'dashboard montou');
+      await page.getByRole('button', { name: 'Verificar agora' }).click();
+      check(await waitText(page, 'Seu CPF'), '400 CPF_REQUIRED → o campo aparece dentro do banner');
+      check((await page.locator('[data-kyc="banner"] #kyc-cpf-banner').count()) === 1, 'e é o campo do banner');
+      await page.getByLabel('Seu CPF').fill(CPF_OK);
+      await page.getByRole('button', { name: 'Verificar agora' }).click();
+      await page.waitForURL(VERIFY_URL, { timeout: 15_000 }).catch(() => {});
+      check(page.url() === VERIFY_URL, 'com o CPF, abre o UaiID');
+      const bodies = b.requests.filter((r) => r.method === 'POST' && r.path === '/doctor/verification').map((r) => r.body);
+      check(bodies.length === 2 && bodies[1] === JSON.stringify({ cpf: CPF_OK }), `2º POST leva { cpf } (${JSON.stringify(bodies)})`);
+      await page.goto(`${BASE}/#/doctor`, { waitUntil: 'domcontentloaded' });
+      await waitText(page, DASH_MARK, 25_000);
+      await assertCpfNeverLeaks(page, w, 'banner');
       await ctx.close();
     },
   },

@@ -8,7 +8,7 @@
  * primária por tela, mobile-first (375 px), alvos >= 48 px, claro e escuro,
  * `prefers-reduced-motion` respeitado e nenhum reload (o APK crasha) — "atualizar" é reler o GET.
  */
-import { useEffect, useState, type FocusEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FocusEvent, type FormEvent, type ReactNode } from 'react';
 import { Alert, Box, Button, CircularProgress, GlobalStyles, IconButton, Typography } from '@mui/material';
 import { keyframes, useTheme } from '@mui/material/styles';
 // Ícones por caminho direto: o barrel '@phosphor-icons/react' tem ~3.000 exports e leva ~90 s só para importar
@@ -20,6 +20,7 @@ import { CheckCircle } from '@phosphor-icons/react/dist/csr/CheckCircle';
 import { Copy } from '@phosphor-icons/react/dist/csr/Copy';
 import { EnvelopeSimple } from '@phosphor-icons/react/dist/csr/EnvelopeSimple';
 import { Hourglass } from '@phosphor-icons/react/dist/csr/Hourglass';
+import { Info } from '@phosphor-icons/react/dist/csr/Info';
 import { IdentificationCard } from '@phosphor-icons/react/dist/csr/IdentificationCard';
 import { Lifebuoy } from '@phosphor-icons/react/dist/csr/Lifebuoy';
 import { Lightbulb } from '@phosphor-icons/react/dist/csr/Lightbulb';
@@ -36,9 +37,10 @@ import { DrExame } from '../../../DrExame';
 import { MascotPulse } from '../../../MascotPulse';
 import { COPPER, RADIUS } from '../../../../tokens';
 import { copperText, dangerText, tealText } from '../../../../theme';
+import { formatCpf, normalizeCpf } from '../../../../utils/cpf';
 import {
-  CHECKING_LINE_MS, KYC_COPY, formatGraceDate, humanBlockedReason, initials,
-  type KycAttempt, type KycDoctorInfo, type KycStartError, type LegacyBannerKind,
+  CHECKING_LINE_MS, KYC_COPY, cpfProblem, formatGraceDate, humanBlockedReason, initials,
+  type KycAttempt, type KycDoctorInfo, type KycStartError, type LegacyBannerKind, type StartResult,
 } from './kycState';
 
 /* ── base visual ─────────────────────────────────────────────────────────────────── */
@@ -92,11 +94,16 @@ const useTone = () => {
 
 /** Controles do início da verificação (CTA + "copiar link") compartilhados por Intro/Continuar/Recusado. */
 export interface KycStartControls {
-  onStart: () => void;
-  onCopyLink: () => void;
+  /** `cpf` (só dígitos) vai no POST quando o campo de CPF está na tela. */
+  onStart: (cpf?: string) => Promise<StartResult>;
+  onCopyLink: (cpf?: string) => Promise<StartResult>;
   starting: boolean;
   error: KycStartError | null;
   copied: { url: string; ok: boolean } | null;
+  /** O cadastro não tem CPF: a Intro mostra o campo. */
+  needsCpf: boolean;
+  /** Some com o aviso do último POST (o médico editou o CPF). */
+  clearError: () => void;
 }
 
 const ctaSx = {
@@ -232,10 +239,12 @@ const Lead = ({ children }: { children: ReactNode }) => (
 
 /* ── início da verificação (CTA + copiar link) ───────────────────────────────────── */
 
-const StartAlert = ({ error }: { error: KycStartError }) => (
+const StartAlert = ({ error }: { error: KycStartError }) => {
+  const info = error.code === 'IN_REVIEW' || error.code === 'ALREADY_APPROVED';
+  return (
   <Alert
-    severity={error.code === 'KYC_ATTEMPT_LIMIT' ? 'warning' : 'error'}
-    icon={<WarningCircle size={20} weight="fill" aria-hidden />}
+    severity={error.code === 'KYC_ATTEMPT_LIMIT' ? 'warning' : info ? 'info' : 'error'}
+    icon={info ? <Info size={20} weight="fill" aria-hidden /> : <WarningCircle size={20} weight="fill" aria-hidden />}
     sx={{ mb: 1.75, borderRadius: RADIUS.md, alignItems: 'flex-start', '& .MuiAlert-message': { fontSize: 14, lineHeight: 1.5, width: '100%' } }}
   >
     {error.message}
@@ -245,7 +254,70 @@ const StartAlert = ({ error }: { error: KycStartError }) => (
       </Box>
     )}
   </Alert>
-);
+  );
+};
+
+/* ── CPF (o médico que entrou pelo convite não tem CPF no cadastro) ───────────────── */
+
+/** Estado do campo de CPF — só em memória, no componente: nunca vai para storage, URL nem log. */
+const useCpfInput = (active: boolean, serverError: KycStartError | null, clearError: () => void) => {
+  const [value, setValue] = useState('');
+  const [touched, setTouched] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const problem = active ? cpfProblem(value) : null;
+  const serverCpfError = active && serverError && (serverError.code === 'CPF_INVALID' || serverError.code === 'CPF_IN_USE') ? serverError : null;
+  // "CPF inválido" assim que completa os 11 números; "faltam números" só depois de tentar enviar
+  const localError = problem === 'invalid' ? KYC_COPY.cpf.invalid : problem === 'short' && touched ? KYC_COPY.cpf.short : null;
+  return {
+    value,
+    error: serverCpfError ? serverCpfError.message : localError,
+    serverCpfError,
+    inputRef,
+    onChange: (v: string) => { setValue(formatCpf(v)); if (serverCpfError) clearError(); },
+    /** Valida antes de enviar: devolve os dígitos, ou foca o campo e barra o envio. */
+    prepare: (): { proceed: boolean; cpf?: string } => {
+      if (!active) return { proceed: true };
+      setTouched(true);
+      if (problem) { inputRef.current?.focus(); return { proceed: false }; }
+      return { proceed: true, cpf: normalizeCpf(value) };
+    },
+    reset: () => { setValue(''); setTouched(false); },
+  };
+};
+
+const CpfField = ({ id, input, lead, disabled, compact = false }: {
+  id: string; input: ReturnType<typeof useCpfInput>; lead?: string | null; disabled: boolean; compact?: boolean;
+}) => {
+  const k = useTone();
+  const helpId = `${id}-help`;
+  const { error } = input;
+  return (
+    <Box sx={{ mb: compact ? 1 : 1.75, maxWidth: compact ? 360 : 'none', textAlign: 'left' }}>
+      {lead && <Typography sx={{ mb: 0.75, fontSize: 13.5, lineHeight: 1.45, color: 'text.primary' }}>{lead}</Typography>}
+      <Box component="label" htmlFor={id} sx={{ display: 'block', mb: 0.75, fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{KYC_COPY.cpf.label}</Box>
+      <Box
+        component="input" ref={input.inputRef} id={id} type="text" inputMode="numeric" autoComplete="off" autoCorrect="off" spellCheck={false}
+        maxLength={14} placeholder={KYC_COPY.cpf.placeholder} value={input.value} disabled={disabled}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => input.onChange(e.target.value)}
+        aria-invalid={error ? true : undefined} aria-describedby={helpId}
+        sx={{
+          width: '100%', boxSizing: 'border-box', minHeight: 52, px: 1.75, borderRadius: RADIUS.button,
+          border: '1px solid', borderColor: error ? k.danger : k.tealLine, bgcolor: 'background.paper', color: 'text.primary',
+          fontFamily: 'inherit', fontSize: 17, fontWeight: 600, letterSpacing: '.05em', outline: 'none',
+          '&::placeholder': { color: 'text.disabled', fontWeight: 500, letterSpacing: '.02em' },
+          '&:focus': { borderColor: error ? k.danger : k.teal, boxShadow: `0 0 0 3px ${error ? k.dangerWash : k.tealWash}` },
+          '&:disabled': { opacity: 0.6 },
+        }}
+      />
+      <Typography id={helpId} role={error ? 'alert' : undefined} sx={{ mt: 0.75, fontSize: 13, lineHeight: 1.45, color: error ? k.danger : 'text.secondary' }}>
+        {error ?? KYC_COPY.cpf.helper}
+      </Typography>
+      {input.serverCpfError?.supportOnly && (
+        <Button variant="outlined" color="inherit" size="small" href={KYC_COPY.supportMailto} startIcon={<EnvelopeSimple size={16} aria-hidden />} sx={{ mt: 1, minHeight: 48, borderRadius: RADIUS.button, fontWeight: 700, textTransform: 'none' }}>{KYC_COPY.common.support}</Button>
+      )}
+    </Box>
+  );
+};
 
 const CopiedNote = ({ copied }: { copied: { url: string; ok: boolean } }) => {
   const k = useTone();
@@ -269,29 +341,46 @@ const CopiedNote = ({ copied }: { copied: { url: string; ok: boolean } }) => {
   );
 };
 
-const StartActions = ({ cta, start, copyRow = true, panel = true }: {
+const StartActions = ({ cta, start, copyRow = true, panel = true, cpfField = false }: {
   cta: string; start: KycStartControls; copyRow?: boolean;
   /** Painel fixo no rodapé da tela (telas longas, como a Intro). Nas curtas é só um bloco no fim do card. */
   panel?: boolean;
+  /** A tela pode pedir o CPF (só a Intro): o campo aparece quando o cadastro não tem CPF. */
+  cpfField?: boolean;
 }) => {
   const k = useTone();
   const { error, copied } = start;
   const blocked = !!error?.blocksStart;
+  const cpfShown = cpfField && start.needsCpf;
+  const cpf = useCpfInput(cpfShown, error, start.clearError);
+  const fieldHandled = cpfShown && !!error && error.needsCpf; // o erro é do campo de CPF: aparece embaixo dele, não no aviso
+  const run = async (kind: 'open' | 'copy') => {
+    const prep = cpf.prepare();
+    if (!prep.proceed) return;
+    const r = await (kind === 'open' ? start.onStart(prep.cpf) : start.onCopyLink(prep.cpf));
+    if (r === 'opened' || r === 'copied') cpf.reset(); // o CPF não fica na tela nem na memória depois de enviado
+  };
   return (
-    <Box data-kyc={panel ? 'actions' : undefined} sx={{
-      mt: 3,
-      // Painel de ação: acompanha a rolagem e fica colado no rodapé da tela (notebook de 700 px de altura e celular),
-      // então a ação primária nunca cai abaixo da dobra. No fim do card ele só assenta no lugar.
-      ...(panel ? {
-        position: 'sticky', bottom: 'calc(env(safe-area-inset-bottom) + 12px)', zIndex: 2,
-        mx: -1.5, p: 1.5, borderRadius: RADIUS.card,
-        bgcolor: 'background.paper', border: `1px solid ${k.tealLine}`, boxShadow: k.panelShadow,
-      } as const : {}),
-    }}>
-      {error && <StartAlert error={error} />}
+    <Box
+      component="form" noValidate
+      onSubmit={(e: FormEvent<HTMLFormElement>) => { e.preventDefault(); void run('open'); }}
+      data-kyc={panel ? 'actions' : undefined}
+      sx={{
+        mt: 3,
+        // Painel de ação: acompanha a rolagem e fica colado no rodapé da tela (notebook de 700 px de altura e celular),
+        // então a ação primária nunca cai abaixo da dobra. No fim do card ele só assenta no lugar.
+        ...(panel ? {
+          position: 'sticky', bottom: 'calc(env(safe-area-inset-bottom) + 12px)', zIndex: 2,
+          mx: -1.5, p: 1.5, borderRadius: RADIUS.card,
+          bgcolor: 'background.paper', border: `1px solid ${k.tealLine}`, boxShadow: k.panelShadow,
+        } as const : {}),
+      }}
+    >
+      {error && !fieldHandled && <StartAlert error={error} />}
+      {cpfShown && <CpfField id="kyc-cpf" input={cpf} lead={error?.code === 'CPF_REQUIRED' ? error.message : null} disabled={start.starting} />}
       <Button
-        variant="contained" color="primary" size="large" fullWidth
-        onClick={start.onStart} disabled={start.starting || blocked} aria-busy={start.starting}
+        type="submit" variant="contained" color="primary" size="large" fullWidth
+        disabled={start.starting || blocked} aria-busy={start.starting}
         startIcon={start.starting ? <Spinner /> : undefined}
         endIcon={start.starting ? undefined : <ArrowRight size={18} weight="bold" aria-hidden />}
         sx={{ ...ctaSx, '&.Mui-disabled': { background: k.dark ? '#243030' : '#e5ecec', color: k.dark ? '#6b7c80' : '#94a3a8', boxShadow: 'none' } }}
@@ -302,7 +391,7 @@ const StartActions = ({ cta, start, copyRow = true, panel = true }: {
         <Box sx={{ mt: 1.25 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', columnGap: 0.5 }}>
             <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary' }}>{KYC_COPY.intro.phonePrompt}</Typography>
-            <Button variant="text" onClick={start.onCopyLink} disabled={start.starting || blocked} startIcon={<Copy size={18} weight="bold" aria-hidden />} sx={{ minHeight: 48, px: 1.25, color: k.teal, fontWeight: 700, fontSize: 14.5, textTransform: 'none' }}>{KYC_COPY.intro.copyLink}</Button>
+            <Button type="button" variant="text" onClick={() => { void run('copy'); }} disabled={start.starting || blocked} startIcon={<Copy size={18} weight="bold" aria-hidden />} sx={{ minHeight: 48, px: 1.25, color: k.teal, fontWeight: 700, fontSize: 14.5, textTransform: 'none' }}>{KYC_COPY.intro.copyLink}</Button>
           </Box>
           {copied && <CopiedNote copied={copied} />}
         </Box>
@@ -367,7 +456,7 @@ export const KycIntro = ({ doctor, onLogout, start, expired = false }: {
     </Center>
     <NeedsList />
     <PrivacyCard />
-    <StartActions cta={KYC_COPY.intro.cta} start={start} />
+    <StartActions cta={KYC_COPY.intro.cta} start={start} cpfField />
   </Shell>
 );
 
@@ -669,11 +758,22 @@ export const KycLiveRegion = ({ text }: { text: string }) => (
 
 /* ── banner do médico antigo (legacy) ────────────────────────────────────────────── */
 
-export const LegacyVerifyBanner = ({ kind, graceUntilMs, onVerify, onDismiss, busy, error }: {
-  kind: LegacyBannerKind; graceUntilMs: number | null; onVerify: () => void; onDismiss: () => void; busy: boolean; error: KycStartError | null;
+export const LegacyVerifyBanner = ({ kind, graceUntilMs, onVerify, onDismiss, busy, error, needsCpf = false, clearError = () => undefined }: {
+  kind: LegacyBannerKind; graceUntilMs: number | null; onVerify: (cpf?: string) => Promise<StartResult>; onDismiss: () => void; busy: boolean; error: KycStartError | null;
+  /** O cadastro não tem CPF (o POST respondeu CPF_REQUIRED): o campo aparece no próprio banner. */
+  needsCpf?: boolean; clearError?: () => void;
 }) => {
   const k = useTone();
   const review = kind === 'review';
+  const cpfShown = !review && needsCpf;
+  const cpf = useCpfInput(cpfShown, error, clearError);
+  const fieldHandled = cpfShown && !!error && error.needsCpf;
+  const verify = async () => {
+    const prep = cpf.prepare();
+    if (!prep.proceed) return;
+    const r = await onVerify(prep.cpf);
+    if (r === 'opened') cpf.reset();
+  };
   const title = review
     ? KYC_COPY.banner.reviewTitle
     : `${KYC_COPY.banner.title}${graceUntilMs ? KYC_COPY.banner.until(formatGraceDate(graceUntilMs)) : ''}`;
@@ -689,11 +789,16 @@ export const LegacyVerifyBanner = ({ kind, graceUntilMs, onVerify, onDismiss, bu
         <Box sx={{ minWidth: 0 }}>
           <Typography sx={{ fontSize: 14.5, fontWeight: 700, lineHeight: 1.3, color: 'text.primary' }}>{title}</Typography>
           <Typography sx={{ mt: 0.25, fontSize: 13.5, lineHeight: 1.45, color: 'text.secondary' }}>{review ? KYC_COPY.banner.reviewBody : KYC_COPY.banner.body}</Typography>
-          {error && <Typography role="alert" sx={{ mt: 0.5, fontSize: 13, lineHeight: 1.4, color: k.danger }}>{error.message}</Typography>}
+          {error && !fieldHandled && <Typography role="alert" sx={{ mt: 0.5, fontSize: 13, lineHeight: 1.4, color: k.danger }}>{error.message}</Typography>}
+          {cpfShown && (
+            <Box sx={{ mt: 1.25 }}>
+              <CpfField id="kyc-cpf-banner" input={cpf} lead={error?.code === 'CPF_REQUIRED' ? error.message : null} disabled={busy} compact />
+            </Box>
+          )}
         </Box>
         {!review && (
           <Button
-            variant="contained" color="primary" onClick={onVerify} disabled={busy || !!error?.blocksStart} aria-busy={busy}
+            variant="contained" color="primary" onClick={() => { void verify(); }} disabled={busy || !!error?.blocksStart} aria-busy={busy}
             startIcon={busy ? <Spinner size={16} /> : undefined}
             sx={{ minHeight: 48, borderRadius: RADIUS.button, textTransform: 'none', whiteSpace: 'nowrap', gridColumn: { xs: '1 / -1', md: 3 }, gridRow: { xs: 2, md: 1 } }}
           >
