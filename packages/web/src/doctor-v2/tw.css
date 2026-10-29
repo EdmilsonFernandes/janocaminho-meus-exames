@@ -54,6 +54,8 @@
   --input: #d8ece9;
   --ring: #178f89;
   --radius: 0.75rem;
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 /* Dark — mesmo comportamento do app MUI: superfícies escuras, marca constante.
@@ -84,6 +86,8 @@
   --border: #2a3636;
   --input: #2a3636;
   --ring: #5fc9c3;
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
 }
 
 /* Fontes da marca (globais do app — Poppins títulos / Inter corpo) */
@@ -136,6 +140,11 @@
    definidas em `.dx-island` (marca por modo claro/escuro), o @theme só expõe
    p/ as utilities do Tailwind. */
 @theme inline {
+  --color-copper-300: #e8cba8;
+  --color-copper-400: #e0bc97;
+  --color-copper-500: #d4a574;
+  --color-copper-600: #b88a54;
+  --color-copper-700: #9a7042;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
