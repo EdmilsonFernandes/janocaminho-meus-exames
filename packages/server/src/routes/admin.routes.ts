@@ -1159,19 +1159,29 @@ router.get('/doctors/verification-queue', async (_req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Decisão humana idempotente e serializada por médico (advisory lock — padrão doctor.routes:1352):
+// duplo clique/vários admins concorrentes → um aplica, o outro vê o estado novo e vem `unchanged`.
+// Aprovar só vale a partir da fila (needs_admin); recusar vale de qualquer estado (revoga approved).
 router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res, next) => {
   try {
     const id = String(req.params.id);
-    const doc = await prisma.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
-    if (!doc) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     const note = req.body?.note ? String(req.body.note).slice(0, 500) : null;
-    const latest = await prisma.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
-    await prisma.$transaction([
-      prisma.doctor.update({ where: { id }, data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! } }),
-      ...(latest ? [prisma.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } })] : []),
-    ]);
-    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: doc.verificationStatus }, after: { status: 'approved', crm: doc.crm, note } });
-    void notifyDoctorKyc(doc, 'approved'); // e-mail premium "Sua conta foi aprovada"
+    const out = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-decide:' + id}))`;
+      const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
+      if (!doc) return { notFound: true as const };
+      if (doc.verificationStatus === 'approved') return { unchanged: true as const };
+      if (doc.verificationStatus !== 'needs_admin') return { invalidState: doc.verificationStatus };
+      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+      await tx.doctor.update({ where: { id }, data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! } });
+      if (latest) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } });
+      return { doc };
+    });
+    if ('notFound' in out) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    if ('invalidState' in out) { res.status(409).json({ code: 'INVALID_STATE', status: out.invalidState, error: 'Só dá para aprovar quem está em análise na fila do Dr. Exame.' }); return; }
+    if ('unchanged' in out) { res.json({ ok: true, status: 'approved', unchanged: true }); return; }
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: out.doc.verificationStatus }, after: { status: 'approved', crm: out.doc.crm, note } });
+    void notifyDoctorKyc(out.doc, 'approved'); // e-mail premium "Sua conta foi aprovada"
     res.json({ ok: true, status: 'approved' });
   } catch (e) { next(e); }
 });
@@ -1181,15 +1191,20 @@ router.post('/doctors/:id/verification/reject', async (req: AuthedRequest, res, 
     const id = String(req.params.id);
     const reason = String(req.body?.reason ?? '').trim().slice(0, 500);
     if (!reason) { res.status(400).json({ code: 'REASON_REQUIRED', error: 'Informe o motivo.' }); return; }
-    const doc = await prisma.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
-    if (!doc) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
-    const latest = await prisma.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
-    await prisma.$transaction([
-      prisma.doctor.update({ where: { id }, data: { verificationStatus: 'rejected', verifiedAt: null, verifiedBy: null } }),
-      ...(latest ? [prisma.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'rejected', decidedBy: req.userId!, reasonCode: 'admin_rejected' } })] : []),
-    ]);
-    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: doc.verificationStatus }, after: { status: 'rejected', crm: doc.crm, reason } });
-    void notifyDoctorKyc(doc, 'rejected', 'admin_rejected', reason); // o motivo escrito pelo dono vai no e-mail do médico (dono, 28/10)
+    const out = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-decide:' + id}))`;
+      const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
+      if (!doc) return { notFound: true as const };
+      if (doc.verificationStatus === 'rejected') return { unchanged: true as const }; // idempotente: 1º motivo é o que vale
+      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+      await tx.doctor.update({ where: { id }, data: { verificationStatus: 'rejected', verifiedAt: null, verifiedBy: null } });
+      if (latest) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'rejected', decidedBy: req.userId!, reasonCode: 'admin_rejected' } });
+      return { doc };
+    });
+    if ('notFound' in out) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    if ('unchanged' in out) { res.json({ ok: true, status: 'rejected', unchanged: true }); return; }
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: out.doc.verificationStatus }, after: { status: 'rejected', crm: out.doc.crm, reason } });
+    void notifyDoctorKyc(out.doc, 'rejected', 'admin_rejected', reason); // o motivo escrito pelo dono vai no e-mail do médico (dono, 28/10)
     res.json({ ok: true, status: 'rejected' });
   } catch (e) { next(e); }
 });
