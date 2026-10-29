@@ -115,6 +115,9 @@ export const TrendsPage = () => {
   //    agora deriva do VALOR ATUAL (último ponto × faixa unificada da série).
   const [abnNames, setAbnNames] = useState<string[]>([]);
   const [toneByName, setToneByName] = useState<Record<string, 'atencao' | 'critico'>>({});
+  // Último valor de cada analito (do MESMO /items/evolution — zero fetch extra): chips
+  // viram mini-KPIs "Glicose 94" (padrão chart-6), leitura imediata sem clicar.
+  const [lastByName, setLastByName] = useState<Record<string, number | undefined>>({});
   useEffect(() => {
     if (!pid) { setAbnNames([]); setToneByName({}); return; }
     fetch(`${API_URL}/items/evolution?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -131,8 +134,14 @@ export const TrendsPage = () => {
         }
         setAbnNames(abn);
         setToneByName(tones);
+        const lasts: Record<string, number | undefined> = {};
+        for (const it of items) {
+          const lp = it.points[it.points.length - 1];
+          lasts[it.nameCanonical] = typeof lp?.value === 'number' ? lp.value : undefined;
+        }
+        setLastByName(lasts);
       })
-      .catch(() => { setAbnNames([]); setToneByName({}); });
+      .catch(() => { setAbnNames([]); setToneByName({}); setLastByName({}); });
   }, [pid]);
   useEffect(() => {
     if (sel || names.length === 0) return;
@@ -180,12 +189,13 @@ export const TrendsPage = () => {
               {multi.slice(0, 10).map((n) => {
                 const tone = toneByName[n.nameCanonical];
                 const isSelected = sel === n.nameCanonical;
+                const lastV = lastByName[n.nameCanonical];
                 return (
                   <Chip key={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
                     color={isSelected ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
                     label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', background: tone === 'critico' ? '#ef4444' : '#f59e0b', boxShadow: `0 0 6px ${tone === 'critico' ? '#ef4444' : '#f59e0b'}66` }} />}
-                      {prettyName(n.nameCanonical)}
+                      {prettyName(n.nameCanonical)}{lastV != null && <strong style={{ fontWeight: 800 }}>{fmtNum(lastV)}</strong>}
                     </span>}
                     sx={{
                       height: 38, fontWeight: 700, borderRadius: '999px', maxWidth: 195,

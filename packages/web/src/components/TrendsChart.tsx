@@ -199,6 +199,33 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
         {lastPt && (
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>Última medição: <strong>{fmt2(lastPt.performedAt)}</strong></Typography>
         )}
+        {/* VS EXAME ANTERIOR (padrão chart-6: "piorou ou melhorou desde a última coleta?").
+            Comparação clínica relevante p/ paciente e médico: último vs penúltimo ponto,
+            veredito pela FAIXA (não só pelo número): saiu/entrou/vigencia. */}
+        {(() => {
+          const prevPt = pts.length >= 2 ? pts[pts.length - 2] : null;
+          const lv = lastPt?.valueNumeric, pv = prevPt?.valueNumeric;
+          if (!prevPt || lv == null || pv == null || lv === pv) return null;
+          const inRange = (v: number) => uniLow != null && uniHigh != null && v >= uniLow && v <= uniHigh;
+          const faixaConhecida = uniLow != null && uniHigh != null;
+          const lastIn = faixaConhecida ? inRange(lv) : null;
+          const prevIn = faixaConhecida ? inRange(pv) : null;
+          const veredito = !faixaConhecida ? null
+            : lastIn && prevIn ? { txt: 'estável na faixa', color: 'text.secondary' }
+            : lastIn && !prevIn ? { txt: 'voltou para a faixa', color: okText }
+            : !lastIn && prevIn ? { txt: 'saiu da faixa', color: isDark ? '#fbbf24' : '#b45309' }
+            : { txt: 'segue fora da faixa', color: errText };
+          const delta = lv - pv;
+          return (
+            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+              vs exame anterior ({fmt2(prevPt.performedAt)}): <strong>{fmtNum(pv)} → {fmtNum(lv)}</strong>
+              {' '}({delta > 0 ? '↑' : '↓'} {fmtNum(Math.abs(delta))}{ts.unit ? ` ${ts.unit}` : ''})
+              {veredito && (
+                <Box component="span" sx={{ color: veredito.color, fontWeight: 700 }}> — {veredito.txt}</Box>
+              )}
+            </Typography>
+          );
+        })()}
         {/* Faixa de referência em CHIP sutil (feedback: texto cru "57.11–178.53 pg/mL" era
             feio/nada premium). Formata pt-BR (vírgula, sem zeros à toa) e, quando os exames
             têm faixas diferentes, usa a MEDIANA e avisa "mediana dos exames". */}
