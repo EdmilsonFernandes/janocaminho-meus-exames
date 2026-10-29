@@ -155,6 +155,19 @@ describe('admin — KYC do médico (spec §3)', () => {
 
   // Revisão final I2: o sync mantém o legado como `legacy` mas o põe na fila ("pronto para aprovar"); o botão
   // devolvia 409 INVALID_STATE e a entrada nunca saía da fila.
+  it('fila: displayNameMatch compara o nome do PERFIL (sem Dr./Dra., acento, partícula) com o do CFM — null sem nome do CFM', async () => {
+    const admin = await createAdmin();
+    const ok = await createDoctor({ crm: crm(), name: 'Dr. Maria da Silva Sousa', verificationStatus: 'needs_admin' });
+    await prisma.doctorVerification.create({ data: { doctorId: ok.doctor.id, crm: 'x', providerId: 'v-dn-ok', status: 'approved', decision: 'needs_admin', cfmName: 'MARIA DA SILVA SOUSA' } });
+    const outro = await createDoctor({ crm: crm(), name: 'Dra. Ana Torres', verificationStatus: 'needs_admin' }); // perfil com o nome de OUTRA pessoa
+    await prisma.doctorVerification.create({ data: { doctorId: outro.doctor.id, crm: 'x', providerId: 'v-dn-bad', status: 'approved', decision: 'needs_admin', cfmName: 'MARIA DA SILVA SOUSA' } });
+    const semCfm = await createDoctor({ crm: crm(), name: 'Dr. Sem Cfm', verificationStatus: 'needs_admin' });
+    await prisma.doctorVerification.create({ data: { doctorId: semCfm.doctor.id, crm: 'x', providerId: 'v-dn-null', status: 'approved', decision: 'needs_admin' } });
+    const q = await api().get('/api/admin/doctors/verification-queue').set(authHeader(admin.token));
+    const byProvider = Object.fromEntries(q.body.review.map((a: any) => [a.providerId, a.displayNameMatch]));
+    expect(byProvider).toEqual({ 'v-dn-ok': true, 'v-dn-bad': false, 'v-dn-null': null });
+  });
+
   it('legado que CONCLUIU a verificação (está na fila) → o dono aprova: approved, médico avisado, entrada sai da fila', async () => {
     const admin = await createAdmin();
     const { doctor } = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });

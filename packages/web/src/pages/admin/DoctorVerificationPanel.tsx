@@ -31,7 +31,7 @@ import { COPPER, SEM } from '../../tokens';
 import { ConfirmDialog, SectionError, TabLoader } from './parts';
 import {
   REASON_MAX, REJECT_EMAIL_NOTICE, REJECT_SHORTCUTS, UAIID_DECIDE_NOTICE,
-  applyShortcut, compareNames, crmLabel, formatDateBR, formatDateTimeBR, formatRatio, formatScore, graceInputToMs,
+  applyShortcut, compareNames, crmLabel, displayNameWarning, formatDateBR, formatDateTimeBR, formatRatio, formatScore, graceInputToMs,
   graceLabel, identityChip, initialOf, kycErrorMessage, legacyApprovedNotice, msToDateInput, parseQueue,
   priorAttemptsLabel, queueCounts, reasonOk, reviewReason, sortReview,
   type LegacyItem, type ReviewItem, type Tone, type VerificationQueue,
@@ -280,6 +280,7 @@ export const ReviewCard = ({ item, onApprove, onReject, disabled }: {
   const ratio = formatRatio(item.nameRatio);
   const score = formatScore(item.score);
   const prior = priorAttemptsLabel(item.priorAttempts);
+  const displayWarn = displayNameWarning(item);
   const started = formatDateTimeBR(item.createdAt);
   const amber = toneOf('warn', mode);
   const info = toneOf('info', mode);
@@ -342,6 +343,18 @@ export const ReviewCard = ({ item, onApprove, onReject, disabled }: {
             >
               <WarningAmberRoundedIcon sx={{ fontSize: 19, flexShrink: 0 }} />
               <Typography sx={{ fontSize: 13, fontWeight: 800 }}>{prior}</Typography>
+            </Stack>
+          )}
+
+          {mine && displayWarn && (
+            <Stack
+              data-testid="kyc-display-name"
+              direction="row"
+              alignItems="flex-start"
+              sx={{ gap: 1, p: '9px 12px', borderRadius: '12px', bgcolor: amber.bg, border: '1px solid', borderColor: amber.bd, color: amber.fg }}
+            >
+              <WarningAmberRoundedIcon sx={{ fontSize: 19, mt: '1px', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 13, fontWeight: 800, lineHeight: 1.45 }}>{displayWarn}</Typography>
             </Stack>
           )}
 
@@ -425,6 +438,7 @@ export const ApproveForm = ({ item, note, onNote, error, busy }: {
           O nome do documento ({item.documentName}) é diferente do nome no CFM ({item.cfmName}). Aprove só se tiver certeza de que é a mesma pessoa.
         </WarnRow>
       )}
+      {displayNameWarning(item) && <WarnRow>{displayNameWarning(item)}</WarnRow>}
       {prior && <WarnRow>{prior}.</WarnRow>}
       <TextField
         label="Observação (opcional)"

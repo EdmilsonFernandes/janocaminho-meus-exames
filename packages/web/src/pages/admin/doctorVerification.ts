@@ -40,6 +40,8 @@ export interface ReviewItem {
   doctor: ReviewDoctor;
   priorAttempts: number;
   decideIn: DecideIn;
+  /** O nome do PERFIL (o que o paciente vê) bate com o do CFM? `null` = sem nome do CFM para comparar. Só sinaliza ao dono. */
+  displayNameMatch: boolean | null;
 }
 export interface LegacyItem {
   id: string;
@@ -155,6 +157,7 @@ export function parseQueue(raw: unknown): VerificationQueue {
       },
       priorAttempts: Math.max(0, Math.floor(Number(r.priorAttempts) || 0)),
       decideIn,
+      displayNameMatch: typeof r.displayNameMatch === 'boolean' ? r.displayNameMatch : null,
     });
   }
   const legacy: LegacyItem[] = [];
@@ -296,6 +299,15 @@ export function compareNames(documentName: string | null | undefined, cfmName: s
 }
 
 // ── números e rótulos ────────────────────────────────────────────────────────
+/**
+ * Aviso quando o nome que o paciente VÊ (o do perfil, texto livre) não bate com o do CFM — nada o amarrava e um médico
+ * verificado podia aparecer como "Dra. <colega conhecido>". `null` = sem aviso (bate, ou não há nome do CFM para comparar).
+ */
+export function displayNameWarning(item: { displayNameMatch: boolean | null; cfmName: string | null; doctor: { name: string } }): string | null {
+  if (item.displayNameMatch !== false || !item.cfmName) return null;
+  return `O nome no perfil (${item.doctor.name}) é diferente do nome no CFM (${item.cfmName}) — é o nome que o paciente vê.`;
+}
+
 /** `nameRatio` do UaiID (0–1) → "88%". Valor > 1 já é percentual. */
 export function formatRatio(v: number | null | undefined): string | null {
   if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) return null;

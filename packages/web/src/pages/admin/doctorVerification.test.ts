@@ -15,7 +15,7 @@ vi.mock('../../config', () => ({ API_URL: '/api', token: () => 't', doctorPhotoU
 
 import {
   REASON_MAX, REJECT_EMAIL_NOTICE, REJECT_SHORTCUTS, UAIID_DECIDE_NOTICE,
-  applyShortcut, compareNames, crmLabel, formatDateTimeBR, formatRatio, formatScore, graceInputToMs,
+  applyShortcut, compareNames, crmLabel, displayNameWarning, formatDateTimeBR, formatRatio, formatScore, graceInputToMs,
   graceLabel, identityChip, initialOf, kycErrorMessage, legacyApprovedNotice, msToDateInput, parseQueue, plural,
   priorAttemptsLabel, queueCounts, reasonOk, reviewReason, sortReview, statusLabel, strictName,
   type LegacyItem, type ReviewItem,
@@ -30,7 +30,7 @@ const review = (over: Partial<ReviewItem> = {}): ReviewItem => ({
   decision: 'needs_admin', documentName: 'MARIA APARECIDA SANTOS', cfmName: 'MARIA APARECIDA SANTOS',
   nameRatio: 1, score: 92, createdAt: new Date(2026, 9, 28, 14, 5).toISOString(),
   doctor: { id: 'd1', name: 'Maria Aparecida Santos', crm: '123456', crmUf: 'SP', email: 'maria@clinica.com', verificationStatus: 'needs_admin' },
-  priorAttempts: 0, decideIn: 'drexame', ...over,
+  priorAttempts: 0, decideIn: 'drexame', displayNameMatch: true, ...over,
 });
 const legacy = (i: number): LegacyItem => ({ id: `l${i}`, name: `Dr. Antigo ${i}`, crm: `10${i}`, crmUf: 'MG', email: `antigo${i}@med.com`, createdAt: new Date(2025, 4, 12).toISOString() });
 
@@ -96,6 +96,18 @@ describe('parseQueue / sortReview / queueCounts', () => {
     expect(q.review[1].decideIn).toBe('drexame');
     expect(q.review[0].priorAttempts).toBe(0);
     expect(q.legacy).toHaveLength(1);
+  });
+  it('displayNameMatch: só boolean passa; ausente ou de outro tipo vira null (servidor antigo)', () => {
+    const raw = {
+      review: [
+        review({ id: 't', displayNameMatch: true }),
+        review({ id: 'f', displayNameMatch: false }),
+        { ...review({ id: 'ausente' }), displayNameMatch: undefined },
+        { ...review({ id: 'texto' }), displayNameMatch: 'false' },
+      ],
+      legacy: [],
+    };
+    expect(parseQueue(raw).review.map((r) => [r.id, r.displayNameMatch])).toEqual([['t', true], ['f', false], ['ausente', null], ['texto', null]]);
   });
   it('sortReview: "Aguardando você" antes do painel do UaiID; ordem do servidor dentro do grupo', () => {
     const a = review({ id: 'a', decideIn: 'uaiid' });
@@ -485,6 +497,30 @@ describe('ReviewCard — caso da fila', () => {
   it('tema escuro renderiza', () => {
     expect(shell(h(ReviewCard, { item: review(), onApprove: noop, onReject: noop }), darkTheme)).toContain('Maria Aparecida Santos');
   });
+  // o nome que o PACIENTE vê (perfil, texto livre) não era amarrado a nada: sinaliza ao dono antes de aprovar
+  it('nome do PERFIL diferente do CFM → alerta "é o nome que o paciente vê"; bate ou sem CFM → sem alerta', () => {
+    const bad = review({ displayNameMatch: false, cfmName: 'MARIA APARECIDA SANTOS', doctor: { ...review().doctor, name: 'Dra. Ana Torres' } });
+    const html = shell(h(ReviewCard, { item: bad, onApprove: noop, onReject: noop }));
+    expect(html).toContain('data-testid="kyc-display-name"');
+    expect(html).toContain('O nome no perfil (Dra. Ana Torres) é diferente do nome no CFM (MARIA APARECIDA SANTOS)');
+    expect(html).toContain('é o nome que o paciente vê');
+    for (const m of [true, null]) expect(shell(h(ReviewCard, { item: review({ displayNameMatch: m }), onApprove: noop, onReject: noop }))).not.toContain('kyc-display-name');
+  });
+  it('caso que decide no painel do UaiID não mostra o alerta do perfil (não há o que aprovar aqui)', () => {
+    const item = review({ decideIn: 'uaiid', decision: 'uaiid_review', displayNameMatch: false });
+    expect(shell(h(ReviewCard, { item, onApprove: noop, onReject: noop }))).not.toContain('kyc-display-name');
+  });
+});
+
+describe('displayNameWarning', () => {
+  it('só avisa quando o servidor disse que NÃO bate e há nome do CFM', () => {
+    const d = { name: 'Dra. Ana Torres' };
+    expect(displayNameWarning({ displayNameMatch: false, cfmName: 'MARIA SOUSA', doctor: d }))
+      .toBe('O nome no perfil (Dra. Ana Torres) é diferente do nome no CFM (MARIA SOUSA) — é o nome que o paciente vê.');
+    expect(displayNameWarning({ displayNameMatch: true, cfmName: 'MARIA SOUSA', doctor: d })).toBeNull();
+    expect(displayNameWarning({ displayNameMatch: null, cfmName: 'MARIA SOUSA', doctor: d })).toBeNull();
+    expect(displayNameWarning({ displayNameMatch: false, cfmName: null, doctor: d })).toBeNull();
+  });
 });
 
 describe('ApproveForm — aprovar com observação opcional', () => {
@@ -506,6 +542,11 @@ describe('ApproveForm — aprovar com observação opcional', () => {
     const html = shell(h(ApproveForm, { item: review(), note: '', onNote: noop }));
     expect(html).not.toContain('tentativa');
     expect(html).not.toContain('é diferente');
+  });
+  it('nome do perfil diferente do CFM → alerta também no diálogo de aprovar', () => {
+    const item = review({ displayNameMatch: false, doctor: { ...review().doctor, name: 'Dra. Ana Torres' } });
+    const html = shell(h(ApproveForm, { item, note: '', onNote: noop }));
+    expect(html).toContain('O nome no perfil (Dra. Ana Torres) é diferente do nome no CFM');
   });
   it('mostra o erro do servidor traduzido', () => {
     const html = shell(h(ApproveForm, { item: review(), note: '', onNote: noop, error: 'Sem conexão. Tente novamente.' }));

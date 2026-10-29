@@ -31,6 +31,8 @@ import { getLastReconciliationAt } from '../jobs/reconciliation';
 import { runExtraction } from '../extraction/pipeline';
 import { normalizeCouponCode } from '../utils/coupons';
 import { notifyDoctorKyc } from '../kyc/notify';
+import { strictName } from '../kyc/decide';
+import { stripDoctorTitle } from '../utils/doctorTitle';
 
 const router = Router();
 router.use(requireAuth);
@@ -1154,7 +1156,17 @@ router.get('/doctors/verification-queue', async (_req, res, next) => {
       select: { id: true, name: true, crm: true, crmUf: true, email: true, createdAt: true },
     });
     res.json({
-      review: review.map((a) => ({ ...a, priorAttempts: (byCrm.get(a.crm) ?? 1) - 1, decideIn: a.decision === 'uaiid_review' ? 'uaiid' : 'drexame' })),
+      review: review.map((a) => ({
+        ...a,
+        priorAttempts: (byCrm.get(a.crm) ?? 1) - 1,
+        decideIn: a.decision === 'uaiid_review' ? 'uaiid' : 'drexame',
+        // O nome que o paciente VÊ (o do perfil, texto livre) bate com o do CFM? Nada o amarrava (re-revisão #6): um
+        // médico verificado podia se cadastrar como "Dra. <colega conhecido>" com o CRM dele. Só sinaliza ao dono
+        // (null = sem nome do CFM para comparar); quem decide é ele, olhando os dois nomes lado a lado.
+        displayNameMatch: a.cfmName && a.doctor
+          ? strictName(stripDoctorTitle(a.doctor.name)) !== '' && strictName(stripDoctorTitle(a.doctor.name)) === strictName(a.cfmName)
+          : null,
+      })),
       legacy,
     });
   } catch (e) { next(e); }
