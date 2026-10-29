@@ -122,11 +122,12 @@ describe('PoC 3: user name into HTML email (doctorInviteEmail via /api/doctor-sh
 
   it('patient.fullName renders unescaped in the doctor invite email HTML', async () => {
     const u = await createUser({ name: XSS_NAME });
-    // a REAL doctor account (existing email) so the invite email is sent (not pending-invite)
+    // a REAL doctor account (existing email) so the invite email is sent (not pending-invite).
+    // KYC (revisão final, C1): o aviso do share só vai a médico que PODE ATUAR → conta aprovada.
     const doc = await prisma.doctor.create({
       data: {
         name: 'Dr Vítima', crm: '99999-SP', crmUf: 'SP',
-        email: 'dr.vitima@exemplo.com', passwordHash: 'x', emailVerified: true,
+        email: 'dr.vitima@exemplo.com', passwordHash: 'x', emailVerified: true, verificationStatus: 'approved',
       },
     });
     const r = await api().post('/api/doctor-shares').set(authHeader(u.token)).send({

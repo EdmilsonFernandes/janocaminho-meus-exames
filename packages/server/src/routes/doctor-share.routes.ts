@@ -7,9 +7,22 @@ import { getSettings } from '../utils/settings';
 import { chargeCredits } from '../utils/credits';
 import { normalizeCrmKey } from './doctor.routes';
 import { logPaywallHit } from '../utils/paywall';
+import { doctorMayPractice } from '../utils/doctorAccess';
 
 const router = Router();
 router.use(requireAuth);
+
+// Revisão final do KYC (C2, herdado da main): este endpoint devolvia a LINHA INTEIRA do médico ao paciente —
+// passwordHash, CPF cifrado, chaves PIX, tokens do Google… Agora só o que o paciente pode ver (os mesmos campos
+// do diretório/lista) + o que a lógica interna precisa (blocked/verificationStatus), que NUNCA sai na resposta.
+const PUBLIC_DOCTOR_SELECT = {
+  id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, email: true, clinicName: true, clinicCity: true,
+} as const;
+const SHARE_DOCTOR_SELECT = { ...PUBLIC_DOCTOR_SELECT, blocked: true, verificationStatus: true } as const;
+function publicDoctor<T extends { blocked?: unknown; verificationStatus?: unknown }>(d: T): Omit<T, 'blocked' | 'verificationStatus'> {
+  const { blocked: _b, verificationStatus: _v, ...rest } = d;
+  return rest;
+}
 
 // §6 (28/10/26): duração do compartilhamento. undefined = campo não veio (mantém o atual
 // no PATCH); null = explícito "sem expiração" (default/legado); Date válido = expira em.
@@ -61,9 +74,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const uf = norm?.uf ?? null;
 
     // encontra o médico pelo CRM, ou cria se vier nome + CRM
-    let doctor = crmKey ? await prisma.doctor.findUnique({ where: { crm: crmKey } }) : null;
+    let doctor = crmKey ? await prisma.doctor.findUnique({ where: { crm: crmKey }, select: SHARE_DOCTOR_SELECT }) : null;
     if (!doctor && doctorName && crmKey) {
       doctor = await prisma.doctor.create({
+        select: SHARE_DOCTOR_SELECT,
         data: {
           name: String(doctorName), crm: crmKey, crmUf: uf, specialty: doctorSpecialty || null,
           // §4 (28/10/26): cidade/clínica informadas pelo paciente enriquecem o diretório
@@ -82,7 +96,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     const existing = await prisma.doctorShare.findUnique({ where: { patientId_doctorId: { patientId: pid, doctorId: doctor.id } } });
     if (existing) {
       const updated = await prisma.doctorShare.update({ where: { id: existing.id }, data: { active: true, scopes: scopes || existing.scopes, convenio: convenio != null ? String(convenio) : existing.convenio, revokedAt: null, ...(Array.isArray(examIds) ? { examIds } : {}), ...(expiry !== undefined ? { expiresAt: expiry } : {}) } });
-      res.json({ share: updated, doctor }); return;
+      res.json({ share: updated, doctor: publicDoctor(doctor) }); return;
     }
     // Custo de compartilhar = soma dos escopos selecionados (parametrizado em app_settings).
     // Só cobra na CRIAÇÃO nova (reativar existente / editar escopos = grátis, sem fricção).
@@ -106,8 +120,11 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       create: { patientId: pid, doctorId: doctor.id, source: 'share' },
     }).catch(() => {});
 
-    // notifica o médico por e-mail
-    if (doctor.email && !doctor.email.includes('@invite.com')) {
+    // notifica o médico por e-mail — SÓ se ele pode atuar (revisão final, C1): o aviso leva o NOME do paciente,
+    // os escopos e o convênio; conta não verificada/rejeitada/bloqueada (ex.: quem registrou o CRM de outro
+    // médico) não pode receber isso. O share continua criado: vale quando o médico for aprovado.
+    const notified = !!doctor.email && !doctor.email.includes('@invite.com') && doctorMayPractice(doctor);
+    if (notified) {
       const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } });
       try {
         await sendEmail({
@@ -117,7 +134,7 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         });
       } catch (e: any) { console.error('[doctor-share] falha email:', e?.message); }
     }
-    res.status(201).json({ share, doctor, chargedCredits: shareCost });
+    res.status(201).json({ share, doctor: publicDoctor(doctor), chargedCredits: shareCost, notified });
   } catch (e) { next(e); }
 });
 
