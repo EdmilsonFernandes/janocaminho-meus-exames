@@ -13,7 +13,9 @@ import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess'
 import { createUaiidVerification, UaiidError } from '../utils/uaiid';
 import { NON_FINAL_ATTEMPT } from '../kyc/decide';
 import { syncVerification } from '../kyc/sync';
-import { kycMessage } from '../kyc/messages';
+import { kycMessage, kycCaptureIssue } from '../kyc/messages';
+import { notifyKycAdmin } from '../kyc/notify';
+import { getDoctorKycConfig } from '../utils/settings';
 import { createLogger } from '../utils/logger';
 
 const router = Router();
@@ -25,6 +27,29 @@ const RETURN_URL = () => process.env.UAIID_RETURN_URL || 'https://drexame.janoca
 const OPEN_STATUSES = [...NON_FINAL_ATTEMPT, 'manual_review'];
 const STARTABLE = ['pending', 'in_progress', 'rejected', 'legacy'];
 const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expiresAt: true, lastSyncedAt: true } as const;
+
+/**
+ * O UaiID recusar CRIAR sessão por motivo de CONTA (401 chave, 402 empresa suspensa / limite de gasto / trial
+ * esgotado, 403) derruba o cadastro de TODO médico novo — e o médico só vê "indisponível", então ninguém fica
+ * sabendo (a fumaça real já bateu num 402 tenant_suspended). Avisa o dono por e-mail, no máximo 1x a cada 6 h
+ * por processo (o log já guarda o status). Nunca lança.
+ */
+const ALERT_EVERY_MS = 6 * 60 * 60 * 1000;
+let lastUaiidAlertAt = 0;
+export function resetUaiidAlertThrottleForTests(): void { lastUaiidAlertAt = 0; }
+function alertUaiidRefusal(status: number | undefined): void {
+  if (status !== 401 && status !== 402 && status !== 403) return;
+  const now = Date.now();
+  if (now - lastUaiidAlertAt < ALERT_EVERY_MS) return;
+  lastUaiidAlertAt = now;
+  void notifyKycAdmin('Dr. Exame — o UaiID recusou criar verificações', [
+    `O UaiID respondeu HTTP ${status} ao criar a sessão de verificação de um médico.`,
+    status === 402
+      ? 'A empresa no UaiID está suspensa, sem saldo/limite de gasto ou com o trial esgotado.'
+      : 'Confira a UAIID_API_KEY no .env.prod e o status da conta no painel do UaiID.',
+    'Enquanto isso, médicos novos veem "verificação indisponível" e não conseguem se cadastrar.',
+  ]);
+}
 
 async function requireKycDoctor(req: KycRequest, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
@@ -92,6 +117,7 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
       }
       // só o status HTTP (sem CPF/segredo): chave errada em prod aparece como 401/403 aqui, não como "fora do ar" mudo
       log.warn('UaiID indisponível ao criar a sessão', { status: (e as any)?.status ?? null });
+      alertUaiidRefusal(e.status);
       res.status(503).json({ code: 'KYC_UNAVAILABLE', error: 'Verificação indisponível no momento. Tente em alguns minutos.' });
       return;
     }
@@ -109,10 +135,21 @@ router.get('/verification', requireKycDoctor, async (req: KycRequest, res, next)
       attempt = await latest();
     }
     const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId! }, select: { verificationStatus: true } });
+    const status = doc?.verificationStatus ?? 'pending';
+    const graceMs = getDoctorKycConfig().legacyGraceUntilMs;
     res.json({
-      status: doc?.verificationStatus ?? 'pending',
+      status,
+      // prazo dos médicos antigos (só quem ainda é legado precisa ver; 0 = sem prazo)
+      legacyGraceUntilMs: status === 'legacy' && graceMs > 0 ? graceMs : null,
       attempt: attempt
-        ? { status: attempt.status, reasonCode: attempt.reasonCode, message: kycMessage(attempt.reasonCode), expiresAt: attempt.expiresAt }
+        ? {
+            status: attempt.status,
+            reasonCode: attempt.reasonCode,
+            message: kycMessage(attempt.reasonCode),
+            // a tela só mostra as dicas de foto/selfie quando o motivo é de captura (mesma regra do e-mail)
+            captureIssue: kycCaptureIssue(attempt.reasonCode),
+            expiresAt: attempt.expiresAt,
+          }
         : null,
     });
   } catch (e) { next(e); }

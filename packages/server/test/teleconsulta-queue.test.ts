@@ -491,6 +491,20 @@ describe('Fila imediata — rotas + tick (spec 2026-10-27 §2/§3/§8)', () => {
     expect(ids.indexOf(barato.id)).toBeLessThan(ids.indexOf(caro.id)); // empate → preço asc
   });
 
+  // 15b ─ selo "Identidade verificada": só médico APROVADO leva `verified: true`
+  // (legado dentro do prazo aparece na lista e atende, mas sem selo).
+  itR('GET status: doctors[].verified só para médico approved (legacy em prazo aparece, sem selo)', async () => {
+    const { token } = await createUser();
+    const { doctor: aprovado } = await createDoctor({ crm: crm(), name: 'Aprovada' });
+    const { doctor: legado } = await createDoctor({ crm: crm(), name: 'Legado', verificationStatus: 'legacy' });
+    await seedPresence(aprovado.id);
+    await seedPresence(legado.id);
+    const res = await api().get('/api/teleconsulta-queue/status').set(H(token));
+    expect(res.status).toBe(200);
+    const verifiedById = Object.fromEntries(res.body.doctors.map((d: any) => [d.id, d.verified]));
+    expect(verifiedById).toEqual({ [aprovado.id]: true, [legado.id]: false });
+  });
+
   // 16 ─ v1.1: POST com specialty — o match SÓ casa médico da especialidade exata
   // (ortopedista seria o 1º do pool por presença antiga; filtro o pula).
   itR('POST com specialty filtra o match (médico de outra especialidade é pulado)', async () => {

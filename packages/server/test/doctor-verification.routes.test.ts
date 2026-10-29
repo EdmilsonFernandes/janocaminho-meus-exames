@@ -13,6 +13,12 @@ vi.mock('../src/utils/cfm', async (orig) => ({
 import { prisma } from '../src/prisma';
 import { api, authHeader, resetDb, createDoctor, mintToken } from './helpers';
 import { createUaiidVerification, getUaiidVerification, UaiidError } from '../src/utils/uaiid';
+import { saveSettings } from '../src/utils/settings';
+import { sendEmail } from '../src/utils/mailer';
+import { resetUaiidAlertThrottleForTests } from '../src/routes/doctor-verification.routes';
+
+const alerts = () => vi.mocked(sendEmail).mock.calls.map(([m]) => m).filter((m) => m.subject.includes('UaiID recusou'));
+const settle = () => new Promise((r) => setTimeout(r, 60));
 
 let seq = 81000;
 const crm = () => `${seq++}-SP`;
@@ -96,6 +102,55 @@ describe('/api/doctor/verification (spec §3)', () => {
     const r = await api().get('/api/doctor/verification').set(authHeader(mintToken('u-qualquer')));
     expect(r.status).toBe(401);
     expect(r.body.code).toBe('INVALID_TOKEN');
+  });
+
+  it('UaiID recusa criar sessão (402 empresa suspensa) → 503 ao médico + e-mail ao dono, no máximo 1x por janela', async () => {
+    resetUaiidAlertThrottleForTests();
+    vi.mocked(sendEmail).mockClear();
+    const { token } = await createDoctor({ crm: crm(), verificationStatus: 'pending' });
+    vi.mocked(createUaiidVerification).mockRejectedValue(new UaiidError('KYC_UNAVAILABLE', undefined, 402));
+    expect((await post(token)).status).toBe(503);
+    await vi.waitFor(() => expect(alerts()).toHaveLength(1));
+    expect(alerts()[0].html).toContain('402');
+    expect((await post(token)).status).toBe(503); // 2º pedido dentro da janela: nenhum e-mail novo
+    await settle();
+    expect(alerts()).toHaveLength(1);
+  });
+
+  it('falha do UaiID que NÃO é de conta (5xx, rede) não alerta o dono', async () => {
+    resetUaiidAlertThrottleForTests();
+    vi.mocked(sendEmail).mockClear();
+    const { token } = await createDoctor({ crm: crm(), verificationStatus: 'pending' });
+    vi.mocked(createUaiidVerification).mockRejectedValueOnce(new UaiidError('KYC_UNAVAILABLE', undefined, 500));
+    expect((await post(token)).status).toBe(503);
+    vi.mocked(createUaiidVerification).mockRejectedValueOnce(new UaiidError('KYC_UNAVAILABLE'));
+    expect((await post(token)).status).toBe(503);
+    await settle();
+    expect(alerts()).toHaveLength(0);
+  });
+
+  it('GET: captureIssue só p/ motivo de foto/documento/nome; legacyGraceUntilMs só p/ legado COM prazo', async () => {
+    const a = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
+    await prisma.doctorVerification.create({ data: { doctorId: a.doctor.id, crm: '3-SP', providerId: 'v-c1', status: 'rejected', reasonCode: 'face_mismatch', lastSyncedAt: new Date() } });
+    expect((await api().get('/api/doctor/verification').set(authHeader(a.token))).body)
+      .toMatchObject({ status: 'rejected', legacyGraceUntilMs: null, attempt: { reasonCode: 'face_mismatch', captureIssue: true } });
+
+    const b = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
+    await prisma.doctorVerification.create({ data: { doctorId: b.doctor.id, crm: '4-SP', providerId: 'v-c2', status: 'rejected', reasonCode: 'crm_inactive', lastSyncedAt: new Date() } });
+    expect((await api().get('/api/doctor/verification').set(authHeader(b.token))).body.attempt).toMatchObject({ reasonCode: 'crm_inactive', captureIssue: false });
+
+    const until = Date.now() + 30 * 86_400_000;
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: until, autoApprove: 0 });
+    try {
+      const leg = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+      expect((await api().get('/api/doctor/verification').set(authHeader(leg.token))).body).toMatchObject({ status: 'legacy', legacyGraceUntilMs: until, attempt: null });
+      const ok = await createDoctor({ crm: crm() }); // approved: prazo não se aplica
+      expect((await api().get('/api/doctor/verification').set(authHeader(ok.token))).body.legacyGraceUntilMs).toBeNull();
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 }); // sem prazo
+      expect((await api().get('/api/doctor/verification').set(authHeader(leg.token))).body.legacyGraceUntilMs).toBeNull();
+    } finally {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    }
   });
 
   it('GET sincronizado há pouco não chama o UaiID', async () => {

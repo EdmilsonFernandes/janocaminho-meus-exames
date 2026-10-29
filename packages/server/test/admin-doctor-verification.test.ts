@@ -223,3 +223,20 @@ describe('admin — KYC do médico (spec §3)', () => {
     expect(await decidedAudits(rj.doctor.id)).toBe(1);
   });
 });
+
+describe('admin — a lista de médicos expõe a verificação de identidade', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('GET /api/admin/doctors traz verificationStatus de cada médico (chip "Identidade" do painel)', async () => {
+    const admin = await createAdmin();
+    const aprovado = await createDoctor({ crm: crm() }); // approved por padrão
+    const pendente = await createDoctor({ crm: crm(), verificationStatus: 'pending' });
+    const legado = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    const r = await api().get('/api/admin/doctors').set(authHeader(admin.token));
+    expect(r.status).toBe(200);
+    const statusById = Object.fromEntries(r.body.doctors.map((d: any) => [d.id, d.verificationStatus]));
+    expect(statusById[aprovado.doctor.id]).toBe('approved');
+    expect(statusById[pendente.doctor.id]).toBe('pending');
+    expect(statusById[legado.doctor.id]).toBe('legacy');
+  });
+});

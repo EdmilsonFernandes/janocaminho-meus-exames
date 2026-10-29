@@ -76,7 +76,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       where: { ...freshPresenceWhere(now), doctor: { blocked: false, verificationStatus: { in: practiceStatuses() } } },
       select: {
         doctorId: true,
-        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true } },
+        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true, verificationStatus: true } },
       },
     });
     // Carga de HOJE (mesma query do match §3) — ordena a lista: quem já atendeu mais
@@ -106,6 +106,8 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
         photoAvailable: !!x.d.photoUrl,
         priceCents: x.priceCents,
         crmUf: x.d.crmUf ?? null,
+        // selo "Identidade verificada": só quem foi APROVADO (legado em prazo atende, mas sem selo)
+        verified: x.d.verificationStatus === 'approved',
       }));
 
     const prices = doctors.map((d) => d.priceCents);

@@ -1118,6 +1118,7 @@ router.get('/doctors', async (_req, res, next) => {
           blocked: true,
           blockedAt: true,
           blockedReason: true,
+          verificationStatus: true, // KYC: chip "Identidade" de cada médico no painel
           _count: { select: { shares: { where: { active: true } } } },
         },
       }),
