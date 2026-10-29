@@ -122,18 +122,32 @@ describe('convite: reivindicar placeholder só por CRM e nunca reescrever o CRM 
     expect(await inviteStatus(token)).toBe('accepted');
   });
 
-  it('placeholder de OUTRO CRM com o e-mail previsível NÃO é reivindicado nem muda de CRM → 409 EMAIL_IN_USE', async () => {
+  // 2ª rodada (m5): o e-mail de um placeholder é dado digitado por PACIENTE (ou o endereço previsível), não prova nada — antes
+  // ele bloqueava o médico de verdade com 409 EMAIL_IN_USE. Agora o placeholder SOLTA o e-mail (volta ao neutro) e o cadastro
+  // do CRM B segue; o placeholder NÃO é reivindicado, não muda de CRM, de nome nem de senha (continua da Dra. A).
+  it('placeholder de OUTRO CRM com o e-mail previsível NÃO é reivindicado nem muda de CRM: o e-mail é solto e o médico do CRM B se cadastra', async () => {
     const alice = await placeholder('55555-SP'); // e-mail pending-55555-sp@invite.com
     const token = await invite();
     const r = await reg(token, { crm: '88888', crmUf: 'SP', email: 'pending-55555-sp@invite.com', name: 'Dr Mallory' });
-    expect(r.status).toBe(409);
-    expect(r.body).toMatchObject({ code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' });
-    expect(r.body.token).toBeUndefined();
+    expect(r.status).toBe(201);
+    expect(r.body.doctor.crm).toBe('88888-SP');
     const after = await prisma.doctor.findUniqueOrThrow({ where: { id: alice.id } });
-    expect(after).toMatchObject({ crm: '55555-SP', crmUf: 'SP', name: 'Dra Alice Placeholder', email: 'pending-55555-sp@invite.com', passwordHash: 'pending-invite', verificationStatus: 'legacy' });
-    expect(await prisma.doctor.findUnique({ where: { crm: '88888-SP' } })).toBeNull();
-    expect(await prisma.doctorShare.count()).toBe(0); // nada concedido
-    expect(await inviteStatus(token)).toBe('pending'); // convite não foi consumido
+    expect(after).toMatchObject({ crm: '55555-SP', crmUf: 'SP', name: 'Dra Alice Placeholder', email: `pending-${alice.id}@invite.com`, passwordHash: 'pending-invite', verificationStatus: 'legacy' });
+    expect(await prisma.doctor.findUnique({ where: { crm: '88888-SP' } })).toMatchObject({ email: 'pending-55555-sp@invite.com', name: 'Dr Mallory', verificationStatus: 'pending' });
+    expect(await prisma.doctorShare.count({ where: { doctorId: alice.id } })).toBe(0); // a Dra. A não ganhou nada
+    expect(await inviteStatus(token)).toBe('accepted');
+  });
+
+  it('e-mail digitado por um PACIENTE no compartilhamento (fluxo real) não trava o médico de verdade: ele se cadastra por convite e o placeholder segue com o CRM dele', async () => {
+    const { token: tokenPaciente } = await createUser({ credits: 100 });
+    const share = await api().post('/api/doctor-shares').set(authHeader(tokenPaciente)).send({ doctorName: 'Dra Helena', doctorCrm: '44444', doctorUf: 'SP', doctorEmail: 'helena.real@exemplo.com', scopes: ['exams'] });
+    expect(share.status).toBe(201);
+    const ph = await prisma.doctor.findUniqueOrThrow({ where: { crm: '44444-SP' } });
+    expect(ph.email).toBe('helena.real@exemplo.com'); // o que o paciente digitou
+    const r = await reg(await invite(), { crm: '66667', crmUf: 'SP', email: 'helena.real@exemplo.com', name: 'Dra Helena Real' }); // CRM diferente (o paciente errou o número)
+    expect(r.status).toBe(201);
+    expect(await prisma.doctor.findUniqueOrThrow({ where: { id: ph.id } })).toMatchObject({ crm: '44444-SP', passwordHash: 'pending-invite', email: `pending-${ph.id}@invite.com` });
+    expect(await prisma.doctor.findUnique({ where: { crm: '66667-SP' } })).toMatchObject({ email: 'helena.real@exemplo.com' });
   });
 
   it('placeholder do CRM certo, mas o e-mail informado já é de OUTRA conta → 409 EMAIL_IN_USE (e não 500 por unique)', async () => {
@@ -228,13 +242,35 @@ describe('cadastro principal: CRM canônico "numero-UF" (I7)', () => {
     expect(await prisma.doctor.count()).toBe(1);
   });
 
-  it('placeholder de OUTRO CRM com o e-mail previsível NÃO é reivindicado pelo cadastro principal (mesmo princípio do convite)', async () => {
+  it('placeholder de OUTRO CRM com o e-mail previsível NÃO é reivindicado pelo cadastro principal: o e-mail é solto (m5) e o cadastro do CRM B segue', async () => {
     const alice = await prisma.doctor.create({ data: { name: 'Dra Alice Placeholder', crm: '55555-SP', crmUf: 'SP', email: 'pending-55555-sp@invite.com', passwordHash: 'pending-invite' } });
     const r = await register({ crm: '88888', crmUf: 'SP', email: 'pending-55555-sp@invite.com', name: 'Dr Mallory' });
+    expect(r.status).toBe(201);
+    expect(await prisma.doctor.findUniqueOrThrow({ where: { id: alice.id } })).toMatchObject({ name: 'Dra Alice Placeholder', crm: '55555-SP', crmUf: 'SP', passwordHash: 'pending-invite', email: `pending-${alice.id}@invite.com` });
+    expect(await prisma.doctor.findUnique({ where: { crm: '88888-SP' } })).toMatchObject({ email: 'pending-55555-sp@invite.com', name: 'Dr Mallory', emailVerified: false });
+  });
+
+  it('e-mail digitado por PACIENTE num placeholder de outro CRM não trava o médico (fluxo real do compartilhamento); com o CRM certo o claim leva o e-mail junto', async () => {
+    const { token: tokenPaciente } = await createUser({ credits: 100 });
+    await api().post('/api/doctor-shares').set(authHeader(tokenPaciente)).send({ doctorName: 'Dra Helena', doctorCrm: '44444', doctorUf: 'SP', doctorEmail: 'helena.real@exemplo.com', scopes: ['exams'] });
+    const ph = await prisma.doctor.findUniqueOrThrow({ where: { crm: '44444-SP' } });
+    const r1 = await register({ crm: '66667', crmUf: 'SP', email: 'helena.real@exemplo.com', name: 'Dra Helena Real' }); // o paciente errou o CRM
+    expect(r1.status).toBe(201);
+    expect((await prisma.doctor.findUniqueOrThrow({ where: { id: ph.id } })).email).toBe(`pending-${ph.id}@invite.com`);
+    const r2 = await register({ crm: '44444', crmUf: 'SP', email: 'outra.helena@exemplo.com', name: 'Dra Helena' }); // o CRM certo reivindica o placeholder
+    expect(r2.status).toBe(201);
+    expect(await prisma.doctor.findUniqueOrThrow({ where: { id: ph.id } })).toMatchObject({ crm: '44444-SP', email: 'outra.helena@exemplo.com', verificationStatus: 'pending' });
+  });
+
+  it('e-mail de conta REAL continua barrado (409 EMAIL_IN_USE) e a conta real não é tocada', async () => {
+    const { doctor } = await createDoctor({ crm: '66666-SP', email: 'ja-tem-conta@exemplo.com' });
+    const antes = await prisma.doctor.findUniqueOrThrow({ where: { id: doctor.id } });
+    const r = await register({ crm: '77777', crmUf: 'SP', email: 'ja-tem-conta@exemplo.com' });
     expect(r.status).toBe(409);
     expect(r.body.code).toBe('EMAIL_IN_USE');
-    expect(await prisma.doctor.findUniqueOrThrow({ where: { id: alice.id } })).toMatchObject({ name: 'Dra Alice Placeholder', crm: '55555-SP', crmUf: 'SP', passwordHash: 'pending-invite', email: 'pending-55555-sp@invite.com' });
-    expect(await prisma.doctor.findUnique({ where: { crm: '88888-SP' } })).toBeNull();
+    expect(await prisma.doctor.findUnique({ where: { crm: '77777-SP' } })).toBeNull();
+    const depois = await prisma.doctor.findUniqueOrThrow({ where: { id: doctor.id } });
+    expect(depois).toMatchObject({ crm: antes.crm, name: antes.name, email: antes.email, passwordHash: antes.passwordHash });
   });
 
   it('o claim do placeholder funciona pela chave canônica (CRM digitado em variante)', async () => {

@@ -86,6 +86,20 @@ export function canonicalCrm(crm: unknown, uf?: unknown): { key: string; digits:
   return { key: `${digits}-${ufIn}`, digits, uf: ufIn };
 }
 
+/** E-mail NEUTRO de um placeholder (conta sem senha criada por paciente): é o que ele passa a ter quando o e-mail digitado
+ *  por um paciente é solto (m5, 2ª rodada da revisão final). Único por id. */
+export const placeholderEmail = (id: string): string => `pending-${id}@invite.com`;
+/**
+ * m5: o placeholder (passwordHash 'pending-invite') guarda o e-mail que um PACIENTE digitou ao compartilhar — dado não
+ * verificado que não pode bloquear o cadastro do médico de verdade. Solta o e-mail (volta ao neutro) para o cadastro seguir.
+ * false = não dá para soltar (não é placeholder, ou o e-mail já é o neutro): o chamador responde 409.
+ */
+export async function releasePlaceholderEmail(holder: { id: string; email: string; passwordHash: string }): Promise<boolean> {
+  if (holder.passwordHash !== 'pending-invite' || holder.email === placeholderEmail(holder.id)) return false;
+  await prisma.doctor.update({ where: { id: holder.id }, data: { email: placeholderEmail(holder.id) } });
+  return true;
+}
+
 /**
  * ALERTA AO DONO de CRM disputado (revisão final M10): cada cadastro conflitante mandava e-mail ao dono + linha de
  * audit, sem limite (120/min/IP) — dava p/ esgotar a cota do SMTP e quebrar os e-mails de OTP. O E-MAIL passa a sair no
@@ -380,15 +394,29 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
       res.status(400).json({ error: `CRM ${crmKey}/${uf} consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` }); return;
     }
     const mail = String(email).toLowerCase().trim();
-    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
-    // Placeholder (sem senha, criado por paciente) só é reivindicado pelo CRM — o e-mail previsível
-    // (pending-<crm>@invite.com) NÃO basta: casar por e-mail deixava qualquer um renomear/converter o placeholder de OUTRO
-    // médico (com os shares dos pacientes dele). Mesmo princípio do convite (revisão final I6b).
-    if (existing && existing.passwordHash === 'pending-invite' && existing.crm !== crmKey) {
-      res.status(409).json({ code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' }); return;
-    }
+    // CRM e e-mail são checados SEPARADOS (m6 da re-revisão: o `findFirst OR` devolvia uma linha arbitrária quando duas contas
+    // diferentes batiam). `existing` = quem tem o CRM (placeholder reivindicável ou conta real); `emailHolder` = OUTRA conta
+    // que já usa este e-mail. O placeholder (sem senha, criado por paciente) só é reivindicado pelo CRM — o e-mail previsível
+    // (pending-<crm>@invite.com) NÃO basta (revisão final I6b).
+    const [existing, byEmail] = await Promise.all([
+      prisma.doctor.findUnique({ where: { crm: crmKey } }),
+      prisma.doctor.findUnique({ where: { email: mail } }),
+    ]);
+    const emailHolder = byEmail && byEmail.id !== existing?.id ? byEmail : null;
+    // m5 (2ª rodada): e-mail digitado por PACIENTE num placeholder de OUTRO CRM é dado não verificado e não pode bloquear o
+    // médico de verdade — solta o e-mail do placeholder (volta ao neutro pending-<id>@invite.com) e o cadastro segue. E-mail
+    // de conta REAL (ou placeholder que já está no neutro) continua 409.
+    const clearEmailHolder = async (): Promise<boolean> => {
+      if (!emailHolder) return true;
+      if (await releasePlaceholderEmail(emailHolder)) return true;
+      res.status(409).json(emailHolder.passwordHash === 'pending-invite'
+        ? { code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' }
+        : { code: 'EMAIL_IN_USE', error: 'CRM ou e-mail já cadastrado. Faça login.' });
+      return false;
+    };
+    const knownIds = [existing?.id, emailHolder?.id].filter((id): id is string => !!id);
     const duplicateCpf = await prisma.doctor.findFirst({
-      where: { cpfHash: cpfData.cpfHash, ...(existing ? { NOT: { id: existing.id } } : {}) },
+      where: { cpfHash: cpfData.cpfHash, ...(knownIds.length ? { id: { notIn: knownIds } } : {}) },
       select: { id: true },
     });
     if (duplicateCpf) { res.status(409).json({ error: 'CPF já cadastrado em outro médico.' }); return; }
@@ -396,6 +424,7 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
       if (existing.passwordHash === 'pending-invite') {
         // CLAIM: paciente pré-cadastrou → médico completa dados + senha (mesmo id → herda shares).
         // Mas NÃO loga ainda: valida o e-mail (OTP), igual o paciente.
+        if (!(await clearEmailHolder())) return;
         await prisma.doctor.update({
           where: { id: existing.id },
           data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null, verificationStatus: 'pending' }, // KYC: quem reivindica nasce pending — os shares herdados só abrem após verificação
@@ -421,6 +450,7 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
       }
     } else {
       // NOVO cadastro — fica INATIVO até verificar o e-mail (evita e-mail falso + CRM alheio acessar dados).
+      if (!(await clearEmailHolder())) return;
       await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false, ...cpfData } });
     }
     // Envia código de verificação pro e-mail — NÃO emite token antes de confirmar.

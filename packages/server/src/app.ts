@@ -48,7 +48,7 @@ import notificationRoutes from './routes/notification.routes';
 import consultaRoutes from './routes/consulta';
 import dataRoutes from './routes/data.routes';
 import adminRoutes from './routes/admin.routes';
-import doctorRoutes, { canonicalCrm } from './routes/doctor.routes';
+import doctorRoutes, { canonicalCrm, releasePlaceholderEmail } from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
 import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
@@ -609,11 +609,19 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
     const { hashPassword } = await import('./auth/jwt');
     let doctor: any;
 
+    // Só placeholder (criado por paciente, sem senha) é reivindicável; conta real do CRM → faça login.
+    if (byCrm && byCrm.passwordHash !== 'pending-invite') { alreadyRegistered(); return; }
+    // O e-mail é único. Se já é de OUTRA conta: REAL → não há como usá-lo (EMAIL_IN_USE se o CRM é de um placeholder
+    // reivindicável; senão "já cadastrado"); PLACEHOLDER de outro CRM → o e-mail foi digitado por um paciente (dado não
+    // verificado, ou o endereço previsível pending-<crm>@invite.com) e NÃO pode bloquear o médico de verdade (m5, 2ª rodada):
+    // solta o e-mail do placeholder — que não é reivindicado nem muda de CRM — e o cadastro segue.
+    const emailHolder = byEmail && byEmail.id !== byCrm?.id ? byEmail : null;
+    if (emailHolder) {
+      if (emailHolder.passwordHash !== 'pending-invite') { if (byCrm) emailInUse(); else alreadyRegistered(); return; }
+      if (!(await releasePlaceholderEmail(emailHolder))) { emailInUse(); return; }
+    }
+
     if (byCrm) {
-      // Só placeholder (criado por paciente, sem senha) é reivindicável; conta real do CRM → faça login.
-      if (byCrm.passwordHash !== 'pending-invite') { alreadyRegistered(); return; }
-      // O e-mail é único: se já é de OUTRA conta, não há como reivindicar com ele.
-      if (byEmail && byEmail.id !== byCrm.id) { emailInUse(); return; }
       doctor = await prisma.doctor.update({
         where: { id: byCrm.id },
         data: {
@@ -624,11 +632,6 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
           verificationStatus: 'pending',
         },
       });
-    } else if (byEmail) {
-      // CRM novo, mas o e-mail já é de uma conta: placeholder de OUTRO CRM (e-mail previsível) NÃO é reivindicado.
-      if (byEmail.passwordHash === 'pending-invite') { emailInUse(); return; }
-      alreadyRegistered();
-      return;
     } else {
       doctor = await prisma.doctor.create({
         data: {
