@@ -1,6 +1,11 @@
 import { Component, type ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 
+// Auto-recuperação (28/10/26, bug "não carrega o corpo → clica e aparece"): o crash do
+// 1º mount era transitório (dado/cache chegando depois) — remonta SOZINHO 1x em 1,2s
+// antes de mostrar o botão. Se voltar a lançar, o card de erro aparece como antes.
+const AUTO_RETRY_MS = 1200;
+
 /**
  * DashboardErrorBoundary — ErrorBoundary ESCOPADO do dashboard.
  *
@@ -23,6 +28,15 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
   componentDidCatch(error: Error, info: any) {
     // Rastro no ring buffer do diag (Perfil → enviar diagnóstico) + console/Sentry.
     console.error('[DashboardErrorBoundary]', error?.message, info?.componentStack);
+  }
+
+  componentDidUpdate(_props: unknown, prevState: { error: Error | null; attempt: number }) {
+    // 1ª queda → auto-retry 1x (dado transitório chega em ~1s). Re-crash → card normal.
+    if (this.state.error && !prevState.error && this.state.attempt === 0) {
+      setTimeout(() => {
+        this.setState((s) => (s.error ? { error: null, attempt: s.attempt + 1 } : s));
+      }, AUTO_RETRY_MS);
+    }
   }
 
   private retry = () => this.setState((s) => ({ error: null, attempt: s.attempt + 1 }));
