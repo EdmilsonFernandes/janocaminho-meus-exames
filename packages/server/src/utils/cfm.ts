@@ -12,6 +12,8 @@
  * Override: CONSULTA_CRM_URL, CONSULTA_CRM_KEY, CFM_TIMEOUT_MS (env).
  */
 
+import { normalizeKey } from './normalize';
+
 export interface CfmDoctor {
   name: string;
   specialty: string | null;
@@ -55,4 +57,20 @@ export async function lookupCfm(crmRaw: string, ufRaw: string): Promise<CfmDocto
   } catch {
     return null; // timeout / rede / parse → degrada pra manual
   }
+}
+
+/** 27 UFs — valida CRM/UF de entrada (AUD-003: '000000-ZZ' passava). */
+export const BR_UFS: ReadonlySet<string> = new Set([
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+  'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+]);
+
+/** Situação do CFM em 3 estados. `/ativo/i` casava "Inativo" (bug do cadastro) — aqui é exato. */
+export type CfmState = 'active' | 'inactive' | 'unknown';
+export function cfmState(situation: string | null | undefined): CfmState {
+  const s = normalizeKey(String(situation ?? ''));
+  if (!s) return 'unknown';
+  if (/^ATIV[OA]\b/.test(s)) return 'active';
+  if (/INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s)) return 'inactive';
+  return 'unknown';
 }

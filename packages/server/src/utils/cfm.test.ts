@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
-import { lookupCfm } from './cfm';
+import { lookupCfm, cfmState, BR_UFS } from './cfm';
 
 // lookupCfm exige CONSULTA_CRM_KEY; sem ela retorna null sem chamar fetch.
 // (lida no momento da chamada → basta definir antes de chamar.)
@@ -61,5 +61,26 @@ describe('lookupCfm (consultaCRM)', () => {
     expect(await lookupCfm('116739', '')).toBeNull();
     expect(await lookupCfm('116739', 'SPX')).toBeNull();
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe('cfmState (situação do CFM em 3 estados)', () => {
+  it('Ativo → active', () => { expect(cfmState('Ativo')).toBe('active'); expect(cfmState('ATIVO')).toBe('active'); });
+  it('"Inativo" NÃO é ativo (regressão do /ativo/i do cadastro)', () => expect(cfmState('Inativo')).toBe('inactive'));
+  it('cancelado/cassado/suspenso/falecido → inactive', () => {
+    for (const s of ['Cancelado', 'Cassado', 'Suspenso', 'Falecido']) expect(cfmState(s)).toBe('inactive');
+  });
+  it('vazio ou desconhecido → unknown', () => {
+    expect(cfmState('')).toBe('unknown');
+    expect(cfmState(null)).toBe('unknown');
+    expect(cfmState('Regular')).toBe('unknown');
+  });
+});
+
+describe('BR_UFS', () => {
+  it('27 UFs; ZZ fora', () => {
+    expect(BR_UFS.size).toBe(27);
+    expect(BR_UFS.has('SP')).toBe(true);
+    expect(BR_UFS.has('ZZ')).toBe(false);
   });
 });
