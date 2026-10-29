@@ -365,6 +365,14 @@ describe('legacyApprovedNotice — aprovação em lote só mexe em quem ainda é
   it('nenhum alterado → aviso, não erro', () => {
     expect(legacyApprovedNotice(0, 2)).toContain('Nenhum médico foi alterado');
   });
+  // o servidor deixa DE FORA o legado com verificação em andamento/recusada (alerta na fila): o dono decide um a um
+  it('os que ficaram de fora são explicados (e não viram "já tinham mudado")', () => {
+    expect(legacyApprovedNotice(1, 3, 2)).toBe('1 médico antigo aprovado. 2 ficaram de fora: têm verificação em andamento ou recusada — decida esses um a um na fila acima.');
+    expect(legacyApprovedNotice(2, 3, 1)).toBe('2 médicos antigos aprovados. 1 ficou de fora: tem verificação em andamento ou recusada — decida esse um a um na fila acima.');
+    expect(legacyApprovedNotice(0, 2, 2)).toContain('2 ficaram de fora');
+    expect(legacyApprovedNotice(0, 2, 2)).not.toContain('Nenhum médico foi alterado');
+    expect(legacyApprovedNotice(1, 4, 2)).toContain('1 já tinha mudado de situação.'); // 4 pedidos − 1 aprovado − 2 de fora
+  });
 });
 
 // ═══════════════════════════ PARTE 2 — telas (SSR) ═══════════════════════════

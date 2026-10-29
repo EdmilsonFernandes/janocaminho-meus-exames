@@ -370,6 +370,68 @@ describe('syncVerification — hold do nome do documento com prazo (revisão fin
   });
 });
 
+// ---------------------------------------------------------------------------------------------
+// Re-revisão (M1): fraude confirmada pelo UaiID só valia na tentativa MAIS RECENTE ainda não decidida por humano e
+// nunca regredia um aprovado/legado — o médico seguia atendendo e recebendo, e o desbloqueio manual devolvia a prática.
+// ---------------------------------------------------------------------------------------------
+describe('syncVerification — fraude confirmada sempre bloqueia e força rejected (re-revisão M1)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    vi.mocked(getUaiidVerification).mockReset();
+    vi.mocked(sendEmail).mockClear();
+  });
+  const fraud = () => remote({ status: 'rejected', reasonCode: 'fraud_confirmed' });
+
+  it('médico APROVADO (tentativa decidida pelo dono) + fraude posterior → bloqueado e rejected, avisos uma única vez', async () => {
+    const { doctor, providerId } = await seed('approved');
+    await prisma.doctorVerification.update({ where: { providerId }, data: { decision: 'approved', decidedBy: 'admin-1' } });
+    vi.mocked(getUaiidVerification).mockResolvedValue(fraud());
+    await syncVerification(providerId, 'webhook');
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'rejected', blocked: true, blockedReason: 'kyc_fraud', verifiedBy: null });
+    expect(kycMails().sort()).toEqual(['Dr. Exame — fraude confirmada no KYC de médico', 'Sua verificação não foi aprovada — veja como resolver | Dr. Exame']);
+    await syncVerification(providerId, 'poll'); // re-sincronizar não reenvia
+    expect(kycMails()).toHaveLength(2);
+  });
+
+  it('LEGADO + fraude → bloqueado e rejected (antes seguia legacy e só o bloqueio o barrava)', async () => {
+    const { doctor, providerId } = await seed('legacy');
+    vi.mocked(getUaiidVerification).mockResolvedValue(fraud());
+    await syncVerification(providerId, 'webhook');
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'rejected', blocked: true, blockedReason: 'kyc_fraud' });
+  });
+
+  it('fraude em tentativa ANTIGA (há uma mais nova) também bloqueia', async () => {
+    const { doctor, providerId } = await seed('in_progress');
+    await prisma.doctorVerification.create({ data: { doctorId: doctor.id, crm: 'x', providerId: `${providerId}-new`, status: 'collecting', createdAt: new Date(Date.now() + 1000) } });
+    vi.mocked(getUaiidVerification).mockResolvedValue(fraud());
+    await syncVerification(providerId, 'poll');
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'rejected', blocked: true, blockedReason: 'kyc_fraud' });
+  });
+
+  it('já bloqueado por OUTRO motivo: força rejected mas não sobrescreve o motivo do bloqueio manual', async () => {
+    const { doctor, providerId } = await seed('approved');
+    await prisma.doctor.update({ where: { id: doctor.id }, data: { blocked: true, blockedReason: 'suspeita do suporte' } });
+    vi.mocked(getUaiidVerification).mockResolvedValue(fraud());
+    await syncVerification(providerId, 'webhook');
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'rejected', blocked: true, blockedReason: 'suspeita do suporte' });
+  });
+});
+
+describe('syncVerification — aprovação automática trava a identidade (re-revisão #5)', () => {
+  it('approved automático grava identityLockedAt (nome/CPF/CRM não mudam mais)', async () => {
+    await resetDb();
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 1 });
+    vi.mocked(getUaiidVerification).mockReset();
+    const { doctor, providerId } = await seed();
+    expect((await prisma.doctor.findUnique({ where: { id: doctor.id }, select: { identityLockedAt: true } }))?.identityLockedAt).toBeNull();
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote());
+    await syncVerification(providerId, 'webhook', { documentName: 'Maria Silva Souza' });
+    expect(await doctorRow(doctor.id)).toMatchObject({ verificationStatus: 'approved' });
+    expect((await prisma.doctor.findUnique({ where: { id: doctor.id }, select: { identityLockedAt: true } }))?.identityLockedAt).not.toBeNull();
+  });
+});
+
 describe('nextDoctorStatus — não regride (spec §1)', () => {
   it.each([
     // approved não muda por evento nenhum

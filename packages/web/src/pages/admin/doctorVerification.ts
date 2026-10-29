@@ -395,10 +395,18 @@ export function kycErrorMessage(
   }
 }
 
-/** Aviso depois do "Aprovar selecionados" (o servidor só mexe em quem ainda é `legacy`). */
-export function legacyApprovedNotice(approved: number, requested: number): string {
-  if (approved <= 0) return 'Nenhum médico foi alterado — a situação deles já tinha mudado. Atualizamos a lista.';
-  const base = `${approved} ${plural(approved, 'médico antigo aprovado', 'médicos antigos aprovados')}.`;
-  const rest = requested - approved;
-  return rest > 0 ? `${base} ${rest} ${plural(rest, 'já tinha', 'já tinham')} mudado de situação.` : base;
+/**
+ * Aviso depois do "Aprovar selecionados" (o servidor só mexe em quem ainda é `legacy`). `skipped` = os legados que o
+ * servidor deixou DE FORA por terem verificação em andamento ou recusada (alerta na fila): o dono decide um a um.
+ */
+export function legacyApprovedNotice(approved: number, requested: number, skipped = 0): string {
+  if (approved <= 0 && skipped <= 0) return 'Nenhum médico foi alterado — a situação deles já tinha mudado. Atualizamos a lista.';
+  const parts: string[] = [];
+  if (approved > 0) parts.push(`${approved} ${plural(approved, 'médico antigo aprovado', 'médicos antigos aprovados')}.`);
+  if (skipped > 0) {
+    parts.push(`${skipped} ${plural(skipped, 'ficou', 'ficaram')} de fora: ${plural(skipped, 'tem', 'têm')} verificação em andamento ou recusada — decida ${plural(skipped, 'esse', 'esses')} um a um na fila acima.`);
+  }
+  const rest = requested - approved - skipped;
+  if (rest > 0) parts.push(`${rest} ${plural(rest, 'já tinha', 'já tinham')} mudado de situação.`);
+  return parts.join(' ');
 }

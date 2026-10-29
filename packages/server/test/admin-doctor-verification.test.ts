@@ -189,19 +189,66 @@ describe('admin — KYC do médico (spec §3)', () => {
     expect(q.body.review).toHaveLength(0);
   });
 
-  it('aprovar legados em lote: marca verifiedBy legacy_bulk:<admin>, tira da fila a verificação aberta do lote e não toca em quem não é legado', async () => {
+  // Re-revisão (regressão do I2): o lote apagava da fila o alerta (ex.: name_mismatch = sinal de impostor) e, por a
+  // tentativa virar "decidida por humano", um veredito de fraude posterior do UaiID era ignorado.
+  it('aprovar legados em lote: só entra quem NÃO tem verificação em andamento nem recusada; os demais ficam de fora com a entrada INTACTA na fila', async () => {
     const admin = await createAdmin();
-    const leg = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
-    await queueAttempt(leg.doctor.id, 'v-bulk');
+    const limpo = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    const alerta = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await prisma.doctorVerification.create({ data: { doctorId: alerta.doctor.id, crm: 'x', providerId: 'v-alerta', status: 'approved', decision: 'needs_admin', reasonCode: 'name_mismatch' } });
+    const emRevisao = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await prisma.doctorVerification.create({ data: { doctorId: emRevisao.doctor.id, crm: 'x', providerId: 'v-uaiid', status: 'manual_review', decision: 'uaiid_review' } });
+    const recusado = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await prisma.doctorVerification.create({ data: { doctorId: recusado.doctor.id, crm: 'x', providerId: 'v-rej', status: 'rejected', decision: 'rejected', decidedBy: 'auto' } });
     const needs = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
     await queueAttempt(needs.doctor.id, 'v-needs');
-    const r = await api().post('/api/admin/doctors/verification/approve-legacy').set(authHeader(admin.token)).send({ ids: [leg.doctor.id, needs.doctor.id] });
-    expect(r.body).toMatchObject({ ok: true, approved: 1 });
-    expect(await kycRow(leg.doctor.id)).toMatchObject({ verificationStatus: 'approved', verifiedBy: `legacy_bulk:${admin.id}` });
-    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-bulk' } })).toMatchObject({ decision: 'approved', decidedBy: admin.id });
-    // quem NÃO era legado segue exatamente como estava — médico E tentativa na fila (senão ficaria preso)
+    const ids = [limpo, alerta, emRevisao, recusado, needs].map((x) => x.doctor.id);
+    const r = await api().post('/api/admin/doctors/verification/approve-legacy').set(authHeader(admin.token)).send({ ids });
+    expect(r.status).toBe(200);
+    expect(r.body.approved).toBe(1);
+    expect(r.body.skipped).toHaveLength(3);
+    expect(r.body.skipped).toEqual(expect.arrayContaining([
+      { id: alerta.doctor.id, reason: 'verificacao_em_andamento' },
+      { id: emRevisao.doctor.id, reason: 'verificacao_em_andamento' },
+      { id: recusado.doctor.id, reason: 'verificacao_recusada' },
+    ]));
+    expect(await kycRow(limpo.doctor.id)).toMatchObject({ verificationStatus: 'approved', verifiedBy: `legacy_bulk:${admin.id}` });
+    // quem ficou de fora segue legado e o alerta continua na fila, intacto (o dono decide um a um)
+    for (const d of [alerta, emRevisao, recusado]) expect((await kycRow(d.doctor.id))?.verificationStatus).toBe('legacy');
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-alerta' } })).toMatchObject({ decision: 'needs_admin', decidedBy: null });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-uaiid' } })).toMatchObject({ decision: 'uaiid_review', decidedBy: null });
+    // quem NÃO é legado nem é tocado — médico E tentativa na fila
     expect((await kycRow(needs.doctor.id))?.verificationStatus).toBe('needs_admin');
     expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-needs' } })).toMatchObject({ decision: 'needs_admin', decidedBy: null });
+  });
+
+  it('approve num médico JÁ aprovado NÃO carimba a revisão do UaiID (só as entradas needs_admin saem da fila)', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm() }); // approved
+    await prisma.doctorVerification.create({ data: { doctorId: doctor.id, crm: 'x', providerId: 'v-rev', status: 'manual_review', decision: 'uaiid_review' } });
+    await queueAttempt(doctor.id, 'v-na');
+    const r = await api().post(approveUrl(doctor.id)).set(authHeader(admin.token)).send({});
+    expect(r.body).toMatchObject({ ok: true, unchanged: true });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-rev' } })).toMatchObject({ decision: 'uaiid_review', decidedBy: null }); // o painel do UaiID decide
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-na' } })).toMatchObject({ decision: 'approved', decidedBy: admin.id });
+  });
+
+  it('aprovar tira da fila TODAS as entradas needs_admin do médico e trava a identidade; recusar decide tudo dele', async () => {
+    const admin = await createAdmin();
+    const a = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
+    await queueAttempt(a.doctor.id, 'v-old'); // mais antiga, também aberta
+    await new Promise((r) => setTimeout(r, 15));
+    await queueAttempt(a.doctor.id, 'v-new');
+    expect((await prisma.doctor.findUnique({ where: { id: a.doctor.id }, select: { identityLockedAt: true } }))?.identityLockedAt).toBeNull();
+    expect((await api().post(approveUrl(a.doctor.id)).set(authHeader(admin.token)).send({})).status).toBe(200);
+    for (const p of ['v-old', 'v-new']) expect(await prisma.doctorVerification.findUnique({ where: { providerId: p } }), p).toMatchObject({ decision: 'approved', decidedBy: admin.id });
+    expect((await prisma.doctor.findUnique({ where: { id: a.doctor.id }, select: { identityLockedAt: true } }))?.identityLockedAt).not.toBeNull(); // aprovação trava nome/CPF/CRM
+
+    const b = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
+    await queueAttempt(b.doctor.id, 'v-b1');
+    await prisma.doctorVerification.create({ data: { doctorId: b.doctor.id, crm: 'x', providerId: 'v-b2', status: 'manual_review', decision: 'uaiid_review' } });
+    expect((await api().post(rejectUrl(b.doctor.id)).set(authHeader(admin.token)).send({ reason: 'não é o titular' })).status).toBe(200);
+    for (const p of ['v-b1', 'v-b2']) expect(await prisma.doctorVerification.findUnique({ where: { providerId: p } }), p).toMatchObject({ decision: 'rejected', decidedBy: admin.id });
   });
 
   it('recusar é idempotente: 2º recusar → unchanged, um único e-mail (com o 1º motivo), sem 2º audit — e o motivo segue obrigatório antes', async () => {

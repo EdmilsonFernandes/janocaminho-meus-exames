@@ -94,13 +94,47 @@ export async function syncVerification(
         syncSource: source,
       },
     });
-    if (!attempt.doctorId || humanDecided || holdingForName) return { ok: true };
+    if (!attempt.doctorId) return { ok: true };
+
+    // Veredito de FRAUDE do UaiID vale para QUALQUER tentativa do médico — a mais recente ou não, decidida por humano
+    // ou não — e para QUALQUER status, inclusive approved/legacy: bloqueia E força `rejected` (re-revisão M1). Antes
+    // ele só valia na tentativa mais recente ainda não decidida por humano (e nunca regredia um aprovado): um
+    // aprovado/legado confirmado como fraude seguia atendendo e recebendo repasse, e o desbloqueio manual do dono
+    // devolvia a prática. Com o status `rejected`, desbloquear não basta: ele precisa verificar de novo.
+    if (d.fraud) {
+      const fdoc = await tx.doctor.findUnique({
+        where: { id: attempt.doctorId },
+        select: { id: true, name: true, email: true, crm: true, verificationStatus: true, blocked: true },
+      });
+      if (!fdoc) return { ok: true };
+      const needsAction = !fdoc.blocked || fdoc.verificationStatus !== 'rejected';
+      if (needsAction) {
+        await tx.doctor.update({
+          where: { id: fdoc.id },
+          data: {
+            verificationStatus: 'rejected', verifiedAt: null, verifiedBy: null,
+            ...(fdoc.blocked ? {} : { blocked: true, blockedAt: now, blockedReason: 'kyc_fraud' }), // não sobrescreve o motivo de um bloqueio manual
+          },
+        });
+      }
+      return {
+        ok: true,
+        doctorId: fdoc.id,
+        doctorStatus: 'rejected' as string,
+        transition: needsAction, // e-mails só na 1ª vez
+        fraudBlock: needsAction, decision: d.doctorStatus, reason: d.reason, next: 'rejected' as DoctorKycStatus | null,
+        doc: { id: fdoc.id, name: fdoc.name, email: fdoc.email, crm: fdoc.crm },
+        providerId, attemptStatus: d.attemptStatus,
+      };
+    }
+
+    if (humanDecided || holdingForName) return { ok: true };
 
     const latest = await tx.doctorVerification.findFirst({ where: { doctorId: attempt.doctorId }, orderBy: { createdAt: 'desc' }, select: { id: true } });
     if (latest?.id !== attempt.id) return { ok: true }; // tentativa antiga terminando atrasada
     const doc = await tx.doctor.findUnique({
       where: { id: attempt.doctorId },
-      select: { id: true, name: true, email: true, crm: true, verificationStatus: true, blocked: true },
+      select: { id: true, name: true, email: true, crm: true, verificationStatus: true, blocked: true, identityLockedAt: true },
     });
     if (!doc) return { ok: true };
 
@@ -108,19 +142,18 @@ export async function syncVerification(
     const data: Prisma.DoctorUpdateInput = {};
     if (next) {
       data.verificationStatus = next;
-      if (next === 'approved') { data.verifiedAt = now; data.verifiedBy = 'auto'; }
+      // aprovação trava a identidade (nome/CPF/CRM) — re-revisão #5, igual à aprovação manual do dono
+      if (next === 'approved') { data.verifiedAt = now; data.verifiedBy = 'auto'; if (!doc.identityLockedAt) data.identityLockedAt = now; }
     }
-    const fraudBlock = d.fraud && !doc.blocked;
-    if (fraudBlock) { data.blocked = true; data.blockedAt = now; data.blockedReason = 'kyc_fraud'; }
     if (Object.keys(data).length) await tx.doctor.update({ where: { id: doc.id }, data });
 
     return {
       ok: true,
       doctorId: doc.id,
-      doctorStatus: next ?? doc.verificationStatus,
+      doctorStatus: (next ?? doc.verificationStatus) as string,
       // E-mails só na TRANSIÇÃO (spec §5b): decisão lida DEPOIS do lock ≠ decisão nova.
-      transition: d.doctorStatus !== attempt.decision || fraudBlock,
-      fraudBlock, decision: d.doctorStatus, reason: d.reason, next,
+      transition: d.doctorStatus !== attempt.decision,
+      fraudBlock: false, decision: d.doctorStatus, reason: d.reason, next: next as DoctorKycStatus | null,
       doc: { id: doc.id, name: doc.name, email: doc.email, crm: doc.crm },
       providerId, attemptStatus: d.attemptStatus,
     };

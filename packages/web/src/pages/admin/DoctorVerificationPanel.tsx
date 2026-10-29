@@ -800,7 +800,7 @@ export const DoctorVerificationPanel = ({ onChanged }: { onChanged?: () => void 
     setConfirmLegacy(false);
     if (r.ok) {
       setSelected(new Set<string>());
-      ok(legacyApprovedNotice(Number(r.data?.approved) || 0, ids.length));
+      ok(legacyApprovedNotice(Number(r.data?.approved) || 0, ids.length, Array.isArray(r.data?.skipped) ? r.data.skipped.length : 0));
       await refreshAfter();
     } else {
       fail(kycErrorMessage(r.data?.code, { httpStatus: r.status }));
