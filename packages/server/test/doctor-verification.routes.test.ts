@@ -11,7 +11,9 @@ vi.mock('../src/utils/cfm', async (orig) => ({
 }));
 
 import { prisma } from '../src/prisma';
-import { api, authHeader, resetDb, createDoctor, mintToken } from './helpers';
+import { api, authHeader, resetDb, createDoctor, mintToken, testCpf } from './helpers';
+import { cpfFingerprint, formatCpf } from '../src/utils/cpf';
+import { decryptPII } from '../src/utils/crypto';
 import { createUaiidVerification, getUaiidVerification, UaiidError } from '../src/utils/uaiid';
 import { saveSettings } from '../src/utils/settings';
 import { sendEmail } from '../src/utils/mailer';
@@ -159,5 +161,110 @@ describe('/api/doctor/verification (spec §3)', () => {
     const r = await api().get('/api/doctor/verification').set(authHeader(token));
     expect(r.body).toMatchObject({ status: 'in_progress', attempt: { status: 'collecting' } });
     expect(vi.mocked(getUaiidVerification)).not.toHaveBeenCalled();
+  });
+});
+
+// Revisão final do KYC — I6a: a conta criada pelo convite (/api/public/doctor-invite/:token/register) nunca tem CPF e
+// nenhuma rota o gravava depois: POST /verification dava 400 CPF_REQUIRED para sempre ("cadastre seu CPF no perfil",
+// mas não existe esse campo). Agora o POST aceita { cpf } quando o médico ainda não tem CPF.
+describe('POST /api/doctor/verification com { cpf } — médico sem CPF (conta do convite)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    vi.mocked(createUaiidVerification).mockReset();
+    vi.mocked(getUaiidVerification).mockReset();
+  });
+
+  /** Médico no estado em que o convite o deixa: sem nenhum dado de CPF. */
+  async function semCpf(opts: { emailVerified?: boolean } = {}) {
+    const d = await createDoctor({ crm: crm(), verificationStatus: 'pending' });
+    await prisma.doctor.update({
+      where: { id: d.doctor.id },
+      data: { cpfEncrypted: null, cpfIv: null, cpfHash: null, cpfLast4: null, identityLockedAt: null, emailVerified: opts.emailVerified ?? true },
+    });
+    return d;
+  }
+  const row = (id: string) => prisma.doctor.findUniqueOrThrow({ where: { id } });
+
+  it('sem CPF + cpf válido → 201; guarda CRIPTOGRAFADO (nada em claro), trava a identidade e abre a sessão com ESSE CPF', async () => {
+    const { doctor, token } = await semCpf();
+    const cpf = testCpf();
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf1' });
+    const r = await post(token).send({ cpf: formatCpf(cpf) }); // com máscara: encryptedCpfData normaliza
+    expect(r.status).toBe(201);
+    expect(r.body).toMatchObject({ verifyUrl: created.verifyUrl, status: 'in_progress' });
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf }));
+
+    const saved = await row(doctor.id);
+    expect(saved.cpfEncrypted).toBeTruthy();
+    expect(saved.cpfEncrypted).not.toContain(cpf); // criptografado, nunca em claro
+    expect(JSON.stringify(saved)).not.toContain(cpf);
+    expect(decryptPII(saved.cpfEncrypted, saved.cpfIv)).toBe(cpf);
+    expect(saved.cpfHash).toBe(cpfFingerprint(cpf));
+    expect(saved.cpfLast4).toBe(cpf.slice(-4));
+    expect(saved.identityLockedAt).not.toBeNull(); // e-mail já verificado: espelha o registro
+    expect(JSON.stringify(r.body)).not.toContain(cpf); // nunca devolve o CPF
+    expect(saved.verificationStatus).toBe('in_progress');
+  });
+
+  it('e-mail ainda NÃO verificado → grava o CPF, mas não trava a identidade (o /verify-email trava depois)', async () => {
+    const { doctor, token } = await semCpf({ emailVerified: false });
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf2' });
+    expect((await post(token).send({ cpf: testCpf() })).status).toBe(201);
+    const saved = await row(doctor.id);
+    expect(saved.cpfHash).toBeTruthy();
+    expect(saved.identityLockedAt).toBeNull();
+  });
+
+  it('cpf inválido → 400 CPF_INVALID; nada gravado e o UaiID nem é chamado', async () => {
+    const { doctor, token } = await semCpf();
+    for (const cpf of ['111.111.111-11', '123', 'abc', '123.456.789-00']) { // repetido, curto, sem dígitos, dígito verificador errado
+      const r = await post(token).send({ cpf });
+      expect(r.status, `cpf=${cpf}`).toBe(400);
+      expect(r.body.code).toBe('CPF_INVALID');
+    }
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+    const saved = await row(doctor.id);
+    expect(saved).toMatchObject({ cpfEncrypted: null, cpfHash: null, cpfLast4: null });
+  });
+
+  it('CPF de OUTRO médico → 409 CPF_IN_USE; nada gravado, UaiID não chamado', async () => {
+    const dono = testCpf();
+    await createDoctor({ crm: crm(), cpf: dono });
+    const { doctor, token } = await semCpf();
+    const r = await post(token).send({ cpf: dono });
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'CPF_IN_USE', error: 'Este CPF já está cadastrado em outra conta. Fale com o suporte.' });
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+    expect(await row(doctor.id)).toMatchObject({ cpfEncrypted: null, cpfHash: null });
+  });
+
+  it('sem CPF em lugar nenhum (corpo vazio ou cpf em branco) → 400 CPF_REQUIRED', async () => {
+    const { token } = await semCpf();
+    for (const body of [{}, { cpf: '' }, { cpf: '   ' }, { cpf: null }]) {
+      const r = await post(token).send(body);
+      expect(r.status, JSON.stringify(body)).toBe(400);
+      expect(r.body.code).toBe('CPF_REQUIRED');
+    }
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+  });
+
+  it('médico que JÁ tem CPF ignora body.cpf (válido ou não): sessão com o CPF dele e banco intacto', async () => {
+    const meu = testCpf();
+    const { doctor, token } = await createDoctor({ crm: crm(), cpf: meu, verificationStatus: 'pending' });
+    const antes = await row(doctor.id);
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf3' });
+    const r = await post(token).send({ cpf: testCpf() });
+    expect(r.status).toBe(201);
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf: meu }));
+    const depois = await row(doctor.id);
+    expect(depois.cpfHash).toBe(antes.cpfHash);
+    expect(depois.cpfEncrypted).toBe(antes.cpfEncrypted);
+    expect(depois.cpfLast4).toBe(antes.cpfLast4);
+
+    vi.mocked(createUaiidVerification).mockClear();
+    await prisma.doctor.update({ where: { id: doctor.id }, data: { verificationStatus: 'rejected' } }); // pode tentar de novo
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf4' });
+    expect((await post(token).send({ cpf: 'lixo' })).status).toBe(201); // inválido também é ignorado (não vira CPF_INVALID)
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf: meu }));
   });
 });

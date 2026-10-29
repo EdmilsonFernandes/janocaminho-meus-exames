@@ -8,6 +8,7 @@ import { prisma } from '../prisma';
 import { type AuthedRequest } from '../middleware/auth';
 import { audit } from '../utils/audit';
 import { decryptPII } from '../utils/crypto';
+import { encryptedCpfData, parseCpf } from '../utils/cpf';
 import { lookupCfm } from '../utils/cfm';
 import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess';
 import { createUaiidVerification, UaiidError } from '../utils/uaiid';
@@ -70,12 +71,34 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     const now = new Date();
     const doc = await prisma.doctor.findUnique({
       where: { id: req.doctorId! },
-      select: { id: true, name: true, crm: true, crmUf: true, cpfEncrypted: true, cpfIv: true, verificationStatus: true },
+      select: { id: true, name: true, crm: true, crmUf: true, cpfEncrypted: true, cpfIv: true, cpfHash: true, emailVerified: true, identityLockedAt: true, verificationStatus: true },
     });
     if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
     if (!STARTABLE.includes(doc.verificationStatus)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
-    const cpf = decryptPII(doc.cpfEncrypted, doc.cpfIv);
+    let cpf = decryptPII(doc.cpfEncrypted, doc.cpfIv);
+    // Conta do convite (/api/public/doctor-invite/:token/register) nasce SEM CPF e nenhuma outra rota o grava depois: o
+    // médico informa aqui, uma vez (revisão final I6a). Quem já tem CPF (cadastro normal) ignora body.cpf — a identidade
+    // não troca por esta rota. O CPF só viaja criptografado (nunca em log, resposta ou tabela de KYC).
+    let cpfCaptured = false;
+    if (!cpf && !doc.cpfHash && !doc.cpfEncrypted) {
+      const sent = req.body?.cpf == null ? '' : String(req.body.cpf).trim();
+      if (sent) {
+        const cpfData = encryptedCpfData(sent);
+        if (!cpfData) { res.status(400).json({ code: 'CPF_INVALID', error: 'CPF inválido.' }); return; }
+        const inUse = { code: 'CPF_IN_USE', error: 'Este CPF já está cadastrado em outra conta. Fale com o suporte.' };
+        if (await prisma.doctor.findFirst({ where: { cpfHash: cpfData.cpfHash, NOT: { id: doc.id } }, select: { id: true } })) { res.status(409).json(inUse); return; }
+        try {
+          // e-mail já verificado + CPF = identidade travada (espelha o cadastro / o /verify-email)
+          await prisma.doctor.update({ where: { id: doc.id }, data: { ...cpfData, ...(doc.emailVerified && !doc.identityLockedAt ? { identityLockedAt: now } : {}) } });
+        } catch (e) {
+          if ((e as { code?: string })?.code === 'P2002') { res.status(409).json(inUse); return; } // corrida: outro médico gravou o mesmo CPF
+          throw e;
+        }
+        cpf = parseCpf(sent);
+        cpfCaptured = true;
+      }
+    }
     if (!cpf) { res.status(400).json({ code: 'CPF_REQUIRED', error: 'Cadastre seu CPF no perfil antes de verificar a identidade.' }); return; }
 
     // Nome do CFM declarado ao UaiID (o crosscheck dele compara com o documento). Reusa o snapshot
@@ -107,7 +130,7 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (doc.verificationStatus === 'pending' || doc.verificationStatus === 'rejected') {
       await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'in_progress' } });
     }
-    void audit('DOCTOR_KYC_STARTED', req, { actorType: 'DOCTOR', actorId: doc.id, targetType: 'DOCTOR', targetId: doc.id, after: { providerId: created.verificationId, reused: created.reused } });
+    void audit('DOCTOR_KYC_STARTED', req, { actorType: 'DOCTOR', actorId: doc.id, targetType: 'DOCTOR', targetId: doc.id, after: { providerId: created.verificationId, reused: created.reused, cpfCaptured } });
     res.status(201).json({ verifyUrl: created.verifyUrl, expiresAt: created.expiresAt, status: doc.verificationStatus === 'legacy' ? 'legacy' : 'in_progress' });
   } catch (e) {
     if (e instanceof UaiidError) {
