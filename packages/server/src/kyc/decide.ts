@@ -12,9 +12,13 @@ export const NON_FINAL_ATTEMPT: readonly string[] = ['created', 'consent_pending
 
 const PARTICLES = new Set(['DE', 'DA', 'DO', 'DAS', 'DOS', 'E']);
 
-/** Nome canônico p/ comparação ESTRITA: sem pontuação, maiúsculas, sem acento, sem partículas. */
+/**
+ * Nome canônico p/ comparação ESTRITA: sem pontuação, maiúsculas, sem acento, sem partículas.
+ * Normaliza p/ NFC ANTES de tirar o que não é letra: acento decomposto (NFD) é uma marca combinante
+ * (\p{M}) que viraria espaço e partiria a palavra. Nome sem letras (vazio/só partículas) dá '' — e '' nunca casa.
+ */
 export function strictName(s: string | null | undefined): string {
-  return normalizeKey(String(s ?? '').replace(/[^\p{L}\s]/gu, ' '))
+  return normalizeKey(String(s ?? '').normalize('NFC').replace(/[^\p{L}\s]/gu, ' '))
     .split(' ')
     .filter((w) => w && !PARTICLES.has(w))
     .join(' ');
@@ -44,7 +48,9 @@ const out = (attemptStatus: string, doctorStatus: DoctorKycStatus, final: boolea
 export function decideDoctorVerification(i: DecisionInput): Decision {
   const st = i.remote.status;
   if (NON_FINAL_ATTEMPT.includes(st)) {
-    if (i.expiresAt && i.expiresAt.getTime() < i.now.getTime()) return out('expired', 'pending', true, 'expired');
+    // 'processing' = documentos já enviados ao UaiID: o TTL do link não vale mais, segue esperando
+    // (o backstop de 7 dias fica no job). Os demais não finais expiram junto com o link.
+    if (st !== 'processing' && i.expiresAt && i.expiresAt.getTime() < i.now.getTime()) return out('expired', 'pending', true, 'expired');
     return out(st, 'in_progress', false);
   }
   if (st === 'manual_review') return out(st, 'uaiid_review', false, i.remote.reasonCode);
@@ -56,9 +62,14 @@ export function decideDoctorVerification(i: DecisionInput): Decision {
   if (!i.cfm) return out(st, 'needs_admin', true, 'cfm_unavailable');
   const state = cfmState(i.cfm.situation);
   if (state === 'inactive') return out(st, 'rejected', true, 'crm_inactive');
+  const cfmName = strictName(i.cfm.name);
   let nameMatch: boolean | null = null;
-  if (i.documentName) nameMatch = strictName(i.documentName) === strictName(i.cfm.name);
-  else if (i.remote.nameRatio !== null) nameMatch = i.remote.nameRatio >= 0.999; // declarado ao UaiID = nome do CFM
+  if (i.documentName) {
+    const docName = strictName(i.documentName);
+    nameMatch = docName !== '' && docName === cfmName; // nome sem letras (vazio/só partículas) nunca casa
+  } else if (typeof i.remote.nameRatio === 'number') {
+    nameMatch = cfmName !== '' && i.remote.nameRatio >= 0.999; // declarado ao UaiID = nome do CFM (que precisa ter letras)
+  }
   if (nameMatch === null) return out(st, 'needs_admin', true, 'document_name_unavailable');
   if (!nameMatch) return out(st, 'needs_admin', true, 'name_mismatch', false);
   if (state === 'unknown') return out(st, 'needs_admin', true, 'cfm_situation_unknown', true);

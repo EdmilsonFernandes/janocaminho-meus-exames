@@ -65,15 +65,17 @@ export const BR_UFS: ReadonlySet<string> = new Set([
   'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
 ]);
 
-/** Situação do CFM em 3 estados. `/ativo/i` casava "Inativo" (bug do cadastro) — aqui é exato. */
+/**
+ * Situação do CFM em 3 estados. O `/ativo/i` do cadastro casava "Inativo" (bug). Aqui só a palavra
+ * "Ativo"/"Ativa" SOZINHA é `active`; "Ativo - …" / "Ativo (…)" (qualificado) é `unknown` — o dono decide.
+ * Termos de inatividade (inativo, cancelamento, cassação, suspensão, falecimento, interdição,
+ * aposentadoria, transferência, baixa — verbo ou substantivo) são `inactive`; o resto é `unknown`.
+ */
 export type CfmState = 'active' | 'inactive' | 'unknown';
 export function cfmState(situation: string | null | undefined): CfmState {
-  const s = normalizeKey(String(situation ?? ''));
+  const s = normalizeKey(String(situation ?? '')).trim();
   if (!s) return 'unknown';
-  const active = /^ATIV[OA]\b/.test(s);
-  const inactive = /INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s);
-  if (active && inactive) return 'unknown'; // ambíguo (ex.: "Ativo - Aposentado") → o dono decide
-  if (active) return 'active';
-  if (inactive) return 'inactive';
-  return 'unknown';
+  if (/^ATIV[OA]$/.test(s)) return 'active';
+  if (/^ATIV[OA]\b/.test(s)) return 'unknown'; // "Ativo - …" / "Ativo (…)": qualificado/ambíguo → o dono decide
+  return /INATIV|CANCELA|CASSA[CD]|SUSPEN|FALEC|INTERDI|APOSENT|TRANSFER|BAIXA/.test(s) ? 'inactive' : 'unknown';
 }

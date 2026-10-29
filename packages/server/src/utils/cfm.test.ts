@@ -76,10 +76,25 @@ describe('cfmState (situação do CFM em 3 estados)', () => {
     expect(cfmState('Regular')).toBe('unknown');
   });
   it('ambíguo (ativo + termo de inatividade) → unknown, nunca active', () => { expect(cfmState('Ativo - Aposentado')).toBe('unknown'); });
+  it('só a palavra "Ativo"/"Ativa" sozinha é active (caixa e espaços nas pontas não importam)', () => {
+    for (const s of ['Ativa', 'ATIVA', 'ativo', ' Ativo ']) expect(cfmState(s), s).toBe('active');
+  });
+  it('"Ativo" qualificado ("Ativo - …", "Ativo (…)") → unknown, nunca active', () => {
+    for (const s of ['Ativo - Cassação', 'Ativo - Licenciado', 'Ativo (Provisório)']) expect(cfmState(s), s).toBe('unknown');
+  });
+  it('substantivos de inatividade (Cassação, Cancelamento, Falecimento…) → inactive', () => {
+    for (const s of ['Cassação', 'Cancelamento', 'Falecimento', 'Interdição cautelar', 'Transferência', 'Suspensão', 'Baixa', 'Aposentadoria']) {
+      expect(cfmState(s), s).toBe('inactive');
+    }
+  });
 });
 
 describe('BR_UFS', () => {
-  it('27 UFs; ZZ fora', () => {
+  it('as 27 UFs exatas (lista ordenada); ZZ fora', () => {
+    expect([...BR_UFS].sort()).toEqual([
+      'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB',
+      'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO',
+    ]);
     expect(BR_UFS.size).toBe(27);
     expect(BR_UFS.has('SP')).toBe(true);
     expect(BR_UFS.has('ZZ')).toBe(false);
