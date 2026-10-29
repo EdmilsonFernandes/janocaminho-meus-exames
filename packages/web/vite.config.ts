@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 
@@ -18,13 +19,19 @@ const capCoreDir = path.dirname(require.resolve('@capacitor/core/package.json'))
 // Em dev, base padrão '/' (localhost:5173).
 export default defineConfig({
   base: process.env.VITE_BASE ?? '/',
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     port: 5173,
     host: true,
   },
   resolve: {
+    // Uma única cópia de React no bundle dev — sem isto, a re-otimização dos deps
+    // novos (Base UI etc.) serve react-dom sob hashes diferentes e o app quebra
+    // com "Invalid hook call / more than one copy of React".
+    dedupe: ['react', 'react-dom'],
     alias: {
+      // Alias "@" → src (padrão shadcn/ReUI — usado pelos componentes da ilha doctor-v2).
+      '@': path.resolve(__dirname, 'src'),
       // Cobre tanto `import "@capacitor/core"` quanto `@capacitor/core/sub` (alias de string
       // do vite casa o prefixo em boundary).
       '@capacitor/core': capCoreDir,
