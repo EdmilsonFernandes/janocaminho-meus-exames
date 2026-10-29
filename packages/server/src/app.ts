@@ -13,7 +13,7 @@ import { lookupCfm, cfmState, BR_UFS } from './utils/cfm';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
-import { requirePhotoToken } from './middleware/auth';
+import { requirePatientPhotoToken } from './middleware/auth';
 import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { interpolateTemplate } from './utils/template';
@@ -330,8 +330,10 @@ app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVe
 
 app.use('/api/auth', authRoutes);
 // Foto do paciente: AUTENTICADA via ?t= (token na query — <img src> não envia header). Antes era
-// pública por CUID (LGPD facial). requirePhotoToken aceita ?t= ou header; leve (sem DB por avatar).
-app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
+// pública por CUID (LGPD facial). requirePatientPhotoToken aceita ?t= ou header; token de paciente = só a
+// assinatura do JWT (leve, sem DB por avatar); token de MÉDICO passa pelo gate KYC + exige vínculo com o
+// paciente (revisão final, I8).
+app.get('/api/patients/:id/photo', requirePatientPhotoToken, async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
