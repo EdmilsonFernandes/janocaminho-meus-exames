@@ -30,7 +30,28 @@ const STARTABLE = ['pending', 'in_progress', 'rejected', 'legacy'];
 /** Teto de sessões KYC abertas por médico em 24 h (revisão final I5): cada sessão criada é COBRADA pelo UaiID. */
 const MAX_ATTEMPTS_PER_DAY = 5;
 const ATTEMPT_WINDOW_MS = 24 * 3_600_000;
-const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expiresAt: true, lastSyncedAt: true } as const;
+// `decision` só decide se a tentativa foi SEGURADA (final no UaiID, decisão ainda não gravada); nunca sai na resposta.
+const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expiresAt: true, lastSyncedAt: true, decision: true } as const;
+/** Documentos já enviados ao UaiID (a captura acabou; falta o resultado/revisão): nova sessão aqui órfã o resultado. */
+const IN_FLIGHT_ATTEMPT = ['processing', 'manual_review'];
+/** O snapshot do nome/situação do CFM (declarado ao UaiID) só é reaproveitado até esta idade; depois refaz o lookup. */
+const CFM_SNAPSHOT_MAX_AGE_MS = 30 * 86_400_000;
+/** Reconciliação on-demand do GET: só se parada há mais que isto — e, se falhou, não repete antes disto (M3). */
+const ON_DEMAND_RETRY_MS = 60_000;
+
+/**
+ * M3 (revisão final): com o UaiID fora do ar o `lastSyncedAt` nunca avança, e o portal consulta GET /verification a cada
+ * ~5 s — cada consulta virava uma chamada BLOQUEANTE de até 8 s ao UaiID. providerId → quando o on-demand FALHOU; não se
+ * repete o on-demand desse providerId por 60 s. Em memória do processo (perder no restart = 1 chamada a mais, sem dano).
+ */
+const onDemandFailedAt = new Map<string, number>();
+export function resetKycOnDemandBackoffForTests(): void { onDemandFailedAt.clear(); }
+function rememberOnDemandFailure(providerId: string, nowMs: number): void {
+  onDemandFailedAt.set(providerId, nowMs);
+  if (onDemandFailedAt.size > 500) { // poda: marcas vencidas já não seguram nada
+    for (const [id, at] of onDemandFailedAt) if (nowMs - at >= ON_DEMAND_RETRY_MS) onDemandFailedAt.delete(id);
+  }
+}
 
 /**
  * O UaiID recusar CRIAR sessão por motivo de CONTA (401 chave, 402 empresa suspensa / limite de gasto / trial
@@ -79,6 +100,11 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
     if (!STARTABLE.includes(doc.verificationStatus)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
+    // M7: a última tentativa já enviou os documentos (processing) ou está na revisão do UaiID (manual_review) -> 409 IN_REVIEW.
+    // Abrir outra sessão agora órfã o resultado em andamento e queima o orçamento de tentativas (o UaiID não reaproveita
+    // uma sessão que já saiu da captura).
+    const last = await prisma.doctorVerification.findFirst({ where: { doctorId: doc.id }, orderBy: { createdAt: 'desc' }, select: { status: true, createdAt: true, cfmName: true, cfmSituation: true } });
+    if (last && IN_FLIGHT_ATTEMPT.includes(last.status)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
     // Teto por médico (I5): ≥5 sessões nas últimas 24 h -> 429 no mesmo formato que o portal já trata. retryAfterHours =
     // quando a MAIS ANTIGA da janela sai (mínimo 1). Roda antes de qualquer I/O externo (CFM/UaiID) e da captura do CPF.
     const recent = await prisma.doctorVerification.findMany({
@@ -116,11 +142,12 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (!cpf) { res.status(400).json({ code: 'CPF_REQUIRED', error: 'Cadastre seu CPF no perfil antes de verificar a identidade.' }); return; }
 
     // Nome do CFM declarado ao UaiID (o crosscheck dele compara com o documento). Reusa o snapshot
-    // da tentativa anterior p/ não gastar a cota do consultaCRM (100/mês).
-    const last = await prisma.doctorVerification.findFirst({ where: { doctorId: doc.id }, orderBy: { createdAt: 'desc' }, select: { cfmName: true, cfmSituation: true } });
+    // da tentativa anterior p/ não gastar a cota do consultaCRM (100/mês) — M8: só se for recente (≤30 dias); um retry
+    // meses depois herdaria o "Ativo"/nome antigo (CRM cassado, nome retificado) em vez do CFM de hoje.
     const attempts = await prisma.doctorVerification.count({ where: { doctorId: doc.id } });
-    let cfmName = last?.cfmName ?? null;
-    let cfmSituation = last?.cfmSituation ?? null;
+    const snapshotFresh = !!last?.cfmName && now.getTime() - last.createdAt.getTime() <= CFM_SNAPSHOT_MAX_AGE_MS;
+    let cfmName = snapshotFresh ? last!.cfmName : null;
+    let cfmSituation = snapshotFresh ? last!.cfmSituation : null;
     // crmUf pode estar nulo em cadastro antigo/de teste ("12345-SP" sem UF separada) → UF do sufixo da chave.
     const uf = doc.crmUf ?? doc.crm.match(/-([A-Za-z]{2})$/)?.[1]?.toUpperCase() ?? null;
     if (!cfmName && uf) {
@@ -167,9 +194,19 @@ router.get('/verification', requireKycDoctor, async (req: KycRequest, res, next)
     const now = new Date();
     const latest = () => prisma.doctorVerification.findFirst({ where: { doctorId: req.doctorId! }, orderBy: { createdAt: 'desc' }, select: ATTEMPT_SELECT });
     let attempt = await latest();
-    if (attempt && OPEN_STATUSES.includes(attempt.status) && (!attempt.lastSyncedAt || now.getTime() - attempt.lastSyncedAt.getTime() > 60_000)) {
-      await syncVerification(attempt.providerId, 'on_demand', { now });
-      attempt = await latest();
+    // Reconcilia na hora: tentativa ABERTA no UaiID, ou SEGURADA (final no UaiID — approved/rejected — mas sem decisão
+    // gravada: identidade OK esperando o nome do documento; sem isto ela só sairia pelo job de 10 min). Sempre sujeita
+    // à regra de "parada há >60 s" e, se o UaiID estiver fora, ao backoff de 60 s por providerId (M3).
+    const needsSync = (a: NonNullable<typeof attempt>) =>
+      OPEN_STATUSES.includes(a.status) || (a.decision === null && ['approved', 'rejected'].includes(a.status));
+    if (attempt && needsSync(attempt) && (!attempt.lastSyncedAt || now.getTime() - attempt.lastSyncedAt.getTime() > ON_DEMAND_RETRY_MS)) {
+      const failedAt = onDemandFailedAt.get(attempt.providerId);
+      if (failedAt === undefined || now.getTime() - failedAt >= ON_DEMAND_RETRY_MS) {
+        const synced = await syncVerification(attempt.providerId, 'on_demand', { now });
+        if (synced.ok) onDemandFailedAt.delete(attempt.providerId);
+        else rememberOnDemandFailure(attempt.providerId, now.getTime()); // UaiID fora: não repete o on-demand por 60 s
+        attempt = await latest();
+      }
     }
     const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId! }, select: { verificationStatus: true } });
     const status = doc?.verificationStatus ?? 'pending';

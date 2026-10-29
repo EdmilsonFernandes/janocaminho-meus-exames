@@ -17,7 +17,8 @@ import { decryptPII } from '../src/utils/crypto';
 import { createUaiidVerification, getUaiidVerification, UaiidError } from '../src/utils/uaiid';
 import { saveSettings } from '../src/utils/settings';
 import { sendEmail } from '../src/utils/mailer';
-import { resetUaiidAlertThrottleForTests } from '../src/routes/doctor-verification.routes';
+import { lookupCfm } from '../src/utils/cfm';
+import { resetUaiidAlertThrottleForTests, resetKycOnDemandBackoffForTests } from '../src/routes/doctor-verification.routes';
 
 const alerts = () => vi.mocked(sendEmail).mock.calls.map(([m]) => m).filter((m) => m.subject.includes('UaiID recusou'));
 const settle = () => new Promise((r) => setTimeout(r, 60));
@@ -30,6 +31,7 @@ const post = (token: string) => api().post('/api/doctor/verification').set(authH
 describe('/api/doctor/verification (spec §3)', () => {
   beforeEach(async () => {
     await resetDb();
+    resetKycOnDemandBackoffForTests();
     vi.mocked(createUaiidVerification).mockReset();
     vi.mocked(getUaiidVerification).mockReset();
   });
@@ -266,5 +268,136 @@ describe('POST /api/doctor/verification com { cpf } — médico sem CPF (conta d
     vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf4' });
     expect((await post(token).send({ cpf: 'lixo' })).status).toBe(201); // inválido também é ignorado (não vira CPF_INVALID)
     expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf: meu }));
+  });
+});
+
+// Revisão final do KYC — M3/M7/M8 (e a tentativa SEGURADA, addendum do controlador).
+describe('GET /api/doctor/verification — UaiID fora do ar não vira chamada bloqueante a cada consulta (M3)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    resetKycOnDemandBackoffForTests();
+    vi.mocked(createUaiidVerification).mockReset();
+    vi.mocked(getUaiidVerification).mockReset();
+  });
+  const get = (token: string) => api().get('/api/doctor/verification').set(authHeader(token));
+  const stale = (doctorId: string, providerId: string, extra: Record<string, unknown> = {}) => prisma.doctorVerification.create({
+    data: { doctorId, crm: '5-SP', providerId, status: 'collecting', cfmName: 'DRA MARIA SOUZA', cfmSituation: 'Ativo', lastSyncedAt: new Date(Date.now() - 120_000), ...extra } as any,
+  });
+
+  it('on-demand que falhou (UaiID fora) não se repete por 60 s por providerId; passado esse tempo tenta de novo', async () => {
+    const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    await stale(doctor.id, 'v-m3');
+    vi.mocked(getUaiidVerification).mockResolvedValue(null); // UaiID fora
+
+    const first = await get(token);
+    expect(first.status).toBe(200);
+    expect(first.body).toMatchObject({ status: 'in_progress', attempt: { status: 'collecting' } }); // segue respondendo com o último estado
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(1);
+    for (let i = 0; i < 4; i++) expect((await get(token)).status).toBe(200); // o portal consulta a cada ~5 s
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(1); // nenhuma nova chamada bloqueante ao UaiID
+
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date(Date.now() + 61_000)); // passou a janela de 60 s
+      expect((await get(token)).status).toBe(200);
+    } finally { vi.useRealTimers(); }
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(2);
+  });
+
+  it('a falha de um providerId não segura o on-demand de outro médico', async () => {
+    const a = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    const b = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    await stale(a.doctor.id, 'v-m3-a');
+    await stale(b.doctor.id, 'v-m3-b');
+    vi.mocked(getUaiidVerification).mockResolvedValue(null);
+    await get(a.token);
+    await get(a.token);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(1);
+    await get(b.token);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenLastCalledWith('v-m3-b');
+  });
+
+  // Addendum: tentativa SEGURADA = final no UaiID (approved/rejected) mas sem decisão gravada (identidade OK, esperando o
+  // nome do documento que só o webhook traz). A espera tem prazo (10 min após a conclusão); o GET reconcilia na hora em
+  // vez de esperar o job.
+  it('tentativa SEGURADA parada há >60 s: o GET reconcilia na hora; com a espera vencida (>10 min) o médico vai p/ needs_admin', async () => {
+    const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    const concluida = new Date(Date.now() - 11 * 60_000);
+    await stale(doctor.id, 'v-held', { status: 'approved', decision: null, completedAt: concluida });
+    vi.mocked(getUaiidVerification).mockResolvedValue({ id: 'v-held', status: 'approved', reasonCode: null, score: 900, nameRatio: null, cpfSituacao: 'REGULAR', externalReference: doctor.id, completedAt: concluida });
+    const r = await get(token);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledWith('v-held');
+    expect(r.status).toBe(200);
+    expect(r.body.status).toBe('needs_admin'); // espera vencida => o caso vai ao dono
+    expect(r.body.attempt).toMatchObject({ status: 'approved', reasonCode: 'document_name_unavailable' });
+    expect(JSON.stringify(r.body)).not.toContain('decision'); // a decisão interna não vaza
+    expect((await prisma.doctorVerification.findUniqueOrThrow({ where: { providerId: 'v-held' } })).decision).toBe('needs_admin');
+  });
+
+  it('tentativa SEGURADA com a espera ainda fresca: reconcilia, mas segue in_progress; tentativa final JÁ decidida não é reconciliada', async () => {
+    const a = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    const fresca = new Date(Date.now() - 60_000);
+    await stale(a.doctor.id, 'v-held2', { status: 'approved', decision: null, completedAt: fresca });
+    vi.mocked(getUaiidVerification).mockResolvedValue({ id: 'v-held2', status: 'approved', reasonCode: null, score: 900, nameRatio: null, cpfSituacao: 'REGULAR', externalReference: a.doctor.id, completedAt: fresca });
+    const r = await get(a.token);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(1);
+    expect(r.body.status).toBe('in_progress'); // ainda segurando o nome do documento
+    expect((await prisma.doctorVerification.findUniqueOrThrow({ where: { providerId: 'v-held2' } })).decision).toBeNull();
+
+    const b = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
+    await stale(b.doctor.id, 'v-decided', { status: 'approved', decision: 'needs_admin', completedAt: new Date(Date.now() - 3_600_000) });
+    vi.mocked(getUaiidVerification).mockClear();
+    expect((await get(b.token)).status).toBe(200);
+    expect(vi.mocked(getUaiidVerification)).not.toHaveBeenCalled(); // decisão gravada: nada a reconciliar
+  });
+});
+
+describe('POST /api/doctor/verification — M7 (sem sessão paralela) e M8 (snapshot do CFM com idade máxima)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    resetKycOnDemandBackoffForTests();
+    vi.mocked(createUaiidVerification).mockReset();
+    vi.mocked(getUaiidVerification).mockReset();
+  });
+  const attempt = (doctorId: string, providerId: string, status: string, extra: Record<string, unknown> = {}) => prisma.doctorVerification.create({
+    data: { doctorId, crm: '5-SP', providerId, status, lastSyncedAt: new Date(), ...extra } as any,
+  });
+
+  it.each(['processing', 'manual_review'])('última tentativa %s → 409 IN_REVIEW com o status do médico; nada é criado no UaiID', async (status) => {
+    const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    await attempt(doctor.id, `v-m7-${status}`, status);
+    const r = await post(token);
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'IN_REVIEW', status: 'in_progress' });
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+    expect(await prisma.doctorVerification.count({ where: { doctorId: doctor.id } })).toBe(1);
+  });
+
+  it('só a ÚLTIMA tentativa conta, e captura em andamento (collecting) ainda deixa reabrir/reaproveitar a sessão', async () => {
+    const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    await attempt(doctor.id, 'v-old', 'processing', { createdAt: new Date(Date.now() - 3 * 3_600_000) }); // antiga, já superada
+    await attempt(doctor.id, 'v-new', 'collecting', { createdAt: new Date(Date.now() - 60_000) });
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-new', reused: true });
+    expect((await post(token)).status).toBe(201);
+  });
+
+  it('M8: snapshot do CFM com ≤30 dias é reaproveitado (sem gastar o consultaCRM); com >30 dias refaz o lookup', async () => {
+    const recent = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
+    await attempt(recent.doctor.id, 'v-snap-new', 'rejected', { cfmName: 'NOME DE 10 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 10 * 86_400_000) });
+    vi.mocked(lookupCfm).mockClear();
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-m8-a' });
+    expect((await post(recent.token)).status).toBe(201);
+    expect(vi.mocked(lookupCfm)).not.toHaveBeenCalled();
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenLastCalledWith(expect.objectContaining({ fullName: 'NOME DE 10 DIAS' }));
+
+    const old = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
+    await attempt(old.doctor.id, 'v-snap-old', 'rejected', { cfmName: 'NOME DE 40 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 40 * 86_400_000) });
+    vi.mocked(lookupCfm).mockClear();
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-m8-b' });
+    expect((await post(old.token)).status).toBe(201);
+    expect(vi.mocked(lookupCfm)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenLastCalledWith(expect.objectContaining({ fullName: 'DRA MARIA SOUZA' })); // o CFM de hoje
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-m8-b' } })).toMatchObject({ cfmName: 'DRA MARIA SOUZA', cfmSituation: 'Ativo' });
   });
 });
