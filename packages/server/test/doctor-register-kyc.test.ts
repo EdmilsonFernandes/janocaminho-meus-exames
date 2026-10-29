@@ -9,6 +9,7 @@ import { prisma } from '../src/prisma';
 import { api, authHeader, resetDb, createDoctor, createUser, createPatient, testCpf } from './helpers';
 import { lookupCfm } from '../src/utils/cfm';
 import { sendEmail } from '../src/utils/mailer';
+import { resetCrmConflictAlertThrottleForTests } from '../src/routes/doctor.routes';
 
 let n = 0;
 const mail = () => `kyc-reg-${n++}-${Date.now().toString(36)}@exemplo.com`;
@@ -27,6 +28,7 @@ async function invite() {
 describe('cadastro de médico + convite (spec §7, AUD-003)', () => {
   beforeEach(async () => {
     await resetDb();
+    resetCrmConflictAlertThrottleForTests();
     vi.mocked(lookupCfm).mockReset();
     vi.mocked(lookupCfm).mockResolvedValue(null);
     vi.mocked(sendEmail).mockClear();
@@ -243,5 +245,51 @@ describe('cadastro principal: CRM canônico "numero-UF" (I7)', () => {
     expect(d).toMatchObject({ crm: '34567-SP', verificationStatus: 'pending' });
     expect(d.passwordHash).not.toBe('pending-invite');
     expect(await prisma.doctor.count()).toBe(1);
+  });
+});
+
+// Revisão final do KYC — M10: cada cadastro conflitante mandava e-mail ao dono + linha de audit, sem limite (120/min/IP):
+// dava p/ esgotar a cota do SMTP e quebrar os e-mails de OTP. O E-MAIL agora é no máximo 1 por hora por chave de CRM; a
+// linha de audit continua em TODOS os conflitos.
+describe('alerta ao dono de CRM disputado: 1 e-mail/hora por CRM (M10)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    resetCrmConflictAlertThrottleForTests();
+    vi.mocked(lookupCfm).mockReset();
+    vi.mocked(lookupCfm).mockResolvedValue(null);
+    vi.mocked(sendEmail).mockClear();
+  });
+  const disputeMails = () => vi.mocked(sendEmail).mock.calls.map(([m]) => m).filter((m) => m.subject.includes('CRM disputado'));
+  const conflictAudits = () => prisma.auditLog.count({ where: { action: 'DOCTOR_CRM_CONFLICT' } });
+  const settle = () => new Promise((r) => setTimeout(r, 150));
+
+  it('vários cadastros conflitantes no mesmo CRM: todos 409 + audit, mas 1 e-mail; outro CRM tem o seu; passada 1 h, alerta de novo', async () => {
+    await createDoctor({ crm: '23456-SP', verificationStatus: 'pending' });
+    await createDoctor({ crm: '45678-SP', verificationStatus: 'pending' });
+    vi.mocked(sendEmail).mockClear(); // o createDoctor também manda e-mails (OTP)
+
+    for (let i = 0; i < 4; i++) {
+      const r = await register({ crm: '23456', crmUf: 'SP' });
+      expect(r.status).toBe(409);
+      expect(r.body.code).toBe('CRM_IN_USE_UNVERIFIED'); // o cadastrante sempre recebe a resposta
+    }
+    await vi.waitFor(async () => expect(await conflictAudits()).toBe(4)); // audit em TODOS
+    await vi.waitFor(() => expect(disputeMails()).toHaveLength(1));
+    await settle();
+    expect(disputeMails()).toHaveLength(1); // e só 1 e-mail ao dono
+
+    expect((await register({ crm: '45678', crmUf: 'SP' })).status).toBe(409); // outro CRM: janela própria
+    await vi.waitFor(() => expect(disputeMails()).toHaveLength(2));
+
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      vi.setSystemTime(new Date(Date.now() + 61 * 60_000)); // passou 1 h
+      expect((await register({ crm: '23456', crmUf: 'SP' })).status).toBe(409);
+      await settle();
+      expect(disputeMails()).toHaveLength(3); // janela venceu → alerta de novo
+      expect((await register({ crm: '23456', crmUf: 'SP' })).status).toBe(409);
+      await settle();
+      expect(disputeMails()).toHaveLength(3); // e a nova janela também limita
+    } finally { vi.useRealTimers(); }
   });
 });

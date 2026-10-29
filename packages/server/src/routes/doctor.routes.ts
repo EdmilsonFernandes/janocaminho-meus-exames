@@ -86,6 +86,25 @@ export function canonicalCrm(crm: unknown, uf?: unknown): { key: string; digits:
   return { key: `${digits}-${ufIn}`, digits, uf: ufIn };
 }
 
+/**
+ * ALERTA AO DONO de CRM disputado (revisão final M10): cada cadastro conflitante mandava e-mail ao dono + linha de
+ * audit, sem limite (120/min/IP) — dava p/ esgotar a cota do SMTP e quebrar os e-mails de OTP. O E-MAIL passa a sair no
+ * máximo 1 vez por hora por chave de CRM; a linha de audit continua em TODOS os conflitos. Map em memória do processo
+ * (perder no restart = 1 e-mail a mais, sem dano); as chaves são só CRMs de contas JÁ existentes e não verificadas.
+ */
+const CRM_CONFLICT_ALERT_EVERY_MS = 60 * 60 * 1000;
+const crmConflictAlertAt = new Map<string, number>();
+export function resetCrmConflictAlertThrottleForTests(): void { crmConflictAlertAt.clear(); }
+function shouldAlertCrmConflict(crmKey: string, nowMs: number = Date.now()): boolean {
+  const last = crmConflictAlertAt.get(crmKey);
+  if (last !== undefined && nowMs - last < CRM_CONFLICT_ALERT_EVERY_MS) return false;
+  crmConflictAlertAt.set(crmKey, nowMs);
+  if (crmConflictAlertAt.size > 1000) { // poda: janelas vencidas já não seguram nada
+    for (const [key, at] of crmConflictAlertAt) if (nowMs - at >= CRM_CONFLICT_ALERT_EVERY_MS) crmConflictAlertAt.delete(key);
+  }
+  return true;
+}
+
 const router = Router();
 
 function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
@@ -365,10 +384,13 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
         if (crmConflict) {
           void audit('DOCTOR_CRM_CONFLICT', req, { actorType: 'SYSTEM', targetType: 'DOCTOR', targetId: existing.id, after: { crm: crmKey, attemptedEmail: mail, existingStatus: existing.verificationStatus } });
           if (!['approved', 'legacy'].includes(existing.verificationStatus)) {
-            void notifyKycAdmin('Dr. Exame — CRM disputado por dois cadastros', [
-              `CRM ${crmKey}: já existe cadastro NÃO verificado e chegou outro com e-mail diferente.`,
-              'Se o novo for o titular, libere o CRM no admin.',
-            ]);
+            // M10: no máximo 1 e-mail/hora por CRM (o audit acima segue em todos); o cadastrante sempre recebe o 409.
+            if (shouldAlertCrmConflict(crmKey)) {
+              void notifyKycAdmin('Dr. Exame — CRM disputado por dois cadastros', [
+                `CRM ${crmKey}: já existe cadastro NÃO verificado e chegou outro com e-mail diferente.`,
+                'Se o novo for o titular, libere o CRM no admin.',
+              ]);
+            }
             res.status(409).json({ code: 'CRM_IN_USE_UNVERIFIED', error: 'Este CRM já tem um cadastro em verificação. Se o CRM é seu, fale com o suporte: contato@janocaminho.com.br' });
             return;
           }
