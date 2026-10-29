@@ -126,11 +126,19 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
     if (!STARTABLE.includes(doc.verificationStatus)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
-    // M7: a última tentativa já enviou os documentos (processing) ou está na revisão do UaiID (manual_review) -> 409 IN_REVIEW.
-    // Abrir outra sessão agora órfã o resultado em andamento e queima o orçamento de tentativas (o UaiID não reaproveita
-    // uma sessão que já saiu da captura).
-    const last = await prisma.doctorVerification.findFirst({ where: { doctorId: doc.id }, orderBy: { createdAt: 'desc' }, select: { status: true, createdAt: true, cfmName: true, cfmSituation: true } });
-    if (last && IN_FLIGHT_ATTEMPT.includes(last.status)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
+    // M7 + m4: a última tentativa já enviou os documentos (processing), está na revisão do UaiID (manual_review) ou está
+    // SEGURADA (status final no UaiID — approved/rejected — mas ainda sem decisão gravada: identidade OK esperando o nome do
+    // documento) -> 409 IN_REVIEW. Abrir outra sessão agora órfã o resultado em andamento (o webhook dele cairia em
+    // "latest !== attempt") e queima o orçamento de tentativas (o UaiID não reaproveita uma sessão que já saiu da captura).
+    const last = await prisma.doctorVerification.findFirst({
+      where: { doctorId: doc.id }, orderBy: { createdAt: 'desc' },
+      select: { status: true, decision: true, decidedBy: true, createdAt: true, cfmName: true, cfmSituation: true },
+    });
+    const held = !!last && last.decision === null && ['approved', 'rejected'].includes(last.status);
+    // m3 (lado POST): `legacy` é STARTABLE, mas legado cuja última tentativa já espera o DONO (needs_admin/uaiid_review sem
+    // decisão humana) não abre outra: poupa sessão cobrada e não deixa linhas antigas presas na fila.
+    const awaitingOwner = doc.verificationStatus === 'legacy' && !!last && last.decidedBy == null && ['needs_admin', 'uaiid_review'].includes(last.decision ?? '');
+    if (last && (IN_FLIGHT_ATTEMPT.includes(last.status) || held || awaitingOwner)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
     // Teto por médico (I5): ≥5 sessões nas últimas 24 h -> 429 no mesmo formato que o portal já trata. retryAfterHours =
     // quando a MAIS ANTIGA da janela sai (mínimo 1). Roda antes de qualquer I/O externo (CFM/UaiID) e da captura do CPF.
     const recent = await prisma.doctorVerification.findMany({
@@ -163,17 +171,25 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
         if (!cpfData) { res.status(400).json({ code: 'CPF_INVALID', error: 'CPF inválido.' }); return; }
         const inUse = { code: 'CPF_IN_USE', error: 'Este CPF já está cadastrado em outra conta. Fale com o suporte.' };
         if (await prisma.doctor.findFirst({ where: { cpfHash: cpfData.cpfHash, NOT: { id: doc.id } }, select: { id: true } })) { res.status(409).json(inUse); return; }
+        let stored = false;
         try {
           // Identidade TRAVADA na captura, com o e-mail verificado ou não (B2-3): o CPF fica amarrado a uma sessão UaiID
           // COBRADA, e o médico do convite nunca verifica o e-mail — sem a trava ele aprovava o KYC e depois renomeava a
           // conta ("Dra. <colega conhecida>") ou trocava o e-mail via PUT /me. Travada, PUT /me não muda nome nem e-mail.
-          await prisma.doctor.update({ where: { id: doc.id }, data: { ...cpfData, identityLockedAt: doc.identityLockedAt ?? now } });
+          // m1: só grava se o médico AINDA não tem CPF — duas requisições concorrentes com CPFs diferentes não se sobrescrevem.
+          stored = (await prisma.doctor.updateMany({ where: { id: doc.id, cpfHash: null, cpfEncrypted: null }, data: { ...cpfData, identityLockedAt: doc.identityLockedAt ?? now } })).count > 0;
         } catch (e) {
           if ((e as { code?: string })?.code === 'P2002') { res.status(409).json(inUse); return; } // corrida: outro médico gravou o mesmo CPF
           throw e;
         }
-        cpf = parseCpf(sent);
-        cpfCaptured = true;
+        if (stored) {
+          cpf = parseCpf(sent);
+          cpfCaptured = true;
+        } else {
+          // Outra requisição gravou primeiro: NÃO sobrescreve — segue com o CPF que ficou (a identidade não troca por aqui).
+          const fresh = await prisma.doctor.findUnique({ where: { id: doc.id }, select: { cpfEncrypted: true, cpfIv: true } });
+          cpf = decryptPII(fresh?.cpfEncrypted ?? null, fresh?.cpfIv ?? null);
+        }
       }
     }
     if (!cpf) { res.status(400).json({ code: 'CPF_REQUIRED', error: 'Cadastre seu CPF no perfil antes de verificar a identidade.' }); return; }

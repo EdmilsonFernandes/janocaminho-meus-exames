@@ -299,6 +299,30 @@ describe('POST /api/doctor/verification com { cpf } — médico sem CPF (conta d
     expect((await post(token).send({ cpf: 'lixo' })).status).toBe(201); // inválido também é ignorado (não vira CPF_INVALID)
     expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf: meu }));
   });
+
+  // 2ª rodada, m1: a gravação era incondicional — dois POSTs concorrentes do mesmo médico com CPFs DIFERENTES abriam duas
+  // sessões com CPFs diferentes e o último a gravar vencia. Agora só grava quem encontra o médico ainda sem CPF; o outro
+  // segue com o CPF que ficou (a identidade não troca por esta rota).
+  it('duas requisições concorrentes com CPFs diferentes: um CPF fica gravado e TODAS as sessões saem com ele', async () => {
+    const { doctor, token } = await semCpf();
+    const a = testCpf();
+    const b = testCpf();
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-race' });
+    const [r1, r2] = await Promise.all([post(token).send({ cpf: a }), post(token).send({ cpf: b })]);
+    expect([r1.status, r2.status]).toEqual([201, 201]);
+    const saved = await row(doctor.id);
+    const stored = decryptPII(saved.cpfEncrypted, saved.cpfIv);
+    expect([a, b]).toContain(stored);
+    expect(saved.cpfHash).toBe(cpfFingerprint(stored!));
+    const calls = vi.mocked(createUaiidVerification).mock.calls;
+    expect(calls.length).toBeGreaterThanOrEqual(1);
+    for (const [arg] of calls) expect((arg as { cpf: string }).cpf).toBe(stored); // nenhuma sessão com o CPF "perdedor"
+    // e depois de gravado, outro CPF no corpo é ignorado (já valia desde o B3)
+    vi.mocked(createUaiidVerification).mockClear();
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-race-2' });
+    expect((await post(token).send({ cpf: a === stored ? b : a })).status).toBe(201);
+    expect(vi.mocked(createUaiidVerification)).toHaveBeenCalledWith(expect.objectContaining({ cpf: stored }));
+  });
 });
 
 // Revisão final do KYC — M3/M7/M8 (e a tentativa SEGURADA, addendum do controlador).
@@ -414,7 +438,7 @@ describe('POST /api/doctor/verification — M7 (sem sessão paralela) e M8 (snap
 
   it('M8: snapshot do CFM com ≤30 dias é reaproveitado (sem gastar o consultaCRM); com >30 dias refaz o lookup', async () => {
     const recent = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
-    await attempt(recent.doctor.id, 'v-snap-new', 'rejected', { cfmName: 'NOME DE 10 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 10 * 86_400_000) });
+    await attempt(recent.doctor.id, 'v-snap-new', 'rejected', { decision: 'rejected', decidedBy: 'auto', cfmName: 'NOME DE 10 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 10 * 86_400_000) });
     vi.mocked(lookupCfm).mockClear();
     vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-m8-a' });
     expect((await post(recent.token)).status).toBe(201);
@@ -422,12 +446,52 @@ describe('POST /api/doctor/verification — M7 (sem sessão paralela) e M8 (snap
     expect(vi.mocked(createUaiidVerification)).toHaveBeenLastCalledWith(expect.objectContaining({ fullName: 'NOME DE 10 DIAS' }));
 
     const old = await createDoctor({ crm: crm(), verificationStatus: 'rejected' });
-    await attempt(old.doctor.id, 'v-snap-old', 'rejected', { cfmName: 'NOME DE 40 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 40 * 86_400_000) });
+    await attempt(old.doctor.id, 'v-snap-old', 'rejected', { decision: 'rejected', decidedBy: 'auto', cfmName: 'NOME DE 40 DIAS', cfmSituation: 'Ativo', createdAt: new Date(Date.now() - 40 * 86_400_000) });
     vi.mocked(lookupCfm).mockClear();
     vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-m8-b' });
     expect((await post(old.token)).status).toBe(201);
     expect(vi.mocked(lookupCfm)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(createUaiidVerification)).toHaveBeenLastCalledWith(expect.objectContaining({ fullName: 'DRA MARIA SOUZA' })); // o CFM de hoje
     expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-m8-b' } })).toMatchObject({ cfmName: 'DRA MARIA SOUZA', cfmSituation: 'Ativo' });
+  });
+
+  // 2ª rodada, m4: uma tentativa SEGURADA (status final no UaiID — approved/rejected — mas sem decisão gravada: identidade OK
+  // esperando o nome do documento) não estava em IN_FLIGHT; o médico abria uma 2ª sessão e órfã o resultado da 1ª (o webhook
+  // dela cai em "latest !== attempt").
+  it.each(['approved', 'rejected'])('m4: última tentativa SEGURADA (%s sem decisão) → 409 IN_REVIEW; com a decisão gravada o POST segue', async (status) => {
+    const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
+    await attempt(doctor.id, `v-m4-${status}`, status, { decision: null, completedAt: new Date() });
+    const r = await post(token);
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'IN_REVIEW', status: 'in_progress' });
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+    expect(await prisma.doctorVerification.count({ where: { doctorId: doctor.id } })).toBe(1);
+
+    await prisma.doctorVerification.update({ where: { providerId: `v-m4-${status}` }, data: { decision: 'rejected', decidedBy: 'auto' } }); // o sync/dono decidiu
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: `v-m4-nova-${status}` });
+    expect((await post(token)).status).toBe(201);
+  });
+
+  // 2ª rodada, m3 (lado POST): `legacy` é STARTABLE, então um legado cuja tentativa já espera o dono abria outra sessão COBRADA
+  // e deixava linhas antigas presas na fila.
+  it('m3: legado cuja última tentativa espera o dono → 409 IN_REVIEW (status legacy); legado livre ou já decidido pelo dono segue', async () => {
+    const aguardando = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await attempt(aguardando.doctor.id, 'v-m3-wait', 'approved', { decision: 'needs_admin', decidedBy: null, completedAt: new Date() });
+    const r = await post(aguardando.token);
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'IN_REVIEW', status: 'legacy' });
+    expect(vi.mocked(createUaiidVerification)).not.toHaveBeenCalled();
+    expect((await prisma.doctor.findUniqueOrThrow({ where: { id: aguardando.doctor.id } })).verificationStatus).toBe('legacy');
+
+    const livre = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    vi.mocked(createUaiidVerification).mockResolvedValueOnce({ ...created, verificationId: 'v-m3-livre' });
+    const rl = await post(livre.token);
+    expect(rl.status).toBe(201);
+    expect(rl.body.status).toBe('legacy'); // legado segue legado enquanto verifica
+
+    const decidido = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await attempt(decidido.doctor.id, 'v-m3-done', 'rejected', { decision: 'rejected', decidedBy: 'admin-1', completedAt: new Date() });
+    vi.mocked(createUaiidVerification).mockResolvedValueOnce({ ...created, verificationId: 'v-m3-done-2' });
+    expect((await post(decidido.token)).status).toBe(201); // o dono já decidiu: pode tentar de novo
   });
 });

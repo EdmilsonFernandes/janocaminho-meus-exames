@@ -110,8 +110,9 @@ describe('(c) teto por médico: 5 sessões KYC em 24 h', () => {
     vi.mocked(createUaiidVerification).mockReset();
   });
 
+  // tentativas JÁ DECIDIDAS (decision gravada): uma tentativa final sem decisão é "segurada" e barra o POST (409 IN_REVIEW — m4)
   const attempts = (doctorId: string, agesH: number[], tag: string) => prisma.doctorVerification.createMany({
-    data: agesH.map((h, i) => ({ doctorId, crm: '1-SP', providerId: `${tag}-${i}`, status: 'rejected', createdAt: new Date(Date.now() - h * HOUR) })),
+    data: agesH.map((h, i) => ({ doctorId, crm: '1-SP', providerId: `${tag}-${i}`, status: 'rejected', decision: 'rejected', decidedBy: 'auto', createdAt: new Date(Date.now() - h * HOUR) })),
   });
   const post = (token: string) => api().post('/api/doctor/verification').set(authHeader(token));
   const created = { verificationId: 'v-lim', verifyUrl: 'https://uaiid.com.br/verify/lim', expiresAt: new Date('2026-10-30T12:00:00Z'), reused: false };
