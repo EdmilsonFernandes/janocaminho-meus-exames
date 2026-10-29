@@ -10,6 +10,7 @@
 //    sem saldo → fila manual; job idempotente (refundedAt condicional)
 //  · below-min acumula (exceção ÚNICA com total; resolve ao atingir piso)
 //  · médico sem PIX → payout_pending_pix_key; approve sem reserva → recusa
+//  · médico não verificado (KYC) → payout_doctor_unverified, sem payout
 //  · SMS-token → failed + payout_needs_sms_token (nunca reenvia)
 //  · auto: default OFF; ligado → job aprova pelo MESMO caminho
 //  · caixa Asaas: cache 5min (1 fetch em 2 leituras; expira → refetch)
@@ -193,6 +194,17 @@ describe('runPayoutPass — reserva atômica (§18.6)', () => {
     expect(p.created).toBe(0);
     expect(p.exceptionsCreated).toBe(1);
     expect(await openExceptions('payout_pending_pix_key', `payout:doctor:${doc.id}`)).toBe(1);
+    expect(await prisma.payout.count()).toBe(0);
+  });
+
+  it('médico não verificado (KYC) → NÃO cria payout; exceção payout_doctor_unverified', async () => {
+    const doc = await seedDoctor();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'pending' } });
+    await seedEligible(doc.id);
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(0);
+    expect(p.exceptionsCreated).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${doc.id}`)).toBe(1);
     expect(await prisma.payout.count()).toBe(0);
   });
 

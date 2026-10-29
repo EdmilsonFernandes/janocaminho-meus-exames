@@ -21,6 +21,7 @@ import { decryptPII } from '../utils/crypto';
 import { enqueueException, resolveExceptions } from '../jobs/reconciliation';
 import { maskPixKey } from '../routes/doctor.routes';
 import { payoutAutoEnabled } from '../utils/settings';
+import { doctorCanPractice } from '../utils/doctorAccess';
 import {
   AsaasApiError, createAsaasPixTransfer, lookupAsaasTransferByExternalRef,
   getAsaasPaymentStatus, getAsaasFinanceBalance, isAsaasBalanceIssue, isAsaasTokenSmsIssue,
@@ -112,8 +113,13 @@ export async function runPayoutPass(now: number): Promise<PayoutPassReport> {
   for (const [doctorId, rems] of byDoctor) {
     const doctor = await prisma.doctor.findUnique({
       where: { id: doctorId },
-      select: { payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true },
+      select: { payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true, blocked: true, verificationStatus: true },
     }).catch(() => null);
+    // KYC (spec §7): repasse só p/ quem pode atender (approved ou legacy no prazo) e não bloqueado.
+    if (doctor && (doctor.blocked || !doctorCanPractice(doctor.verificationStatus))) {
+      if (await enqueueException('payout_doctor_unverified', `payout:doctor:${doctorId}`, { doctorId })) report.exceptionsCreated++;
+      continue;
+    }
     if (!doctor?.payoutPixKeyEnc || !doctor.payoutPixKeyType || !doctor.payoutPixKeyIv) {
       if (await enqueueException('payout_pending_pix_key', `payout:doctor:${doctorId}`, { doctorId })) report.exceptionsCreated++;
       continue;
