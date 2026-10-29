@@ -10,6 +10,7 @@ import BiotechRoundedIcon from '@mui/icons-material/BiotechRounded';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { CardGrid } from '@/components/blocks/card-29/components/card-grid';
 import type { ICard } from '@/components/blocks/card-29/components/data';
+import { BodyMap } from '../components/BodyMap';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import './tw.css';
@@ -57,6 +58,8 @@ const DEMO_COLETAS = [
   { id: 'c2', title: 'Perfil lipídico (jejum 12h)', dueDate: new Date(Date.now() + 20 * 86400000).toISOString() },
 ];
 const mentalTone = (v: number) => (v <= 4 ? { label: 'mínimo', cls: 'border-success/25 bg-success/10 text-success-foreground dark:text-success' } : v <= 9 ? { label: 'leve', cls: 'border-warning/30 bg-warning/10 text-warning-foreground dark:text-warning' } : { label: 'atenção', cls: 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive' });
+/** LEVA 3 — panorama demo (buckets plausíveis; mapa corporal real não existe em demo). */
+const DEMO_BUCKETS = { ok: 100, alterados: 18, alerta: 10 };
 
 const whenChip = (iso: string): { text: string; overdue: boolean } => {
   const due = new Date(iso).getTime();
@@ -85,6 +88,9 @@ export default function DashboardV2Island() {
     try { return localStorage.getItem(FLAG) === '1'; } catch { return false; }
   });
   const [demo, setDemo] = useState(false);
+  // ANTES × DEPOIS: compara o dashboard REAL (iframe /) com o v2 lado a lado.
+  const [compare, setCompare] = useState(false);
+  const [side, setSide] = useState<'antes' | 'depois'>('depois');
   const [dark, setDark] = useState(() => {
     try {
       const own = localStorage.getItem('dx.dashV2.dark');
@@ -112,6 +118,10 @@ export default function DashboardV2Island() {
   // Leva 2
   const [mental, setMental] = useState<{ phq9: number | null; gad7: number | null } | null>(null);
   const [coletas, setColetas] = useState<{ id?: string; title?: string; dueDate?: string }[]>([]);
+  // Leva 3
+  const [bodyRegions, setBodyRegions] = useState<any[] | null>(null);
+  const [buckets, setBuckets] = useState<{ ok?: number; alterados?: number; alerta?: number } | null>(null);
+  const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
     if (!enabled || !pid) return;
@@ -147,6 +157,10 @@ export default function DashboardV2Island() {
           });
           if (hd.biologicalAge && typeof hd.biologicalAge.age === 'number') setBio({ age: hd.biologicalAge.age });
           setActions(Array.isArray(hd.clinicalActions) ? hd.clinicalActions.slice(0, 3) : []);
+          setBodyRegions(Array.isArray(hd.bodyRegions) ? hd.bodyRegions : []);
+        }
+        if (d?.buckets) setBuckets(d.buckets);
+        if (typeof d?.credits === 'number') setCredits(d.credits);
         }
         // Pendências (lógica do PendenciasCard do app real): teleconsulta aberta +
         // lembrete vencido + perguntas aguardando médico.
@@ -234,11 +248,41 @@ export default function DashboardV2Island() {
           <p className="text-sm text-muted-foreground">Preview local · {demo ? 'números ilustrativos' : 'seus dados reais'} · nada substitui o app</p>
         </div>
         <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setCompare(true)} className="rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary transition-colors hover:bg-primary/15">🔀 Comparar antes × depois</button>
           <button type="button" onClick={() => setDark((v) => !v)} aria-label={dark ? 'Modo claro' : 'Modo escuro'} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted">{dark ? '☀️ claro' : '🌙 escuro'}</button>
           <button type="button" onClick={() => { setDemo((v) => !v); setSel(0); }} className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted">{demo ? 'Ver meus dados reais' : 'Ver com dados de exemplo'}</button>
           <a href="#/" className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted">← voltar</a>
         </div>
       </header>
+
+      {/* ANTES × DEPOIS — overlay de comparação (desktop: split; mobile: alterna) */}
+      {compare && (() => {
+        const appRoot = location.href.split('#')[0];
+        return (
+          <div className="fixed inset-0 z-50 flex flex-col gap-2 bg-background p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="font-head text-sm font-bold">Antes × Depois — seu dashboard real (esquerda) e o v2 (direita)</h3>
+              <div className="flex items-center gap-1.5">
+                <div className="flex overflow-hidden rounded-lg border border-border md:hidden">
+                  <button type="button" onClick={() => setSide('antes')} className={'px-3 py-1.5 text-xs font-bold ' + (side === 'antes' ? 'bg-muted text-foreground' : 'text-muted-foreground')}>Antes</button>
+                  <button type="button" onClick={() => setSide('depois')} className={'px-3 py-1.5 text-xs font-bold ' + (side === 'depois' ? 'bg-primary/10 text-primary' : 'text-muted-foreground')}>Depois</button>
+                </div>
+                <button type="button" onClick={() => setCompare(false)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-muted">✕ fechar</button>
+              </div>
+            </div>
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-2 md:grid-cols-2">
+              <div className={'min-h-0 flex-col ' + (side === 'antes' ? 'flex' : 'hidden md:flex')}>
+                <span className="mb-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">Antes — dashboard atual</span>
+                <iframe title="Antes — dashboard atual" src={appRoot + '#/'} className="min-h-0 w-full flex-1 rounded-lg border border-border bg-white" />
+              </div>
+              <div className={'min-h-0 flex-col ' + (side === 'depois' ? 'flex' : 'hidden md:flex')}>
+                <span className="mb-1 text-[11px] font-bold uppercase tracking-wider text-primary">Depois — v2</span>
+                <iframe title="Depois — v2" src={appRoot + '#/dashboard-v2'} className="min-h-0 w-full flex-1 rounded-lg border border-primary/40 bg-white" />
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* HERO — score + status + último exame (gradiente da marca) */}
       {mostrarConteudo && (
@@ -426,6 +470,57 @@ export default function DashboardV2Island() {
               </span>
               <span aria-hidden className="text-copper-700 dark:text-copper-300">→</span>
             </a>
+          </>
+        );
+      })()}
+
+      {/* LEVA 3 — mapa corporal real (componente de produção embutido) + panorama */}
+      {mostrarConteudo && (() => {
+        const bk = demo ? DEMO_BUCKETS : buckets;
+        const go = (hash: string) => () => { window.location.hash = hash; };
+        return (
+          <>
+            {/* MAPA CORPORAL — o componente REAL do app (SVG interativo, dado real).
+                Em demo não existe mapa fictício honesto → placeholder explícito. */}
+            <section className="rounded-xl border border-border bg-card p-4" aria-label="Mapa corporal">
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-sm font-semibold">Mapa corporal</h3>
+                <span className="text-xs text-muted-foreground">toque numa região</span>
+              </div>
+              {demo ? (
+                <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">O mapa interativo aparece com seus dados reais (exemplo não desenha corpo fictício).</p>
+              ) : (
+                <BodyMap
+                  regions={bodyRegions}
+                  loaded={phase === 'ready'}
+                  onRegionClick={go('#/alterados')}
+                  onNavigateToTrend={(canonical: string) => { window.location.hash = `#/tendencias?select=${encodeURIComponent(canonical)}`; }}
+                  onNavigateToExam={(examId: string) => { window.location.hash = `#/exams/${examId}`; }}
+                  onUploadExam={go('#/exams/create')}
+                />
+              )}
+            </section>
+
+            {/* PANORAMA DOS MARCADORES */}
+            {bk && (
+              <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Panorama dos marcadores">
+                <h3 className="text-sm font-semibold">Panorama dos marcadores</h3>
+                <div className="flex gap-2">
+                  <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-bold text-success-foreground dark:text-success">{bk.ok ?? 0} na faixa</span>
+                  <span className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-bold text-warning-foreground dark:text-warning">{bk.alterados ?? 0} alterados</span>
+                  <span className="rounded-full border border-destructive/25 bg-destructive/10 px-2.5 py-1 text-xs font-bold text-destructive-foreground dark:text-destructive">{bk.alerta ?? 0} em alerta</span>
+                </div>
+                <a href="#/alterados" className="text-xs font-bold text-primary">ver todos →</a>
+              </section>
+            )}
+
+            {/* CRÉDITOS DO PLANO */}
+            {credits != null && !demo && (
+              <a href="#/planos" className="flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted">
+                <span className="text-sm font-semibold">Créditos do plano</span>
+                <span className="rounded-full bg-copper-500/15 px-3 py-1 text-sm font-extrabold text-copper-700 dark:text-copper-300">{credits} ⚡</span>
+              </a>
+            )}
           </>
         );
       })()}
