@@ -688,6 +688,9 @@ describe('cfmState (situação do CFM em 3 estados)', () => {
     expect(cfmState(null)).toBe('unknown');
     expect(cfmState('Regular')).toBe('unknown');
   });
+  it('ambíguo (ativo + termo de inatividade) → unknown, nunca active', () => {
+    expect(cfmState('Ativo - Aposentado')).toBe('unknown');
+  });
 });
 
 describe('BR_UFS', () => {
@@ -715,8 +718,11 @@ export type CfmState = 'active' | 'inactive' | 'unknown';
 export function cfmState(situation: string | null | undefined): CfmState {
   const s = normalizeKey(String(situation ?? ''));
   if (!s) return 'unknown';
-  if (/^ATIV[OA]\b/.test(s)) return 'active';
-  if (/INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s)) return 'inactive';
+  const active = /^ATIV[OA]\b/.test(s);
+  const inactive = /INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s);
+  if (active && inactive) return 'unknown'; // ambíguo (ex.: "Ativo - Aposentado") → o dono decide
+  if (active) return 'active';
+  if (inactive) return 'inactive';
   return 'unknown';
 }
 ```
@@ -950,6 +956,8 @@ export function verifyUaiidSignature(
 ```ts
 process.env.UAIID_API_KEY = ''; // KYC: nunca chamar o UaiID real nos testes (o .env local tem a chave de dev)
 process.env.UAIID_WEBHOOK_SECRET = '';
+process.env.UAIID_BASE_URL = ''; // testes comparam a URL padrão (https://api.uaiid.com.br)
+process.env.UAIID_RETURN_URL = ''; // e o return_url padrão
 ```
 
 - [ ] **Step 5: Rodar e ver passar** — `npm test --workspace packages/server -- src/utils/uaiid.test.ts` → PASS.
@@ -1872,7 +1880,7 @@ vi.mock('../src/utils/cfm', async (orig) => ({
 }));
 
 import { prisma } from '../src/prisma';
-import { api, authHeader, resetDb, createDoctor } from './helpers';
+import { api, authHeader, resetDb, createDoctor, mintToken } from './helpers';
 import { createUaiidVerification, getUaiidVerification, UaiidError } from '../src/utils/uaiid';
 
 let seq = 81000;
@@ -1952,6 +1960,13 @@ describe('/api/doctor/verification (spec §3)', () => {
     expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledWith('v-g1');
   });
 
+  it('sem token → 401 AUTH_REQUIRED; token que não é de médico → 401 INVALID_TOKEN', async () => {
+    expect((await api().post('/api/doctor/verification')).body.code).toBe('AUTH_REQUIRED');
+    const r = await api().get('/api/doctor/verification').set(authHeader(mintToken('u-qualquer')));
+    expect(r.status).toBe(401);
+    expect(r.body.code).toBe('INVALID_TOKEN');
+  });
+
   it('GET sincronizado há pouco não chama o UaiID', async () => {
     const { doctor, token } = await createDoctor({ crm: crm(), verificationStatus: 'in_progress' });
     await prisma.doctorVerification.create({ data: { doctorId: doctor.id, crm: '2-SP', providerId: 'v-g2', status: 'collecting', lastSyncedAt: new Date() } });
@@ -1983,8 +1998,10 @@ import { createUaiidVerification, UaiidError } from '../utils/uaiid';
 import { NON_FINAL_ATTEMPT } from '../kyc/decide';
 import { syncVerification } from '../kyc/sync';
 import { kycMessage } from '../kyc/messages';
+import { createLogger } from '../utils/logger';
 
 const router = Router();
+const log = createLogger('kyc-verification');
 
 interface KycRequest extends AuthedRequest { doctorId?: string }
 
@@ -1995,12 +2012,12 @@ const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expir
 
 async function requireKycDoctor(req: KycRequest, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) { res.status(401).json({ error: 'Token obrigatório.' }); return; }
+  if (!header?.startsWith('Bearer ')) { res.status(401).json({ code: 'AUTH_REQUIRED', error: 'Token obrigatório.' }); return; }
   let payload: any;
-  try { payload = jwt.verify(header.slice(7), config.jwtSecret); } catch { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  if (payload?.type !== 'doctor' || !payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
+  try { payload = jwt.verify(header.slice(7), config.jwtSecret); } catch { res.status(401).json({ code: 'INVALID_TOKEN', error: 'Token médico inválido.' }); return; }
+  if (payload?.type !== 'doctor' || !payload?.doctorId) { res.status(401).json({ code: 'INVALID_TOKEN', error: 'Token médico inválido.' }); return; }
   const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
-  if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
+  if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
   const denial = doctorAccessDenial(doc, { allowUnverified: true });
   if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = doc.id;
@@ -2014,7 +2031,7 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
       where: { id: req.doctorId! },
       select: { id: true, name: true, crm: true, crmUf: true, cpfEncrypted: true, cpfIv: true, verificationStatus: true },
     });
-    if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
+    if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
     if (!STARTABLE.includes(doc.verificationStatus)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
     const cpf = decryptPII(doc.cpfEncrypted, doc.cpfIv);
@@ -2057,6 +2074,8 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
         res.status(429).json({ code: 'KYC_ATTEMPT_LIMIT', retryAfterHours: e.retryAfterHours ?? null, error: 'Limite de tentativas atingido. Tente mais tarde.' });
         return;
       }
+      // só o status HTTP (sem CPF/segredo): chave errada em prod aparece como 401/403 aqui, não como "fora do ar" mudo
+      log.warn('UaiID indisponível ao criar a sessão', { status: e.status ?? null });
       res.status(503).json({ code: 'KYC_UNAVAILABLE', error: 'Verificação indisponível no momento. Tente em alguns minutos.' });
       return;
     }
@@ -2091,7 +2110,7 @@ export default router;
 app.use('/api/doctor', doctorVerificationRoutes); // KYC do médico: POST/GET /verification (sem overlap)
 ```
 
-- [ ] **Step 5: Rodar e ver passar** — mesmo comando → PASS (8 testes).
+- [ ] **Step 5: Rodar e ver passar** — mesmo comando → PASS (9 testes).
 
 - [ ] **Step 6: Commit (só com ok do dono)** — `git add packages/server/src/routes/doctor-verification.routes.ts packages/server/src/app.ts packages/server/test/doctor-verification.routes.test.ts && git commit -m "feat(kyc): POST/GET /api/doctor/verification (sessão UaiID + reconciliação on-demand)"`
 
@@ -2448,12 +2467,32 @@ describe('admin — KYC do médico (spec §3)', () => {
     expect((await prisma.doctor.findUnique({ where: { id: pend.doctor.id } }))?.verificationStatus).toBe('pending');
   });
 
-  it('prazo dos legados editável pelo PATCH de config existente', async () => {
+  it('prazo dos legados editável pelo PATCH de config existente (data futura em ms) + auditado', async () => {
     const admin = await createAdmin();
-    const r = await api().patch('/api/admin/config/costs').set(authHeader(admin.token)).send({ category: 'doctorKyc', legacyGraceUntilMs: 1767225600000, autoApprove: 1 });
+    const until = Date.now() + 30 * 86_400_000;
+    const r = await api().patch('/api/admin/config/costs').set(authHeader(admin.token)).send({ category: 'doctorKyc', legacyGraceUntilMs: until, autoApprove: 1 });
     expect(r.status).toBe(200);
-    expect(getDoctorKycConfig()).toEqual({ legacyGraceUntilMs: 1767225600000, autoApprove: 1 });
+    expect(getDoctorKycConfig()).toEqual({ legacyGraceUntilMs: until, autoApprove: 1 });
+    const log = await prisma.auditLog.findFirst({ where: { action: 'KYC_CONFIG_CHANGED' }, orderBy: { createdAt: 'desc' } });
+    expect(log).toMatchObject({ actorId: admin.id, before: { legacyGraceUntilMs: 0, autoApprove: 0 }, after: { legacyGraceUntilMs: until, autoApprove: 1 } });
     await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+  });
+
+  it('config do KYC recusa prazo em segundos, no passado, autoApprove fora de 0/1 e campo desconhecido — e nada muda', async () => {
+    const admin = await createAdmin();
+    const logsBefore = await prisma.auditLog.count({ where: { action: 'KYC_CONFIG_CHANGED' } });
+    for (const body of [
+      { legacyGraceUntilMs: Math.floor(Date.now() / 1000) + 86_400 }, // em segundos → viraria 1970 e trancaria todo legado
+      { legacyGraceUntilMs: Date.now() - 1000 }, // no passado
+      { autoApprove: 2 },
+      { foo: 1 },
+    ]) {
+      const r = await api().patch('/api/admin/config/costs').set(authHeader(admin.token)).send({ category: 'doctorKyc', ...body });
+      expect(r.status).toBe(400);
+      expect(r.body.code).toBe('KYC_CONFIG_INVALID');
+    }
+    expect(getDoctorKycConfig()).toEqual({ legacyGraceUntilMs: 0, autoApprove: 0 });
+    expect(await prisma.auditLog.count({ where: { action: 'KYC_CONFIG_CHANGED' } })).toBe(logsBefore);
   });
 });
 ```
@@ -2544,9 +2583,37 @@ router.post('/doctors/verification/approve-legacy', async (req: AuthedRequest, r
 });
 ```
 
-- [ ] **Step 4: Rodar e ver passar** — mesmo comando → PASS (5 testes).
+- [ ] **Step 3b: Validar + auditar a config `doctorKyc`** (revisão da Task 1: prazo em segundos viraria 1970 e trancaria todo legado de uma vez; auto-aprovação sem trilha). Em `src/routes/admin.routes.ts`, trocar o import de settings (`:9`) por:
 
-- [ ] **Step 5: Commit (só com ok do dono)** — `git add packages/server/src/routes/admin.routes.ts packages/server/test/admin-doctor-verification.test.ts && git commit -m "feat(kyc): admin — fila de decisão, aprovar/recusar, legados em lote"`
+```ts
+import { getSettings, saveSettings, getMonthlyPlan, getDoctorKycConfig, type SettingCategory } from '../utils/settings';
+```
+
+e, em `router.patch('/config/costs', ...)`, no ramo `NUMERIC_CATEGORIES`, trocar a linha `const s = await saveSettings(category as SettingCategory, patch);` por:
+
+```ts
+      // KYC do médico: prazo dos legados e auto-aprovação decidem quem pode atender → validar + auditar.
+      let kycBefore: ReturnType<typeof getDoctorKycConfig> | null = null;
+      if (category === 'doctorKyc') {
+        const bad = (msg: string) => res.status(400).json({ code: 'KYC_CONFIG_INVALID', error: msg });
+        const unknown = Object.keys(patch).filter((k) => k !== 'legacyGraceUntilMs' && k !== 'autoApprove');
+        if (unknown.length) { bad(`Campo desconhecido em doctorKyc: ${unknown.join(', ')}.`); return; }
+        if ('autoApprove' in patch && patch.autoApprove !== 0 && patch.autoApprove !== 1) { bad('autoApprove deve ser 0 ou 1.'); return; }
+        if ('legacyGraceUntilMs' in patch) {
+          const ms = patch.legacyGraceUntilMs;
+          if (ms !== 0 && !(Number.isInteger(ms) && ms > Date.now() && ms < Date.UTC(2100, 0, 1))) {
+            bad('legacyGraceUntilMs deve ser 0 (sem prazo) ou uma data futura em milissegundos.'); return;
+          }
+        }
+        kycBefore = getDoctorKycConfig();
+      }
+      const s = await saveSettings(category as SettingCategory, patch);
+      if (kycBefore) await audit('KYC_CONFIG_CHANGED', req, { targetType: 'SETTINGS', targetId: 'doctorKyc', before: kycBefore, after: getDoctorKycConfig() });
+```
+
+- [ ] **Step 4: Rodar e ver passar** — mesmo comando → PASS (6 testes).
+
+- [ ] **Step 5: Commit (só com ok do dono)** — `git add packages/server/src/routes/admin.routes.ts packages/server/test/admin-doctor-verification.test.ts && git commit -m "feat(kyc): admin — fila de decisão, aprovar/recusar (motivo vai ao médico), legados em lote + config doctorKyc validada e auditada"`
 
 ---
 
