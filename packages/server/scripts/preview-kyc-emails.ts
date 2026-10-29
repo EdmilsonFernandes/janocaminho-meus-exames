@@ -12,10 +12,12 @@ const portalUrl = 'https://drexame.janocaminho.com.br/#/doctor';
 for (const kind of ['received', 'approved', 'rejected'] as const) {
   writeFileSync(join(dir, `${kind}.html`), doctorKycEmail({
     name: 'Dra. Maria da Silva Souza', crm: '116739-SP', kind, portalUrl,
+    // Motivo de captura (selfie): mostra as 3 dicas "Como resolver".
     reason: kind === 'rejected' ? 'O rosto não bateu com a foto do documento. Tente de novo com boa luz e sem óculos.' : null,
+    captureTips: kind === 'rejected',
   }));
 }
-// Recusa manual pelo dono: motivo livre (várias linhas) no lugar do texto padrão.
+// Recusa manual pelo dono: motivo livre (várias linhas) no lugar do texto padrão → card neutro "E agora?".
 writeFileSync(join(dir, 'rejected-owner.html'), doctorKycEmail({
   name: 'Dr. João Pereira', crm: '98765-RJ', kind: 'rejected', portalUrl,
   reason: 'A foto do documento ficou ilegível e o CRM enviado não confere com o registro no CFM.\nReenvie o documento original, sem reflexo, e confirme o número do CRM.',

@@ -22,3 +22,19 @@ const MESSAGES: Record<string, string> = {
 export function kycMessage(reasonCode: string | null | undefined): string | null {
   return reasonCode ? MESSAGES[reasonCode] ?? null : null;
 }
+
+/**
+ * Motivos de CAPTURA: documento, selfie, prova de vida ou nome do documento ≠ CFM — o médico resolve
+ * refazendo a foto/o documento. Só nesses o e-mail de recusa mostra as 3 dicas "Como resolver". Nos
+ * demais (situação do CRM/CFM, CPF, fraude, link expirado, análise manual, "estamos analisando",
+ * desconhecido) e em todo motivo escrito pelo dono, vale o card neutro "E agora?".
+ */
+const CAPTURE_ISSUES: ReadonlySet<string> = new Set([
+  'face_mismatch', 'liveness_fail', 'challenge_failed',
+  'document_not_recognized', 'document_expired',
+  'data_mismatch_name', 'name_mismatch',
+]);
+
+export function kycCaptureIssue(reasonCode?: string | null): boolean {
+  return !!reasonCode && CAPTURE_ISSUES.has(reasonCode);
+}

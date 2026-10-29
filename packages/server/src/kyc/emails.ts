@@ -5,11 +5,14 @@
  * modo escuro (#0f1818 / #1a2424 / #e8eef0). E-mail = tabela + estilo inline (o Gmail ignora
  * <style>; o bloco <style> só refina dark mode e celular onde há suporte). Texto do usuário
  * sempre por escapeHtml. Nada de dado de saúde (LGPD).
+ * PRIVACIDADE: sem webfont (nada de <link>/@import do Google Fonts — cada abertura do e-mail
+ * viraria uma requisição a terceiro). Poppins/Inter valem se instaladas; senão cai na fonte do
+ * sistema. O único recurso remoto é o mascote, no nosso próprio domínio https (assetUrl).
  */
 import { stripDoctorTitle } from '../utils/doctorTitle';
 
-const HEAD = "'Poppins','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
-const BODY = "'Inter','Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const HEAD = "'Poppins',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const BODY = "'Inter',-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 const SUPPORT = 'contato@janocaminho.com.br';
 
 // Tons de texto no claro (contraste AA sobre branco e sobre o cartão #f6fbfa); no escuro, as classes dx-* trocam.
@@ -111,14 +114,13 @@ function layout(o: {
   body: string; cta?: { href: string; label: string }; note: string; footer?: string;
 }): string {
   const lead = o.quote
-    ? `<div class="dx-quote" style="margin:0 0 26px;padding:16px 18px;background:#fdf4f3;border-left:4px solid #e0877f;border-radius:8px"><p class="dx-text" style="margin:0;font:400 15px/1.65 ${BODY};color:${INK};overflow-wrap:anywhere;word-break:break-word;text-wrap:pretty">${o.lead}</p></div>`
+    ? `<div class="dx-quote" style="margin:8px 0 26px;padding:16px 18px;background:#fdf4f3;border-left:4px solid #e0877f;border-radius:8px"><p class="dx-text" style="margin:0;font:400 15px/1.65 ${BODY};color:${INK};overflow-wrap:anywhere;word-break:break-word;text-wrap:pretty">${o.lead}</p></div>`
     : `<p class="dx-muted" style="margin:0 0 26px;font:400 15px/1.65 ${BODY};color:${LEAD};overflow-wrap:anywhere;word-break:break-word;text-wrap:pretty">${o.lead}</p>`;
   return `<!doctype html>
 <html lang="pt-BR"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="color-scheme" content="light dark"><meta name="supported-color-schemes" content="light dark">
 <title>${escapeHtml(o.title)}</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
 <style>
   @media (prefers-color-scheme: dark) {
     .dx-bg { background:#0f1818 !important; }
@@ -189,7 +191,12 @@ export const DOCTOR_KYC_SUBJECTS = {
   rejected: 'Sua verificação não foi aprovada — veja como resolver | Dr. Exame',
 } as const;
 
-export function doctorKycEmail(i: { name: string; crm?: string | null; kind: 'received' | 'approved' | 'rejected'; reason?: string | null; portalUrl: string }): string {
+/**
+ * `captureTips` (só na recusa): true → card "Como resolver" com as 3 dicas de captura (motivo de
+ * documento/selfie/prova de vida/nome — ver kycCaptureIssue); false/ausente → card neutro "E agora?"
+ * (CRM/CFM, CPF, fraude, expirado, desconhecido e todo motivo escrito pelo dono).
+ */
+export function doctorKycEmail(i: { name: string; crm?: string | null; kind: 'received' | 'approved' | 'rejected'; reason?: string | null; captureTips?: boolean; portalUrl: string }): string {
   const first = firstName(i.name);
   const crm = i.crm ? `CRM ${escapeHtml(i.crm)}` : 'seu CRM';
   if (i.kind === 'received') {
@@ -238,13 +245,20 @@ export function doctorKycEmail(i: { name: string; crm?: string | null; kind: 're
     // Motivo = conteúdo principal; pode ser texto livre do dono (várias linhas): escapa e preserva as quebras.
     lead: escapeHtml(i.reason?.trim() || 'Algo não bateu na conferência dos seus dados.').replace(/\r?\n/g, '<br>'),
     quote: true,
-    body: numbered('Como resolver', [
-      'Use um documento <strong>original</strong> (RG, CNH ou RNE), sem reflexo.',
-      'Faça a selfie em local <strong>bem iluminado</strong>, sem óculos ou boné.',
-      'Confira se o nome do documento é o mesmo do seu <strong>registro no CFM</strong>.',
-    ]),
+    body: i.captureTips
+      ? numbered('Como resolver', [
+        'Use um documento <strong>original</strong> (RG, CNH ou RNE), sem reflexo.',
+        'Faça a selfie em local <strong>bem iluminado</strong>, sem óculos ou boné.',
+        'Confira se o nome do documento é o mesmo do seu <strong>registro no CFM</strong>.',
+      ])
+      : numbered('E agora?', [
+        '<strong>Leia o motivo</strong> acima — ele explica o que impediu a aprovação.',
+        `<strong>Acha que foi um engano?</strong> Responda este e-mail ou escreva para ${supportLink}.`,
+        '<strong>Está tudo em ordem?</strong> Tente de novo pelo Portal do Médico.',
+      ]),
     cta: { href: i.portalUrl, label: 'Tentar de novo' },
-    note: `Precisa de ajuda? Fale com a gente em ${supportLink}.`,
+    // No card neutro o contato já está no passo 2 — não repete; fecha com o aviso de segurança.
+    note: i.captureTips ? `Precisa de ajuda? Fale com a gente em ${supportLink}.` : 'Por segurança, nunca pedimos sua senha ou códigos por e-mail.',
   });
 }
 

@@ -1,7 +1,7 @@
 import { sendEmail } from '../utils/mailer';
 import { createLogger } from '../utils/logger';
 import { DOCTOR_KYC_SUBJECTS, doctorKycEmail, kycAdminEmail } from './emails';
-import { kycMessage } from './messages';
+import { kycCaptureIssue, kycMessage } from './messages';
 
 const log = createLogger('kyc-notify');
 const portalUrl = () => process.env.DOCTOR_PORTAL_URL || 'https://drexame.janocaminho.com.br/#/doctor';
@@ -30,11 +30,15 @@ export async function notifyDoctorKyc(
 ): Promise<void> {
   if (!doctor.email) return;
   try {
-    const reason = reasonText?.trim() || kycMessage(reasonCode);
+    const custom = reasonText?.trim();
+    const reason = custom || kycMessage(reasonCode);
+    // Dicas de captura ("Como resolver") só para motivo de documento/selfie/vida/nome com o texto padrão;
+    // motivo escrito pelo dono (qualquer assunto) e demais códigos recebem o card neutro "E agora?".
+    const captureTips = !custom && kycCaptureIssue(reasonCode);
     await sendEmail({
       to: doctor.email,
       subject: DOCTOR_KYC_SUBJECTS[kind],
-      html: doctorKycEmail({ name: doctor.name, crm: doctor.crm, kind, reason, portalUrl: portalUrl() }),
+      html: doctorKycEmail({ name: doctor.name, crm: doctor.crm, kind, reason, captureTips, portalUrl: portalUrl() }),
     });
   } catch (e: any) {
     log.warn('falha no e-mail ao médico (KYC)', { kind, msg: e?.message });
