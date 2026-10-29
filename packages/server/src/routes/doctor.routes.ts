@@ -105,6 +105,28 @@ function shouldAlertCrmConflict(crmKey: string, nowMs: number = Date.now()): boo
   return true;
 }
 
+/**
+ * CÓDIGO DE VERIFICAÇÃO do e-mail do médico (OTP). Fonte única do e-mail "Ative sua conta" — usada pelo /register e,
+ * desde a 2ª rodada da revisão final (B2-2), também pelo /login de conta com e-mail NÃO verificado. Antes só o /register
+ * emitia o código: o médico do CONVITE recebe o JWT sem OTP e, quando ele vence (7 dias), o login cai na tela de código
+ * sem nenhum código enviado — ficava trancado para fora. No máximo 1 envio por e-mail a cada 60 s (Map em memória do
+ * processo; perder no restart = 1 e-mail a mais) para o login não virar bomba de e-mail; o /register também marca a
+ * janela (um login logo depois do cadastro não manda um 2º código).
+ */
+const DOCTOR_OTP_RESEND_MS = 60_000;
+const doctorOtpSentAt = new Map<string, number>();
+export function resetDoctorOtpThrottleForTests(): void { doctorOtpSentAt.clear(); }
+function sendDoctorVerificationOtp(mail: string, name: string, tag: string): void {
+  const nowMs = Date.now();
+  doctorOtpSentAt.set(mail, nowMs);
+  if (doctorOtpSentAt.size > 1000) { // poda: janelas vencidas já não seguram nada
+    for (const [key, at] of doctorOtpSentAt) if (nowMs - at >= DOCTOR_OTP_RESEND_MS) doctorOtpSentAt.delete(key);
+  }
+  const code = issueOtp(mail);
+  sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
+    .catch((e: any) => console.error(`[${tag}] falha SMTP verificação:`, e?.message));
+}
+
 const router = Router();
 
 function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
@@ -402,9 +424,7 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
       await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false, ...cpfData } });
     }
     // Envia código de verificação pro e-mail — NÃO emite token antes de confirmar.
-    const code = issueOtp(mail);
-    sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
-      .catch((e: any) => console.error('[doctor/register] falha SMTP verificação:', e?.message));
+    sendDoctorVerificationOtp(mail, String(name), 'doctor/register');
     // AUDITORIA anti-fraude: TODO cadastro de médico fica registrado (CRM/email/IP) pra revisão
     // do admin. Hoje o CRM não é validado contra o CFM — um fraudador pode usar CRM alheio e
     // roubar shares de pacientes. Esta trilha permite identificar/reverter. (Validação CFM + aprovação
@@ -485,7 +505,15 @@ router.post('/login', async (req, res, next) => {
     if (!doctor) { docFailAudit('doctor_not_found'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
     if (doctor.passwordHash === 'pending-invite') { docFailAudit('invite_pending'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
     if (!(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) { docFailAudit('invalid_password'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
-    if (!doctor.emailVerified) { docFailAudit('email_unverified'); res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
+    if (!doctor.emailVerified) {
+      docFailAudit('email_unverified');
+      // B2-2: a senha JÁ conferiu (senha errada nunca chega aqui — não vira oráculo de "este e-mail existe/não verificou").
+      // Emite o código (o /register só emite 1x) respeitando 1 envio/60 s por e-mail; a resposta HTTP não muda.
+      const lastSent = doctorOtpSentAt.get(doctor.email);
+      if (lastSent === undefined || Date.now() - lastSent >= DOCTOR_OTP_RESEND_MS) sendDoctorVerificationOtp(doctor.email, doctor.name, 'doctor/login');
+      res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email });
+      return;
+    }
     if (doctor.blocked) {
       void audit('LOGIN_BLOCKED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', targetId: doctor.id, after: { email: doctor.email, reason: 'account_blocked', detail: doctor.blockedReason, ua: docUa } });
       res.status(403).json({
