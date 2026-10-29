@@ -41,6 +41,7 @@ import { HealthEcosystemBento } from '../components/landing/HealthEcosystemBento
 import { LandingNavbar } from '../components/landing/LandingNavbar';
 import { ComparisonTable } from '../components/landing/ComparisonTable';
 import { TrustSection } from '../components/landing/TrustSection';
+import { TrustBadges } from '../components/landing/TrustBadges';
 import { FloatingWhatsAppButton } from '../components/FloatingWhatsAppButton';
 import { fetchPublicConfig, API_URL } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
@@ -1102,6 +1103,12 @@ export const LandingPage = () => {
           })),
         })}
       </script>
+
+      {/* TRUST BADGES interativos (Lucian UX/UI #243) — selos LGPD/CFM/IA/pagamento que
+          flipam ao toque, com "verificar" local. Última dobra de confiança antes do CTA. */}
+      <ScrollReveal>
+        <TrustBadges />
+      </ScrollReveal>
 
       {/* CTA FINAL — painel gradiente */}
       <Box sx={{ py: { xs: 8, md: 11 } }}>

@@ -825,7 +825,18 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     if (!exam?.filePath) { res.status(404).json({ error: 'Arquivo não encontrado.' }); return; }
     const r = await resolveExamFile(exam.filePath);
     if (r.kind === 'url') res.redirect(302, r.url as string);
-    else { res.setHeader('Content-Type', 'application/pdf'); fs.createReadStream(r.file as string).pipe(res); }
+    else {
+      res.setHeader('Content-Type', 'application/pdf');
+      // AUD-001: mesmo fix do exam.routes — stream sem error handler derrubava o processo.
+      const stream = fs.createReadStream(r.file as string);
+      stream.on('error', () => {
+        if (!res.headersSent) {
+          res.setHeader('Content-Type', 'application/json'); // sobrescreve o application/pdf
+          res.status(404).json({ error: 'Arquivo não encontrado' });
+        } else res.end();
+      });
+      stream.pipe(res);
+    }
   } catch (e) { next(e); }
 });
 

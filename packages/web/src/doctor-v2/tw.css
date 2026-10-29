@@ -1,0 +1,167 @@
+/* ============================================================================
+   ILHA TAILWIND — Portal Médico v2 (doctor-v2)
+   ----------------------------------------------------------------------------
+   Regras desta ilha (decisão arquitetural 29/10/26):
+   1. SEM PREFLIGHT — o reset do Tailwind não pode tocar os estilos MUI das
+      outras ~43 telas. Importamos só theme + utilities.
+   2. ESCOPO FECHADO — @source aponta SÓ para a ilha e para os componentes
+      shadcn/ReUI instalados. Nenhuma classe é gerada a partir do resto do src.
+   3. TOKENS DE MARCA — vars semânticas mapeadas para a identidade Dr. Exame
+      (teal #20b2aa, cobre #d4a574), definidas no wrapper `.dx-island` (não em
+      :root) para não vazar escopo. Dark = classe `.dark` no <html>, bridged
+      com o useStore('theme') do app MUI.
+   4. dark por CLASSE (não prefers-color-scheme) — acompanha o toggle do app.
+   ========================================================================== */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source ".";
+@source "../components/ui";
+@source "../components/reui";
+@source "../components/blocks";
+
+@custom-variant dark (&:is(.dark *));
+
+/* Light — superfícies do Dr. Exame (paper #fff, texto #1a202c, borda #d8ece9).
+   AA/NÍTIDO (feedback dono 29/10): teal/cobre da MARCA servem como COR DE
+   PREENCHIMENTO; como TEXTO usam os tons AA do projeto (teal-800).
+   ⚠️ Tokens em :root/.dark (não no wrapper .dx-island): DropdownMenu/Popover/
+   Dialog do ReUI TELEPORTAM pro <body> — fora do wrapper as vars não cascateiam
+   e o menu abria transparente. Este CSS só carrega no chunk lazy das ilhas,
+   então :root aqui não vaza nada pro resto do app (MUI não lê estas vars). */
+:root {
+  --background: #fafbfc;
+  --foreground: #1a202c;
+  --primary: #115e59;
+  --primary-foreground: #ffffff;
+  --secondary: #b88a54;
+  --secondary-foreground: #ffffff;
+  --muted: #eef3f3;
+  --muted-foreground: #334155;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --popover-foreground: #1a202c;
+  --accent: #d8ece9;
+  --accent-foreground: #115e59;
+  --destructive: #dc2626;
+  --destructive-foreground: #991b1b;
+  --success: #059669;
+  --success-foreground: #065f46;
+  --warning: #d97706;
+  --warning-foreground: #854d0e;
+  --info: #0369a1;
+  --info-foreground: #0c4a6e;
+  --border: #d8ece9;
+  --input: #d8ece9;
+  --ring: #178f89;
+  --radius: 0.75rem;
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
+}
+
+/* Dark — mesmo comportamento do app MUI: superfícies escuras, marca constante.
+   Teal CLARO (#5fc9c3 = tealText dark do projeto): sobre fundo escuro o tom
+   claro é o legível. Popover ganha papel próprio (#1f2b2b) p/ cobrir conteúdo. */
+.dark {
+  --background: #0f1818;
+  --foreground: #e8eef0;
+  --primary: #5fc9c3;
+  --primary-foreground: #04201e;
+  --secondary: #e0bc97;
+  --secondary-foreground: #241703;
+  --muted: #1c2626;
+  --muted-foreground: #a8b8b8;
+  --card: #1a2424;
+  --popover: #1f2b2b;
+  --popover-foreground: #e8eef0;
+  --accent: #243030;
+  --accent-foreground: #5fc9c3;
+  --destructive: #f87171;
+  --destructive-foreground: #0f1818;
+  --success: #34d399;
+  --success-foreground: #0f1818;
+  --warning: #fbbf24;
+  --warning-foreground: #0f1818;
+  --info: #38bdf8;
+  --info-foreground: #0f1818;
+  --border: #2a3636;
+  --input: #2a3636;
+  --ring: #5fc9c3;
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
+}
+
+/* Fontes da marca (globais do app — Poppins títulos / Inter corpo) */
+.dx-island {
+  font-family: "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+}
+.dx-island h1, .dx-island h2, .dx-island h3, .dx-island h4 {
+  font-family: "Poppins", "Inter", "Segoe UI", sans-serif;
+}
+
+:root {
+  --destructive-foreground: var(--color-red-800);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-900);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-900);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-900);
+  --invert: var(--color-zinc-900);
+  --invert-foreground: var(--color-zinc-50);
+}
+
+.dark {
+  --destructive-foreground: var(--color-red-600);
+  --success: var(--color-emerald-500);
+  --success-foreground: var(--color-emerald-600);
+  --info: var(--color-violet-500);
+  --info-foreground: var(--color-violet-600);
+  --warning: var(--color-yellow-500);
+  --warning-foreground: var(--color-yellow-600);
+  --invert: var(--color-zinc-700);
+  --invert-foreground: var(--color-zinc-50);
+}
+
+@theme inline {
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-invert: var(--invert);
+  --color-invert-foreground: var(--invert-foreground);
+}
+
+/* Ponte dos tokens CORE (badge `bg-primary`, ilha `bg-background` etc.):
+   o bloco acima (gerado pelo CLI da ReUI) cobre só os extendidos — sem esta
+   ponte, `bg-primary`/`text-foreground` ficam transparentes. As vars continuam
+   definidas em `.dx-island` (marca por modo claro/escuro), o @theme só expõe
+   p/ as utilities do Tailwind. */
+@theme inline {
+  --color-copper-300: #e8cba8;
+  --color-copper-400: #e0bc97;
+  --color-copper-500: #d4a574;
+  --color-copper-600: #b88a54;
+  --color-copper-700: #9a7042;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-focus: var(--focus);
+  --color-focus-foreground: var(--focus-foreground);
+}

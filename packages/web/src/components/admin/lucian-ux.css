@@ -1,0 +1,42 @@
+/* Lucian UX/UI Prompt base `.ux` rules · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/
+   Adapted: font switched to the project stack (Inter/Poppins via theme inherit); colors come from
+   per-instance --ux-* custom properties mapped to the MUI theme (light/dark). */
+.ux,
+.ux *,
+.ux *::before,
+.ux *::after {
+  box-sizing: border-box;
+}
+.ux {
+  font-family: inherit;
+  color: var(--ux-ink);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
+  -webkit-tap-highlight-color: transparent;
+  overflow-wrap: break-word;
+}
+:where(.ux) :is(button, input, textarea, select) {
+  font: inherit;
+  color: inherit;
+}
+:where(.ux) button {
+  cursor: pointer;
+}
+.ux :focus-visible {
+  outline: 2px solid var(--ux-accent);
+  outline-offset: 3px;
+}
+.ux [hidden] {
+  display: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ux,
+  .ux *,
+  .ux *::before,
+  .ux *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -209,7 +209,7 @@ export const EvolutionPage = () => {
               '&:focus-within': { borderColor: '#20b2aa', boxShadow: '0 0 0 3px rgba(32,178,170,.12)' },
             }}>
               <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-              <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" sx={{ flex: 1, fontSize: 14 }} />
+              <InputBase value={query} onChange={(e: any) => setQuery(e.target.value)} placeholder="Buscar exame (TSH, glicose, colesterol…)" inputProps={{ 'aria-label': 'Buscar exame por nome' }} sx={{ flex: 1, fontSize: 14 }} />
               {query && (
                 <IconButton size="small" onClick={() => setQuery('')} sx={{ p: 0.5, color: 'text.secondary' }} aria-label="Limpar busca">
                   <CloseIcon sx={{ fontSize: 18 }} />

@@ -47,7 +47,7 @@ export function generateClinicalSummary(s: CurrentHealthSummary, patient: { age?
   }
 
   // Stale
-  if (s.stale.length > 0) parts.push(`${s.stale.length} marcador(es) desatualizado(s)`);
+  if (s.stale.length > 0) parts.push(`${s.stale.length} ${s.stale.length === 1 ? 'marcador desatualizado' : 'marcadores desatualizados'}`);
 
   return parts.join('. ') + '.';
 }

@@ -9,6 +9,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import MedicalInformationIcon from '@mui/icons-material/MedicalInformation';
 import { AppCard } from '../AppCard';
 import { RADIUS, tealText } from '../../theme';
+import { plural } from '../../utils/format';
 import type { EvolutionAnalyte } from './SportsMarkerCard';
 
 const fmtDay = (iso: string | null) => (iso ? new Date(iso).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '—');
@@ -86,8 +87,8 @@ export const SportsSinceLast = ({ items, abnormalCount, substancesCount, onPrep,
           <MedicalInformationIcon sx={{ fontSize: 17, color: '#d4a574' }} />
           <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
             {abnormalCount > 0
-              ? `${abnormalCount} marcador(es) fora da faixa${substancesCount > 0 ? ` · ${substancesCount} substância(s) declarada(s)` : ''} — perguntas prontas pro médico`
-              : 'Tudo dentro da faixa' + (substancesCount > 0 ? ` · ${substancesCount} substância(s) declarada(s)` : '') + ' — perguntas prontas pro médico'}
+              ? `${plural(abnormalCount, 'valor')} fora da faixa${substancesCount > 0 ? ` · ${plural(substancesCount, 'substância declarada', 'substâncias declaradas')}` : ''} — perguntas prontas pro médico`
+              : 'Tudo dentro da faixa' + (substancesCount > 0 ? ` · ${plural(substancesCount, 'substância declarada', 'substâncias declaradas')}` : '') + ' — perguntas prontas pro médico'}
           </Typography>
         </Stack>
         <Stack direction="row" spacing={1}>

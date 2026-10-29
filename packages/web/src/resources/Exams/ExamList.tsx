@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
+import { plural } from '../../utils/format';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
@@ -117,7 +118,7 @@ const ExamHero = ({ r, abnCount, onView, onPdf }: { r: any; abnCount: number; on
       {/* Sem uppercase/ls largo no label (audit: caixa alta = cara de dashboard admin, não app premium). */}
       <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>Último exame</Typography>
       <Typography title={titleInfo.original || r.title} sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: { xs: 19, md: 22 }, lineHeight: 1.2, mt: 0.25, wordBreak: 'break-word' }}>{titleInfo.text || 'Exame'}</Typography>
-      <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Data não identificada no PDF" sx={{ fontSize: '0.82rem' }} /></Box>
+      <Box sx={{ mt: 0.5 }}><DateLabel date={r.performedAt} fallback="Sem data no laudo — abra para conferir" sx={{ fontSize: '0.82rem' }} /></Box>
       <Stack direction="row" spacing={1.5} sx={{ mt: 1, flexWrap: 'wrap', rowGap: 0.5, alignItems: 'center' }}>
         <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>{itemCount} resultado{itemCount !== 1 ? 's' : ''}</Typography>
         {abnCount > 0 ? (
@@ -172,6 +173,7 @@ const ExamFilterToolbar = ({
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Buscar exame (TSH, glicose...)"
+          inputProps={{ 'aria-label': 'Buscar exame por nome' }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -630,13 +632,13 @@ const ExamCards = () => {
               <Stack spacing={1.5}>{rejected.map((r: any) => renderCard(r))}</Stack>
             </Box>
           )}
-          {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
+          {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${plural(lockedCount, 'exame')} de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
           {view === 'date' && (
             <>
               {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
               {dateGroups.map((g) => {
                 const locked = !premium && g.year !== latestYear && g.year != null;
-                if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
+                if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
                 const defaultExp = premium || g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'));
                 const expKey = `date-${g.year}`;
                 return (
@@ -755,7 +757,7 @@ const ExamCards = () => {
       )}
 
       {/* Nudge Premium (apenas na visão por categoria — anos anteriores ocultos) */}
-      {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${lockedCount} exame(s) de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
+      {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${plural(lockedCount, 'exame')} de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
 
       {/* Grupos (data OU categoria) */}
       {view === 'date' && (
@@ -763,7 +765,7 @@ const ExamCards = () => {
           {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
           {dateGroups.map((g) => {
             const locked = !premium && g.year !== latestYear && g.year != null;
-            if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${g.items.length} exame(s)`, g.items.length);
+            if (locked) return lockCard(String(g.year), `📅 ${g.label} • ${plural(g.items.length, 'exame')}`, g.items.length);
             const defaultExp = premium || g.year === latestYear || (g.year === null && g.items.some((r: any) => r.status === 'FAILED'));
             const expKey = `date-${g.year}`;
             return (

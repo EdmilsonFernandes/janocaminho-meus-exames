@@ -65,6 +65,10 @@ import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
 const ChatPage = lazy(() => import('./pages/Chat').then(m => ({ default: m.ChatPage })));
 const DoctorPortalPage = lazy(() => import('./pages/DoctorPortal').then(m => ({ default: m.DoctorPortalPage })));
+// Ilha doctor-v2 (spike ReUI/Tailwind): rota escondida atrás de flag localStorage dx.doctorV2.
+const DoctorV2Spike = lazy(() => import('./doctor-v2/DoctorV2Spike'));
+// Ilha dashboard-v2 (protótipo A/B paciente, ReUI): flag localStorage dx.dashV2.
+const DashboardV2Island = lazy(() => import('./doctor-v2/DashboardV2Island'));
 // Landing premium de aquisição de médicos (24/10): vende a FERRAMENTA (brief, transcrição,
 // PIX) — NÃO marketplace. Callback OAuth Meet (#/para-medicos?meet=ok|erro) é repassado
 // pro /doctor pela própria página ANTES de renderizar (ver ParaMedicos.tsx).
@@ -1238,7 +1242,6 @@ const AppLayout = (props: any) => {
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />
-      <OfflineBanner />
       <Onboarding />
       <WhatsNew />
       <CompleteProfileModal />
@@ -1453,6 +1456,10 @@ export const App = () => {
       <Route path="/registrar" element={<RegisterPage />} />
       <Route path="/recuperar-senha" element={<ResetPage />} />
       <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
+      {/* Ilha doctor-v2 (spike): ReUI/Tailwind scoped em src/doctor-v2 — sem preflight, sem tocar MUI. Flag: localStorage dx.doctorV2=1 */}
+      <Route path="/doctor-v2" element={<Suspense fallback={<PageSkeleton />}><DoctorV2Spike /></Suspense>} />
+      {/* Ilha dashboard-v2 (protótipo A/B paciente): stats-1 + série real, dados do /dashboard-summary. Flag: localStorage dx.dashV2=1 */}
+      <Route path="/dashboard-v2" element={<Suspense fallback={<PageSkeleton />}><DashboardV2Island /></Suspense>} />
       <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><ParaMedicosPage /></Suspense>} />
       {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
       <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />

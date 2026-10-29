@@ -814,6 +814,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const noShowTimerRef = useRef<number | null>(null); // agent2: timer de no-show (5 min) — limpo no unmount
   const roomRef = useRef<Room | null>(null);
   const previewStream = useRef<MediaStream | null>(null);
+  /** Tracks do preview em trânsito pro publishTrack (fix Safari 29/10) — o
+   *  startJoin transfere a posse pra cá; connectRoom publica, o finally descarta. */
+  const pendingTracksRef = useRef<MediaStreamTrack[]>([]);
   const previewVideo = useRef<HTMLVideoElement>(null);
   const audioSink = useRef<HTMLDivElement>(null);
   const wakeLock = useRef<any>(null);
@@ -1013,10 +1016,27 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     // Participantes que JÁ estão na sala não disparam ParticipantConnected.
     room.remoteParticipants.forEach((p) => upsertRemote(p));
 
-    // Publica mídia local — respeita as escolhas do pré-join
+    // Publica mídia local — respeita as escolhas do pré-join.
+    // Fix 29/10 (Heloisa, Safari): REAPROVEITA as tracks do preview — elas nasceram
+    // no gesto do usuário e já estão autorizadas; pedir getUserMedia DE NOVO depois
+    // dos awaits do join falhava no Safari/iOS (NotAllowed intermitente → mic
+    // vermelho, sem gravação/transcrição). Sem preview (auto-join APK/agenda) →
+    // setMicrophoneEnabled + retry, caminho antigo.
     let camOk = true;
     let micOk = true;
-    try { await room.localParticipant.setMicrophoneEnabled(micOn); } catch { micOk = false; }
+    const pending = pendingTracksRef.current;
+    pendingTracksRef.current = [];
+    const pvAudio = pending.find((t) => t.kind === 'audio' && t.readyState === 'live') ?? null;
+    const pvVideo = pending.find((t) => t.kind === 'video' && t.readyState === 'live') ?? null;
+    for (const t of pending) if (t !== pvAudio && t !== pvVideo) { try { t.stop(); } catch { /* noop */ } }
+
+    if (micOn && pvAudio) {
+      try { pvAudio.enabled = true; await room.localParticipant.publishTrack(pvAudio, { source: Track.Source.Microphone }); }
+      catch { try { pvAudio.stop(); } catch { /* noop */ } micOk = false; }
+    } else {
+      if (pvAudio) { try { pvAudio.stop(); } catch { /* noop */ } }
+      try { await room.localParticipant.setMicrophoneEnabled(micOn); } catch { micOk = false; }
+    }
     // Dono 23/10 (chamada REAL): mic falhava no AUTO-JOIN do APK — a permissão do
     // WebView às vezes não está pronta quando o connect dispara na carga da página
     // (sem gesto). Retry curto resolve a corrida; sem mic, o botão fica vermelho DE
@@ -1027,10 +1047,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         try { await room.localParticipant.setMicrophoneEnabled(true); micOk = true; } catch { /* tenta de novo */ }
       }
     }
-    try {
-      const pub = await room.localParticipant.setCameraEnabled(camOn);
-      setLocalVideo(pub?.videoTrack ?? null);
-    } catch { camOk = false; }
+    if (camOn && pvVideo) {
+      try {
+        pvVideo.enabled = true;
+        const pub = await room.localParticipant.publishTrack(pvVideo, { source: Track.Source.Camera });
+        setLocalVideo(((pub as any)?.videoTrack as LocalVideoTrack | undefined) ?? null);
+      } catch {
+        try { pvVideo.stop(); } catch { /* noop */ }
+        try { const pub = await room.localParticipant.setCameraEnabled(true); setLocalVideo(pub?.videoTrack ?? null); } catch { camOk = false; }
+      }
+    } else {
+      if (pvVideo) { try { pvVideo.stop(); } catch { /* noop */ } }
+      try {
+        const pub = await room.localParticipant.setCameraEnabled(camOn);
+        setLocalVideo(pub?.videoTrack ?? null);
+      } catch { camOk = false; }
+    }
 
     // §19 diagnóstico: saúde da track local publicada (mudo por engano = médico
     // não ouve). Dev-only. audioTrackPublications é Map — percorre, não indexa.
@@ -1057,6 +1089,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // ── Join via backend ─────────────────────────────────────────────────────────
   const startJoin = useCallback(async (s?: Summary | null) => {
     const sum = s ?? summaryRef.current;
+    // Fix Safari 29/10: as tracks do preview (autorizadas no GESTO de "Entrar")
+    // passam pro pendingTracksRef ANTES do stopPreview — o connectRoom as publica
+    // direto (sem segundo getUserMedia, que falhava no Safari). O finally descarta
+    // o que não foi consumido (early-return 402/403/falha de join).
+    pendingTracksRef.current = previewStream.current?.getTracks() ?? [];
+    previewStream.current = null;
     stopPreview();
     setPhase('connecting');
     setBanner('connecting');
@@ -1133,6 +1171,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       setToast({ text: 'Não deu pra entrar. Tenta de novo em instantes.', k: Date.now() });
       hapticError();
       setPhase('prejoin');
+    } finally {
+      // Tracks não consumidas pelo connectRoom (early-return/falha): solta o hardware.
+      pendingTracksRef.current.forEach((t) => { try { t.stop(); } catch { /* noop */ } });
+      pendingTracksRef.current = [];
     }
   }, [authToken, connectRoom, reminderId, role, stopPreview]);
 

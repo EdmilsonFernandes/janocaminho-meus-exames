@@ -37,7 +37,11 @@ export const NotificationPopup = () => {
           // de voltar do background (parecia "app travado" após ocioso).
           // + Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/GoalQuiz
           // já abriram nesta sessão, a notificação fica pro badge/bell, não vira modal.
-          timer = setTimeout(() => { if (!document.hidden && claimColdDialog('notif')) setOpen(true); }, 2500);
+          // + SÓ NA HOME (auditoria UX 29/10/26): em deep link (push → tela específica,
+          // /medicamentos, /exams…) o modal cobria o conteúdo que o usuário já estava
+          // lendo, ~3s depois do boot. Fora da home a notificação fica no sininho.
+          const atHome = () => { try { const h = window.location.hash.replace(/^#/, '').split('?')[0]; return h === '/' || h === ''; } catch { return false; } };
+          timer = setTimeout(() => { if (!document.hidden && atHome() && claimColdDialog('notif')) setOpen(true); }, 2500);
         }
       })
       .catch(() => {});

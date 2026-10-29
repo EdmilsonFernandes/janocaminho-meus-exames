@@ -118,7 +118,7 @@ export const ConquistasPage = () => {
   return (
     <PageContainer width={780} sx={{ pb: { xs: 10, sm: 5 } }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-        <IconButton onClick={() => navigate(-1)} size="small" sx={{ mr: 0.5 }}><ArrowBackIcon /></IconButton>
+        <IconButton onClick={() => navigate(-1)} size="small" aria-label="Voltar" sx={{ mr: 0.5 }}><ArrowBackIcon /></IconButton>
         <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>Minhas conquistas</Typography>
       </Stack>
 
@@ -136,7 +136,7 @@ export const ConquistasPage = () => {
             <Box>
               <Typography sx={{ fontWeight: 900, fontSize: 28, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
                 {state.creditsClaimed}
-                <Box component="span" sx={{ fontSize: 14, opacity: 0.85, fontWeight: 500, ml: 1 }}>de {state.creditsAvailable} créditos resgatados</Box>
+                <Box component="span" sx={{ fontSize: 14, opacity: 0.85, fontWeight: 500, ml: 1 }}>{' '}de {state.creditsAvailable} créditos resgatados</Box>
               </Typography>
               <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 0.75 }} useFlexGap flexWrap="wrap">
                 <Chip size="small" label={`🏆 ${earnedCount}/${totalBadges} conquistas`} sx={{ bgcolor: 'rgba(255,255,255,.18)', color: '#fff', fontWeight: 700, fontSize: 12 }} />

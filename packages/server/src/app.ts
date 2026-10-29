@@ -576,6 +576,11 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
       res.status(400).json({ error: 'Nome, CRM, e-mail e senha são obrigatórios.' });
       return;
     }
+    // AUD-003 (main): este endpoint já emitiu JWT 7d com senha fraca e e-mail sem formato. Espelha o cadastro completo
+    // (validate.ts): senha mín. 6 e e-mail válido — ANTES do lookup no CFM, para dado inválido não gastar a cota do consultaCRM.
+    // CRM/UF seguem pelo `canonicalCrm` abaixo (3–7 dígitos, UF em BR_UFS, 422 CRM_INVALID).
+    if (String(password).length < 6) { res.status(400).json({ error: 'Senha mínima de 6 caracteres.' }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) { res.status(400).json({ error: 'E-mail inválido.' }); return; }
 
     // AUD-003 parte 1 (spec §7): CRM/UF válidos + CFM não inativo. A conta nasce 'pending' (default
     // do schema) → o token abaixo só abre o onboarding; dado de paciente só após o KYC (gate).

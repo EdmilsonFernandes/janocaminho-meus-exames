@@ -14,6 +14,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
 import VideocamIcon from '@mui/icons-material/Videocam';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import WhatsAppIcon from '@mui/icons-material/WhatsApp';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import EmailIcon from '@mui/icons-material/Email';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import { SPECIALTIES, CONVENIOS, UFS } from '../utils/medicalData';
 import type { DoctorLookupResult, DoctorLookupSource } from '../types/doctor';
 import { PageContainer } from '../components/layout/PageContainer';
@@ -23,6 +28,7 @@ import { tealText } from '../theme';
 import { notifyInsufficientCredits } from '../utils/credits-events';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
+import { chipA11y } from '../utils/chipA11y';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -46,6 +52,8 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
     <Chip
       size="small"
       onClick={(e) => { e.stopPropagation(); onToggle(scopeKey); }}
+      {...chipA11y(active)}
+      aria-label={`${meta.label}: ${active ? 'acesso ativo' : 'sem acesso'} — alternar`}
       label={
         <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
           <span>{meta.icon}</span>
@@ -58,6 +66,10 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
         fontWeight: 700,
         cursor: 'pointer',
         borderRadius: '999px',
+        // Alvo de toque ~44px sem mudar o visual (auditoria 29/10: alternar PERMISSÃO
+        // com alvo de 28px arrisca toque errado): a pílula ganha área invisível vertical.
+        position: 'relative',
+        '&::before': { content: '""', position: 'absolute', top: -8, bottom: -8, left: 0, right: 0, borderRadius: '999px' },
         bgcolor: active ? 'rgba(5,150,105,0.12)' : 'rgba(0,0,0,0.04)',
         color: active ? '#047857' : 'text.secondary',
         border: `1px solid ${active ? 'rgba(5,150,105,0.3)' : 'rgba(0,0,0,0.08)'}`,
@@ -82,7 +94,18 @@ export const MedicosPage = () => {
   const [showForm, setShowForm] = useState(false);
   // Form state
   const [name, setName] = useState(''); const [crm, setCrm] = useState(''); const [uf, setUf] = useState(''); const [spec, setSpec] = useState(''); const [specOther, setSpecOther] = useState(''); const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(''); // WhatsApp do médico / clínica
   const [clinicCity, setClinicCity] = useState(''); // cidade da clínica (enriquece a busca "perto de você")
+  // Fluxo de convite / compartilhamento viral (WhatsApp + e-mail + Play Store)
+  const [inviteData, setInviteData] = useState<{
+    doctorName: string;
+    crm: string;
+    uf: string;
+    phone?: string;
+    email?: string;
+    isNewToPlatform: boolean;
+  } | null>(null);
+  const [copiedInvite, setCopiedInvite] = useState(false);
   // Combo IBGE (5.571 municípios, vendored) — carregado SOB DEMANDA ao abrir o form
   // (code-split: os ~170KB não entram no bundle inicial desta página, que é eager no App).
   const [cityOptions, setCityOptions] = useState<string[]>([]);
@@ -224,6 +247,7 @@ export const MedicosPage = () => {
     if (m) { setCrm(m[1]); setUf(m[2].toUpperCase()); } else { setCrm(d.crm); setUf(''); }
     setSpec(d.specialty || '');
     setEmail(!d.email || d.email.includes('@invite') ? '' : d.email);
+    setPhone(d.phone || '');
     setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' });
   };
 
@@ -239,6 +263,7 @@ export const MedicosPage = () => {
         body: JSON.stringify({
           doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorName: name,
           doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec,
+          doctorPhone: phone.trim() || undefined,
           ...(clinicCity.trim() ? { clinicCity: clinicCity.trim() } : {}),
           patientId: pid,
         }),
@@ -246,7 +271,7 @@ export const MedicosPage = () => {
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao salvar');
       notify('Médico salvo em Meus médicos — sem acesso aos seus exames.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setClinicCity(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
+      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setPhone(''); setClinicCity(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
       load();
     } catch (e: any) { notify(e.message || 'Falha ao salvar', { type: 'error' }); } finally { setSaving(false); }
   };
@@ -257,13 +282,34 @@ export const MedicosPage = () => {
     if (!name) { notify('Informe o nome do médico (use "Buscar" ou preencha manualmente).', { type: 'error' }); return; }
     if (scopes.length === 0) { notify('Selecione ao menos um tipo de dado para compartilhar.', { type: 'error' }); return; }
     setSaving(true);
+    const isNew = lookup?.source !== 'base';
+    const invitePayload = {
+      doctorName: name,
+      crm: crm.replace(/\D/g, ''),
+      uf,
+      phone: phone.trim() || undefined,
+      email: email.trim() || undefined,
+      isNewToPlatform: isNew,
+    };
     try {
-      const r = await fetch(`${API_URL}/doctor-shares`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf, doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec, doctorEmail: email, doctorClinicCity: clinicCity, scopes, convenio, patientId: pid, examIds: scopes.includes('exams') ? examIds : [] }) });
+      const r = await fetch(`${API_URL}/doctor-shares`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+        body: JSON.stringify({
+          doctorName: name, doctorCrm: crm.replace(/\D/g, ''), doctorUf: uf,
+          doctorSpecialty: spec === 'Outro' ? specOther.trim() : spec,
+          doctorEmail: email, doctorPhone: phone, doctorClinicCity: clinicCity,
+          scopes, convenio, patientId: pid, examIds: scopes.includes('exams') ? examIds : []
+        })
+      });
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha');
-      notify('Compartilhamento criado! O médico foi avisado por e-mail.', { type: 'success' });
-      setShowForm(false); setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
+      hapticSuccess();
+      setShowForm(false);
+      setName(''); setCrm(''); setUf(''); setSpec(''); setEmail(''); setPhone(''); setClinicCity(''); setScopes([]); setConvenio('Particular'); setLookup(null); setExamIds([]);
       load();
+      // Abre o diálogo de convite / compartilhamento viral (WhatsApp + e-mail + Play Store)
+      setInviteData(invitePayload);
     } catch (e: any) { notify(e.message, { type: 'error' }); } finally { setSaving(false); }
   };
   const revoke = async (id: string) => {
@@ -300,6 +346,7 @@ export const MedicosPage = () => {
     if (m) { setCrm(m[1]); setUf(m[2].toUpperCase()); } else { setCrm(doctor.crm || ''); setUf(''); }
     setSpec(doctor.specialty || '');
     setEmail(!doctor.email || String(doctor.email).includes('@invite') ? '' : doctor.email);
+    setPhone(doctor.phone || '');
     setLookup({ source: 'base', msg: '✅ Médico já cadastrado na plataforma.' });
     setShowForm(true);
   };
@@ -373,79 +420,105 @@ export const MedicosPage = () => {
 
   return (
     <PageContainer width={760} sx={{ pb: { xs: 14, sm: 6 } }}>
-      {/* HERO BANNER PREMIUM */}
+      {/* HERO BANNER ULTRA PREMIUM */}
       <Card
         elevation={0}
         sx={{
           mb: 3,
-          borderRadius: '16px',
-          background: 'linear-gradient(135deg, #0f5f5a 0%, #178f89 100%)',
+          borderRadius: '20px',
+          background: 'linear-gradient(135deg, #093f3c 0%, #0f5f5a 60%, #178f89 100%)',
           color: '#fff',
           overflow: 'hidden',
-          boxShadow: '0 12px 32px rgba(15,95,90,0.22)',
+          boxShadow: '0 16px 36px rgba(15,95,90,0.24)',
+          position: 'relative',
+          border: '1px solid rgba(255,255,255,0.12)',
         }}
       >
-        <CardContent sx={{ p: { xs: 2.5, sm: 3.5 } }}>
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={2}>
-            <Box>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.2)', p: 1, borderRadius: '12px', display: 'flex', alignItems: 'center' }}>
-                  <MedicalServicesIcon sx={{ fontSize: 28, color: '#fff' }} />
+        {/* Glow decorativo sutil de fundo */}
+        <Box sx={{
+          position: 'absolute', top: -40, right: -40, width: 180, height: 180,
+          borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,0.3) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <CardContent sx={{ p: { xs: 2.25, sm: 3.25 } }}>
+          <Stack spacing={2}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
+              <Stack direction="row" alignItems="center" spacing={1.5}>
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.16)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', backdropFilter: 'blur(8px)' }}>
+                  <MedicalServicesIcon sx={{ fontSize: 26, color: '#fff' }} />
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.02em' }}>
-                  Meus Médicos
-                </Typography>
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, sm: 22 }, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                    Meus Médicos
+                  </Typography>
+                  <Typography sx={{ opacity: 0.85, fontSize: 13, mt: 0.25 }}>
+                    Seus profissionais de confiança e permissões de acesso
+                  </Typography>
+                </Box>
+              </Stack>
+
+              {/* Badges de estatística sem corte */}
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
                 <Chip
                   size="small"
-                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'} • ${activeCount} com acesso`}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.22)', color: '#fff', fontWeight: 800, backdropFilter: 'blur(6px)' }}
+                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'}`}
+                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800, fontSize: 12, height: 26, backdropFilter: 'blur(6px)' }}
+                />
+                <Chip
+                  size="small"
+                  label={`${activeCount} com acesso`}
+                  sx={{ bgcolor: activeCount > 0 ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.12)', color: activeCount > 0 ? '#a7f3d0' : '#fff', fontWeight: 800, fontSize: 12, height: 26, border: '1px solid rgba(52,211,153,0.3)' }}
                 />
               </Stack>
-              <Typography sx={{ opacity: 0.9, fontSize: 14, maxWidth: 520, lineHeight: 1.4 }}>
-                Controle o que cada médico pode ver. Altere permissões ou revogue o acesso a qualquer momento.
-              </Typography>
-            </Box>
+            </Stack>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ width: { xs: '100%', sm: 'auto' } }}>
+            <Typography sx={{ opacity: 0.9, fontSize: 13.5, maxWidth: 580, lineHeight: 1.5 }}>
+              Controle o que cada médico pode visualizar. Você escolhe quais exames compartilhar e pode alterar ou revogar permissões a qualquer momento.
+            </Typography>
+
+            {/* Ações principais em grid/linha moderna */}
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ pt: 0.5 }}>
               <Button
                 variant="contained"
                 startIcon={<SearchIcon />}
                 onClick={() => { hapticLight(); navigate('/encontrar'); }}
                 sx={{
-                  bgcolor: 'rgba(255,255,255,0.18)',
-                  color: '#fff',
+                  flex: 1,
+                  bgcolor: '#ffffff',
+                  color: '#0f5f5a',
                   fontWeight: 800,
+                  fontSize: 13.5,
                   textTransform: 'none',
                   borderRadius: '999px',
+                  py: 1.1,
                   px: 2.5,
-                  py: 1,
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
+                  '&:hover': { bgcolor: '#f0fdfa', color: '#093f3c' },
                 }}
               >
-                🔍 Encontrar especialistas
+                Encontrar novos especialistas
               </Button>
               <Button
                 variant="contained"
                 startIcon={<PersonAddIcon />}
                 onClick={() => setShowForm(true)}
                 sx={{
+                  flex: 1,
                   bgcolor: 'rgba(255,255,255,0.18)',
                   color: '#fff',
                   fontWeight: 800,
+                  fontSize: 13.5,
                   textTransform: 'none',
                   borderRadius: '999px',
+                  py: 1.1,
                   px: 2.5,
-                  py: 1,
                   backdropFilter: 'blur(8px)',
                   border: '1px solid rgba(255,255,255,0.35)',
-                  whiteSpace: 'nowrap',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' },
+                  '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' },
                 }}
               >
-                + Compartilhar
+                Compartilhar com meu médico
               </Button>
             </Stack>
           </Stack>
@@ -504,6 +577,7 @@ export const MedicosPage = () => {
         <Stack spacing={1} sx={{ mb: 2.5 }}>
           <TextField
             placeholder={translate('docs.search_ph')}
+            inputProps={{ 'aria-label': 'Buscar médico por nome ou CRM' }}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             size="small"
@@ -523,7 +597,10 @@ export const MedicosPage = () => {
               </TextField>
             )}
             <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>Só ativos</Typography>} />
-            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'médico' : 'médicos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(15,95,90,0.1)', color: '#0f5f5a', fontWeight: 800 }} />
+            {/* "compartilhamentos", não "médicos": o herói conta médicos SALVOS (myItems) e
+                aqui são os shares — com o mesmo rótulo os números pareciam contraditórios
+                (auditoria 29/10: "3 médicos" × "2 médicos" na mesma tela). */}
+            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'compartilhamento' : 'compartilhamentos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(15,95,90,0.1)', color: '#0f5f5a', fontWeight: 800 }} />
           </Stack>
         </Stack>
       )}
@@ -531,8 +608,8 @@ export const MedicosPage = () => {
       {/* Loading */}
       {loading && <ListSkeleton count={4} />}
 
-      {/* Empty state */}
-      {!loading && myShares.length === 0 && (
+      {/* Empty state geral (somente quando não há médicos de nenhum tipo) */}
+      {!loading && myShares.length === 0 && semAcesso.length === 0 && (
         <Card sx={{ borderRadius: '16px', background: 'background.default', border: '1px solid', borderColor: 'divider' }}><CardContent sx={{ textAlign: 'center', py: 5 }}>
           <Box sx={{ fontSize: 56, mb: 1 }}>🩺</Box>
           <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>{translate('docs.empty_title')}</Typography>
@@ -542,6 +619,29 @@ export const MedicosPage = () => {
             <Button variant="outlined" size="large" startIcon={<SearchIcon />} onClick={() => navigate('/encontrar')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 4, borderColor: 'rgba(255,255,255,0.5)', color: '#0f766e' }}>Encontrar especialistas</Button>
           </Stack>
         </CardContent></Card>
+      )}
+
+      {/* Aviso acolhedor quando há médicos salvos mas nenhum com acesso liberado ainda */}
+      {!loading && myShares.length === 0 && semAcesso.length > 0 && (
+        <Alert
+          severity="info"
+          icon={<MedicalServicesIcon sx={{ color: '#0f766e' }} />}
+          sx={{
+            borderRadius: '16px',
+            mb: 3,
+            bgcolor: 'rgba(15,118,110,0.06)',
+            border: '1px solid rgba(15,118,110,0.2)',
+            color: 'text.primary',
+            '& .MuiAlert-icon': { color: '#0f766e' },
+          }}
+        >
+          <Typography sx={{ fontWeight: 800, fontSize: 13.5, mb: 0.25 }}>
+            Nenhum médico com acesso aos seus exames no momento
+          </Typography>
+          <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>
+            Os médicos abaixo estão salvos na sua lista de confiança. Quando desejar que um deles consulte seus laudos e exames, toque em <strong>Compartilhar</strong>.
+          </Typography>
+        </Alert>
       )}
 
       {/* Lista agrupada por especialidade */}
@@ -585,11 +685,13 @@ export const MedicosPage = () => {
                           height: 52,
                           fontWeight: 800,
                           fontSize: 20,
-                          bgcolor: '#0f5f5a',
+                          background: 'linear-gradient(135deg, #093f3c 0%, #0f766e 55%, #14b8a6 100%)',
+                          color: '#ffffff',
                           border: `2.5px solid ${s.active ? '#059669' : '#cbd5e1'}`,
+                          boxShadow: '0 4px 12px rgba(15,118,110,0.18)',
                         }}
                       >
-                        {s.doctor?.name?.charAt(0)?.toUpperCase()}
+                        {s.doctor?.name ? (s.doctor.name.replace(/^Dr\w*\.?\s+/i, '').charAt(0) || '🩺') : '🩺'}
                       </Avatar>
                       <Box sx={{ position: 'absolute', bottom: 0, right: 0, width: 13, height: 13, borderRadius: '50%', bgcolor: s.active ? '#059669' : '#94a3b8', border: '2px solid #fff' }} />
                     </Box>
@@ -652,7 +754,7 @@ export const MedicosPage = () => {
                       <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, fontSize: 12, textTransform: 'uppercase', letterSpacing: 0.5, display: 'block', mb: 0.5 }}>
                         Acessos autorizados (toque para alternar):
                       </Typography>
-                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
+                      <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ rowGap: 1.5 }}>
                         {SCOPE_META.map((sm) => (
                           <ScopeToggle
                             key={sm.key}
@@ -690,8 +792,21 @@ export const MedicosPage = () => {
               <Card key={it.id} sx={{ borderRadius: '16px', border: '1px dashed', borderColor: 'rgba(32,178,170,0.45)', bgcolor: 'background.paper' }}>
                 <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
-                    <Avatar src={it.doctor?.id ? doctorPhotoUrl(it.doctor.id) : undefined} sx={{ width: 44, height: 44, fontWeight: 800, bgcolor: '#0f5f5a', flexShrink: 0 }}>
-                      {it.doctor?.name?.charAt(0)?.toUpperCase()}
+                    <Avatar
+                      src={it.doctor?.id ? doctorPhotoUrl(it.doctor.id) : undefined}
+                      sx={{
+                        width: 46,
+                        height: 46,
+                        fontWeight: 800,
+                        fontSize: 18,
+                        background: 'linear-gradient(135deg, #093f3c 0%, #0f766e 55%, #14b8a6 100%)',
+                        color: '#ffffff',
+                        border: '2px solid rgba(15,118,110,0.3)',
+                        boxShadow: '0 3px 10px rgba(15,118,110,0.12)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {it.doctor?.name ? (it.doctor.name.replace(/^Dr\w*\.?\s+/i, '').charAt(0) || '🩺') : '🩺'}
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0, cursor: 'pointer' }} onClick={() => setDetail(it.doctor)}>
                       <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
@@ -812,7 +927,23 @@ export const MedicosPage = () => {
         {detail && (
           <>
             <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
-              <Avatar src={detail.id ? doctorPhotoUrl(detail.id) : undefined} sx={{ width: 96, height: 96, mx: 'auto', mb: 1.5, fontSize: 36, fontWeight: 800, bgcolor: '#20b2aa', border: '3px solid rgba(32,178,170,0.2)' }}>{detail.name?.charAt(0)?.toUpperCase()}</Avatar>
+              <Avatar
+                src={detail.id ? doctorPhotoUrl(detail.id) : undefined}
+                sx={{
+                  width: 96,
+                  height: 96,
+                  mx: 'auto',
+                  mb: 1.5,
+                  fontSize: 34,
+                  fontWeight: 800,
+                  background: 'linear-gradient(135deg, #093f3c 0%, #0f766e 55%, #14b8a6 100%)',
+                  color: '#ffffff',
+                  border: '3.5px solid rgba(32,178,170,0.4)',
+                  boxShadow: '0 8px 24px rgba(15,118,110,0.22)',
+                }}
+              >
+                {detail.name ? (detail.name.replace(/^Dr\w*\.?\s+/i, '').charAt(0) || '🩺') : '🩺'}
+              </Avatar>
               {detail.name}
             </DialogTitle>
             <DialogContent sx={{ textAlign: 'center' }}>
@@ -872,11 +1003,22 @@ export const MedicosPage = () => {
                 <MenuItem value=""><em>Selecione…</em></MenuItem>
                 {specialtyOptions.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
               </TextField>
+              <TextField
+                label="WhatsApp / Celular da clínica ou médico (opcional)"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                size="small"
+                placeholder="Ex.: (11) 98765-4321"
+                inputProps={{ inputMode: 'tel' }}
+                sx={{ flex: '1 1 200px' }}
+              />
               <TextField label="E-mail (opcional)" value={email} onChange={(e) => setEmail(e.target.value)} size="small" sx={{ flex: '1 1 200px' }} />
               <Autocomplete
-                freeSolo disablePortal autoComplete
+                freeSolo autoComplete
                 options={cityOptions}
+                value={clinicCity}
                 inputValue={clinicCity}
+                onChange={(_, v) => setClinicCity(v ?? '')}
                 onInputChange={(_, v) => setClinicCity(v)}
                 renderInput={(p) => <TextField {...p} label="Cidade da clínica (opcional)" size="small" placeholder="Ex.: São José dos Campos" />}
                 sx={{ flex: '1 1 200px' }}
@@ -924,14 +1066,230 @@ export const MedicosPage = () => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5, gap: { xs: 2, sm: 1 } }}>
-          <Button onClick={() => setShowForm(false)} sx={{ textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
-          {/* §1: salvar SEM conceder acesso — o fluxo que não obriga a compartilhar */}
-          <Button onClick={salvarSemCompartilhar} disabled={saving} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), mr: 'auto' }}>
-            Só salvar (sem acesso)
+        <DialogActions sx={{ px: { xs: 2.5, sm: 3 }, pb: 2.5, pt: 1, flexDirection: 'column', gap: 1.5, alignItems: 'stretch' }}>
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={add}
+            disabled={saving || insufficient || scopes.length === 0}
+            sx={{
+              borderRadius: '999px',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: 15,
+              py: 1.25,
+              bgcolor: '#0f766e',
+              boxShadow: '0 4px 14px rgba(15,118,110,0.3)',
+              '&:hover': { bgcolor: '#115e59' },
+            }}
+          >
+            {saving ? <CircularProgress size={22} color="inherit" /> : shareCost > 0 ? `Compartilhar exames (${shareCost} 💎)` : 'Compartilhar exames com o médico →'}
           </Button>
-          <Button variant="contained" onClick={add} disabled={saving || insufficient || scopes.length === 0} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
-            {saving ? <CircularProgress size={20} color="inherit" /> : shareCost > 0 ? `Compartilhar (${shareCost} 💎)` : 'Compartilhar →'}
+
+          <Stack direction={{ xs: 'column-reverse', sm: 'row' }} spacing={1} justifyContent="space-between" alignItems="center" sx={{ width: '100%' }}>
+            <Button
+              onClick={() => setShowForm(false)}
+              sx={{ textTransform: 'none', fontWeight: 700, color: 'text.secondary', width: { xs: '100%', sm: 'auto' } }}
+            >
+              Cancelar
+            </Button>
+            {/* §1: salvar SEM conceder acesso — o fluxo que não obriga a compartilhar */}
+            <Button
+              variant="outlined"
+              onClick={salvarSemCompartilhar}
+              disabled={saving}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: '999px',
+                borderColor: 'rgba(15,118,110,0.4)',
+                color: (t) => tealText(t.palette.mode),
+                width: { xs: '100%', sm: 'auto' },
+                '&:hover': { borderColor: '#0f766e', bgcolor: 'rgba(15,118,110,0.04)' },
+              }}
+            >
+              Só salvar na lista (sem dar acesso)
+            </Button>
+          </Stack>
+        </DialogActions>
+      </Dialog>
+
+      {/* DIALOG DE CONVITE VIRAL / AVISO AO MÉDICO (Growth Loop B2B) */}
+      <Dialog
+        open={!!inviteData}
+        onClose={() => setInviteData(null)}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{ sx: { borderRadius: '20px', overflow: 'hidden' } }}
+      >
+        <Box sx={{
+          background: 'linear-gradient(135deg, #093f3c 0%, #0f766e 60%, #14b8a6 100%)',
+          color: '#ffffff',
+          p: { xs: 2.5, sm: 3 },
+          textAlign: 'center',
+          position: 'relative',
+        }}>
+          <Box sx={{
+            width: 64,
+            height: 64,
+            borderRadius: '50%',
+            bgcolor: 'rgba(255,255,255,0.18)',
+            border: '2px solid rgba(255,255,255,0.4)',
+            backdropFilter: 'blur(8px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 28,
+            mx: 'auto',
+            mb: 1.5,
+          }}>
+            🩺
+          </Box>
+          <Typography sx={{ fontWeight: 800, fontSize: { xs: 18, sm: 20 }, fontFamily: '"Poppins", sans-serif', color: '#fff' }}>
+            Acesso aos exames autorizado!
+          </Typography>
+          <Typography sx={{ fontSize: 13, color: 'rgba(255,255,255,0.85)', mt: 0.5, maxWidth: 420, mx: 'auto' }}>
+            {inviteData?.isNewToPlatform
+              ? `O Dr(a). ${inviteData?.doctorName} foi adicionado. Envie o convite abaixo para que ele(a) conheça a plataforma e acesse seu prontuário.`
+              : `O Dr(a). ${inviteData?.doctorName} já tem liberação de acesso. Avise-o pelo WhatsApp ou e-mail para consultar seus laudos.`}
+          </Typography>
+        </Box>
+
+        <DialogContent sx={{ p: { xs: 2, sm: 2.5 } }}>
+          {inviteData && (() => {
+            const crmFormatted = `${inviteData.crm}${inviteData.uf ? `-${inviteData.uf}` : ''}`;
+            const inviteMsg = `Olá, Dr(a). ${inviteData.doctorName}!\n\n` +
+              `Sou seu(sua) paciente e acabei de autorizar o seu acesso aos meus exames e histórico de saúde pela plataforma Dr. Exame.\n\n` +
+              `Você pode visualizar meus laudos, gráficos de evolução e resumos clínicos organizados por IA através do nosso portal médico gratuito:\n\n` +
+              `🌐 Portal Web: https://drexame.com.br\n` +
+              `📱 App Dr. Exame na Google Play: https://play.google.com/store/apps/details?id=br.com.drexame.app\n\n` +
+              `Seu CRM ${crmFormatted} já está habilitado. O acesso é 100% gratuito para médicos e segue todas as normas de segurança do CFM e LGPD.`;
+
+            const cleanPhone = inviteData.phone ? inviteData.phone.replace(/\D/g, '') : '';
+            const waUrl = cleanPhone
+              ? `https://wa.me/55${cleanPhone}?text=${encodeURIComponent(inviteMsg)}`
+              : `https://wa.me/?text=${encodeURIComponent(inviteMsg)}`;
+
+            const emailSubject = `Acesso a exames de paciente — Plataforma Dr. Exame (CRM ${crmFormatted})`;
+            const mailtoUrl = inviteData.email
+              ? `mailto:${inviteData.email}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(inviteMsg)}`
+              : null;
+
+            return (
+              <Stack spacing={2}>
+                <Box sx={{
+                  p: 1.5,
+                  borderRadius: '14px',
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                }}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontWeight: 800, fontSize: 12, color: '#0f766e', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                      Mensagem de convite pronta
+                    </Typography>
+                    <Button
+                      size="small"
+                      startIcon={copiedInvite ? <CheckRoundedIcon /> : <ContentCopyIcon />}
+                      onClick={() => {
+                        navigator.clipboard?.writeText(inviteMsg);
+                        setCopiedInvite(true);
+                        notify('Mensagem copiada para a área de transferência!', { type: 'success' });
+                        setTimeout(() => setCopiedInvite(false), 2500);
+                      }}
+                      sx={{
+                        textTransform: 'none',
+                        fontSize: 12,
+                        fontWeight: 700,
+                        color: copiedInvite ? '#059669' : '#0f766e',
+                        py: 0.25,
+                      }}
+                    >
+                      {copiedInvite ? 'Copiado!' : 'Copiar texto'}
+                    </Button>
+                  </Stack>
+                  <Typography variant="body2" sx={{
+                    whiteSpace: 'pre-wrap',
+                    fontSize: 12.5,
+                    lineHeight: 1.5,
+                    color: 'text.secondary',
+                    maxHeight: 140,
+                    overflowY: 'auto',
+                    fontFamily: 'monospace',
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.2)' : '#ffffff',
+                    p: 1.25,
+                    borderRadius: '8px',
+                    border: '1px solid rgba(0,0,0,0.05)',
+                  }}>
+                    {inviteMsg}
+                  </Typography>
+                </Box>
+
+                <Stack spacing={1}>
+                  <Button
+                    variant="contained"
+                    component="a"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={waUrl}
+                    startIcon={<WhatsAppIcon sx={{ fontSize: '20px !important' }} />}
+                    sx={{
+                      borderRadius: '999px',
+                      bgcolor: '#25D366',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      fontSize: 14.5,
+                      textTransform: 'none',
+                      py: 1.2,
+                      boxShadow: '0 4px 14px rgba(37,211,102,0.3)',
+                      '&:hover': { bgcolor: '#20ba5a' },
+                    }}
+                  >
+                    {inviteData.phone ? 'Enviar convite no WhatsApp do médico' : 'Abrir mensagem no WhatsApp'}
+                  </Button>
+
+                  {mailtoUrl && (
+                    <Button
+                      variant="outlined"
+                      component="a"
+                      href={mailtoUrl}
+                      startIcon={<EmailIcon sx={{ fontSize: '18px !important' }} />}
+                      sx={{
+                        borderRadius: '999px',
+                        borderColor: 'rgba(15,118,110,0.35)',
+                        color: '#0f766e',
+                        fontWeight: 700,
+                        fontSize: 13.5,
+                        textTransform: 'none',
+                        py: 1,
+                        '&:hover': { borderColor: '#0f766e', bgcolor: 'rgba(15,118,110,0.04)' },
+                      }}
+                    >
+                      Enviar também por E-mail ({inviteData.email})
+                    </Button>
+                  )}
+                </Stack>
+              </Stack>
+            );
+          })()}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, pb: 2.5, pt: 0.5 }}>
+          <Button
+            onClick={() => setInviteData(null)}
+            fullWidth
+            sx={{
+              borderRadius: '999px',
+              textTransform: 'none',
+              fontWeight: 800,
+              fontSize: 13.5,
+              color: 'text.secondary',
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#f1f5f9',
+              py: 1,
+              '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : '#e2e8f0' }
+            }}
+          >
+            Concluir e fechar
           </Button>
         </DialogActions>
       </Dialog>

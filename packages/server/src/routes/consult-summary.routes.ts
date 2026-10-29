@@ -235,6 +235,9 @@ router.post('/teleconsulta/:id/summary/generate', requireDoctorIdentity, async (
     } catch (e: any) {
       // 503 (retry possível) — NÃO 500: a falha é do provedor de IA, e o registro
       // anterior (se houver) continua intacto no banco.
+      // bug 29/10: falha silenciosa no server — sem esta linha o motivo real só
+      // existia no body da resposta e nunca chegava ao docker logs.
+      console.error(`[consult-summary] geração falhou (${r.id}):`, String(e?.message ?? e).slice(0, 300));
       res.status(503).json({
         code: 'SUMMARY_LLM_FAILED',
         error: 'Não foi possível gerar o rascunho agora. Tente novamente em instantes — suas anotações não foram afetadas.',

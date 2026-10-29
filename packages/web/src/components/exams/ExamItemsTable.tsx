@@ -4,7 +4,7 @@ import { ValueBar } from '../ValueBar';
 import { RefBar } from '../RefBar';
 import { UnitLabel } from '../UnitLabel';
 import { ExplainButton } from '../ExplainItem';
-import { fmtVal, unitSuffix } from '../../utils/format';
+import { fmtVal, unitSuffix, plural } from '../../utils/format';
 import { displayStatus } from '../../utils/examStatus';
 
 /** flagMeta — cores/labels das flags técnicas (NORMAL/HIGH/LOW/ABNORMAL/CRITICAL/UNKNOWN).
@@ -71,7 +71,7 @@ export const ExamItemsTable = ({ items }: { items: any[] }) => {
           {abnormal.length ? (
             <>
               <Typography sx={{ fontWeight: 700, color: 'warning.main' }}>
-                🚩 {abnormal.length} valor(es) fora da faixa de referência
+                🚩 {plural(abnormal.length, 'valor')} fora da faixa de referência
               </Typography>
               <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                 {abnormal.map((i) => (
@@ -81,7 +81,7 @@ export const ExamItemsTable = ({ items }: { items: any[] }) => {
             </>
           ) : noRef.length > 0 ? (
             <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-              {noRef.length} de {items.length} valor(es) sem referência informada pelo laboratório — não foi possível classificar automaticamente.
+              {noRef.length} de {plural(items.length, 'valor')} sem referência informada pelo laboratório — não foi possível classificar automaticamente.
             </Typography>
           ) : (
             <Typography sx={{ fontWeight: 700, color: 'success.main' }}>

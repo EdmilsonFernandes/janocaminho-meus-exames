@@ -555,7 +555,6 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
           {icon}
         </Box>
         <Typography
-          noWrap
           sx={{
             fontSize: 11,
             fontWeight: 800,
@@ -565,6 +564,12 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
             textAlign: 'right',
             flex: 1,
             minWidth: 0,
+            // 390px: "REQUER ATEN…"/"COMPLETAR P…" truncado não diz nada — quebra em 2 linhas.
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            lineHeight: 1.25,
           }}
         >
           {label}
@@ -573,7 +578,6 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
 
       <Box sx={{ minWidth: 0, mt: 0.5 }}>
         <Typography
-          noWrap
           sx={{
             fontFamily: 'Poppins, sans-serif',
             fontWeight: 800,
@@ -582,17 +586,24 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
             fontVariantNumeric: 'tabular-nums',
             color: 'text.primary',
             letterSpacing: '-0.02em',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
           }}
         >
           {value}
         </Typography>
         <Typography
-          noWrap
           sx={{
             fontSize: 12,
             color: 'text.secondary',
             mt: 0.25,
             fontWeight: 500,
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
           }}
         >
           {sub}
@@ -663,6 +674,7 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
         exams={d.stats.exams}
         importante={d.importante}
         moderada={d.moderada}
+        abnormalTotal={d.stats.abnormal}
         staleWarning={d.staleWarning}
         worsened={d.worsened}
         items={items ?? undefined}
@@ -697,8 +709,9 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
                 Levando em conta o que você declara
               </Typography>
               <Typography sx={{ fontSize: 11, fontWeight: 500, color: 'text.secondary', lineHeight: 1.45 }}>
-                resumos, chat, checagens e brief do médico consideram seu stack ·{' '}
-                <Box component="button" type="button" onClick={goStack} sx={{ border: 'none', bgcolor: 'transparent', p: 0, cursor: 'pointer', font: 'inherit', color: theme.palette.mode === 'dark' ? '#e3bd8f' : '#8a6240', textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation' }}>
+                {/* "seu stack" era jargão fitness (auditoria 29/10) — nomeia o que é. */}
+                resumos, chat, checagens e brief do médico consideram suas substâncias declaradas ·{' '}
+                <Box component="button" type="button" onClick={goStack} sx={{ border: 'none', bgcolor: 'transparent', cursor: 'pointer', font: 'inherit', color: theme.palette.mode === 'dark' ? '#e3bd8f' : '#8a6240', textDecoration: 'underline', textUnderlineOffset: 2, touchAction: 'manipulation', p: 1.5, m: -1.5 }}>
                   editar
                 </Box>
               </Typography>
@@ -728,8 +741,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
           {spotlightTiles.length > 0 ? (
             <>
               {spotlightTiles.map((t) => statTile(t.key, t.icon, t.label, t.value, t.sub, t.tone, t.onClick))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? SEVERITY.high : SEVERITY.low, String(d.stats.abnormal),
-                d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low, String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'ver o que priorizar' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
                 () => navigate('/tendencias'))}
               {missingSpotlight.length > 0 && statTile(
                 'complete',
@@ -746,8 +759,8 @@ export const SportsDashboard = ({ pid, d, profile, firstName }: {
               {statTile('ultimo', <EventAvailableIcon fontSize="small" />, 'Último exame', fmtDay(d.lastExam), relDays(d.lastExam) ?? '—', tealText(theme.palette.mode),
                 () => (lastExamRow ? navigate(`/exams/${lastExamRow.id}/show`) : navigate('/exams')))}
               {statTile('ano', <ScienceIcon fontSize="small" />, 'Exames no ano', String(examsLastYear), `de ${d.stats.exams} no total`, tealText(theme.palette.mode), () => navigate('/exams'))}
-              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? SEVERITY.high : SEVERITY.low, String(d.stats.abnormal),
-                d.stats.abnormal > 0 ? 'pedem atenção' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
+              {statTile('alterados', <FavoriteBorderIcon fontSize="small" />, d.stats.abnormal > 0 ? 'Fora da faixa' : SEVERITY.low, String(d.stats.abnormal),
+                d.stats.abnormal > 0 ? 'ver o que priorizar' : 'todos na faixa', d.stats.abnormal > 0 ? SEM.bad[theme.palette.mode] : SEM.ok[theme.palette.mode],
                 () => navigate('/tendencias'))}
               <BiologicalAgeCard idx={3} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} />
             </>

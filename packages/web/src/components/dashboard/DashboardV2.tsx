@@ -16,6 +16,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { FailedExamsAlert } from './FailedExamsAlert';
 import { RejectedExamsAlert } from './RejectedExamsAlert';
 import { NextStepsCard } from './NextStepsCard';
+import { PendenciasCard } from './PendenciasCard';
 import { AiCard } from './AiCard';
 import { AiTip } from './AiTip';
 import { speakText, stopSpeakText } from '../../utils/nativeDoc';
@@ -1341,6 +1342,16 @@ const DashboardV2Inner = () => {
               {/* PRÓXIMAS COLETAS (T2, checklist de coleta): plano do médico — card compacto,
                   só existe quando há coleta pendente (componente resolve null sozinho). */}
               {!demo && <UpcomingCollectionsCard />}
+
+              {/* PRA VOCÊ FAZER — fila de pendências do dia-a-dia (consulta agendada,
+                  lembrete vencendo, pergunta aguardando médico). Padrão exception-queue
+                  (ReUI dashboard-1) portado p/ MUI. Complementar aos cards acima — resolve
+                  null sozinho quando o paciente está em dia. */}
+              {!demo && (
+                <DashboardErrorBoundary>
+                  <PendenciasCard />
+                </DashboardErrorBoundary>
+              )}
 
               {/* O QUE MUDOU — card único com 2 abas (Exames | Hábitos). Antes eram dois
                   cards irmãos dizendo a mesma coisa ("o que mudou" × "desde seu último exame").

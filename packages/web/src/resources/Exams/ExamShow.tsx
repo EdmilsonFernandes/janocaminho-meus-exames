@@ -25,7 +25,7 @@ import { Sparkline } from '../../components/Sparkline';
 import { ExplainButton } from '../../components/ExplainItem';
 import { UnitLabel } from '../../components/UnitLabel';
 import { TelemedicineButton } from '../../components/TelemedicineButton';
-import { fmtVal, unitSuffix, fmtDateShort } from '../../utils/format';
+import { fmtVal, unitSuffix, fmtDateShort, plural } from '../../utils/format';
 import { categorizeExam } from '../../utils/medicalData';
 import { tealText, RADIUS, SEM } from '../../theme';
 import { WhatIsThis } from '../../components/WhatIsThis';
@@ -518,7 +518,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
               {abnormal.length ? (
                 <>
                   <Typography sx={{ fontWeight: 700, color: 'warning.main' }}>
-                    🚩 {abnormal.length} valor(es) fora da faixa de referência
+                    🚩 {plural(abnormal.length, 'valor')} fora da faixa de referência
                   </Typography>
                   <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mt: 1 }}>
                     {abnormal.map((i) => (
@@ -529,7 +529,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
                 </>
               ) : noRef.length > 0 ? (
                 <Typography sx={{ fontWeight: 700, color: 'text.secondary' }}>
-                  {noRef.length} de {items.length} valor(es) sem referência informada pelo laboratório — não foi possível classificar automaticamente.
+                  {noRef.length} de {plural(items.length, 'valor')} sem referência informada pelo laboratório — não foi possível classificar automaticamente.
                 </Typography>
               ) : (
                 <Typography sx={{ fontWeight: 700, color: 'success.main' }}>

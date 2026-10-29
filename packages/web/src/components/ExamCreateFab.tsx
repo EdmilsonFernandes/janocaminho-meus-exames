@@ -16,7 +16,9 @@ import { tealText } from '../theme';
 export const ExamCreateFab = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  if (pathname !== '/exams') return null;
+  // Home incluída (auditoria 29/10): o job nº1 do usuário recorrente — "chegou exame
+  // novo, subir" — não tinha porta na tela inicial (só texto dentro da nota de staleness).
+  if (pathname !== '/exams' && pathname !== '/') return null;
   return (
     <Fab color="primary" aria-label="Enviar exame" onClick={() => navigate('/exams/create')}
       sx={{

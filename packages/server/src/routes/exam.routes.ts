@@ -405,7 +405,16 @@ router.get('/:id/file', async (req: AuthedRequest, res, next) => {
       res.redirect(302, r.url as string);
     } else {
       res.setHeader('Content-Type', 'application/pdf');
-      fs.createReadStream(r.file as string).pipe(res);
+      // AUD-001: arquivo órfão (sumiu do disco pós-upload) derrubava o processo inteiro —
+      // stream sem error handler = uncaught exception em produção. 404 limpo no lugar.
+      const stream = fs.createReadStream(r.file as string);
+      stream.on('error', () => {
+        if (!res.headersSent) {
+          res.setHeader('Content-Type', 'application/json'); // sobrescreve o application/pdf
+          res.status(404).json({ error: 'Arquivo não encontrado' });
+        } else res.end();
+      });
+      stream.pipe(res);
     }
   } catch (e) {
     next(e);

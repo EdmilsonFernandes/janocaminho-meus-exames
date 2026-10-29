@@ -152,6 +152,15 @@ describe('famílias de substância declarada (banner/prep/lente)', () => {
     expect(androgenDeclared(undefined)).toBe(false);
   });
 
+  it('androgenDeclared entende o nome COMERCIAL que o sheet grava (alias → princípio ativo)', () => {
+    for (const n of ['Deca-Durabolin', 'Anavar', 'Deposteron', 'Tren', 'Halotestin', 'Turinabol']) {
+      expect(androgenDeclared([{ name: n }]), n).toBe(true);
+    }
+    expect(androgenDeclared([{ name: 'hGH (somatropina)' }])).toBe(false);
+    expect(androgenDeclared([{ name: 'DHEA' }])).toBe(false);
+    expect(androgenDeclared([{ name: 'Tamoxifeno' }])).toBe(false);
+  });
+
   it('hormoneDeclared cobre classe + eixo GH', () => {
     expect(hormoneDeclared([{ name: 'hGH (somatropina)' }])).toBe(true);
     expect(hormoneDeclared([{ name: 'X', klass: 'Hormônio' }])).toBe(true);

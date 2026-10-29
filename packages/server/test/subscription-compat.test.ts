@@ -44,12 +44,14 @@ describe('subscriptionCompat', () => {
       { column_name: 'pixQrCode' },
       { column_name: 'pixQrBase64' },
       { column_name: 'pixCredits' },
+      { column_name: 'couponCode' },
+      { column_name: 'couponDiscountCents' },
     ] as never);
 
     await expect(getSubscriptionColumnSupport()).resolves.toEqual({
       hasPixResume: true,
       hasRawWebhook: true,
-      hasCoupon: false, // as colunas de cupom (T3 cupons) não estão nesta amostra
+      hasCoupon: true, // a amostra acima já traz couponCode + couponDiscountCents (main)
     });
   });
 

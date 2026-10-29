@@ -55,13 +55,15 @@ async function requireJoinIdentity(req: JoinRequest, res: Response, next: NextFu
   try { payload = jwt.verify(token, config.jwtSecret); } catch { res.status(401).json({ error: 'Token inválido ou expirado' }); return; }
 
   if (payload?.type === 'doctor') {
-    // Médico: valida existência (token de doctor deletado não entra).
+    // Médico: valida existência (token de doctor deletado não entra) e bloqueio
+    // (AUD-004: admin suspende o médico, mas o join ainda deixava entrar com token 7d).
     const doc = await prisma.doctor.findUnique({
       where: { id: payload.doctorId },
       select: { id: true, name: true, crm: true, crmUf: true, blocked: true, blockedReason: true, verificationStatus: true },
     });
     if (!doc) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-    const denial = doctorAccessDenial(doc); // spec §7: o join do médico nem checava bloqueio
+    // Política única (spec §7): bloqueado → 403 DOCTOR_BLOCKED (o AUD-004 da main) E não verificado → 403 VERIFICATION_REQUIRED.
+    const denial = doctorAccessDenial(doc);
     if (denial) { res.status(denial.status).json(denial.body); return; }
     req.doctorId = doc.id;
     req.joinRole = 'doctor';
@@ -108,11 +110,17 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
       return;
     }
 
-    // Ownership — médico: share ATIVO com o paciente (cópia local de 3 linhas do
-    // requireShare de doctor.routes.ts, que é de outro dono).
+    // Ownership — médico: share ATIVO e NÃO EXPIRADO com o paciente (AUD-002: antes só
+    // checava active — share vencido continuava abrindo a sala, inconsistente com o
+    // portal em doctor.routes.ts que valida expiresAt).
     if (role === 'doctor') {
       const share = await prisma.doctorShare.findFirst({
-        where: { doctorId: req.doctorId!, patientId: reminder.patientId, active: true },
+        where: {
+          doctorId: req.doctorId!,
+          patientId: reminder.patientId,
+          active: true,
+          OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        },
         select: { id: true },
       });
       if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
@@ -579,8 +587,15 @@ async function loadAccessibleTeleconsulta(req: JoinRequest, res: Response): Prom
   if (!row || row.type !== 'teleconsulta') { res.status(404).json({ error: 'Teleconsulta não encontrada' }); return; }
 
   if (req.joinRole === 'doctor') {
+    // AUD-002 (revisão R2): mesma regra do /join — share ativo E não expirado vale para
+    // TODAS as rotas pós-chamada (/end, /summary, /transcript, /feedback, /nudge, /doctor-note).
     const share = await prisma.doctorShare.findFirst({
-      where: { doctorId: req.doctorId!, patientId: row.patientId, active: true },
+      where: {
+        doctorId: req.doctorId!,
+        patientId: row.patientId,
+        active: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       select: { id: true },
     });
     if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }

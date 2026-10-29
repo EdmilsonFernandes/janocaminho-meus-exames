@@ -91,11 +91,16 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
   const value = it.lastValue;
   const inRef = withinRef(value, it.refLow, it.refHigh);
   const out = value != null && it.refLow != null && it.refHigh != null && (value > it.refHigh || value < it.refLow);
+  // Sem faixa no laudo NÃO se afirma "fora da referência" (contradição com o rodapé
+  // "sem faixa informada" — falsa urgência). O flag do laudo vira "Alterado no laudo".
+  const noRef = it.refLow == null || it.refHigh == null;
   const statusText = value == null ? 'Sem valor numérico'
-    : it.refLow != null && it.refHigh != null
-      ? (value > it.refHigh ? '↑ Acima da referência' : value < it.refLow ? '↓ Abaixo da referência' : 'Na referência')
-      : (it.abnormal ? 'Fora da referência' : 'Na referência');
-  const statusColor = out ? SEM.bad[theme.palette.mode] : inRef === false ? SEM.warn[theme.palette.mode] : SEM.ok[theme.palette.mode];
+    : !noRef
+      ? (value > it.refHigh! ? '↑ Acima da referência' : value < it.refLow! ? '↓ Abaixo da referência' : 'Na referência')
+      : (it.abnormal ? 'Alterado no laudo' : 'Sem referência');
+  const statusColor = out ? SEM.bad[theme.palette.mode]
+    : (noRef && it.abnormal) || inRef === false ? SEM.warn[theme.palette.mode]
+    : SEM.ok[theme.palette.mode];
 
   // ── Régua de 3 camadas: escala cobre valor + histórico + meta (nunca corta banda) ──
   const pts = it.points.filter((p) => p.value != null) as (EvolutionPoint & { value: number })[];
@@ -314,7 +319,9 @@ export const SportsMarkerCard = ({ it, goals, patientId, ctx, showLegend = false
         </Box>
       ) : (
         <Typography variant="caption" sx={{ display: 'block', mt: 1, color: out ? statusColor : 'text.secondary', fontWeight: out ? 700 : 500, fontSize: 11.5 }}>
-          {out ? 'Alterado — faixa não informada pelo laboratório.' : 'Sem faixa de referência informada pelo laboratório.'}
+          {it.abnormal
+            ? 'Marcado como alterado no laudo — faixa de referência não informada pelo laboratório.'
+            : 'Sem faixa de referência informada pelo laboratório.'}
         </Typography>
       )}
 

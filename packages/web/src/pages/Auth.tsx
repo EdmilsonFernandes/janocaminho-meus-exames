@@ -79,8 +79,11 @@ const Shell = ({ children, subtitle }: { children: ReactNode; subtitle?: string 
           <DrExame size={62} sx={{ borderRadius: '50%' }} />
         </Box>
       </MascotPulse>
+      {/* Marca única (auditoria 29/10): o app inteiro, a landing e o portal se apresentam
+          como "Dr. Exame" — o login dizia "Meus Exames" e quebrava a continuidade
+          exatamente na porta de entrada. "Meus Exames" segue como nome legal nos Termos. */}
       <Typography sx={{ fontWeight: 800, color: '#fff', fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, fontSize: { xs: 25, sm: 27 }, mt: 1.5, textShadow: '0 1px 8px rgba(0,60,55,.35)' }}>
-        Meus Exames
+        Dr. Exame
       </Typography>
       <Typography sx={{ ...SERIF_I, fontSize: 14.5, color: 'rgba(255,255,255,.88)', mt: 0.25 }}>
         {subtitle ?? translate('auth.subtitle')}
@@ -528,7 +531,9 @@ export const RegisterPage = () => {
         body: JSON.stringify({ name: name.trim(), cpf, email: email.trim(), password: pwd, referral: referral.trim() || undefined, inviteToken: invite || undefined, deviceId: getDeviceId(), source: signupSource() || undefined }),
       });
       const d = await r.json();
-      if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); navigate('/'); return; }
+      // AUD-090: NÃO navegar em caso de 409 — navigate('/') levava ao dashboard com a
+      // sessão ANTERIOR de outro usuário persistida no navegador (login cruzado).
+      if (r.status === 409) { notify('Este e-mail já tem conta. Use sua senha, "entrar com token" ou "esqueci a senha".', { type: 'warning' }); return; }
       if (r.status === 429) { notify('Muitas tentativas de cadastro deste dispositivo. Aguarde alguns minutos e tente novamente.', { type: 'warning' }); return; }
       if (!r.ok) throw new Error(d.message || d.error || 'Falha no cadastro');
       if (d.needsVerification) { setVerifyEmail(d.email); notify('Enviamos um código de ativação no seu e-mail (cheque o spam).', { type: 'success' }); return; }

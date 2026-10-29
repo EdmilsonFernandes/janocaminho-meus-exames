@@ -46,6 +46,7 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AssignmentAddIcon from '@mui/icons-material/AssignmentAdd';
 import CloseIcon from '@mui/icons-material/Close';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
+import { enableAtenderAgora, disableAtenderAgora, resumeAtenderAgora, subscribeAtenderAgora, clearAtenderOffer, takeAtenderNotice, getAtenderAgora } from '../utils/atenderAgora';
 import { DrExame } from '../components/DrExame';
 import { OtpInput } from '../components/OtpInput';
 import { DoctorProfileForm } from '../components/doctors/portal/DoctorProfileForm';
@@ -232,7 +233,7 @@ export const DoctorPortalPage = () => {
     } catch (e: any) { setErr(e.message); } finally { setLoading(false); }
   };
 
-  const logout = () => { localStorage.removeItem(docKey); localStorage.removeItem('doctorPhotoToken'); navigate('/entrar/medico'); };
+  const logout = () => { void disableAtenderAgora(); localStorage.removeItem(docKey); localStorage.removeItem('doctorPhotoToken'); navigate('/entrar/medico'); };
 
   // Busca CRM no conselho (consultaCRM) pra pré-preencher nome + especialidade no cadastro.
   const buscarCrmReg = async () => {
@@ -777,9 +778,10 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   };
 
   // ── ATENDER AGORA — fila imediata (spec 2026-10-27 §6) ─────────────────────
-  // Toggle de presença: ON → heartbeat 30s + polling de chamados 5s; OFF/unload/
-  // unmount → PUT online:false (keepalive). Heartbeat falha 3× → OFF + aviso.
-  const [atendOn, setAtendOn] = useState(false);
+  // Fix 29/10: presença/polling moram no serviço singleton utils/atenderAgora
+  // (sobrevive à navegação — entrar na sala NÃO derruba mais o online; chamado
+  // novo toca/notifica mesmo com a aba oculta). Aqui só UI: toggle + dialog.
+  const [atendOn, setAtendOn] = useState(() => getAtenderAgora().on);
   const [atendBusy, setAtendBusy] = useState(false);
   // v1.1: pricing do imediato — dialog antes de ligar (valor que a fila cobra + líquido + editar).
   const [pricingDlg, setPricingDlg] = useState(false);
@@ -793,60 +795,18 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const [queueStats, setQueueStats] = useState<{ waiting: number; myAccepted: number }>({ waiting: 0, myAccepted: 0 });
   const [acceptedCall, setAcceptedCall] = useState<{ reminderId: string; patientName: string } | null>(null);
   const [acceptBusy, setAcceptBusy] = useState(false);
-  const hbFails = useRef(0);
-  const prevOfferId = useRef<string | null>(null);
 
-  const pollQueueCalls = async () => {
-    try {
-      const r = await fetch(`${API_URL}/doctor/queue/calls`, { headers: h });
-      if (!r.ok) return;
-      const d = await r.json();
-      const offer: QueueCallOffer | null = d?.offer ?? null;
-      setQueueOffer(offer);
-      setQueueStats({ waiting: d?.stats?.waiting ?? 0, myAccepted: d?.stats?.myAccepted ?? 0 });
-      // Offer sumiu SEM decisão do médico → expirou no server: dialog fecha sozinho.
-      if (prevOfferId.current && !offer) snackbar({ message: 'Chamado expirou.', severity: 'warning' });
-      prevOfferId.current = offer?.callId ?? null;
-    } catch { /* offline: próximo tick */ }
-  };
-
+  // Assina o serviço: estado da presença + offer; avisos one-shot viram snackbar.
   useEffect(() => {
-    if (!atendOn) return;
-    const hb = async () => {
-      try {
-        const r = await fetch(`${API_URL}/doctor/online-presence/heartbeat`, { method: 'POST', headers: h });
-        if (r.ok) { hbFails.current = 0; return; }
-        throw new Error('offline');
-      } catch {
-        hbFails.current += 1;
-        if (hbFails.current >= 3) {
-          setAtendOn(false);
-          setQueueOffer(null);
-          prevOfferId.current = null;
-          snackbar({ message: 'Conexão instável — "Atender agora" foi pausado. Ative de novo quando estabilizar.', severity: 'warning' });
-        }
-      }
-    };
-    const goOffline = () => {
-      try {
-        fetch(`${API_URL}/doctor/online-presence`, {
-          method: 'PUT', keepalive: true,
-          headers: { ...h, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ online: false }),
-        }).catch(() => {});
-      } catch { /* best-effort — presença expira sozinha (90s sem heartbeat) */ }
-    };
-    void pollQueueCalls();
-    const ivHb = setInterval(() => void hb(), 30_000);
-    const ivPoll = setInterval(() => { if (document.visibilityState === 'visible') void pollQueueCalls(); }, 5_000);
-    const onUnload = () => goOffline();
-    window.addEventListener('beforeunload', onUnload);
-    return () => {
-      clearInterval(ivHb); clearInterval(ivPoll);
-      window.removeEventListener('beforeunload', onUnload);
-      goOffline();
-    };
-  }, [atendOn]); // eslint-disable-line react-hooks/exhaustive-deps
+    resumeAtenderAgora(); // reload/volta <10min religa sozinho (intenção persistida)
+    return subscribeAtenderAgora((s) => {
+      setAtendOn(s.on);
+      setQueueOffer(s.offer);
+      setQueueStats(s.stats);
+      const notice = takeAtenderNotice();
+      if (notice) snackbar({ message: notice.message, severity: notice.severity });
+    });
+  }, []);
 
   const openPricingDlg = async () => {
     setPricingDlg(true); setPriceInput(''); setCityInput('');
@@ -896,16 +856,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   const toggleAtend = async (on: boolean) => {
     setAtendBusy(true);
     try {
-      const r = await fetch(`${API_URL}/doctor/online-presence`, {
-        method: 'PUT', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ online: on }),
-      });
-      const d = await r.json().catch(() => ({}));
-      if (!r.ok || d?.online !== on) throw new Error(d?.error || 'Falha ao atualizar sua presença.');
-      setAtendOn(on);
-      hbFails.current = 0;
-      setQueueOffer(null);
-      prevOfferId.current = null;
-      if (on) snackbar({ message: 'Você está online na fila imediata — os chamados aparecem automaticamente aqui.', severity: 'success' });
+      if (on) {
+        const r = await enableAtenderAgora();
+        if (!r.ok) throw new Error(r.error || 'Falha ao atualizar sua presença.');
+        // 29/10: consulta agendada AGORA tira o médico do match (±janela) — avisar
+        // aqui evita o "liguei e nada acontece" do teste real.
+        if (r.agendaConflict) snackbar({ message: 'Você tem uma consulta agendada neste horário — os chamados da fila só chegam depois dela.', severity: 'warning' });
+        else snackbar({ message: 'Você está online na fila imediata — os chamados tocam aqui mesmo se você trocar de tela.', severity: 'success' });
+      } else {
+        await disableAtenderAgora();
+      }
     } catch (e: any) {
       snackbar({ message: e?.message || 'Não foi possível atualizar sua presença agora.', severity: 'error' });
     } finally { setAtendBusy(false); }
@@ -913,8 +873,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
   const declineCall = async () => {
     const id = queueOffer?.callId;
-    setQueueOffer(null); // otimista — recusa é silenciosa (sem snackbar)
-    prevOfferId.current = null;
+    clearAtenderOffer(); // otimista — recusa é silenciosa (sem snackbar)
     if (!id) return;
     try { await fetch(`${API_URL}/doctor/queue/calls/${id}/decline`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({}) }); } catch { /* silencioso */ }
   };
@@ -927,8 +886,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       const r = await fetch(`${API_URL}/doctor/queue/calls/${offer.callId}/accept`, { method: 'POST', headers: h });
       const d = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(d?.error || 'Chamado expirou.');
-      setQueueOffer(null);
-      prevOfferId.current = null;
+      clearAtenderOffer();
       setAcceptedCall({ reminderId: d.reminderId, patientName: offer.patientName });
       snackbar({ message: 'Chamado aceito — a sala abre quando o paciente concluir o pagamento.', severity: 'success' });
       // Abre o painel do paciente (share efêmero criado no match): recarrega a
@@ -949,7 +907,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
       } catch { /* painel é best-effort — a sala é o caminho garantido */ }
     } catch (e: any) {
       snackbar({ message: e?.message || 'Chamado expirou.', severity: 'warning' });
-      void pollQueueCalls();
+      clearAtenderOffer(); // o serviço repõe no próximo poll se ainda estiver viva
     } finally { setAcceptBusy(false); }
   };
 
@@ -1364,9 +1322,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+              <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
               {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
+              {/* maxWidth + noWrap no caption acima: a 390px o chip estourava a coluna e
+                  sobrepunha o CRM (auditoria 29/10) — agora trunca com ellipsis do MuiChip. */}
+              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, maxWidth: '100%', bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
             </Box>
           </>
         )}

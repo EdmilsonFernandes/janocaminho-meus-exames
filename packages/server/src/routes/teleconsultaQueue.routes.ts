@@ -72,13 +72,35 @@ const router = Router();
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const now = new Date();
-    const presence = await prisma.doctorOnlinePresence.findMany({
+    // `presenceAll` (main: filtra depois os médicos ocupados) + o nosso portão: só aparece quem pode ATUAR (aprovado ou legado em prazo).
+    const presenceAll = await prisma.doctorOnlinePresence.findMany({
       where: { ...freshPresenceWhere(now), doctor: { blocked: false, verificationStatus: { in: practiceStatuses() } } },
       select: {
         doctorId: true,
         doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true, verificationStatus: true, verifiedBy: true } },
       },
     });
+    // Bug 29/10 (teste real Enrico): a lista mostrava médico ONLINE mas INCASÁVEL —
+    // com teleconsulta agendada agora (±slotMin) ou offer/aceite vivo, o match pula
+    // o médico (mesmos filtros do tick §3) e o paciente esperava 10min à toa.
+    // Espelha os filtros aqui: só aparece quem pode de fato ser casado.
+    const { slotMin } = getTeleconsultaConfig();
+    const busyQueue = new Set(
+      (await prisma.teleconsultaQueue.findMany({
+        where: { status: { in: ['matched', 'accepted'] } },
+        select: { matchedDoctorId: true },
+      })).map((e) => e.matchedDoctorId).filter((d): d is string => !!d),
+    );
+    const agendaRows: { createdByDoctorId: string | null }[] = await prisma.reminder.findMany({
+      where: {
+        type: 'teleconsulta', done: false, endedAt: null, createdByDoctorId: { not: null },
+        dueDate: { gte: new Date(now.getTime() - slotMin * 60_000), lte: new Date(now.getTime() + slotMin * 60_000) },
+        OR: [{ teleStatus: null }, { teleStatus: 'scheduled' }, { teleStatus: 'in_progress' }],
+      },
+      select: { createdByDoctorId: true },
+    }).catch((): { createdByDoctorId: string | null }[] => []); // drift legado: degrada sem agenda
+    const agendaBusy = new Set(agendaRows.map((a) => a.createdByDoctorId).filter((d): d is string => !!d));
+    const presence = presenceAll.filter((p) => !busyQueue.has(p.doctorId) && !agendaBusy.has(p.doctorId));
     // Carga de HOJE (mesma query do match §3) — ordena a lista: quem já atendeu mais
     // pela fila hoje vem primeiro (mais experiente da fila). Degrada sem ordem extra.
     const dayStart = new Date(now); dayStart.setHours(0, 0, 0, 0);
@@ -378,11 +400,25 @@ doctorRouter.put('/online-presence', async (req: AnyRequest, res, next) => {
       create: { doctorId: req.doctorId!, online, lastHeartbeatAt: online ? now : null, lastOnlineAt: online ? now : null },
     });
     const doctorsOnline = await prisma.doctorOnlinePresence.count({ where: freshPresenceWhere(now) });
+    // 29/10: consulta AGENDADA agora (±slotMin) deixa o médico fora do match da
+    // fila enquanto durar — avisa no ligar pra ele não achar que "nada acontece".
+    let agendaConflict = false;
+    if (online) {
+      const { slotMin } = getTeleconsultaConfig();
+      agendaConflict = !!(await prisma.reminder.findFirst({
+        where: {
+          type: 'teleconsulta', done: false, endedAt: null, createdByDoctorId: req.doctorId!,
+          dueDate: { gte: new Date(now.getTime() - slotMin * 60_000), lte: new Date(now.getTime() + slotMin * 60_000) },
+          OR: [{ teleStatus: null }, { teleStatus: 'scheduled' }, { teleStatus: 'in_progress' }],
+        },
+        select: { id: true },
+      }).catch(() => null));
+    }
     await audit('PRESENCE_TOGGLE', req as any, {
       actorType: 'DOCTOR', actorId: req.doctorId, targetType: 'DOCTOR', targetId: req.doctorId,
       after: { online },
     });
-    res.json({ online, doctorsOnline });
+    res.json({ online, doctorsOnline, agendaConflict });
   } catch (e) { next(e); }
 });
 

@@ -460,7 +460,22 @@ export const BodyMap = ({
     }
   };
 
-  // Se não houver regiões mapeadas ou enquanto carrega, exibe fallback leve
+  const nAlt = useMemo(() => safeList.filter((r) => r.level === 'alterado').length, [safeList]);
+  const nAtn = useMemo(() => safeList.filter((r) => r.level === 'atencao').length, [safeList]);
+
+  const attentionMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'alterado' || m.level === 'atencao'),
+    [sortedMarkers]
+  );
+  const normalMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'ok'),
+    [sortedMarkers]
+  );
+
+  // Se não houver regiões mapeadas ou enquanto carrega, exibe fallback leve.
+  // ⚠️ DEPOIS de todos os hooks: este early-return antes dos useMemo acima mudava a
+  // contagem de hooks quando os dados chegavam (React #310 — o crash "não carrega o
+  // corpo" que o auto-retry do DashboardErrorBoundary mascarava).
   if (safeList.length === 0) {
     return (
       <AppCard>
@@ -482,18 +497,6 @@ export const BodyMap = ({
       </AppCard>
     );
   }
-
-  const nAlt = useMemo(() => safeList.filter((r) => r.level === 'alterado').length, [safeList]);
-  const nAtn = useMemo(() => safeList.filter((r) => r.level === 'atencao').length, [safeList]);
-
-  const attentionMarkers = useMemo(
-    () => sortedMarkers.filter((m) => m.level === 'alterado' || m.level === 'atencao'),
-    [sortedMarkers]
-  );
-  const normalMarkers = useMemo(
-    () => sortedMarkers.filter((m) => m.level === 'ok'),
-    [sortedMarkers]
-  );
   const initialNormalLimit = attentionMarkers.length > 0 ? Math.max(1, 3 - attentionMarkers.length) : 3;
   const visibleNormalMarkers = showAllMarkers ? normalMarkers : normalMarkers.slice(0, initialNormalLimit);
   const hiddenNormalCount = Math.max(0, normalMarkers.length - visibleNormalMarkers.length);
@@ -761,23 +764,33 @@ export const BodyMap = ({
       <Box
         sx={{
           display: 'grid',
-          gridTemplateColumns: { xs: '1fr', md: 'minmax(250px, 290px) 1fr' },
-          gap: { xs: 2.5, md: 3 },
+          gridTemplateColumns: { xs: '1fr', md: 'minmax(260px, 310px) 1fr' },
+          gap: { xs: 2, md: 3 },
           alignItems: 'start',
         }}
       >
-        {/* COLUNA 1: Ilustração Anatômica de Raio-X com Pins Limpos e Calibrados */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        {/* COLUNA 1: Ilustração Anatômica em Moldura Clínica de Alta Precisão */}
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: '24px',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(4,16,31,0.6)' : '#f1f7f6',
+          border: '1.5px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(95,201,195,0.2)' : 'rgba(15,95,90,0.15)',
+          boxShadow: (t) => t.palette.mode === 'dark' ? 'none' : 'inset 0 1px 4px rgba(15,95,90,0.04), 0 4px 16px rgba(15,95,90,0.05)',
+        }}>
           <Box
             sx={{
               position: 'relative',
               width: '100%',
-              maxWidth: { xs: 230, sm: 275 },
+              maxWidth: { xs: 240, sm: 275 },
               aspectRatio: '720/964',
               borderRadius: '20px',
               overflow: 'hidden',
               background: '#04101f',
-              boxShadow: '0 14px 34px rgba(4,16,31,0.35), 0 0 0 1px rgba(95,201,195,0.25)',
+              boxShadow: '0 14px 34px rgba(4,16,31,0.45), 0 0 0 2px rgba(32,178,170,0.35)',
               userSelect: 'none',
               touchAction: 'manipulation',
             }}

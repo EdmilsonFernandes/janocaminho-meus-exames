@@ -95,7 +95,7 @@ const SPECIALTY_EMOJI_RULES: [string, string][] = [
   ['cardio', '🫀'], ['clinic', '🩺'], ['clin', '🩺'], ['psiq', '🧠'], ['endoc', '🦋'],
   ['ped', '👶'], ['ortop', '🦴'], ['dermat', '✋'], ['ginec', '🌸'], ['nutro', '🥗'],
   ['uro', '💧'], ['neuro', '🧬'], ['oftalmo', '👁️'], ['otorrino', '👂'], ['geria', '🧑‍🦳'],
-  ['onco', '🎗️'], ['reuma', '🦾'], ['cirurg', '🔪'], ['anestes', '💉'], ['famil', '🏠'],
+  ['onco', '🎗️'], ['reuma', '🦾'], ['cirurg', '🏥'], ['anestes', '💉'], ['famil', '🏠'],
 ];
 const specialtyEmoji = (s: string | null | undefined): string => {
   const k = (s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -197,7 +197,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
       )}
       {d.city && (
         <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', mt: 0.15 }}>
-          📍 {d.city}
+          <Box component="span" aria-hidden="true" sx={{ display: 'inline' }}>📍 </Box>{d.city}
         </Typography>
       )}
     </Box>
@@ -432,10 +432,12 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             {phase === 'queued' ? <HourglassTopRoundedIcon sx={{ fontSize: 24 }} /> : <BoltRoundedIcon sx={{ fontSize: 24 }} />}
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography component="h2" noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 16.5, color: 'text.primary', lineHeight: 1.2 }}>
+            {/* Sem noWrap (auditoria 29/10): a 390px virava "Falar agora com um …"/"sem ag…" —
+                título e status quebram em até 2 linhas em vez de truncar. */}
+            <Typography component="h2" sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 16.5 }, color: 'text.primary', lineHeight: 1.2 }}>
               Falar agora com um médico
             </Typography>
-            <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.15 }}>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {phase === 'ready' ? 'Consulta liberada'
                 : phase === 'matched_pay' ? 'Médico confirmado — falta o pagamento'
                 : phase === 'queued' ? 'Na fila de atendimento imediato'
@@ -490,7 +492,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 onClick={() => pickNoPreference()}
                 sx={{ minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'divider', color: 'text.secondary' }}
               >
-                Entrar na fila mesmo assim
+                Entrar na fila — avisamos quando um médico entrar
               </Button>
             </Stack>
           </Box>
@@ -633,7 +635,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 : `Sem preferência — falar com o primeiro${firstPrice && firstPrice !== 'grátis' ? ` (R$ ${firstPrice.replace(/^R\$ /, '')})` : firstPrice === 'grátis' ? ' (grátis)' : ''}`}
             </Button>
             <Typography sx={{ mt: 1, fontSize: 11, fontWeight: 500, color: 'text.secondary', textAlign: 'center', lineHeight: 1.5 }}>
-              🔒 Consulta registrada · CFM 2.314 · cobrança só quando um médico aceitar
+              <Box component="span" aria-hidden="true" sx={{ display: 'inline' }}>🔒 </Box>Consulta registrada · CFM 2.314 · cobrança só quando um médico aceitar
             </Typography>
           </Box>
         )}
@@ -790,7 +792,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                   disabled={recheckBusy}
                   startIcon={recheckBusy ? <CircularProgress size={14} color="inherit" /> : null}
                   onClick={() => { setRecheckBusy(true); void poll().finally(() => setRecheckBusy(false)); }}
-                  sx={{ mt: 1.25, minHeight: 40, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary', borderColor: 'divider' }}
+                  sx={{ mt: 1.25, minHeight: 44, borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5, color: 'text.secondary', borderColor: 'divider' }}
                 >
                   {recheckBusy ? 'Verificando…' : 'Já paguei — verificar de novo'}
                 </Button>
@@ -872,6 +874,8 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
 
 /** Countdown MM:SS do PIX (determinado pelo expiresAt do server). */
 const PixCountdown = ({ expiresAt }: { expiresAt: string }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [secs, setSecs] = useState(() => Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)));
   useEffect(() => {
     const iv = setInterval(() => setSecs(Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))), 1000);
@@ -881,7 +885,7 @@ const PixCountdown = ({ expiresAt }: { expiresAt: string }) => {
     <Chip
       size="small"
       label={`Vence em ${mmss(secs)}`}
-      sx={{ height: 24, borderRadius: '999px', fontWeight: 800, fontSize: 11, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(23,143,137,.12)', color: '#0d5f5a', border: '1px solid rgba(23,143,137,.3)' }}
+      sx={{ height: 24, borderRadius: '999px', fontWeight: 800, fontSize: 11, fontVariantNumeric: 'tabular-nums', bgcolor: 'rgba(23,143,137,.12)', color: isDark ? '#5fd8d1' : '#0d5f5a', border: '1px solid rgba(23,143,137,.3)' }}
     />
   );
 };
