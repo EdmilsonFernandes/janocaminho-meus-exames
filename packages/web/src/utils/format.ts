@@ -70,3 +70,13 @@ export function timeAgo(d: string | Date | null | undefined): string {
   const years = Math.floor(days / 365);
   return `há ${years} ${years === 1 ? 'ano' : 'anos'}`;
 }
+
+/**
+ * Plural PT-BR legível — substitui o dev-speak "marcador(es)"/"valor(es)" nas telas
+ * (auditoria UX 29/10/26: aparecia até em card de alerta clínico).
+ * plural(1,'valor') → "1 valor" · plural(2,'valor') → "2 valores" · irregular via 3º arg.
+ */
+export function plural(n: number, singular: string, pluralForm?: string): string {
+  const p = pluralForm ?? (/[rzs]$/i.test(singular) ? `${singular}es` : `${singular}s`);
+  return `${n} ${n === 1 ? singular : p}`;
+}

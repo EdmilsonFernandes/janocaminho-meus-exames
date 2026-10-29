@@ -13,7 +13,7 @@ import { ExplainButton } from '../ExplainItem';
 import { CappedExamMarkers } from '../CappedExamMarkers';
 import { UnitLabel } from '../UnitLabel';
 import { ValueBar } from '../ValueBar';
-import { fmtVal, unitSuffix } from '../../utils/format';
+import { fmtVal, unitSuffix, plural } from '../../utils/format';
 import { refLabel, categorize } from '../../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK } from '../../utils/alertPriority';
 import { RADIUS } from '../../theme';
@@ -138,7 +138,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
               {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.dark' }}>⏳ Exame antigo — considere renovar</Typography>}
               {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
             </Box>
-            <Chip size="small" label={`${g.items.length} alterado(s)`} sx={{ fontWeight: 700, height: 22, bgcolor: alpha(meta.color, 0.15), color: meta.color }} />
+            <Chip size="small" label={plural(g.items.length, 'alterado')} sx={{ fontWeight: 700, height: 22, bgcolor: alpha(meta.color, 0.15), color: meta.color }} />
           </Box>
         </AccordionSummary>
         <AccordionDetails sx={{ p: 1.25 }}>
@@ -196,7 +196,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
                   : <>Nada crítico — os ajustes são <strong>{PRIORITY_META.moderada.emoji} moderados</strong> ou <strong>{PRIORITY_META.leve.emoji} leves</strong>. Comente com seu paciente na próxima consulta.</>}
               </Typography>
               {suspectCount > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>⚠️ {suspectCount} valor(es) com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
               )}
             </CardContent>
           </Card>
