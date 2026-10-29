@@ -27,6 +27,7 @@ process.env.UAIID_API_KEY = ''; // KYC: nunca chamar o UaiID real nos testes (o 
 process.env.UAIID_WEBHOOK_SECRET = '';
 process.env.UAIID_BASE_URL = ''; // testes comparam a URL padrão (https://api.uaiid.com.br)
 process.env.UAIID_RETURN_URL = ''; // e o return_url padrão
+process.env.UAIID_VERIFY_BASE_URL = ''; // e a origem padrão da tela de validação (https://uaiid.com.br)
 process.env.UPLOAD_DIR = './data/test-exams';
 process.env.PHOTOS_DIR = './data/test-photos';
 process.env.AGENT_DIR = './data/test-agent';

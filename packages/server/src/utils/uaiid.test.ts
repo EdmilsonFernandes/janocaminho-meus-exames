@@ -186,12 +186,57 @@ describe('createUaiidVerification', () => {
   });
 
   it.each(['http://uaiid.com.br/verify/ab12', 'javascript:alert(1)', '//uaiid.com.br/verify/ab12', 'uaiid.com.br/verify/ab12', ''])(
-    'verify_url "%s" (não começa com https://) → KYC_UNAVAILABLE',
+    'verify_url "%s" (nem https:// nem caminho relativo "/…") → KYC_UNAVAILABLE',
     async (verify_url) => {
       vi.stubGlobal('fetch', vi.fn().mockResolvedValue(created({ verify_url })));
       await expect(createUaiidVerification(input)).rejects.toMatchObject({ code: 'KYC_UNAVAILABLE', status: 201 });
     },
   );
+
+  // Achado da FUMAÇA REAL (29/10/2026): o UaiID devolve verify_url RELATIVO. Antes desta correção o cliente
+  // exigia https:// e descartava a resposta 201 → todo cadastro de médico falharia em produção.
+  it('verify_url RELATIVO (contrato real: "/verify/<token>") → resolvido em https://uaiid.com.br', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(created({ verify_url: '/verify/qtMMaLd5abc' })));
+    expect((await createUaiidVerification(input)).verifyUrl).toBe('https://uaiid.com.br/verify/qtMMaLd5abc');
+  });
+
+  it('UAIID_VERIFY_BASE_URL troca o domínio da tela (sem barras finais); base http:// é recusada', async () => {
+    vi.stubEnv('UAIID_VERIFY_BASE_URL', 'https://verificar.exemplo.com.br///');
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(created({ verify_url: '/verify/ab12' })));
+    expect((await createUaiidVerification(input)).verifyUrl).toBe('https://verificar.exemplo.com.br/verify/ab12');
+    vi.stubEnv('UAIID_VERIFY_BASE_URL', 'http://inseguro.exemplo.com.br');
+    await expect(createUaiidVerification(input)).rejects.toMatchObject({ code: 'KYC_UNAVAILABLE' });
+  });
+
+  it('resposta REAL do UaiID (fixture com valores mascarados): lê só o necessário e nunca devolve session_token nem os presigns S3', async () => {
+    const real = {
+      verification_id: '2ffc0000-0000-4000-8000-000000000000',
+      session_token: 'S'.repeat(43),
+      verify_url: `/verify/${'T'.repeat(43)}`,
+      upload: {
+        doc_front: { kind: 'doc_front', key: 'tenant/k', url: 'https://s3.us-east-2.amazonaws.com/bucket/k?X-Amz-Signature=segredo', expires_in: 900, fields: null },
+        selfie: { kind: 'selfie', key: 'tenant/s', url: 'https://s3.us-east-2.amazonaws.com/bucket/s?X-Amz-Signature=segredo', expires_in: 900, fields: null },
+      },
+      expires_at: '2026-10-30T14:22:22.986686Z',
+      provider_url: null,
+      reused_session: true,
+      status: null,
+      external_reference: null,
+      idempotent_replay: false,
+    };
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 201, json: async () => real }));
+    const r = await createUaiidVerification(input);
+    expect(r).toEqual({
+      verificationId: real.verification_id,
+      verifyUrl: `https://uaiid.com.br/verify/${'T'.repeat(43)}`,
+      expiresAt: new Date('2026-10-30T14:22:22.986686Z'),
+      reused: true,
+    });
+    const dump = JSON.stringify(r);
+    expect(dump).not.toContain('session_token');
+    expect(dump).not.toContain('SSSS');
+    expect(dump).not.toContain('X-Amz-Signature');
+  });
 
   it('UAIID_TIMEOUT_MS="-1" → a chamada ainda funciona (AbortSignal.timeout não recebe valor inválido)', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(created()));
