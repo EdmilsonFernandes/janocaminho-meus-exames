@@ -1171,9 +1171,20 @@ router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res,
       await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`; // MESMA trava do kyc/sync.ts (I1)
       const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
       if (!doc) return { notFound: true as const };
-      if (doc.verificationStatus === 'approved') return { unchanged: true as const };
-      if (doc.verificationStatus !== 'needs_admin') return { invalidState: doc.verificationStatus };
-      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true, decision: true, decidedBy: true } });
+      // "na fila do dono" = verificação terminou e espera a decisão dele (sem decisão humana ainda)
+      const awaitingOwner = !!latest && !latest.decidedBy && (latest.decision === 'needs_admin' || latest.decision === 'uaiid_review');
+      if (doc.verificationStatus === 'approved') {
+        // Idempotente (2º clique / outro admin). E tira da fila a tentativa que ficou aberta (revisão final I2: médico
+        // aprovado em lote ou por outro caminho com uma verificação concluída depois) — senão ela fica ali para sempre.
+        if (latest && awaitingOwner) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } });
+        return { unchanged: true as const };
+      }
+      // Aprovar vale a partir da fila: médico em needs_admin, OU LEGADO que concluiu a verificação e espera o dono
+      // (revisão final I2: o sync mantém o legado como `legacy` mas o põe na fila com "pronto para aprovar" — sem
+      // isto o botão devolvia 409 e a entrada nunca saía). Legado SEM verificação concluída segue 409: o lote é o caminho.
+      const awaitingDrexame = !!latest && !latest.decidedBy && latest.decision === 'needs_admin';
+      if (doc.verificationStatus !== 'needs_admin' && !(doc.verificationStatus === 'legacy' && awaitingDrexame)) return { invalidState: doc.verificationStatus };
       await tx.doctor.update({ where: { id }, data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! } });
       if (latest) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } });
       return { doc };
@@ -1214,10 +1225,23 @@ router.post('/doctors/verification/approve-legacy', async (req: AuthedRequest, r
   try {
     const ids: string[] = Array.isArray(req.body?.ids) ? req.body.ids.map(String).slice(0, 500) : [];
     if (!ids.length) { res.status(400).json({ code: 'IDS_REQUIRED', error: 'Informe os médicos.' }); return; }
-    const r = await prisma.doctor.updateMany({
-      where: { id: { in: ids }, verificationStatus: 'legacy' },
-      data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId! },
-    });
+    // Só quem É legado agora (o lote nunca mexe em pending/needs_admin/…). `verifiedBy: legacy_bulk:<admin>` marca que
+    // NÃO houve verificação de identidade — o selo "Identidade verificada" dos pacientes exige uma verificação de
+    // verdade (revisão final M13: o lote dava o selo a quem nunca foi verificado).
+    const legacyIds = (await prisma.doctor.findMany({ where: { id: { in: ids }, verificationStatus: 'legacy' }, select: { id: true } })).map((d) => d.id);
+    const r = legacyIds.length
+      ? await prisma.doctor.updateMany({
+        where: { id: { in: legacyIds }, verificationStatus: 'legacy' },
+        data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: `legacy_bulk:${req.userId}` },
+      })
+      : { count: 0 };
+    // Quem foi aprovado em lote e tinha uma verificação aberta na fila: tira da fila (revisão final I2).
+    if (legacyIds.length) {
+      await prisma.doctorVerification.updateMany({
+        where: { doctorId: { in: legacyIds }, decidedBy: null, decision: { in: ['needs_admin', 'uaiid_review'] } },
+        data: { decision: 'approved', decidedBy: req.userId! },
+      });
+    }
     void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', after: { status: 'approved', via: 'legacy_bulk', ids, count: r.count } });
     res.json({ ok: true, approved: r.count });
   } catch (e) { next(e); }
@@ -2426,7 +2450,8 @@ router.post('/payouts/:id/approve', async (req: AuthedRequest, res, next) => {
     try {
       outcome = await approvePayout(payoutId, { executor: `admin:${req.userId}` });
     } catch (e: any) {
-      res.status(409).json({ error: e?.message ?? 'Aprovação recusada.' });
+      // `code` (ex.: DOCTOR_CANNOT_PRACTICE quando o médico está retido pelo KYC) — erros de rota sempre com code (M12)
+      res.status(409).json({ error: e?.message ?? 'Aprovação recusada.', ...(e?.code ? { code: String(e.code) } : {}) });
       return;
     }
     await audit('ADMIN_PAYOUT_APPROVE_RESULT', req, {

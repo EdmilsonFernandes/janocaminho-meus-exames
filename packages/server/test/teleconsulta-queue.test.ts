@@ -497,12 +497,16 @@ describe('Fila imediata — rotas + tick (spec 2026-10-27 §2/§3/§8)', () => {
     const { token } = await createUser();
     const { doctor: aprovado } = await createDoctor({ crm: crm(), name: 'Aprovada' });
     const { doctor: legado } = await createDoctor({ crm: crm(), name: 'Legado', verificationStatus: 'legacy' });
+    // aprovado EM LOTE (nunca teve a identidade conferida): atende, mas NÃO leva o selo (revisão final M13)
+    const { doctor: emLote } = await createDoctor({ crm: crm(), name: 'Em Lote' });
+    await prisma.doctor.update({ where: { id: emLote.id }, data: { verifiedBy: 'legacy_bulk:admin-1' } });
     await seedPresence(aprovado.id);
     await seedPresence(legado.id);
+    await seedPresence(emLote.id);
     const res = await api().get('/api/teleconsulta-queue/status').set(H(token));
     expect(res.status).toBe(200);
     const verifiedById = Object.fromEntries(res.body.doctors.map((d: any) => [d.id, d.verified]));
-    expect(verifiedById).toEqual({ [aprovado.id]: true, [legado.id]: false });
+    expect(verifiedById).toEqual({ [aprovado.id]: true, [legado.id]: false, [emLote.id]: false });
   });
 
   // 16 ─ v1.1: POST com specialty — o match SÓ casa médico da especialidade exata

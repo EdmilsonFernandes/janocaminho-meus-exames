@@ -4,6 +4,7 @@ import { prisma } from '../src/prisma';
 import { api, authHeader, resetDb, createDoctor, mintToken } from './helpers';
 import { getDoctorKycConfig, saveSettings } from '../src/utils/settings';
 import { sendEmail } from '../src/utils/mailer';
+import * as payoutMod from '../src/finance/payout';
 
 let adminSeq = 0;
 async function createAdmin() {
@@ -133,12 +134,13 @@ describe('admin — KYC do médico (spec §3)', () => {
     expect((await prisma.doctorVerification.findUnique({ where: { providerId: 'v-idem-a' } }))?.decidedBy).toBe(a1.id);
   });
 
-  it('aprovar só a partir da fila (needs_admin): pending / in_progress / rejected / uaiid_review / legacy → 409 INVALID_STATE com o status atual; nada muda', async () => {
+  it('aprovar só a partir da fila (needs_admin): pending / in_progress / rejected / uaiid_review → 409 INVALID_STATE com o status atual; nada muda', async () => {
     const admin = await createAdmin();
     const { doctor } = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
     await queueAttempt(doctor.id, 'v-409');
     const email = await emailOf(doctor.id);
-    for (const status of ['pending', 'in_progress', 'rejected', 'uaiid_review', 'legacy']) {
+    // (legacy com verificação concluída na fila é aprovável — revisão final I2, testes abaixo)
+    for (const status of ['pending', 'in_progress', 'rejected', 'uaiid_review']) {
       await prisma.doctor.update({ where: { id: doctor.id }, data: { verificationStatus: status } });
       const r = await api().post(approveUrl(doctor.id)).set(authHeader(admin.token)).send({});
       expect(r.status, status).toBe(409);
@@ -149,6 +151,57 @@ describe('admin — KYC do médico (spec §3)', () => {
     expect(mailsTo(email, 'já pode atender')).toHaveLength(0);
     expect(await decidedAudits(doctor.id)).toBe(0);
     expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-409' } })).toMatchObject({ decision: 'needs_admin', decidedBy: null }); // a tentativa da fila não foi tocada
+  });
+
+  // Revisão final I2: o sync mantém o legado como `legacy` mas o põe na fila ("pronto para aprovar"); o botão
+  // devolvia 409 INVALID_STATE e a entrada nunca saía da fila.
+  it('legado que CONCLUIU a verificação (está na fila) → o dono aprova: approved, médico avisado, entrada sai da fila', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await queueAttempt(doctor.id, 'v-leg-ok');
+    const email = await emailOf(doctor.id);
+    const r = await api().post(approveUrl(doctor.id)).set(authHeader(admin.token)).send({});
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({ ok: true, status: 'approved' });
+    expect(await kycRow(doctor.id)).toMatchObject({ verificationStatus: 'approved', verifiedBy: admin.id });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-leg-ok' } })).toMatchObject({ decision: 'approved', decidedBy: admin.id });
+    await waitMails(email, 'já pode atender', 1);
+    const q = await api().get('/api/admin/doctors/verification-queue').set(authHeader(admin.token));
+    expect(q.body.review).toHaveLength(0);
+  });
+
+  it('legado SEM verificação concluída segue 409 INVALID_STATE (o caminho dele é o lote)', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    const r = await api().post(approveUrl(doctor.id)).set(authHeader(admin.token)).send({});
+    expect(r.status).toBe(409);
+    expect(r.body).toMatchObject({ code: 'INVALID_STATE', status: 'legacy' });
+  });
+
+  it('médico JÁ aprovado com uma tentativa ainda aberta na fila: approve → unchanged e a entrada SAI da fila', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm() }); // approved
+    await queueAttempt(doctor.id, 'v-stale');
+    const r = await api().post(approveUrl(doctor.id)).set(authHeader(admin.token)).send({});
+    expect(r.body).toMatchObject({ ok: true, status: 'approved', unchanged: true });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-stale' } })).toMatchObject({ decidedBy: admin.id });
+    const q = await api().get('/api/admin/doctors/verification-queue').set(authHeader(admin.token));
+    expect(q.body.review).toHaveLength(0);
+  });
+
+  it('aprovar legados em lote: marca verifiedBy legacy_bulk:<admin>, tira da fila a verificação aberta do lote e não toca em quem não é legado', async () => {
+    const admin = await createAdmin();
+    const leg = await createDoctor({ crm: crm(), verificationStatus: 'legacy' });
+    await queueAttempt(leg.doctor.id, 'v-bulk');
+    const needs = await createDoctor({ crm: crm(), verificationStatus: 'needs_admin' });
+    await queueAttempt(needs.doctor.id, 'v-needs');
+    const r = await api().post('/api/admin/doctors/verification/approve-legacy').set(authHeader(admin.token)).send({ ids: [leg.doctor.id, needs.doctor.id] });
+    expect(r.body).toMatchObject({ ok: true, approved: 1 });
+    expect(await kycRow(leg.doctor.id)).toMatchObject({ verificationStatus: 'approved', verifiedBy: `legacy_bulk:${admin.id}` });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-bulk' } })).toMatchObject({ decision: 'approved', decidedBy: admin.id });
+    // quem NÃO era legado segue exatamente como estava — médico E tentativa na fila (senão ficaria preso)
+    expect((await kycRow(needs.doctor.id))?.verificationStatus).toBe('needs_admin');
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId: 'v-needs' } })).toMatchObject({ decision: 'needs_admin', decidedBy: null });
   });
 
   it('recusar é idempotente: 2º recusar → unchanged, um único e-mail (com o 1º motivo), sem 2º audit — e o motivo segue obrigatório antes', async () => {
@@ -238,5 +291,29 @@ describe('admin — a lista de médicos expõe a verificação de identidade', (
     expect(statusById[aprovado.doctor.id]).toBe('approved');
     expect(statusById[pendente.doctor.id]).toBe('pending');
     expect(statusById[legado.doctor.id]).toBe('legacy');
+  });
+});
+
+describe('admin — aprovação de repasse retido pelo KYC devolve o code (revisão final M12)', () => {
+  beforeEach(async () => { await resetDb(); });
+
+  it('approvePayout recusa por DOCTOR_CANNOT_PRACTICE → 409 { error, code } (antes só vinha o texto)', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm(), verificationStatus: 'pending' });
+    const payout = await prisma.payout.create({ data: { reminderId: 'rem-m12', doctorId: doctor.id, amountCents: 5000, reserveTxnId: 'x' } });
+    vi.spyOn(payoutMod, 'approvePayout').mockRejectedValueOnce(Object.assign(new Error('Payout retido: médico sem verificação'), { code: 'DOCTOR_CANNOT_PRACTICE' }));
+    const r = await api().post(`/api/admin/payouts/${payout.id}/approve`).set(authHeader(admin.token)).send({});
+    expect(r.status).toBe(409);
+    expect(r.body).toEqual({ error: 'Payout retido: médico sem verificação', code: 'DOCTOR_CANNOT_PRACTICE' });
+  });
+
+  it('recusa sem code (ex.: "sem reserva no ledger") segue só com o texto', async () => {
+    const admin = await createAdmin();
+    const { doctor } = await createDoctor({ crm: crm() });
+    const payout = await prisma.payout.create({ data: { reminderId: 'rem-m12b', doctorId: doctor.id, amountCents: 5000, reserveTxnId: 'y' } });
+    vi.spyOn(payoutMod, 'approvePayout').mockRejectedValueOnce(new Error('sem reserva no ledger'));
+    const r = await api().post(`/api/admin/payouts/${payout.id}/approve`).set(authHeader(admin.token)).send({});
+    expect(r.status).toBe(409);
+    expect(r.body).toEqual({ error: 'sem reserva no ledger' });
   });
 });

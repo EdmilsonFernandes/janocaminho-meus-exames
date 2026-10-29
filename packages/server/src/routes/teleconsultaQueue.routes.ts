@@ -76,7 +76,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       where: { ...freshPresenceWhere(now), doctor: { blocked: false, verificationStatus: { in: practiceStatuses() } } },
       select: {
         doctorId: true,
-        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true, verificationStatus: true } },
+        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true, verificationStatus: true, verifiedBy: true } },
       },
     });
     // Carga de HOJE (mesma query do match §3) — ordena a lista: quem já atendeu mais
@@ -106,8 +106,9 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
         photoAvailable: !!x.d.photoUrl,
         priceCents: x.priceCents,
         crmUf: x.d.crmUf ?? null,
-        // selo "Identidade verificada": só quem foi APROVADO (legado em prazo atende, mas sem selo)
-        verified: x.d.verificationStatus === 'approved',
+        // selo "Identidade verificada": só quem foi APROVADO por uma verificação de verdade — legado em prazo atende
+        // sem selo, e aprovado EM LOTE (verifiedBy legacy_bulk:*) também, pois nunca teve a identidade conferida (M13)
+        verified: x.d.verificationStatus === 'approved' && !String(x.d.verifiedBy ?? '').startsWith('legacy_bulk'),
       }));
 
     const prices = doctors.map((d) => d.priceCents);
