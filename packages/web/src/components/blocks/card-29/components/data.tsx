@@ -2,6 +2,9 @@ import { type ReactNode } from "react"
 import { type BadgeProps } from "@/components/reui/badge"
 import { ShoppingBagIcon, TrendingUp, CreditCardIcon, TrendingDown, CircleDollarSignIcon, BarChart3Icon } from "lucide-react"
 
+/** Dr. Exame: dados REAIS entram por props (CardGrid cards={...}); este array é
+ *  apenas a referência demo do registry — mantido como veio, sem uso em produção. */
+
 export interface ICard {
   valueBold: string
   valueFaint: string

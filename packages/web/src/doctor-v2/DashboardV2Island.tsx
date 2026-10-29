@@ -39,6 +39,31 @@ const DEMO_SERIES = [
   { name: 'LDL', unit: 'mg/dL', refLow: 0, refHigh: 100, points: [{ date: '12/01/26', valor: 128, flag: 'HIGH' }, { date: '09/03/26', valor: 119, flag: 'HIGH' }, { date: '15/05/26', valor: 112, flag: 'HIGH' }, { date: '22/07/26', valor: 104, flag: 'HIGH' }, { date: '10/09/26', valor: 98, flag: null }, { date: '18/10/26', valor: 93, flag: null }] },
 ];
 
+/** LEVA 1 — seções portadas do dashboard real (mesmos dados do /dashboard-summary). */
+const DEMO_CHANGES = { worsened: ['Glicose', 'LDL'], improved: ['Hemoglobina', 'Vitamina D', 'Ferritina'] };
+const DEMO_BIO = { age: 38, chrono: 42 };
+const DEMO_ACTIONS = [
+  { title: 'Glicemia em jejum acima da faixa', domain: 'metabólico', timeframe: 'agora', question: 'Minha glicose voltou a subir mesmo com dieta — preciso repetar o exame ou ajustar tratamento?', rationale: '2 medidas acima de 100 mg/dL no último exame', source: 'Diretriz SBD 2024' },
+  { title: 'Colesterol LDL em queda', domain: 'cardio', timeframe: 'rotina', question: 'Meu LDL caiu de 128 para 93 — posso reduzir a dose do remédio?', rationale: 'queda consistente nas últimas 3 coletas', source: 'Diretriz SBC 2023' },
+];
+const DEMO_PEND = [
+  { key: 'tele', label: 'Teleconsulta c/ Dr. Carlos', chip: 'amanhã', tone: 'primary' as const, to: '/consultas' },
+  { key: 'q', label: 'Pergunta aguardando o médico', chip: 'aguardando', tone: 'secondary' as const, to: '/perguntas' },
+];
+
+const whenChip = (iso: string): { text: string; overdue: boolean } => {
+  const due = new Date(iso).getTime();
+  if (isNaN(due)) return { text: '', overdue: false };
+  const dayMs = 86_400_000;
+  const sod = (t: number) => new Date(t).setHours(0, 0, 0, 0);
+  const days = Math.round((sod(due) - sod(Date.now())) / dayMs);
+  if (days < -1) return { text: `vencido há ${-days} dias`, overdue: true };
+  if (days === -1) return { text: 'vencido ontem', overdue: true };
+  if (days === 0) return { text: 'hoje', overdue: false };
+  if (days === 1) return { text: 'amanhã', overdue: false };
+  return { text: `em ${days} dias`, overdue: false };
+};
+
 type Pt = { date: string; valor: number; flag?: string | null };
 type Series = { name: string; unit?: string; refLow?: number | null; refHigh?: number | null; points: Pt[] };
 
@@ -72,6 +97,11 @@ export default function DashboardV2Island() {
   const [noExams, setNoExams] = useState(false);
   const [series, setSeries] = useState<Series[]>([]);
   const [sel, setSel] = useState(0);
+  // Leva 1: seções portadas
+  const [changes, setChanges] = useState<{ worsened: string[]; improved: string[] }>({ worsened: [], improved: [] });
+  const [bio, setBio] = useState<{ age: number } | null>(null);
+  const [actions, setActions] = useState<{ title?: string; domain?: string; timeframe?: string; question?: string; rationale?: string; source?: string }[]>([]);
+  const [pend, setPend] = useState<{ key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[]>([]);
 
   useEffect(() => {
     if (!enabled || !pid) return;
@@ -97,6 +127,38 @@ export default function DashboardV2Island() {
           { title: 'Score de saúde', valueBold: score == null ? '—' : String(score), valueFaint: '/100', icon: <SpeedRoundedIcon aria-hidden="true" />, description: 'Avaliação geral calculada pela IA Dr. Exame', badge: scoreStatus(score) ?? 'calculando', variant: (score ?? 100) >= 60 ? 'success-light' : 'warning-light' },
           { title: 'Marcadores', valueBold: String(markers), valueFaint: '', icon: <BiotechRoundedIcon aria-hidden="true" />, description: 'Analisados e monitorados automaticamente', badge: 'IA', variant: 'info-light' },
         ]);
+        // LEVA 1 — parse das seções do health-summary (mesma fonte do dashboard real).
+        const hd: any = d?.health;
+        if (hd) {
+          const nm = (m: any) => (m?.nameCanonical || m?.name || '').trim();
+          setChanges({
+            worsened: (Array.isArray(hd.worsening) ? hd.worsening : []).slice(0, 3).map(nm).filter(Boolean),
+            improved: (Array.isArray(hd.improving) ? hd.improving : []).slice(0, 3).map(nm).filter(Boolean),
+          });
+          if (hd.biologicalAge && typeof hd.biologicalAge.age === 'number') setBio({ age: hd.biologicalAge.age });
+          setActions(Array.isArray(hd.clinicalActions) ? hd.clinicalActions.slice(0, 3) : []);
+        }
+        // Pendências (lógica do PendenciasCard do app real): teleconsulta aberta +
+        // lembrete vencido + perguntas aguardando médico.
+        try {
+          const [remRes, qRes] = await Promise.allSettled([
+            fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: h }),
+            fetch(`${API_URL}/doctor-questions?patientId=${pid}`, { headers: h }),
+          ]);
+          const reminders: any[] = remRes.status === 'fulfilled' && remRes.value.ok ? await remRes.value.json().catch(() => []) : [];
+          const questions: any[] = qRes.status === 'fulfilled' && qRes.value.ok ? await qRes.value.json().catch(() => []) : [];
+          const now = Date.now();
+          const isTele = (r: any) => r && (r.type === 'teleconsulta' || r.provider === 'livekit');
+          const isOpen = (r: any) => r && !r.endedAt && !r.done;
+          const teles = reminders.filter((r) => isTele(r) && isOpen(r)).sort((a, b) => +new Date(a.dueDate) - +new Date(b.dueDate));
+          const rows: { key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[] = [];
+          if (teles[0]) rows.push({ key: 'tele', label: teles[0].title || 'Consulta por vídeo', chip: whenChip(teles[0].dueDate).text, tone: 'primary', to: '/consultas' });
+          const overdue = reminders.filter((r) => !isTele(r) && isOpen(r) && !r.recurrence && r.dueDate && +new Date(r.dueDate) < now);
+          if (overdue[0]) rows.push({ key: 'od', label: overdue[0].title || 'Lembrete vencido', chip: whenChip(overdue[0].dueDate).text, tone: 'warning', to: '/lembretes' });
+          const pendQ = Array.isArray(questions) ? questions.filter((q: any) => q && q.status !== 'answered').length : 0;
+          if (pendQ > 0) rows.push({ key: 'q', label: pendQ === 1 ? 'Pergunta aguardando o médico' : `${pendQ} perguntas aguardando o médico`, chip: 'aguardando', tone: 'secondary', to: '/perguntas' });
+          setPend(rows.slice(0, 3));
+        } catch { /* pendências é bônus */ }
         try {
           const rNames = await fetch(`${API_URL}/items/distinct-names${pid ? `?patientId=${pid}` : ''}`, { headers: h });
           const dn = rNames.ok ? await rNames.json() : null;
@@ -197,6 +259,86 @@ export default function DashboardV2Island() {
           <button type="button" onClick={() => location.reload()} className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted">Tentar de novo</button>
         </div>
       )}
+
+      {/* LEVA 1 — seções portadas do dashboard real */}
+      {mostrarConteudo && (() => {
+        const pendRows = demo ? DEMO_PEND : pend;
+        const ch = demo ? DEMO_CHANGES : changes;
+        const bioData = demo ? DEMO_BIO : bio;
+        const actRows = demo ? DEMO_ACTIONS : actions;
+        const TONE_CLS: Record<string, string> = {
+          primary: 'border-primary/25 bg-primary/10 text-primary',
+          warning: 'border-warning/30 bg-warning/10 text-warning-foreground dark:text-warning',
+          secondary: 'border-copper-500/30 bg-copper-500/15 text-copper-700 dark:text-copper-300',
+        };
+        return (
+          <>
+            {/* PRA VOCÊ FAZER — pendências do dia-a-dia */}
+            {pendRows.length > 0 && (
+              <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4" aria-label="Pendências">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">Pra você fazer</h3>
+                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{pendRows.length}</span>
+                </div>
+                {pendRows.map((r) => (
+                  <a key={r.key} href={`#${r.to}`} className="flex min-h-12 items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-muted">
+                    <span className={'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-xs font-bold ' + TONE_CLS[r.tone]} aria-hidden>●</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">{r.label}</span>
+                    <span className={'shrink-0 text-xs font-bold ' + TONE_CLS[r.tone].split(' ').filter(c => c.startsWith('text-')).join(' ')}>{r.chip}</span>
+                    <span aria-hidden className="text-muted-foreground">→</span>
+                  </a>
+                ))}
+              </section>
+            )}
+
+            {/* O QUE MUDOU — pioraram/melhoraram desde o exame anterior */}
+            {(ch.worsened.length > 0 || ch.improved.length > 0) && (
+              <section className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-4" aria-label="O que mudou">
+                <h3 className="mr-1 text-sm font-semibold">O que mudou</h3>
+                {ch.worsened.map((n) => (
+                  <span key={n} className="rounded-full border border-destructive/20 bg-destructive/10 px-2.5 py-1 text-xs font-bold text-destructive-foreground dark:text-destructive">↓ {n}</span>
+                ))}
+                {ch.improved.map((n) => (
+                  <span key={n} className="rounded-full border border-success/20 bg-success/10 px-2.5 py-1 text-xs font-bold text-success-foreground dark:text-success">↑ {n}</span>
+                ))}
+                <span className="ml-auto text-xs text-muted-foreground">desde o exame anterior</span>
+              </section>
+            )}
+
+            {/* IDADE BIOLÓGICA */}
+            {bioData && (
+              <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Idade biológica">
+                <div>
+                  <h3 className="text-sm font-semibold">Idade biológica</h3>
+                  <p className="text-xs text-muted-foreground">estimada pelos seus marcadores laboratoriais</p>
+                </div>
+                <div className="text-right">
+                  <div className="font-head text-4xl font-extrabold tabular-nums text-primary">{bioData.age}<span className="text-sm font-bold text-muted-foreground"> anos</span></div>
+                  {demo && DEMO_BIO.chrono != null && <p className="text-xs font-bold text-success-foreground dark:text-success">{DEMO_BIO.chrono - bioData.age} anos mais novo que você ({DEMO_BIO.chrono})</p>}
+                </div>
+              </section>
+            )}
+
+            {/* PERGUNTAS PRO MÉDICO — ações clínicas (fonte determinística, sem IA) */}
+            {actRows.length > 0 && (
+              <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4" aria-label="Perguntas pro médico">
+                <h3 className="text-sm font-semibold">Perguntas pra levar ao médico</h3>
+                {actRows.map((a, i) => (
+                  <div key={i} className="rounded-lg border border-primary/15 bg-primary/5 p-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="flex-1 min-w-40 text-sm font-bold">{a.title}</span>
+                      <span className={'rounded-full border px-2 py-0.5 text-[11px] font-bold ' + (a.timeframe === 'agora' ? 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive' : 'border-primary/25 bg-primary/10 text-primary')}>{a.timeframe === 'agora' ? 'prioridade agora' : 'rotina'}</span>
+                    </div>
+                    <p className="mt-1.5 text-sm italic text-muted-foreground">“{a.question}”</p>
+                    {a.source && <p className="mt-1 text-[11px] text-muted-foreground/70">Base: {a.source}</p>}
+                  </div>
+                ))}
+                <p className="text-[11px] text-muted-foreground/70">Conteúdo educativo gerado a partir dos seus exames — perguntas pra facilitar a consulta. Não substitui avaliação médica.</p>
+              </section>
+            )}
+          </>
+        );
+      })()}
 
       {/* TENDÊNCIA — série real do marcador + banda de referência do laboratório */}
       {mostrarConteudo && s && (
