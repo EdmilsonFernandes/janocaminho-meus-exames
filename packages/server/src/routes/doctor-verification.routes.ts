@@ -27,6 +27,9 @@ interface KycRequest extends AuthedRequest { doctorId?: string }
 const RETURN_URL = () => process.env.UAIID_RETURN_URL || 'https://drexame.janocaminho.com.br/#/doctor?kyc=1';
 const OPEN_STATUSES = [...NON_FINAL_ATTEMPT, 'manual_review'];
 const STARTABLE = ['pending', 'in_progress', 'rejected', 'legacy'];
+/** Teto de sessões KYC abertas por médico em 24 h (revisão final I5): cada sessão criada é COBRADA pelo UaiID. */
+const MAX_ATTEMPTS_PER_DAY = 5;
+const ATTEMPT_WINDOW_MS = 24 * 3_600_000;
 const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expiresAt: true, lastSyncedAt: true } as const;
 
 /**
@@ -76,6 +79,17 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
     if (!STARTABLE.includes(doc.verificationStatus)) { res.status(409).json({ code: 'IN_REVIEW', status: doc.verificationStatus, error: 'Sua verificação está em análise.' }); return; }
+    // Teto por médico (I5): ≥5 sessões nas últimas 24 h -> 429 no mesmo formato que o portal já trata. retryAfterHours =
+    // quando a MAIS ANTIGA da janela sai (mínimo 1). Roda antes de qualquer I/O externo (CFM/UaiID) e da captura do CPF.
+    const recent = await prisma.doctorVerification.findMany({
+      where: { doctorId: doc.id, createdAt: { gte: new Date(now.getTime() - ATTEMPT_WINDOW_MS) } },
+      orderBy: { createdAt: 'asc' }, take: MAX_ATTEMPTS_PER_DAY, select: { createdAt: true },
+    });
+    if (recent.length >= MAX_ATTEMPTS_PER_DAY) {
+      const retryAfterHours = Math.max(1, Math.ceil((recent[0].createdAt.getTime() + ATTEMPT_WINDOW_MS - now.getTime()) / 3_600_000));
+      res.status(429).json({ code: 'KYC_ATTEMPT_LIMIT', retryAfterHours, error: 'Limite de tentativas atingido. Tente mais tarde.' });
+      return;
+    }
     let cpf = decryptPII(doc.cpfEncrypted, doc.cpfIv);
     // Conta do convite (/api/public/doctor-invite/:token/register) nasce SEM CPF e nenhuma outra rota o grava depois: o
     // médico informa aqui, uma vez (revisão final I6a). Quem já tem CPF (cadastro normal) ignora body.cpf — a identidade
