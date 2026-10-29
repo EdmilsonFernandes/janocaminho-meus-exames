@@ -62,6 +62,19 @@ describe('C1 — e-mail do share só vai a médico que pode atuar', () => {
     expect(shareMails(doctor.email)).toHaveLength(0);
   });
 
+  // 2ª rodada (m9): a pergunta já exigia o e-mail verificado; o aviso do share não — médico do convite (aprovado, mas nunca
+  // provou o e-mail) recebia o nome do paciente num endereço que ninguém confirmou ser dele.
+  it('médico APROVADO mas com o e-mail NÃO verificado (conta do convite) não recebe o aviso do share, e o status do e-mail não vaza', async () => {
+    const { token } = await createUser({ credits: 100 });
+    const { doctor } = await createDoctor({ crm: crm() });
+    await prisma.doctor.update({ where: { id: doctor.id }, data: { emailVerified: false } });
+    const r = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: doctor.crm, scopes: ['exams'] });
+    expect(r.status).toBe(201);
+    expect(r.body.notified).toBe(false);
+    expect(shareMails(doctor.email)).toHaveLength(0);
+    expect(JSON.stringify(r.body)).not.toContain('emailVerified');
+  });
+
   it('aprovado e legado (em prazo) continuam sendo avisados', async () => {
     const { token } = await createUser({ credits: 100 });
     const ap = await createDoctor({ crm: crm() });

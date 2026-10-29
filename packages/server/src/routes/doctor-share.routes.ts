@@ -14,13 +14,13 @@ router.use(requireAuth);
 
 // Revisão final do KYC (C2, herdado da main): este endpoint devolvia a LINHA INTEIRA do médico ao paciente —
 // passwordHash, CPF cifrado, chaves PIX, tokens do Google… Agora só o que o paciente pode ver (os mesmos campos
-// do diretório/lista) + o que a lógica interna precisa (blocked/verificationStatus), que NUNCA sai na resposta.
+// do diretório/lista) + o que a lógica interna precisa (blocked/verificationStatus/emailVerified), que NUNCA sai na resposta.
 const PUBLIC_DOCTOR_SELECT = {
   id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true, email: true, clinicName: true, clinicCity: true,
 } as const;
-const SHARE_DOCTOR_SELECT = { ...PUBLIC_DOCTOR_SELECT, blocked: true, verificationStatus: true } as const;
-function publicDoctor<T extends { blocked?: unknown; verificationStatus?: unknown }>(d: T): Omit<T, 'blocked' | 'verificationStatus'> {
-  const { blocked: _b, verificationStatus: _v, ...rest } = d;
+const SHARE_DOCTOR_SELECT = { ...PUBLIC_DOCTOR_SELECT, blocked: true, verificationStatus: true, emailVerified: true } as const;
+function publicDoctor<T extends { blocked?: unknown; verificationStatus?: unknown; emailVerified?: unknown }>(d: T): Omit<T, 'blocked' | 'verificationStatus' | 'emailVerified'> {
+  const { blocked: _b, verificationStatus: _v, emailVerified: _e, ...rest } = d;
   return rest;
 }
 
@@ -123,7 +123,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // notifica o médico por e-mail — SÓ se ele pode atuar (revisão final, C1): o aviso leva o NOME do paciente,
     // os escopos e o convênio; conta não verificada/rejeitada/bloqueada (ex.: quem registrou o CRM de outro
     // médico) não pode receber isso. O share continua criado: vale quando o médico for aprovado.
-    const notified = !!doctor.email && !doctor.email.includes('@invite.com') && doctorMayPractice(doctor);
+    // m9 (2ª rodada): e com o e-mail VERIFICADO — como a pergunta já exige. Médico do convite (aprovado, mas nunca provou o
+    // e-mail) não recebe nome de paciente num endereço que ninguém confirmou ser dele.
+    const notified = !!doctor.email && !doctor.email.includes('@invite.com') && doctor.emailVerified && doctorMayPractice(doctor);
     if (notified) {
       const patient = await prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } });
       try {
