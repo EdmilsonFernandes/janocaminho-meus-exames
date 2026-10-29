@@ -50,6 +50,13 @@ const DEMO_PEND = [
   { key: 'tele', label: 'Teleconsulta c/ Dr. Carlos', chip: 'amanhã', tone: 'primary' as const, to: '/consultas' },
   { key: 'q', label: 'Pergunta aguardando o médico', chip: 'aguardando', tone: 'secondary' as const, to: '/perguntas' },
 ];
+/** LEVA 2 — mental, coletas, IA e teleconsulta em destaque. */
+const DEMO_MENTAL = { phq9: 6, gad7: 4 };
+const DEMO_COLETAS = [
+  { id: 'c1', title: 'Hemograma completo + TSH', dueDate: new Date(Date.now() + 6 * 86400000).toISOString() },
+  { id: 'c2', title: 'Perfil lipídico (jejum 12h)', dueDate: new Date(Date.now() + 20 * 86400000).toISOString() },
+];
+const mentalTone = (v: number) => (v <= 4 ? { label: 'mínimo', cls: 'border-success/25 bg-success/10 text-success-foreground dark:text-success' } : v <= 9 ? { label: 'leve', cls: 'border-warning/30 bg-warning/10 text-warning-foreground dark:text-warning' } : { label: 'atenção', cls: 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive' });
 
 const whenChip = (iso: string): { text: string; overdue: boolean } => {
   const due = new Date(iso).getTime();
@@ -102,6 +109,9 @@ export default function DashboardV2Island() {
   const [bio, setBio] = useState<{ age: number } | null>(null);
   const [actions, setActions] = useState<{ title?: string; domain?: string; timeframe?: string; question?: string; rationale?: string; source?: string }[]>([]);
   const [pend, setPend] = useState<{ key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[]>([]);
+  // Leva 2
+  const [mental, setMental] = useState<{ phq9: number | null; gad7: number | null } | null>(null);
+  const [coletas, setColetas] = useState<{ id?: string; title?: string; dueDate?: string }[]>([]);
 
   useEffect(() => {
     if (!enabled || !pid) return;
@@ -141,9 +151,11 @@ export default function DashboardV2Island() {
         // Pendências (lógica do PendenciasCard do app real): teleconsulta aberta +
         // lembrete vencido + perguntas aguardando médico.
         try {
-          const [remRes, qRes] = await Promise.allSettled([
+          const [remRes, qRes, colRes, menRes] = await Promise.allSettled([
             fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: h }),
             fetch(`${API_URL}/doctor-questions?patientId=${pid}`, { headers: h }),
+            fetch(`${API_URL}/collection-checklist`, { headers: h }),
+            fetch(`${API_URL}/patients/${pid}/mental-screenings/latest`, { headers: h }),
           ]);
           const reminders: any[] = remRes.status === 'fulfilled' && remRes.value.ok ? await remRes.value.json().catch(() => []) : [];
           const questions: any[] = qRes.status === 'fulfilled' && qRes.value.ok ? await qRes.value.json().catch(() => []) : [];
@@ -158,6 +170,18 @@ export default function DashboardV2Island() {
           const pendQ = Array.isArray(questions) ? questions.filter((q: any) => q && q.status !== 'answered').length : 0;
           if (pendQ > 0) rows.push({ key: 'q', label: pendQ === 1 ? 'Pergunta aguardando o médico' : `${pendQ} perguntas aguardando o médico`, chip: 'aguardando', tone: 'secondary', to: '/perguntas' });
           setPend(rows.slice(0, 3));
+          // Leva 2: coletas do plano + última triagem mental
+          if (colRes?.status === 'fulfilled' && colRes.value.ok) {
+            const cd = await colRes.value.json().catch(() => null);
+            const list = Array.isArray(cd) ? cd : Array.isArray(cd?.items) ? cd.items : [];
+            setColetas(list.filter((x: any) => x && !x.done && (x.title || x.name)).slice(0, 3).map((x: any, i: number) => ({ id: x.id ?? `c${i}`, title: x.title || x.name, dueDate: x.dueDate })));
+          }
+          if (menRes?.status === 'fulfilled' && menRes.value.ok) {
+            const md = await menRes.value.json().catch(() => null);
+            const phq9 = typeof md?.phq9?.score === 'number' ? md.phq9.score : typeof md?.phq9 === 'number' ? md.phq9 : null;
+            const gad7 = typeof md?.gad7?.score === 'number' ? md.gad7.score : typeof md?.gad7 === 'number' ? md.gad7 : null;
+            if (phq9 != null || gad7 != null) setMental({ phq9, gad7 });
+          }
         } catch { /* pendências é bônus */ }
         try {
           const rNames = await fetch(`${API_URL}/items/distinct-names${pid ? `?patientId=${pid}` : ''}`, { headers: h });
@@ -336,6 +360,72 @@ export default function DashboardV2Island() {
                 <p className="text-[11px] text-muted-foreground/70">Conteúdo educativo gerado a partir dos seus exames — perguntas pra facilitar a consulta. Não substitui avaliação médica.</p>
               </section>
             )}
+          </>
+        );
+      })()}
+
+      {/* LEVA 2 — coletas, saúde mental, IA e teleconsulta */}
+      {mostrarConteudo && (() => {
+        const colRows = demo ? DEMO_COLETAS : coletas;
+        const men = demo ? DEMO_MENTAL : mental;
+        return (
+          <>
+            {/* PRÓXIMAS COLETAS — checklist do plano clínico */}
+            {colRows.length > 0 && (
+              <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4" aria-label="Próximas coletas">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold">Próximas coletas</h3>
+                  <span className="text-xs text-muted-foreground">plano do seu médico</span>
+                </div>
+                {colRows.map((c) => (
+                  <div key={c.id ?? c.title} className="flex min-h-11 items-center gap-3 rounded-lg border border-dashed border-border px-3 py-2">
+                    <span aria-hidden className="text-base">🧪</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">{c.title}</span>
+                    {c.dueDate && <span className="shrink-0 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">{whenChip(c.dueDate).text}</span>}
+                  </div>
+                ))}
+              </section>
+            )}
+
+            {/* SAÚDE MENTAL — PHQ-9 / GAD-7 */}
+            <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Saúde mental">
+              <div>
+                <h3 className="text-sm font-semibold">Como você está se sentindo</h3>
+                <p className="text-xs text-muted-foreground">check-in emocional (PHQ-9 · GAD-7)</p>
+              </div>
+              {men && (men.phq9 != null || men.gad7 != null) ? (
+                <div className="flex gap-2">
+                  {men.phq9 != null && (() => { const t = mentalTone(men.phq9); return (
+                    <span className={'rounded-full border px-2.5 py-1 text-xs font-bold ' + t.cls}>PHQ-9 {men.phq9} · {t.label}</span>
+                  ); })()}
+                  {men.gad7 != null && (() => { const t = mentalTone(men.gad7); return (
+                    <span className={'rounded-full border px-2.5 py-1 text-xs font-bold ' + t.cls}>GAD-7 {men.gad7} · {t.label}</span>
+                  ); })()}
+                </div>
+              ) : (
+                <a href="#/saude-mental" className="rounded-lg bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground">Fazer check-in (2 min)</a>
+              )}
+            </section>
+
+            {/* DR. EXAME IA — entrada pro chat */}
+            <a href="#/chat" className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent p-4 transition-colors hover:from-primary/15">
+              <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg text-primary-foreground">✨</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">Tirar dúvida com o Dr. Exame</span>
+                <span className="block text-xs text-muted-foreground">sobre seus exames, medicamentos e faixas — na hora</span>
+              </span>
+              <span aria-hidden className="text-primary">→</span>
+            </a>
+
+            {/* TELECONSULTA — destaque clínico */}
+            <a href="#/consultas" className="flex items-center gap-3 rounded-xl border border-copper-500/30 bg-copper-500/10 p-4 transition-colors hover:bg-copper-500/15">
+              <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-copper-500 text-lg text-white">🩺</span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold">Falar com um médico</span>
+                <span className="block text-xs text-muted-foreground">teleconsulta com os médicos que já acompanham você</span>
+              </span>
+              <span aria-hidden className="text-copper-700 dark:text-copper-300">→</span>
+            </a>
           </>
         );
       })()}
