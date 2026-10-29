@@ -252,15 +252,16 @@ export const EncontrarEspecialistasPage = () => {
             />
 
             {/* Linha de Seleção: Especialidade e Cidade (IBGE) */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="stretch">
               <TextField
                 select
                 label="Especialidade Médica"
                 value={specialty}
                 onChange={(e) => setSpecialty(e.target.value)}
                 size="small"
+                fullWidth
                 sx={{
-                  flex: '1 1 180px',
+                  flex: { xs: '1 1 auto', sm: '1 1 180px' },
                   '& .MuiOutlinedInput-root': { borderRadius: '12px' },
                 }}
               >
@@ -275,6 +276,11 @@ export const EncontrarEspecialistasPage = () => {
                 options={cityOptions}
                 inputValue={city}
                 onInputChange={(_, v) => setCity(v)}
+                fullWidth
+                sx={{
+                  flex: { xs: '1 1 auto', sm: '1 1 220px' },
+                  '& .MuiOutlinedInput-root': { borderRadius: '12px' },
+                }}
                 renderInput={(p) => (
                   <TextField
                     {...p}
@@ -289,10 +295,8 @@ export const EncontrarEspecialistasPage = () => {
                         </InputAdornment>
                       ),
                     }}
-                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
                   />
                 )}
-                sx={{ flex: '1 1 200px' }}
                 noOptionsText="Cidade não encontrada — pode digitar livremente"
               />
 
@@ -302,8 +306,9 @@ export const EncontrarEspecialistasPage = () => {
                 value={operator}
                 onChange={(e) => setOperator(e.target.value)}
                 size="small"
+                fullWidth
                 sx={{
-                  flex: '1 1 180px',
+                  flex: { xs: '1 1 auto', sm: '1 1 180px' },
                   '& .MuiOutlinedInput-root': { borderRadius: '12px' },
                 }}
               >
@@ -409,13 +414,23 @@ export const EncontrarEspecialistasPage = () => {
 
       {/* RESULTADOS */}
       {!loading && items.length > 0 && (
-        <Box sx={{ mb: 1.5 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-            {items.length} de {total} {total === 1 ? 'médico' : 'médicos'} • ordenados por dados confirmados
+        <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
+          <Typography variant="caption" sx={{ color: 'text.primary', fontWeight: 800, fontSize: 13.5 }}>
+            {items.length} {items.length === 1 ? 'especialista encontrado' : 'especialistas encontrados'}
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
+            Ordenados por perfil verificado e dados confirmados
           </Typography>
         </Box>
       )}
-      <Stack spacing={1.5}>
+
+      {/* Grid Responsivo: 1 coluna no mobile, 2 colunas no desktop (estilo Amil / SulAmérica) */}
+      <Box sx={{
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' },
+        gap: 2,
+        alignItems: 'stretch',
+      }}>
         {!loading && items.map((s: any) => {
           // ── Card CNES (catálogo oficial): sem CRM — salvar pede o CRM, registra consulta
           // com nome livre. Visual distinto (borda tracejada + badge oficial) pra nunca
@@ -423,27 +438,32 @@ export const EncontrarEspecialistasPage = () => {
           if (s.origin === 'cnes') {
             return (
               <Card key={s.id} sx={{
-                borderRadius: '16px', border: '1.5px dashed', borderColor: 'rgba(32,178,170,0.5)',
+                borderRadius: '20px', border: '1.5px dashed', borderColor: 'rgba(32,178,170,0.5)',
                 bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.05)' : 'rgba(240,253,250,0.6)',
+                display: 'flex', flexDirection: 'column', height: '100%',
               }}>
-                <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-                  <Stack direction="row" spacing={1.75} alignItems="flex-start">
-                    <Avatar sx={{ width: 44, height: 44, fontSize: 18, bgcolor: 'rgba(15,95,90,0.15)', color: '#0f766e', flexShrink: 0 }}>🩺</Avatar>
+                <CardContent sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                  <Stack direction="row" spacing={1.75} alignItems="flex-start" sx={{ flex: 1 }}>
+                    <Avatar sx={{ width: 48, height: 48, fontSize: 20, bgcolor: 'rgba(15,95,90,0.15)', color: '#0f766e', flexShrink: 0 }}>🩺</Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
+                      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
                           {s.name}
                         </Typography>
+                        <Chip size="small" label="Catálogo Oficial CNES" sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e', borderRadius: '6px' }} />
+                      </Stack>
+
+                      <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
                         {s.crm && (
                           <Chip size="small" label={`CRM ${String(s.crm).replace(/\D/g, '')}-${s.crmUf ?? ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'rgba(15,95,90,0.08)', color: '#0f5f5a', borderRadius: '4px' }} />
                         )}
-                        <Chip size="small" label="CNES oficial" sx={{ height: 20, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(15,95,90,0.12)', color: '#0f766e' }} />
+                        {s.specialty && (
+                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+                            {s.specialty}
+                          </Typography>
+                        )}
                       </Stack>
-                      {s.specialty && (
-                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>
-                          🩺 {s.specialty}
-                        </Typography>
-                      )}
+
                       <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.25 }}>
                         📍 {s.clinicName} • {s.clinicCity}
                       </Typography>
@@ -453,36 +473,35 @@ export const EncontrarEspecialistasPage = () => {
                       <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 10.5 }}>
                         🏛️ {s.provenance.label}
                       </Typography>
-                      <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
-                        {s.crm ? (
-                          <Button size="small" variant="contained" onClick={() => void salvarCnesDireto(s)}
-                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
-                            Salvar em Meus médicos
-                          </Button>
-                        ) : (
-                          <Button size="small" variant="contained" onClick={() => { hapticLight(); setCnesFor(s); }}
-                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
-                            Salvar com CRM
-                          </Button>
-                        )}
-                        {/* Aquisição B2B de graça: "Te encontrei no Dr. Exame" com CRM
-                            pré-validado no link — cada busca vira convite de médico. */}
-                        {s.crm && s.phone && (
-                          <Button
-                            size="small" variant="outlined" component="a" target="_blank" rel="noopener"
-                            href={`https://wa.me/55${String(s.phone).replace(/\D/g, '')}?text=${encodeURIComponent(conviteMedicoMsg(s))}`}
-                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, color: '#059669', borderColor: 'rgba(5,150,105,0.4)' }}
-                          >
-                            💬 Convidar médico
-                          </Button>
-                        )}
-                        <Button size="small" variant="outlined"
-                          onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
-                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, borderColor: '#0f766e', color: '#0f766e' }}>
-                          + Anotar consulta
-                        </Button>
-                      </Stack>
                     </Box>
+                  </Stack>
+
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2, pt: 1.5, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                    {s.crm ? (
+                      <Button size="small" variant="contained" onClick={() => void salvarCnesDireto(s)}
+                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } }}>
+                        Salvar em Meus médicos
+                      </Button>
+                    ) : (
+                      <Button size="small" variant="contained" onClick={() => { hapticLight(); setCnesFor(s); }}
+                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } }}>
+                        Salvar com CRM
+                      </Button>
+                    )}
+                    {s.crm && s.phone && (
+                      <Button
+                        size="small" variant="outlined" component="a" target="_blank" rel="noopener"
+                        href={`https://wa.me/55${String(s.phone).replace(/\D/g, '')}?text=${encodeURIComponent(conviteMedicoMsg(s))}`}
+                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, color: '#059669', borderColor: 'rgba(5,150,105,0.4)' }}
+                      >
+                        💬 WhatsApp
+                      </Button>
+                    )}
+                    <Button size="small" variant="outlined"
+                      onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
+                      sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, borderColor: '#0f766e', color: '#0f766e' }}>
+                      + Anotar consulta
+                    </Button>
                   </Stack>
                 </CardContent>
               </Card>
@@ -491,40 +510,59 @@ export const EncontrarEspecialistasPage = () => {
           const salvo = savedIds.has(s.id);
           return (
             <Card key={s.id} sx={{
-              borderRadius: '16px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)', position: 'relative', overflow: 'hidden',
+              borderRadius: '20px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.03)', overflow: 'hidden',
               transition: 'all .2s ease',
+              display: 'flex', flexDirection: 'column', height: '100%',
               '&:hover': { borderColor: '#178f89', boxShadow: '0 8px 24px rgba(15,95,90,0.12)', transform: 'translateY(-2px)' },
             }}>
-              {s.claimed && <Box sx={{ position: 'absolute', right: 0, top: 0, bgcolor: 'rgba(32,178,170,0.12)', px: 1.5, py: 0.25, borderBottomLeftRadius: 10 }}>
-                <Typography sx={{ fontSize: 10.5, fontWeight: 800, color: '#0f766e' }}>PORTAL ATIVO</Typography>
-              </Box>}
-              <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-                <Stack direction="row" spacing={1.75} alignItems="flex-start">
-                  <Avatar src={doctorPhotoUrl(s.id)} sx={{ width: 52, height: 52, fontWeight: 800, fontSize: 20, bgcolor: '#0f5f5a', flexShrink: 0 }}>
+              <CardContent sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <Stack direction="row" spacing={1.75} alignItems="flex-start" sx={{ flex: 1 }}>
+                  <Avatar src={doctorPhotoUrl(s.id)} sx={{ width: 56, height: 56, fontWeight: 800, fontSize: 20, bgcolor: '#0f5f5a', flexShrink: 0, border: '2px solid rgba(15,95,90,0.15)' }}>
                     {s.name.charAt(0).toUpperCase()}
                   </Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 15.5, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
-                      {s.name}
-                    </Typography>
-                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mt: 0.25, rowGap: 0.5, mb: 0.75 }}>
-                      {s.specialty && <Chip size="small" label={s.specialty} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode) }} />}
-                      <Chip size="small" label={`CRM ${s.crm}`} sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', borderRadius: '4px' }} />
+                    {/* Linha do Nome e Selo Atende no Dr. Exame */}
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.5 }}>
+                      <Typography sx={{ fontWeight: 800, fontSize: 16, fontFamily: '"Poppins",sans-serif', color: 'text.primary' }}>
+                        {s.name}
+                      </Typography>
+                      {s.claimed && (
+                        <Chip
+                          icon={<VerifiedRoundedIcon sx={{ fontSize: '14px !important', color: '#0f766e' }} />}
+                          label="Atende no Dr. Exame"
+                          size="small"
+                          sx={{
+                            bgcolor: 'rgba(15,118,110,0.09)',
+                            color: '#0f766e',
+                            fontWeight: 800,
+                            fontSize: 11,
+                            height: 24,
+                            borderRadius: '6px',
+                            border: '1px solid rgba(15,118,110,0.25)',
+                            '& .MuiChip-icon': { color: '#0f766e' },
+                          }}
+                        />
+                      )}
+                    </Stack>
+
+                    <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 0.75 }}>
+                      {s.specialty && <Chip size="small" label={s.specialty} sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode) }} />}
+                      <Chip size="small" label={`CRM ${s.crm}`} sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(0,0,0,0.05)', color: 'text.secondary', borderRadius: '4px' }} />
                     </Stack>
 
                     {(s.clinicName || s.clinicCity) && (
-                      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontSize: 12 }}>
                         📍 {[s.clinicName, s.clinicCity].filter(Boolean).join(' • ')}
                       </Typography>
                     )}
                     {s.consultPriceCents != null && (
-                      <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontWeight: 700, mt: 0.25 }}>
+                      <Typography variant="caption" sx={{ display: 'block', color: '#0f766e', fontWeight: 800, fontSize: 12.5, mt: 0.5 }}>
                         💳 Teleconsulta particular: R$ {(s.consultPriceCents / 100).toFixed(2).replace('.', ',')}
                       </Typography>
                     )}
 
-                    {/* Convênios informados (§5: com provenance; vazio = não informado) */}
+                    {/* Convênios informados */}
                     <Box sx={{ mt: 0.75 }}>
                       {s.insurances.length > 0 ? (
                         <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
@@ -537,51 +575,51 @@ export const EncontrarEspecialistasPage = () => {
                           ))}
                         </Stack>
                       ) : (
-                        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
                           🏥 Convênios não informados — confirme com o consultório
                         </Typography>
                       )}
                     </Box>
 
-                    {/* PROVENANCE (§3: fonte e data sempre visíveis) */}
-                    <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.disabled', fontSize: 10.5 }}>
+                    {/* Informação de procedência */}
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.75, color: 'text.disabled', fontSize: 10.5 }}>
                       {s.claimed ? '✓ ' : 'ℹ️ '}{s.provenance.label}
                     </Typography>
-
-                    {/* AÇÕES */}
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 1.25 }}>
-                      <Button
-                        size="small" variant={salvo ? 'outlined' : 'contained'} disabled={salvo}
-                        startIcon={salvo ? <BookmarkAddedRoundedIcon /> : <BookmarkAddOutlinedIcon />}
-                        onClick={() => void salvar(s)}
-                        sx={{
-                          borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40,
-                          ...(salvo ? { color: '#0f766e', borderColor: 'rgba(32,178,170,0.5)', bgcolor: 'rgba(32,178,170,0.06)' } : { bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } })
-                        }}
-                      >
-                        {salvo ? 'Salvo em Meus médicos ✓' : '+ Salvar em Meus médicos'}
-                      </Button>
-                      <Button
-                        size="small" variant="outlined" startIcon={<AddTaskRoundedIcon />}
-                        onClick={() => navigate('/consultas', { state: { prefillDoctor: { doctorId: s.id, doctorName: s.name, specialty: s.specialty ?? '' }, tab: 'minhas' } })}
-                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, borderColor: '#0f766e', color: '#0f766e', '&:hover': { bgcolor: 'rgba(15,118,110,0.06)' } }}
-                      >
-                        + Anotar consulta
-                      </Button>
-                      {s.phone && (
-                        <Button size="small" component="a" href={`https://wa.me/${s.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener"
-                          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, color: '#059669', borderColor: 'rgba(5,150,105,0.4)' }} variant="outlined">
-                          💬 WhatsApp
-                        </Button>
-                      )}
-                    </Stack>
                   </Box>
+                </Stack>
+
+                {/* AÇÕES NA BASE DO CARD */}
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mt: 2, pt: 1.5, borderTop: '1px solid rgba(0,0,0,0.05)' }}>
+                  <Button
+                    size="small" variant={salvo ? 'outlined' : 'contained'} disabled={salvo}
+                    startIcon={salvo ? <BookmarkAddedRoundedIcon /> : <BookmarkAddOutlinedIcon />}
+                    onClick={() => void salvar(s)}
+                    sx={{
+                      borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5,
+                      ...(salvo ? { color: '#0f766e', borderColor: 'rgba(32,178,170,0.5)', bgcolor: 'rgba(32,178,170,0.06)' } : { bgcolor: '#0f766e', '&:hover': { bgcolor: '#115e59' } })
+                    }}
+                  >
+                    {salvo ? 'Salvo em Meus médicos ✓' : '+ Salvar em Meus médicos'}
+                  </Button>
+                  <Button
+                    size="small" variant="outlined" startIcon={<AddTaskRoundedIcon />}
+                    onClick={() => navigate('/consultas', { state: { prefillDoctor: { doctorId: s.id, doctorName: s.name, specialty: s.specialty ?? '' }, tab: 'minhas' } })}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, borderColor: '#0f766e', color: '#0f766e', '&:hover': { bgcolor: 'rgba(15,118,110,0.06)' } }}
+                  >
+                    + Anotar consulta
+                  </Button>
+                  {s.phone && (
+                    <Button size="small" component="a" href={`https://wa.me/${s.phone.replace(/\D/g, '')}`} target="_blank" rel="noopener"
+                      sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 38, fontSize: 12.5, color: '#059669', borderColor: 'rgba(5,150,105,0.4)' }} variant="outlined">
+                      💬 WhatsApp
+                    </Button>
+                  )}
                 </Stack>
               </CardContent>
             </Card>
           );
         })}
-      </Stack>
+      </Box>
 
       {!loading && items.length > 0 && (
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 2.5, color: 'text.disabled' }}>
