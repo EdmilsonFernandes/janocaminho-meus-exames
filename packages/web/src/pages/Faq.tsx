@@ -144,6 +144,7 @@ export const FaqPage = () => {
         fullWidth
         size="small"
         placeholder="Busque sua dúvida… (ex.: créditos, PDF, médico)"
+        inputProps={{ 'aria-label': 'Buscar dúvida no FAQ' }}
         value={query}
         onChange={(e) => { setQuery(e.target.value); setExpanded(false); }}
         sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}

@@ -178,7 +178,9 @@ export const PlansPage = () => {
       >
         <BoltIcon sx={{ color: '#20b2aa', fontSize: 20 }} />
         <Typography sx={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>
-          {status?.credits != null ? `${Math.floor(status.credits / rd) || 0} ${Math.floor(status.credits / rd) === 1 ? 'leitura' : 'leituras'} · ${status.credits.toLocaleString('pt-BR')} 💎` : '—'}
+          {/* Créditos primeiro, leituras como conversão (auditoria 29/10: "0 leituras · 7💎"
+              com Premium ativo lia como bug — duas moedas sem hierarquia). */}
+          {status?.credits != null ? (() => { const n = Math.floor(status.credits / rd) || 0; return `${status.credits.toLocaleString('pt-BR')} 💎 ≈ ${n} ${n === 1 ? 'leitura' : 'leituras'} de exame`; })() : '—'}
         </Typography>
         {status?.active && (
           <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>

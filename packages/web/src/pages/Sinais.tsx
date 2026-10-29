@@ -344,7 +344,7 @@ export const SinaisPage = () => {
                       : `${goalPct}% da meta diária de ${fmtSteps(STEPS_GOAL)} passos`}
                     {' · '}
                     <Typography component="span" sx={{ color: 'primary.dark', fontWeight: 700, fontSize: 12 }}>
-                      Marco Lancet: 7.000+
+                      Estudos (Lancet): benefício a partir de 7.000
                     </Typography>
                   </Typography>
                 </Box>

@@ -37,11 +37,14 @@ export const COEXIST_REVERSIBLE_TEXT =
 
 interface EduBlock { key: string; title: string; text: string }
 
-export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWarning, worsened, items, substances, training }: {
+export const SportsAlertBanner = ({ loaded, exams, importante, moderada, abnormalTotal, staleWarning, worsened, items, substances, training }: {
   loaded: boolean;
   exams: number;
   importante: number;
   moderada: number;
+  /** Total de valores fora da faixa (mesmo número do tile e de /alterados) — ancora a
+   *  contagem do herói (importante+moderada) no total, pra não parecer contradição. */
+  abnormalTotal?: number;
   staleWarning: string;
   worsened: Marker[];
   /** Analitos do painel (mesma fonte dos cards) — alimenta o conhecimento educativo. */
@@ -211,6 +214,9 @@ export const SportsAlertBanner = ({ loaded, exams, importante, moderada, staleWa
             {importante > 0
               ? `${SEVERITY.high}: prioridade na sua próxima consulta médica.`
               : `${SEVERITY.mid}: acompanhe a evolução e comente na sua consulta.`}
+            {abnormalTotal != null && abnormalTotal > attention
+              ? ` São os prioritários entre ${abnormalTotal} valores fora da faixa no total.`
+              : ''}
           </Typography>
 
           {/* Tags dos que pioraram ou estão relacionados com treino/substâncias */}

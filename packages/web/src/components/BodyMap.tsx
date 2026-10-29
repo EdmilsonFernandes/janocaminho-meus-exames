@@ -460,7 +460,22 @@ export const BodyMap = ({
     }
   };
 
-  // Se não houver regiões mapeadas ou enquanto carrega, exibe fallback leve
+  const nAlt = useMemo(() => safeList.filter((r) => r.level === 'alterado').length, [safeList]);
+  const nAtn = useMemo(() => safeList.filter((r) => r.level === 'atencao').length, [safeList]);
+
+  const attentionMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'alterado' || m.level === 'atencao'),
+    [sortedMarkers]
+  );
+  const normalMarkers = useMemo(
+    () => sortedMarkers.filter((m) => m.level === 'ok'),
+    [sortedMarkers]
+  );
+
+  // Se não houver regiões mapeadas ou enquanto carrega, exibe fallback leve.
+  // ⚠️ DEPOIS de todos os hooks: este early-return antes dos useMemo acima mudava a
+  // contagem de hooks quando os dados chegavam (React #310 — o crash "não carrega o
+  // corpo" que o auto-retry do DashboardErrorBoundary mascarava).
   if (safeList.length === 0) {
     return (
       <AppCard>
@@ -482,18 +497,6 @@ export const BodyMap = ({
       </AppCard>
     );
   }
-
-  const nAlt = useMemo(() => safeList.filter((r) => r.level === 'alterado').length, [safeList]);
-  const nAtn = useMemo(() => safeList.filter((r) => r.level === 'atencao').length, [safeList]);
-
-  const attentionMarkers = useMemo(
-    () => sortedMarkers.filter((m) => m.level === 'alterado' || m.level === 'atencao'),
-    [sortedMarkers]
-  );
-  const normalMarkers = useMemo(
-    () => sortedMarkers.filter((m) => m.level === 'ok'),
-    [sortedMarkers]
-  );
   const initialNormalLimit = attentionMarkers.length > 0 ? Math.max(1, 3 - attentionMarkers.length) : 3;
   const visibleNormalMarkers = showAllMarkers ? normalMarkers : normalMarkers.slice(0, initialNormalLimit);
   const hiddenNormalCount = Math.max(0, normalMarkers.length - visibleNormalMarkers.length);

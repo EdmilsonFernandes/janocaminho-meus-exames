@@ -5,12 +5,14 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import MedicationIcon from '@mui/icons-material/Medication';
 import CallIcon from '@mui/icons-material/Call';
 import PrintIcon from '@mui/icons-material/Print';
+import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { printPage } from '../utils/nativeDoc';
 import { PageContainer } from '../components/layout/PageContainer';
 
 export const EmergencyCardPage = () => {
+  const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [patient, setPatient] = useState<any>(null);
 
@@ -55,13 +57,19 @@ export const EmergencyCardPage = () => {
                 <Typography variant="body2" color="text.secondary">{patient.bloodType}</Typography>
               </Box>
               )}
+              {/* Campo vazio vira AÇÃO (auditoria 29/10): "Não informado" sem caminho deixava
+                  o cartão eternamente incompleto — e vazio ele não serve na emergência. */}
               <Box sx={{ mb: 2 }}>
                 <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 0.75 }}><MedicationIcon sx={{ fontSize: 19 }} /> Medicações</Typography>
-                <Typography variant="body2" color="text.secondary">{patient.clinicalProfile || 'Não informado'}</Typography>
+                {patient.clinicalProfile
+                  ? <Typography variant="body2" color="text.secondary">{patient.clinicalProfile}</Typography>
+                  : <Button size="small" variant="outlined" color="error" onClick={() => navigate('/perfil')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, minHeight: 36 }}>+ Adicionar no perfil</Button>}
               </Box>
               <Box sx={{ mb: 2 }}>
                 <Typography sx={{ fontWeight: 700, mb: 0.5, color: '#ef4444', display: 'flex', alignItems: 'center', gap: 0.75 }}><CallIcon sx={{ fontSize: 19 }} /> Contato de emergência</Typography>
-                <Typography variant="body2" color="text.secondary">{patient.phone || 'Não informado'}</Typography>
+                {patient.phone
+                  ? <Typography variant="body2" color="text.secondary">{patient.phone}</Typography>
+                  : <Button size="small" variant="outlined" color="error" onClick={() => navigate('/perfil')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, minHeight: 36 }}>+ Adicionar telefone</Button>}
               </Box>
               <Box sx={{ textAlign: 'center', mt: 3 }}>
                 <Box sx={{ display: 'inline-block', p: 2, border: '2px dashed rgba(239,68,68,0.3)', borderRadius: '16px', bgcolor: 'rgba(239,68,68,0.04)' }}>

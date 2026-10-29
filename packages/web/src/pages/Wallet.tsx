@@ -175,7 +175,9 @@ export const WalletPage = () => {
           {([
             { key: 'gain', icon: <TrendingUpOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Ganhos', value: totals.current.earned, color: '#178f89' },
             { key: 'spend', icon: <TrendingDownOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Gastos', value: totals.current.spent, color: '#c2703e' },
-            { key: 'all', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Tudo', value: items?.length ?? 0, color: 'text.secondary' },
+            // "Tudo 50" ao lado de "Ganhos 107 / Gastos 129" parecia um 3º SALDO
+            // (auditoria 29/10) — o 50 conta lançamentos, então o rótulo diz isso.
+            { key: 'all', icon: <ReceiptLongOutlinedIcon sx={{ fontSize: 16 }} />, label: 'Lançamentos', value: items?.length ?? 0, color: 'text.secondary' },
           ] as const).map((s) => {
             const on = filter === s.key;
             return (

@@ -750,7 +750,7 @@ export async function buildCurrentHealthSummary(patientId: string, opts?: { incl
     score,
     abnormalAnalytes: abnormal.map((m) => m.nameCanonical),
     staleWarning: staleCount > 0 && total > 0
-      ? `${staleCount} marcador(es) não ${staleCount > 1 ? 'foram medidos' : 'foi medido'} há mais de 12 meses e não ${staleCount > 1 ? 'entram' : 'entra'} no score. Envie um exame recente pra uma leitura atualizada.`
+      ? `${staleCount} ${staleCount > 1 ? 'marcadores não foram medidos' : 'marcador não foi medido'} há mais de 12 meses e não ${staleCount > 1 ? 'entram' : 'entra'} no score. Envie um exame recente pra uma leitura atualizada.`
       : null,
     byPriority,
     topAttention: abnormal.sort(sortByPriorityThenDelta).slice(0, 6),

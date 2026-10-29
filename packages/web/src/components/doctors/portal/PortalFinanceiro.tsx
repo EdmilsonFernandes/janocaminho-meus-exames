@@ -11,7 +11,7 @@ import {
   Box, Typography, Stack, Chip, Button, IconButton, useMediaQuery, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
-  InputAdornment, Tooltip, Divider,
+  InputAdornment, Tooltip, Divider, Alert,
 } from '@mui/material';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import HourglassBottomOutlinedIcon from '@mui/icons-material/HourglassBottomOutlined';
@@ -218,6 +218,21 @@ export const PortalFinanceiro = ({ token }: Props) => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      {/* SEM CHAVE PIX = não recebe repasse. Era nota discreta no rodapé (auditoria
+          29/10) — vira alerta no topo com ação direta, até a chave ser cadastrada. */}
+      {payout && !payout.hasPixKey && (
+        <Alert
+          severity="warning"
+          sx={{ borderRadius: '14px', fontWeight: 600, alignItems: 'center' }}
+          action={
+            <Button color="inherit" size="small" onClick={() => { setPixErr(''); setPixOpen(true); }} sx={{ fontWeight: 800, textTransform: 'none', minHeight: 40 }}>
+              Cadastrar PIX
+            </Button>
+          }
+        >
+          Cadastre sua chave PIX para receber os repasses das consultas.
+        </Alert>
+      )}
       {/* HERO — a pergunta nº1: quanto posso receber agora? */}
       <AppCard kind="tinted" tone="primary" sx={{ p: { xs: 2.25, sm: 3 } }}>
         <Typography variant="caption" sx={{ fontWeight: 800, letterSpacing: '0.05em', color: tealText(mode) }}>A RECEBER AGORA</Typography>

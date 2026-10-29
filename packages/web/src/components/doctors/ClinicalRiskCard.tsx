@@ -313,7 +313,9 @@ export const ClinicalRiskCard = ({
             </Stack>
             <Typography
               variant="caption"
-              sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', mt: 0.2 }}
+              // xs: a coluna fica ~90px ao lado do "Atualizar" → texto em 2 palavras/linha
+              // (auditoria 29/10). O disclaimer completo já existe no rodapé do card.
+              sx={{ color: 'text.secondary', fontWeight: 600, display: { xs: 'none', sm: 'block' }, mt: 0.2 }}
             >
               Triagem por biomarcadores alterados — apoia a priorização, não diagnostica
             </Typography>

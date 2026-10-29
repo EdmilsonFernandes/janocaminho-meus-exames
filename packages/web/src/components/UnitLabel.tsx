@@ -23,7 +23,9 @@ export const UnitLabel = ({ unit, fontSize = '0.85rem' }: { unit: string | null 
         <IconButton
           size="small"
           onClick={(e) => { e.stopPropagation(); setAnchor(e.currentTarget); }}
-          sx={{ p: 0.25, color: 'primary.main' }}
+          // p generoso + margem negativa: alvo de toque ~42px sem mudar o layout
+          // (auditoria 29/10: o "?" tinha 18px e aparece em todos os cards de marcador).
+          sx={{ p: 1.75, m: -1.75, color: 'primary.main' }}
           aria-label={`O que significa ${unit}?`}
           title={`O que significa ${unit}?`}
         >

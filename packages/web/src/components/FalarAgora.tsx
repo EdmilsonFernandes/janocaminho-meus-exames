@@ -412,10 +412,12 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
             {phase === 'queued' ? <HourglassTopRoundedIcon sx={{ fontSize: 24 }} /> : <BoltRoundedIcon sx={{ fontSize: 24 }} />}
           </Box>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography component="h2" noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 16.5, color: 'text.primary', lineHeight: 1.2 }}>
+            {/* Sem noWrap (auditoria 29/10): a 390px virava "Falar agora com um …"/"sem ag…" —
+                título e status quebram em até 2 linhas em vez de truncar. */}
+            <Typography component="h2" sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 15.5, sm: 16.5 }, color: 'text.primary', lineHeight: 1.2 }}>
               Falar agora com um médico
             </Typography>
-            <Typography noWrap sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.15 }}>
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.15, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {phase === 'ready' ? 'Consulta liberada'
                 : phase === 'matched_pay' ? 'Médico confirmado — falta o pagamento'
                 : phase === 'queued' ? 'Na fila de atendimento imediato'
@@ -470,7 +472,7 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
                 onClick={() => pickNoPreference()}
                 sx={{ minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'divider', color: 'text.secondary' }}
               >
-                Entrar na fila mesmo assim
+                Entrar na fila — avisamos quando um médico entrar
               </Button>
             </Stack>
           </Box>

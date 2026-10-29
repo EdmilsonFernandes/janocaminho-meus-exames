@@ -1352,9 +1352,11 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             )}
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: 15, color: 'text.primary', lineHeight: 1.2 }}>{doctor?.name || 'Médico'}</Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
+              <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block' }}>{[doctor?.specialty, doctor?.crm && `CRM ${doctor.crm}`].filter(Boolean).join(' • ') || 'Portal do Médico'}</Typography>
               {/* Assinatura do portal: cobre = modo médico (viewer clínico somente leitura). */}
-              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
+              {/* maxWidth + noWrap no caption acima: a 390px o chip estourava a coluna e
+                  sobrepunha o CRM (auditoria 29/10) — agora trunca com ellipsis do MuiChip. */}
+              <Chip size="small" icon={<Stethoscope size={13} />} label="Acesso médico · leitura" title="Você acessa como médico — vista somente leitura dos dados compartilhados pelo paciente" sx={{ mt: 0.5, height: 20, fontSize: 12, fontWeight: 700, maxWidth: '100%', bgcolor: COPPER.wash, color: (t: Theme) => copperText(t.palette.mode), '& .MuiChip-icon': { color: (t: Theme) => copperText(t.palette.mode) } }} />
             </Box>
           </>
         )}
