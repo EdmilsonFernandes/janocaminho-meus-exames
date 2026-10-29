@@ -70,7 +70,10 @@ export type CfmState = 'active' | 'inactive' | 'unknown';
 export function cfmState(situation: string | null | undefined): CfmState {
   const s = normalizeKey(String(situation ?? ''));
   if (!s) return 'unknown';
-  if (/^ATIV[OA]\b/.test(s)) return 'active';
-  if (/INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s)) return 'inactive';
+  const active = /^ATIV[OA]\b/.test(s);
+  const inactive = /INATIV|CANCELAD|CASSAD|SUSPENS|FALECID|INTERDIT|APOSENTAD|TRANSFERID|BAIXAD/.test(s);
+  if (active && inactive) return 'unknown'; // ambíguo (ex.: "Ativo - Aposentado") → o dono decide
+  if (active) return 'active';
+  if (inactive) return 'inactive';
   return 'unknown';
 }

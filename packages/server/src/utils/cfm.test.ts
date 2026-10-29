@@ -75,6 +75,7 @@ describe('cfmState (situação do CFM em 3 estados)', () => {
     expect(cfmState(null)).toBe('unknown');
     expect(cfmState('Regular')).toBe('unknown');
   });
+  it('ambíguo (ativo + termo de inatividade) → unknown, nunca active', () => { expect(cfmState('Ativo - Aposentado')).toBe('unknown'); });
 });
 
 describe('BR_UFS', () => {
