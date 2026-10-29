@@ -450,6 +450,36 @@ describe('Fila imediata — rotas + tick (spec 2026-10-27 §2/§3/§8)', () => {
     expect((await entryOf(entry2.id))?.status).toBe('accepted');
   });
 
+  // 14b ─ bug 29/10: aceite ENCALHADO (consulta aceita há >2h sem /end) mantinha o
+  // médico busyOffer pra sempre → nenhum match novo. A fila solta (ended +
+  // cancelReason stale_accepted + share revogado) e o médico volta a ser casável.
+  itR('accepted encalhado (>2h, reminder vivo) → ended stale_accepted e o médico volta ao pool', async () => {
+    const { user, patient } = await createUser();
+    const { doctor } = await createDoctor({ crm: crm() });
+    const reminderId = await seedMatchReminder(user.id, patient.id, doctor.id); // sem endedAt (nunca fecharam)
+    await seedEphemeralShare(patient.id, doctor.id);
+    const entry = await seedEntry(user.id, patient.id, { status: 'accepted', matchedDoctorId: doctor.id, reminderId });
+    // Como na vida real: aceite e dueDate são de 3h atrás (fora da janela ±slotMin
+    // da agenda — o bloqueio que sobra é só o busyOffer do accepted encalhado).
+    await prisma.teleconsultaQueue.update({ where: { id: entry.id }, data: { acceptedAt: new Date(Date.now() - 3 * 60 * 60_000) } });
+    await prisma.reminder.update({ where: { id: reminderId }, data: { dueDate: new Date(Date.now() - 3 * 60 * 60_000) } });
+    await seedPresence(doctor.id);
+    // outro paciente esperando — com o médico preso, NÃO casaria
+    const p2 = await createUser();
+    const e2 = await seedEntry(p2.user.id, p2.patient.id, { maxPriceCents: null });
+
+    const report = await runTeleconsultaQueueTick(new Date());
+    expect(report.ended).toBe(1);
+    const row = await entryOf(entry.id);
+    expect(row?.status).toBe('ended');
+    expect(row?.cancelReason).toBe('stale_accepted');
+    // médico liberado → o PRÓXIMO tick casa o paciente que esperava (o match
+    // do passo 4 roda antes da liberação do passo 6 no mesmo tick)
+    const report2 = await runTeleconsultaQueueTick(new Date());
+    expect(report2.matched).toBe(1);
+    expect((await entryOf(e2.id))?.matchedDoctorId).toBe(doctor.id);
+  });
+
   // 15 ─ v1.1: status expõe doctors[] (especialidade/cidade/preço) ordenado por
   // atendimentos HOJE desc ("online primeiro e melhor primeiro"), empate = preço asc.
   itR('GET status lista doctors[] com specialty/city/price, ordenado por atendimentos hoje desc', async () => {
@@ -461,8 +491,10 @@ describe('Fila imediata — rotas + tick (spec 2026-10-27 §2/§3/§8)', () => {
     await prisma.doctor.update({ where: { id: bruno.id }, data: { instantPriceCents: 15000 } });
     // Ana atendeu 2 HOJE (contam na ordenação); Bruno 0 — Ana vem primeiro MESMO
     // sendo mais cara (experiência da fila vence o empate por preço).
-    await seedMatchReminder(user.id, patient.id, ana.id);
-    await seedMatchReminder(user.id, other.patient.id, ana.id);
+    // endedAt: consultas ENCERRADAS — desde 29/10 o /status esconde médico com
+    // teleconsulta aberta no horário (agenda ocupada = incasável, fora da lista).
+    await seedMatchReminder(user.id, patient.id, ana.id, { endedAt: new Date(Date.now() - 30 * 60_000) });
+    await seedMatchReminder(user.id, other.patient.id, ana.id, { endedAt: new Date(Date.now() - 10 * 60_000) });
     await seedPresence(ana.id);
     await seedPresence(bruno.id);
 

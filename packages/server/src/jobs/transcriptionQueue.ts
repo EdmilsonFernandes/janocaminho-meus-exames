@@ -39,7 +39,13 @@ export async function finalizeTranscription(
   ctx: { req?: any; actorType?: string; actorId?: string | null } = {},
 ): Promise<Date> {
   const buf = await fs.promises.readFile(audioPathFor(reminder.id));
-  const text = await transcribeAudio(buf, { mime: 'audio/webm', filename: `${reminder.id}.webm` });
+  // Safari/iOS grava audio/mp4 (MediaRecorder sem webm) mas o arquivo vive em
+  // <id>.webm — sniff do container ('ftyp' no offset 4 = MP4) pro STT receber o
+  // mime/nome REAIS (mp4 rotulado de webm degradava/azedava a transcrição).
+  const isMp4 = buf.length > 11 && buf.toString('ascii', 4, 8) === 'ftyp';
+  const text = await transcribeAudio(buf, isMp4
+    ? { mime: 'audio/mp4', filename: `${reminder.id}.mp4` }
+    : { mime: 'audio/webm', filename: `${reminder.id}.webm` });
   if (!text || !text.trim()) {
     // STT vazio (consulta curta/silêncio): gravar transcriptAt aqui deixava o estado
     // órfão "chip Transcrição ✓ no summary + text null no GET" que pendurava o

@@ -64,7 +64,12 @@ export async function transcribeAudio(
       const fd = new FormData();
       fd.append('file', new Blob([buf], { type: mime }), filename);
       fd.append('model', GROQ_STT_MODEL);
-      fd.append('response_format', 'json');
+      // Anti-alucinação (bug 29/10, teste real): Whisper INVENTA frases em ruído/
+      // silêncio. verbose_json traz os sinais por segmento (no_speech_prob/
+      // avg_logprob/compression_ratio — heurística do cookbook OpenAI) e
+      // temperature 0 corta o sampling criativo. Segmento suspeito é descartado.
+      fd.append('response_format', 'verbose_json');
+      fd.append('temperature', '0');
       fd.append('language', opts.language ?? 'pt');
 
       const res = await fetch(GROQ_STT_URL, {
@@ -78,6 +83,15 @@ export async function transcribeAudio(
         throw new SttError('STT_HTTP_ERROR', `Groq ${res.status}: ${body.slice(0, 200)}`, res.status);
       }
       const data: any = await res.json();
+      if (Array.isArray(data?.segments)) {
+        const kept = data.segments.filter((s: any) =>
+          typeof s?.text === 'string' && s.text.trim() &&
+          !(Number(s.no_speech_prob ?? 0) > 0.6) &&          // "provavelmente não é fala"
+          !(Number(s.avg_logprob ?? 0) < -0.8) &&            // confiança baixa demais
+          !(Number(s.compression_ratio ?? 1) > 2.4));        // texto repetitivo = loop alucinado
+        // Nada sobrou = só ruído → '' (o chamador trata como STT_EMPTY, honesto).
+        return kept.map((s: any) => String(s.text).trim()).join(' ').trim();
+      }
       if (typeof data?.text !== 'string' || !data.text) {
         throw new SttError('STT_BAD_RESPONSE', 'Provedor devolveu resposta sem texto.');
       }

@@ -30,6 +30,11 @@ const TICK_INTERVAL_MS = 15_000;
 const TICK_FIRST_MS = 2_000;
 /** Máx. de offers antes de expirar a entrada (anti-gaming, spec §3.2/§8-7). */
 const MAX_OFFER_ATTEMPTS = 3;
+/** Aceite encalhado (bug 29/10): consulta aceita cujo /end nunca veio mantinha o
+ *  médico em busyOffer PRA SEMPRE — nenhum match novo ("entra na fila e pro médico
+ *  nada acontece"). Depois de 2h a FILA solta o médico; o Reminder segue vivo
+ *  (encerrar é papel do /end; pagamento/no-show ficam com a conciliação). */
+export const STALE_ACCEPTED_MS = 2 * 60 * 60_000;
 const QUEUE_SHARE_CONVENIO = 'fila-imediata';
 
 export interface TeleconsultaQueueTickReport {
@@ -299,16 +304,22 @@ export async function runTeleconsultaQueueTick(now: Date = new Date()): Promise<
     // ── 6. FIM: accepted cujo Reminder encerrou (ou sumiu) → 'ended' + share revogado. ──
     const accepted = await tx.teleconsultaQueue.findMany({
       where: { status: 'accepted' },
-      select: { id: true, patientId: true, ownerId: true, matchedDoctorId: true, reminderId: true },
+      select: { id: true, patientId: true, ownerId: true, matchedDoctorId: true, reminderId: true, acceptedAt: true },
     });
     for (const a of accepted) {
       const r = a.reminderId
         ? await tx.reminder.findUnique({ where: { id: a.reminderId }, select: { endedAt: true, teleStatus: true, noShowBy: true, paidAt: true } })
         : null;
-      if (r && !r.endedAt) continue; // chamada viva — nada a fazer
+      const alive = !!r && !r.endedAt;
+      if (alive) {
+        // Chamada viva: só solta a fila se o aceite encalhou (>2h sem /end) —
+        // sem isto o médico ficava busyOffer eterno (ver STALE_ACCEPTED_MS).
+        const acceptedMs = a.acceptedAt ? new Date(a.acceptedAt).getTime() : 0;
+        if (!acceptedMs || now.getTime() - acceptedMs < STALE_ACCEPTED_MS) continue;
+      }
       await tx.teleconsultaQueue.update({
         where: { id: a.id },
-        data: { status: 'ended', endedAt: now },
+        data: { status: 'ended', endedAt: now, ...(alive ? { cancelReason: 'stale_accepted' } : {}) },
       });
       if (a.matchedDoctorId) {
         await tx.doctorShare.updateMany({
