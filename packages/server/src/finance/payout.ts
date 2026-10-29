@@ -39,6 +39,16 @@ export const payoutUnreserveTxnId = (payoutId: string) => `payout_unreserve_${pa
 
 export const payoutExternalRef = (payoutId: string) => `payout_${payoutId}`;
 
+/** Código da recusa de aprovação de repasse a médico bloqueado ou que não pode atender (KYC). */
+export const DOCTOR_CANNOT_PRACTICE = 'DOCTOR_CANNOT_PRACTICE';
+
+/** KYC (spec §7) — regra ÚNICA do repasse (criação no pass E aprovação): só sai p/ quem pode
+ *  atender (approved, ou legacy dentro do prazo) e não está bloqueado. `now` = relógio de quem
+ *  decide (o pass usa o seu; a aprovação, o relógio real). */
+function doctorCanReceivePayout(d: { blocked: boolean; verificationStatus: string }, now: number = Date.now()): boolean {
+  return !d.blocked && doctorCanPractice(d.verificationStatus, new Date(now));
+}
+
 /** Injetáveis p/ teste (mock completo — ZERO chamada real ao Asaas na suíte). */
 export interface PayoutDeps {
   transferSender?: (input: AsaasTransferInput) => Promise<AsaasTransferResult>;
@@ -116,10 +126,12 @@ export async function runPayoutPass(now: number): Promise<PayoutPassReport> {
       select: { payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true, blocked: true, verificationStatus: true },
     }).catch(() => null);
     // KYC (spec §7): repasse só p/ quem pode atender (approved ou legacy no prazo) e não bloqueado.
-    if (doctor && (doctor.blocked || !doctorCanPractice(doctor.verificationStatus))) {
+    if (doctor && !doctorCanReceivePayout(doctor, now)) {
       if (await enqueueException('payout_doctor_unverified', `payout:doctor:${doctorId}`, { doctorId })) report.exceptionsCreated++;
       continue;
     }
+    // Voltou a poder atender (aprovado/desbloqueado) → fecha a retenção; PIX e piso seguem seu curso.
+    if (doctor) await resolveExceptions('payout_doctor_unverified', `payout:doctor:${doctorId}`);
     if (!doctor?.payoutPixKeyEnc || !doctor.payoutPixKeyType || !doctor.payoutPixKeyIv) {
       if (await enqueueException('payout_pending_pix_key', `payout:doctor:${doctorId}`, { doctorId })) report.exceptionsCreated++;
       continue;
@@ -254,6 +266,8 @@ async function settlePayoutFromLookup(
  *  - FAILED/SMS-token → failed + desreserva (compensatório) + exceção específica.
  *  - timeout/sem resposta → unknown + exceção payout_unknown (NUNCA reenvia; a
  *    conciliação resolve por externalReference).
+ *  - KYC (spec §7): médico bloqueado ou que não pode atender → RECUSA antes do claim (throw com
+ *    code DOCTOR_CANNOT_PRACTICE): nada é enviado e o payout segue `requested` p/ um humano.
  * Retentativa após crash (attempts>0 sem status final): consulta o provedor ANTES
  * de enviar (§18.6 — resposta perdida não autoriza 2ª transferência cega).
  */
@@ -297,6 +311,28 @@ export async function approvePayout(
     }
   }
 
+  // Médico lido UMA vez, ANTES do claim: o gate KYC e o envio olham o mesmo registro.
+  const doctor = await prisma.doctor.findUnique({
+    where: { id: payout.doctorId },
+    select: { name: true, payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true, blocked: true, verificationStatus: true },
+  }).catch(() => null);
+  // KYC (spec §7): dinheiro não sai p/ quem não pode atender — inclusive payout JÁ `requested`
+  // antes do bloqueio/recusa (ex.: fraude confirmada depois do pedido). Recusa ANTES do claim:
+  // nada é enviado, o payout segue `requested` p/ um humano e a exceção fica aberta. Mesmo `throw`
+  // das demais recusas (rota → 409 + mensagem; o auto-job pula). Médico ilegível segue p/ o fluxo
+  // de PIX abaixo, que falha o payout sem enviar nada.
+  if (doctor) {
+    const kycKey = `payout:doctor:${payout.doctorId}`;
+    if (!doctorCanReceivePayout(doctor)) {
+      await enqueueException('payout_doctor_unverified', kycKey, { doctorId: payout.doctorId });
+      throw Object.assign(
+        new Error(`Payout ${payoutId} retido: médico bloqueado ou sem verificação de identidade (${DOCTOR_CANNOT_PRACTICE}) — só aprovar depois que ele puder atender.`),
+        { code: DOCTOR_CANNOT_PRACTICE },
+      );
+    }
+    await resolveExceptions('payout_doctor_unverified', kycKey); // voltou a poder atender
+  }
+
   // Claim otimista: requested→processing. 2 aprovações concorrentes → 1 envio.
   const claimed = await prisma.payout.updateMany({
     where: { id: payout.id, status: 'requested' },
@@ -309,10 +345,6 @@ export async function approvePayout(
   const base = { id: payout.id, reminderId: payout.reminderId, doctorId: payout.doctorId, amountCents: payout.amountCents };
 
   // PIX do médico (decifrado SÓ em memória; log/exceção carrega MASCARADA).
-  const doctor = await prisma.doctor.findUnique({
-    where: { id: payout.doctorId },
-    select: { name: true, payoutPixKeyEnc: true, payoutPixKeyIv: true, payoutPixKeyType: true },
-  }).catch(() => null);
   const pixKey = doctor?.payoutPixKeyEnc ? decryptPII(doctor.payoutPixKeyEnc, doctor.payoutPixKeyIv) : null;
   if (!pixKey || !doctor?.payoutPixKeyType) {
     await prisma.payout.updateMany({ where: { id: payout.id, status: 'processing' }, data: { status: 'failed', lastError: 'Médico sem chave PIX válida' } });
@@ -396,7 +428,8 @@ export async function approvePayout(
 }
 
 /** AUTO (§18.5): aprova todos os requested pelo MESMO caminho do admin. Só roda se
- *  o dono ligou teleconsulta.payoutAuto no admin (default OFF). */
+ *  o dono ligou teleconsulta.payoutAuto no admin (default OFF). Payout de médico bloqueado
+ *  ou sem verificação (KYC, spec §7) é PULADO: segue `requested` p/ um humano. */
 export async function runPayoutAutoApprove(deps?: PayoutDeps): Promise<number> {
   if (!payoutAutoEnabled()) return 0;
   const pending = await prisma.payout.findMany({
@@ -410,6 +443,9 @@ export async function runPayoutAutoApprove(deps?: PayoutDeps): Promise<number> {
       await approvePayout(p.id, { executor: 'auto-job', deps });
       approved++;
     } catch (e) {
+      // KYC: o approvePayout já recusou e deixou a exceção payout_doctor_unverified aberta —
+      // não é falha do job (e não polui o log a cada tick).
+      if ((e as { code?: string })?.code === DOCTOR_CANNOT_PRACTICE) continue;
       console.error('[payout] auto approve falhou:', p.id, (e as Error)?.message);
     }
   }
