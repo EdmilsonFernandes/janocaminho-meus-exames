@@ -6,7 +6,8 @@ vi.mock('../src/kyc/sync', async (orig) => ({
   syncVerification: vi.fn(async () => ({ ok: true })),
 }));
 
-import { api } from './helpers';
+import { api, resetDb, createDoctor } from './helpers';
+import { prisma } from '../src/prisma';
 import { syncVerification } from '../src/kyc/sync';
 
 const SECRET = 'whsec_test';
@@ -57,5 +58,54 @@ describe('POST /api/webhooks/uaiid (spec §3)', () => {
 
   it('corpo não-JSON assinado → 400', async () => {
     expect((await post('nao-json', sign('nao-json'))).status).toBe(400);
+  });
+});
+
+// Revisão final, I3: o nome do documento só existe no webhook (assinado). Respondíamos 200 e só depois o sync o recebia
+// em memória: qualquer falha o perdia para sempre (o UaiID não reentrega depois de um 200).
+describe('POST /api/webhooks/uaiid — nome do documento gravado ANTES do 200 (revisão final I3)', () => {
+  const VID = '6c5db95c-8d67-41b3-aabc-2e1439f614c3'; // o mesmo verification_id do APPROVED acima (full_name "MARIA DA SILVA")
+  const attemptName = async () => (await prisma.doctorVerification.findUnique({ where: { providerId: VID } }))?.documentName;
+  async function seedAttempt(documentName: string | null = null) {
+    const { doctor } = await createDoctor({ crm: '70001-SP', verificationStatus: 'in_progress' });
+    await prisma.doctorVerification.create({ data: { doctorId: doctor.id, crm: '70001-SP', providerId: VID, status: 'collecting', documentName } });
+  }
+  beforeEach(async () => {
+    await resetDb();
+    process.env.UAIID_WEBHOOK_SECRET = SECRET;
+    vi.mocked(syncVerification).mockReset();
+    vi.mocked(syncVerification).mockResolvedValue({ ok: true });
+  });
+
+  it('approved com data.full_name: o nome já está no banco quando o 200 sai — mesmo se o sync falhar logo depois', async () => {
+    await seedAttempt();
+    vi.mocked(syncVerification).mockRejectedValue(new Error('GET do UaiID falhou'));
+    const r = await post(APPROVED, sign(APPROVED));
+    expect(r.status).toBe(200);
+    expect(await attemptName()).toBe('MARIA DA SILVA'); // sem waitFor: foi gravado ANTES de responder
+  });
+
+  it('não consegue gravar o nome → 500 PERSIST_FAILED (o UaiID reentrega) e nenhum sync', async () => {
+    await seedAttempt();
+    vi.spyOn(prisma.doctorVerification, 'updateMany').mockRejectedValueOnce(new Error('db fora'));
+    const r = await post(APPROVED, sign(APPROVED));
+    expect(r.status).toBe(500);
+    expect(r.body).toEqual({ code: 'PERSIST_FAILED' });
+    expect(vi.mocked(syncVerification)).not.toHaveBeenCalled();
+    expect(await attemptName()).toBeNull();
+  });
+
+  it('o último valor assinado vence; evento sem full_name não mexe no nome já guardado', async () => {
+    await seedAttempt('NOME ANTIGO');
+    const semNome = JSON.stringify({ id: 'evt-2', event: 'verification.manual_review', verification_id: VID, data: { reason_code: 'document_not_recognized' } });
+    expect((await post(semNome, sign(semNome))).status).toBe(200);
+    expect(await attemptName()).toBe('NOME ANTIGO');
+    expect((await post(APPROVED, sign(APPROVED))).status).toBe(200);
+    expect(await attemptName()).toBe('MARIA DA SILVA');
+  });
+
+  it('verification_id desconhecido → 200 e nada é criado', async () => {
+    expect((await post(APPROVED, sign(APPROVED))).status).toBe(200);
+    expect(await prisma.doctorVerification.count()).toBe(0);
   });
 });

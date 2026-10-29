@@ -11,6 +11,13 @@ const log = createLogger('kyc-sync');
 
 export type SyncSource = 'webhook' | 'poll' | 'on_demand';
 
+/**
+ * Quanto tempo SEGURAR "identidade OK, mas sem o nome do documento" esperando o webhook (que o traz). Passado isso
+ * (webhook que nunca veio: segredo errado, UaiID esgotou as tentativas…) a decisão é aplicada como
+ * needs_admin/document_name_unavailable — o dono vê o caso em vez de o médico ficar preso em `in_progress` (I3).
+ */
+const HOLD_FOR_NAME_MS = 10 * 60_000;
+
 /** "Não regride" (spec §1): approved não muda por evento; legacy só sobe p/ approved. */
 export function nextDoctorStatus(current: string, proposed: DoctorKycStatus): DoctorKycStatus | null {
   if (current === 'approved') return null;
@@ -48,7 +55,7 @@ export async function syncVerification(
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${lockKey}))`;
     const attempt = await tx.doctorVerification.findUnique({
       where: { providerId },
-      select: { id: true, doctorId: true, documentName: true, cfmName: true, cfmSituation: true, expiresAt: true, decision: true, decidedBy: true },
+      select: { id: true, doctorId: true, documentName: true, cfmName: true, cfmSituation: true, expiresAt: true, decision: true, decidedBy: true, createdAt: true },
     });
     if (!attempt) return null; // apagada entre o pre-check e o lock
 
@@ -62,10 +69,13 @@ export async function syncVerification(
       now,
     });
     const humanDecided = !!attempt.decidedBy && attempt.decidedBy !== 'auto';
-    // Identidade OK mas sem o nome do documento (GET não traz; só o webhook carrega data.full_name):
-    // SEGURA a decisão — decidir agora mandaria o dono um "aguardando" onde o webhook, milissegundos
-    // depois, traria o "pronto para aprovar". Fail-closed: médico segue in_progress até o nome chegar.
-    const holdingForName = !humanDecided
+    // Identidade OK mas sem o nome do documento (GET não traz; só o webhook carrega data.full_name — que agora o
+    // handler grava ANTES do 200): SEGURA a decisão — decidir agora mandaria o dono um "aguardando" onde o webhook,
+    // milissegundos depois, traria o "pronto para aprovar". Fail-closed, mas COM PRAZO (I3): o médico segue
+    // in_progress só até o nome chegar ou HOLD_FOR_NAME_MS depois da conclusão; depois o caso vai ao dono.
+    const heldSince = remote.completedAt ?? attempt.createdAt;
+    const holdFresh = now.getTime() - heldSince.getTime() < HOLD_FOR_NAME_MS;
+    const holdingForName = !humanDecided && holdFresh
       && d.doctorStatus === 'needs_admin' && d.reason === 'document_name_unavailable' && source !== 'webhook';
 
     await tx.doctorVerification.update({

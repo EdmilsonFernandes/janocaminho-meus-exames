@@ -15,7 +15,8 @@ import { saveSettings } from '../src/utils/settings';
 
 const remote = (over: Partial<UaiidVerification> = {}): UaiidVerification => ({
   id: 'v', status: 'approved', reasonCode: null, score: 830, nameRatio: null, cpfSituacao: 'REGULAR',
-  externalReference: null, completedAt: new Date('2026-10-28T12:00:00Z'), ...over,
+  // conclusão "agora": o hold do nome do documento tem prazo contado a partir dela (revisão final I3)
+  externalReference: null, completedAt: new Date(), ...over,
 });
 let seq = 60000;
 async function seed(doctorStatus = 'in_progress') {
@@ -320,6 +321,52 @@ describe('syncVerification × decisão do dono — mesma trava por médico (revi
     vi.mocked(getUaiidVerification).mockResolvedValue(remote());
     expect(await syncVerification(providerId, 'poll')).toEqual({ ok: true });
     expect((await doctorRow(doctor.id))?.verificationStatus).toBe('in_progress'); // sem vínculo, nada muda no médico
+  });
+});
+
+// ---------------------------------------------------------------------------------------------
+// Revisão final, I3: "identidade OK, sem o nome do documento" era SEGURADA para sempre quando o GET não trazia o
+// nome (status final gravado, decisão não) e nada mais a re-selecionava: o médico ficava em in_progress, sem e-mail
+// ao dono e sem entrada na fila. Agora a retenção tem PRAZO (10 min da conclusão) e depois o caso vai ao dono.
+// ---------------------------------------------------------------------------------------------
+describe('syncVerification — hold do nome do documento com prazo (revisão final I3)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    vi.mocked(getUaiidVerification).mockReset();
+    vi.mocked(sendEmail).mockClear();
+  });
+
+  it('conclusão recente, sem nome e sem ratio, fora do webhook → SEGURA: médico segue in_progress, nada decidido, nenhum e-mail', async () => {
+    const { doctor, providerId } = await seed();
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote({ completedAt: new Date() }));
+    expect(await syncVerification(providerId, 'poll')).toEqual({ ok: true });
+    expect((await doctorRow(doctor.id))?.verificationStatus).toBe('in_progress');
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId } })).toMatchObject({ status: 'approved', decision: null, decidedBy: null });
+    await pause(80);
+    expect(kycMails()).toHaveLength(0);
+  });
+
+  it('passados 10 min da conclusão sem o nome (webhook nunca veio) → LIBERA: needs_admin/document_name_unavailable + dono e médico avisados', async () => {
+    const { doctor, providerId } = await seed();
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote({ completedAt: new Date(Date.now() - 11 * 60_000) }));
+    expect(await syncVerification(providerId, 'poll')).toMatchObject({ ok: true, doctorStatus: 'needs_admin' });
+    expect((await doctorRow(doctor.id))?.verificationStatus).toBe('needs_admin');
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId } }))
+      .toMatchObject({ decision: 'needs_admin', reasonCode: 'document_name_unavailable', decidedBy: null });
+    await vi.waitFor(() => expect(kycMails().sort()).toEqual([
+      'Dr. Exame — médico aguardando sua análise',
+      'Recebemos seu cadastro — está em análise | Dr. Exame',
+    ]));
+  });
+
+  it('o nome gravado pelo webhook antes do 200 faz o poll seguinte decidir normalmente (sem hold)', async () => {
+    const { doctor, providerId } = await seed();
+    await prisma.doctorVerification.update({ where: { providerId }, data: { documentName: 'Maria Silva Souza' } }); // o handler gravou
+    vi.mocked(getUaiidVerification).mockResolvedValue(remote({ completedAt: new Date() }));
+    expect(await syncVerification(providerId, 'poll')).toMatchObject({ ok: true, doctorStatus: 'needs_admin' });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId } })).toMatchObject({ decision: 'needs_admin', reasonCode: 'manual_policy', nameMatch: true });
+    expect((await doctorRow(doctor.id))?.verificationStatus).toBe('needs_admin');
   });
 });
 

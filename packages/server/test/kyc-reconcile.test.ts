@@ -61,4 +61,49 @@ describe('runKycReconcile (spec §5)', () => {
     expect((await runKycReconcile(NOW)).expired).toBe(0);
     expect((await prisma.doctorVerification.findUnique({ where: { providerId } }))?.status).toBe('manual_review');
   });
+
+  // --- Revisão final (I3 / M2) ---
+  const done = (over: object = {}) => ({ id: 'x', status: 'approved', reasonCode: null, score: 900, nameRatio: null, cpfSituacao: 'REGULAR', externalReference: null, completedAt: new Date(NOW - 30 * MIN), ...over });
+
+  it('tentativa SEGURADA (status final do UaiID, sem decisão nossa — hold do nome) é re-sincronizada pelo job e vai ao dono', async () => {
+    const { doctor, providerId } = await seed({ status: 'approved', syncedAgoMs: 20 * MIN }); // decision = null
+    vi.mocked(getUaiidVerification).mockResolvedValue(done()); // concluída há 30 min, ainda sem nome → hold expirou
+    expect(await runKycReconcile(NOW)).toMatchObject({ candidates: 1, synced: 1 });
+    expect(await prisma.doctorVerification.findUnique({ where: { providerId } })).toMatchObject({ decision: 'needs_admin', reasonCode: 'document_name_unavailable' });
+    expect((await prisma.doctor.findUnique({ where: { id: doctor.id } }))?.verificationStatus).toBe('needs_admin');
+  });
+
+  it('já decidida (final com decisão) não é re-selecionada', async () => {
+    const { providerId } = await seed({ status: 'approved', syncedAgoMs: 20 * MIN });
+    await prisma.doctorVerification.update({ where: { providerId }, data: { decision: 'needs_admin' } });
+    expect((await runKycReconcile(NOW)).candidates).toBe(0);
+  });
+
+  it('um sync que LANÇA não derruba a passada: os demais sincronizam e a expiração de 7 dias ainda roda', async () => {
+    const a = await seed({ syncedAgoMs: 40 * MIN });
+    await seed({ syncedAgoMs: 20 * MIN });
+    const velha = await seed({ createdAgoMs: 8 * DAY });
+    vi.mocked(getUaiidVerification).mockImplementation(async (id: string) => {
+      if (id === a.providerId) throw new Error('boom');
+      return { id, status: 'processing', reasonCode: null, score: null, nameRatio: null, cpfSituacao: null, externalReference: null, completedAt: null };
+    });
+    const r = await runKycReconcile(NOW);
+    expect(r).toMatchObject({ candidates: 2, synced: 1, expired: 1 });
+    expect((await prisma.doctorVerification.findUnique({ where: { providerId: velha.providerId } }))?.status).toBe('expired');
+  });
+
+  it('nunca sincronizadas vêm PRIMEIRO (uma linha antiga que sempre falha não trava o job)', async () => {
+    await seed({ syncedAgoMs: 60 * MIN });
+    const nunca = await seed({ syncedAgoMs: null });
+    await runKycReconcile(NOW, 1);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(getUaiidVerification)).toHaveBeenCalledWith(nunca.providerId);
+  });
+
+  it('a expiração é condicional: tentativa que um sync concorrente já levou a status final não é rebaixada', async () => {
+    const { providerId } = await seed({ createdAgoMs: 8 * DAY });
+    await prisma.doctorVerification.update({ where: { providerId }, data: { status: 'approved' } }); // saiu de NON_FINAL antes da expiração
+    expect((await runKycReconcile(NOW)).expired).toBe(0);
+    expect((await prisma.doctorVerification.findUnique({ where: { providerId } }))?.status).toBe('approved');
+  });
 });
