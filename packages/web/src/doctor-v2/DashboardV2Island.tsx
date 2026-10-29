@@ -121,8 +121,13 @@ export default function DashboardV2Island() {
         try {
           const rNames = await fetch(`${API_URL}/items/distinct-names${pid ? `?patientId=${pid}` : ''}`, { headers: h });
           const dn = rNames.ok ? await rNames.json() : null;
-          const names: string[] = Array.isArray(dn) ? dn : Array.isArray(dn?.names) ? dn.names : [];
-          const top = names.slice(0, 3);
+          // Shape real: {nameCanonical, count}[] (mesma fonte da tela Tendências).
+          const raw: { nameCanonical?: string; count?: number }[] = Array.isArray(dn) ? dn : Array.isArray(dn?.names) ? dn.names : [];
+          const top = raw
+            .filter((x) => typeof x?.nameCanonical === 'string')
+            .sort((a, b) => (b.count ?? 0) - (a.count ?? 0)) // mais pontos primeiro = gráfico melhor
+            .map((x) => x.nameCanonical as string)
+            .slice(0, 3);
           const loaded: Series[] = [];
           for (const name of top) {
             const q = new URLSearchParams({ nameCanonical: name, patientId: String(pid) });

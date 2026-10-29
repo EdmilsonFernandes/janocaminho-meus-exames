@@ -22,11 +22,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /* Light — superfícies do Dr. Exame (paper #fff, texto #1a202c, borda #d8ece9).
-   AA/NÍTIDO (feedback dono 29/10 "ficou claro, não nítido"): teal/cobre da MARCA
-   servem como COR DE PREENCHIMENTO; como TEXTO usam os tons AA do projeto
-   (tealText #0f766e — teal puro #20b2aa em texto dá 2,5:1, ilegível). ReUI tem
-   UM token por papel → escurecemos o token p/ garantir AA nos dois usos. */
-.dx-island {
+   AA/NÍTIDO (feedback dono 29/10): teal/cobre da MARCA servem como COR DE
+   PREENCHIMENTO; como TEXTO usam os tons AA do projeto (teal-800).
+   ⚠️ Tokens em :root/.dark (não no wrapper .dx-island): DropdownMenu/Popover/
+   Dialog do ReUI TELEPORTAM pro <body> — fora do wrapper as vars não cascateiam
+   e o menu abria transparente. Este CSS só carrega no chunk lazy das ilhas,
+   então :root aqui não vaza nada pro resto do app (MUI não lê estas vars). */
+:root {
   --background: #fafbfc;
   --foreground: #1a202c;
   --primary: #115e59;
@@ -55,9 +57,9 @@
 }
 
 /* Dark — mesmo comportamento do app MUI: superfícies escuras, marca constante.
-   Aqui o teal pode voltar CLARO (#5fc9c3 = tealText dark do projeto): sobre
-   fundo escuro o tom claro é o legível (o escuro desaparece). */
-.dark .dx-island {
+   Teal CLARO (#5fc9c3 = tealText dark do projeto): sobre fundo escuro o tom
+   claro é o legível. Popover ganha papel próprio (#1f2b2b) p/ cobrir conteúdo. */
+.dark {
   --background: #0f1818;
   --foreground: #e8eef0;
   --primary: #5fc9c3;
