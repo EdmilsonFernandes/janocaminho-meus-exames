@@ -202,6 +202,11 @@ router.delete('/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Teto de convites virais por paciente-usuário em 24 h (2ª rodada da revisão final, Important #4): o convite é GRÁTIS e o
+// cadastro por ele devolve um JWT de médico sem prova de e-mail — um paciente que minta 100 links monta 100 contas de médico
+// em um minuto (cota do consultaCRM e sessões UaiID cobradas). 20/dia é muito mais que qualquer uso legítimo.
+const INVITE_DAILY_CAP = 20;
+
 // ── CONVITE VIRAL AO MÉDICO VIA WHATSAPP (SEM FRICÇÃO DE CRM) ──
 // Gera um link mágico seguro para o paciente enviar no WhatsApp do médico.
 router.post('/invite-link', async (req: AuthedRequest, res, next) => {
@@ -216,6 +221,20 @@ router.post('/invite-link', async (req: AuthedRequest, res, next) => {
       select: { id: true, fullName: true, relationship: true },
     });
     if (!patient) { res.status(404).json({ error: 'Paciente não encontrado.' }); return; }
+
+    // Cota diária: convites (AppSetting `doc_invite:*`) deste usuário criados nas últimas 24 h. `updatedAt >= janela` é só o
+    // pré-filtro indexável (todo convite criado agora tem updatedAt recente; um aceito/revogado ontem também, por isso a
+    // conta final olha o `createdAt` gravado no próprio convite).
+    const windowStart = Date.now() - 24 * 3_600_000;
+    const mine = await prisma.appSetting.findMany({
+      where: { key: { startsWith: 'doc_invite:' }, updatedAt: { gte: new Date(windowStart) }, value: { path: ['ownerId'], equals: req.userId! } },
+      select: { value: true },
+    });
+    const createdToday = mine.filter((r) => { const t = Date.parse(String((r.value as { createdAt?: string } | null)?.createdAt ?? '')); return Number.isFinite(t) && t >= windowStart; }).length;
+    if (createdToday >= INVITE_DAILY_CAP) {
+      res.status(429).json({ code: 'INVITE_LIMIT', error: `Você já gerou ${INVITE_DAILY_CAP} convites nas últimas 24 horas. Tente novamente amanhã.` });
+      return;
+    }
 
     // Token criptograficamente seguro e opaco (18 bytes = 36 hex)
     const { randomBytes } = await import('crypto');

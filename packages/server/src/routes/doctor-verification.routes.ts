@@ -30,6 +30,32 @@ const STARTABLE = ['pending', 'in_progress', 'rejected', 'legacy'];
 /** Teto de sessões KYC abertas por médico em 24 h (revisão final I5): cada sessão criada é COBRADA pelo UaiID. */
 const MAX_ATTEMPTS_PER_DAY = 5;
 const ATTEMPT_WINDOW_MS = 24 * 3_600_000;
+
+/**
+ * Teto GLOBAL diário de sessões UaiID (2ª rodada da revisão final, Important #4) — a proteção de verdade do dinheiro: o teto
+ * por médico e os limiters por IP não impedem N contas descartáveis (cada uma com CPF sintético válido) de abrirem N sessões
+ * COBRADAS. Conta TODAS as tentativas criadas nas últimas 24 h; no teto, POST /verification responde 503 KYC_UNAVAILABLE
+ * (o portal já trata como "indisponível") e o dono recebe 1 e-mail a cada 6 h. Env `KYC_DAILY_SESSION_CAP` (padrão 100),
+ * lida a cada pedido (subir o teto não exige restart do código, só do env).
+ */
+const DAILY_SESSION_CAP_DEFAULT = 100;
+const dailySessionCap = (): number => {
+  const n = Math.floor(Number(process.env.KYC_DAILY_SESSION_CAP));
+  return n > 0 ? n : DAILY_SESSION_CAP_DEFAULT;
+};
+const DAILY_CAP_ALERT_EVERY_MS = 6 * 60 * 60 * 1000;
+let lastDailyCapAlertAt = 0;
+export function resetKycDailyCapAlertForTests(): void { lastDailyCapAlertAt = 0; }
+function alertDailyCapReached(cap: number, used: number): void {
+  const nowMs = Date.now();
+  if (nowMs - lastDailyCapAlertAt < DAILY_CAP_ALERT_EVERY_MS) return;
+  lastDailyCapAlertAt = nowMs;
+  void notifyKycAdmin('Dr. Exame — limite diário de verificações atingido', [
+    `Nas últimas 24 h foram abertas ${used} sessões de verificação no UaiID (limite diário: ${cap}).`,
+    'Novos pedidos de verificação respondem "indisponível" até o volume baixar da janela de 24 h, ou até você subir KYC_DAILY_SESSION_CAP no .env.prod.',
+    'Se você não esperava esse volume, confira os cadastros recentes na fila: pode ser abuso (contas descartáveis abrindo sessões cobradas).',
+  ]);
+}
 // `decision` só decide se a tentativa foi SEGURADA (final no UaiID, decisão ainda não gravada); nunca sai na resposta.
 const ATTEMPT_SELECT = { providerId: true, status: true, reasonCode: true, expiresAt: true, lastSyncedAt: true, decision: true } as const;
 /** Documentos já enviados ao UaiID (a captura acabou; falta o resultado/revisão): nova sessão aqui órfã o resultado. */
@@ -114,6 +140,15 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     if (recent.length >= MAX_ATTEMPTS_PER_DAY) {
       const retryAfterHours = Math.max(1, Math.ceil((recent[0].createdAt.getTime() + ATTEMPT_WINDOW_MS - now.getTime()) / 3_600_000));
       res.status(429).json({ code: 'KYC_ATTEMPT_LIMIT', retryAfterHours, error: 'Limite de tentativas atingido. Tente mais tarde.' });
+      return;
+    }
+    // Teto GLOBAL diário (todas as contas): ver dailySessionCap. Antes da captura do CPF e de qualquer I/O externo.
+    const cap = dailySessionCap();
+    const sessionsToday = await prisma.doctorVerification.count({ where: { createdAt: { gte: new Date(now.getTime() - ATTEMPT_WINDOW_MS) } } });
+    if (sessionsToday >= cap) {
+      log.warn('teto diário de sessões UaiID atingido', { used: sessionsToday, cap });
+      alertDailyCapReached(cap, sessionsToday);
+      res.status(503).json({ code: 'KYC_UNAVAILABLE', error: 'Verificação indisponível no momento. Tente novamente mais tarde.' });
       return;
     }
     let cpf = decryptPII(doc.cpfEncrypted, doc.cpfIv);

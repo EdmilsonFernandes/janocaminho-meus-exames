@@ -129,16 +129,28 @@ const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeader
 // Cadastro tem limite próprio e bem mais apertado (8/hora/IP) — trava farm de contas pra
 // roubar o bônus de créditos. Aplicado ANTES do authLimiter genérico (mais específico primeiro).
 const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
+// Cadastro do MÉDICO (POST /api/doctor/register) tem instância PRÓPRIA (2ª rodada da revisão final, Important #7): dividir o
+// balde de 8/h com o cadastro de paciente e o lookup de CRM trancava clínicas/hospitais/CGNAT (vários médicos atrás do mesmo
+// IP: lookup + cadastro + 1 retry por médico estoura 8 rápido). 15/h/IP e SÓ respostas de sucesso contam (`skipFailedRequests`:
+// 400/409/422 de validação não gastam o balde — quem erra o CRM não se tranca). O dinheiro é protegido pelo teto por médico e
+// pelo teto GLOBAL diário de sessões UaiID (doctor-verification.routes), não por este limite de IP.
+const doctorRegisterLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 15, standardHeaders: true, legacyHeaders: false, skip: skipDev, skipFailedRequests: true, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros de médico deste local. Tente novamente mais tarde.' } });
+// Cadastro de médico PELO CONVITE (POST /api/public/doctor-invite/:token/register): o convite é grátis e ilimitado por paciente
+// e devolve JWT de médico sem prova de e-mail — sem limite próprio era uma fazenda de contas (cada uma gasta cota do consultaCRM
+// e pode abrir sessão UaiID cobrada). 10/h/IP, só sucesso conta. A cota de convites por paciente vive em doctor-share.routes.
+const inviteRegisterLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, skipFailedRequests: true, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros por convite deste local. Tente novamente mais tarde.' } });
 // Abertura de sessão de KYC do médico (POST /api/doctor/verification): cada sessão criada é COBRADA pelo UaiID, então tem
-// limite próprio por IP (10/h) além do teto por médico no handler (revisão final I5). SÓ o POST conta: o GET é o
-// polling do portal (a cada ~5 s) e não pode gastar a cota.
+// limite próprio por IP (30/h — clínica/evento com vários médicos atrás do mesmo IP) além do teto por médico e do teto
+// global diário no handler (revisão final I5). SÓ o POST conta: o GET é o polling do portal (a cada ~5 s) e não pode
+// gastar a cota.
 const kycStartSkip = (req: { method: string }) => req.method !== 'POST' || skipDev();
-const kycStartLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: kycStartSkip as any, message: { code: 'RATE_LIMITED', error: 'Muitas tentativas de verificação deste local. Tente novamente mais tarde.' } });
+const kycStartLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: kycStartSkip as any, message: { code: 'RATE_LIMITED', error: 'Muitas tentativas de verificação deste local. Tente novamente mais tarde.' } });
 // PIN de share (rota pública /api/public/shared/:token) — anti brute-force do PIN de 6 dígitos.
 const shareLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas de PIN. Aguarde 15 minutos.' } });
 app.use('/api/auth/register', signupLimiter);
 app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM) no cadastro do médico — limita consumo da cota
-app.use('/api/doctor/register', signupLimiter); // cadastro do médico: cada conta descartável gasta cota paga (consultaCRM, depois sessão UaiID) — revisão final I5
+app.use('/api/doctor/register', doctorRegisterLimiter); // cadastro do médico: cada conta descartável gasta cota paga (consultaCRM, depois sessão UaiID) — revisão final I5
+app.use('/api/public/doctor-invite/:token/register', inviteRegisterLimiter);
 app.use('/api/doctor/verification', kycStartLimiter);
 app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
