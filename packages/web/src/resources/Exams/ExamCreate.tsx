@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { plural } from '../../utils/format';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink, IconButton } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
@@ -396,7 +397,7 @@ export const ExamCreate = () => {
       // Duplicata → dialog "de cara" em vez do sucesso enganoso ("X enviados e extraindo"). Não redireciona.
       setDupInfo({ dups, elsewhere, sent });
     } else {
-      notify(`${sent} de ${files.length} exame(s) enviado(s) e extraindo.`, { type: 'success' });
+      notify(`${sent} de ${plural(files.length, 'exame')} enviados e extraindo.`, { type: 'success' });
       redirect('list', 'exams');
     }
   };
@@ -1114,7 +1115,7 @@ export const ExamCreate = () => {
           {(dupInfo?.dups ?? []).map((n, i) => <Typography key={i} variant="body2" sx={{ wordBreak: 'break-all', pl: 1 }}>• {n}</Typography>)}
           {dupInfo?.elsewhere.length ? <Alert severity="info" sx={{ mt: 1.5, borderRadius: RADIUS.button }}>Esse mesmo arquivo também está em outro perfil seu.</Alert> : null}
           <Typography variant="body2" sx={{ mt: 1.75, fontWeight: 600 }}>
-            {dupInfo && dupInfo.sent > 0 ? `✅ ${dupInfo.sent} exame(s) novo(s) enviado(s) e extraindo.` : 'Nenhum exame novo foi adicionado.'}
+            {dupInfo && dupInfo.sent > 0 ? `✅ ${plural(dupInfo.sent, 'exame novo enviado', 'exames novos enviados')} e extraindo.` : 'Nenhum exame novo foi adicionado.'}
           </Typography>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 2.5, gap: 1 }}>

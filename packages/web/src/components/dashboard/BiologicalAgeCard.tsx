@@ -1,4 +1,5 @@
 import { Box, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, Stack } from '@mui/material';
+import { plural } from '../../utils/format';
 import { useTheme } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../../config';
@@ -278,7 +279,7 @@ export const BiologicalAgeCard = ({ idx = 2, bio, bioKdm, bioAvail, bioLoaded, c
                   label={
                     data.confidence === 'alta'
                       ? `Fórmula PhenoAge calculada com ${data.markersUsed ?? '?'} marcadores`
-                      : `Estimativa preliminar com ${data.markersUsed ?? '?'} marcador(es) — envie mais laudos para calibrar`
+                      : `Estimativa preliminar com ${data.markersUsed != null ? plural(data.markersUsed, 'marcador') : 'poucos marcadores'} — envie mais laudos para calibrar`
                   }
                 />
               </Box>

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { plural } from '../../utils/format';
 import {
   Alert, Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Dialog, DialogActions,
   DialogContent, DialogTitle, Divider, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography,
@@ -329,7 +330,7 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
                 ))}
               </Box>
             )}
-            {examIds.length > 0 && <Chip size="small" sx={{ mt: 0.75, fontWeight: 700, bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e' }} label={`${examIds.length} exame(s) separado(s)`} onDelete={() => setExamIds([])} />}
+            {examIds.length > 0 && <Chip size="small" sx={{ mt: 0.75, fontWeight: 700, bgcolor: 'rgba(15,118,110,0.12)', color: '#0f766e' }} label={plural(examIds.length, 'exame separado', 'exames separados')} onDelete={() => setExamIds([])} />}
           </Box>
 
           {/* Lembrete */}

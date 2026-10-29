@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
+import { plural } from '../utils/format';
 import { useTranslate } from 'react-admin';
 import {
   Box,
@@ -658,7 +659,7 @@ export const FamilyPage = () => {
                             : status === 'atencao' ? <WarningAmberIcon sx={{ fontSize: 16 }} />
                             : <UploadFileIcon sx={{ fontSize: 16 }} />}
                           {status === 'na-meta' ? 'Todos os marcadores na meta'
-                            : status === 'atencao' ? `${p.abnormalCount} marcador(es) precisam de atenção`
+                            : status === 'atencao' ? `${plural(p.abnormalCount, 'marcador')} ${p.abnormalCount === 1 ? 'precisa' : 'precisam'} de atenção`
                             : 'Nenhum exame enviado ainda'}
                         </Typography>
                         {fmtDate(p.performedAt) && (
@@ -1300,7 +1301,7 @@ export const FamilyPage = () => {
                       <strong>
                         {divergentItems[0].analyte} de {divergentItems[0].memberName} ({divergentItems[0].value})
                       </strong>
-                      {divergentItems.length > 1 ? ` e outros ${divergentItems.length - 1} marcador(es)` : ''}.
+                      {divergentItems.length > 1 ? ` e mais ${plural(divergentItems.length - 1, 'marcador')}` : ''}.
                     </>
                   ) : (
                     ' Todos os parâmetros comparados encontram-se em excelente estabilidade clínica para todos os membros!'

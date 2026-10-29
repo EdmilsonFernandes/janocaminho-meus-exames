@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { plural } from '../utils/format';
 import { Box, Card, CardContent, Typography, Chip, Stack, CircularProgress, Dialog, DialogTitle, DialogContent, IconButton, Button, useMediaQuery, useTheme } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LocalHospitalIcon from '@mui/icons-material/Image';
@@ -126,7 +127,7 @@ export const TimelinePage = () => {
             {e.type === 'exam' && (
               <Box sx={{ mt: 1 }}>
                 {hasIssues ? (
-                  <Chip size="small" color="error" variant="outlined" label={`⚠️ ${e.abnormalCount} valor(es) fora da faixa`} />
+                  <Chip size="small" color="error" variant="outlined" label={`⚠️ ${plural(e.abnormalCount, 'valor')} fora da faixa`} />
                 ) : (
                   <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
                 )}
@@ -167,7 +168,7 @@ export const TimelinePage = () => {
               <Box key={String(g.year)}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
                   <Chip label={`📅 ${g.label}`} sx={{ fontWeight: 800, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(148,163,184,0.18)' : '#0f172a', color: '#fff' }} />
-                  <Typography variant="caption" color="text.secondary">{g.items.length} {g.items.length === 1 ? 'exame' : 'exames'}{locked ? ' • Premium' : ''}</Typography>
+                  <Typography variant="caption" color="text.secondary">{plural(g.items.length, 'registro')}{locked ? ' • Premium' : ''}</Typography>
                 </Box>
                 {locked ? (
                   <Card sx={{ borderRadius: '12px', p: 2, display: 'flex', alignItems: 'center', gap: 1.5, background: 'linear-gradient(135deg, rgba(32,178,170,.06), transparent)' }}>
@@ -206,7 +207,7 @@ export const TimelinePage = () => {
             <Typography color="text.secondary">Nenhum valor fora da faixa neste exame. Tudo dentro da referência. ✅</Typography>
           ) : (
             <Stack spacing={1}>
-              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>🚩 {abn.length} valor(es) fora da faixa</Typography>
+              <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>🚩 {plural(abn.length, 'valor')} fora da faixa</Typography>
               {abn.map((it) => (
                 <Box key={it.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: '12px', bgcolor: 'rgba(239,68,68,.06)' }}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>

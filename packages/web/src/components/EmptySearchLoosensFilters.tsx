@@ -125,22 +125,24 @@ export const EmptySearchLoosensFilters = ({ query, note, options, actions = [] }
                 '&:focus-visible': { outline: `2px solid ${dark ? '#5fc9c3' : '#20b2aa'}`, outlineOffset: 3 },
               }}
             >
-              <Box component="s"
+              <Box
                 sx={{
                   height: 28, px: '10px', borderRadius: '999px', display: 'inline-flex',
                   alignItems: 'center', flexShrink: 0,
-                  bgcolor: 'background.paper', boxShadow: `inset 0 0 0 1px ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.17)'}`,
-                  textDecoration: 'line-through', textDecorationColor: danger,
-                  fontSize: 12.5, fontWeight: 700, color: 'text.primary',
-                  maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{o.label}</Box>
-              <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-                <Box component="b" sx={{ color: accent, fontWeight: 800 }}>
-                  {o.count} {o.count === 1 ? 'resultado' : 'resultados'}
-                </Box>{' '}no diretório
+                  bgcolor: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)',
+                  fontSize: 12, fontWeight: 800, color: '#b91c1c',
+                  maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                }}
+              >
+                Limpar {o.label} ✕
+              </Box>
+              <Box component="span" sx={{ flex: 1, minWidth: 0, textAlign: 'left', fontSize: 13 }}>
+                Ver <Box component="b" sx={{ color: accent, fontWeight: 800 }}>
+                  {o.count} {o.count === 1 ? 'médico' : 'médicos'}
+                </Box>{' '}disponíveis no diretório
               </Box>
               <ArrowForwardRoundedIcon className="lucian092-arrow"
-                sx={{ width: 15, height: 15, flexShrink: 0, transition: `transform .3s ${SPRING}` }} />
+                sx={{ width: 16, height: 16, flexShrink: 0, color: accent, transition: `transform .3s ${SPRING}` }} />
             </Button>
           ))}
         </Box>

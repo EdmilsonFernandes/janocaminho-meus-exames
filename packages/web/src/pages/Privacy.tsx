@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { plural } from '../utils/format';
 import { Box, Card, Typography, Button, Stack, Divider, Dialog, DialogTitle, DialogContent, Alert, RadioGroup, FormControlLabel, Radio, DialogActions } from '@mui/material';
 import { Title, useNotify, useRefresh } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
@@ -53,7 +54,7 @@ export const PrivacyPage = () => {
       const r = await fetch(`${API_URL}/data/import`, { method: 'POST', headers: apiHeaders(true), body: await f.text() });
       const d = await r.json();
       if (r.ok) {
-        notify(`Importado! ${d.counts?.patients || 0} perfil(is), ${d.counts?.exams || 0} exame(s).`, { type: 'success' });
+        notify(`Importado! ${plural(d.counts?.patients || 0, 'perfil', 'perfis')}, ${plural(d.counts?.exams || 0, 'exame')}.`, { type: 'success' });
         window.dispatchEvent(new Event('selPatientChanged'));
         refresh();
       }

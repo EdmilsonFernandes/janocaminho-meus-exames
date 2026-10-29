@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { plural } from '../utils/format';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, CircularProgress, Stack, Alert, Grid, Chip, Checkbox, Dialog, DialogTitle, DialogContent, DialogActions, Select, MenuItem, FormControl, Avatar } from '@mui/material';
 import { Title, useTranslate } from 'react-admin';
@@ -420,7 +421,7 @@ td,th{border:1px solid #dceaea;padding:7px 9px;text-align:left}th{background:#e6
 <div class="doc">
   <div class="head"><h1>Relatório de Saúde</h1><p>Análise educativa consolidada — não substitui consulta médica</p></div>
   <div class="body">
-    ${examList ? `<div class="base"><b>Relatório baseado em ${sourceExams.length} exame(s):</b><ul style="margin:6px 0 0">${examList}</ul></div>` : ''}
+    ${examList ? `<div class="base"><b>Relatório baseado em ${plural(sourceExams.length, 'exame')}:</b><ul style="margin:6px 0 0">${examList}</ul></div>` : ''}
     ${s?.resumoGeral ? `<h2>Resumo geral</h2><p>${esc(s.resumoGeral)}</p>` : ''}
     ${comp ? `<h2>Itens em destaque</h2><table><tr><th>Exame</th><th>Anterior</th><th>Atual</th><th>Variação</th></tr>${comp}</table>` : ''}
     ${atencao ? `<h2>🚩 Pontos de atenção</h2><ul>${atencao}</ul>` : ''}

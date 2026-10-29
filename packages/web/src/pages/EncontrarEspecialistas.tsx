@@ -224,6 +224,7 @@ export const EncontrarEspecialistasPage = () => {
             {/* Campo de Busca Amplo com Lupa e Limpar */}
             <TextField
               placeholder="Buscar por nome do médico, clínica ou especialidade..."
+              inputProps={{ 'aria-label': 'Buscar especialista' }}
               value={q}
               onChange={(e) => setQ(e.target.value)}
               fullWidth
@@ -271,11 +272,19 @@ export const EncontrarEspecialistasPage = () => {
 
               <Autocomplete
                 freeSolo
-                disablePortal
                 autoComplete
                 options={cityOptions}
+                value={city}
+                onChange={(_, newValue) => {
+                  const val = typeof newValue === 'string' ? newValue.replace(/\s*\([A-Za-z]{2}\)\s*$/, '').trim() : '';
+                  setCity(val);
+                }}
                 inputValue={city}
-                onInputChange={(_, v) => setCity(v)}
+                onInputChange={(_, newInputValue, reason) => {
+                  if (reason === 'input' || reason === 'clear') {
+                    setCity(newInputValue.replace(/\s*\([A-Za-z]{2}\)\s*$/, ''));
+                  }
+                }}
                 fullWidth
                 sx={{
                   flex: { xs: '1 1 auto', sm: '1 1 220px' },
@@ -518,8 +527,21 @@ export const EncontrarEspecialistasPage = () => {
             }}>
               <CardContent sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Stack direction="row" spacing={1.75} alignItems="flex-start" sx={{ flex: 1 }}>
-                  <Avatar src={doctorPhotoUrl(s.id)} sx={{ width: 56, height: 56, fontWeight: 800, fontSize: 20, bgcolor: '#0f5f5a', flexShrink: 0, border: '2px solid rgba(15,95,90,0.15)' }}>
-                    {s.name.charAt(0).toUpperCase()}
+                  <Avatar
+                    src={doctorPhotoUrl(s.id)}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      fontWeight: 800,
+                      fontSize: 22,
+                      background: 'linear-gradient(135deg, #093f3c 0%, #0f766e 55%, #14b8a6 100%)',
+                      color: '#ffffff',
+                      flexShrink: 0,
+                      border: '2.5px solid rgba(255,255,255,0.9)',
+                      boxShadow: '0 6px 18px rgba(15,118,110,0.22)',
+                    }}
+                  >
+                    🩺
                   </Avatar>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     {/* Linha do Nome e Selo Atende no Dr. Exame */}
