@@ -95,7 +95,7 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
     const now = new Date();
     const doc = await prisma.doctor.findUnique({
       where: { id: req.doctorId! },
-      select: { id: true, name: true, crm: true, crmUf: true, cpfEncrypted: true, cpfIv: true, cpfHash: true, emailVerified: true, identityLockedAt: true, verificationStatus: true },
+      select: { id: true, name: true, crm: true, crmUf: true, cpfEncrypted: true, cpfIv: true, cpfHash: true, identityLockedAt: true, verificationStatus: true },
     });
     if (!doc) { res.status(401).json({ code: 'DOCTOR_NOT_FOUND', error: 'Médico não encontrado.' }); return; }
     if (doc.verificationStatus === 'approved') { res.status(409).json({ code: 'ALREADY_APPROVED', error: 'Sua identidade já foi verificada.' }); return; }
@@ -129,8 +129,10 @@ router.post('/verification', requireKycDoctor, async (req: KycRequest, res, next
         const inUse = { code: 'CPF_IN_USE', error: 'Este CPF já está cadastrado em outra conta. Fale com o suporte.' };
         if (await prisma.doctor.findFirst({ where: { cpfHash: cpfData.cpfHash, NOT: { id: doc.id } }, select: { id: true } })) { res.status(409).json(inUse); return; }
         try {
-          // e-mail já verificado + CPF = identidade travada (espelha o cadastro / o /verify-email)
-          await prisma.doctor.update({ where: { id: doc.id }, data: { ...cpfData, ...(doc.emailVerified && !doc.identityLockedAt ? { identityLockedAt: now } : {}) } });
+          // Identidade TRAVADA na captura, com o e-mail verificado ou não (B2-3): o CPF fica amarrado a uma sessão UaiID
+          // COBRADA, e o médico do convite nunca verifica o e-mail — sem a trava ele aprovava o KYC e depois renomeava a
+          // conta ("Dra. <colega conhecida>") ou trocava o e-mail via PUT /me. Travada, PUT /me não muda nome nem e-mail.
+          await prisma.doctor.update({ where: { id: doc.id }, data: { ...cpfData, identityLockedAt: doc.identityLockedAt ?? now } });
         } catch (e) {
           if ((e as { code?: string })?.code === 'P2002') { res.status(409).json(inUse); return; } // corrida: outro médico gravou o mesmo CPF
           throw e;

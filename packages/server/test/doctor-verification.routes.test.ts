@@ -208,13 +208,43 @@ describe('POST /api/doctor/verification com { cpf } — médico sem CPF (conta d
     expect(saved.verificationStatus).toBe('in_progress');
   });
 
-  it('e-mail ainda NÃO verificado → grava o CPF, mas não trava a identidade (o /verify-email trava depois)', async () => {
+  // 2ª rodada (Important #5-A): o médico do convite NUNCA verifica o e-mail, então travar só com `emailVerified` deixava a
+  // identidade solta para sempre: aprovado no KYC, ele podia renomear a conta ("Dra. <colega conhecida>") e trocar o e-mail.
+  // O CPF capturado está amarrado a uma sessão UaiID cobrada: a trava vale SEMPRE na captura.
+  it('e-mail ainda NÃO verificado → grava o CPF E trava a identidade na captura; PUT /me não muda mais nome nem e-mail', async () => {
     const { doctor, token } = await semCpf({ emailVerified: false });
     vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf2' });
     expect((await post(token).send({ cpf: testCpf() })).status).toBe(201);
     const saved = await row(doctor.id);
     expect(saved.cpfHash).toBeTruthy();
-    expect(saved.identityLockedAt).toBeNull();
+    expect(saved.identityLockedAt).not.toBeNull();
+    expect(saved.emailVerified).toBe(false); // continua não verificado — a trava não depende disso
+
+    const put = (body: Record<string, unknown>) => api().put('/api/doctor/me').set(authHeader(token)).send(body);
+    const nome = await put({ name: 'Dra. Colega Famosa' });
+    expect(nome.status).toBe(409);
+    expect(String(nome.body.error)).toMatch(/Nome bloqueado/);
+    const mail = await put({ email: 'outro-endereco@exemplo.com' });
+    expect(mail.status).toBe(409);
+    expect(String(mail.body.error)).toMatch(/E-mail bloqueado/);
+    const depois = await row(doctor.id);
+    expect(depois.name).toBe(doctor.name);
+    expect(depois.email).toBe(saved.email);
+    // o que a trava NÃO impede (documentado): especialidade, preço da consulta e o perfil público (telefone/bio/clínica)
+    expect((await put({ specialty: 'Cardiologista' })).status).toBe(200);
+    expect((await api().put('/api/doctor/profile').set(authHeader(token)).send({ phone: '11999990000', bio: 'oi' })).status).toBe(200);
+    // CRM e CPF não têm rota de edição alguma (a trava vale p/ nome/e-mail; CRM/CPF nunca foram editáveis)
+    expect((await put({ crm: '99999-SP', cpf: testCpf() })).status).toBe(200);
+    expect(await row(doctor.id)).toMatchObject({ crm: doctor.crm, cpfHash: saved.cpfHash });
+  });
+
+  it('identidade já travada (cadastro normal) segue travada; a captura não destrava nem muda o instante', async () => {
+    const { doctor, token } = await semCpf();
+    const travadaEm = new Date(Date.now() - 3_600_000);
+    await prisma.doctor.update({ where: { id: doctor.id }, data: { identityLockedAt: travadaEm } });
+    vi.mocked(createUaiidVerification).mockResolvedValue({ ...created, verificationId: 'v-cpf2b' });
+    expect((await post(token).send({ cpf: testCpf() })).status).toBe(201);
+    expect((await row(doctor.id)).identityLockedAt?.getTime()).toBe(travadaEm.getTime());
   });
 
   it('cpf inválido → 400 CPF_INVALID; nada gravado e o UaiID nem é chamado', async () => {
