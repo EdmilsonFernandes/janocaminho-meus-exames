@@ -75,6 +75,8 @@ import specialistsRoutes from './routes/specialists.routes';
 // CHECKLIST DE COLETA (T2, 28/10/26): plano de exames a coletar definido pelo médico —
 // paciente vê em /api/collection-checklist; rotas do médico em /api/doctor/patients/:id/checklist.
 import collectionChecklistRoutes, { doctorRouter as collectionChecklistDoctorRouter } from './routes/collection.routes';
+import doctorVerificationRoutes from './routes/doctor-verification.routes';
+import { uaiidWebhookHandler } from './routes/uaiid-webhook.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -108,6 +110,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count', 'X-Renewed-Token'],
 }));
+// Webhook UaiID (KYC do médico): HMAC sobre o corpo CRU → precisa vir ANTES do express.json global.
+app.post('/api/webhooks/uaiid', express.raw({ type: 'application/json', limit: '256kb' }), uaiidWebhookHandler);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 // Auditoria de acesso a áreas (LGPD) — grava AuditLog('ACCESS') p/ rotas autenticadas na allowlist.
@@ -432,6 +436,9 @@ app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
+// KYC do médico: POST/GET /verification — ANTES da fila, cujo doctorRouter.use(requireQueueDoctor)
+// é deny-by-default e barraria (403) o médico ainda não verificado de se verificar (chicken-and-egg).
+app.use('/api/doctor', doctorVerificationRoutes);
 app.use('/api/doctor', teleconsultaQueueDoctorRoutes); // fila imediata: online-presence + queue/calls (sem overlap)
 app.use('/api/doctor', collectionChecklistDoctorRouter); // checklist de coleta: patients/:id/checklist (sem overlap)
 app.use('/api/doctor-shares', doctorShareRoutes);
