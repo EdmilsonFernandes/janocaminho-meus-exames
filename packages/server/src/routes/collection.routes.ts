@@ -13,6 +13,7 @@ import { requireAuth, userPatientIds, type AuthedRequest } from '../middleware/a
 import { canonicalName } from '../utils/normalize';
 import { expireStaleChecklistItems } from '../utils/collectionChecklist';
 import { sendPushToUser } from '../utils/push';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess';
 
 const MS_DAY = 86_400_000;
 
@@ -20,7 +21,8 @@ const MS_DAY = 86_400_000;
 const ALLOWED_DUE_DAYS = new Set([30, 60, 90, 180]);
 
 // ── AUTH MÉDICO (mesma checagem do requireDoctor de doctor.routes.ts — replicada aqui
-//    porque o middleware não é exportido de lá; token JWT type:'doctor' + bloqueio admin). ──
+//    porque o middleware não é exportido de lá; token JWT type:'doctor' + política única de
+//    acesso do médico (utils/doctorAccess.ts: bloqueio admin + verificação)). ──
 const verifyDoctorToken = (token: string): any => {
   try { const p: any = jwt.verify(token, config.jwtSecret); return p?.type === 'doctor' ? p : null; } catch { return null; }
 };
@@ -29,12 +31,10 @@ const requireDoctor = async (req: any, res: any, next: any) => {
   if (!auth?.startsWith('Bearer ')) { res.status(401).json({ error: 'Token obrigatório.' }); return; }
   const payload = verifyDoctorToken(auth.slice(7));
   if (!payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  const doc = await prisma.doctor.findUnique({
-    where: { id: payload.doctorId },
-    select: { id: true, blocked: true },
-  });
+  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
   if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
-  if (doc.blocked) { res.status(403).json({ error: 'Acesso suspenso pela administração.' }); return; }
+  const denial = doctorAccessDenial(doc); // política única (spec §7)
+  if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = payload.doctorId;
   next();
 };

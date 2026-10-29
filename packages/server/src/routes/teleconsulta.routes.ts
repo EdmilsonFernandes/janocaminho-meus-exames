@@ -31,6 +31,7 @@ import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 // §14.1 (24/10): resumo pós-consulta revisado pelo médico — payload role-aware injetado
 // no GET /summary abaixo (paciente só lê a versão APROVADA; rascunho nunca vaza).
 import { consultSummaryFor } from './consult-summary.routes';
+import { doctorAccessDenial } from '../utils/doctorAccess';
 
 const router = Router();
 
@@ -57,9 +58,11 @@ async function requireJoinIdentity(req: JoinRequest, res: Response, next: NextFu
     // Médico: valida existência (token de doctor deletado não entra).
     const doc = await prisma.doctor.findUnique({
       where: { id: payload.doctorId },
-      select: { id: true, name: true, crm: true, crmUf: true },
+      select: { id: true, name: true, crm: true, crmUf: true, blocked: true, blockedReason: true, verificationStatus: true },
     });
     if (!doc) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
+    const denial = doctorAccessDenial(doc); // spec §7: o join do médico nem checava bloqueio
+    if (denial) { res.status(denial.status).json(denial.body); return; }
     req.doctorId = doc.id;
     req.joinRole = 'doctor';
     req.joinName = `Dr. ${doc.name}${doc.crm ? ` (${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''})` : ''}`;

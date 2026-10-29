@@ -26,6 +26,7 @@ import { decryptPII } from '../utils/crypto';
 import { extractJsonObject } from '../utils/json';
 import { getLlm, getModel } from '../llm';
 import { appendAiFooter } from '../utils/aiFooter';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess';
 
 const router = Router();
 
@@ -45,8 +46,10 @@ async function requireDoctorIdentity(req: ConsultSummaryRequest, res: Response, 
   let payload: any;
   try { payload = jwt.verify(header.slice(7), config.jwtSecret); } catch { res.status(401).json({ error: 'Token inválido ou expirado' }); return; }
   if (payload?.type !== 'doctor' || !payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: { id: true } });
+  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
   if (!doc) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
+  const denial = doctorAccessDenial(doc); // spec §7: antes nem checava bloqueio
+  if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = doc.id;
   next();
 }

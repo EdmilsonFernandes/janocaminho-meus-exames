@@ -35,7 +35,7 @@ async function main() {
   const doc = await prisma.doctor.create({
     data: {
       name: 'Dra. Helena Fin', crm: `99${String(Date.now()).slice(-4)}-SP`, crmUf: 'SP', specialty: 'Cardiologia',
-      email: QA_EMAIL, emailVerified: true, passwordHash: await bcrypt.hash(QA_PWD, 10),
+      email: QA_EMAIL, emailVerified: true, verificationStatus: 'approved', passwordHash: await bcrypt.hash(QA_PWD, 10),
       payoutPixKeyEnc: enc.enc, payoutPixKeyIv: enc.iv, payoutPixKeyType: 'email',
     },
   });

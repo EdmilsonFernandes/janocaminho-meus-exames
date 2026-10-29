@@ -46,6 +46,7 @@ import { computeCompletionSplit } from '../finance/ledger';
 import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -86,27 +87,23 @@ function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
 const signDoctorToken = (doctorId: string) => jwt.sign({ doctorId, type: 'doctor' }, config.jwtSecret, { expiresIn: '7d' });
 const verifyDoctorToken = (token: string): any => { try { const p: any = jwt.verify(token, config.jwtSecret); return p.type === 'doctor' ? p : null; } catch { return null; } };
 
-const requireDoctor = async (req: any, res: any, next: any) => {
+// Política única (utils/doctorAccess.ts, spec §7): bloqueado → 403 DOCTOR_BLOCKED; quem não pode
+// atender → 403 VERIFICATION_REQUIRED. Onboarding (perfil/senha/foto/MFA/plano) usa
+// requireDoctorOnboarding, que só barra bloqueado.
+const makeRequireDoctor = (allowUnverified: boolean) => async (req: any, res: any, next: any) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) { res.status(401).json({ error: 'Token obrigatório.' }); return; }
   const payload = verifyDoctorToken(auth.slice(7));
   if (!payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  const doc = await prisma.doctor.findUnique({
-    where: { id: payload.doctorId },
-    select: { id: true, blocked: true, blockedReason: true },
-  });
+  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
   if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
-  if (doc.blocked) {
-    res.status(403).json({
-      blocked: true,
-      error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
-      reason: doc.blockedReason || undefined,
-    });
-    return;
-  }
+  const denial = doctorAccessDenial(doc, { allowUnverified });
+  if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = payload.doctorId;
   next();
 };
+const requireDoctor = makeRequireDoctor(false);
+const requireDoctorOnboarding = makeRequireDoctor(true);
 
 // Dr. Exame Pro (premium) — free tier: 5 features premium/mês. Depois: paywall (402).
 const FREE_TIER_LIMIT = 5;
@@ -123,7 +120,7 @@ const checkPremiumFeature = async (req: any, res: any, next: any): Promise<void>
 };
 
 // Plano do médico (status premium/free + uso do mês)
-router.get('/me/plan', requireDoctor, async (req: any, res) => {
+router.get('/me/plan', requireDoctorOnboarding, async (req: any, res) => {
   const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true, freeUsageMonth: true, freeUsageCount: true } });
   const month = new Date().toISOString().slice(0, 7);
   const isPremium = doc?.plan === 'premium' && doc?.planExpiresAt && doc.planExpiresAt > new Date();
@@ -450,11 +447,11 @@ router.post('/mfa/verify', async (req, res) => {
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });
 
-router.get('/mfa/status', requireDoctor, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
+router.get('/mfa/status', requireDoctorOnboarding, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
 
 // Perfil público do médico (telefone/consultório/cidade/bio) — o médico edita no portal; o
 // paciente vê ao abrir o médico na lista. Campos opcionais (string|null).
-router.put('/profile', requireDoctor, async (req: any, res, next) => {
+router.put('/profile', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const pick = (v: any, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) || null : null);
     const updated = await prisma.doctor.update({
@@ -472,23 +469,23 @@ router.put('/profile', requireDoctor, async (req: any, res, next) => {
 });
 
 // Dados completos do médico logado (portal carrega pra edição do perfil público).
-router.get('/me', requireDoctor, async (req: any, res) => {
+router.get('/me', requireDoctorOnboarding, async (req: any, res) => {
   const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true, consultPriceCents: true } });
   res.json({ doctor: serializeDoctor(d) });
 });
-router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
-router.post('/mfa/setup/confirm', requireDoctor, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
-router.post('/mfa/disable', requireDoctor, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/setup/start', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/setup/confirm', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/disable', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 
 // PERFIL do médico
-router.get('/me', requireDoctor, async (req: any, res) => {
+router.get('/me', requireDoctorOnboarding, async (req: any, res) => {
   const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
   if (!doctor) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
   res.json({ doctor: serializeDoctor(doctor) });
 });
 
 // ATUALIZAR PERFIL do médico (nome, especialidade, e-mail). CRM não é editável (identidade profissional).
-router.put('/me', requireDoctor, async (req: any, res, next) => {
+router.put('/me', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const { name, specialty, email } = req.body ?? {};
     const data: any = {};
@@ -532,7 +529,7 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
 });
 
 // TROCAR SENHA do médico
-router.put('/me/password', requireDoctor, async (req: any, res, next) => {
+router.put('/me/password', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const cur = String(req.body?.currentPassword ?? '');
     const next0 = String(req.body?.newPassword ?? '');
@@ -547,7 +544,7 @@ router.put('/me/password', requireDoctor, async (req: any, res, next) => {
 // UPLOAD de foto do médico — S3 (prod) ou disco (dev). Espelho da rota do paciente.
 // Pro-only (dono 23/10): sem plano ativo não sobe — e NÃO consome o free tier
 // (foto não é "uso" que se esgota no mês; é identidade contínua).
-router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any, res, next) => {
+router.post('/me/photo', requireDoctorOnboarding, upload.single('photo'), async (req: any, res, next) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
     const docPlan = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true } });
@@ -691,6 +688,11 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     const payload = tok ? verifyDoctorToken(tok) : null;
     const doctorId = payload?.doctorId;
     if (!doctorId) { res.status(401).json({ error: 'Sem permissão.' }); return; }
+    // Política única (spec §7): este endpoint não passava por requireDoctor — nem bloqueio checava.
+    const fileDoc = await prisma.doctor.findUnique({ where: { id: doctorId }, select: DOCTOR_ACCESS_SELECT });
+    if (!fileDoc) { res.status(401).json({ error: 'Sem permissão.' }); return; }
+    const fileDenial = doctorAccessDenial(fileDoc);
+    if (fileDenial) { res.status(fileDenial.status).json(fileDenial.body); return; }
     const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
