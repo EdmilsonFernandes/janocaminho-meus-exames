@@ -1238,7 +1238,6 @@ const AppLayout = (props: any) => {
       <PullToRefresh />
       <MobileBottomNav />
       <NotificationPopup />
-      <OfflineBanner />
       <Onboarding />
       <WhatsNew />
       <CompleteProfileModal />
