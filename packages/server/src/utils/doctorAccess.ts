@@ -22,6 +22,18 @@ export function doctorCanPractice(verificationStatus: string | null | undefined,
   return !!verificationStatus && practiceStatuses(now).includes(verificationStatus);
 }
 
+/**
+ * Predicado ÚNICO para canais FORA do HTTP (e-mail, push, jobs): "este médico pode receber dado de paciente
+ * agora?" = não bloqueado E status que atende. Mesma regra do gate HTTP (doctorAccessDenial sem allowUnverified).
+ * Revisão final do KYC (C1): e-mail com nome/pergunta do paciente chegava a conta não verificada/bloqueada.
+ */
+export function doctorMayPractice(
+  d: { blocked?: boolean | null; verificationStatus?: string | null },
+  now: Date = new Date(),
+): boolean {
+  return !d.blocked && doctorCanPractice(d.verificationStatus, now);
+}
+
 /** null = pode seguir; senão a resposta HTTP a devolver. Bloqueio vence tudo. */
 export function doctorAccessDenial(
   doc: DoctorAccessRow,

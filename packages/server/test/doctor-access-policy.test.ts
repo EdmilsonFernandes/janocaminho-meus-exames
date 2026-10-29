@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { practiceStatuses, doctorCanPractice, doctorAccessDenial } from '../src/utils/doctorAccess';
+import { practiceStatuses, doctorCanPractice, doctorAccessDenial, doctorMayPractice } from '../src/utils/doctorAccess';
 import { saveSettings } from '../src/utils/settings';
 
 describe('doctorAccess — política única (spec §7)', () => {
@@ -32,5 +32,30 @@ describe('doctorAccess — política única (spec §7)', () => {
     expect(d?.body).toMatchObject({ code: 'VERIFICATION_REQUIRED', status: 'pending' });
     expect(doctorAccessDenial({ blocked: false, verificationStatus: 'pending' }, { allowUnverified: true })).toBeNull();
     expect(doctorAccessDenial({ blocked: false, verificationStatus: 'approved' })).toBeNull();
+  });
+
+  // Predicado dos canais FORA do HTTP (e-mail/push/jobs) — mesma regra do gate, sem allowUnverified.
+  it('doctorMayPractice: só quem não está bloqueado E tem status que atende (concorda com doctorAccessDenial)', () => {
+    expect(doctorMayPractice({ blocked: false, verificationStatus: 'approved' })).toBe(true);
+    expect(doctorMayPractice({ blocked: false, verificationStatus: 'legacy' })).toBe(true); // sem prazo configurado
+    for (const s of ['pending', 'in_progress', 'needs_admin', 'uaiid_review', 'rejected', '', null, undefined]) {
+      expect(doctorMayPractice({ blocked: false, verificationStatus: s as string | null | undefined })).toBe(false);
+    }
+    expect(doctorMayPractice({ blocked: true, verificationStatus: 'approved' })).toBe(false); // bloqueio vence tudo
+    expect(doctorMayPractice({ blocked: null, verificationStatus: 'approved' })).toBe(true);
+    for (const row of [
+      { blocked: false, verificationStatus: 'approved' }, { blocked: false, verificationStatus: 'pending' },
+      { blocked: true, verificationStatus: 'approved' }, { blocked: false, verificationStatus: 'legacy' },
+    ]) expect(doctorMayPractice(row)).toBe(doctorAccessDenial(row) === null);
+  });
+
+  it('doctorMayPractice respeita o prazo do legado (fora do prazo → não)', async () => {
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() + 60_000, autoApprove: 0 });
+    try {
+      expect(doctorMayPractice({ blocked: false, verificationStatus: 'legacy' })).toBe(true);
+      expect(doctorMayPractice({ blocked: false, verificationStatus: 'legacy' }, new Date(Date.now() + 120_000))).toBe(false);
+    } finally {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    }
   });
 });
