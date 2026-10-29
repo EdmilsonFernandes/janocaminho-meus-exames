@@ -139,10 +139,16 @@ model DoctorVerification {
 - **Médico** (só em transição; nunca reenvia por evento repetido):
   - **Recebido** — "Recebemos seu cadastro — está em análise": ao entrar em `needs_admin` ou `uaiid_review`.
   - **Aprovado** — "Sua conta foi aprovada — você já pode atender": automático ou pelo dono; traz os primeiros passos (perfil, MFA, "Atender agora").
-  - **Recusado** — "…não foi aprovada — veja como resolver": motivo amigável (`kycMessage`) + como resolver. Recusa do dono manda texto padrão (o motivo digitado é interno).
+  - **Recusado** — "…não foi aprovada — veja como resolver": explica o porquê (dono, 28/10) — recusa automática usa o motivo amigável (`kycMessage`); recusa do dono manda **o motivo que o dono escreveu** (o campo no admin avisa que vai para o médico). Sempre com "como resolver" e o caminho para tentar de novo.
 - **Dono:** caso novo na fila (assunto separa "pronto para aprovar (tudo verde)" de "aguardando sua análise"), revisão no painel do UaiID, fraude confirmada, CRM disputado.
 
 ## 6. Front (Plano 2)
+**Jornada do médico (dono, 28/10 — "garantir a jornada"):**
+1. Cadastro (CRM, CPF, e-mail) → código do e-mail confirmado.
+2. Cai direto no passo **"Vamos validar sua identidade"** — copy premium e acolhedora ("queremos te conhecer melhor"): por que pedimos (segurança dos pacientes, exigência do CFM), o que precisa (RG/CNH/RNE + selfie, ~2 min), privacidade (LGPD: a biometria fica no UaiID, o Dr. Exame não guarda imagem) → botão **"Validar minha identidade"** abre a tela do UaiID.
+3. Volta do UaiID → tela **"Recebemos! Seu cadastro está em análise"** (o que acontece agora, prazo sem prometer hora, contato) + e-mail "em análise".
+4. Aprovado → e-mail "você já pode atender" + portal liberado. Recusado → e-mail com o porquê + "Tentar de novo" no portal.
+
 - **Portal** (`DoctorPortal.tsx`, `#/doctor`) — card por estado (`pending` → aviso LGPD + "Verificar identidade"; `in_progress` → "Continuar"; `uaiid_review`/`needs_admin` → "Em análise"; `rejected` → mensagem por `reasonCode` + "Tentar de novo"; `approved` → selo; `legacy` → banner com prazo). `403 VERIFICATION_REQUIRED` em qualquer tela → card.
 - **Abertura:** nativo → `Browser.open` (generalizar `openTelemedicinaRoom` → `openExternal`); desktop → QR com o `verifyUrl` + "usar este computador" (popup).
 - **Retorno:** `return_url = https://drexame.janocaminho.com.br/#/doctor?kyc=1` — app via App Link/`initDeepLinks`; popup → `postMessage` + `close()`; celular via QR sem sessão → tela neutra "Recebido". O `status` da query nunca decide nada. Se a Custom Tab não devolver p/ o app → `drexame://kyc`.

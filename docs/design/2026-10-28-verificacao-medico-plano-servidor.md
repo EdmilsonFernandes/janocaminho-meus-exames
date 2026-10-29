@@ -1152,7 +1152,7 @@ export function decideDoctorVerification(i: DecisionInput): Decision {
   - `doctorKycEmail(i: { name: string; crm?: string | null; kind: 'received' | 'approved' | 'rejected'; reason?: string | null; portalUrl: string }): string`
   - `kycAdminEmail(i: { title: string; lines: string[]; adminUrl: string }): string`
   - `notifyKycAdmin(subject: string, lines: string[]): Promise<void>` — linhas em texto puro (o template escapa); nunca lança
-  - `notifyDoctorKyc(doctor: { name: string; email: string; crm?: string | null }, kind: 'received' | 'approved' | 'rejected', reasonCode?: string | null): Promise<void>` — nunca lança
+  - `notifyDoctorKyc(doctor: { name: string; email: string; crm?: string | null }, kind: 'received' | 'approved' | 'rejected', reasonCode?: string | null, reasonText?: string | null): Promise<void>` — nunca lança; `reasonText` (motivo escrito pelo dono na recusa manual) tem precedência sobre `kycMessage(reasonCode)` (dono, 28/10: "caso reprovado explicar o porquê por email")
 
 - [ ] **Step 1: Teste que falha** — `test/kyc-notify.test.ts`
 
@@ -1216,6 +1216,12 @@ describe('KYC — mensagens e e-mails premium (spec §5b)', () => {
   it('SMTP falhando não lança', async () => {
     vi.mocked(sendEmail).mockRejectedValueOnce(new Error('SMTP fora'));
     await expect(notifyDoctorKyc({ name: 'X', email: 'x@exemplo.com' }, 'received')).resolves.toBeUndefined();
+  });
+
+  it('recusa pelo dono leva o motivo escrito por ele (escapado), não o texto padrão', async () => {
+    await notifyDoctorKyc({ name: 'Dra. Ana', email: 'ana@exemplo.com' }, 'rejected', 'admin_rejected', 'Documento ilegível <reenvie>');
+    expect(lastMail().html).toContain('Documento ilegível &lt;reenvie&gt;');
+    expect(lastMail().html).not.toContain(kycMessage('admin_rejected')!);
   });
 });
 ```
@@ -1493,12 +1499,14 @@ export async function notifyDoctorKyc(
   doctor: { name: string; email: string; crm?: string | null },
   kind: 'received' | 'approved' | 'rejected',
   reasonCode?: string | null,
+  reasonText?: string | null, // motivo escrito pelo dono na recusa manual — vai para o médico (dono, 28/10)
 ): Promise<void> {
   if (!doctor.email) return;
+  const reason = reasonText?.trim() || kycMessage(reasonCode);
   await sendEmail({
     to: doctor.email,
     subject: DOCTOR_KYC_SUBJECTS[kind],
-    html: doctorKycEmail({ name: doctor.name, crm: doctor.crm, kind, reason: kycMessage(reasonCode), portalUrl: portalUrl() }),
+    html: doctorKycEmail({ name: doctor.name, crm: doctor.crm, kind, reason, portalUrl: portalUrl() }),
   }).catch((e: any) => log.warn('falha no e-mail ao médico (KYC)', { kind, msg: e?.message }));
 }
 ```
@@ -2517,7 +2525,7 @@ router.post('/doctors/:id/verification/reject', async (req: AuthedRequest, res, 
       ...(latest ? [prisma.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'rejected', decidedBy: req.userId!, reasonCode: 'admin_rejected' } })] : []),
     ]);
     void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: doc.verificationStatus }, after: { status: 'rejected', crm: doc.crm, reason } });
-    void notifyDoctorKyc(doc, 'rejected', 'admin_rejected'); // o motivo digitado é interno; o médico recebe o texto padrão
+    void notifyDoctorKyc(doc, 'rejected', 'admin_rejected', reason); // o motivo escrito pelo dono vai no e-mail do médico (dono, 28/10)
     res.json({ ok: true, status: 'rejected' });
   } catch (e) { next(e); }
 });
