@@ -310,6 +310,17 @@ export const EncontrarEspecialistasPage = () => {
                             Salvar com CRM
                           </Button>
                         )}
+                        {/* Aquisição B2B de graça: "Te encontrei no Dr. Exame" com CRM
+                            pré-validado no link — cada busca vira convite de médico. */}
+                        {s.crm && s.phone && (
+                          <Button
+                            size="small" variant="outlined" component="a" target="_blank" rel="noopener"
+                            href={`https://wa.me/55${String(s.phone).replace(/\D/g, '')}?text=${encodeURIComponent(conviteMedicoMsg(s))}`}
+                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40, color: '#059669', borderColor: 'rgba(5,150,105,0.4)' }}
+                          >
+                            💬 Convidar médico
+                          </Button>
+                        )}
                         <Button size="small" variant="outlined"
                           onClick={() => navigate('/consultas', { state: { tab: 'minhas', prefillDoctor: { doctorName: s.name, specialty: (s.specialty ?? '').replace(/^Médic[oa]\s*/i, '') } } })}
                           sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, minHeight: 40 }}>
@@ -455,6 +466,14 @@ export const EncontrarEspecialistasPage = () => {
       {loading && <Box sx={{ display: 'none' }}><CircularProgress size={20} /></Box>}
     </PageContainer>
   );
+};
+
+/** Mensagem de convite ao médico achado na busca (aquisição: "te encontrei no Dr.
+ *  Exame" com CRM pré-validado no link → cadastro nasce cruzado com o diretório). */
+const conviteMedicoMsg = (s: any) => {
+  const crmUf = `${String(s.crm).replace(/\D/g, '')}-${s.crmUf ?? ''}`;
+  const link = `${window.location.href.split('#')[0]}#/para-medicos?crm=${encodeURIComponent(crmUf)}&nome=${encodeURIComponent(s.name ?? '')}`;
+  return `Olá! Te encontrei no Dr. Exame (app que organiza exames com IA) buscando por ${s.specialty || 'médico'} em ${s.clinicCity ?? 'minha cidade'}.\n\nOrganizo meus exames lá e queria compartilhar com você pelo portal médico gratuito — brief pré-consulta, exames organizados e teleconsulta com PIX.\n\nSeu CRM ${crmUf} já está pré-validado no cadastro, leva 2 minutos:\n${link}`;
 };
 
 /** Igualdade de cidade sem acento/case — espelha o deaccent do server (V1 "perto de você"). */
