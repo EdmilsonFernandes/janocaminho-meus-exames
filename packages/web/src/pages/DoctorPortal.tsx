@@ -58,6 +58,7 @@ import { PortalOverview } from '../components/doctors/portal/PortalOverview';
 import { PortalTeleconsultas } from '../components/doctors/portal/PortalTeleconsultas';
 import { TeleScheduleDialog } from '../components/doctors/portal/TeleScheduleDialog';
 import { PortalFinanceiro } from '../components/doctors/portal/PortalFinanceiro';
+import { DoctorVerificationGate } from '../components/doctors/portal/verification/DoctorVerificationGate';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DoctorPatientSwitcher } from '../components/doctors/DoctorPatientSwitcher';
@@ -247,7 +248,8 @@ export const DoctorPortalPage = () => {
     finally { setRegLooking(false); }
   };
 
-  if (token) return <DoctorDashboard token={token} onLogout={logout} />;
+  // Portão de verificação de identidade (KYC UaiID): o dashboard só monta p/ médico aprovado (ou legado no prazo).
+  if (token) return <DoctorVerificationGate token={token} onLogout={logout}><DoctorDashboard token={token} onLogout={logout} /></DoctorVerificationGate>;
 
   // Etapa de verificação de e-mail (código OTP enviado no cadastro do médico).
   if (pendingEmail) {
