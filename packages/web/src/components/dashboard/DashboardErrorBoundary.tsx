@@ -1,3 +1,4 @@
+// Lucian UX/UI Prompt #090 (adaptado) · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#090
 import { Component, type ReactNode } from 'react';
 import { Box, Typography, Button } from '@mui/material';
 
@@ -5,6 +6,40 @@ import { Box, Typography, Button } from '@mui/material';
 // 1º mount era transitório (dado/cache chegando depois) — remonta SOZINHO 1x em 1,2s
 // antes de mostrar o botão. Se voltar a lançar, o card de erro aparece como antes.
 const AUTO_RETRY_MS = 1200;
+
+/** Metáfora do #090 (error widget that plugs back in): plug fora + LED vermelho
+ *  enquanto quebrado; enquanto o auto-retry é iminente o LED pisca âmbar e o plug
+ *  "tremula" pra entrar. Sucesso = boundary desmonta este card (plug entra e some). */
+const PlugSvg = ({ trying }: { trying: boolean }) => (
+  <Box
+    aria-hidden="true"
+    component="svg"
+    viewBox="0 0 120 64"
+    sx={{
+      width: 132, height: 70, mb: 1.5, overflow: 'visible', color: 'text.primary',
+      '& .plug-cord': { fill: 'none', stroke: 'text.disabled', strokeWidth: 4, strokeLinecap: 'round' },
+      '& .plug-prong': { stroke: 'text.secondary', strokeWidth: 4.5, strokeLinecap: 'round', transition: 'transform .55s cubic-bezier(.34,1.56,.64,1)' },
+      '& .plug-l': { transform: trying ? 'translateX(7px)' : 'translateX(-8px)' },
+      '& .plug-r': { transform: trying ? 'translateX(-2px)' : 'translateX(6px)' },
+      ...(trying ? { '& .plug-l': { transform: 'translateX(7px)', animation: 'plugJig .3s .4s ease-in-out infinite' } } : {}),
+      '& .plug-led': {
+        fill: trying ? 'warning.main' : 'error.main', transition: 'fill .3s',
+        ...(trying ? { animation: 'plugBlink .5s steps(1) infinite' } : {}),
+      },
+      '@keyframes plugJig': { '50%': { transform: 'translateX(12px)' } },
+      '@keyframes plugBlink': { '50%': { opacity: 0.25 } },
+      '@media (prefers-reduced-motion: reduce)': {
+        '& .plug-l, & .plug-r, & .plug-led': { animation: 'none !important' },
+      },
+    }}
+  >
+    <path className="plug-cord" d="M8 32 C 26 32, 30 14, 46 14" />
+    <g className="plug-l"><path className="plug-prong" d="M62 22 h16" /></g>
+    <g className="plug-r"><path className="plug-prong" d="M62 42 h16" /></g>
+    <rect x="52" y="14" width="10" height="36" rx="5" fill="currentColor" />
+    <circle className="plug-led" cx="86" cy="32" r="5" />
+  </Box>
+);
 
 /**
  * DashboardErrorBoundary — ErrorBoundary ESCOPADO do dashboard.
@@ -43,6 +78,7 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
 
   render() {
     if (this.state.error) {
+      const autoPending = this.state.attempt === 0; // auto-retry a caminho (LED âmbar)
       return (
         <Box
           role="alert"
@@ -55,16 +91,18 @@ export class DashboardErrorBoundary extends Component<{ children: ReactNode }, {
             boxShadow: (t) => (t.palette.mode === 'dark' ? '0 8px 28px rgba(0,0,0,.35)' : '0 6px 24px rgba(32,178,170,.10)'),
           }}
         >
-          <Box sx={{ fontSize: 40, mb: 1 }} aria-hidden="true">⚠️</Box>
+          <PlugSvg trying={autoPending} />
           <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 16, mb: 0.5 }}>
             Erro ao carregar
           </Typography>
           <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.5, mb: 2 }}>
-            Seu painel não conseguiu montar desta vez. Seus exames continuam salvos — toque para recarregar.
+            {autoPending
+              ? 'Reconectando sozinho…'
+              : 'Seu painel não conseguiu montar desta vez. Seus exames continuam salvos — toque para recarregar.'}
           </Typography>
           {(() => {
             const msg = this.state.error?.message;
-            if (!msg) return null;
+            if (!msg || autoPending) return null;
             return (
               <Typography noWrap component="div" title={msg} sx={{ fontSize: 11, color: 'text.disabled', mb: 2, fontFamily: 'monospace' }}>
                 {msg.slice(0, 120)}

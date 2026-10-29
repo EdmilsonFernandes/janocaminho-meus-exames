@@ -1,0 +1,63 @@
+/* Lucian UX/UI Prompt #098 "Live metric with rolling digits" · MIT License (c) 2026 Seokwoooo · https://lucianlabs.dev/uxui-prompt/#098
+   Adapted for the Dr. Exame admin KPI cards: digit height is parametric (--h, default 30px in card
+   context vs the 58px of the 340px widget), the sparkline is fluid via ResizeObserver instead of a
+   fixed 340x128 box, and the widget chrome (tabs/pause/live dot) is omitted — real data only.
+   Motion values preserved exactly: 0.9s cubic-bezier(.3,1.25,.5,1) roll, 45ms per-digit delay,
+   600ms cubic in/out line morph, top/bottom digit mask. */
+.u098-num {
+  display: flex;
+  align-items: flex-start;
+  height: var(--h, 30px);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent);
+  font-size: calc(var(--h, 30px) * 0.862);
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  line-height: var(--h, 30px);
+  font-variant-numeric: tabular-nums;
+}
+.u098-col {
+  display: inline-flex;
+  flex-direction: column;
+  transform: translateY(calc(var(--d) * var(--h, 30px) * -1));
+  transition: transform 0.9s cubic-bezier(0.3, 1.25, 0.5, 1);
+  transition-delay: calc(var(--i) * 45ms);
+}
+.u098-col span {
+  height: var(--h, 30px);
+}
+.u098-sym {
+  display: inline-block;
+}
+.u098-sym.sm {
+  font-size: calc(var(--h, 30px) * 0.56);
+  margin-left: 2px;
+}
+.u098-sp {
+  position: relative;
+  height: var(--sh, 44px);
+  margin-top: 6px;
+  overflow: hidden;
+}
+.u098-sp svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.u098-ln {
+  fill: none;
+  stroke: var(--ux-accent);
+  stroke-width: 2.4;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+.u098-gd stop {
+  stop-color: var(--ux-accent);
+}
+.u098-hd {
+  fill: var(--ux-accent);
+  stroke: var(--ux-surface);
+  stroke-width: 2.5;
+}

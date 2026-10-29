@@ -12,6 +12,8 @@ import { API_URL, token, fetchPublicConfig } from '../config';
 import { usePlanInfo, fmtBRL } from '../utils/planInfo';
 import { PixModal } from '../components/PixModal';
 import { PaymentChooser } from '../components/PaymentChooser';
+import { PlanRadioCards } from '../components/PlanRadioCards';
+import { PlanComparison } from '../components/PlanComparison';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { tealText } from '../theme';
@@ -60,6 +62,8 @@ export const PlansPage = () => {
   const [, forceTick] = useState(0); // re-render a cada 1s pro timer do PIX vivo
   // Cupom aplicado no PaymentChooser (T3): o server revalida no checkout de verdade.
   const [coupon, setCoupon] = useState<string | null>(null);
+  // Pacote selecionado nos radio cards (#015). Null = default (pendente > popular > 1º).
+  const [selPack, setSelPack] = useState<string | null>(null);
 
   const checkPendingPix = () => {
     fetch(`${API_URL}/billing/pending-payment`, { headers: { Authorization: `Bearer ${token()}` } })
@@ -123,6 +127,12 @@ export const PlansPage = () => {
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const packs = plans?.creditPacks ?? [];
   const mpOn = plans?.mercadoPagoEnabled ?? false;
+  // Seleção efetiva do radio (#015): explícita > PIX pendente > popular > primeiro.
+  const pendingPackId = pendingPix
+    ? (packs.find((p) => p.credits === pendingPix.credits && p.price === pendingPix.price)?.id ?? null)
+    : null;
+  const selId = selPack ?? pendingPackId ?? packs.find((p) => p.popular)?.id ?? packs[0]?.id ?? null;
+  const selPackObj = packs.find((p) => p.id === selId) ?? null;
   // REVERTIDO: compra PIX volta a funcionar no app Android também.
   // (A Play Store rejeita venda de bem digital sem conta de organização — assumido pelo Edmilson.)
   const isNative = false;
@@ -315,53 +325,46 @@ export const PlansPage = () => {
       <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2, lineHeight: 1.5 }}>
         Leitura de exame <b>1</b> · relatório completo <b>2</b> leituras · pergunta no chat <b>3</b> 💎. Enviar exame é <b>grátis</b>. Sem mensalidade.
       </Typography>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: `repeat(${Math.min(Math.max(packs.length, 1), 3)}, 1fr)` }, gap: 1.5, mb: 2, alignItems: 'stretch' }}>
-        {packs.map((p, idx) => {
-          const isPending = pendingPix && pendingPix.credits === p.credits && pendingPix.price === p.price;
-          const secsLeft = isPending ? Math.max(0, Math.floor((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 1000)) : 0;
-          const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
-          const ssLeft = String(secsLeft % 60).padStart(2, '0');
-          const hot = p.popular && !isPending;
-          return (
-          <Card key={p.id} sx={{
-            ...fadeUp(idx + 1),
-            borderRadius: '20px', position: 'relative', overflow: 'visible', display: 'flex', flexDirection: 'column',
-            gridColumn: { xs: hot || isPending ? '1 / -1' : 'auto', sm: 'auto' },
-            order: { xs: hot ? -1 : 0, sm: 0 },
-            border: isPending ? '2px solid #d97706' : hot ? '2px solid #20b2aa' : '1px solid',
-            borderColor: isPending || hot ? undefined : 'divider',
-            bgcolor: isPending ? 'rgba(217,119,6,0.04)' : undefined,
-            background: hot ? (t) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, rgba(32,178,170,.12), transparent 70%)' : 'linear-gradient(180deg, rgba(32,178,170,.07), #fff 70%)' : undefined,
-            boxShadow: hot ? '0 12px 32px -12px rgba(32,178,170,.35)' : 'none',
-            transition: 'transform .18s ease, box-shadow .2s ease, border-color .2s ease',
-            '&:hover': { transform: 'translateY(-2px)', boxShadow: hot ? '0 16px 40px -12px rgba(32,178,170,.45)' : '0 10px 28px -10px rgba(0,0,0,.12)' },
-          }}>
-            {(isPending || hot) && (
-              <Box sx={{ position: 'absolute', top: -11, left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap',
-                px: 1.25, py: '3px', borderRadius: 99, fontSize: 10.5, fontWeight: 800, letterSpacing: '.06em',
-                color: isPending ? '#92400e' : '#fff',
-                background: isPending ? '#fde68a' : 'linear-gradient(135deg,#20b2aa,#178f89)',
-                boxShadow: isPending ? 'none' : '0 4px 12px rgba(32,178,170,.35)' }}>
-                {isPending ? '⏳ AGUARDANDO PAGAMENTO' : '⭐ MAIS VENDIDO'}
-              </Box>
-            )}
-            <CardContent sx={{ textAlign: 'center', pt: 2.75, pb: '16px !important', px: { xs: 1.5, sm: 2 }, display: 'flex', flexDirection: 'column', flex: 1 }}>
-              <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.25}>
-                <BoltIcon sx={{ fontSize: hot ? 26 : 20, color: '#20b2aa' }} />
-                <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: hot ? 34 : 28, letterSpacing: '-0.03em', lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{Math.max(1, Math.floor(p.credits / rd))}</Typography>
-              </Stack>
-              <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>{Math.max(1, Math.floor(p.credits / rd)) === 1 ? 'leitura' : 'leituras'}</Typography>
-              <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1, lineHeight: 1.4 }}>
-                ~{Math.floor(p.credits / 2)} perguntas no chat<Box component="span" sx={{ mx: 0.5, opacity: 0.5 }}>·</Box>entra como {p.credits} 💎
-              </Typography>
-              <Box sx={{ flex: 1 }} />
-              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 22, mt: 1.5, letterSpacing: '-0.02em', fontVariantNumeric: 'tabular-nums' }}>{brl(p.price)}</Typography>
-              <Typography sx={{ fontSize: 11, color: 'text.disabled', mb: 1.5 }}>{brl(p.price / Math.max(1, Math.floor(p.credits / rd)))} por leitura</Typography>
-              {isPending ? (
-                <Stack spacing={0.75}>
+      {/* ══ CRÉDITOS AVULSOS — radio cards (Lucian #015): frame desliza pro pack
+          escolhido, ponto pop, preço acorda no selecionado; setas navegam.
+          Fluxos preservados: cardEnabled → PaymentChooser; PIX-only → PixModal
+          1-clique; pendente → badge âmbar + retomada do QR no CTA. ══ */}
+      {packs.length > 0 && (
+        <Box sx={fadeUp(1)}>
+          <PlanRadioCards
+            label="Pacotes de leituras"
+            options={packs.map((p) => {
+              const reads = Math.max(1, Math.floor(p.credits / rd));
+              const pend = !!pendingPix && pendingPix.credits === p.credits && pendingPix.price === p.price;
+              return {
+                id: p.id,
+                title: `${reads} ${reads === 1 ? 'leitura' : 'leituras'}`,
+                badge: pend ? '⏳ Aguardando pagamento' : p.popular ? '⭐ Mais vendido' : undefined,
+                badgeTone: pend ? ('amber' as const) : undefined,
+                sub: `~${Math.floor(p.credits / 2)} perguntas no chat · entra como ${p.credits} 💎`,
+                price: brl(p.price),
+                priceSub: `${brl(p.price / reads)} por leitura`,
+                icon: <BoltIcon />,
+              };
+            })}
+            value={selId}
+            onChange={setSelPack}
+            summaryLabel={selPackObj ? (() => { const n = Math.max(1, Math.floor(selPackObj.credits / rd)); return `${n} ${n === 1 ? 'leitura' : 'leituras'} selecionada${n === 1 ? '' : 's'}`; })() : undefined}
+            summaryValue={selPackObj ? brl(selPackObj.price) : undefined}
+          />
+          {/* CTA único da seleção (substitui o botão por card do grid antigo) */}
+          {selPackObj && (() => {
+            const reads = Math.max(1, Math.floor(selPackObj.credits / rd));
+            const isPending = !!pendingPix && pendingPix.credits === selPackObj.credits && pendingPix.price === selPackObj.price;
+            const secsLeft = isPending ? Math.max(0, Math.floor((new Date(pendingPix.expiresAt).getTime() - Date.now()) / 1000)) : 0;
+            const mmLeft = String(Math.floor(secsLeft / 60)).padStart(2, '0');
+            const ssLeft = String(secsLeft % 60).padStart(2, '0');
+            if (isPending) {
+              return (
+                <Stack spacing={1} sx={{ mt: 0.5 }}>
                   <Button variant="contained" fullWidth onClick={() => setPixPack('__pending__')}
                     startIcon={<QrCode2Icon />}
-                    sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', boxShadow: '0 4px 12px rgba(217,119,6,.3)' }}>
+                    sx={{ bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' }, textTransform: 'none', fontWeight: 800, borderRadius: '999px', py: 1.3, boxShadow: '0 4px 12px rgba(217,119,6,.3)' }}>
                     Abrir QR Code · {mmLeft}:{ssLeft}
                   </Button>
                   <Button size="small" variant="outlined" fullWidth
@@ -371,22 +374,68 @@ export const PlansPage = () => {
                     Copiar código PIX
                   </Button>
                 </Stack>
-              ) : (
-                <Button variant={hot ? 'contained' : 'outlined'} fullWidth disabled={!mpOn}
-                  endIcon={hot ? <ArrowForwardIcon sx={{ fontSize: 18, transition: 'transform .2s ease' }} /> : undefined}
-                  sx={{ borderRadius: '999px', fontWeight: 800, textTransform: 'none', py: hot ? 1.1 : 0.8,
-                    '&:hover .MuiButton-endIcon': { transform: 'translateX(3px)' } }}
-                  onClick={() => {
+              );
+            }
+            return (
+              <Button variant="contained" fullWidth disabled={!mpOn}
+                endIcon={<ArrowForwardIcon sx={{ fontSize: 18, transition: 'transform .2s ease' }} />}
+                onClick={() => {
                   // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
-                  if (cardEnabled) { setChooserLabel(`${Math.max(1, Math.floor(p.credits / rd))} leituras • ${brl(p.price)}`); setChooserPrice(p.price); setChooserPack(p.id); }
-                  else setPixPack(p.id);
-                }}>Comprar</Button>
-              )}
-            </CardContent>
-          </Card>
-          );
-        })}
-      </Box>
+                  if (cardEnabled) { setChooserLabel(`${reads} leituras • ${brl(selPackObj.price)}`); setChooserPrice(selPackObj.price); setChooserPack(selPackObj.id); }
+                  else setPixPack(selPackObj.id);
+                }}
+                sx={{
+                  mt: 0.5, borderRadius: '999px', py: 1.4, fontWeight: 800, fontSize: 15, textTransform: 'none',
+                  fontFamily: '"Poppins",sans-serif',
+                  background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+                  boxShadow: '0 8px 24px -6px rgba(32,178,170,.45)',
+                  '&:hover': { background: 'linear-gradient(135deg,#20b2aa,#178f89)', filter: 'brightness(1.06)' },
+                  '&:hover .MuiButton-endIcon': { transform: 'translateX(3px)' },
+                }}>
+                Comprar {reads} {reads === 1 ? 'leitura' : 'leituras'} · {brl(selPackObj.price)}
+              </Button>
+            );
+          })()}
+        </Box>
+      )}
+
+      {/* ══ COMPARATIVO (Lucian #217): Grátis × Premium × Avulsas — header pinado no
+          scroll, coluna acende sob o cursor, "só diferenças" dobra linhas iguais nos
+          3 planos; mobile vira cartões empilhados com o plano selecionado destacado.
+          Dados da API (usePlanInfo/packs) com fallback pro que a vitrine mostra. ══ */}
+      {(() => {
+        const effPrice = planInfo?.plan?.effectivePrice ?? 29.9;
+        const familyLimit = planInfo?.premiumPerks?.familyLimit ?? 10;
+        const consolidatedFree = planInfo?.premiumPerks?.consolidatedFree !== false;
+        const minPack = packs.length ? Math.min(...packs.map((p) => p.price)) : null;
+        return (
+          <Box sx={{ ...fadeUp(2), mt: 4 }}>
+            <PlanComparison
+              title="Compare os planos"
+              columns={[
+                { name: 'Grátis', period: 'para sempre', price: 'R$ 0' },
+                { name: 'Premium', period: '/mês', price: fmtBRL(effPrice), badge: 'MAIS ESCOLHIDO' },
+                { name: 'Avulsas', period: 'sem mensalidade', price: minPack != null ? `${brl(minPack)}+` : '—' },
+              ]}
+              groups={[
+                { title: 'IA E LEITURAS', rows: [
+                  { label: 'Leituras de exame por mês', cells: ['—', `${monthlyReads} leituras`, 'Por pack'] },
+                  { label: 'Relatório completo', cells: ['Gasta leituras', consolidatedFree ? 'Incluído' : 'Gasta leituras', 'Gasta leituras'] },
+                  { label: 'Perguntas no chat', cells: ['Consome 💎', 'Consome 💎', 'Consome 💎'] },
+                ]},
+                { title: 'EXAMES', rows: [
+                  { label: 'Envio de exame', cells: ['Grátis', 'Grátis', 'Grátis'] },
+                ]},
+                { title: 'CONTA E FAMÍLIA', rows: [
+                  { label: 'Mensalidade', cells: ['R$ 0', fmtBRL(effPrice), 'Não tem'] },
+                  { label: 'Perfis de família', cells: ['—', `Até ${familyLimit}`, '—'] },
+                  { label: 'Créditos que sobram', cells: ['—', 'Não expiram', 'Não expiram'] },
+                ]},
+              ]}
+            />
+          </Box>
+        );
+      })()}
 
       {/* Barra de confiança NA TELA DE DECISÃO (não só no checkout). */}
       <Stack direction="row" justifyContent="center" alignItems="center" flexWrap="wrap" useFlexGap columnGap={2} rowGap={0.75}

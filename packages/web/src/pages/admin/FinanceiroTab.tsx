@@ -38,6 +38,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import { DonutResplit, fmtBRLFull, type DonutSlice } from '../../components/admin/DonutResplit';
 
 const PAGE_SIZE = 20;
 const authH = () => ({ Authorization: `Bearer ${token()}` });
@@ -304,6 +305,32 @@ export const FinanceiroTab = () => {
     };
   }, [data?.payments]);
 
+  // ===== DONUT LUCIAN #097: distribuição da receita aprovada por método de pagamento =====
+  // Usa só o que a tela já carrega: os payments da página atual (respeita filtros). O método sai
+  // do rawWebhook (payload do Mercado Pago: payment_type_id/payment_method_id); sem payload
+  // (pagamento antigo) cai em "Sem registro".
+  const donutSlices = useMemo<DonutSlice[]>(() => {
+    const list = (data?.payments ?? []).filter((p: any) => p.status === 'APPROVED');
+    const groups = new Map<string, number>();
+    for (const p of list) {
+      const rw = (p.rawWebhook ?? null) as any;
+      const method: string =
+        rw?.payment_type_id === 'bank_transfer' || rw?.payment_method_id === 'pix'
+          ? 'PIX'
+          : rw?.payment_type_id === 'credit_card'
+            ? 'Cartão de crédito'
+            : rw?.payment_type_id === 'debit_card'
+              ? 'Cartão de débito'
+              : rw?.payment_method_id
+                ? 'Outros métodos'
+                : 'Sem registro';
+      groups.set(method, (groups.get(method) ?? 0) + Number(p.amount ?? 0));
+    }
+    return [...groups.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [data?.payments]);
+
   if (loading && !data) return <TabLoader />;
   if (error && !data)
     return <SectionError message="Não foi possível carregar os pagamentos." onRetry={() => void load()} />;
@@ -440,6 +467,63 @@ export const FinanceiroTab = () => {
           </Typography>
         </Paper>
       </Box>
+
+      {/* 1.5 DONUT RE-SPLIT (Lucian #097) — receita aprovada da página por método de pagamento.
+             Lado a lado com a alternativa textual no md+; 1 coluna no mobile. */}
+      {donutSlices.length > 0 && (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '360px 1fr' },
+            gap: 1.5,
+            mb: 2.5,
+            alignItems: 'start',
+          }}
+        >
+          <DonutResplit
+            key={donutSlices.map((s) => `${s.label}:${Math.round(s.value)}`).join('|')}
+            slices={donutSlices}
+            title="Receita da página"
+            question="Para onde foi a receita?"
+            centerTitle="Total na página"
+            allCaption={`${kpis.approvedCount} pagamento(s) aprovado(s)`}
+          />
+          <Paper
+            elevation={0}
+            sx={{ p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}
+          >
+            <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'Poppins, sans-serif' }}>
+              🧾 Para onde foi a receita?
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>
+              Distribuição da receita <strong>aprovada</strong> na página atual — muda junto com os
+              filtros e a paginação.
+            </Typography>
+            {/* Alternativa textual do donut (leitor de tela + leitura rápida dos valores) */}
+            <Box component="ul" sx={{ m: 0, mt: 1.5, pl: 2.5, display: 'grid', gap: 0.75 }}>
+              {donutSlices.map((s) => {
+                const share = kpis.approvedTotal > 0 ? Math.round((s.value / kpis.approvedTotal) * 100) : 0;
+                return (
+                  <Box component="li" key={s.label} sx={{ fontSize: 13.5 }}>
+                    <strong>{s.label}</strong> — {fmtBRLFull(s.value)}{' '}
+                    <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>
+                      ({share}% da receita da página)
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 1.5 }}>
+              Passe o cursor ou o dedo numa fatia para ver valor e participação; clique na fatia ou
+              na legenda para excluir/re-incluir a categoria — o anel e o total se recalculam.
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>
+              Método identificado pelo payload do gateway (webhook) — pagamentos antigos podem
+              aparecer como “Sem registro”.
+            </Typography>
+          </Paper>
+        </Box>
+      )}
 
       {/* 2. FILTERS TOOLBAR */}
       <Paper

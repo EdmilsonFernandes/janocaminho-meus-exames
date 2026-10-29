@@ -17,6 +17,8 @@ import { ListSkeleton } from '../components/Skeleton';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
 import { INSURANCE_OPERATOR_NAMES, SPECIALTIES } from '../utils/medicalData';
 import { tealText } from '../theme';
+import { EmptySearchLoosensFilters } from '../components/EmptySearchLoosensFilters';
+import type { LooseFilterOption } from '../components/EmptySearchLoosensFilters';
 import type { SpecialistItem } from '../types/consultations';
 
 // §3 "Encontrar especialistas" (28/10/26): busca no DIRETÓRIO PRÓPRIO do Dr. Exame —
@@ -162,6 +164,32 @@ export const EncontrarEspecialistasPage = () => {
     } catch { notify('Não consegui salvar. Tente de novo.', { type: 'error' }); }
   };
 
+  // ── Empty search que afrouxa filtros (Lucian UX/UI #092): com 0 resultados e filtros
+  // ativos, oferecemos remover cada filtro com a contagem que a remoção traria. As
+  // contagens vêm SÓ do payload atual de /api/specialists — `cities` é facet do
+  // diretório INTEIRO (não filtrada pela busca): cidade ativa ⇒ soma das counts das
+  // OUTRAS cidades (o que a busca sem cidade alcançaria); especialidade ativa ⇒ soma
+  // de todas as counts, oferecida apenas quando a especialidade é o ÚNICO filtro duro
+  // (senão o número não seria honesto).
+  const cityNorm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  const stripUf = (s: string) => s.replace(/\s*\([A-Za-z]{2}\)\s*$/, '').trim();
+  const activeCityNorm = city.trim() ? cityNorm(stripUf(city)) : '';
+  const looseFilters: LooseFilterOption[] = [];
+  if (searched && !loading && !error && items.length === 0) {
+    if (activeCityNorm) {
+      // Espelha o filtro do server: facet cujo nome CONTÉM a cidade buscada conta
+      // como "a mesma cidade" — as demais são o que aparece sem o filtro.
+      const n = cities.filter((c) => !cityNorm(c.city).includes(activeCityNorm)).reduce((s, c) => s + c.count, 0);
+      if (n > 0) looseFilters.push({ label: stripUf(city), count: n, onRemove: () => setCity('') });
+    }
+    const onlySpecialty = !!specialty && !q.trim() && !activeCityNorm && !operator && !withPrice && !claimedOnly;
+    if (onlySpecialty) {
+      const n = cities.reduce((s, c) => s + c.count, 0);
+      if (n > 0) looseFilters.push({ label: specialty, count: n, onRemove: () => setSpecialty('') });
+    }
+    looseFilters.sort((a, b) => b.count - a.count);
+  }
+
   return (
     <PageContainer width="content" sx={{ pb: { xs: 12, sm: 5 } }}>
       <PageHeader
@@ -238,16 +266,27 @@ export const EncontrarEspecialistasPage = () => {
       )}
 
       {!loading && !error && searched && items.length === 0 && (
-        <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', textAlign: 'center', py: 4, mb: 2 }}>
-          <CardContent>
-            <Box sx={{ fontSize: 44, mb: 1 }}>🔍</Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Nenhum especialista encontrado</Typography>
-            <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 360, mx: 'auto', fontSize: 13.5 }}>
-              {cityNote ?? 'Nosso diretório ainda está crescendo. Tente só a especialidade sem cidade, ou cadastre seu médico manualmente — com CRM ele entra na busca pra todo mundo.'}
-            </Typography>
-            <Button variant="outlined" onClick={() => navigate('/medicos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, borderColor: '#20b2aa', color: '#0f766e' }}>
-              Cadastrar em Meus médicos
-            </Button>
+        <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', py: 4, px: { xs: 1.5, sm: 3 }, mb: 2 }}>
+          <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+            <EmptySearchLoosensFilters
+              query={q.trim()}
+              note={looseFilters.length > 0
+                ? 'Remova um filtro pra ver o que já temos no diretório.'
+                : (cityNote ?? 'Nosso diretório ainda está crescendo. Tente só a especialidade sem cidade, ou cadastre seu médico manualmente — com CRM ele entra na busca pra todo mundo.')}
+              options={looseFilters}
+              actions={[
+                { label: 'Cadastrar em Meus médicos', onClick: () => navigate('/medicos'), primary: true },
+                ...((q.trim() || specialty || city.trim() || operator || withPrice || claimedOnly)
+                  ? [{
+                      label: 'Limpar filtros',
+                      onClick: () => {
+                        setQ(''); setSpecialty(''); setCity(''); setOperator('');
+                        setWithPrice(false); setClaimedOnly(false);
+                      },
+                    }]
+                  : []),
+              ]}
+            />
           </CardContent>
         </Card>
       )}

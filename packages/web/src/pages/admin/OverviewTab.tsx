@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer } from '@mui/material';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError, FEATURE_LABELS } from './parts';
+import { RollingMetric } from '../../components/admin/RollingMetric';
 
 /** "2026-08" → "Ago 2026" (evita datas quebrando no mobile). */
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -34,22 +35,57 @@ export const OverviewTab = () => {
   if (loading) return <TabLoader />;
   if (error || !metrics) return <SectionError message="Não foi possível carregar as métricas." onRetry={() => void load()} />;
 
+  // Séries de tendência dos KPIs — vêm da MESMA resposta /admin/metrics (cohort mensal,
+  // cohort semanal e receita por mês). Retenção não tem série: fica sem linha.
+  const kpiSeries = useMemo(() => {
+    const wc: any[] = metrics?.weeklyCohort ?? [];
+    const coh: any[] = metrics?.cohort ?? [];
+    const rev: any[] = metrics?.revenueByMonth ?? [];
+    let acc = 0;
+    const cum = rev.map((r) => {
+      acc += Number(r.amount ?? 0);
+      return acc;
+    });
+    return {
+      signups: wc.map((c) => Number(c.signups ?? 0)),
+      premium: coh.map((c) => Number(c.converted ?? 0)),
+      conv: coh.map((c) => (c.signups ? (c.converted / c.signups) * 100 : 0)),
+      mrr: rev.map((r) => Number(r.amount ?? 0)),
+      total: cum,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metrics]);
+
+  // KPIs do topo — Lucian #098: dígitos rolantes (montagem + refresh) + linha de tendência.
+  const kpis = [
+    { l: 'Cadastros', v: `${metrics.funnel.signups ?? 0}`, c: '#64748b', s: kpiSeries.signups },
+    { l: 'Premium ativos', v: `${metrics.funnel.premiumActive ?? 0}`, c: '#178f89', s: kpiSeries.premium },
+    { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#178f89', s: kpiSeries.conv },
+    { l: 'Receita recorrente/mês', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89', s: kpiSeries.mrr },
+    { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89', s: kpiSeries.total },
+    { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#b88a54' },
+  ];
+
   return (
     <Stack spacing={2}>
       <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
-        {[
-          { l: 'Cadastros', v: metrics.funnel.signups, c: '#64748b' },
-          { l: 'Premium ativos', v: metrics.funnel.premiumActive, c: '#178f89' },
-          { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#178f89' },
-          { l: 'Receita recorrente/mês', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89' },
-          { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89' },
-          { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#b88a54' },
-        ].map((k) => (
-          <Card key={k.l} sx={{ borderRadius: '12px' }}><CardContent>
-            <Typography variant="caption" color="text.secondary">{k.l}</Typography>
-            <Typography variant="h5" sx={{ fontWeight: 800, color: k.c }}>{k.v}</Typography>
-          </CardContent></Card>
-        ))}
+        {kpis.map((k) => {
+          // Valores longos (R$ x.xxx,xx) precisam de dígito menor no card de 2 colunas do mobile.
+          const nDigits = k.v.replace(/\D/g, '').length;
+          return (
+            <Card key={k.l} sx={{ borderRadius: '12px' }}><CardContent>
+              <Typography variant="caption" color="text.secondary">{k.l}</Typography>
+              <RollingMetric
+                label={k.l}
+                text={k.v}
+                series={k.s}
+                color={k.c}
+                digitHeight={nDigits >= 9 ? 19 : 24}
+                sparkHeight={40}
+              />
+            </CardContent></Card>
+          );
+        })}
       </Box>
 
       {/* Decifre anônimo (landing) — topo de funil público */}
