@@ -9,6 +9,7 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { getSettings } from './utils/settings';
+import { lookupCfm, cfmState, BR_UFS } from './utils/cfm';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
@@ -554,6 +555,20 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
       return;
     }
 
+    // AUD-003 parte 1 (spec §7): CRM/UF válidos + CFM não inativo. A conta nasce 'pending' (default
+    // do schema) → o token abaixo só abre o onboarding; dado de paciente só após o KYC (gate).
+    const crmDigits = String(crm).replace(/[-/\s]*[A-Za-z]{2}\s*$/, '').replace(/\D/g, '');
+    const ufIn = String(crmUf || String(crm).match(/([A-Za-z]{2})\s*$/)?.[1] || '').trim().toUpperCase();
+    if (!/^\d{3,7}$/.test(crmDigits) || !BR_UFS.has(ufIn)) {
+      res.status(422).json({ code: 'CRM_INVALID', error: 'CRM ou UF inválidos.' });
+      return;
+    }
+    const cfm = await lookupCfm(crmDigits, ufIn).catch(() => null);
+    if (cfm && cfmState(cfm.situation) === 'inactive') {
+      res.status(422).json({ code: 'CRM_INACTIVE', error: `CRM consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` });
+      return;
+    }
+
     const { normalizeCrmKey } = await import('./routes/doctor.routes');
     const norm = normalizeCrmKey(crm, crmUf);
     const crmKey = norm?.crm ?? String(crm).trim();
@@ -581,6 +596,7 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
             crmUf: uf,
             specialty: specialty || existing.specialty,
             passwordHash,
+            verificationStatus: 'pending',
           },
         });
       } else {

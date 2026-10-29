@@ -29,7 +29,8 @@ import { createPixCharge } from '../payments/pix-provider';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
-import { lookupCfm } from '../utils/cfm';
+import { lookupCfm, cfmState } from '../utils/cfm';
+import { notifyKycAdmin } from '../kyc/notify';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
 import { summarizePatterns } from '../analysis/health-patterns';
@@ -309,7 +310,7 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     // não estiver disponível (sem chave / falha / limite), NÃO bloqueia (graceful — não trava
     // cadastro legítimo); o cadastro já fica inativo até verificar e-mail + é auditado pro admin.
     const cfm = uf ? await lookupCfm(crm, uf).catch(() => null) : null;
-    if (cfm && cfm.situation && !/ativo/i.test(cfm.situation)) {
+    if (cfm && cfmState(cfm.situation) === 'inactive') { // /ativo/i casava "Inativo"
       res.status(400).json({ error: `CRM ${crmKey}/${uf} consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` }); return;
     }
     const mail = String(email).toLowerCase().trim();
@@ -325,9 +326,22 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
         // Mas NÃO loga ainda: valida o e-mail (OTP), igual o paciente.
         await prisma.doctor.update({
           where: { id: existing.id },
-          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null },
+          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null, verificationStatus: 'pending' }, // KYC: quem reivindica nasce pending — os shares herdados só abrem após verificação
         });
       } else {
+        // Mesmo CRM, outro e-mail = alguém tentando o CRM de quem já tem conta (spec §7): fica registrado.
+        const crmConflict = existing.crm === crmKey && existing.email !== mail;
+        if (crmConflict) {
+          void audit('DOCTOR_CRM_CONFLICT', req, { actorType: 'SYSTEM', targetType: 'DOCTOR', targetId: existing.id, after: { crm: crmKey, attemptedEmail: mail, existingStatus: existing.verificationStatus } });
+          if (!['approved', 'legacy'].includes(existing.verificationStatus)) {
+            void notifyKycAdmin('Dr. Exame — CRM disputado por dois cadastros', [
+              `CRM ${crmKey}: já existe cadastro NÃO verificado e chegou outro com e-mail diferente.`,
+              'Se o novo for o titular, libere o CRM no admin.',
+            ]);
+            res.status(409).json({ code: 'CRM_IN_USE_UNVERIFIED', error: 'Este CRM já tem um cadastro em verificação. Se o CRM é seu, fale com o suporte: contato@janocaminho.com.br' });
+            return;
+          }
+        }
         res.status(409).json({ error: 'CRM ou e-mail já cadastrado. Faça login.' }); return;
       }
     } else {
