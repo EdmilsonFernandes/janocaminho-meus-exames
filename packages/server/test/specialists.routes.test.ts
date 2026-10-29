@@ -1,15 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser } from './helpers';
 import { prisma } from '../src/prisma';
+import { saveSettings } from '../src/utils/settings';
 
 // §3/§5 "Encontrar especialistas" (28/10/26): busca no DIRETÓRIO PRÓPRIO (zero
 // integração paga). Contratos: médico bloqueado nunca aparece; provenance distingue
 // dados do portal (confirmado) vs cadastro de pacientes; filtro por convênio usa
 // doctor_insurances; claimed ordena primeiro.
+// Revisão final do KYC (I7): "claimed" = conta real QUE PODE ATUAR (doctorMayPractice). Conta com senha mas
+// pendente/recusada/legado vencido não é apresentada como "dados publicados pelo médico" nem sobe no ranking.
 
 let seq = 0;
 async function mkDoctor(opts: {
   claimed?: boolean; blocked?: boolean; specialty?: string; city?: string; clinic?: string; crm?: string; price?: number | null;
+  /** verificationStatus da conta real (default 'approved' quando claimed; o schema usaria 'pending'). */
+  status?: string;
 } = {}) {
   seq += 1;
   const crm = opts.crm ?? `${80000 + seq}-SP`;
@@ -24,6 +29,7 @@ async function mkDoctor(opts: {
       consultPriceCents: opts.price === undefined ? null : opts.price,
       email: `spec-${seq}@invite.com`,
       passwordHash: opts.blocked ? 'pending-invite' : (opts.claimed ? 'real-hash' : 'pending-invite'),
+      ...(opts.claimed && !opts.blocked ? { verificationStatus: opts.status ?? 'approved' } : {}),
       ...(opts.blocked ? { blocked: true, blockedReason: 'teste' } : {}),
     },
   });
@@ -183,5 +189,50 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     expect(comCrm.crm).toBe('123456');
     expect(comCrm.crmUf).toBe('SP');
     expect(semCrm.crm ?? null).toBeNull(); // conselho de enfermagem NÃO vira CRM
+  });
+
+  // I7: o selo "Dados publicados pelo médico no Dr. Exame" e o 1º lugar do ranking eram de qualquer conta com senha —
+  // inclusive pendente/recusada, com telefone/bio editados pelo próprio titular da conta (o funil até o C1).
+  it('conta REAL que NÃO pode atuar (pending, rejected) não é "claimed": sem o selo do portal, fora do ranking de cima e do claimedOnly', async () => {
+    const { token } = await createUser({});
+    const ok = await mkDoctor({ claimed: true });                      // approved
+    const pend = await mkDoctor({ claimed: true, status: 'pending' });
+    const rej = await mkDoctor({ claimed: true, status: 'rejected' });
+    const placeholder = await mkDoctor({});
+    await prisma.doctor.update({ where: { id: ok.id }, data: { name: 'Zeca Aprovado' } }); // alfabético: seria o ÚLTIMO se o ranking fosse só por nome
+
+    const r = await api().get('/api/specialists').set(authHeader(token));
+    expect(r.status).toBe(200);
+    const byId = new Map<string, any>(r.body.items.map((i: any) => [i.id, i]));
+    expect(byId.get(ok.id)).toMatchObject({ claimed: true, provenance: { source: 'portal_do_medico' } });
+    for (const d of [pend, rej]) {
+      expect(byId.get(d.id).claimed).toBe(false);
+      expect(byId.get(d.id).provenance.source).toBe('cadastro_em_verificacao'); // honesto: conta do próprio médico, ainda não verificada
+      expect(byId.get(d.id).provenance.label).toContain('verificação');
+      expect(byId.get(d.id).provenance.label).toContain('confirme');
+    }
+    expect(byId.get(placeholder.id).provenance.source).toBe('cadastro_pacientes'); // placeholder segue como era
+    expect(r.body.items[0].id).toBe(ok.id); // só quem atua sobe
+    expect(r.body.items.slice(1).every((i: any) => !i.claimed)).toBe(true);
+
+    const only = await api().get('/api/specialists?claimedOnly=true').set(authHeader(token));
+    expect(only.body.items.map((i: any) => i.id)).toEqual([ok.id]); // teleconsulta: só "portal ativo" de verdade
+    // o status do KYC não vaza ao paciente
+    expect(JSON.stringify(r.body)).not.toMatch(/verificationStatus|passwordHash|kyc_fraud/);
+  });
+
+  it('legado DENTRO do prazo conta como claimed; com o prazo vencido deixa de contar', async () => {
+    const { token } = await createUser({});
+    const leg = await mkDoctor({ claimed: true, status: 'legacy' });
+    try {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() + 3_600_000, autoApprove: 0 });
+      const dentro = await api().get('/api/specialists').set(authHeader(token));
+      expect(dentro.body.items.find((i: any) => i.id === leg.id).claimed).toBe(true);
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() - 1000, autoApprove: 0 });
+      const vencido = await api().get('/api/specialists').set(authHeader(token));
+      expect(vencido.body.items.find((i: any) => i.id === leg.id).claimed).toBe(false);
+    } finally {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    }
   });
 });

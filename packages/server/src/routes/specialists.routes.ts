@@ -1,11 +1,14 @@
 import { Router } from 'express';
 import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest } from '../middleware/auth';
+import { doctorMayPractice } from '../utils/doctorAccess';
 
 // ── ENCONTRAR ESPECIALISTAS (28/10/26, spec §3/§4) ────────────────────────────────
 // Busca no DIRETÓRIO PRÓPRIO — 100% desenvolvimento nosso (decisão do dono 28/10/26:
 // NENHUMA integração paga, nenhum scraping). Fontes do diretório:
-//   - médicos CLAIMADOS (conta no portal) → dados publicados por eles = "confirmado"
+//   - médicos CLAIMADOS (conta no portal QUE PODE ATUAR — doctorMayPractice) → dados publicados por eles = "confirmado"
+//   - conta real ainda NÃO verificada (pendente/recusada/legado vencido) → "cadastro do médico em verificação": sem selo
+//     do portal e sem subir no ranking (revisão final do KYC, I7 — os dados são auto-declarados)
 //   - médicos PENDING (cadastrados por pacientes via CRM) = "informado por pacientes"
 // Provenance SEMPRE visível por item; ausência de convênio ≠ não aceita (§5):
 // quando não há informação, o front mostra "não informado — confirme com o consultório".
@@ -74,7 +77,7 @@ router.get('/', async (req: AuthedRequest, res, next) => {
         select: {
           id: true, name: true, crm: true, crmUf: true, specialty: true, photoUrl: true,
           phone: true, clinicName: true, clinicCity: true, bio: true, consultPriceCents: true,
-          createdAt: true, passwordHash: true,
+          createdAt: true, passwordHash: true, blocked: true, verificationStatus: true,
           insurances: { orderBy: [{ verificationStatus: 'asc' }, { operator: 'asc' }] },
         },
       }),
@@ -103,17 +106,24 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       ? doctorsRaw.filter((d) => d.clinicCity && deaccent(d.clinicCity).includes(cityNorm))
       : doctorsRaw;
 
+    const now = new Date();
     const items = doctors
-      .map(({ passwordHash, insurances, ...d }) => {
-        const claimed = passwordHash !== 'pending-invite';
+      // blocked/verificationStatus servem só p/ decidir `claimed` — NUNCA saem na resposta (o paciente não vê o KYC do médico).
+      .map(({ passwordHash, insurances, blocked, verificationStatus, ...d }) => {
+        const realAccount = passwordHash !== 'pending-invite'; // placeholder de paciente não tem senha
+        // "Reivindicado" = conta real QUE PODE ATUAR (revisão final I7). Conta com senha mas pendente/recusada/legado
+        // vencido tem nome/telefone/bio auto-declarados: não é "perfil publicado do médico" e não sobe no ranking.
+        const claimed = realAccount && doctorMayPractice({ blocked, verificationStatus }, now);
         return {
           ...d,
           claimed,
           // Provenance (§3 "fonte e data"): o que existe no diretório é publicado pelo
-          // médico (portal) ou informado por pacientes. Sem inventar dado ausente.
+          // médico (portal), cadastro do médico ainda em verificação ou informado por pacientes. Sem inventar dado ausente.
           provenance: claimed
             ? { source: 'portal_do_medico', label: 'Dados publicados pelo médico no Dr. Exame', updatedAt: d.createdAt }
-            : { source: 'cadastro_pacientes', label: 'Cadastro feito por pacientes (CRM informado) — confirme os dados com o consultório', updatedAt: d.createdAt },
+            : realAccount
+              ? { source: 'cadastro_em_verificacao', label: 'Cadastro do próprio médico, ainda em verificação de identidade — confirme os dados com o consultório', updatedAt: d.createdAt }
+              : { source: 'cadastro_pacientes', label: 'Cadastro feito por pacientes (CRM informado) — confirme os dados com o consultório', updatedAt: d.createdAt },
           insurances: insurances.map((i) => ({
             operator: i.operator,
             plan: i.plan,

@@ -47,7 +47,7 @@ import { computeCompletionSplit } from '../finance/ledger';
 import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
-import { DOCTOR_ACCESS_SELECT, doctorAccessDenial } from '../utils/doctorAccess';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial, doctorMayPractice } from '../utils/doctorAccess';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -257,25 +257,32 @@ router.get('/lookup', requireAuth, async (req: AuthedRequest, res, next) => {
     if (!crm || uf.length !== 2) { res.status(400).json({ error: 'CRM e UF (2 letras) obrigatórios.' }); return; }
     const crmKey = `${crm}-${uf}`;
 
-    // 1) conta real (médico registrou/claimou) — dados mais fidedignos
+    // 1) conta real QUE PODE ATUAR (médico registrou/claimou e passou no KYC) — dados mais fidedignos. Conta com senha mas
+    //    pendente/recusada/bloqueada/legado vencido NÃO é "perfil publicado do médico" (nome/telefone/bio são
+    //    auto-declarados — revisão final I7): não sai como `base` e cai nos passos seguintes.
     const doc = await prisma.doctor.findUnique({ where: { crm: crmKey } });
+    const realAccount = !!doc && doc.passwordHash !== 'pending-invite';
     const docDto = (d: any) => ({ name: d.name, specialty: d.specialty, crm: d.crm, uf: d.crmUf || uf, email: d.email?.includes('@invite.com') ? null : d.email, phone: d.phone ?? null, clinicName: d.clinicName ?? null, clinicCity: d.clinicCity ?? null, bio: d.bio ?? null });
-    if (doc && doc.passwordHash !== 'pending-invite') { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+    if (doc && realAccount && doctorMayPractice(doc)) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
 
-    // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade
+    // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade. Só placeholder/
+    //    inexistente é gravado: o upsert reescreveria nome/especialidade de uma conta REAL (identidade travada) com o dado do CFM.
     const cfm = await lookupCfm(crm, uf);
     if (cfm) {
-      await prisma.doctor.upsert({
-        where: { crm: crmKey },
-        update: { name: cfm.name, specialty: cfm.specialty || undefined, crmUf: uf },
-        create: { name: cfm.name, crm: crmKey, crmUf: uf, specialty: cfm.specialty, email: `pending-${crmKey}@invite.com`.toLowerCase(), passwordHash: 'pending-invite' },
-      }).catch(() => null);
+      if (!realAccount) {
+        await prisma.doctor.upsert({
+          where: { crm: crmKey },
+          update: { name: cfm.name, specialty: cfm.specialty || undefined, crmUf: uf },
+          create: { name: cfm.name, crm: crmKey, crmUf: uf, specialty: cfm.specialty, email: `pending-${crmKey}@invite.com`.toLowerCase(), passwordHash: 'pending-invite' },
+        }).catch(() => null);
+      }
       res.json({ source: 'cfm', doctor: { name: cfm.name, specialty: cfm.specialty, crm: cfm.crm, uf: cfm.uf, situation: cfm.situation } });
       return;
     }
 
-    // 3) cadastro pendente local (paciente já tinha digitado antes) — melhor que manual
-    if (doc && doc.name) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+    // 3) cadastro pendente local (paciente já tinha digitado antes) — melhor que manual. Só placeholder: conta real que
+    //    não pode atuar segue p/ o manual (não apresentamos dado auto-declarado como `base`).
+    if (doc && !realAccount && doc.name) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
 
     // 4) manual
     res.json({ source: 'manual', doctor: null });
@@ -315,21 +322,30 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     }
     const cpfData = encryptedCpfData(cpf);
     if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
-    // Normaliza pra chave canônica "numero-UF" — COERENTE com o compartilhamento do paciente.
-    // Assim o médico reclaima o Doctor pendente criado no share (herda os compartilhamentos),
-    // independente de digitar "116739", "116739-SP" ou "116739" + UF.
-    const norm = normalizeCrmKey(crm, crmUf) ?? normalizeCrmKey(crm);
-    const crmKey = norm?.crm ?? String(crm).trim();
-    const uf = norm?.uf ?? null;
+    // Chave CANÔNICA "numero-UF" — COERENTE com o compartilhamento do paciente, o lookup e o convite. Assim o médico
+    // reclaima o Doctor pendente criado no share (herda os compartilhamentos), independente de digitar "116739",
+    // "116739-SP" ou "116739" + UF. Revisão final I7: o número é só dígitos e a UF (crmUf ou o sufixo do CRM) tem de ser
+    // uma das 27 — antes "000000-ZZ" passava e "116739-sp" / "116739-SP-RJ" geravam chaves distintas (burlavam
+    // CRM_IN_USE_UNVERIFIED e o agrupamento das tentativas de KYC; o KYC checava um CRM diferente do exibido).
+    const parsed = canonicalCrm(crm, crmUf);
+    if (!parsed) { res.status(422).json({ code: 'CRM_INVALID', error: 'CRM ou UF inválidos.' }); return; }
+    const crmKey = parsed.key;
+    const uf = parsed.uf;
     // Validação CFM (quando CONSULTA_CRM_KEY configurada): bloqueia CRM INATIVO. Se a API do CFM
     // não estiver disponível (sem chave / falha / limite), NÃO bloqueia (graceful — não trava
     // cadastro legítimo); o cadastro já fica inativo até verificar e-mail + é auditado pro admin.
-    const cfm = uf ? await lookupCfm(crm, uf).catch(() => null) : null;
+    const cfm = await lookupCfm(parsed.digits, uf).catch(() => null);
     if (cfm && cfmState(cfm.situation) === 'inactive') { // /ativo/i casava "Inativo"
       res.status(400).json({ error: `CRM ${crmKey}/${uf} consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` }); return;
     }
     const mail = String(email).toLowerCase().trim();
     const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
+    // Placeholder (sem senha, criado por paciente) só é reivindicado pelo CRM — o e-mail previsível
+    // (pending-<crm>@invite.com) NÃO basta: casar por e-mail deixava qualquer um renomear/converter o placeholder de OUTRO
+    // médico (com os shares dos pacientes dele). Mesmo princípio do convite (revisão final I6b).
+    if (existing && existing.passwordHash === 'pending-invite' && existing.crm !== crmKey) {
+      res.status(409).json({ code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' }); return;
+    }
     const duplicateCpf = await prisma.doctor.findFirst({
       where: { cpfHash: cpfData.cpfHash, ...(existing ? { NOT: { id: existing.id } } : {}) },
       select: { id: true },

@@ -11,7 +11,7 @@ describe('POST /items/explain — auth dual (paciente OU médico)', () => {
   beforeEach(resetDb);
 
   it('token de MÉDICO passa (bug: antes 401 "token inválido" no portal)', async () => {
-    const { token } = await createDoctor({ email: `doc-${Date.now().toString(36)}@exemplo.com`, crm: `${(Date.now() % 100000)}-SP` });
+    const { token } = await createDoctor({ email: `doc-${Date.now().toString(36)}@exemplo.com`, crm: `${10000 + (Date.now() % 90000)}-SP` });
     const r = await api().post('/api/items/explain').set(authH(token)).send({ name: 'Hemoglobina' });
     expect(r.status).not.toBe(401);
     expect([200, 502]).toContain(r.status);

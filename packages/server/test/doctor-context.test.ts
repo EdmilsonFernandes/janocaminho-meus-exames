@@ -3,6 +3,10 @@ import { prisma } from '../src/prisma';
 import { api, createUser, createDoctor, resetDb } from './helpers';
 
 const authH = (t: string) => ({ Authorization: `Bearer ${t}` });
+// CRM numérico único: o cadastro valida/canoniza "numero-UF" (só dígitos — revisão final do KYC, I7); o sufixo de um id
+// base36 trazia letras e virava CRM inválido.
+let crmSeq = 46000;
+const nextCrm = () => `${crmSeq++}-SP`;
 
 // Brief v2 (24/10): GET /doctor/patients/:id/context — medicações ATIVAS + alergias
 // pro brief do médico. Mesmo guard do /vitals (share scope 'exams').
@@ -12,7 +16,7 @@ describe('Doctor: contexto clínico (GET /context)', () => {
   async function setup(share = true) {
     const { patient } = await createUser();
     const n = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: `${n.slice(-5)}-SP` });
+    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: nextCrm() });
     if (share) {
       await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: patient.id, scopes: ['exams', 'alerts'], active: true } });
     }
@@ -50,7 +54,7 @@ describe('Doctor: contexto clínico (GET /context)', () => {
   it('share sem scope exams → 403', async () => {
     const { patient } = await createUser();
     const n = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: `${n.slice(-5)}-SP` });
+    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: nextCrm() });
     await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: patient.id, scopes: ['summary'], active: true } });
     const r = await api().get(`/api/doctor/patients/${patient.id}/context`).set(authH(token));
     expect(r.status).toBe(403);
@@ -65,7 +69,7 @@ describe('Doctor context: uso relatado (AAS P0.4)', () => {
   async function setup() {
     const { patient } = await createUser();
     const n = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: `${n.slice(-5)}-SP` });
+    const { doctor, token } = await createDoctor({ email: `doc-${n}@exemplo.com`, crm: nextCrm() });
     await prisma.doctorShare.create({ data: { doctorId: doctor.id, patientId: patient.id, scopes: ['exams'], active: true } });
     return { patientId: patient.id, token };
   }

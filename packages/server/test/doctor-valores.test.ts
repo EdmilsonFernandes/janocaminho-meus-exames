@@ -16,7 +16,7 @@ describe('Doctor Portal — valores alterados (GET /doctor/patients/:id/items/ab
   beforeEach(async () => { await resetDb(); });
 
   it('200 + itens anormais quando scope inclui exams', async () => {
-    const { docToken, patientId } = await setupShare('V1-SP', 'v1@t.com', 'pv1@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('43001-SP', 'v1@t.com', 'pv1@t.com', ['exams']);
     const exam = await createExam(patientId, { title: 'Hemograma' });
     await createItem(exam.id, { name: 'GLICEMIA', valueNumeric: 220, valueText: '220', flag: 'HIGH', isAbnormal: true, refLow: 70, refHigh: 100 });
     await createItem(exam.id, { name: 'HEMOGLOBINA', valueNumeric: 14, flag: 'NORMAL', isAbnormal: false });
@@ -28,27 +28,27 @@ describe('Doctor Portal — valores alterados (GET /doctor/patients/:id/items/ab
   });
 
   it('403 quando scope NÃO inclui exams', async () => {
-    const { docToken, patientId } = await setupShare('V2-SP', 'v2@t.com', 'pv2@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('43002-SP', 'v2@t.com', 'pv2@t.com', ['summary']);
     const r = await api().get(`/api/doctor/patients/${patientId}/items/abnormal`).set(docH(docToken));
     expect(r.status).toBe(403);
   });
 
   it('403 quando share inativo', async () => {
-    const { docToken, patientId } = await setupShare('V3-SP', 'v3@t.com', 'pv3@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('43003-SP', 'v3@t.com', 'pv3@t.com', ['exams']);
     await prisma.doctorShare.updateMany({ where: { patientId }, data: { active: false } });
     const r = await api().get(`/api/doctor/patients/${patientId}/items/abnormal`).set(docH(docToken));
     expect(r.status).toBe(403);
   });
 
   it('respeita examIds (per-exam share) — só lista itens dos exames autorizados', async () => {
-    const { docToken, patientId, patientToken } = await setupShare('V4-SP', 'v4@t.com', 'pv4@t.com', []);
+    const { docToken, patientId, patientToken } = await setupShare('43004-SP', 'v4@t.com', 'pv4@t.com', []);
     const a = await createExam(patientId, { title: 'Exame A' });
     const b = await createExam(patientId, { title: 'Exame B' });
     await createItem(a.id, { name: 'A_ALT', flag: 'HIGH', isAbnormal: true });
     await createItem(b.id, { name: 'B_ALT', flag: 'HIGH', isAbnormal: true });
     // recria share autorizando só o exame A
     await prisma.doctorShare.updateMany({ where: { patientId }, data: { active: false } });
-    await api().post('/api/doctor-shares').set(authHeader(patientToken)).send({ doctorCrm: 'V4-SP', scopes: ['exams'], examIds: [a.id] });
+    await api().post('/api/doctor-shares').set(authHeader(patientToken)).send({ doctorCrm: '43004-SP', scopes: ['exams'], examIds: [a.id] });
 
     const r = await api().get(`/api/doctor/patients/${patientId}/items/abnormal`).set(docH(docToken));
     expect(r.status).toBe(200);
@@ -57,7 +57,7 @@ describe('Doctor Portal — valores alterados (GET /doctor/patients/:id/items/ab
   });
 
   it('só retorna itens com isAbnormal:true', async () => {
-    const { docToken, patientId } = await setupShare('V5-SP', 'v5@t.com', 'pv5@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('43005-SP', 'v5@t.com', 'pv5@t.com', ['exams']);
     const exam = await createExam(patientId);
     await createItem(exam.id, { name: 'ALT', flag: 'HIGH', isAbnormal: true });
     await createItem(exam.id, { name: 'NORM', flag: 'NORMAL', isAbnormal: false });
@@ -67,7 +67,7 @@ describe('Doctor Portal — valores alterados (GET /doctor/patients/:id/items/ab
   });
 
   it('shape igual ao /items/abnormal do paciente', async () => {
-    const { docToken, patientId } = await setupShare('V6-SP', 'v6@t.com', 'pv6@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('43006-SP', 'v6@t.com', 'pv6@t.com', ['exams']);
     const exam = await createExam(patientId, { title: 'Bioquímica' });
     await createItem(exam.id, { name: 'CREATININA', valueNumeric: 1.8, valueText: '1.8', unit: 'mg/dL', flag: 'HIGH', isAbnormal: true, refLow: 0.7, refHigh: 1.2 });
     const r = await api().get(`/api/doctor/patients/${patientId}/items/abnormal`).set(docH(docToken));

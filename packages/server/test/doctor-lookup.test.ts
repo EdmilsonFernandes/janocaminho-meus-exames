@@ -15,13 +15,38 @@ describe('GET /api/doctor/lookup + /specialties', () => {
   });
 
   it('médico com conta REAL (claimada) → source=base (não consulta CFM)', async () => {
-    await prisma.doctor.create({ data: { name: 'Dr. Real', crm: '12345-SP', crmUf: 'SP', specialty: 'Cardiologista', email: 'real@x.com', passwordHash: 'hash-real' } });
+    await prisma.doctor.create({ data: { name: 'Dr. Real', crm: '12345-SP', crmUf: 'SP', specialty: 'Cardiologista', email: 'real@x.com', passwordHash: 'hash-real', verificationStatus: 'approved' } });
     const r = await api().get('/api/doctor/lookup?crm=12345&uf=SP').set(authHeader(t.token));
     expect(r.status).toBe(200);
     expect(r.body.source).toBe('base');
     expect(r.body.doctor.name).toBe('Dr. Real');
     expect(r.body.doctor.crm).toBe('12345-SP');
     expect(globalThis.fetch).not.toHaveBeenCalled(); // não precisou do CFM
+  });
+
+  // Revisão final do KYC (I7): conta com senha mas que NÃO pode atuar (pendente, recusada, bloqueada, legado vencido)
+  // não é "perfil publicado do médico" — nome/telefone/bio são auto-declarados. O lookup NÃO a devolve como `base`
+  // e tampouco a reescreve com o dado do CFM (o upsert só vale p/ placeholder/inexistente).
+  it.each([
+    ['pending', { verificationStatus: 'pending' }],
+    ['rejected', { verificationStatus: 'rejected' }],
+    ['approved mas bloqueado', { verificationStatus: 'approved', blocked: true, blockedReason: 'kyc_fraud' }],
+  ])('conta real que NÃO pode atuar (%s) não vira source=base: sem CFM → manual', async (_nome, estado) => {
+    await prisma.doctor.create({ data: { name: 'Dr. Autodeclarado', crm: '12345-SP', crmUf: 'SP', specialty: 'Cardiologista', email: 'auto@x.com', phone: '11999990000', bio: 'bio auto-declarada', passwordHash: 'hash-real', ...estado } });
+    const r = await api().get('/api/doctor/lookup?crm=12345&uf=SP').set(authHeader(t.token));
+    expect(r.status).toBe(200);
+    expect(r.body).toEqual({ source: 'manual', doctor: null });
+    expect(JSON.stringify(r.body)).not.toContain('11999990000');
+  });
+
+  it('conta real que não pode atuar + CFM disponível → source=cfm (dado oficial) e a conta real NÃO é reescrita', async () => {
+    await prisma.doctor.create({ data: { name: 'Dr. Autodeclarado', crm: '12345-SP', crmUf: 'SP', specialty: 'Cardiologista', email: 'auto@x.com', passwordHash: 'hash-real', verificationStatus: 'pending' } });
+    (globalThis.fetch as any).mockResolvedValueOnce(mpResponse({ status: 'true', total: 1, item: [{ nome: 'Dr. Nome Oficial', profissao: 'Neurologista', numero: '12345', uf: 'SP', situacao: 'Regular' }] }));
+    const r = await api().get('/api/doctor/lookup?crm=12345&uf=SP').set(authHeader(t.token));
+    expect(r.body.source).toBe('cfm');
+    expect(r.body.doctor.name).toBe('Dr. Nome Oficial');
+    const intacta = await prisma.doctor.findUniqueOrThrow({ where: { crm: '12345-SP' } });
+    expect(intacta).toMatchObject({ name: 'Dr. Autodeclarado', specialty: 'Cardiologista', passwordHash: 'hash-real', email: 'auto@x.com', verificationStatus: 'pending' });
   });
 
   it('fora do banco + CFM retorna → source=cfm E persiste o médico (pending-invite)', async () => {

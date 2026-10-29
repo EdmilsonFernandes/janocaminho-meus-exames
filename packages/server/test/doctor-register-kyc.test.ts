@@ -177,3 +177,71 @@ describe('convite: reivindicar placeholder só por CRM e nunca reescrever o CRM 
     expect((await prisma.doctor.findUnique({ where: { crm: '116739-SP' } }))?.crmUf).toBe('SP');
   });
 });
+
+// Revisão final do KYC — I7: o cadastro PRINCIPAL não validava nem canonizava CRM/UF (só o convite): "000000-ZZ" passava,
+// e "116739-sp" / "116739-SP-RJ" geravam chaves distintas, burlando CRM_IN_USE_UNVERIFIED e o agrupamento das tentativas.
+describe('cadastro principal: CRM canônico "numero-UF" (I7)', () => {
+  beforeEach(async () => {
+    await resetDb();
+    vi.mocked(lookupCfm).mockReset();
+    vi.mocked(lookupCfm).mockResolvedValue(null);
+    vi.mocked(sendEmail).mockClear();
+  });
+
+  it('a UF vem do crmUf OU do sufixo do CRM (qualquer caixa); a chave gravada é sempre "numero-UF"', async () => {
+    expect((await register({ crm: '116739', crmUf: 'sp' })).status).toBe(201);          // crmUf explícito, minúsculo
+    expect((await register({ crm: '222222-rj', crmUf: undefined })).status).toBe(201);  // sufixo, minúsculo
+    expect((await register({ crm: '33.333-MG', crmUf: undefined })).status).toBe(201);  // pontuação no número
+    expect(await prisma.doctor.findUnique({ where: { crm: '116739-SP' } })).toMatchObject({ crmUf: 'SP' });
+    expect(await prisma.doctor.findUnique({ where: { crm: '222222-RJ' } })).toMatchObject({ crmUf: 'RJ' });
+    expect(await prisma.doctor.findUnique({ where: { crm: '33333-MG' } })).toMatchObject({ crmUf: 'MG' });
+    expect(await prisma.doctor.count()).toBe(3); // nenhuma chave paralela
+    // a consulta ao CFM usa o número e a UF canônicos
+    expect(vi.mocked(lookupCfm)).toHaveBeenCalledWith('116739', 'SP');
+    expect(vi.mocked(lookupCfm)).toHaveBeenCalledWith('222222', 'RJ');
+  });
+
+  it.each([
+    ['sem UF em lugar nenhum', { crm: '116739', crmUf: undefined }],
+    ['UF fora de BR_UFS (PoC 000000-ZZ)', { crm: '000000', crmUf: 'ZZ' }],
+    ['UF inválida no sufixo', { crm: '116739-ZZ', crmUf: undefined }],
+    ['número sem dígitos', { crm: 'ABC-SP', crmUf: undefined }],
+    ['número curto demais', { crm: '12-SP', crmUf: undefined }],
+    ['número longo demais', { crm: '12345678-SP', crmUf: undefined }],
+  ])('%s → 422 CRM_INVALID e nenhuma conta nem consulta ao CFM', async (_nome, over) => {
+    const r = await register(over);
+    expect(r.status).toBe(422);
+    expect(r.body.code).toBe('CRM_INVALID');
+    expect(await prisma.doctor.count()).toBe(0);
+    expect(vi.mocked(lookupCfm)).not.toHaveBeenCalled();
+  });
+
+  it('variantes do MESMO CRM colidem na chave canônica: "116739-sp", "116.739" + UF e "116739-SP" não geram contas paralelas', async () => {
+    expect((await register({ crm: '116739-SP', crmUf: undefined })).status).toBe(201);
+    for (const variante of [{ crm: '116739-sp', crmUf: undefined }, { crm: '116.739', crmUf: 'sp' }, { crm: '116739-SP-RJ', crmUf: 'SP' }]) {
+      const r = await register(variante); // outro e-mail
+      expect(r.status, JSON.stringify(variante)).toBe(409);
+      expect(r.body.code).toBe('CRM_IN_USE_UNVERIFIED'); // antes: chave diferente => cadastro paralelo passava
+    }
+    expect(await prisma.doctor.count()).toBe(1);
+  });
+
+  it('placeholder de OUTRO CRM com o e-mail previsível NÃO é reivindicado pelo cadastro principal (mesmo princípio do convite)', async () => {
+    const alice = await prisma.doctor.create({ data: { name: 'Dra Alice Placeholder', crm: '55555-SP', crmUf: 'SP', email: 'pending-55555-sp@invite.com', passwordHash: 'pending-invite' } });
+    const r = await register({ crm: '88888', crmUf: 'SP', email: 'pending-55555-sp@invite.com', name: 'Dr Mallory' });
+    expect(r.status).toBe(409);
+    expect(r.body.code).toBe('EMAIL_IN_USE');
+    expect(await prisma.doctor.findUniqueOrThrow({ where: { id: alice.id } })).toMatchObject({ name: 'Dra Alice Placeholder', crm: '55555-SP', crmUf: 'SP', passwordHash: 'pending-invite', email: 'pending-55555-sp@invite.com' });
+    expect(await prisma.doctor.findUnique({ where: { crm: '88888-SP' } })).toBeNull();
+  });
+
+  it('o claim do placeholder funciona pela chave canônica (CRM digitado em variante)', async () => {
+    const ph = await prisma.doctor.create({ data: { name: 'Pendente', crm: '34567-SP', crmUf: 'SP', email: 'placeholder-34567@exemplo.com', passwordHash: 'pending-invite' } });
+    const r = await register({ crm: '34.567-sp', crmUf: undefined });
+    expect(r.status).toBe(201);
+    const d = await prisma.doctor.findUniqueOrThrow({ where: { id: ph.id } });
+    expect(d).toMatchObject({ crm: '34567-SP', verificationStatus: 'pending' });
+    expect(d.passwordHash).not.toBe('pending-invite');
+    expect(await prisma.doctor.count()).toBe(1);
+  });
+});
