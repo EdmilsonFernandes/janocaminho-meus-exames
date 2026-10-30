@@ -19,6 +19,9 @@ import { AiCard } from '../components/dashboard/AiCard';
 import { CreditsCard } from '../components/dashboard/CreditsCard';
 import { TeleconsultaCard } from '../components/dashboard/TeleconsultaCard';
 import { MentalCard } from '../components/dashboard/DashboardV2';
+// Bloco "idade do corpo" (clássico) e índices clínicos ("saúde geral") — pedido do dono 29/10.
+import { BiologicalAgeCard } from '../components/dashboard/BiologicalAgeCard';
+import { ClinicalIndicesCard } from '../components/dashboard/ClinicalIndicesCard';
 import { syncPushToken } from '../push';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -82,6 +85,9 @@ export const DashboardV2Embedded = () => {
   const [examStats, setExamStats] = useState({ total: 0, failed: 0, rejected: 0, processing: 0 });
   const [changesRaw, setChangesRaw] = useState<{ worsened: any[]; improved: any[] }>({ worsened: [], improved: [] });
   const [bio, setBio] = useState<{ age: number } | null>(null);
+  const [bioExtra, setBioExtra] = useState<{ kdm: any; avail: any }>({ kdm: null, avail: null });
+  const [indices, setIndices] = useState<any[] | null>(null);
+  const [cardio, setCardio] = useState<{ level?: string; factors?: { label?: string; risk?: boolean }[] } | null>(null);
   const [actionsRaw, setActionsRaw] = useState<any[] | null>(null);
   const [bodyRegions, setBodyRegions] = useState<any[] | null>(null);
   const [buckets, setBuckets] = useState<{ ok?: number; alterados?: number; alerta?: number } | null>(null);
@@ -116,6 +122,9 @@ export const DashboardV2Embedded = () => {
         if (hd) {
           setChangesRaw({ worsened: Array.isArray(hd.worsening) ? hd.worsening.slice(0, 3) : [], improved: Array.isArray(hd.improving) ? hd.improving.slice(0, 3) : [] });
           if (hd.biologicalAge && typeof hd.biologicalAge.age === 'number') setBio({ age: hd.biologicalAge.age });
+          setBioExtra({ kdm: hd.biologicalAgeKDM ?? null, avail: hd.availability?.biologicalAge ?? null });
+          setIndices(Array.isArray(hd.clinicalIndices) ? hd.clinicalIndices : null);
+          if (hd.cardiometabolicRisk) setCardio(hd.cardiometabolicRisk);
           setActionsRaw(Array.isArray(hd.clinicalActions) ? hd.clinicalActions : []);
           setBodyRegions(Array.isArray(hd.bodyRegions) ? hd.bodyRegions : []);
         }
@@ -256,16 +265,27 @@ export const DashboardV2Embedded = () => {
           {/* O QUE MUDOU — componente REAL */}
           <ChangesSinceExam worsened={changesRaw.worsened} improved={changesRaw.improved} onView={go('/tendencias')} loaded={phase === 'ready'} lastExamAt={hero.lastExam} />
 
-          {/* IDADE BIOLÓGICA */}
-          {bio && (
-            <section className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Idade biológica">
-              <div>
-                <h3 className="text-sm font-semibold">Idade biológica</h3>
-                <p className="text-xs text-muted-foreground">estimada pelos seus marcadores laboratoriais</p>
-              </div>
-              <div className="font-head text-4xl font-extrabold tabular-nums text-primary">{bio.age}<span className="text-sm font-bold text-muted-foreground"> anos</span></div>
-            </section>
-          )}
+          {/* MAPA CORPORAL — componente REAL (posição clássica: após "o que mudou") */}
+          <section className="rounded-xl border border-border bg-card p-4" aria-label="Mapa corporal">
+            <div className="mb-2 flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Mapa corporal</h3>
+              <span className="text-xs text-muted-foreground">toque numa região</span>
+            </div>
+            <BodyMap
+              regions={bodyRegions}
+              loaded={phase === 'ready'}
+              onRegionClick={go('/alterados')}
+              onNavigateToTrend={(canonical: string) => { window.location.hash = `#/tendencias?select=${encodeURIComponent(canonical)}`; }}
+              onNavigateToExam={(examId: string) => { window.location.hash = `#/exams/${examId}`; }}
+              onUploadExam={go('/exams/create')}
+            />
+          </section>
+
+          {/* IDADE DO CORPO — componente CLÁSSICO (pedido do dono) */}
+          <BiologicalAgeCard idx={2} bio={(bio ?? null) as any} bioKdm={bioExtra.kdm} bioAvail={bioExtra.avail} bioLoaded={phase === 'ready'} />
+
+          {/* SAÚDE GERAL — índices clínicos (componente CLÁSSICO) */}
+          <ClinicalIndicesCard indices={indices} loaded={phase === 'ready'} />
 
           {/* PERGUNTAS PRO MÉDICO — componente REAL */}
           {actionsRaw && actionsRaw.length > 0 && <ClinicalActionsCard actions={actionsRaw} loaded />}
@@ -286,22 +306,6 @@ export const DashboardV2Embedded = () => {
           />
           <TeleconsultaCard />
 
-          {/* MAPA CORPORAL — componente REAL */}
-          <section className="rounded-xl border border-border bg-card p-4" aria-label="Mapa corporal">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Mapa corporal</h3>
-              <span className="text-xs text-muted-foreground">toque numa região</span>
-            </div>
-            <BodyMap
-              regions={bodyRegions}
-              loaded={phase === 'ready'}
-              onRegionClick={go('/alterados')}
-              onNavigateToTrend={(canonical: string) => { window.location.hash = `#/tendencias?select=${encodeURIComponent(canonical)}`; }}
-              onNavigateToExam={(examId: string) => { window.location.hash = `#/exams/${examId}`; }}
-              onUploadExam={go('/exams/create')}
-            />
-          </section>
-
           {/* PANORAMA + CRÉDITOS */}
           {buckets && (
             <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Panorama dos marcadores">
@@ -314,6 +318,37 @@ export const DashboardV2Embedded = () => {
               <a href="#/alterados" className="text-xs font-bold text-primary">ver todos →</a>
             </section>
           )}
+
+          {/* RISCO CARDIOMETABÓLICO — nível + fatores (mesmo conteúdo do dialog clássico) */}
+          {cardio && (() => {
+            const factors = Array.isArray(cardio.factors) ? cardio.factors : [];
+            const nRisk = factors.filter((f) => f.risk).length;
+            const level = cardio.level ?? '';
+            const levelCls = level === 'baixo' || level === 'low' ? 'border-success/25 bg-success/10 text-success-foreground dark:text-success'
+              : level === 'moderado' || level === 'moderate' ? 'border-warning/30 bg-warning/10 text-warning-foreground dark:text-warning'
+              : 'border-destructive/25 bg-destructive/10 text-destructive-foreground dark:text-destructive';
+            return (
+              <section className="flex flex-col gap-2 rounded-xl border border-border bg-card p-4" aria-label="Risco cardiometabólico">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm font-semibold">❤️ Risco cardiometabólico</h3>
+                  <span className={'rounded-full border px-2.5 py-1 text-xs font-bold ' + levelCls}>
+                    {level === 'baixo' || level === 'low' ? 'Baixo' : level === 'moderado' || level === 'moderate' ? 'Moderado' : level === 'alto' || level === 'high' ? 'Alto' : 'Sem dados'}
+                    {nRisk > 0 ? ` · ${nRisk} ${nRisk > 1 ? 'fatores' : 'fator'} de risco` : ' · nenhum fator'}
+                  </span>
+                </div>
+                {factors.length > 0 ? factors.map((f, i) => (
+                  <div key={i} className={'flex min-h-10 items-center gap-2.5 rounded-lg px-3 py-1.5 ' + (f.risk ? 'bg-destructive/10' : 'bg-success/10')}>
+                    <span aria-hidden className="text-sm">{f.risk ? '⚠️' : '✅'}</span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-semibold">{f.label ?? '—'}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">{f.risk ? 'acima do ideal' : 'dentro do esperado'}</span>
+                  </div>
+                )) : (
+                  <p className="text-xs text-muted-foreground">Envie exames com colesterol/glicose e cadastre peso e pressão em Medições pra dimensionar o risco.</p>
+                )}
+                <p className="text-[11px] text-muted-foreground/70">Identifica fatores de risco — não calcula probabilidade individual de infarto/AVC. A avaliação completa é com seu médico.</p>
+              </section>
+            );
+          })()}
           {credits != null && (
             <CreditsCard credits={credits} onClick={() => { window.location.hash = '#/planos'; }} />
           )}
