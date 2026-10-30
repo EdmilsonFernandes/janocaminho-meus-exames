@@ -1,5 +1,5 @@
 import { tealText } from './theme';
-import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, LoadingIndicator } from 'react-admin';
+import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, useStore, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { useEffect, useState, useRef, lazy, Suspense } from 'react';
@@ -8,6 +8,8 @@ import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem,
 import LogoutIcon from '@mui/icons-material/Logout';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloseIcon from '@mui/icons-material/Close';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 // Menu V2 seção E — família Outlined consistente no AppMenu (audit navegação: peso visual
 // irregular com filled misturado; Emergência≠Privacidade resolvem o ícone duplicado).
@@ -310,6 +312,16 @@ const CustomAppBar = (props: AppBarProps) => {
 // Rota ativa? ('/' é exato; o resto é startsWith p/ cobrir sub-rotas)
 const routeMatches = (route: string, pathname: string) => (route === '/' ? pathname === '/' : pathname.startsWith(route));
 
+// ——— Menu "vidro premium" (direção A aprovada no mock; base visual: bloco ReUI app-shell-31) ———
+// Aro de luz das superfícies translúcidas: claro = rim forte top-left; escuro = só um fio de
+// brilho (mais que isso e cada pílula "acende como neon", regra do próprio bloco original).
+const glassRim = (dark: boolean) => dark
+  ? 'inset 1px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 0 rgba(255,255,255,0.04)'
+  : 'inset 1px 1px 0 rgba(255,255,255,0.95), inset -1px -1px 0 rgba(255,255,255,0.55)';
+// WebView sem backdrop-filter (APK antigo)? → fundo quase opaco no lugar do vidro.
+const CAN_BLUR = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' &&
+  (CSS.supports('backdrop-filter', 'blur(1px)') || CSS.supports('-webkit-backdrop-filter', 'blur(1px)'));
+
 // Seção COLAPSÁVEL do menu (acordeão) estilo Consultório Premium (Direção A):
 // Header discreto e elegante com chip de ícone e chevron suave, contrastando sobre o rail profundo.
 const MenuSectionAccordion = ({
@@ -339,43 +351,47 @@ const MenuSectionAccordion = ({
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         sx={{
-          borderRadius: '12px',
-          m: '2px 8px',
-          pl: 1.25,
+          borderRadius: '16px',
+          m: '3px 8px',
+          pl: 1,
           pr: 1,
-          minHeight: 38,
+          minHeight: 48,
           bgcolor: (t) => {
             const isDark = t.palette.mode === 'dark';
-            if (open) return isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(32, 178, 170, 0.05)';
+            if (open) return isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.94)';
             return 'transparent';
           },
-          border: '1px solid',
-          borderColor: (t) => {
+          boxShadow: (t) => {
             const isDark = t.palette.mode === 'dark';
-            if (open) return isDark ? 'rgba(32, 178, 170, 0.28)' : 'rgba(32, 178, 170, 0.16)';
-            return 'transparent';
+            if (!open) return 'none';
+            return isDark
+              ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
+              : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.35)';
           },
           transition: 'all .2s ease',
           '&:hover': {
-            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(32, 178, 170, 0.08)',
-            borderColor: 'rgba(32, 178, 170, 0.3)',
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.7)',
+            boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
           },
         }}
       >
         <Box
           component="span"
           sx={{
-            width: 26,
-            height: 26,
-            borderRadius: '8px',
-            mr: 1.25,
+            width: 34,
+            height: 34,
+            borderRadius: '11px',
+            mr: 1.5,
             flexShrink: 0,
             display: 'grid',
             placeItems: 'center',
-            background: open ? 'linear-gradient(135deg, #0d9488, #059669)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.04)',
-            color: open ? '#fff' : (t) => t.palette.mode === 'dark' ? '#94a3b8' : '#64748b',
+            background: open ? 'linear-gradient(135deg, #20b2aa, #178f89)' : (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.72)',
+            color: open ? '#fff' : (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
+            boxShadow: open
+              ? 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(23,143,137,0.6)'
+              : (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
             transition: 'all .2s ease',
-            '& svg': { fontSize: 16 },
+            '& svg': { fontSize: 18 },
           }}
         >
           {icon}
@@ -384,8 +400,8 @@ const MenuSectionAccordion = ({
           primary={title}
           sx={{ flex: '1 1 auto', minWidth: 0, mr: 0.5, my: 0 }}
           primaryTypographyProps={{
-            fontSize: 12.5,
-            fontWeight: 700,
+            fontSize: 14,
+            fontWeight: 600,
             letterSpacing: '0.01em',
             noWrap: true,
             sx: {
@@ -394,8 +410,8 @@ const MenuSectionAccordion = ({
               whiteSpace: 'nowrap',
               color: (t) => {
                 const isDark = t.palette.mode === 'dark';
-                if (open) return isDark ? '#ffffff' : '#0f766e';
-                return isDark ? 'rgba(241, 245, 249, 0.8)' : '#475569';
+                if (open) return isDark ? '#8ff0e8' : '#0b5c57';
+                return isDark ? 'rgba(241, 245, 249, 0.9)' : '#1f2d2d';
               },
             },
           }}
@@ -460,6 +476,7 @@ const NavItem = ({
   highlight,
   badge,
   isSos,
+  tile,
 }: {
   to: string;
   primaryText: string;
@@ -467,43 +484,130 @@ const NavItem = ({
   highlight?: boolean;
   badge?: string;
   isSos?: boolean;
+  /** Item de topo no estilo "azulejo" do mock A (ícone em tile 34px, pílula elevada quando ativo). */
+  tile?: boolean;
 }) => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const active = to === '/' ? pathname === '/' : pathname.startsWith(to);
 
   if (isSos) {
+    // Cartão SOS (mock A): gradiente vermelho suave com aro interno e tile do ícone em relevo —
+    // para de competir com a lista e lê como "cartão de emergência" de verdade.
     return (
       <ListItemButton
         onClick={() => { hapticNav(); navigate(to); }}
         selected={active}
         sx={{
-          borderRadius: '12px',
-          m: '4px 8px',
-          py: 0.8,
+          borderRadius: '18px',
+          m: '6px 8px',
+          py: 1.1,
           px: 1.25,
-          minHeight: 44,
-          bgcolor: 'rgba(239, 68, 68, 0.08)',
-          border: '1px solid rgba(248, 113, 113, 0.35)',
-          color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#dc2626',
+          minHeight: 56,
+          background: (t) => t.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, rgba(127,29,29,0.55), rgba(80,20,20,0.45))'
+            : 'linear-gradient(135deg, #fee6e2, #fdf1ef)',
+          boxShadow: (t) => t.palette.mode === 'dark'
+            ? 'inset 1px 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(248,113,113,0.32), 0 14px 26px -16px rgba(0,0,0,0.7)'
+            : 'inset 1px 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(217,45,32,0.22), 0 14px 26px -16px rgba(217,45,32,0.5)',
+          color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
           transition: 'all .15s ease',
           '&:hover': {
-            bgcolor: 'rgba(239, 68, 68, 0.16)',
-            color: (t) => t.palette.mode === 'dark' ? '#fff' : '#b91c1c',
-            transform: 'translateX(3px)',
+            background: (t) => t.palette.mode === 'dark'
+              ? 'linear-gradient(135deg, rgba(127,29,29,0.7), rgba(80,20,20,0.6))'
+              : 'linear-gradient(135deg, #fdd9d3, #fcebe8)',
+            transform: 'translateX(2px)',
           },
         }}
       >
-        <ListItemIcon sx={{ minWidth: 32, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', '& svg': { fontSize: 20 } }}>
+        <Box component="span" sx={{
+          width: 40, height: 40, mr: 1.5, flexShrink: 0, borderRadius: '13px', display: 'grid', placeItems: 'center',
+          background: 'linear-gradient(135deg, #ef4444, #b42318)', color: '#fff',
+          boxShadow: 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(180,35,24,0.6)',
+          '& svg': { fontSize: 22 },
+        }}>
           {icon}
-        </ListItemIcon>
+        </Box>
         <ListItemText
           primary={primaryText}
           secondary="Acesso rápido para socorristas"
-          primaryTypographyProps={{ fontSize: 13, fontWeight: 700, color: 'inherit' }}
-          secondaryTypographyProps={{ fontSize: 11, sx: { color: (t: any) => t.palette.mode === 'dark' ? 'rgba(254, 202, 202, 0.7)' : '#b91c1c' } }}
+          primaryTypographyProps={{ fontSize: 14, fontWeight: 700, color: 'inherit' }}
+          secondaryTypographyProps={{ fontSize: 11.5, sx: { color: (t: any) => t.palette.mode === 'dark' ? '#fecaca' : '#912018' } }}
         />
-        <ChevronRightIcon sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', opacity: 0.8 }} />
+        <ChevronRightIcon sx={{ fontSize: 18, color: 'inherit', opacity: 0.85, flexShrink: 0 }} />
+      </ListItemButton>
+    );
+  }
+
+  if (tile) {
+    // Azulejo de topo (mock A): ícone num tile 34px com anel teal; ativo = pílula clara elevada
+    // com aro de luz (o aro + tile em gradiente marcam o ativo — sem barra lateral aqui).
+    return (
+      <ListItemButton
+        onClick={() => { hapticNav(); navigate(to); }}
+        selected={active}
+        sx={{
+          borderRadius: '16px',
+          m: '3px 8px',
+          py: 0.6,
+          pl: 1,
+          pr: 1.25,
+          minHeight: 48,
+          transition: 'all .15s ease',
+          color: (t) => {
+            const d = t.palette.mode === 'dark';
+            if (active) return d ? '#8ff0e8' : '#0b5c57';
+            return d ? 'rgba(241,245,249,0.9)' : '#1f2d2d';
+          },
+          ...(active
+            ? {
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08) !important' : 'rgba(255,255,255,0.94) !important',
+                boxShadow: (t) => t.palette.mode === 'dark'
+                  ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
+                  : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.45)',
+              }
+            : {
+                bgcolor: 'transparent',
+                '&:hover': {
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.7)',
+                  boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
+                },
+              }),
+        }}
+      >
+        <Box component="span" sx={{
+          width: 34, height: 34, mr: 1.5, flexShrink: 0, borderRadius: '11px', display: 'grid', placeItems: 'center',
+          transition: 'all .2s ease',
+          background: active
+            ? 'linear-gradient(135deg, #20b2aa, #178f89)'
+            : (t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
+          color: active ? '#fff' : (t: any) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
+          boxShadow: active
+            ? 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(23,143,137,0.6)'
+            : (t: any) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
+          '& svg': { fontSize: 18 },
+        }}>
+          {icon}
+        </Box>
+        <ListItemText
+          primary={primaryText}
+          primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 500, color: 'inherit', noWrap: true }}
+          sx={{ minWidth: 0, mr: 0.75, my: 0 }}
+        />
+        {badge && (
+          <Chip
+            size="small"
+            label={badge}
+            sx={{
+              height: 21, flexShrink: 0, fontSize: 11, fontWeight: 700, borderRadius: '99px',
+              bgcolor: badge === 'ao vivo' ? '#ef4444' : badge === 'hoje' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(13, 148, 136, 0.14)',
+              color: badge === 'ao vivo' ? '#ffffff' : badge === 'hoje' ? '#d97706' : '#0d9488',
+              border: badge === 'ao vivo' ? 'none' : '1px solid',
+              borderColor: badge === 'hoje' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(13, 148, 136, 0.25)',
+              '& .MuiChip-label': { px: 0.8, py: 0, lineHeight: 1 },
+            }}
+          />
+        )}
       </ListItemButton>
     );
   }
@@ -644,11 +748,11 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
       <Box
         sx={{
           p: 1.25,
-          borderRadius: '16px',
-          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
+          borderRadius: '20px',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.6)',
           border: '1px solid',
-          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-          boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.09)' : 'rgba(15, 90, 86, 0.08)',
+          boxShadow: (t) => `${glassRim(t.palette.mode === 'dark')}, 0 0 6px rgba(0,0,0,0.05)`,
           transition: 'background .15s ease',
           '&:hover': {
             bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.07)' : 'rgba(32, 178, 170, 0.05)',
@@ -687,13 +791,14 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               <Avatar
                 src={userInfo.photo}
                 sx={{
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   fontSize: 16,
-                  bgcolor: 'rgba(32,178,170,0.18)',
-                  color: '#0d9488',
+                  background: 'linear-gradient(135deg, #20b2aa, #178f89)',
+                  color: '#fff',
                   fontWeight: 800,
-                  border: '2px solid rgba(32,178,170,0.3)',
+                  border: '2px solid rgba(255,255,255,0.45)',
+                  boxShadow: '0 8px 16px -8px rgba(23,143,137,0.7)',
                 }}
               >
                 {userInfo.name.charAt(0)?.toUpperCase() || '👤'}
@@ -763,12 +868,13 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
               size="small"
               title="Fechar menu"
               sx={{
-                width: 32,
-                height: 32,
+                width: 38,
+                height: 38,
                 borderRadius: '50%',
                 flexShrink: 0,
-                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-                color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.7)' : '#64748b',
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.65)',
+                color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.7)' : '#5b7070',
+                boxShadow: (t) => `inset 0 0 0 1px ${t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,90,86,0.08)'}`,
                 '&:hover': { bgcolor: 'rgba(32,178,170,0.15)', color: '#0d9488' },
               }}
             >
@@ -788,6 +894,8 @@ const AppMenu = () => {
   const translate = useTranslate();
   const { pathname } = useLocation();
   const [aboutOpen, setAboutOpen] = useState(false);
+  // Mesmo estado do toggle do AppBar (PatientSwitcher) — o rodapé do menu só o expõe (mock A).
+  const [themeMode, setThemeMode] = useStore<'light' | 'dark'>('theme', 'light');
   const tele = useUpcomingTeleconsulta();
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
@@ -836,7 +944,7 @@ const AppMenu = () => {
     {isDesktop && <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2, mb: 1 }} />}
 
     {/* Início fora dos acordeões: acesso direto */}
-    <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} />
+    <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} tile />
 
     {/* Grupo 1: Meus Exames */}
     <MenuSectionAccordion
@@ -887,7 +995,7 @@ const AppMenu = () => {
     </MenuSectionAccordion>
 
     {/* Grupo 4: Família e Dependentes */}
-    <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} />
+    <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} tile />
 
     {/* Cartão de Emergência SOS */}
     <Box sx={{ my: 0.5 }}>
@@ -917,24 +1025,71 @@ const AppMenu = () => {
     {/* Divisor suave */}
     <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
 
-    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} />
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ mx: 1, borderRadius: '10px', py: 0.75, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.72)' : '#475569', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.07)' : 'rgba(32,178,170,.08)', color: '#0d9488' } }}>
-      <ListItemIcon sx={{ minWidth: 32, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.55)' : '#64748b' }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.about')}</ListItemText>
+    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
+    <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
+      <ListItemIcon sx={{
+        minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
+        color: (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
+        boxShadow: (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
+      }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+      <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{translate('menu.about')}</ListItemText>
     </MenuItem>
     <MenuItem onClick={() => logout('/entrar')} sx={{
-      mx: 1, my: 0.25, borderRadius: '10px', py: 0.75, color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626',
+      m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
       transition: 'background-color .15s ease',
-      '&:hover': { bgcolor: 'rgba(239,68,68,.12)', color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#b91c1c', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
+      '&:hover': { bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#912018', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
       '@keyframes dxShake': {
         '0%, 100%': { transform: 'rotate(0)' },
         '25%': { transform: 'rotate(-8deg)' },
         '75%': { transform: 'rotate(8deg)' },
       },
     }}>
-      <ListItemIcon sx={{ color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#ef4444', minWidth: 32 }}><LogoutIcon fontSize="small" /></ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 13, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
+      <ListItemIcon sx={{
+        minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(248,113,113,0.14)' : 'rgba(217,45,32,0.10)',
+        color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
+        boxShadow: (t) => `inset 0 0 0 1px rgba(217,45,32,${t.palette.mode === 'dark' ? 0.26 : 0.16})`,
+      }}><LogoutIcon fontSize="small" /></ListItemIcon>
+      <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
     </MenuItem>
+
+    {/* Aparência (mock A): expõe no menu o MESMO toggle de tema do AppBar (useStore 'theme'). */}
+    <Box sx={{ mx: 2, mt: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+      <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Aparência</Typography>
+      <Box role="group" aria-label="Aparência" sx={{ display: 'flex', p: '3px', borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,90,86,0.07)' }}>
+        {(['light', 'dark'] as const).map((m) => {
+          const sel = themeMode === m;
+          const MIcon = m === 'light' ? LightModeOutlinedIcon : DarkModeOutlinedIcon;
+          return (
+            <Box
+              key={m}
+              component="button"
+              type="button"
+              aria-pressed={sel}
+              onClick={() => setThemeMode(m)}
+              sx={{
+                display: 'flex', alignItems: 'center', gap: 0.6, height: 34, px: 1.5,
+                border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
+                fontSize: 12.5, fontWeight: sel ? 700 : 500,
+                bgcolor: sel ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
+                color: sel
+                  ? ((t: any) => t.palette.mode === 'dark' ? '#ffffff' : '#0b5c57')
+                  : ((t: any) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.65)' : '#556b6b'),
+                boxShadow: sel
+                  ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
+                  : 'none',
+                transition: 'all .15s ease',
+                '& svg': { fontSize: 15 },
+              }}
+            >
+              <MIcon />
+              {m === 'light' ? 'Claro' : 'Escuro'}
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
 
     <Box sx={{ px: 2, pt: 1.5, pb: { xs: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))', sm: 2 }, textAlign: 'center' }}>
       <Box sx={{
@@ -1011,16 +1166,22 @@ const AppDrawer = () => {
 
   return (
     <Drawer anchor="left" open={open} onClose={closeDrawer} keepMounted={false}
+      slotProps={{ backdrop: { sx: { bgcolor: (t: any) => t.palette.mode === 'dark' ? 'rgba(0,0,0,0.45)' : 'rgba(10,32,32,0.30)' } } }}
       PaperProps={{
         sx: {
-          width: { xs: '84vw', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
-          background: (t) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%)' : '#ffffff',
+          // Vidro flutuante (mock A / ReUI app-shell-31): painel solto com cantos cheios e aro de
+          // luz; o blur só liga onde o WebView suporta — senão cai pro fundo quase opaco.
+          width: { xs: 'min(85vw, 316px)', sm: 340 }, maxWidth: 360, display: 'flex', flexDirection: 'column',
+          m: '10px', height: 'calc(100dvh - 20px)', borderRadius: '28px', border: 'none',
+          background: (t) => t.palette.mode === 'dark'
+            ? (CAN_BLUR ? 'linear-gradient(100deg, rgba(22,32,32,0.72), rgba(22,32,32,0.9))' : 'linear-gradient(180deg, #121c1c, #0f1818)')
+            : (CAN_BLUR ? 'linear-gradient(100deg, rgba(255,255,255,0.55), rgba(255,255,255,0.8))' : 'linear-gradient(100deg, rgba(252,254,254,0.98), #ffffff)'),
           color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-          borderRadius: '0 24px 24px 0',
-          borderRight: (t) => t.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.06)',
-          boxShadow: (t) => t.palette.mode === 'dark' ? '0 20px 50px rgba(0,0,0,0.6)' : '0 20px 50px rgba(0,0,0,0.08)',
+          backdropFilter: CAN_BLUR ? 'blur(26px) saturate(1.5)' : 'none',
+          WebkitBackdropFilter: CAN_BLUR ? 'blur(26px) saturate(1.5)' : 'none',
+          boxShadow: (t) => t.palette.mode === 'dark'
+            ? `${glassRim(true)}, 0 30px 70px -18px rgba(0,0,0,0.7)`
+            : `${glassRim(false)}, 0 0 6px rgba(0,0,0,0.05), 0 30px 70px -18px rgba(10,60,58,0.45)`,
         }
       }}>
       <UserProfileCard onClose={closeDrawer} />
