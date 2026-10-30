@@ -133,7 +133,7 @@ describe('Fix P0 auditoria 2026-10-28', () => {
     expect(res.body.code).toBe('DOCTOR_BLOCKED');
   });
 
-  it('AUD-003: convite médico — CRM fake rejeitado (400) e cadastro válido segue criando conta+share', async () => {
+  it('AUD-003: convite médico — CRM fake rejeitado (422 CRM_INVALID), senha/e-mail inválidos (400) e cadastro válido segue criando conta+share', async () => {
     const { patient } = await createUser();
     await createInvite('aud003token', patient.id);
 
@@ -144,7 +144,10 @@ describe('Fix P0 auditoria 2026-10-28', () => {
 
     const fakeUf = await api().post('/api/public/doctor-invite/aud003token/register')
       .send({ name: 'Fake 2', crm: '000000', crmUf: 'ZZ', email: 'fake2@x.com', password: 'senhaok123' });
-    expect(fakeUf.status).toBe(400);
+    // CRM/UF inválido passa pelo canonicalCrm (KYC, spec §7 — o mesmo contrato do cadastro principal): 422 CRM_INVALID.
+    // Senha curta e e-mail sem formato (AUD-003 da main) seguem 400, como nas outras duas chamadas deste teste.
+    expect(fakeUf.status).toBe(422);
+    expect(fakeUf.body.code).toBe('CRM_INVALID');
     expect(String(fakeUf.body.error)).toContain('CRM');
 
     const badEmail = await api().post('/api/public/doctor-invite/aud003token/register')
