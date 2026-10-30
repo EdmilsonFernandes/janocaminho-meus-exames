@@ -45,7 +45,7 @@ Skills de UI/UX (`.claude/skills/`) continuam **sob demanda** — lidas só em t
 - **NUNCA** `npx vitest` da raiz (CWD vaza → pode truncar DB dev). Sempre `npm test --workspace packages/server`.
 
 ## Deploy (automático: git push → GHCR → EC2 pull)
-- **CI gate**: vitest roda ANTES do build (falhou = não deploya).
+- **CI gate**: checks + vitest (4 fatias) + build rodam em paralelo; o `:latest` só anda depois que os três passam (falhou = não deploya).
 - **Migrations**: `prisma migrate deploy` no boot do container. NUNCA `db push` em prod.
 - **502 (migration P3009)**: `UPDATE _prisma_migrations SET finished_at=now() WHERE finished_at IS NULL;` + restart.
 

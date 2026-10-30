@@ -49,7 +49,8 @@ meus-exames-app (Node/Express + Prisma + build estático react-admin)
 ## Deploy (automático: git push → CI → EC2)
 ```
 git push origin main
-  → publish-ghcr.yml:  job test (vitest contra postgres efêmero = GATE) → build-and-push (Docker→GHCR)
+  → publish-ghcr.yml:  checks (typecheck+lint) ‖ test (vitest em 4 fatias, postgres efêmero cada) ‖ build (Docker→GHCR :<sha>)
+                       → publish move o :latest SÓ se os três passaram (= GATE)
   → deploy.yml (workflow_run): SSH EC2 → docker compose pull + up --force-recreate → health-check /api/health
 ```
 - Não buildar na EC2 (t2.micro, pouca RAM). Só pull.

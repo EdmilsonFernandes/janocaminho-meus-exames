@@ -35,9 +35,11 @@ packages/
 ## Deploy (automático)
 ```
 git push origin main
-  → publish-ghcr.yml (GitHub Actions):
-      1. job `test`: vitest contra postgres efêmero (gate — falhou = não builda)
-      2. job `build-and-push`: Docker build + push GHCR (com build-args + labels de versão)
+  → publish-ghcr.yml (GitHub Actions) — 3 frentes EM PARALELO (~5 min; antes eram ~18 em série):
+      1. job `checks`: typecheck web + server + lint de linguagem vedada (falha em ~2 min)
+      2. job `test` (4 fatias, `--shard=i/4`): vitest, cada fatia com o seu postgres efêmero
+      3. job `build`: Docker build + push GHCR só com a tag do commit (`:<sha>`; build-args + labels de versão)
+      4. job `publish` (needs 1+2+3, só na main): move o `:latest` para o commit — o GATE (falhou = não deploya)
   → deploy.yml (workflow_run):
       SSH EC2 → docker compose pull + up --force-recreate
       health-check curl /api/health
