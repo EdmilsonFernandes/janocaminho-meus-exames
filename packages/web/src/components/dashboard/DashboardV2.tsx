@@ -370,7 +370,7 @@ export const ProcessingStrip = ({ count, oldestAt, onClick }: { count: number; o
  *  "28/09 · próxima janela 12/10"; toque → /saude-mental. Quem nunca fez vê 1× por
  *  paciente a variante educativa (flag dx-mental-intro:<pid>, dismissível no X).
  *  Desconhecido (offline/ainda carregando) → NÃO renderiza: dashboard limpo, sem estado inventado. */
-const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onOpen }: {
+export const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissIntro, onOpen }: {
   mental: MentalLatest | null;
   mentalOffline: boolean;
   introDismissed: boolean;

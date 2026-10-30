@@ -1,12 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Area, ComposedChart, ReferenceArea, XAxis, YAxis,
-} from 'recharts';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import MonitorHeartRoundedIcon from '@mui/icons-material/MonitorHeartRounded';
 import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
 import BiotechRoundedIcon from '@mui/icons-material/BiotechRounded';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { CardGrid } from '@/components/blocks/card-29/components/card-grid';
 import type { ICard } from '@/components/blocks/card-29/components/data';
 import { BodyMap } from '../components/BodyMap';
@@ -17,6 +13,12 @@ import { ChangesSinceExam } from '../components/dashboard/ChangesSinceExam';
 import { ClinicalActionsCard } from '../components/dashboard/ClinicalActionsCard';
 import { ActivityCard } from '../components/dashboard/ActivityCard';
 import { RestingHeartCard } from '../components/dashboard/RestingHeartCard';
+// Feedback dono 29/10: mental/IA/teleconsulta/créditos — "o anterior tava mais
+// bonito" → componentes CLÁSSICOS reais no lugar das versões da ilha.
+import { AiCard } from '../components/dashboard/AiCard';
+import { CreditsCard } from '../components/dashboard/CreditsCard';
+import { TeleconsultaCard } from '../components/dashboard/TeleconsultaCard';
+import { MentalCard } from '../components/dashboard/DashboardV2';
 import { syncPushToken } from '../push';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -84,8 +86,6 @@ export const DashboardV2Embedded = () => {
   const [bodyRegions, setBodyRegions] = useState<any[] | null>(null);
   const [buckets, setBuckets] = useState<{ ok?: number; alterados?: number; alerta?: number } | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
-  const [series, setSeries] = useState<Series[]>([]);
-  const [sel, setSel] = useState(0);
   const [pend, setPend] = useState<{ key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[]>([]);
   const [coletas, setColetas] = useState<{ id?: string; title?: string; dueDate?: string }[]>([]);
   const [mental, setMental] = useState<{ phq9: number | null; gad7: number | null } | null>(null);
@@ -154,25 +154,6 @@ export const DashboardV2Embedded = () => {
             if (phq9 != null || gad7 != null) setMental({ phq9, gad7 });
           }
         } catch { /* bônus */ }
-        // Tendência: top-3 marcadores por nº de medidas
-        try {
-          const rNames = await fetch(`${API_URL}/items/distinct-names${pid ? `?patientId=${pid}` : ''}`, { headers: h });
-          const dn = rNames.ok ? await rNames.json() : null;
-          const raw: { nameCanonical?: string; count?: number }[] = Array.isArray(dn) ? dn : [];
-          const top = raw.filter((x) => typeof x?.nameCanonical === 'string').sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).map((x) => x.nameCanonical as string).slice(0, 3);
-          const loaded: Series[] = [];
-          for (const name of top) {
-            const q = new URLSearchParams({ nameCanonical: name, patientId: String(pid) });
-            const rs = await fetch(`${API_URL}/items/timeseries?${q}`, { headers: h });
-            if (!rs.ok) continue;
-            const ts = await rs.json();
-            const points: Pt[] = (ts?.points ?? [])
-              .filter((p: { valueNumeric?: number | null }) => typeof p.valueNumeric === 'number')
-              .map((p: { performedAt?: string; valueNumeric: number; flag?: string }) => ({ date: fmtDate(p.performedAt), valor: p.valueNumeric, flag: p.flag }));
-            if (points.length) loaded.push({ name, unit: ts?.unit, refLow: ts?.refLow ?? null, refHigh: ts?.refHigh ?? null, points });
-          }
-          if (alive) setSeries(loaded);
-        } catch { /* bônus */ }
         if (alive) setPhase('ready');
       } catch {
         if (alive) setPhase('error');
@@ -184,14 +165,6 @@ export const DashboardV2Embedded = () => {
     return () => { alive = false; };
   }, [pid]);
 
-  const s = series[Math.min(sel, Math.max(series.length - 1, 0))];
-  const vals = s?.points.map((p) => p.valor) ?? [];
-  const lo = s?.refLow ?? null;
-  const hi = s?.refHigh ?? null;
-  const yDomain: [number | 'auto', number | 'auto'] = [
-    Math.min(...(vals.length ? vals : [0]), ...(lo != null ? [lo] : [])) * 0.95,
-    Math.max(...(vals.length ? vals : [1]), ...(hi != null ? [hi] : [])) * 1.05,
-  ];
   const TONE_CLS: Record<string, string> = {
     primary: 'border-primary/25 bg-primary/10 text-primary',
     warning: 'border-warning/30 bg-warning/10 text-warning-foreground dark:text-warning',
@@ -297,39 +270,21 @@ export const DashboardV2Embedded = () => {
           {/* PERGUNTAS PRO MÉDICO — componente REAL */}
           {actionsRaw && actionsRaw.length > 0 && <ClinicalActionsCard actions={actionsRaw} loaded />}
 
-          {/* SAÚDE MENTAL */}
-          <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Saúde mental">
-            <div>
-              <h3 className="text-sm font-semibold">Como você está se sentindo</h3>
-              <p className="text-xs text-muted-foreground">check-in emocional (PHQ-9 · GAD-7)</p>
-            </div>
-            {mental && (mental.phq9 != null || mental.gad7 != null) ? (
-              <div className="flex gap-2">
-                {mental.phq9 != null && <span className={'rounded-full border px-2.5 py-1 text-xs font-bold ' + mentalToneCls(mental.phq9)}>PHQ-9 {mental.phq9}</span>}
-                {mental.gad7 != null && <span className={'rounded-full border px-2.5 py-1 text-xs font-bold ' + mentalToneCls(mental.gad7)}>GAD-7 {mental.gad7}</span>}
-              </div>
-            ) : (
-              <a href="#/saude-mental" className="rounded-lg bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground">Fazer check-in (2 min)</a>
-            )}
-          </section>
+          {/* SAÚDE MENTAL — componente CLÁSSICO (feedback: anterior mais bonito) */}
+          <MentalCard
+            mental={mental ? { phq9: mental.phq9, gad7: mental.gad7, phq9Previous: null, gad7Previous: null } : null}
+            mentalOffline={false}
+            introDismissed
+            onDismissIntro={() => { /* intro já vem dispensada no embedded */ }}
+            onOpen={() => { window.location.hash = '#/saude-mental'; }}
+          />
 
-          {/* IA + TELECONSULTA */}
-          <a href="#/chat" className="flex items-center gap-3 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/10 to-transparent p-4 transition-colors hover:from-primary/15">
-            <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg text-primary-foreground">✨</span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold">Tirar dúvida com o Dr. Exame</span>
-              <span className="block text-xs text-muted-foreground">sobre seus exames, medicamentos e faixas — na hora</span>
-            </span>
-            <span aria-hidden className="text-primary">→</span>
-          </a>
-          <a href="#/consultas" className="flex items-center gap-3 rounded-xl border border-copper-500/30 bg-copper-500/10 p-4 transition-colors hover:bg-copper-500/15">
-            <span aria-hidden className="flex h-10 w-10 items-center justify-center rounded-full bg-copper-500 text-lg text-white">🩺</span>
-            <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold">Falar com um médico</span>
-              <span className="block text-xs text-muted-foreground">teleconsulta com os médicos que já acompanham você</span>
-            </span>
-            <span aria-hidden className="text-copper-700 dark:text-copper-300">→</span>
-          </a>
+          {/* IA + TELECONSULTA — componentes CLÁSSICOS */}
+          <AiCard
+            tip={<>{hero.alterados > 0 ? `${hero.alterados} valores alterados no último exame` : 'Seus exames em ordem'} — pergunte o que quiser sobre eles.</>}
+            onChat={() => { window.location.hash = '#/chat'; }}
+          />
+          <TeleconsultaCard />
 
           {/* MAPA CORPORAL — componente REAL */}
           <section className="rounded-xl border border-border bg-card p-4" aria-label="Mapa corporal">
@@ -360,39 +315,7 @@ export const DashboardV2Embedded = () => {
             </section>
           )}
           {credits != null && (
-            <a href="#/planos" className="flex items-center justify-between rounded-xl border border-border bg-card p-4 transition-colors hover:bg-muted">
-              <span className="text-sm font-semibold">Créditos do plano</span>
-              <span className="rounded-full bg-copper-500/15 px-3 py-1 text-sm font-extrabold text-copper-700 dark:text-copper-300">{credits} ⚡</span>
-            </a>
-          )}
-
-          {/* TENDÊNCIA */}
-          {s && (
-            <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="text-sm font-semibold">Evolução do marcador</h3>
-                <div className="flex flex-wrap gap-1.5">
-                  {series.map((x, i) => (
-                    <button key={x.name} type="button" onClick={() => setSel(i)} className={'rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ' + (i === sel ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border text-muted-foreground hover:bg-muted')}>{x.name}</button>
-                  ))}
-                </div>
-              </div>
-              <ChartContainer config={{ valor: { label: s.name, color: 'var(--primary)' } }} className="h-64 w-full">
-                <ComposedChart data={s.points} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <XAxis dataKey="date" tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} />
-                  <YAxis domain={yDomain} tick={{ fontSize: 11 }} stroke="var(--muted-foreground)" tickLine={false} axisLine={false} width={44} />
-                  {lo != null && hi != null && <ReferenceArea y1={lo} y2={hi} fill="var(--primary)" fillOpacity={0.07} strokeOpacity={0} ifOverflow="extendDomain" />}
-                  <Area type="monotone" dataKey="valor" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.12} strokeWidth={2}
-                    dot={(p: { cx?: number; cy?: number; payload?: Pt }) => {
-                      const out = p.payload?.flag === 'HIGH' || p.payload?.flag === 'LOW';
-                      return p.cx == null || p.cy == null ? <g /> : <circle cx={p.cx} cy={p.cy} r={out ? 4.5 : 3} fill={out ? 'var(--destructive)' : 'var(--primary)'} stroke="var(--background)" strokeWidth={1.5} />;
-                    }}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </ComposedChart>
-              </ChartContainer>
-              <p className="text-xs text-muted-foreground">Faixa de referência destacada{lo != null && hi != null ? `: ${lo}–${hi}${s.unit ? ` ${s.unit}` : ''}` : ''} · pontos fora da faixa em vermelho</p>
-            </section>
+            <CreditsCard credits={credits} onClick={() => { window.location.hash = '#/planos'; }} />
           )}
 
           {/* ATIVIDADE / FC — componentes REAIS (Health Connect) */}
