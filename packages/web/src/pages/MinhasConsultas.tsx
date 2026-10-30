@@ -108,7 +108,7 @@ export const MinhasConsultasPage = () => {
   const historico = teleconsultas.filter(isDone).sort((a, b) => new Date(b.endedAt ?? b.dueDate).getTime() - new Date(a.endedAt ?? a.dueDate).getTime());
 
   const TABS: { v: 'abertas' | 'historico'; l: string; n: number }[] = [
-    { v: 'abertas', l: 'Abertas', n: abertas.length },
+    { v: 'abertas', l: 'Próximas', n: abertas.length },
     { v: 'historico', l: 'Histórico', n: historico.length },
   ];
 
@@ -116,46 +116,36 @@ export const MinhasConsultasPage = () => {
     <PageContainer width="content" sx={{ pb: { xs: 12, sm: 5 } }}>
       <PageHeader
         icon={<VideocamRoundedIcon />}
-        title="Consultas e Atendimentos"
-        subtitle="Acesse suas teleconsultas por vídeo ou organize sua agenda de consultas presenciais."
+        title="Consultas"
+        subtitle="Teleconsultas e sua agenda pessoal"
       />
 
-      {/* Seletor principal de categoria: Teleconsultas Dr. Exame vs Minha Agenda Pessoal */}
+      {/* Seletor de área (mock Consultas aprovado): UM segmented em pílula de vidro, labels curtos,
+          no padrão do menu premium — substitui os dois botões verdes empilhados. */}
       <Box sx={{
-        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : '#e8f1f0',
-        p: 0.6, borderRadius: '16px', mb: 3, display: 'flex', gap: 0.75,
+        display: 'flex', p: '4px', borderRadius: '999px', mb: 3,
+        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.6)',
+        boxShadow: (t) => t.palette.mode === 'dark'
+          ? 'inset 1px 1px 0 rgba(255,255,255,0.1), 0 0 6px rgba(0,0,0,0.25)'
+          : 'inset 1px 1px 0 rgba(255,255,255,0.95), inset -1px -1px 0 rgba(255,255,255,0.55), 0 0 6px rgba(0,0,0,0.05)',
       }}>
         <Button
           fullWidth
           onClick={() => { hapticLight(); setArea('tele'); }}
           aria-pressed={area === 'tele'}
-          startIcon={<VideocamRoundedIcon />}
-          sx={{
-            py: 1, px: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: { xs: 12.5, sm: 14 },
-            color: area === 'tele' ? '#fff' : 'text.secondary',
-            bgcolor: area === 'tele' ? '#0f766e' : 'transparent',
-            boxShadow: area === 'tele' ? '0 4px 12px rgba(15,118,110,0.3)' : 'none',
-            '&:hover': { bgcolor: area === 'tele' ? '#115e59' : 'rgba(0,0,0,0.04)' },
-            transition: 'all 0.2s ease',
-          }}
+          startIcon={<VideocamRoundedIcon sx={{ fontSize: 17 }} />}
+          sx={segArea(area === 'tele')}
         >
-          Teleconsultas por Vídeo
+          Por vídeo
         </Button>
         <Button
           fullWidth
           onClick={() => { hapticLight(); setArea('minhas'); }}
           aria-pressed={area === 'minhas'}
-          startIcon={<EventAvailableRoundedIcon />}
-          sx={{
-            py: 1, px: 2, borderRadius: '12px', textTransform: 'none', fontWeight: 800, fontSize: { xs: 12.5, sm: 14 },
-            color: area === 'minhas' ? '#fff' : 'text.secondary',
-            bgcolor: area === 'minhas' ? '#0f766e' : 'transparent',
-            boxShadow: area === 'minhas' ? '0 4px 12px rgba(15,118,110,0.3)' : 'none',
-            '&:hover': { bgcolor: area === 'minhas' ? '#115e59' : 'rgba(0,0,0,0.04)' },
-            transition: 'all 0.2s ease',
-          }}
+          startIcon={<EventAvailableRoundedIcon sx={{ fontSize: 17 }} />}
+          sx={segArea(area === 'minhas')}
         >
-          Minha Agenda de Saúde
+          Minha agenda
         </Button>
       </Box>
 
@@ -188,7 +178,7 @@ export const MinhasConsultasPage = () => {
                   '&:hover': { bgcolor: on ? '#115e59' : 'action.hover' },
                 }}
               >
-                {t.l === 'Abertas' ? 'Próximas / Agendadas' : 'Histórico concluído'} ({t.n})
+                {t.l} ({t.n})
               </Button>
             );
           })}
@@ -443,6 +433,24 @@ export const MinhasConsultasPage = () => {
     </PageContainer>
   );
 };
+
+/** Segmento do seletor de área — pílula de vidro no padrão do menu premium (mock aprovado). */
+const segArea = (on: boolean) => ({
+  height: 42,
+  borderRadius: '999px',
+  textTransform: 'none' as const,
+  fontSize: 13.5,
+  fontWeight: on ? 700 : 500,
+  color: on ? ((t: any) => t.palette.mode === 'dark' ? '#8ff0e8' : '#0b5c57') : 'text.secondary',
+  bgcolor: on ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
+  boxShadow: on
+    ? ((t: any) => t.palette.mode === 'dark'
+      ? 'inset 1px 1px 0 rgba(255,255,255,0.14)'
+      : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 8px 18px -10px rgba(15,90,86,0.45)')
+    : 'none',
+  '&:hover': { bgcolor: on ? undefined : 'rgba(32,178,170,0.06)' },
+  transition: 'all 0.18s ease',
+});
 
 /** Pill de seleção de área — mesmo estilo das tabs Abertas/Histórico. */
 const areaPill = (on: boolean) => ({
