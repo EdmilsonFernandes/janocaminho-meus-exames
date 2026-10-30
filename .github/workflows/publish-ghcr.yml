@@ -175,7 +175,23 @@ jobs:
     needs: [checks, test, build]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      actions: read # a conferência das fatias lê os jobs desta execução pela API
     steps:
+      # O `needs: test` só enxerga as fatias que o GitHub CRIOU: numa execução de validação nasceram só 3 das 4.
+      # Se isso acontecesse aqui, o portão passaria sem 1/4 dos testes — então conferimos pela API que as 4 fatias
+      # existem e passaram. Mantenha o 4 igual ao tamanho da matriz do job `test`.
+      - name: Conferir que as 4 fatias de teste rodaram e passaram
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ok="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
+            --jq '[.jobs[] | select((.name | startswith("test (fatia")) and .conclusion == "success")] | length')"
+          echo "Fatias de teste aprovadas: ${ok}/4"
+          [ "${ok}" = "4" ]
+
       - uses: docker/setup-buildx-action@v3
 
       - uses: docker/login-action@v3
