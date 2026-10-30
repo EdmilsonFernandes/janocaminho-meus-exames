@@ -90,7 +90,7 @@ export const DashboardV2Embedded = () => {
   const [cardio, setCardio] = useState<{ level?: string; factors?: { label?: string; risk?: boolean }[] } | null>(null);
   const [actionsRaw, setActionsRaw] = useState<any[] | null>(null);
   const [bodyRegions, setBodyRegions] = useState<any[] | null>(null);
-  const [buckets, setBuckets] = useState<{ ok?: number; alterados?: number; alerta?: number } | null>(null);
+  const [buckets, setBuckets] = useState<{ bons?: number; alterados?: number; alerta?: number } | null>(null);
   const [credits, setCredits] = useState<number | null>(null);
   const [pend, setPend] = useState<{ key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[]>([]);
   const [coletas, setColetas] = useState<{ id?: string; title?: string; dueDate?: string }[]>([]);
@@ -305,18 +305,39 @@ export const DashboardV2Embedded = () => {
           />
           <TeleconsultaCard />
 
-          {/* PANORAMA + CRÉDITOS */}
-          {buckets && (
-            <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card p-4" aria-label="Panorama dos marcadores">
-              <h3 className="text-sm font-semibold">Panorama dos marcadores</h3>
-              <div className="flex gap-2">
-                <span className="rounded-full border border-success/25 bg-success/10 px-2.5 py-1 text-xs font-bold text-success-foreground dark:text-success">{buckets.ok ?? 0} na faixa</span>
-                <span className="rounded-full border border-warning/30 bg-warning/10 px-2.5 py-1 text-xs font-bold text-warning-foreground dark:text-warning">{buckets.alterados ?? 0} alterados</span>
-                <span className="rounded-full border border-destructive/25 bg-destructive/10 px-2.5 py-1 text-xs font-bold text-destructive-foreground dark:text-destructive">{buckets.alerta ?? 0} em alerta</span>
-              </div>
-              <a href="#/alterados" className="text-xs font-bold text-primary">ver todos →</a>
-            </section>
-          )}
+          {/* PANORAMA — ReUI com a informação completa do clássico (contagem, % e ver →) */}
+          {buckets && (() => {
+            const total = (buckets.bons ?? 0) + (buckets.alerta ?? 0) + (buckets.alterados ?? 0);
+            const rows = [
+              { label: 'Normal', n: buckets.bons ?? 0, cls: 'bg-success', txt: 'text-success-foreground dark:text-success', to: '#/exams' },
+              { label: 'Leve', n: buckets.alterados ?? 0, cls: 'bg-warning', txt: 'text-warning-foreground dark:text-warning', to: '#/alterados' },
+              { label: 'Requer atenção', n: buckets.alerta ?? 0, cls: 'bg-destructive', txt: 'text-destructive-foreground dark:text-destructive', to: '#/alterados' },
+            ];
+            return (
+              <section className="flex flex-col gap-2.5 rounded-xl border border-border bg-card p-4" aria-label="Panorama dos marcadores">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <h3 className="text-sm font-semibold">Seus marcadores</h3>
+                  <span className="text-xs text-muted-foreground">{total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Marcadores analisados'}</span>
+                </div>
+                {rows.map((r) => {
+                  const pct = total > 0 ? Math.round((r.n / total) * 100) : 0;
+                  return (
+                    <div key={r.label} className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="min-w-24 font-semibold">{r.label}</span>
+                        <a href={r.to} className={'ml-auto text-xs font-bold ' + r.txt.replace(/text-\S+/, '') + ' ' + r.txt}>ver →</a>
+                        <span className={'shrink-0 text-xs font-bold ' + r.txt}>{r.n}/{total || '—'} ({pct}%)</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                        <div className={'h-full rounded-full ' + r.cls} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+                <p className="text-[11px] text-muted-foreground/70">Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.</p>
+              </section>
+            );
+          })()}
 
           {/* RISCO CARDIOMETABÓLICO — nível + fatores (mesmo conteúdo do dialog clássico) */}
           {cardio && (() => {
