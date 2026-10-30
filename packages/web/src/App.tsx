@@ -56,6 +56,17 @@ import { alpha } from '@mui/material/styles';
 import { i18nProvider } from './i18n';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { DashboardV2 as Dashboard } from './components/dashboard/DashboardV2';
+// Dashboard v2 EMBUTIDO (ilha ReUI dentro do shell, com side-effects reais):
+// ativo SÓ pra quem tem a flag dx.dashV2 (rollout dono → beta → todos).
+const DashboardV2Embedded = lazy(() => import('./doctor-v2/DashboardV2Embedded').then(m => ({ default: m.DashboardV2Embedded })));
+const FlagDashboard = () => {
+  try {
+    if (localStorage.getItem('dx.dashV2') === '1') {
+      return <Suspense fallback={<PageSkeleton />}><DashboardV2Embedded /></Suspense>;
+    }
+  } catch { /* localStorage indisponível → dashboard clássico */ }
+  return <Dashboard />;
+};
 import { ExamList } from './resources/Exams/ExamList';
 import { ExamShow } from './resources/Exams/ExamShow';
 import { ExamCreate } from './resources/Exams/ExamCreate';
@@ -1429,7 +1440,7 @@ export const App = () => {
     defaultTheme="light"
     i18nProvider={i18nProvider}
     layout={AppLayout}
-    dashboard={Dashboard}
+    dashboard={FlagDashboard}
     loginPage={isNativeApp ? LoginPage : LandingPage}
     title="Meus Exames"
     loading={() => <BootSplash />}
