@@ -36,8 +36,10 @@ RUN cd packages/server && npx prisma generate
 RUN npm run build --workspace packages/shared
 # build do servidor (tsc)
 RUN npm run build --workspace packages/server
-# typecheck do front (PEGA imports faltando como o Button antes de empacotar)
-RUN npm run typecheck --workspace packages/web
+# typecheck do front (PEGA imports faltando como o Button antes de empacotar). No CI o job `checks` já faz o
+# mesmo typecheck em paralelo e passa WEB_TYPECHECK=0 (-38 s no build); build local/avulso mantém o padrão 1.
+ARG WEB_TYPECHECK=1
+RUN if [ "$WEB_TYPECHECK" = "1" ]; then npm run typecheck --workspace packages/web; fi
 # build do front em modo produção, no sub-caminho /minhasaude (API em /minhasaude/api)
 ARG VITE_BASE=/minhasaude/
 ARG VITE_API_URL=/minhasaude/api

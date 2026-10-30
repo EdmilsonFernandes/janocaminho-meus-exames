@@ -2,8 +2,15 @@ name: Publish Docker Image (GHCR)
 
 # BUILDA a imagem no GitHub (servidores potentes) → publica no GHCR.
 # O EC2 NÃO builda (só baixa a imagem pronta — não estoura a RAM da t2.micro).
-# GATE: job `test` roda a suite (vitest, ~128 testes) ANTES do build — se falhar,
-# nada é buildado/publicado → deploy (workflow_run) só roda em success → prod fica na última versão boa.
+#
+# PIPELINE EM PARALELO (30/10/26). Antes: test (~15 min, 1 runner) → build (~3 min) em série = ~18 min por push.
+#   checks   typecheck web + server, lint de linguagem vedada ........ ~2 min ┐
+#   test     suíte do server em 4 fatias, cada uma com o seu postgres  ~5 min ├─ rodam JUNTOS
+#   build    imagem Docker publicada só com a tag do commit (:<sha>) . ~2 min ┘
+#   publish  move o :latest para o commit — SÓ se checks + test + build passaram (e só na main)
+# GATE preservado: falhou qualquer um → `publish` não roda → :latest não anda → deploy (workflow_run, só em
+# success) não dispara → prod fica na última versão boa. A imagem :<sha> de um commit reprovado fica no GHCR,
+# mas nada a usa (o compose do EC2 puxa :latest).
 on:
   push:
     branches: ["main"]
@@ -24,9 +31,50 @@ env:
   IMAGE_NAME: ghcr.io/edmilsonfernandes/meus-exames-app
 
 jobs:
-  # === GATE DE TESTE: roda a suite do server contra um postgres efêmero ===
-  test:
+  # === CHECAGENS BARATAS: se algo está quebrado, o erro aparece em ~2 min. Antes o typecheck era o ÚLTIMO
+  # passo, depois de ~13 min de testes (o e6aab13 esperou 16 min por um erro que o tsc acha em 39 s). ===
+  checks:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://meus_exames:meus_exames_dev@localhost:5433/meus_exames_test?schema=public
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      # shared precisa de dist/ e o client Prisma precisa estar gerado ANTES dos typechecks:
+      # o checkout fresco não tem nenhum dos dois.
+      - run: npm run build --workspace packages/shared
+      - run: cd packages/server && npx prisma generate
+      # Lint de linguagem vedada (AAS — blueprint §8/P1-7): termos proibidos em texto público.
+      # grep sem match sai 1 → `!` inverte → step verde. Qualquer match (exit 0) quebra o gate.
+      - name: Lint linguagem vedada (AAS)
+        run: |
+          ! grep -rniE "ciclo seguro|dose segura|comece tpc|reduza a dose|pause o ciclo|faça uma sangria|evite todos os efeitos colaterais" \
+            packages/web/src packages/server/knowledge packages/server/src --include="*.ts" --include="*.tsx" --include="*.md"
+      # Typecheck do WEB no gate (deps já instaladas): quando quebra, o erro aparece
+      # com annotation no log do runner — dentro do docker buildx fica ilegível
+      # (debug do TS1381 de 30/09: docker falhava e o log era 403 sem gh auth).
+      # O Dockerfile não repete este typecheck no CI (build-arg WEB_TYPECHECK=0).
+      - run: npm run typecheck --workspace packages/web
+      # Typecheck do SERVER: antes só o `tsc` do build da imagem pegava, no fim da pipeline.
+      - run: npm run typecheck --workspace packages/server
+
+  # === SUÍTE DO SERVER em 4 FATIAS PARALELAS ===
+  # O vitest roda 1 arquivo por vez (fileParallelism false + maxWorkers 1 no vitest.config: os testes dividem UM
+  # banco), então não dá para paralelizar DENTRO do runner. Em vez disso: 4 runners, cada um com o SEU postgres
+  # efêmero e 1/4 dos arquivos (--shard). ~13 min → ~4,5 min. Repo público: minutos de CI não custam.
+  test:
+    name: test (fatia ${{ matrix.shard }}/4)
+    runs-on: ubuntu-latest
+    strategy:
+      # Uma fatia vermelha NÃO cancela as outras: o log mostra todas as falhas de uma vez
+      # (sem re-rodar 5 min só para descobrir a próxima).
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4]
     services:
       postgres:
         image: postgres:16-alpine
@@ -54,21 +102,11 @@ jobs:
       - run: npm run build --workspace packages/shared
       - run: cd packages/server && npx prisma generate
       - run: cd packages/server && npx prisma db push --skip-generate
-      - run: npm test --workspace packages/server
-      # Lint de linguagem vedada (AAS — blueprint §8/P1-7): termos proibidos em texto público.
-      # grep sem match sai 1 → `!` inverte → step verde. Qualquer match (exit 0) quebra o gate.
-      - name: Lint linguagem vedada (AAS)
-        run: |
-          ! grep -rniE "ciclo seguro|dose segura|comece tpc|reduza a dose|pause o ciclo|faça uma sangria|evite todos os efeitos colaterais" \
-            packages/web/src packages/server/knowledge packages/server/src --include="*.ts" --include="*.tsx" --include="*.md"
-      # Typecheck do WEB no gate (deps já instaladas): quando quebra, o erro aparece
-      # com annotation no log do runner — dentro do docker buildx fica ilegível
-      # (debug do TS1381 de 30/09: docker falhava e o log era 403 sem gh auth).
-      - run: npm run typecheck --workspace packages/web
+      - run: npm test --workspace packages/server -- --shard=${{ matrix.shard }}/4
 
-  # === BUILD + PUSH da imagem (só se os testes passarem) ===
-  build-and-push:
-    needs: test
+  # === BUILD + PUSH da imagem, EM PARALELO com checks/test — só com a tag do commit ===
+  # O :latest NÃO é tocado aqui (ver `publish`): a imagem de um commit reprovado fica no GHCR, mas nada a usa.
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -100,15 +138,15 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ env.IMAGE_NAME }}:latest
-            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
           # Build-args → viram ENV no Dockerfile → o gerador carimba no buildInfo (server + web).
           # Labels → ficam NA imagem (docker inspect mostra a versão sem rodar o container).
+          # WEB_TYPECHECK=0: o job `checks` já roda o typecheck do web (em paralelo) — não repete aqui (-38 s).
           build-args: |
             VITE_BASE=/minhasaude/
             VITE_API_URL=/minhasaude/api
             VITE_TELEMEDICINE_URL=${{ vars.VITE_TELEMEDICINE_URL }}
+            WEB_TYPECHECK=0
             BUILD_VERSION=${{ steps.meta.outputs.version }}
             BUILD_VERSION_CODE=${{ steps.meta.outputs.vcode }}
             BUILD_GIT_SHA=${{ github.sha }}
@@ -125,3 +163,23 @@ jobs:
             io.janocaminho.build.time_iso=${{ steps.meta.outputs.built }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # === PORTÃO: move o :latest para o commit aprovado ===
+  # Só roda se checks + as 4 fatias de test + build passaram (`needs` sem `if: always()` = success()) e só na
+  # main: um workflow_dispatch numa branch não mexe no :latest (e portanto não vira deploy).
+  publish:
+    needs: [checks, test, build]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Re-tag feito só no registry: copia o manifest, não baixa nem sobe camadas (~segundos).
+      - name: Mover :latest para o commit aprovado
+        run: docker buildx imagetools create --tag "${IMAGE_NAME}:latest" "${IMAGE_NAME}:${GITHUB_SHA}"
