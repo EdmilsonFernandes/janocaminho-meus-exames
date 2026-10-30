@@ -828,11 +828,16 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // Dono 20/10: audio JUNTO com vídeo — o browser permissa AMBOS de uma vez
   // (se audio:false, o mic só era pedido pelo LiveKit JÁ DENTRO da chamada,
   // quando o usuário menos espera e o Chrome às vezes bloqueia).
+  // MIC (30/10 — fix da dor de ANOS "microfone baixo/mudo no Safari/Chrome"):
+  // constraints EXPLÍCITAS. Sem autoGainControl o Safari (e alguns Chrome) não
+  // normalizam o ganho → médico fala e sai um sussurro (audioLevel ~0.005 nos
+  // stats do LiveKit). Padrão dos players de telemedicina (Zoom/Meet/Doxy).
+  const MIC_AUDIO_OPTS = { echoCancellation: true, noiseSuppression: true, autoGainControl: true } as const;
   const openPreview = useCallback(async () => {
     setCamState('pending');
     setMicDenied(false);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: { ...MIC_AUDIO_OPTS } });
       previewStream.current?.getTracks().forEach((t) => t.stop());
       previewStream.current = stream;
       if (previewVideo.current) { previewVideo.current.srcObject = stream; previewVideo.current.play().catch(() => {}); }
@@ -844,7 +849,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       // nenhuma: a entrada é bloqueada com orientação clara (não deixa entrar "no escuro").
       if (!noDevice) {
         try {
-          const audio = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const audio = await navigator.mediaDevices.getUserMedia({ audio: { ...MIC_AUDIO_OPTS } });
           audio.getTracks().forEach((t) => t.stop());
           setMicDenied(false);
         } catch { setMicDenied(true); }
@@ -890,7 +895,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const connectRoom = useCallback(async (serverUrl: string, lkToken: string) => {
     await teardownRoom();
     endedByUser.current = false;
-    const room = new Room({ adaptiveStream: true, dynacast: true });
+    const room = new Room({ adaptiveStream: true, dynacast: true, audioCaptureDefaults: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
     roomRef.current = room;
 
     const upsertRemote = (p: RemoteParticipant) => {
