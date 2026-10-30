@@ -60,8 +60,10 @@ export const RollingMetric = ({
     '--ux-accent': color ?? (theme.palette.mode === 'dark' ? '#5fc9c3' : '#20b2aa'),
     '--ux-surface': headStroke ?? theme.palette.background.paper,
     '--ux-ink': theme.palette.text.primary,
-    '--h': digitHeight,
-    '--sh': sparkHeight,
+    // React NÃO acrescenta "px" em custom properties: número puro quebra height/font-size
+    // e vira line-height unitless gigante (card de KPI explodia pra ~700px).
+    '--h': `${digitHeight}px`,
+    '--sh': `${sparkHeight}px`,
   } as CSSProperties;
 
   // Dígitos rolantes — porta direta da função digits() do elemento: rebuild quando o "esqueleto"
