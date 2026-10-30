@@ -124,6 +124,7 @@ import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { BootSplash } from './components/BootSplash';
+import { AppCrashPage } from './components/AppCrashPage';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ExamCreateFab } from './components/ExamCreateFab';
 import { BiometricGate } from './components/BiometricGate';
@@ -1191,7 +1192,7 @@ const AppLayout = (props: any) => {
       <BiometricGate>
       <ScreenBackdrop />
       {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
-      <Layout {...props} menu={AppMenu} appBar={CustomAppBar}
+      <Layout {...props} menu={AppMenu} appBar={CustomAppBar} error={AppCrashPage}
         sx={{
           // Esconde o ☰ nativo do react-admin (menuButton). Mobile usa o AppDrawer (☰ do CustomAppBar);
           // Desktop NÃO tem toggle — a Sidebar fica sempre aberta (useSidebarState força). Antes o ☰ no desktop
@@ -1444,6 +1445,9 @@ export const App = () => {
     loginPage={isNativeApp ? LoginPage : LandingPage}
     title="Meus Exames"
     loading={() => <BootSplash />}
+    // Crash de tela: página amigável pt-BR no lugar do "Something went wrong / A client error
+    // occurred…" do RA. Cobre também rotas noLayout (/admin, /doctor, /teleconsulta).
+    error={AppCrashPage}
     disableTelemetry
   >
     <CustomRoutes noLayout>

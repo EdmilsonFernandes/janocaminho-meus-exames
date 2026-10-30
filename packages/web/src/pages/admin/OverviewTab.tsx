@@ -32,11 +32,9 @@ export const OverviewTab = () => {
   };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
 
-  if (loading) return <TabLoader />;
-  if (error || !metrics) return <SectionError message="Não foi possível carregar as métricas." onRetry={() => void load()} />;
-
   // Séries de tendência dos KPIs — vêm da MESMA resposta /admin/metrics (cohort mensal,
   // cohort semanal e receita por mês). Retenção não tem série: fica sem linha.
+  // ANTES dos early-returns: hook depois de return condicional = React #310 (crashava o painel ao abrir).
   const kpiSeries = useMemo(() => {
     const wc: any[] = metrics?.weeklyCohort ?? [];
     const coh: any[] = metrics?.cohort ?? [];
@@ -55,6 +53,9 @@ export const OverviewTab = () => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [metrics]);
+
+  if (loading) return <TabLoader />;
+  if (error || !metrics) return <SectionError message="Não foi possível carregar as métricas." onRetry={() => void load()} />;
 
   // KPIs do topo — Lucian #098: dígitos rolantes (montagem + refresh) + linha de tendência.
   const kpis = [
