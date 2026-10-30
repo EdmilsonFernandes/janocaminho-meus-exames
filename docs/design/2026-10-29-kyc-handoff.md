@@ -1,7 +1,9 @@
 # HANDOFF FINAL — Verificação de identidade do médico (UaiID) · 29/10/2026
 
 > Para o dono e para a próxima IA. Branch `worktree-kyc-medico` (worktree `.claude/worktrees/kyc-medico`), base `9d8ecca7`
-> (= origin/main quando começou). **Tudo é local: nada foi enviado (sem push, sem merge).**
+> (= origin/main quando começou). **Tudo é local: nada foi enviado ao remoto (verificado em `git ls-remote`: a branch não existe lá).**
+> A branch já contém o merge com a `main` (`aa9efed2`, main em `979934da`, 29/10 ~21h) com os conflitos resolvidos e validados;
+> se a `main` andar de novo antes do push, mesclar outra vez e refazer `tsc` + testes.
 > Spec: `2026-10-28-verificacao-medico-spec.md` (v1.2) · Plano servidor: `2026-10-28-verificacao-medico-plano-servidor.md`
 > · Plano web/admin: `2026-10-29-verificacao-medico-plano-web.md`.
 
@@ -71,7 +73,7 @@ PII; `doctor/verification` fora do cache offline do app; PostHog recebe a URL de
 | Painel admin "Identidade" + selo na fila do paciente | **Pronto** |
 | Revisão final do servidor + re-revisão + correções (2 rodadas) | **Feitas** (ledger em `.superpowers/sdd/…/progress.md`) |
 | Fumaça REAL contra o UaiID | **Feita** — achou e corrigiu 1 bug de contrato (`verify_url` vem RELATIVO) |
-| AAB/APK | **Não feito** — decisão do dono depois do merge (só o selo do paciente precisa; portal do médico e admin são web) |
+| AAB/APK | **AAB gerado** (29/10, 21h14): `versionCode 553` / `versionName 2.7.303`, assinado com a chave de upload (CN=Edmilson Fernandes, O=Meus Exames), 14,9 MB, SHA-256 `335D97CEF4313273270E77DF499A2D91425B5A3CE874E91DC6BDA9B25D1F191F`. **Falta subir no Play Console** (decisão do dono, depois do deploy do servidor). O `versionCode 553` está CONSUMIDO: o próximo AAB precisa de 554 ou mais. Só o selo do paciente depende dele; portal do médico e admin são web. |
 | Teste em aparelho real do retorno pelo Custom Tab (`browserFinished`) | **Não feito** |
 | `graphify update` | **Não feito** — o grafo não é versionado neste worktree; rodar na árvore principal depois do merge |
 
@@ -194,7 +196,25 @@ PII; `doctor/verification` fora do cache offline do app; PostHog recebe a URL de
 
 ## 7. Validação feita
 
-PENDENTE-VALIDAÇÃO-FINAL
+Árvore validada: o merge com a `main` (`aa9efed2`) + versão 553 + correção de um teste (`8243c686`), em 29/10 entre 20h e 21h15.
+
+| Verificação | Resultado |
+|---|---|
+| Typecheck servidor (`tsc --noEmit`, incremental) no resultado do merge | limpo, sem erros |
+| Typecheck web (`tsc --noEmit`, incremental) no resultado do merge | limpo, sem erros |
+| Suíte COMPLETA do servidor no resultado do merge (3 fatias em 3 bancos de teste, `vitest --shard`) | 190 arquivos, 1.803 testes: 1.801 verdes na execução + 1 pulado (`ocr.test.ts`, faltam imagens de fixture, já era `it.skip`) + **1 falha** (`auditoria-p0 › AUD-003`, ver abaixo), corrigida em `8243c686` e reexecutada: arquivo 6/6 |
+| Suíte COMPLETA do web no resultado do merge | 37 arquivos, 512 testes, zero falhas |
+| Fumaça REAL contra o UaiID | feita antes (sessão criada; bug do `verify_url` relativo achado e corrigido) |
+| Migration em banco antigo com médicos sintéticos | verificada (só conta real vira `legacy`; idempotente) |
+| Revisões independentes (Opus) | revisão final do servidor + re-revisão das correções (ver `.superpowers/sdd/…/final-review-*.md`) |
+| AAB | `BUILD SUCCESSFUL` (8m21s), `jarsigner` ok, manifesto com `versionCode 553` / `2.7.303` |
+
+**O que o merge com a `main` exigiu** (4 conflitos, detalhes em `aa9efed2`): `app.ts` (convite do médico: mantido o nosso lookup por
+CRM/e-mail e o CRM canônico, mais a senha mínima e o formato de e-mail da `main`), `teleconsulta.routes.ts` (mantido o nosso
+`doctorAccessDenial`, que cobre o bloqueio do AUD-004 da `main` e a verificação), `teleconsultaQueue.routes.ts` (variável
+`presenceAll` da `main` com o nosso filtro de quem pode atuar) e `subscription-compat.test.ts` (`hasCoupon: true`).
+**Decisão registrada:** o teste do AUD-003 da `main` esperava `400` para CRM com UF inexistente; a nossa spec manda `422 CRM_INVALID`
+(o mesmo do cadastro principal). O front trata o erro de forma genérica, então ficou o `422` e foi ajustada só essa expectativa.
 
 ## 8. Mapa de arquivos
 
