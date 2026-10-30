@@ -520,8 +520,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const startRingback = useCallback(() => {
     if (ringbackIvRef.current) return;
     const ring = () => {
-      playTone(440, 800); // tom principal
-      playTone(480, 800, 0.03); // harmônico
+      // 30/10 (dono: "toque baixo demais"): 4% → 40% (nível de app de telefone).
+      // Chime de entrada/saída segue discreto — só o RING muda.
+      playTone(440, 800, 0.4); // tom principal
+      playTone(480, 800, 0.22); // harmônico
     };
     ring();
     ringbackIvRef.current = window.setInterval(ring, 4000); // cadência Brasília: 1s on / 3s off
@@ -820,6 +822,126 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const previewVideo = useRef<HTMLVideoElement>(null);
   const audioSink = useRef<HTMLDivElement>(null);
   const wakeLock = useRef<any>(null);
+  // ── WATCHDOG DE MIC (30/10 — bug WebKit 180748) ─────────────────────────────
+  // Safari captura com falha INTERMITENTE: a trilha publicada pode nascer MUDA e
+  // "se corrige reiniciando o getUserMedia" (workaround documentado no bug tracker
+  // da WebKit e o padrão dos players maduros). Autonomo (observa roomRef, não
+  // depende de fase): nos primeiros 30s de trilha viva, 4 checagens seguidas de
+  // silêncio absoluto (~6s sem NENHUMA energia) → re-adquire e republica com os
+  // audioCaptureDefaults (AGC/EC/NS). Máx 2 tentativas; qualquer voz detectada
+  // cancela (não mexe em quem está falando bem).
+  const micWatch = useRef<{ start?: number; silent: number; tries: number; ctx?: AudioContext }>({ silent: 0, tries: 0 });
+  useEffect(() => {
+    if (!micOn) { micWatch.current = { silent: 0, tries: 0 }; return; }
+    let diagTicks = 0;
+    const iv = setInterval(async () => {
+      const w = micWatch.current;
+      const room = roomRef.current;
+      if (!room || room.state !== 'connected') return;
+      // DIAGNÓSTICO (30/10): a cada ~12s, retrato de áudio das DUAS pontas —
+      // nível que RECEBO do outro + mudo/falando. Buffer window.__dxTeleAudioLog
+      // (80 últimos) + console: suporte do futuro = "abra o console e copie".
+      if (++diagTicks % 8 === 0) {
+        try {
+          const remotes = [...room.remoteParticipants.values()].map((rp) => ({
+            id: rp.identity, lvl: typeof rp.audioLevel === 'number' ? Number(rp.audioLevel.toFixed(4)) : null, speaking: rp.isSpeaking, micMuted: !!rp.getTrackPublication(Track.Source.Microphone)?.isMuted,
+          }));
+          const line = { t: new Date().toISOString().slice(11, 19), euMudo: !!room.localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted, remotos: remotes };
+          (window as any).__dxTeleAudioLog = [...(((window as any).__dxTeleAudioLog ?? []) as unknown[]), line].slice(-80);
+          console.log('[tele-audio]', JSON.stringify(line));
+          if (diagTicks % 40 === 0) void sendAudioDiag('periodico'); // ~60s: espelho no server
+        } catch { /* log nunca quebra a chamada */ }
+      }
+      const pub = room.localParticipant.getTrackPublication(Track.Source.Microphone);
+      const mst = pub?.track?.mediaStreamTrack;
+      if (!mst || mst.readyState !== 'live') return;
+      if (mst.muted) { w.silent++; return; }
+      if (!w.start) w.start = Date.now();
+      if (Date.now() - w.start > 30_000) { clearInterval(iv); return; } // janela passou: mic OK
+      try {
+        w.ctx = w.ctx ?? new (window.AudioContext || (window as any).webkitAudioContext)();
+        if (w.ctx.state === 'suspended') { void w.ctx.resume(); }
+        const src = w.ctx.createMediaStreamSource(new MediaStream([mst]));
+        const an = w.ctx.createAnalyser(); an.fftSize = 512;
+        src.connect(an);
+        const buf = new Uint8Array(an.frequencyBinCount);
+        an.getByteTimeDomainData(buf);
+        let peak = 0;
+        for (let i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i] - 128));
+        src.disconnect(); an.disconnect();
+        if (peak / 128 > 0.03) { w.silent = 0; return; } // tem voz → mic OK
+        w.silent++;
+        if (w.silent >= 4 && w.tries < 2) {
+          w.tries++; w.silent = 0; w.start = Date.now();
+          console.warn(`[mic-watchdog] trilha muda detectada — re-adquirindo (${w.tries}/2)`);
+          try {
+            await room.localParticipant.setMicrophoneEnabled(false);
+            await new Promise((r) => setTimeout(r, 500));
+            await room.localParticipant.setMicrophoneEnabled(true);
+            void sendAudioDiag(`watchdog-reacquire:${w.tries}`);
+          } catch { /* mantém — médico alterna manualmente pelo botão */ }
+        }
+      } catch { /* WebAudio indisponível: watchdog desliga, nada quebra */ }
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [micOn]);
+
+  // ── MEDIDOR + SELETOR DE MIC no preview (30/10) ─────────────────────────────
+  // As causas que NEM watchdog NEM AGC cobrem: dispositivo errado (headset
+  // virtual/default) e mic mudo no sistema. Padrão Zoom/Meet/Doxy: o médico VÊ
+  // o nível e troca o dispositivo ANTES de entrar. Fase prejoin apenas.
+  const [micDevices, setMicDevices] = useState<MediaDeviceInfo[]>([]);
+  const [micDeviceId, setMicDeviceId] = useState('');
+  const [micLevel, setMicLevel] = useState(0);
+  const [micSilentHint, setMicSilentHint] = useState(false);
+  const micMeterLowRef = useRef(0);
+  useEffect(() => {
+    const track = previewStream.current?.getAudioTracks()[0];
+    if (camState !== 'ok' || phase !== 'prejoin' || !track || track.readyState !== 'live') { setMicLevel(0); setMicSilentHint(false); return; }
+    setMicDeviceId(track.getSettings().deviceId ?? '');
+    void navigator.mediaDevices.enumerateDevices().then((all) => setMicDevices(all.filter((d) => d.kind === 'audioinput'))).catch(() => {});
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const src = ctx.createMediaStreamSource(new MediaStream([track]));
+    const an = ctx.createAnalyser(); an.fftSize = 512; src.connect(an);
+    const buf = new Uint8Array(an.frequencyBinCount);
+    micMeterLowRef.current = 0;
+    let raf = 0;
+    const loop = () => {
+      if (track.readyState !== 'live') { cancelAnimationFrame(raf); return; }
+      an.getByteTimeDomainData(buf);
+      let peak = 0;
+      for (let i = 0; i < buf.length; i++) peak = Math.max(peak, Math.abs(buf[i] - 128));
+      const lvl = peak / 128;
+      setMicLevel(lvl);
+      micMeterLowRef.current = lvl < 0.02 ? micMeterLowRef.current + 1 : 0;
+      setMicSilentHint(micMeterLowRef.current > 180); // ~3s sem nenhuma energia
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => { cancelAnimationFrame(raf); src.disconnect(); an.disconnect(); void ctx.close().catch(() => {}); };
+  }, [camState, phase, micDeviceId]);
+  const switchMicDevice = async (deviceId: string) => {
+    try {
+      const fresh = await navigator.mediaDevices.getUserMedia({ audio: { ...MIC_AUDIO_OPTS, deviceId: { exact: deviceId } } });
+      const stream = previewStream.current;
+      stream?.getAudioTracks().forEach((t) => { t.stop(); stream.removeTrack(t); });
+      fresh.getAudioTracks().forEach((t) => previewStream.current?.addTrack(t));
+      setMicDeviceId(deviceId);
+      void sendAudioDiag(`trocou-mic:${deviceId.slice(0, 10)}`);
+    } catch { /* mantém o atual */ }
+  };
+  // Logs de áudio TAMBÉM no servidor (30/10, pedido do dono: "vc vai no servidor
+  // e olha"): fire-and-forget pro /audio-diag — docker logs | grep tele-audio.
+  const sendAudioDiag = useCallback((label: string) => {
+    try {
+      const buf = ((window as any).__dxTeleAudioLog ?? []) as unknown[];
+      void fetch(`${API_URL}/teleconsulta/${reminderId}/audio-diag`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken()}` },
+        body: JSON.stringify({ lines: [label, ...buf.slice(-8)] }),
+      }).catch(() => {});
+    } catch { /* best-effort */ }
+  }, [authToken, reminderId]);
   const startedAtRef = useRef<number | null>(null);
   const endedByUser = useRef(false);
   const noteKey = `dx-teleconsulta-note:${reminderId}`;
@@ -837,11 +959,21 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     setCamState('pending');
     setMicDenied(false);
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: { ...MIC_AUDIO_OPTS } });
+      // AQUISIÇÃO SEPARADA (padrão documentado p/ Safari — bug WebKit 180748):
+      // pedir áudio e vídeo NUMA chamada só produz trilha de áudio muda em
+      // alguns Safaris. Áudio primeiro (é o crítico), vídeo depois — falha de
+      // câmera NÃO bloqueia mais o microfone.
+      const audioStream = await navigator.mediaDevices.getUserMedia({ audio: { ...MIC_AUDIO_OPTS } });
+      let videoTracks: MediaStreamTrack[] = [];
+      try {
+        const vs = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+        videoTracks = vs.getVideoTracks();
+      } catch { /* câmera opcional — segue só com mic */ }
+      const stream = new MediaStream([...audioStream.getAudioTracks(), ...videoTracks]);
       previewStream.current?.getTracks().forEach((t) => t.stop());
       previewStream.current = stream;
       if (previewVideo.current) { previewVideo.current.srcObject = stream; previewVideo.current.play().catch(() => {}); }
-      setCamState('ok');
+      setCamState(videoTracks.length > 0 ? 'ok' : 'nodevice');
     } catch (e: any) {
       const noDevice = e?.name === 'NotFoundError' || e?.name === 'OverconstrainedError';
       setCamState(noDevice ? 'nodevice' : 'denied');
@@ -3995,6 +4127,28 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                       borderRadius: '8px',
                     }}
                   />
+                )}
+                {phase === 'prejoin' && (
+                  <Stack sx={{ position: 'absolute', left: 10, right: 10, bottom: 10, gap: 0.75, p: 1.25, borderRadius: '10px', bgcolor: 'rgba(0,0,0,0.62)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+                    <Box
+                      component="select"
+                      value={micDeviceId}
+                      onChange={(e: any) => void switchMicDevice(e.target.value)}
+                      aria-label="Escolher microfone"
+                      sx={{ fontSize: 12, fontWeight: 700, color: '#fff', bgcolor: 'transparent', border: '1px solid rgba(255,255,255,.3)', borderRadius: 2, px: 1, py: 0.5, maxWidth: '100%', '& option': { color: '#000' } }}
+                    >
+                      {micDevices.length === 0 && <Box component="option" value="">Microfone padrão</Box>}
+                      {micDevices.map((d, i) => (
+                        <Box key={d.deviceId || i} component="option" value={d.deviceId}>{d.label || `Microfone ${i + 1}`}</Box>
+                      ))}
+                    </Box>
+                    <Box sx={{ height: 6, borderRadius: 999, bgcolor: 'rgba(255,255,255,.18)', overflow: 'hidden' }}>
+                      <Box sx={{ height: '100%', width: `${Math.max(2, Math.round(micLevel * 100))}%`, borderRadius: 999, background: 'linear-gradient(90deg,#20b2aa,#5fc9c3)', transition: 'width .08s linear' }} />
+                    </Box>
+                    <Typography sx={{ fontSize: 10.5, fontWeight: 700, color: micSilentHint ? '#fbbf24' : 'rgba(255,255,255,.78)' }}>
+                      {micSilentHint ? '⚠️ Sem captura — troque o microfone ou verifique volume/mudo do sistema' : '🎤 Fale — a barra deve mexer'}
+                    </Typography>
+                  </Stack>
                 )}
               </>
             ) : (

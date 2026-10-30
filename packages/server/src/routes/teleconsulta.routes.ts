@@ -511,6 +511,22 @@ router.post('/:id/leave', requireJoinIdentity, async (req: JoinRequest, res, nex
   }
 });
 
+/** AUDIO-DIAG — POST /api/teleconsulta/:id/audio-diag (30/10). Telemetria das
+ *  pontas (nível recebido, mudo/falando, watchdog, troca de dispositivo) → log
+ *  estruturado do container. Suporte: SSH EC2 + `docker logs meus-exames-app |
+ *  grep tele-audio`. SEM audit (evita spam de 60s) e SEM banco (não é dado
+ *  clínico — telemetria efêmera de sessão no log rotativo do docker). */
+router.post('/:id/audio-diag', requireJoinIdentity, async (req: JoinRequest, res, next) => {
+  try {
+    const r = await loadAccessibleTeleconsulta(req, res); if (!r) return;
+    const lines = Array.isArray((req.body as { lines?: unknown })?.lines) ? ((req.body as { lines: unknown[] }).lines).slice(-20) : [];
+    console.log(JSON.stringify({ tag: 'tele-audio', room: r.id, who: `${req.joinRole}:${req.joinRole === 'doctor' ? req.doctorId : req.userId}`, at: new Date().toISOString(), lines }));
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
 /** NUDGE — POST /api/teleconsulta/:id/nudge (22/10/26). No-show do paciente: médico
  *  sozinho na sala há 5 min → reenvia o push "está esperando você" pro owner.
  *  Só médico (é ele quem espera); consulta encerrada → 403 TELECONSULTA_ENDED
