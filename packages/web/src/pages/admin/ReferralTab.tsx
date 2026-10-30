@@ -86,6 +86,37 @@ const fmtDate = (iso: string) => {
   }
 };
 
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import '../../doctor-v2/tw.css';
+
+/** ReUI DataGrid — leaderboard de promotores (Fase B, worktree admin-reui). */
+function PromotersGrid({ rows, copiedCode, onCopy, onOpen }: { rows: any[]; copiedCode: string | null; onCopy: (c: string) => void; onOpen: (code: string) => void }) {
+  const columns: ColumnDef<any, any>[] = [
+    { id: 'rank', header: '#', enableSorting: false, cell: (c) => { const i = c.row.index; return <span className={'whitespace-nowrap text-[13px] font-extrabold ' + (i < 3 ? 'text-primary' : 'text-muted-foreground')}>{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}º`}</span>; } },
+    { accessorKey: 'userName', header: 'Promotor (Padrinho)', cell: (c) => (
+      <div className="min-w-0">
+        <p className="truncate text-[13.5px] font-bold">{c.getValue() as string}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{(c.row.original as any).userEmail}</p>
+      </div>
+    ) },
+    { accessorKey: 'referralCode', header: 'Código', cell: (c) => { const code = c.getValue() as string; return (
+      <button type="button" onClick={() => onCopy(code)} title={copiedCode === code ? 'Copiado!' : 'Copiar código'} className="inline-flex items-center gap-1 rounded-md border border-border px-1.5 py-0.5 font-mono text-[11.5px] font-extrabold transition-colors hover:bg-muted">
+        {code}<ContentCopyIcon sx={{ fontSize: 12 }} />
+      </button>
+    ); } },
+    { accessorKey: 'count', header: 'Indicados', cell: (c) => { const n = c.getValue() as number; return <span className={'rounded-full px-2 py-0.5 text-[11px] font-extrabold ' + (n >= 5 ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground')}>{n} indicados</span>; } },
+    { accessorFn: (r) => Number((r as any).userCredits ?? 0), id: 'credits', header: 'Saldo', cell: (c) => <span className="whitespace-nowrap text-[13px] font-bold tabular-nums text-muted-foreground">{(c.getValue() as number).toLocaleString('pt-BR')} cr</span> },
+    { id: 'acao', header: 'Ações', enableSorting: false, cell: (c) => (
+      <Button size="small" variant="text" startIcon={<VisibilityIcon fontSize="small" />} onClick={() => onOpen((c.row.original as any).referralCode)} sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12 }}>Ver indicados</Button>
+    ) },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows, columns });
+  if (!rows || rows.length === 0) return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhum promotor encontrado com os filtros atuais.</div>;
+  return <DataGrid table={table} recordCount={rows.length}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
+
 export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -523,6 +554,13 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
             )}
           </Box>
         ) : (
+          <>
+          <div className="dx-island">
+            <PromotersGrid rows={filteredPromoters} copiedCode={copiedCode} onCopy={copy} onOpen={openPromoterDetail} />
+          </div>
+
+          {/* Tabela MUI legada (OCULTA — remover na limpeza) */}
+          <div style={{ display: 'none' }}>
           <TableContainer sx={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
             <Table size="small" sx={{ minWidth: 640 }}>
               <TableHead>
@@ -598,6 +636,8 @@ export const ReferralTab = ({ onGoToConfig }: { onGoToConfig?: () => void }) => 
               </TableBody>
             </Table>
           </TableContainer>
+          </div>
+          </>
         )}
       </Card>
 
