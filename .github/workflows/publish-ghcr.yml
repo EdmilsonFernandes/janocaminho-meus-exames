@@ -186,16 +186,19 @@ jobs:
       - name: Conferir que as 4 fatias de teste rodaram e passaram
         env:
           GH_TOKEN: ${{ github.token }}
-        # Retry: a API do GitHub soltou um 502 transitório aqui (30/10, run 41104160133) e derrubou
-        # um deploy com todos os gates verdes. 5 tentativas com 15s entre elas antes de reprovar.
+        # ESPERA até 10 min pelas 4 fatias em vez de conferir uma vez só. Motivos reais (30/10, run
+        # 41104160133): (1) um 502 transitório do gh api reprovou um deploy 100% verde; (2) num
+        # "re-run failed jobs" o publish parte ANTES das fatias da tentativa nova aparecerem na
+        # listagem (?filter=latest) — a conferência única via 0/4 e reprovava pra sempre. No caminho
+        # feliz a 1ª iteração já acha 4/4 e não dorme nada. O gate continua exigindo exatamente 4.
         run: |
           ok=""
-          for i in 1 2 3 4 5; do
+          for i in $(seq 1 30); do
             ok="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/jobs?per_page=100" \
-              --jq '[.jobs[] | select((.name | startswith("test (fatia")) and .conclusion == "success")] | length')" && break
-            echo "gh api falhou (tentativa ${i}/5) — nova tentativa em 15s"
-            ok=""
-            sleep 15
+              --jq '[.jobs[] | select((.name | startswith("test (fatia")) and .conclusion == "success")] | length')" || ok=""
+            [ "${ok}" = "4" ] && break
+            echo "fatias aprovadas até agora: ${ok:-api indisponível}/4 (checagem ${i}/30) — aguardando 20s"
+            sleep 20
           done
           echo "Fatias de teste aprovadas: ${ok}/4"
           [ "${ok}" = "4" ]
