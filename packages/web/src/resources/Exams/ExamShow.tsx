@@ -13,7 +13,8 @@ import StopIcon from '@mui/icons-material/Stop';
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import { Title, useNotify } from 'react-admin';
 import { API_URL, token } from '../../config';
-import { confirmDialog } from '../../components/ConfirmDialog';
+import { confirmDialog, snackbar } from '../../components/ConfirmDialog';
+import { chipA11y } from '../../utils/chipA11y';
 import { LabBadge } from '../../components/LabBadge';
 import { Capacitor } from '@capacitor/core';
 import { openBlobFile, speakText, stopSpeakText } from '../../utils/nativeDoc';
@@ -52,7 +53,11 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
     try {
       const r = await fetch(`${API_URL}/items/${it.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` }, body: JSON.stringify({ valueText: v, valueNumeric: isNaN(num) ? null : num }) });
       if (r.ok) { const u = await r.json(); onSaved(u); setEditing(false); }
-    } finally { setBusy(false); }
+      // Falha silenciosa era o bug (audit D §S2): correção de OCR é promessa central —
+      // o usuário precisa saber que NÃO salvou.
+      else snackbar({ message: 'Não foi possível salvar a correção — tente de novo.', severity: 'error' });
+    } catch { snackbar({ message: 'Sem conexão — a correção não foi salva.', severity: 'error' }); }
+    finally { setBusy(false); }
   };
   if (editing) return (
     <Box component="input" value={v} autoFocus disabled={busy}
@@ -62,6 +67,7 @@ const EditableItemValue = ({ it, color, onSaved }: { it: any; color: string; onS
   );
   return (
     <Typography onClick={() => setEditing(true)} title="Toque para corrigir o valor"
+      {...chipA11y()} aria-label={`Corrigir valor de ${it.name ?? 'marcador'}`}
       sx={{ fontSize: '1.5rem', fontWeight: 800, lineHeight: 1.2, color, cursor: 'pointer', borderBottom: '2px dotted rgba(32,178,170,.45)', '&:hover': { color: '#178f89' } }}>
       {fmtVal(it)} <Box component="span" sx={{ fontSize: '0.8rem', opacity: 0.6 }}>✏️</Box>
     </Typography>
@@ -115,6 +121,10 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
   const navigate = useNavigate();
   const notify = useNotify();
   const [exam, setExam] = useState<any>(null);
+  // AUD-011: falha de rede/4xx deixava o spinner rodando pra sempre — o usuário
+  // ficava preso sem saber se esperava ou desistia. Erro vira tela com saída.
+  const [loadErr, setLoadErr] = useState<null | 'network' | 'notfound' | 'server'>(null);
+  const [retryTick, setRetryTick] = useState(0);
   const [genLoading, setGenLoading] = useState(false);
   const [reExtracting, setReExtracting] = useState(false);
   const [chatInput, setChatInput] = useState('');
@@ -146,8 +156,13 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
     const load = async () => {
       attempts++;
       if (attempts > 60) { notify('A extração está demorando mais que o normal. Pode continuar usando o app — avisamos quando terminar.', { type: 'warning' }); return; }
-      const r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
-      if (!active || !r.ok) return;
+      let r: Response;
+      try {
+        r = await fetch(`${API_URL}/exams/${id}`, { headers: { Authorization: `Bearer ${token()}` } });
+      } catch { if (active) setLoadErr('network'); return; } // AUD-011: offline não é spinner eterno
+      if (!active) return;
+      if (!r.ok) { setLoadErr(r.status === 404 || r.status === 403 ? 'notfound' : 'server'); return; }
+      setLoadErr(null);
       const d = await r.json();
       if (!active) return;
       setExam(d);
@@ -164,7 +179,7 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
     };
     load();
     return () => { active = false; clearTimeout(timer); };
-  }, [id]);
+  }, [id, retryTick]); // retryTick: "Tentar de novo" re-roda o efeito do zero
 
   const summary = exam?.analyses?.[0] ?? null;
   // TRIAGEM DE URGÊNCIA (camada 1 — determinística, computada no server junto ao resumo):
@@ -334,7 +349,36 @@ export const ExamShow = ({ inlineId }: { inlineId?: string } = {}) => {
     finally { setChatBusy(false); window.dispatchEvent(new Event('creditsChanged')); }
   };
 
-  if (!exam) return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  if (!exam) {
+    // AUD-011: erro de carga tem TELA (motivo + saída), não spinner eterno.
+    if (loadErr) {
+      return (
+        <Box sx={{ p: 4, textAlign: 'center', maxWidth: 420, mx: 'auto' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: 17, mb: 0.5 }}>
+            {loadErr === 'notfound' ? 'Exame não encontrado' : 'Não deu pra carregar o exame'}
+          </Typography>
+          <Typography color="text.secondary" sx={{ fontSize: 13.5, mb: 2.5 }}>
+            {loadErr === 'notfound'
+              ? 'Ele pode ter sido excluído, ou este link não pertence à sua conta.'
+              : loadErr === 'network'
+              ? 'Sem conexão agora. Verifique sua internet e tente de novo.'
+              : 'Tivemos um problema ao buscar os dados. Tente de novo em instantes.'}
+          </Typography>
+          <Stack direction="row" spacing={1.5} justifyContent="center">
+            {loadErr !== 'notfound' && (
+              <Button variant="contained" onClick={() => { setLoadErr(null); setRetryTick((t) => t + 1); }} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}>
+                Tentar de novo
+              </Button>
+            )}
+            <Button variant="outlined" onClick={() => navigate('/exams')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>
+              Meus exames
+            </Button>
+          </Stack>
+        </Box>
+      );
+    }
+    return <Box sx={{ p: 4, textAlign: 'center' }}><CircularProgress /></Box>;
+  }
 
   const items: any[] = exam.items ?? [];
   const cc = categorizeExam(exam); // categoria do exame (dominante pelos itens) — badge no header

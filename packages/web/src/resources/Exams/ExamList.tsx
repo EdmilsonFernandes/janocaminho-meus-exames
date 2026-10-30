@@ -197,11 +197,11 @@ const ExamFilterToolbar = ({
           onChange={(_, v) => { if (v) setView(v); }}
           sx={{ flexShrink: 0, bgcolor: 'background.paper', borderRadius: RADIUS.button, height: 40 }}
         >
-          <ToggleButton value="date" aria-label="Visualizar por data" sx={{ px: { xs: 1, sm: 1.25 }, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+          <ToggleButton value="date" aria-label="Visualizar por data" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minHeight: 44, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
             <CalendarMonthIcon sx={{ fontSize: 16 }} />
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Data</Box>
           </ToggleButton>
-          <ToggleButton value="category" aria-label="Visualizar por categoria" sx={{ px: { xs: 1, sm: 1.25 }, py: 0.5, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
+          <ToggleButton value="category" aria-label="Visualizar por categoria" sx={{ px: { xs: 1.25, sm: 1.5 }, py: 0.5, minHeight: 44, fontSize: 12, fontWeight: 700, textTransform: 'none', border: '1px solid', borderColor: 'divider', gap: 0.5 }}>
             <FolderOutlinedIcon sx={{ fontSize: 16 }} />
             <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Categoria</Box>
           </ToggleButton>

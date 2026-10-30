@@ -528,7 +528,7 @@ export const EncontrarEspecialistasPage = () => {
               <CardContent sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <Stack direction="row" spacing={1.75} alignItems="flex-start" sx={{ flex: 1 }}>
                   <Avatar
-                    src={doctorPhotoUrl(s.id)}
+                    src={s.photoUrl ? doctorPhotoUrl(s.id) : undefined} /* sem foto → sem request 404 */
                     sx={{
                       width: 56,
                       height: 56,

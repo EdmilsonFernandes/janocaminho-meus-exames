@@ -97,6 +97,18 @@
       /* Fade-in suave pras páginas (classe .me-fade-in) — microinteração premium. */
       @keyframes meFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       .me-fade-in { animation: meFadeIn .28s ease both; }
+      /* ─── Impressão (AUD-060) ─────────────────────────────────────────────
+         window.print() imprimia o shell inteiro (appbar, bottom-nav, FABs) e, no
+         tema escuro, texto claro em página branca = ilegível. Aqui: só o conteúdo,
+         sempre tinta escura em fundo branco (ink-friendly). */
+      @media print {
+        html, body { background: #fff !important; }
+        * { color: #111 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+        header, nav, .MuiAppBar-root, .MuiBottomNavigation-root, .MuiFab-root,
+        .MuiDrawer-root, .MuiSnackbar-root, .MuiDialog-root, .no-print, [data-noprint] { display: none !important; }
+        main { padding: 0 !important; }
+        button { display: none !important; }
+      }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

@@ -23,6 +23,7 @@ import EventIcon from '@mui/icons-material/Event';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
 import { tealText } from '../theme';
+import { chipA11y } from '../utils/chipA11y';
 
 type EvType = 'exam' | 'medicao' | 'vacina';
 interface Event { id: string; date: string | null; title: string; kind: string; abnormalCount: number; itemCount: number; type: EvType }
@@ -105,7 +106,7 @@ export const TimelinePage = () => {
           {e.type === 'vacina' ? <VaccinesIcon sx={{ color: '#fff', fontSize: 12 }} /> : e.type === 'medicao' ? <MonitorHeartIcon sx={{ color: '#fff', fontSize: 12 }} /> : isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
         </Box>
         {/* Side-tab → lavagem tonal (Onda B): o DOT que já existe na linha carrega a cor. */}
-        <Card onClick={clickable ? () => openExam(e) : undefined} sx={{ borderRadius: '12px', ml: 1.5, bgcolor: `${dotColor}0D`, border: `1px solid ${dotColor}33`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
+        <Card onClick={clickable ? () => openExam(e) : undefined} {...(clickable ? chipA11y() : {})} aria-label={clickable ? `Abrir exame ${e.title ?? ''}` : undefined} sx={{ borderRadius: '12px', ml: 1.5, bgcolor: `${dotColor}0D`, border: `1px solid ${dotColor}33`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
           <CardContent sx={{ pb: '12px !important' }}>
             <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
               <Box>

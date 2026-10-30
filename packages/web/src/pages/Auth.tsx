@@ -334,14 +334,14 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             com o botão Entrar — era o defeito real do toggle antigo. */}
         <Box sx={{ display: 'flex', p: 0.5, mb: 2, gap: 0.5, borderRadius: '999px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
           <Button onClick={() => { setRole('paciente'); setErrs({}); }} startIcon={<I.User />} fullWidth
-            sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
+            sx={{ py: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 44, transition: 'all .2s',
               background: role === 'paciente' ? '#178f89' : 'transparent',
               color: role === 'paciente' ? '#fff' : '#0e6f68',
               '&:hover': { background: role === 'paciente' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
             Paciente
           </Button>
           <Button onClick={() => { setRole('medico'); setErrs({}); }} startIcon={<I.Doctor />} fullWidth
-            sx={{ py: 1, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 40, transition: 'all .2s',
+            sx={{ py: 1.25, borderRadius: '999px', textTransform: 'none', fontWeight: 800, fontSize: 14, minHeight: 44, transition: 'all .2s',
               background: role === 'medico' ? '#178f89' : 'transparent',
               color: role === 'medico' ? '#fff' : '#0e6f68',
               '&:hover': { background: role === 'medico' ? '#0f766e' : 'rgba(0,121,107,.08)' } }}>
@@ -379,7 +379,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             } }}
           />
           <Box sx={{ textAlign: 'right', mt: -0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK, fontWeight: 600 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK, fontWeight: 600, py: 1.5, my: -1.5, px: 0.5 }} onClick={() => navigate('/recuperar-senha')}>{translate('auth.forgot')}</Link>
           </Box>
           {bioReady && (
             <Button type="button" fullWidth variant="outlined" startIcon={<I.Shield />} onClick={bioLogin} disabled={loading} sx={tokenBtnSx}>
@@ -432,13 +432,20 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             </Box>
           ) : (
             <Typography align="center" sx={{ mt: 1, fontSize: 13 }}>
-              {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK }} onClick={() => navigate('/registrar')}>{translate('auth.create_account')}</Link>
+              {translate('auth.no_account')} <Link component="button" type="button" sx={{ fontWeight: 700, color: LINK, py: 1.5, my: -1.5, px: 0.5 }} onClick={() => navigate('/registrar')}>{translate('auth.create_account')}</Link>
             </Typography>
           )}
           {isAndroidBrowser() && role === 'paciente' && (
             <Box
+              component="button"
+              type="button"
+              aria-label="Abrir pelo aplicativo oficial na Google Play"
               onClick={() => openAppOrPlayStore('')}
               sx={{
+                // A2 (AUD-015): era <Box onClick> — sem foco/teclado. Como <button>
+                // nativo mantém o visual dashed e vira alcançável por Tab/leitor.
+                width: '100%',
+                font: 'inherit',
                 mt: 2,
                 py: 1.1,
                 px: 1.5,
@@ -473,8 +480,8 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
             {loading ? <CircularProgress size={22} color="inherit" /> : translate('auth.otp_verify')}
           </Button>
           <Stack direction="row" spacing={2} justifyContent="center" sx={{ mt: 0.5 }}>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK }} onClick={() => sendOtp()}>{translate('auth.otp_resend')}</Link>
-            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setMode('password')}>{translate('auth.otp_back')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: LINK, py: 1.5, my: -1.5, px: 0.5 }} onClick={() => sendOtp()}>{translate('auth.otp_resend')}</Link>
+            <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary', py: 1.5, my: -1.5, px: 0.5 }} onClick={() => setMode('password')}>{translate('auth.otp_back')}</Link>
           </Stack>
         </Box>
       )}
@@ -574,7 +581,7 @@ export const RegisterPage = () => {
           <Typography sx={{ fontSize: 14, color: 'text.secondary' }}>Enviamos um código de ativação para <strong>{verifyEmail}</strong>. Digite abaixo pra ativar sua conta.</Typography>
           <OtpInput value={verifyCode} onChange={setVerifyCode} />
           <Button type="submit" variant="contained" size="large" fullWidth disabled={loading} endIcon={<I.ArrowRight />} sx={primaryBtnSx}>{loading ? <CircularProgress size={22} color="inherit" /> : 'Ativar conta'}</Button>
-          <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
+          <Link component="button" type="button" variant="body2" sx={{ fontSize: 13, color: 'text.secondary', py: 1.5, my: -1.5, px: 0.5 }} onClick={() => setVerifyEmail(null)}>Voltar ao cadastro</Link>
         </Box>
       ) : (
         <>

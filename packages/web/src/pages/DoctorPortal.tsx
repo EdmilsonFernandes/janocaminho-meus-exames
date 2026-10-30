@@ -1355,7 +1355,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                   <Button size="small" variant="contained" onClick={enterAcceptedRoom} sx={{ minHeight: 30, px: 1.25, borderRadius: '8px', textTransform: 'none', fontWeight: 800, fontSize: 11.5, bgcolor: '#178f89', '&:hover': { bgcolor: '#0f766e' } }}>
                     Entrar na sala
                   </Button>
-                  <Button size="small" onClick={() => setAcceptedCall(null)} aria-label="Dispensar aviso de pagamento" sx={{ minHeight: 30, px: 0.75, textTransform: 'none', fontWeight: 700, fontSize: 11, color: 'text.disabled', minWidth: 0 }}>
+                  <Button size="small" onClick={() => setAcceptedCall(null)} aria-label="Dispensar aviso de pagamento" sx={{ minHeight: 36, px: 1, textTransform: 'none', fontWeight: 700, fontSize: 12, color: 'text.disabled', minWidth: 0 }}>
                     ok
                   </Button>
                 </Stack>
@@ -1364,7 +1364,19 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           </Stack>
         ) : (
           <Tooltip title={atendOn ? `Atender agora · fila imediata ativo — ${queueStats.waiting} paciente(s) aguardando` : 'Atender agora · fila imediata — receba chamados de pacientes sem agendamento'} arrow>
-            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0, pl: { xs: 0.5, md: 1.5 } }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={0.75}
+              // AUD-014: alvo de toque — o switch small tem ~24px; a LINHA inteira
+              // (bolinha + rótulo + switch) vira área clicável de ≥44px.
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest?.('.MuiSwitch-root')) return; // o switch já trata o próprio clique
+                if (atendBusy) return;
+                if (atendOn) void toggleAtend(false); else void openPricingDlg();
+              }}
+              sx={{ flexShrink: 0, pl: { xs: 0.5, md: 1.5 }, minHeight: 44, cursor: 'pointer', userSelect: 'none' }}
+            >
               {atendOn && (
                 <Box
                   component="span"
@@ -1502,7 +1514,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
               <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1.5} sx={{ p: 1.25, borderRadius: '12px', bgcolor: 'rgba(32,178,170,.07)', border: '1px solid rgba(32,178,170,.2)' }}>
                 <Box sx={{ minWidth: 0 }}>
-                  <Typography sx={{ fontSize: 11, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                     Valor da consulta
                   </Typography>
                   <Typography sx={{ fontSize: 18, fontWeight: 900, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>

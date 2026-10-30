@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useTranslate } from 'react-admin';
 import {
   Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress,
@@ -18,6 +19,8 @@ import { useSelectedPatient } from '../patient-context';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { snackbar } from '../components/ConfirmDialog';
+import { bumpCredits, notifyInsufficientCredits } from '../utils/credits-events';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 const TEAL = '#178f89';
@@ -37,6 +40,13 @@ export const QuestionsPage = () => {
   const [thread, setThread] = useState<any[]>([]);
   const [threadLoading, setThreadLoading] = useState(false);
   const [qFilter, setQFilter] = useState<'all' | 'pending' | 'answered'>('all');
+  // AUD-016: a tela era um inbox sem jeito de ESCREVER — a criação vivia escondida
+  // num dialog do /medicos. Aqui nasce o "Nova pergunta" (mesmo POST, mesma cobrança).
+  const navigate = useNavigate();
+  const [askOpen, setAskOpen] = useState(false);
+  const [askDoc, setAskDoc] = useState('');
+  const [askText, setAskText] = useState('');
+  const [askBusy, setAskBusy] = useState(false);
   const [doctorFilter, setDoctorFilter] = useState<string>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
@@ -53,6 +63,31 @@ export const QuestionsPage = () => {
     } catch {} finally { setLoading(false); }
   };
   useEffect(() => { load(); }, [pid]);
+
+  const askableDoctors = shares.filter((s: any) => s.doctor?.id || s.doctorId).map((s: any) => ({
+    id: s.doctor?.id ?? s.doctorId,
+    name: s.doctor?.name ?? 'Médico',
+  }));
+  const sendQuestion = async () => {
+    const txt = askText.trim();
+    if (!txt || !askDoc) return;
+    setAskBusy(true);
+    try {
+      const r = await fetch(`${API_URL}/doctor-questions`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...H() },
+        body: JSON.stringify({ doctorId: askDoc, patientId: pid, subject: txt }),
+      });
+      const d = await r.json().catch(() => ({} as any));
+      if (r.status === 402) { notifyInsufficientCredits({}); return; }
+      if (!r.ok) throw new Error(d?.error || 'Falha ao enviar a pergunta.');
+      bumpCredits();
+      setAskOpen(false); setAskText('');
+      snackbar({ message: '✓ Pergunta enviada — o médico vê no próximo acesso.', severity: 'success' });
+      void load();
+    } catch (e: any) {
+      snackbar({ message: e?.message || 'Falha ao enviar a pergunta.', severity: 'error' });
+    } finally { setAskBusy(false); }
+  };
 
   const openThread = async (q: any) => {
     setOpen(q); setThreadLoading(true); setThread([]);
@@ -97,7 +132,23 @@ export const QuestionsPage = () => {
 
   return (
     <PageContainer width="content">
-      <PageHeader icon={<QuestionAnswerIcon />} title={translate('page.questions')} />
+      <PageHeader
+        icon={<QuestionAnswerIcon />}
+        title={translate('page.questions')}
+        actions={
+          <Button
+            variant="contained"
+            size="small"
+            onClick={() => {
+              if (!askableDoctors.length) { navigate('/medicos'); return; }
+              setAskDoc(askableDoctors[0].id); setAskOpen(true);
+            }}
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 2.25, whiteSpace: 'nowrap' }}
+          >
+            Nova pergunta
+          </Button>
+        }
+      />
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Suas dúvidas enviadas aos médicos e as orientações clínicas recebidas — tudo reunido e organizado.
       </Typography>
@@ -151,9 +202,21 @@ export const QuestionsPage = () => {
         <Card variant="outlined" sx={{ borderRadius: '16px', textAlign: 'center', py: 6, px: 3, border: '1px dashed', borderColor: 'divider' }}>
           <Box sx={{ fontSize: 48, mb: 1.5 }}>💬</Box>
           <Typography sx={{ fontWeight: 800, fontSize: 17, mb: 0.5 }}>{translate('q.empty')}</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 440, mx: 'auto' }}>
-            Envie dúvidas clínicas pelo relatório inteligente de exames ou direto na página do médico em "Meus Médicos".
+          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 440, mx: 'auto', mb: 2 }}>
+            {askableDoctors.length
+              ? 'Tire uma dúvida clínica direto com um médico que já tem acesso aos seus exames.'
+              : 'Compartilhe seus exames com um médico em "Meus Médicos" para poder enviar perguntas.'}
           </Typography>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (!askableDoctors.length) { navigate('/medicos'); return; }
+              setAskDoc(askableDoctors[0].id); setAskOpen(true);
+            }}
+            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}
+          >
+            {askableDoctors.length ? 'Fazer uma pergunta' : 'Ir para Meus Médicos'}
+          </Button>
         </Card>
       ) : (
         <Stack spacing={2.5}>
@@ -550,6 +613,45 @@ export const QuestionsPage = () => {
               })}
             </Stack>
           )}
+        </Box>
+      </Dialog>
+
+      {/* AUD-016: NOVA PERGUNTA — criação direto do inbox (mesmo POST do /medicos). */}
+      <Dialog open={askOpen} onClose={() => !askBusy && setAskOpen(false)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '20px' } }}>
+        <Box sx={{ p: { xs: 2.5, sm: 3 } }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: 17 }}>Nova pergunta</Typography>
+            <IconButton aria-label="Fechar" onClick={() => setAskOpen(false)} size="small" disabled={askBusy}><CloseIcon /></IconButton>
+          </Stack>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Sua dúvida vira uma conversa com o médico, que responde quando acessar o portal. O envio usa créditos do seu saldo.
+          </Typography>
+          <FormControl fullWidth size="small" sx={{ mb: 1.5 }}>
+            <Select value={askDoc} onChange={(e) => setAskDoc(String(e.target.value))} displayEmpty inputProps={{ 'aria-label': 'Médico que vai receber a pergunta' }}>
+              {askableDoctors.map((d) => <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>)}
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            multiline
+            minRows={3}
+            value={askText}
+            onChange={(e) => setAskText(e.target.value)}
+            placeholder="Escreva sua dúvida clínica — ex.: 'Meu TSH subiu, mantenho a dose?'"
+            inputProps={{ maxLength: 1000, 'aria-label': 'Texto da pergunta' }}
+          />
+          <Stack direction="row" spacing={1.5} justifyContent="flex-end" sx={{ mt: 2 }}>
+            <Button onClick={() => setAskOpen(false)} disabled={askBusy} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
+            <Button
+              variant="contained"
+              onClick={() => void sendQuestion()}
+              disabled={askBusy || !askText.trim() || !askDoc}
+              startIcon={askBusy ? <CircularProgress size={16} color="inherit" /> : undefined}
+              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3 }}
+            >
+              Enviar pergunta
+            </Button>
+          </Stack>
         </Box>
       </Dialog>
     </PageContainer>

@@ -70,10 +70,20 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
         // com alvo de 28px arrisca toque errado): a pílula ganha área invisível vertical.
         position: 'relative',
         '&::before': { content: '""', position: 'absolute', top: -8, bottom: -8, left: 0, right: 0, borderRadius: '999px' },
-        bgcolor: active ? 'rgba(5,150,105,0.12)' : 'rgba(0,0,0,0.04)',
-        color: active ? '#047857' : 'text.secondary',
-        border: `1px solid ${active ? 'rgba(5,150,105,0.3)' : 'rgba(0,0,0,0.08)'}`,
-        '&:hover': { bgcolor: active ? 'rgba(5,150,105,0.22)' : 'rgba(0,0,0,0.08)' },
+        // AUD-012: cores por TEMA — os rgba pretos fixos deixavam a pílula de
+        // permissão invisível no dark (controle de privacidade que some é risco real).
+        bgcolor: (t) => (active
+          ? (t.palette.mode === 'dark' ? 'rgba(52,211,153,0.16)' : 'rgba(5,150,105,0.12)')
+          : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)')),
+        color: (t) => (active ? (t.palette.mode === 'dark' ? '#34d399' : '#047857') : t.palette.text.secondary),
+        border: (t) => `1px solid ${active
+          ? (t.palette.mode === 'dark' ? 'rgba(52,211,153,0.45)' : 'rgba(5,150,105,0.3)')
+          : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.18)' : 'rgba(0,0,0,0.08)')}`,
+        '&:hover': {
+          bgcolor: (t) => (active
+            ? (t.palette.mode === 'dark' ? 'rgba(52,211,153,0.26)' : 'rgba(5,150,105,0.22)')
+            : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.08)')),
+        },
         transition: 'all 0.15s ease',
       }}
     />
@@ -529,6 +539,8 @@ export const MedicosPage = () => {
           aprovado). Aqui só um card-link de atalho, sem lista inline duplicada. */}
       <Card
         onClick={() => { hapticLight(); navigate('/consultas'); }}
+        {...chipA11y()}
+        aria-label="Ver consultas agendadas"
         sx={{
           mb: 3,
           borderRadius: '16px',
@@ -656,6 +668,8 @@ export const MedicosPage = () => {
               <Card
                 key={s.id}
                 onClick={() => setDetail(s.doctor)}
+                {...chipA11y()}
+                aria-label={`Detalhes de ${s.doctor?.name ?? 'médico'}`}
                 sx={{
                   borderRadius: '16px',
                   position: 'relative',
@@ -679,7 +693,7 @@ export const MedicosPage = () => {
                   <Stack direction="row" alignItems="flex-start" spacing={1.75}>
                     <Box sx={{ position: 'relative', flexShrink: 0 }}>
                       <Avatar
-                        src={s.doctor?.id ? doctorPhotoUrl(s.doctor.id) : undefined}
+                        src={s.doctor?.id && s.doctor?.photoUrl ? doctorPhotoUrl(s.doctor.id) : undefined} /* sem foto → sem request 404 */
                         sx={{
                           width: 52,
                           height: 52,
@@ -793,7 +807,7 @@ export const MedicosPage = () => {
                 <CardContent sx={{ py: 1.75, '&:last-child': { pb: 1.75 } }}>
                   <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Avatar
-                      src={it.doctor?.id ? doctorPhotoUrl(it.doctor.id) : undefined}
+                      src={it.doctor?.id && it.doctor?.photoUrl ? doctorPhotoUrl(it.doctor.id) : undefined} /* sem foto → sem request 404 */
                       sx={{
                         width: 46,
                         height: 46,
@@ -928,7 +942,7 @@ export const MedicosPage = () => {
           <>
             <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
               <Avatar
-                src={detail.id ? doctorPhotoUrl(detail.id) : undefined}
+                src={detail.id && detail.photoUrl ? doctorPhotoUrl(detail.id) : undefined} /* sem foto → sem request 404 */
                 sx={{
                   width: 96,
                   height: 96,

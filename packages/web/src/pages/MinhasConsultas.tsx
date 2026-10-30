@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Avatar, Box, Button, Card, CardContent, Chip, Stack, Typography,
+  Avatar, Box, Button, Card, CardContent, Chip, Skeleton, Stack, Typography,
 } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import EventAvailableRoundedIcon from '@mui/icons-material/EventAvailableRounded';
@@ -14,6 +14,7 @@ import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
 import { safeAvatar } from '../utils/safeAvatar';
+import { chipA11y } from '../utils/chipA11y';
 import { ConsultaAtivaCard } from '../components/teleconsulta/ConsultaAtivaCard';
 import { FalarAgora } from '../components/FalarAgora';
 // §2 (28/10/26): "Minhas consultas" — registro particular do paciente, ao lado das
@@ -36,6 +37,9 @@ export const MinhasConsultasPage = () => {
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
+  // AUD-013: sem loading state a tela piscava "Nenhuma consulta" antes do fetch
+  // responder — o vazio só pode aparecer depois da PRIMEIRA resposta.
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'abertas' | 'historico'>('abertas');
   // §2 (28/10/26): duas áreas — Teleconsultas (sala virtual do produto) × Minhas
   // consultas (registro particular: presencial ou link externo, convênio, exames).
@@ -55,6 +59,7 @@ export const MinhasConsultasPage = () => {
       const r = await fetch(`${API_URL}/reminders?patientId=${pid}`, { headers: { Authorization: `Bearer ${token()}` } });
       if (r.ok) setItems(await r.json());
     } catch { /* offline: próximo tick tenta de novo */ }
+    finally { setLoading(false); }
   };
 
   // Polling 15s + refetch imediato ao voltar pra aba (visibilidade).
@@ -190,7 +195,18 @@ export const MinhasConsultasPage = () => {
         </Stack>
 
       {/* ── ABERTAS ── */}
-      {tab === 'abertas' && (
+      {tab === 'abertas' && loading && abertas.length === 0 && (
+        <Stack spacing={2}>
+          {[0, 1].map((i) => (
+            <Card key={i} variant="outlined" sx={{ borderRadius: '20px', p: 2.5 }}>
+              <Skeleton variant="text" width="55%" height={26} />
+              <Skeleton variant="text" width="35%" />
+              <Skeleton variant="rounded" width={140} height={36} sx={{ mt: 1.5, borderRadius: '999px' }} />
+            </Card>
+          ))}
+        </Stack>
+      )}
+      {tab === 'abertas' && !loading && (
         abertas.length === 0 ? (
           <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', textAlign: 'center', py: 5 }}>
             <CardContent>
@@ -225,7 +241,17 @@ export const MinhasConsultasPage = () => {
       )}
 
       {/* ── HISTÓRICO ── */}
-      {tab === 'historico' && (
+      {tab === 'historico' && loading && historico.length === 0 && (
+        <Stack spacing={1.5}>
+          {[0, 1, 2].map((i) => (
+            <Card key={i} variant="outlined" sx={{ borderRadius: '20px', p: 2.5 }}>
+              <Skeleton variant="text" width="60%" height={24} />
+              <Skeleton variant="text" width="40%" />
+            </Card>
+          ))}
+        </Stack>
+      )}
+      {tab === 'historico' && !loading && (
         historico.length === 0 ? (
           <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', textAlign: 'center', py: 5 }}>
             <CardContent>
@@ -247,8 +273,10 @@ export const MinhasConsultasPage = () => {
               const photo = r.doctor?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined);
               const crmDisplay = r.doctor?.crm ? `CRM ${r.doctor.crm}${r.doctor?.crmUf ? `-${r.doctor.crmUf}` : ''}` : null;
 
-              // Identificação clara do Paciente atendido (Titular vs Dependente)
-              const patientName = r.patient?.name || 'Edmilson';
+              // Identificação clara do Paciente atendido (Titular vs Dependente).
+              // AUD-010: fallback NEUTRO — "Edmilson" hardcoded aparecia como paciente
+              // de qualquer usuário do app.
+              const patientName = r.patient?.name || 'Paciente';
               const isTitular = !r.patient?.relationship || r.patient?.relationship === 'self' || r.patient?.relationship?.toLowerCase() === 'titular';
               const relationship = isTitular ? 'Titular' : (r.patient?.relationship || 'Dependente');
 
@@ -257,6 +285,8 @@ export const MinhasConsultasPage = () => {
                   key={r.id}
                   variant="outlined"
                   onClick={() => { hapticLight(); navigate(`/teleconsulta/${r.id}`); }}
+                  {...chipA11y()}
+                  aria-label={`Abrir consulta de ${new Date(r.endedAt ?? r.dueDate).toLocaleDateString('pt-BR')}`}
                   sx={{
                     borderRadius: '16px',
                     p: { xs: 1.75, sm: 2 },
@@ -319,8 +349,8 @@ export const MinhasConsultasPage = () => {
                               size="small"
                               label={crmDisplay}
                               sx={{
-                                height: 20,
-                                fontSize: 11,
+                                height: 22,
+                                fontSize: 12, // piso de legibilidade (F7)
                                 fontWeight: 700,
                                 fontFamily: 'monospace',
                                 bgcolor: 'action.hover',
@@ -344,8 +374,8 @@ export const MinhasConsultasPage = () => {
                             size="small"
                             label={`👤 Paciente: ${patientName} (${relationship})`}
                             sx={{
-                              height: 22,
-                              fontSize: 11,
+                              height: 24,
+                              fontSize: 12, // piso de legibilidade (F7)
                               fontWeight: 700,
                               bgcolor: isTitular ? 'rgba(32,178,170,.12)' : 'rgba(236,72,153,.12)',
                               color: isTitular ? '#0f766e' : '#be185d',
@@ -364,7 +394,7 @@ export const MinhasConsultasPage = () => {
                         <Chip
                           size="small"
                           label="Resumo disponível"
-                          sx={{ height: 22, fontSize: 10.5, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0f766e', borderRadius: '999px' }}
+                          sx={{ height: 24, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0f766e', borderRadius: '999px' }}
                         />
                       )}
                       <Chip
@@ -373,7 +403,7 @@ export const MinhasConsultasPage = () => {
                         label="✓ Concluída"
                         sx={{
                           height: 24,
-                          fontSize: 11,
+                          fontSize: 12, // piso de legibilidade (F7)
                           fontWeight: 700,
                           bgcolor: 'rgba(16,185,129,.12)',
                           color: '#065f46',
