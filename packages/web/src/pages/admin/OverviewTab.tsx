@@ -1,10 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Stack, Box, Card, CardContent, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer } from '@mui/material';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridPagination } from '@/components/reui/data-grid/data-grid-pagination';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import { Frame, FramePanel } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError, FEATURE_LABELS } from './parts';
 import { RollingMetric } from '../../components/admin/RollingMetric';
+import '../../doctor-v2/tw.css';
 
-/** "2026-08" → "Ago 2026" (evita datas quebrando no mobile). */
+/**
+ * OVERVIEW ADMIN — v2 ReUI (worktree admin-reui, 30/10).
+ * Mesmos dados (/admin/metrics + /admin/decifre-stats), mesma lógica; a CARA muda:
+ * tiles Frame + dígitos rolantes preservados, tabelas → DataGrid (sort/paginação),
+ * funil e cards em painéis da ilha. Template visual das demais tabs.
+ */
+
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const fmtMonth = (m: string): string => {
   if (!m) return '—';
@@ -12,6 +24,23 @@ const fmtMonth = (m: string): string => {
   const idx = parseInt(mo, 10) - 1;
   return `${MESES[idx] ?? mo} ${y}`;
 };
+const brl = (v: unknown) => `R$ ${Number(v ?? 0).toFixed(2).replace('.', ',')}`;
+
+/** DataGrid local: sort + paginação client-side (dados já vêm inteiros do /admin/metrics). */
+function Grid<T>({ columns, data, empty = 'Sem dados ainda.' }: { columns: ColumnDef<any, any>[]; data: T[]; empty?: string }) {
+  const table = useTable({ features: dataGridFeatures, data, columns });
+  if (!data || data.length === 0) {
+    return <div className="rounded-lg border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">{empty}</div>;
+  }
+  return (
+    <DataGrid table={table} recordCount={data.length}>
+      <DataGridContainer>
+        <DataGridTable />
+      </DataGridContainer>
+      <DataGridPagination />
+    </DataGrid>
+  );
+}
 
 export const OverviewTab = () => {
   const [metrics, setMetrics] = useState<any>(null);
@@ -24,7 +53,6 @@ export const OverviewTab = () => {
     try {
       const r = await fetch(`${API_URL}/admin/metrics`, { headers: { Authorization: `Bearer ${token()}` } });
       if (r.ok) setMetrics(await r.json()); else setError(true);
-      // Funil anônimo da landing ("cole seu exame") — o dono "sente o calor" aqui.
       fetch(`${API_URL}/admin/decifre-stats`, { headers: { Authorization: `Bearer ${token()}` } })
         .then((r2) => (r2.ok ? r2.json() : null)).then(setDecifre).catch(() => {});
     } catch { setError(true); }
@@ -32,18 +60,12 @@ export const OverviewTab = () => {
   };
   useEffect(() => { void load(); /* eslint-disable-next-line */ }, []);
 
-  // Séries de tendência dos KPIs — vêm da MESMA resposta /admin/metrics (cohort mensal,
-  // cohort semanal e receita por mês). Retenção não tem série: fica sem linha.
-  // ANTES dos early-returns: hook depois de return condicional = React #310 (crashava o painel ao abrir).
   const kpiSeries = useMemo(() => {
     const wc: any[] = metrics?.weeklyCohort ?? [];
     const coh: any[] = metrics?.cohort ?? [];
     const rev: any[] = metrics?.revenueByMonth ?? [];
     let acc = 0;
-    const cum = rev.map((r) => {
-      acc += Number(r.amount ?? 0);
-      return acc;
-    });
+    const cum = rev.map((r) => { acc += Number(r.amount ?? 0); return acc; });
     return {
       signups: wc.map((c) => Number(c.signups ?? 0)),
       premium: coh.map((c) => Number(c.converted ?? 0)),
@@ -57,198 +79,150 @@ export const OverviewTab = () => {
   if (loading) return <TabLoader />;
   if (error || !metrics) return <SectionError message="Não foi possível carregar as métricas." onRetry={() => void load()} />;
 
-  // KPIs do topo — Lucian #098: dígitos rolantes (montagem + refresh) + linha de tendência.
   const kpis = [
     { l: 'Cadastros', v: `${metrics.funnel.signups ?? 0}`, c: '#64748b', s: kpiSeries.signups },
     { l: 'Premium ativos', v: `${metrics.funnel.premiumActive ?? 0}`, c: '#178f89', s: kpiSeries.premium },
     { l: 'Conversão free→pago', v: `${metrics.funnel.conversionPct}%`, c: '#178f89', s: kpiSeries.conv },
-    { l: 'Receita recorrente/mês', v: `R$ ${(metrics.revenue.mrr ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89', s: kpiSeries.mrr },
-    { l: 'Receita total aprovada', v: `R$ ${(metrics.revenue.total ?? 0).toFixed(2).replace('.', ',')}`, c: '#178f89', s: kpiSeries.total },
+    { l: 'Receita recorrente/mês', v: brl(metrics.revenue.mrr), c: '#178f89', s: kpiSeries.mrr },
+    { l: 'Receita total aprovada', v: brl(metrics.revenue.total), c: '#178f89', s: kpiSeries.total },
     { l: 'Retenção no vencimento', v: `${metrics.churn.retentionPct}%`, c: '#b88a54' },
   ];
 
+  const paywallCols: ColumnDef<any, any>[] = [
+    { accessorKey: 'feature', header: 'Função bloqueada (30d)', cell: (i) => <span className="font-semibold">{FEATURE_LABELS[i.getValue() as string] ?? i.getValue() as string}</span> },
+    { accessorKey: 'hits', header: 'Tentativas', cell: (i) => <span className="tabular-nums">{i.getValue() as number}</span> },
+    { accessorKey: 'users', header: 'Pessoas', cell: (i) => <span className="tabular-nums">{i.getValue() as number}</span> },
+  ];
+  const cohortWeekCols: ColumnDef<any, any>[] = [
+    { accessorKey: 'week', header: 'Semana', cell: (i) => <span className="font-semibold whitespace-nowrap">{i.getValue() as string}</span> },
+    { accessorKey: 'signups', header: 'Signups' },
+    { accessorKey: 'activated', header: '1º exame', cell: (i) => <span className={(i.getValue() as number) > 0 ? 'tabular-nums text-success-foreground dark:text-success' : 'tabular-nums text-muted-foreground'}>{i.getValue() as number}</span> },
+    { accessorKey: 'usedAi', header: 'Usou IA', cell: (i) => <span className={(i.getValue() as number) > 0 ? 'tabular-nums text-primary' : 'tabular-nums text-muted-foreground'}>{i.getValue() as number}</span> },
+    { accessorKey: 'retained7', header: 'Voltou após 7d' },
+  ];
+  const cohortCols: ColumnDef<any, any>[] = [
+    { accessorKey: 'month', header: 'Mês', cell: (i) => <span className="font-semibold whitespace-nowrap">{fmtMonth(i.getValue() as string)}</span> },
+    { accessorKey: 'signups', header: 'Signups' },
+    { accessorKey: 'converted', header: 'Premium' },
+    { id: 'conv', header: 'Conv.', accessorFn: (r) => (r.signups ? Math.round((r.converted / r.signups) * 1000) / 10 : 0), cell: (i) => <span className={(i.getValue() as number) > 0 ? 'tabular-nums font-bold text-success-foreground dark:text-success' : 'tabular-nums text-muted-foreground'}>{i.getValue() as number}%</span> },
+  ];
+  const revenueCols: ColumnDef<any, any>[] = [
+    { accessorKey: 'month', header: 'Mês', cell: (i) => <span className="font-semibold whitespace-nowrap">{fmtMonth(i.getValue() as string)}</span> },
+    { accessorFn: (r) => Number(r.amount ?? 0), id: 'amount', header: 'Receita', cell: (i) => <span className="tabular-nums font-bold text-success-foreground dark:text-success">{brl(i.getValue() as number)}</span> },
+  ];
+
+  const funnel = [
+    { l: 'Signups verificados', n: metrics.funnel.verified, pct: 100 },
+    { l: 'Free ativos', n: metrics.funnel.freeActive, pct: metrics.funnel.verified ? (metrics.funnel.freeActive / metrics.funnel.verified) * 100 : 0 },
+    { l: 'Premium ativos', n: metrics.funnel.premiumActive, pct: metrics.funnel.verified ? (metrics.funnel.premiumActive / metrics.funnel.verified) * 100 : 0 },
+  ];
+
   return (
-    <Stack spacing={2}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', sm: '1fr 1fr 1fr' }, gap: 1.5 }}>
+    <div className="dx-island flex flex-col gap-4">
+      {/* KPIs — tiles ReUI com os dígitos rolantes preservados */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {kpis.map((k) => {
-          // Valores longos (R$ x.xxx,xx) precisam de dígito menor no card de 2 colunas do mobile.
           const nDigits = k.v.replace(/\D/g, '').length;
           return (
-            <Card key={k.l} sx={{ borderRadius: '12px' }}><CardContent>
-              <Typography variant="caption" color="text.secondary">{k.l}</Typography>
-              <RollingMetric
-                label={k.l}
-                text={k.v}
-                series={k.s}
-                color={k.c}
-                digitHeight={nDigits >= 9 ? 19 : 24}
-                sparkHeight={40}
-              />
-            </CardContent></Card>
+            <Frame key={k.l}>
+              <FramePanel className="px-3.5 py-3">
+                <p className="text-xs font-medium text-muted-foreground">{k.l}</p>
+                <RollingMetric label={k.l} text={k.v} series={k.s} color={k.c} digitHeight={nDigits >= 9 ? 19 : 24} sparkHeight={36} />
+              </FramePanel>
+            </Frame>
           );
         })}
-      </Box>
+      </div>
 
-      {/* Decifre anônimo (landing) — topo de funil público */}
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Stack direction="row" spacing={2} useFlexGap flexWrap="wrap" alignItems="center">
-          <Typography variant="h6" sx={{ fontSize: 16 }}>🔥 Decifre grátis (landing)</Typography>
-          {decifre ? (
-            <>
-              <Typography variant="body2"><b>{decifre.today}</b> hoje</Typography>
-              <Typography variant="body2"><b>{decifre.week}</b> nos 7d</Typography>
-              <Typography variant="body2"><b>{decifre.total}</b> no total</Typography>
-              <Typography variant="body2"><b>{decifre.uniqueIps}</b> pessoas diferentes</Typography>
-            </>
-          ) : (
-            <Typography variant="body2" color="text.secondary">Sem decifrações ainda — a landing está pronta pro primeiro visitante colar um exame.</Typography>
-          )}
-        </Stack>
-      </CardContent></Card>
-
-      {/* PAYWALL (18/10): quem tentou usar IA e estava sem saldo — antes invisível. É o
-          número nº1 de disposição a pagar; cruzar com as ofertas do paywall (402). */}
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Typography variant="h6" sx={{ fontSize: 16 }}>🚧 Bateram no sem-saldo (paywall)</Typography>
-        <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap sx={{ mt: 1, mb: metrics.paywall?.byFeature?.length ? 1.5 : 0 }}>
-          <Box><Typography variant="caption" color="text.secondary">Bloqueios (7d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#b88a54' }}>{metrics.paywall?.hits7d ?? 0}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Bloqueios (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#b88a54' }}>{metrics.paywall?.hits30d ?? 0}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Pessoas distintas (30d)</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.paywall?.users30d ?? 0}</Typography></Box>
-        </Stack>
-        {metrics.paywall?.byFeature?.length > 0 && (
-          <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small">
-              <TableHead><TableRow><TableCell sx={{ fontWeight: 700 }}>Função bloqueada (30d)</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Tentativas</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Pessoas</TableCell></TableRow></TableHead>
-              <TableBody>
-                {metrics.paywall.byFeature.map((f: any) => (
-                  <TableRow key={f.feature} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
-                    <TableCell sx={{ fontWeight: 600 }}>{FEATURE_LABELS[f.feature] ?? f.feature}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{f.hits}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{f.users}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+      {/* DECIFRE (topo de funil público) */}
+      <Frame><FramePanel className="flex flex-wrap items-center gap-x-6 gap-y-2 px-4 py-3">
+        <span className="text-sm font-bold">🔥 Decifre grátis (landing)</span>
+        {decifre ? (
+          <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <span><b className="tabular-nums">{decifre.today}</b> <span className="text-muted-foreground">hoje</span></span>
+            <span><b className="tabular-nums">{decifre.week}</b> <span className="text-muted-foreground">nos 7d</span></span>
+            <span><b className="tabular-nums">{decifre.total}</b> <span className="text-muted-foreground">no total</span></span>
+            <span><b className="tabular-nums">{decifre.uniqueIps}</b> <span className="text-muted-foreground">pessoas diferentes</span></span>
+          </div>
+        ) : (
+          <span className="text-sm text-muted-foreground">Sem decifrações ainda — a landing está pronta pro primeiro visitante colar um exame.</span>
         )}
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-          Cada linha é alguém QUERENDO usar e não podendo — é aqui que o trial/pack/relatório do paywall (402) disputa a conversão.
-        </Typography>
-      </CardContent></Card>
+      </FramePanel></Frame>
 
-      {/* COORTE SEMANAL (18/10): com ~16 signups/semana, coorte mensal é cega. */}
-      {metrics.weeklyCohort?.length > 0 && (
-        <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
-          <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📈 Semana a semana (cohort semanal)</Typography>
-          <TableContainer sx={{ overflowX: 'auto' }}>
-            <Table size="small">
-              <TableHead><TableRow>
-                <TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Semana</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Signups</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>1º exame</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Usou IA</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 700 }}>Voltou após 7d</TableCell>
-              </TableRow></TableHead>
-              <TableBody>
-                {metrics.weeklyCohort.map((c: any) => (
-                  <TableRow key={c.week} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
-                    <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{c.week}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.signups}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', color: c.activated > 0 ? 'success.dark' : 'text.secondary' }}>{c.activated}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', color: c.usedAi > 0 ? '#20b2aa' : 'text.secondary' }}>{c.usedAi}</TableCell>
-                    <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.retained7}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </CardContent></Card>
-      )}
+      {/* PAYWALL */}
+      <Frame><FramePanel className="flex flex-col gap-3 px-4 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="text-sm font-bold">🚧 Bateram no sem-saldo (paywall)</span>
+          <div className="flex flex-wrap gap-2">
+            <Badge variant="warning-light">{metrics.paywall?.hits7d ?? 0} bloqueios 7d</Badge>
+            <Badge variant="warning-light">{metrics.paywall?.hits30d ?? 0} bloqueios 30d</Badge>
+            <Badge variant="info-light">{metrics.paywall?.users30d ?? 0} pessoas distintas 30d</Badge>
+          </div>
+        </div>
+        <Grid columns={paywallCols} data={metrics.paywall?.byFeature ?? []} empty="Nenhum bloqueio ainda." />
+        <p className="text-xs text-muted-foreground">Cada linha é alguém QUERENDO usar e não podendo — é aqui que o trial/pack/relatório do paywall (402) disputa a conversão.</p>
+      </FramePanel></Frame>
 
-      {/* ORIGEM DO CADASTRO (18/10): de onde vêm os signups (UTM/referrer no register). */}
-      {metrics.acquisition?.length > 0 && (
-        <Card sx={{ borderRadius: '12px' }}><CardContent>
-          <Typography variant="h6" sx={{ fontSize: 16 }}>🧭 De onde vêm os cadastros</Typography>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
-            {metrics.acquisition.map((a: any) => (
-              <Box key={a.source} sx={{ minWidth: 110 }}>
-                <Typography variant="caption" color="text.secondary">{a.source}</Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>{a.count}</Typography>
-              </Box>
-            ))}
-          </Stack>
-        </CardContent></Card>
-      )}
+      {/* COORTE SEMANAL */}
+      <Frame><FramePanel className="flex flex-col gap-3 px-4 py-4">
+        <span className="text-sm font-bold">📈 Semana a semana (cohort semanal)</span>
+        <Grid columns={cohortWeekCols} data={metrics.weeklyCohort ?? []} />
+      </FramePanel></Frame>
 
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Typography variant="h6" gutterBottom>🔻 Funil (conversão)</Typography>
-        {[
-          { l: 'Signups verificados', n: metrics.funnel.verified, pct: 100, c: '#0ea5e9' },
-          { l: 'Free ativos', n: metrics.funnel.freeActive, pct: metrics.funnel.verified ? (metrics.funnel.freeActive / metrics.funnel.verified) * 100 : 0, c: '#94a3b8' },
-          { l: 'Premium ativos', n: metrics.funnel.premiumActive, pct: metrics.funnel.verified ? (metrics.funnel.premiumActive / metrics.funnel.verified) * 100 : 0, c: '#20b2aa' },
-        ].map((s) => (
-          <Box key={s.l} sx={{ mb: 1.5 }}>
-            <Stack direction="row" justifyContent="space-between"><Typography variant="body2">{s.l}</Typography><Typography variant="body2" sx={{ fontWeight: 700 }}>{s.n} ({Math.round(s.pct)}%)</Typography></Stack>
-            <Box sx={{ height: 10, borderRadius: '999px', bgcolor: 'action.hover', mt: 0.5, overflow: 'hidden' }}>
-              <Box sx={{ height: '100%', width: `${s.pct}%`, bgcolor: s.c, borderRadius: '999px' }} />
-            </Box>
-          </Box>
-        ))}
-        <Typography variant="caption" color="text.secondary">{metrics.revenue.monthlyPayments} pagamento(s) mensal(is) • {metrics.revenue.creditPurchases} compra(s) de créditos avulsos</Typography>
-      </CardContent></Card>
+      {/* ORIGEM + FUNIL + RETENÇÃO — 2 colunas no desktop */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {metrics.acquisition?.length > 0 && (
+          <Frame><FramePanel className="flex flex-col gap-2 px-4 py-4">
+            <span className="text-sm font-bold">🧭 De onde vêm os cadastros</span>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              {metrics.acquisition.map((a: any) => (
+                <div key={a.source}>
+                  <p className="text-xs text-muted-foreground">{a.source}</p>
+                  <p className="text-xl font-extrabold tabular-nums">{a.count}</p>
+                </div>
+              ))}
+            </div>
+          </FramePanel></Frame>
+        )}
+        <Frame><FramePanel className="flex flex-col gap-2.5 px-4 py-4">
+          <span className="text-sm font-bold">🔻 Funil (conversão)</span>
+          {funnel.map((s) => (
+            <div key={s.l} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between text-sm">
+                <span>{s.l}</span>
+                <span className="font-bold tabular-nums">{s.n} ({Math.round(s.pct)}%)</span>
+              </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-copper-500" style={{ width: `${s.pct}%` }} />
+              </div>
+            </div>
+          ))}
+          <p className="text-xs text-muted-foreground">{metrics.revenue.monthlyPayments} pagamento(s) mensal(is) • {metrics.revenue.creditPurchases} compra(s) de créditos avulsos</p>
+        </FramePanel></Frame>
+      </div>
 
-      <Card sx={{ borderRadius: '12px' }}><CardContent>
-        <Typography variant="h6" gutterBottom>🔁 Retenção no vencimento</Typography>
-        <Stack direction="row" spacing={3} flexWrap="wrap" useFlexGap>
-          <Box><Typography variant="caption" color="text.secondary">Já assinaram</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.churn.everPremium}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Ainda ativos</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#059669' }}>{metrics.churn.stillActive}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Churn (venceu sem renovar)</Typography><Typography variant="h6" sx={{ fontWeight: 800, color: '#ef4444' }}>{metrics.churn.churned}</Typography></Box>
-          <Box><Typography variant="caption" color="text.secondary">Renovações (2+ pagamentos)</Typography><Typography variant="h6" sx={{ fontWeight: 800 }}>{metrics.churn.renewals}</Typography></Box>
-        </Stack>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>Taxa de retenção <strong>{metrics.churn.retentionPct}%</strong> — é o número que o nudge de vencimento ajuda a subir.</Typography>
-      </CardContent></Card>
+      <Frame><FramePanel className="flex flex-col gap-2 px-4 py-4">
+        <span className="text-sm font-bold">🔁 Retenção no vencimento</span>
+        <div className="flex flex-wrap gap-x-8 gap-y-2">
+          <div><p className="text-xs text-muted-foreground">Já assinaram</p><p className="text-xl font-extrabold tabular-nums">{metrics.churn.everPremium}</p></div>
+          <div><p className="text-xs text-muted-foreground">Ainda ativos</p><p className="text-xl font-extrabold tabular-nums text-success-foreground dark:text-success">{metrics.churn.stillActive}</p></div>
+          <div><p className="text-xs text-muted-foreground">Churn (venceu sem renovar)</p><p className="text-xl font-extrabold tabular-nums text-destructive-foreground dark:text-destructive">{metrics.churn.churned}</p></div>
+          <div><p className="text-xs text-muted-foreground">Renovações (2+ pagamentos)</p><p className="text-xl font-extrabold tabular-nums">{metrics.churn.renewals}</p></div>
+        </div>
+        <p className="text-xs text-muted-foreground">Taxa de retenção <strong>{metrics.churn.retentionPct}%</strong> — é o número que o nudge de vencimento ajuda a subir.</p>
+      </FramePanel></Frame>
 
-      <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>📅 Cohort — conversão por mês</Typography>
-        <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead><TableRow><TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Mês</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Signups</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Premium</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Conv.</TableCell></TableRow></TableHead>
-          <TableBody>
-            {(metrics.cohort ?? []).map((c: any) => (
-              <TableRow key={c.month} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
-                <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{fmtMonth(c.month)}</TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.signups}</TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>{c.converted}</TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: c.converted > 0 ? 'success.main' : 'text.secondary' }}>
-                  {c.signups ? Math.round((c.converted / c.signups) * 1000) / 10 : 0}%
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!metrics.cohort || metrics.cohort.length === 0) && <TableRow><TableCell colSpan={4} align="center">Sem dados ainda.</TableCell></TableRow>}
-          </TableBody>
-        </Table>
-        </TableContainer>
-      </CardContent></Card>
-
-      <Card sx={{ borderRadius: '16px', boxShadow: '0 1px 2px rgba(0,0,0,.03), 0 2px 8px rgba(0,0,0,.04), 0 8px 20px rgba(0,0,0,.03)' }}><CardContent>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>💰 Receita aprovada por mês</Typography>
-        <TableContainer sx={{ overflowX: 'auto' }}>
-        <Table size="small">
-          <TableHead><TableRow><TableCell sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>Mês</TableCell><TableCell align="right" sx={{ fontWeight: 700 }}>Receita</TableCell></TableRow></TableHead>
-          <TableBody>
-            {(metrics.revenueByMonth ?? []).map((r: any) => (
-              <TableRow key={r.month} sx={{ '&:hover': { bgcolor: 'rgba(32,178,170,.04)' } }}>
-                <TableCell sx={{ whiteSpace: 'nowrap', fontWeight: 600 }}>{fmtMonth(r.month)}</TableCell>
-                <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700, color: 'success.dark' }}>
-                  R$ {(r.amount ?? 0).toFixed(2).replace('.', ',')}
-                </TableCell>
-              </TableRow>
-            ))}
-            {(!metrics.revenueByMonth || metrics.revenueByMonth.length === 0) && <TableRow><TableCell colSpan={2} align="center">Sem receita ainda.</TableCell></TableRow>}
-          </TableBody>
-        </Table>
-        </TableContainer>
-      </CardContent></Card>
-    </Stack>
+      {/* COHORT MENSAL + RECEITA — 2 colunas */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <Frame><FramePanel className="flex flex-col gap-3 px-4 py-4">
+          <span className="text-sm font-bold">📅 Cohort — conversão por mês</span>
+          <Grid columns={cohortCols} data={metrics.cohort ?? []} />
+        </FramePanel></Frame>
+        <Frame><FramePanel className="flex flex-col gap-3 px-4 py-4">
+          <span className="text-sm font-bold">💰 Receita aprovada por mês</span>
+          <Grid columns={revenueCols} data={metrics.revenueByMonth ?? []} empty="Sem receita ainda." />
+        </FramePanel></Frame>
+      </div>
+    </div>
   );
 };

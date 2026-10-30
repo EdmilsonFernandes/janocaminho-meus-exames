@@ -18,6 +18,8 @@
 @source "../components/ui";
 @source "../components/reui";
 @source "../components/blocks";
+@source "../pages/admin";
+@source "../pages";
 
 @custom-variant dark (&:is(.dark *));
 
