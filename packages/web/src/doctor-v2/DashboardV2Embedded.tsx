@@ -94,7 +94,7 @@ export const DashboardV2Embedded = () => {
   const [credits, setCredits] = useState<number | null>(null);
   const [pend, setPend] = useState<{ key: string; label: string; chip: string; tone: 'primary' | 'warning' | 'secondary'; to: string }[]>([]);
   const [coletas, setColetas] = useState<{ id?: string; title?: string; dueDate?: string }[]>([]);
-  const [mental, setMental] = useState<{ phq9: number | null; gad7: number | null } | null>(null);
+  const [mentalLatest, setMentalLatest] = useState<any>(null);
 
   useEffect(() => {
     if (!pid) return;
@@ -158,9 +158,8 @@ export const DashboardV2Embedded = () => {
           }
           if (menRes.status === 'fulfilled' && menRes.value.ok) {
             const md = await menRes.value.json().catch(() => null);
-            const phq9 = typeof md?.phq9?.score === 'number' ? md.phq9.score : typeof md?.phq9 === 'number' ? md.phq9 : null;
-            const gad7 = typeof md?.gad7?.score === 'number' ? md.gad7.score : typeof md?.gad7 === 'number' ? md.gad7 : null;
-            if (phq9 != null || gad7 != null) setMental({ phq9, gad7 });
+            // Shape MentalLatest direto da API (mesmo passthrough do DashboardV2 real).
+            if (md && (md.phq9 || md.gad7)) setMentalLatest(md);
           }
         } catch { /* bônus */ }
         if (alive) setPhase('ready');
@@ -292,7 +291,7 @@ export const DashboardV2Embedded = () => {
 
           {/* SAÚDE MENTAL — componente CLÁSSICO (feedback: anterior mais bonito) */}
           <MentalCard
-            mental={mental ? { phq9: mental.phq9, gad7: mental.gad7, phq9Previous: null, gad7Previous: null } : null}
+            mental={mentalLatest}
             mentalOffline={false}
             introDismissed
             onDismissIntro={() => { /* intro já vem dispensada no embedded */ }}
