@@ -6,6 +6,10 @@
 // Mobile-first 390 → amplia; sem scroll horizontal 320-1440; ações de dinheiro sempre
 // mostram valor + destinatário (chave PIX sempre MASCARADA — §18.5).
 import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import '../../doctor-v2/tw.css';
 import {
   Box, Typography, Stack, Chip, Button, Card, TextField, MenuItem, useTheme, Alert,
   Collapse, IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
@@ -86,6 +90,44 @@ const KpiGroup = ({ title, sub, children, accent }: { title: string; sub?: strin
     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' }, gap: 1.25, mt: sub ? 0 : 1.25 }}>{children}</Box>
   </Box>
 );
+
+/** ReUI DataGrid das consultas pagas (Fase A, worktree admin-reui). Chips e ação
+ *  de estorno preservados (dinheiro real — fluxo intacto). */
+function PaidTeleGrid({ rows, onRefund }: { rows: any[]; onRefund: (p: any) => void }) {
+  const columns: ColumnDef<any, any>[] = [
+    { accessorKey: 'patientName', header: 'Paciente', cell: (i) => <span className="text-[13px] font-bold whitespace-nowrap">{i.getValue() as string}</span> },
+    { accessorFn: (r) => (r as any).doctorName || '—', id: 'doctor', header: 'Médico', cell: (i) => <span className="text-[12.5px] text-muted-foreground whitespace-nowrap">{i.getValue() as string}</span> },
+    { accessorFn: (r) => Number((r as any).priceCents ?? 0), id: 'valor', header: 'Valor', cell: (i) => <span className="text-[13px] font-extrabold tabular-nums whitespace-nowrap">{brl(i.row.original?.priceCents)}</span> },
+    { accessorKey: 'paidAt', header: 'Pago em', cell: (i) => { const v = i.getValue() as string | null; return <span className="text-[12px] text-muted-foreground whitespace-nowrap">{v ? new Date(v).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}</span>; } },
+    { accessorKey: 'teleStatus', header: 'Status', enableSorting: false, cell: (i) => { const p = i.row.original as any; return p.refundedAt ? (
+      <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
+    ) : p.teleStatus === 'completed' ? (
+      <Chip size="small" label="Realizada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669' }} />
+    ) : p.teleStatus === 'no_show' ? (
+      <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico ausente)' : ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309' }} />
+    ) : p.teleStatus === 'cancelled' ? (
+      <Chip size="small" label="Cancelada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b' }} />
+    ) : (
+      <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
+    ); } },
+    { id: 'acao', header: 'Ação', enableSorting: false, cell: (i) => { const p = i.row.original as any; return p.refundedAt ? (
+      <span className="text-[11px] text-muted-foreground">{new Date(p.refundedAt).toLocaleDateString('pt-BR')}</span>
+    ) : (
+      <Button size="small" color="error" variant="outlined" onClick={() => onRefund(p)} sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12, height: 28 }}>Estornar</Button>
+    ); } },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows, columns });
+  if (!rows || rows.length === 0) {
+    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhuma consulta paga no período.</div>;
+  }
+  return (
+    <DataGrid table={table} recordCount={rows.length}>
+      <DataGridContainer>
+        <DataGridTable />
+      </DataGridContainer>
+    </DataGrid>
+  );
+}
 
 export const TeleFinanceTab = () => {
   const t = useTheme();
@@ -527,60 +569,9 @@ export const TeleFinanceTab = () => {
             ))}
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: 360, px: 1.5, pb: 1.5 }}>
-            <Table stickyHeader size="small" sx={{ minWidth: 640 }}>
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Paciente</TableCell>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Médico</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 12 }}>Valor</TableCell>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Pago em</TableCell>
-                  <TableCell sx={{ fontWeight: 800, fontSize: 12 }}>Status</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 800, fontSize: 12 }}>Ação</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {paidList.map((p) => (
-                  <TableRow key={p.id} hover>
-                    <TableCell sx={{ fontSize: 13, fontWeight: 700, whiteSpace: 'nowrap' }}>{p.patientName}</TableCell>
-                    <TableCell sx={{ fontSize: 12.5, color: 'text.secondary', whiteSpace: 'nowrap' }}>{p.doctorName || '—'}</TableCell>
-                    <TableCell align="right" sx={{ fontSize: 13, fontWeight: 800, whiteSpace: 'nowrap' }}>{brl(p.priceCents)}</TableCell>
-                    <TableCell sx={{ fontSize: 12, color: 'text.secondary', whiteSpace: 'nowrap' }}>
-                      {p.paidAt ? new Date(p.paidAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
-                    </TableCell>
-                    <TableCell sx={{ fontSize: 12, whiteSpace: 'nowrap' }}>
-                      {p.refundedAt ? (
-                        <Chip size="small" label="Estornada ✓" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(139,92,246,0.12)', color: '#7c3aed' }} />
-                      ) : p.teleStatus === 'completed' ? (
-                        <Chip size="small" label="Realizada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.15)', color: '#059669' }} />
-                      ) : p.teleStatus === 'no_show' ? (
-                        <Chip size="small" label={`Não realizada${p.noShowBy === 'doctor' ? ' (médico ausente)' : ''}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309' }} />
-                      ) : p.teleStatus === 'cancelled' ? (
-                        <Chip size="small" label="Cancelada" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(100,116,139,0.15)', color: '#64748b' }} />
-                      ) : (
-                        <Chip size="small" label="Agendada (paga)" sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(13,148,136,0.14)', color: '#0d9488' }} />
-                      )}
-                    </TableCell>
-                    <TableCell align="right" sx={{ whiteSpace: 'nowrap' }}>
-                      {p.refundedAt ? (
-                        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 11 }}>
-                          {new Date(p.refundedAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                      ) : (
-                        <Button
-                          size="small" color="error" variant="outlined"
-                          onClick={() => { setRefundNote(null); setRefundTarget(p); }}
-                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, fontSize: 12, height: 28 }}
-                        >
-                          Estornar
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <div className="dx-island">
+            <PaidTeleGrid rows={paidList} onRefund={(p) => { setRefundNote(null); setRefundTarget(p); }} />
+          </div>
         )}
       </Card>
 
