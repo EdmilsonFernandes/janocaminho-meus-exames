@@ -38,6 +38,10 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import SellOutlinedIcon from '@mui/icons-material/SellOutlined';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
+import '../../doctor-v2/tw.css';
 import { DonutResplit, fmtBRLFull, type DonutSlice } from '../../components/admin/DonutResplit';
 
 const PAGE_SIZE = 20;
@@ -93,6 +97,83 @@ const getStatusConfig = (status: string): StatusConfig => {
     }
   );
 };
+
+/** ReUI DataGrid de pagamentos (Fase A, worktree admin-reui): sort por coluna na
+ *  página carregada; a paginação server-side (rodapé existente) segue mandando. */
+function PaymentsGrid({ rows, copiedId, onCopy, onPayload }: { rows: any[]; copiedId: string | null; onCopy: (id: string) => void; onPayload: (row: any) => void }) {
+  const columns: ColumnDef<any, any>[] = [
+    {
+      accessorKey: 'createdAt', header: 'Usuária / Data',
+      cell: (i) => {
+        const p = i.row.original as any;
+        const email = p.user?.email || '—';
+        return (
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-bold">{email}</p>
+            <p className="text-[11px] text-muted-foreground">
+              {new Date(p.createdAt).toLocaleDateString('pt-BR')} às {new Date(p.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+            </p>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: 'status', header: 'Status',
+      cell: (i) => {
+        const cfg = getStatusConfig(i.getValue() as string);
+        return (
+          <span className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-0.5 text-[11px] font-bold" style={{ background: cfg.bg, border: cfg.border, color: cfg.text }}>
+            <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: cfg.dotColor }} />
+            {cfg.label}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'tipo', header: 'Tipo', accessorFn: (r) => ((r as any).periodDays > 0 ? 'Assinatura' : 'Créditos'),
+      cell: (i) => <span className={'text-[11.5px] font-bold ' + ((i.getValue() as string) === 'Assinatura' ? 'text-purple-700 dark:text-purple-300' : 'text-primary')}>{i.getValue() as string}</span>,
+    },
+    {
+      accessorFn: (r) => Number((r as any).amount ?? 0), id: 'amount', header: 'Valor',
+      cell: (i) => {
+        const p = i.row.original as any;
+        return <span className={'text-[14px] font-extrabold tabular-nums ' + (p.status === 'APPROVED' ? 'text-success-foreground dark:text-success' : '')}>R$ {Number(p.amount ?? 0).toFixed(2).replace('.', ',')}</span>;
+      },
+    },
+    {
+      accessorKey: 'mpPaymentId', header: 'Ref. MP',
+      cell: (i) => {
+        const p = i.row.original as any;
+        return (
+          <div className="flex items-center gap-1">
+            <span className="font-mono text-[11px] text-muted-foreground">{p.mpPaymentId ?? '—'}</span>
+            {p.mpPaymentId && (
+              <button type="button" onClick={() => onCopy(p.mpPaymentId)} className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground" aria-label="Copiar referência">
+                {copiedId === p.mpPaymentId ? <CheckIcon sx={{ fontSize: 14, color: '#16a34a' }} /> : <ContentCopyIcon sx={{ fontSize: 13 }} />}
+              </button>
+            )}
+            {p.rawWebhook && (
+              <button type="button" onClick={() => onPayload(p)} className="rounded p-0.5 text-primary transition-opacity hover:opacity-70" aria-label="Inspecionar webhook">
+                <ReceiptLongIcon sx={{ fontSize: 15 }} />
+              </button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows, columns });
+  if (!rows || rows.length === 0) {
+    return <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">Nenhum registro de pagamento encontrado.</div>;
+  }
+  return (
+    <DataGrid table={table} recordCount={rows.length}>
+      <DataGridContainer>
+        <DataGridTable />
+      </DataGridContainer>
+    </DataGrid>
+  );
+}
 
 const buildParams = (page: number, status: string, type: string, q: string) => {
   const p = new URLSearchParams({ page: String(page) });
@@ -781,7 +862,13 @@ export const FinanceiroTab = () => {
         )}
       </Stack>
 
-      {/* 4. DESKTOP VIEW (Modern Enterprise Table) */}
+      {/* 4. DESKTOP VIEW — ReUI DataGrid (sort por coluna; paginação server no rodapé) */}
+      <div className="dx-island">
+        <PaymentsGrid rows={payments} copiedId={copiedId} onCopy={handleCopy} onPayload={setPayloadRow} />
+      </div>
+
+      {/* 4b. Tabela MUI legada (OCULTA — remover na limpeza da Fase A) */}
+      <div style={{ display: 'none' }}>
       <TableContainer
         component={Paper}
         elevation={0}
@@ -967,6 +1054,7 @@ export const FinanceiroTab = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      </div>
 
       {/* 5. PAGINATION FOOTER */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mt: 2.5, px: 0.5 }}>
