@@ -34,10 +34,11 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('doctor register rejects dup CRM + short pw', async () => {
-    await api().post('/api/doctor/register').send({ name: 'Alice Dup', cpf: testCpf(), crm: 'DUP-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
-    const dup = await api().post('/api/doctor/register').send({ name: 'Bob Dup', cpf: testCpf(), crm: 'DUP-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
+    // CRM numérico: o cadastro valida/canoniza "numero-UF" (revisão final do KYC, I7) — "DUP-SP" não é mais um CRM válido
+    await api().post('/api/doctor/register').send({ name: 'Alice Dup', cpf: testCpf(), crm: '40001-SP', specialty: 'X', email: 'a@t.com', password: 'senha123' });
+    const dup = await api().post('/api/doctor/register').send({ name: 'Bob Dup', cpf: testCpf(), crm: '40001-SP', specialty: 'Y', email: 'b@t.com', password: 'senha123' });
     expect(dup.status).toBe(409);
-    const short = await api().post('/api/doctor/register').send({ name: 'Charlie Short', cpf: testCpf(), crm: 'C-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
+    const short = await api().post('/api/doctor/register').send({ name: 'Charlie Short', cpf: testCpf(), crm: '40002-SP', specialty: 'Z', email: 'c@t.com', password: '123' });
     expect(short.status).toBe(400);
   });
 
@@ -76,11 +77,11 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('patient revokes share -> doctor loses access', async () => {
-    const { token: docToken } = await createDoctor({ name: 'Dr B', crm: 'B-SP', email: 'b@t.com' });
+    const { token: docToken } = await createDoctor({ name: 'Dr B', crm: '40003-SP', email: 'b@t.com' });
     const { user, token } = await createUser({ email: 'pac2@t.com' });
     const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
 
-    const share = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'B-SP', scopes: ['exams'] });
+    const share = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: '40003-SP', scopes: ['exams'] });
     expect(share.status).toBe(201);
 
     const rev = await api().patch(`/api/doctor-shares/${share.body.share.id}`).set(authHeader(token)).send({ active: false });
@@ -92,11 +93,11 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('doctor without evolution scope gets 403', async () => {
-    const { token: docToken } = await createDoctor({ name: 'Dr C', crm: 'C-SP', email: 'c@t.com' });
+    const { token: docToken } = await createDoctor({ name: 'Dr C', crm: '40004-SP', email: 'c@t.com' });
     const { user, token } = await createUser({ email: 'pac3@t.com' });
     const patient = await prisma.patient.findFirst({ where: { ownerId: user.id } });
 
-    await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'C-SP', scopes: ['exams'] });
+    await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: '40004-SP', scopes: ['exams'] });
 
     const exams = await api().get(`/api/doctor/patients/${patient!.id}/exams`).set(docH(docToken));
     expect(exams.status).toBe(200);
@@ -116,13 +117,13 @@ describe('Doctor Portal - auth + shares + scoped', () => {
   });
 
   it('patient reactivates revoked share (upsert)', async () => {
-    await api().post('/api/doctor/register').send({ name: 'Dr D', cpf: testCpf(), crm: 'D-SP', specialty: 'X', email: 'd@t.com', password: 'senha123' });
+    await api().post('/api/doctor/register').send({ name: 'Dr D', cpf: testCpf(), crm: '40005-SP', specialty: 'X', email: 'd@t.com', password: 'senha123' });
     const { token } = await createUser({ email: 'pac5@t.com' });
 
-    const s1 = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'D-SP', scopes: ['exams'] });
+    const s1 = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: '40005-SP', scopes: ['exams'] });
     await api().patch(`/api/doctor-shares/${s1.body.share.id}`).set(authHeader(token)).send({ active: false });
 
-    const s2 = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: 'D-SP', scopes: ['exams', 'evolution'] });
+    const s2 = await api().post('/api/doctor-shares').set(authHeader(token)).send({ doctorCrm: '40005-SP', scopes: ['exams', 'evolution'] });
     expect(s2.status).toBe(200);
     expect(s2.body.share.active).toBe(true);
     expect(s2.body.share.scopes).toContain('evolution');

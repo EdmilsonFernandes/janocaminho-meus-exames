@@ -10,6 +10,12 @@
 //    sem saldo → fila manual; job idempotente (refundedAt condicional)
 //  · below-min acumula (exceção ÚNICA com total; resolve ao atingir piso)
 //  · médico sem PIX → payout_pending_pix_key; approve sem reserva → recusa
+//  · médico não verificado/bloqueado (KYC) → payout_doctor_unverified, sem payout; a exceção
+//    fecha sozinha quando ele volta a poder atender (prazo legacy vale no relógio do pass)
+//  · KYC também na APROVAÇÃO: payout já requested de médico bloqueado/sem verificação →
+//    approve recusa (DOCTOR_CANNOT_PRACTICE; rota 409) e o auto pula — segue requested p/ humano
+//  · starvation (revisão final I9): a janela de 200 do pass só traz consulta SEM payout e de médico que pode
+//    receber (retido não ocupa vaga, mas MANTÉM a exceção); no auto, 20 retidos não travam os demais
 //  · SMS-token → failed + payout_needs_sms_token (nunca reenvia)
 //  · auto: default OFF; ligado → job aprova pelo MESMO caminho
 //  · caixa Asaas: cache 5min (1 fetch em 2 leituras; expira → refetch)
@@ -196,6 +202,83 @@ describe('runPayoutPass — reserva atômica (§18.6)', () => {
     expect(await prisma.payout.count()).toBe(0);
   });
 
+  it('médico não verificado (KYC) → NÃO cria payout; exceção payout_doctor_unverified', async () => {
+    const doc = await seedDoctor();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'pending' } });
+    await seedEligible(doc.id);
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(0);
+    expect(p.exceptionsCreated).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${doc.id}`)).toBe(1);
+    expect(await prisma.payout.count()).toBe(0);
+  });
+
+  it('médico BLOQUEADO (mesmo approved) → NÃO cria payout; exceção payout_doctor_unverified', async () => {
+    const doc = await seedDoctor();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { blocked: true } });
+    await seedEligible(doc.id);
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(0);
+    expect(p.exceptionsCreated).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${doc.id}`)).toBe(1);
+    expect(await prisma.payout.count()).toBe(0);
+  });
+
+  it('voltou a poder atender → o próximo pass FECHA payout_doctor_unverified e paga normalmente', async () => {
+    const doc = await seedDoctor();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'pending' } });
+    const r = await seedEligible(doc.id);
+    const key = `payout:doctor:${doc.id}`;
+    const now = Date.now();
+
+    expect((await runPayoutPass(now)).created).toBe(0);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(1);
+    await runPayoutPass(now + 5 * MIN); // re-tick ainda pendente: NÃO duplica
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(1);
+
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'approved' } });
+    const p3 = await runPayoutPass(now + 10 * MIN);
+    expect(p3.created).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(0); // resolvida
+    expect(await txnCount(payoutReserveTxnId(r.id))).toBe(2);
+    expect(await ledgerGloballyBalanced()).toBe(true);
+  });
+
+  it('verificado mas SEM PIX → a retenção KYC fecha e resta só payout_pending_pix_key (KYC vem antes do PIX)', async () => {
+    const doc = await seedDoctor(false);
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'pending' } });
+    await seedEligible(doc.id);
+    const key = `payout:doctor:${doc.id}`;
+    const now = Date.now();
+
+    await runPayoutPass(now);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(1);
+    expect(await openExceptions('payout_pending_pix_key', key)).toBe(0); // o gate KYC corta antes da checagem de PIX
+
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'approved' } });
+    await runPayoutPass(now + 5 * MIN);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(0); // já pode atender → KYC fechado
+    expect(await openExceptions('payout_pending_pix_key', key)).toBe(1); // resta a pendência de PIX
+    expect(await prisma.payout.count()).toBe(0);
+  });
+
+  it('legacy: o prazo vale no relógio DO PASS (now), não no da máquina', async () => {
+    const doc = await seedDoctor();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { verificationStatus: 'legacy' } });
+    await seedEligible(doc.id);
+    const key = `payout:doctor:${doc.id}`;
+    const deadline = Date.now() + 60 * MIN; // p/ o relógio real o prazo ainda NÃO venceu
+    await saveSettings('doctorKyc', { legacyGraceUntilMs: deadline });
+
+    const late = await runPayoutPass(deadline + MIN); // relógio do pass: prazo vencido → retido
+    expect(late.created).toBe(0);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(1);
+
+    const early = await runPayoutPass(deadline - 30 * MIN); // dentro do prazo → paga e fecha a retenção
+    expect(early.created).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', key)).toBe(0);
+  });
+
   it('releaseEligibleAt futuro → ainda NÃO elegível (retenção D+N da snapshot)', async () => {
     const doc = await seedDoctor();
     await seedEligible(doc.id, { releaseHoursAgo: -48 }); // vence em 48h
@@ -314,6 +397,32 @@ describe('approvePayout — envio supervisionado', () => {
     expect(recon.stuckAlerts).toBe(1);
     expect(await openExceptions('payout_stuck_requested', r.id)).toBe(1);
   });
+
+  it('KYC: médico bloqueado DEPOIS da reserva → approve RECUSA (DOCTOR_CANNOT_PRACTICE) sem enviar; liberado → aprova e fecha a exceção', async () => {
+    const { doc, r, payout } = await seedRequested();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { blocked: true } });
+    let sends = 0;
+    const deps = { transferSender: async () => { sends++; return doneSender('trf_kyc')(); } };
+
+    const refusal = await approvePayout(payout.id, { deps }).catch((e: any) => e);
+    expect(refusal).toBeInstanceOf(Error);
+    expect(refusal.code).toBe('DOCTOR_CANNOT_PRACTICE');
+    expect(refusal.message).toMatch(/DOCTOR_CANNOT_PRACTICE/); // a rota (409) devolve só a mensagem
+    expect(sends).toBe(0);
+    const held = await prisma.payout.findUniqueOrThrow({ where: { id: payout.id } });
+    expect(held.status).toBe('requested'); // segue p/ um humano
+    expect(held.attempts).toBe(0); // nem o claim aconteceu
+    expect(await netOf('payout_processing', r.id)).toBe(20000); // reserva intacta
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${doc.id}`)).toBe(1);
+
+    // liberado → o MESMO payout é aprovado normalmente e a exceção se fecha
+    await prisma.doctor.update({ where: { id: doc.id }, data: { blocked: false } });
+    const out = await approvePayout(payout.id, { deps });
+    expect(out.status).toBe('completed');
+    expect(sends).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${doc.id}`)).toBe(0);
+    expect(await ledgerGloballyBalanced()).toBe(true);
+  });
 });
 
 // ───────────────────── Estornos reais (§18.7) ─────────────────────────────────────
@@ -419,6 +528,156 @@ describe('runPayoutAutoApprove — gated por teleconsulta.payoutAuto', () => {
     expect(await txnCount(payoutDoneTxnId(after.id))).toBe(2);
     void r;
   });
+
+  it('KYC: médico recusado DEPOIS da reserva fica requested p/ humano (+ exceção); quem pode atender segue sendo aprovado', async () => {
+    const held = await seedDoctor();
+    const ok = await seedDoctor();
+    const rHeld = await seedEligible(held.id);
+    const rOk = await seedEligible(ok.id);
+    await runPayoutPass(Date.now()); // ambos ainda podem atender → 2 requested + reservas
+    expect(await prisma.payout.count()).toBe(2);
+    await prisma.doctor.update({ where: { id: held.id }, data: { verificationStatus: 'rejected' } }); // ex.: fraude confirmada depois do pedido
+    await saveSettings('teleconsulta', { payoutAuto: 1 });
+    const sent: string[] = [];
+    const deps = { transferSender: async (i: any) => { sent.push(i.externalReference); return { transferId: 'trf_kyc', status: 'DONE', authorized: true, failReason: null }; } };
+
+    const { runPayoutAutoApprove } = await import('../src/finance/payout');
+    expect(await runPayoutAutoApprove(deps as any)).toBe(1); // só quem pode atender
+    const pHeld = await prisma.payout.findFirstOrThrow({ where: { reminderId: rHeld.id } });
+    const pOk = await prisma.payout.findFirstOrThrow({ where: { reminderId: rOk.id } });
+    expect(sent).toEqual([`payout_${pOk.id}`]); // NADA foi enviado p/ o médico retido
+    expect(pOk.status).toBe('completed');
+    expect(pHeld.status).toBe('requested'); // segue p/ um humano decidir
+    expect(pHeld.attempts).toBe(0); // nem o claim aconteceu
+    expect(await netOf('payout_processing', rHeld.id)).toBe(20000); // reserva intacta
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${ok.id}`)).toBe(0);
+
+    expect(await runPayoutAutoApprove(deps as any)).toBe(0); // 2º tick: nada novo
+    expect(sent).toHaveLength(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1); // sem duplicar
+    expect(await ledgerGloballyBalanced()).toBe(true);
+  });
+});
+
+// ───────────────────── I9 — o funil não "morre de fome" (revisão final do KYC) ─────────────────────
+// O pass lia as 200 consultas elegíveis mais antigas e só DEPOIS filtrava (no JS) as que já tinham Payout e as de
+// médico retido; o auto pegava 20 payouts `requested` sem ordem nem filtro. Bastava o backlog antigo estar pago/retido
+// para ninguém mais receber. Agora a própria query exclui os dois grupos.
+
+/** Teleconsultas elegíveis em massa (createMany, 1 só INSERT) — todas com paidAt ANTERIOR ao de seedEligible (5 dias). */
+async function bulkEligible(doctorId: string, n: number, tag: string, withLedger: boolean) {
+  const { user, patient } = await createUser();
+  const ids = Array.from({ length: n }, (_, i) => `bulk-${tag}-${String(i).padStart(4, '0')}`);
+  const base = Date.now() - 20 * 24 * HOUR;
+  await prisma.reminder.createMany({
+    data: ids.map((id, i) => ({
+      id, ownerId: user.id, patientId: patient.id, title: 'Tele em massa', type: 'teleconsulta',
+      dueDate: new Date(base), teleStatus: 'completed', done: true, endedAt: new Date(base),
+      paidAt: new Date(base + i * 1000), paymentRef: 'pay_bulk', consultPriceCents: 25000, createdByDoctorId: doctorId,
+      commissionSnapshot: { ruleId: null, platformBps: 2000, feeBearer: 'platform', releaseDelayDays: 3, minPayoutCents: 2000 },
+      releaseEligibleAt: new Date(base + 3 * 24 * HOUR),
+    })) as any,
+  });
+  if (withLedger) { // obrigação sintética de 20k por consulta (o que o ledger da conclusão deixaria em doctor_payable)
+    await prisma.ledgerEntry.createMany({
+      data: ids.map((id) => ({ txnId: `bulk_completion_${id}`, reminderId: id, doctorId, account: 'doctor_payable', creditCents: 20000, refType: 'reminder', refId: id })),
+    });
+  }
+  return ids;
+}
+
+describe('I9 — starvation do repasse', () => {
+  beforeEach(async () => { await resetDb(); await loadSettings(); }, 30_000);
+
+  it('mais de 200 consultas antigas JÁ PAGAS não impedem de pagar uma elegível mais nova', async () => {
+    const doc = await seedDoctor();
+    const old = await bulkEligible(doc.id, 205, 'paid', false);
+    await prisma.payout.createMany({ data: old.map((id) => ({ reminderId: id, doctorId: doc.id, amountCents: 20000, status: 'completed', reserveTxnId: payoutReserveTxnId(id) })) });
+    const novo = await seedEligible(doc.id);
+
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(1);
+    expect(await prisma.payout.count()).toBe(206);
+    expect(await prisma.payout.findUnique({ where: { reminderId: novo.id } })).toMatchObject({ status: 'requested', doctorId: doc.id, amountCents: 20000 });
+    expect((await runPayoutPass(Date.now() + MIN)).created).toBe(0); // e segue idempotente
+  });
+
+  it('médico RETIDO com backlog antigo não bloqueia outro médico — e a exceção do retido continua aberta', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { verificationStatus: 'pending' } });
+    const ok = await seedDoctor();
+    await bulkEligible(held.id, 205, 'held', true); // 205 mais antigas que a do outro médico, todas com obrigação no ledger
+    const rOk = await seedEligible(ok.id);
+
+    const p = await runPayoutPass(Date.now());
+    expect(p.created).toBe(1);
+    expect(p.exceptionsCreated).toBe(1); // a do retido
+    expect(await prisma.payout.findMany({ select: { reminderId: true, doctorId: true } })).toEqual([{ reminderId: rOk.id, doctorId: ok.id }]);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${ok.id}`)).toBe(0);
+
+    await runPayoutPass(Date.now() + MIN); // re-tick: a exceção do retido não duplica
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+  });
+
+  it('retido SEM obrigação no ledger não gera exceção (nada a reter)', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { blocked: true } });
+    await bulkEligible(held.id, 3, 'semledger', false);
+    const p = await runPayoutPass(Date.now());
+    expect(p.exceptionsCreated).toBe(0);
+    expect(await prisma.exceptionQueue.count({ where: { kind: 'payout_doctor_unverified' } })).toBe(0);
+  });
+
+  it('auto-aprovação: 20 payouts retidos NÃO ocupam as vagas — o 21º, de quem pode receber, é aprovado; os retidos seguem com a exceção', async () => {
+    const held = await seedDoctor();
+    await prisma.doctor.update({ where: { id: held.id }, data: { verificationStatus: 'rejected' } });
+    // 20 requested de médico retido, criados ANTES (ordem física do heap = a que um findMany sem ORDER BY devolveria primeiro)
+    const heldIds = Array.from({ length: 20 }, (_, i) => `held-rem-${i}`);
+    await prisma.payout.createMany({
+      data: heldIds.map((id, i) => ({ reminderId: id, doctorId: held.id, amountCents: 20000, status: 'requested', reserveTxnId: payoutReserveTxnId(id), requestedAt: new Date(Date.now() - (100 - i) * MIN) })),
+    });
+    const ok = await seedDoctor();
+    const rOk = await seedEligible(ok.id);
+    await runPayoutPass(Date.now()); // cria o requested do médico que pode receber (com reserva)
+    expect(await prisma.payout.count({ where: { status: 'requested' } })).toBe(21);
+
+    await saveSettings('teleconsulta', { payoutAuto: 1 });
+    const sent: string[] = [];
+    const deps = { transferSender: async (i: any) => { sent.push(i.externalReference); return { transferId: 'trf_21', status: 'DONE', authorized: true, failReason: null }; } };
+    const { runPayoutAutoApprove } = await import('../src/finance/payout');
+    expect(await runPayoutAutoApprove(deps as any)).toBe(1);
+
+    const pOk = await prisma.payout.findFirstOrThrow({ where: { reminderId: rOk.id } });
+    expect(sent).toEqual([`payout_${pOk.id}`]);
+    expect(pOk.status).toBe('completed');
+    expect(await prisma.payout.count({ where: { status: 'requested', doctorId: held.id, attempts: 0 } })).toBe(20); // intactos
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${ok.id}`)).toBe(0);
+
+    expect(await runPayoutAutoApprove(deps as any)).toBe(0); // 2º tick: nada novo, sem duplicar a exceção
+    expect(await openExceptions('payout_doctor_unverified', `payout:doctor:${held.id}`)).toBe(1);
+  });
+
+  it('auto-aprovação: pega os MAIS ANTIGOS primeiro (ORDER BY requestedAt) e no máximo 20 por tick', async () => {
+    const doc = await seedDoctor();
+    await saveSettings('teleconsulta', { payoutAuto: 1 });
+    const rid = (k: number) => `ord-rem-${String(k).padStart(2, '0')}`;
+    const base = Date.now() - 3 * HOUR;
+    // k=0 é o MAIS ANTIGO; inseridos do mais novo p/ o mais antigo (ordem física ≠ ordem de idade); reserva sintética
+    // no ledger (approvePayout exige a reserva — o ledger não olha o Reminder)
+    for (let k = 21; k >= 0; k--) {
+      await prisma.payout.create({ data: { reminderId: rid(k), doctorId: doc.id, amountCents: 5000, reserveTxnId: payoutReserveTxnId(rid(k)), requestedAt: new Date(base + k * MIN) } });
+      await prisma.ledgerEntry.create({ data: { txnId: payoutReserveTxnId(rid(k)), reminderId: rid(k), doctorId: doc.id, account: 'payout_processing', creditCents: 5000, refType: 'payout', refId: rid(k) } });
+    }
+    const deps = { transferSender: async () => ({ transferId: 'trf_ord', status: 'DONE', authorized: true, failReason: null }) };
+    const { runPayoutAutoApprove } = await import('../src/finance/payout');
+    expect(await runPayoutAutoApprove(deps as any)).toBe(20);
+    const left = await prisma.payout.findMany({ where: { status: 'requested' }, orderBy: { requestedAt: 'asc' }, select: { reminderId: true } });
+    expect(left.map((l) => l.reminderId)).toEqual([rid(20), rid(21)]); // sobraram os 2 MAIS NOVOS
+    expect(await runPayoutAutoApprove(deps as any)).toBe(2); // próximo tick leva o resto
+  });
 });
 
 // ───────────────────── Caixa Asaas — cache 5min (§18.8) ───────────────────────────
@@ -496,6 +755,22 @@ describe('admin /payouts — listagem mascarada + aprovação auditada', () => {
     expect(body.externalReference).toBe(`payout_${payout.id}`);
     expect(body.pixAddressKey).toBe('12345678901'); // vai ao Asaas (necessário) — mas NUNCA em resposta/audit
     expect(body.pixAddressKeyType).toBe('CPF');
+  });
+
+  it('POST approve de médico bloqueado DEPOIS da reserva → 409 com DOCTOR_CANNOT_PRACTICE; nada vai ao Asaas; segue requested', async () => {
+    const { token } = await createAdmin();
+    const doc = await seedDoctor();
+    await seedEligible(doc.id);
+    await runPayoutPass(Date.now());
+    const payout = await prisma.payout.findFirstOrThrow();
+    await prisma.doctor.update({ where: { id: doc.id }, data: { blocked: true } });
+    fetchMock().mockClear();
+
+    const r = await api().post(`/api/admin/payouts/${payout.id}/approve`).set(authHeader(token));
+    expect(r.status).toBe(409); // a recusa (throw) já vira 409 + mensagem na rota atual
+    expect(String(r.body.error)).toMatch(/DOCTOR_CANNOT_PRACTICE/);
+    expect(fetchMock().mock.calls.some((c: any[]) => String(c[0]).includes('/v3/transfers'))).toBe(false);
+    expect((await prisma.payout.findFirstOrThrow()).status).toBe('requested');
   });
 
   it('POST approve de payout inexistente → 404; toggle auto grava audit', async () => {

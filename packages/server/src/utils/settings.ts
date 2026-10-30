@@ -104,6 +104,9 @@ export const DEFAULT_SETTINGS = {
   // do paciente na fila (min) antes de expirar; queueOfferTtlSec = deadline de aceite da
   // offer pelo médico (s) — attempts≥3 em offers perdidas = expired 'no_accept'.
   teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000, queuePatientTimeoutMin: 10, queueOfferTtlSec: 45 },
+  // KYC do médico (spec verificação §1/§4): prazo do 'legacy' em epoch ms (0 = sem prazo);
+  // autoApprove 0 = TODO médico passa pela fila do dono (decisão 28/10/26); 1 = aprova sozinho se tudo verde.
+  doctorKyc: { legacyGraceUntilMs: 0, autoApprove: 0 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;
@@ -237,6 +240,14 @@ export function getTeleconsultaConfig(): { entryWindowMin: number; minJointSecon
     queuePatientTimeoutMin: Number(t.queuePatientTimeoutMin) > 0 ? Number(t.queuePatientTimeoutMin) : 10,
     queueOfferTtlSec: Number(t.queueOfferTtlSec) > 0 ? Number(t.queueOfferTtlSec) : 45,
   };
+}
+
+/** KYC do médico (spec verificação §1/§4): prazo do 'legacy' (epoch ms; 0 = sem prazo) e
+ *  autoApprove (0 = sempre passa pelo dono — default; 1 = aprova sozinho quando tudo verde). */
+export function getDoctorKycConfig(): { legacyGraceUntilMs: number; autoApprove: 0 | 1 } {
+  const k: any = (getSettings() as any).doctorKyc ?? {};
+  const ms = Number(k.legacyGraceUntilMs);
+  return { legacyGraceUntilMs: Number.isFinite(ms) && ms > 0 ? ms : 0, autoApprove: Number(k.autoApprove) === 1 ? 1 : 0 };
 }
 
 /** Repasse AUTOMÁTICO (Onda 4 §18.5): default DESLIGADO (v1 supervisionada — cada

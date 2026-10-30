@@ -29,8 +29,17 @@ const jwtExp = (t: string): number | null => {
  *  PULA candidatos EXPIRADOS: photoToken é gravado no login e nunca rotacionado (era p/ ser
  *  "estável" pro cache) — depois dos 7d de TTL ele virava sombra sobre o token vivo da
  *  sessão e TODAS as fotos 401avam (avatar sumia = "foto não salva"). */
+/** Ordem de busca do token das URLs de imagem. No PORTAL DO MÉDICO (`#/doctor…`) a sessão do médico vem primeiro: o
+ *  servidor só abre a foto do paciente para o DONO dele, um ADMIN ou um médico com vínculo (revisão final, I8), e quem é
+ *  paciente E médico no mesmo navegador tem os dois tokens — o de paciente não é dono dos pacientes do médico e levaria
+ *  403 (avatar sumindo). Fora do portal do médico vale a ordem de sempre. */
+export const photoTokenKeys = (hash: string = typeof window !== 'undefined' ? window.location.hash : ''): string[] =>
+  /^#\/?doctor(?:[/?]|$)/.test(hash)
+    ? ['doctorPhotoToken', 'doctorToken', 'photoToken', 'token']
+    : ['photoToken', 'doctorPhotoToken', 'token', 'doctorToken'];
+
 const photoAuthToken = (): string | null => {
-  for (const k of ['photoToken', 'doctorPhotoToken', 'token', 'doctorToken']) {
+  for (const k of photoTokenKeys()) {
     const t = localStorage.getItem(k);
     if (!t) continue;
     const exp = jwtExp(t);

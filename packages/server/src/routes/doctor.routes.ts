@@ -29,7 +29,8 @@ import { createPixCharge } from '../payments/pix-provider';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
-import { lookupCfm } from '../utils/cfm';
+import { lookupCfm, cfmState, BR_UFS } from '../utils/cfm';
+import { notifyKycAdmin } from '../kyc/notify';
 import { buildCurrentHealthSummary, priorityOfItem, PRIORITY_RANK } from '../analysis/health-state';
 import { latestRiskAssessment, buildRiskAssessment } from '../analysis/risk-service';
 import { summarizePatterns } from '../analysis/health-patterns';
@@ -46,6 +47,7 @@ import { computeCompletionSplit } from '../finance/ledger';
 import { buildExamReportPdf } from '../utils/examPdf';
 import { deriveTrialConditions, fetchTrials, coerceCachedStudies, type TrialStudy } from '../analysis/clinical-trials';
 import { doctorWithCrm } from '../utils/doctorTitle';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial, doctorMayPractice } from '../utils/doctorAccess';
 
 // Especialidades base (espelha o front-end). O dropdown real = base ∪ especialidades que já existem no banco.
 const BASE_SPECIALTIES = [
@@ -69,6 +71,76 @@ export function normalizeCrmKey(crm?: string, uf?: string): { crm: string; uf: s
   return { crm: `${base}-${ufClean}`, uf: ufClean };
 }
 
+/**
+ * CRM CANÔNICO do cadastro (principal e convite) — revisão final do KYC (I6b/I7). Número = só dígitos (3–7; sem
+ * pontuação, letras ou UF); UF = `uf` informada OU, se ausente, o sufixo do próprio CRM ("12345-SP"), e tem de
+ * pertencer a BR_UFS; chave = `${número}-${UF}`. "116739-sp", "116.739" e "116739-SP-RJ" viram UMA chave (antes eram
+ * chaves distintas: burlavam CRM_IN_USE_UNVERIFIED e o agrupamento das tentativas de KYC) e "000000-ZZ" não passa.
+ * É a mesma chave que o lookup do paciente (`${dígitos}-${UF}`) e o KYC (dígitos + UF) usam. null = inválido.
+ */
+export function canonicalCrm(crm: unknown, uf?: unknown): { key: string; digits: string; uf: string } | null {
+  const raw = String(crm ?? '').trim();
+  const digits = raw.replace(/[-/\s]*[A-Za-z]{2}\s*$/, '').replace(/\D/g, '');
+  const ufIn = String(uf || raw.match(/([A-Za-z]{2})\s*$/)?.[1] || '').trim().toUpperCase();
+  if (!/^\d{3,7}$/.test(digits) || !BR_UFS.has(ufIn)) return null;
+  return { key: `${digits}-${ufIn}`, digits, uf: ufIn };
+}
+
+/** E-mail NEUTRO de um placeholder (conta sem senha criada por paciente): é o que ele passa a ter quando o e-mail digitado
+ *  por um paciente é solto (m5, 2ª rodada da revisão final). Único por id. */
+export const placeholderEmail = (id: string): string => `pending-${id}@invite.com`;
+/**
+ * m5: o placeholder (passwordHash 'pending-invite') guarda o e-mail que um PACIENTE digitou ao compartilhar — dado não
+ * verificado que não pode bloquear o cadastro do médico de verdade. Solta o e-mail (volta ao neutro) para o cadastro seguir.
+ * false = não dá para soltar (não é placeholder, ou o e-mail já é o neutro): o chamador responde 409.
+ */
+export async function releasePlaceholderEmail(holder: { id: string; email: string; passwordHash: string }): Promise<boolean> {
+  if (holder.passwordHash !== 'pending-invite' || holder.email === placeholderEmail(holder.id)) return false;
+  await prisma.doctor.update({ where: { id: holder.id }, data: { email: placeholderEmail(holder.id) } });
+  return true;
+}
+
+/**
+ * ALERTA AO DONO de CRM disputado (revisão final M10): cada cadastro conflitante mandava e-mail ao dono + linha de
+ * audit, sem limite (120/min/IP) — dava p/ esgotar a cota do SMTP e quebrar os e-mails de OTP. O E-MAIL passa a sair no
+ * máximo 1 vez por hora por chave de CRM; a linha de audit continua em TODOS os conflitos. Map em memória do processo
+ * (perder no restart = 1 e-mail a mais, sem dano); as chaves são só CRMs de contas JÁ existentes e não verificadas.
+ */
+const CRM_CONFLICT_ALERT_EVERY_MS = 60 * 60 * 1000;
+const crmConflictAlertAt = new Map<string, number>();
+export function resetCrmConflictAlertThrottleForTests(): void { crmConflictAlertAt.clear(); }
+function shouldAlertCrmConflict(crmKey: string, nowMs: number = Date.now()): boolean {
+  const last = crmConflictAlertAt.get(crmKey);
+  if (last !== undefined && nowMs - last < CRM_CONFLICT_ALERT_EVERY_MS) return false;
+  crmConflictAlertAt.set(crmKey, nowMs);
+  if (crmConflictAlertAt.size > 1000) { // poda: janelas vencidas já não seguram nada
+    for (const [key, at] of crmConflictAlertAt) if (nowMs - at >= CRM_CONFLICT_ALERT_EVERY_MS) crmConflictAlertAt.delete(key);
+  }
+  return true;
+}
+
+/**
+ * CÓDIGO DE VERIFICAÇÃO do e-mail do médico (OTP). Fonte única do e-mail "Ative sua conta" — usada pelo /register e,
+ * desde a 2ª rodada da revisão final (B2-2), também pelo /login de conta com e-mail NÃO verificado. Antes só o /register
+ * emitia o código: o médico do CONVITE recebe o JWT sem OTP e, quando ele vence (7 dias), o login cai na tela de código
+ * sem nenhum código enviado — ficava trancado para fora. No máximo 1 envio por e-mail a cada 60 s (Map em memória do
+ * processo; perder no restart = 1 e-mail a mais) para o login não virar bomba de e-mail; o /register também marca a
+ * janela (um login logo depois do cadastro não manda um 2º código).
+ */
+const DOCTOR_OTP_RESEND_MS = 60_000;
+const doctorOtpSentAt = new Map<string, number>();
+export function resetDoctorOtpThrottleForTests(): void { doctorOtpSentAt.clear(); }
+function sendDoctorVerificationOtp(mail: string, name: string, tag: string): void {
+  const nowMs = Date.now();
+  doctorOtpSentAt.set(mail, nowMs);
+  if (doctorOtpSentAt.size > 1000) { // poda: janelas vencidas já não seguram nada
+    for (const [key, at] of doctorOtpSentAt) if (nowMs - at >= DOCTOR_OTP_RESEND_MS) doctorOtpSentAt.delete(key);
+  }
+  const code = issueOtp(mail);
+  sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
+    .catch((e: any) => console.error(`[${tag}] falha SMTP verificação:`, e?.message));
+}
+
 const router = Router();
 
 function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
@@ -86,27 +158,23 @@ function serializeDoctor<T extends Record<string, any>>(doctor: T | null): any {
 const signDoctorToken = (doctorId: string) => jwt.sign({ doctorId, type: 'doctor' }, config.jwtSecret, { expiresIn: '7d' });
 const verifyDoctorToken = (token: string): any => { try { const p: any = jwt.verify(token, config.jwtSecret); return p.type === 'doctor' ? p : null; } catch { return null; } };
 
-const requireDoctor = async (req: any, res: any, next: any) => {
+// Política única (utils/doctorAccess.ts, spec §7): bloqueado → 403 DOCTOR_BLOCKED; quem não pode
+// atender → 403 VERIFICATION_REQUIRED. Onboarding (perfil/senha/foto/MFA/plano) usa
+// requireDoctorOnboarding, que só barra bloqueado.
+const makeRequireDoctor = (allowUnverified: boolean) => async (req: any, res: any, next: any) => {
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) { res.status(401).json({ error: 'Token obrigatório.' }); return; }
   const payload = verifyDoctorToken(auth.slice(7));
   if (!payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  const doc = await prisma.doctor.findUnique({
-    where: { id: payload.doctorId },
-    select: { id: true, blocked: true, blockedReason: true },
-  });
+  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
   if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
-  if (doc.blocked) {
-    res.status(403).json({
-      blocked: true,
-      error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
-      reason: doc.blockedReason || undefined,
-    });
-    return;
-  }
+  const denial = doctorAccessDenial(doc, { allowUnverified });
+  if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = payload.doctorId;
   next();
 };
+const requireDoctor = makeRequireDoctor(false);
+const requireDoctorOnboarding = makeRequireDoctor(true);
 
 // Dr. Exame Pro (premium) — free tier: 5 features premium/mês. Depois: paywall (402).
 const FREE_TIER_LIMIT = 5;
@@ -123,7 +191,7 @@ const checkPremiumFeature = async (req: any, res: any, next: any): Promise<void>
 };
 
 // Plano do médico (status premium/free + uso do mês)
-router.get('/me/plan', requireDoctor, async (req: any, res) => {
+router.get('/me/plan', requireDoctorOnboarding, async (req: any, res) => {
   const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true, freeUsageMonth: true, freeUsageCount: true } });
   const month = new Date().toISOString().slice(0, 7);
   const isPremium = doc?.plan === 'premium' && doc?.planExpiresAt && doc.planExpiresAt > new Date();
@@ -244,25 +312,32 @@ router.get('/lookup', requireAuth, async (req: AuthedRequest, res, next) => {
     if (!crm || uf.length !== 2) { res.status(400).json({ error: 'CRM e UF (2 letras) obrigatórios.' }); return; }
     const crmKey = `${crm}-${uf}`;
 
-    // 1) conta real (médico registrou/claimou) — dados mais fidedignos
+    // 1) conta real QUE PODE ATUAR (médico registrou/claimou e passou no KYC) — dados mais fidedignos. Conta com senha mas
+    //    pendente/recusada/bloqueada/legado vencido NÃO é "perfil publicado do médico" (nome/telefone/bio são
+    //    auto-declarados — revisão final I7): não sai como `base` e cai nos passos seguintes.
     const doc = await prisma.doctor.findUnique({ where: { crm: crmKey } });
+    const realAccount = !!doc && doc.passwordHash !== 'pending-invite';
     const docDto = (d: any) => ({ name: d.name, specialty: d.specialty, crm: d.crm, uf: d.crmUf || uf, email: d.email?.includes('@invite.com') ? null : d.email, phone: d.phone ?? null, clinicName: d.clinicName ?? null, clinicCity: d.clinicCity ?? null, bio: d.bio ?? null });
-    if (doc && doc.passwordHash !== 'pending-invite') { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+    if (doc && realAccount && doctorMayPractice(doc)) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
 
-    // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade
+    // 2) fallback CFM (fonte oficial) — persiste pra virar diretório + alimentar dropdown de especialidade. Só placeholder/
+    //    inexistente é gravado: o upsert reescreveria nome/especialidade de uma conta REAL (identidade travada) com o dado do CFM.
     const cfm = await lookupCfm(crm, uf);
     if (cfm) {
-      await prisma.doctor.upsert({
-        where: { crm: crmKey },
-        update: { name: cfm.name, specialty: cfm.specialty || undefined, crmUf: uf },
-        create: { name: cfm.name, crm: crmKey, crmUf: uf, specialty: cfm.specialty, email: `pending-${crmKey}@invite.com`.toLowerCase(), passwordHash: 'pending-invite' },
-      }).catch(() => null);
+      if (!realAccount) {
+        await prisma.doctor.upsert({
+          where: { crm: crmKey },
+          update: { name: cfm.name, specialty: cfm.specialty || undefined, crmUf: uf },
+          create: { name: cfm.name, crm: crmKey, crmUf: uf, specialty: cfm.specialty, email: `pending-${crmKey}@invite.com`.toLowerCase(), passwordHash: 'pending-invite' },
+        }).catch(() => null);
+      }
       res.json({ source: 'cfm', doctor: { name: cfm.name, specialty: cfm.specialty, crm: cfm.crm, uf: cfm.uf, situation: cfm.situation } });
       return;
     }
 
-    // 3) cadastro pendente local (paciente já tinha digitado antes) — melhor que manual
-    if (doc && doc.name) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
+    // 3) cadastro pendente local (paciente já tinha digitado antes) — melhor que manual. Só placeholder: conta real que
+    //    não pode atuar segue p/ o manual (não apresentamos dado auto-declarado como `base`).
+    if (doc && !realAccount && doc.name) { res.json({ source: 'base', doctor: docDto(doc) }); return; }
 
     // 4) manual
     res.json({ source: 'manual', doctor: null });
@@ -302,23 +377,46 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
     }
     const cpfData = encryptedCpfData(cpf);
     if (!cpfData) { res.status(400).json({ error: 'CPF inválido.' }); return; }
-    // Normaliza pra chave canônica "numero-UF" — COERENTE com o compartilhamento do paciente.
-    // Assim o médico reclaima o Doctor pendente criado no share (herda os compartilhamentos),
-    // independente de digitar "116739", "116739-SP" ou "116739" + UF.
-    const norm = normalizeCrmKey(crm, crmUf) ?? normalizeCrmKey(crm);
-    const crmKey = norm?.crm ?? String(crm).trim();
-    const uf = norm?.uf ?? null;
+    // Chave CANÔNICA "numero-UF" — COERENTE com o compartilhamento do paciente, o lookup e o convite. Assim o médico
+    // reclaima o Doctor pendente criado no share (herda os compartilhamentos), independente de digitar "116739",
+    // "116739-SP" ou "116739" + UF. Revisão final I7: o número é só dígitos e a UF (crmUf ou o sufixo do CRM) tem de ser
+    // uma das 27 — antes "000000-ZZ" passava e "116739-sp" / "116739-SP-RJ" geravam chaves distintas (burlavam
+    // CRM_IN_USE_UNVERIFIED e o agrupamento das tentativas de KYC; o KYC checava um CRM diferente do exibido).
+    const parsed = canonicalCrm(crm, crmUf);
+    if (!parsed) { res.status(422).json({ code: 'CRM_INVALID', error: 'CRM ou UF inválidos.' }); return; }
+    const crmKey = parsed.key;
+    const uf = parsed.uf;
     // Validação CFM (quando CONSULTA_CRM_KEY configurada): bloqueia CRM INATIVO. Se a API do CFM
     // não estiver disponível (sem chave / falha / limite), NÃO bloqueia (graceful — não trava
     // cadastro legítimo); o cadastro já fica inativo até verificar e-mail + é auditado pro admin.
-    const cfm = uf ? await lookupCfm(crm, uf).catch(() => null) : null;
-    if (cfm && cfm.situation && !/ativo/i.test(cfm.situation)) {
+    const cfm = await lookupCfm(parsed.digits, uf).catch(() => null);
+    if (cfm && cfmState(cfm.situation) === 'inactive') { // /ativo/i casava "Inativo"
       res.status(400).json({ error: `CRM ${crmKey}/${uf} consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` }); return;
     }
     const mail = String(email).toLowerCase().trim();
-    const existing = await prisma.doctor.findFirst({ where: { OR: [{ email: mail }, { crm: crmKey }] } });
+    // CRM e e-mail são checados SEPARADOS (m6 da re-revisão: o `findFirst OR` devolvia uma linha arbitrária quando duas contas
+    // diferentes batiam). `existing` = quem tem o CRM (placeholder reivindicável ou conta real); `emailHolder` = OUTRA conta
+    // que já usa este e-mail. O placeholder (sem senha, criado por paciente) só é reivindicado pelo CRM — o e-mail previsível
+    // (pending-<crm>@invite.com) NÃO basta (revisão final I6b).
+    const [existing, byEmail] = await Promise.all([
+      prisma.doctor.findUnique({ where: { crm: crmKey } }),
+      prisma.doctor.findUnique({ where: { email: mail } }),
+    ]);
+    const emailHolder = byEmail && byEmail.id !== existing?.id ? byEmail : null;
+    // m5 (2ª rodada): e-mail digitado por PACIENTE num placeholder de OUTRO CRM é dado não verificado e não pode bloquear o
+    // médico de verdade — solta o e-mail do placeholder (volta ao neutro pending-<id>@invite.com) e o cadastro segue. E-mail
+    // de conta REAL (ou placeholder que já está no neutro) continua 409.
+    const clearEmailHolder = async (): Promise<boolean> => {
+      if (!emailHolder) return true;
+      if (await releasePlaceholderEmail(emailHolder)) return true;
+      res.status(409).json(emailHolder.passwordHash === 'pending-invite'
+        ? { code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' }
+        : { code: 'EMAIL_IN_USE', error: 'CRM ou e-mail já cadastrado. Faça login.' });
+      return false;
+    };
+    const knownIds = [existing?.id, emailHolder?.id].filter((id): id is string => !!id);
     const duplicateCpf = await prisma.doctor.findFirst({
-      where: { cpfHash: cpfData.cpfHash, ...(existing ? { NOT: { id: existing.id } } : {}) },
+      where: { cpfHash: cpfData.cpfHash, ...(knownIds.length ? { id: { notIn: knownIds } } : {}) },
       select: { id: true },
     });
     if (duplicateCpf) { res.status(409).json({ error: 'CPF já cadastrado em outro médico.' }); return; }
@@ -326,21 +424,37 @@ router.post('/register', validate(schemas.doctorRegister), async (req, res, next
       if (existing.passwordHash === 'pending-invite') {
         // CLAIM: paciente pré-cadastrou → médico completa dados + senha (mesmo id → herda shares).
         // Mas NÃO loga ainda: valida o e-mail (OTP), igual o paciente.
+        if (!(await clearEmailHolder())) return;
         await prisma.doctor.update({
           where: { id: existing.id },
-          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null },
+          data: { name, specialty: specialty || existing.specialty, email: mail, passwordHash: await hashPassword(String(password)), crmUf: uf ?? existing.crmUf, emailVerified: false, ...cpfData, identityLockedAt: null, verificationStatus: 'pending' }, // KYC: quem reivindica nasce pending — os shares herdados só abrem após verificação
         });
       } else {
+        // Mesmo CRM, outro e-mail = alguém tentando o CRM de quem já tem conta (spec §7): fica registrado.
+        const crmConflict = existing.crm === crmKey && existing.email !== mail;
+        if (crmConflict) {
+          void audit('DOCTOR_CRM_CONFLICT', req, { actorType: 'SYSTEM', targetType: 'DOCTOR', targetId: existing.id, after: { crm: crmKey, attemptedEmail: mail, existingStatus: existing.verificationStatus } });
+          if (!['approved', 'legacy'].includes(existing.verificationStatus)) {
+            // M10: no máximo 1 e-mail/hora por CRM (o audit acima segue em todos); o cadastrante sempre recebe o 409.
+            if (shouldAlertCrmConflict(crmKey)) {
+              void notifyKycAdmin('Dr. Exame — CRM disputado por dois cadastros', [
+                `CRM ${crmKey}: já existe cadastro NÃO verificado e chegou outro com e-mail diferente.`,
+                'Se o novo for o titular, libere o CRM no admin.',
+              ]);
+            }
+            res.status(409).json({ code: 'CRM_IN_USE_UNVERIFIED', error: 'Este CRM já tem um cadastro em verificação. Se o CRM é seu, fale com o suporte: contato@janocaminho.com.br' });
+            return;
+          }
+        }
         res.status(409).json({ error: 'CRM ou e-mail já cadastrado. Faça login.' }); return;
       }
     } else {
       // NOVO cadastro — fica INATIVO até verificar o e-mail (evita e-mail falso + CRM alheio acessar dados).
+      if (!(await clearEmailHolder())) return;
       await prisma.doctor.create({ data: { name, crm: crmKey, crmUf: uf, specialty, email: mail, passwordHash: await hashPassword(String(password)), emailVerified: false, ...cpfData } });
     }
     // Envia código de verificação pro e-mail — NÃO emite token antes de confirmar.
-    const code = issueOtp(mail);
-    sendEmail({ to: mail, subject: 'Ative sua conta — Portal do Médico (Meus Exames)', html: otpEmail(String(name), code) })
-      .catch((e: any) => console.error('[doctor/register] falha SMTP verificação:', e?.message));
+    sendDoctorVerificationOtp(mail, String(name), 'doctor/register');
     // AUDITORIA anti-fraude: TODO cadastro de médico fica registrado (CRM/email/IP) pra revisão
     // do admin. Hoje o CRM não é validado contra o CFM — um fraudador pode usar CRM alheio e
     // roubar shares de pacientes. Esta trilha permite identificar/reverter. (Validação CFM + aprovação
@@ -421,7 +535,15 @@ router.post('/login', async (req, res, next) => {
     if (!doctor) { docFailAudit('doctor_not_found'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
     if (doctor.passwordHash === 'pending-invite') { docFailAudit('invite_pending'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
     if (!(await comparePassword(String(req.body?.password ?? ''), doctor.passwordHash))) { docFailAudit('invalid_password'); res.status(401).json({ error: 'Credenciais inválidas.' }); return; }
-    if (!doctor.emailVerified) { docFailAudit('email_unverified'); res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email }); return; }
+    if (!doctor.emailVerified) {
+      docFailAudit('email_unverified');
+      // B2-2: a senha JÁ conferiu (senha errada nunca chega aqui — não vira oráculo de "este e-mail existe/não verificou").
+      // Emite o código (o /register só emite 1x) respeitando 1 envio/60 s por e-mail; a resposta HTTP não muda.
+      const lastSent = doctorOtpSentAt.get(doctor.email);
+      if (lastSent === undefined || Date.now() - lastSent >= DOCTOR_OTP_RESEND_MS) sendDoctorVerificationOtp(doctor.email, doctor.name, 'doctor/login');
+      res.status(403).json({ error: 'Verifique seu e-mail para ativar a conta.', needsVerification: true, email: doctor.email });
+      return;
+    }
     if (doctor.blocked) {
       void audit('LOGIN_BLOCKED', req, { actorType: 'DOCTOR', targetType: 'DOCTOR', targetId: doctor.id, after: { email: doctor.email, reason: 'account_blocked', detail: doctor.blockedReason, ua: docUa } });
       res.status(403).json({
@@ -450,11 +572,11 @@ router.post('/mfa/verify', async (req, res) => {
   } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro no MFA' }); }
 });
 
-router.get('/mfa/status', requireDoctor, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
+router.get('/mfa/status', requireDoctorOnboarding, async (req: any, res) => { res.json(await mfaStatus('DOCTOR', req.doctorId)); });
 
 // Perfil público do médico (telefone/consultório/cidade/bio) — o médico edita no portal; o
 // paciente vê ao abrir o médico na lista. Campos opcionais (string|null).
-router.put('/profile', requireDoctor, async (req: any, res, next) => {
+router.put('/profile', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const pick = (v: any, max = 200) => (typeof v === 'string' ? v.trim().slice(0, max) || null : null);
     const updated = await prisma.doctor.update({
@@ -472,23 +594,23 @@ router.put('/profile', requireDoctor, async (req: any, res, next) => {
 });
 
 // Dados completos do médico logado (portal carrega pra edição do perfil público).
-router.get('/me', requireDoctor, async (req: any, res) => {
+router.get('/me', requireDoctorOnboarding, async (req: any, res) => {
   const d = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, crmUf: true, specialty: true, email: true, photoUrl: true, phone: true, clinicName: true, clinicCity: true, bio: true, cpfLast4: true, identityLockedAt: true, consultPriceCents: true } });
   res.json({ doctor: serializeDoctor(d) });
 });
-router.post('/mfa/setup/start', requireDoctor, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
-router.post('/mfa/setup/confirm', requireDoctor, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
-router.post('/mfa/disable', requireDoctor, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/setup/start', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaStart('DOCTOR', req.doctorId)); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/setup/confirm', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaConfirm('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
+router.post('/mfa/disable', requireDoctorOnboarding, async (req: any, res) => { try { res.json(await mfaDisable('DOCTOR', req.doctorId, String(req.body?.code ?? ''))); } catch (e: any) { res.status(e.status || 500).json({ error: e.message || 'Erro' }); } });
 
 // PERFIL do médico
-router.get('/me', requireDoctor, async (req: any, res) => {
+router.get('/me', requireDoctorOnboarding, async (req: any, res) => {
   const doctor = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { id: true, name: true, crm: true, specialty: true, email: true, photoUrl: true, cpfLast4: true, identityLockedAt: true } });
   if (!doctor) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
   res.json({ doctor: serializeDoctor(doctor) });
 });
 
 // ATUALIZAR PERFIL do médico (nome, especialidade, e-mail). CRM não é editável (identidade profissional).
-router.put('/me', requireDoctor, async (req: any, res, next) => {
+router.put('/me', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const { name, specialty, email } = req.body ?? {};
     const data: any = {};
@@ -532,7 +654,7 @@ router.put('/me', requireDoctor, async (req: any, res, next) => {
 });
 
 // TROCAR SENHA do médico
-router.put('/me/password', requireDoctor, async (req: any, res, next) => {
+router.put('/me/password', requireDoctorOnboarding, async (req: any, res, next) => {
   try {
     const cur = String(req.body?.currentPassword ?? '');
     const next0 = String(req.body?.newPassword ?? '');
@@ -547,7 +669,7 @@ router.put('/me/password', requireDoctor, async (req: any, res, next) => {
 // UPLOAD de foto do médico — S3 (prod) ou disco (dev). Espelho da rota do paciente.
 // Pro-only (dono 23/10): sem plano ativo não sobe — e NÃO consome o free tier
 // (foto não é "uso" que se esgota no mês; é identidade contínua).
-router.post('/me/photo', requireDoctor, upload.single('photo'), async (req: any, res, next) => {
+router.post('/me/photo', requireDoctorOnboarding, upload.single('photo'), async (req: any, res, next) => {
   try {
     if (!req.file) { res.status(400).json({ error: 'Foto não enviada' }); return; }
     const docPlan = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { plan: true, planExpiresAt: true } });
@@ -691,6 +813,11 @@ router.get('/patients/:patientId/exams/:examId/file', async (req, res, next) => 
     const payload = tok ? verifyDoctorToken(tok) : null;
     const doctorId = payload?.doctorId;
     if (!doctorId) { res.status(401).json({ error: 'Sem permissão.' }); return; }
+    // Política única (spec §7): este endpoint não passava por requireDoctor — nem bloqueio checava.
+    const fileDoc = await prisma.doctor.findUnique({ where: { id: doctorId }, select: DOCTOR_ACCESS_SELECT });
+    if (!fileDoc) { res.status(401).json({ error: 'Sem permissão.' }); return; }
+    const fileDenial = doctorAccessDenial(fileDoc);
+    if (fileDenial) { res.status(fileDenial.status).json(fileDenial.body); return; }
     const share = await prisma.doctorShare.findFirst({ where: { doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
     if (share.examIds?.length && !share.examIds.includes(req.params.examId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }

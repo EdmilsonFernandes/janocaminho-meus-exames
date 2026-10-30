@@ -59,6 +59,7 @@ import { PortalOverview } from '../components/doctors/portal/PortalOverview';
 import { PortalTeleconsultas } from '../components/doctors/portal/PortalTeleconsultas';
 import { TeleScheduleDialog } from '../components/doctors/portal/TeleScheduleDialog';
 import { PortalFinanceiro } from '../components/doctors/portal/PortalFinanceiro';
+import { DoctorVerificationGate } from '../components/doctors/portal/verification/DoctorVerificationGate';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { DoctorPatientSwitcher } from '../components/doctors/DoctorPatientSwitcher';
@@ -248,7 +249,8 @@ export const DoctorPortalPage = () => {
     finally { setRegLooking(false); }
   };
 
-  if (token) return <DoctorDashboard token={token} onLogout={logout} />;
+  // Portão de verificação de identidade (KYC UaiID): o dashboard só monta p/ médico aprovado (ou legado no prazo).
+  if (token) return <DoctorVerificationGate token={token} onLogout={logout}><DoctorDashboard token={token} onLogout={logout} /></DoctorVerificationGate>;
 
   // Etapa de verificação de e-mail (código OTP enviado no cadastro do médico).
   if (pendingEmail) {
@@ -270,6 +272,10 @@ export const DoctorPortalPage = () => {
     );
   }
 
+  // Volta do UaiID SEM sessão (ex.: verificou pelo celular via "Copiar link", onde não há login): sem este aviso o
+  // médico cairia na tela de login sem saber o que houve. Com sessão, o gate de verificação consome o `kyc=1`.
+  const returnedFromKyc = /[?&]kyc=1(?:&|$)/.test(window.location.hash);
+
   return (
     <Box sx={{ minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 2, background: 'linear-gradient(135deg, rgba(32,178,170,.08), transparent)' }}>
       <Box sx={{ width: '100%', maxWidth: 420, bgcolor: 'background.paper', borderRadius: '16px', boxShadow: '0 10px 40px rgba(0,80,70,.12)', p: { xs: 3, sm: 4 } }}>
@@ -283,6 +289,12 @@ export const DoctorPortalPage = () => {
           <Typography variant="h5" sx={{ fontWeight: 800, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Portal do Médico</Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>{mode === 'register' ? 'Crie sua conta de profissional de saúde' : 'Acesso restrito a profissionais'}</Typography>
         </Stack>
+
+        {returnedFromKyc && mode === 'login' && (
+          <Alert severity="info" role="status" sx={{ mb: 2, borderRadius: '12px' }}>
+            Terminou a verificação de identidade? Entre na sua conta para ver o resultado.
+          </Alert>
+        )}
 
         <Box component="form" onSubmit={submit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {mode === 'register' && (<>

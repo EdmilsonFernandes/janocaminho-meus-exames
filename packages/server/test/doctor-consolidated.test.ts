@@ -21,7 +21,7 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
   beforeEach(async () => { await resetDb(); });
 
   it('200 + {analysis, sourceExams} quando scope summary', async () => {
-    const { docToken, patientId } = await setupShare('C1-SP', 'c1@t.com', 'pc1@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42001-SP', 'c1@t.com', 'pc1@t.com', ['summary']);
     const _e1 = await createExam(patientId, { title: 'Hemograma' });
     await createItem(_e1.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await makeReport(patientId, 'Relatório do paciente');
@@ -35,13 +35,13 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
   });
 
   it('403 quando scope NÃO inclui summary', async () => {
-    const { docToken, patientId } = await setupShare('C2-SP', 'c2@t.com', 'pc2@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('42002-SP', 'c2@t.com', 'pc2@t.com', ['exams']);
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
     expect(r.status).toBe(403);
   });
 
   it('analysis:null quando paciente nunca gerou (sem 402, sem cobrança)', async () => {
-    const { docToken, patientId } = await setupShare('C3-SP', 'c3@t.com', 'pc3@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42003-SP', 'c3@t.com', 'pc3@t.com', ['summary']);
     const _e2 = await createExam(patientId);
     await createItem(_e2.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
@@ -50,7 +50,7 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
   });
 
   it('dedup: exames do mesmo dia + mesmo título viram 1 sourceExam', async () => {
-    const { docToken, patientId } = await setupShare('C4-SP', 'c4@t.com', 'pc4@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42004-SP', 'c4@t.com', 'pc4@t.com', ['summary']);
     const day = new Date('2026-03-10T00:00:00Z');
     await createExam(patientId, { title: 'Hemograma', performedAt: day, sha: 'dup-a' });
     await createExam(patientId, { title: 'Hemograma', performedAt: day, sha: 'dup-b' }); // reenvio
@@ -61,7 +61,7 @@ describe('Doctor Portal — relatório consolidado (GET /doctor/patients/:id/ana
   });
 
   it('sourceExams limitado a 5', async () => {
-    const { docToken, patientId } = await setupShare('C5-SP', 'c5@t.com', 'pc5@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42005-SP', 'c5@t.com', 'pc5@t.com', ['summary']);
     for (let i = 0; i < 6; i++) await createExam(patientId, { title: `Exame ${i}`, performedAt: new Date(2026, 0, i + 1) });
     await makeReport(patientId);
     const r = await api().get(`/api/doctor/patients/${patientId}/analyses/consolidated/latest`).set(docH(docToken));
@@ -73,7 +73,7 @@ describe('Doctor Portal — gerar relatório consolidado (POST /doctor/patients/
   beforeEach(async () => { await resetDb(); });
 
   it('201 + relatório no framing médico (audience:doctor) quando scope summary', async () => {
-    const { docToken, patientId } = await setupShare('G1-SP', 'g1@t.com', 'pg1@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42011-SP', 'g1@t.com', 'pg1@t.com', ['summary']);
     const _e1 = await createExam(patientId, { title: 'Hemograma' });
     await createItem(_e1.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     const r = await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
@@ -89,13 +89,13 @@ describe('Doctor Portal — gerar relatório consolidado (POST /doctor/patients/
   });
 
   it('403 quando scope NÃO inclui summary', async () => {
-    const { docToken, patientId } = await setupShare('G2-SP', 'g2@t.com', 'pg2@t.com', ['exams']);
+    const { docToken, patientId } = await setupShare('42012-SP', 'g2@t.com', 'pg2@t.com', ['exams']);
     const r = await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));
     expect(r.status).toBe(403);
   });
 
   it('upsert: 2ª geração atualiza o mesmo registro (não acumula)', async () => {
-    const { docToken, patientId } = await setupShare('G3-SP', 'g3@t.com', 'pg3@t.com', ['summary']);
+    const { docToken, patientId } = await setupShare('42013-SP', 'g3@t.com', 'pg3@t.com', ['summary']);
     const _e2 = await createExam(patientId);
     await createItem(_e2.id, { valueNumeric: 14.2, refLow: 13, refHigh: 17 });
     await api().post(`/api/doctor/patients/${patientId}/analyses/consolidated`).set(docH(docToken));

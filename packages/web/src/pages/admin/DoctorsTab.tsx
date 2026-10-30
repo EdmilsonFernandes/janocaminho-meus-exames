@@ -11,6 +11,7 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import { API_URL, token, doctorPhotoUrl } from '../../config';
 import { TabLoader, SectionError, PhotoZoom } from './parts';
+import { DoctorVerificationPanel, IdentityChip } from './DoctorVerificationPanel';
 import { tealText } from '../../theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' });
@@ -29,6 +30,8 @@ export interface AdminDoctor {
   blockedAt?: string | null;
   blockedReason?: string | null;
   _count?: { shares: number };
+  /** Verificação de identidade (UaiID). Ausente (server antigo) = chip escondido. */
+  verificationStatus?: string | null;
 }
 
 /** Gestão de médicos — CRM/UF, fotos, bloqueio administrativo, validação e pacientes compartilhados. */
@@ -170,6 +173,10 @@ export const DoctorsTab = () => {
           </Typography>
         </Box>
       </Stack>
+
+      {/* Verificação de identidade: fila do dono, médicos antigos e prazo. Rótulo sempre "Identidade" —
+          o filtro "✓ Verificados" abaixo é de E-MAIL (emailVerified), outro conceito. */}
+      <DoctorVerificationPanel onChanged={load} />
 
       {/* Barra de Filtros e Busca */}
       <Stack spacing={1.5} sx={{ mb: 2.5 }}>
@@ -348,6 +355,7 @@ export const DoctorsTab = () => {
                         />
                       )
                     )}
+                    <IdentityChip status={m.verificationStatus} />
                   </Stack>
 
                   <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 600, mt: 0.25 }}>

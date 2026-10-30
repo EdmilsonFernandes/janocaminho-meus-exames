@@ -31,6 +31,7 @@ import { notifyTeleconsultaNotHeld } from '../utils/teleconsultaNotify';
 // §14.1 (24/10): resumo pós-consulta revisado pelo médico — payload role-aware injetado
 // no GET /summary abaixo (paciente só lê a versão APROVADA; rascunho nunca vaza).
 import { consultSummaryFor } from './consult-summary.routes';
+import { doctorAccessDenial } from '../utils/doctorAccess';
 
 const router = Router();
 
@@ -58,10 +59,12 @@ async function requireJoinIdentity(req: JoinRequest, res: Response, next: NextFu
     // (AUD-004: admin suspende o médico, mas o join ainda deixava entrar com token 7d).
     const doc = await prisma.doctor.findUnique({
       where: { id: payload.doctorId },
-      select: { id: true, name: true, crm: true, crmUf: true, blocked: true },
+      select: { id: true, name: true, crm: true, crmUf: true, blocked: true, blockedReason: true, verificationStatus: true },
     });
     if (!doc) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-    if (doc.blocked) { res.status(403).json({ code: 'DOCTOR_BLOCKED', error: 'Conta médica suspensa. Contate o suporte.' }); return; }
+    // Política única (spec §7): bloqueado → 403 DOCTOR_BLOCKED (o AUD-004 da main) E não verificado → 403 VERIFICATION_REQUIRED.
+    const denial = doctorAccessDenial(doc);
+    if (denial) { res.status(denial.status).json(denial.body); return; }
     req.doctorId = doc.id;
     req.joinRole = 'doctor';
     req.joinName = `Dr. ${doc.name}${doc.crm ? ` (${doc.crm}${doc.crmUf ? `/${doc.crmUf}` : ''})` : ''}`;

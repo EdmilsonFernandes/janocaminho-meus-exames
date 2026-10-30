@@ -1,15 +1,20 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser } from './helpers';
 import { prisma } from '../src/prisma';
+import { saveSettings } from '../src/utils/settings';
 
 // §3/§5 "Encontrar especialistas" (28/10/26): busca no DIRETÓRIO PRÓPRIO (zero
 // integração paga). Contratos: médico bloqueado nunca aparece; provenance distingue
 // dados do portal (confirmado) vs cadastro de pacientes; filtro por convênio usa
 // doctor_insurances; claimed ordena primeiro.
+// Revisão final do KYC (I7): "claimed" = conta real QUE PODE ATUAR (doctorMayPractice). Conta com senha mas
+// pendente/recusada/legado vencido não é apresentada como "dados publicados pelo médico" nem sobe no ranking.
 
 let seq = 0;
 async function mkDoctor(opts: {
   claimed?: boolean; blocked?: boolean; specialty?: string; city?: string; clinic?: string; crm?: string; price?: number | null;
+  /** verificationStatus da conta real (default 'approved' quando claimed; o schema usaria 'pending'). */
+  status?: string;
 } = {}) {
   seq += 1;
   const crm = opts.crm ?? `${80000 + seq}-SP`;
@@ -24,6 +29,7 @@ async function mkDoctor(opts: {
       consultPriceCents: opts.price === undefined ? null : opts.price,
       email: `spec-${seq}@invite.com`,
       passwordHash: opts.blocked ? 'pending-invite' : (opts.claimed ? 'real-hash' : 'pending-invite'),
+      ...(opts.claimed && !opts.blocked ? { verificationStatus: opts.status ?? 'approved' } : {}),
       ...(opts.blocked ? { blocked: true, blockedReason: 'teste' } : {}),
     },
   });
@@ -183,5 +189,118 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     expect(comCrm.crm).toBe('123456');
     expect(comCrm.crmUf).toBe('SP');
     expect(semCrm.crm ?? null).toBeNull(); // conselho de enfermagem NÃO vira CRM
+  });
+
+  // I7: o selo "Dados publicados pelo médico no Dr. Exame" e o 1º lugar do ranking eram de qualquer conta com senha —
+  // inclusive pendente/recusada, com telefone/bio editados pelo próprio titular da conta (o funil até o C1).
+  it('conta REAL que NÃO pode atuar (pending) não é "claimed": sem o selo do portal, fora do ranking de cima e do claimedOnly; `rejected` nem aparece', async () => {
+    const { token } = await createUser({});
+    const ok = await mkDoctor({ claimed: true });                      // approved
+    const pend = await mkDoctor({ claimed: true, status: 'pending' });
+    const rej = await mkDoctor({ claimed: true, status: 'rejected' });
+    const placeholder = await mkDoctor({});
+    await prisma.doctor.update({ where: { id: ok.id }, data: { name: 'Zeca Aprovado' } }); // alfabético: seria o ÚLTIMO se o ranking fosse só por nome
+
+    const r = await api().get('/api/specialists').set(authHeader(token));
+    expect(r.status).toBe(200);
+    const byId = new Map<string, any>(r.body.items.map((i: any) => [i.id, i]));
+    expect(byId.get(ok.id)).toMatchObject({ claimed: true, provenance: { source: 'portal_do_medico' } });
+    expect(byId.get(pend.id).claimed).toBe(false);
+    expect(byId.get(pend.id).provenance.source).toBe('cadastro_nao_verificado'); // rótulo que NÃO afirma autoria
+    expect(byId.get(pend.id).provenance.label).toBe('Cadastro ainda não verificado — confirme os dados com o consultório');
+    expect(byId.has(rej.id)).toBe(false); // KYC recusado: fora do diretório
+    expect(byId.get(placeholder.id).provenance.source).toBe('cadastro_pacientes'); // placeholder segue como era
+    expect(r.body.items[0].id).toBe(ok.id); // só quem atua sobe
+    expect(r.body.items.slice(1).every((i: any) => !i.claimed)).toBe(true);
+
+    const only = await api().get('/api/specialists?claimedOnly=true').set(authHeader(token));
+    expect(only.body.items.map((i: any) => i.id)).toEqual([ok.id]); // teleconsulta: só "portal ativo" de verdade
+    // o status do KYC não vaza ao paciente
+    expect(JSON.stringify(r.body)).not.toMatch(/verificationStatus|passwordHash|kyc_fraud/);
+  });
+
+  // 2ª rodada (Important #6): no caso de squatting (Bob registrou o CRM da Dra. Alice) o diretório mostrava "Dra. Alice" com o
+  // WhatsApp do Bob e dizia que era o cadastro do próprio médico — canal de phishing fora da plataforma.
+  describe('conta que NÃO pode atuar publica só campos neutros', () => {
+    const preenchida = {
+      phone: '11 91234-5678', bio: 'Ligue no meu WhatsApp para consulta mais barata', photoUrl: 'photos/bob.jpg',
+      clinicName: 'Clínica do Bob', clinicCity: 'São José dos Campos', consultPriceCents: 5000,
+    };
+    const cheia = async (status: string) => {
+      const d = await mkDoctor({ claimed: true, status, city: 'São José dos Campos', clinic: 'Clínica do Bob', price: 5000, specialty: 'Cardiologista' });
+      // o nome é o que o impostor digitou ao registrar o CRM da médica de verdade (campo NEUTRO: continua aparecendo)
+      const u = await prisma.doctor.update({ where: { id: d.id }, data: { name: `Dra Alice Squatada ${d.id.slice(-4)}`, phone: preenchida.phone, bio: preenchida.bio, photoUrl: preenchida.photoUrl } });
+      await prisma.doctorInsurance.create({ data: { doctorId: d.id, operator: 'Unimed', plan: 'Nacional', verificationStatus: 'confirmed', source: 'portal', verifiedAt: new Date() } });
+      return u;
+    };
+
+    it.each(['pending', 'in_progress', 'uaiid_review', 'needs_admin'])('conta %s: nome/CRM/UF/especialidade sim; telefone, bio, foto, clínica, cidade, preço e convênios NÃO', async (status) => {
+      const { token } = await createUser({});
+      const bob = await cheia(status);
+      const r = await api().get('/api/specialists').set(authHeader(token));
+      const item = r.body.items.find((i: any) => i.id === bob.id);
+      expect(item).toMatchObject({ name: bob.name, crm: bob.crm, crmUf: 'SP', specialty: 'Cardiologista', claimed: false });
+      expect(item).toMatchObject({ phone: null, bio: null, photoUrl: null, clinicName: null, clinicCity: null, consultPriceCents: null, insurances: [] });
+      const bruto = JSON.stringify(r.body);
+      for (const segredo of ['11 91234-5678', 'WhatsApp', 'bob.jpg', 'Clínica do Bob', 'Unimed']) expect(bruto).not.toContain(segredo);
+    });
+
+    it('também não casa busca por clínica, cidade, preço ou convênio (nem aparece nas cidades sugeridas)', async () => {
+      const { token } = await createUser({});
+      const bob = await cheia('pending');
+      const get = (qs: string) => api().get(`/api/specialists?${qs}`).set(authHeader(token));
+      for (const qs of ['q=Clínica do Bob', 'city=São José dos Campos', 'withPrice=true', 'operator=unimed']) {
+        const r = await get(qs);
+        expect(r.body.items.some((i: any) => i.id === bob.id), qs).toBe(false);
+      }
+      expect((await get('q=Alice')).body.items.some((i: any) => i.id === bob.id)).toBe(true); // pelo NOME ainda acha (campo neutro)
+      expect((await get('')).body.cities).toEqual([]); // a cidade auto-declarada não vira sugestão
+    });
+
+    it('quem ATUA (approved) continua EXATAMENTE como estava: contato, clínica, preço, convênios e filtros', async () => {
+      const { token } = await createUser({});
+      const dra = await cheia('approved');
+      const r = await api().get('/api/specialists').set(authHeader(token));
+      const item = r.body.items.find((i: any) => i.id === dra.id);
+      expect(item).toMatchObject({ claimed: true, phone: preenchida.phone, bio: preenchida.bio, photoUrl: preenchida.photoUrl, clinicName: preenchida.clinicName, clinicCity: preenchida.clinicCity, consultPriceCents: 5000 });
+      expect(item.provenance.source).toBe('portal_do_medico');
+      expect(item.insurances).toHaveLength(1);
+      for (const qs of ['q=Clínica do Bob', 'city=sao jose', 'withPrice=true', 'operator=unimed']) {
+        expect((await api().get(`/api/specialists?${qs}`).set(authHeader(token))).body.items.some((i: any) => i.id === dra.id), qs).toBe(true);
+      }
+      expect(r.body.cities[0]).toMatchObject({ city: 'São José dos Campos', count: 1 });
+    });
+
+    it('legado com o prazo VENCIDO também vira neutro; `rejected` some até do filtro por nome', async () => {
+      const { token } = await createUser({});
+      const leg = await cheia('legacy');
+      const rej = await cheia('rejected');
+      try {
+        await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() + 3_600_000, autoApprove: 0 });
+        expect((await api().get('/api/specialists').set(authHeader(token))).body.items.find((i: any) => i.id === leg.id).phone).toBe(preenchida.phone);
+        await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() - 1000, autoApprove: 0 });
+        const r = await api().get('/api/specialists?q=Alice').set(authHeader(token));
+        const item = r.body.items.find((i: any) => i.id === leg.id);
+        expect(item).toMatchObject({ claimed: false, phone: null, clinicName: null });
+        expect(r.body.items.some((i: any) => i.id === rej.id)).toBe(false);
+      } finally {
+        await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+      }
+    });
+  });
+
+  it('legado DENTRO do prazo conta como claimed; com o prazo vencido deixa de contar', async () => {
+    const { token } = await createUser({});
+    const leg = await mkDoctor({ claimed: true, status: 'legacy' });
+    try {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() + 3_600_000, autoApprove: 0 });
+      const dentro = await api().get('/api/specialists').set(authHeader(token));
+      expect(dentro.body.items.find((i: any) => i.id === leg.id).claimed).toBe(true);
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: Date.now() - 1000, autoApprove: 0 });
+      const vencido = await api().get('/api/specialists').set(authHeader(token));
+      expect(vencido.body.items.find((i: any) => i.id === leg.id).claimed).toBe(false);
+    } finally {
+      await saveSettings('doctorKyc', { legacyGraceUntilMs: 0, autoApprove: 0 });
+    }
   });
 });

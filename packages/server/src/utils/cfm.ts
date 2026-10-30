@@ -12,6 +12,8 @@
  * Override: CONSULTA_CRM_URL, CONSULTA_CRM_KEY, CFM_TIMEOUT_MS (env).
  */
 
+import { normalizeKey } from './normalize';
+
 export interface CfmDoctor {
   name: string;
   specialty: string | null;
@@ -55,4 +57,25 @@ export async function lookupCfm(crmRaw: string, ufRaw: string): Promise<CfmDocto
   } catch {
     return null; // timeout / rede / parse → degrada pra manual
   }
+}
+
+/** 27 UFs — valida CRM/UF de entrada (AUD-003: '000000-ZZ' passava). */
+export const BR_UFS: ReadonlySet<string> = new Set([
+  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
+  'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+]);
+
+/**
+ * Situação do CFM em 3 estados. O `/ativo/i` do cadastro casava "Inativo" (bug). Aqui só a palavra
+ * "Ativo"/"Ativa" SOZINHA é `active`; "Ativo - …" / "Ativo (…)" (qualificado) é `unknown` — o dono decide.
+ * Termos de inatividade (inativo, cancelamento, cassação, suspensão, falecimento, interdição,
+ * aposentadoria, transferência, baixa — verbo ou substantivo) são `inactive`; o resto é `unknown`.
+ */
+export type CfmState = 'active' | 'inactive' | 'unknown';
+export function cfmState(situation: string | null | undefined): CfmState {
+  const s = normalizeKey(String(situation ?? '')).trim();
+  if (!s) return 'unknown';
+  if (/^ATIV[OA]$/.test(s)) return 'active';
+  if (/^ATIV[OA]\b/.test(s)) return 'unknown'; // "Ativo - …" / "Ativo (…)": qualificado/ambíguo → o dono decide
+  return /INATIV|CANCELA|CASSA[CD]|SUSPEN|FALEC|INTERDI|APOSENT|TRANSFER|BAIXA/.test(s) ? 'inactive' : 'unknown';
 }

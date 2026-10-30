@@ -14,6 +14,21 @@ type Props = Record<string, string | number | boolean | undefined>;
 
 let client: { capture: (e: string, p?: Props) => void } | null = null;
 
+/**
+ * KYC do médico: a volta do UaiID chega em `#/doctor?kyc=1&status=…&verification_id=…&external_reference=<id do
+ * médico>`. O pageview/autocapture grava a URL cheia ANTES de a tela limpá-la — tiramos esses 3 parâmetros de
+ * qualquer propriedade-URL que carregue `kyc=1` (outras URLs com `status=` legítimo ficam intactas).
+ */
+const KYC_RETURN_PARAMS = /([?&])(?:status|verification_id|external_reference)=[^&#]*/g;
+export function scrubKycReturnUrl<T>(v: T): T {
+  if (typeof v !== 'string' || !v.includes('kyc=1')) return v;
+  return v
+    .replace(KYC_RETURN_PARAMS, '$1') // tira o parâmetro e deixa o separador
+    .replace(/\?&+/g, '?') // "?&kyc=1" (o removido era o 1º) → "?kyc=1"
+    .replace(/&{2,}/g, '&') // "a=1&&b=2" → "a=1&b=2"
+    .replace(/[?&]+(?=#|$)/g, '') as T; // separador sobrando no fim
+}
+
 export function initAnalytics(): void {
   const key = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
   const host = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) ?? 'https://us.i.posthog.com';
@@ -26,6 +41,13 @@ export function initAnalytics(): void {
         capture_pageview: true, // HashRouter: pageviews saem tênues; autocapture cobre
         persistence: 'localStorage+cookie',
         opt_out_persistence_by_default: false, // LGPD: opt-out via /privacidade se pedir
+        before_send: (event) => {
+          try {
+            const p = event?.properties as Record<string, unknown> | undefined;
+            if (p) for (const k of Object.keys(p)) p[k] = scrubKycReturnUrl(p[k]);
+          } catch { /* scrub nunca derruba o evento */ }
+          return event;
+        },
       });
       client = posthog;
     })

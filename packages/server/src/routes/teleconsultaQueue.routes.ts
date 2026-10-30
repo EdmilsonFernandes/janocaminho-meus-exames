@@ -21,6 +21,7 @@ import { hasLiveKitConfig } from '../utils/livekit';
 import { sendPushToUser } from '../utils/push';
 import { findLiveTeleconsultaPix } from '../utils/teleconsultaPix';
 import { PRESENCE_TTL_MS } from '../jobs/teleconsultaQueue';
+import { DOCTOR_ACCESS_SELECT, doctorAccessDenial, practiceStatuses } from '../utils/doctorAccess';
 
 /** Presença "fresca" = online + heartbeat dentro do TTL (o tick passo 1 materializa o
  *  offline; esta query é a verdade AO VIVO p/ status/heartbeat não dependerem do tick). */
@@ -50,19 +51,10 @@ async function requireQueueDoctor(req: AnyRequest, res: Response, next: NextFunc
   let payload: any;
   try { payload = jwt.verify(header.slice(7), config.jwtSecret); } catch { res.status(401).json({ error: 'Token médico inválido.' }); return; }
   if (payload?.type !== 'doctor' || !payload?.doctorId) { res.status(401).json({ error: 'Token médico inválido.' }); return; }
-  const doc = await prisma.doctor.findUnique({
-    where: { id: payload.doctorId },
-    select: { id: true, blocked: true, blockedReason: true },
-  });
+  const doc = await prisma.doctor.findUnique({ where: { id: payload.doctorId }, select: DOCTOR_ACCESS_SELECT });
   if (!doc) { res.status(401).json({ error: 'Médico não encontrado.' }); return; }
-  if (doc.blocked) {
-    res.status(403).json({
-      blocked: true,
-      error: 'Acesso suspenso pela administração. Entre em contato com o suporte: contato@janocaminho.com.br',
-      reason: doc.blockedReason || undefined,
-    });
-    return;
-  }
+  const denial = doctorAccessDenial(doc); // política única (spec §7) — a spec da fila previa "CRM verificado"
+  if (denial) { res.status(denial.status).json(denial.body); return; }
   req.doctorId = doc.id;
   next();
 }
@@ -80,11 +72,12 @@ const router = Router();
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
     const now = new Date();
+    // `presenceAll` (main: filtra depois os médicos ocupados) + o nosso portão: só aparece quem pode ATUAR (aprovado ou legado em prazo).
     const presenceAll = await prisma.doctorOnlinePresence.findMany({
-      where: { ...freshPresenceWhere(now), doctor: { blocked: false } },
+      where: { ...freshPresenceWhere(now), doctor: { blocked: false, verificationStatus: { in: practiceStatuses() } } },
       select: {
         doctorId: true,
-        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true } },
+        doctor: { select: { id: true, name: true, specialty: true, city: true, photoUrl: true, crmUf: true, consultPriceCents: true, instantPriceCents: true, verificationStatus: true, verifiedBy: true } },
       },
     });
     // Bug 29/10 (teste real Enrico): a lista mostrava médico ONLINE mas INCASÁVEL —
@@ -135,6 +128,9 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
         photoAvailable: !!x.d.photoUrl,
         priceCents: x.priceCents,
         crmUf: x.d.crmUf ?? null,
+        // selo "Identidade verificada": só quem foi APROVADO por uma verificação de verdade — legado em prazo atende
+        // sem selo, e aprovado EM LOTE (verifiedBy legacy_bulk:*) também, pois nunca teve a identidade conferida (M13)
+        verified: x.d.verificationStatus === 'approved' && !String(x.d.verifiedBy ?? '').startsWith('legacy_bulk'),
       }));
 
     const prices = doctors.map((d) => d.priceCents);
@@ -379,7 +375,8 @@ doctorRouter.put('/instant-price', async (req: AnyRequest, res, next) => {
 });
 
 /** PUT /api/doctor/online-presence {online:boolean} — toggle "Atender agora". Ligando
- *  exige CRM verificado (crmUf) + conta não bloqueada (bloqueio já cai no requireQueueDoctor). */
+ *  exige CRM verificado (crmUf) + conta não bloqueada (bloqueio e verificação de identidade
+ *  já caem no requireQueueDoctor, via política única utils/doctorAccess). */
 doctorRouter.put('/online-presence', async (req: AnyRequest, res, next) => {
   try {
     const online = req.body?.online === true;

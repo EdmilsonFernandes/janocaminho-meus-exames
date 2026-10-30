@@ -51,7 +51,20 @@ describe('subscriptionCompat', () => {
     await expect(getSubscriptionColumnSupport()).resolves.toEqual({
       hasPixResume: true,
       hasRawWebhook: true,
-      hasCoupon: true,
+      hasCoupon: true, // a amostra acima já traz couponCode + couponDiscountCents (main)
     });
+  });
+
+  it('hasCoupon só liga quando as DUAS colunas de cupom existem (couponCode + couponDiscountCents)', async () => {
+    const base = [
+      { column_name: 'id' }, { column_name: 'userId' }, { column_name: 'mpPaymentId' }, { column_name: 'mpPreferenceId' },
+      { column_name: 'amount' }, { column_name: 'periodDays' }, { column_name: 'status' }, { column_name: 'createdAt' }, { column_name: 'updatedAt' },
+    ];
+    vi.spyOn(prisma, '$queryRaw').mockResolvedValue([...base, { column_name: 'couponCode' }, { column_name: 'couponDiscountCents' }] as never);
+    await expect(getSubscriptionColumnSupport()).resolves.toMatchObject({ hasCoupon: true });
+
+    resetSubscriptionColumnsCacheForTests();
+    vi.spyOn(prisma, '$queryRaw').mockResolvedValue([...base, { column_name: 'couponCode' }] as never);
+    await expect(getSubscriptionColumnSupport()).resolves.toMatchObject({ hasCoupon: false });
   });
 });

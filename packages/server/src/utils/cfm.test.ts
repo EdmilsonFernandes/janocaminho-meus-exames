@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from 'vitest';
-import { lookupCfm } from './cfm';
+import { lookupCfm, cfmState, BR_UFS } from './cfm';
 
 // lookupCfm exige CONSULTA_CRM_KEY; sem ela retorna null sem chamar fetch.
 // (lida no momento da chamada → basta definir antes de chamar.)
@@ -61,5 +61,42 @@ describe('lookupCfm (consultaCRM)', () => {
     expect(await lookupCfm('116739', '')).toBeNull();
     expect(await lookupCfm('116739', 'SPX')).toBeNull();
     expect(f).not.toHaveBeenCalled();
+  });
+});
+
+describe('cfmState (situação do CFM em 3 estados)', () => {
+  it('Ativo → active', () => { expect(cfmState('Ativo')).toBe('active'); expect(cfmState('ATIVO')).toBe('active'); });
+  it('"Inativo" NÃO é ativo (regressão do /ativo/i do cadastro)', () => expect(cfmState('Inativo')).toBe('inactive'));
+  it('cancelado/cassado/suspenso/falecido → inactive', () => {
+    for (const s of ['Cancelado', 'Cassado', 'Suspenso', 'Falecido']) expect(cfmState(s)).toBe('inactive');
+  });
+  it('vazio ou desconhecido → unknown', () => {
+    expect(cfmState('')).toBe('unknown');
+    expect(cfmState(null)).toBe('unknown');
+    expect(cfmState('Regular')).toBe('unknown');
+  });
+  it('ambíguo (ativo + termo de inatividade) → unknown, nunca active', () => { expect(cfmState('Ativo - Aposentado')).toBe('unknown'); });
+  it('só a palavra "Ativo"/"Ativa" sozinha é active (caixa e espaços nas pontas não importam)', () => {
+    for (const s of ['Ativa', 'ATIVA', 'ativo', ' Ativo ']) expect(cfmState(s), s).toBe('active');
+  });
+  it('"Ativo" qualificado ("Ativo - …", "Ativo (…)") → unknown, nunca active', () => {
+    for (const s of ['Ativo - Cassação', 'Ativo - Licenciado', 'Ativo (Provisório)']) expect(cfmState(s), s).toBe('unknown');
+  });
+  it('substantivos de inatividade (Cassação, Cancelamento, Falecimento…) → inactive', () => {
+    for (const s of ['Cassação', 'Cancelamento', 'Falecimento', 'Interdição cautelar', 'Transferência', 'Suspensão', 'Baixa', 'Aposentadoria']) {
+      expect(cfmState(s), s).toBe('inactive');
+    }
+  });
+});
+
+describe('BR_UFS', () => {
+  it('as 27 UFs exatas (lista ordenada); ZZ fora', () => {
+    expect([...BR_UFS].sort()).toEqual([
+      'AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB',
+      'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO',
+    ]);
+    expect(BR_UFS.size).toBe(27);
+    expect(BR_UFS.has('SP')).toBe(true);
+    expect(BR_UFS.has('ZZ')).toBe(false);
   });
 });

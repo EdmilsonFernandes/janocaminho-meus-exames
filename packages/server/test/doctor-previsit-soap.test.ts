@@ -3,11 +3,15 @@ import { prisma } from '../src/prisma';
 import { api, createUser, createExam, createItem, createDoctor, resetDb } from './helpers';
 
 const authH = (t: string) => ({ Authorization: `Bearer ${t}` });
+// CRM numérico único: o cadastro valida/canoniza "numero-UF" (só dígitos — revisão final do KYC, I7); o sufixo de um id
+// base36 trazia letras e virava CRM inválido.
+let crmSeq = 47000;
+const nextCrm = () => `${crmSeq++}-SP`;
 
 // Helper: cria user+patient+exam+item + doctor+share → devolve { patientId, doctorToken }
 async function mkDoctor() {
   const n = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-  return createDoctor({ email: `doc-${n}@exemplo.com`, crm: `${n.slice(-5)}-SP` });
+  return createDoctor({ email: `doc-${n}@exemplo.com`, crm: nextCrm() });
 }
 async function setupPatientWithDoctor(opts: { item?: Parameters<typeof createItem>[1] } = {}) {
   const { patient } = await createUser();

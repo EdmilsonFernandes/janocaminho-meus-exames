@@ -9,10 +9,11 @@ import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { config } from './config';
 import { getSettings } from './utils/settings';
+import { lookupCfm, cfmState } from './utils/cfm';
 import { APP_BUILD_INFO } from './generated/buildInfo';
 import { prisma } from './prisma';
 import { errorHandler, notFound } from './middleware/errorHandler';
-import { requirePhotoToken } from './middleware/auth';
+import { requirePatientPhotoToken } from './middleware/auth';
 import { accessAudit } from './middleware/accessAudit';
 import { emailTemplate } from './utils/emailTemplate';
 import { interpolateTemplate } from './utils/template';
@@ -47,7 +48,7 @@ import notificationRoutes from './routes/notification.routes';
 import consultaRoutes from './routes/consulta';
 import dataRoutes from './routes/data.routes';
 import adminRoutes from './routes/admin.routes';
-import doctorRoutes from './routes/doctor.routes';
+import doctorRoutes, { canonicalCrm, releasePlaceholderEmail } from './routes/doctor.routes';
 import doctorShareRoutes from './routes/doctor-share.routes';
 import doctorQuestionRoutes from './routes/doctor-question.routes';
 import achievementRoutes from './routes/achievement.routes';
@@ -75,6 +76,8 @@ import specialistsRoutes from './routes/specialists.routes';
 // CHECKLIST DE COLETA (T2, 28/10/26): plano de exames a coletar definido pelo médico —
 // paciente vê em /api/collection-checklist; rotas do médico em /api/doctor/patients/:id/checklist.
 import collectionChecklistRoutes, { doctorRouter as collectionChecklistDoctorRouter } from './routes/collection.routes';
+import doctorVerificationRoutes from './routes/doctor-verification.routes';
+import { uaiidWebhookHandler } from './routes/uaiid-webhook.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -108,6 +111,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Patient-Id', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count', 'X-Renewed-Token'],
 }));
+// Webhook UaiID (KYC do médico): HMAC sobre o corpo CRU → precisa vir ANTES do express.json global.
+app.post('/api/webhooks/uaiid', express.raw({ type: 'application/json', limit: '256kb' }), uaiidWebhookHandler);
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 // Auditoria de acesso a áreas (LGPD) — grava AuditLog('ACCESS') p/ rotas autenticadas na allowlist.
@@ -123,11 +128,30 @@ const aiLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 40, standardHeaders
 const generalLimiter = rateLimit({ windowMs: 60 * 1000, max: 120, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas requisições. Aguarde 1 minuto.' } });
 // Cadastro tem limite próprio e bem mais apertado (8/hora/IP) — trava farm de contas pra
 // roubar o bônus de créditos. Aplicado ANTES do authLimiter genérico (mais específico primeiro).
-const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
+const signupLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 8, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros deste local. Tente novamente mais tarde.' } });
+// Cadastro do MÉDICO (POST /api/doctor/register) tem instância PRÓPRIA (2ª rodada da revisão final, Important #7): dividir o
+// balde de 8/h com o cadastro de paciente e o lookup de CRM trancava clínicas/hospitais/CGNAT (vários médicos atrás do mesmo
+// IP: lookup + cadastro + 1 retry por médico estoura 8 rápido). 15/h/IP e SÓ respostas de sucesso contam (`skipFailedRequests`:
+// 400/409/422 de validação não gastam o balde — quem erra o CRM não se tranca). O dinheiro é protegido pelo teto por médico e
+// pelo teto GLOBAL diário de sessões UaiID (doctor-verification.routes), não por este limite de IP.
+const doctorRegisterLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 15, standardHeaders: true, legacyHeaders: false, skip: skipDev, skipFailedRequests: true, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros de médico deste local. Tente novamente mais tarde.' } });
+// Cadastro de médico PELO CONVITE (POST /api/public/doctor-invite/:token/register): o convite é grátis e ilimitado por paciente
+// e devolve JWT de médico sem prova de e-mail — sem limite próprio era uma fazenda de contas (cada uma gasta cota do consultaCRM
+// e pode abrir sessão UaiID cobrada). 10/h/IP, só sucesso conta. A cota de convites por paciente vive em doctor-share.routes.
+const inviteRegisterLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, skipFailedRequests: true, message: { code: 'RATE_LIMITED', error: 'Muitos cadastros por convite deste local. Tente novamente mais tarde.' } });
+// Abertura de sessão de KYC do médico (POST /api/doctor/verification): cada sessão criada é COBRADA pelo UaiID, então tem
+// limite próprio por IP (30/h — clínica/evento com vários médicos atrás do mesmo IP) além do teto por médico e do teto
+// global diário no handler (revisão final I5). SÓ o POST conta: o GET é o polling do portal (a cada ~5 s) e não pode
+// gastar a cota.
+const kycStartSkip = (req: { method: string }) => req.method !== 'POST' || skipDev();
+const kycStartLimiter = rateLimit({ windowMs: 60 * 60 * 1000, max: 30, standardHeaders: true, legacyHeaders: false, skip: kycStartSkip as any, message: { code: 'RATE_LIMITED', error: 'Muitas tentativas de verificação deste local. Tente novamente mais tarde.' } });
 // PIN de share (rota pública /api/public/shared/:token) — anti brute-force do PIN de 6 dígitos.
 const shareLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, skip: skipDev, message: { error: 'Muitas tentativas de PIN. Aguarde 15 minutos.' } });
 app.use('/api/auth/register', signupLimiter);
 app.use('/api/doctor/crm', signupLimiter); // busca pública de CRM (consultaCRM) no cadastro do médico — limita consumo da cota
+app.use('/api/doctor/register', doctorRegisterLimiter); // cadastro do médico: cada conta descartável gasta cota paga (consultaCRM, depois sessão UaiID) — revisão final I5
+app.use('/api/public/doctor-invite/:token/register', inviteRegisterLimiter);
+app.use('/api/doctor/verification', kycStartLimiter);
 app.use('/api/auth', authLimiter);
 app.use('/api/analyses', aiLimiter);
 app.use('/api/chat', aiLimiter);
@@ -325,14 +349,17 @@ app.get('/api/app/version', (_req, res) => res.json({ latest: config.appLatestVe
 
 app.use('/api/auth', authRoutes);
 // Foto do paciente: AUTENTICADA via ?t= (token na query — <img src> não envia header). Antes era
-// pública por CUID (LGPD facial). requirePhotoToken aceita ?t= ou header; leve (sem DB por avatar).
-app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
+// pública por CUID (LGPD facial). requirePatientPhotoToken aceita ?t= ou header; só abre p/ o DONO do paciente
+// (titular/dependente), ADMIN, ou médico que passa pelo gate KYC E tem vínculo com o paciente (revisão final, I8).
+app.get('/api/patients/:id/photo', requirePatientPhotoToken, async (req, res) => {
   try {
     const id = String(req.params.id);
     const p = await prisma.patient.findUnique({ where: { id }, select: { photoUrl: true } });
     // Cache HTTP: avatares raramente mudam e o front busta com ?v=. Cache de 1 dia no ARQUIVO
     // local elimina o round-trip ao EC2 a cada render (era o "demora pra carregar a foto").
-    // ETag permanece; redirect S3 (URL pré-assinada que expira) usa cache curto; 404 não cacheia.
+    // PRIVATE (nunca `public`/`immutable`): é resposta AUTENTICADA com dado facial — um cache compartilhado não pode
+    // guardá-la e servi-la depois sem credencial (RFC 9111 §3.5; revisão final m7). ETag permanece; redirect S3
+    // (URL pré-assinada que expira) usa cache curto; 404 não cacheia.
     const etag = `"${id}:${p?.photoUrl ?? 'none'}"`;
     res.setHeader('ETag', etag);
     if (req.headers['if-none-match'] === etag) { res.status(304).end(); return; }
@@ -340,14 +367,14 @@ app.get('/api/patients/:id/photo', requirePhotoToken, async (req, res) => {
     // 1) se photoUrl é um ref de storage (chave S3 ou caminho de disco), resolve
     if (p?.photoUrl && !p.photoUrl.startsWith('/api/')) {
       const r = await resolvePatientPhoto(p.photoUrl);
-      if (r.kind === 'url') { res.setHeader('Cache-Control', 'public, max-age=600'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada (memo 13min no storage)
-      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.resolve(r.file)); return; }
+      if (r.kind === 'url') { res.setHeader('Cache-Control', 'private, max-age=600'); res.redirect(r.url); return; }       // S3: redireciona p/ pré-assinada (memo 13min no storage)
+      if (fs.existsSync(r.file)) { res.setHeader('Cache-Control', 'private, max-age=86400'); res.sendFile(path.resolve(r.file)); return; }
     }
     // 2) fallback: procura patient-<id>.* no disco (convenção antiga + dev)
     const dir = path.resolve(config.photosDir);
     if (fs.existsSync(dir)) {
       const files = fs.readdirSync(dir).filter((f) => f.startsWith(`patient-${id}.`));
-      if (files.length) { res.setHeader('Cache-Control', 'public, max-age=31536000, immutable'); res.sendFile(path.join(dir, files[0])); return; }
+      if (files.length) { res.setHeader('Cache-Control', 'private, max-age=86400'); res.sendFile(path.join(dir, files[0])); return; }
     }
     res.setHeader('Cache-Control', 'no-store');
     res.status(404).type('html').send('sem foto');
@@ -432,6 +459,9 @@ app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/doctor', doctorRoutes);
+// KYC do médico: POST/GET /verification — ANTES da fila, cujo doctorRouter.use(requireQueueDoctor)
+// é deny-by-default e barraria (403) o médico ainda não verificado de se verificar (chicken-and-egg).
+app.use('/api/doctor', doctorVerificationRoutes);
 app.use('/api/doctor', teleconsultaQueueDoctorRoutes); // fila imediata: online-presence + queue/calls (sem overlap)
 app.use('/api/doctor', collectionChecklistDoctorRouter); // checklist de coleta: patients/:id/checklist (sem overlap)
 app.use('/api/doctor-shares', doctorShareRoutes);
@@ -546,58 +576,75 @@ app.post('/api/public/doctor-invite/:token/register', async (req, res) => {
       res.status(400).json({ error: 'Nome, CRM, e-mail e senha são obrigatórios.' });
       return;
     }
+    // AUD-003 (main): este endpoint já emitiu JWT 7d com senha fraca e e-mail sem formato. Espelha o cadastro completo
+    // (validate.ts): senha mín. 6 e e-mail válido — ANTES do lookup no CFM, para dado inválido não gastar a cota do consultaCRM.
+    // CRM/UF seguem pelo `canonicalCrm` abaixo (3–7 dígitos, UF em BR_UFS, 422 CRM_INVALID).
+    if (String(password).length < 6) { res.status(400).json({ error: 'Senha mínima de 6 caracteres.' }); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim())) { res.status(400).json({ error: 'E-mail inválido.' }); return; }
 
-    const { normalizeCrmKey } = await import('./routes/doctor.routes');
-    const norm = normalizeCrmKey(crm, crmUf);
-    const crmKey = norm?.crm ?? String(crm).trim();
-    const uf = norm?.uf ?? (crmUf ? String(crmUf).toUpperCase() : null);
+    // AUD-003 parte 1 (spec §7): CRM/UF válidos + CFM não inativo. A conta nasce 'pending' (default
+    // do schema) → o token abaixo só abre o onboarding; dado de paciente só após o KYC (gate).
+    // Chave CANÔNICA "numero-UF" (a mesma do cadastro principal e do lookup): variantes ("116739-sp", "116.739")
+    // caem na mesma conta em vez de gerar chaves paralelas.
+    const parsed = canonicalCrm(crm, crmUf);
+    if (!parsed) {
+      res.status(422).json({ code: 'CRM_INVALID', error: 'CRM ou UF inválidos.' });
+      return;
+    }
+    const cfm = await lookupCfm(parsed.digits, parsed.uf).catch(() => null);
+    if (cfm && cfmState(cfm.situation) === 'inactive') {
+      res.status(422).json({ code: 'CRM_INACTIVE', error: `CRM consta como "${cfm.situation}" no CFM. Se for engano, contate o suporte.` });
+      return;
+    }
+
+    const crmKey = parsed.key;
     const cleanEmail = String(email).trim().toLowerCase();
 
-    // AUD-003: este endpoint criava conta médica com CRM fake ("000000-ZZ"), e-mail sem
-    // formato e senha fraca — e já emitia JWT 7d + share. Espelha as regras do cadastro
-    // completo (doctor.routes.ts:300 + validate.ts): senha mín. 6, e-mail válido,
-    // CRM 4-7 dígitos e UF real da federação.
-    const VALID_UFS = new Set(['AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO']);
-    const crmDigits = crmKey.split('-')[0] ?? '';
-    if (String(password).length < 6) { res.status(400).json({ error: 'Senha mínima de 6 caracteres.' }); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) { res.status(400).json({ error: 'E-mail inválido.' }); return; }
-    if (!/^\d{4,7}$/.test(crmDigits) || !uf || !VALID_UFS.has(uf)) { res.status(400).json({ error: 'CRM inválido — informe número e UF (ex.: 123456-SP).' }); return; }
-
-    // Verifica se já existe médico com este CRM ou E-mail
-    const existing = await prisma.doctor.findFirst({
-      where: { OR: [{ crm: crmKey }, { email: cleanEmail }] },
-    });
+    // Revisão final I6b: o placeholder é reivindicado SÓ pelo CRM (antes: CRM OU e-mail, e o claim reescrevia crm/crmUf).
+    // Os placeholders da busca de CRM do paciente têm e-mail PREVISÍVEL (pending-<crm>@invite.com) e qualquer paciente
+    // cria um token de convite — casar por e-mail deixava um médico do CRM B sequestrar o placeholder da Dra. A (com os
+    // shares dos pacientes dela) e reescrevê-lo p/ o CRM B. O CRM de uma conta existente NUNCA muda aqui.
+    const [byCrm, byEmail] = await Promise.all([
+      prisma.doctor.findUnique({ where: { crm: crmKey } }),
+      prisma.doctor.findUnique({ where: { email: cleanEmail } }),
+    ]);
+    const emailInUse = () => res.status(409).json({ code: 'EMAIL_IN_USE', error: 'Este e-mail já está em uso. Fale com o suporte.' });
+    const alreadyRegistered = () => res.status(409).json({ error: 'already_registered', message: 'Médico já cadastrado com este CRM ou e-mail. Faça login para continuar.' });
 
     const { hashPassword } = await import('./auth/jwt');
-    const passwordHash = await hashPassword(password);
     let doctor: any;
 
-    if (existing) {
-      // Se for médico criado como pending-invite (placeholder), claimamos a conta
-      if (existing.passwordHash === 'pending-invite') {
-        doctor = await prisma.doctor.update({
-          where: { id: existing.id },
-          data: {
-            name: String(name).trim(),
-            email: cleanEmail,
-            crm: crmKey,
-            crmUf: uf,
-            specialty: specialty || existing.specialty,
-            passwordHash,
-          },
-        });
-      } else {
-        res.status(409).json({ error: 'already_registered', message: 'Médico já cadastrado com este CRM ou e-mail. Faça login para continuar.' });
-        return;
-      }
+    // Só placeholder (criado por paciente, sem senha) é reivindicável; conta real do CRM → faça login.
+    if (byCrm && byCrm.passwordHash !== 'pending-invite') { alreadyRegistered(); return; }
+    // O e-mail é único. Se já é de OUTRA conta: REAL → não há como usá-lo (EMAIL_IN_USE se o CRM é de um placeholder
+    // reivindicável; senão "já cadastrado"); PLACEHOLDER de outro CRM → o e-mail foi digitado por um paciente (dado não
+    // verificado, ou o endereço previsível pending-<crm>@invite.com) e NÃO pode bloquear o médico de verdade (m5, 2ª rodada):
+    // solta o e-mail do placeholder — que não é reivindicado nem muda de CRM — e o cadastro segue.
+    const emailHolder = byEmail && byEmail.id !== byCrm?.id ? byEmail : null;
+    if (emailHolder) {
+      if (emailHolder.passwordHash !== 'pending-invite') { if (byCrm) emailInUse(); else alreadyRegistered(); return; }
+      if (!(await releasePlaceholderEmail(emailHolder))) { emailInUse(); return; }
+    }
+
+    if (byCrm) {
+      doctor = await prisma.doctor.update({
+        where: { id: byCrm.id },
+        data: {
+          name: String(name).trim(),
+          email: cleanEmail,
+          specialty: specialty || byCrm.specialty,
+          passwordHash: await hashPassword(password),
+          verificationStatus: 'pending',
+        },
+      });
     } else {
       doctor = await prisma.doctor.create({
         data: {
           name: String(name).trim(),
           crm: crmKey,
-          crmUf: uf,
+          crmUf: parsed.uf,
           email: cleanEmail,
-          passwordHash,
+          passwordHash: await hashPassword(password),
           specialty: specialty ? String(specialty).trim() : null,
         },
       });

@@ -29,6 +29,7 @@ import ReplayRoundedIcon from '@mui/icons-material/ReplayRounded';
 import EventBusyRoundedIcon from '@mui/icons-material/EventBusyRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import VerifiedUserRoundedIcon from '@mui/icons-material/VerifiedUserRounded';
 import { API_URL, token, doctorPhotoUrl } from '../config';
 import { useSelectedPatient } from '../patient-context';
 import { CONSENT_TEXT } from '../constants/consent';
@@ -57,6 +58,8 @@ interface QueueDoctor {
   photoAvailable: boolean;
   priceCents: number;
   crmUf: string | null;
+  /** Identidade verificada (KYC aprovado) — só `true` ganha o selo; ausente (server antigo) = sem selo. */
+  verified?: boolean;
 }
 interface QueueStatus {
   online: boolean;
@@ -149,7 +152,7 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
     component="button"
     type="button"
     onClick={onClick}
-    aria-label={`Falar com ${doctorTitle(d.name)} — ${d.specialty ?? 'médico'}${d.priceCents > 0 ? `, R$ ${fmtBrl(d.priceCents)}` : ', grátis'}`}
+    aria-label={`Falar com ${doctorTitle(d.name)} — ${d.specialty ?? 'médico'}${d.priceCents > 0 ? `, R$ ${fmtBrl(d.priceCents)}` : ', grátis'}${d.verified === true ? ', identidade verificada' : ''}`}
     direction="row"
     alignItems="center"
     spacing={1.5}
@@ -175,6 +178,23 @@ const DoctorRow = ({ d, fastest, onClick, isDark }: { d: QueueDoctor; fastest?: 
       <Typography noWrap sx={{ fontSize: 12, fontWeight: 700, color: isDark ? '#5fd8d1' : '#0f766e', mt: 0.25 }}>
         {d.specialty || 'Clínica Geral'}{d.crmUf ? ` · CRM-${d.crmUf}` : ''}
       </Typography>
+      {d.verified === true && (
+        <Box
+          component="span"
+          role="img"
+          aria-label="Identidade verificada"
+          data-testid="identity-verified-badge"
+          sx={{
+            display: 'inline-flex', alignItems: 'flex-start', gap: 0.5, maxWidth: '100%', mt: 0.4, px: 0.8, py: 0.25, borderRadius: '6px',
+            fontSize: 10.5, fontWeight: 700, lineHeight: 1.25, color: isDark ? '#5fd8d1' : '#0f766e',
+            bgcolor: isDark ? 'rgba(95,216,209,.12)' : 'rgba(32,178,170,.10)',
+          }}
+        >
+          <VerifiedUserRoundedIcon aria-hidden="true" sx={{ fontSize: 12, flexShrink: 0, mt: '1px' }} />
+          {/* quebra de linha em tela estreita (320px) em vez de cortar com "…": é um selo de confiança, tem de ser lido inteiro */}
+          <Box component="span" sx={{ minWidth: 0 }}>Identidade verificada</Box>
+        </Box>
+      )}
       {d.city && (
         <Typography noWrap sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', mt: 0.15 }}>
           <Box component="span" aria-hidden="true" sx={{ display: 'inline' }}>📍 </Box>{d.city}

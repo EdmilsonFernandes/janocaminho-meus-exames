@@ -7,6 +7,7 @@ import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
 import { sendEmail } from '../utils/mailer';
 import { doctorQuestionEmail, webUrl } from '../utils/emailTemplate';
 import { logPaywallHit } from '../utils/paywall';
+import { doctorMayPractice } from '../utils/doctorAccess';
 
 const router = Router();
 router.use(requireAuth);
@@ -72,6 +73,22 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     // Exige compartilhamento ATIVO com o médico (só pergunta a médico que aceitou ver os exames)
     const share = await prisma.doctorShare.findFirst({ where: { patientId: pid, doctorId: String(doctorId), active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share) { res.status(403).json({ error: 'Compartilhe seus exames com este médico antes de enviar perguntas.' }); return; }
+
+    // Revisão final do KYC (C1): a pergunta carrega NOME do paciente + texto de saúde e vai por e-mail ao médico.
+    // Só quem PODE ATUAR (não bloqueado e verificado/legado em prazo) recebe — conta não verificada, rejeitada ou
+    // bloqueada (ex.: quem registrou o CRM de outro médico, ou um médico bloqueado por fraude que ainda tem shares)
+    // não. Recusa ANTES de cobrar créditos e de criar a pergunta.
+    const target = await prisma.doctor.findUnique({
+      where: { id: String(doctorId) },
+      select: { name: true, email: true, emailVerified: true, blocked: true, verificationStatus: true },
+    });
+    if (!target || !doctorMayPractice(target)) {
+      res.status(409).json({
+        error: 'doctor_unavailable', code: 'DOCTOR_UNAVAILABLE',
+        message: 'Este médico ainda não está disponível para receber perguntas. Nenhum crédito foi cobrado — tente de novo quando ele concluir a verificação.',
+      });
+      return;
+    }
 
     // ===== Fatia 1: dedup estável por sentKey + expiração automática =====
     // sentKey (opcional): hash analysisId+index vindo do relatório. Estável entre regenerações
@@ -150,11 +167,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       include: { doctor: { select: { id: true, name: true } } },
     });
     // Avisa o MÉDICO por e-mail (best-effort) — sem isso, ele só descobre da pergunta abrindo o portal.
-    const [doc, pat] = await Promise.all([
-      prisma.doctor.findUnique({ where: { id: String(doctorId) }, select: { name: true, email: true, emailVerified: true } }),
-      prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } }),
-    ]);
-    if (doc?.email && doc.emailVerified && !doc.email.includes('@invite.com')) {
+    const doc = target; // já carregado (e já sabemos que pode atuar) lá em cima
+    const pat = await prisma.patient.findUnique({ where: { id: pid }, select: { fullName: true } });
+    if (doc.email && doc.emailVerified && !doc.email.includes('@invite.com')) {
       void sendEmail({ to: doc.email, subject: `${pat?.fullName ?? 'Paciente'} fez uma pergunta — Meus Exames`, html: doctorQuestionEmail({ doctorName: doc.name, patientName: pat?.fullName ?? 'Paciente', subject: msgBody, portalUrl: webUrl('/#/doctor') }) }).catch(() => {});
     }
     // AUTO-RECEBIMENTO: mensagem automática no thread confirmando ao paciente que a pergunta

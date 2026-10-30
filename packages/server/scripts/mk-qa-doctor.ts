@@ -11,8 +11,8 @@ import bcrypt from 'bcryptjs';
   const crm = '999999-QA';
   const doc = await prisma.doctor.upsert({
     where: { crm },
-    update: { passwordHash: hash, emailVerified: true },
-    create: { name: 'Dra. QA Teste', crm, crmUf: 'SP', specialty: 'Clínica Médica', email, passwordHash: hash, emailVerified: true },
+    update: { passwordHash: hash, emailVerified: true, verificationStatus: 'approved' },
+    create: { name: 'Dra. QA Teste', crm, crmUf: 'SP', specialty: 'Clínica Médica', email, passwordHash: hash, emailVerified: true, verificationStatus: 'approved' },
   });
   // Share com o paciente do qa-vazio (todos os escopos)
   const owner = await prisma.user.findUnique({ where: { email: 'qa-vazio@exemplo.com' }, include: { patients: true } });

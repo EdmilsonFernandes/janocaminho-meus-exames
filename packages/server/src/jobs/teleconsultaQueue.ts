@@ -22,6 +22,7 @@ import { getTeleconsultaConfig } from '../utils/settings';
 import { createLiveKitRoom } from '../utils/livekit';
 import { createTeleconsultaPix } from '../utils/teleconsultaPix';
 import { resolveCommissionRule } from '../finance/rules';
+import { practiceStatuses } from '../utils/doctorAccess';
 
 /** TTL da presença (heartbeat esperado 30s; 90s = 3 batidas perdidas). */
 export const PRESENCE_TTL_MS = 90_000;
@@ -157,7 +158,7 @@ export async function runTeleconsultaQueueTick(now: Date = new Date()): Promise<
     if (waitingEntries.length) {
       const freshCutoff = new Date(now.getTime() - PRESENCE_TTL_MS);
       const candidates = await tx.doctorOnlinePresence.findMany({
-        where: { online: true, lastHeartbeatAt: { gte: freshCutoff } },
+        where: { online: true, lastHeartbeatAt: { gte: freshCutoff }, doctor: { verificationStatus: { in: practiceStatuses(now) } } },
         select: {
           doctorId: true, lastOnlineAt: true,
           doctor: { select: { id: true, name: true, blocked: true, specialty: true, consultPriceCents: true, instantPriceCents: true } },

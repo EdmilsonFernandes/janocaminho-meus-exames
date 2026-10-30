@@ -6,7 +6,7 @@ import { requireAuth, AuthedRequest } from '../middleware/auth';
 import { config, hasAsaas } from '../config';
 import { postRefundExecuted, postEntries } from '../finance/ledger';
 import { notifyTeleconsultaRefunded } from '../utils/teleconsultaNotify';
-import { getSettings, saveSettings, getMonthlyPlan, type SettingCategory } from '../utils/settings';
+import { getSettings, saveSettings, getMonthlyPlan, getDoctorKycConfig, type SettingCategory } from '../utils/settings';
 import { deleteExamFile, saveExamFile, resolveExamFile, saveLabLogo } from '../utils/storage';
 import { invalidateLabsCache, slugify } from './labs.routes';
 import { listBlockedDomains, addBlockedDomain, removeBlockedDomain, syncBlockedDomains } from '../utils/blockedDomains';
@@ -30,6 +30,9 @@ import { maskPixKey } from './doctor.routes';
 import { getLastReconciliationAt } from '../jobs/reconciliation';
 import { runExtraction } from '../extraction/pipeline';
 import { normalizeCouponCode } from '../utils/coupons';
+import { notifyDoctorKyc } from '../kyc/notify';
+import { strictName } from '../kyc/decide';
+import { stripDoctorTitle } from '../utils/doctorTitle';
 
 const router = Router();
 router.use(requireAuth);
@@ -262,7 +265,7 @@ router.get('/config', (_req, res) => {
 //  1) numérico flat (legado): { category: 'creditCosts', chat: 2, ... }
 //  2) objeto/array (novas categorias): { category: 'plans', value: {...} } — substitui a categoria
 // Validações server-side: preço > 0; packs com id/créditos/preço > 0; founder.price ≤ plano.
-const NUMERIC_CATEGORIES = ['creditCosts', 'uploadRules', 'grants', 'shares', 'guidelines', 'sportsMode'];
+const NUMERIC_CATEGORIES = ['creditCosts', 'uploadRules', 'grants', 'shares', 'guidelines', 'sportsMode', 'doctorKyc'];
 const OBJECT_CATEGORIES = ['plans', 'premium', 'founder', 'creditPacks', 'badges', 'motd', 'referral'];
 router.patch('/config/costs', async (req, res, next) => {
   try {
@@ -275,7 +278,23 @@ router.patch('/config/costs', async (req, res, next) => {
         if (!isNaN(n)) patch[k] = n;
       }
       if (Object.keys(patch).length === 0) { res.status(400).json({ error: 'Nenhum valor numérico válido enviado.' }); return; }
+      // KYC do médico: prazo dos legados e auto-aprovação decidem quem pode atender → validar + auditar.
+      let kycBefore: ReturnType<typeof getDoctorKycConfig> | null = null;
+      if (category === 'doctorKyc') {
+        const bad = (msg: string) => res.status(400).json({ code: 'KYC_CONFIG_INVALID', error: msg });
+        const unknown = Object.keys(patch).filter((k) => k !== 'legacyGraceUntilMs' && k !== 'autoApprove');
+        if (unknown.length) { bad(`Campo desconhecido em doctorKyc: ${unknown.join(', ')}.`); return; }
+        if ('autoApprove' in patch && patch.autoApprove !== 0 && patch.autoApprove !== 1) { bad('autoApprove deve ser 0 ou 1.'); return; }
+        if ('legacyGraceUntilMs' in patch) {
+          const ms = patch.legacyGraceUntilMs;
+          if (ms !== 0 && !(Number.isInteger(ms) && ms > Date.now() && ms < Date.UTC(2100, 0, 1))) {
+            bad('legacyGraceUntilMs deve ser 0 (sem prazo) ou uma data futura em milissegundos.'); return;
+          }
+        }
+        kycBefore = getDoctorKycConfig();
+      }
       const s = await saveSettings(category as SettingCategory, patch);
+      if (kycBefore) await audit('KYC_CONFIG_CHANGED', req, { targetType: 'SETTINGS', targetId: 'doctorKyc', before: kycBefore, after: getDoctorKycConfig() });
       console.log('[admin] config atualizada (persistida no banco):', category, patch);
       res.json({ ...s, plans: { monthly: { ...getMonthlyPlan(), credits: s.grants.monthly } } });
       return;
@@ -1101,12 +1120,160 @@ router.get('/doctors', async (_req, res, next) => {
           blocked: true,
           blockedAt: true,
           blockedReason: true,
+          verificationStatus: true, // KYC: chip "Identidade" de cada médico no painel
           _count: { select: { shares: { where: { active: true } } } },
         },
       }),
       prisma.doctor.count(),
     ]);
     res.json({ doctors, total });
+  } catch (e) { next(e); }
+});
+
+// KYC do médico (spec verificação §3): decisões humanas. needs_admin decide AQUI; uaiid_review
+// decide no painel do UaiID (aqui só leitura). Legados: aprovação em lote.
+router.get('/doctors/verification-queue', async (_req, res, next) => {
+  try {
+    const review = await prisma.doctorVerification.findMany({
+      where: { decision: { in: ['needs_admin', 'uaiid_review'] }, decidedBy: null, doctorId: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      select: {
+        id: true, providerId: true, crm: true, status: true, reasonCode: true, decision: true, documentName: true,
+        cfmName: true, nameRatio: true, score: true, createdAt: true,
+        doctor: { select: { id: true, name: true, crm: true, crmUf: true, email: true, verificationStatus: true } },
+      },
+    });
+    const crms = [...new Set(review.map((a) => a.crm))];
+    const counts = crms.length
+      ? await prisma.doctorVerification.groupBy({ by: ['crm'], where: { crm: { in: crms } }, _count: { _all: true } })
+      : [];
+    const byCrm = new Map(counts.map((c) => [c.crm, c._count._all]));
+    const legacy = await prisma.doctor.findMany({
+      where: { verificationStatus: 'legacy' },
+      orderBy: { createdAt: 'asc' },
+      take: 500,
+      select: { id: true, name: true, crm: true, crmUf: true, email: true, createdAt: true },
+    });
+    res.json({
+      review: review.map((a) => ({
+        ...a,
+        priorAttempts: (byCrm.get(a.crm) ?? 1) - 1,
+        decideIn: a.decision === 'uaiid_review' ? 'uaiid' : 'drexame',
+        // O nome que o paciente VÊ (o do perfil, texto livre) bate com o do CFM? Nada o amarrava (re-revisão #6): um
+        // médico verificado podia se cadastrar como "Dra. <colega conhecido>" com o CRM dele. Só sinaliza ao dono
+        // (null = sem nome do CFM para comparar); quem decide é ele, olhando os dois nomes lado a lado.
+        displayNameMatch: a.cfmName && a.doctor
+          ? strictName(stripDoctorTitle(a.doctor.name)) !== '' && strictName(stripDoctorTitle(a.doctor.name)) === strictName(a.cfmName)
+          : null,
+      })),
+      legacy,
+    });
+  } catch (e) { next(e); }
+});
+
+// Decisão humana idempotente e serializada por médico (advisory lock — padrão doctor.routes:1352):
+// duplo clique/vários admins concorrentes → um aplica, o outro vê o estado novo e vem `unchanged`.
+// Aprovar só vale a partir da fila (needs_admin); recusar vale de qualquer estado (revoga approved).
+router.post('/doctors/:id/verification/approve', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const note = req.body?.note ? String(req.body.note).slice(0, 500) : null;
+    const out = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`; // MESMA trava do kyc/sync.ts (I1)
+      const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true, identityLockedAt: true } });
+      if (!doc) return { notFound: true as const };
+      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true, decision: true, decidedBy: true } });
+      if (doc.verificationStatus === 'approved') {
+        // Idempotente (2º clique / outro admin). E tira da fila as tentativas `needs_admin` que ficaram abertas
+        // (revisão final I2: médico aprovado em lote ou por outro caminho com uma verificação concluída depois) —
+        // senão ficam ali para sempre. NUNCA carimba `uaiid_review`: quem decide é o painel do UaiID, e marcar como
+        // "decidida por humano" fazia o sync ignorar um veredito de FRAUDE posterior (re-revisão, regressão do lote).
+        await tx.doctorVerification.updateMany({ where: { doctorId: id, decidedBy: null, decision: 'needs_admin' }, data: { decision: 'approved', decidedBy: req.userId! } });
+        return { unchanged: true as const };
+      }
+      // Aprovar vale a partir da fila: médico em needs_admin, OU LEGADO que concluiu a verificação e espera o dono
+      // (revisão final I2: o sync mantém o legado como `legacy` mas o põe na fila com "pronto para aprovar" — sem
+      // isto o botão devolvia 409 e a entrada nunca saía). Legado SEM verificação concluída segue 409: o lote é o caminho.
+      const awaitingDrexame = !!latest && !latest.decidedBy && latest.decision === 'needs_admin';
+      if (doc.verificationStatus !== 'needs_admin' && !(doc.verificationStatus === 'legacy' && awaitingDrexame)) return { invalidState: doc.verificationStatus };
+      // Identidade TRAVADA na aprovação (re-revisão #5): nome/CPF/CRM não mudam mais depois que o dono aprovou
+      // (antes o médico do convite aprovado podia renomear o perfil para o nome de um colega conhecido).
+      await tx.doctor.update({ where: { id }, data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: req.userId!, ...(doc.identityLockedAt ? {} : { identityLockedAt: new Date() }) } });
+      if (latest) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'approved', decidedBy: req.userId! } });
+      // As demais tentativas `needs_admin` abertas do mesmo médico saem da fila junto (re-revisão m3).
+      await tx.doctorVerification.updateMany({ where: { doctorId: id, decidedBy: null, decision: 'needs_admin' }, data: { decision: 'approved', decidedBy: req.userId! } });
+      return { doc };
+    });
+    if ('notFound' in out) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    if ('invalidState' in out) { res.status(409).json({ code: 'INVALID_STATE', status: out.invalidState, error: 'Só dá para aprovar quem está em análise na fila do Dr. Exame.' }); return; }
+    if ('unchanged' in out) { res.json({ ok: true, status: 'approved', unchanged: true }); return; }
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: out.doc.verificationStatus }, after: { status: 'approved', crm: out.doc.crm, note } });
+    void notifyDoctorKyc(out.doc, 'approved'); // e-mail premium "Sua conta foi aprovada"
+    res.json({ ok: true, status: 'approved' });
+  } catch (e) { next(e); }
+});
+
+router.post('/doctors/:id/verification/reject', async (req: AuthedRequest, res, next) => {
+  try {
+    const id = String(req.params.id);
+    const reason = String(req.body?.reason ?? '').trim().slice(0, 500);
+    if (!reason) { res.status(400).json({ code: 'REASON_REQUIRED', error: 'Informe o motivo.' }); return; }
+    const out = await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`; // MESMA trava do kyc/sync.ts (I1)
+      const doc = await tx.doctor.findUnique({ where: { id }, select: { id: true, name: true, email: true, crm: true, verificationStatus: true } });
+      if (!doc) return { notFound: true as const };
+      if (doc.verificationStatus === 'rejected') return { unchanged: true as const }; // idempotente: 1º motivo é o que vale
+      const latest = await tx.doctorVerification.findFirst({ where: { doctorId: id }, orderBy: { createdAt: 'desc' }, select: { id: true } });
+      await tx.doctor.update({ where: { id }, data: { verificationStatus: 'rejected', verifiedAt: null, verifiedBy: null } });
+      if (latest) await tx.doctorVerification.update({ where: { id: latest.id }, data: { decision: 'rejected', decidedBy: req.userId!, reasonCode: 'admin_rejected' } });
+      // Recusar o médico decide TUDO dele: as demais tentativas abertas (fila do dono ou revisão no UaiID) saem da fila
+      // (re-revisão m3). Um veredito de fraude posterior segue valendo: o sync o trata antes de olhar "decidida".
+      await tx.doctorVerification.updateMany({ where: { doctorId: id, decidedBy: null, decision: { in: ['needs_admin', 'uaiid_review'] } }, data: { decision: 'rejected', decidedBy: req.userId! } });
+      return { doc };
+    });
+    if ('notFound' in out) { res.status(404).json({ code: 'NOT_FOUND', error: 'Médico não encontrado.' }); return; }
+    if ('unchanged' in out) { res.json({ ok: true, status: 'rejected', unchanged: true }); return; }
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', targetId: id, before: { status: out.doc.verificationStatus }, after: { status: 'rejected', crm: out.doc.crm, reason } });
+    void notifyDoctorKyc(out.doc, 'rejected', 'admin_rejected', reason); // o motivo escrito pelo dono vai no e-mail do médico (dono, 28/10)
+    res.json({ ok: true, status: 'rejected' });
+  } catch (e) { next(e); }
+});
+
+router.post('/doctors/verification/approve-legacy', async (req: AuthedRequest, res, next) => {
+  try {
+    const ids: string[] = Array.isArray(req.body?.ids) ? req.body.ids.map(String).slice(0, 500) : [];
+    if (!ids.length) { res.status(400).json({ code: 'IDS_REQUIRED', error: 'Informe os médicos.' }); return; }
+    // Só quem É legado agora (o lote nunca mexe em pending/needs_admin/…). `verifiedBy: legacy_bulk:<admin>` marca que
+    // NÃO houve verificação de identidade — o selo "Identidade verificada" dos pacientes exige uma verificação de
+    // verdade (revisão final M13: o lote dava o selo a quem nunca foi verificado).
+    const legacyIds = (await prisma.doctor.findMany({ where: { id: { in: ids }, verificationStatus: 'legacy' }, select: { id: true } })).map((d) => d.id).sort();
+    // Re-revisão (regressão do I2): quem tem verificação em andamento na fila (ex.: name_mismatch = sinal de impostor,
+    // ou revisão no UaiID) ou tentativa RECUSADA NÃO entra no lote. Antes o lote apagava esse alerta da fila e, por a
+    // tentativa virar "decidida por humano", um veredito de fraude posterior do UaiID era ignorado — o médico seguia
+    // atendendo e recebendo repasse. Esses o dono decide UM A UM pela fila (aprovar ou recusar).
+    // Tudo dentro da trava POR MÉDICO (mesma do sync e do approve/reject), em ordem fixa → sem deadlock.
+    const { approved, skipped } = legacyIds.length
+      ? await prisma.$transaction(async (tx) => {
+        for (const id of legacyIds) await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${'kyc-doctor:' + id}))`;
+        const flagged = await tx.doctorVerification.findMany({
+          where: { doctorId: { in: legacyIds }, OR: [{ decidedBy: null, decision: { in: ['needs_admin', 'uaiid_review'] } }, { decision: 'rejected' }] },
+          select: { doctorId: true, decision: true },
+        });
+        const skip = new Map<string, 'verificacao_em_andamento' | 'verificacao_recusada'>();
+        for (const f of flagged) if (f.doctorId && !skip.has(f.doctorId)) skip.set(f.doctorId, f.decision === 'rejected' ? 'verificacao_recusada' : 'verificacao_em_andamento');
+        const eligible = legacyIds.filter((id) => !skip.has(id));
+        const r = eligible.length
+          ? await tx.doctor.updateMany({
+            where: { id: { in: eligible }, verificationStatus: 'legacy' },
+            data: { verificationStatus: 'approved', verifiedAt: new Date(), verifiedBy: `legacy_bulk:${req.userId}` },
+          })
+          : { count: 0 };
+        return { approved: r.count, skipped: [...skip].map(([id, reason]) => ({ id, reason })) };
+      }, { timeout: 30_000, maxWait: 10_000 })
+      : { approved: 0, skipped: [] as Array<{ id: string; reason: string }> };
+    void audit('DOCTOR_VERIFICATION_DECIDED', req, { targetType: 'DOCTOR', after: { status: 'approved', via: 'legacy_bulk', ids, count: approved, skipped } });
+    res.json({ ok: true, approved, skipped });
   } catch (e) { next(e); }
 });
 
@@ -2313,7 +2480,8 @@ router.post('/payouts/:id/approve', async (req: AuthedRequest, res, next) => {
     try {
       outcome = await approvePayout(payoutId, { executor: `admin:${req.userId}` });
     } catch (e: any) {
-      res.status(409).json({ error: e?.message ?? 'Aprovação recusada.' });
+      // `code` (ex.: DOCTOR_CANNOT_PRACTICE quando o médico está retido pelo KYC) — erros de rota sempre com code (M12)
+      res.status(409).json({ error: e?.message ?? 'Aprovação recusada.', ...(e?.code ? { code: String(e.code) } : {}) });
       return;
     }
     await audit('ADMIN_PAYOUT_APPROVE_RESULT', req, {
