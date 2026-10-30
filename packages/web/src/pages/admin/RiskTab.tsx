@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardContent, Stack, Chip, Alert, Table, TableHead, TableRow, TableCell, TableBody, LinearProgress } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack, Chip, Alert, LinearProgress } from '@mui/material';
+import { useTable, type ColumnDef } from '@tanstack/react-table';
+import { DataGrid, DataGridContainer, dataGridFeatures } from '@/components/reui/data-grid/data-grid';
+import { DataGridTable } from '@/components/reui/data-grid/data-grid-table';
 import { API_URL, token } from '../../config';
 import { TabLoader, SectionError } from './parts';
+import '../../doctor-v2/tw.css';
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
 /**
@@ -26,6 +30,28 @@ const CONDITION_LABEL: Record<string, string> = {
   none: 'Nenhuma',
 };
 const conditionLabel = (key: string | null | undefined) => CONDITION_LABEL[key ?? ''] ?? key ?? '—';
+
+/** ReUI DataGrid — qualidade por condição (Fase B, worktree admin-reui). */
+function RiskConditionsGrid({ rows }: { rows: any[] }) {
+  const columns: ColumnDef<any, any>[] = [
+    { accessorKey: 'conditionKey', header: 'Condição', cell: (i) => <span className="text-[13px] font-bold">{conditionLabel(i.getValue() as string)}</span> },
+    { accessorKey: 'total', header: 'Avaliações', cell: (i) => <span className="tabular-nums">{i.getValue() as number}</span> },
+    { accessorFn: (r) => (r.total ? Math.round((r.up / r.total) * 100) : 0), id: 'pct', header: '% 👍', cell: (i) => {
+      const pct = i.getValue() as number;
+      const cls = pct >= 70 ? 'text-success-foreground dark:text-success' : pct >= 40 ? 'text-warning-foreground dark:text-warning' : 'text-destructive-foreground dark:text-destructive';
+      const bg = pct >= 70 ? 'bg-success' : pct >= 40 ? 'bg-warning' : 'bg-destructive';
+      return (
+        <div className="flex items-center gap-1.5">
+          <div className="h-2 w-14 overflow-hidden rounded-full bg-muted"><div className={'h-full rounded-full ' + bg} style={{ width: `${pct}%` }} /></div>
+          <span className={'text-xs font-bold tabular-nums ' + cls}>{pct}%</span>
+        </div>
+      );
+    } },
+    { accessorKey: 'down', header: '👎', cell: (i) => <span className="tabular-nums text-muted-foreground">{i.getValue() as number}</span> },
+  ];
+  const table = useTable({ features: dataGridFeatures, data: rows, columns });
+  return <DataGrid table={table} recordCount={rows.length}><DataGridContainer><DataGridTable /></DataGridContainer></DataGrid>;
+}
 
 export const RiskTab = () => {
   const [q, setQ] = useState<any>(null);
@@ -61,33 +87,9 @@ export const RiskTab = () => {
 
       <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 800 }}>Qualidade do plano por condição (loop de melhoria)</Typography>
       {q.byCondition?.length ? (
-        <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2 }}><Table size="small">
-          <TableHead><TableRow>
-            <TableCell>Condição</TableCell>
-            <TableCell align="right">Avaliações</TableCell>
-            <TableCell>% 👍</TableCell>
-            <TableCell>👎</TableCell>
-          </TableRow></TableHead>
-          <TableBody>
-            {q.byCondition.map((c: any) => {
-              const pct = c.total ? Math.round((c.up / c.total) * 100) : 0;
-              const color = pct >= 70 ? '#047857' : pct >= 40 ? '#ca8a04' : '#dc2626';
-              return (
-                <TableRow key={c.conditionKey}>
-                  <TableCell sx={{ fontWeight: 700 }}>{conditionLabel(c.conditionKey)}</TableCell>
-                  <TableCell align="right">{c.total}</TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Box sx={{ width: 60 }}><LinearProgress variant="determinate" value={pct} sx={{ height: 8, borderRadius: '12px', bgcolor: 'action.hover', '& .MuiLinearProgress-bar': { bgcolor: color } }} /></Box>
-                      <Typography variant="caption" sx={{ fontWeight: 700 }}>{pct}%</Typography>
-                    </Stack>
-                  </TableCell>
-                  <TableCell>{c.down}</TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table></Card>
+        <Card variant="outlined" sx={{ borderRadius: '12px', mb: 2, p: 1.5 }}>
+          <div className="dx-island"><RiskConditionsGrid rows={q.byCondition} /></div>
+        </Card>
       ) : (
         <Alert severity="info" sx={{ mb: 2 }}>Ainda sem avaliações. Quando os pacientes clicarem em 👍/👎 no plano de ação, a taxa de aprovação por condição aparece aqui — é o que orienta onde refinar os cards de conhecimento clínico.</Alert>
       )}
