@@ -44,6 +44,10 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - run: npm ci
+      # buildInfo (server + web) precisa existir ANTES dos typechecks: o web importa ./generated/buildInfo e o script
+      # `typecheck` dele NÃO o gera (o do server gera, e o gerador escreve nos dois). Antes o `npm test` do server
+      # criava o arquivo e só depois rodava o typecheck do web — aqui o typecheck vem primeiro.
+      - run: node scripts/generate-build-info.mjs
       # shared precisa de dist/ e o client Prisma precisa estar gerado ANTES dos typechecks:
       # o checkout fresco não tem nenhum dos dois.
       - run: npm run build --workspace packages/shared
