@@ -491,7 +491,7 @@ const ExamCards = () => {
   const renderCard = (r: any) => {
     const sc = statusColor[r.status] ?? 'default';
     const cc = categorizeExam(r);
-    const titleInfo = cleanExtractedLabel(r.title, `Exame ${kindLabel[r.kind] ?? ''}`.trim(), 58);
+    const titleInfo = cleanExtractedLabel(r.title, `Exame ${kindLabel[r.kind] ?? ''}`.trim(), 120); // clamp visual de 2 linhas faz o corte — não o "…" no meio
     const labInfo = cleanExtractedLabel(r.sourceLab, '', 46);
     const doctorInfo = cleanExtractedLabel((r as any).rawExtraction?.requestingDoctor, '', 46);
     const needsReview = !!r.reviewRequired || titleInfo.suspicious || labInfo.suspicious || doctorInfo.suspicious || !r.performedAt;
@@ -509,28 +509,58 @@ const ExamCards = () => {
         ...(isOld ? { filter: 'grayscale(.85)', opacity: 0.72, transition: `filter ${DUR}ms ease, opacity ${DUR}ms ease` } : {}),
         ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}),
       }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
-          <Icon sx={{ color: altered > 0 ? 'warning.main' : 'text.secondary', flexShrink: 0 }} />
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
-              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.5 }}><ExplainButton name={r.title} /></Box>
+        <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
+          {/* IconTile "soft" (padrão ReUI portado a MUI): anel externo tinted 10% +
+              card interno com borda 22% e fundo 5% — cor de marca sem gritar. */}
+          <Box sx={(t) => ({ flexShrink: 0, width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', p: '3px', bgcolor: alpha(t.palette.primary.main, 0.10) })}>
+            <Box sx={(t) => ({ width: '100%', height: '100%', borderRadius: '11px', display: 'grid', placeItems: 'center', bgcolor: alpha(t.palette.primary.main, 0.05), border: `1px solid ${alpha(t.palette.primary.main, 0.22)}` })}>
+              <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
             </Box>
-            <Box sx={{ mt: 0.25 }}><DateLabel date={r.performedAt} fallback="s/ data" /></Box>
-            {r.sourceLab && <Box sx={{ display: 'block', mt: 0.25 }}><LabBadge raw={r.sourceLab} /></Box>}
-            {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3 }}>🏥 Laboratório em revisão</Typography>}
-            {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
-            <Typography variant="caption" color="text.secondary">
-              {cc.cat}{itemCount ? ` • ${itemCount} ${itemCount === 1 ? 'resultado' : 'resultados'}` : ''}{altered > 0 ? ` • ${altered} alterado${altered === 1 ? '' : 's'}` : ''}
-            </Typography>
-            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.5 }}>
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            {/* Título com clamp de 2 linhas (fim do "…" no meio do nome): quebra
+                natural e reticências só na 2ª linha — hierarquia limpa. */}
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, lineHeight: 1.25, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', overflowWrap: 'anywhere' }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
+              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25 }}><ExplainButton name={r.title} /></Box>
+            </Box>
+            {/* Meta numa linha só: pill de data + laboratório (menos torre de linhas). */}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', rowGap: 0.25, mt: 0.5 }}>
+              <DateLabel date={r.performedAt} fallback="s/ data" />
+              {r.sourceLab && <LabBadge raw={r.sourceLab} />}
+            </Box>
+            {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.25 }}>🏥 Laboratório em revisão</Typography>}
+            {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
+            {/* STATS (o "sal"): número em destaque + alterados em laranja com halo
+                (mesma linguagem visual das bolinhas do portal médico / mapa do corpo). */}
+            <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75, rowGap: 0.5 }}>
+              {itemCount > 0 && (
+                <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.375 }}>
+                  <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.95rem', lineHeight: 1, color: (t: ModeTheme) => tealText(t.palette.mode) }}>{itemCount}</Typography>
+                  <Typography component="span" variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{itemCount === 1 ? 'resultado' : 'resultados'}</Typography>
+                </Box>
+              )}
+              {altered > 0 ? (
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.375, px: 0.75, py: 0.2, borderRadius: RADIUS.pill, bgcolor: 'rgba(234,88,12,.10)', border: '1px solid rgba(234,88,12,.20)' }}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fb923c', flexShrink: 0 }} />
+                  <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#c2410c', lineHeight: 1.2 }}>{altered} alterado{altered > 1 ? 's' : ''}</Typography>
+                </Box>
+              ) : itemCount > 0 ? (
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.375, px: 0.75, py: 0.2, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.10), border: (t) => `1px solid ${alpha(SEM.ok[t.palette.mode], 0.20)}` }}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: (t: ModeTheme) => SEM.ok[t.palette.mode], flexShrink: 0 }} />
+                  <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color: (t: ModeTheme) => SEM.ok[t.palette.mode], lineHeight: 1.2 }}>tudo normal</Typography>
+                </Box>
+              ) : null}
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{cc.cat}</Typography>
+            </Stack>
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.625 }}>
               {isNew && <Chip size="small" icon={<FiberNewIcon sx={{ fontSize: '14px !important' }} />} label="Novo" sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode], '& .MuiChip-icon': { color: (t: ModeTheme) => `${SEM.ok[t.palette.mode]} !important` } }} />}
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(toneMain(t, sc), 0.12), color: (t) => toneMain(t, sc) }} />
               {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: (t) => SEM.warn[t.palette.mode], fontWeight: 800, height: 20 }} />}
             </Stack>
           </Box>
-          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0, p: 1.25 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
-          <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0 }} />
+          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0, p: 1.25, mt: -0.25 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
+          <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0, mt: 1 }} />
         </CardContent>
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
         {r.status === 'FAILED' && (
