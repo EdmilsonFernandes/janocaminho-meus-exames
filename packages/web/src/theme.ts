@@ -322,6 +322,31 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           },
         },
       },
+      // ReUI Alert soft (dono 30/10): UM override restyla os ~42 arquivos com <Alert> —
+      // fundo suave por severidade + borda da mesma família + ícone forte + radius 14.
+      // Vale pros variants standard (os usados no app); filled/outlined ficam do MUI.
+      MuiAlert: {
+        styleOverrides: {
+          root: { borderRadius: '14px', fontWeight: 500, alignItems: 'center' },
+          standardSuccess: isDark
+            ? { backgroundColor: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.35)', color: '#6ee7b7', '& .MuiAlert-icon': { color: '#34d399' } }
+            : { backgroundColor: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.3)', color: '#065f46', '& .MuiAlert-icon': { color: '#059669' } },
+          standardError: isDark
+            ? { backgroundColor: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.35)', color: '#fca5a5', '& .MuiAlert-icon': { color: '#f87171' } }
+            : { backgroundColor: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.3)', color: '#991b1b', '& .MuiAlert-icon': { color: '#dc2626' } },
+          standardWarning: isDark
+            ? { backgroundColor: 'rgba(245,158,11,0.12)', border: '1px solid rgba(245,158,11,0.35)', color: '#fcd34d', '& .MuiAlert-icon': { color: '#fbbf24' } }
+            : { backgroundColor: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.32)', color: '#92400e', '& .MuiAlert-icon': { color: '#d97706' } },
+          standardInfo: isDark
+            ? { backgroundColor: 'rgba(32,178,170,0.12)', border: '1px solid rgba(32,178,170,0.35)', color: '#7fe0d9', '& .MuiAlert-icon': { color: '#5fc9c3' } }
+            : { backgroundColor: 'rgba(32,178,170,0.08)', border: '1px solid rgba(32,178,170,0.3)', color: '#0f766e', '& .MuiAlert-icon': { color: '#178f89' } },
+        },
+      },
+      MuiAlertTitle: {
+        styleOverrides: {
+          root: { fontWeight: 800, fontFamily: '"Poppins","Inter",sans-serif', marginBottom: 2 },
+        },
+      },
       // TOUCH (craft-floor): icon-buttons pequenos (28px) ganham hitbox fantasma de ~44px em
       // telas touch — ::after invisível estica a área de toque SEM mudar o visual/composição.
       // Resolve de uma vez os "?" de explicação (alterados/relatório), unfocus etc.
