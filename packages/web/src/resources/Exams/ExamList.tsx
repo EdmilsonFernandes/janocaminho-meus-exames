@@ -3,6 +3,7 @@ import { plural } from '../../utils/format';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
+import { IconTile } from '../../components/IconTile';
 import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha, lighten } from '@mui/material/styles';
 import { DrExameRobot } from '../../components/DrExameRobot';
@@ -482,10 +483,10 @@ const ExamCards = () => {
   // Mostra estado neutro — as seções de atenção já explicam o que houve com cada envio.
   const emptyBlock = (
     filtering
-      ? <EmptyState emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
+      ? <EmptyState variant="card" emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
       : failed.length > 0 || rejected.length > 0
-        ? <EmptyState title="Nenhum exame pronto ainda" desc="Os envios desta página precisam de atenção — re-extrai ou confere acima. Envie um novo documento quando quiser." />
-        : <EmptyState title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
+        ? <EmptyState variant="card" title="Nenhum exame pronto ainda" desc="Os envios desta página precisam de atenção — re-extrai ou confere acima. Envie um novo documento quando quiser." />
+        : <EmptyState variant="card" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
   );
 
   const renderCard = (r: any) => {
@@ -510,16 +511,14 @@ const ExamCards = () => {
         ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}),
       }}>
         <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-          {/* IconTile "soft" (padrão ReUI portado a MUI): anel externo tinted 10% +
-              card interno com borda 22% e fundo 5% — cor de marca sem gritar. */}
-          <Box sx={(t) => ({ flexShrink: 0, width: 46, height: 46, borderRadius: '14px', display: 'grid', placeItems: 'center', p: '3px', bgcolor: alpha(t.palette.primary.main, 0.10) })}>
-            <Box sx={(t) => ({ width: '100%', height: '100%', borderRadius: '11px', display: 'grid', placeItems: 'center', bgcolor: alpha(t.palette.primary.main, 0.05), border: `1px solid ${alpha(t.palette.primary.main, 0.22)}` })}>
-              <Icon sx={{ fontSize: 22, color: 'primary.main' }} />
-            </Box>
-          </Box>
+          {/* ReUI card-3 (dono 30/10): azulejo de ícone com cor semântica — alterado =
+              âmbar, imagem = céu, normal = teal da marca. Triagem antes de ler. */}
+          <IconTile tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
+            <Icon sx={{ fontSize: 22 }} />
+          </IconTile>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Título com clamp de 2 linhas (fim do "…" no meio do nome): quebra
-                natural e reticências só na 2ª linha — hierarquia limpa. */}
+            {/* Título clamp-2 (fim do "…" no meio do nome): quebra natural,
+                reticências só na 2ª linha — hierarquia limpa em qualquer largura. */}
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
               <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, lineHeight: 1.25, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', overflowWrap: 'anywhere' }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
               <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25 }}><ExplainButton name={r.title} /></Box>
@@ -531,28 +530,26 @@ const ExamCards = () => {
             </Box>
             {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.25 }}>🏥 Laboratório em revisão</Typography>}
             {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
-            {/* STATS (o "sal"): número em destaque + alterados em laranja com halo
-                (mesma linguagem visual das bolinhas do portal médico / mapa do corpo). */}
-            <Stack direction="row" spacing={1.25} useFlexGap flexWrap="wrap" alignItems="center" sx={{ mt: 0.75, rowGap: 0.5 }}>
-              {itemCount > 0 && (
-                <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.375 }}>
-                  <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.95rem', lineHeight: 1, color: (t: ModeTheme) => tealText(t.palette.mode) }}>{itemCount}</Typography>
-                  <Typography component="span" variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{itemCount === 1 ? 'resultado' : 'resultados'}</Typography>
+            {/* ReUI card-3 corrigido: faixa de stats dividida (resultados · alterados ·
+                categoria) — colunas auto/1fr (não fixas), categoria com ellipsis real e
+                sem label redundante: nada estoura em 360px nem com nome longo. */}
+            {itemCount > 0 ? (
+              <Box sx={{ mt: 0.75, display: 'grid', gridTemplateColumns: 'auto auto 1fr', alignItems: 'stretch', borderRadius: '10px', border: '1px solid', borderColor: 'divider', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,118,110,0.035)', overflow: 'hidden' }}>
+                <Box sx={{ px: 1, py: 0.6, textAlign: 'center' }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>{itemCount}</Typography>
+                  <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>resultado{itemCount === 1 ? '' : 's'}</Typography>
                 </Box>
-              )}
-              {altered > 0 ? (
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.375, px: 0.75, py: 0.2, borderRadius: RADIUS.pill, bgcolor: 'rgba(234,88,12,.10)', border: '1px solid rgba(234,88,12,.20)' }}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#fb923c', flexShrink: 0 }} />
-                  <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#c2410c', lineHeight: 1.2 }}>{altered} alterado{altered > 1 ? 's' : ''}</Typography>
+                <Box sx={{ px: 1, py: 0.6, textAlign: 'center', borderLeft: '1px solid', borderRight: '1px solid', borderColor: 'divider' }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 14, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums', color: (t) => altered > 0 ? (t.palette.mode === 'dark' ? '#fdba74' : '#c2410c') : SEM.ok[t.palette.mode] }}>{altered}</Typography>
+                  <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: (t) => altered > 0 ? (t.palette.mode === 'dark' ? '#fdba74' : '#c2410c') : 'text.secondary' }}>alterado{altered === 1 ? '' : 's'}</Typography>
                 </Box>
-              ) : itemCount > 0 ? (
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.375, px: 0.75, py: 0.2, borderRadius: RADIUS.pill, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.10), border: (t) => `1px solid ${alpha(SEM.ok[t.palette.mode], 0.20)}` }}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: (t: ModeTheme) => SEM.ok[t.palette.mode], flexShrink: 0 }} />
-                  <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color: (t: ModeTheme) => SEM.ok[t.palette.mode], lineHeight: 1.2 }}>tudo normal</Typography>
+                <Box sx={{ px: 1, py: 0.6, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Typography sx={{ fontWeight: 700, fontSize: 11.5, lineHeight: 1.3, display: 'block', width: '100%', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cc.cat}</Typography>
                 </Box>
-              ) : null}
-              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{cc.cat}</Typography>
-            </Stack>
+              </Box>
+            ) : (
+              <Typography variant="caption" color="text.secondary">{cc.cat}</Typography>
+            )}
             <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.625 }}>
               {isNew && <Chip size="small" icon={<FiberNewIcon sx={{ fontSize: '14px !important' }} />} label="Novo" sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode], '& .MuiChip-icon': { color: (t: ModeTheme) => `${SEM.ok[t.palette.mode]} !important` } }} />}
               <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(toneMain(t, sc), 0.12), color: (t) => toneMain(t, sc) }} />

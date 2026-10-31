@@ -7,8 +7,18 @@ import { tealText } from '../theme';
  *  ícone específico (default = mascote, nunca mais "emoji solto" = identidade consistente).
  *  `bonus` (nº de créditos) mostra um chip "ganhe X ao enviar o 1º exame" — só pra quem ainda
  *  não recebeu o bônus (passar undefined esconde). */
-export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void; bonus?: number }) => (
-  <Box sx={{ textAlign: 'center', py: { xs: 5, md: 7 }, px: 3 }}>
+export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus, variant = 'plain' }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void; bonus?: number; variant?: 'plain' | 'card' }) => (
+  <Box sx={{
+    textAlign: 'center', py: { xs: 5, md: 7 }, px: 3,
+    // ReUI Empty (dono 30/10): variante 'card' = contêiner tracejado arredondado — o
+    // vazio ganha moldura própria em vez de flutuar solto no fundo da página.
+    ...(variant === 'card' ? {
+      borderRadius: '20px',
+      border: '1.5px dashed',
+      borderColor: (t: any) => t.palette.mode === 'dark' ? 'rgba(148,163,184,0.3)' : 'rgba(32,178,170,0.3)',
+      bgcolor: (t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(240,253,250,0.5)',
+    } : {}),
+  }}>
     {/* keyframes DENTRO do sx (júri E4+ #12): <style> no meio do Box vazava
         "@keyframes esFloat{…}" no texto acessível do empty state. */}
     <Box className="dx-empty-aura" sx={{

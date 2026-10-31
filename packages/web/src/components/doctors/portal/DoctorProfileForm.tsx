@@ -4,6 +4,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import { API_URL, doctorPhotoUrl } from '../../../config';
+import { PhoneField } from '../../PhoneField';
 import { PhotoUpload } from '../../PhotoUpload';
 import { MfaSetupCard } from '../../mfa/MfaSetupCard';
 import { SPECIALTIES } from '../../../utils/medicalData';
@@ -121,7 +122,9 @@ export const DoctorProfileForm = ({ token, doctor, onBack, onSaved, onPhoto, pho
               sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
             />
             <Divider sx={{ my: 0.5 }}><Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>PERFIL PÚBLICO (visto pelo paciente)</Typography></Divider>
-            <TextField label="Telefone / WhatsApp" value={phone} onChange={(e) => setPhone(e.target.value)} size="small" fullWidth helperText="Vira o botão 'Agendar no WhatsApp' para o paciente." inputProps={{ inputMode: 'tel' }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
+            {/* ReUI phone-input (dono 30/10): máscara BR ao vivo + bandeira — mesmo payload
+                (links wa.me fazem replace(/\D/g,''), dígito nenhum se perde). */}
+            <PhoneField label="Telefone / WhatsApp" value={phone} onChange={setPhone} size="small" fullWidth helperText="Vira o botão 'Agendar no WhatsApp' para o paciente." sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             <TextField label="Consultório / Clínica" value={clinicName} onChange={(e) => setClinicName(e.target.value)} size="small" fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             <TextField label="Cidade - UF" value={clinicCity} onChange={(e) => setClinicCity(e.target.value)} size="small" fullWidth placeholder="Ex.: São Paulo - SP" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />
             <TextField label="Apresentação / referências" value={bio} onChange={(e) => setBio(e.target.value)} size="small" fullWidth multiline minRows={2} inputProps={{ maxLength: 500 }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }} />

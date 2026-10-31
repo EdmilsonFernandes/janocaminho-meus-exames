@@ -274,12 +274,15 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
     // §5 dono (26/10): relógio da ausência p/ o client desenhar o countdown ("Paciente
     // ausente — encerra em Xmin" / "Médico ainda não chegou"). Deadline do SERVER — o
     // client nunca decide sozinho quando a tolerância vence.
-    const { noShowToleranceMin } = getTeleconsultaConfig();
+    const { noShowToleranceMin, minJointSeconds } = getTeleconsultaConfig();
     res.json({
       serverUrl: process.env.LIVEKIT_URL, token, room, stt: hasStt(), endedAt: null, teleStatus,
       dueDate: new Date(dueMs).toISOString(),
       noShowToleranceMin,
       noShowDeadlineMs: dueMs + noShowToleranceMin * 60_000,
+      // Dono 30/10: o client mostra o aviso premium "abaixo do mínimo" com o número
+      // REAL da regra (AppSetting teleconsulta.minJointSeconds) — nunca hardcode na UI.
+      minJointSeconds,
     });
   } catch (e) {
     next(e);
@@ -405,6 +408,7 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
           suggestion,
           reason,
           jointMsSec: Math.floor(jointMs / 1000),
+          minJointSeconds,
         });
         return;
       }
@@ -417,6 +421,7 @@ router.post('/:id/end', requireJoinIdentity, async (req: JoinRequest, res, next)
           suggestion,
           reason,
           jointMsSec: Math.floor(jointMs / 1000),
+          minJointSeconds,
         });
         return;
       }

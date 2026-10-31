@@ -112,14 +112,22 @@ const FilePreview = ({ file, onRemove }: { file: File; onRemove: () => void }) =
   return (
     <Box sx={{ position: 'relative', p: 1.25, borderRadius: RADIUS.card, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', width: { xs: '100%', sm: 210 } }}>
       <Stack direction="row" spacing={1.5} alignItems="center">
+        {/* ReUI file-type (dono 30/10): tile TIPADO — PDF vermelho com selo de extensão,
+            imagem mostra a miniatura real. O usuário bate o olho e sabe o que vai subir. */}
         <Box sx={{
-          width: 52, height: 52, borderRadius: RADIUS.button, overflow: 'hidden', flexShrink: 0,
-          bgcolor: 'rgba(32,178,170,.10)', display: 'grid', placeItems: 'center',
+          position: 'relative', width: 52, height: 52, borderRadius: RADIUS.button, overflow: 'hidden', flexShrink: 0,
+          bgcolor: isImg ? 'rgba(32,178,170,.10)' : 'rgba(220,38,38,.08)', display: 'grid', placeItems: 'center',
+          boxShadow: `inset 0 0 0 1px ${isImg ? 'rgba(32,178,170,.25)' : 'rgba(220,38,38,.22)'}`,
         }}>
           {url ? (
             <Box component="img" src={url} alt={`Preview de ${file.name}`} sx={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <DescriptionOutlinedIcon sx={{ fontSize: 26, color: '#178f89' }} />
+            <DescriptionOutlinedIcon sx={{ fontSize: 26, color: isImg ? '#178f89' : '#dc2626' }} />
+          )}
+          {!isImg && (
+            <Box aria-hidden sx={{ position: 'absolute', bottom: 2, right: 2, px: 0.5, py: '1px', borderRadius: '6px', bgcolor: '#dc2626', color: '#fff', fontSize: 8.5, fontWeight: 800, letterSpacing: '.04em', lineHeight: 1.4 }}>
+              {(file.name.split('.').pop() || 'PDF').toUpperCase().slice(0, 4)}
+            </Box>
           )}
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>

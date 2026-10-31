@@ -135,29 +135,45 @@ const signalsMemCache = new Map<string, SignalsResp>();
 
 const fmtCount = (n: number) => n.toLocaleString('pt-BR');
 
-/** Barra horizontal relativa — largura proporcional ao maior evento (top 8). */
+/** Ranking de eventos (padrão ReUI list-2): tile de posição, nome PT + termo técnico em
+ *  caption, contagem à direita e barra fina proporcional ao maior evento (top 8). */
 const SignalBars = ({ events }: { events: SignalEvent[] }) => {
   const top = events.slice(0, 8);
   const max = Math.max(...top.map((e) => e.count), 1);
   return (
-    <Stack spacing={1} sx={{ mt: 0.5 }}>
-      {top.map((e) => (
-        <Box key={e.term}>
-          <Stack direction="row" spacing={0.5} justifyContent="space-between" alignItems="baseline" sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 12.5, fontWeight: 700, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {e.termPt}{e.termPt !== e.term ? ` (${e.term})` : ''}
-            </Typography>
-            <Typography component="span" sx={{ fontSize: 12, color: 'text.secondary', flexShrink: 0 }}>
-              {fmtCount(e.count)} relatos
-            </Typography>
-          </Stack>
-          <Box sx={{ height: 6, borderRadius: '3px', bgcolor: 'rgba(148,163,184,.16)', overflow: 'hidden', mt: 0.4 }}>
-            <Box sx={{
-              width: `${Math.max((e.count / max) * 100, 2)}%`, height: '100%', borderRadius: '3px',
-              background: 'linear-gradient(90deg,#20b2aa,#178f89)',
-            }} />
+    <Stack spacing={1} sx={{ mt: 0.75 }}>
+      {top.map((e, i) => (
+        <Stack key={e.term} direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
+          <Box sx={{
+            width: 26, height: 26, flexShrink: 0, borderRadius: '9px', display: 'grid', placeItems: 'center',
+            fontSize: 11.5, fontWeight: 800, fontFamily: 'Poppins, sans-serif',
+            ...(i === 0
+              ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35), 0 6px 12px -6px rgba(23,143,137,.6)' }
+              : { bgcolor: 'rgba(32,178,170,.1)', color: '#0b5c57', boxShadow: 'inset 0 0 0 1px rgba(32,178,170,.2)' }),
+          }}>
+            {i + 1}
           </Box>
-        </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Stack direction="row" spacing={0.75} alignItems="baseline" sx={{ minWidth: 0 }}>
+              <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, minWidth: 0 }}>{e.termPt}</Typography>
+              {e.termPt !== e.term && (
+                <Typography noWrap component="span" sx={{ fontSize: 10, fontWeight: 600, color: 'text.disabled', letterSpacing: '0.04em', textTransform: 'uppercase', flexShrink: 1, minWidth: 0 }}>
+                  {e.term}
+                </Typography>
+              )}
+            </Stack>
+            <Box sx={{ height: 4, borderRadius: '2px', bgcolor: 'rgba(148,163,184,.16)', overflow: 'hidden', mt: 0.5 }}>
+              <Box sx={{
+                width: `${Math.max((e.count / max) * 100, 3)}%`, height: '100%', borderRadius: '2px',
+                background: i === 0 ? 'linear-gradient(90deg,#20b2aa,#178f89)' : 'rgba(32,178,170,.55)',
+              }} />
+            </Box>
+          </Box>
+          <Stack alignItems="flex-end" sx={{ flexShrink: 0 }}>
+            <Typography sx={{ fontSize: 14, fontWeight: 800, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>{fmtCount(e.count)}</Typography>
+            <Typography sx={{ fontSize: 10, color: 'text.secondary', lineHeight: 1.3 }}>relatos</Typography>
+          </Stack>
+        </Stack>
       ))}
     </Stack>
   );
@@ -226,9 +242,12 @@ const SignalsToggle = ({ medId, name }: { medId: string; name: string }) => {
           {state === 'ok' && data && (
             <>
               {data.stale && (
-                <Typography sx={{ fontSize: 12, color: 'text.secondary', mb: 0.5 }}>
-                  Mostrando dados em cache — a base da FDA não respondeu agora.
-                </Typography>
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.6, px: 1, py: 0.4, mb: 0.5, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', boxShadow: 'inset 0 0 0 1px rgba(245,158,11,0.3)' }}>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 11.5, fontWeight: 600, color: (t) => t.palette.mode === 'dark' ? '#fbbf24' : '#92400e' }}>
+                    Dados em cache — a base da FDA não respondeu agora
+                  </Typography>
+                </Box>
               )}
               {data.events.length === 0 ? (
                 <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>Sem relatos registrados para {name}.</Typography>
@@ -834,52 +853,61 @@ export const MedicationsPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* ============ DIALOG VER PREÇOS — estilo marketplace (Shopee-like) ============ */}
-      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm" PaperProps={{ sx: { borderRadius: '16px', overflow: 'hidden' } }}>
-        {/* HEADER: foto grande + melhor preço em destaque + ECONOMIA (delta entre
-            a mais cara e a melhor — o argumento de venda que faltava, critique P2) */}
+      {/* ============ DIALOG VER PREÇOS — padrão ReUI comparison-5 (30/10): herói em gradiente
+          da marca com a oferta campeã + alternativas empilhadas em cards. Bottom-sheet no xs. ============ */}
+      <Dialog open={!!pricesFor} onClose={() => setPricesFor(null)} fullWidth maxWidth="sm"
+        sx={{ '& .MuiDialog-container': { alignItems: { xs: 'flex-end', sm: 'center' } } }}
+        PaperProps={{ sx: { borderRadius: { xs: '24px 24px 0 0', sm: '24px' }, m: { xs: 0, sm: 4 }, width: { xs: '100%', sm: undefined }, maxHeight: { xs: '92dvh', sm: '90vh' }, overflow: 'hidden' } }}>
+        {/* HERÓI: foto em "poço" branco com aro + melhor preço grande + economia vs. a mais cara */}
         {pricesFor && (() => {
           const offers = pricesData?.snapshot?.offers ?? [];
           const best = offers[0];
           const worst = offers.length > 1 ? offers[offers.length - 1] : null;
           const savings = best && worst ? worst.priceCents - best.priceCents : 0;
           return (
-            <Box sx={{ background: 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(32,178,170,.02))', p: 2.5, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <Stack direction="row" spacing={2} alignItems="center">
-                {best?.imageUrl || pricesFor.catalogPhotoUrl ? (
-                  <Box component="img" src={best?.imageUrl ?? pricesFor.catalogPhotoUrl!} alt={pricesFor.name}
-                    sx={{ width: 72, height: 72, borderRadius: '16px', objectFit: 'contain', bgcolor: 'background.paper', border: '2px solid', borderColor: 'primary.main' }} />
-                ) : (
-                  <MedAvatar name={pricesFor.name} size={72} />
-                )}
+            <Box sx={{ position: 'relative', background: 'linear-gradient(135deg,#20b2aa,#0f766e)', color: '#fff', p: 2.5, '&::after': { content: '""', position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 85% 15%, rgba(255,255,255,0.2), transparent 55%)', pointerEvents: 'none' } }}>
+              <Stack direction="row" spacing={2} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
+                <Box sx={{ width: 76, height: 76, flexShrink: 0, borderRadius: '18px', bgcolor: '#fff', display: 'grid', placeItems: 'center', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.9), 0 10px 22px -10px rgba(0,0,0,.45)', overflow: 'hidden' }}>
+                  {best?.imageUrl || pricesFor.catalogPhotoUrl ? (
+                    <Box component="img" src={best?.imageUrl ?? pricesFor.catalogPhotoUrl!} alt={pricesFor.name} sx={{ width: 64, height: 64, objectFit: 'contain' }} />
+                  ) : (
+                    <MedAvatar name={pricesFor.name} size={64} />
+                  )}
+                </Box>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 18, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif' }}>{pricesFor.name}</Typography>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
+                    <Typography noWrap sx={{ fontWeight: 700, fontSize: 17, lineHeight: 1.2, fontFamily: 'Poppins, sans-serif', minWidth: 0, flex: 1 }}>{pricesFor.name}</Typography>
+                    {best && (
+                      <Box component="span" sx={{ flexShrink: 0, px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)', fontSize: 10.5, fontWeight: 800, letterSpacing: '0.06em' }}>MELHOR OFERTA</Box>
+                    )}
+                  </Stack>
                   {[pricesFor.dosage, pricesFor.packQty ? `${pricesFor.packQty} un.` : null].filter(Boolean).join(' · ') && (
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,.75)', display: 'block' }}>
                       {[pricesFor.dosage, pricesFor.packQty ? `${pricesFor.packQty} un.` : null].filter(Boolean).join(' · ')}
                     </Typography>
                   )}
                   {best && (
                     <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
-                      <Typography component="span" variant="caption" sx={{ color: 'text.secondary' }}>a partir de</Typography>
-                      <Typography component="span" sx={{ fontWeight: 800, fontSize: 26, lineHeight: 1, color: (t) => tealText(t.palette.mode), fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
+                      <Typography component="span" variant="caption" sx={{ color: 'rgba(255,255,255,.75)' }}>a partir de</Typography>
+                      <Typography component="span" sx={{ fontWeight: 800, fontSize: 27, lineHeight: 1, fontVariantNumeric: 'tabular-nums', fontFamily: 'Poppins, sans-serif' }}>
                         {fmtBRL(best.priceCents)}
                       </Typography>
                     </Stack>
                   )}
-                  {savings > 0 && (
-                    <Chip size="small" label={`economize ${fmtBRL(savings)} vs. a mais cara`} sx={{ mt: 0.75, height: 24, fontWeight: 800, fontSize: 12, bgcolor: 'rgba(5,150,105,.12)', color: '#047857' }} />
-                  )}
-                  {best?.pharmacy && (
-                    <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.5, minWidth: 0 }}>
-                      <PharmacyBadge name={best.pharmacy} />
-                      <Typography variant="caption" noWrap sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>{best.pharmacy}</Typography>
-                    </Stack>
-                  )}
+                  <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.75, minWidth: 0, flexWrap: 'wrap', rowGap: 0.5 }}>
+                    {best?.pharmacy && (
+                      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.9, py: 0.3, borderRadius: '999px', bgcolor: '#fff', maxWidth: '100%' }}>
+                        <PharmacyBadge name={best.pharmacy} />
+                        <Typography variant="caption" noWrap sx={{ color: '#1f2d2d', fontWeight: 700, minWidth: 0 }}>{best.pharmacy}</Typography>
+                      </Box>
+                    )}
+                    {savings > 0 && (
+                      <Box component="span" sx={{ px: 1, py: 0.3, borderRadius: '999px', bgcolor: 'rgba(255,255,255,.18)', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.3)', fontSize: 11.5, fontWeight: 700, whiteSpace: 'nowrap' }}>
+                        economize {fmtBRL(savings)} vs. a mais cara
+                      </Box>
+                    )}
+                  </Stack>
                 </Box>
-                {best && (
-                  <Chip label="🏆 MELHOR" size="small" sx={{ bgcolor: 'primary.main', color: '#fff', fontWeight: 800, fontSize: 12, flexShrink: 0 }} />
-                )}
               </Stack>
             </Box>
           );
@@ -890,47 +918,53 @@ export const MedicationsPage = () => {
           {!pricesLoading && (pricesData?.snapshot?.offers ?? []).length === 0 && (
             <Typography sx={{ color: 'text.secondary', py: 4, textAlign: 'center' }}>Ainda não temos preços para este remédio.</Typography>
           )}
-          {!pricesLoading && (pricesData?.snapshot?.offers ?? []).map((o, i) => (
-            <Stack key={i} component="button" direction="row" spacing={1.5} alignItems="center"
-              onClick={() => setOfferDetail(o)}
-              aria-label={`Detalhes de ${o.productName} na ${o.pharmacy}`}
-              sx={{
-                width: '100%', p: 1.75, borderBottom: '1px solid', borderColor: 'divider',
-                cursor: 'pointer', border: 'none', borderTop: 'none', borderLeft: 'none', borderRight: 'none',
-                bgcolor: i === 0 ? 'rgba(32,178,170,.04)' : 'transparent',
-                fontFamily: 'inherit', textAlign: 'left',
-                transition: 'background .12s', '&:hover': { bgcolor: 'rgba(32,178,170,.08)' },
-                '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main' },
-              }}>
-              {o.imageUrl ? (
-                <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
-                  sx={{ width: 52, height: 52, borderRadius: '12px', objectFit: 'contain', bgcolor: 'background.paper', flexShrink: 0 }} />
-              ) : (
-                <MedAvatar name={o.productName} size={52} />
-              )}
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: 14, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {o.productName}
-                </Typography>
-                <Stack direction="row" spacing={0.5} alignItems="center">
-                  <PharmacyBadge name={o.pharmacy} />
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>{o.pharmacy}</Typography>
-                  {i === 0 && (
-                    <Chip label="🏆" size="small" sx={{ height: 18, fontSize: 12, bgcolor: 'transparent', pl: 0, pr: 0, '& .MuiChip-label': { px: 0 } }} />
-                  )}
+          {/* Alternativas EMPILHADAS em cards (comparison-5): campeã com anel teal + selo;
+              demais em cartão neutro. Linha inteira continua botão (abre a ficha da oferta). */}
+          <Stack spacing={1} sx={{ p: 1.5 }}>
+            {!pricesLoading && (pricesData?.snapshot?.offers ?? []).map((o, i) => (
+              <Stack key={i} component="button" direction="row" spacing={1.5} alignItems="center"
+                onClick={() => setOfferDetail(o)}
+                aria-label={`Detalhes de ${o.productName} na ${o.pharmacy}`}
+                sx={{
+                  width: '100%', p: 1.5, border: 'none', borderRadius: '16px',
+                  cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+                  bgcolor: (t) => i === 0
+                    ? 'rgba(32,178,170,.07)'
+                    : t.palette.mode === 'dark' ? 'rgba(255,255,255,.03)' : 'background.paper',
+                  boxShadow: (t) => i === 0
+                    ? 'inset 0 0 0 1.5px rgba(32,178,170,.45), 0 10px 22px -14px rgba(15,90,86,.5)'
+                    : `inset 0 0 0 1px ${t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,90,86,.08)'}, 0 1px 2px rgba(10,60,58,.05)`,
+                  transition: 'all .12s ease',
+                  '&:hover': { boxShadow: 'inset 0 0 0 1.5px rgba(32,178,170,.45), 0 6px 18px -10px rgba(15,90,86,.4)' },
+                  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+                }}>
+                {o.imageUrl ? (
+                  <Box component="img" src={o.imageUrl} alt={o.productName} loading="lazy"
+                    sx={{ width: 48, height: 48, borderRadius: '12px', objectFit: 'contain', bgcolor: '#fff', flexShrink: 0, boxShadow: 'inset 0 0 0 1px rgba(15,90,86,.08)' }} />
+                ) : (
+                  <MedAvatar name={o.productName} size={48} />
+                )}
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography sx={{ fontWeight: 600, fontSize: 13.5, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.primary' }}>
+                    {o.productName}
+                  </Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.35, minWidth: 0 }}>
+                    <PharmacyBadge name={o.pharmacy} />
+                    <Typography variant="caption" noWrap sx={{ color: 'text.secondary', minWidth: 0 }}>{o.pharmacy}</Typography>
+                  </Stack>
+                </Box>
+                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
+                  <Stack alignItems="flex-end" spacing={0.35}>
+                    <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
+                    {i === 0 && (
+                      <Box component="span" sx={{ px: 0.9, py: 0.25, borderRadius: '999px', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff', fontSize: 10, fontWeight: 800, letterSpacing: '0.05em', boxShadow: 'inset 1px 1px 0 rgba(255,255,255,.35)' }}>MELHOR PREÇO</Box>
+                    )}
+                  </Stack>
+                  <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
                 </Stack>
-              </Box>
-              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ flexShrink: 0 }}>
-                <Stack alignItems="flex-end" spacing={0.25}>
-                  <PriceBig cents={o.priceCents} size={18} color={i === 0 ? 'primary.dark' : 'text.primary'} />
-                  {i === 0 && (
-                    <Chip label="MELHOR PREÇO" size="small" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'primary.main', color: '#fff', letterSpacing: '0.03em' }} />
-                  )}
-                </Stack>
-                <ChevronRightIcon sx={{ fontSize: 18, color: 'text.disabled' }} />
               </Stack>
-            </Stack>
-          ))}
+            ))}
+          </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1 }}>

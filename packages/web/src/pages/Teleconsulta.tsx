@@ -346,9 +346,12 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [payPriceCents, setPayPriceCents] = useState<number | null>(null);
   const [recheckBusy, setRecheckBusy] = useState(false); // "Já paguei" em voo (spinner + disabled)
   const payBlockedRef = useRef(false); // join 402 → fase payment É estável (nunca volta a prejoin/câmera)
-  const [outcomeOpen, setOutcomeOpen] = useState(false); // "Como encerrar?"
-  const [outcomeSuggest, setOutcomeSuggest] = useState<'no_show' | 'technical' | null>(null); // sugestão do server
+  const [outcomeOpen, setOutcomeOpen] = useState(false); // aviso "abaixo do mínimo" (dono 30/10)
+  // Recusa do /end com os NÚMEROS do server (tempo juntos × mínimo da regra) — a UI
+  // mostra a comparação honesta em vez de reoferecer um outcome que será negado.
+  const [outcomeInfo, setOutcomeInfo] = useState<{ reason: 'min_time_not_met' | 'patient_not_joined' | null; jointSec: number | null; minSec: number | null } | null>(null);
   const [outcomeBusy, setOutcomeBusy] = useState(false);
+  const [minJointSec, setMinJointSec] = useState<number | null>(null); // regra do server (AppSetting), via /join
   const [ended, setEnded] = useState<{ sec: number } | null>(null);
   const [fallbackLink, setFallbackLink] = useState('');
   const [unsupported, setUnsupported] = useState(false);
@@ -779,10 +782,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // endedAt, rota do agent1). Sem isto o card ficava "Entrar na consulta" pra
   // sempre (dono 21/10: "ela nunca encerra"). keepalive sobrevive ao unload.
   // Chamado no endCall, no disconnect de rede E no unload (agent3 a/b).
-  const markEnded = useCallback(async (outcome?: TeleOutcome): Promise<{ ok: boolean; reason?: string | null; suggestion?: 'no_show' | 'technical' | null; error?: string | null }> => {
+  const markEnded = useCallback(async (outcome?: TeleOutcome): Promise<{ ok: boolean; reason?: string | null; suggestion?: 'no_show' | 'technical' | null; error?: string | null; jointSec?: number | null; minSec?: number | null }> => {
     // Lifecycle 24/10: /end aceita outcome explícito — o server EXIGE quando o
     // paciente não entrou ou o tempo conjunto ficou abaixo do mínimo (400 com
-    // reason+suggestion). Devolve o veredito p/ o endCall abrir o dialog honesto;
+    // reason+suggestion+números). Devolve o veredito p/ o endCall abrir o aviso honesto;
     // callers best-effort (disconnect/unload) ignoram o resultado.
     try {
       const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/end`, {
@@ -793,7 +796,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       });
       if (res.ok) return { ok: true };
       const d = await res.json().catch(() => null);
-      return { ok: false, reason: d?.reason ?? null, suggestion: d?.suggestion ?? null, error: d?.error ?? null };
+      return {
+        ok: false, reason: d?.reason ?? null, suggestion: d?.suggestion ?? null, error: d?.error ?? null,
+        jointSec: typeof d?.jointMsSec === 'number' ? d.jointMsSec : null,
+        minSec: typeof d?.minJointSeconds === 'number' ? d.minJointSeconds : null,
+      };
     } catch { return { ok: false }; /* best-effort: rede caída — server fecha sozinho pelo audit */ }
   }, [authToken, reminderId]);
 
@@ -843,10 +850,23 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       // (80 últimos) + console: suporte do futuro = "abra o console e copie".
       if (++diagTicks % 8 === 0) {
         try {
-          const remotes = [...room.remoteParticipants.values()].map((rp) => ({
-            id: rp.identity, lvl: typeof rp.audioLevel === 'number' ? Number(rp.audioLevel.toFixed(4)) : null, speaking: rp.isSpeaking, micMuted: !!rp.getTrackPublication(Track.Source.Microphone)?.isMuted,
-          }));
-          const line = { t: new Date().toISOString().slice(11, 19), euMudo: !!room.localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted, remotos: remotes };
+          const remotes = [...room.remoteParticipants.values()].map((rp) => {
+            const vcam = rp.getTrackPublication(Track.Source.Camera);
+            return {
+              id: rp.identity, lvl: typeof rp.audioLevel === 'number' ? Number(rp.audioLevel.toFixed(4)) : null, speaking: rp.isSpeaking, micMuted: !!rp.getTrackPublication(Track.Source.Microphone)?.isMuted,
+              // 30/10 ("Edna não viu minha câmera"): vídeo entrou no retrato — travou
+              // de novo, o server mostra DE QUAL LADO (minha trilha muda × sub dela).
+              camMuted: !!vcam?.isMuted, camSub: !!vcam?.isSubscribed,
+            };
+          });
+          const vpub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+          const vmst = vpub?.track?.mediaStreamTrack;
+          const line = {
+            t: new Date().toISOString().slice(11, 19),
+            euMudo: !!room.localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted,
+            cam: vpub ? { muted: !!vpub.isMuted, ready: vmst?.readyState ?? null, fps: Number(vmst?.getSettings?.()?.frameRate ?? 0) || null } : null,
+            remotos: remotes,
+          };
           (window as any).__dxTeleAudioLog = [...(((window as any).__dxTeleAudioLog ?? []) as unknown[]), line].slice(-80);
           console.log('[tele-audio]', JSON.stringify(line));
           if (diagTicks % 40 === 0) void sendAudioDiag('periodico'); // ~60s: espelho no server
@@ -885,6 +905,40 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     }, 1500);
     return () => clearInterval(iv);
   }, [micOn]);
+
+  // ── WATCHDOG DE CÂMERA (30/10 — "Edna não viu minha câmera, ficou travada") ──
+  // Android/WebView pausa a câmera quando o app perde o foco/a tela apaga e, ao
+  // voltar, a trilha às vezes fica MUDA (congelada pro outro lado) sem nenhum
+  // evento de UI. Mesmo padrão do watchdog de mic: 4 checagens seguidas (~6s) de
+  // trilha muted/ended com a câmera LIGADA → re-publica (off→on). Máx 2 tentativas
+  // por sessão; trilha saudável zera a contagem. Diag: cam-watchdog-reacquire:N.
+  const camWatch = useRef({ bad: 0, tries: 0, busy: false });
+  useEffect(() => {
+    if (!camOn) { camWatch.current.bad = 0; return; }
+    const iv = setInterval(async () => {
+      const w = camWatch.current;
+      const room = roomRef.current;
+      if (w.busy || !room || room.state !== 'connected') return;
+      const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const mst = pub?.track?.mediaStreamTrack;
+      if (!pub || !mst) return; // câmera nem publicada (sem device) — nada a vigiar
+      const frozen = mst.readyState === 'ended' || mst.muted;
+      if (!frozen) { w.bad = 0; return; }
+      w.bad++;
+      if (w.bad >= 4 && w.tries < 2) {
+        w.bad = 0; w.tries++; w.busy = true;
+        try {
+          await room.localParticipant.setCameraEnabled(false);
+          await new Promise((r) => setTimeout(r, 500));
+          const npub = await room.localParticipant.setCameraEnabled(true);
+          setLocalVideo(npub?.videoTrack ?? null);
+          void sendAudioDiag(`cam-watchdog-reacquire:${w.tries}`);
+        } catch { /* mantém — o médico ainda alterna manualmente pelo botão */ }
+        finally { w.busy = false; }
+      }
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [camOn]);
 
   // ── MEDIDOR + SELETOR DE MIC no preview (30/10) ─────────────────────────────
   // As causas que NEM watchdog NEM AGC cobrem: dispositivo errado (headset
@@ -1296,6 +1350,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       const data = await res.json();
       // §5 dono (26/10): deadline da tolerância de ausência (server-verdade) p/ o chip.
       if (typeof data.noShowDeadlineMs === 'number') setNoShowDeadlineMs(data.noShowDeadlineMs);
+      // Dono 30/10: mínimo de tempo conjunto (server-verdade) p/ o aviso premium do encerrar.
+      if (typeof data.minJointSeconds === 'number') setMinJointSec(data.minJointSeconds);
       // fix #13c: o /join devolve stt (hasStt do server) mas o client não salvava —
       // sem isto o gate do banner/chip de gravação ficava cego até um /summary futuro.
       if (typeof data.stt === 'boolean') setSummary((cur) => (cur ? { ...cur, stt: data.stt } : cur));
@@ -1936,29 +1992,20 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       return;
     }
 
-    // Encerramento honesto (lifecycle 24/10): só EU na chamada → pergunta COMO
-    // encerrar ANTES de derrubar a sala (o server exige outcome explícito).
-    // "Voltar à chamada" devolve o usuário à sala intacta (gravação segue).
-    if (!outcome && !otherJoined) {
-      setOutcomeSuggest(null);
-      setOutcomeOpen(true);
-      return;
-    }
-
-    const res = await markEnded(outcome ?? 'completed');
+    // Encerramento honesto (lifecycle 24/10 + dono 30/10): o pedido vai SEM outcome —
+    // o server completa sozinho quando o critério (paciente presente + tempo conjunto
+    // ≥ mínimo) está atendido e devolve 400 COM OS NÚMEROS quando não está. A recusa
+    // abre o aviso premium (tempo juntos × mínimo) com só as ações que funcionam —
+    // nunca reoferecer um "Encerrar consulta" que o server vai negar de novo.
+    const res = await markEnded(outcome);
     if (!res.ok && res.reason) {
-      // Server recusou (400): paciente nunca entrou OU tempo conjunto abaixo do
-      // mínimo. Abre o dialog com a sugestão DO SERVER — nunca registra silencioso
-      // o que não aconteceu (escolha explícita rejeitada cai aqui de novo).
-      setOutcomeSuggest(res.suggestion ?? null);
+      setOutcomeInfo({
+        reason: res.reason === 'min_time_not_met' || res.reason === 'patient_not_joined' ? res.reason : null,
+        jointSec: res.jointSec ?? null,
+        minSec: res.minSec ?? null,
+      });
       setOutcomeOpen(true);
       hapticError();
-      setToast({
-        text: res.reason === 'min_time_not_met'
-          ? 'Tempo conjunto abaixo do mínimo'
-          : res.error || 'O paciente não entrou nesta consulta.',
-        k: Date.now(),
-      });
       return;
     }
     if (!res.ok) {
@@ -2890,6 +2937,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               aria-label="Brief clínico — exames do paciente"
               sx={{
                 position: 'fixed', zIndex: 1300, bgcolor: 'background.paper',
+                // Dono 30/10 ("clico em ver mais, não rola e nada"): o container de scroll
+                // não tinha altura limitada → overflowY nunca ativava e o conteúdo expandia
+                // ABAIXO da dobra (invisível). flex + overflow hidden no sheet; o filho rola.
+                display: 'flex', flexDirection: 'column', overflow: 'hidden',
                 ...(isDesktopViewport
                   ? { top: 0, right: 0, bottom: 0, width: 420, maxWidth: '92vw', borderLeft: '1px solid', borderColor: 'divider' }
                   : { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }),
@@ -2904,7 +2955,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <IconButton ref={briefCloseRef} size="medium" aria-label="Fechar brief clínico" onClick={() => setBriefOpen(false)} sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'text.secondary', bgcolor: 'action.hover', width: 44, height: 44, '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 1 } }}>
                 <CloseIcon sx={{ fontSize: 20 }} />
               </IconButton>
-              <Box sx={{ overflowY: 'auto', overscrollBehavior: 'contain' }}>
+              <Box sx={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1, minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
                 <BriefClinico
                   patientId={briefPatientId}
                   authToken={authToken() ?? ''}
@@ -2933,53 +2984,71 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           </DialogActions>
         </Dialog>
 
-        {/* Encerramento honesto (lifecycle 24/10): o server exige o motivo quando
-            o paciente não entrou ou o tempo a dois ficou abaixo do mínimo. Três
-            opções claras, zero jargão; a sugestão do server vem destacada. */}
-        <Dialog open={outcomeOpen} onClose={() => { setOutcomeOpen(false); endedByUser.current = false; }} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '16px' } }}>
-          <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17 }}>Como encerrar?</DialogTitle>
-          <DialogContent sx={{ pb: 0 }}>
-            <Typography sx={{ color: 'text.secondary', fontSize: 14, mb: 2, lineHeight: 1.6 }}>
-              {outcomeSuggest === 'technical'
-                ? 'O tempo de chamada a dois ficou abaixo do mínimo.'
-                : outcomeSuggest === 'no_show'
-                  ? 'O paciente não chegou a entrar na chamada.'
-                  : role === 'doctor'
-                    ? 'Você está sozinho(a) nesta chamada.'
-                    : 'A chamada não aconteceu como o esperado.'}
-            </Typography>
-            <Stack spacing={1} sx={{ pb: 1 }}>
-              {([
-                { v: 'completed' as const, label: 'Encerrar consulta', desc: 'A consulta aconteceu normalmente.' },
-                { v: 'no_show' as const, label: 'Paciente não compareceu', desc: 'O paciente não entrou na chamada.' },
-                { v: 'technical' as const, label: 'Tivemos problema técnico', desc: 'Conexão, áudio ou vídeo falharam.' },
-              ]).map((o) => (
-                <Button
-                  key={o.v}
-                  variant="outlined"
-                  disabled={outcomeBusy}
-                  onClick={() => { hapticLight(); setOutcomeBusy(true); void endCall(o.v).finally(() => setOutcomeBusy(false)); }}
-                  sx={{
-                    justifyContent: 'flex-start', textAlign: 'left', textTransform: 'none', borderRadius: '14px',
-                    py: 1.25, px: 2,
-                    borderColor: outcomeSuggest === o.v ? '#20b2aa' : 'divider',
-                    borderWidth: outcomeSuggest === o.v ? 2 : 1,
-                    bgcolor: outcomeSuggest === o.v ? 'rgba(32,178,170,0.08)' : 'transparent',
-                  }}
-                >
-                  <Box sx={{ minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary' }}>
-                      {o.label}{outcomeSuggest === o.v ? ' · sugerido' : ''}
+        {/* Encerramento honesto (dono 30/10): a recusa do server vira um AVISO premium
+            com os números reais (tempo juntos × mínimo da regra) e só as ações que
+            funcionam — nada de reoferecer 'completed' que o server vai negar de novo. */}
+        <Dialog open={outcomeOpen} onClose={() => { if (!outcomeBusy) { setOutcomeOpen(false); endedByUser.current = false; } }} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '20px' } }}>
+          {(() => {
+            const noPatient = outcomeInfo?.reason === 'patient_not_joined';
+            const minSec = outcomeInfo?.minSec ?? minJointSec ?? 300;
+            const jointSec = Math.max(0, outcomeInfo?.jointSec ?? 0);
+            const neverTogether = !noPatient && jointSec === 0;
+            const fmtDur = (s: number) => (s >= 60 ? `${Math.floor(s / 60)}min${s % 60 ? ` ${s % 60}s` : ''}` : `${s}s`);
+            const pct = Math.max(0.04, Math.min(1, minSec > 0 ? jointSec / minSec : 0));
+            return (
+              <>
+                <DialogTitle sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 17, pb: 1 }}>
+                  {noPatient ? 'O paciente ainda não entrou' : neverTogether ? 'A consulta ainda não aconteceu' : 'A consulta ficou abaixo do tempo mínimo'}
+                </DialogTitle>
+                <DialogContent sx={{ pb: 1 }}>
+                  {noPatient ? (
+                    <Typography sx={{ color: 'text.secondary', fontSize: 14, lineHeight: 1.6 }}>
+                      Sem o paciente na chamada, a consulta não pode ser registrada como realizada.
+                      Você pode continuar aguardando ou encerrar como não comparecimento.
                     </Typography>
-                    <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.4 }}>{o.desc}</Typography>
-                  </Box>
-                </Button>
-              ))}
-            </Stack>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, pb: 2.5 }}>
-            <Button onClick={() => { setOutcomeOpen(false); endedByUser.current = false; }} sx={{ textTransform: 'none', fontWeight: 700 }}>Voltar à chamada</Button>
-          </DialogActions>
+                  ) : (
+                    <>
+                      {/* Comparação honesta: tempo juntos × mínimo da regra (números do server) */}
+                      <Box sx={{ p: 1.75, borderRadius: '14px', bgcolor: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', mb: 1.5 }}>
+                        <Stack direction="row" alignItems="baseline" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>Tempo juntos na chamada</Typography>
+                          <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 18, color: '#b45309' }}>{fmtDur(jointSec)}</Typography>
+                        </Stack>
+                        <Box aria-hidden sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(245,158,11,0.18)', overflow: 'hidden' }}>
+                          <Box sx={{ width: `${pct * 100}%`, height: '100%', borderRadius: 3, background: 'linear-gradient(90deg,#f59e0b,#d97706)' }} />
+                        </Box>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.75 }}>
+                          Mínimo pra registrar como realizada: <strong>{fmtDur(minSec)}</strong>
+                        </Typography>
+                      </Box>
+                      <Typography sx={{ color: 'text.secondary', fontSize: 13.5, lineHeight: 1.6 }}>
+                        {neverTogether
+                          ? <>Vocês ainda não ficaram na chamada ao mesmo tempo. Se encerrar agora, ela fica registrada como <strong>problema técnico</strong>.</>
+                          : <>Se encerrar agora, ela fica registrada como <strong>problema técnico</strong> — sem resumo de consulta realizada. Voltando à chamada, o tempo continua contando.</>}
+                      </Typography>
+                    </>
+                  )}
+                </DialogContent>
+                <DialogActions sx={{ px: 3, pb: 2.5, pt: 1, flexDirection: 'column', gap: 1 }}>
+                  <Button
+                    fullWidth variant="contained" autoFocus disabled={outcomeBusy}
+                    onClick={() => { hapticLight(); setOutcomeOpen(false); endedByUser.current = false; }}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(135deg,#178f89,#0f766e)' } }}
+                  >
+                    {noPatient ? 'Continuar aguardando' : 'Voltar à chamada'}
+                  </Button>
+                  <Button
+                    fullWidth variant="outlined" disabled={outcomeBusy}
+                    startIcon={outcomeBusy ? <CircularProgress size={16} color="inherit" /> : <CallEndIcon />}
+                    onClick={() => { hapticLight(); setOutcomeBusy(true); void endCall(noPatient ? 'no_show' : 'technical').finally(() => setOutcomeBusy(false)); }}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, py: 1.05, color: '#dc2626', borderColor: 'rgba(220,38,38,0.45)', '&:hover': { borderColor: '#dc2626', bgcolor: 'rgba(220,38,38,0.06)' }, '&.Mui-disabled': { opacity: 0.7 } }}
+                  >
+                    {outcomeBusy ? 'Encerrando…' : noPatient ? 'Encerrar — paciente não compareceu' : 'Encerrar mesmo assim'}
+                  </Button>
+                </DialogActions>
+              </>
+            );
+          })()}
         </Dialog>
       </Box>
     );

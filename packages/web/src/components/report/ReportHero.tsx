@@ -20,8 +20,9 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
     transition: 'transform .15s ease',
     '&:hover': { transform: 'translateY(-2px)' }
   }}>
-    <Typography sx={{ fontWeight: 800, color: accent, fontSize: 24, lineHeight: 1, fontFamily: 'Poppins, sans-serif' }}>{value}</Typography>
-    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: 12 }}>{label}</Typography>
+    <Typography sx={{ fontWeight: 900, color: accent, fontSize: 25, lineHeight: 1, fontFamily: 'Poppins, sans-serif', fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
+    {/* ReUI Stats (dono 30/10): rótulo caixa-alta com tracking — número é quem fala */}
+    <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: 10.5, textTransform: 'uppercase', letterSpacing: '.07em', display: 'block', mt: 0.5 }}>{label}</Typography>
   </Box>
 );
 
@@ -46,12 +47,19 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
     boxShadow: '0 10px 36px rgba(32,178,170,0.08)'
   })}>
     <AutoAwesomeIcon sx={{ position: 'absolute', right: -14, bottom: -20, fontSize: 150, color: '#d4a574', opacity: 0.08, pointerEvents: 'none' }} />
-    <Stack direction="row" alignItems="center" spacing={1.5}>
-      <Box sx={{ width: 54, height: 54, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(32,178,170,.25), rgba(32,178,170,.05))', boxShadow: '0 4px 14px rgba(32,178,170,0.2)' }}>
-        <DrExame size={42} sx={{ borderRadius: '50%' }} />
+    {/* ReUI Alert/Callout soft (dono 30/10): o aviso educativo vira callout com título
+        em negrito + caption — destaque do disclaimer sem poluir (variante teal suave). */}
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{
+      p: 1.5, borderRadius: '16px',
+      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.10)' : 'rgba(32,178,170,0.07)',
+      border: '1px solid', borderColor: alpha('#20b2aa', 0.22),
+    }}>
+      <Box sx={{ width: 46, height: 46, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(32,178,170,.25), rgba(32,178,170,.05))', border: '1px solid', borderColor: alpha('#20b2aa', 0.25) }}>
+        <DrExame size={36} sx={{ borderRadius: '50%' }} />
       </Box>
       <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600, lineHeight: 1.35 }}>Análise educativa gerada pela IA<br />— não substitui consulta médica</Typography>
+        <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>Análise educativa gerada pela IA</Typography>
+        <Typography sx={{ fontSize: 12.5, color: (t) => tealText(t.palette.mode), fontWeight: 600, mt: 0.25 }}>— não substitui consulta médica</Typography>
       </Box>
     </Stack>
 
@@ -82,7 +90,8 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
     )}
 
     <Grid container spacing={1.25} sx={{ mt: 1.5 }}>
-      <Grid size={{ xs: 4 }}><StatTile value={counts.itens} label="Itens" accent="#0369a1" /></Grid>
+      {/* Itens = neutro (mock do dono): cor só onde há semântica — atenção/positivos */}
+      <Grid size={{ xs: 4 }}><StatTile value={counts.itens} label="Itens" accent="#64748b" /></Grid>
       <Grid size={{ xs: 4 }}><StatTile value={counts.atencao} label="Atenção" accent="#ef4444" /></Grid>
       <Grid size={{ xs: 4 }}><StatTile value={counts.positivos} label="Positivos" accent="#059669" /></Grid>
     </Grid>
@@ -146,79 +155,76 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       gridTemplateColumns: 'repeat(3, 1fr)',
       gap: 1,
     }}>
+      {/* ReUI (mock do dono 30/10): ação vira AZULEJO vertical (ícone sobre rótulo) —
+          cabe nos 3 sem truncar no xs, mesma pegada dos quick-actions nativos. */}
       <Button
         size="small"
-        variant="outlined"
         onClick={onRegen}
         disabled={loading}
         aria-label="Atualizar relatório"
         title="Atualizar relatório"
-        startIcon={loading ? <CircularProgress size={14} color="inherit" /> : <AutoAwesomeIcon />}
         sx={{
-          borderRadius: '999px',
-          textTransform: 'none',
-          fontWeight: 800,
-          fontSize: { xs: 11.5, sm: 12.5 },
-          px: { xs: 0.5, sm: 1.5 },
-          py: 0.8,
-          whiteSpace: 'nowrap',
-          borderColor: 'rgba(32,178,170,0.3)',
-          color: (t) => tealText(t.palette.mode),
-          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+          display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
+          borderRadius: '14px', textTransform: 'none', minWidth: 0,
+          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          color: 'text.secondary',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
+          border: '1px solid', borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          transition: 'all .15s ease',
+          '&:hover': { color: (t) => tealText(t.palette.mode), borderColor: alpha('#20b2aa', 0.45), bgcolor: alpha('#20b2aa', 0.06) },
         }}
       >
+        {loading ? <CircularProgress size={17} color="inherit" /> : <AutoAwesomeIcon sx={{ fontSize: 19 }} />}
         {loading ? 'Gerando…' : 'Atualizar'}
       </Button>
 
       <Button
         size="small"
-        variant="outlined"
-        startIcon={<ShareIcon />}
         onClick={onShare}
         aria-label="Compartilhar"
         sx={{
-          borderRadius: '999px',
-          textTransform: 'none',
-          fontWeight: 700,
-          fontSize: { xs: 11.5, sm: 12.5 },
-          px: { xs: 0.5, sm: 1.5 },
-          py: 0.8,
-          whiteSpace: 'nowrap',
-          borderColor: 'rgba(32,178,170,0.3)',
-          color: (t) => tealText(t.palette.mode),
-          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+          display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
+          borderRadius: '14px', textTransform: 'none', minWidth: 0,
+          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          color: 'text.secondary',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
+          border: '1px solid', borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          transition: 'all .15s ease',
+          '&:hover': { color: (t) => tealText(t.palette.mode), borderColor: alpha('#20b2aa', 0.45), bgcolor: alpha('#20b2aa', 0.06) },
         }}
       >
+        <ShareIcon sx={{ fontSize: 19 }} />
         Compartilhar
       </Button>
 
       <Button
         size="small"
-        variant="outlined"
-        startIcon={<PrintIcon />}
         onClick={onPrint}
         aria-label="Imprimir / PDF"
         sx={{
-          borderRadius: '999px',
-          textTransform: 'none',
-          fontWeight: 700,
-          fontSize: { xs: 11.5, sm: 12.5 },
-          px: { xs: 0.5, sm: 1.5 },
-          py: 0.8,
-          whiteSpace: 'nowrap',
-          borderColor: 'rgba(32,178,170,0.3)',
-          color: (t) => tealText(t.palette.mode),
-          '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(32,178,170,0.06)' },
+          display: 'flex', flexDirection: 'column', gap: 0.5, py: 1.1, px: 0.5,
+          borderRadius: '14px', textTransform: 'none', minWidth: 0,
+          fontWeight: 800, fontSize: 11.5, lineHeight: 1.1, whiteSpace: 'nowrap',
+          color: 'text.secondary',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : '#ffffff',
+          border: '1px solid', borderColor: 'divider',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          transition: 'all .15s ease',
+          '&:hover': { color: (t) => tealText(t.palette.mode), borderColor: alpha('#20b2aa', 0.45), bgcolor: alpha('#20b2aa', 0.06) },
         }}
       >
+        <PrintIcon sx={{ fontSize: 19 }} />
         Imprimir / PDF
       </Button>
     </Box>
 
-    {/* Resumo Textual */}
+    {/* Resumo Textual — ReUI Prose (dono 30/10): papel branco + respiro de leitura
+        (line-height 1.7) pro texto clínico denso parar de competir com o fundo tintado. */}
     {resumo && (
-      <Box sx={{ mt: 2, p: 2, borderRadius: '14px', bgcolor: (t) => alpha(t.palette.primary.main, 0.04), border: '1px solid', borderColor: alpha('#20b2aa', 0.12) }}>
-        <Typography sx={{ fontSize: '0.98rem', lineHeight: 1.65, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
+      <Box sx={{ mt: 2, p: { xs: 2, sm: 2.5 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
+        <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
           {resumo}
         </Typography>
       </Box>

@@ -1,6 +1,6 @@
 import { Card, CardContent, Box, Stack, Typography, Tooltip as MuiTooltip, useMediaQuery, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ReferenceLine } from 'recharts';
 import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from './ExplainItem';
 import { UnitLabel } from './UnitLabel';
@@ -87,11 +87,18 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
   const methodList = (ts.points ?? []).map((p) => ({ method: (p as { method?: string | null }).method ?? null }));
   const mixedMethods = hasMixedMethods(methodList);
   const breaks = lineBreakFlags(methodList);
+  // EIXO LINEAR NO TEMPO (pedido do dono 30/10, padrão dos line-charts ReUI chart-4/26): o XAxis
+  // categórico deixava 3 exames de 2024 e 1 de 2026 equidistantes. Com todos os pontos datados,
+  // o eixo vira numérico (timestamp) e a distância horizontal é proporcional ao tempo real entre
+  // coletas — anos "vazios" aparecem como vazio. Algum ponto sem data → cai no eixo antigo.
+  const allDated = (ts.points ?? []).length >= 2 && (ts.points ?? []).every((p) => !!p.performedAt);
   const data = (ts.points ?? []).map((p, i) => ({
+    t: p.performedAt ? new Date(p.performedAt).getTime() : i,
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
     valor: breaks[i] ? null : p.valueNumeric,
     valorDot: p.valueNumeric, flag: p.flag, title: p.title,
   }));
+  const fmtTick = (t: number) => new Date(t).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace(' de ', '/').replace('.', '');
 
   const TooltipBox = ({ active, payload }: any) => {    if (!active || !payload?.length) return null;
     const d = payload[0].payload;
@@ -280,7 +287,15 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
         <LineChart data={data} margin={{ top: 10, right: isMobile ? 26 : 34, bottom: 10, left: isMobile ? 0 : 4 }}>
           <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
-          <XAxis dataKey="name" minTickGap={isMobile ? 24 : 40} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+          {allDated ? (
+            <XAxis
+              dataKey="t" type="number" scale="time" domain={['dataMin', 'dataMax']}
+              tickFormatter={fmtTick} minTickGap={isMobile ? 28 : 44}
+              tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }}
+            />
+          ) : (
+            <XAxis dataKey="name" minTickGap={isMobile ? 24 : 40} tick={{ fontSize: isMobile ? 9.5 : 11, fill: theme.palette.text.secondary }} axisLine={{ stroke: theme.palette.divider }} />
+          )}
           {/* Domínio EXPLÍCITO inclui a faixa de referência E a meta clínica: sem isto o
               recharts 3.x usa [dataMin,dataMax] e DESCARTA o ReferenceArea que ultrapasse
               os dados (a banda verde/cobre simplesmente não renderizava). */}
@@ -305,6 +320,18 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
                a banda simplesmente não renderizava. Extendendo o domínio, o paciente/médico
                vê o quão longe da faixa o valor está (comportamento Apple Health). */
             <ReferenceArea y1={uniLow} y2={uniHigh} fill={theme.palette.success.main} fillOpacity={0.08} ifOverflow="extendDomain" />
+          )}
+          {/* LINHAS DE LIMITE da faixa (pedido do dono 30/10): a banda a 8% era sutil demais pra
+              responder "passou da faixa?" de relance. Os limites viram linhas tracejadas verdes com
+              o valor na ponta — e séries com UM limite só (só refHigh ou só refLow), que antes não
+              desenhavam NADA, agora mostram a linha. */}
+          {uniHigh != null && (
+            <ReferenceLine y={uniHigh} stroke={theme.palette.success.main} strokeDasharray="4 4" strokeOpacity={0.55} ifOverflow="extendDomain"
+              label={{ value: `máx ${fmtRef(uniHigh)}`, position: 'insideTopRight', fontSize: 10, fill: okText, fontWeight: 700 }} />
+          )}
+          {uniLow != null && (
+            <ReferenceLine y={uniLow} stroke={theme.palette.success.main} strokeDasharray="4 4" strokeOpacity={0.55} ifOverflow="extendDomain"
+              label={{ value: `mín ${fmtRef(uniLow)}`, position: 'insideBottomRight', fontSize: 10, fill: okText, fontWeight: 700 }} />
           )}
           {/* META CLÍNICA (E2.4): SEGUNDA banda, tracejada em COBRE — visualmente DISTINTA
               da régua do laboratório (verde sólido). Nunca substitui a banda acima. */}
