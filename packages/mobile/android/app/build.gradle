@@ -77,5 +77,12 @@ try {
         apply plugin: 'com.google.gms.google-services'
     }
 } catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
+    // INCIDENTE 31/10: AAB 559 saiu de um worktree SEM google-services.json (arquivo
+    // não-versionado) e o plugin era pulado em SILÊNCIO — app crashava em runtime com
+    // "Default FirebaseApp is not initialized" (Sentry). Nunca mais gerar release mudo:
+    // sem Firebase config, bundleRelease FALHA na cara (debug segue permitido).
+    if (gradle.startParameter.taskNames.any { it.toLowerCase().contains('releas') }) {
+        throw new GradleException("google-services.json AUSENTE — AAB de release nasceria sem Firebase (crash 'FirebaseApp is not initialized' no push). Copie o arquivo do clone principal ou build na árvore principal. (incidente AAB 559, 31/10)")
+    }
+    logger.warn("google-services.json not found — BUILD DEBUG sem push (release é bloqueado).")
 }
