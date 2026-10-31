@@ -22,6 +22,8 @@ import { confirmDialog } from '../../components/ConfirmDialog';
 import { useSelectedPatient } from '../../patient-context';
 import { CREDIT_COSTS } from '../../components/CreditBadge';
 import { takeExamFiles } from '../../utils/examHandoff';
+import { usePlanInfo } from '../../utils/planInfo';
+import { notifyInsufficientCredits } from '../../utils/credits-events';
 import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { RADIUS } from '../../theme';
@@ -143,6 +145,7 @@ const FilePreview = ({ file, onRemove }: { file: File; onRemove: () => void }) =
 
 export const ExamCreate = () => {
   const [pid] = useSelectedPatient();
+  const planInfo = usePlanInfo(); // custos vivos (uploadRules) — fim do "enviar é grátis" hardcode
   const [files, setFiles] = useState<File[]>([]);
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
@@ -291,7 +294,9 @@ export const ExamCreate = () => {
       redirect('list', 'exams');
     } catch (e: any) {
       if (e?.authExpired) { notify(e.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); return; }
-      if (e?.code === 'free_limit' || e?.code === 'no_credits_upload') { notify(e.message || 'Sem créditos para enviar. Assine ou recarregue.', { type: 'warning' }); redirect('/planos'); return; }
+      // 402 de upload abre o MESMO dialog de oferta das features de IA (pack mais barato em
+      // 1 toque) — antes era toast + redirect seco pro /planos, sem oferta contextual.
+      if (e?.code === 'free_limit' || e?.code === 'no_credits_upload') { notifyInsufficientCredits({ message: e.message, feature: 'UPLOAD' }); return; }
       if (e?.message !== 'User cancelled photos app') notify(e.message || 'Falha na foto', { type: 'error' });
     }
   };
@@ -319,7 +324,7 @@ export const ExamCreate = () => {
           setProgress({ done: i + 1, total: imgs.length, errors });
         } catch (err: any) {
           if (err?.authExpired) { notify(err.message || 'Sua sessão expirou. Faça login novamente.', { type: 'warning' }); logout(); setBusy(false); return; }
-          if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notify(err.message || 'Sem créditos para enviar.', { type: 'warning' }); redirect('/planos'); setBusy(false); return; }
+          if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') { notifyInsufficientCredits({ message: err.message, feature: 'UPLOAD' }); setBusy(false); return; }
           errors.push(`Página ${i + 1}: ${err.message}`);
           setProgress({ done: i + 1, total: imgs.length, errors });
         }
@@ -376,8 +381,7 @@ export const ExamCreate = () => {
           return;
         }
         if (err?.code === 'free_limit' || err?.code === 'no_credits_upload') {
-          notify(err.message || 'Sem créditos para enviar exame. Assine o mensal ou recarregue créditos.', { type: 'warning' });
-          redirect('/planos');
+          notifyInsufficientCredits({ message: err.message, feature: 'UPLOAD' });
           setBusy(false);
           return;
         }
@@ -829,7 +833,7 @@ export const ExamCreate = () => {
               </Button>
 
               <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center', fontWeight: 600 }}>
-                📤 <strong>1 crédito</strong> por envio (grátis) · <strong>Premium</strong>: 6 envios grátis/mês
+                📤 <strong>1º exame grátis</strong> · depois {planInfo?.uploadRules?.freeCost ?? 1} 💎 por envio · <strong>Premium</strong>: {planInfo?.uploadRules?.premiumFreeQuota ?? 6} envios grátis/mês
               </Typography>
             </Box>
           </CardContent>
