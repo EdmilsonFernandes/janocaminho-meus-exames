@@ -13,7 +13,6 @@ import {
   Tabs,
   Tab,
   useTheme,
-  useMediaQuery,
   Tooltip,
   Menu,
   MenuItem,
@@ -89,7 +88,6 @@ export const PortalTeleconsultas = ({
   initialSearch = '',
 }: PortalTeleconsultasProps) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
   const [search, setSearch] = useState(initialSearch);
   // FIX 2 (1 ação primária por card): copiar/cancelar saem da linha de ação → menu ⋮.
@@ -657,32 +655,10 @@ export const PortalTeleconsultas = ({
                         {isToday ? 'Atender Agora' : 'Entrar na Sala'}
                       </Button>
 
-                      <Button
-                        variant="outlined"
-                        size="medium"
-                        startIcon={<SummarizeIcon sx={{ fontSize: 16 }} />}
-                        onClick={() => onOpenPost(tc.id)}
-                        sx={{
-                          borderRadius: '10px',
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          fontSize: { xs: 12.5, sm: 13 },
-                          borderColor: 'divider',
-                          color: 'text.primary',
-                          px: { xs: 1.25, sm: 2 },
-                          py: 0.85,
-                          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : '#f8fafc',
-                          '&:hover': {
-                            borderColor: 'primary.main',
-                            bgcolor: 'action.hover',
-                          },
-                          whiteSpace: 'nowrap',
-                          minWidth: 0,
-                          flex: { xs: 1, sm: 'none' },
-                        }}
-                      >
-                        {isMobile ? 'Resumo' : 'Resumo da Consulta'}
-                      </Button>
+                      {/* Dono 30/10: "Resumo da Consulta" SÓ depois de encerrada — antes
+                          abria a área pós-consulta de uma consulta que nem aconteceu
+                          (transcrição/resumo só existem após o encerramento). O card
+                          encerrado (Histórico abaixo) é quem oferece "Ver resumo". */}
                     </Stack>
 
                     <Tooltip title="Mais opções">
