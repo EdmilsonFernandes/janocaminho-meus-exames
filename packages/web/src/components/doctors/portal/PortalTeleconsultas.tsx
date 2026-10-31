@@ -32,6 +32,10 @@ import HourglassEmptyIcon from '@mui/icons-material/HourglassEmpty';
 import AddIcon from '@mui/icons-material/Add';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HistoryIcon from '@mui/icons-material/History';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import ViewAgendaOutlinedIcon from '@mui/icons-material/ViewAgendaOutlined';
+import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { TeleAgendaCalendar } from './TeleAgendaCalendar';
 import StarIcon from '@mui/icons-material/Star';
 import WhatsAppIcon from '@mui/icons-material/WhatsApp';
 import { AppCard } from '../../AppCard';
@@ -89,6 +93,15 @@ export const PortalTeleconsultas = ({
 }: PortalTeleconsultasProps) => {
   const theme = useTheme();
   const [filter, setFilter] = useState<'all' | 'today' | 'upcoming' | 'past'>('all');
+  // ReUI event-calendar (dono 30/10): visão Lista × Calendário — persistida (o médico
+  // que vive de agenda abre direto no mês com as fotos dos pacientes nos dias).
+  const [agendaView, setAgendaView] = useState<'lista' | 'calendario'>(() => {
+    try { return localStorage.getItem('dxAgendaView') === 'calendario' ? 'calendario' : 'lista'; } catch { return 'lista'; }
+  });
+  const switchAgendaView = (v: 'lista' | 'calendario') => {
+    setAgendaView(v);
+    try { localStorage.setItem('dxAgendaView', v); } catch { /* storage pode faltar */ }
+  };
   const [search, setSearch] = useState(initialSearch);
   // FIX 2 (1 ação primária por card): copiar/cancelar saem da linha de ação → menu ⋮.
   const [teleMenu, setTeleMenu] = useState<{ id: string; el: HTMLElement } | null>(null);
@@ -220,6 +233,29 @@ export const PortalTeleconsultas = ({
         </Button>
       </Stack>
 
+      {/* Alternador Lista × Calendário (ReUI event-calendar) */}
+      <Stack direction="row" justifyContent="flex-end" sx={{ mb: 2 }}>
+        <ToggleButtonGroup
+          exclusive
+          size="small"
+          value={agendaView}
+          onChange={(_, v) => { if (v) switchAgendaView(v); }}
+          sx={{ bgcolor: 'background.paper', borderRadius: '12px' }}
+        >
+          <ToggleButton value="lista" aria-label="Ver em lista" sx={{ px: 1.5, minHeight: 40, fontSize: 12, fontWeight: 700, textTransform: 'none', gap: 0.5, border: '1px solid', borderColor: 'divider' }}>
+            <ViewAgendaOutlinedIcon sx={{ fontSize: 16 }} /> Lista
+          </ToggleButton>
+          <ToggleButton value="calendario" aria-label="Ver em calendário" sx={{ px: 1.5, minHeight: 40, fontSize: 12, fontWeight: 700, textTransform: 'none', gap: 0.5, border: '1px solid', borderColor: 'divider' }}>
+            <CalendarMonthIcon sx={{ fontSize: 16 }} /> Calendário
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      {agendaView === 'calendario' && (
+        <TeleAgendaCalendar consultas={teleconsultas} patients={patients} onEnterTele={onEnterTele} onOpenPost={onOpenPost} />
+      )}
+
+      {agendaView === 'lista' && (<>
       {/* 3 MINI CARDS DE STATUS EQUILIBRADOS */}
       <Box
         sx={{
@@ -814,6 +850,7 @@ export const PortalTeleconsultas = ({
           </Stack>
         </Box>
       )}
+      </>)}
 
       {/* FIX 2 — copiar/cancelar no menu ⋮ (regra de 1 ação primária por card) */}
       <Menu

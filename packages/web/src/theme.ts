@@ -347,6 +347,25 @@ export const buildTheme = (mode: ThemeMode, textScale: TextScale = 'normal'): Th
           root: { fontWeight: 800, fontFamily: '"Poppins","Inter",sans-serif', marginBottom: 2 },
         },
       },
+      // ReUI autocomplete (dono 30/10): os 8+ Autocomplete do app ganham dropdown
+      // premium — papel radius 16, sombra funda, opção com hover/selected teal.
+      MuiAutocomplete: {
+        styleOverrides: {
+          paper: {
+            borderRadius: '16px',
+            boxShadow: isDark ? '0 16px 40px rgba(0,0,0,0.5)' : '0 16px 40px rgba(15,90,86,0.16)',
+            border: `1px solid ${surfaces.divider}`,
+          },
+          option: {
+            borderRadius: '10px',
+            margin: '2px 6px',
+            fontWeight: 500,
+            '&[aria-selected="true"]': { backgroundColor: isDark ? 'rgba(32,178,170,0.18)' : 'rgba(32,178,170,0.12)', fontWeight: 700 },
+            '&.Mui-focused': { backgroundColor: isDark ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)' },
+          },
+          listbox: { padding: '6px 0' },
+        },
+      },
       // TOUCH (craft-floor): icon-buttons pequenos (28px) ganham hitbox fantasma de ~44px em
       // telas touch — ::after invisível estica a área de toque SEM mudar o visual/composição.
       // Resolve de uma vez os "?" de explicação (alterados/relatório), unfocus etc.

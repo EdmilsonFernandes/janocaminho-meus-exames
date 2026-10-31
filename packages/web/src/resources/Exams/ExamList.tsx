@@ -3,6 +3,7 @@ import { plural } from '../../utils/format';
 import { List, useListContext, useRefresh, useNotify, useTranslate } from 'react-admin';
 import { track } from '../../utils/analytics';
 import { chipA11y } from '../../utils/chipA11y';
+import { IconTile } from '../../components/IconTile';
 import { Chip, Box, CardContent, Typography, IconButton, Stack, LinearProgress, Button, Accordion, AccordionSummary, AccordionDetails, Alert, TextField, InputAdornment, ToggleButton, ToggleButtonGroup, useTheme, useMediaQuery } from '@mui/material';
 import { alpha, lighten } from '@mui/material/styles';
 import { DrExameRobot } from '../../components/DrExameRobot';
@@ -512,15 +513,9 @@ const ExamCards = () => {
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.5, '&:last-child': { pb: 1.5 } }}>
           {/* ReUI card-3 (dono 30/10): azulejo de ícone com cor semântica no lugar do
               ícone solto — alterado = âmbar, imagem = céu, normal = teal da marca. */}
-          <Box aria-hidden sx={{
-            width: 42, height: 42, borderRadius: '12px', flexShrink: 0, display: 'grid', placeItems: 'center', color: '#fff',
-            background: altered > 0
-              ? 'linear-gradient(135deg,#f59e0b,#d97706)'
-              : r.kind === 'IMAGING' ? 'linear-gradient(135deg,#38bdf8,#0284c7)' : 'linear-gradient(135deg,#20b2aa,#178f89)',
-            boxShadow: altered > 0 ? '0 6px 14px -6px rgba(217,119,6,.55)' : '0 6px 14px -6px rgba(23,143,137,.5)',
-          }}>
+          <IconTile tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
             <Icon sx={{ fontSize: 22 }} />
-          </Box>
+          </IconTile>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
               <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, wordBreak: 'break-word', overflowWrap: 'anywhere', lineHeight: 1.2 }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
