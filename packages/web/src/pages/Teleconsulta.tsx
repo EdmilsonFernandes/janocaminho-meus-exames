@@ -850,10 +850,23 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       // (80 últimos) + console: suporte do futuro = "abra o console e copie".
       if (++diagTicks % 8 === 0) {
         try {
-          const remotes = [...room.remoteParticipants.values()].map((rp) => ({
-            id: rp.identity, lvl: typeof rp.audioLevel === 'number' ? Number(rp.audioLevel.toFixed(4)) : null, speaking: rp.isSpeaking, micMuted: !!rp.getTrackPublication(Track.Source.Microphone)?.isMuted,
-          }));
-          const line = { t: new Date().toISOString().slice(11, 19), euMudo: !!room.localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted, remotos: remotes };
+          const remotes = [...room.remoteParticipants.values()].map((rp) => {
+            const vcam = rp.getTrackPublication(Track.Source.Camera);
+            return {
+              id: rp.identity, lvl: typeof rp.audioLevel === 'number' ? Number(rp.audioLevel.toFixed(4)) : null, speaking: rp.isSpeaking, micMuted: !!rp.getTrackPublication(Track.Source.Microphone)?.isMuted,
+              // 30/10 ("Edna não viu minha câmera"): vídeo entrou no retrato — travou
+              // de novo, o server mostra DE QUAL LADO (minha trilha muda × sub dela).
+              camMuted: !!vcam?.isMuted, camSub: !!vcam?.isSubscribed,
+            };
+          });
+          const vpub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+          const vmst = vpub?.track?.mediaStreamTrack;
+          const line = {
+            t: new Date().toISOString().slice(11, 19),
+            euMudo: !!room.localParticipant.getTrackPublication(Track.Source.Microphone)?.isMuted,
+            cam: vpub ? { muted: !!vpub.isMuted, ready: vmst?.readyState ?? null, fps: Number(vmst?.getSettings?.()?.frameRate ?? 0) || null } : null,
+            remotos: remotes,
+          };
           (window as any).__dxTeleAudioLog = [...(((window as any).__dxTeleAudioLog ?? []) as unknown[]), line].slice(-80);
           console.log('[tele-audio]', JSON.stringify(line));
           if (diagTicks % 40 === 0) void sendAudioDiag('periodico'); // ~60s: espelho no server
@@ -892,6 +905,40 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     }, 1500);
     return () => clearInterval(iv);
   }, [micOn]);
+
+  // ── WATCHDOG DE CÂMERA (30/10 — "Edna não viu minha câmera, ficou travada") ──
+  // Android/WebView pausa a câmera quando o app perde o foco/a tela apaga e, ao
+  // voltar, a trilha às vezes fica MUDA (congelada pro outro lado) sem nenhum
+  // evento de UI. Mesmo padrão do watchdog de mic: 4 checagens seguidas (~6s) de
+  // trilha muted/ended com a câmera LIGADA → re-publica (off→on). Máx 2 tentativas
+  // por sessão; trilha saudável zera a contagem. Diag: cam-watchdog-reacquire:N.
+  const camWatch = useRef({ bad: 0, tries: 0, busy: false });
+  useEffect(() => {
+    if (!camOn) { camWatch.current.bad = 0; return; }
+    const iv = setInterval(async () => {
+      const w = camWatch.current;
+      const room = roomRef.current;
+      if (w.busy || !room || room.state !== 'connected') return;
+      const pub = room.localParticipant.getTrackPublication(Track.Source.Camera);
+      const mst = pub?.track?.mediaStreamTrack;
+      if (!pub || !mst) return; // câmera nem publicada (sem device) — nada a vigiar
+      const frozen = mst.readyState === 'ended' || mst.muted;
+      if (!frozen) { w.bad = 0; return; }
+      w.bad++;
+      if (w.bad >= 4 && w.tries < 2) {
+        w.bad = 0; w.tries++; w.busy = true;
+        try {
+          await room.localParticipant.setCameraEnabled(false);
+          await new Promise((r) => setTimeout(r, 500));
+          const npub = await room.localParticipant.setCameraEnabled(true);
+          setLocalVideo(npub?.videoTrack ?? null);
+          void sendAudioDiag(`cam-watchdog-reacquire:${w.tries}`);
+        } catch { /* mantém — o médico ainda alterna manualmente pelo botão */ }
+        finally { w.busy = false; }
+      }
+    }, 1500);
+    return () => clearInterval(iv);
+  }, [camOn]);
 
   // ── MEDIDOR + SELETOR DE MIC no preview (30/10) ─────────────────────────────
   // As causas que NEM watchdog NEM AGC cobrem: dispositivo errado (headset
@@ -2890,6 +2937,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               aria-label="Brief clínico — exames do paciente"
               sx={{
                 position: 'fixed', zIndex: 1300, bgcolor: 'background.paper',
+                // Dono 30/10 ("clico em ver mais, não rola e nada"): o container de scroll
+                // não tinha altura limitada → overflowY nunca ativava e o conteúdo expandia
+                // ABAIXO da dobra (invisível). flex + overflow hidden no sheet; o filho rola.
+                display: 'flex', flexDirection: 'column', overflow: 'hidden',
                 ...(isDesktopViewport
                   ? { top: 0, right: 0, bottom: 0, width: 420, maxWidth: '92vw', borderLeft: '1px solid', borderColor: 'divider' }
                   : { left: 0, right: 0, bottom: 0, maxHeight: '62dvh', borderTopLeftRadius: '24px', borderTopRightRadius: '24px' }),
@@ -2904,7 +2955,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               <IconButton ref={briefCloseRef} size="medium" aria-label="Fechar brief clínico" onClick={() => setBriefOpen(false)} sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1, color: 'text.secondary', bgcolor: 'action.hover', width: 44, height: 44, '&:focus-visible': { outline: '2px solid #178f89', outlineOffset: 1 } }}>
                 <CloseIcon sx={{ fontSize: 20 }} />
               </IconButton>
-              <Box sx={{ overflowY: 'auto', overscrollBehavior: 'contain' }}>
+              <Box sx={{ overflowY: 'auto', overscrollBehavior: 'contain', flex: 1, minHeight: 0, WebkitOverflowScrolling: 'touch' }}>
                 <BriefClinico
                   patientId={briefPatientId}
                   authToken={authToken() ?? ''}
