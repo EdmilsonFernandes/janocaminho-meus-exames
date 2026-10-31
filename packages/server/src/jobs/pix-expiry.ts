@@ -101,11 +101,21 @@ export function startPixExpiryJob(): void {
  */
 export async function cancelStalePendingPixes(): Promise<number> {
   const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  // Cobre TAMBÉM o PENDING sem pixExpiresAt (checkout premium redirect / cartão abandonado):
+  // esses nunca eram varridos e viravam órfãos eternos no admin (2x R$29,90 de 05/10 + 9,90
+  // de 24/09). Qualquer periodDays: plano e pack envelhecem igual. Janela de 24h preservada —
+  // o webhook ignora sub não-PENDING, então nunca cancelar cedo demais.
   const r = await prisma.subscription.updateMany({
-    where: { status: 'PENDING', periodDays: 0, pixExpiresAt: { lt: cutoff } },
+    where: {
+      status: 'PENDING',
+      OR: [
+        { pixExpiresAt: { lt: cutoff } },
+        { pixExpiresAt: null, createdAt: { lt: cutoff } },
+      ],
+    },
     data: { status: 'CANCELLED' },
   });
-  if (r.count > 0) console.log(`[pix-expiry] auto-cancel >24h: ${r.count} PIX pendente(s) → CANCELLED`);
+  if (r.count > 0) console.log(`[pix-expiry] auto-cancel >24h: ${r.count} pendência(s) → CANCELLED`);
   return r.count;
 }
 

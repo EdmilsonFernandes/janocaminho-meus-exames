@@ -117,6 +117,11 @@ router.get('/:id', async (req: AuthedRequest, res, next) => {
       patient: { select: { fullName: true, relationship: true } },
     });
     if (!exam) return;
+    // Funil "resultado visualizado": marca a 1ª abertura do exame extraído pelo dono.
+    // Best-effort e fora do caminho da resposta (não atrasa o GET nem quebra em drift).
+    if (exam.status === 'EXTRACTED' && !(exam as any).firstViewedAt) {
+      prisma.exam.update({ where: { id: exam.id }, data: { firstViewedAt: new Date() } }).catch(() => {});
+    }
     res.json(serializeExam(exam));
   } catch (e) {
     next(e);
@@ -174,7 +179,9 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
     //   EXCEÇÃO: 1º exame do usuário é GRÁTIS (sem créditos) — bônus de boas-vindas pós-extração.
     const me = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true } });
     const active = !!me?.planExpiresAt && me.planExpiresAt > new Date();
-    const isFirstExamEver = (await prisma.exam.count({ where: { patient: { ownerId: req.userId! } } })) === 0;
+    // FAILED/REJECTED não consomem o "1º exame grátis": upload que a extração rejeitou
+    // não pode queimar o grátis (senão o 2º envio cobra com saldo 0 → 402 na cara do novato).
+    const isFirstExamEver = (await prisma.exam.count({ where: { patient: { ownerId: req.userId! }, status: { notIn: ['FAILED', 'REJECTED'] } } })) === 0;
     const now = new Date();
     const monthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     const pCounter = await prisma.patient.findUnique({ where: { id: patientId }, select: { uploadMonth: true, monthlyUploadCount: true } });
@@ -184,6 +191,7 @@ router.post('/', upload.single('file'), async (req: AuthedRequest, res, next) =>
       const msg = active
         ? `Você já usou seus ${UPLOAD_RULES.premiumFreeQuota} envios grátis deste mês neste perfil. Para enviar mais, recarregue créditos (${uploadCost} por envio).`
         : `Para enviar um exame é preciso ${UPLOAD_RULES.freeCost} crédito. Recarregue créditos (PIX) ou assine o mensal (${UPLOAD_RULES.premiumFreeQuota} envios grátis/mês em cada perfil).`;
+      logPaywallHit(req.userId!, 'UPLOAD').catch(() => {}); // 402 de upload era invisível no admin
       res.status(402).json({ error: 'no_credits_upload', message: msg, cost: uploadCost, plan: active ? 'premium' : 'free' });
       return;
     }

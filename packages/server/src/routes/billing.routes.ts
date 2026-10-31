@@ -65,6 +65,11 @@ router.get('/plans', (_req, res) => {
     creditPacks: getCreditPacks(),
     freeExamLimit: config.freeExamLimit,
     mercadoPagoEnabled: hasMercadoPago(),
+    // Gate correto da compra PIX é o provider ativo (Asaas/OpenPix/MP) — o front amarrava o
+    // botão do pack ao MP (que hoje fica desligado na conta) e travava compra com PIX saudável.
+    pixEnabled: pixProviderReady(),
+    // Bônus do 1º exame visível ANTES do upload (ativação): o front promete o que o server paga.
+    signupBonus: getSettings().grants.freeSignup,
     pixProvider: activePixProvider(), // 'mp' | 'openpix' | 'asaas' — diagnóstico (toggle PAYMENT_PROVIDER)
     creditCosts: CREDIT_COSTS, // pra o front sincronizar (admin pode ter mudado)
     uploadRules: UPLOAD_RULES, // regras de cobrança de upload (admin pode editar em runtime)
@@ -81,7 +86,7 @@ router.get('/plans', (_req, res) => {
 // Status: plano + créditos + consumo aproximado de IA (tokens)
 router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true, trialUsedAt: true, reportVouchers: true } });
+    const user = await prisma.user.findUnique({ where: { id: req.userId! }, select: { planExpiresAt: true, credits: true, trialUsedAt: true, reportVouchers: true, firstExamBonusGranted: true } });
     const active = !!user?.planExpiresAt && user.planExpiresAt > new Date();
     // TRIAL DE RESGATE (auditoria 18/10): 1x na vida p/ quem já provou o valor (≥3 usos
     // de IA) e não é premium — o dialog 402 oferece no lugar do pack. Sem cartão.
@@ -100,7 +105,7 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
       const u: any = a.tokenUsage;
       return s + (Number(u?.input_tokens ?? 0) + Number(u?.output_tokens ?? 0));
     }, 0);
-    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed, trialAvailable, reportVouchers: user?.reportVouchers ?? 0 });
+    res.json({ active, planExpiresAt: user?.planExpiresAt ?? null, examsCount, freeExamLimit: config.freeExamLimit, credits: user?.credits ?? 0, tokensUsed, trialAvailable, reportVouchers: user?.reportVouchers ?? 0, firstExamBonusGranted: user?.firstExamBonusGranted ?? true });
   } catch (e) { next(e); }
 });
 
@@ -265,9 +270,15 @@ router.post('/checkout', requireAuth, async (req: AuthedRequest, res, next) => {
         statement_descriptor: 'DR EXAME',
         notification_url: publicNotifyUrl(),
       }),
+    }).catch(async (e) => {
+      // fetch lançou (rede/MP fora do ar) → sub não pode ficar PENDING órfã.
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' }).catch(() => {});
+      throw e;
     });
     if (!prefResp.ok) {
-      console.error('[billing] MP preferência falhou:', prefResp.status, await prefResp.text());
+      console.error('[billing] MP preferência falhou:', prefResp.status, await prefResp.text().catch(() => ''));
+      // Sem isto a sub ficava PENDING órfã pra sempre (os 2x R$29,90 de 05/10 nasceram aqui).
+      await updateSubscriptionCompat(sub.id, { status: 'FAILED' }).catch(() => {});
       res.status(502).json({ error: 'Falha ao criar cobrança no Mercado Pago.' });
       return;
     }

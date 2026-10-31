@@ -10,7 +10,7 @@ import { invalidateHealthSummary } from '../analysis/hs-cache';
 import { toCanonicalUnit } from '../utils/units';
 import { readExamFile, mediaTypeFromRef } from '../utils/storage';
 import type { LabExtraction, ExtractionItem } from './schemas';
-import { chargeCredits, CREDIT_COSTS } from '../utils/credits';
+import { chargeCredits, CREDIT_COSTS, refundUploadOnFailure } from '../utils/credits';
 import { cpfFingerprint, maskCpf, maskStoredCpf, normalizeCpf } from '../utils/cpf';
 import { sendPushToUser } from '../utils/push';
 import { sendWhatsAppExamReady } from '../utils/whatsapp';
@@ -78,6 +78,7 @@ export async function runExtraction(examId: string): Promise<void> {
             },
           });
         } catch { /* */ }
+        await refundUploadOnFailure(examId); // devolve o crédito de upload (extração falhou de vez)
         return; // não propaga erro cru
       }
       await new Promise((r) => setTimeout(r, 2500 * attempt));
@@ -118,6 +119,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
     const cls = classifyDoc(text);
     if (!cls.accept && cls.strong) {
       await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason } });
+      await refundUploadOnFailure(examId);
       console.log(`[extraction] ${examId} rejeitado (padrão): ${cls.reason}`);
       return;
     }
@@ -225,6 +227,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
         where: { id: examId },
         data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason || 'Não conseguimos identificar um exame neste documento. Tente o Escanear ou envie um PDF do seu exame.' },
       });
+      await refundUploadOnFailure(examId);
       console.log(`[extraction] exame ${examId} descartado: não parece exame/laudo médico`);
       return;
     }
@@ -249,6 +252,7 @@ async function runExtractionOnce(examId: string): Promise<void> {
         },
       });
       invalidateHealthSummary(exam.patientId);
+      await refundUploadOnFailure(examId); // REJEITADO também devolve (perfil errado é erro honesto)
       console.log(`[extraction] exame ${examId} REJEITADO: CPF do documento diverge do perfil (${raw.identityMatch.severity})`);
       return;
     }

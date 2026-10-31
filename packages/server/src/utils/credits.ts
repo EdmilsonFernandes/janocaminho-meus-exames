@@ -54,6 +54,29 @@ export async function refundCredits(userId: string, amount: number, kind: string
   }
 }
 
+/** Estorno do crédito de UPLOAD quando a extração FALHA (exame vira FAILED): devolve o débito
+ *  'upload' ligado ao exame (refId) UMA vez só — idempotente pela checagem de 'upload_refund'
+ *  existente. Mesmo princípio do refundCredits das features de IA (que já estornam em falha);
+ *  o upload era o único débito sem estorno. Best-effort: nunca derruba o pipeline. */
+export async function refundUploadOnFailure(examId: string): Promise<void> {
+  try {
+    const charge = await prisma.creditTransaction.findFirst({
+      where: { kind: 'upload', refId: examId, delta: { lt: 0 } },
+      select: { userId: true, delta: true },
+    });
+    if (!charge?.userId) return; // upload foi grátis (1º exame / cota premium) — nada a devolver
+    const already = await prisma.creditTransaction.findFirst({ where: { kind: 'upload_refund', refId: examId }, select: { id: true } });
+    if (already) return;
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: charge.userId }, data: { credits: { increment: -charge.delta } } }),
+      prisma.creditTransaction.create({ data: { userId: charge.userId, delta: -charge.delta, kind: 'upload_refund', label: 'Estorno: não conseguimos ler o exame', refId: examId } }),
+    ]);
+    console.log(`[credits] upload estornado (+${-charge.delta}) — exame ${examId} falhou na extração`);
+  } catch (e: any) {
+    console.error('[credits] falha no estorno de upload:', (e as Error)?.message);
+  }
+}
+
 /** Plano premium (mensal) ativo agora? */
 export async function isPremium(userId: string): Promise<boolean> {
   const u = await prisma.user.findUnique({ where: { id: userId }, select: { planExpiresAt: true } });

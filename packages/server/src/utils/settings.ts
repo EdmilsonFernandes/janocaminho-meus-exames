@@ -9,6 +9,9 @@ export const DEFAULT_SETTINGS = {
   creditCosts: { extraction: 0, summary: 10, consolidated: 20, chat: 2 },
   uploadRules: { freeCost: 1, premiumFreeQuota: 6, premiumCost: 5 },
   grants: { freeSignup: 60, monthly: 250, freeExamLimit: 2, quiz: 5, mentalScreening: 3, monthlyClaimCap: 150, trialCredits: 100 },
+  // Preço da IA em R$ por 1M tokens (GLM-4.6 via Z.ai ≈ US$0,60 in / US$2,20 out × câmbio) —
+  // alimenta o costBrl do ai_usage_logs (margem por feature no admin). Editável sem deploy.
+  aiPricing: { inputPer1MBrl: 3.3, outputPer1MBrl: 12 },
   // ===== Estratégia de pricing (2026-08-23) — tudo editável no Admin, sem deploy =====
   // Preço do plano mensal (era hardcode em 7 lugares). Os créditos do mensal continuam em
   // grants.monthly (fonte única). periodDays/label aqui só p/ a API expor.
