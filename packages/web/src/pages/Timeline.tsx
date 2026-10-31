@@ -19,6 +19,7 @@ import { measurementLabel, measurementValue } from '../utils/measurementLabels';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
+import { EmptyState } from '../components/EmptyState';
 import EventIcon from '@mui/icons-material/Event';
 import MonitorHeartIcon from '@mui/icons-material/MonitorHeart';
 import VaccinesIcon from '@mui/icons-material/Vaccines';
@@ -95,47 +96,54 @@ export const TimelinePage = () => {
     setAbnLoading(false);
   };
 
+  // ReUI c-timeline-11 "Avatar Activity" (dono 30/10): o evento vira linha de FEED —
+  // azulejo redondo com ícone sobre o trilho (no lugar do dot 22px) + frase de
+  // atividade (título em negrito · ação em cinza) + data + chips de leitura. Sem
+  // card colorido por evento: o feed respira e a cor mora só no indicador.
   const renderEvent = (e: Event, i: number) => {
     const isImaging = e.kind === 'IMAGING';
     const hasIssues = e.type === 'exam' && e.abnormalCount > 0;
     const dotColor = e.type === 'vacina' ? '#4f46e5' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
     const clickable = e.type === 'exam'; // medições/vacinas: informativas (popup é de exame)
+    const EvIcon = e.type === 'vacina' ? VaccinesIcon : e.type === 'medicao' ? MonitorHeartIcon : isImaging ? LocalHospitalIcon : hasIssues ? TrendingDownIcon : CheckCircleIcon;
+    const action = e.type === 'vacina' ? 'vacina aplicada' : e.type === 'medicao' ? 'medição registrada' : isImaging ? 'exame de imagem' : 'exame laboratorial';
     return (
       <Box key={i} sx={{ position: 'relative' }}>
-        <Box sx={{ position: 'absolute', left: -3.5, top: 14, width: 22, height: 22, borderRadius: '50%', bgcolor: dotColor, border: '3px solid #fff', boxShadow: '0 2px 6px rgba(0,0,0,.2)', zIndex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          {e.type === 'vacina' ? <VaccinesIcon sx={{ color: '#fff', fontSize: 12 }} /> : e.type === 'medicao' ? <MonitorHeartIcon sx={{ color: '#fff', fontSize: 12 }} /> : isImaging ? <LocalHospitalIcon sx={{ color: '#fff', fontSize: 12 }} /> : hasIssues ? <TrendingDownIcon sx={{ color: '#fff', fontSize: 12 }} /> : <CheckCircleIcon sx={{ color: '#fff', fontSize: 12 }} />}
+        <Box aria-hidden sx={{
+          position: 'absolute', left: -44, top: 6, width: 30, height: 30, borderRadius: '50%', zIndex: 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          bgcolor: dotColor, border: '3px solid', borderColor: 'background.paper',
+          boxShadow: `0 4px 10px -2px ${dotColor}66`,
+        }}>
+          <EvIcon sx={{ color: '#fff', fontSize: 14 }} />
         </Box>
-        {/* Side-tab → lavagem tonal (Onda B): o DOT que já existe na linha carrega a cor. */}
-        <Card onClick={clickable ? () => openExam(e) : undefined} {...(clickable ? chipA11y() : {})} aria-label={clickable ? `Abrir exame ${e.title ?? ''}` : undefined} sx={{ borderRadius: '12px', ml: 1.5, bgcolor: `${dotColor}0D`, border: `1px solid ${dotColor}33`, transition: 'transform .15s', cursor: clickable ? 'pointer' : 'default', '&:hover': clickable ? { transform: 'translateX(2px)' } : undefined }}>
-          <CardContent sx={{ pb: '12px !important' }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
-              <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>{e.title}</Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
-                </Typography>
-              </Box>
-              <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap">
-                {e.type === 'vacina'
-                  ? <Chip size="small" sx={{ bgcolor: '#4f46e515', color: '#4f46e5' }} icon={<VaccinesIcon sx={{ fontSize: 14 }} />} label="Vacina" />
-                  : e.type === 'medicao'
-                    ? <Chip size="small" sx={{ bgcolor: '#f59e0b15', color: '#b45309' }} icon={<MonitorHeartIcon sx={{ fontSize: 14 }} />} label="Medição" />
-                    : isImaging
-                      ? <Chip size="small" sx={{ bgcolor: '#0ea5e915', color: '#0ea5e9' }} icon={<ScienceIcon sx={{ fontSize: 14 }} />} label="Imagem" />
-                      : <Chip size="small" sx={{ bgcolor: '#0369a115', color: '#0369a1' }} label="Laboratorial" />}
-              </Stack>
+        <Box
+          onClick={clickable ? () => openExam(e) : undefined}
+          {...(clickable ? chipA11y() : {})}
+          aria-label={clickable ? `Abrir exame ${e.title ?? ''}` : undefined}
+          sx={{
+            borderRadius: '14px', px: 1.25, py: 1, minHeight: 42,
+            cursor: clickable ? 'pointer' : 'default',
+            transition: 'background .15s ease, transform .15s ease',
+            ...(clickable ? { '&:hover': { bgcolor: `${dotColor}0D`, transform: 'translateX(2px)' } } : {}),
+          }}
+        >
+          <Typography sx={{ fontWeight: 700, fontSize: '0.98rem', lineHeight: 1.35, wordBreak: 'break-word' }}>
+            {e.title}
+            <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}> · {action}</Box>
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+            {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
+          </Typography>
+          {e.type === 'exam' && (
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
+              {hasIssues
+                ? <Chip size="small" label={`${plural(e.abnormalCount, 'valor')} fora da faixa`} sx={{ height: 22, fontWeight: 800, fontSize: 11.5, bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626', border: '1px solid rgba(239,68,68,.25)' }} />
+                : <Chip size="small" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Tudo dentro da faixa" sx={{ height: 22, fontWeight: 700, fontSize: 11.5, bgcolor: 'rgba(5,150,105,.10)', color: (t) => t.palette.mode === 'dark' ? '#6ee7b7' : '#059669', '& .MuiChip-icon': { color: 'inherit' } }} />}
+              {e.itemCount > 0 && <Chip size="small" label={plural(e.itemCount, 'resultado')} sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }} />}
             </Stack>
-            {e.type === 'exam' && (
-              <Box sx={{ mt: 1 }}>
-                {hasIssues ? (
-                  <Chip size="small" color="error" variant="outlined" label={`⚠️ ${plural(e.abnormalCount, 'valor')} fora da faixa`} />
-                ) : (
-                  <Chip size="small" color="success" variant="outlined" icon={<CheckCircleIcon sx={{ fontSize: 16 }} />} label="Tudo dentro da faixa" />
-                )}
-              </Box>
-            )}
-          </CardContent>
-        </Card>
+          )}
+        </Box>
       </Box>
     );
   };
@@ -160,7 +168,15 @@ export const TimelinePage = () => {
       {loading ? (
         <PageSkeleton cards={4} />
       ) : sorted.length === 0 ? (
-        <Card sx={{ borderRadius: '12px' }}><CardContent><Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>Nenhum exame extraído ainda. Envie um exame para começar sua linha do tempo.</Typography></CardContent></Card>
+        /* ReUI Empty (dono 30/10): vazio com moldura tracejada + CTA — antes era um
+           Card mudo sem ação (beco sem saída na primeira visita). */
+        <EmptyState
+          variant="card"
+          title="Sua jornada começa com o 1º exame"
+          desc="Envie um exame (PDF ou foto) e a linha do tempo monta sozinha — exames, medições e vacinas em ordem."
+          cta="Enviar exame"
+          onCta={() => navigate('/exams/create')}
+        />
       ) : (
         <Stack spacing={3}>
           {groups.map((g) => {
@@ -181,9 +197,10 @@ export const TimelinePage = () => {
                     <Button size="small" variant="contained" onClick={() => navigate('/planos')} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, bgcolor: '#20b2aa', boxShadow: 'none', '&:hover': { bgcolor: 'primary.dark' } }}>Ver planos</Button>
                   </Card>
                 ) : (
-                  <Box sx={{ position: 'relative', pl: 3.5 }}>
-                    <Box sx={{ position: 'absolute', left: 15, top: 8, bottom: 8, width: 3, background: 'linear-gradient(#0369a1,#5FD35A)', borderRadius: '12px' }} />
-                    <Stack spacing={2}>{g.items.map(renderEvent)}</Stack>
+                  <Box sx={{ position: 'relative', pl: 5.5 }}>
+                    {/* Trilho fino na cor da marca (antes: azul→verde fora da paleta) */}
+                    <Box sx={{ position: 'absolute', left: '14px', top: 10, bottom: 10, width: 2, background: 'linear-gradient(rgba(32,178,170,.55), rgba(32,178,170,.15))', borderRadius: '12px' }} />
+                    <Stack spacing={1.5}>{g.items.map(renderEvent)}</Stack>
                   </Box>
                 )}
               </Box>
