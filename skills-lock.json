@@ -235,6 +235,12 @@
       "skillPath": "skills/lean-build/SKILL.md",
       "computedHash": "6074721f1653e6e9d6381595b094284807b8d5d001d7d3977ec534679b16a63c"
     },
+    "lucian-uxui": {
+      "source": "Seokwoooo/lucian-uxui",
+      "sourceType": "github",
+      "skillPath": "skills/lucian-uxui/SKILL.md",
+      "computedHash": "c3c0e33be68a95b66ad44f0c36da3bef9ae012207f3fb8d14d58c94f6b95a711"
+    },
     "migration": {
       "source": "JuliusBrussee/caveman",
       "sourceType": "github",

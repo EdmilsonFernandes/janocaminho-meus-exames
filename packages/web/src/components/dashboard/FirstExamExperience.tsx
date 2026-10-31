@@ -5,6 +5,8 @@ import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 import { stashExamFiles } from '../../utils/examHandoff';
+import { usePlanInfo } from '../../utils/planInfo';
+import { useCredits } from '../../hooks/useCredits';
 
 /**
  * FirstExamExperience — estado vazio FOCADO do dashboard (first-exam flow,
@@ -21,6 +23,10 @@ const TEAL_DARK = '#178f89';
 
 export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstName?: string; onGoCreate: () => void; onDemo?: () => void }) => {
   const [dragging, setDragging] = useState(false);
+  const planInfo = usePlanInfo();
+  const { bonusPending } = useCredits();
+  // Promete o bônus só enquanto é verdade (usuário que extraiu e deletou não re-ganha).
+  const bonus = bonusPending !== false ? (planInfo?.signupBonus ?? 0) : 0;
 
   const goWithFiles = (files: FileList | null) => {
     // Handoff: quem arrastou o PDF até aqui não pode perdê-lo na navegação.
@@ -75,6 +81,18 @@ export const FirstExamExperience = ({ firstName, onGoCreate, onDemo }: { firstNa
             PDF ou foto — a IA analisa em segundos. <b style={{ color: 'text.primary' }}>Grátis.</b>
           </Typography>
         </Box>
+        {/* BÔNUS VISÍVEL (auditoria 31/10): a conta nasce com 0 💎 e o grant de boas-vindas só
+            chega após o 1º exame extraído — ninguém sabia que ele existia antes de enviar. */}
+        {bonus > 0 && (
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.75, px: 1.75, py: 0.6,
+            borderRadius: '999px', bgcolor: 'rgba(212,165,116,.14)', border: '1px solid rgba(212,165,116,.4)',
+          }}>
+            <Typography component="span" sx={{ fontSize: 13.5, fontWeight: 800, color: '#a16207' }}>
+              🎁 Seu 1º exame libera +{bonus} créditos de IA
+            </Typography>
+          </Box>
+        )}
         <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap', justifyContent: 'center' }}>
           {['PDF', 'JPG', 'PNG'].map((f) => (
             <Box key={f} sx={{ px: 1.5, py: 0.4, borderRadius: '8px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', fontSize: 12.5, fontWeight: 800, color: TEAL_DARK }}>

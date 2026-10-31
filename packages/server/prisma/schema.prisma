@@ -631,6 +631,7 @@ model Exam {
   rawExtraction    Json?
   reviewRequired   Boolean    @default(false)
   extractedAt      DateTime?
+  firstViewedAt    DateTime? // 1ª vez que o DONO abriu o resultado (funil "resultado visualizado")
   extractionError  String?
   /// Causa estruturada do FAILED ('ia_error' | 'not_a_document' | 'low_quality') — p/ CTA certo
   /// (retry vs suporte) sem parsear texto de erro. Aditivo: null em linhas antigas/EXTRACTED.

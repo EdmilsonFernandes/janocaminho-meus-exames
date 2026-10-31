@@ -26,6 +26,13 @@ export interface PlansPayload {
   reportPack?: { enabled: number; price: number; label: string };
   // Custo do resumo em créditos — a RÉGUA da linguagem "leituras" (1 leitura = 1 resumo).
   summaryCost: number;
+  // Gates de pagamento e custos expostos pelo server (31/10): PIX independe do MP;
+  // copy de custo/bônus deixa de ser hardcode (admin muda → telas refletem).
+  pixEnabled?: boolean;
+  mercadoPagoEnabled?: boolean;
+  signupBonus?: number; // créditos do bônus de 1º exame (grants.freeSignup)
+  creditCosts?: { extraction?: number; summary?: number; consolidated?: number; chat?: number };
+  uploadRules?: { freeCost?: number; premiumFreeQuota?: number; premiumCost?: number };
 }
 
 // Cache módulo-level: várias telas na mesma sessão compartilham 1 fetch (fetch-cache do SW
@@ -58,6 +65,11 @@ export async function fetchPlans(force = false): Promise<PlansPayload | null> {
           ? { enabled: 1, price: Number(d.reportPack.price) || 9.9, label: String(d.reportPack.label || 'Relatório completo') }
           : undefined,
         summaryCost: Number(d.creditCosts?.summary) > 0 ? Number(d.creditCosts.summary) : 10,
+        pixEnabled: !!d.pixEnabled,
+        mercadoPagoEnabled: !!d.mercadoPagoEnabled,
+        signupBonus: Number(d.signupBonus) > 0 ? Number(d.signupBonus) : undefined,
+        creditCosts: d.creditCosts ?? undefined,
+        uploadRules: d.uploadRules ?? undefined,
       };
       cached = payload;
       return payload;

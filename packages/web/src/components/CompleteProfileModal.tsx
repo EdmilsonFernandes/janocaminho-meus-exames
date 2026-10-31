@@ -11,6 +11,7 @@ import { useSelectedPatient } from '../patient-context';
 import { DateFieldBR } from './DateFieldBR';
 import { formatCpf, isValidCpf } from '../utils/cpf';
 import { parseHeightCm, maskHeightInput, fmtHeight } from '../utils/height';
+import { claimColdDialog } from '../utils/coldDialog';
 
 // Supressão de "Agora não" POR SESSÃO (não mais localStorage permanente): o flag por dispositivo
 // fazia o modal nunca mais aparecer depois de 1 skip ou 1 troca de aparelho — e a completude
@@ -69,6 +70,13 @@ export const CompleteProfileModal = () => {
     let cancelled = false;
     (async () => {
       try {
+        // UMA INTERRUPÇÃO SÓ (auditoria 29-31/10): este modal abria ~3s após o login SOBRE
+        // QUALQUER rota, antes mesmo do 1º upload (3 modais na 1ª sessão). Agora só auto-abre
+        // pra quem JÁ tem exame — é quando sexo/nascimento personalizam as faixas de referência.
+        // Antes disso, o checklist/NextStepsCard orientam sem bloquear a missão (enviar exame).
+        const st = await fetch(`${API_URL}/billing/status`, { headers: apiHeaders() })
+          .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        if (cancelled || !st || !(Number(st.examsCount) > 0)) return;
         const r = await fetch(`${API_URL}/patients/${pid}`, { headers: apiHeaders() });
         if (!r.ok) return;
         const p = await r.json();
@@ -84,7 +92,8 @@ export const CompleteProfileModal = () => {
         if (!p.gender || !p.dateOfBirth) queue.push('profile');
         if (p.heightCm == null || p.weightKg == null) queue.push('body');
         if (!p.hasCpf) queue.push('cpf');
-        if (queue.length > 0) { setSteps(queue); setStep(0); setOpen(true); }
+        // Entra na fila dos cold-dialogs (WhatsNew/GoalQuiz/Notificação): máx 1 modal por sessão.
+        if (queue.length > 0 && claimColdDialog('profile')) { setSteps(queue); setStep(0); setOpen(true); }
       } catch {
         // best-effort: se falhar (offline), simplesmente não mostra — não bloqueia o app.
       } finally {

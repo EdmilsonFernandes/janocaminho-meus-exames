@@ -39,7 +39,6 @@ import { GradientButton } from '../GradientButton';
 import { Celebration } from '../Celebration';
 import { Shimmer, TileShimmer } from '../Shimmer';
 import { ChangesSinceExam, type Marker } from './ChangesSinceExam';
-import { ScrollReveal } from './ScrollReveal';
 import { StaggerIn } from './StaggerIn';
 import { SkeletonCard } from './SkeletonCard';
 import { Section } from './Section';
@@ -1181,6 +1180,11 @@ const DashboardV2Inner = () => {
           onGoCreate={() => navigate('/exams/create')}
           onDemo={() => { setDemo(true); demoEvent('started'); }}
         />
+        {/* Checklist de ativação AQUI: a condição exams===0 abaixo era inalcançável (este
+            early-return vem antes) — o componente nunca renderizou desde que nasceu. */}
+        <Box sx={{ mt: 3.5 }}>
+          <ActivationChecklist exams={d.stats.exams} />
+        </Box>
       </PageContainer>
     );
   }
@@ -1236,16 +1240,6 @@ const DashboardV2Inner = () => {
             <GradientButton onClick={convertDemo} sx={{ py: 0.9, px: 2.25, fontSize: 13 }}>Usar meu exame</GradientButton>
           </Stack>
         </AppCard>
-      )}
-
-      {/* CHECKLIST DE ATIVAÇÃO — só no estado vazio real (sem exames, fora do modo exemplo):
-          passos concretos em vez de tiles vazios (cliff do dia 0). 1º exame = missão cumprida. */}
-      {!demo && d.loaded && d.stats.exams === 0 && (
-        <ScrollReveal delay={60}>
-          <Box sx={{ mt: 3.5 }}>
-            <ActivationChecklist exams={d.stats.exams} />
-          </Box>
-        </ScrollReveal>
       )}
 
       {/* QUIZ RESUMÍVEL (05/10) — card anuncia os metadados ANTES de entrar ("~30s · 3

@@ -33,6 +33,7 @@ import { App } from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { initAnalytics } from './utils/analytics';
+import { captureSignupSource } from './utils/signupSource';
 
 // SENTRY — error tracking em produção. Sem DSN = desligado.
 const SENTRY_DSN = 'https://80ba46ffe060f8851a79ded388bead7d@o4511611776663552.ingest.us.sentry.io/4511611790163968';
@@ -58,6 +59,13 @@ try {
 } catch (e) {
   console.warn('initAnalytics failed safely', e);
 }
+
+// ORIGEM DO CADASTRO: captura utm/referrer no 1º toque (landing) e persiste — antes só era
+// lida no submit do /registrar, quando a UTM e o referrer externos já tinham se perdido
+// (acquisitionSource saiu 100% vazio em prod mesmo implementado desde 18/10).
+try {
+  captureSignupSource();
+} catch { /* storage bloqueado — segue sem origem */ }
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 

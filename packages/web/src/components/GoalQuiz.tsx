@@ -353,7 +353,13 @@ export const GoalQuiz = () => {
       // Máx 1 diálogo de cold-load por SESSÃO (P1 bateria 2026-09): se WhatsNew/notificação
       // já abriram nesta sessão, o quiz fica pro card do dashboard (nova rota de entrada).
       if (!claimColdDialog('quiz')) return;
-      fetchQuizState().then((d) => {
+      // UMA INTERRUPÇÃO SÓ (31/10): antes do 1º exame a missão é o upload — o quiz
+      // não auto-abre pra conta sem exame (o GoalQuizCard do dashboard oferece depois).
+      fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((st) => {
+          if (!st || !(Number(st.examsCount) > 0)) return;
+          return fetchQuizState().then((d) => {
         if (d?.participation?.completedAt) {
           // Completa em outro device: sela local e encerra sem abrir.
           try { localStorage.setItem(KEY, JSON.stringify(Array.isArray(d.participation.answers?.['0']) ? d.participation.answers['0'] : [])); } catch { /* ignore */ }
@@ -361,7 +367,9 @@ export const GoalQuiz = () => {
         }
         setState({ currentIndex: d?.participation?.currentIndex ?? 0, answers: d?.participation?.answers ?? {} });
         setOpen(true);
-      });
+          });
+        })
+        .catch(() => { /* offline — pergunta no próximo boot */ });
     }, 1200);
     const kill = setTimeout(() => { done = true; clearInterval(iv); }, 30000);
     return () => { done = true; clearInterval(iv); clearTimeout(kill); };

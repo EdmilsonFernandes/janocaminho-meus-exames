@@ -33,7 +33,7 @@ const brl = (n: number) => `R$ ${n.toFixed(2).replace('.', ',')}`;
 
 interface Status { active: boolean; planExpiresAt: string | null; examsCount: number; freeExamLimit: number; credits: number; tokensUsed: number; }
 interface Pack { id: string; credits: number; price: number; label: string; popular: boolean; }
-interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; creditPacks: Pack[]; freeExamLimit: number; mercadoPagoEnabled: boolean; }
+interface PlanInfo { plans: { id: string; label: string; price: number; periodDays: number }[]; creditPacks: Pack[]; freeExamLimit: number; mercadoPagoEnabled: boolean; pixEnabled?: boolean; creditCosts?: { consolidated?: number; chat?: number }; uploadRules?: { freeCost?: number } }
 
 export const PlansPage = () => {
   const translate = useTranslate();
@@ -127,6 +127,10 @@ export const PlansPage = () => {
   const fmt = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const packs = plans?.creditPacks ?? [];
   const mpOn = plans?.mercadoPagoEnabled ?? false;
+  // PIX tem gate próprio (Asaas/OpenPix): comprar pack NÃO depende do MP — o MP hoje fica
+  // desligado na conta e é só resgate; amarrar o botão nele travava compra com PIX saudável.
+  const pixOn = plans?.pixEnabled ?? false;
+  const payOn = pixOn || mpOn;
   // Seleção efetiva do radio (#015): explícita > PIX pendente > popular > primeiro.
   const pendingPackId = pendingPix
     ? (packs.find((p) => p.credits === pendingPix.credits && p.price === pendingPix.price)?.id ?? null)
@@ -325,7 +329,9 @@ export const PlansPage = () => {
         <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
       </Stack>
       <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mb: 2, lineHeight: 1.5 }}>
-        Leitura de exame <b>1</b> · relatório completo <b>2</b> leituras · pergunta no chat <b>3</b> 💎. Enviar exame é <b>grátis</b>. Sem mensalidade.
+        {/* Custos VIVOS das settings — era hardcode ("chat 3 💎", "enviar é grátis") contradizendo
+            a cobrança real (upload custa uploadRules.freeCost depois do 1º exame). */}
+        Leitura de exame <b>1</b> · relatório completo <b>{Math.max(1, Math.round((plans?.creditCosts?.consolidated ?? 20) / rd))}</b> leituras · pergunta no chat <b>{plans?.creditCosts?.chat ?? 2}</b> 💎. <b>1º exame grátis</b>; depois {plans?.uploadRules?.freeCost ?? 1} 💎 por envio. Sem mensalidade.
       </Typography>
       {/* ══ CRÉDITOS AVULSOS — radio cards (Lucian #015): frame desliza pro pack
           escolhido, ponto pop, preço acorda no selecionado; setas navegam.
@@ -379,7 +385,7 @@ export const PlansPage = () => {
               );
             }
             return (
-              <Button variant="contained" fullWidth disabled={!mpOn}
+              <Button variant="contained" fullWidth disabled={!payOn}
                 endIcon={<ArrowForwardIcon sx={{ fontSize: 18, transition: 'transform .2s ease' }} />}
                 onClick={() => {
                   // PIX-only (cardEnabled=false) → 1-clique direto no QR; religado → escolhe forma.
@@ -454,9 +460,9 @@ export const PlansPage = () => {
         ))}
       </Stack>
 
-      {!mpOn && (
+      {!payOn && (
         <Alert severity="info" sx={{ mt: 2 }} icon={<CheckIcon />}>
-          Em ambiente de teste os pagamentos podem estar desativados. Em produção usamos o mesmo Mercado Pago da sua loja.
+          Pagamentos indisponíveis neste ambiente (nenhum provedor PIX/cartão configurado).
         </Alert>
       )}
 

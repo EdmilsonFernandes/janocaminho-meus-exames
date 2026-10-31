@@ -16,6 +16,9 @@ import { API_URL, token } from '../config';
 const TTL_MS = 30_000;
 
 let cache: { credits: number | null; at: number } | null = null;
+// Bônus do 1º exame ainda não resgatado? (billing/status.firstExamBonusGranted === false)
+// — o chip/empty-state prometem o bônus só enquanto ele é real. null = ainda não sabe.
+let bonusPending: boolean | null = null;
 let inflight: Promise<number | null> | null = null;
 const subscribers = new Set<(c: number | null) => void>();
 
@@ -29,6 +32,7 @@ async function fetchCredits(force = false): Promise<number | null> {
         const r = await fetch(`${API_URL}/billing/status`, { headers: { Authorization: `Bearer ${token()}` } });
         const d = r.ok ? await r.json() : null;
         const c = typeof d?.credits === 'number' ? d.credits : null;
+        if (d) bonusPending = d.firstExamBonusGranted === false;
         cache = { credits: c, at: Date.now() };
         return c;
       } catch {
@@ -49,7 +53,7 @@ export const invalidateCredits = (): void => { void fetchCredits(true); };
 
 /** Saldo reativo: `{ credits, refresh }`. `credits === null` = ainda não sabe (anônimo/
  *  offline) — quem renderiza decide esconder. `refresh()` força revalidação imediata. */
-export function useCredits(): { credits: number | null; refresh: () => void } {
+export function useCredits(): { credits: number | null; bonusPending: boolean | null; refresh: () => void } {
   const [credits, setCredits] = useState<number | null>(() => cache?.credits ?? null);
 
   useEffect(() => {
@@ -80,5 +84,7 @@ export function useCredits(): { credits: number | null; refresh: () => void } {
   }, []);
 
   const refresh = useCallback(() => { void fetchCredits(true); }, []);
-  return { credits, refresh };
+  // bonusPending muda junto com credits (o grant incrementa saldo) → o rerender de credits
+  // já traz o valor novo do módulo; não precisa de state próprio.
+  return { credits, bonusPending, refresh };
 }
