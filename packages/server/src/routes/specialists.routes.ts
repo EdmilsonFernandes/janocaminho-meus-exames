@@ -199,6 +199,14 @@ router.get('/', async (req: AuthedRequest, res, next) => {
           let profs = await prisma.directoryProfessional.findMany({
             where: {
               facilityId: { in: [...facById.keys()] },
+              // SÓ MÉDICOS (dono 02/11): sem isto a busca trazia técnico de enfermagem
+              // (203k!), enfermeiro, assistente administrativo etc. CNES grava o CBO em
+              // CAIXA ALTA SEM ACENTO ("MEDICO CLINICO"); cargas podem vir acentuadas —
+              // o OR cobre as duas grafias (gotcha normalizeKey/acentos do projeto).
+              ...(specialty ? {} : { OR: [
+                { cboName: { startsWith: 'medico', mode: 'insensitive' } },
+                { cboName: { startsWith: 'médico', mode: 'insensitive' } },
+              ] }),
               ...(text ? { name: { contains: text, mode: 'insensitive' } } : {}),
             },
             take: 400,

@@ -189,7 +189,9 @@ describe('specialists: busca no diretório próprio (§3)', () => {
     const semCrm = r.body.items.find((i: any) => i.origin === 'cnes' && i.name === 'ENF SEM CRM');
     expect(comCrm.crm).toBe('123456');
     expect(comCrm.crmUf).toBe('SP');
-    expect(semCrm.crm ?? null).toBeNull(); // conselho de enfermagem NÃO vira CRM
+    // Regra 02/11 (dono): diretório é SÓ de médicos — enfermeira (CBO não-médico)
+    // NEM APARECE (antes: aparecia com CRM nulo). Conselho de enfermagem nunca vira CRM.
+    expect(semCrm).toBeUndefined();
   });
 
   // I7: o selo "Dados publicados pelo médico no Dr. Exame" e o 1º lugar do ranking eram de qualquer conta com senha —
