@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { API_URL, token } from '../config';
+import { snackbar } from '../components/ConfirmDialog';
 import { PageContainer } from '../components/layout/PageContainer';
 import { tealText } from '../theme';
 
@@ -44,8 +45,24 @@ export const ConquistasPage = () => {
         body: JSON.stringify(badgeId ? { badgeId } : {}),
       });
       const d = await r.json().catch(() => ({}));
-      if (d?.count > 0) window.dispatchEvent(new Event('creditsChanged')); // atualiza o 💎 do header
+      if (!r.ok) {
+        // Feedback honesto (bug do "resgata e não dá nada"): antes a falha era engolida.
+        snackbar({ message: d?.error || 'Não foi possível resgatar agora. Tenta de novo.', severity: 'error' });
+        return;
+      }
+      if (d?.count > 0) {
+        window.dispatchEvent(new Event('creditsChanged')); // atualiza o 💎 do header
+        snackbar({ message: `🎉 ${d.count} crédito${d.count > 1 ? 's' : ''} resgatado${d.count > 1 ? 's' : ''}!`, severity: 'success' });
+      } else if (d?.monthlyCapReached) {
+        // CAP dos mensais (auditoria 18/10): saldo ≥ cap → o desafio mensal NÃO paga (não
+        // é bug) — mas antes isto acontecia em SILÊNCIO e parecia que o botão morria.
+        snackbar({ message: 'Limite de resgate do mês atingido (150 💎). Os desafios mensais voltam a pagar quando seu saldo baixar.', severity: 'info' });
+      } else {
+        snackbar({ message: 'Nada para resgatar ainda — complete uma meta primeiro.', severity: 'info' });
+      }
       await load();
+    } catch {
+      snackbar({ message: 'Sem conexão — não foi possível resgatar.', severity: 'error' });
     } finally {
       setBusy(null);
     }

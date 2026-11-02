@@ -75,6 +75,7 @@ export const WalletPage = () => {
   // Filtro do extrato acionado pelos cards de stats (padrão dashboard financeiro):
   // clicar filtra, clicar de novo no ativo volta pra "tudo".
   const [filter, setFilter] = useState<'all' | 'gain' | 'spend'>('all');
+  const [loadErr, setLoadErr] = useState(false);
   const totals = useRef<{ earned: number; spent: number }>({ earned: 0, spent: 0 });
 
   const loadStatus = () => {
@@ -95,9 +96,11 @@ export const WalletPage = () => {
       setLoadingMore(false);
     };
     return fetch(`${API_URL}/billing/credits/history?page=${p}`, { headers: { Authorization: `Bearer ${token()}` } })
-      .then((r) => (r.ok ? r.json() : null))
+      // Falha ≠ extrato vazio (bug do "ganhos zerados"): sem isto um 401/500 virava
+      // Ganhos 0 + "Nada por aqui ainda" — mentira que esconde o erro real.
+      .then((r) => { if (!r.ok) { setLoadErr(true); return null; } setLoadErr(false); return r.json(); })
       .then(done)
-      .catch(() => setLoadingMore(false));
+      .catch(() => { setLoadErr(true); setLoadingMore(false); });
   };
 
   useEffect(() => {
@@ -211,7 +214,19 @@ export const WalletPage = () => {
         <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15, mb: 1, px: 0.5 }}>
           Extrato{filter !== 'all' && <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: '#0f6e68', ml: 1 }}>{filter === 'gain' ? '· só ganhos' : '· só gastos'} <span style={{ cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setFilter('all')}>limpar</span></Typography>}
         </Typography>
-        {visibleItems == null ? (
+        {loadErr && (items == null || items.length === 0) ? (
+          <Card elevation={0} sx={{ borderRadius: '16px', border: (t) => `1px solid ${alpha(t.palette.warning.main, 0.5)}`, bgcolor: (t) => alpha(t.palette.warning.main, 0.05) }}>
+            <CardContent sx={{ p: 2.5, textAlign: 'center' }}>
+              <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>Não foi possível carregar o extrato</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.5 }}>
+                Seus créditos estão intactos — foi uma falha de rede. Os ganhos voltam a aparecer ao tentar de novo.
+              </Typography>
+              <Button size="small" variant="outlined" sx={{ mt: 1.5, borderRadius: '999px', textTransform: 'none', fontWeight: 800 }} onClick={() => { setLoadErr(false); loadStatus(); loadPage(1, true); }}>
+                Tentar de novo
+              </Button>
+            </CardContent>
+          </Card>
+        ) : visibleItems == null ? (
           <Box>
             {[0, 1, 2, 3, 4].map((i) => <Skeleton key={i} height={64} sx={{ borderRadius: '14px', mb: 1 }} />)}
           </Box>
