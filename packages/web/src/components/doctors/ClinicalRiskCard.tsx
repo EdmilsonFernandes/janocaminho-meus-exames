@@ -288,78 +288,162 @@ export const ClinicalRiskCard = ({
         },
       }}
     >
-      {/* CABEÇALHO */}
+      {/* CABEÇALHO RESPONSIVO REUI — Sem quebras no mobile */}
       <Box
         sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          px: 2.5,
-          pt: 2.25,
-          pb: expanded ? 1.5 : 2.25,
+          px: { xs: 2, sm: 2.5 },
+          pt: 2,
+          pb: expanded ? 1.5 : 1.75,
         }}
       >
-        {/* fix dono 24/10 "prioridade clínica quebra layout": minWidth 0 + flex 1 nos
-            filhos do flex — sem isso o bloco de título NÃO encolhe no 390px e empurra o
-            badge/expand pra fora do card. Semântica de cor preservada. */}
-        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0, flex: 1 }}>
-          <Box
-            sx={{
-              width: 38,
-              height: 38,
-              borderRadius: '10px',
-              bgcolor: isDark ? alpha(COPPER.mid, 0.15) : alpha(COPPER.deep, 0.1),
-              color: isDark ? COPPER.light : COPPER.deep,
-              display: 'grid',
-              placeItems: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <HealthAndSafetyIcon sx={{ fontSize: 22 }} />
-          </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1.5,
+          }}
+        >
+          {/* LADO ESQUERDO: Ícone + Título Prioridade Clínica */}
+          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                bgcolor: isDark ? alpha(COPPER.mid, 0.18) : alpha(COPPER.deep, 0.1),
+                color: isDark ? COPPER.light : COPPER.deep,
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <HealthAndSafetyIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Box sx={{ minWidth: 0 }}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Typography
+                  sx={{
+                    fontFamily: 'Poppins, sans-serif',
+                    fontWeight: 800,
+                    fontSize: { xs: 15, sm: 16 },
+                    color: 'text.primary',
+                    lineHeight: 1.2,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  Prioridade Clínica
+                </Typography>
+                <Chip
+                  label="Triagem"
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    bgcolor: isDark ? alpha(COPPER.mid, 0.2) : alpha(COPPER.deep, 0.12),
+                    color: (t) => copperText(t.palette.mode),
+                    border: '1px solid',
+                    borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
+                    display: { xs: 'none', md: 'inline-flex' },
+                  }}
+                />
+              </Stack>
               <Typography
-                sx={{
-                  fontFamily: 'Poppins, sans-serif',
-                  fontWeight: 800,
-                  fontSize: { xs: 15, sm: 16 },
-                  color: 'text.primary',
-                  lineHeight: 1.2,
-                }}
+                variant="caption"
+                sx={{ color: 'text.secondary', fontWeight: 600, display: { xs: 'none', sm: 'block' }, mt: 0.2 }}
               >
-                Prioridade Clínica
+                Triagem por biomarcadores alterados — apoia a priorização
               </Typography>
+            </Box>
+          </Stack>
+
+          {/* LADO DIREITO: Badge no desktop + Ações */}
+          <Stack direction="row" alignItems="center" spacing={0.75} sx={{ flexShrink: 0 }}>
+            {/* No sm+ o badge fica inline com os botões */}
+            {!expanded && (
               <Chip
-                label="Triagem educativa"
+                label={`${riskAnalysis.level} · ${riskAnalysis.score}/100`}
                 size="small"
                 sx={{
-                  height: 20,
-                  fontSize: 10,
                   fontWeight: 800,
-                  bgcolor: isDark ? alpha(COPPER.mid, 0.2) : alpha(COPPER.deep, 0.12),
-                  color: (t) => copperText(t.palette.mode),
-                  border: '1px solid',
-                  borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
+                  fontSize: 11,
+                  bgcolor: riskAnalysis.levelBg,
+                  color: riskAnalysis.levelColor,
                   display: { xs: 'none', sm: 'inline-flex' },
                 }}
               />
-            </Stack>
-            <Typography
-              variant="caption"
-              // xs: a coluna fica ~90px ao lado do "Atualizar" → texto em 2 palavras/linha
-              // (auditoria 29/10). O disclaimer completo já existe no rodapé do card.
-              sx={{ color: 'text.secondary', fontWeight: 600, display: { xs: 'none', sm: 'block' }, mt: 0.2 }}
-            >
-              Triagem por biomarcadores alterados — apoia a priorização, não diagnostica
-            </Typography>
-          </Box>
-        </Stack>
+            )}
 
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ flexShrink: 0 }}>
-          {/* Badge de gravidade visível no header se colapsado — capped no xs pra não
-              estourar o header (chip não encolhe sozinho; ellipsis no label). */}
-          {!expanded && (
+            {onRefreshAnalysis && (
+              <Tooltip title="Atualizar prioridade e reavaliar com exames recentes">
+                <Box>
+                  {/* Desktop: botão com texto */}
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={onRefreshAnalysis}
+                    disabled={loading || refreshing}
+                    startIcon={<AutorenewIcon sx={{ fontSize: 16, animation: (loading || refreshing) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />}
+                    sx={{
+                      height: 28,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      textTransform: 'none',
+                      borderRadius: '14px',
+                      color: (t) => copperText(t.palette.mode),
+                      borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
+                      display: { xs: 'none', sm: 'inline-flex' },
+                      '&:hover': {
+                        borderColor: isDark ? COPPER.mid : COPPER.deep,
+                        bgcolor: isDark ? alpha(COPPER.mid, 0.1) : alpha(COPPER.deep, 0.05),
+                      },
+                    }}
+                  >
+                    Atualizar
+                  </Button>
+                  {/* Mobile: icon button compacto p/ nunca estourar largura */}
+                  <IconButton
+                    size="small"
+                    onClick={onRefreshAnalysis}
+                    disabled={loading || refreshing}
+                    aria-label="Atualizar análise clínica"
+                    sx={{
+                      display: { xs: 'inline-flex', sm: 'none' },
+                      width: 32,
+                      height: 32,
+                      color: (t) => copperText(t.palette.mode),
+                      border: '1px solid',
+                      borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
+                    }}
+                  >
+                    <AutorenewIcon sx={{ fontSize: 16, animation: (loading || refreshing) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />
+                  </IconButton>
+                </Box>
+              </Tooltip>
+            )}
+
+            <IconButton
+              size="small"
+              onClick={() => setExpanded((prev) => !prev)}
+              aria-label={expanded ? 'Recolher prioridade clínica' : 'Expandir prioridade clínica'}
+              sx={{
+                width: 32,
+                height: 32,
+                color: 'text.secondary',
+                border: '1px solid',
+                borderColor: 'divider',
+                '&:hover': { bgcolor: 'action.hover' },
+              }}
+            >
+              {expanded ? <KeyboardArrowUpIcon fontSize="small" /> : <KeyboardArrowDownIcon fontSize="small" />}
+            </IconButton>
+          </Stack>
+        </Box>
+
+        {/* Linha 2 Mobile xs: Badge com total respiro e largura adaptável */}
+        {!expanded && (
+          <Box sx={{ display: { xs: 'flex', sm: 'none' }, alignItems: 'center', justifyContent: 'space-between', mt: 1.25, pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
             <Chip
               label={`${riskAnalysis.level} · ${riskAnalysis.score}/100`}
               size="small"
@@ -368,94 +452,119 @@ export const ClinicalRiskCard = ({
                 fontSize: 11,
                 bgcolor: riskAnalysis.levelBg,
                 color: riskAnalysis.levelColor,
-                maxWidth: { xs: 168, sm: 'none' },
-                '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' },
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
               }}
             />
-          )}
-
-          {onRefreshAnalysis && (
-            <Tooltip title="Atualizar prioridade e reavaliar com exames recentes">
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={onRefreshAnalysis}
-                disabled={loading || refreshing}
-                startIcon={<AutorenewIcon sx={{ fontSize: 16, animation: (loading || refreshing) ? 'spin 1s linear infinite' : 'none', '@keyframes spin': { '0%': { transform: 'rotate(0deg)' }, '100%': { transform: 'rotate(360deg)' } } }} />}
-                sx={{
-                  height: 28,
-                  fontSize: 11,
-                  fontWeight: 700,
-                  textTransform: 'none',
-                  borderRadius: '14px',
-                  color: (t) => copperText(t.palette.mode),
-                  borderColor: isDark ? alpha(COPPER.mid, 0.4) : alpha(COPPER.deep, 0.3),
-                  '&:hover': {
-                    borderColor: isDark ? COPPER.mid : COPPER.deep,
-                    bgcolor: isDark ? alpha(COPPER.mid, 0.1) : alpha(COPPER.deep, 0.05),
-                  },
-                }}
-              >
-                <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Atualizar análise</Box>
-                <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Atualizar</Box>
-              </Button>
-            </Tooltip>
-          )}
-
-          <IconButton
-            size="small"
-            onClick={() => setExpanded((prev) => !prev)}
-            aria-label={expanded ? 'Recolher prioridade clínica' : 'Expandir prioridade clínica'}
-            sx={{
-              color: 'text.secondary',
-              '&:hover': { bgcolor: 'action.hover' },
-            }}
-          >
-            {expanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-          </IconButton>
-        </Stack>
+            <Button
+              size="small"
+              onClick={() => setExpanded(true)}
+              endIcon={<KeyboardArrowDownIcon sx={{ fontSize: 14 }} />}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: 11,
+                p: 0,
+                minWidth: 'auto',
+                color: (t) => copperText(t.palette.mode),
+              }}
+            >
+              Ver estratificação
+            </Button>
+          </Box>
+        )}
       </Box>
 
-      {/* FAIXA COMPACTA QUANDO RECOLHIDO — mostra os 3 principais marcadores atuais sem empurrar as abas clínicas */}
+      {/* FAIXA COMPACTA QUANDO RECOLHIDO — Botão e chips de alta affordance REUI */}
       {!expanded && topCurrentHighlights.length > 0 && (
         <Box
-          onClick={() => setExpanded(true)}
           sx={{
-            px: 2.5,
-            pb: 1.75,
+            px: { xs: 2, sm: 2.5 },
+            pb: 2,
             pt: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: 0.75,
-            cursor: 'pointer',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.65, flex: 1, minWidth: 0 }}>
-            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mr: 0.25, fontSize: 11 }}>
-              Atuais fora da faixa ({riskAnalysis.totalCurrentAbnormal}):
-            </Typography>
-            {topCurrentHighlights.slice(0, 3).map((it: any) => {
-              const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
-              const rawUnit = String(it.unit ?? '').trim();
-              const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
-              const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
-              const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
-              return (
-                <Chip
-                  key={it.id || it.name}
-                  size="small"
-                  label={`${it.name}: ${displayVal}`.trim()}
-                  sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.3) }}
-                />
-              );
+          <Box
+            sx={(t) => ({
+              p: 1.25,
+              borderRadius: '14px',
+              bgcolor: isDark ? alpha(t.palette.warning.main, 0.06) : alpha(t.palette.warning.main, 0.04),
+              border: '1px solid',
+              borderColor: alpha(t.palette.warning.main, 0.25),
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              alignItems: { xs: 'stretch', md: 'center' },
+              justifyContent: 'space-between',
+              gap: 1.25,
             })}
-            {topCurrentHighlights.length > 3 && (
-              <Typography variant="caption" sx={{ fontWeight: 700, color: (t) => copperText(t.palette.mode), fontSize: 11.5 }}>
-                +{ riskAnalysis.totalCurrentAbnormal - 3 } mais · Ver triagem ↓
+          >
+            {/* Lista dos primeiros marcadores alterados */}
+            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.65, flex: 1, minWidth: 0 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mr: 0.25, fontSize: 11.5, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: 'warning.main', display: 'inline-block' }} />
+                Fora da faixa ({riskAnalysis.totalCurrentAbnormal}):
               </Typography>
-            )}
+              {topCurrentHighlights.slice(0, 3).map((it: any) => {
+                const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
+                const rawUnit = String(it.unit ?? '').trim();
+                const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
+                const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
+                const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
+                return (
+                  <Chip
+                    key={it.id || it.name}
+                    size="small"
+                    label={`${it.name}: ${displayVal}`.trim()}
+                    sx={{
+                      height: 22,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      bgcolor: isDark ? alpha(theme.palette.warning.main, 0.15) : '#ffffff',
+                      color: 'text.primary',
+                      border: '1px solid',
+                      borderColor: alpha(theme.palette.warning.main, 0.35),
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
+                    }}
+                  />
+                );
+              })}
+            </Box>
+
+            {/* BOTÃO PREMIUM REUI: Ação explícita pro médico clicar e ver todos */}
+            <Button
+              variant="contained"
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onNavigateToAlterados) {
+                  onNavigateToAlterados('alterados');
+                } else {
+                  setExpanded(true);
+                }
+              }}
+              sx={{
+                flexShrink: 0,
+                height: 32,
+                px: 1.75,
+                borderRadius: '999px',
+                textTransform: 'none',
+                fontWeight: 800,
+                fontSize: 11.5,
+                background: isDark
+                  ? `linear-gradient(135deg, ${COPPER.light}, ${COPPER.mid})`
+                  : `linear-gradient(135deg, ${COPPER.deep}, #b45309)`,
+                color: '#ffffff',
+                boxShadow: isDark
+                  ? '0 4px 12px rgba(217,119,6,0.25)'
+                  : '0 4px 12px rgba(180,83,9,0.20)',
+                '&:hover': {
+                  background: isDark
+                    ? `linear-gradient(135deg, ${COPPER.mid}, ${COPPER.deep})`
+                    : `linear-gradient(135deg, #b45309, #92400e)`,
+                },
+              }}
+            >
+              Ver {riskAnalysis.totalCurrentAbnormal} exames alterados →
+            </Button>
           </Box>
         </Box>
       )}

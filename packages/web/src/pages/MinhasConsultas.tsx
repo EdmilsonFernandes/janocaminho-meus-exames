@@ -56,7 +56,7 @@ export const MinhasConsultasPage = () => {
   const callingRef = useRef<Record<string, boolean>>({});
 
   const isTele = (r: any) => r && (r.type === 'teleconsulta' || r.provider === 'livekit');
-  const isDone = (r: any) => !!r.endedAt || !!r.done;
+  const isDone = (r: any) => Boolean(r.endedAt || r.done || r.status === 'completed' || r.status === 'concluded');
 
   const load = async () => {
     if (!pid) return;
@@ -83,7 +83,7 @@ export const MinhasConsultasPage = () => {
   // sem link externo na janela (atraso ≤2h). Alimenta o pill "SALA ABERTA".
   useEffect(() => {
     const cands = teleconsultas.filter((r) =>
-      !r.done && !r.endedAt && !r.linkUrl &&
+      !isDone(r) && !r.linkUrl &&
       new Date(r.dueDate).getTime() >= Date.now() - 2 * 60 * 60 * 1000);
     if (!cands.length) { setCallingIds({}); callingRef.current = {}; return; }
     let stop = false;

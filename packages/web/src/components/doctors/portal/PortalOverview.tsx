@@ -267,44 +267,86 @@ export const PortalOverview = ({
 
   return (
     <Stack spacing={2.5}>
-      {/* HERO BANNER: Saudação & Resumo Clínico do Dia */}
+      {/* HERO BANNER: ReUI Executive Copilot — Clean, Modern & High-Contrast */}
       <Box
         sx={(t) => ({
           borderRadius: '20px',
           position: 'relative',
           overflow: 'hidden',
-          background:
+          bgcolor: t.palette.mode === 'dark' ? '#0f172a' : '#ffffff',
+          backgroundImage:
             t.palette.mode === 'dark'
-              ? 'radial-gradient(ellipse 95% 85% at 0% 0%, #0d9488 0%, #0f544f 45%, #082827 100%)'
-              : 'radial-gradient(ellipse 95% 85% at 0% 0%, #20B2AA 0%, #0d9488 50%, #065f57 100%)',
-          color: '#ffffff',
-          p: { xs: 2.25, md: 3 },
-          boxShadow: '0 12px 32px rgba(13,148,136,0.22)',
-          border: '1px solid rgba(255,255,255,0.15)',
-          '&::after': {
+              ? 'radial-gradient(ellipse 80% 60% at 5% 0%, rgba(20,184,166,0.14), transparent 70%), linear-gradient(180deg, rgba(30,41,59,0.6) 0%, rgba(15,23,42,0.9) 100%)'
+              : 'radial-gradient(ellipse 80% 60% at 5% 0%, rgba(20,184,166,0.08), transparent 70%), linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          border: '1px solid',
+          borderColor: t.palette.mode === 'dark' ? 'rgba(20,184,166,0.25)' : 'rgba(20,184,166,0.20)',
+          boxShadow: t.palette.mode === 'dark' ? '0 10px 30px rgba(0,0,0,0.35)' : '0 8px 24px rgba(13,148,136,0.06)',
+          p: { xs: 2.25, md: 2.75 },
+          '&::before': {
             content: '""',
             position: 'absolute',
-            bottom: 0,
+            top: 0,
             left: 0,
             right: 0,
             height: '3px',
-            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)',
+            background: 'linear-gradient(90deg, #0d9488, #14b8a6, #2dd4bf)',
           },
         })}
       >
-        <Typography component="h1" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, md: 24 }, lineHeight: 1.2 }}>
-          {greet}, Dr(a). {firstName} 👋
-        </Typography>
-        <Typography sx={{ opacity: 0.95, fontSize: 14.5, mt: 0.75, fontWeight: 500 }}>
-          {alerts.length > 0
-            ? `${alerts.length} ${alerts.length === 1 ? 'paciente com valores alterados precisando de atenção' : 'pacientes com valores alterados precisando de atenção'}${openQP.length ? ` · ${openQP.length} ${openQP.length === 1 ? 'dúvida em aberto' : 'dúvidas em aberto'}` : ''}`
-            : openQP.length > 0
-              ? `${openQP.length} ${openQP.length === 1 ? 'pergunta aguardando resposta' : 'perguntas aguardando resposta'}`
-              : 'Tudo em ordem — nenhum alerta crítico no momento ✅'}
-        </Typography>
-        <Typography variant="caption" sx={{ opacity: 0.85, display: 'block', mt: 0.75, textTransform: 'capitalize', fontWeight: 600 }}>
-          {today}
-        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={1.5}>
+          <Box sx={{ minWidth: 0 }}>
+            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 0.5 }}>
+              <Typography component="h1" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 19, md: 22 }, color: 'text.primary', lineHeight: 1.2 }}>
+                {greet}, Dr(a). {firstName} 👋
+              </Typography>
+              <Chip
+                label="Painel Clínico"
+                size="small"
+                icon={<Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981', display: 'inline-block' }} />}
+                sx={{
+                  height: 22,
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.10)',
+                  color: (t) => t.palette.mode === 'dark' ? '#34d399' : '#059669',
+                  border: '1px solid rgba(16,185,129,0.3)',
+                  display: { xs: 'none', sm: 'inline-flex' },
+                }}
+              />
+            </Stack>
+            <Typography sx={{ color: 'text.secondary', fontSize: 14, fontWeight: 500, lineHeight: 1.4 }}>
+              {alerts.length > 0 ? (
+                <>
+                  <Box component="span" sx={{ fontWeight: 700, color: 'error.main' }}>
+                    {alerts.length} {alerts.length === 1 ? 'paciente com valores alterados' : 'pacientes com valores alterados'}
+                  </Box>
+                  {' precisando de atenção'}
+                  {openQP.length ? (
+                    <>
+                      {' · '}
+                      <Box component="span" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                        {openQP.length} {openQP.length === 1 ? 'dúvida pendente' : 'dúvidas pendentes'}
+                      </Box>
+                    </>
+                  ) : ''}
+                </>
+              ) : openQP.length > 0 ? (
+                <Box component="span" sx={{ fontWeight: 700, color: 'warning.main' }}>
+                  {openQP.length} {openQP.length === 1 ? 'pergunta aguardando resposta' : 'perguntas aguardando resposta'}
+                </Box>
+              ) : (
+                'Tudo em ordem — nenhum alerta crítico no momento ✅'
+              )}
+            </Typography>
+          </Box>
+
+          <Box sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'capitalize', display: 'inline-flex', alignItems: 'center', gap: 0.75, px: 1.25, py: 0.5, borderRadius: '999px', bgcolor: 'action.hover' }}>
+              <CalendarBlank size={14} weight="bold" />
+              {today}
+            </Typography>
+          </Box>
+        </Stack>
       </Box>
 
       {/* 4 CARDS DE KPI (Estilo SaaS / Hospital Management com Soft Badges) */}
@@ -388,356 +430,356 @@ export const PortalOverview = ({
         <Stack spacing={2.5}>
           {/* PRECISA DE ATENÇÃO — 1 card por paciente com qualquer pendência (zero repetição) */}
           {(patients.length > 0 || unifiedList.length > 0) && (
-          <Box>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }} flexWrap="wrap" gap={1}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Stethoscope size={22} weight="duotone" color={COPPER.deep} />
-                <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 17 }, color: 'text.primary' }}>
-                  Precisa de atenção
-                </Typography>
-                <Chip
-                  size="small"
-                  label={`${totalActionCount} pendente${totalActionCount === 1 ? '' : 's'}`}
-                  sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', borderRadius: '8px' }}
-                />
+            <Box>
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }} flexWrap="wrap" gap={1}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <Stethoscope size={22} weight="duotone" color={COPPER.deep} />
+                  <Typography component="h2" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 17 }, color: 'text.primary' }}>
+                    Precisa de atenção
+                  </Typography>
+                  <Chip
+                    size="small"
+                    label={`${totalActionCount} pendente${totalActionCount === 1 ? '' : 's'}`}
+                    sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', borderRadius: '8px' }}
+                  />
+                </Stack>
+                {onViewTeleconsultas && (
+                  <Button size="small" onClick={onViewTeleconsultas} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', fontSize: 12.5 }}>
+                    Ver agenda completa ›
+                  </Button>
+                )}
               </Stack>
-              {onViewTeleconsultas && (
-                <Button size="small" onClick={onViewTeleconsultas} sx={{ textTransform: 'none', fontWeight: 700, color: (t) => tealText(t.palette.mode), borderRadius: '999px', fontSize: 12.5 }}>
-                  Ver agenda completa ›
-                </Button>
-              )}
-            </Stack>
 
-            {/* Filtros rápidos — só fazem sentido quando há pendências */}
-            {totalActionCount > 0 && (
-            <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-              <Chip
-                clickable
-                label={`Todos com ação (${totalActionCount})`}
-                onClick={() => setQueueFilter('all')}
-                sx={{
-                  fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                  bgcolor: queueFilter === 'all' ? '#178f89' : 'action.hover',
-                  color: queueFilter === 'all' ? '#ffffff' : 'text.primary',
-                  '&:hover': { bgcolor: queueFilter === 'all' ? '#137a74' : 'action.selected' },
-                }}
-              />
-              {teleCount > 0 && (
-                <Chip
-                  clickable
-                  icon={<VideocamIcon sx={{ fontSize: 15, color: queueFilter === 'tele' ? '#fff !important' : '#178f89 !important' }} />}
-                  label={`Teleconsultas (${teleCount})`}
-                  onClick={() => setQueueFilter('tele')}
-                  sx={{
-                    fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                    bgcolor: queueFilter === 'tele' ? '#178f89' : 'rgba(15,118,110,0.1)',
-                    color: queueFilter === 'tele' ? '#ffffff' : '#178f89',
-                    '&:hover': { bgcolor: queueFilter === 'tele' ? '#137a74' : 'rgba(15,118,110,0.2)' },
-                  }}
-                />
-              )}
-              {alertCount > 0 && (
-                <Chip
-                  clickable
-                  icon={<WarningAmberIcon sx={{ fontSize: 15, color: queueFilter === 'alerts' ? '#fff !important' : '#ef4444 !important' }} />}
-                  label={`Alertas (${alertCount})`}
-                  onClick={() => setQueueFilter('alerts')}
-                  sx={{
-                    fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                    bgcolor: queueFilter === 'alerts' ? '#ef4444' : 'rgba(239,68,68,0.1)',
-                    color: queueFilter === 'alerts' ? '#ffffff' : '#ef4444',
-                    '&:hover': { bgcolor: queueFilter === 'alerts' ? '#dc2626' : 'rgba(239,68,68,0.2)' },
-                  }}
-                />
-              )}
-              {questionCount > 0 && (
-                <Chip
-                  clickable
-                  icon={<QuestionAnswerIcon sx={{ fontSize: 15, color: queueFilter === 'questions' ? '#fff !important' : '#d97706 !important' }} />}
-                  label={`Dúvidas (${questionCount})`}
-                  onClick={() => setQueueFilter('questions')}
-                  sx={{
-                    fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                    bgcolor: queueFilter === 'questions' ? '#d97706' : 'rgba(245,158,11,0.12)',
-                    color: queueFilter === 'questions' ? '#ffffff' : '#d97706',
-                    '&:hover': { bgcolor: queueFilter === 'questions' ? '#b45309' : 'rgba(245,158,11,0.2)' },
-                  }}
-                />
-              )}
-              {staleCount > 0 && (
-                <Chip
-                  clickable
-                  icon={<CalendarBlank size={14} color={queueFilter === 'stale' ? '#fff' : '#64748b'} />}
-                  label={`Renovar (${staleCount})`}
-                  onClick={() => setQueueFilter('stale')}
-                  sx={{
-                    fontWeight: 700, fontSize: 12, borderRadius: '999px',
-                    bgcolor: queueFilter === 'stale' ? '#475569' : 'rgba(100,116,139,0.1)',
-                    color: queueFilter === 'stale' ? '#ffffff' : 'text.secondary',
-                    '&:hover': { bgcolor: queueFilter === 'stale' ? '#334155' : 'rgba(100,116,139,0.2)' },
-                  }}
-                />
-              )}
-            </Stack>
-            )}
-
-            {/* Lista unificada: 1 card compacto por paciente — clique abre o prontuário */}
-            <Stack spacing={1.25}>
-              {filteredList.map((p: any) => {
-                const who = [p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ');
-                const patName = p.patient?.fullName ?? 'Paciente';
-                const alertSuffix = p.maxPriority === 'importante' ? ' · alta' : p.maxPriority === 'moderada' ? ' · moderada' : '';
-                const isCritical = p.maxPriority === 'importante';
-                const isLive = isTeleLiveNow(p.tele?.dueDate);
-
-                return (
-                  <AppCard
-                    key={p.patient?.id || p.shareId}
-                    kind="interactive"
-                    onClick={() => {
-                      if (!p.patient) return;
-                      // Deep-link esperto: abre direto na aba da pendência principal
-                      // (openPatient valida se o paciente autorizou o escopo da aba).
-                      onOpenPatient(p, p.hasAlert ? 'alterados' : p.hasQuestions ? 'questions' : undefined);
-                    }}
+              {/* Filtros rápidos — só fazem sentido quando há pendências */}
+              {totalActionCount > 0 && (
+                <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
+                  <Chip
+                    clickable
+                    label={`Todos com ação (${totalActionCount})`}
+                    onClick={() => setQueueFilter('all')}
                     sx={{
-                      border: '1px solid',
-                      borderColor: isLive
-                        ? 'rgba(239,68,68,0.4)'
-                        : p.hasAlert
-                        ? isCritical
-                          ? 'rgba(239,68,68,0.35)'
-                          : 'rgba(245,158,11,0.35)'
-                        : p.hasQuestions
-                        ? 'rgba(217,119,6,0.3)'
-                        : 'divider',
-                      p: { xs: 1.5, sm: 1.75 },
-                      boxShadow: isLive ? '0 4px 16px rgba(239,68,68,0.08)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      fontWeight: 700, fontSize: 12, borderRadius: '999px',
+                      bgcolor: queueFilter === 'all' ? '#178f89' : 'action.hover',
+                      color: queueFilter === 'all' ? '#ffffff' : 'text.primary',
+                      '&:hover': { bgcolor: queueFilter === 'all' ? '#137a74' : 'action.selected' },
                     }}
-                  >
-                    <Stack direction="row" spacing={1.5} alignItems="center">
-                      <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                        <Avatar
-                          src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined}
-                          sx={{
-                            width: 48,
-                            height: 48,
-                            fontSize: 17,
-                            fontWeight: 800,
-                            bgcolor: 'rgba(32,178,170,.1)',
-                            color: (t) => tealText(t.palette.mode),
-                            border: '2px solid',
-                            borderColor: isLive
-                              ? '#ef4444'
-                              : p.hasAlert
-                              ? isCritical
-                                ? '#ef4444'
-                                : '#f59e0b'
-                              : p.hasQuestions
-                              ? '#d97706'
-                              : 'rgba(32,178,170,.3)',
-                            borderRadius: '14px',
-                          }}
-                        >
-                          {patName.charAt(0)}
-                        </Avatar>
-                        {p.teleToday && (
-                          <Box
+                  />
+                  {teleCount > 0 && (
+                    <Chip
+                      clickable
+                      icon={<VideocamIcon sx={{ fontSize: 15, color: queueFilter === 'tele' ? '#fff !important' : '#178f89 !important' }} />}
+                      label={`Teleconsultas (${teleCount})`}
+                      onClick={() => setQueueFilter('tele')}
+                      sx={{
+                        fontWeight: 700, fontSize: 12, borderRadius: '999px',
+                        bgcolor: queueFilter === 'tele' ? '#178f89' : 'rgba(15,118,110,0.1)',
+                        color: queueFilter === 'tele' ? '#ffffff' : '#178f89',
+                        '&:hover': { bgcolor: queueFilter === 'tele' ? '#137a74' : 'rgba(15,118,110,0.2)' },
+                      }}
+                    />
+                  )}
+                  {alertCount > 0 && (
+                    <Chip
+                      clickable
+                      icon={<WarningAmberIcon sx={{ fontSize: 15, color: queueFilter === 'alerts' ? '#fff !important' : '#ef4444 !important' }} />}
+                      label={`Alertas (${alertCount})`}
+                      onClick={() => setQueueFilter('alerts')}
+                      sx={{
+                        fontWeight: 700, fontSize: 12, borderRadius: '999px',
+                        bgcolor: queueFilter === 'alerts' ? '#ef4444' : 'rgba(239,68,68,0.1)',
+                        color: queueFilter === 'alerts' ? '#ffffff' : '#ef4444',
+                        '&:hover': { bgcolor: queueFilter === 'alerts' ? '#dc2626' : 'rgba(239,68,68,0.2)' },
+                      }}
+                    />
+                  )}
+                  {questionCount > 0 && (
+                    <Chip
+                      clickable
+                      icon={<QuestionAnswerIcon sx={{ fontSize: 15, color: queueFilter === 'questions' ? '#fff !important' : '#d97706 !important' }} />}
+                      label={`Dúvidas (${questionCount})`}
+                      onClick={() => setQueueFilter('questions')}
+                      sx={{
+                        fontWeight: 700, fontSize: 12, borderRadius: '999px',
+                        bgcolor: queueFilter === 'questions' ? '#d97706' : 'rgba(245,158,11,0.12)',
+                        color: queueFilter === 'questions' ? '#ffffff' : '#d97706',
+                        '&:hover': { bgcolor: queueFilter === 'questions' ? '#b45309' : 'rgba(245,158,11,0.2)' },
+                      }}
+                    />
+                  )}
+                  {staleCount > 0 && (
+                    <Chip
+                      clickable
+                      icon={<CalendarBlank size={14} color={queueFilter === 'stale' ? '#fff' : '#64748b'} />}
+                      label={`Renovar (${staleCount})`}
+                      onClick={() => setQueueFilter('stale')}
+                      sx={{
+                        fontWeight: 700, fontSize: 12, borderRadius: '999px',
+                        bgcolor: queueFilter === 'stale' ? '#475569' : 'rgba(100,116,139,0.1)',
+                        color: queueFilter === 'stale' ? '#ffffff' : 'text.secondary',
+                        '&:hover': { bgcolor: queueFilter === 'stale' ? '#334155' : 'rgba(100,116,139,0.2)' },
+                      }}
+                    />
+                  )}
+                </Stack>
+              )}
+
+              {/* Lista unificada: 1 card compacto por paciente — clique abre o prontuário */}
+              <Stack spacing={1.25}>
+                {filteredList.map((p: any) => {
+                  const who = [p.age != null ? `${p.age}a` : null, p.sex === 'female' ? 'F' : p.sex === 'male' ? 'M' : null].filter(Boolean).join(' · ');
+                  const patName = p.patient?.fullName ?? 'Paciente';
+                  const alertSuffix = p.maxPriority === 'importante' ? ' · alta' : p.maxPriority === 'moderada' ? ' · moderada' : '';
+                  const isCritical = p.maxPriority === 'importante';
+                  const isLive = isTeleLiveNow(p.tele?.dueDate);
+
+                  return (
+                    <AppCard
+                      key={p.patient?.id || p.shareId}
+                      kind="interactive"
+                      onClick={() => {
+                        if (!p.patient) return;
+                        // Deep-link esperto: abre direto na aba da pendência principal
+                        // (openPatient valida se o paciente autorizou o escopo da aba).
+                        onOpenPatient(p, p.hasAlert ? 'alterados' : p.hasQuestions ? 'questions' : undefined);
+                      }}
+                      sx={{
+                        border: '1px solid',
+                        borderColor: isLive
+                          ? 'rgba(239,68,68,0.4)'
+                          : p.hasAlert
+                            ? isCritical
+                              ? 'rgba(239,68,68,0.35)'
+                              : 'rgba(245,158,11,0.35)'
+                            : p.hasQuestions
+                              ? 'rgba(217,119,6,0.3)'
+                              : 'divider',
+                        p: { xs: 1.5, sm: 1.75 },
+                        boxShadow: isLive ? '0 4px 16px rgba(239,68,68,0.08)' : '0 2px 8px rgba(0,0,0,0.02)',
+                      }}
+                    >
+                      <Stack direction="row" spacing={1.5} alignItems="center">
+                        <Box sx={{ position: 'relative', flexShrink: 0 }}>
+                          <Avatar
+                            src={p.patient?.id ? photoUrlFor(p.patient.id) : undefined}
                             sx={{
-                              position: 'absolute',
-                              bottom: -2,
-                              right: -2,
-                              width: 18,
-                              height: 18,
-                              borderRadius: '50%',
-                              bgcolor: isLive ? '#ef4444' : '#178f89',
-                              color: '#fff',
-                              display: 'grid',
-                              placeItems: 'center',
+                              width: 48,
+                              height: 48,
+                              fontSize: 17,
+                              fontWeight: 800,
+                              bgcolor: 'rgba(32,178,170,.1)',
+                              color: (t) => tealText(t.palette.mode),
                               border: '2px solid',
-                              borderColor: 'background.paper',
-                              boxShadow: isLive ? '0 0 0 3px rgba(239, 68, 68, 0.35)' : 'none',
-                              animation: isLive ? 'telePulseRing 1.8s infinite' : 'none',
-                              '@keyframes telePulseRing': {
-                                '0%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.6)' },
-                                '70%': { boxShadow: '0 0 0 6px rgba(239, 68, 68, 0)' },
-                                '100%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0)' },
-                              },
+                              borderColor: isLive
+                                ? '#ef4444'
+                                : p.hasAlert
+                                  ? isCritical
+                                    ? '#ef4444'
+                                    : '#f59e0b'
+                                  : p.hasQuestions
+                                    ? '#d97706'
+                                    : 'rgba(32,178,170,.3)',
+                              borderRadius: '14px',
                             }}
                           >
-                            <VideocamIcon sx={{ fontSize: 11 }} />
-                          </Box>
-                        )}
-                      </Box>
-
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Stack direction="row" alignItems="center" spacing={1}>
-                          <Typography noWrap sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.25, minWidth: 0 }}>
-                            {patName}
-                          </Typography>
-                          {p.code && (
-                            <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>
-                              {p.code}
-                            </Typography>
+                            {patName.charAt(0)}
+                          </Avatar>
+                          {p.teleToday && (
+                            <Box
+                              sx={{
+                                position: 'absolute',
+                                bottom: -2,
+                                right: -2,
+                                width: 18,
+                                height: 18,
+                                borderRadius: '50%',
+                                bgcolor: isLive ? '#ef4444' : '#178f89',
+                                color: '#fff',
+                                display: 'grid',
+                                placeItems: 'center',
+                                border: '2px solid',
+                                borderColor: 'background.paper',
+                                boxShadow: isLive ? '0 0 0 3px rgba(239, 68, 68, 0.35)' : 'none',
+                                animation: isLive ? 'telePulseRing 1.8s infinite' : 'none',
+                                '@keyframes telePulseRing': {
+                                  '0%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0.6)' },
+                                  '70%': { boxShadow: '0 0 0 6px rgba(239, 68, 68, 0)' },
+                                  '100%': { boxShadow: '0 0 0 0 rgba(239, 68, 68, 0)' },
+                                },
+                              }}
+                            >
+                              <VideocamIcon sx={{ fontSize: 11 }} />
+                            </Box>
                           )}
-                        </Stack>
-                        <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>
-                          {[who || 'Paciente acompanhado', p.lastExamAt ? `último exame ${relDays(p.lastExamAt)}` : null].filter(Boolean).join(' · ')}
-                        </Typography>
+                        </Box>
 
-                        {/* Chips compactos — um por pendência; o clique no card abre o prontuário */}
-                        <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
-                          {p.tele && (() => {
-                            const timeStr = fmtTeleTime(p.tele.dueDate);
-                            const dateStr = fmtTeleShort(p.tele.dueDate);
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                          <Stack direction="row" alignItems="center" spacing={1}>
+                            <Typography noWrap sx={{ fontWeight: 800, fontSize: 15, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.25, minWidth: 0 }}>
+                              {patName}
+                            </Typography>
+                            {p.code && (
+                              <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: 'monospace', fontSize: 11.5, fontWeight: 700, flexShrink: 0 }}>
+                                {p.code}
+                              </Typography>
+                            )}
+                          </Stack>
+                          <Typography variant="caption" noWrap sx={{ color: 'text.secondary', display: 'block', mt: 0.25, fontSize: 12 }}>
+                            {[who || 'Paciente acompanhado', p.lastExamAt ? `último exame ${relDays(p.lastExamAt)}` : null].filter(Boolean).join(' · ')}
+                          </Typography>
 
-                            if (isLive) {
+                          {/* Chips compactos — um por pendência; o clique no card abre o prontuário */}
+                          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
+                            {p.tele && (() => {
+                              const timeStr = fmtTeleTime(p.tele.dueDate);
+                              const dateStr = fmtTeleShort(p.tele.dueDate);
+
+                              if (isLive) {
+                                return (
+                                  <Chip
+                                    size="small"
+                                    icon={<VideocamIcon sx={{ fontSize: 13 }} />}
+                                    label={`🔴 Consulta agora · ${timeStr}`}
+                                    sx={{
+                                      height: 24, fontSize: 11.5, fontWeight: 800, maxWidth: '100%',
+                                      bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626',
+                                      border: '1px solid rgba(239,68,68,0.3)',
+                                      '& .MuiChip-icon': { color: '#dc2626' }, borderRadius: '8px',
+                                    }}
+                                  />
+                                );
+                              }
+
+                              if (p.teleToday) {
+                                return (
+                                  <Chip
+                                    size="small"
+                                    icon={<VideocamIcon sx={{ fontSize: 13 }} />}
+                                    label={p.tele.consentAt ? `Consulta hoje ${timeStr}` : `Consulta hoje ${timeStr} · aguarda aceite`}
+                                    sx={{
+                                      height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
+                                      bgcolor: p.tele.consentAt ? 'rgba(15,118,110,0.08)' : 'rgba(245,158,11,0.08)',
+                                      color: p.tele.consentAt ? '#178f89' : '#d97706',
+                                      border: '1px solid',
+                                      borderColor: p.tele.consentAt ? 'rgba(15,118,110,0.2)' : 'rgba(245,158,11,0.25)',
+                                      '& .MuiChip-icon': { color: 'inherit' }, borderRadius: '8px',
+                                    }}
+                                  />
+                                );
+                              }
+
                               return (
                                 <Chip
                                   size="small"
                                   icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                                  label={`🔴 Consulta agora · ${timeStr}`}
-                                  sx={{
-                                    height: 24, fontSize: 11.5, fontWeight: 800, maxWidth: '100%',
-                                    bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626',
-                                    border: '1px solid rgba(239,68,68,0.3)',
-                                    '& .MuiChip-icon': { color: '#dc2626' }, borderRadius: '8px',
-                                  }}
-                                />
-                              );
-                            }
-
-                            if (p.teleToday) {
-                              return (
-                                <Chip
-                                  size="small"
-                                  icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                                  label={p.tele.consentAt ? `Consulta hoje ${timeStr}` : `Consulta hoje ${timeStr} · aguarda aceite`}
+                                  label={`Consulta ${dateStr}`}
                                   sx={{
                                     height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
-                                    bgcolor: p.tele.consentAt ? 'rgba(15,118,110,0.08)' : 'rgba(245,158,11,0.08)',
-                                    color: p.tele.consentAt ? '#178f89' : '#d97706',
-                                    border: '1px solid',
-                                    borderColor: p.tele.consentAt ? 'rgba(15,118,110,0.2)' : 'rgba(245,158,11,0.25)',
-                                    '& .MuiChip-icon': { color: 'inherit' }, borderRadius: '8px',
+                                    bgcolor: 'action.hover', color: 'text.secondary',
+                                    '& .MuiChip-icon': { color: 'text.secondary' }, borderRadius: '8px',
                                   }}
                                 />
                               );
-                            }
-
-                            return (
+                            })()}
+                            {p.hasAlert && (
                               <Chip
                                 size="small"
-                                icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                                label={`Consulta ${dateStr}`}
+                                icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
+                                label={`Exames alterados${alertSuffix}`}
                                 sx={{
                                   height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
-                                  bgcolor: 'action.hover', color: 'text.secondary',
-                                  '& .MuiChip-icon': { color: 'text.secondary' }, borderRadius: '8px',
+                                  bgcolor: isCritical ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
+                                  color: isCritical ? '#ef4444' : '#d97706',
+                                  '& .MuiChip-icon': { color: isCritical ? '#ef4444' : '#d97706' }, borderRadius: '8px',
                                 }}
                               />
-                            );
-                          })()}
-                          {p.hasAlert && (
-                            <Chip
-                              size="small"
-                              icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
-                              label={`Exames alterados${alertSuffix}`}
-                              sx={{
-                                height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
-                                bgcolor: isCritical ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
-                                color: isCritical ? '#ef4444' : '#d97706',
-                                '& .MuiChip-icon': { color: isCritical ? '#ef4444' : '#d97706' }, borderRadius: '8px',
-                              }}
-                            />
-                          )}
-                          {p.hasQuestions && (
-                            <Chip
-                              size="small"
-                              icon={<QuestionAnswerIcon sx={{ fontSize: 13 }} />}
-                              label={`${p.openQuestions} ${p.openQuestions > 1 ? 'dúvidas' : 'dúvida'}`}
-                              sx={{
-                                height: 24, fontSize: 11.5, fontWeight: 700,
-                                bgcolor: 'rgba(245,158,11,0.08)', color: '#d97706',
-                                '& .MuiChip-icon': { color: '#d97706' }, borderRadius: '8px',
-                              }}
-                            />
-                          )}
-                          {p.isStale && !p.hasAlert && (
-                            <Chip
-                              size="small"
-                              icon={<CalendarBlank size={13} />}
-                              label={(p.examsCount ?? 0) === 0 ? 'Sem exames compartilhados' : 'Exames > 1 ano'}
-                              sx={{
-                                height: 24, fontSize: 11.5, fontWeight: 600,
-                                bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px',
-                              }}
-                            />
-                          )}
-                        </Stack>
+                            )}
+                            {p.hasQuestions && (
+                              <Chip
+                                size="small"
+                                icon={<QuestionAnswerIcon sx={{ fontSize: 13 }} />}
+                                label={`${p.openQuestions} ${p.openQuestions > 1 ? 'dúvidas' : 'dúvida'}`}
+                                sx={{
+                                  height: 24, fontSize: 11.5, fontWeight: 700,
+                                  bgcolor: 'rgba(245,158,11,0.08)', color: '#d97706',
+                                  '& .MuiChip-icon': { color: '#d97706' }, borderRadius: '8px',
+                                }}
+                              />
+                            )}
+                            {p.isStale && !p.hasAlert && (
+                              <Chip
+                                size="small"
+                                icon={<CalendarBlank size={13} />}
+                                label={(p.examsCount ?? 0) === 0 ? 'Sem exames compartilhados' : 'Exames > 1 ano'}
+                                sx={{
+                                  height: 24, fontSize: 11.5, fontWeight: 600,
+                                  bgcolor: 'action.hover', color: 'text.secondary', borderRadius: '8px',
+                                }}
+                              />
+                            )}
+                          </Stack>
 
-                      </Box>
+                        </Box>
 
-                      {/* Botão de Teleconsulta: proeminente quando Ao Vivo; discreto no desktop quando hoje */}
-                      {p.tele && (isLive || p.teleToday) && (
-                        <Button
-                          variant={isLive ? 'contained' : 'outlined'}
-                          size="small"
-                          aria-label={`Entrar na teleconsulta com ${patName}`}
-                          startIcon={<VideocamIcon />}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (onEnterTele) onEnterTele(p.tele, patName);
-                            else void openTelemedicinaRoom(p.tele.linkUrl);
-                          }}
-                          sx={{
-                            borderRadius: '999px',
-                            textTransform: 'none',
-                            fontWeight: 800,
-                            fontSize: 12,
-                            bgcolor: isLive ? '#ef4444' : 'transparent',
-                            borderColor: isLive ? '#ef4444' : 'rgba(15,118,110,0.4)',
-                            color: isLive ? '#ffffff' : '#178f89',
-                            boxShadow: isLive ? '0 2px 8px rgba(239,68,68,0.3)' : 'none',
-                            '&:hover': {
-                              bgcolor: isLive ? '#dc2626' : 'rgba(15,118,110,0.08)',
-                              borderColor: isLive ? '#dc2626' : '#178f89',
-                            },
-                            flexShrink: 0,
-                            px: 1.5,
-                            py: 0.5,
-                            display: isLive ? 'inline-flex' : { xs: 'none', sm: 'inline-flex' },
-                          }}
-                        >
-                          {isLive ? 'Entrar' : 'Entrar'}
-                        </Button>
-                      )}
-                    </Stack>
+                        {/* Botão de Teleconsulta: proeminente quando Ao Vivo; discreto no desktop quando hoje */}
+                        {p.tele && (isLive || p.teleToday) && (
+                          <Button
+                            variant={isLive ? 'contained' : 'outlined'}
+                            size="small"
+                            aria-label={`Entrar na teleconsulta com ${patName}`}
+                            startIcon={<VideocamIcon />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (onEnterTele) onEnterTele(p.tele, patName);
+                              else void openTelemedicinaRoom(p.tele.linkUrl);
+                            }}
+                            sx={{
+                              borderRadius: '999px',
+                              textTransform: 'none',
+                              fontWeight: 800,
+                              fontSize: 12,
+                              bgcolor: isLive ? '#ef4444' : 'transparent',
+                              borderColor: isLive ? '#ef4444' : 'rgba(15,118,110,0.4)',
+                              color: isLive ? '#ffffff' : '#178f89',
+                              boxShadow: isLive ? '0 2px 8px rgba(239,68,68,0.3)' : 'none',
+                              '&:hover': {
+                                bgcolor: isLive ? '#dc2626' : 'rgba(15,118,110,0.08)',
+                                borderColor: isLive ? '#dc2626' : '#178f89',
+                              },
+                              flexShrink: 0,
+                              px: 1.5,
+                              py: 0.5,
+                              display: isLive ? 'inline-flex' : { xs: 'none', sm: 'inline-flex' },
+                            }}
+                          >
+                            {isLive ? 'Entrar' : 'Entrar'}
+                          </Button>
+                        )}
+                      </Stack>
+                    </AppCard>
+                  );
+                })}
+
+                {filteredList.length === 0 && patients.length > 0 && (
+                  <AppCard sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center', borderRadius: '18px', border: '1px dashed', borderColor: 'divider' }}>
+                    {queueFilter === 'all' ? (
+                      <>
+                        <Box sx={{ fontSize: 44, mb: 1, lineHeight: 1 }}>🎉</Box>
+                        <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 17 }, color: 'text.primary' }}>
+                          Nada precisando de atenção agora
+                        </Typography>
+                        <Typography sx={{ color: 'text.secondary', fontSize: 13.5, mt: 0.75, maxWidth: 420, mx: 'auto', lineHeight: 1.5 }}>
+                          Exames alterados, dúvidas e consultas dos seus pacientes aparecem aqui automaticamente.
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 14 }}>
+                        Nenhum paciente pendente nesta categoria ✅
+                      </Typography>
+                    )}
                   </AppCard>
-                );
-              })}
-
-              {filteredList.length === 0 && patients.length > 0 && (
-                <AppCard sx={{ p: { xs: 3, sm: 4 }, textAlign: 'center', borderRadius: '18px', border: '1px dashed', borderColor: 'divider' }}>
-                  {queueFilter === 'all' ? (
-                    <>
-                      <Box sx={{ fontSize: 44, mb: 1, lineHeight: 1 }}>🎉</Box>
-                      <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 17 }, color: 'text.primary' }}>
-                        Nada precisando de atenção agora
-                      </Typography>
-                      <Typography sx={{ color: 'text.secondary', fontSize: 13.5, mt: 0.75, maxWidth: 420, mx: 'auto', lineHeight: 1.5 }}>
-                        Exames alterados, dúvidas e consultas dos seus pacientes aparecem aqui automaticamente.
-                      </Typography>
-                    </>
-                  ) : (
-                    <Typography sx={{ fontWeight: 700, color: 'text.secondary', fontSize: 14 }}>
-                      Nenhum paciente pendente nesta categoria ✅
-                    </Typography>
-                  )}
-                </AppCard>
-              )}
-            </Stack>
-          </Box>
+                )}
+              </Stack>
+            </Box>
           )}
 
           {/* EMPTY STATE (quando não há pacientes ainda) */}
@@ -827,11 +869,10 @@ export const PortalOverview = ({
                   <button
                     type="button"
                     onClick={() => setQueueFilter('all')}
-                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                      queueFilter === 'all'
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${queueFilter === 'all'
                         ? 'border-emerald-500/40 bg-emerald-500/10'
                         : 'border-border bg-card hover:bg-muted/50'
-                    }`}
+                      }`}
                   >
                     <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
                       <span className="size-2 rounded-full bg-emerald-500" />
@@ -848,11 +889,10 @@ export const PortalOverview = ({
                   <button
                     type="button"
                     onClick={() => setQueueFilter(queueFilter === 'alerts' ? 'all' : 'alerts')}
-                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                      queueFilter === 'alerts'
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${queueFilter === 'alerts'
                         ? 'border-rose-500/50 bg-rose-500/10 ring-1 ring-rose-500/30'
                         : 'border-border bg-card hover:bg-muted/50'
-                    }`}
+                      }`}
                   >
                     <span className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400">
                       <span className="size-2 rounded-full bg-rose-500" />
@@ -869,11 +909,10 @@ export const PortalOverview = ({
                   <button
                     type="button"
                     onClick={() => setQueueFilter(queueFilter === 'stale' ? 'all' : 'stale')}
-                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
-                      queueFilter === 'stale'
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${queueFilter === 'stale'
                         ? 'border-amber-500/50 bg-amber-500/10 ring-1 ring-amber-500/30'
                         : 'border-border bg-card hover:bg-muted/50'
-                    }`}
+                      }`}
                   >
                     <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
                       <span className="size-2 rounded-full bg-amber-500" />

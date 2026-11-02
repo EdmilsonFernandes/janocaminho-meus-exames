@@ -49,13 +49,14 @@ export const ConsultaAtivaCard = ({
   const [pixOpen, setPixOpen] = useState(false);
   const [canceling, setCanceling] = useState(false);
 
+  const isEnded = Boolean(r.endedAt || r.done || r.status === 'completed' || r.status === 'concluded');
   const dueMs = new Date(r.dueDate).getTime();
   const diffMs = dueMs - now.getTime();
-  // Janela da consulta — mesmo critério do Reminders (15min antes → 60min depois).
-  const inWindow = diffMs <= 15 * 60 * 1000 && diffMs >= -60 * 60 * 1000;
-  const isLive = calling || inWindow;
-  const pendingPayment = (r.consultPriceCents ?? 0) > 0 && !r.paidAt;
-  const isPaid = !!r.paidAt || (r.consultPriceCents ?? 0) === 0;
+  // Janela da consulta — só ativa se a consulta NÃO tiver encerrada (15min antes → 60min depois).
+  const inWindow = !isEnded && diffMs <= 15 * 60 * 1000 && diffMs >= -60 * 60 * 1000;
+  const isLive = !isEnded && (calling || inWindow);
+  const pendingPayment = !isEnded && (r.consultPriceCents ?? 0) > 0 && !r.paidAt;
+  const isPaid = isEnded || !!r.paidAt || (r.consultPriceCents ?? 0) === 0;
 
   const docId = r.doctor?.id || r.createdByDoctorId || r.doctorId;
   const docPhoto = safeAvatar(docId ? doctorPhotoUrl(docId) : undefined, r.doctor?.name);
@@ -77,8 +78,21 @@ export const ConsultaAtivaCard = ({
   const timeLabel = due.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
   const roomCode = String(r.id || '').slice(-5).toUpperCase();
 
-  // Pill de status (mock): SALA ABERTA verde pulsante | AGENDADA teal | HOJE teal.
-  const pill = isLive ? (
+  // Pill de status (mock): ENCERRADA neutro/teal | SALA ABERTA verde pulsante | AGENDADA teal | HOJE teal.
+  const pill = isEnded ? (
+    <Chip
+      size="small"
+      icon={<VerifiedRoundedIcon sx={{ fontSize: '13px !important', color: '#0d9488 !important' }} />}
+      label="CONCLUÍDA"
+      sx={{
+        height: 24, fontWeight: 800, fontSize: 10.5, letterSpacing: '0.05em',
+        bgcolor: isDark ? 'rgba(13,148,136,0.15)' : 'rgba(13,148,136,0.10)',
+        color: isDark ? '#2dd4bf' : '#0f766e',
+        border: '1px solid rgba(13,148,136,.3)',
+        '& .MuiChip-icon': { ml: 1 },
+      }}
+    />
+  ) : isLive ? (
     <Chip
       size="small"
       icon={<Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#10b981', animation: `${pulse} 1.6s infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />}
@@ -105,16 +119,21 @@ export const ConsultaAtivaCard = ({
     />
   );
 
-  const border = isLive
+  const border = isEnded
+    ? { borderColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' }
+    : isLive
     ? { borderColor: isDark ? 'rgba(16,185,129,0.45)' : 'rgba(16,185,129,0.35)', boxShadow: isDark ? '0 0 0 1px rgba(16,185,129,.12), 0 12px 36px rgba(0,0,0,.4)' : '0 12px 30px rgba(16,185,129,.10)' }
     : pendingPayment
     ? { borderColor: 'rgba(245,158,11,0.35)' }
     : { borderColor: isDark ? 'rgba(13,148,136,0.3)' : 'rgba(13,148,136,0.22)' };
 
   // CTA contextual (spec):
+  //  ended → "Ver Resumo da Consulta" (nunca reentra na sala)
   //  pending_payment → "Pagar com PIX — R$ X" (a fase payment do /teleconsulta/:id mostra o PIX)
   //  live → "Entrar Agora" · dentro da janela → "Entrar" · antes → "Ver detalhes" (countdown lá).
-  const cta = pendingPayment
+  const cta = isEnded
+    ? { label: 'Ver Resumo da Consulta', icon: <ArrowForwardRoundedIcon /> }
+    : pendingPayment
     ? { label: `Pagar com PIX — R$ ${fmtBrl(r.consultPriceCents)}`, icon: <HourglassTopRoundedIcon /> }
     : isLive
     ? { label: 'Entrar Agora', icon: <VideocamRoundedIcon /> }
@@ -298,21 +317,23 @@ export const ConsultaAtivaCard = ({
           </>
         )}
 
-        {/* Ação discreta: cancelar */}
-        <Button
-          fullWidth
-          size="small"
-          disabled={canceling}
-          startIcon={<EventBusyRoundedIcon sx={{ fontSize: 16 }} />}
-          onClick={() => void cancel()}
-          sx={{
-            mt: 1, minHeight: 36, borderRadius: '999px', textTransform: 'none',
-            fontWeight: 700, fontSize: 12, color: 'text.disabled',
-            '&:hover': { color: 'error.main', bgcolor: 'rgba(239,68,68,.06)' },
-          }}
-        >
-          {canceling ? 'Cancelando…' : 'Cancelar consulta'}
-        </Button>
+        {/* Ação discreta: cancelar (apenas para consultas pendentes) */}
+        {!isEnded && (
+          <Button
+            fullWidth
+            size="small"
+            disabled={canceling}
+            startIcon={<EventBusyRoundedIcon sx={{ fontSize: 16 }} />}
+            onClick={() => void cancel()}
+            sx={{
+              mt: 1, minHeight: 36, borderRadius: '999px', textTransform: 'none',
+              fontWeight: 700, fontSize: 12, color: 'text.disabled',
+              '&:hover': { color: 'error.main', bgcolor: 'rgba(239,68,68,.06)' },
+            }}
+          >
+            {canceling ? 'Cancelando…' : 'Cancelar consulta'}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

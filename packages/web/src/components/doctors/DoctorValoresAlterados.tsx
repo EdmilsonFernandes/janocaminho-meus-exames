@@ -118,36 +118,58 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
         disableGutters
         elevation={0}
         sx={{
-          border: `1px solid ${alpha(meta.color, 0.28)}`,
+          border: '1px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
           borderLeft: `4px solid ${meta.color}`,
-          borderRadius: '20px !important',
+          borderRadius: '16px !important',
           overflow: 'hidden',
-          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.03)'),
+          bgcolor: (t) => t.palette.mode === 'dark' ? '#0f172a' : '#ffffff',
+          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.02)'),
+          transition: 'all 0.2s ease',
           '&:before': { display: 'none' },
           '& .MuiAccordionSummary-root': {
-            borderTopLeftRadius: '20px',
-            borderTopRightRadius: '20px',
-            bgcolor: alpha(meta.color, 0.05),
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            px: 2,
+            py: 1,
+            bgcolor: (t) => t.palette.mode === 'dark' ? alpha(meta.color, 0.08) : alpha(meta.color, 0.04),
           },
           '& .MuiAccordionDetails-root': {
-            borderBottomLeftRadius: '20px',
-            borderBottomRightRadius: '20px',
+            borderBottomLeftRadius: '16px',
+            borderBottomRightRadius: '16px',
+            p: 1.5,
           },
         }}
       >
-        <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ bgcolor: alpha(meta.color, 0.04) }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1 }}>
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'text.secondary' }} />}>
+          <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', gap: 1.25, pr: 0.5 }}>
             <Box component="span" sx={{ fontSize: 18, lineHeight: 1 }}>{meta.emoji}</Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{g.examTitle}</Typography>
-              <Typography variant="caption" color="text.secondary">📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}</Typography>
-              {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.dark' }}>⏳ Exame antigo — considere renovar</Typography>}
+              <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: { xs: 14.5, sm: 15.5 }, color: 'text.primary', lineHeight: 1.25, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                {g.examTitle}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                📅 {fmtDate(g.performedAt)}{g.performedAt ? ` · ${timeAgo(g.performedAt)}` : ''}
+              </Typography>
+              {stale && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700 }}>⏳ Exame antigo — considere renovar</Typography>}
               {g.requestingDoctor && <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>🩺 Dr. {g.requestingDoctor}</Typography>}
             </Box>
-            <Chip size="small" label={plural(g.items.length, 'alterado')} sx={{ fontWeight: 700, height: 22, bgcolor: alpha(meta.color, 0.15), color: meta.color }} />
+            <Chip
+              size="small"
+              label={plural(g.items.length, 'alterado')}
+              sx={{
+                fontWeight: 800,
+                fontSize: 11,
+                height: 24,
+                bgcolor: alpha(meta.color, 0.15),
+                color: meta.color,
+                border: `1px solid ${alpha(meta.color, 0.3)}`,
+                flexShrink: 0,
+              }}
+            />
           </Box>
         </AccordionSummary>
-        <AccordionDetails sx={{ p: 1.25 }}>
+        <AccordionDetails sx={{ p: 1.5 }}>
           <CappedExamMarkers
             items={g.items}
             extra={(it: any) => (
@@ -185,33 +207,86 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
         <EmptyState emoji="✅" title="Nenhum valor alterado" desc="Não encontramos valores fora da faixa de referência nos exames compartilhados deste paciente." />
       ) : (
         <>
-          {/* Resumo não-alarmista por prioridade */}
+          {/* Resumo não-alarmista por prioridade ReUI */}
           <Card
             variant="outlined"
             sx={{
-              borderRadius: '20px',
-              borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : '#d8ece9'),
+              borderRadius: '18px',
+              borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'),
               background: (t) =>
                 t.palette.mode === 'dark'
-                  ? 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.10), transparent 70%), #152223'
+                  ? 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.08), transparent 70%), #0f172a'
                   : 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.06), transparent 70%), #ffffff',
               boxShadow: (t) =>
-                t.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.3)' : '0 4px 16px rgba(32,178,170,0.06)',
+                t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.02)',
             }}
           >
-            <CardContent sx={{ py: 1.75, px: 2, '&:last-child': { pb: 1.75 } }}>
-              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.75 }}>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.importante.color }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.moderada.color }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: PRIORITY_META.leve.color }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
+            <CardContent sx={{ py: 2, px: 2.25, '&:last-child': { pb: 2 } }}>
+              <Stack direction="row" spacing={1.25} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    px: 1.25,
+                    py: 0.4,
+                    borderRadius: '999px',
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(239,68,68,0.18)' : 'rgba(239,68,68,0.10)',
+                    border: '1px solid',
+                    borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(239,68,68,0.35)' : 'rgba(239,68,68,0.25)',
+                  }}
+                >
+                  <Box component="span" sx={{ fontSize: 13 }}>{PRIORITY_META.importante.emoji}</Box>
+                  <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.85rem', color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626' }}>
+                    {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    px: 1.25,
+                    py: 0.4,
+                    borderRadius: '999px',
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(245,158,11,0.18)' : 'rgba(245,158,11,0.10)',
+                    border: '1px solid',
+                    borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(245,158,11,0.35)' : 'rgba(245,158,11,0.25)',
+                  }}
+                >
+                  <Box component="span" sx={{ fontSize: 13 }}>{PRIORITY_META.moderada.emoji}</Box>
+                  <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.85rem', color: (t) => t.palette.mode === 'dark' ? '#fde68a' : '#b45309' }}>
+                    {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.6,
+                    px: 1.25,
+                    py: 0.4,
+                    borderRadius: '999px',
+                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(59,130,246,0.18)' : 'rgba(59,130,246,0.10)',
+                    border: '1px solid',
+                    borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(59,130,246,0.35)' : 'rgba(59,130,246,0.25)',
+                  }}
+                >
+                  <Box component="span" sx={{ fontSize: 13 }}>{PRIORITY_META.leve.emoji}</Box>
+                  <Typography component="span" sx={{ fontWeight: 800, fontSize: '0.85rem', color: (t) => t.palette.mode === 'dark' ? '#93c5fd' : '#2563eb' }}>
+                    {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}
+                  </Typography>
+                </Box>
               </Stack>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.82rem', lineHeight: 1.5, display: 'block' }}>
                 {counts.importante > 0
-                  ? <>Os <strong>{PRIORITY_META.importante.emoji} importantes</strong> merecem prioridade — leve ao médico. {PRIORITY_META.moderada.emoji} moderadas: comente na consulta. {PRIORITY_META.leve.emoji} leves: só acompanhe.</>
-                  : <>Nada crítico — os ajustes são <strong>{PRIORITY_META.moderada.emoji} moderados</strong> ou <strong>{PRIORITY_META.leve.emoji} leves</strong>. Comente com seu paciente na próxima consulta.</>}
+                  ? <>Os <strong>{counts.importante} importantes</strong> merecem atenção prioritária. As moderadas devem ser contextualizadas na consulta.</>
+                  : <>Quadro estável — os ajustes são pontuais (moderados ou leves). Acompanhe na próxima avaliação clínica.</>}
               </Typography>
               {suspectCount > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
+                <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 600, mt: 0.5 }}>⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente incorreta (escala) — conferir no laudo original.</Typography>
               )}
             </CardContent>
           </Card>
