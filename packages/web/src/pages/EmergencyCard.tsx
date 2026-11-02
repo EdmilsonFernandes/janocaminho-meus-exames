@@ -143,7 +143,7 @@ export const EmergencyCardPage = () => {
           <FrameHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2.5">
-                <IconTile variant="soft" size="md" className="text-destructive">
+                <IconTile variant="soft" size="default" className="text-destructive">
                   <SirenEmergencyIcon className="size-5" />
                 </IconTile>
                 <div>
@@ -206,10 +206,8 @@ export const EmergencyCardPage = () => {
                   icon={<HealthAndSafetyOutlinedIcon sx={{ fontSize: 18 }} />}
                   iconClassName="text-destructive"
                   title="Alergias, Condições Crônicas & Cirurgias"
-                  badge={{
-                    label: patient.clinicalProfile ? 'Preenchido' : 'Importante',
-                    variant: patient.clinicalProfile ? 'success-light' : 'warning-light',
-                  }}
+                  badge={patient.clinicalProfile ? 'Preenchido' : 'Importante'}
+                  badgeVariant={patient.clinicalProfile ? 'success-light' : 'warning-light'}
                   description={
                     patient.clinicalProfile ? (
                       <span className="font-medium text-foreground">{patient.clinicalProfile}</span>
@@ -235,10 +233,8 @@ export const EmergencyCardPage = () => {
                   icon={<MedicationIcon sx={{ fontSize: 18 }} />}
                   iconClassName="text-primary"
                   title="Medicações em Uso Contínuo"
-                  badge={{
-                    label: meds.length > 0 ? `${meds.length} ativo${meds.length > 1 ? 's' : ''}` : 'Sincronizado',
-                    variant: meds.length > 0 ? 'primary-light' : 'outline',
-                  }}
+                  badge={meds.length > 0 ? `${meds.length} ativo${meds.length > 1 ? 's' : ''}` : 'Sincronizado'}
+                  badgeVariant={meds.length > 0 ? 'primary-light' : 'outline'}
                   description={
                     meds.length > 0 ? (
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -271,10 +267,8 @@ export const EmergencyCardPage = () => {
                   icon={<CallIcon sx={{ fontSize: 18 }} />}
                   iconClassName="text-emerald-600 dark:text-emerald-400"
                   title="Telefone / Contato de Emergência"
-                  badge={{
-                    label: patient.phone ? 'Ativo' : 'Pendente',
-                    variant: patient.phone ? 'success-light' : 'warning-light',
-                  }}
+                  badge={patient.phone ? 'Ativo' : 'Pendente'}
+                  badgeVariant={patient.phone ? 'success-light' : 'warning-light'}
                   description={
                     patient.phone ? (
                       <span className="font-semibold text-foreground tabular-nums">{patient.phone}</span>
