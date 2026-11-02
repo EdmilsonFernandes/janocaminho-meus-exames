@@ -8,6 +8,7 @@ export function notifRoute(n: any): string | null {
   const d = n.data || {};
   // Dono 30/10: "📞 está te chamando" levava pra /notificacoes — chamada é a rota
   // mais urgente do app, vai DIRETO pra sala (tray tap E popup em foreground).
+  if (d.type === 'cross_insight' || d.crossInsight || d.insight_id) return '/notificacoes';
   if ((d.type === 'teleconsulta' || n.type === 'teleconsulta') && d.reminderId) return `/teleconsulta/${d.reminderId}`;
   if (d.examId) return `/exams/${d.examId}/show`;
   if (n.type === 'doctor_question' || d.type === 'doctor_question') return '/perguntas';

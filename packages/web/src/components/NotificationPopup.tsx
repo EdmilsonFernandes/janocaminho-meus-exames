@@ -104,13 +104,27 @@ export const NotificationPopup = () => {
   useEffect(() => {
     const onReceived = (e: any) => {
       const data = (e.detail && e.detail.data) || {};
+      if (data?.crossInsight || data?.insight_id || data?.type === 'cross_insight') {
+        window.dispatchEvent(new CustomEvent('openCrossInsight', { detail: data.crossInsight || data }));
+        return;
+      }
       setNotif({ title: (e.detail && e.detail.title) || 'Nova notificacao', body: (e.detail && e.detail.body) || '', data });
       setOpen(true);
       // Ligação recebida (médico chamando): toca + vibra até atender/dispensar.
       if (data?.type === 'teleconsulta' && data?.reminderId) startRing();
     };
     // Toque na notificação (tray): leva direto à tela certa (chamada/perguntas/exames/...) — não deixa "morta".
-    const onTapped = (e: any) => navigate(notifRoute({ data: e?.detail?.data }) || '/notificacoes');
+    const onTapped = (e: any) => {
+      const data = e?.detail?.data;
+      if (data?.crossInsight || data?.insight_id || data?.type === 'cross_insight') {
+        navigate('/notificacoes');
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('openCrossInsight', { detail: data.crossInsight || data }));
+        }, 150);
+        return;
+      }
+      navigate(notifRoute({ data }) || '/notificacoes');
+    };
     window.addEventListener('pushReceived', onReceived);
     window.addEventListener('pushTapped', onTapped);
     return () => {

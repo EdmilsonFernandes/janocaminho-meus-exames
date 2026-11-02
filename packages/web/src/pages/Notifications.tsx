@@ -23,6 +23,7 @@ import { DrExame } from '../components/DrExame';
 import { PageContainer } from '../components/layout/PageContainer';
 import { PageHeader } from '../components/layout/PageHeader';
 import { ListSkeleton } from '../components/Skeleton';
+import { CrossInsightBottomSheet, type CrossInsightData } from '../components/clinical/CrossInsightBottomSheet';
 import { useReuiThemeSync } from '@/components/reui/useReuiThemeSync';
 import {
   Frame,
@@ -109,9 +110,18 @@ export const NotificationsPage = () => {
   const translate = useTranslate();
   const themeClass = useReuiThemeSync();
   const [view, setView] = useState<any | null>(null);
+  const [crossInsightView, setCrossInsightView] = useState<CrossInsightData | null>(null);
   const [data, setData] = useState<{ items: any[]; unread: number } | null>(null);
   const [filterTab, setFilterTab] = useState<'all' | 'info' | 'alert' | 'ticket'>('all');
   const [unreadOnly, setUnreadOnly] = useState(false);
+
+  useEffect(() => {
+    const handleCustomInsight = (e: any) => {
+      if (e.detail) setCrossInsightView(e.detail);
+    };
+    window.addEventListener('openCrossInsight', handleCustomInsight);
+    return () => window.removeEventListener('openCrossInsight', handleCustomInsight);
+  }, []);
 
   const load = () =>
     fetch(`${API_URL}/notifications`, {
@@ -364,14 +374,18 @@ export const NotificationsPage = () => {
                     tabIndex={0}
                     onClick={() => {
                       if (!n.read) markOne(n.id);
-                      if (r) navigate(r);
+                      if (n.data?.crossInsight) setCrossInsightView(n.data.crossInsight);
+                      else if (n.data?.insight_id) setCrossInsightView(n.data as CrossInsightData);
+                      else if (r) navigate(r);
                       else setView(n);
                     }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         if (!n.read) markOne(n.id);
-                        if (r) navigate(r);
+                        if (n.data?.crossInsight) setCrossInsightView(n.data.crossInsight);
+                        else if (n.data?.insight_id) setCrossInsightView(n.data as CrossInsightData);
+                        else if (r) navigate(r);
                         else setView(n);
                       }
                     }}
@@ -572,6 +586,16 @@ export const NotificationsPage = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* BottomSheet ReUI para Cruzamentos Clínicos Determinísticos */}
+      <CrossInsightBottomSheet
+        open={!!crossInsightView}
+        insight={crossInsightView}
+        onClose={() => setCrossInsightView(null)}
+        onAddQuestion={(q) => {
+          navigate('/minhas-perguntas');
+        }}
+      />
     </PageContainer>
   );
 };
