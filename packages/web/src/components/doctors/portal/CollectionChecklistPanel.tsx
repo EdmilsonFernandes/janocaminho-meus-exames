@@ -1,31 +1,53 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  Alert, Autocomplete, Box, Button, Card, CardContent, Chip, CircularProgress,
-  IconButton, Stack, TextField, Typography,
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import ScienceIcon from '@mui/icons-material/Science';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
+import ScheduleRoundedIcon from '@mui/icons-material/ScheduleRounded';
 import { API_URL } from '../../../config';
-import { tealText } from '../../../theme';
-
-// CHECKLIST DE COLETA (T2, 28/10/26) — "Plano de coleta" no painel do paciente do portal.
-// Médico adiciona exames a coletar (nome livre + autocomplete) com prazo em chips 30/60/90/180
-// e instrução curta. Paciente recebe push neutro + lembrete; exame extraído com canonical
-// batente marca ✓ sozinho. Mobile-first 360-412px, toque 44px, teal (cobre NÃO — contexto médico ativo).
+import { useReuiThemeSync } from '@/components/reui/useReuiThemeSync';
+import {
+  Frame,
+  FrameHeader,
+  FrameTitle,
+  FrameDescription,
+  FramePanel,
+  FrameFooter,
+} from '@/components/reui/frame';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import {
+  Alert,
+  AlertDescription,
+} from '@/components/reui/alert';
+import {
+  FieldLabelWithHint,
+  IconTile,
+} from '@/components/reui/patterns';
+import { ReuiInput } from '@/components/reui/form-controls';
 
 const DUE_OPTIONS = [30, 60, 90, 180] as const;
 
-/** Sugestões de analito (autocomplete LIVRE — qualquer texto é aceito). Nomencelatura
- *  comum de labs BR; a chave de match é o canonicalName calculado no server. */
+/** Sugestões de analito (qualquer texto é aceito; o match automático usa canonicalName no server). */
 const ANALYTE_SUGGESTIONS = [
-  'Hemograma completo', 'Hemoglobina', 'Leucócitos', 'Plaquetas',
-  'Glicemia de jejum', 'Hemoglobina glicada (HbA1c)', 'Insulina',
-  'Colesterol total', 'LDL colesterol', 'HDL colesterol', 'Triglicerídeos',
-  'Creatinina', 'Ureia', 'Ácido úrico', 'TGO (AST)', 'TGP (ALT)', 'Gama-GT', 'Fosfatase alcalina',
-  'PCR ultrassensível', 'Ferritina', 'Vitamina D', 'Vitamina B12',
-  'TSH', 'T4 livre', 'T3',
-  'Sódio', 'Potássio', 'Cálcio', 'Magnésio',
-  'Testosterona total', 'PSA', 'TSH de controle',
+  'Hemograma completo',
+  'Glicemia de jejum',
+  'Hemoglobina glicada (HbA1c)',
+  'Colesterol total',
+  'LDL colesterol',
+  'HDL colesterol',
+  'Triglicerídeos',
+  'Creatinina',
+  'Ureia',
+  'TGO (AST)',
+  'TGP (ALT)',
+  'PCR ultrassensível',
+  'Ferritina',
+  'Vitamina D',
+  'Vitamina B12',
+  'TSH',
+  'T4 livre',
+  'PSA',
 ];
 
 type ChecklistItem = {
@@ -37,18 +59,19 @@ type ChecklistItem = {
   collectedAt: string | null;
 };
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
-  pending: { label: 'Pendente', color: '#b45309', bg: 'rgba(245,158,11,.12)' },
-  collected: { label: 'Coletado ✓', color: '#059669', bg: 'rgba(16,185,129,.10)' },
-  expired: { label: 'Vencido', color: '#b91c1c', bg: 'rgba(239,68,68,.08)' },
-};
+const daysLeft = (dueAt: string): number =>
+  Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86400_000);
 
-const daysLeft = (dueAt: string): number => Math.ceil((new Date(dueAt).getTime() - Date.now()) / 86400_000);
-
-export const CollectionChecklistPanel = ({ patientId, token }: { patientId: string; token: string }) => {
+export const CollectionChecklistPanel = ({
+  patientId,
+  token,
+}: {
+  patientId: string;
+  token: string;
+}) => {
+  const themeClass = useReuiThemeSync();
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loaded, setLoaded] = useState(false);
-  const [analyte, setAnalyte] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [dueDays, setDueDays] = useState<number>(30);
   const [instruction, setInstruction] = useState('');
@@ -57,156 +80,333 @@ export const CollectionChecklistPanel = ({ patientId, token }: { patientId: stri
 
   const load = useCallback(async () => {
     try {
-      const r = await fetch(`${API_URL}/doctor/patients/${patientId}/checklist`, { headers: { Authorization: `Bearer ${token}` } });
+      const r = await fetch(
+        `${API_URL}/doctor/patients/${patientId}/checklist`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       if (!r.ok) throw new Error();
       const d = await r.json();
       setItems(d.items ?? []);
-    } catch { setErr('Não foi possível carregar o plano de coleta.'); }
-    finally { setLoaded(true); }
+    } catch {
+      setErr('Não foi possível carregar o plano de coleta.');
+    } finally {
+      setLoaded(true);
+    }
   }, [patientId, token]);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const add = async () => {
-    const name = (analyte ?? input).trim();
-    if (name.length < 2) { setErr('Informe o exame a coletar.'); return; }
-    setSaving(true); setErr('');
+    const name = input.trim();
+    if (name.length < 2) {
+      setErr('Informe o exame a coletar.');
+      return;
+    }
+    setSaving(true);
+    setErr('');
     try {
-      const r = await fetch(`${API_URL}/doctor/patients/${patientId}/checklist`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ analyteName: name, dueInDays: dueDays, instruction: instruction.trim() || undefined }),
-      });
+      const r = await fetch(
+        `${API_URL}/doctor/patients/${patientId}/checklist`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            analyteName: name,
+            dueInDays: dueDays,
+            instruction: instruction.trim() || undefined,
+          }),
+        }
+      );
       const d = await r.json();
       if (!r.ok) throw new Error(d.error || 'Falha ao adicionar.');
-      setAnalyte(null); setInput(''); setInstruction('');
+      setInput('');
+      setInstruction('');
       await load();
-    } catch (e: any) { setErr(e.message); }
-    finally { setSaving(false); }
+    } catch (e: any) {
+      setErr(e.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const remove = async (id: string) => {
-    setItems((prev) => prev.filter((i) => i.id !== id)); // otimista
+    setItems((prev) => prev.filter((i) => i.id !== id));
     await fetch(`${API_URL}/doctor/patients/${patientId}/checklist/${id}`, {
-      method: 'DELETE', headers: { Authorization: `Bearer ${token}` },
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
     }).catch(() => void load());
   };
 
-  const pending = useMemo(() => items.filter((i) => i.status === 'pending'), [items]);
-  const history = useMemo(() => items.filter((i) => i.status !== 'pending'), [items]);
+  const pending = useMemo(
+    () => items.filter((i) => i.status === 'pending'),
+    [items]
+  );
+  const history = useMemo(
+    () => items.filter((i) => i.status !== 'pending'),
+    [items]
+  );
 
   return (
-    <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}>
-      <CardContent sx={{ p: { xs: 2, md: 2.25 } }}>
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
-          <ScienceIcon sx={{ fontSize: 20, color: (t) => tealText(t.palette.mode) }} />
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif' }}>Plano de coleta</Typography>
-          {pending.length > 0 && (
-            <Chip size="small" label={`${pending.length} pendente${pending.length > 1 ? 's' : ''}`} sx={{ fontWeight: 700, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode) }} />
-          )}
-        </Stack>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Exames que o paciente deve coletar — o app lembra com push e marca ✓ quando o resultado chega.
-        </Typography>
+    <div className={`reui-scope ${themeClass}`}>
+      <Frame>
+        <FrameHeader className="flex flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <IconTile tone="primary" size="sm">
+              <ScienceIcon sx={{ fontSize: 18 }} />
+            </IconTile>
+            <div>
+              <FrameTitle className="flex items-center gap-2">
+                Plano de coleta laboratorial
+                {pending.length > 0 && (
+                  <ReuiBadge variant="primary-light" size="xs">
+                    {pending.length} pendente{pending.length > 1 ? 's' : ''}
+                  </ReuiBadge>
+                )}
+              </FrameTitle>
+              <FrameDescription>
+                Exames que o paciente deve coletar — o app lembra com push e marca ✓ quando o resultado chega
+              </FrameDescription>
+            </div>
+          </div>
+        </FrameHeader>
 
-        {/* FORM INLINE: analito (autocomplete livre) + chips de prazo + instrução */}
-        <Stack spacing={1.5}>
-          <Autocomplete
-            freeSolo
-            options={ANALYTE_SUGGESTIONS}
-            value={analyte}
-            inputValue={input}
-            onInputChange={(_, v) => { setInput(v); setAnalyte(null); }}
-            onChange={(_, v) => { setAnalyte(typeof v === 'string' ? v : null); setInput(typeof v === 'string' ? v : ''); }}
-            renderInput={(params) => (
-              <TextField {...params} label="Exame a coletar" placeholder="Ex.: Hemoglobina glicada" size="small" />
-            )}
-          />
-          <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-            {DUE_OPTIONS.map((d) => (
-              <Chip
-                key={d}
-                label={`${d} dias`}
-                clickable
-                onClick={() => setDueDays(d)}
-                sx={{
-                  minHeight: 44, px: 0.5, fontWeight: 700, borderRadius: '999px',
-                  ...(dueDays === d
-                    ? { bgcolor: 'primary.main', color: '#fff', '& .MuiChip-label': { color: '#fff' } }
-                    : { bgcolor: 'rgba(32,178,170,.08)', color: (t) => tealText(t.palette.mode) }),
-                }}
-              />
-            ))}
-          </Stack>
-          <TextField
-            label="Instrução (opcional)"
-            placeholder="Ex.: jejum 12h"
-            size="small"
-            value={instruction}
-            onChange={(e) => setInstruction(e.target.value)}
-            inputProps={{ maxLength: 140 }}
-          />
-          {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: '12px' }}>{err}</Alert>}
-          <Button
-            onClick={add}
-            disabled={saving || (analyte ?? input).trim().length < 2}
-            startIcon={saving ? <CircularProgress size={16} color="inherit" /> : undefined}
-            sx={{ alignSelf: 'flex-start', minHeight: 44, textTransform: 'none', fontWeight: 700, borderRadius: '12px', color: (t) => tealText(t.palette.mode) }}
-          >
-            {saving ? 'Adicionando…' : 'Adicionar ao plano'}
-          </Button>
-        </Stack>
+        {/* Formulário de prescrição de coleta */}
+        <FramePanel className="space-y-3.5">
+          <div>
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              Sugestões rápidas de exames
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {ANALYTE_SUGGESTIONS.slice(0, 12).map((sug) => {
+                const active = input === sug;
+                return (
+                  <button
+                    key={sug}
+                    type="button"
+                    onClick={() => setInput(sug)}
+                    className={`rounded-full border px-2.5 py-1 text-xs font-semibold transition cursor-pointer ${
+                      active
+                        ? 'border-primary bg-primary text-primary-foreground'
+                        : 'border-border bg-muted/40 text-foreground hover:border-primary/40 hover:bg-primary/5'
+                    }`}
+                  >
+                    {sug}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-        {/* LISTA — pendentes primeiro; histórico compacto embaixo */}
-        {!loaded ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={22} /></Box>
-        ) : (
-          <Stack spacing={1} sx={{ mt: 2.5 }}>
-            {pending.length === 0 && (
-              <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 1 }}>
-                Nenhum exame pendente de coleta.
-              </Typography>
-            )}
-            {pending.map((i) => {
-              const left = daysLeft(i.dueAt);
-              return (
-                <Stack key={i.id} direction="row" alignItems="center" spacing={1} sx={{ p: 1.25, borderRadius: '14px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,.04)' : 'rgba(32,178,170,.05)'), border: '1px solid', borderColor: 'divider' }}>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{i.analyteName}</Typography>
-                    <Typography variant="caption" sx={{ display: 'block', color: left < 0 ? '#b91c1c' : 'text.secondary' }}>
-                      prazo: {left < 0 ? `venceu há ${-left} d` : left === 0 ? 'hoje' : `em ${left} d`}
-                      {i.instruction ? ` · ${i.instruction}` : ''}
-                    </Typography>
-                  </Box>
-                  <Chip size="small" label="Pendente" sx={{ borderRadius: '999px', bgcolor: STATUS_META.pending.bg, color: STATUS_META.pending.color, fontWeight: 700 }} />
-                  <IconButton aria-label={`Remover ${i.analyteName} do plano`} onClick={() => void remove(i.id)} sx={{ color: 'text.secondary', minWidth: 44, minHeight: 44 }}>
-                    <DeleteOutlineIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
-                </Stack>
-              );
-            })}
-            {history.length > 0 && (
-              <Box sx={{ pt: 0.5 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>Histórico</Typography>
-                <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-                  {history.slice(0, 8).map((i) => {
-                    const m = STATUS_META[i.status] ?? STATUS_META.pending;
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-12">
+            <div className="sm:col-span-5">
+              <FieldLabelWithHint label="Exame a coletar" required>
+                <ReuiInput
+                  list={`analyte-datalist-${patientId}`}
+                  placeholder="Ex.: Hemoglobina glicada"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                />
+                <datalist id={`analyte-datalist-${patientId}`}>
+                  {ANALYTE_SUGGESTIONS.map((s) => (
+                    <option key={s} value={s} />
+                  ))}
+                </datalist>
+              </FieldLabelWithHint>
+            </div>
+
+            <div className="sm:col-span-4">
+              <FieldLabelWithHint label="Prazo sugerido">
+                <div className="grid grid-cols-4 gap-1 rounded-lg border border-border bg-muted/30 p-1">
+                  {DUE_OPTIONS.map((d) => {
+                    const active = dueDays === d;
                     return (
-                      <Stack key={i.id} direction="row" alignItems="center" spacing={1} sx={{ px: 1, py: 0.5, borderRadius: '10px' }}>
-                        <Typography variant="body2" sx={{ flex: 1, minWidth: 0, color: 'text.secondary', textDecoration: i.status === 'collected' ? 'none' : 'none' }}>{i.analyteName}</Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                          {i.status === 'collected' && i.collectedAt ? new Date(i.collectedAt).toLocaleDateString('pt-BR') : new Date(i.dueAt).toLocaleDateString('pt-BR')}
-                        </Typography>
-                        <Chip size="small" label={m.label} sx={{ borderRadius: '999px', bgcolor: m.bg, color: m.color, fontWeight: 700, height: 22 }} />
-                      </Stack>
+                      <button
+                        key={d}
+                        type="button"
+                        onClick={() => setDueDays(d)}
+                        className={`rounded-md py-1 text-xs font-extrabold tabular-nums transition cursor-pointer ${
+                          active
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {d}d
+                      </button>
                     );
                   })}
-                </Stack>
-              </Box>
+                </div>
+              </FieldLabelWithHint>
+            </div>
+
+            <div className="sm:col-span-3">
+              <FieldLabelWithHint label="Instrução" hint="Opcional">
+                <ReuiInput
+                  placeholder="Ex.: jejum 12h"
+                  maxLength={140}
+                  value={instruction}
+                  onChange={(e) => setInstruction(e.target.value)}
+                />
+              </FieldLabelWithHint>
+            </div>
+          </div>
+
+          {err && (
+            <Alert variant="destructive">
+              <AlertDescription>{err}</AlertDescription>
+            </Alert>
+          )}
+        </FramePanel>
+
+        <FrameFooter className="flex items-center justify-between gap-2">
+          <span className="text-xs text-muted-foreground">
+            O paciente será notificado no celular com o prazo de {dueDays} dias.
+          </span>
+          <button
+            type="button"
+            onClick={add}
+            disabled={saving || input.trim().length < 2}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-extrabold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+          >
+            {saving ? (
+              <CircularProgress size={13} color="inherit" />
+            ) : (
+              <AddRoundedIcon sx={{ fontSize: 16 }} />
             )}
-          </Stack>
-        )}
-      </CardContent>
-    </Card>
+            {saving ? 'Adicionando…' : 'Adicionar ao plano'}
+          </button>
+        </FrameFooter>
+
+        {/* Lista de pendentes e histórico */}
+        <FramePanel className="space-y-2.5">
+          {!loaded ? (
+            <div className="flex justify-center py-4">
+              <CircularProgress size={20} />
+            </div>
+          ) : (
+            <>
+              {pending.length === 0 ? (
+                <div className="py-2 text-center text-xs font-medium text-muted-foreground">
+                  Nenhum exame pendente de coleta no momento.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {pending.map((i) => {
+                    const left = daysLeft(i.dueAt);
+                    const isLate = left < 0;
+                    return (
+                      <div
+                        key={i.id}
+                        className={`flex items-center justify-between gap-3 rounded-xl border p-3 ${
+                          isLate
+                            ? 'border-destructive/35 bg-destructive/[0.03]'
+                            : 'border-border bg-muted/20'
+                        }`}
+                      >
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <IconTile
+                            tone={isLate ? 'destructive' : 'warning'}
+                            size="sm"
+                          >
+                            <ScheduleRoundedIcon sx={{ fontSize: 16 }} />
+                          </IconTile>
+                          <div className="min-w-0">
+                            <div className="truncate text-sm font-bold text-foreground">
+                              {i.analyteName}
+                            </div>
+                            <div
+                              className={`text-xs tabular-nums ${
+                                isLate
+                                  ? 'font-semibold text-destructive'
+                                  : 'text-muted-foreground'
+                              }`}
+                            >
+                              Prazo:{' '}
+                              {left < 0
+                                ? `venceu há ${-left} d`
+                                : left === 0
+                                ? 'vence hoje'
+                                : `em ${left} d`}
+                              {i.instruction ? ` · ${i.instruction}` : ''}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex shrink-0 items-center gap-1.5">
+                          <ReuiBadge
+                            variant={isLate ? 'destructive' : 'warning-light'}
+                            size="xs"
+                          >
+                            {isLate ? 'Atrasado' : 'Pendente'}
+                          </ReuiBadge>
+                          <button
+                            type="button"
+                            aria-label={`Remover ${i.analyteName} do plano`}
+                            onClick={() => void remove(i.id)}
+                            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                          >
+                            <DeleteOutlineIcon sx={{ fontSize: 18 }} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {history.length > 0 && (
+                <div className="pt-2">
+                  <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Histórico de coletas concluídas / expiradas
+                  </div>
+                  <div className="divide-y divide-border rounded-xl border border-border overflow-hidden">
+                    {history.slice(0, 8).map((i) => {
+                      const isCollected = i.status === 'collected';
+                      return (
+                        <div
+                          key={i.id}
+                          className="flex items-center justify-between gap-2 bg-card px-3 py-2 text-xs"
+                        >
+                          <span className="inline-flex items-center gap-1.5 font-semibold text-foreground">
+                            {isCollected && (
+                              <CheckCircleOutlineRoundedIcon
+                                sx={{ fontSize: 15 }}
+                                className="text-emerald-600 dark:text-emerald-400"
+                              />
+                            )}
+                            {i.analyteName}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground tabular-nums">
+                              {isCollected && i.collectedAt
+                                ? new Date(i.collectedAt).toLocaleDateString(
+                                    'pt-BR'
+                                  )
+                                : new Date(i.dueAt).toLocaleDateString('pt-BR')}
+                            </span>
+                            <ReuiBadge
+                              variant={
+                                isCollected ? 'success-light' : 'outline'
+                              }
+                              size="xs"
+                            >
+                              {isCollected ? 'Coletado ✓' : 'Expirado'}
+                            </ReuiBadge>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </FramePanel>
+      </Frame>
+    </div>
   );
 };

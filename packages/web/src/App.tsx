@@ -983,7 +983,7 @@ const AppMenu = () => {
     <MenuSectionAccordion
       title="Rotina de saúde"
       icon={<MonitorHeartOutlinedIcon />}
-      routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas']}
+      routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
     >
       <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
       <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
@@ -992,20 +992,11 @@ const AppMenu = () => {
       <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
       <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
       <NavItem to="/conquistas" primaryText={translate('menu.achievements', { _: 'Conquistas' })} icon={<EmojiEventsOutlinedIcon />} />
+      <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<EmergencyOutlinedIcon />} badge="SOS" />
     </MenuSectionAccordion>
 
     {/* Grupo 4: Família e Dependentes */}
     <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} tile />
-
-    {/* Cartão de Emergência SOS */}
-    <Box sx={{ my: 0.5 }}>
-      <NavItem
-        to="/emergencia"
-        primaryText="Cartão de emergência"
-        icon={<EmergencyOutlinedIcon />}
-        isSos
-      />
-    </Box>
 
     {/* Grupo 5: Conta & Configurações */}
     <MenuSectionAccordion

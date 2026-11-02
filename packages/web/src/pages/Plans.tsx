@@ -432,7 +432,12 @@ export const PlansPage = () => {
                   { label: 'Perguntas no chat', cells: ['Consome 💎', 'Consome 💎', 'Consome 💎'] },
                 ]},
                 { title: 'EXAMES', rows: [
-                  { label: 'Envio de exame', cells: ['Grátis', 'Grátis', 'Grátis'] },
+                  // Honesto com a cobrança real: só o 1º envio é grátis no free/avulso; premium tem cota mensal.
+                  { label: 'Envio de exame', cells: [
+                    `1º grátis · depois ${plans?.uploadRules?.freeCost ?? 1} 💎`,
+                    `${(plans as any)?.uploadRules?.premiumFreeQuota ?? 6} grátis/mês`,
+                    `1º grátis · depois ${plans?.uploadRules?.freeCost ?? 1} 💎`,
+                  ] },
                 ]},
                 { title: 'CONTA E FAMÍLIA', rows: [
                   { label: 'Mensalidade', cells: ['R$ 0', fmtBRL(effPrice), 'Não tem'] },

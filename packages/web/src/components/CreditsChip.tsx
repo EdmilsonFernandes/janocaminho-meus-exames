@@ -75,7 +75,7 @@ export const CreditsChip = () => {
         } : {}),
       })}
     >
-      <BoltIcon sx={{ fontSize: 16, color: '#f59e0b', filter: 'drop-shadow(0 1px 2px rgba(245,158,11,0.35))' }} />
+      {!promiseBonus && <BoltIcon sx={{ fontSize: 16, color: '#f59e0b', filter: 'drop-shadow(0 1px 2px rgba(245,158,11,0.35))' }} />}
       <Typography
         component="span"
         sx={{ fontWeight: 800, fontFamily: '"Poppins",sans-serif', fontSize: 12.5, lineHeight: 1, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}

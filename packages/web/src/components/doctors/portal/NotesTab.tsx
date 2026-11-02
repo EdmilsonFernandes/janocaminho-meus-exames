@@ -1,8 +1,39 @@
 import { useState } from 'react';
-import { Box, Stack, Typography, Button, Card, CardContent, TextField, Chip, IconButton } from '@mui/material';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
-import { tealText } from '../../../theme';
+import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
+import { useReuiThemeSync } from '@/components/reui/useReuiThemeSync';
+import {
+  Frame,
+  FrameHeader,
+  FrameTitle,
+  FrameDescription,
+  FramePanel,
+  FrameFooter,
+} from '@/components/reui/frame';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import {
+  Timeline,
+  TimelineItem,
+  TimelineSeparator,
+  TimelineIndicator,
+  TimelineHeader,
+  TimelineTitle,
+  TimelineDate,
+  TimelineContent,
+} from '@/components/reui/timeline';
+import {
+  Empty as ReuiEmpty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/ui/empty';
+import { IconTile } from '@/components/reui/patterns';
+import { ReuiTextarea } from '@/components/reui/form-controls';
 
 /** Modelos rápidos clínicos para o médico preencher com 1 clique. */
 const getTemplates = (patient?: any) => [
@@ -38,15 +69,28 @@ const getTemplates = (patient?: any) => [
   },
 ];
 
-/** Empty state compacto das views do portal. */
+/** Empty state compacto das views do portal (mantido exportado para compatibilidade). */
 export const Empty = ({ label, icon = '📭' }: { label: string; icon?: string }) => (
-  <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}><CardContent><Box sx={{ textAlign: 'center', py: 4 }}>
-    <Box sx={{ fontSize: 44, mb: 1 }}>{icon}</Box>
-    <Typography color="text.secondary" sx={{ fontWeight: 500 }}>{label}</Typography>
-  </Box></CardContent></Card>
+  <Card
+    sx={{
+      borderRadius: '20px',
+      border: '1px solid',
+      borderColor: 'divider',
+      boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+    }}
+  >
+    <CardContent>
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Box sx={{ fontSize: 44, mb: 1 }}>{icon}</Box>
+        <Typography color="text.secondary" sx={{ fontWeight: 500 }}>
+          {label}
+        </Typography>
+      </Box>
+    </CardContent>
+  </Card>
 );
 
-/** #1 Anotações clínicas (histórico de atendimento) — adicionar / editar / excluir. */
+/** #1 Anotações clínicas (histórico de atendimento) — ReUI Frame + Timeline c-timeline-4. */
 export const NotesTab = ({
   notes,
   newNote,
@@ -64,9 +108,9 @@ export const NotesTab = ({
   onSave: (id: string, content: string) => void;
   patient?: any;
 }) => {
+  const themeClass = useReuiThemeSync();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
-  const btnSx = { borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: 'primary.dark', '&:hover': { bgcolor: 'primary.main' } } as const;
 
   const templates = getTemplates(patient);
 
@@ -79,133 +123,207 @@ export const NotesTab = ({
   };
 
   return (
-    <Box>
-      <Card
-        sx={{
-          mb: 2,
-          borderRadius: '20px',
-          border: '1px solid',
-          borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.2)' : '#d8ece9'),
-          background: (t) =>
-            t.palette.mode === 'dark'
-              ? 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.08), transparent 70%), #152223'
-              : 'radial-gradient(ellipse 90% 70% at 10% 0%, rgba(32,178,170,0.04), transparent 70%), #ffffff',
-          boxShadow: (t) => (t.palette.mode === 'dark' ? '0 4px 20px rgba(0,0,0,0.25)' : '0 4px 14px rgba(32,178,170,0.05)'),
-        }}
-      >
-        <CardContent sx={{ p: 2 }}>
-          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
-              📝 Nova anotação clínica
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Prontuário rápido
-            </Typography>
-          </Stack>
+    <div className={`reui-scope ${themeClass} space-y-4`}>
+      {/* Editor de Evolução Clínica em ReUI Frame */}
+      <Frame>
+        <FrameHeader className="flex flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <IconTile tone="primary" size="sm">
+              <NoteAltOutlinedIcon sx={{ fontSize: 18 }} />
+            </IconTile>
+            <div>
+              <FrameTitle>Nova evolução / anotação clínica</FrameTitle>
+              <FrameDescription>
+                Registre condutas, sinais vitais e orientações no prontuário do paciente
+              </FrameDescription>
+            </div>
+          </div>
+          <ReuiBadge variant="primary-light" size="xs">
+            Prontuário rápido
+          </ReuiBadge>
+        </FrameHeader>
 
+        <FramePanel className="space-y-3">
           {/* Modelos rápidos pré-formatados com 1 clique */}
-          <Box sx={{ mb: 1.5 }}>
-            <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.75 }}>
-              ⚡ Modelos rápidos (toque para preencher):
-            </Typography>
-            <Stack direction="row" spacing={0.75} sx={{ flexWrap: 'wrap', gap: 0.75 }}>
+          <div>
+            <div className="mb-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              ⚡ Modelos rápidos (toque para inserir)
+            </div>
+            <div className="flex flex-wrap gap-1.5">
               {templates.map((tpl) => (
-                <Chip
+                <button
                   key={tpl.label}
-                  size="small"
-                  icon={<span style={{ fontSize: 13 }}>{tpl.icon}</span>}
-                  label={tpl.label}
+                  type="button"
                   onClick={() => applyTemplate(tpl.text)}
-                  sx={{
-                    borderRadius: '999px',
-                    fontWeight: 600,
-                    fontSize: 12,
-                    bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.12)' : 'rgba(32,178,170,0.08)'),
-                    color: (t) => tealText(t.palette.mode),
-                    border: '1px solid',
-                    borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.3)' : 'rgba(32,178,170,0.25)'),
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    '&:hover': {
-                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,0.22)' : 'rgba(32,178,170,0.16)'),
-                      borderColor: '#20b2aa',
-                      transform: 'translateY(-1px)',
-                    },
-                  }}
-                />
+                  className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/[0.06] px-2.5 py-1 text-xs font-semibold text-primary transition hover:border-primary hover:bg-primary/15 cursor-pointer"
+                >
+                  <span>{tpl.icon}</span>
+                  <span>{tpl.label}</span>
+                </button>
               ))}
-            </Stack>
-          </Box>
+            </div>
+          </div>
 
-          <TextField
+          <ReuiTextarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
-            multiline
-            minRows={2.5}
-            fullWidth
-            size="small"
+            rows={3}
             placeholder="Conduta, observação clínica, sinais vitais, retorno solicitado…"
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
           />
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.25 }}>
-            <Button variant="contained" onClick={onAdd} disabled={!newNote.trim()} sx={{ px: 2.5, ...btnSx }}>
-              Adicionar anotação
-            </Button>
+        </FramePanel>
+
+        <FrameFooter className="flex items-center justify-between gap-2">
+          <div>
             {newNote.trim() && (
-              <Button
-                size="small"
-                variant="text"
+              <button
+                type="button"
                 onClick={() => setNewNote('')}
-                sx={{ textTransform: 'none', color: 'text.secondary', borderRadius: '999px' }}
+                className="rounded-full px-3 py-1 text-xs font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground cursor-pointer"
               >
-                Limpar
-              </Button>
+                Limpar texto
+              </button>
             )}
-          </Stack>
-        </CardContent>
-      </Card>
-      {notes.length === 0 && <Empty label="Nenhuma anotação ainda. Use o campo acima pra registrar uma conduta." icon="📝" />}
-      <Stack spacing={1.25}>
-        {notes.map((n) => (
-          <Card
-            key={n.id}
-            variant="outlined"
-            sx={{
-              borderRadius: '20px',
-              borderColor: 'divider',
-              boxShadow: (t) => (t.palette.mode === 'dark' ? '0 2px 10px rgba(0,0,0,0.2)' : '0 2px 8px rgba(0,0,0,0.03)'),
-              transition: 'transform 0.18s ease, box-shadow 0.18s ease',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: (t) => (t.palette.mode === 'dark' ? '0 6px 18px rgba(0,0,0,0.3)' : '0 4px 12px rgba(32,178,170,0.1)'),
-              },
-            }}
+          </div>
+          <button
+            type="button"
+            onClick={onAdd}
+            disabled={!newNote.trim()}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-1.5 text-xs font-extrabold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
           >
-            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-              {editingId === n.id ? (
-                <>
-                  <TextField value={editText} onChange={(e) => setEditText(e.target.value)} multiline minRows={2} fullWidth size="small" autoFocus sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
-                  <Stack direction="row" spacing={1} sx={{ mt: 1.25 }}>
-                    <Button size="small" variant="contained" disabled={!editText.trim()} onClick={() => { onSave(n.id, editText.trim()); setEditingId(null); }} sx={btnSx}>Salvar</Button>
-                    <Button size="small" onClick={() => setEditingId(null)} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}>Cancelar</Button>
-                  </Stack>
-                </>
-              ) : (
-                <>
-                  <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: 14.5, color: 'text.primary', lineHeight: 1.5 }}>{n.content}</Typography>
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mt: 1.25 }}>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>{new Date(n.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}</Typography>
-                    <Stack direction="row" spacing={0.5}>
-                      <IconButton aria-label="Editar anotação" size="small" sx={{ color: 'text.secondary' }} onClick={() => { setEditingId(n.id); setEditText(n.content); }}><EditOutlinedIcon fontSize="small" /></IconButton>
-                      <IconButton aria-label="Excluir anotação" size="small" sx={{ color: 'error.main' }} onClick={() => onDelete(n.id)}><DeleteOutlinedIcon fontSize="small" /></IconButton>
-                    </Stack>
-                  </Stack>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </Stack>
-    </Box>
+            <AddRoundedIcon sx={{ fontSize: 16 }} />
+            Adicionar anotação
+          </button>
+        </FrameFooter>
+      </Frame>
+
+      {/* Linha do Tempo Clínica (ReUI Timeline c-timeline-4) */}
+      {notes.length === 0 ? (
+        <Frame>
+          <FramePanel className="p-6">
+            <ReuiEmpty className="border-0 p-4 md:p-6">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <NoteAltOutlinedIcon sx={{ fontSize: 22 }} />
+                </EmptyMedia>
+                <EmptyTitle>Nenhuma evolução registrada</EmptyTitle>
+                <EmptyDescription>
+                  Use o campo acima ou os modelos rápidos para registrar a primeira evolução clínica deste paciente.
+                </EmptyDescription>
+              </EmptyHeader>
+            </ReuiEmpty>
+          </FramePanel>
+        </Frame>
+      ) : (
+        <Frame>
+          <FrameHeader className="flex flex-row items-center justify-between gap-2">
+            <div>
+              <FrameTitle>Linha do tempo de evoluções</FrameTitle>
+              <FrameDescription>
+                Histórico cronológico de atendimentos e condutas registradas
+              </FrameDescription>
+            </div>
+            <ReuiBadge variant="outline" size="xs">
+              {notes.length} {notes.length === 1 ? 'registro' : 'registros'}
+            </ReuiBadge>
+          </FrameHeader>
+
+          <FramePanel>
+            <Timeline defaultValue={notes.length}>
+              {notes.map((n, idx) => {
+                const step = idx + 1;
+                const formattedDate = new Date(n.createdAt).toLocaleString(
+                  'pt-BR',
+                  {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  }
+                );
+
+                return (
+                  <TimelineItem key={n.id} step={step}>
+                    <TimelineSeparator />
+                    <TimelineIndicator className="bg-primary/15 text-primary border-primary/40">
+                      <CheckRoundedIcon sx={{ fontSize: 11 }} />
+                    </TimelineIndicator>
+
+                    <TimelineHeader className="flex items-center justify-between gap-2">
+                      <div>
+                        <TimelineDate className="mb-0 tabular-nums">
+                          {formattedDate}
+                        </TimelineDate>
+                        <TimelineTitle>Evolução clínica #{notes.length - idx}</TimelineTitle>
+                      </div>
+                      {editingId !== n.id && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-label="Editar anotação"
+                            onClick={() => {
+                              setEditingId(n.id);
+                              setEditText(n.content);
+                            }}
+                            className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground cursor-pointer"
+                          >
+                            <EditOutlinedIcon sx={{ fontSize: 16 }} />
+                          </button>
+                          <button
+                            type="button"
+                            aria-label="Excluir anotação"
+                            onClick={() => onDelete(n.id)}
+                            className="inline-flex size-7 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive cursor-pointer"
+                          >
+                            <DeleteOutlinedIcon sx={{ fontSize: 16 }} />
+                          </button>
+                        </div>
+                      )}
+                    </TimelineHeader>
+
+                    <TimelineContent className="mt-2">
+                      {editingId === n.id ? (
+                        <div className="space-y-2.5 rounded-xl border border-primary/30 bg-muted/20 p-3">
+                          <ReuiTextarea
+                            value={editText}
+                            onChange={(e) => setEditText(e.target.value)}
+                            rows={3}
+                            autoFocus
+                          />
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={!editText.trim()}
+                              onClick={() => {
+                                onSave(n.id, editText.trim());
+                                setEditingId(null);
+                              }}
+                              className="inline-flex items-center gap-1 rounded-full bg-primary px-3.5 py-1 text-xs font-extrabold text-primary-foreground shadow-sm transition hover:opacity-95 disabled:opacity-50 cursor-pointer"
+                            >
+                              Salvar alterações
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setEditingId(null)}
+                              className="rounded-full px-3 py-1 text-xs font-bold text-muted-foreground transition hover:bg-muted hover:text-foreground cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="rounded-xl border border-border bg-muted/25 p-3 text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                          {n.content}
+                        </div>
+                      )}
+                    </TimelineContent>
+                  </TimelineItem>
+                );
+              })}
+            </Timeline>
+          </FramePanel>
+        </Frame>
+      )}
+    </div>
   );
 };

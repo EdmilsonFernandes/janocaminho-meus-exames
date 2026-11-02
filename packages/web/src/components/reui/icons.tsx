@@ -1,127 +1,339 @@
-import * as React from 'react';
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export function PulseIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+export interface ReuiIconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number
+}
+
+/**
+ * ReUI Ultimate Duotone: `health-medical-pulse`
+ * Usado em Sinais Vitais & Relógio
+ */
+export function PulseIcon({ size = 24, className, ...props }: ReuiIconProps) {
   return (
     <svg
-      width="24"
-      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
+      className={cn("shrink-0", className)}
       {...props}
     >
       <path
-        opacity="0.3"
-        d="M 12 3.974C 10.804 2.759 9.187 2.078 7.5 2.078C 5.814 2.078 4.197 2.759 3.001 3.974C 2.41 4.578 1.94 5.296 1.62 6.085C 1.299 6.874 1.134 7.721 1.134 8.576C 1.134 9.43 1.299 10.276 1.62 11.066C 1.94 11.856 2.41 12.572 3.001 13.176L 11.229 21.591C 11.33 21.695 11.45 21.777 11.582 21.834C 11.714 21.89 11.857 21.92 12 21.92C 12.143 21.92 12.286 21.89 12.418 21.834C 12.55 21.777 12.67 21.695 12.771 21.591L 20.999 13.176C 21.59 12.572 22.06 11.856 22.38 11.066C 22.701 10.276 22.866 9.43 22.866 8.576C 22.866 7.721 22.701 6.874 22.38 6.085C 22.06 5.296 21.59 4.578 20.999 3.974C 19.804 2.759 18.186 2.078 16.5 2.078C 14.813 2.078 13.196 2.759 12 3.974Z"
+        opacity="0.24"
+        d="M3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12Z"
         fill="currentColor"
       />
       <path
-        d="M 14.293 16.951H 14.173C 14.008 16.933 13.851 16.865 13.725 16.753C 13.599 16.642 13.508 16.494 13.468 16.33L 11.87 10.168L 10.413 14.609C 10.366 14.756 10.279 14.887 10.163 14.986C 10.046 15.086 9.905 15.15 9.755 15.172C 9.604 15.194 9.451 15.173 9.312 15.11C 9.173 15.048 9.054 14.947 8.968 14.82L 7.251 12.222L 5.838 12.999C 5.717 13.066 5.583 13.1 5.446 13.1H 2.218C 2.003 13.1 1.795 13.012 1.642 12.855C 1.49 12.699 1.404 12.487 1.404 12.266C 1.404 12.045 1.49 11.834 1.642 11.678C 1.795 11.522 2.003 11.434 2.218 11.434H 5.24L 7.12 10.402C 7.301 10.297 7.513 10.265 7.716 10.314C 7.917 10.364 8.093 10.491 8.207 10.668L 9.468 12.533L 11.228 7.005C 11.277 6.836 11.379 6.688 11.519 6.586C 11.659 6.483 11.828 6.431 12 6.439C 12.176 6.443 12.346 6.506 12.483 6.618C 12.62 6.731 12.718 6.886 12.761 7.06L 14.488 13.721L 15.348 11.878C 15.411 11.736 15.514 11.615 15.643 11.531C 15.772 11.446 15.922 11.401 16.075 11.401H 21.781C 21.997 11.401 22.204 11.489 22.358 11.645C 22.51 11.8 22.596 12.012 22.596 12.233C 22.596 12.454 22.51 12.666 22.358 12.822C 22.204 12.978 21.997 13.066 21.781 13.066H 16.619L 15.032 16.485C 14.964 16.625 14.858 16.743 14.727 16.825C 14.597 16.908 14.447 16.951 14.293 16.951Z"
-        fill="currentColor"
+        d="M3 12H6.5L8.5 7.5L11.5 16.5L14.5 9.5L16.5 12H21"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
-  );
+  )
 }
 
-export function ShieldRoundIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+/**
+ * ReUI Ultimate Duotone: `security-shield-round`
+ * Usado em Privacidade, LGPD & Controle de Dados
+ */
+export function ShieldRoundIcon({ size = 24, className, ...props }: ReuiIconProps) {
   return (
     <svg
-      width="24"
-      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
+      className={cn("shrink-0", className)}
       {...props}
     >
       <path
-        opacity="0.3"
-        d="M18.3 5.7V12C18.3 13.671 17.636 15.273 16.455 16.455C15.273 17.636 13.671 18.3 12 18.3C10.329 18.3 8.727 17.636 7.545 16.455C6.364 15.273 5.7 13.671 5.7 12V5.7H18.3ZM21.45 1.5H2.55C2.272 1.5 2.004 1.611 1.808 1.808C1.611 2.004 1.5 2.272 1.5 2.55V12C1.5 14.785 2.606 17.456 4.575 19.425C5.55 20.4 6.708 21.173 7.982 21.701C9.256 22.228 10.621 22.5 12 22.5C14.785 22.5 17.456 21.394 19.425 19.425C21.394 17.456 22.5 14.785 22.5 12V2.55C22.5 2.272 22.389 2.004 22.193 1.808C21.996 1.611 21.729 1.5 21.45 1.5Z"
+        opacity="0.24"
+        d="M12 2.75C12 2.75 19.25 4.75 19.25 11.25C19.25 17.25 14.5 20.25 12 21.25C9.5 20.25 4.75 17.25 4.75 11.25C4.75 4.75 12 2.75 12 2.75Z"
         fill="currentColor"
       />
       <path
-        d="M21.45 1.5H12V5.7H18.3V12C18.3 13.671 17.636 15.273 16.455 16.455C15.273 17.636 13.671 18.3 12 18.3V22.5C14.785 22.5 17.456 21.394 19.425 19.425C21.394 17.456 22.5 14.785 22.5 12V2.55C22.5 2.272 22.389 2.004 22.193 1.808C21.996 1.611 21.729 1.5 21.45 1.5Z"
-        fill="currentColor"
+        d="M12 2.75C12 2.75 19.25 4.75 19.25 11.25C19.25 17.25 14.5 20.25 12 21.25C9.5 20.25 4.75 17.25 4.75 11.25C4.75 4.75 12 2.75 12 2.75Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.25 12L11.1 13.85L15 9.75"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
-  );
+  )
 }
 
-export function MessageQuestionIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+/**
+ * ReUI Ultimate Duotone: `communication-message-question`
+ * Usado em Perguntas para o Médico
+ */
+export function MessageQuestionIcon({ size = 24, className, ...props }: ReuiIconProps) {
   return (
     <svg
-      width="24"
-      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
+      className={cn("shrink-0", className)}
       {...props}
     >
       <path
-        opacity="0.3"
-        d="M17.902 1.56H6.077C4.795 1.566 3.567 2.079 2.662 2.988C1.758 3.896 1.25 5.126 1.25 6.408V13.74C1.25 15.026 1.761 16.259 2.67 17.168C3.579 18.077 4.812 18.588 6.098 18.588C6.238 18.588 6.372 18.644 6.471 18.742C6.57 18.841 6.625 18.975 6.625 19.115V21.448C6.637 21.633 6.698 21.812 6.8 21.968C6.903 22.123 7.044 22.249 7.209 22.334C7.375 22.418 7.56 22.458 7.746 22.45C7.932 22.442 8.112 22.385 8.27 22.286L13.075 18.782C13.255 18.656 13.469 18.589 13.688 18.588H17.87C18.509 18.592 19.143 18.47 19.735 18.228C20.327 17.987 20.865 17.63 21.319 17.18C21.772 16.729 22.132 16.193 22.378 15.603C22.624 15.012 22.75 14.379 22.75 13.74V6.408C22.75 5.122 22.239 3.889 21.33 2.98C20.421 2.071 19.188 1.56 17.902 1.56Z"
+        opacity="0.24"
+        d="M4 6.5C4 4.84315 5.34315 3.5 7 3.5H17C18.6569 3.5 20 4.84315 20 6.5V14.5C20 16.1569 18.6569 17.5 17 17.5H9.5L5 20.5V17.5C4.44772 17.5 4 17.0523 4 16.5V6.5Z"
         fill="currentColor"
       />
       <path
-        d="M11.43 12.095C11.581 12.246 11.787 12.331 12 12.331C12.211 12.331 12.412 12.249 12.563 12.103C12.714 11.956 12.801 11.756 12.807 11.546V11.245C12.797 11.067 12.833 10.889 12.91 10.727C12.987 10.566 13.103 10.426 13.247 10.321C13.621 10.103 13.931 9.79 14.146 9.414C14.361 9.039 14.474 8.613 14.473 8.18C14.472 7.747 14.357 7.322 14.14 6.948C13.924 6.573 13.612 6.262 13.238 6.045C12.863 5.829 12.438 5.714 12.005 5.713C11.572 5.713 11.147 5.825 10.771 6.041C10.396 6.256 10.083 6.566 9.865 6.94C9.647 7.313 9.53 7.738 9.528 8.171C9.528 8.385 9.613 8.59 9.764 8.741C9.915 8.892 10.12 8.977 10.334 8.977C10.548 8.977 10.753 8.892 10.904 8.741C11.055 8.59 11.14 8.385 11.14 8.171C11.14 7.943 11.231 7.724 11.392 7.563C11.554 7.401 11.772 7.311 12 7.311C12.228 7.311 12.447 7.401 12.608 7.563C12.77 7.724 12.86 7.943 12.86 8.171C12.86 8.32 12.82 8.466 12.745 8.595C12.669 8.723 12.561 8.829 12.43 8.902C12.042 9.15 11.724 9.494 11.507 9.901C11.291 10.307 11.183 10.763 11.194 11.224V11.525C11.194 11.739 11.279 11.944 11.43 12.095ZM12.806 13.891C12.806 14.336 12.445 14.697 12 14.697C11.555 14.697 11.194 14.336 11.194 13.891C11.194 13.445 11.555 13.085 12 13.085C12.445 13.085 12.806 13.445 12.806 13.891Z"
-        fill="currentColor"
+        d="M4 6.5C4 4.84315 5.34315 3.5 7 3.5H17C18.6569 3.5 20 4.84315 20 6.5V14.5C20 16.1569 18.6569 17.5 17 17.5H9.5L5 20.5V17.5C4.44772 17.5 4 17.0523 4 16.5V6.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       />
+      <path
+        d="M10.25 8.75C10.25 7.7835 11.0335 7 12 7C12.9665 7 13.75 7.7835 13.75 8.75C13.75 9.54 13.22 10.2 12.5 10.42C12.19 10.52 12 10.8 12 11.12V11.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="14" r="0.9" fill="currentColor" />
     </svg>
-  );
+  )
 }
 
-export function MessageTextIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+/**
+ * ReUI Ultimate Duotone: `communication-message-text`
+ * Usado no Chat IA (Dr. Exame)
+ */
+export function MessageTextIcon({ size = 24, className, ...props }: ReuiIconProps) {
   return (
     <svg
-      width="24"
-      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
+      className={cn("shrink-0", className)}
       {...props}
     >
       <path
-        opacity="0.3"
-        d="M17.182 22.75H2.325C2.04 22.75 1.766 22.637 1.565 22.435C1.363 22.234 1.25 21.96 1.25 21.675V6.819C1.25 5.342 1.837 3.925 2.881 2.881C3.925 1.837 5.342 1.25 6.819 1.25H17.182C17.913 1.25 18.637 1.394 19.313 1.674C19.988 1.954 20.602 2.364 21.119 2.881C21.636 3.398 22.046 4.012 22.326 4.688C22.606 5.363 22.75 6.087 22.75 6.819V17.182C22.75 17.913 22.606 18.637 22.326 19.313C22.046 19.988 21.636 20.602 21.119 21.119C20.602 21.636 19.988 22.046 19.313 22.326C18.637 22.606 17.913 22.75 17.182 22.75Z"
+        opacity="0.24"
+        d="M3.75 6.75C3.75 5.09315 5.09315 3.75 6.75 3.75H17.25C18.9069 3.75 20.25 5.09315 20.25 6.75V14.25C20.25 15.9069 18.9069 17.25 17.25 17.25H9.25L4.75 20.25V17.25C4.19772 17.25 3.75 16.8023 3.75 16.25V6.75Z"
         fill="currentColor"
       />
       <path
-        d="M6.883 10.119H17.117C17.331 10.119 17.536 10.034 17.688 9.883C17.839 9.731 17.924 9.526 17.924 9.312C17.924 9.099 17.839 8.894 17.688 8.742C17.536 8.591 17.331 8.506 17.117 8.506H6.883C6.67 8.506 6.464 8.591 6.313 8.742C6.162 8.894 6.077 9.099 6.077 9.312C6.077 9.526 6.162 9.731 6.313 9.883C6.464 10.034 6.67 10.119 6.883 10.119ZM6.883 15.494H13.71C13.923 15.494 14.128 15.409 14.28 15.258C14.431 15.106 14.516 14.901 14.516 14.687C14.516 14.474 14.431 14.269 14.28 14.117C14.128 13.966 13.923 13.881 13.71 13.881H6.883C6.669 13.881 6.464 13.966 6.313 14.117C6.162 14.269 6.077 14.474 6.077 14.687C6.077 14.901 6.162 15.106 6.313 15.258C6.464 15.409 6.669 15.494 6.883 15.494Z"
-        fill="currentColor"
+        d="M3.75 6.75C3.75 5.09315 5.09315 3.75 6.75 3.75H17.25C18.9069 3.75 20.25 5.09315 20.25 6.75V14.25C20.25 15.9069 18.9069 17.25 17.25 17.25H9.25L4.75 20.25V17.25C4.19772 17.25 3.75 16.8023 3.75 16.25V6.75Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 9H16M8 12.5H13"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
       />
     </svg>
-  );
+  )
 }
 
-export function FirstAidKitIcon({ className, ...props }: React.SVGProps<SVGSVGElement>) {
+/**
+ * ReUI Ultimate Duotone: `health-medical-first-aid-kit`
+ * Usado em Perfil Clínico / Médico
+ */
+export function FirstAidKitIcon({ size = 24, className, ...props }: ReuiIconProps) {
   return (
     <svg
-      width="24"
-      height="24"
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       fill="none"
+      className={cn("shrink-0", className)}
+      {...props}
+    >
+      <rect
+        opacity="0.24"
+        x="3.5"
+        y="6.5"
+        width="17"
+        height="13.5"
+        rx="3"
+        fill="currentColor"
+      />
+      <path
+        d="M8.5 6.5V5C8.5 4.17157 9.17157 3.5 10 3.5H14C14.8284 3.5 15.5 4.17157 15.5 5V6.5M6.5 6.5H17.5C19.1569 6.5 20.5 7.84315 20.5 9.5V17C20.5 18.6569 19.1569 20 17.5 20H6.5C4.84315 20 3.5 18.6569 3.5 17V9.5C3.5 7.84315 4.84315 6.5 6.5 6.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M12 10.5V16M9.25 13.25H14.75"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+/**
+ * ReUI Ultimate Duotone: `notification-bell`
+ * Usado na Central de Notificações
+ */
+export function BellNotificationIcon({ size = 24, className, ...props }: ReuiIconProps) {
+  return (
+    <svg
       xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
       {...props}
     >
       <path
-        opacity="0.3"
-        d="M22.54 7.932C22.73 8.543 22.798 9.185 22.739 9.823L22.6 11.379L21.976 18.079C21.869 19.29 21.312 20.416 20.414 21.234C19.516 22.053 18.344 22.505 17.129 22.5H6.969C5.768 22.499 4.61 22.055 3.717 21.251C2.824 20.448 2.259 19.343 2.132 18.149L1.438 11.617L1.25 9.882V9.377C1.249 8.738 1.373 8.104 1.617 7.513C1.86 6.923 2.217 6.385 2.668 5.932C3.119 5.48 3.655 5.12 4.245 4.874C4.835 4.628 5.468 4.501 6.107 4.5H7.623H9.11H14.869L16.356 4.53H17.952H18.328C18.966 4.587 19.585 4.769 20.152 5.067C20.719 5.364 21.222 5.77 21.631 6.261C22.041 6.753 22.35 7.321 22.54 7.932Z"
+        opacity="0.24"
+        d="M6 9.5C6 6.18629 8.68629 3.5 12 3.5C15.3137 3.5 18 6.18629 18 9.5V14.2L19.6 16.6C19.9 17.05 19.58 17.65 19.04 17.65H4.96C4.42 17.65 4.1 17.05 4.4 16.6L6 14.2V9.5Z"
         fill="currentColor"
       />
       <path
-        d="M11.917 9.193C12.125 9.186 12.516 9.229 12.707 9.312C12.889 9.422 12.965 9.536 13.1 9.694C13.236 9.852 13.348 10.111 13.402 10.312V12.024H14.858C15.129 12.033 15.392 12.119 15.615 12.273C15.838 12.427 16.012 12.643 16.116 12.893C16.22 13.144 16.249 13.419 16.2 13.685C16.151 13.952 16.027 14.2 15.842 14.397C15.709 14.528 15.551 14.631 15.378 14.701C15.204 14.771 15.019 14.806 14.832 14.804L13.378 14.79L13.39 16.245C13.392 16.621 13.246 16.983 12.984 17.254C12.788 17.443 12.541 17.571 12.273 17.623C12.006 17.674 11.729 17.647 11.476 17.545C11.224 17.442 11.006 17.268 10.85 17.045C10.695 16.821 10.607 16.556 10.598 16.284L10.586 14.751L9.052 14.738C8.738 14.664 8.46 14.483 8.265 14.226C8.07 13.97 7.971 13.654 7.983 13.332C7.996 13.01 8.12 12.702 8.334 12.461C8.548 12.22 8.839 12.061 9.157 12.012L10.612 12.024L10.6 10.312C10.641 10.108 10.727 9.916 10.851 9.75C10.976 9.583 11.137 9.447 11.321 9.35C11.505 9.254 11.709 9.2 11.917 9.193ZM13.687 1.42C14.406 1.42 15.096 1.706 15.604 2.214C16.112 2.722 16.397 3.411 16.397 4.13V4.52L9.517 4.503H14.897V4.188C14.897 3.852 14.77 3.53 14.544 3.292C14.317 3.054 14.008 2.92 13.687 2.92H10.298C9.977 2.92 9.669 3.054 9.442 3.292C9.215 3.53 9.088 3.852 9.088 4.188V4.501L7.606 4.498L7.588 4.13C7.588 3.411 7.873 2.722 8.382 2.214C8.89 1.705 9.579 1.42 10.298 1.42H13.687Z"
-        fill="currentColor"
+        d="M6 9.5C6 6.18629 8.68629 3.5 12 3.5C15.3137 3.5 18 6.18629 18 9.5V14.2L19.6 16.6C19.9 17.05 19.58 17.65 19.04 17.65H4.96C4.42 17.65 4.1 17.05 4.4 16.6L6 14.2V9.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9.75 18C10.1 19.4 10.95 20.25 12 20.25C13.05 20.25 13.9 19.4 14.25 18"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
       />
     </svg>
-  );
+  )
 }
 
+/**
+ * ReUI Ultimate Duotone: `emergency-medical-id`
+ * Usado no Cartão de Emergência (Medical ID)
+ */
+export function SirenEmergencyIcon({ size = 24, className, ...props }: ReuiIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
+      {...props}
+    >
+      <rect
+        opacity="0.24"
+        x="3.5"
+        y="4.5"
+        width="17"
+        height="15"
+        rx="3.5"
+        fill="currentColor"
+      />
+      <rect
+        x="3.5"
+        y="4.5"
+        width="17"
+        height="15"
+        rx="3.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M12 8.5V15.5M8.5 12H15.5"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
+
+/**
+ * ReUI Ultimate Duotone: `vaccine-syringe`
+ * Usado na Carteira de Vacinação
+ */
+export function SyringeVaccineIcon({ size = 24, className, ...props }: ReuiIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
+      {...props}
+    >
+      <path
+        opacity="0.24"
+        d="M14.5 5.5L18.5 9.5L9.5 18.5L5.5 14.5L14.5 5.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M17.5 3.5L20.5 6.5M19 5L16.5 7.5M14.5 5.5L18.5 9.5L9.5 18.5L5.5 14.5L14.5 5.5ZM5.5 18.5L3.5 20.5M11.5 8.5L13.5 10.5M8.5 11.5L10.5 13.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+/**
+ * ReUI Ultimate Duotone: `finance-receipt-wallet`
+ * Usado em Despesas Médicas & IRPF
+ */
+export function WalletReceiptIcon({ size = 24, className, ...props }: ReuiIconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      className={cn("shrink-0", className)}
+      {...props}
+    >
+      <path
+        opacity="0.24"
+        d="M5 4.5C5 3.67157 5.67157 3 6.5 3H17.5C18.3284 3 19 3.67157 19 4.5V20L16.5 18.25L14.25 20L12 18.25L9.75 20L7.5 18.25L5 20V4.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M5 4.5C5 3.67157 5.67157 3 6.5 3H17.5C18.3284 3 19 3.67157 19 4.5V20L16.5 18.25L14.25 20L12 18.25L9.75 20L7.5 18.25L5 20V4.5Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8.5 8H15.5M8.5 11.5H15.5M8.5 15H12.5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  )
+}
