@@ -72,7 +72,12 @@ describe('Doctor Portal — valores alterados (GET /doctor/patients/:id/items/ab
     await createItem(exam.id, { name: 'CREATININA', valueNumeric: 1.8, valueText: '1.8', unit: 'mg/dL', flag: 'HIGH', isAbnormal: true, refLow: 0.7, refHigh: 1.2 });
     const r = await api().get(`/api/doctor/patients/${patientId}/items/abnormal`).set(docH(docToken));
     const keys = Object.keys(r.body.items[0]).sort();
-    expect(keys).toEqual(['examId', 'examTitle', 'flag', 'id', 'name', 'nameCanonical', 'performedAt', 'refHigh', 'refLow', 'refText', 'requestingDoctor', 'unit', 'valueNumeric', 'valueText']);
+    // Shape do paciente + 4 campos de contexto temporal do portal (6e04bce: isCurrent,
+    // isNormalizedInNewerExam, latestValueText, latestPerformedAt) — a Prioridade Clínica não
+    // destaca marcador antigo que já normalizou em exame mais recente.
+    expect(keys).toEqual(['examId', 'examTitle', 'flag', 'id', 'isCurrent', 'isNormalizedInNewerExam', 'latestPerformedAt', 'latestValueText', 'name', 'nameCanonical', 'performedAt', 'refHigh', 'refLow', 'refText', 'requestingDoctor', 'unit', 'valueNumeric', 'valueText']);
+    expect(r.body.items[0].isCurrent).toBe(true);
+    expect(r.body.items[0].isNormalizedInNewerExam).toBe(false);
     expect(r.body.items[0].examTitle).toBe('Bioquímica');
   });
 });
