@@ -28,13 +28,18 @@ const config: CapacitorConfig = {
     Camera: {},
     // G5 — splash premium: overlay do Capacitor com fade-out (o theme estático do Android
     // continua no boot frio; o plugin pinta a transição suave pra primeira tela do webview).
+    // 02/11: backgroundColor UNIFICADO com o theme (#20B2AA) — o antigo #031412 fazia o
+    // "fundo preto desorientado" entre o splash nativo teal e o web. Arte = splash_art
+    // (robô central transparente) com FIT_CENTER: nunca estica em tela nenhuma (o default
+    // FIT_XY esticava a 320×480 full-screen — robô "desorientado" em telas 20:9).
     SplashScreen: {
       launchShowDuration: 900,
       launchAutoHide: true,
       fadeOutDuration: 350,
       showSpinner: false,
-      backgroundColor: '#031412',
-      androidSplashResourceName: 'splash',
+      backgroundColor: '#20B2AA',
+      androidSplashResourceName: 'splash_art',
+      androidScaleType: 'FIT_CENTER',
     },
   },
 };
