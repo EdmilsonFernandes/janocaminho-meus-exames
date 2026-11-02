@@ -141,7 +141,7 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
           'aria-modal': true,
           'aria-labelledby': titleId,
           'aria-describedby': descId,
-          'data-testid': 'cross-insight-sheet',
+          ...({ 'data-testid': 'cross-insight-sheet' } as Record<string, unknown>),
           sx: {
             borderTopLeftRadius: '28px',
             borderTopRightRadius: '28px',
