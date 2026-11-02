@@ -157,8 +157,10 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
         },
       }}
     >
-      {/* pb = max(24px, safe-area): no APK edge-to-edge a ação não fica sob a gesture bar. */}
-      <div className="px-5 pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col min-w-0">
+      {/* pb = max(24px, safe-area): no APK edge-to-edge a ação não fica sob a gesture bar.
+          px com teto em px: a 200% de fonte o padding em rem dobrava (40px por lado) e
+          roubava a largura do conteúdo (auditoria 02/11 — pergunta virou 1 palavra/linha). */}
+      <div className="px-[min(1.25rem,20px)] pt-3 pb-[max(1.5rem,env(safe-area-inset-bottom))] flex flex-col min-w-0">
         {/* Drag handle pill */}
         <div className="w-10 h-1.5 rounded-full bg-muted-foreground/25 mx-auto mb-4" />
 
@@ -219,8 +221,10 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
         </p>
 
         {/* Card Fale com seu médico com botão Copiar */}
-        <div className="rounded-2xl border border-border/80 bg-muted/40 p-3.5 mb-5 flex items-start justify-between gap-3 transition-colors hover:bg-muted/60">
-          <div className="min-w-0 flex-1">
+        {/* flex-wrap + largura mínima em px do texto: com fonte grande/tela estreita o botão
+            "Copiar" desce para a linha de baixo em vez de espremer a pergunta. */}
+        <div className="rounded-2xl border border-border/80 bg-muted/40 p-[min(0.875rem,14px)] mb-5 flex flex-wrap items-start justify-between gap-3 transition-colors hover:bg-muted/60">
+          <div className="min-w-[180px] flex-1 basis-0">
             <span className="text-xs font-semibold text-muted-foreground block mb-0.5">
               Fale com seu médico:
             </span>
@@ -233,8 +237,8 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
             type="button"
             onClick={handleCopy}
             data-testid="copy-question-btn"
-            // min 44×44 (alvo de toque) + rótulo em rem (escala com a fonte do usuário)
-            className="shrink-0 flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+            // alvo de toque 44×44 em PX (não encolhe a 85% de fonte) + rótulo em rem (escala com a fonte)
+            className="shrink-0 flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
             title="Copiar pergunta para o médico"
             aria-label={copied ? 'Pergunta copiada' : 'Copiar pergunta para o médico'}
             aria-live="polite"
@@ -261,7 +265,7 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
             type="button"
             onClick={handleDismiss}
             data-testid="bottomsheet-primary-btn"
-            className="w-full min-h-12 rounded-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-3 px-4 text-sm shadow-md transition-all active:scale-[0.99] cursor-pointer break-words"
+            className="w-full min-h-[48px] rounded-full bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-3 px-4 text-sm shadow-md transition-all active:scale-[0.99] cursor-pointer break-words"
           >
             {insight.primary_action || 'Entendido'}
           </button>
@@ -274,7 +278,7 @@ export const CrossInsightBottomSheet: React.FC<CrossInsightBottomSheetProps> = (
                 handleCopy();
                 handleDismiss();
               }}
-              className="w-full min-h-11 rounded-full border border-border bg-card hover:bg-muted text-foreground font-semibold py-2.5 px-4 text-xs transition-all cursor-pointer break-words"
+              className="w-full min-h-[44px] rounded-full border border-border bg-card hover:bg-muted text-foreground font-semibold py-2.5 px-4 text-xs transition-all cursor-pointer break-words"
             >
               {insight.secondary_action}
             </button>
