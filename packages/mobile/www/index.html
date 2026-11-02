@@ -125,7 +125,10 @@
          2. max-width 100% (não 100vw): em landscape com notch, 100vw inclui a
             área sob a curva da tela.
          3. box-sizing global: padding/borda não somam na largura. */
-      html { overflow-x: hidden; }
+      /* html SEM overflow próprio (auditoria bottom-sheet 02/11): qualquer overflow no html
+         (hidden OU clip, num eixo que seja) impede que o overflow:hidden que o MUI põe no body
+         (lock de scroll de Dialog/Drawer) propague ao viewport — a página rolava 400px por baixo
+         do modal. A proteção horizontal continua nas camadas abaixo (body/#root com clip). */
       body, #root { max-width: 100%; overflow-x: hidden; overflow-x: clip; }
       body { -webkit-text-size-adjust: 100%; font-family: "Inter", "Segoe UI", Roboto, system-ui, sans-serif; }
       *, *::before, *::after { box-sizing: border-box; }
@@ -172,7 +175,7 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-DyRGDr7m.js"></script>
+    <script type="module" crossorigin src="./assets/index-DU572FKN.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-ui-Cjzjmqw-.js">
     <link rel="modulepreload" crossorigin href="./assets/vendor-admin-VdsslDv1.js">
@@ -185,8 +188,8 @@
     <link rel="modulepreload" crossorigin href="./assets/DrExame-aB-d2nTP.js">
     <link rel="modulepreload" crossorigin href="./assets/GradientButton-CdC0JJU9.js">
     <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-B3mXlhmR.js">
-    <link rel="modulepreload" crossorigin href="./assets/config-Cd17WA2x.js">
-    <link rel="modulepreload" crossorigin href="./assets/useCredits-Cvw3Uxmw.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-DUQn7CRa.js">
+    <link rel="modulepreload" crossorigin href="./assets/useCredits-XA0KoZ-E.js">
     <link rel="modulepreload" crossorigin href="./assets/theme-BkZAkC6E.js">
     <link rel="modulepreload" crossorigin href="./assets/haptic-pAnRyHYU.js">
     <link rel="stylesheet" crossorigin href="./assets/index-DcdXuePE.css">
@@ -247,9 +250,13 @@
     </script>
     <!-- VLibras: tradução automática de texto para Libras (acessibilidade — pacientes surdos) -->
     <style>
-      /* Regra Mobile-First Anti-Vazamento Horizontal (impede o site de descolar/arrastar para os lados no celular) */
+      /* Regra Mobile-First Anti-Vazamento Horizontal (impede o site de descolar/arrastar para os lados no celular).
+         overflow-x SÓ no body (auditoria bottom-sheet 02/11): qualquer overflow no html impede que o
+         overflow:hidden que o MUI põe no body (lock de scroll de Dialog/Drawer) propague ao viewport —
+         a página rolava por baixo do modal. Com o html "visible", o body propaga: lateral travada,
+         vertical travada enquanto há modal aberto. */
+      body { overflow-x: hidden !important; }
       html, body {
-        overflow-x: hidden !important;
         max-width: 100% !important;
         width: 100% !important;
         margin: 0;
