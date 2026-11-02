@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Dialog, useTheme, useMediaQuery } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
-import { claimColdDialog, claimEngagementSlot } from '../../utils/coldDialog';
+import { claimColdDialog, claimEngagementSlot, isColdDialogFree, isEngagementSlotFree } from '../../utils/coldDialog';
 import { useNudgeQueue } from '../../hooks/useNudgeQueue';
 import { fetchEligibleCampaign, newImpressionId, postCampaignEvent, sponsorAssetUrl, type SponsorCampaign, type SponsorMode } from '../../utils/sponsorApi';
 import { SponsorCard, glassPaperSx } from './SponsorCard';
@@ -54,10 +54,14 @@ export const SponsorPopup = ({ mode = 'patient' }: { mode?: SponsorMode }) => {
         if (document.querySelector('.MuiDialog-root')) return;
         if (mode === 'patient' && !onDashboard()) { window.clearInterval(iv); return; }
         window.clearInterval(iv); iv = undefined;
-        if (mode === 'patient' && !claimColdDialog('sponsor')) return; // outro diálogo de boot ganhou a sessão
-        if (!claimEngagementSlot('sponsor')) return; // pesquisa de opinião já ocupou a sessão
+        // Espia os slots ANTES da rede e só RESERVA depois de ter campanha: sem campanha
+        // elegível a sessão continua livre pro convite de opinião (achado do E2E 02/11).
+        if (mode === 'patient' && !isColdDialogFree()) return; // outro diálogo de boot ganhou a sessão
+        if (!isEngagementSlotFree('sponsor')) return; // pesquisa de opinião já ocupou a sessão
         const c = await fetchEligibleCampaign(mode);
         if (dead || !c) return;
+        if (mode === 'patient' && !claimColdDialog('sponsor')) return;
+        if (!claimEngagementSlot('sponsor')) return;
         setCampaign(c);
         enqueue('sponsor', 30, () => new Promise<void>((resolve) => {
           closeQueueRef.current = resolve;

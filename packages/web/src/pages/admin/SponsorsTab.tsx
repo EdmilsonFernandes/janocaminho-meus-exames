@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box, Stack, Typography, TextField, Button, MenuItem, Switch, FormControlLabel, Dialog, DialogTitle, DialogContent, DialogActions,
-  IconButton, Chip, Alert, ToggleButton, ToggleButtonGroup, Tooltip, useTheme,
+  IconButton, Chip, Alert, ToggleButton, ToggleButtonGroup, Tooltip, useTheme, useMediaQuery,
 } from '@mui/material';
 import { useNotify } from 'react-admin';
 import AddIcon from '@mui/icons-material/Add';
@@ -393,20 +393,32 @@ const UploadButton = ({ label, icon = false, onFile }: { label: string; icon?: b
 const PreviewDialog = ({ campaign, onClose }: { campaign: Campaign; onClose: () => void }) => {
   const theme = useTheme();
   const dark = theme.palette.mode === 'dark';
+  // Em tela pequena (admin no celular) a moldura de "telefone" dentro do Dialog ficava
+  // apertada e ilegível (E2E 02/11): mostra o cartão em tamanho real, sem moldura.
+  const small = useMediaQuery(theme.breakpoints.down('sm'));
   const [device, setDevice] = useState<'mobile' | 'desktop'>('mobile');
   const client: ClientCampaign = { id: campaign.id, title: campaign.title, description: campaign.description, ctaLabel: campaign.ctaLabel, ctaType: campaign.ctaType, ctaTarget: campaign.ctaTarget, imageUrl: campaign.imageUrl, sponsor: { id: campaign.sponsorId, name: campaign.sponsor?.name ?? '', logoUrl: campaign.sponsor?.logoUrl ?? null } };
   const frameW = device === 'mobile' ? 390 : 960;
   return (
-    <Dialog open onClose={onClose} maxWidth={device === 'mobile' ? 'xs' : 'lg'} fullWidth PaperProps={{ sx: { borderRadius: '16px', bgcolor: 'background.paper' } }} data-testid="campaign-preview-dialog">
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>
-        Prévia · {campaign.title}
-        <ToggleButtonGroup size="small" exclusive value={device} onChange={(_, v) => v && setDevice(v)}>
-          <ToggleButton value="mobile" aria-label="Prévia mobile"><PhoneIphoneIcon fontSize="small" /></ToggleButton>
-          <ToggleButton value="desktop" aria-label="Prévia desktop"><LaptopMacIcon fontSize="small" /></ToggleButton>
-        </ToggleButtonGroup>
+    <Dialog open onClose={onClose} maxWidth={device === 'mobile' ? 'xs' : 'lg'} fullWidth fullScreen={small} PaperProps={{ sx: { borderRadius: small ? 0 : '16px', bgcolor: 'background.paper' } }} data-testid="campaign-preview-dialog">
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 16, sm: 20 } }}>
+        <Box sx={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Prévia · {campaign.title}</Box>
+        {!small && (
+          <ToggleButtonGroup size="small" exclusive value={device} onChange={(_, v) => v && setDevice(v)}>
+            <ToggleButton value="mobile" aria-label="Prévia mobile"><PhoneIphoneIcon fontSize="small" /></ToggleButton>
+            <ToggleButton value="desktop" aria-label="Prévia desktop"><LaptopMacIcon fontSize="small" /></ToggleButton>
+          </ToggleButtonGroup>
+        )}
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ px: { xs: 1.5, sm: 3 } }}>
         <Alert severity="info" sx={{ borderRadius: '12px', mb: 2 }}>A prévia não conta como impressão nem clique. É exatamente o que o usuário vê sobre a tela principal.</Alert>
+        {small ? (
+          <Box sx={{ borderRadius: '16px', p: 1.5, background: dark ? 'linear-gradient(180deg,#0f1818,#13201f)' : 'linear-gradient(180deg,#dcefed,#c9e6e2)' }}>
+            <Box sx={{ ...glassPaperSx(dark, false), width: '100%', maxWidth: 400, mx: 'auto' }}>
+              <SponsorCard campaign={client} variant="preview" logoSrc={client.sponsor.logoUrl ? `${API_URL}${client.sponsor.logoUrl}` : null} imageSrc={client.imageUrl ? `${API_URL}${client.imageUrl}` : null} onPrimary={() => {}} onClose={() => {}} />
+            </Box>
+          </Box>
+        ) : (
         <Box sx={{ mx: 'auto', width: '100%', maxWidth: frameW, aspectRatio: device === 'mobile' ? '390 / 760' : '16 / 10', borderRadius: device === 'mobile' ? '32px' : '14px', border: '10px solid', borderColor: dark ? '#0b1212' : '#1f2937', overflow: 'hidden', position: 'relative',
           background: dark ? 'linear-gradient(180deg,#0f1818,#13201f)' : 'linear-gradient(180deg,#eef7f6,#dcefed)' }}>
           {/* "tela principal" atrás, desfocada como no app */}
@@ -419,6 +431,7 @@ const PreviewDialog = ({ campaign, onClose }: { campaign: Campaign; onClose: () 
             </Box>
           </Box>
         </Box>
+        )}
         <Stack direction="row" spacing={1} sx={{ mt: 2, flexWrap: 'wrap' }}>
           <Chip size="small" label={`Destino: ${campaign.ctaType === 'none' ? 'sem botão' : campaign.ctaTarget}`} />
           <Chip size="small" label={`Público: ${AUDIENCE_LABEL[campaign.audience]}`} />

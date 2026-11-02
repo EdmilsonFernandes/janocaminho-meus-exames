@@ -32,3 +32,13 @@ export function claimEngagementSlot(kind: 'sponsor' | 'survey'): boolean {
     return true;
   }
 }
+
+/** Só ESPIA (não reserva): quem precisa de rede antes de decidir (ex.: patrocinador busca a
+ *  campanha elegível) espia primeiro e reserva só quando tem algo pra mostrar — reservar
+ *  antes queimava a sessão sem anúncio e calava o convite de opinião (achado do E2E 02/11). */
+export function isColdDialogFree(): boolean {
+  try { return !sessionStorage.getItem('coldDialogWinner'); } catch { return true; }
+}
+export function isEngagementSlotFree(kind: 'sponsor' | 'survey'): boolean {
+  try { const cur = sessionStorage.getItem('engagementSlot'); return !cur || cur === kind; } catch { return true; }
+}

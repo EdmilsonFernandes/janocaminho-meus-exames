@@ -117,6 +117,8 @@ export const FeedbackTab = () => {
     setItems((list) => list.map((i) => (i.id === id ? { ...i, ...d } : i)));
     if (detail?.id === id) setDetail({ ...detail, ...d });
     notify('Salvo', { type: 'success' });
+    // agrupamento por melhoria muda com a triagem → recarrega (achado do E2E 02/11)
+    fetch(`${API_URL}/admin/feedback/improvements`, { headers: H() }).then((x) => (x.ok ? x.json() : null)).then((x) => { if (x) setImprovements(x.improvements ?? []); }).catch(() => {});
     return d as Item;
   };
 
