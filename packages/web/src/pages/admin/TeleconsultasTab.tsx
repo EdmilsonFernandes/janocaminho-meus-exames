@@ -2,29 +2,17 @@ import { useEffect, useState, useMemo, type ReactNode } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Stack,
-  Chip,
   Avatar,
   TextField,
   InputAdornment,
-  Grid,
   LinearProgress,
-  Rating,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  useTheme,
   Button,
   ToggleButton,
   ToggleButtonGroup,
 } from '@mui/material';
-import StarIcon from '@mui/icons-material/Star';
 import SearchIcon from '@mui/icons-material/Search';
 import VideoCameraFrontIcon from '@mui/icons-material/VideoCameraFront';
-import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import PersonIcon from '@mui/icons-material/Person';
@@ -36,9 +24,22 @@ import TimerIcon from '@mui/icons-material/Timer';
 import ReplayIcon from '@mui/icons-material/Replay';
 import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import GraphicEqIcon from '@mui/icons-material/GraphicEq';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../../config';
-import { TabLoader, SectionError, PhotoZoom } from './parts';
-import { tealText, COPPER } from '../../theme';
+import { TabLoader, SectionError } from './parts';
+import { Badge, type BadgeProps } from '@/components/reui/badge';
+import {
+  Frame,
+  FramePanel,
+  FrameHeader,
+  FrameTitle,
+  FrameDescription,
+  FrameFooter,
+} from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/icon-tile';
+import { Rating } from '@/components/reui/rating';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 
@@ -77,41 +78,63 @@ interface FunnelResponse {
   consentPct: number;
 }
 
-/** Card KPI do funil de teleconsulta (mesma linguagem visual dos KPIs de feedback). */
-function FunnelKpi({ icon, color, label, value, hint }: { icon: ReactNode; color: string; label: string; value: string | number; hint: string }) {
+/** Card KPI do funil de teleconsulta com ReUI Frame + IconTile (mobile-first 2 colunas). */
+function FunnelKpi({
+  icon,
+  toneClass,
+  badge,
+  badgeVariant = 'primary-light',
+  label,
+  value,
+  hint,
+}: {
+  icon: ReactNode;
+  toneClass: string;
+  badge?: string;
+  badgeVariant?: BadgeProps['variant'];
+  label: string;
+  value: string | number;
+  hint: string;
+}) {
   return (
-    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-      <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
-        <CardContent sx={{ p: 2.5 }}>
-          <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-            <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: `${color}1f`, color, display: 'grid', placeItems: 'center' }}>
-              {icon}
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
-                {label}
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
+    <Frame spacing="sm" className="h-full">
+      <FramePanel className="flex h-full flex-col justify-between gap-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0">
+            <span className="text-muted-foreground block text-[11px] font-bold tracking-wider uppercase">
+              {label}
+            </span>
+            <div className="mt-1 flex flex-wrap items-baseline gap-1.5">
+              <span className="text-foreground font-['Poppins',sans-serif] text-xl font-extrabold tracking-tight tabular-nums sm:text-2xl">
                 {value}
-              </Typography>
-            </Box>
-          </Stack>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {hint}
-          </Typography>
-        </CardContent>
-      </Card>
-    </Grid>
+              </span>
+              {badge && (
+                <Badge variant={badgeVariant} size="xs">
+                  {badge}
+                </Badge>
+              )}
+            </div>
+          </div>
+          <IconTile variant="soft" size="sm" className={toneClass}>
+            {icon}
+          </IconTile>
+        </div>
+        <p className="text-muted-foreground m-0 text-[11px] leading-snug">
+          {hint}
+        </p>
+      </FramePanel>
+    </Frame>
   );
 }
 
 export const TeleconsultasTab = () => {
-  const theme = useTheme();
+  useReuiThemeSync();
   const [data, setData] = useState<FeedbacksResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState(false);
   const [search, setSearch] = useState('');
   const [ratingFilter, setRatingFilter] = useState<number | 'all'>('all');
+  const [roleFilter, setRoleFilter] = useState<'all' | 'patient' | 'doctor'>('all');
   const [days, setDays] = useState(30);
   const [funnel, setFunnel] = useState<FunnelResponse | null>(null);
   const [funnelErr, setFunnelErr] = useState(false);
@@ -152,23 +175,44 @@ export const TeleconsultasTab = () => {
     if (!data?.items) return [];
     return data.items.filter((item) => {
       if (ratingFilter !== 'all' && item.rating !== ratingFilter) return false;
+      if (roleFilter !== 'all' && item.role !== roleFilter) return false;
       if (!search.trim()) return true;
       const s = search.toLowerCase();
       const patName = item.patient?.name?.toLowerCase() || '';
       const docName = item.doctor?.name?.toLowerCase() || '';
+      const spec = item.doctor?.specialty?.toLowerCase() || '';
       const note = item.note?.toLowerCase() || '';
-      return patName.includes(s) || docName.includes(s) || note.includes(s);
+      return patName.includes(s) || docName.includes(s) || spec.includes(s) || note.includes(s);
     });
-  }, [data?.items, search, ratingFilter]);
+  }, [data?.items, search, ratingFilter, roleFilter]);
+
+  const roleCounts = useMemo(() => {
+    const items = data?.items || [];
+    let patients = 0;
+    let doctors = 0;
+    let withNotes = 0;
+    let lowRatings = 0;
+    for (const it of items) {
+      if (it.role === 'doctor') doctors++;
+      else patients++;
+      if (it.note && it.note.trim()) withNotes++;
+      if (it.rating <= 2) lowRatings++;
+    }
+    return { patients, doctors, withNotes, lowRatings };
+  }, [data?.items]);
 
   if (loading && !data) return <TabLoader />;
-  if (err && !data) return <SectionError message="Não foi possível carregar os feedbacks de teleconsultas." onRetry={load} />;
+  if (err && !data)
+    return (
+      <SectionError
+        message="Não foi possível carregar os feedbacks de teleconsultas."
+        onRetry={load}
+      />
+    );
 
   const total = data?.total || 0;
   const avg = data?.avgRating || 5.0;
   const posPct = data?.positivePct || 100;
-  // T1 insights: o server sempre mandou `ratingCounts` (o front lia `counts` —
-  // distribuição ficava zerada). Corrigido junto com o agregado de áudio.
   const counts = data?.ratingCounts || { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   const audioCounts = data?.audioQualityCounts || { otimo: 0, ok: 0, ruim: 0 };
   const audioRated = data?.audioRated || 0;
@@ -176,153 +220,52 @@ export const TeleconsultasTab = () => {
   return (
     <Box sx={{ width: '100%' }}>
       {/* Cabeçalho */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between" spacing={2} sx={{ mb: 3 }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        justifyContent="space-between"
+        spacing={2}
+        sx={{ mb: 3 }}
+      >
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <VideoCameraFrontIcon sx={{ color: '#0d9488' }} /> Teleconsultas & Avaliações
-          </Typography>
+          <div className="flex flex-wrap items-center gap-2">
+            <Typography
+              variant="h5"
+              sx={{
+                fontWeight: 800,
+                fontFamily: 'Poppins, sans-serif',
+                color: 'text.primary',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+              }}
+            >
+              <VideoCameraFrontIcon sx={{ color: '#0d9488' }} /> Teleconsultas & Avaliações
+            </Typography>
+            <Badge variant="primary-light" size="sm">
+              CSAT & NPS Clínico
+            </Badge>
+          </div>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            Monitore a experiência clínica, NPS e feedbacks deixados por pacientes e médicos pós-atendimento.
+            Monitore a conversão da sala de vídeo, qualidade de áudio e avaliações cruzadas entre pacientes e médicos.
           </Typography>
         </Box>
         <Button
           variant="outlined"
           size="small"
           startIcon={<RefreshIcon />}
-          onClick={load}
-          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700 }}
+          onClick={() => {
+            load();
+            loadFunnel(days);
+          }}
+          sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, minHeight: 38 }}
         >
-          Atualizar
+          Atualizar dados
         </Button>
       </Stack>
 
-      {/* KPIs no Topo */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {/* KPI 1: Média Geral */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706', display: 'grid', placeItems: 'center' }}>
-                  <StarIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Nota Média Geral
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
-                    {avg.toFixed(1)} <Typography component="span" sx={{ fontSize: 18, color: 'text.secondary', fontWeight: 600 }}>/ 5.0</Typography>
-                  </Typography>
-                </Box>
-              </Stack>
-              <Rating value={avg} precision={0.1} readOnly size="small" sx={{ color: '#f59e0b' }} />
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* KPI 2: Total de Avaliações */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(13,148,136,0.12)', color: '#0d9488', display: 'grid', placeItems: 'center' }}>
-                  <RateReviewIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Total Avaliadas
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1 }}>
-                    {total}
-                  </Typography>
-                </Box>
-              </Stack>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Consultas com feedback registrado
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* KPI 3: Satisfação Positiva */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mb: 1 }}>
-                <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', display: 'grid', placeItems: 'center' }}>
-                  <SentimentSatisfiedAltIcon />
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase' }}>
-                    Aprovação (4 e 5 ★)
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 900, fontFamily: 'Poppins, sans-serif', color: '#059669', lineHeight: 1 }}>
-                    {posPct}%
-                  </Typography>
-                </Box>
-              </Stack>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Avaliações positivas de experiência
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* KPI 4: Distribuição de Estrelas */}
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card variant="outlined" sx={{ borderRadius: '16px', bgcolor: 'background.paper', height: '100%' }}>
-            <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.75 }}>
-                Distribuição de Notas
-              </Typography>
-              <Stack spacing={0.5}>
-                {[5, 4, 3, 2, 1].map((star) => {
-                  const count = counts[star] || 0;
-                  const pct = total > 0 ? (count / total) * 100 : 0;
-                  return (
-                    <Stack key={star} direction="row" alignItems="center" spacing={1}>
-                      <Typography sx={{ fontSize: 11, fontWeight: 700, width: 22 }}>{star}★</Typography>
-                      <LinearProgress
-                        variant="determinate"
-                        value={pct}
-                        sx={{
-                          flex: 1,
-                          height: 6,
-                          borderRadius: '3px',
-                          bgcolor: 'action.hover',
-                          '& .MuiLinearProgress-bar': {
-                            bgcolor: star >= 4 ? '#10b981' : star === 3 ? '#f59e0b' : '#ef4444',
-                          },
-                        }}
-                      />
-                      <Typography sx={{ fontSize: 11, color: 'text.secondary', width: 28, textAlign: 'right' }}>
-                        {count}
-                      </Typography>
-                    </Stack>
-                  );
-                })}
-              </Stack>
-              {/* T1 insights (27/10): CSAT de áudio pós-consulta — agregado simples */}
-              {audioRated > 0 && (
-                <>
-                  <Box sx={{ height: 1, bgcolor: 'divider', my: 1 }} />
-                  <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-                    Áudio das consultas
-                  </Typography>
-                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                    <Chip size="small" label={`Ótimo 🎧 ${audioCounts.otimo}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(32,178,170,0.12)', color: '#0d9488' }} />
-                    <Chip size="small" label={`OK ${audioCounts.ok}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(212,165,116,0.14)', color: '#b88a54' }} />
-                    <Chip size="small" label={`Ruim ${audioCounts.ruim}`} sx={{ height: 24, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(239,68,68,0.10)', color: '#dc2626' }} />
-                  </Stack>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-
       {/* Funil de Teleconsulta — conversão de agendamentos em chamadas reais */}
-      <Box sx={{ mb: 3 }}>
+      <Box sx={{ mb: 3.5 }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ xs: 'flex-start', sm: 'center' }}
@@ -330,18 +273,19 @@ export const TeleconsultasTab = () => {
           spacing={1.5}
           sx={{ mb: 1.5 }}
         >
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-              Funil de teleconsulta
+          <div className="flex flex-wrap items-center gap-2">
+            <Typography
+              variant="subtitle1"
+              sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}
+            >
+              Funil de Teleconsulta
             </Typography>
             {funnel && (
-              <Chip
-                size="small"
-                label={`${funnel.pendentes} pendentes`}
-                sx={{ height: 22, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: '#d97706' }}
-              />
+              <Badge variant={funnel.pendentes > 0 ? 'warning-light' : 'success-light'} size="sm">
+                {funnel.pendentes} pendentes
+              </Badge>
             )}
-          </Stack>
+          </div>
           <ToggleButtonGroup
             size="small"
             exclusive
@@ -352,7 +296,7 @@ export const TeleconsultasTab = () => {
             sx={{
               '& .MuiToggleButton-root': {
                 px: 2,
-                py: 0.25,
+                py: 0.4,
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 700,
@@ -360,261 +304,507 @@ export const TeleconsultasTab = () => {
               },
             }}
           >
-            <ToggleButton value={7}>7d</ToggleButton>
-            <ToggleButton value={30}>30d</ToggleButton>
-            <ToggleButton value={90}>90d</ToggleButton>
+            <ToggleButton value={7}>7 dias</ToggleButton>
+            <ToggleButton value={30}>30 dias</ToggleButton>
+            <ToggleButton value={90}>90 dias</ToggleButton>
           </ToggleButtonGroup>
         </Stack>
 
         {funnelErr ? (
-          <SectionError message="Não foi possível carregar o funil de teleconsultas." onRetry={() => loadFunnel(days)} />
+          <SectionError
+            message="Não foi possível carregar o funil de teleconsultas."
+            onRetry={() => loadFunnel(days)}
+          />
         ) : !funnel ? (
           <LinearProgress sx={{ height: 6, borderRadius: '999px' }} />
         ) : (
-          <Grid container spacing={2}>
-            <FunnelKpi icon={<EventAvailableIcon />} color="#0d9488" label="Agendadas" value={funnel.total} hint="Teleconsultas criadas no período" />
-            <FunnelKpi icon={<VideocamIcon />} color="#059669" label="Realizadas" value={funnel.realizadas} hint="Chamada com os 2 participantes" />
-            <FunnelKpi icon={<EventBusyIcon />} color="#dc2626" label="No-show" value={funnel.noShow} hint="Vencidas +24h sem chamada" />
-            <FunnelKpi icon={<TrendingUpIcon />} color="#2563eb" label="% Realização" value={`${funnel.realizacaoPct}%`} hint="Agendadas que viraram chamada" />
-            <FunnelKpi icon={<TimerIcon />} color="#d97706" label="Duração Média" value={funnel.avgDurationMin != null ? `${funnel.avgDurationMin} min` : '—'} hint="Do 1º join ao encerramento" />
-            <FunnelKpi icon={<ReplayIcon />} color="#b88a54" label="Retorno 30d" value={funnel.retorno30d} hint="Pacientes com nova consulta em até 30d" />
-            <FunnelKpi icon={<VerifiedUserIcon />} color="#0d9488" label="% Consent" value={`${funnel.consentPct}%`} hint="Aceite Art. 15 (telemedicina)" />
-          </Grid>
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+            <FunnelKpi
+              icon={<EventAvailableIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-primary"
+              label="Agendadas"
+              value={funnel.total}
+              hint="Criadas no período"
+            />
+            <FunnelKpi
+              icon={<VideocamIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-emerald-600 dark:text-emerald-400"
+              badge={`${funnel.realizacaoPct}%`}
+              badgeVariant="success-light"
+              label="Realizadas"
+              value={funnel.realizadas}
+              hint="Com os 2 participantes"
+            />
+            <FunnelKpi
+              icon={<EventBusyIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-rose-600 dark:text-rose-400"
+              badge={funnel.noShow > 0 ? 'atenção' : 'zero'}
+              badgeVariant={funnel.noShow > 0 ? 'destructive-light' : 'success-light'}
+              label="No-show"
+              value={funnel.noShow}
+              hint="Vencidas +24h sem chamada"
+            />
+            <FunnelKpi
+              icon={<TrendingUpIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-sky-600 dark:text-sky-400"
+              label="Conversão"
+              value={`${funnel.realizacaoPct}%`}
+              hint="Agendadas → realizadas"
+            />
+            <FunnelKpi
+              icon={<TimerIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-amber-600 dark:text-amber-400"
+              label="Duração Média"
+              value={funnel.avgDurationMin != null ? `${funnel.avgDurationMin}m` : '—'}
+              hint="Do 1º join ao fim"
+            />
+            <FunnelKpi
+              icon={<ReplayIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-secondary"
+              label="Retorno 30d"
+              value={funnel.retorno30d}
+              hint="Nova consulta em 30d"
+            />
+            <FunnelKpi
+              icon={<VerifiedUserIcon sx={{ fontSize: 18 }} />}
+              toneClass="text-primary"
+              badge="TCLE"
+              badgeVariant="info-light"
+              label="Consentimento"
+              value={`${funnel.consentPct}%`}
+              hint="Aceite Art. 15 CFM"
+            />
+          </div>
         )}
       </Box>
 
-      {/* Barra de Filtros */}
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ mb: 2.5 }}>
-        <TextField
-          size="small"
-          placeholder="Buscar por paciente, médico ou comentário…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          fullWidth
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ maxWidth: { sm: 400 } }}
-        />
+      {/* Seção ReUI review-3 + c-rating-6: Sumário Lateral + Lista Filtrável de Avaliações */}
+      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        {/* Coluna Esquerda: Rating Summary Card (review-3 / c-rating-6) */}
+        <Frame className="w-full lg:sticky lg:top-4">
+          <FrameHeader>
+            <div className="flex items-center justify-between gap-2">
+              <FrameTitle>Resumo de Avaliações</FrameTitle>
+              <Badge variant="success-light" size="sm">
+                {posPct}% aprovação
+              </Badge>
+            </div>
+            <FrameDescription>
+              Clique em uma faixa de estrelas para filtrar os relatos
+            </FrameDescription>
+          </FrameHeader>
 
-        <FormControl size="small" sx={{ minWidth: 160 }}>
-          <InputLabel>Filtrar por Nota</InputLabel>
-          <Select
-            value={ratingFilter}
-            label="Filtrar por Nota"
-            onChange={(e) => setRatingFilter(e.target.value as any)}
-          >
-            <MenuItem value="all">Todas as Notas</MenuItem>
-            <MenuItem value={5}>⭐⭐⭐⭐⭐ (5 estrelas)</MenuItem>
-            <MenuItem value={4}>⭐⭐⭐⭐ (4 estrelas)</MenuItem>
-            <MenuItem value={3}>⭐⭐⭐ (3 estrelas)</MenuItem>
-            <MenuItem value={2}>⭐⭐ (2 estrelas)</MenuItem>
-            <MenuItem value={1}>⭐ (1 estrela)</MenuItem>
-          </Select>
-        </FormControl>
-      </Stack>
+          <FramePanel className="flex flex-col gap-4">
+            {/* Nota Geral Grande + Estrelas Parciais */}
+            <div className="flex items-center justify-between gap-3 rounded-xl bg-muted/40 p-3.5">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-foreground font-['Poppins',sans-serif] text-4xl leading-none font-extrabold tabular-nums">
+                    {avg.toFixed(1)}
+                  </span>
+                  <span className="text-muted-foreground text-xs font-semibold">
+                    / 5.0
+                  </span>
+                </div>
+                <Rating rating={avg} size="sm" />
+              </div>
+              <div className="flex flex-col items-end text-right">
+                <span className="text-foreground text-lg font-extrabold tabular-nums">
+                  {total}
+                </span>
+                <span className="text-muted-foreground text-[11px]">
+                  avaliações verificadas
+                </span>
+              </div>
+            </div>
 
-      {/* Lista de Feedbacks */}
-      <Stack spacing={1.5}>
-        {filteredItems.map((item, idx) => {
-          const dateStr = new Date(item.createdAt).toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-          const rawDocName = item.doctor?.name || '';
-          const cleanDocName = rawDocName
-            ? (rawDocName.toLowerCase().startsWith('dr') ? rawDocName : `Dr(a). ${rawDocName}`)
-            : 'Médico da Consulta';
-          const cleanCrm = item.doctor?.crm
-            ? item.doctor.crm.replace(/(\/|-)([A-Za-z]{2})\/\2$/i, '-$2')
-            : '';
-          const cleanSpecialtyCrm = `${item.doctor?.specialty || 'Clínica Geral'}${cleanCrm ? ` · ${cleanCrm}` : ''}`;
-          const patPhoto = item.patient?.id ? photoUrlFor(item.patient.id) : undefined;
-          const docPhoto = item.doctor?.id ? doctorPhotoUrl(item.doctor.id) : undefined;
+            {/* Distribuição de Estrelas Interativa (5★ a 1★) */}
+            <div className="flex flex-col gap-1.5" role="list" aria-label="Distribuição por estrelas">
+              {[5, 4, 3, 2, 1].map((star) => {
+                const count = counts[star] || 0;
+                const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+                const isSelected = ratingFilter === star;
+                const barColor =
+                  star >= 4
+                    ? 'bg-emerald-500'
+                    : star === 3
+                      ? 'bg-amber-500'
+                      : 'bg-rose-500';
+                return (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setRatingFilter(isSelected ? 'all' : star)}
+                    className={
+                      'group grid w-full grid-cols-[2.2rem_minmax(0,1fr)_3.2rem] items-center gap-2.5 rounded-lg px-2 py-1.5 text-left transition-colors cursor-pointer border ' +
+                      (isSelected
+                        ? 'border-primary/40 bg-primary/10'
+                        : 'border-transparent bg-transparent hover:bg-muted/60')
+                    }
+                    title={
+                      isSelected
+                        ? 'Limpar filtro de estrelas'
+                        : `Filtrar por ${star} estrelas (${count})`
+                    }
+                  >
+                    <span className="text-foreground text-xs font-bold tabular-nums">
+                      {star} ★
+                    </span>
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${barColor}`}
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-muted-foreground text-right text-xs font-semibold tabular-nums">
+                      {count} <span className="opacity-65">({pct}%)</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
 
-          return (
-            <Card
-              key={item.id}
-              variant="outlined"
-              sx={{
-                borderRadius: '16px',
-                borderColor: 'divider',
-                bgcolor: 'background.paper',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                transition: 'all .15s ease',
-                '&:hover': {
-                  borderColor: 'rgba(32,178,170,0.4)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-                },
-                animation: `fbIn .25s ease ${idx * 0.03}s both`,
-                '@keyframes fbIn': {
-                  from: { opacity: 0, transform: 'translateY(6px)' },
-                  to: { opacity: 1, transform: 'translateY(0)' },
-                },
-              }}
-            >
-              <CardContent sx={{ p: { xs: 2, sm: 2.25 }, '&:last-child': { pb: { xs: 2, sm: 2.25 } } }}>
-                <Stack
-                  direction={{ xs: 'column', md: 'row' }}
-                  spacing={{ xs: 1.5, md: 2 }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: 'stretch', md: 'center' }}
+            {/* CSAT de Áudio pós-consulta */}
+            <div className="border-t border-border/70 pt-3">
+              <div className="mb-2 flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1 text-[11px] font-bold tracking-wider uppercase">
+                  <GraphicEqIcon sx={{ fontSize: 15 }} /> Qualidade de Áudio
+                </span>
+                <span className="text-muted-foreground text-[11px] tabular-nums">
+                  {audioRated} reportados
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                <Badge variant="success-light" size="default" radius="full">
+                  🎧 Ótimo · {audioCounts.otimo}
+                </Badge>
+                <Badge variant="warning-light" size="default" radius="full">
+                  OK · {audioCounts.ok}
+                </Badge>
+                <Badge variant="destructive-light" size="default" radius="full">
+                  Ruim · {audioCounts.ruim}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Top Sinais / Filtros Rápidos (review-3 Top Mentions) */}
+            <div className="border-t border-border/70 pt-3">
+              <span className="text-muted-foreground mb-2 block text-[11px] font-bold tracking-wider uppercase">
+                Recortes Rápidos
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setRoleFilter(roleFilter === 'patient' ? 'all' : 'patient')}
+                  className="cursor-pointer border-0 bg-transparent p-0"
                 >
-                  {/* Participantes: Paciente & Médico */}
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={{ xs: 1.25, sm: 2 }}
-                    alignItems={{ xs: 'stretch', sm: 'center' }}
-                    sx={{ flex: 1, minWidth: 0 }}
+                  <Badge
+                    variant={roleFilter === 'patient' ? 'default' : 'outline'}
+                    size="default"
+                    radius="full"
                   >
-                    {/* Paciente */}
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                      <Avatar
-                        src={patPhoto}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          bgcolor: 'rgba(32,178,170,0.12)',
-                          color: '#0d9488',
-                          fontWeight: 800,
-                          fontSize: 16,
-                          borderRadius: '12px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {(item.patient?.name || 'P').charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.25 }} noWrap>
-                          {item.patient?.name || 'Paciente'}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
-                          <PersonIcon sx={{ fontSize: 13 }} /> Paciente
-                        </Typography>
-                      </Box>
-                    </Stack>
-
-                    <Typography sx={{ color: 'text.disabled', fontSize: 18, display: { xs: 'none', sm: 'block' }, flexShrink: 0 }}>→</Typography>
-
-                    {/* Médico */}
-                    <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                      <Avatar
-                        src={docPhoto}
-                        sx={{
-                          width: 44,
-                          height: 44,
-                          bgcolor: 'rgba(212,165,116,0.16)',
-                          color: '#b88a54',
-                          fontWeight: 800,
-                          fontSize: 16,
-                          borderRadius: '12px',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {(item.doctor?.name || 'M').charAt(0).toUpperCase()}
-                      </Avatar>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: 14.5, color: 'text.primary', lineHeight: 1.25 }} noWrap>
-                          {cleanDocName}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }} noWrap>
-                          <LocalHospitalIcon sx={{ fontSize: 13 }} /> {cleanSpecialtyCrm}
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Stack>
-
-                  {/* Avaliação & Data */}
-                  <Stack
-                    direction={{ xs: 'row', md: 'column' }}
-                    alignItems={{ xs: 'center', md: 'flex-end' }}
-                    justifyContent={{ xs: 'space-between', md: 'center' }}
-                    spacing={0.5}
-                    sx={{
-                      minWidth: { xs: 0, md: 140 },
-                      pt: { xs: 1, md: 0 },
-                      borderTop: { xs: '1px dashed', md: 'none' },
-                      borderColor: 'divider',
-                      flexShrink: 0,
-                    }}
+                    Pacientes · {roleCounts.patients}
+                  </Badge>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoleFilter(roleFilter === 'doctor' ? 'all' : 'doctor')}
+                  className="cursor-pointer border-0 bg-transparent p-0"
+                >
+                  <Badge
+                    variant={roleFilter === 'doctor' ? 'default' : 'outline'}
+                    size="default"
+                    radius="full"
                   >
-                    <Stack direction="row" alignItems="center" spacing={1}>
-                      <Rating value={item.rating} readOnly size="small" sx={{ color: '#f59e0b' }} />
-                      <Typography sx={{ fontWeight: 900, fontSize: 14.5, color: 'text.primary' }}>
-                        {item.rating}/5
-                      </Typography>
-                    </Stack>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
-                      {dateStr}
-                    </Typography>
-                  </Stack>
-                </Stack>
-
-                {/* Comentário / Observação deixada */}
-                {item.note && (
-                  <Box
-                    sx={{
-                      mt: 1.5,
-                      p: 1.5,
-                      borderRadius: '12px',
-                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
-                      borderLeft: '3px solid',
-                      borderLeftColor: item.rating >= 4 ? '#10b981' : item.rating === 3 ? '#f59e0b' : '#ef4444',
-                      wordBreak: 'break-word',
-                      overflowWrap: 'anywhere',
-                    }}
+                    Médicos · {roleCounts.doctors}
+                  </Badge>
+                </button>
+                {roleCounts.lowRatings > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setRatingFilter(ratingFilter === 1 || ratingFilter === 2 ? 'all' : 2)}
+                    className="cursor-pointer border-0 bg-transparent p-0"
                   >
-                    <Typography sx={{ fontSize: 13, color: 'text.primary', fontStyle: 'italic', lineHeight: 1.5 }}>
-                      “{item.note}”
-                    </Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5, fontWeight: 700 }}>
-                      — Enviado por: {item.role === 'doctor' ? 'Médico' : 'Paciente'}
-                    </Typography>
-                  </Box>
+                    <Badge variant="destructive-light" size="default" radius="full">
+                      Risco / Atenção · {roleCounts.lowRatings}
+                    </Badge>
+                  </button>
                 )}
+              </div>
+            </div>
+          </FramePanel>
 
-                {/* Tags extras da chamada */}
-                <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} flexWrap="wrap" useFlexGap>
-                  {item.reminder?.title && (
-                    <Chip size="small" label={item.reminder.title} sx={{ height: 20, fontSize: 11, fontWeight: 600 }} />
-                  )}
-                  <Chip
-                    size="small"
-                    label={`Sala #${String(item.teleId || '').slice(-5).toUpperCase()}`}
-                    sx={{ height: 20, fontSize: 11, fontWeight: 700, fontFamily: 'monospace' }}
-                  />
-                  {item.rating >= 4 ? (
-                    <Chip size="small" label="Satisfação Alta" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669' }} />
-                  ) : item.rating <= 2 ? (
-                    <Chip size="small" label="Atenção / Risco de Churn" sx={{ height: 20, fontSize: 11, fontWeight: 700, bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626' }} />
-                  ) : null}
-                </Stack>
-              </CardContent>
-            </Card>
-          );
-        })}
+          {(ratingFilter !== 'all' || roleFilter !== 'all' || search.trim() !== '') && (
+            <FrameFooter>
+              <button
+                type="button"
+                onClick={() => {
+                  setRatingFilter('all');
+                  setRoleFilter('all');
+                  setSearch('');
+                }}
+                className="text-primary hover:underline w-full cursor-pointer border-0 bg-transparent py-1 text-center text-xs font-bold"
+              >
+                Limpar filtros ativos ({filteredItems.length} exibidos)
+              </button>
+            </FrameFooter>
+          )}
+        </Frame>
 
-        {filteredItems.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 6, bgcolor: 'background.paper', borderRadius: '16px', border: '1px dashed', borderColor: 'divider' }}>
-            <RateReviewIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
-            <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              Nenhum feedback encontrado
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-              {search || ratingFilter !== 'all'
-                ? 'Nenhum resultado corresponde aos filtros selecionados.'
-                : 'Assim que as teleconsultas forem realizadas e avaliadas, as notas aparecerão aqui.'}
-            </Typography>
-          </Box>
-        )}
-      </Stack>
+        {/* Coluna Direita: Barra de Busca + Lista de Feedbacks */}
+        <div className="flex min-w-0 flex-col gap-3.5">
+          {/* Barra de Busca e Pílulas Mobile-First */}
+          <Frame spacing="sm">
+            <FramePanel className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <TextField
+                size="small"
+                placeholder="Buscar paciente, médico, especialidade ou comentário…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon sx={{ color: 'text.secondary', fontSize: 19 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{
+                  flex: 1,
+                  '& .MuiOutlinedInput-root': { borderRadius: '10px' },
+                }}
+              />
+
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 sm:pb-0">
+                {(['all', 5, 4, 3, 2, 1] as const).map((st) => {
+                  const active = ratingFilter === st;
+                  return (
+                    <button
+                      key={String(st)}
+                      type="button"
+                      onClick={() => setRatingFilter(st)}
+                      className={
+                        'inline-flex h-8 shrink-0 items-center gap-1 rounded-full px-3 text-xs font-bold transition-colors cursor-pointer border ' +
+                        (active
+                          ? 'border-primary bg-primary text-primary-foreground'
+                          : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground')
+                      }
+                    >
+                      {st === 'all' ? 'Todas' : `${st}★`}
+                    </button>
+                  );
+                })}
+              </div>
+            </FramePanel>
+          </Frame>
+
+          {/* Lista de Feedbacks (review-3 ReviewRow) */}
+          <div className="flex flex-col gap-3">
+            {filteredItems.map((item) => {
+              const dateStr = new Date(item.createdAt).toLocaleString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+              });
+              const rawDocName = item.doctor?.name || '';
+              const cleanDocName = rawDocName
+                ? rawDocName.toLowerCase().startsWith('dr')
+                  ? rawDocName
+                  : `Dr(a). ${rawDocName}`
+                : 'Médico da Consulta';
+              const cleanCrm = item.doctor?.crm
+                ? item.doctor.crm.replace(/(\/|-)([A-Za-z]{2})\/\2$/i, '-$2')
+                : '';
+              const cleanSpecialtyCrm = `${item.doctor?.specialty || 'Clínica Geral'}${
+                cleanCrm ? ` · CRM ${cleanCrm}` : ''
+              }`;
+              const patPhoto = item.patient?.id ? photoUrlFor(item.patient.id) : undefined;
+              const docPhoto = item.doctor?.id ? doctorPhotoUrl(item.doctor.id) : undefined;
+              const isDoctorAuthor = item.role === 'doctor';
+
+              return (
+                <Frame key={item.id} spacing="sm">
+                  <FramePanel className="flex flex-col gap-3">
+                    {/* Topo: Paciente ⇄ Médico + Avaliação */}
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      {/* Participantes */}
+                      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] sm:items-center md:flex-1">
+                        {/* Paciente */}
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Avatar
+                            src={patPhoto}
+                            sx={{
+                              width: 42,
+                              height: 42,
+                              bgcolor: 'rgba(32,178,170,0.12)',
+                              color: '#0d9488',
+                              fontWeight: 800,
+                              fontSize: 15,
+                              borderRadius: '12px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {(item.patient?.name || 'P').charAt(0).toUpperCase()}
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-foreground truncate text-sm font-bold">
+                                {item.patient?.name || 'Paciente'}
+                              </span>
+                              {!isDoctorAuthor && (
+                                <Badge variant="primary-light" size="xs">
+                                  Avaliador
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-muted-foreground flex items-center gap-1 text-xs">
+                              <PersonIcon sx={{ fontSize: 13 }} /> Paciente
+                            </span>
+                          </div>
+                        </div>
+
+                        <span
+                          aria-hidden="true"
+                          className="text-muted-foreground hidden text-sm font-bold sm:inline"
+                        >
+                          →
+                        </span>
+
+                        {/* Médico */}
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <Avatar
+                            src={docPhoto}
+                            sx={{
+                              width: 42,
+                              height: 42,
+                              bgcolor: 'rgba(184,138,84,0.16)',
+                              color: '#b88a54',
+                              fontWeight: 800,
+                              fontSize: 15,
+                              borderRadius: '12px',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {(item.doctor?.name || 'M').charAt(0).toUpperCase()}
+                          </Avatar>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="text-foreground truncate text-sm font-bold">
+                                {cleanDocName}
+                              </span>
+                              {isDoctorAuthor && (
+                                <Badge variant="info-light" size="xs">
+                                  Avaliador
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-muted-foreground flex items-center gap-1 truncate text-xs">
+                              <LocalHospitalIcon sx={{ fontSize: 13 }} /> {cleanSpecialtyCrm}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Nota Estrelas + Data */}
+                      <div className="flex items-center justify-between gap-3 border-t border-dashed border-border pt-2.5 md:flex-col md:items-end md:justify-center md:border-t-0 md:pt-0">
+                        <div className="flex items-center gap-2">
+                          <Rating rating={item.rating} size="sm" />
+                          <span className="text-foreground text-sm font-extrabold tabular-nums">
+                            {item.rating.toFixed(1)}
+                          </span>
+                        </div>
+                        <span className="text-muted-foreground text-xs tabular-nums">
+                          {dateStr}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Relato / Observação em Pull-Quote (review-3) */}
+                    {item.note && (
+                      <blockquote
+                        className={
+                          'm-0 rounded-xl border-l-4 bg-muted/40 px-3.5 py-2.5 text-sm leading-relaxed break-words ' +
+                          (item.rating >= 4
+                            ? 'border-l-emerald-500'
+                            : item.rating === 3
+                              ? 'border-l-amber-500'
+                              : 'border-l-rose-500')
+                        }
+                      >
+                        <p className="text-foreground m-0 italic">“{item.note}”</p>
+                        <footer className="text-muted-foreground mt-1 text-[11px] font-semibold">
+                          — Relato enviado pelo {isDoctorAuthor ? 'Médico' : 'Paciente'}
+                        </footer>
+                      </blockquote>
+                    )}
+
+                    {/* Rodapé de Metadados e Badges Semânticos */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <Badge variant="success-outline" size="sm">
+                        <VerifiedIcon sx={{ fontSize: 12 }} /> Consulta Verificada
+                      </Badge>
+                      <Badge variant="outline" size="sm" className="font-mono">
+                        Sala #{String(item.teleId || '').slice(-5).toUpperCase()}
+                      </Badge>
+                      {item.reminder?.title && (
+                        <Badge variant="outline" size="sm">
+                          {item.reminder.title}
+                        </Badge>
+                      )}
+                      {item.audioQuality && (
+                        <Badge
+                          variant={
+                            item.audioQuality === 'otimo'
+                              ? 'info-light'
+                              : item.audioQuality === 'ok'
+                                ? 'warning-light'
+                                : 'destructive-light'
+                          }
+                          size="sm"
+                        >
+                          🎧 Áudio:{' '}
+                          {item.audioQuality === 'otimo'
+                            ? 'Ótimo'
+                            : item.audioQuality === 'ok'
+                              ? 'Regular'
+                              : 'Ruim'}
+                        </Badge>
+                      )}
+                      {item.rating >= 4 ? (
+                        <Badge variant="success-light" size="sm">
+                          Satisfação Alta
+                        </Badge>
+                      ) : item.rating <= 2 ? (
+                        <Badge variant="destructive-light" size="sm">
+                          Atenção / Risco de Churn
+                        </Badge>
+                      ) : null}
+                    </div>
+                  </FramePanel>
+                </Frame>
+              );
+            })}
+
+            {filteredItems.length === 0 && (
+              <Frame>
+                <FramePanel className="flex flex-col items-center justify-center py-10 text-center">
+                  <RateReviewIcon sx={{ fontSize: 42, color: 'text.disabled', mb: 1 }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                    Nenhum feedback encontrado
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, maxWidth: 420 }}>
+                    {search || ratingFilter !== 'all' || roleFilter !== 'all'
+                      ? 'Nenhum resultado corresponde aos filtros selecionados.'
+                      : 'Assim que as teleconsultas forem realizadas e avaliadas, as notas aparecerão aqui.'}
+                  </Typography>
+                </FramePanel>
+              </Frame>
+            )}
+          </div>
+        </div>
+      </div>
     </Box>
   );
 };

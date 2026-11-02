@@ -13,11 +13,12 @@
    4. dark por CLASSE (não prefers-color-scheme) — acompanha o toggle do app.
    ========================================================================== */
 @import "tailwindcss/theme.css" layer(theme);
-@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
 @source ".";
 @source "../components/ui";
 @source "../components/reui";
 @source "../components/blocks";
+@source "../components/doctors";
 @source "../pages/admin";
 @source "../pages";
 

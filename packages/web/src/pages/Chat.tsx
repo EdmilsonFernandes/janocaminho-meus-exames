@@ -1,5 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
-import { Box, Typography, Button, CircularProgress, Paper, Stack, IconButton, SwipeableDrawer, Drawer, ListItemButton, ListItemText, ListItemIcon, Menu, MenuItem, Badge, Chip, TextareaAutosize } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Stack,
+  IconButton,
+  SwipeableDrawer,
+  Drawer,
+  ListItemButton,
+  ListItemText,
+  ListItemIcon,
+  Menu,
+  MenuItem,
+  Badge,
+  TextareaAutosize,
+} from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import MicIcon from '@mui/icons-material/Mic';
@@ -25,6 +41,9 @@ import { tealText } from '../theme';
 import { useVoiceInput } from '../hooks/useVoiceInput';
 import { useKeyboardInset } from '../hooks/useKeyboardInset';
 import { notifyInsufficientCredits } from '../utils/credits-events';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import { AssistantReplyActions, MessageHeader } from '@/components/reui/message';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const TEAL = '#178f89';
 
@@ -35,12 +54,19 @@ const dotPulse = keyframes`
 `;
 // Pulso sutil do indicador de ditado por voz (o sx desliga com prefers-reduced-motion).
 const voicePulse = keyframes`0%,100%{opacity:.45;transform:scale(.9)}50%{opacity:1;transform:scale(1.25)}`;
-// (Aura/bob/spark do mascote no hero eram keyframes INFINITOS decorativos — removidos:
-// regra "animação infinita SÓ em live/processing". A aura estática ficou, só o movimento saiu.)
 const TypingDots = () => (
   <Box sx={{ display: 'inline-flex', gap: 0.5, alignItems: 'center', py: 0.5 }} aria-label="digitando">
     {[0, 1, 2].map((i) => (
-      <Box key={i} sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: 'text.secondary', animation: `${dotPulse} 1.2s ${i * 0.18}s infinite ease-in-out` }} />
+      <Box
+        key={i}
+        sx={{
+          width: 7,
+          height: 7,
+          borderRadius: '50%',
+          bgcolor: 'text.secondary',
+          animation: `${dotPulse} 1.2s ${i * 0.18}s infinite ease-in-out`,
+        }}
+      />
     ))}
   </Box>
 );
@@ -75,18 +101,41 @@ const QUICK_ACTIONS = [
   { icon: '🎯', title: 'Minhas metas do ano', prompt: 'Com base nos meus exames, sugira metas de saúde realistas para os próximos meses.' },
 ];
 
-interface Msg { role: 'user' | 'assistant'; text: string; ts?: string; sources?: { label: string; topic: string }[] }
-const fmtTime = (iso?: string) => (iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '');
-interface Conv { id: string; title: string; createdAt: string; updatedAt: string; messages: Msg[] }
+interface Msg {
+  role: 'user' | 'assistant';
+  text: string;
+  ts?: string;
+  sources?: { label: string; topic: string }[];
+}
+const fmtTime = (iso?: string) =>
+  iso ? new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+interface Conv {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messages: Msg[];
+}
 
 const newId = () => Math.random().toString(36).slice(2) + Date.now().toString(36);
 const isoNow = () => new Date().toISOString();
 const storageKey = (pid: string) => `dr-chat-${pid}`;
-const loadConvs = (pid: string): Conv[] => { try { return JSON.parse(localStorage.getItem(storageKey(pid)) || '[]'); } catch { return []; } };
-const saveConvs = (pid: string, convs: Conv[]) => { try { localStorage.setItem(storageKey(pid), JSON.stringify(convs)); } catch {} };
+const loadConvs = (pid: string): Conv[] => {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey(pid)) || '[]');
+  } catch {
+    return [];
+  }
+};
+const saveConvs = (pid: string, convs: Conv[]) => {
+  try {
+    localStorage.setItem(storageKey(pid), JSON.stringify(convs));
+  } catch {}
+};
 
 const bucket = (iso: string): string => {
-  const d = new Date(iso); const now = new Date();
+  const d = new Date(iso);
+  const now = new Date();
   const sameDay = d.toDateString() === now.toDateString();
   const days = Math.floor((now.getTime() - d.getTime()) / 86400000);
   if (sameDay) return 'Hoje';
@@ -97,6 +146,7 @@ const bucket = (iso: string): string => {
 const BUCKETS = ['Hoje', 'Últimos 7 dias', 'Últimos 30 dias', 'Mais antigas'];
 
 export const ChatPage = () => {
+  useReuiThemeSync();
   const [pid] = useSelectedPatient();
   const notify = useNotify();
   const navigate = useNavigate();
@@ -109,342 +159,921 @@ export const ChatPage = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   // Abort da resposta em andamento (auditoria: provider travado = dots infinitos + input morto).
   const abortRef = useRef<AbortController | null>(null);
-  // iOS Safari: teclado NÃO redimensiona o layout (só o visual viewport) → o compositor
-  // (in-flow no fim de um 100dvh) ficaria atrás do teclado. Inset medido via
-  // VisualViewport enquanto o campo está focado; APK/Android = 0 (webview ajusta sozinho).
+  // iOS Safari: teclado NÃO redimensiona o layout (só o visual viewport)
   const kbInset = useKeyboardInset();
 
-  // FEATURE F — ditado por voz pt-BR: transcrição (parcial ao vivo + final) só
-  // preenche o input, NUNCA envia sozinha — ASR erra termo médico, o usuário revisa.
+  // FEATURE F — ditado por voz pt-BR
   const voice = useVoiceInput(setInput);
 
   const [patientName, setPatientName] = useState('');
 
-  // Rota do chat marca o body: o widget de Libras (fixo bottom-left) sobe acima da BARRA DE
-  // INPUT (também fixa nesse canto) — sem isso, cobre o botão "+" de ações rápidas.
   useEffect(() => {
     document.body.classList.add('on-chat');
-    return () => { document.body.classList.remove('on-chat'); };
+    return () => {
+      document.body.classList.remove('on-chat');
+    };
   }, []);
 
-  // Teclado aberto (iOS): mantém a última mensagem visível quando a altura encolhe.
   useEffect(() => {
-    if (kbInset > 0 && scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (kbInset > 0 && scrollRef.current)
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [kbInset]);
 
-  // Sempre abre nas OPÇÕES (quick actions), não no histórico. Histórico fica no ícone do relógio.
-  // + busca o nome do PACIENTE SELECIONADO (não do titular) pra saudar/titular pelo nome certo
-  //   (antes usava localStorage.user.name = dono da conta → "Oi, Edmilson" no perfil da Heloisa).
   useEffect(() => {
-    if (!pid) { setPatientName(''); return; }
-    setConvs(loadConvs(pid)); setCurId(null);
+    if (!pid) {
+      setPatientName('');
+      return;
+    }
+    setConvs(loadConvs(pid));
+    setCurId(null);
     fetch(`${API_URL}/patients`, { headers: apiHeaders() })
       .then((r) => (r.ok ? r.json() : []))
       .then((ps: any[]) => setPatientName(ps.find((x) => x.id === pid)?.fullName ?? ''))
       .catch(() => setPatientName(''));
-    // HIDRATA o histórico do SERVIDOR (aiAnalysis persiste todo turno): antes o histórico vivia
-    // SÓ em localStorage → troca de aparelho/limpeza de cache perdia tudo. Dedupa pela 1ª pergunta.
     fetch(`${API_URL}/chat?patientId=${pid}`, { headers: apiHeaders() })
       .then((r) => (r.ok ? r.json() : []))
-      .then((turns: { userMessage?: string; contentMd?: string; structured?: { sources?: { label: string; topic: string }[] } | null }[]) => {
-        if (!Array.isArray(turns) || !turns.length) return;
-        const msgs: Msg[] = turns.flatMap((t) => [
-          ...(t.userMessage ? [{ role: 'user' as const, text: t.userMessage }] : []),
-          ...(t.contentMd ? [{ role: 'assistant' as const, text: t.contentMd, sources: t.structured?.sources ?? [] }] : []),
-        ]);
-        if (!msgs.length) return;
-        setConvs((prev) => {
-          const knownFirst = new Set(prev.map((c) => (c.messages ?? [])[0]?.text));
-          if (knownFirst.has(msgs[0].text)) return prev;
-          return [...prev, { id: `server-${pid}`, title: 'Conversa anterior (outros dispositivos)', createdAt: isoNow(), updatedAt: isoNow(), messages: msgs }];
-        });
-      })
+      .then(
+        (
+          turns: {
+            userMessage?: string;
+            contentMd?: string;
+            structured?: { sources?: { label: string; topic: string }[] } | null;
+          }[]
+        ) => {
+          if (!Array.isArray(turns) || !turns.length) return;
+          const msgs: Msg[] = turns.flatMap((t) => [
+            ...(t.userMessage ? [{ role: 'user' as const, text: t.userMessage }] : []),
+            ...(t.contentMd
+              ? [
+                  {
+                    role: 'assistant' as const,
+                    text: t.contentMd,
+                    sources: t.structured?.sources ?? [],
+                  },
+                ]
+              : []),
+          ]);
+          if (!msgs.length) return;
+          setConvs((prev) => {
+            const knownFirst = new Set(prev.map((c) => (c.messages ?? [])[0]?.text));
+            if (knownFirst.has(msgs[0].text)) return prev;
+            return [
+              ...prev,
+              {
+                id: `server-${pid}`,
+                title: 'Conversa anterior (outros dispositivos)',
+                createdAt: isoNow(),
+                updatedAt: isoNow(),
+                messages: msgs,
+              },
+            ];
+          });
+        }
+      )
       .catch(() => {});
   }, [pid]);
+
   const firstName = patientName.trim().split(/\s+/)[0];
   const cur = convs.find((c) => c.id === curId) ?? null;
   const messages = cur?.messages ?? [];
-  // Autoscroll: rola SÓ o container de mensagens (não a página) pro fim a cada delta do streaming.
-  // rAF garante que o novo texto já pintou antes de medir o scrollHeight (antes pulava o último).
-  // GUARD (critic): só rola se o usuário está PERTO do fim (~120px) — antes o scroll era
-  // incondicional e subir pra reler durante o streaming era impossível (efeito sequestro).
+
   const nearBottomRef = useRef(true);
   const onScrollMessages = () => {
-    const el = scrollRef.current; if (!el) return;
+    const el = scrollRef.current;
+    if (!el) return;
     nearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   };
   useEffect(() => {
     if (!nearBottomRef.current) return;
-    const id = requestAnimationFrame(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' }); });
+    const id = requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'auto' });
+    });
     return () => cancelAnimationFrame(id);
   }, [messages, busy]);
 
-  const startNew = () => { setCurId(null); setInput(''); setHistOpen(false); };
+  const startNew = () => {
+    setCurId(null);
+    setInput('');
+    setHistOpen(false);
+  };
 
   const send = async (overrideText?: string) => {
     const message = (overrideText ?? input).trim();
     if (!message || busy || !pid) return;
-    setInput(''); setBusy(true);
-    nearBottomRef.current = true; // quem ENVIA quer ver a própria mensagem → autoscroll volta a valer
+    setInput('');
+    setBusy(true);
+    nearBottomRef.current = true;
 
     let cid = curId;
     let work: Conv[] = convs;
-    // curId pode apontar pra conversa que o rollback JÁ removeu (closure stale do send
-    // anterior: rollback não resetava curId → find voltava undefined → crash em .messages).
-    // Agora: conversa sumiu = começa uma NOVA em vez de explodir.
     if (!cid || !work.some((c) => c.id === cid)) {
       cid = newId();
-      work = [{ id: cid, title: message.slice(0, 48), createdAt: isoNow(), updatedAt: isoNow(), messages: [] }, ...work.filter((c) => c.id !== cid)];
+      work = [
+        {
+          id: cid,
+          title: message.slice(0, 48),
+          createdAt: isoNow(),
+          updatedAt: isoNow(),
+          messages: [],
+        },
+        ...work.filter((c) => c.id !== cid),
+      ];
     }
     const now = isoNow();
-    const baseMsgs: Msg[] = [...(work.find((c) => c.id === cid)!.messages), { role: 'user', text: message, ts: now }, { role: 'assistant', text: '', ts: now }];
-    work = work.map((c) => c.id === cid ? { ...c, updatedAt: isoNow(), title: c.messages.length === 0 ? message.slice(0, 48) : c.title, messages: baseMsgs } : c);
-    setConvs(work); setCurId(cid);
+    const baseMsgs: Msg[] = [
+      ...work.find((c) => c.id === cid)!.messages,
+      { role: 'user', text: message, ts: now },
+      { role: 'assistant', text: '', ts: now },
+    ];
+    work = work.map((c) =>
+      c.id === cid
+        ? {
+            ...c,
+            updatedAt: isoNow(),
+            title: c.messages.length === 0 ? message.slice(0, 48) : c.title,
+            messages: baseMsgs,
+          }
+        : c
+    );
+    setConvs(work);
+    setCurId(cid);
     const assistantIdx = baseMsgs.length - 1;
 
-    // Rollback remove os 2 turnos da tentativa E a conversa se ela ficou VAZIA (era só dela) —
-    // antes sobrava um fantasma sem mensagens poluindo o histórico.
     const rollback = () => {
-      work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.slice(0, -2) } : c).filter((c) => c.messages.length > 0 || c.id !== cid);
-      setConvs(work); if (pid) saveConvs(pid, work);
-      // Functional update: compara o estado ATUAL, não o closure stale do send
-      // (antes: curId capturado era null → nunca resetava → conversa fantasma armava o crash).
+      work = work
+        .map((c) => (c.id === cid ? { ...c, messages: c.messages.slice(0, -2) } : c))
+        .filter((c) => c.messages.length > 0 || c.id !== cid);
+      setConvs(work);
+      if (pid) saveConvs(pid, work);
       setCurId((v) => (v === cid ? null : v));
     };
-    const persist = () => { if (pid) saveConvs(pid, work); };
+    const persist = () => {
+      if (pid) saveConvs(pid, work);
+    };
 
     try {
-      // Watchdog client (auditoria 2026-08-16): sem NENHUM delta em 45s → aborta o fetch.
-      // O servidor tem timeout próprio (35s/1º token) e reembolsa; aqui garantimos que a UI
-      // nunca fique presa em dots com o input travado, mesmo que o stream vire um limbo.
       const ac = new AbortController();
       abortRef.current = ac;
       let gotDelta = false;
-      const watchdog = setTimeout(() => { if (!gotDelta) ac.abort(); }, 45_000);
-      const r = await fetch(`${API_URL}/chat`, { method: 'POST', headers: apiHeaders(true), body: JSON.stringify({ message, patientId: pid }), signal: ac.signal });
-      if (r.status === 402) { const e = await r.json().catch(() => ({})); notifyInsufficientCredits({ message: e.message, cost: CREDIT_COSTS.chat }); rollback(); return; }
+      const watchdog = setTimeout(() => {
+        if (!gotDelta) ac.abort();
+      }, 45_000);
+      const r = await fetch(`${API_URL}/chat`, {
+        method: 'POST',
+        headers: apiHeaders(true),
+        body: JSON.stringify({ message, patientId: pid }),
+        signal: ac.signal,
+      });
+      if (r.status === 402) {
+        const e = await r.json().catch(() => ({}));
+        notifyInsufficientCredits({ message: e.message, cost: CREDIT_COSTS.chat });
+        rollback();
+        return;
+      }
       if (!r.ok || !r.body) throw new Error('falha no chat');
-      const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = '';
+      const reader = r.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
       while (true) {
-        const { done, value } = await reader.read(); if (done) break;
+        const { done, value } = await reader.read();
+        if (done) break;
         buf += dec.decode(value, { stream: true });
-        const parts = buf.split('\n\n'); buf = parts.pop() ?? '';
+        const parts = buf.split('\n\n');
+        buf = parts.pop() ?? '';
         for (const p of parts) {
           const line = p.startsWith('data: ') ? p.slice(6) : p;
           try {
             const evt = JSON.parse(line);
             if (evt.type === 'error') {
-              // Servidor abortou (timeout de IA) e JÁ reembolsou — remove a tentativa e avisa.
               clearTimeout(watchdog);
-              rollback(); notify(evt.message || 'A IA não respondeu agora. Tente novamente.', { type: 'warning' });
-              setBusy(false); window.dispatchEvent(new Event('creditsChanged'));
+              rollback();
+              notify(evt.message || 'A IA não respondeu agora. Tente novamente.', {
+                type: 'warning',
+              });
+              setBusy(false);
+              window.dispatchEvent(new Event('creditsChanged'));
               return;
             }
             if (evt.delta) {
               gotDelta = true;
-              work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, text: (m.text ?? '') + evt.delta } : m) } : c); setConvs(work);
+              work = work.map((c) =>
+                c.id === cid
+                  ? {
+                      ...c,
+                      messages: c.messages.map((m, i) =>
+                        i === assistantIdx ? { ...m, text: (m.text ?? '') + evt.delta } : m
+                      ),
+                    }
+                  : c
+              );
+              setConvs(work);
             }
-            // FEATURE C — fontes citadas [FONTE ANO] (SSE extra do servidor; vazio não é emitido).
             if (evt.type === 'sources' && Array.isArray(evt.sources)) {
-              work = work.map((c) => c.id === cid ? { ...c, messages: c.messages.map((m, i) => i === assistantIdx ? { ...m, sources: evt.sources } : m) } : c); setConvs(work);
+              work = work.map((c) =>
+                c.id === cid
+                  ? {
+                      ...c,
+                      messages: c.messages.map((m, i) =>
+                        i === assistantIdx ? { ...m, sources: evt.sources } : m
+                      ),
+                    }
+                  : c
+              );
+              setConvs(work);
             }
-          } catch { /* pacote parcial */ }
+          } catch {
+            /* pacote parcial */
+          }
         }
       }
       clearTimeout(watchdog);
       persist();
     } catch {
-      rollback(); notify('A IA não respondeu agora. Seu crédito foi devolvido — tente de novo.', { type: 'error' });
+      rollback();
+      notify('A IA não respondeu agora. Seu crédito foi devolvido — tente de novo.', {
+        type: 'error',
+      });
     } finally {
       abortRef.current = null;
-      setBusy(false); window.dispatchEvent(new Event('creditsChanged'));
+      setBusy(false);
+      window.dispatchEvent(new Event('creditsChanged'));
     }
   };
 
-  const stop = () => { abortRef.current?.abort(); };
+  const stop = () => {
+    abortRef.current?.abort();
+  };
 
-  const renameConv = (id: string, title: string) => { const next = convs.map((c) => c.id === id ? { ...c, title } : c); setConvs(next); if (pid) saveConvs(pid, next); };
-  const deleteConv = (id: string) => { const next = convs.filter((c) => c.id !== id); setConvs(next); if (pid) saveConvs(pid, next); if (curId === id) setCurId(next[0]?.id ?? null); };
+  const renameConv = (id: string, title: string) => {
+    const next = convs.map((c) => (c.id === id ? { ...c, title } : c));
+    setConvs(next);
+    if (pid) saveConvs(pid, next);
+  };
+  const deleteConv = (id: string) => {
+    const next = convs.filter((c) => c.id !== id);
+    setConvs(next);
+    if (pid) saveConvs(pid, next);
+    if (curId === id) setCurId(next[0]?.id ?? null);
+  };
 
   return (
     <Box
-      // Teclado aberto (iOS): encolhe a ALTURA pelo inset medido — o compositor fica
-      // inteiro acima do teclado sem depender do auto-scroll do Safari. Inline style
-      // ganha do sx de altura (mesma fórmula − kbInset).
-      style={kbInset ? { height: `calc(100dvh - 116px - env(safe-area-inset-bottom) - ${kbInset}px)` } : undefined}
-      sx={{ width: '100%', maxWidth: 820, mx: 'auto', display: 'flex', flexDirection: 'column',
-      // Preenche do app bar até encostar no bottom nav — sem gap, sem scroll.
-      // dvh = viewport dinâmico (não salta c/ teclado/toolbar no mobile).
-      height: { xs: 'calc(100dvh - 116px - env(safe-area-inset-bottom))', sm: 'calc(100dvh - 84px)' },
-      // Cancela o padding-bottom do content do shell (var --me-bottom-nav-h + 14px) p/ o
-      // input encostar no rodapé sem gap. Usa a var (igual o FAB) — nunca px fixo (shell mudou
-      // de 72px p/ var+14 e o -72px tinha ficado stale, ~18px de gap sobrando).
-      mb: { xs: 'calc(-1 * (var(--me-bottom-nav-h, 76px) + 14px))', sm: -28 },
-      p: { xs: 1, md: 2 },
-      // INPUT acima do menu rodapé (mobile): o container preenche até o fim do viewport (negative mb)
-      // e antes o input ficava POR TRÁS do MobileBottomNav fixo → usuário rolava pra achar onde digitar.
-      pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 } }}>
+      style={
+        kbInset
+          ? { height: `calc(100dvh - 116px - env(safe-area-inset-bottom) - ${kbInset}px)` }
+          : undefined
+      }
+      sx={{
+        width: '100%',
+        maxWidth: 820,
+        mx: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        height: { xs: 'calc(100dvh - 116px - env(safe-area-inset-bottom))', sm: 'calc(100dvh - 84px)' },
+        mb: { xs: 'calc(-1 * (var(--me-bottom-nav-h, 76px) + 14px))', sm: -28 },
+        p: { xs: 1, md: 2 },
+        pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 },
+      }}
+    >
       {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
-      <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: '12px', mb: 1, background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
-        <IconButton onClick={() => navigate('/')} aria-label="Voltar ao início" title="Voltar" sx={{ color: '#fff', p: { xs: 1.25, sm: 1 }, fontSize: 20 }}>←</IconButton>
-        <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0, bgcolor: '#fff', p: '3px', boxShadow: '0 0 0 2px rgba(255,255,255,.45)' }} />
+      <Paper
+        elevation={0}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 1.5,
+          py: 1,
+          borderRadius: '12px',
+          mb: 1,
+          background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+          color: '#fff',
+        }}
+      >
+        <IconButton
+          onClick={() => navigate('/')}
+          aria-label="Voltar ao início"
+          title="Voltar"
+          sx={{ color: '#fff', p: { xs: 1.25, sm: 1 }, fontSize: 20 }}
+        >
+          ←
+        </IconButton>
+        <DrExame
+          size={36}
+          sx={{
+            borderRadius: '50%',
+            flexShrink: 0,
+            bgcolor: '#fff',
+            p: '3px',
+            boxShadow: '0 0 0 2px rgba(255,255,255,.45)',
+          }}
+        />
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 800, lineHeight: 1.1, fontFamily: 'Poppins, sans-serif', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography
+            sx={{
+              fontWeight: 800,
+              lineHeight: 1.1,
+              fontFamily: 'Poppins, sans-serif',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
             Dr. Exame
-            <Box component="span" sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#4ade80', display: 'inline-block', boxShadow: '0 0 6px #4ade80' }} />
+            <Box
+              component="span"
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                bgcolor: '#4ade80',
+                display: 'inline-block',
+                boxShadow: '0 0 6px #4ade80',
+              }}
+            />
           </Typography>
-          <Typography sx={{ fontSize: 12, opacity: 0.9 }}>Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}</Typography>
+          <Typography sx={{ fontSize: 12, opacity: 0.9 }}>
+            Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}
+          </Typography>
         </Box>
-        <IconButton onClick={() => setHistOpen(true)} aria-label={`Histórico de conversas (${convs.length})`} title="Histórico de conversas" sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,.15)', p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>
-          <Badge badgeContent={convs.length > 9 ? '9+' : convs.length} color="warning" overlap="circular" invisible={convs.length === 0} sx={{ '& .MuiBadge-badge': { fontSize: 12, fontWeight: 700, height: 18, minWidth: 18, top: 3, right: 3, bgcolor: '#dc2626' } }}><HistoryIcon sx={{ fontSize: 24 }} /></Badge>
+        <IconButton
+          onClick={() => setHistOpen(true)}
+          aria-label={`Histórico de conversas (${convs.length})`}
+          title="Histórico de conversas"
+          sx={{
+            color: '#fff',
+            bgcolor: 'rgba(255,255,255,.15)',
+            p: { xs: 1.25, sm: 1 },
+            '&:hover': { bgcolor: 'rgba(255,255,255,.25)' },
+          }}
+        >
+          <Badge
+            badgeContent={convs.length > 9 ? '9+' : convs.length}
+            color="warning"
+            overlap="circular"
+            invisible={convs.length === 0}
+            sx={{
+              '& .MuiBadge-badge': {
+                fontSize: 12,
+                fontWeight: 700,
+                height: 18,
+                minWidth: 18,
+                top: 3,
+                right: 3,
+                bgcolor: '#dc2626',
+              },
+            }}
+          >
+            <HistoryIcon sx={{ fontSize: 24 }} />
+          </Badge>
         </IconButton>
       </Paper>
 
-      {/* mensagens — role=log/aria-live: leitor de tela anuncia as novas mensagens da IA (critic: chat era mudo) */}
-      <Box ref={scrollRef} onScroll={onScrollMessages} role="log" aria-live="polite" aria-label="Mensagens da conversa" sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1, background: 'transparent', borderRadius: '12px' }}>
+      {/* mensagens — role=log/aria-live: leitor de tela anuncia as novas mensagens da IA */}
+      <Box
+        ref={scrollRef}
+        onScroll={onScrollMessages}
+        role="log"
+        aria-live="polite"
+        aria-label="Mensagens da conversa"
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          p: 1,
+          background: 'transparent',
+          borderRadius: '12px',
+        }}
+      >
         {messages.length === 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', py: { xs: 2, md: 4 }, gap: 1.5 }}>
-            {/* Mascote Dr. Exame com aura teal + badge ✨ (IA) — convite à conversa, estilo Itaú.
-                Sem animação infinita (regra: infinita só em live/processing). */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              py: { xs: 2, md: 4 },
+              gap: 1.5,
+            }}
+          >
             <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center' }}>
-              <Box sx={{ position: 'absolute', inset: -14, borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)', filter: 'blur(4px)' }} />
-              <DrExame size={64} sx={{ position: 'relative', borderRadius: '28%', filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))' }} />
-              <Box sx={{ position: 'absolute', top: 2, right: 0, width: 24, height: 24, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 6px rgba(0,0,0,.22)' }}>
+              <Box
+                sx={{
+                  position: 'absolute',
+                  inset: -14,
+                  borderRadius: '50%',
+                  background:
+                    'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)',
+                  filter: 'blur(4px)',
+                }}
+              />
+              <DrExame
+                size={64}
+                sx={{
+                  position: 'relative',
+                  borderRadius: '28%',
+                  filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))',
+                }}
+              />
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 2,
+                  right: 0,
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  bgcolor: 'primary.dark',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(0,0,0,.22)',
+                }}
+              >
                 <AutoAwesomeIcon sx={{ fontSize: 13, color: '#fff' }} />
               </Box>
             </Box>
             <Box>
-              <Typography sx={{ fontWeight: 800, fontSize: { xs: 19, md: 22 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{firstName ? `Como posso te ajudar, ${firstName}?` : 'Como posso te ajudar?'}</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>Toque numa sugestão ou escreva sua dúvida sobre seus exames.</Typography>
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: 19, md: 22 },
+                  color: 'text.primary',
+                  fontFamily: 'Poppins, sans-serif',
+                }}
+              >
+                {firstName ? `Como posso te ajudar, ${firstName}?` : 'Como posso te ajudar?'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Toque numa sugestão ou escreva sua dúvida sobre seus exames.
+              </Typography>
             </Box>
             <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 460, mt: 0.5 }}>
               {QUICK_ACTIONS.slice(0, 6).map((a) => (
-                <Paper key={a.title} elevation={0} component="button" type="button" onClick={() => send(a.prompt)} sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 1.25, p: 1.25, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', textAlign: 'left', fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit', width: '100%', '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: TEAL, transform: 'translateY(-1px)' }, transition: 'all .15s' }}>
+                <Paper
+                  key={a.title}
+                  elevation={0}
+                  component="button"
+                  type="button"
+                  onClick={() => send(a.prompt)}
+                  sx={{
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1.25,
+                    p: 1.25,
+                    px: 1.5,
+                    borderRadius: '12px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    bgcolor: 'background.paper',
+                    textAlign: 'left',
+                    fontFamily: 'inherit',
+                    fontSize: 'inherit',
+                    color: 'inherit',
+                    width: '100%',
+                    '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` },
+                    '&:hover': {
+                      bgcolor: 'rgba(32,178,170,.08)',
+                      borderColor: TEAL,
+                      transform: 'translateY(-1px)',
+                    },
+                    transition: 'all .15s',
+                  }}
+                >
                   <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
-                  <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>{a.title}</Typography>
-                  <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>›</Box>
+                  <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>
+                    {a.title}
+                  </Typography>
+                  <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>
+                    ›
+                  </Box>
                 </Paper>
               ))}
             </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>{CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat !== 1 ? 's' : ''} por pergunta · a IA não substitui seu médico</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>
+              {CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat !== 1 ? 's' : ''} por pergunta · a IA não substitui seu médico
+            </Typography>
           </Box>
         )}
-        <Stack spacing={1.5}>
+
+        <Stack spacing={2}>
           {messages.map((m, i) => {
             const isUser = m.role === 'user';
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
+            const isStreamingThis = m.role === 'assistant' && i === messages.length - 1 && busy && !!m.text;
+            const prevSameRole = i > 0 && messages[i - 1]?.role === m.role;
             return (
-              <Box key={i} sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-end', justifyContent: isUser ? 'flex-end' : 'flex-start' }}>
-                {/* Avatar do Dr. Exame + ✨ em CADA resposta da IA (estilo Itaú: você conversa COM o assistente) */}
+              <Box
+                key={i}
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  alignItems: 'flex-start',
+                  justifyContent: isUser ? 'flex-end' : 'flex-start',
+                }}
+              >
+                {/* Avatar do Dr. Exame + ✨ em CADA resposta da IA */}
                 {!isUser && (
-                  <Box sx={{ position: 'relative', width: 30, height: 30, flexShrink: 0, mb: 0.25 }}>
-                    <DrExame size={30} sx={{ borderRadius: '28%' }} />
-                    <Box sx={{ position: 'absolute', top: -3, right: -3, width: 14, height: 14, borderRadius: '50%', bgcolor: 'primary.dark', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <AutoAwesomeIcon sx={{ fontSize: 12, color: '#fff' }} />
+                  <Box sx={{ position: 'relative', width: 32, height: 32, flexShrink: 0, mt: 0.25 }}>
+                    <DrExame size={32} sx={{ borderRadius: '28%' }} />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: -3,
+                        right: -3,
+                        width: 14,
+                        height: 14,
+                        borderRadius: '50%',
+                        bgcolor: 'primary.dark',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <AutoAwesomeIcon sx={{ fontSize: 11, color: '#fff' }} />
                     </Box>
                   </Box>
                 )}
-                <Paper elevation={0} sx={{
-                  maxWidth: isUser ? '85%' : '78%', px: 1.75, py: 1.25,
-                  borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                  bgcolor: isUser ? TEAL : 'background.paper',
-                  color: isUser ? '#fff' : 'text.primary',
-                  border: isUser ? 'none' : '1px solid',
-                  borderColor: 'divider',
-                  wordBreak: 'break-word',
-                  boxShadow: isUser ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
-                  '& p': { margin: '0.3em 0', fontSize: 15, lineHeight: 1.55 }, '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
-                  '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' }, '& li': { margin: '0.15em 0' },
-                  '& strong': { fontWeight: 700 }, '& code': { bgcolor: 'rgba(128,128,128,.15)', px: 0.4, borderRadius: 0.5, fontSize: '0.9em' },
-                }}>
-                  {m.text
-                    ? (m.role === 'assistant' ? <ReactMarkdown>{m.text}</ReactMarkdown> : <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>)
-                    : (isLastAssistant ? <TypingDots /> : null)}
-                  {/* FEATURE C — rodapé discreto com as diretrizes citadas (chips 12px, teal AA) */}
-                  {!isUser && !!m.sources?.length && (
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center', mt: 0.75 }}>
-                      <Typography component="span" sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}>📚 Fontes:</Typography>
-                      {/* G4 — explainer "O que é isso?" (que diretrizes são essas) */}
-                      <WhatIsThis topic="diretrizes" />
-                      {m.sources.map((s, si) => (
-                        <Chip key={`${s.label}-${si}`} label={s.label} size="small" sx={{ height: 20, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(32,178,170,.10)', color: (t) => tealText(t.palette.mode), border: '1px solid rgba(32,178,170,.18)' }} />
-                      ))}
-                    </Box>
+
+                <div
+                  className={
+                    'flex min-w-0 flex-col gap-1 ' +
+                    (isUser
+                      ? 'max-w-[86%] items-end sm:max-w-[78%]'
+                      : 'max-w-[88%] items-start sm:max-w-[80%]')
+                  }
+                >
+                  {/* ReUI c-message-3 + c-message-6: Cabeçalho da mensagem com nome e hora */}
+                  {!prevSameRole && (
+                    <MessageHeader className={isUser ? 'justify-end' : undefined}>
+                      <span className="text-foreground font-semibold">
+                        {isUser ? 'Você' : 'Dr. Exame IA'}
+                      </span>
+                      {!isUser && (
+                        <ReuiBadge variant="primary-light" size="xs">
+                          Educativo
+                        </ReuiBadge>
+                      )}
+                      {m.ts && (
+                        <>
+                          <span
+                            aria-hidden="true"
+                            className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
+                          />
+                          <span className="tabular-nums">{fmtTime(m.ts)}</span>
+                        </>
+                      )}
+                    </MessageHeader>
                   )}
-                  {m.ts && <Typography sx={{ display: 'block', fontSize: 12, mt: 0.4, opacity: 0.6, textAlign: isUser ? 'right' : 'left' }}>{fmtTime(m.ts)}</Typography>}
-                </Paper>
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      width: '100%',
+                      px: 1.75,
+                      py: 1.25,
+                      borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
+                      bgcolor: isUser ? TEAL : 'background.paper',
+                      color: isUser ? '#fff' : 'text.primary',
+                      border: isUser ? 'none' : '1px solid',
+                      borderColor: 'divider',
+                      wordBreak: 'break-word',
+                      boxShadow: isUser ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
+                      '& p': { margin: '0.3em 0', fontSize: 15, lineHeight: 1.55 },
+                      '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
+                      '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' },
+                      '& li': { margin: '0.15em 0' },
+                      '& strong': { fontWeight: 700 },
+                      '& code': {
+                        bgcolor: 'rgba(128,128,128,.15)',
+                        px: 0.4,
+                        borderRadius: 0.5,
+                        fontSize: '0.9em',
+                      },
+                    }}
+                  >
+                    {m.text ? (
+                      m.role === 'assistant' ? (
+                        <ReactMarkdown>{m.text}</ReactMarkdown>
+                      ) : (
+                        <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>
+                      )
+                    ) : isLastAssistant ? (
+                      <TypingDots />
+                    ) : null}
+
+                    {/* FEATURE C — rodapé discreto com as diretrizes citadas */}
+                    {!isUser && !!m.sources?.length && (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 0.5,
+                          alignItems: 'center',
+                          mt: 1,
+                          pt: 0.75,
+                          borderTop: '1px dashed',
+                          borderColor: 'divider',
+                        }}
+                      >
+                        <Typography
+                          component="span"
+                          sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
+                        >
+                          📚 Fontes:
+                        </Typography>
+                        <WhatIsThis topic="diretrizes" />
+                        {m.sources.map((s, si) => (
+                          <ReuiBadge key={`${s.label}-${si}`} variant="primary-light" size="sm">
+                            {s.label}
+                          </ReuiBadge>
+                        ))}
+                      </Box>
+                    )}
+                  </Paper>
+
+                  {/* ReUI c-message-4: Barra de ações da resposta (Copiar, Perguntar ao médico, Avaliar) */}
+                  {!isUser && !!m.text && !isLastAssistant && !isStreamingThis && (
+                    <AssistantReplyActions
+                      content={m.text}
+                      onAskDoctor={(txt) =>
+                        navigate(`/perguntas?ask=${encodeURIComponent(txt.slice(0, 600))}`)
+                      }
+                    />
+                  )}
+                </div>
               </Box>
             );
           })}
         </Stack>
       </Box>
 
-      {/* INPUT com botão "+" (bottom sheet de ações) e DITADO POR VOZ — estilo Mercado Pago.
-          Gravando: borda error + ponto pulsante; transcrição aparece NO INPUT (parcial ao vivo). */}
-      {/* alignItems flex-end: quando a textarea cresce (multi-linha), os botões ficam
-          ancorados embaixo (enviar bottom-right — padrão WhatsApp/Telegram). */}
-      <Box component="form" onSubmit={(e: any) => { e.preventDefault(); voice.stop(); send(); }} sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-end', mt: 1, p: 0.5, pl: 1, borderRadius: '999px', border: '1px solid', borderColor: voice.isRecording ? 'error.main' : 'divider', bgcolor: 'background.paper', boxShadow: '0 2px 12px rgba(32,178,170,.08)' }}>
-        <IconButton onClick={() => setSheetOpen(true)} aria-label="Ações rápidas" title="Ações rápidas" sx={{ color: TEAL, p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}><AddIcon /></IconButton>
+      {/* INPUT com botão "+" (bottom sheet de ações) e DITADO POR VOZ */}
+      <Box
+        component="form"
+        onSubmit={(e: any) => {
+          e.preventDefault();
+          voice.stop();
+          send();
+        }}
+        sx={{
+          display: 'flex',
+          gap: 0.75,
+          alignItems: 'flex-end',
+          mt: 1,
+          p: 0.5,
+          pl: 1,
+          borderRadius: '999px',
+          border: '1px solid',
+          borderColor: voice.isRecording ? 'error.main' : 'divider',
+          bgcolor: 'background.paper',
+          boxShadow: '0 2px 12px rgba(32,178,170,.08)',
+        }}
+      >
+        <IconButton
+          onClick={() => setSheetOpen(true)}
+          aria-label="Ações rápidas"
+          title="Ações rápidas"
+          sx={{ color: TEAL, p: { xs: 1.25, sm: 1 }, '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }}
+        >
+          <AddIcon />
+        </IconButton>
         {voice.isRecording && (
-          <Box aria-hidden sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main', flexShrink: 0, animation: `${voicePulse} 1.2s ease-in-out infinite`, '@media (prefers-reduced-motion: reduce)': { animation: 'none' } }} />
+          <Box
+            aria-hidden
+            sx={{
+              width: 8,
+              height: 8,
+              borderRadius: '50%',
+              bgcolor: 'error.main',
+              flexShrink: 0,
+              animation: `${voicePulse} 1.2s ease-in-out infinite`,
+              '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+            }}
+          />
         )}
-        {/* Textarea multiline (padrão WhatsApp): quebra linha e cresce pra CIMA até 5 linhas
-            com scroll interno — input nativo single-line rolava o texto pra DIREITA e o
-            usuário não via o que digitava (bug dono out/26). */}
-        <TextareaAutosize value={input} disabled={busy || voice.isRecording} aria-label="Pergunta sobre seus exames" placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
-          minRows={1} maxRows={5}
+        <TextareaAutosize
+          value={input}
+          disabled={busy || voice.isRecording}
+          aria-label="Pergunta sobre seus exames"
+          placeholder={voice.isRecording ? 'Ouvindo você…' : 'Pergunte sobre seus exames…'}
+          minRows={1}
+          maxRows={5}
           onChange={(e: any) => setInput(e.target.value)}
-          onKeyDown={(e: any) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); voice.stop(); send(); } }}
-          style={{ flex: 1, minWidth: 0, width: '100%', resize: 'none', padding: '10px 4px', fontSize: 16, lineHeight: 1.5, border: 'none', outline: 'none', background: 'transparent', fontFamily: 'inherit', color: 'inherit' }} />
-        {/* FEATURE F — ditado por voz: mic à esquerda do Enviar; gravando vira "parar" (error.main). */}
+          onKeyDown={(e: any) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault();
+              voice.stop();
+              send();
+            }
+          }}
+          style={{
+            flex: 1,
+            minWidth: 0,
+            width: '100%',
+            resize: 'none',
+            padding: '10px 4px',
+            fontSize: 16,
+            lineHeight: 1.5,
+            border: 'none',
+            outline: 'none',
+            background: 'transparent',
+            fontFamily: 'inherit',
+            color: 'inherit',
+          }}
+        />
         {voice.isVoiceAvailable && (
-          <IconButton onClick={() => voice.toggle(input)} aria-label={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'} title={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}
-            sx={{ p: { xs: 1.25, sm: 1 }, color: voice.isRecording ? 'error.main' : TEAL, ...(voice.isRecording ? { bgcolor: 'rgba(211,47,47,.10)', '&:hover': { bgcolor: 'rgba(211,47,47,.18)' } } : { '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }) }}>
+          <IconButton
+            onClick={() => voice.toggle(input)}
+            aria-label={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}
+            title={voice.isRecording ? 'Parar ditado' : 'Ditar pergunta'}
+            sx={{
+              p: { xs: 1.25, sm: 1 },
+              color: voice.isRecording ? 'error.main' : TEAL,
+              ...(voice.isRecording
+                ? { bgcolor: 'rgba(211,47,47,.10)', '&:hover': { bgcolor: 'rgba(211,47,47,.18)' } }
+                : { '&:hover': { bgcolor: 'rgba(32,178,170,.08)' } }),
+            }}
+          >
             {voice.isRecording ? <StopIcon /> : <MicIcon />}
           </IconButton>
         )}
-        <Button type={busy ? 'button' : 'submit'} variant="contained" disabled={!busy && !input.trim()}
+        <Button
+          type={busy ? 'button' : 'submit'}
+          variant="contained"
+          disabled={!busy && !input.trim()}
           onClick={busy ? stop : undefined}
           aria-label={busy ? 'Parar resposta' : 'Enviar'}
-          sx={{ minWidth: 0, borderRadius: '999px', px: 1.5, py: 1, bgcolor: TEAL, '&:hover': { bgcolor: '#0f766e' } }}>
+          sx={{
+            minWidth: 0,
+            borderRadius: '999px',
+            px: 1.5,
+            py: 1,
+            bgcolor: TEAL,
+            '&:hover': { bgcolor: '#0f766e' },
+          }}
+        >
           {busy ? <StopCircleIcon titleAccess="Parar resposta" /> : <SendIcon />}
         </Button>
       </Box>
 
       {/* BOTTOM SHEET — ações rápidas (swipe-down p/ fechar) */}
-      <SwipeableDrawer anchor="bottom" open={sheetOpen} onClose={() => setSheetOpen(false)} onOpen={() => setSheetOpen(true)}
-        PaperProps={{ sx: { borderTopLeftRadius: 20, borderTopRightRadius: 20, p: 2, pb: 3, maxWidth: 520, mx: 'auto' } }}>
+      <SwipeableDrawer
+        anchor="bottom"
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        onOpen={() => setSheetOpen(true)}
+        PaperProps={{
+          sx: {
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            p: 2,
+            pb: 3,
+            maxWidth: 520,
+            mx: 'auto',
+          },
+        }}
+      >
         <Box sx={{ width: 36, height: 4, bgcolor: 'action.selected', borderRadius: '999px', mx: 'auto', mb: 2 }} />
-        <Typography sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>Como posso te ajudar? 🤖</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>Toque numa opção pra começar.</Typography>
+        <Typography sx={{ fontWeight: 800, mb: 0.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>
+          Como posso te ajudar? 🤖
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Toque numa opção pra começar.
+        </Typography>
         <Box sx={{ maxHeight: '68vh', overflowY: 'auto' }}>
-        <Stack spacing={0.75}>
-          {QUICK_ACTIONS.map((a) => (
-            <Paper key={a.title} elevation={0} component="button" type="button" onClick={() => { setSheetOpen(false); send(a.prompt); }} sx={{ display: 'flex', alignItems: 'center', gap: 1.25, p: 1.1, px: 1.5, borderRadius: '12px', border: '1px solid', borderColor: 'divider', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit', color: 'inherit', width: '100%', textAlign: 'left', '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` }, '&:hover': { bgcolor: 'action.hover', borderColor: TEAL } }}>
-              <Box sx={{ fontSize: 20, width: 34, height: 34, borderRadius: '8px', bgcolor: 'rgba(32,178,170,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{a.icon}</Box>
-              <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 15 }}>{a.title}</Typography>
-              <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
-            </Paper>
-          ))}
-        </Stack>
+          <Stack spacing={0.75}>
+            {QUICK_ACTIONS.map((a) => (
+              <Paper
+                key={a.title}
+                elevation={0}
+                component="button"
+                type="button"
+                onClick={() => {
+                  setSheetOpen(false);
+                  send(a.prompt);
+                }}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.25,
+                  p: 1.1,
+                  px: 1.5,
+                  borderRadius: '12px',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 'inherit',
+                  color: 'inherit',
+                  width: '100%',
+                  textAlign: 'left',
+                  '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` },
+                  '&:hover': { bgcolor: 'action.hover', borderColor: TEAL },
+                }}
+              >
+                <Box
+                  sx={{
+                    fontSize: 20,
+                    width: 34,
+                    height: 34,
+                    borderRadius: '8px',
+                    bgcolor: 'rgba(32,178,170,0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  {a.icon}
+                </Box>
+                <Typography sx={{ flex: 1, fontWeight: 700, color: 'text.primary', fontSize: 15 }}>
+                  {a.title}
+                </Typography>
+                <Typography sx={{ color: TEAL, fontWeight: 800 }}>›</Typography>
+              </Paper>
+            ))}
+          </Stack>
         </Box>
       </SwipeableDrawer>
 
       {/* HISTÓRICO — conversas agrupadas por período */}
-      <Drawer anchor="right" open={histOpen} onClose={() => setHistOpen(false)} PaperProps={{ sx: { width: { xs: '100%', sm: 370 } } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderBottom: '1px solid', borderBottomColor: 'divider', background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }}>
+      <Drawer
+        anchor="right"
+        open={histOpen}
+        onClose={() => setHistOpen(false)}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 370 } } }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: 2,
+            borderBottom: '1px solid',
+            borderBottomColor: 'divider',
+            background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+            color: '#fff',
+          }}
+        >
           <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🕒 Histórico</Typography>
-          <Button size="small" startIcon={<EditIcon />} onClick={startNew} sx={{ color: '#fff', textTransform: 'none', fontWeight: 700, bgcolor: 'rgba(255,255,255,.15)', borderRadius: '999px', '&:hover': { bgcolor: 'rgba(255,255,255,.25)' } }}>Nova</Button>
+          <Button
+            size="small"
+            startIcon={<EditIcon />}
+            onClick={startNew}
+            sx={{
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 700,
+              bgcolor: 'rgba(255,255,255,.15)',
+              borderRadius: '999px',
+              '&:hover': { bgcolor: 'rgba(255,255,255,.25)' },
+            }}
+          >
+            Nova
+          </Button>
         </Box>
         <Box sx={{ overflowY: 'auto', flex: 1 }}>
-          {convs.length === 0 && <Typography color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>Nenhuma conversa ainda.<br />Comece a conversar com o Dr. Exame! 💬</Typography>}
+          {convs.length === 0 && (
+            <Typography color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
+              Nenhuma conversa ainda.
+              <br />
+              Comece a conversar com o Dr. Exame! 💬
+            </Typography>
+          )}
           {BUCKETS.map((bk) => {
             const items = convs.filter((c) => bucket(c.updatedAt) === bk);
             if (!items.length) return null;
             return (
               <Box key={bk}>
-                <Typography sx={{ fontSize: 12, fontWeight: 800, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, px: 2, pt: 1.5, pb: 0.5 }}>{bk}</Typography>
-                {items.map((c) => <HistoryRow key={c.id} conv={c} active={c.id === curId} onOpen={() => { setCurId(c.id); setHistOpen(false); }} onRename={(t) => renameConv(c.id, t)} onDelete={() => deleteConv(c.id)} />)}
+                <Typography
+                  sx={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: 'text.secondary',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    px: 2,
+                    pt: 1.5,
+                    pb: 0.5,
+                  }}
+                >
+                  {bk}
+                </Typography>
+                {items.map((c) => (
+                  <HistoryRow
+                    key={c.id}
+                    conv={c}
+                    active={c.id === curId}
+                    onOpen={() => {
+                      setCurId(c.id);
+                      setHistOpen(false);
+                    }}
+                    onRename={(t) => renameConv(c.id, t)}
+                    onDelete={() => deleteConv(c.id)}
+                  />
+                ))}
               </Box>
             );
           })}
@@ -454,16 +1083,96 @@ export const ChatPage = () => {
   );
 };
 
-const HistoryRow = ({ conv, active, onOpen, onRename, onDelete }: { conv: Conv; active: boolean; onOpen: () => void; onRename: (t: string) => void; onDelete: () => void }) => {
+const HistoryRow = ({
+  conv,
+  active,
+  onOpen,
+  onRename,
+  onDelete,
+}: {
+  conv: Conv;
+  active: boolean;
+  onOpen: () => void;
+  onRename: (t: string) => void;
+  onDelete: () => void;
+}) => {
   const [menu, setMenu] = useState<HTMLElement | null>(null);
   return (
-    <ListItemButton selected={active} onClick={onOpen} sx={{ py: 1, px: 2, '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.08)' }, '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.12)' } }}>
-      <ListItemIcon sx={{ minWidth: 34 }}><ChatBubbleIcon sx={{ color: active ? TEAL : 'text.secondary', fontSize: 18 }} /></ListItemIcon>
-      <ListItemText primary={conv.title || 'Sem título'} primaryTypographyProps={{ fontSize: 14, fontWeight: active ? 700 : 500, color: 'text.primary', noWrap: true }} secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} secondaryTypographyProps={{ fontSize: 12 }} />
-      <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); setMenu(e.currentTarget); }}><MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} /></IconButton>
-      <Menu anchorEl={menu} open={!!menu} onClose={() => setMenu(null)} slotProps={{ paper: { sx: { borderRadius: '12px' } } }}>
-        <MenuItem onClick={async () => { setMenu(null); const t = await promptDialog({ title: 'Renomear conversa', label: 'Título', defaultValue: conv.title, confirmLabel: 'Salvar' }); if (t != null) onRename(t.trim() || conv.title); }}>✏️ Renomear</MenuItem>
-        <MenuItem onClick={async () => { setMenu(null); if (await confirmDialog({ title: 'Excluir conversa', message: 'Excluir esta conversa?', confirmLabel: 'Excluir' })) onDelete(); }} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir</MenuItem>
+    <ListItemButton
+      selected={active}
+      onClick={onOpen}
+      sx={{
+        py: 1,
+        px: 2,
+        '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.08)' },
+        '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+      }}
+    >
+      <ListItemIcon sx={{ minWidth: 34 }}>
+        <ChatBubbleIcon sx={{ color: active ? TEAL : 'text.secondary', fontSize: 18 }} />
+      </ListItemIcon>
+      <ListItemText
+        primary={conv.title || 'Sem título'}
+        primaryTypographyProps={{
+          fontSize: 14,
+          fontWeight: active ? 700 : 500,
+          color: 'text.primary',
+          noWrap: true,
+        }}
+        secondary={new Date(conv.updatedAt).toLocaleString('pt-BR', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })}
+        secondaryTypographyProps={{ fontSize: 12 }}
+      />
+      <IconButton
+        size="small"
+        edge="end"
+        onClick={(e) => {
+          e.stopPropagation();
+          setMenu(e.currentTarget);
+        }}
+      >
+        <MoreVertIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+      </IconButton>
+      <Menu
+        anchorEl={menu}
+        open={!!menu}
+        onClose={() => setMenu(null)}
+        slotProps={{ paper: { sx: { borderRadius: '12px' } } }}
+      >
+        <MenuItem
+          onClick={async () => {
+            setMenu(null);
+            const t = await promptDialog({
+              title: 'Renomear conversa',
+              label: 'Título',
+              defaultValue: conv.title,
+              confirmLabel: 'Salvar',
+            });
+            if (t != null) onRename(t.trim() || conv.title);
+          }}
+        >
+          ✏️ Renomear
+        </MenuItem>
+        <MenuItem
+          onClick={async () => {
+            setMenu(null);
+            if (
+              await confirmDialog({
+                title: 'Excluir conversa',
+                message: 'Excluir esta conversa?',
+                confirmLabel: 'Excluir',
+              })
+            )
+              onDelete();
+          }}
+          sx={{ color: 'error.main' }}
+        >
+          <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> Excluir
+        </MenuItem>
       </Menu>
     </ListItemButton>
   );

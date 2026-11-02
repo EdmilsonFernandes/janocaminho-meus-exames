@@ -49,6 +49,11 @@ import {
   barHeight, fmtKcal, fmtKm, fmtSleep, fmtSteps, summarize, STEPS_GOAL,
   type ActivityDay, type ActivityRange,
 } from '../utils/activityStats';
+import { Badge } from '@/components/reui/badge';
+import { Frame, FramePanel } from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/icon-tile';
+import { PulseIcon } from '@/components/reui/icons';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const RANGES: Array<{ value: ActivityRange; label: string }> = [
   { value: 'today', label: 'Hoje' },
@@ -62,6 +67,7 @@ const SLEEP_GOAL_MIN = 420;
 const EXERCISE_DAILY_MIN = 30;
 
 export const SinaisPage = () => {
+  useReuiThemeSync();
   const theme = useTheme();
   const notify = useNotify();
   const navigate = useNavigate();
@@ -223,26 +229,21 @@ export const SinaisPage = () => {
         </Stack>
       </Stack>
 
-      {/* Cabeçalho da Página com Identidade Visual Premium */}
+      {/* Cabeçalho da Página com Identidade Visual Premium (ReUI IconTile Duotone) */}
       <Box sx={{ mb: 2.5 }}>
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 0.5 }}>
-          <Box
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: '14px',
-              display: 'grid',
-              placeItems: 'center',
-              bgcolor: alpha(theme.palette.primary.main, 0.12),
-              color: 'primary.dark',
-            }}
-          >
-            <MonitorHeartIcon sx={{ fontSize: 24 }} />
-          </Box>
+          <IconTile variant="soft" size="lg" className="text-primary">
+            <PulseIcon className="size-6" />
+          </IconTile>
           <Box>
-            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 22, sm: 26 }, color: 'text.primary', lineHeight: 1.15 }}>
-              Sinais Vitais
-            </Typography>
+            <div className="flex flex-wrap items-center gap-2">
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 22, sm: 26 }, color: 'text.primary', lineHeight: 1.15 }}>
+                Sinais Vitais
+              </Typography>
+              <Badge variant="primary-light" size="sm">
+                Smartwatch & Health Connect
+              </Badge>
+            </div>
             <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
               Seus sinais contínuos entre um exame e outro — lidos do Health Connect
             </Typography>
@@ -527,7 +528,7 @@ export const SinaisPage = () => {
                 <TrendCard
                   icon={<TimerIcon sx={{ fontSize: 16 }} />} tone={SEM.ok[theme.palette.mode]} label="Exercício"
                   value={`${Math.round(range === 'today' ? (s.exerciseMin ?? 0) : (s.totalExercise ?? 0))}`} valueSub={range === 'today' ? 'min hoje' : 'min no período'}
-                  series={s.series.map((d) => ({ date: d.date, v: 0 }))}
+                  series={exerciseSeries(days, range)}
                   goal={EXERCISE_DAILY_MIN} fmtBar={(v) => `${Math.round(v)} min`}
                   footer="OMS recomenda 150 min de atividade moderada por semana."
                   delta={deltaPct(days, 'exerciseMin', range)} deltaGoodWhenLower={false}
@@ -650,6 +651,10 @@ const avgOf = (days: ActivityDay[] | null, key: 'sleepMin' | 'hrRest', range: Ac
 const fcSeries = (days: ActivityDay[] | null, range: ActivityRange): { date: string; v: number }[] =>
   (days ?? []).slice(0, range === 'today' ? 1 : range === '7d' ? 7 : 30).reverse().map((d) => ({ date: d.date, v: d.hrRest ?? 0 }));
 
+/** Série ASC de minutos de exercício. */
+const exerciseSeries = (days: ActivityDay[] | null, range: ActivityRange): { date: string; v: number }[] =>
+  (days ?? []).slice(0, range === 'today' ? 1 : range === '7d' ? 7 : 30).reverse().map((d) => ({ date: d.date, v: d.exerciseMin ?? 0 }));
+
 /** Delta percentual entre 1ª e 2ª metade do período. */
 const deltaPct = (days: ActivityDay[] | null, key: 'sleepMin' | 'hrRest' | 'steps' | 'km' | 'kcal' | 'exerciseMin', range: ActivityRange): number | null => {
   if (!days?.length || range === 'today') return null;
@@ -668,8 +673,8 @@ const deltaPct = (days: ActivityDay[] | null, key: 'sleepMin' | 'hrRest' | 'step
 };
 
 /**
- * TrendCard — cartão de tendência de UMA métrica estilo Apple Health:
- * valor do período, barras por dia com cor de meta, delta comparativo e nota clínica.
+ * TrendCard — cartão de tendência de UMA métrica (ReUI Frame + chart-46 interactive bars):
+ * valor do período, barras interativas por dia com inspeção ao toque/hover, delta comparativo e nota clínica.
  */
 const TrendCard = ({ icon, tone, label, value, valueSub, series, goal, fmtBar, delta, deltaGoodWhenLower, footer }: {
   icon: React.ReactNode; tone: string; label: string; value: string; valueSub: string;
@@ -677,42 +682,87 @@ const TrendCard = ({ icon, tone, label, value, valueSub, series, goal, fmtBar, d
   delta?: number | null; deltaGoodWhenLower?: boolean; footer?: string;
 }) => {
   const theme = useTheme();
+  const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const vals = series.filter((p) => p.v > 0);
   const max = Math.max(...vals.map((p) => p.v), 1);
+  const activePoint = activeIdx != null ? series[activeIdx] : null;
+  const activeDateStr = activePoint ? `${activePoint.date.slice(8, 10)}/${activePoint.date.slice(5, 7)}` : null;
+
   return (
-    <AppCard sx={{ p: 2, borderRadius: '16px' }}>
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <Box sx={{ width: 28, height: 28, borderRadius: '9px', display: 'grid', placeItems: 'center', bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
-        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary', flex: 1 }}>{label}</Typography>
-        {typeof delta === 'number' && delta !== 0 && (() => {
-          const good = deltaGoodWhenLower ? delta < 0 : delta > 0;
-          return (
-            <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 800, px: 0.85, py: 0.25, borderRadius: '99px', bgcolor: alpha(good ? '#059669' : '#d97706', 0.14), color: good ? '#047857' : '#b45309' }} title="Comparando a 1ª com a 2ª metade do período">
-              {delta > 0 ? '+' : ''}{delta}%
-            </Typography>
-          );
-        })()}
-      </Stack>
-      <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mb: 1 }}>
-        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 24, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>{value}</Typography>
-        <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}>{valueSub}</Typography>
-      </Stack>
-      {vals.length > 1 && (
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 32 }} role="img" aria-label={vals.map((p) => `${p.date.slice(8, 10)}/${p.date.slice(5, 7)}: ${fmtBar(p.v)}`).join(', ')}>
-          {series.map((p) => (
-            <Box key={p.date} sx={{
-              flex: 1, minWidth: 2, maxWidth: 18, height: `${Math.max(8, barHeight(p.v, max) * 100)}%`,
-              borderRadius: '3px',
-              bgcolor: p.v <= 0
-                ? alpha(theme.palette.text.primary, 0.08)
-                : goal && p.v >= goal
-                  ? tone
-                  : alpha(tone as string, 0.32),
-            }} />
-          ))}
-        </Box>
-      )}
-      {footer && <Typography sx={{ fontSize: 11.5, color: 'text.disabled', mt: 1, lineHeight: 1.45 }}>{footer}</Typography>}
-    </AppCard>
+    <Frame spacing="sm" className="h-full">
+      <FramePanel className="flex h-full flex-col justify-between gap-2.5">
+        <div>
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
+            <Box sx={{ width: 28, height: 28, borderRadius: '9px', display: 'grid', placeItems: 'center', bgcolor: `${tone}1E`, color: tone }}>{icon}</Box>
+            <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary', flex: 1 }}>{label}</Typography>
+            {typeof delta === 'number' && delta !== 0 && (() => {
+              const good = deltaGoodWhenLower ? delta < 0 : delta > 0;
+              return (
+                <Badge variant={good ? 'success-light' : 'warning-light'} size="sm" title="Comparando a 1ª com a 2ª metade do período">
+                  {delta > 0 ? '+' : ''}{delta}%
+                </Badge>
+              );
+            })()}
+          </Stack>
+
+          <Stack direction="row" alignItems="baseline" justifyContent="space-between" spacing={0.5} sx={{ mb: 1 }}>
+            <Stack direction="row" alignItems="baseline" spacing={0.5}>
+              <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 24, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}>
+                {activePoint && activePoint.v > 0 ? fmtBar(activePoint.v) : value}
+              </Typography>
+              <Typography sx={{ fontSize: 12, color: 'text.disabled', fontWeight: 600 }}>
+                {activeDateStr ? `em ${activeDateStr}` : valueSub}
+              </Typography>
+            </Stack>
+            {activePoint && goal && activePoint.v >= goal && (
+              <Badge variant="success-light" size="xs">Meta ✓</Badge>
+            )}
+          </Stack>
+        </div>
+
+        <div>
+          {vals.length > 1 && (
+            <Box
+              onMouseLeave={() => setActiveIdx(null)}
+              sx={{ display: 'flex', alignItems: 'flex-end', gap: '3px', height: 38, pt: 0.5 }}
+              role="img"
+              aria-label={vals.map((p) => `${p.date.slice(8, 10)}/${p.date.slice(5, 7)}: ${fmtBar(p.v)}`).join(', ')}
+            >
+              {series.map((p, idx) => {
+                const isHovered = activeIdx === idx;
+                return (
+                  <Box
+                    key={p.date}
+                    onMouseEnter={() => setActiveIdx(idx)}
+                    onClick={() => {
+                      hapticLight();
+                      setActiveIdx(isHovered ? null : idx);
+                    }}
+                    sx={{
+                      flex: 1,
+                      minWidth: 3,
+                      maxWidth: 18,
+                      height: `${Math.max(10, barHeight(p.v, max) * 100)}%`,
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all .15s ease',
+                      transform: isHovered ? 'scaleY(1.08)' : 'none',
+                      bgcolor: p.v <= 0
+                        ? alpha(theme.palette.text.primary, 0.08)
+                        : isHovered
+                          ? tone
+                          : goal && p.v >= goal
+                            ? tone
+                            : alpha(tone as string, 0.36),
+                    }}
+                  />
+                );
+              })}
+            </Box>
+          )}
+          {footer && <Typography sx={{ fontSize: 11.5, color: 'text.disabled', mt: 1, lineHeight: 1.45 }}>{footer}</Typography>}
+        </div>
+      </FramePanel>
+    </Frame>
   );
 };

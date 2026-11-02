@@ -41,6 +41,23 @@ import { buildProfilePatch, profileFormFromPatient, type ProfileFormValues } fro
 import { DateFieldBR } from '../components/DateFieldBR';
 import { SportsModeCard } from '../components/SportsModeCard';
 import { tealText } from '../theme';
+import TextFieldsIcon from '@mui/icons-material/TextFields';
+import SignLanguageIcon from '@mui/icons-material/SignLanguage';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined';
+import { Badge } from '@/components/reui/badge';
+import {
+  Frame,
+  FrameDescription,
+  FrameFooter,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+} from '@/components/reui/frame';
+import { SettingRow } from '@/components/reui/setting-row';
+import { FieldLabelWithHint } from '@/components/reui/field-label';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '');
 
@@ -85,6 +102,7 @@ const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode;
 );
 
 export const ProfilePage = () => {
+  useReuiThemeSync();
   const translate = useTranslate();
   const theme = useTheme();
   const [pid] = useSelectedPatient();
@@ -471,36 +489,53 @@ export const ProfilePage = () => {
       </Box>
 
       {/* ─────────────────────────────────────────────────────────────
-          ABA 1: DADOS PESSOAIS & PARÂMETROS CLÍNICOS
+          ABA 1: DADOS PESSOAIS & PARÂMETROS CLÍNICOS (ReUI profile-3)
          ───────────────────────────────────────────────────────────── */}
       {activeTab === 'dados' && (
-        <Stack spacing={2.5}>
+        <div className="flex flex-col gap-5">
           {/* Identificação Segura */}
-          <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <PersonOutlineIcon sx={{ color: '#0d9488', fontSize: 20 }} />
-                Identificação do Paciente
-              </Typography>
-
-              <Grid container spacing={2}>
+          <Frame>
+            <FrameHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <PersonOutlineIcon sx={{ color: '#0d9488', fontSize: 20 }} />
+                  <FrameTitle>Identificação do Paciente</FrameTitle>
+                </div>
+                {patient?.identityLocked && (
+                  <Badge variant="success-light" size="sm">
+                    Identidade Verificada
+                  </Badge>
+                )}
+              </div>
+              <FrameDescription>
+                Dados cadastrais sincronizados com seus laudos laboratoriais e teleconsultas
+              </FrameDescription>
+            </FrameHeader>
+            <FramePanel>
+              <Grid container spacing={2.25}>
                 {/* Nome Completo */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="Nome Completo"
+                    hint="Vinculado aos laudos laboratoriais para evitar mistura de exames de terceiros."
+                    addon={
+                      patient?.identityLocked ? (
+                        <Badge variant="success-light" size="xs">
+                          Verificado no Laudo
+                        </Badge>
+                      ) : undefined
+                    }
+                  />
                   {patient?.identityLocked ? (
-                    <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ p: 1.35, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                       <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                            Nome Completo
-                          </Typography>
-                          <Typography sx={{ fontWeight: 800, fontSize: 14 }} noWrap>{fullName || '—'}</Typography>
-                        </Box>
-                        <Chip size="small" icon={<CheckCircleOutlineIcon sx={{ fontSize: '13px !important' }} />} label="Verificado" color="success" sx={{ height: 22, fontSize: 10.5, fontWeight: 700 }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 14 }} noWrap>{fullName || '—'}</Typography>
+                        <CheckCircleOutlineIcon sx={{ fontSize: 16, color: 'success.main' }} />
                       </Stack>
                     </Box>
                   ) : (
                     <TextField
-                      label="Nome completo"
+                      placeholder="Seu nome completo"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       fullWidth
@@ -511,21 +546,26 @@ export const ProfilePage = () => {
 
                 {/* CPF */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="CPF"
+                    hint="Usado exclusivamente para validação de identidade médica e emissão de receitas digitais."
+                    addon={
+                      patient?.hasCpf ? (
+                        <Badge variant="info-light" size="xs">
+                          Auditado
+                        </Badge>
+                      ) : undefined
+                    }
+                  />
                   {patient?.hasCpf ? (
-                    <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ p: 1.35, borderRadius: '12px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider' }}>
                       <Stack direction="row" alignItems="center" justifyContent="space-between">
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-                            CPF (Auditado)
-                          </Typography>
-                          <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'monospace' }}>{cpf || '—'}</Typography>
-                        </Box>
-                        <Chip size="small" icon={<LockOutlinedIcon sx={{ fontSize: '13px !important' }} />} label="Auditado" sx={{ height: 22, fontSize: 10.5, fontWeight: 700 }} />
+                        <Typography sx={{ fontWeight: 800, fontSize: 14, fontFamily: 'monospace' }}>{cpf || '—'}</Typography>
+                        <LockOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
                       </Stack>
                     </Box>
                   ) : (
                     <TextField
-                      label="CPF"
                       value={cpf}
                       onChange={(e) => setCpf(formatCpf(e.target.value))}
                       fullWidth
@@ -539,8 +579,11 @@ export const ProfilePage = () => {
 
                 {/* Telefone */}
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
+                  <FieldLabelWithHint
                     label="Telefone / WhatsApp"
+                    hint="Usado para avisos de teleconsulta e lembretes importantes de saúde."
+                  />
+                  <TextField
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     fullWidth
@@ -551,8 +594,12 @@ export const ProfilePage = () => {
 
                 {/* Data de Nascimento */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="Data de Nascimento"
+                    hint="Essencial para calcular faixas de referência por idade e idade biológica (KDM)."
+                  />
                   <DateFieldBR
-                    label="Data de nascimento"
+                    label=""
                     value={birthDate}
                     onChange={setBirthDate}
                     fullWidth
@@ -560,22 +607,36 @@ export const ProfilePage = () => {
                   />
                 </Grid>
               </Grid>
-            </CardContent>
-          </Card>
+            </FramePanel>
+          </Frame>
 
           {/* Biometria & Parâmetros Corporais */}
-          <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <MonitorHeartOutlinedIcon sx={{ color: '#0d9488', fontSize: 20 }} />
-                Biometria & Dados Corporais
-              </Typography>
-
-              <Grid container spacing={2}>
+          <Frame>
+            <FrameHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <MonitorHeartOutlinedIcon sx={{ color: '#0d9488', fontSize: 20 }} />
+                  <FrameTitle>Biometria & Dados Corporais</FrameTitle>
+                </div>
+                {bmiInfo && (
+                  <Badge variant="primary-light" size="sm">
+                    IMC {bmiInfo.val} · {bmiInfo.status}
+                  </Badge>
+                )}
+              </div>
+              <FrameDescription>
+                Calibra índices renais (TFG), risco cardiometabólico e faixas laboratoriais por sexo biológico
+              </FrameDescription>
+            </FrameHeader>
+            <FramePanel>
+              <Grid container spacing={2.25}>
                 {/* Altura */}
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
+                  <FieldLabelWithHint
                     label="Altura"
+                    hint="Combinada ao peso atual para cálculo automático do IMC e superfície corporal."
+                  />
+                  <TextField
                     value={heightCm}
                     onChange={(e) => setHeightCm(maskHeightInput(e.target.value))}
                     fullWidth
@@ -587,11 +648,20 @@ export const ProfilePage = () => {
 
                 {/* Peso Atual integrado */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="Peso Atual"
+                    hint="Sincronizado com o histórico de Sinais Vitais & Medições."
+                    addon={
+                      <Badge variant="outline" size="xs">
+                        Sinais Vitais
+                      </Badge>
+                    }
+                  />
                   <Box
                     sx={{
                       p: 1.25,
                       px: 1.75,
-                      borderRadius: '12px',
+                      borderRadius: '10px',
                       bgcolor: 'action.hover',
                       border: '1px solid',
                       borderColor: 'divider',
@@ -601,14 +671,9 @@ export const ProfilePage = () => {
                       height: 40,
                     }}
                   >
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block', lineHeight: 1 }}>
-                        Peso Atual
-                      </Typography>
-                      <Typography sx={{ fontWeight: 800, fontSize: 14 }}>
-                        {patient?.weightKg != null ? `${String(patient.weightKg).replace('.', ',')} kg` : 'Não registrado'}
-                      </Typography>
-                    </Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>
+                      {patient?.weightKg != null ? `${String(patient.weightKg).replace('.', ',')} kg` : 'Não registrado'}
+                    </Typography>
                     <Button
                       size="small"
                       variant="text"
@@ -657,9 +722,12 @@ export const ProfilePage = () => {
 
                 {/* Sexo */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="Sexo Biológico"
+                    hint="Determina os valores de referência laboratoriais (ex.: hemoglobina, ferritina, creatinina, hormônios)."
+                  />
                   <TextField
                     select
-                    label="Sexo Biológico"
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                     fullWidth
@@ -673,9 +741,12 @@ export const ProfilePage = () => {
 
                 {/* Etnia */}
                 <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabelWithHint
+                    label="Etnia (opcional)"
+                    hint="Auxilia na contextualização clínica de marcadores específicos."
+                  />
                   <TextField
                     select
-                    label="Etnia (opcional)"
                     value={ethnicity}
                     onChange={(e) => setEthnicity(e.target.value)}
                     fullWidth
@@ -690,194 +761,274 @@ export const ProfilePage = () => {
                   </TextField>
                 </Grid>
               </Grid>
-            </CardContent>
-          </Card>
+            </FramePanel>
+          </Frame>
 
-          {/* Histórico Clínico & Alergias */}
-          <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                🩺 Histórico Clínico & Alergias
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+          {/* Histórico Clínico & Alergias + Footer de Salvamento (ReUI profile-3) */}
+          <Frame>
+            <FrameHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <FrameTitle>🩺 Histórico Clínico & Alergias</FrameTitle>
+                <Badge variant="primary-light" size="xs">
+                  Contexto IA & Telemedicina
+                </Badge>
+              </div>
+              <FrameDescription>
                 Usado pelo Dr. Exame para calibrar interpretações e compartilhado com segurança nas suas teleconsultas.
-              </Typography>
+              </FrameDescription>
+            </FrameHeader>
+            <FramePanel>
+              <Stack spacing={2.25}>
+                <div>
+                  <FieldLabelWithHint
+                    label="Condições clínicas e medicações contínuas"
+                    hint="Informe diagnósticos prévios, cirurgias e medicamentos de uso diário para evitar falsos alarmes nos exames."
+                  />
+                  <TextField
+                    value={clinical}
+                    onChange={(e) => setClinical(e.target.value)}
+                    multiline
+                    minRows={3}
+                    fullWidth
+                    placeholder="Ex: Hipotireoidismo (usa levotiroxina), hipertensão controlada, cirurgia bariátrica em 2022..."
+                  />
+                </div>
 
-              <Stack spacing={2}>
-                <TextField
-                  label="Condições clínicas e medicações contínuas"
-                  value={clinical}
-                  onChange={(e) => setClinical(e.target.value)}
-                  multiline
-                  minRows={3}
-                  fullWidth
-                  placeholder="Ex: Hipotireoidismo (usa levotiroxina), hipertensão controlada, cirurgia bariátrica em 2022..."
-                />
-
-                <TextField
-                  label="Alergias conhecidas (medicamentos, alimentos, contraste)"
-                  value={allergies}
-                  onChange={(e) => setAllergies(e.target.value)}
-                  multiline
-                  minRows={2}
-                  fullWidth
-                  placeholder="Ex: Penicilina, frutos do mar, dipirona, contraste iodado..."
-                />
+                <div>
+                  <FieldLabelWithHint
+                    label="Alergias conhecidas (medicamentos, alimentos, contraste)"
+                    hint="Exibido em destaque para médicos durante teleconsultas e na ficha de emergência."
+                    addon={
+                      allergies.trim() ? (
+                        <Badge variant="warning-light" size="xs">
+                          Alerta Ativo
+                        </Badge>
+                      ) : undefined
+                    }
+                  />
+                  <TextField
+                    value={allergies}
+                    onChange={(e) => setAllergies(e.target.value)}
+                    multiline
+                    minRows={2}
+                    fullWidth
+                    placeholder="Ex: Penicilina, frutos do mar, dipirona, contraste iodado..."
+                  />
+                </div>
               </Stack>
-            </CardContent>
-          </Card>
-
-          {/* Botão de Salvar Perfil */}
-          <Box sx={{ pt: 1, pb: 2 }}>
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              startIcon={<SaveIcon />}
-              onClick={loadFailed ? () => { void load(); } : saveProfile}
-              disabled={saving || (!baseline && !loadFailed)}
-              sx={{
-                borderRadius: '14px',
-                py: 1.4,
-                textTransform: 'none',
-                fontWeight: 800,
-                fontSize: 15,
-                background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
-                boxShadow: '0 6px 18px rgba(32,178,170,.35)',
-                '&:hover': { background: 'linear-gradient(135deg, #178f89 0%, #0d9488 100%)' },
-                // O gradiente acima sobrepõe o disabled do MUI: carregando tem que PARECER travado.
-                '&.Mui-disabled': { background: 'none', bgcolor: 'action.disabledBackground', color: 'text.secondary', boxShadow: 'none' },
-              }}
-            >
-              {saving ? 'Salvando alterações…'
-                : loadFailed ? 'Não carregou — tentar de novo'
-                : !baseline ? 'Carregando seus dados…'
-                : 'Salvar dados do perfil'}
-            </Button>
-          </Box>
-        </Stack>
+            </FramePanel>
+            <FrameFooter className="sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-muted-foreground text-xs">
+                Salve para atualizar suas referências clínicas em todo o aplicativo.
+              </span>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<SaveIcon />}
+                onClick={loadFailed ? () => { void load(); } : saveProfile}
+                disabled={saving || (!baseline && !loadFailed)}
+                sx={{
+                  borderRadius: '12px',
+                  py: 1.15,
+                  px: 3,
+                  width: { xs: '100%', sm: 'auto' },
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: 14.5,
+                  background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                  boxShadow: '0 6px 18px rgba(32,178,170,.35)',
+                  '&:hover': { background: 'linear-gradient(135deg, #178f89 0%, #0d9488 100%)' },
+                  '&.Mui-disabled': { background: 'none', bgcolor: 'action.disabledBackground', color: 'text.secondary', boxShadow: 'none' },
+                }}
+              >
+                {saving
+                  ? 'Salvando alterações…'
+                  : loadFailed
+                    ? 'Não carregou — tentar de novo'
+                    : !baseline
+                      ? 'Carregando seus dados…'
+                      : 'Salvar dados do perfil'}
+              </Button>
+            </FrameFooter>
+          </Frame>
+        </div>
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          ABA 2: PREFERÊNCIAS & ACESSIBILIDADE
+          ABA 2: PREFERÊNCIAS & ACESSIBILIDADE (ReUI settings-2)
          ───────────────────────────────────────────────────────────── */}
       {activeTab === 'preferencias' && (
-        <Stack spacing={2.5}>
-          <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1 }}>
-                Experiência & Acessibilidade
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
-                Personalize o comportamento e a visualização do aplicativo no seu dispositivo.
-              </Typography>
+        <div className="flex flex-col gap-5">
+          <Frame>
+            <FrameHeader>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <FrameTitle>Experiência & Acessibilidade</FrameTitle>
+                <Badge variant="primary-light" size="xs">
+                  Salvo neste dispositivo
+                </Badge>
+              </div>
+              <FrameDescription>
+                Personalize o conforto de leitura, privacidade visual e recursos de acessibilidade do aplicativo.
+              </FrameDescription>
+            </FrameHeader>
 
-              <Stack spacing={1.5}>
-                {/* Texto grande */}
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ pr: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>Aa Texto Grande</Typography>
-                      <Typography variant="caption" color="text.secondary">Amplia os textos do aplicativo para maior conforto de leitura.</Typography>
-                    </Box>
-                    <Switch checked={textLarge} onChange={(e) => toggleTextLarge(e.target.checked)} />
-                  </Stack>
-                </Box>
+            <FramePanel className="p-0">
+              <SettingRow
+                icon={<TextFieldsIcon sx={{ fontSize: 20 }} />}
+                iconVariant="soft"
+                iconClassName="text-primary"
+                title="Texto Grande (Conforto Visual)"
+                badge="Acessibilidade"
+                badgeVariant="primary-light"
+                description="Amplia a escala tipográfica de laudos, tabelas e menus para leitura sem esforço."
+                action={
+                  <Switch
+                    checked={textLarge}
+                    onChange={(e) => toggleTextLarge(e.target.checked)}
+                    inputProps={{ 'aria-label': 'Texto Grande' }}
+                  />
+                }
+              />
 
-                {/* Libras */}
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ pr: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>♿ Assistente de Libras</Typography>
-                      <Typography variant="caption" color="text.secondary">Exibe o avatar de Língua Brasileira de Sinais na tela.</Typography>
-                    </Box>
-                    <Switch checked={librasOn} onChange={(e) => toggleLibras(e.target.checked)} />
-                  </Stack>
-                </Box>
+              <SettingRow
+                icon={<SignLanguageIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Assistente de Libras (VLibras)"
+                badge="Inclusão"
+                badgeVariant="info-light"
+                description="Exibe o tradutor interativo da Língua Brasileira de Sinais nas páginas do aplicativo."
+                action={
+                  <Switch
+                    checked={librasOn}
+                    onChange={(e) => toggleLibras(e.target.checked)}
+                    inputProps={{ 'aria-label': 'Assistente de Libras' }}
+                  />
+                }
+              />
 
-                {/* Atividade física */}
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ pr: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>🏃 Card de Atividade Física</Typography>
-                      <Typography variant="caption" color="text.secondary">Exibe passos e metas sincronizados do celular na tela inicial.</Typography>
-                    </Box>
-                    <Switch checked={activityOn} onChange={(e) => toggleActivity(e.target.checked)} />
-                  </Stack>
-                </Box>
+              <SettingRow
+                icon={<DirectionsRunIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Card de Atividade Física na Home"
+                badge="Smartwatch"
+                badgeVariant="success-light"
+                description="Exibe passos, calorias e metas sincronizados do Health Connect / relógio na tela inicial."
+                action={
+                  <Switch
+                    checked={activityOn}
+                    onChange={(e) => toggleActivity(e.target.checked)}
+                    inputProps={{ 'aria-label': 'Card de Atividade Física' }}
+                  />
+                }
+              />
 
-                {/* Modo privacidade */}
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ pr: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>🙈 Modo Privacidade</Typography>
-                      <Typography variant="caption" color="text.secondary">Borra nomes de exames sensíveis em público até o toque.</Typography>
-                    </Box>
-                    <Switch checked={privacyOn} onChange={(e) => setPrivacyOn(e.target.checked)} />
-                  </Stack>
-                </Box>
+              <SettingRow
+                icon={<VisibilityOffOutlinedIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Modo Privacidade em Público"
+                badge="Sigilo"
+                badgeVariant="warning-light"
+                description="Borra automaticamente nomes de exames sensíveis até que você toque neles."
+                action={
+                  <Switch
+                    checked={privacyOn}
+                    onChange={(e) => setPrivacyOn(e.target.checked)}
+                    inputProps={{ 'aria-label': 'Modo Privacidade' }}
+                  />
+                }
+              />
 
-                {/* Conquistas */}
-                <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'action.hover' }}>
-                  <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <Box sx={{ pr: 1 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: 14 }}>🔔 Notificações de Conquistas</Typography>
-                      <Typography variant="caption" color="text.secondary">Avisar no sino quando novos marcos de saúde forem atingidos.</Typography>
-                    </Box>
-                    <Switch checked={achAlerts} onChange={(e) => toggleAchAlerts(e.target.checked)} />
-                  </Stack>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
+              <SettingRow
+                icon={<EmojiEventsOutlinedIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Notificações de Conquistas"
+                description="Avisa no sino quando novos marcos de saúde e consistência forem atingidos."
+                action={
+                  <Switch
+                    checked={achAlerts}
+                    onChange={(e) => toggleAchAlerts(e.target.checked)}
+                    inputProps={{ 'aria-label': 'Notificações de Conquistas' }}
+                  />
+                }
+              />
+            </FramePanel>
+          </Frame>
 
-          {/* Suporte & Avaliação */}
-          <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <CardContent sx={{ p: { xs: 2, sm: 2.5 } }}>
-              <Typography sx={{ fontWeight: 800, fontSize: 15, mb: 1.5 }}>
-                Ajuda & Diagnóstico
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <Button
-                  variant="outlined"
-                  onClick={() => { diagShare().catch(() => {}); }}
-                  startIcon={<BugReportIcon />}
-                  sx={{
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    py: 1,
-                    flex: 1,
-                  }}
-                >
-                  Enviar diagnóstico
-                </Button>
-                <Button
-                  variant="outlined"
-                  onClick={async () => {
-                    try {
-                      const { Browser } = await import('@capacitor/browser');
-                      await Browser.open({ url: PLAY_URL });
-                    } catch { window.open(PLAY_URL, '_blank'); }
-                  }}
-                  startIcon={<StarIcon sx={{ color: '#f59e0b' }} />}
-                  sx={{
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    fontSize: 13,
-                    py: 1,
-                    flex: 1,
-                    borderColor: 'divider',
-                  }}
-                >
-                  Avaliar na Play Store
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Stack>
+          {/* Suporte & Avaliação em padrão ReUI settings-2 */}
+          <Frame>
+            <FrameHeader>
+              <FrameTitle>Ajuda, Diagnóstico & Avaliação</FrameTitle>
+              <FrameDescription>
+                Ferramentas técnicas de suporte e avaliação oficial na loja de aplicativos
+              </FrameDescription>
+            </FrameHeader>
+            <FramePanel className="p-0">
+              <SettingRow
+                icon={<BugReportIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Enviar Diagnóstico Técnico"
+                badge="Suporte"
+                badgeVariant="info-light"
+                description="Gera um resumo técnico seguro para ajudar nossa equipe a resolver eventuais falhas."
+                stackOnMobile
+                action={
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => {
+                      diagShare().catch(() => {});
+                    }}
+                    startIcon={<BugReportIcon />}
+                    sx={{
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      minHeight: 36,
+                      width: { xs: '100%', sm: 'auto' },
+                    }}
+                  >
+                    Enviar diagnóstico
+                  </Button>
+                }
+              />
+
+              <SettingRow
+                icon={<StarIcon sx={{ fontSize: 20, color: '#f59e0b' }} />}
+                iconVariant="soft"
+                iconClassName="text-amber-500"
+                title="Avaliar o Dr. Exame na Google Play"
+                badge="Comunidade"
+                badgeVariant="warning-light"
+                description="Sua avaliação ajuda mais pacientes a conhecerem o Consultório de Vidro."
+                stackOnMobile
+                action={
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={async () => {
+                      try {
+                        const { Browser } = await import('@capacitor/browser');
+                        await Browser.open({ url: PLAY_URL });
+                      } catch {
+                        window.open(PLAY_URL, '_blank');
+                      }
+                    }}
+                    startIcon={<StarIcon sx={{ color: '#f59e0b' }} />}
+                    sx={{
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      minHeight: 36,
+                      width: { xs: '100%', sm: 'auto' },
+                    }}
+                  >
+                    Avaliar na Play Store
+                  </Button>
+                }
+              />
+            </FramePanel>
+          </Frame>
+        </div>
       )}
 
       {/* ─────────────────────────────────────────────────────────────
@@ -890,43 +1041,64 @@ export const ProfilePage = () => {
       )}
 
       {/* ─────────────────────────────────────────────────────────────
-          ABA 4: CONTA, SEGURANÇA & ACESSOS
+          ABA 4: CONTA, SEGURANÇA & ACESSOS (ReUI Frame + SettingRow)
          ───────────────────────────────────────────────────────────── */}
       {activeTab === 'conta' && (
-        <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-          <CardContent sx={{ py: 1.5, px: { xs: 1.5, md: 2 } }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 15, px: 1, pt: 1, pb: 1.5 }}>
-              Central de Conta & Privacidade
-            </Typography>
-            <AccountLinkRow
-              icon={<Diversity3OutlinedIcon />}
-              title="Família e dependentes"
-              desc="Gerencie perfis de filhos, cônjuge e dependentes"
+        <Frame>
+          <FrameHeader>
+            <FrameTitle>Central de Conta, Segurança & Privacidade</FrameTitle>
+            <FrameDescription>
+              Gerencie dependentes, autenticação em duas etapas, LGPD e integrações
+            </FrameDescription>
+          </FrameHeader>
+          <FramePanel className="p-0">
+            <SettingRow
+              icon={<Diversity3OutlinedIcon sx={{ fontSize: 20 }} />}
+              iconVariant="soft"
+              iconClassName="text-primary"
+              title="Família e Dependentes"
+              badge="Multi-perfil"
+              badgeVariant="primary-light"
+              description="Gerencie perfis separados para filhos, cônjuge e pais idosos na mesma conta."
               onClick={() => navigate('/familia')}
+              className="cursor-pointer"
+              action={<ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
             />
-            <Divider sx={{ my: 0.5 }} />
-            <AccountLinkRow
-              icon={<LockResetIcon />}
-              title="Segurança & Senha"
-              desc="Alterar senha, 2FA em duas etapas e biometria"
+            <SettingRow
+              icon={<LockResetIcon sx={{ fontSize: 20 }} />}
+              iconVariant="elevated"
+              title="Segurança, Senha & 2FA"
+              badge="Protegido"
+              badgeVariant="success-light"
+              description="Altere sua senha, configure autenticação em duas etapas (TOTP) e biometria."
               onClick={() => navigate('/seguranca')}
+              className="cursor-pointer"
+              action={<ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
             />
-            <Divider sx={{ my: 0.5 }} />
-            <AccountLinkRow
-              icon={<ShieldIcon />}
+            <SettingRow
+              icon={<ShieldIcon sx={{ fontSize: 20 }} />}
+              iconVariant="elevated"
               title="Privacidade & Dados (LGPD)"
-              desc="Exportar histórico, termos de uso e exclusão de conta"
+              badge="Art. 18"
+              badgeVariant="info-light"
+              description="Exporte o pacote completo (.zip), consulte termos de uso ou exclua sua conta."
               onClick={() => navigate('/privacidade')}
+              className="cursor-pointer"
+              action={<ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
             />
-            <Divider sx={{ my: 0.5 }} />
-            <AccountLinkRow
-              icon={<ApiIcon />}
-              title="API para desenvolvedores"
-              desc="Integre o motor clínico e extrações no seu produto"
+            <SettingRow
+              icon={<ApiIcon sx={{ fontSize: 20 }} />}
+              iconVariant="elevated"
+              title="API para Desenvolvedores"
+              badge="REST / JSON"
+              badgeVariant="outline"
+              description="Integre o motor clínico e a extração estruturada de laudos no seu sistema."
               onClick={() => navigate('/api')}
+              className="cursor-pointer"
+              action={<ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />}
             />
-          </CardContent>
-        </Card>
+          </FramePanel>
+        </Frame>
       )}
     </PageContainer>
   );

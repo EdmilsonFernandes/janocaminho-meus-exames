@@ -97,6 +97,18 @@
       /* Fade-in suave pras páginas (classe .me-fade-in) — microinteração premium. */
       @keyframes meFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
       .me-fade-in { animation: meFadeIn .28s ease both; }
+      /* ─── Impressão (AUD-060) ─────────────────────────────────────────────
+         window.print() imprimia o shell inteiro (appbar, bottom-nav, FABs) e, no
+         tema escuro, texto claro em página branca = ilegível. Aqui: só o conteúdo,
+         sempre tinta escura em fundo branco (ink-friendly). */
+      @media print {
+        html, body { background: #fff !important; }
+        * { color: #111 !important; background: transparent !important; box-shadow: none !important; text-shadow: none !important; }
+        header, nav, .MuiAppBar-root, .MuiBottomNavigation-root, .MuiFab-root,
+        .MuiDrawer-root, .MuiSnackbar-root, .MuiDialog-root, .no-print, [data-noprint] { display: none !important; }
+        main { padding: 0 !important; }
+        button { display: none !important; }
+      }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -160,20 +172,21 @@
       /* Mobile: folga no rodapé do conteúdo pra o FAB do Dr. Exame não cobrir paginação/rodapé. */
       @media (max-width: 599px) { #main-content { padding-bottom: 84px !important; } }
     </style>
-    <script type="module" crossorigin src="./assets/index-D5Emo3ii.js"></script>
+    <script type="module" crossorigin src="./assets/index-PC8ggsYI.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-QTnfLwEv.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-DN5ETN2K.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-CVdV1jqK.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-ui-D7WSPSUq.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-admin-CqrOIXgr.js">
     <link rel="modulepreload" crossorigin href="./assets/dist-CjyBEm7C.js">
-    <link rel="modulepreload" crossorigin href="./assets/esm-BkmDlBU-.js">
-    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-BgtXIgJY.js">
-    <link rel="modulepreload" crossorigin href="./assets/DrExame-BfYnj3N4.js">
-    <link rel="modulepreload" crossorigin href="./assets/GradientButton-CjerUg8j.js">
-    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-DjESH_Yt.js">
-    <link rel="modulepreload" crossorigin href="./assets/config-BjbnzQH-.js">
-    <link rel="modulepreload" crossorigin href="./assets/theme-Cp4y1TmN.js">
+    <link rel="modulepreload" crossorigin href="./assets/esm-C_qUAxT0.js">
+    <link rel="modulepreload" crossorigin href="./assets/vendor-charts-CdBttptm.js">
+    <link rel="modulepreload" crossorigin href="./assets/DrExame-DRiFYCNe.js">
+    <link rel="modulepreload" crossorigin href="./assets/GradientButton-9a99fA-Q.js">
+    <link rel="modulepreload" crossorigin href="./assets/CreditRewardFx-BlnGUhCf.js">
+    <link rel="modulepreload" crossorigin href="./assets/config-DUQn7CRa.js">
+    <link rel="modulepreload" crossorigin href="./assets/useCredits-BRP1Wr1u.js">
+    <link rel="modulepreload" crossorigin href="./assets/theme-DG_ACOoH.js">
     <link rel="modulepreload" crossorigin href="./assets/haptic-pAnRyHYU.js">
-    <link rel="stylesheet" crossorigin href="./assets/index-BwV4ln53.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-4WmbquA3.css">
   </head>
   <body>
     <noscript>

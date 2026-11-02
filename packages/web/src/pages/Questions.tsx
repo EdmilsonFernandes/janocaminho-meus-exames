@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslate } from 'react-admin';
 import {
   Box, Typography, Card, CardContent, Stack, Chip, Avatar, CircularProgress,
@@ -21,6 +21,24 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { PageSkeleton } from '../components/PageSkeleton';
 import { snackbar } from '../components/ConfirmDialog';
 import { bumpCredits, notifyInsufficientCredits } from '../utils/credits-events';
+import { Badge } from '@/components/reui/badge';
+import {
+  Frame,
+  FrameFooter,
+  FrameHeader,
+  FramePanel,
+} from '@/components/reui/frame';
+import {
+  AssistantReplyActions,
+  Bubble,
+  BubbleContent,
+  Message,
+  MessageAvatar,
+  MessageContent,
+  MessageFooter,
+  MessageHeader,
+} from '@/components/reui/message';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const H = () => ({ Authorization: `Bearer ${token()}` });
 const TEAL = '#178f89';
@@ -31,7 +49,9 @@ const TEAL = '#178f89';
  * a orientação enviada pelo médico, com thread completa em modal.
  */
 export const QuestionsPage = () => {
+  useReuiThemeSync();
   const translate = useTranslate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<any[]>([]);
   const [shares, setShares] = useState<any[]>([]);
@@ -50,6 +70,21 @@ export const QuestionsPage = () => {
   const [doctorFilter, setDoctorFilter] = useState<string>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  // Permite encaminhar dúvida direto do Chat IA (?ask=...)
+  useEffect(() => {
+    const prefill = searchParams.get('ask');
+    if (prefill && !loading) {
+      const firstDoc = shares.find((s: any) => s.doctor?.id || s.doctorId);
+      if (firstDoc) {
+        setAskDoc(firstDoc.doctor?.id ?? firstDoc.doctorId ?? '');
+        setAskText(prefill.slice(0, 1000));
+        setAskOpen(true);
+      }
+      searchParams.delete('ask');
+      setSearchParams(searchParams, { replace: true });
+    }
+  }, [searchParams, loading, shares, setSearchParams]);
 
   const load = async () => {
     setLoading(true);
@@ -324,184 +359,151 @@ export const QuestionsPage = () => {
                           })()
                         : null;
 
-                      return (
-                        <Card
-                          key={q.id}
-                          variant="outlined"
-                          sx={{
-                            borderRadius: '16px',
-                            bgcolor: (t) => t.palette.mode === 'dark' ? 'background.paper' : '#ffffff',
-                            borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-                            boxShadow: '0 2px 10px rgba(0,0,0,0.03)',
-                            overflow: 'hidden',
-                            mb: 2,
-                          }}
-                        >
-                          {/* Header da Thread */}
-                          <Box
-                            sx={{
-                              p: { xs: 1.5, sm: 2 },
-                              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : '#f8fafc',
-                              borderBottom: '1px solid',
-                              borderColor: 'divider',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                              flexWrap: 'wrap',
-                              gap: 1,
-                            }}
-                          >
-                            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-                              📅 Pergunta realizada em <strong>{new Date(q.createdAt).toLocaleDateString('pt-BR')} às {new Date(q.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</strong>
-                              {doc?.name ? ` • Destinatário: Dr. ${doc.name}` : ''}
-                            </Typography>
+                      const qTimeStr = new Date(q.createdAt).toLocaleTimeString('pt-BR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      });
+                      const docTimeStr = lastDoctorObj?.createdAt
+                        ? new Date(lastDoctorObj.createdAt).toLocaleString('pt-BR', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : '';
+                      const cleanDocTitle = doc?.name
+                        ? doc.name.toLowerCase().startsWith('dr')
+                          ? doc.name
+                          : `Dr(a). ${doc.name}`
+                        : 'Médico';
 
-                            <Stack direction="row" spacing={1} alignItems="center">
+                      return (
+                        <Frame key={q.id} spacing="sm" className="mb-3">
+                          <FrameHeader className="flex-row flex-wrap items-center justify-between gap-2">
+                            <span className="text-muted-foreground text-xs font-medium">
+                              📅 Pergunta de{' '}
+                              <strong className="text-foreground font-semibold tabular-nums">
+                                {new Date(q.createdAt).toLocaleDateString('pt-BR')} às {qTimeStr}
+                              </strong>
+                              {doc?.name ? ` • Para ${cleanDocTitle}` : ''}
+                            </span>
+
+                            <div className="flex flex-wrap items-center gap-1.5">
                               {biomarkerText && (
-                                <Chip
-                                  size="small"
-                                  label={`🩸 ${biomarkerText}`}
-                                  sx={{
-                                    height: 22,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    bgcolor: 'rgba(239, 68, 68, 0.08)',
-                                    color: '#b91c1c',
-                                    border: '1px solid rgba(239, 68, 68, 0.2)',
-                                  }}
-                                />
+                                <Badge variant="destructive-light" size="sm">
+                                  🩸 {biomarkerText}
+                                </Badge>
                               )}
                               {timeElapsed ? (
-                                <Chip
-                                  size="small"
-                                  label={`✓ ${timeElapsed}`}
-                                  sx={{
-                                    height: 22,
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    bgcolor: 'rgba(16, 185, 129, 0.12)',
-                                    color: '#065f46',
-                                  }}
-                                />
+                                <Badge variant="success-light" size="sm">
+                                  ✓ {timeElapsed}
+                                </Badge>
                               ) : (
                                 <QuestionStatusBadge status={answered ? 'answered' : 'open'} />
                               )}
-                            </Stack>
-                          </Box>
+                            </div>
+                          </FrameHeader>
 
-                          {/* Corpo da Thread */}
-                          <CardContent sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            {/* Balão 1: Pergunta do Paciente */}
-                            <Box
+                          <FramePanel className="flex flex-col gap-4">
+                            {/* Mensagem 1 (ReUI c-message-3): Pergunta enviada pelo Paciente */}
+                            <Message align="end">
+                              <MessageContent>
+                                <MessageHeader className="justify-end">
+                                  <span className="text-foreground font-semibold">{userName} (Você)</span>
+                                  <span
+                                    aria-hidden="true"
+                                    className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
+                                  />
+                                  <span className="tabular-nums">{qTimeStr}</span>
+                                </MessageHeader>
+                                <Bubble variant="default">
+                                  <BubbleContent className="whitespace-pre-wrap">
+                                    {questionText}
+                                  </BubbleContent>
+                                </Bubble>
+                                <MessageFooter>
+                                  <span>Enviada ao portal médico</span>
+                                </MessageFooter>
+                              </MessageContent>
+                            </Message>
+
+                            {/* Mensagem 2 (ReUI c-message-3 + c-message-4): Resposta Clínica do Médico */}
+                            {answered && doctorMsg ? (
+                              <Message align="start">
+                                <MessageAvatar>
+                                  <Avatar
+                                    src={docPhoto}
+                                    sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}
+                                  >
+                                    {(doc?.name || 'M').charAt(0)}
+                                  </Avatar>
+                                </MessageAvatar>
+                                <MessageContent className="max-w-[92%] sm:max-w-[85%]">
+                                  <MessageHeader>
+                                    <span className="text-foreground font-bold">{cleanDocTitle}</span>
+                                    {crmText && (
+                                      <Badge variant="primary-light" size="xs" className="font-mono">
+                                        {crmText}
+                                      </Badge>
+                                    )}
+                                    {docTimeStr && (
+                                      <>
+                                        <span
+                                          aria-hidden="true"
+                                          className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
+                                        />
+                                        <span className="tabular-nums">{docTimeStr}</span>
+                                      </>
+                                    )}
+                                  </MessageHeader>
+
+                                  <Bubble variant="clinical">
+                                    <BubbleContent className="space-y-2.5">
+                                      <p className="m-0 whitespace-pre-wrap">{doctorMsg}</p>
+
+                                      {conductText && (
+                                        <div className="flex items-start gap-2 rounded-xl border border-sky-500/25 bg-sky-500/10 p-2.5 text-xs text-sky-900 dark:text-sky-200">
+                                          <MedicalServicesOutlinedIcon
+                                            sx={{ fontSize: 16, color: '#0284c7', flexShrink: 0, mt: 0.1 }}
+                                          />
+                                          <span>
+                                            <strong>Conduta recomendada:</strong> {conductText}
+                                          </span>
+                                        </div>
+                                      )}
+                                    </BubbleContent>
+                                  </Bubble>
+
+                                  <AssistantReplyActions content={doctorMsg} />
+                                </MessageContent>
+                              </Message>
+                            ) : (
+                              <div className="flex items-center gap-2 rounded-xl border border-dashed border-amber-500/35 bg-amber-500/10 px-3.5 py-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+                                <HourglassEmptyRoundedIcon sx={{ fontSize: 16, color: '#d97706' }} />
+                                <span>
+                                  Aguardando o médico responder. Você será notificado assim que houver retorno no aplicativo.
+                                </span>
+                              </div>
+                            )}
+                          </FramePanel>
+
+                          <FrameFooter className="flex-row items-center justify-end">
+                            <Button
+                              size="small"
+                              onClick={() => openThread(q)}
                               sx={{
-                                p: { xs: 1.75, sm: 2 },
-                                borderRadius: '12px',
-                                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.06)' : '#f0fdf4',
-                                border: '1px solid',
-                                borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(16, 185, 129, 0.2)' : '#bbf7d0',
-                                borderLeft: '4px solid #16a34a',
-                                maxWidth: { xs: '100%', sm: '92%' },
-                                alignSelf: 'flex-start',
+                                fontSize: 12.5,
+                                fontWeight: 700,
+                                color: TEAL,
+                                textTransform: 'none',
+                                py: 0.25,
+                                '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
                               }}
                             >
-                              <Typography sx={{ fontSize: 11.5, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', color: '#15803d', mb: 0.75, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <ChatBubbleOutlineOutlinedIcon sx={{ fontSize: 14 }} />
-                                {userName} (Você) perguntou:
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: (t) => t.palette.mode === 'dark' ? '#dcfce7' : '#14532d', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 13.5 }}>
-                                {questionText}
-                              </Typography>
-                            </Box>
-
-                            {/* Balão 2: Resposta do Médico */}
-                            {answered && doctorMsg ? (
-                              <Box
-                                sx={{
-                                  p: { xs: 1.75, sm: 2 },
-                                  borderRadius: '12px',
-                                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.03)' : '#f8fafc',
-                                  border: '1px solid',
-                                  borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0',
-                                  borderLeft: '4px solid #0f766e',
-                                  ml: { xs: 1, sm: 3 },
-                                  position: 'relative',
-                                }}
-                              >
-                                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} sx={{ mb: 1 }}>
-                                  <Stack direction="row" spacing={1} alignItems="center">
-                                    <Avatar
-                                      src={docPhoto}
-                                      sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}
-                                    >
-                                      {(doc?.name || 'M').charAt(0)}
-                                    </Avatar>
-                                    <Box>
-                                      <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
-                                        {doc?.name ? (doc.name.toLowerCase().startsWith('dr') ? doc.name : `Dr. ${doc.name}`) : 'Médico'}
-                                      </Typography>
-                                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                                        {doc?.specialty ? `${doc.specialty} · ` : ''}
-                                        {lastDoctorObj?.createdAt ? new Date(lastDoctorObj.createdAt).toLocaleDateString('pt-BR') : ''}
-                                      </Typography>
-                                    </Box>
-                                  </Stack>
-                                  {crmText && (
-                                    <Chip size="small" label={crmText} sx={{ height: 20, fontSize: 10.5, fontWeight: 700, fontFamily: 'monospace', bgcolor: 'action.hover' }} />
-                                  )}
-                                </Stack>
-
-                                <Typography variant="body2" sx={{ color: 'text.primary', lineHeight: 1.65, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: 13.5 }}>
-                                  {doctorMsg}
-                                </Typography>
-
-                                {conductText && (
-                                  <Box
-                                    sx={{
-                                      mt: 1.5,
-                                      p: 1.25,
-                                      borderRadius: '8px',
-                                      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(2, 132, 199, 0.12)' : '#eff6ff',
-                                      border: '1px solid',
-                                      borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(2, 132, 199, 0.25)' : '#dbeafe',
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 1,
-                                    }}
-                                  >
-                                    <MedicalServicesOutlinedIcon sx={{ fontSize: 17, color: '#0284c7', flexShrink: 0 }} />
-                                    <Typography variant="caption" sx={{ color: (t) => t.palette.mode === 'dark' ? '#bae6fd' : '#1e40af', fontWeight: 600, fontSize: 12 }}>
-                                      <strong>Conduta:</strong> {conductText}
-                                    </Typography>
-                                  </Box>
-                                )}
-                              </Box>
-                            ) : (
-                              <Box sx={{ p: 1.5, borderRadius: '8px', bgcolor: 'rgba(245, 158, 11, 0.08)', border: '1px dashed rgba(245, 158, 11, 0.3)', display: 'flex', alignItems: 'center', gap: 1, ml: { xs: 0, sm: 2 } }}>
-                                <HourglassEmptyRoundedIcon sx={{ fontSize: 16, color: '#d97706' }} />
-                                <Typography variant="caption" sx={{ color: '#b45309', fontWeight: 600 }}>
-                                  Aguardando o médico responder. Você será notificado assim que houver retorno no aplicativo.
-                                </Typography>
-                              </Box>
-                            )}
-
-                            {/* Rodapé: Botão Ver conversa completa */}
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', pt: 0.5 }}>
-                              <Button
-                                size="small"
-                                onClick={() => openThread(q)}
-                                sx={{
-                                  fontSize: 12.5,
-                                  fontWeight: 700,
-                                  color: TEAL,
-                                  textTransform: 'none',
-                                  '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' },
-                                }}
-                              >
-                                Ver conversa completa ›
-                              </Button>
-                            </Box>
-                          </CardContent>
-                        </Card>
+                              Ver conversa completa ›
+                            </Button>
+                          </FrameFooter>
+                        </Frame>
                       );
                     })}
                   </Stack>
@@ -512,7 +514,7 @@ export const QuestionsPage = () => {
         </Stack>
       )}
 
-      {/* Modal da Thread Completa */}
+      {/* Modal da Thread Completa (ReUI c-message-3 & c-message-6) */}
       <Dialog
         open={!!open}
         onClose={() => setOpen(null)}
@@ -543,9 +545,16 @@ export const QuestionsPage = () => {
             {(open?.doctor?.name || 'M').charAt(0)}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {open?.doctor?.name || 'Médico'}
-            </Typography>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <Typography sx={{ fontWeight: 800, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {open?.doctor?.name || 'Médico'}
+              </Typography>
+              {open?.doctor?.crm && (
+                <Badge variant="primary-light" size="xs" className="font-mono">
+                  CRM {open.doctor.crm}
+                </Badge>
+              )}
+            </div>
             <Typography variant="caption" color="text.secondary">
               {open?.doctor?.specialty}{open?.status === 'answered' ? ' · Respondida' : ' · Aguardando resposta'}
             </Typography>
@@ -556,15 +565,31 @@ export const QuestionsPage = () => {
           {threadLoading ? (
             <Box sx={{ textAlign: 'center', py: 8 }}><CircularProgress size={32} sx={{ color: TEAL }} /></Box>
           ) : (
-            <Stack spacing={2}>
+            <div className="flex flex-col gap-4">
               {/* Card da pergunta se não houver nas messages */}
               {thread.length === 0 && open && (
-                <Box sx={{ p: 2, borderRadius: '16px', bgcolor: (t) => t.palette.mode === 'dark' ? '#1e293b' : '#f1f5f9' }}>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', display: 'block', mb: 0.5 }}>
-                    Sua pergunta original · {new Date(open.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </Typography>
-                  <Typography variant="body1">{open.subject}</Typography>
-                </Box>
+                <Message align="end">
+                  <MessageContent>
+                    <MessageHeader className="justify-end">
+                      <span className="text-foreground font-semibold">Sua pergunta original</span>
+                      <span
+                        aria-hidden="true"
+                        className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
+                      />
+                      <span className="tabular-nums">
+                        {new Date(open.createdAt).toLocaleString('pt-BR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
+                    </MessageHeader>
+                    <Bubble variant="default">
+                      <BubbleContent className="whitespace-pre-wrap">{open.subject}</BubbleContent>
+                    </Bubble>
+                  </MessageContent>
+                </Message>
               )}
 
               {thread.map((m: any, i: number) => {
@@ -572,46 +597,65 @@ export const QuestionsPage = () => {
                 const isSys = m.authorRole === 'system';
                 if (isSys) {
                   return (
-                    <Box key={i} sx={{ textAlign: 'center', my: 1 }}>
-                      <Box sx={{ display: 'inline-block', px: 2, py: 0.75, borderRadius: '999px', bgcolor: 'rgba(32,178,170,.08)', color: 'text.secondary', fontSize: 12, fontWeight: 600 }}>
+                    <div key={i} className="my-1 flex justify-center">
+                      <Badge variant="primary-light" size="default" radius="full">
                         {m.body}
-                      </Box>
-                    </Box>
+                      </Badge>
+                    </div>
                   );
                 }
-                const av = isDoc
-                  ? <Avatar src={open?.doctor?.photoUrl ? doctorPhotoUrl(open?.doctor?.id, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: TEAL, fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(open?.doctor?.name || 'M').charAt(0)}</Avatar>
-                  : <Avatar src={open?.patientId ? photoUrlFor(open.patientId, 0) : undefined} sx={{ width: 36, height: 36, bgcolor: '#64748b', fontSize: 14, fontWeight: 700, flexShrink: 0 }}>{(userName || 'P').charAt(0)}</Avatar>;
+
+                // c-message-6: agrupamento de mensagens consecutivas do mesmo autor
+                const prevSame = i > 0 && thread[i - 1]?.authorRole === m.authorRole;
+                const nextSame = i < thread.length - 1 && thread[i + 1]?.authorRole === m.authorRole;
+                const timeStr = new Date(m.createdAt).toLocaleString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+
+                const av = isDoc ? (
+                  <Avatar
+                    src={open?.doctor?.photoUrl ? doctorPhotoUrl(open?.doctor?.id, 0) : undefined}
+                    sx={{ width: 32, height: 32, bgcolor: TEAL, fontSize: 13, fontWeight: 700 }}
+                  >
+                    {(open?.doctor?.name || 'M').charAt(0)}
+                  </Avatar>
+                ) : (
+                  <Avatar
+                    src={open?.patientId ? photoUrlFor(open.patientId, 0) : undefined}
+                    sx={{ width: 32, height: 32, bgcolor: '#64748b', fontSize: 13, fontWeight: 700 }}
+                  >
+                    {(userName || 'P').charAt(0)}
+                  </Avatar>
+                );
 
                 return (
-                  <Box key={i} sx={{ display: 'flex', justifyContent: isDoc ? 'flex-start' : 'flex-end', gap: 1, alignItems: 'flex-start' }}>
-                    {isDoc && av}
-                    <Box
-                      sx={{
-                        maxWidth: { xs: '84%', sm: '76%' },
-                        p: 1.5,
-                        px: 2,
-                        borderRadius: '16px',
-                        bgcolor: (t) => isDoc
-                          ? (t.palette.mode === 'dark' ? '#14312e' : '#e0f2f1')
-                          : (t.palette.mode === 'dark' ? '#1e293b' : '#f1f5f9'),
-                        border: '1px solid',
-                        borderColor: isDoc ? 'rgba(32,178,170,.35)' : 'transparent',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
-                      }}
-                    >
-                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, color: isDoc ? TEAL : 'text.secondary', mb: 0.5, fontSize: 11.5 }}>
-                        {isDoc ? `Dr. ${open?.doctor?.name || 'Médico'}` : 'Você'} · {new Date(m.createdAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </Typography>
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.5, wordBreak: 'break-word', fontSize: 14 }}>
-                        {m.body}
-                      </Typography>
-                    </Box>
-                    {!isDoc && av}
-                  </Box>
+                  <Message key={i} align={isDoc ? 'start' : 'end'}>
+                    <MessageAvatar>{!nextSame ? av : null}</MessageAvatar>
+                    <MessageContent>
+                      {!prevSame && (
+                        <MessageHeader className={!isDoc ? 'justify-end' : undefined}>
+                          <span className="text-foreground font-semibold">
+                            {isDoc ? `Dr(a). ${open?.doctor?.name || 'Médico'}` : 'Você'}
+                          </span>
+                          <span
+                            aria-hidden="true"
+                            className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
+                          />
+                          <span className="tabular-nums">{timeStr}</span>
+                        </MessageHeader>
+                      )}
+                      <Bubble variant={isDoc ? 'clinical' : 'default'}>
+                        <BubbleContent className="whitespace-pre-wrap">{m.body}</BubbleContent>
+                      </Bubble>
+                      {isDoc && !nextSame && <AssistantReplyActions content={m.body} />}
+                    </MessageContent>
+                  </Message>
                 );
               })}
-            </Stack>
+            </div>
           )}
         </Box>
       </Dialog>

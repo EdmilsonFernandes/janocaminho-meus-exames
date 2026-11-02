@@ -15,7 +15,6 @@ import RouteIcon from '@mui/icons-material/Route';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import TimerIcon from '@mui/icons-material/Timer';
 import BedtimeIcon from '@mui/icons-material/Bedtime';
-import AddIcon from '@mui/icons-material/Add';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, token } from '../config';
@@ -26,6 +25,10 @@ import { AppCard } from '../components/AppCard';
 import { Sparkline } from '../components/Sparkline';
 import { STEPS_GOAL } from '../utils/activityStats';
 import { tealText } from '../theme';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import { Frame, FramePanel } from '@/components/reui/frame';
+import { PulseIcon } from '@/components/reui/icons';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 /** Ícones (sem emoji — leitor de tela lia "coração vermelho" e a linguagem do app é ícone). */
 export const TYPES = [
@@ -47,6 +50,7 @@ export const TYPES = [
 const TILE_TYPES = TYPES.filter((t) => t.v !== 'WEIGHT' && t.v !== 'OTHER');
 
 export const MeasurementsPage = () => {
+  useReuiThemeSync();
   const translate = useTranslate();
   const notify = useNotify();
   const navigate = useNavigate();
@@ -147,55 +151,56 @@ export const MeasurementsPage = () => {
 
   return (
     <PageContainer width="content" sx={{ pb: { xs: 10, sm: 5 } }}>
-      <PageHeader icon={<MonitorWeightIcon />} title={translate('page.measurements')} />
+      <PageHeader icon={<PulseIcon className="size-6" />} title={translate('page.measurements')} />
 
       {/* SEÇÃO 1: PESO (se tiver dados, aparece em destaque) */}
       {hasWeight && (
-        <Card sx={{
-          mb: 2.5, borderRadius: '16px', overflow: 'hidden',
-          background: (t) => t.palette.mode === 'dark'
-            ? 'linear-gradient(135deg, rgba(20,35,35,0.85), rgba(15,25,25,0.75))'
-            : 'linear-gradient(135deg, rgba(32,178,170,.08), rgba(255,255,255,.9))',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          border: '1px solid', borderColor: 'rgba(32,178,170,.22)',
-          boxShadow: '0 8px 24px rgba(32,178,170,0.06)'
-        }}>
-          <CardContent>
-            <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
-              <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
-              <Typography variant="h6">Peso Corporal</Typography>
-            </Stack>
-            <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
-              <Stack direction="row" alignItems="baseline" spacing={0.5}>
-                <Typography sx={{ fontWeight: 800, fontSize: 32, color: (t) => tealText(t.palette.mode), lineHeight: 1 }}>{latestWeight.value}</Typography>
-                <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
+        <div className="dx-island mb-5">
+          <Frame>
+            <FramePanel className="p-4 sm:p-5">
+              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+                <Stack direction="row" alignItems="center" spacing={0.75}>
+                  <MonitorWeightIcon sx={{ fontSize: 18, color: (t) => tealText(t.palette.mode) }} />
+                  <Typography variant="h6" sx={{ fontWeight: 700, fontSize: 16 }}>Peso Corporal</Typography>
+                </Stack>
+                <ReuiBadge variant="primary-light" size="xs">Tendência</ReuiBadge>
               </Stack>
-              {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
-                const up = Number(latestWeight.value) > Number(prevWeight.value);
-                const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
-                return <Chip size="small" label={`${up ? '↑' : '↓'} ${diff} kg`} sx={{ height: 22, fontWeight: 700, bgcolor: up ? 'rgba(234,88,12,.12)' : 'rgba(22,163,74,.12)', color: up ? '#9a3412' : '#166534' }} />;
-              })()}
-              <Sparkline points={[...weights].reverse().slice(-10).map((m) => ({ value: Number(m.value), date: m.measuredAt }))} width={96} height={32} />
-            </Stack>
-            <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
-            {weights.length > 1 && (
-              <Stack spacing={0.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
-                {weights.slice(1, 4).map((m) => (
-                  <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center">
-                    <Typography variant="body2" color="text.secondary">{fmtDate(m.measuredAt)}</Typography>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                      <Typography sx={{ fontWeight: 700 }}>{m.value} kg</Typography>
-                      <IconButton size="small" onClick={() => del(m.id)} sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
+              <Stack direction="row" alignItems="center" spacing={1.5} useFlexGap flexWrap="wrap" sx={{ mb: 0.5 }}>
+                <Stack direction="row" alignItems="baseline" spacing={0.5}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 32, color: (t) => tealText(t.palette.mode), lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{latestWeight.value}</Typography>
+                  <Typography component="span" sx={{ fontSize: 14, color: 'text.secondary', fontWeight: 600 }}>kg</Typography>
+                </Stack>
+                {prevWeight && Number(latestWeight.value) !== Number(prevWeight.value) && (() => {
+                  const up = Number(latestWeight.value) > Number(prevWeight.value);
+                  const diff = Math.abs(Number(latestWeight.value) - Number(prevWeight.value)).toLocaleString('pt-BR');
+                  return (
+                    <ReuiBadge variant={up ? 'warning-light' : 'success-light'} size="sm">
+                      {up ? '↑' : '↓'} {diff} kg
+                    </ReuiBadge>
+                  );
+                })()}
+                <Sparkline points={[...weights].reverse().slice(-10).map((m) => ({ value: Number(m.value), date: m.measuredAt }))} width={110} height={34} color="#20b2aa" />
+              </Stack>
+              <Typography variant="caption" color="text.secondary">Última medição em {fmtDate(latestWeight.measuredAt)}</Typography>
+              {weights.length > 1 && (
+                <Stack spacing={0.5} sx={{ mt: 1.5, pt: 1.5, borderTop: '1px dashed', borderColor: 'divider' }}>
+                  {weights.slice(1, 4).map((m) => (
+                    <Stack key={m.id} direction="row" justifyContent="space-between" alignItems="center">
+                      <Typography variant="body2" color="text.secondary">{fmtDate(m.measuredAt)}</Typography>
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Typography sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{m.value} kg</Typography>
+                        <IconButton size="small" onClick={() => del(m.id)} sx={{ p: 0.5 }}><DeleteIcon fontSize="small" /></IconButton>
+                      </Stack>
                     </Stack>
-                  </Stack>
-                ))}
-              </Stack>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </Stack>
+              )}
+            </FramePanel>
+          </Frame>
+        </div>
       )}
 
-      {/* SEÇÃO 2: MÉTRICAS ATIVAS COM DADOS (HEALTH CONNECT & SENSORES) */}
+      {/* SEÇÃO 2: MÉTRICAS ATIVAS COM DADOS (HEALTH CONNECT & SENSORES — ReUI card-29 + chart-15) */}
       {activeTypes.length > 0 && (
         <Box sx={{ mb: 3 }}>
           <Typography
@@ -242,7 +247,9 @@ export const MeasurementsPage = () => {
                       <Box aria-hidden="true" sx={{ display: 'inline-flex', color: t.color, flexShrink: 0 }}>{t.icon}</Box>
                       <Typography noWrap sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>{t.l}</Typography>
                     </Stack>
-                    <Chip size="small" label="Ao Vivo" sx={{ height: 18, fontSize: 9.5, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#065f46' }} />
+                    <div className="dx-island shrink-0">
+                      <ReuiBadge variant="success-light" size="xs">Ao Vivo</ReuiBadge>
+                    </div>
                   </Stack>
 
                   <Typography noWrap sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 22, sm: 26 }, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums', my: 0.5 }}>
@@ -251,8 +258,8 @@ export const MeasurementsPage = () => {
 
                   <Typography noWrap sx={{ fontSize: 11.5, color: 'text.secondary', minHeight: 14 }}>{tileSub(t, d)}</Typography>
 
-                  <Box sx={{ mt: 'auto', minHeight: 28, display: 'flex', alignItems: 'flex-end' }}>
-                    {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={110} height={28} />}
+                  <Box sx={{ mt: 'auto', minHeight: 32, display: 'flex', alignItems: 'flex-end', pt: 0.5 }}>
+                    {d && d.series7.length >= 2 && <Sparkline points={d.series7} width={118} height={30} color={t.color} />}
                   </Box>
                 </AppCard>
               );
