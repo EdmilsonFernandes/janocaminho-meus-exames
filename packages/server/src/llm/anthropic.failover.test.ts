@@ -152,13 +152,20 @@ describe('AnthropicAdapter failover', () => {
     expect(registry.calls.get(KEY_B)).toBeUndefined(); // backup nem foi chamado
   });
 
-  it('TODAS em 429 → lança o erro (rota reembolsa o crédito)', async () => {
-    registry.mode.set(KEY_A, 'rate');
-    registry.mode.set(KEY_B, 'rate');
-    const adapter = new AnthropicAdapter({ apiKey: `${KEY_A},${KEY_B}` });
-    await expect(adapter.complete(req)).rejects.toThrow('429');
-    expect(registry.calls.get(KEY_A)).toBe(1);
-    expect(registry.calls.get(KEY_B)).toBe(1); // tentou as duas antes de desistir
+  it('TODAS em 429 → lança o erro só APÓS as rodadas de backoff (02/11: rate por minuto)', async () => {
+    vi.useFakeTimers();
+    try {
+      registry.mode.set(KEY_A, 'rate');
+      registry.mode.set(KEY_B, 'rate');
+      const adapter = new AnthropicAdapter({ apiKey: `${KEY_A},${KEY_B}` });
+      const p = expect(adapter.complete(req)).rejects.toThrow('429');
+      await vi.advanceTimersByTimeAsync(0);      // rodada 1 (2 chaves)
+      await vi.advanceTimersByTimeAsync(8_000);  // rodada 2
+      await vi.advanceTimersByTimeAsync(20_000); // rodada 3 → esgota, rejeita
+      await p;
+      expect((registry.calls.get(KEY_A) ?? 0)).toBeGreaterThanOrEqual(1);
+      expect((registry.calls.get(KEY_B) ?? 0)).toBeGreaterThanOrEqual(1);
+    } finally { vi.useRealTimers(); }
   });
 
   it('glm-5.x: pede thinking DISABLED (velocidade + orçamento); glm-4.6: NÃO envia o param', async () => {
@@ -171,5 +178,44 @@ describe('AnthropicAdapter failover', () => {
     const a4 = new AnthropicAdapter({ apiKey: KEY_A, model: 'glm-4.6' });
     await a4.complete(req);
     expect(registry.lastParams.thinking).toBeUndefined(); // param era documentado como quebrado no relay p/ 4.x
+  });
+});
+
+describe('rodadas com backoff (incidente 429-1302, 02/11)', () => {
+  const req = { messages: [{ role: 'user', content: 'ping' }], maxTokens: 10 } as any;
+  it('TODAS em 429 → espera 8s e a rodada 2 entrega (rate é por minuto; usuário vê pensando)', async () => {
+    vi.useFakeTimers();
+    try {
+      registry.mode.set(KEY_A, 'rate');
+      registry.mode.set(KEY_B, 'rate');
+      const adapter = new AnthropicAdapter({ apiKey: `${KEY_A},${KEY_B}` });
+      const p = adapter.complete(req);
+      const settled = p.then(() => 'ok', () => 'err');
+      // a chave B "se recupera" 4s dentro da janela de backoff (novo minuto do relay)
+      setTimeout(() => registry.mode.set(KEY_B, 'ok'), 4_000);
+      await vi.advanceTimersByTimeAsync(0); // rodada 1 falha (microtasks das 2 chaves)
+      await vi.advanceTimersByTimeAsync(9_000); // backoff 8s vence → rodada 2 acha B ok
+      expect(await settled).toBe('ok');
+      expect(registry.calls.get(KEY_B)).toBeGreaterThanOrEqual(2); // retentou B
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('backoff é abortável: signal já abortado → desiste sem rodada extra', async () => {
+    vi.useFakeTimers();
+    try {
+      registry.mode.set(KEY_A, 'rate');
+      const ac = new AbortController();
+      ac.abort();
+      const adapter = new AnthropicAdapter({ apiKey: KEY_A });
+      const p = adapter.complete({ ...req, signal: ac.signal });
+      const settled = p.then(() => 'ok', () => 'err');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(await settled).toBe('err'); // não fica 8s pendurado após abort
+      expect(registry.calls.get(KEY_A)).toBe(1); // só a rodada 1
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

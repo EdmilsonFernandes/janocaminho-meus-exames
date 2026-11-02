@@ -59,6 +59,16 @@ export function classifyError(e: unknown): { rotate: boolean; cooldownMs: number
   return { rotate: false, cooldownMs: 0 };
 }
 
+/** Espera abortável (rodadas de retry do 429): false se o signal abortou (usuário desistiu). */
+function sleepAbortable(ms: number, signal?: AbortSignal): Promise<boolean> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) return resolve(false);
+    const t = setTimeout(() => { signal?.removeEventListener('abort', onAbort); resolve(true); }, ms);
+    const onAbort = () => { clearTimeout(t); resolve(false); };
+    signal?.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 export class AnthropicAdapter implements LlmProvider {
   name = 'anthropic';
   private keys: string[];
@@ -107,18 +117,32 @@ export class AnthropicAdapter implements LlmProvider {
   }
 
   async stream(req: LlmRequest): Promise<LlmStream> {
-    const order = this.pickOrder();
+    // RODADAS com backoff (dono 02/11, incidente 429-1302): o rate limit do relay é POR
+    // MINUTO — cada tentativa imediata consome a quota e perpetua o erro ("A IA não
+    // respondeu" na cara do usuário). Agora: rodada 1 imediata (failover de chave como
+    // antes) e, se TODAS 429/5xx, esperamos e rodamos de novo — o chat mantém o stream
+    // aberto, então o usuário só vê o "pensando" um pouco mais longo. Desiste (e o
+    // crédito é devolvido) só depois da última rodada.
+    const ROUNDS = [0, 8_000, 20_000];
     let lastErr: unknown;
-    for (const key of order) {
-      try {
-        return await this.attempt(this.clientFor(key), req);
-      } catch (e) {
-        lastErr = e;
-        const c = classifyError(e);
-        if (!c.rotate) throw e; // erro do request/modelo — trocar chave não resolve
-        const until = Date.now() + c.cooldownMs;
-        cooldowns.set(keyId(key), until);
-        console.warn(`[llm] chave ••${keyId(key)} em cooldown até ${new Date(until).toISOString()} (${(e as any)?.status ?? '?'}) — alternando p/ backup`);
+    for (let round = 0; round < ROUNDS.length; round++) {
+      if (ROUNDS[round] > 0) {
+        const ok = await sleepAbortable(ROUNDS[round], req.signal);
+        if (!ok) throw lastErr; // usuário fechou/abortou durante a espera
+        console.warn(`[llm] rate limit em todas as chaves — rodada ${round + 1}/${ROUNDS.length} após ${ROUNDS[round] / 1000}s de espera (usuário vê 'pensando')`);
+      }
+      const order = this.pickOrder();
+      for (const key of order) {
+        try {
+          return await this.attempt(this.clientFor(key), req);
+        } catch (e) {
+          lastErr = e;
+          const c = classifyError(e);
+          if (!c.rotate) throw e; // erro do request/modelo — trocar chave não resolve
+          const until = Date.now() + c.cooldownMs;
+          cooldowns.set(keyId(key), until);
+          console.warn(`[llm] chave ••${keyId(key)} em cooldown até ${new Date(until).toISOString()} (${(e as any)?.status ?? '?'}) — alternando p/ backup`);
+        }
       }
     }
     throw lastErr;
