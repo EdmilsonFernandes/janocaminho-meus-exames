@@ -1810,3 +1810,121 @@ model Payout {
   @@index([doctorId, status])
   @@map("payouts")
 }
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PATROCINADORES & CAMPANHAS (02/11/26) — popup premium pós-login gerido pelo admin.
+// Separado do conteúdo clínico: NUNCA segmenta por exame/diagnóstico/medicação.
+// Público só por perfil de acesso (patient | doctor | all). Eventos idempotentes
+// por impressão (impressionId gerado no client) → CTR = impressões com clique /
+// impressões efetivas, sem duplicar em retry/reload.
+// ═══════════════════════════════════════════════════════════════════════════════
+model Sponsor {
+  id        String   @id @default(cuid())
+  name      String
+  logoUrl   String?  // ref de storage (S3 key / disco) — servido por GET /api/campaigns/sponsor/:id/logo
+  website   String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  campaigns SponsorCampaign[]
+
+  @@map("sponsors")
+}
+
+model SponsorCampaign {
+  id                    String    @id @default(cuid())
+  sponsorId             String
+  sponsor               Sponsor   @relation(fields: [sponsorId], references: [id], onDelete: Cascade)
+  title                 String
+  description           String
+  imageUrl              String?   // ref de storage (imagem da campanha; sem imagem usa o logo)
+  ctaLabel              String    @default("Saiba mais")
+  ctaType               String    @default("none") // none | internal | external
+  ctaTarget             String?   // rota interna (/planos) ou URL https validada
+  audience              String    @default("patient") // patient | doctor | all
+  status                String    @default("draft") // draft | scheduled | active | paused | ended
+  startsAt              DateTime?
+  endsAt                DateTime?
+  priority              Int       @default(0)  // maior ganha quando há várias elegíveis
+  frequencyHours        Int       @default(72) // intervalo mínimo entre exibições ao MESMO usuário
+  maxImpressionsPerUser Int       @default(2)  // 0 = sem limite
+  publishedAt           DateTime?
+  endedAt               DateTime?
+  createdBy             String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  events                SponsorCampaignEvent[]
+
+  @@index([status, startsAt, endsAt])
+  @@index([sponsorId])
+  @@map("sponsor_campaigns")
+}
+
+model SponsorCampaignEvent {
+  id           String          @id @default(cuid())
+  campaignId   String
+  campaign     SponsorCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  subjectKey   String          // 'u:<userId>' | 'd:<doctorId>' — quem viu (por perfil de acesso)
+  type         String          // impression | click | dismiss
+  impressionId String          // uuid gerado no client ao abrir → 1 impressão = 1 click/dismiss no máx
+  platform     String?         // web | android | ios
+  appVersion   String?
+  createdAt    DateTime        @default(now())
+
+  @@unique([campaignId, type, impressionId])
+  @@index([campaignId, type, createdAt])
+  @@index([subjectKey, campaignId, type])
+  @@map("sponsor_campaign_events")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// OPINIÕES DOS USUÁRIOS (02/11/26) — pesquisa curta (≤3 perguntas + comentário).
+// Definições versionadas no server (feedback/surveys.ts); a resposta guarda
+// surveyKey+surveyVersion p/ preservar o significado de pesquisas antigas.
+// clientKey único = retry após falha NÃO duplica. Vinculada à conta (não é anônima).
+// ═══════════════════════════════════════════════════════════════════════════════
+model FeedbackResponse {
+  id             String   @id @default(cuid())
+  subjectType    String   // user | doctor
+  subjectId      String
+  surveyKey      String   // patient-core | doctor-core
+  surveyVersion  Int
+  answers        Json     // { outcome, detail: string[], improvement }
+  outcome        String   // done | partial | not | exploring (Q1 normalizada p/ filtro)
+  category       String   // usability | technical | value | pricing | feature | other (derivada)
+  comment        String?  // texto livre sanitizado (máx 600)
+  context        Json?    // { trigger, screen, platform, appVersion, hasExams } — nunca dado clínico
+  status         String   @default("new") // new | reviewing | planned | resolved
+  tags           String[] @default([])
+  improvementKey String?  // agrupa relatos na mesma melhoria (sem perder o original)
+  adminNotes     String?
+  clientKey      String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([createdAt])
+  @@index([subjectType, subjectId])
+  @@index([status, createdAt])
+  @@index([category, createdAt])
+  @@index([improvementKey])
+  @@map("feedback_responses")
+}
+
+// Estado do CONVITE por pessoa+pesquisa (sobrevive a reload/troca de aparelho):
+// intervalo entre convites, dispensas e versão já respondida.
+model FeedbackPromptState {
+  id                  String    @id @default(cuid())
+  subjectType         String
+  subjectId           String
+  surveyKey           String
+  lastInvitedAt       DateTime?
+  lastDismissedAt     DateTime?
+  dismissCount        Int       @default(0)
+  lastAnsweredAt      DateTime?
+  lastAnsweredVersion Int?
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([subjectType, subjectId, surveyKey])
+  @@map("feedback_prompt_states")
+}

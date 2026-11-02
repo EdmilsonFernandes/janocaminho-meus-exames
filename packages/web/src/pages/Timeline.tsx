@@ -106,11 +106,21 @@ export const TimelinePage = () => {
     const dotColor = e.type === 'vacina' ? '#4f46e5' : e.type === 'medicao' ? '#f59e0b' : isImaging ? '#0ea5e9' : hasIssues ? '#ef4444' : '#059669';
     const clickable = e.type === 'exam'; // medições/vacinas: informativas (popup é de exame)
     const EvIcon = e.type === 'vacina' ? VaccinesIcon : e.type === 'medicao' ? MonitorHeartIcon : isImaging ? LocalHospitalIcon : hasIssues ? TrendingDownIcon : CheckCircleIcon;
-    const action = e.type === 'vacina' ? 'vacina aplicada' : e.type === 'medicao' ? 'medição registrada' : isImaging ? 'exame de imagem' : 'exame laboratorial';
+    const action = e.type === 'vacina' ? 'Vacina aplicada' : e.type === 'medicao' ? 'Medição sincronizada' : isImaging ? 'Exame de imagem' : 'Exame laboratorial';
     return (
-      <Box key={i} sx={{ position: 'relative' }}>
+      <Box
+        key={e.id || i}
+        sx={{
+          position: 'relative',
+          animation: `dxTimelineIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) ${Math.min(i, 10) * 0.045}s both`,
+          '@keyframes dxTimelineIn': {
+            from: { opacity: 0, transform: 'translateY(8px)' },
+            to: { opacity: 1, transform: 'none' },
+          },
+        }}
+      >
         <Box aria-hidden sx={{
-          position: 'absolute', left: -44, top: 6, width: 30, height: 30, borderRadius: '50%', zIndex: 1,
+          position: 'absolute', left: -44, top: 10, width: 30, height: 30, borderRadius: '50%', zIndex: 1,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           bgcolor: dotColor, border: '3px solid', borderColor: 'background.paper',
           boxShadow: `0 4px 10px -2px ${dotColor}66`,
@@ -122,21 +132,41 @@ export const TimelinePage = () => {
           {...(clickable ? chipA11y() : {})}
           aria-label={clickable ? `Abrir exame ${e.title ?? ''}` : undefined}
           sx={{
-            borderRadius: '14px', px: 1.25, py: 1, minHeight: 42,
+            borderRadius: '14px',
+            px: 1.75,
+            py: 1.25,
+            minHeight: 46,
+            bgcolor: 'background.paper',
+            border: '1px solid',
+            borderColor: hasIssues ? 'rgba(239,68,68,0.28)' : 'divider',
+            borderLeft: `3px solid ${dotColor}`,
+            boxShadow: '0 1px 4px rgba(0,0,0,0.025)',
             cursor: clickable ? 'pointer' : 'default',
-            transition: 'background .15s ease, transform .15s ease',
-            ...(clickable ? { '&:hover': { bgcolor: `${dotColor}0D`, transform: 'translateX(2px)' } } : {}),
+            transition: 'all .18s ease',
+            ...(clickable ? { '&:hover': { borderColor: dotColor, transform: 'translateX(3px)', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' } } : {}),
           }}
         >
-          <Typography sx={{ fontWeight: 700, fontSize: '0.98rem', lineHeight: 1.35, wordBreak: 'break-word' }}>
-            {e.title}
-            <Box component="span" sx={{ fontWeight: 500, color: 'text.secondary' }}> · {action}</Box>
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.94rem', lineHeight: 1.35, wordBreak: 'break-word', color: 'text.primary' }}>
+              {e.title}
+            </Typography>
+            <Chip
+              size="small"
+              label={action}
+              sx={{
+                height: 20,
+                fontSize: 10.5,
+                fontWeight: 700,
+                bgcolor: `${dotColor}14`,
+                color: dotColor,
+              }}
+            />
+          </Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.35, fontWeight: 500 }}>
             {e.date ? new Date(e.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' }) : 'Data não identificada'}
           </Typography>
           {e.type === 'exam' && (
-            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.75 }}>
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.85 }}>
               {hasIssues
                 ? <Chip size="small" label={`${plural(e.abnormalCount, 'valor')} fora da faixa`} sx={{ height: 22, fontWeight: 800, fontSize: 11.5, bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fca5a5' : '#dc2626', border: '1px solid rgba(239,68,68,.25)' }} />
                 : <Chip size="small" icon={<CheckCircleIcon sx={{ fontSize: 14 }} />} label="Tudo dentro da faixa" sx={{ height: 22, fontWeight: 700, fontSize: 11.5, bgcolor: 'rgba(5,150,105,.10)', color: (t) => t.palette.mode === 'dark' ? '#6ee7b7' : '#059669', '& .MuiChip-icon': { color: 'inherit' } }} />}

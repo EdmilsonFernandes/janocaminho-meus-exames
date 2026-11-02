@@ -15,3 +15,20 @@ export function claimColdDialog(slot: string): boolean {
     return true; // storage bloqueado (privado etc.): deixa abrir — não travar feature
   }
 }
+
+/**
+ * Slot de ENGAJAMENTO por sessão (02/11/26): patrocinador e pesquisa de opinião nunca
+ * aparecem na MESMA sessão (padrão inicial do dono). Quem reclama primeiro leva; o outro
+ * espera a próxima sessão — ambos persistem a própria frequência no servidor, então nada
+ * se perde. Independente do claimColdDialog (que serializa os modais de boot).
+ */
+export function claimEngagementSlot(kind: 'sponsor' | 'survey'): boolean {
+  try {
+    const cur = sessionStorage.getItem('engagementSlot');
+    if (cur && cur !== kind) return false;
+    sessionStorage.setItem('engagementSlot', kind);
+    return true;
+  } catch {
+    return true;
+  }
+}

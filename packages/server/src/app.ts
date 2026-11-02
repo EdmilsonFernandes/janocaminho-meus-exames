@@ -78,6 +78,12 @@ import specialistsRoutes from './routes/specialists.routes';
 import collectionChecklistRoutes, { doctorRouter as collectionChecklistDoctorRouter } from './routes/collection.routes';
 import doctorVerificationRoutes from './routes/doctor-verification.routes';
 import { uaiidWebhookHandler } from './routes/uaiid-webhook.routes';
+// PATROCINADORES & CAMPANHAS (02/11/26): popup pós-login (paciente em /api/campaigns,
+// médico espelhado em /api/doctor/campaigns), assets públicos e gestão em /api/admin/*.
+import campaignRoutes, { doctorRouter as campaignDoctorRoutes, adminRouter as campaignAdminRoutes } from './routes/campaign.routes';
+// OPINIÕES DOS USUÁRIOS (02/11/26): pesquisa curta (paciente /api/feedback, médico
+// /api/doctor/feedback) + leitura/triagem no admin (/api/admin/feedback).
+import feedbackRoutes, { doctorRouter as feedbackDoctorRoutes, adminRouter as feedbackAdminRoutes } from './routes/feedback.routes';
 
 export const app = express();
 // trust proxy: o container corre atrás de nginx/docker — sem isso o rate-limit
@@ -458,7 +464,14 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/consulta', consultaRoutes);
 app.use('/api/data', dataRoutes);
 app.use('/api/admin', adminRoutes);
+// Patrocínio + opiniões no admin: routers próprios (requireAuth+requireAdmin internos), sem overlap.
+app.use('/api/admin', campaignAdminRoutes);
+app.use('/api/admin', feedbackAdminRoutes);
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/feedback', feedbackRoutes);
 app.use('/api/doctor', doctorRoutes);
+app.use('/api/doctor', campaignDoctorRoutes); // /api/doctor/campaigns/* (sem overlap)
+app.use('/api/doctor', feedbackDoctorRoutes); // /api/doctor/feedback/* (sem overlap)
 // KYC do médico: POST/GET /verification — ANTES da fila, cujo doctorRouter.use(requireQueueDoctor)
 // é deny-by-default e barraria (403) o médico ainda não verificado de se verificar (chicken-and-egg).
 app.use('/api/doctor', doctorVerificationRoutes);

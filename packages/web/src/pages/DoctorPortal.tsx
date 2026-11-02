@@ -58,6 +58,9 @@ import { PortalQuestions } from '../components/doctors/portal/PortalQuestions';
 import { PortalOverview } from '../components/doctors/portal/PortalOverview';
 import { PortalTeleconsultas } from '../components/doctors/portal/PortalTeleconsultas';
 import { TeleScheduleDialog } from '../components/doctors/portal/TeleScheduleDialog';
+// PATROCINADORES & OPINIÕES (02/11/26) — espelho do app do paciente no portal do médico.
+import { SponsorPopup } from '../components/sponsor/SponsorPopup';
+import { FeedbackProvider, FeedbackMenuItem, FeedbackAvatarMenuItem } from '../components/feedback/FeedbackProvider';
 import { PortalFinanceiro } from '../components/doctors/portal/PortalFinanceiro';
 import { DoctorVerificationGate } from '../components/doctors/portal/verification/DoctorVerificationGate';
 import { SPECIALTIES, UFS } from '../utils/medicalData';
@@ -734,15 +737,35 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     snackbar({ message: 'Análise clínica e exames atualizados!', severity: 'success' });
   };
   // Checkout MP (Dr. Exame Pro R$29,90/mês) — PIX QR inline OU cartão redirect
-  const startCheckout = async (method: 'pix' | 'card') => {
+  const [checkoutCpf, setCheckoutCpf] = useState('');
+  const [needsCheckoutCpf, setNeedsCheckoutCpf] = useState(false);
+
+  const startCheckout = async (method: 'pix' | 'card', customCpf?: string) => {
     setPayLoading(true);
     setPayMethod(method);
     try {
-      const r = await fetch(`${API_URL}/doctor/subscription/checkout`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify({ method }) });
-      const d = await r.json();
+      const payload: Record<string, string> = { method };
+      const cpfToSend = (customCpf ?? checkoutCpf).replace(/\D/g, '');
+      if (cpfToSend.length === 11) payload.cpf = cpfToSend;
+      const r = await fetch(`${API_URL}/doctor/subscription/checkout`, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        if (d?.code === 'CPF_REQUIRED') {
+          setNeedsCheckoutCpf(true);
+          setPayOpen(true);
+          setPayLoading(false);
+          return;
+        }
+        snackbar({ message: d?.error || 'Não foi possível iniciar o pagamento agora. Tente novamente.', severity: 'error' });
+        setPayLoading(false);
+        return;
+      }
+      setNeedsCheckoutCpf(false);
       if (method === 'card' && d.url) { window.location.href = d.url; return; }
-      if (method === 'pix' && d.qrCode) { setPayData(d); setPayOpen(true); pollPayment(d.paymentId); return; }
-    } catch {}
+      if (method === 'pix' && d.qrCode) { setPayData(d); setPayOpen(true); pollPayment(d.paymentId); setPayLoading(false); return; }
+    } catch {
+      snackbar({ message: 'Erro de conexão ao gerar PIX. Verifique sua internet.', severity: 'error' });
+    }
     setPayLoading(false);
   };
   const pollPayment = (paymentId: string) => {
@@ -1263,6 +1286,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
           <ListItemIcon sx={{ minWidth: 38 }}><PersonIcon sx={{ color: 'secondary.dark' }} /></ListItemIcon>
           <ListItemText primary="Meu perfil" primaryTypographyProps={{ fontWeight: 600 }} />
         </ListItemButton>
+        <FeedbackMenuItem onNav={onNav} />
         <ListItemButton
           onClick={() => { onLogout(); onNav(); }}
           sx={{
@@ -1283,12 +1307,16 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
   );
 
   return (
+    <FeedbackProvider mode="doctor">
     <Box sx={{ minHeight: '100dvh', bgcolor: 'background.default', display: 'flex' }}>
+      {/* Patrocinador no portal (público 'doctor'/'all'): mesmas regras de frequência do app. */}
+      <SponsorPopup mode="doctor" />
       {/* Menu vertical do avatar (perfil/senha/sair) — aberto ao clicar no avatar do médico */}
       <Menu anchorEl={avatarEl} open={!!avatarEl} onClose={() => setAvatarEl(null)} slotProps={{ paper: { sx: { borderRadius: '16px', minWidth: 210, mt: 1, boxShadow: '0 10px 28px rgba(0,0,0,0.12)' } } }}>
         <MenuItem onClick={() => { setView('finance'); setAvatarEl(null); }}><ListItemIcon><AccountBalanceWalletOutlinedIcon fontSize="small" /></ListItemIcon><ListItemText>Financeiro</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('profile'); setAvatarEl(null); }}><ListItemIcon><PersonIcon fontSize="small" /></ListItemIcon><ListItemText>Meu perfil</ListItemText></MenuItem>
         <MenuItem onClick={() => { setView('password'); setAvatarEl(null); }}><ListItemIcon><LockIcon fontSize="small" /></ListItemIcon><ListItemText>Trocar senha</ListItemText></MenuItem>
+        <FeedbackAvatarMenuItem onDone={() => setAvatarEl(null)} />
         <Divider sx={{ my: 0.5 }} />
         <MenuItem onClick={() => { setAvatarEl(null); onLogout(); }} sx={{ color: 'error.main' }}><ListItemIcon><LogoutIcon fontSize="small" sx={{ color: 'error.main' }} /></ListItemIcon><ListItemText>Sair</ListItemText></MenuItem>
       </Menu>
@@ -1785,194 +1813,88 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               onScheduleTele={openTele}
             />
 
-            {/* SEÇÃO COMPACTA DE TELECONSULTA DO PACIENTE — mostra a próxima consulta e link direto p/ Agenda */}
+            {/* FAIXA EXECUTIVA DE TELECONSULTA DO PACIENTE — sem repetir foto/nome do paciente já presentes no cabeçalho */}
             {patientTele.length > 0 && (() => {
               const nowMs = Date.now();
-              // Prioriza próxima agendada (futura) NÃO encerrada; senão a mais recente
-              // não-encerrada; senão a mais recente de todas (encerrada → read-only).
               const upcoming = patientTele.find((t) => !t.endedAt && new Date(t.dueDate).getTime() >= nowMs - 1800000)
                 || patientTele.find((t) => !t.endedAt)
                 || patientTele[0];
-              const teleEnded = !!upcoming.endedAt; // F4: encerrada → nunca "Entrar na consulta"
+              const teleEnded = !!upcoming.endedAt;
               const pName = selected?.patient?.fullName || selected?.patient?.name || 'Paciente';
-              const pId = selected?.patient?.id || selected?.id || upcoming.patientId || upcoming.patient?.id;
-              const pPhoto = pId ? photoUrlFor(pId) : undefined;
               const dt = new Date(upcoming.dueDate).toLocaleString('pt-BR', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
               const isFuture = !teleEnded && new Date(upcoming.dueDate).getTime() >= nowMs;
 
               return (
-                <AppCard kind="elevated" sx={{ p: 2.25, borderRadius: '16px', border: '1px solid', borderColor: isFuture ? 'rgba(15,118,110,0.35)' : 'rgba(212,165,116,0.3)', bgcolor: 'background.paper', boxShadow: '0 4px 20px rgba(0,0,0,0.04)' }}>
-                  <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'stretch', sm: 'center' }} justifyContent="space-between" spacing={1.5} sx={{ mb: 1.5 }}>
-                    <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap">
-                      <Box sx={{ width: 34, height: 34, borderRadius: '10px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#178f89' : 'secondary.dark' }}>
-                        <VideocamIcon sx={{ fontSize: 20 }} />
+                <AppCard
+                  kind="elevated"
+                  sx={{
+                    p: { xs: 1.5, sm: 2 },
+                    borderRadius: '14px',
+                    border: '1px solid',
+                    borderColor: isFuture ? 'rgba(15,118,110,0.35)' : 'rgba(212,165,116,0.28)',
+                    bgcolor: 'background.paper',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    alignItems={{ xs: 'stretch', sm: 'center' }}
+                    justifyContent="space-between"
+                    spacing={1.25}
+                  >
+                    <Stack direction="row" alignItems="center" spacing={1.25} flexWrap="wrap" useFlexGap sx={{ minWidth: 0, flex: 1 }}>
+                      <Box sx={{ width: 32, height: 32, borderRadius: '9px', bgcolor: isFuture ? 'rgba(15,118,110,0.12)' : 'rgba(212,165,116,0.14)', display: 'grid', placeItems: 'center', color: isFuture ? '#178f89' : 'secondary.dark', flexShrink: 0 }}>
+                        <VideocamIcon sx={{ fontSize: 18 }} />
                       </Box>
-                      <Box>
-                        <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
-                          {isFuture ? 'Próxima Teleconsulta' : 'Última Teleconsulta'}
-                        </Typography>
-                        <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-                          {dt}
-                        </Typography>
-                      </Box>
-                      <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 22, fontSize: 12, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.18)', color: 'secondary.dark', border: '1px dashed rgba(212,165,116,.5)' }} />
-                      {upcoming.provider === 'livekit' && !teleEnded && (
-                        <Chip size="small" label="No app" sx={{ height: 20, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(32,178,170,0.16)', color: '#178f89' }} />
-                      )}
-                      {teleEnded && (
-                        <Chip
-                          size="small"
-                          icon={<CheckCircleOutlinedIcon sx={{ fontSize: 13 }} />}
-                          label={`✓ Encerrada ${new Date(upcoming.endedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })}`}
-                          sx={{ height: 22, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89', '& .MuiChip-icon': { color: '#178f89' } }}
-                        />
-                      )}
-                    </Stack>
-
-                    <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ alignSelf: { xs: 'stretch', sm: 'auto' } }}>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => {
-                          setTeleSearch(pName);
-                          setView('teleconsultas');
-                          setSelected(null);
-                          setSelExam(null);
-                        }}
-                        sx={{
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          fontSize: 12.5,
-                          borderRadius: '999px',
-                          borderColor: 'rgba(15,118,110,0.4)',
-                          color: '#178f89',
-                          '&:hover': { bgcolor: 'rgba(15,118,110,0.08)', borderColor: '#178f89' },
-                        }}
-                      >
-                        Ver todas na Agenda ({patientTele.length}) →
-                      </Button>
-                      <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark', fontSize: 12.5 }}>
-                        + Nova
-                      </Button>
-                    </Stack>
-                  </Stack>
-
-                  {/* Detalhes da Teleconsulta — layout refinado e responsivo sem quebras */}
-                  <Box sx={{
-                    p: { xs: 1.75, sm: 2.25 }, borderRadius: '14px',
-                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(212,165,116,0.05)',
-                    border: '1px solid', borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(212,165,116,0.2)',
-                  }}>
-                    <Stack spacing={1.75}>
-                      {/* Topo do Card: Identificação do Paciente + Status Clínico com espaço garantido */}
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', md: 'center' }} justifyContent="space-between">
-                        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
-                          <Avatar
-                            src={pPhoto}
-                            alt={pName}
-                            sx={{
-                              width: 46,
-                              height: 46,
-                              fontSize: 16,
-                              fontWeight: 800,
-                              bgcolor: 'rgba(32,178,170,0.14)',
-                              color: '#178f89',
-                              border: '2px solid rgba(32,178,170,0.3)',
-                              borderRadius: '12px',
-                              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {pName.charAt(0).toUpperCase()}
-                          </Avatar>
-                          <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Stack direction="row" alignItems="center" spacing={1} flexWrap="wrap">
-                              <Typography sx={{ fontWeight: 800, fontSize: 15.5, color: 'text.primary', fontFamily: 'Poppins, sans-serif', lineHeight: 1.25 }}>
-                                {pName}
-                              </Typography>
-                              {upcoming.title && upcoming.title !== 'Teleconsulta médica' && (
-                                <Chip
-                                  size="small"
-                                  label={`📌 ${upcoming.title}`}
-                                  sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: 'action.hover', color: 'text.secondary' }}
-                                />
-                              )}
-                            </Stack>
-                            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
-                              <ScheduleOutlinedIcon sx={{ fontSize: 14, color: '#178f89' }} />
-                              {dt} {upcoming.recurrence ? `• Repete ${upcoming.recurrence}` : ''}
-                            </Typography>
-                          </Box>
-                        </Stack>
-
-                        {/* Status Clínico (Aguardando vs Autorizado) — Espaço Próprio sem quebrar texto */}
-                        <Box sx={{ flexShrink: 0, alignSelf: { xs: 'flex-start', md: 'center' } }}>
+                      <Box sx={{ minWidth: 0 }}>
+                        <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap" useFlexGap>
+                          <Typography sx={{ fontWeight: 800, fontSize: 13.5, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
+                            {isFuture ? 'Próxima Teleconsulta' : 'Última Teleconsulta'}
+                          </Typography>
+                          <Chip size="small" label={`Sala ${String(upcoming.id).slice(-5).toUpperCase()}`} sx={{ height: 20, fontSize: 11, fontWeight: 800, fontFamily: 'monospace', bgcolor: 'rgba(212,165,116,.15)', color: 'secondary.dark' }} />
                           {!teleEnded ? (
                             <Chip
                               size="small"
-                              icon={upcoming.consentAt ? <CheckCircleOutlinedIcon sx={{ fontSize: 14 }} /> : <ScheduleOutlinedIcon sx={{ fontSize: 14 }} />}
-                              label={upcoming.consentAt ? 'Paciente autorizou (CFM)' : 'Aguardando aceite do paciente'}
+                              label={upcoming.consentAt ? '✓ Autorizado (CFM)' : '⏳ Aguardando aceite'}
                               sx={{
-                                height: 26, fontSize: 12, fontWeight: 800, px: 0.75,
-                                whiteSpace: 'nowrap',
+                                height: 20, fontSize: 11, fontWeight: 700,
                                 bgcolor: upcoming.consentAt ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
                                 color: upcoming.consentAt ? '#059669' : '#d97706',
-                                border: `1px solid ${upcoming.consentAt ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.35)'}`,
-                                '& .MuiChip-icon': { color: 'inherit' },
                               }}
                             />
                           ) : (
                             <Chip
                               size="small"
-                              icon={<CheckCircleOutlinedIcon sx={{ fontSize: 14 }} />}
-                              label="Consulta Concluída"
-                              sx={{ height: 26, fontSize: 12, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89' }}
+                              label="✓ Concluída"
+                              sx={{ height: 20, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.12)', color: '#178f89' }}
                             />
                           )}
-                        </Box>
-                      </Stack>
+                        </Stack>
+                        <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 0.25 }}>
+                          {dt}
+                          {upcoming.title && upcoming.title !== 'Teleconsulta médica' ? ` · 📌 ${upcoming.title}` : ''}
+                          {patientTele.length > 1 ? ` · +${patientTele.length - 1} no histórico` : ''}
+                        </Typography>
+                      </Box>
+                    </Stack>
 
-                      {/* Notificação explicativa elegante quando aguardando aceite */}
-                      {!teleEnded && !upcoming.consentAt && (
-                        <Box sx={{
-                          display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 1, borderRadius: '10px',
-                          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(245,158,11,0.08)' : 'rgba(254,243,199,0.5)',
-                          border: '1px solid rgba(245,158,11,0.22)',
-                        }}>
-                          <ScheduleOutlinedIcon sx={{ fontSize: 16, color: '#d97706', flexShrink: 0 }} />
-                          <Typography sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.4 }}>
-                            <strong>Aguardando aceite do paciente:</strong> O termo de consentimento (CFM 2.314/22) será assinado ao ingressar. A sala já está disponível.
-                          </Typography>
-                        </Box>
-                      )}
-
-                      {/* Divisor suave entre dados da consulta e botões de ação */}
-                      <Box sx={{ borderTop: '1px solid', borderColor: 'divider', opacity: 0.6 }} />
-
-                      {/* Ações da Consulta — Responsivo em Web e Mobile */}
-                      <Stack
-                        direction={{ xs: 'column', sm: 'row' }}
-                        spacing={1.25}
-                        alignItems={{ xs: 'stretch', sm: 'center' }}
-                        justifyContent="space-between"
-                      >
-                        {teleEnded ? (
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            startIcon={<SummarizeIcon />}
-                            onClick={() => void openPost(upcoming.id)}
-                            sx={{
-                              borderRadius: '999px', textTransform: 'none', fontWeight: 800,
-                              borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
-                              px: 2.2, py: 0.6, fontSize: 13,
-                              '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.06)' },
-                              width: { xs: '100%', sm: 'auto' },
-                            }}
-                          >
-                            Ver resumo da consulta
-                          </Button>
-                        ) : (
+                    <Stack direction="row" spacing={0.75} alignItems="center" flexWrap="wrap" useFlexGap sx={{ flexShrink: 0 }}>
+                      {teleEnded ? (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<SummarizeIcon />}
+                          onClick={() => void openPost(upcoming.id)}
+                          sx={{
+                            borderRadius: '999px', textTransform: 'none', fontWeight: 800,
+                            borderColor: 'rgba(32,178,170,.45)', color: (t) => tealText(t.palette.mode),
+                            px: 1.5, py: 0.4, fontSize: 12,
+                          }}
+                        >
+                          Resumo da consulta
+                        </Button>
+                      ) : (
+                        <>
                           <Button
                             variant="contained"
                             size="small"
@@ -1981,66 +1903,61 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 800,
                               background: 'linear-gradient(135deg, #178f89 0%, #0d5f5a 100%)',
-                              '&:hover': { background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)' },
-                              px: 2.75, py: 0.8, fontSize: 13,
-                              color: '#ffffff',
-                              boxShadow: '0 3px 12px rgba(15,118,110,0.3)',
-                              width: { xs: '100%', sm: 'auto' },
+                              px: 1.75, py: 0.5, fontSize: 12, color: '#ffffff',
                             }}
                           >
-                            Entrar na consulta
+                            Entrar
                           </Button>
-                        )}
-
-                        <Stack direction="row" spacing={1} alignItems="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
-                          {!teleEnded && (
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              startIcon={<AssignmentAddIcon />}
-                              onClick={() => setReqOpenId(upcoming.id)}
-                              sx={{
-                                textTransform: 'none', fontWeight: 700, fontSize: 12.5, borderRadius: '999px',
-                                borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode),
-                                '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,0.06)' },
-                                flex: { xs: 1, sm: 'none' },
-                              }}
-                            >
-                              Pedir exame
-                            </Button>
-                          )}
-                          {!teleEnded && (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              startIcon={<SummarizeIcon />}
-                              onClick={() => void openPost(upcoming.id)}
-                              sx={{
-                                borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12.5,
-                                borderColor: 'divider', color: 'text.secondary',
-                                '&:hover': { bgcolor: 'action.hover', color: 'text.primary' },
-                                flex: { xs: 1, sm: 'none' },
-                              }}
-                            >
-                              Resumo
-                            </Button>
-                          )}
-                          <Tooltip title="Mais ações">
-                            <IconButton
-                              size="small"
-                              aria-label="Mais ações da teleconsulta"
-                              aria-haspopup="menu"
-                              onClick={(e) => setFichaTeleMenu(e.currentTarget)}
-                              sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
-                            >
-                              <MoreVertIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        </Stack>
-                      </Stack>
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            startIcon={<AssignmentAddIcon />}
+                            onClick={() => setReqOpenId(upcoming.id)}
+                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', borderColor: 'rgba(32,178,170,0.35)', color: (t) => tealText(t.palette.mode) }}
+                          >
+                            Pedir exame
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<SummarizeIcon />}
+                            onClick={() => void openPost(upcoming.id)}
+                            sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: 12, borderColor: 'divider', color: 'text.secondary' }}
+                          >
+                            Resumo
+                          </Button>
+                        </>
+                      )}
+                      <Button
+                        size="small"
+                        variant="text"
+                        onClick={() => {
+                          setTeleSearch(pName);
+                          setView('teleconsultas');
+                          setSelected(null);
+                          setSelExam(null);
+                        }}
+                        sx={{ textTransform: 'none', fontWeight: 700, fontSize: 12, borderRadius: '999px', color: '#178f89' }}
+                      >
+                        Agenda ({patientTele.length}) →
+                      </Button>
+                      <Button size="small" variant="outlined" startIcon={<VideocamIcon />} onClick={() => openTele()} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', borderColor: 'secondary.dark', color: 'secondary.dark', fontSize: 12 }}>
+                        + Nova
+                      </Button>
+                      <Tooltip title="Mais ações">
+                        <IconButton
+                          size="small"
+                          aria-label="Mais ações da teleconsulta"
+                          aria-haspopup="menu"
+                          onClick={(e) => setFichaTeleMenu(e.currentTarget)}
+                          sx={{ color: 'text.secondary', border: '1px solid', borderColor: 'divider' }}
+                        >
+                          <MoreVertIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
-                  </Box>
-                  {/* Overflow (⋮) da teleconsulta em destaque: copiar link + cancelar (destrutivo) fora da linha de ação — 1 primária por card. */}
+                  </Stack>
+
                   <Menu
                     anchorEl={fichaTeleMenu}
                     open={!!fichaTeleMenu}
@@ -2058,22 +1975,6 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                       <ListItemText>Cancelar consulta</ListItemText>
                     </MenuItem>
                   </Menu>
-                  {patientTele.length > 1 && (
-                    <Typography
-                      onClick={() => {
-                        setTeleSearch(pName);
-                        setView('teleconsultas');
-                        setSelected(null);
-                        setSelExam(null);
-                      }}
-                      sx={{
-                        fontSize: 12, color: '#178f89', mt: 1, textAlign: 'center', cursor: 'pointer', fontWeight: 700,
-                        '&:hover': { textDecoration: 'underline' }
-                      }}
-                    >
-                      Exibindo a consulta em destaque. Há mais {patientTele.length - 1} {patientTele.length - 1 === 1 ? 'consulta' : 'consultas'} no histórico da Agenda →
-                    </Typography>
-                  )}
                 </AppCard>
               );
             })()}
@@ -2501,11 +2402,36 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         />
       </Drawer>
 
-      {/* DIALOG DE PAGAMENTO — PIX QR inline + timer + opção cartão */}
-      <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); }} PaperProps={{ sx: { borderRadius: '20px', maxWidth: 390, p: 1 } }}>
+      {/* DIALOG DE PAGAMENTO — PIX QR inline + timer + opção cartão + fallback CPF */}
+      <Dialog open={payOpen} onClose={() => { setPayOpen(false); setPayData(null); setNeedsCheckoutCpf(false); }} PaperProps={{ sx: { borderRadius: '20px', maxWidth: 390, p: 1 } }}>
         <DialogTitle sx={{ fontWeight: 800, textAlign: 'center', pb: 1, fontFamily: 'Poppins, sans-serif' }}>💎 Dr. Exame Pro — R$29,90/mês</DialogTitle>
         <DialogContent>
-          {payData?.qrBase64 ? (
+          {needsCheckoutCpf && !payData?.qrBase64 ? (
+            <Box sx={{ textAlign: 'center', py: 1 }}>
+              <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>
+                Para emitir a cobrança PIX pelo Banco Central, informe seu CPF (salvaremos no seu perfil com segurança):
+              </Typography>
+              <TextField
+                fullWidth
+                size="small"
+                label="Seu CPF (somente números)"
+                placeholder="000.000.000-00"
+                value={checkoutCpf}
+                onChange={(e) => setCheckoutCpf(e.target.value)}
+                inputProps={{ inputMode: 'numeric', maxLength: 14 }}
+                sx={{ mb: 1.5 }}
+              />
+              <Button
+                fullWidth
+                variant="contained"
+                disabled={payLoading || checkoutCpf.replace(/\D/g, '').length !== 11}
+                onClick={() => void startCheckout(payMethod || 'pix', checkoutCpf)}
+                sx={{ textTransform: 'none', borderRadius: '999px', fontWeight: 800, py: 1 }}
+              >
+                {payLoading ? 'Gerando PIX…' : 'Gerar QR Code PIX'}
+              </Button>
+            </Box>
+          ) : payData?.qrBase64 ? (
             <Box sx={{ textAlign: 'center' }}>
               <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>Escaneie o QR Code com o app do seu banco:</Typography>
               <Box component="img" src={payData.qrBase64} alt="PIX QR Code" sx={{ width: 220, height: 220, borderRadius: '16px', border: '1px solid', borderColor: 'divider', boxShadow: '0 4px 16px rgba(0,0,0,0.06)' }} />
@@ -2514,7 +2440,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
                 <PayCountdown expiresAt={payData.expiresAt} onExpire={() => { setPayOpen(false); setPayData(null); }} />
               </Box>
               <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#047857', fontWeight: 700 }}>✅ Detecta pagamento automaticamente</Typography>
-              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) navigator.clipboard.writeText(payData.qrCode); }} sx={{ mt: 1.25, textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>📋 Copiar código PIX</Button>
+              <Button fullWidth size="small" onClick={() => { if (payData.qrCode) { navigator.clipboard.writeText(payData.qrCode); snackbar({ message: 'Código PIX Copia e Cola copiado!', severity: 'info' }); } }} sx={{ mt: 1.25, textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>📋 Copiar código PIX</Button>
               <Divider sx={{ my: 1.5 }}><Typography variant="caption" sx={{ color: 'text.secondary' }}>ou pague com</Typography></Divider>
               <Button fullWidth size="small" variant="outlined" onClick={() => startCheckout('card')} sx={{ textTransform: 'none', borderRadius: '999px', fontWeight: 700 }}>💳 Cartão de crédito / débito</Button>
             </Box>
@@ -2561,6 +2487,7 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
         ))}
       </Box>
     </Box>
+    </FeedbackProvider>
   );
 };
 

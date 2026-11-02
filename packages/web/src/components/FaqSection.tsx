@@ -5,6 +5,9 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { useNavigate } from 'react-router-dom';
 import { Reveal } from './Reveal';
 import { fetchPublicConfig } from '../config';
+import { Badge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { HelpCircle, ChevronDown, ArrowRight } from 'lucide-react';
 
 const TEAL = '#20b2aa';
 const TEAL_DARK = '#178f89';
@@ -66,53 +69,81 @@ export const FAQ_ITEMS = [
 export const FaqSection = () => {
   const navigate = useNavigate();
   const [credits, setCredits] = useState(60);
+  const [openIndex, setOpenIndex] = useState<number | false>(0);
   useEffect(() => { fetchPublicConfig().then((c) => setCredits(c.freeSignup)); }, []);
   return (
     <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
       <Container maxWidth="md">
         <Reveal>
           <Box sx={{ textAlign: 'center', mb: 5 }}>
-            <Stack direction="row" spacing={1} alignItems="center" justifyContent="center" sx={{ mb: 1 }}>
-              <HelpOutlineIcon sx={{ fontSize: 20, color: TEAL_DARK }} />
-              <Typography sx={{ fontSize: 13, fontWeight: 800, color: TEAL_DARK, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Dúvidas frequentes</Typography>
-            </Stack>
-            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>Tudo o que você precisa saber</Typography>
-            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>Saúde e IA geram perguntas: a gente responde direto ao ponto.</Typography>
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1 text-xs font-bold text-teal-700 dark:text-teal-300 mb-2.5">
+              <HelpCircle className="size-3.5" />
+              <span>Dúvidas Frequentes</span>
+            </div>
+            <Typography variant="h2" sx={{ fontSize: { xs: '1.9rem', md: '2.6rem' }, fontWeight: 800, color: 'text.primary', mb: 1.5, letterSpacing: '-0.02em', fontFamily: 'Poppins, sans-serif' }}>
+              Tudo o que você precisa saber
+            </Typography>
+            <Typography sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 560, mx: 'auto' }}>
+              Saúde e IA geram perguntas: a gente responde direto ao ponto com total transparência.
+            </Typography>
           </Box>
         </Reveal>
 
         <Reveal delay={80}>
-          <Box>
-            {FAQ_ITEMS.map((item, i) => (
-              <Accordion key={i} disableGutters elevation={0} sx={{
-                mb: 1.75, borderRadius: '18px !important', overflow: 'hidden',
-                border: '1px solid', borderColor: 'divider',
-                bgcolor: 'background.default',
-                transition: 'all .2s ease',
-                '&:before': { display: 'none' },
-                '&:hover': { borderColor: 'rgba(32,178,170,0.3)', boxShadow: '0 4px 16px rgba(0,0,0,0.03)' },
-                '&.Mui-expanded': { boxShadow: '0 10px 30px rgba(32,178,170,.12)', borderColor: TEAL, bgcolor: 'rgba(32,178,170,0.02)' },
-              }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: TEAL_DARK }} />} sx={{ px: 2.5, py: 0.75, '& .MuiAccordionSummary-content': { my: 1 } }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: { xs: 16, md: 17 }, color: 'text.primary', fontFamily: 'Poppins, sans-serif' }}>{item.q}</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ px: 2.5, pb: 2.5, pt: 0 }}>
-                  <Typography sx={{ fontSize: 15, color: 'text.secondary', lineHeight: 1.65 }}>{item.q === 'Preciso pagar para testar?' ? `Não. Envie seu primeiro exame e ganhe ${credits} créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico.` : item.a}</Typography>
-                </AccordionDetails>
-              </Accordion>
-            ))}
-          </Box>
+          <div className="space-y-2.5">
+            {FAQ_ITEMS.map((item, i) => {
+              const isOpen = openIndex === i;
+              return (
+                <div
+                  key={i}
+                  className={`overflow-hidden rounded-2xl border transition-all ${
+                    isOpen
+                      ? 'border-teal-500/50 bg-teal-500/[0.03] shadow-xs'
+                      : 'border-border/70 bg-card hover:border-border'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenIndex(isOpen ? false : i)}
+                    className="flex w-full items-center justify-between gap-4 p-4 text-left transition-colors cursor-pointer"
+                  >
+                    <span className="font-heading text-[15px] sm:text-base font-bold text-foreground">
+                      {item.q}
+                    </span>
+                    <span
+                      className={`flex size-6 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-transform ${
+                        isOpen ? 'rotate-180 text-teal-600' : ''
+                      }`}
+                    >
+                      <ChevronDown className="size-4" />
+                    </span>
+                  </button>
+                  {isOpen && (
+                    <div className="px-4 pb-4 pt-1 text-sm sm:text-[14.5px] leading-relaxed text-muted-foreground border-t border-border/40">
+                      {item.q === 'Preciso pagar para testar?'
+                        ? `Não. Envie seu primeiro exame (PDF ou foto) e ganhe ${credits} créditos grátis, sem cartão. Use para conversar com a IA, gerar relatórios e perguntar ao médico.`
+                        : item.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </Reveal>
 
         <Reveal delay={120}>
-          <Box sx={{ textAlign: 'center', mt: 4 }}>
-            <Typography sx={{ color: 'text.secondary', fontSize: 15, mb: 1.5 }}>Ainda com dúvidas? Teste sem compromisso.</Typography>
-            <Button onClick={() => navigate('/registrar')} sx={{
-              borderRadius: '999px', px: 3.5, py: 1,
-              bgcolor: 'rgba(32,178,170,0.08)', color: TEAL_DARK, fontWeight: 800, fontSize: 15, textTransform: 'none',
-              border: '1px solid rgba(32,178,170,0.25)',
-              '&:hover': { bgcolor: 'rgba(32,178,170,0.16)', borderColor: TEAL_DARK }
-            }}>Começar grátis →</Button>
+          <Box sx={{ textAlign: 'center', mt: 4.5 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: 15, mb: 1.5 }}>
+              Ainda com dúvidas? Teste sem compromisso na prática.
+            </Typography>
+            <button
+              type="button"
+              onClick={() => navigate('/registrar')}
+              className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
+            >
+              <span>Começar grátis</span>
+              <ArrowRight className="size-4" />
+            </button>
           </Box>
         </Reveal>
       </Container>

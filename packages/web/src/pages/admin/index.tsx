@@ -54,8 +54,12 @@ import { LabsTab } from './LabsTab';
 import { PharmaciesTab } from './PharmaciesTab';
 import { TeleconsultasTab } from './TeleconsultasTab';
 import { TeleFinanceTab } from './TeleFinanceTab';
+import { SponsorsTab } from './SponsorsTab';
+import { FeedbackTab } from './FeedbackTab';
 import AccountBalanceOutlinedIcon from '@mui/icons-material/AccountBalanceOutlined';
 import VideoCameraFrontOutlinedIcon from '@mui/icons-material/VideoCameraFrontOutlined';
+import HandshakeOutlinedIcon from '@mui/icons-material/HandshakeOutlined';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
 
 /** Backoffice Dr. Exame — ISOLADO do app do paciente (/admin é noLayout).
  *  Shell próprio (topbar + sidebar categorizada) com 20 módulos de controle.
@@ -80,7 +84,9 @@ export type ModuleId =
   | 'push'
   | 'tech'
   | 'audit'
-  | 'pii';
+  | 'pii'
+  | 'feedback'
+  | 'sponsors';
 
 export interface AdminModule {
   id: ModuleId;
@@ -97,6 +103,7 @@ const MODULES: AdminModule[] = [
   { id: 'overview', label: 'Dashboard Executivo', short: 'Dashboard', icon: <DashboardOutlinedIcon />, group: 'Visão Geral & Growth' },
   { id: 'usabilidade', label: 'Adoção de Funcionalidades', short: 'Adoção', icon: <InsightsOutlinedIcon />, group: 'Visão Geral & Growth' },
   { id: 'referrals', label: 'Indicações & MGM', short: 'Indicações', icon: <CardGiftcardOutlinedIcon />, group: 'Visão Geral & Growth' },
+  { id: 'feedback', label: 'Opiniões dos Usuários', short: 'Opiniões', icon: <RateReviewOutlinedIcon />, group: 'Visão Geral & Growth' },
 
   // 2. Pessoas & Clínico
   { id: 'users', label: 'Usuários / Pacientes', short: 'Usuários', icon: <PeopleOutlinedIcon />, group: 'Pessoas & Clínico' },
@@ -116,6 +123,7 @@ const MODULES: AdminModule[] = [
   { id: 'labs', label: 'Laboratórios Parceiros', short: 'Laboratórios', icon: <ScienceOutlinedIcon />, group: 'Comercial & Negócio' },
   { id: 'pharmacies', label: 'Farmácias & Parcerias', short: 'Farmácias', icon: <StorefrontOutlinedIcon />, group: 'Comercial & Negócio' },
   { id: 'api', label: 'API Pública & Integrações', short: 'API Pública', icon: <ApiOutlinedIcon />, group: 'Comercial & Negócio' },
+  { id: 'sponsors', label: 'Patrocinadores & Campanhas', short: 'Patrocínio', icon: <HandshakeOutlinedIcon />, group: 'Comercial & Negócio' },
 
   // 5. Segurança & Operação
   { id: 'push', label: 'Push & Campanhas', short: 'Push', icon: <CampaignOutlinedIcon />, group: 'Segurança & Operação' },
@@ -584,6 +592,8 @@ export const AdminPage = () => {
             {mod === 'support' && <SupportTab />}
             {mod === 'api' && <ApiTab />}
             {mod === 'config' && <PricingTab />}
+            {mod === 'feedback' && <FeedbackTab />}
+            {mod === 'sponsors' && <SponsorsTab />}
           </Container>
         </Box>
       </Box>

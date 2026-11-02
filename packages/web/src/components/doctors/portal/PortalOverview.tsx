@@ -12,6 +12,10 @@ import VideocamIcon from '@mui/icons-material/Videocam';
 import { a11yClick, focusRingSx, COPPER, statusDot, inlineStat, premiumText } from './shared';
 import { tealText } from '../../../theme';
 import { openTelemedicinaRoom } from '../../../utils/telemedicina';
+import { Frame, FrameHeader, FrameTitle, FrameDescription, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 interface PortalOverviewProps {
   patients: any[];
@@ -56,6 +60,7 @@ export const PortalOverview = ({
   onEnterTele,
   onViewTeleconsultas,
 }: PortalOverviewProps) => {
+  useReuiThemeSync();
   const t = useTheme();
   const premium = premiumText(t.palette.mode); // indigo AA no modo atual (dark usa o claro)
 
@@ -768,219 +773,193 @@ export const PortalOverview = ({
           )}
         </Stack>
 
-        {/* COLUNA LATERAL (35%) — PANORAMA DA CARTEIRA & AÇÕES */}
-        <Stack spacing={2.5}>
-          {/* CARD: PANORAMA DA CARTEIRA (Inspirado no Department Occupancy do Figma) */}
-          <AppCard sx={{ p: 2.25, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-              <Box
-                sx={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '10px',
-                  bgcolor: 'rgba(32,178,170,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <ChartLineUp size={20} weight="bold" color="#178f89" />
-              </Box>
-              <Box>
-                <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary', lineHeight: 1.2 }}>
-                  Panorama da Carteira
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: 12 }}>
-                  Distribuição clínica dos pacientes
-                </Typography>
-              </Box>
-            </Stack>
+        {/* COLUNA LATERAL (35%) — GESTÃO DO CONSULTÓRIO (ReUI Frame Unificado e Enxuto) */}
+        <Stack spacing={2}>
+          <Frame>
+            <FrameHeader className="flex flex-row items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <IconTile variant="soft" size="sm" className="text-primary shrink-0">
+                  <ChartLineUp size={18} weight="bold" />
+                </IconTile>
+                <div className="min-w-0">
+                  <FrameTitle className="text-sm font-extrabold tracking-tight">
+                    Saúde da Carteira
+                  </FrameTitle>
+                  <FrameDescription className="text-xs truncate">
+                    Triagem automática por exames compartilhados
+                  </FrameDescription>
+                </div>
+              </div>
+              <ReuiBadge variant="primary-light" size="sm" className="shrink-0 font-bold tabular-nums">
+                {totalPatients} {totalPatients === 1 ? 'paciente' : 'pacientes'}
+              </ReuiBadge>
+            </FrameHeader>
 
-            <Stack spacing={2}>
-              {/* Exames em dia */}
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                    Exames em dia
-                  </Typography>
-                  <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#10b981' }}>
-                    {upToDateCount}/{totalPatients} ({upToDatePct}%)
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={upToDatePct}
-                  sx={{
-                    height: 7,
-                    borderRadius: 4,
-                    bgcolor: 'rgba(16, 185, 129, 0.12)',
-                    '& .MuiLinearProgress-bar': { bgcolor: '#10b981', borderRadius: 4 },
-                  }}
-                />
-              </Box>
+            <FramePanel className="space-y-4">
+              {/* Barra proporcional única de distribuição da carteira */}
+              <div>
+                <div className="flex h-2.5 w-full overflow-hidden rounded-full bg-muted p-0.5 gap-0.5">
+                  {upToDatePct > 0 && (
+                    <div
+                      style={{ width: `${Math.max(upToDatePct, 6)}%` }}
+                      className="h-full rounded-full bg-emerald-500 transition-all duration-500"
+                      title={`Em dia: ${upToDateCount} (${upToDatePct}%)`}
+                    />
+                  )}
+                  {alertPct > 0 && (
+                    <div
+                      style={{ width: `${Math.max(alertPct, 6)}%` }}
+                      className="h-full rounded-full bg-rose-500 transition-all duration-500"
+                      title={`Com alterações: ${alertCount} (${alertPct}%)`}
+                    />
+                  )}
+                  {stalePct > 0 && (
+                    <div
+                      style={{ width: `${Math.max(stalePct, 6)}%` }}
+                      className="h-full rounded-full bg-amber-500 transition-all duration-500"
+                      title={`A renovar (>1 ano): ${staleCount} (${stalePct}%)`}
+                    />
+                  )}
+                </div>
 
-              {/* Com alterações */}
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                    Valores alterados
-                  </Typography>
-                  <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#ef4444' }}>
-                    {alertCount}/{totalPatients} ({alertPct}%)
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={alertPct}
-                  sx={{
-                    height: 7,
-                    borderRadius: 4,
-                    bgcolor: 'rgba(239, 68, 68, 0.12)',
-                    '& .MuiLinearProgress-bar': { bgcolor: '#ef4444', borderRadius: 4 },
-                  }}
-                />
-              </Box>
-
-              {/* A renovar */}
-              <Box>
-                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.75 }}>
-                  <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
-                    A renovar (&gt;1 ano)
-                  </Typography>
-                  <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: '#f59e0b' }}>
-                    {staleCount}/{totalPatients} ({stalePct}%)
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={stalePct}
-                  sx={{
-                    height: 7,
-                    borderRadius: 4,
-                    bgcolor: 'rgba(245, 158, 11, 0.12)',
-                    '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b', borderRadius: 4 },
-                  }}
-                />
-              </Box>
-            </Stack>
-
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 2, fontSize: 12, lineHeight: 1.4 }}>
-              💡 Dados alimentados automaticamente pelos exames autorizados que os pacientes sobem no app.
-            </Typography>
-          </AppCard>
-
-          {/* CARD: AÇÕES RÁPIDAS DO CONSULTÓRIO */}
-          <AppCard sx={{ p: 2.25, borderRadius: '20px', border: '1px solid', borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.75 }}>
-              <Box
-                sx={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '10px',
-                  bgcolor: 'rgba(245,158,11,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Lightning size={20} weight="fill" color="#d97706" />
-              </Box>
-              <Typography component="h2" sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-                Ações Rápidas
-              </Typography>
-            </Stack>
-
-            <Stack spacing={1.25}>
-              <Button
-                fullWidth
-                variant="contained"
-                startIcon={<WhatsAppIcon />}
-                onClick={onNewInvite}
-                sx={{
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  bgcolor: '#25D366',
-                  color: '#fff',
-                  py: 1.1,
-                  boxShadow: '0 4px 12px rgba(37,211,102,0.25)',
-                  '&:hover': { bgcolor: '#1ea952' },
-                }}
-              >
-                Convidar Paciente WhatsApp
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<QuestionAnswerIcon />}
-                onClick={() => {
-                  onSetView('questions');
-                  onLoadAllQ();
-                }}
-                sx={{
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  py: 1,
-                  justifyContent: 'flex-start',
-                }}
-              >
-                Inbox de Dúvidas {openQCount > 0 ? `(${openQCount})` : ''}
-              </Button>
-
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<GroupsIcon />}
-                onClick={() => onSetView('patients')}
-                sx={{
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  py: 1,
-                  justifyContent: 'flex-start',
-                }}
-              >
-                Todos os Pacientes ({totalPatients})
-              </Button>
-
-              {/* Dr. Exame Pro embutido (era card separado) — overview fica com só 2 seções globais */}
-              {planInfo && !planInfo.isPremium && (
-                <>
-                  <Divider sx={{ my: 1.75 }} />
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75 }}>
-                    <Diamond size={16} weight="fill" color={premium} />
-                    <Typography sx={{ fontWeight: 800, fontSize: 14, color: premium }}>
-                      Dr. Exame Pro
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: 12.5, mb: 1.25 }}>
-                    {planInfo.freeUsed >= planInfo.freeLimit
-                      ? '🔒 Pré-consultas gratuitas esgotadas este mês.'
-                      : `${planInfo.freeUsed} de ${planInfo.freeLimit} pré-consultas gratuitas usadas.`}
-                  </Typography>
-                  <Button
-                    fullWidth
-                    size="small"
-                    variant="contained"
-                    onClick={() => onStartCheckout?.('pix')}
-                    disabled={payLoading}
-                    sx={{
-                      bgcolor: '#6366f1',
-                      textTransform: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 700,
-                      '&:hover': { bgcolor: '#4f46e5' },
-                    }}
+                {/* 3 Pílulas interativas de filtro rápido */}
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setQueueFilter('all')}
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                      queueFilter === 'all'
+                        ? 'border-emerald-500/40 bg-emerald-500/10'
+                        : 'border-border bg-card hover:bg-muted/50'
+                    }`}
                   >
-                    {payLoading ? 'Gerando...' : 'Assinar R$29,90/mês'}
-                  </Button>
-                </>
-              )}
-            </Stack>
-          </AppCard>
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="size-2 rounded-full bg-emerald-500" />
+                      Em dia
+                    </span>
+                    <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
+                      {upToDateCount}
+                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                        ({upToDatePct}%)
+                      </span>
+                    </span>
+                  </button>
 
+                  <button
+                    type="button"
+                    onClick={() => setQueueFilter(queueFilter === 'alerts' ? 'all' : 'alerts')}
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                      queueFilter === 'alerts'
+                        ? 'border-rose-500/50 bg-rose-500/10 ring-1 ring-rose-500/30'
+                        : 'border-border bg-card hover:bg-muted/50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                      <span className="size-2 rounded-full bg-rose-500" />
+                      Alterados
+                    </span>
+                    <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
+                      {alertCount}
+                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                        ({alertPct}%)
+                      </span>
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setQueueFilter(queueFilter === 'stale' ? 'all' : 'stale')}
+                    className={`flex flex-col items-start rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                      queueFilter === 'stale'
+                        ? 'border-amber-500/50 bg-amber-500/10 ring-1 ring-amber-500/30'
+                        : 'border-border bg-card hover:bg-muted/50'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold text-amber-600 dark:text-amber-400">
+                      <span className="size-2 rounded-full bg-amber-500" />
+                      Renovar
+                    </span>
+                    <span className="mt-1 text-base font-extrabold text-foreground tabular-nums">
+                      {staleCount}
+                      <span className="ml-1 text-[11px] font-semibold text-muted-foreground">
+                        ({stalePct}%)
+                      </span>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Ação principal de crescimento da carteira */}
+              <div className="pt-1 flex flex-col gap-2">
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<WhatsAppIcon />}
+                  onClick={onNewInvite}
+                  sx={{
+                    borderRadius: '12px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    bgcolor: '#178f89',
+                    color: '#fff',
+                    py: 1.1,
+                    boxShadow: '0 4px 14px rgba(23,143,137,0.22)',
+                    '&:hover': { bgcolor: '#0f766e' },
+                  }}
+                >
+                  Convidar paciente pelo WhatsApp
+                </Button>
+              </div>
+            </FramePanel>
+
+            {/* Rodapé integrado Dr. Exame Pro */}
+            {planInfo && !planInfo.isPremium ? (
+              <FrameFooter className="flex flex-col gap-2.5">
+                <div className="flex items-center justify-between gap-2 w-full">
+                  <div className="flex items-center gap-1.5">
+                    <Diamond size={16} weight="fill" color={premium} />
+                    <span className="text-xs font-extrabold" style={{ color: premium }}>
+                      Dr. Exame Pro
+                    </span>
+                  </div>
+                  <ReuiBadge variant="warning-light" size="xs" className="tabular-nums font-semibold">
+                    {planInfo.freeUsed}/{planInfo.freeLimit} usos IA grátis
+                  </ReuiBadge>
+                </div>
+                <p className="text-xs text-muted-foreground leading-relaxed m-0">
+                  Libere rascunhos SOAP ilimitados, planos de conduta com IA e destaque no diretório de especialistas.
+                </p>
+                <Button
+                  fullWidth
+                  size="small"
+                  variant="contained"
+                  onClick={() => onStartCheckout?.('pix')}
+                  disabled={payLoading}
+                  sx={{
+                    bgcolor: COPPER.main,
+                    color: '#fff',
+                    textTransform: 'none',
+                    borderRadius: '10px',
+                    fontWeight: 800,
+                    py: 0.85,
+                    '&:hover': { bgcolor: COPPER.deep },
+                  }}
+                >
+                  {payLoading ? 'Gerando PIX...' : 'Ativar Dr. Exame Pro · R$ 29,90/mês'}
+                </Button>
+              </FrameFooter>
+            ) : planInfo?.isPremium ? (
+              <FrameFooter className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                  <Diamond size={15} weight="fill" color={COPPER.main} />
+                  Dr. Exame Pro Ativo
+                </span>
+                <ReuiBadge variant="success-light" size="xs">
+                  Ilimitado
+                </ReuiBadge>
+              </FrameFooter>
+            ) : null}
+          </Frame>
         </Stack>
       </Box>
     </Stack>

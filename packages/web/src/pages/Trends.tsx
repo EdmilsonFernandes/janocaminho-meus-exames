@@ -18,11 +18,16 @@ import { goalFor } from '../utils/clinicalGoals';
 
 import type { TimeSeriesByName as TS, EvolutionItem as EvoItem } from '@meus-exames/shared';
 import { prettyName } from '../utils/prettyName';
+import { PageHeader } from '../components/layout/PageHeader';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import { Frame, FrameHeader, FramePanel } from '@/components/reui/frame';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 /** Valor numérico p/ exibição (4 casas, vírgula decimal) — evita floats longos da conversão (91.33627999...). */
 const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Number(n.toFixed(4))).replace('.', ',');
 
 export const TrendsPage = () => {
+  useReuiThemeSync();
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
   const location = useLocation();
@@ -159,76 +164,69 @@ export const TrendsPage = () => {
     <PageContainer width="wide" sx={{ pb: { xs: 10, sm: 5 } }}>
       <Title title="Tendências" />
 
-      {/* HEADER PREMIUM */}
-      <Card sx={{
-        mb: 2.5, borderRadius: '20px', overflow: 'hidden',
-        background: 'linear-gradient(135deg,#20b2aa 0%,#178f89 50%,#0f6e68 100%)',
-        boxShadow: '0 6px 24px rgba(32,178,170,0.25)',
-        color: '#fff', position: 'relative',
-        '&::after': {
-          content: '""', position: 'absolute', inset: 0,
-          background: 'radial-gradient(ellipse at 80% 20%, rgba(255,255,255,0.18), transparent 60%)',
-          pointerEvents: 'none',
-        },
-      }}>
-        <CardContent sx={{ py: 3, px: { xs: 2.5, sm: 3 }, position: 'relative', zIndex: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', letterSpacing: '-0.01em' }}>
-            📈 Tendências
-          </Typography>
-          <Typography sx={{ opacity: 0.92, mt: 0.5, fontSize: 14.5 }}>
-            Veja como seus resultados evoluíram ao longo do tempo.
-          </Typography>
-        </CardContent>
-      </Card>
+      <PageHeader
+        icon={<ShowChartIcon />}
+        title="Tendências e Curvas Clínicas"
+        subtitle="Acompanhe a trajetória histórica de cada biomarcador em relação à faixa ideal de referência."
+      />
 
-      {/* ATALHOS (chips dos principais analitos) + DROPDOWN */}
+      {/* SELETOR DE BIOMARCADORES (ReUI Frame) */}
       {multi.length > 0 && (
-        <Card sx={{ mb: 2.5, borderRadius: '20px' }}><CardContent sx={{ p: { xs: 2, md: 2.5 } }}>
-          {multi.length > 1 && (
-            <Stack direction="row" spacing={0.85} useFlexGap flexWrap="wrap" sx={{ mb: 2 }}>
-              {multi.slice(0, 10).map((n) => {
-                const tone = toneByName[n.nameCanonical];
-                const isSelected = sel === n.nameCanonical;
-                const lastV = lastByName[n.nameCanonical];
-                return (
-                  <Chip key={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
-                    color={isSelected ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
-                    label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                      {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', background: tone === 'critico' ? '#ef4444' : '#f59e0b', boxShadow: `0 0 6px ${tone === 'critico' ? '#ef4444' : '#f59e0b'}66` }} />}
-                      {prettyName(n.nameCanonical)}{lastV != null && <strong style={{ fontWeight: 800 }}>{fmtNum(lastV)}</strong>}
-                    </span>}
-                    sx={{
-                      height: 38, fontWeight: 700, borderRadius: '999px', maxWidth: 195,
-                      transition: 'transform .15s ease, box-shadow .15s ease',
-                      '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 4px 12px rgba(32,178,170,.15)' },
-                      '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 1.5 },
-                      '&.MuiChip-colorPrimary': {
-                        background: 'linear-gradient(135deg,#20b2aa,#178f89)',
-                        boxShadow: '0 4px 12px rgba(32,178,170,.3)',
-                        color: '#fff',
-                      },
-                    }} />
-                );
-              })}
-            </Stack>
-          )}
-          <FormControl fullWidth size="small">
-            <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty
-              MenuProps={{ PaperProps: { sx: { borderRadius: '16px', maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
-              sx={{ borderRadius: '14px', maxWidth: '100%', '& .MuiSelect-select': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 1 } }}>
-              <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
-              {multi.map((n) => {
-                const tone = toneByName[n.nameCanonical];
-                return (
-                  <MenuItem key={n.nameCanonical} value={n.nameCanonical}>
-                    {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, marginRight: 8, background: tone === 'critico' ? '#ef4444' : '#f59e0b' }} />}
-                    {prettyName(n.nameCanonical)} ({n.count} exames)
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </FormControl>
-        </CardContent></Card>
+        <Frame variant="default" className="mb-5">
+          <FrameHeader className="flex flex-row items-center justify-between gap-2 pb-2">
+            <div>
+              <div className="font-heading text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
+                Selecionar Biomarcador ({multi.length} com série histórica)
+              </div>
+            </div>
+          </FrameHeader>
+          <FramePanel className="p-3.5 sm:p-4 space-y-3">
+            {multi.length > 1 && (
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                {multi.slice(0, 10).map((n) => {
+                  const tone = toneByName[n.nameCanonical];
+                  const isSelected = sel === n.nameCanonical;
+                  const lastV = lastByName[n.nameCanonical];
+                  return (
+                    <Chip key={n.nameCanonical} onClick={() => setSel(n.nameCanonical)}
+                      color={isSelected ? 'primary' : 'default'} size="small" title={prettyName(n.nameCanonical)}
+                      label={<span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                        {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', background: tone === 'critico' ? '#ef4444' : '#f59e0b', boxShadow: `0 0 6px ${tone === 'critico' ? '#ef4444' : '#f59e0b'}66` }} />}
+                        {prettyName(n.nameCanonical)}{lastV != null && <strong style={{ fontWeight: 800 }}>{fmtNum(lastV)}</strong>}
+                      </span>}
+                      sx={{
+                        height: 34, fontWeight: 700, borderRadius: '999px', maxWidth: 210,
+                        transition: 'transform .15s ease, box-shadow .15s ease',
+                        '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 4px 12px rgba(32,178,170,.15)' },
+                        '& .MuiChip-label': { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', px: 1.25 },
+                        '&.MuiChip-colorPrimary': {
+                          background: 'linear-gradient(135deg,#20b2aa,#178f89)',
+                          boxShadow: '0 4px 12px rgba(32,178,170,.3)',
+                          color: '#fff',
+                        },
+                      }} />
+                  );
+                })}
+              </Stack>
+            )}
+            <FormControl fullWidth size="small">
+              <Select value={sel} onChange={(e) => setSel(e.target.value as string)} displayEmpty
+                MenuProps={{ PaperProps: { sx: { borderRadius: '16px', maxWidth: { sm: 480 }, '& .MuiMenuItem-root': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } } } }}
+                sx={{ borderRadius: '12px', maxWidth: '100%', bgcolor: 'background.paper', '& .MuiSelect-select': { whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: 1 } }}>
+                <MenuItem value="" disabled><em>Todos os analitos ({multi.length})</em></MenuItem>
+                {multi.map((n) => {
+                  const tone = toneByName[n.nameCanonical];
+                  return (
+                    <MenuItem key={n.nameCanonical} value={n.nameCanonical}>
+                      {tone && <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, marginRight: 8, background: tone === 'critico' ? '#ef4444' : '#f59e0b' }} />}
+                      {prettyName(n.nameCanonical)} ({n.count} exames)
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+            </FormControl>
+          </FramePanel>
+        </Frame>
       )}
 
       {/* EMPTY STATE (sem dados) */}

@@ -23,17 +23,21 @@ import { refLabel, categorize } from '../utils/medicalData';
 import { priorityOf, maxPriority, isStaleExam, refScaleSuspect, PRIORITY_META, PRIORITY_RANK, priorityText } from '../utils/alertPriority';
 import { CappedExamMarkers } from '../components/CappedExamMarkers';
 import { RADIUS } from '../theme';
+import { Frame, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 import type { AbnormalItem as AbnItem } from '@meus-exames/shared';
 
 /** Valores fora da faixa, AGRUPADOS POR EXAME (dentro de cada exame, ordenados por PRIORIDADE). */
 export const ValoresAlteradosPage = () => {
+  useReuiThemeSync();
   const translate = useTranslate();
   const navigate = useNavigate();
   const [pid] = useSelectedPatient();
   const [items, setItems] = useState<AbnItem[]>([]);
   const [examCount, setExamCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sevFilter, setSevFilter] = useState<'all' | 'importante' | 'moderada' | 'leve'>('all');
 
   useEffect(() => {
     setLoading(true);
@@ -55,16 +59,13 @@ export const ValoresAlteradosPage = () => {
   const groups = useMemo(() => {
     const map = new Map<string, { examId: string; examTitle: string; performedAt: string | null; requestingDoctor: string | null; items: AbnItem[] }>();
     for (const it of items) {
+      if (sevFilter !== 'all' && priorityOf(it) !== sevFilter) continue;
       if (!map.has(it.examId)) map.set(it.examId, { examId: it.examId, examTitle: it.examTitle, performedAt: it.performedAt, requestingDoctor: it.requestingDoctor, items: [] });
       map.get(it.examId)!.items.push(it);
     }
-    // Dentro de cada exame: prioridade (mais grave primeiro) e depois categoria (clusteriza).
     for (const g of map.values()) g.items.sort((a, b) => PRIORITY_RANK[priorityOf(b)] - PRIORITY_RANK[priorityOf(a)] || categorize(a.nameCanonical).key.localeCompare(categorize(b.nameCanonical).key));
-    // Exames: SEVERIDADE máxima primeiro (o subtítulo promete "ordenados por prioridade 🔴→🟡" —
-    // ordenar por data colocava um 🟡 recente acima de um 🔴 antigo), desempate pelo mais recente.
-    // (O portal médico já ordenava assim; o lado paciente divergia.)
     return [...map.values()].sort((a, b) => PRIORITY_RANK[maxPriority(b.items)] - PRIORITY_RANK[maxPriority(a.items)] || (b.performedAt ?? '').localeCompare(a.performedAt ?? ''));
-  }, [items]);
+  }, [items, sevFilter]);
 
   // Resumo por prioridade (contagem total). Itens com faixa suspeita (escala errada) NÃO entram
   // na contagem de prioridade — são exibidos à parte como "conferir faixa" (nunca como 🔴).
@@ -162,24 +163,51 @@ export const ValoresAlteradosPage = () => {
         />
       ) : (
         <>
-          {/* Resumo não-alarmista por prioridade */}
-          <Card variant="outlined" sx={{ mb: 1, borderRadius: RADIUS.card, borderColor: 'divider', bgcolor: 'rgba(15,61,58,0.03)' }}>
-            <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-              <Stack direction="row" spacing={1.5} flexWrap="wrap" useFlexGap sx={{ mb: 0.5 }}>
-                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'importante') }}>{PRIORITY_META.importante.emoji} {counts.importante} {PRIORITY_META.importante.label}{counts.importante !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'moderada') }}>{PRIORITY_META.moderada.emoji} {counts.moderada} {PRIORITY_META.moderada.label}{counts.moderada !== 1 ? 's' : ''}</Typography>
-                <Typography component="span" sx={{ fontWeight: 800, color: (t) => priorityText(t.palette.mode, 'leve') }}>{PRIORITY_META.leve.emoji} {counts.leve} {PRIORITY_META.leve.label}{counts.leve !== 1 ? 's' : ''}</Typography>
-              </Stack>
-              <Typography variant="caption" color="text.secondary">
-                {counts.importante > 0
-                  ? <>Os <strong>{PRIORITY_META.importante.emoji} importantes</strong> merecem prioridade — leve ao médico. {PRIORITY_META.moderada.emoji} moderadas: comente na consulta. {PRIORITY_META.leve.emoji} leves: só acompanhe.</>
-                  : <>Nada crítico — os ajustes são <strong>{PRIORITY_META.moderada.emoji} moderados</strong> ou <strong>{PRIORITY_META.leve.emoji} leves</strong>. Comente com seu médico na próxima consulta.</>}
-              </Typography>
+          {/* Painel de Triagem por Prioridade (ReUI Frame) com filtro interativo */}
+          <Frame variant="default" className="mb-3">
+            <FramePanel className="p-3.5 sm:p-4 space-y-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {([
+                  { key: 'all', label: 'Todos alterados', count: items.length, dot: '#178f89' },
+                  { key: 'importante', label: 'Importantes', count: counts.importante, dot: '#ef4444' },
+                  { key: 'moderada', label: 'Moderadas', count: counts.moderada, dot: '#f59e0b' },
+                  { key: 'leve', label: 'Leves', count: counts.leve, dot: '#eab308' },
+                ] as const).map((tile) => {
+                  const active = sevFilter === tile.key;
+                  return (
+                    <button
+                      key={tile.key}
+                      type="button"
+                      onClick={() => setSevFilter(tile.key)}
+                      className={`flex flex-col items-start justify-between rounded-xl border p-2.5 text-left transition-all cursor-pointer ${
+                        active
+                          ? 'border-teal-600 bg-teal-500/10 shadow-xs'
+                          : 'border-border/70 bg-background hover:bg-muted/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <span className="size-2 rounded-full shrink-0" style={{ backgroundColor: tile.dot }} />
+                        <span className="text-[11px] font-bold text-muted-foreground">{tile.label}</span>
+                      </div>
+                      <span className="mt-1 font-heading text-xl font-extrabold tabular-nums text-foreground">
+                        {tile.count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
               {suspectCount > 0 && (
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}>⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente incorreta (escala) — mostrados como “conferir”, não como alerta.</Typography>
+                <div className="text-[11.5px] text-muted-foreground">
+                  ⚠️ {plural(suspectCount, 'valor')} com faixa de referência possivelmente em outra escala — exibidos como “conferir”.
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </FramePanel>
+            <FrameFooter className="px-4 py-2 text-[11.5px] text-muted-foreground">
+              {counts.importante > 0
+                ? 'Priorize conversar sobre os itens importantes com seu médico. Alterações moderadas e leves servem de acompanhamento.'
+                : 'Nenhum marcador crítico — comente sobre os ajustes moderados ou leves na próxima consulta.'}
+            </FrameFooter>
+          </Frame>
 
           {/* Cabeçalho de Contexto & Foco */}
           {groups.length > INITIAL_LIMIT && (

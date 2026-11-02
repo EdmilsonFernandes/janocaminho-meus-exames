@@ -32,6 +32,7 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
   // E5.3 — reviews do médico por examItemId (estado de achado; upsert nunca apaga).
   const [reviews, setReviews] = useState<Record<string, ReviewLike>>({});
   const [pendingOnly, setPendingOnly] = useState(false);
+  const [hideNormalized, setHideNormalized] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -56,9 +57,14 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
 
   // Filtro "pendentes de revisão": itens ALTERADOS sem review deste médico.
   const pendingCount = useMemo(() => items.filter((it) => !reviews[it.id]).length, [items, reviews]);
+  const normalizedCount = useMemo(() => items.filter((it) => it.isNormalizedInNewerExam).length, [items]);
   const visibleItems = useMemo(
-    () => (pendingOnly ? items.filter((it) => !reviews[it.id]) : items),
-    [items, reviews, pendingOnly],
+    () => items.filter((it) => {
+      if (pendingOnly && reviews[it.id]) return false;
+      if (hideNormalized && it.isNormalizedInNewerExam) return false;
+      return true;
+    }),
+    [items, reviews, pendingOnly, hideNormalized],
   );
 
   const groups = useMemo(() => {
@@ -144,18 +150,27 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
         <AccordionDetails sx={{ p: 1.25 }}>
           <CappedExamMarkers
             items={g.items}
-            extra={doctorId ? (it: any) => (
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -0.25, mb: 0.5 }}>
-                <ReviewControl
-                  review={reviews[it.id] ?? null}
-                  patientId={patientId}
-                  itemId={it.id}
-                  token={token}
-                  doctorId={doctorId}
-                  onSaved={(rv) => setReviews((prev) => ({ ...prev, [it.id]: rv }))}
-                />
+            extra={(it: any) => (
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 0.75, mt: -0.25, mb: 0.5 }}>
+                {it.isNormalizedInNewerExam ? (
+                  <Chip
+                    size="small"
+                    label={`✓ Normalizado em exame mais recente${it.latestValueText ? ` (${it.latestValueText})` : ''}`}
+                    sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', border: '1px solid rgba(16,185,129,0.3)' }}
+                  />
+                ) : <span />}
+                {doctorId && (
+                  <ReviewControl
+                    review={reviews[it.id] ?? null}
+                    patientId={patientId}
+                    itemId={it.id}
+                    token={token}
+                    doctorId={doctorId}
+                    onSaved={(rv) => setReviews((prev) => ({ ...prev, [it.id]: rv }))}
+                  />
+                )}
               </Box>
-            ) : undefined}
+            )}
           />
         </AccordionDetails>
       </Accordion>
@@ -201,20 +216,33 @@ export const DoctorValoresAlterados = ({ patientId, token, doctorId }: { patient
             </CardContent>
           </Card>
 
-          {/* E5.3 — filtro de triagem: só itens alterados SEM review deste médico. */}
-          {doctorId && (pendingCount > 0 || pendingOnly) && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <Chip
-                size="small"
-                onClick={() => setPendingOnly((v) => !v)}
-                color={pendingOnly ? 'primary' : 'default'}
-                variant={pendingOnly ? 'filled' : 'outlined'}
-                label={pendingOnly ? `Pendentes de revisão (${visibleItems.length})` : `Pendentes de revisão (${pendingCount})`}
-                title="Mostrar apenas achados ainda sem estado de revisão definido por você"
-                sx={{ fontWeight: 700, borderRadius: '999px' }}
-              />
+          {/* E5.3 — filtros de triagem: pendentes de revisão + ocultar históricos já normalizados */}
+          {(doctorId && (pendingCount > 0 || pendingOnly)) || normalizedCount > 0 ? (
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, justifyContent: 'flex-start' }}>
+              {doctorId && (pendingCount > 0 || pendingOnly) && (
+                <Chip
+                  size="small"
+                  onClick={() => setPendingOnly((v) => !v)}
+                  color={pendingOnly ? 'primary' : 'default'}
+                  variant={pendingOnly ? 'filled' : 'outlined'}
+                  label={pendingOnly ? `Pendentes de revisão (${visibleItems.length})` : `Pendentes de revisão (${pendingCount})`}
+                  title="Mostrar apenas achados ainda sem estado de revisão definido por você"
+                  sx={{ fontWeight: 700, borderRadius: '999px' }}
+                />
+              )}
+              {normalizedCount > 0 && (
+                <Chip
+                  size="small"
+                  onClick={() => setHideNormalized((v) => !v)}
+                  color={hideNormalized ? 'success' : 'default'}
+                  variant={hideNormalized ? 'filled' : 'outlined'}
+                  label={hideNormalized ? `Ocultando ${normalizedCount} já normalizados ✓` : `Ocultar já normalizados (${normalizedCount})`}
+                  title="Ocultar resultados antigos de marcadores que já voltaram à faixa normal em exame mais recente"
+                  sx={{ fontWeight: 700, borderRadius: '999px' }}
+                />
+              )}
             </Box>
-          )}
+          ) : null}
 
           {/* Cabeçalho de Contexto & Foco Clínico */}
           {groups.length > INITIAL_LIMIT && (

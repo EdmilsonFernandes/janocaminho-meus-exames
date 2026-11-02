@@ -29,6 +29,18 @@ import { notifyInsufficientCredits } from '../utils/credits-events';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticLight, hapticSuccess } from '../utils/haptic';
 import { chipA11y } from '../utils/chipA11y';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import {
+  Frame,
+  FrameDescription,
+  FrameFooter,
+  FrameHeader,
+  FramePanel,
+  FrameTitle,
+} from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/patterns';
+import { InputGroup, InputGroupInput } from '@/components/reui/form-controls';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const SCOPE_META = [
   { key: 'exams', label: 'Exames', short: 'Exames', icon: '📋' },
@@ -91,6 +103,7 @@ const ScopeToggle = ({ scopeKey, active, onToggle, compact }: { scopeKey: string
 };
 
 export const MedicosPage = () => {
+  useReuiThemeSync();
   const navigate = useNavigate();
   const translate = useTranslate();
   const notify = useNotify();
@@ -430,192 +443,149 @@ export const MedicosPage = () => {
 
   return (
     <PageContainer width={760} sx={{ pb: { xs: 14, sm: 6 } }}>
-      {/* HERO BANNER ULTRA PREMIUM */}
-      <Card
-        elevation={0}
-        sx={{
-          mb: 3,
-          borderRadius: '20px',
-          background: 'linear-gradient(135deg, #093f3c 0%, #0f5f5a 60%, #178f89 100%)',
-          color: '#fff',
-          overflow: 'hidden',
-          boxShadow: '0 16px 36px rgba(15,95,90,0.24)',
-          position: 'relative',
-          border: '1px solid rgba(255,255,255,0.12)',
-        }}
-      >
-        {/* Glow decorativo sutil de fundo */}
-        <Box sx={{
-          position: 'absolute', top: -40, right: -40, width: 180, height: 180,
-          borderRadius: '50%', background: 'radial-gradient(circle, rgba(32,178,170,0.3) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-
-        <CardContent sx={{ p: { xs: 2.25, sm: 3.25 } }}>
-          <Stack spacing={2}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1.5}>
-              <Stack direction="row" alignItems="center" spacing={1.5}>
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.16)', p: 1, borderRadius: '14px', display: 'flex', alignItems: 'center', backdropFilter: 'blur(8px)' }}>
-                  <MedicalServicesIcon sx={{ fontSize: 26, color: '#fff' }} />
-                </Box>
-                <Box>
-                  <Typography variant="h5" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 20, sm: 22 }, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+      {/* CABEÇALHO UNIFICADO ReUI (substitui o antigo banner verde gigante + card solto de consultas) */}
+      <Frame className="mb-5 w-full">
+        <FrameHeader>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <IconTile tone="primary" size="lg">
+                <MedicalServicesIcon sx={{ fontSize: 22 }} />
+              </IconTile>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <FrameTitle className="font-['Poppins',sans-serif] text-lg font-extrabold sm:text-xl">
                     Meus Médicos
-                  </Typography>
-                  <Typography sx={{ opacity: 0.85, fontSize: 13, mt: 0.25 }}>
-                    Seus profissionais de confiança e permissões de acesso
-                  </Typography>
-                </Box>
-              </Stack>
+                  </FrameTitle>
+                  <ReuiBadge variant="outline" size="sm" className="tabular-nums">
+                    {myItems.length} {myItems.length === 1 ? 'médico' : 'médicos'}
+                  </ReuiBadge>
+                  <ReuiBadge
+                    variant={activeCount > 0 ? 'success-light' : 'outline'}
+                    size="sm"
+                    className="tabular-nums"
+                  >
+                    {activeCount} com acesso
+                  </ReuiBadge>
+                </div>
+                <FrameDescription className="mt-0.5">
+                  Escolha quais exames cada especialista pode ver e altere permissões em 1 toque.
+                </FrameDescription>
+              </div>
+            </div>
+          </div>
+        </FrameHeader>
 
-              {/* Badges de estatística sem corte */}
-              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                <Chip
-                  size="small"
-                  label={`${myItems.length} ${myItems.length === 1 ? 'médico' : 'médicos'}`}
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800, fontSize: 12, height: 26, backdropFilter: 'blur(6px)' }}
-                />
-                <Chip
-                  size="small"
-                  label={`${activeCount} com acesso`}
-                  sx={{ bgcolor: activeCount > 0 ? 'rgba(52,211,153,0.25)' : 'rgba(255,255,255,0.12)', color: activeCount > 0 ? '#a7f3d0' : '#fff', fontWeight: 800, fontSize: 12, height: 26, border: '1px solid rgba(52,211,153,0.3)' }}
-                />
-              </Stack>
-            </Stack>
+        <FramePanel className="space-y-3">
+          {/* Ações Principais lado a lado */}
+          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={() => setShowForm(true)}
+              sx={{
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: 13.5,
+                textTransform: 'none',
+                minHeight: 44,
+                background: 'linear-gradient(135deg, #20b2aa 0%, #178f89 100%)',
+                boxShadow: '0 4px 14px rgba(23,143,137,0.25)',
+                '&:hover': { background: 'linear-gradient(135deg, #178f89 0%, #0f766e 100%)' },
+              }}
+            >
+              Compartilhar com meu médico
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<SearchIcon />}
+              onClick={() => { hapticLight(); navigate('/encontrar'); }}
+              sx={{
+                borderRadius: '12px',
+                fontWeight: 800,
+                fontSize: 13.5,
+                textTransform: 'none',
+                minHeight: 44,
+                borderColor: 'rgba(23,143,137,0.35)',
+                color: (t) => tealText(t.palette.mode),
+                '&:hover': { borderColor: '#178f89', bgcolor: 'rgba(23,143,137,0.06)' },
+              }}
+            >
+              Encontrar especialistas
+            </Button>
+          </div>
 
-            <Typography sx={{ opacity: 0.9, fontSize: 13.5, maxWidth: 580, lineHeight: 1.5 }}>
-              Controle o que cada médico pode visualizar. Você escolhe quais exames compartilhar e pode alterar ou revogar permissões a qualquer momento.
-            </Typography>
+          {/* Barra de Busca e Filtro unificada dentro do próprio Frame */}
+          {!loading && myShares.length > 0 && (
+            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <InputGroup leading={<SearchIcon sx={{ fontSize: 18 }} />}>
+                  <InputGroupInput
+                    placeholder={translate('docs.search_ph')}
+                    aria-label="Buscar médico por nome ou CRM"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </InputGroup>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {specialties.length > 1 && (
+                  <select
+                    aria-label="Filtrar por especialidade"
+                    value={specFilter}
+                    onChange={(e) => setSpecFilter(e.target.value)}
+                    className="h-10 rounded-xl border border-input bg-card px-3 text-xs font-semibold text-foreground outline-none focus:border-ring"
+                  >
+                    <option value="">{translate('docs.all')}</option>
+                    {specialties.map((sp: string) => (
+                      <option key={sp} value={sp}>
+                        {fixSpecialty(sp)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setActiveOnly((v) => !v)}
+                  aria-pressed={activeOnly}
+                  className={
+                    'inline-flex h-10 items-center gap-1.5 rounded-xl border px-3 text-xs font-bold transition-colors ' +
+                    (activeOnly
+                      ? 'border-primary/40 bg-primary/12 text-primary'
+                      : 'border-border bg-card text-muted-foreground hover:bg-muted/50')
+                  }
+                >
+                  <span
+                    className={
+                      'size-2 rounded-full ' +
+                      (activeOnly ? 'bg-emerald-500' : 'bg-muted-foreground/40')
+                    }
+                  />
+                  Só ativos ({activeCount})
+                </button>
+              </div>
+            </div>
+          )}
+        </FramePanel>
 
-            {/* Ações principais em grid/linha moderna */}
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} sx={{ pt: 0.5 }}>
-              <Button
-                variant="contained"
-                startIcon={<SearchIcon />}
-                onClick={() => { hapticLight(); navigate('/encontrar'); }}
-                sx={{
-                  flex: 1,
-                  bgcolor: '#ffffff',
-                  color: '#0f5f5a',
-                  fontWeight: 800,
-                  fontSize: 13.5,
-                  textTransform: 'none',
-                  borderRadius: '999px',
-                  py: 1.1,
-                  px: 2.5,
-                  boxShadow: '0 4px 14px rgba(0,0,0,0.15)',
-                  '&:hover': { bgcolor: '#f0fdfa', color: '#093f3c' },
-                }}
-              >
-                Encontrar novos especialistas
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<PersonAddIcon />}
-                onClick={() => setShowForm(true)}
-                sx={{
-                  flex: 1,
-                  bgcolor: 'rgba(255,255,255,0.18)',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: 13.5,
-                  textTransform: 'none',
-                  borderRadius: '999px',
-                  py: 1.1,
-                  px: 2.5,
-                  backdropFilter: 'blur(8px)',
-                  border: '1px solid rgba(255,255,255,0.35)',
-                  '&:hover': { bgcolor: 'rgba(255,255,255,0.28)' },
-                }}
-              >
-                Compartilhar com meu médico
-              </Button>
-            </Stack>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Teleconsultas agora vivem na tela dedicada /consultas (FALHAS 1/2 — mock
-          aprovado). Aqui só um card-link de atalho, sem lista inline duplicada. */}
-      <Card
-        onClick={() => { hapticLight(); navigate('/consultas'); }}
-        {...chipA11y()}
-        aria-label="Ver consultas agendadas"
-        sx={{
-          mb: 3,
-          borderRadius: '16px',
-          border: '1px solid',
-          borderColor: 'rgba(15,118,110,0.3)',
-          background: (t) =>
-            t.palette.mode === 'dark'
-              ? 'linear-gradient(135deg, rgba(15,118,110,0.18) 0%, rgba(20,40,40,0.8) 100%)'
-              : 'linear-gradient(135deg, rgba(15,118,110,0.08) 0%, rgba(240,253,250,0.9) 100%)',
-          boxShadow: '0 4px 20px rgba(15,118,110,0.08)',
-          cursor: 'pointer',
-          transition: 'all .2s ease',
-          '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 8px 24px rgba(15,118,110,0.14)' },
-          '&:active': { transform: 'scale(.99)' },
-        }}
-      >
-        <CardContent sx={{ p: { xs: 2, sm: 2.5 }, '&:last-child': { pb: { xs: 2, sm: 2.5 } } }}>
-          <Stack direction="row" alignItems="center" spacing={1.25}>
-            <VideocamIcon sx={{ color: '#0f766e', fontSize: 24 }} />
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <Typography sx={{ fontWeight: 800, fontSize: 15, fontFamily: 'Poppins, sans-serif', color: 'text.primary' }}>
-                  Ver consultas agendadas
-                </Typography>
-                <Chip
-                  size="small"
-                  label={teleconsultas.length}
-                  sx={{ height: 20, bgcolor: 'rgba(15,118,110,0.15)', color: '#0f766e', fontWeight: 800 }}
-                />
-              </Stack>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.25 }}>
-                {teleconsultas.length > 0
-                  ? `${teleconsultas.length} ${teleconsultas.length === 1 ? 'teleconsulta agendada' : 'teleconsultas agendadas'} — sala virtual, pagamento e histórico`
-                  : 'Sala virtual, pagamento PIX e histórico das suas teleconsultas'}
-              </Typography>
-            </Box>
-            <Typography sx={{ fontWeight: 800, fontSize: 13, color: '#0f766e', whiteSpace: 'nowrap' }}>
-              Ver todas →
-            </Typography>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {/* Filtros */}
-      {!loading && myShares.length > 0 && (
-        <Stack spacing={1} sx={{ mb: 2.5 }}>
-          <TextField
-            placeholder={translate('docs.search_ph')}
-            inputProps={{ 'aria-label': 'Buscar médico por nome ou CRM' }}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            size="small"
-            fullWidth
-            slotProps={{
-              input: {
-                startAdornment: <InputAdornment position="start"><SearchIcon sx={{ fontSize: 18, color: 'text.secondary' }} /></InputAdornment>,
-                sx: { borderRadius: '999px', bgcolor: 'background.paper' }
-              }
-            }}
-          />
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-            {specialties.length > 1 && (
-              <TextField select size="small" value={specFilter} onChange={(e) => setSpecFilter(e.target.value)} sx={{ minWidth: { xs: 0, sm: 160 }, width: { xs: '100%', sm: 'auto' }, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }} label="Especialidade">
-                <MenuItem value="">{translate('docs.all')}</MenuItem>
-                {specialties.map((sp: string) => <MenuItem key={sp} value={sp}>{fixSpecialty(sp)}</MenuItem>)}
-              </TextField>
-            )}
-            <FormControlLabel control={<Switch size="small" checked={activeOnly} onChange={(e) => setActiveOnly(e.target.checked)} />} label={<Typography sx={{ fontSize: 13, fontWeight: 700 }}>Só ativos</Typography>} />
-            {/* "compartilhamentos", não "médicos": o herói conta médicos SALVOS (myItems) e
-                aqui são os shares — com o mesmo rótulo os números pareciam contraditórios
-                (auditoria 29/10: "3 médicos" × "2 médicos" na mesma tela). */}
-            <Chip size="small" label={`${myShares.length} ${myShares.length === 1 ? 'compartilhamento' : 'compartilhamentos'} • ${activeCount} ${activeCount === 1 ? 'ativo' : 'ativos'}`} sx={{ bgcolor: 'rgba(15,95,90,0.1)', color: '#0f5f5a', fontWeight: 800 }} />
-          </Stack>
-        </Stack>
-      )}
+        {/* Atalho compacto de Teleconsultas no rodapé do Frame */}
+        <FrameFooter className="flex items-center justify-between gap-2 py-2.5">
+          <div className="flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
+            <VideocamIcon sx={{ fontSize: 17, color: '#0f766e' }} />
+            <span className="truncate">
+              {teleconsultas.length > 0
+                ? `${teleconsultas.length} ${teleconsultas.length === 1 ? 'teleconsulta agendada' : 'teleconsultas agendadas'}`
+                : 'Sala de vídeo, agendamento e histórico de consultas'}
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { hapticLight(); navigate('/consultas'); }}
+            className="shrink-0 text-xs font-extrabold text-primary hover:underline"
+          >
+            Ver consultas ({teleconsultas.length}) →
+          </button>
+        </FrameFooter>
+      </Frame>
 
       {/* Loading */}
       {loading && <ListSkeleton count={4} />}

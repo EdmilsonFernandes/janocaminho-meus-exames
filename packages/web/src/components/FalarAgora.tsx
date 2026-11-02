@@ -468,31 +468,39 @@ export const FalarAgora = ({ sx }: { sx?: object }) => {
           </Stack>
         )}
 
-        {/* ── IDLE ── v1.1: lista de médicos (mock T1-T4) · vazio honesto sem médicos */}
+        {/* ── IDLE ── v1.1: lista de médicos (mock T1-T4) · compacto quando 0 online */}
         {phase === 'idle' && doctors.length === 0 && (
-          <Box sx={{ mt: 1.75 }}>
-            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', lineHeight: 1.55 }}>
-              Nenhum médico online agora. A fila imediata funciona quando há médicos em
-              plantão — você pode agendar para depois ou voltar mais tarde.
+          <Box
+            sx={{
+              mt: 1.5,
+              pt: 1.5,
+              borderTop: '1px solid',
+              borderColor: 'divider',
+            }}
+          >
+            <Typography sx={{ fontSize: 12.5, color: 'text.secondary', lineHeight: 1.45, mb: 1.25 }}>
+              Nenhum plantonista online agora. Entre na fila para ser avisado assim que um médico iniciar plantão ou agende com seus especialistas.
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} sx={{ mt: 1.5 }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
               <Button
                 fullWidth
                 variant="contained"
-                startIcon={<MedicalServicesRoundedIcon />}
-                onClick={() => { hapticLight(); navigate('/medicos'); }}
-                sx={gradBtn}
+                size="small"
+                disabled={joinBusy || !pid}
+                onClick={() => pickNoPreference()}
+                sx={{ ...gradBtn, minHeight: 40, fontSize: 13 }}
               >
-                Agendar para depois
+                Avisar quando médico entrar
               </Button>
               <Button
                 fullWidth
                 variant="outlined"
-                disabled={joinBusy || !pid}
-                onClick={() => pickNoPreference()}
-                sx={{ minHeight: 46, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13.5, borderColor: 'divider', color: 'text.secondary' }}
+                size="small"
+                startIcon={<MedicalServicesRoundedIcon sx={{ fontSize: 17 }} />}
+                onClick={() => { hapticLight(); navigate('/medicos'); }}
+                sx={{ minHeight: 40, borderRadius: '12px', textTransform: 'none', fontWeight: 700, fontSize: 13, borderColor: 'divider', color: 'text.primary' }}
               >
-                Entrar na fila — avisamos quando um médico entrar
+                Agendar com meu médico
               </Button>
             </Stack>
           </Box>

@@ -911,14 +911,21 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
   );
 };
 
-/** Panorama de Marcadores — estilo Hospital Management / Department Occupancy */
+/** Panorama de Marcadores — ReUI Intelligent Donut Ring + Stacked Bar + Interactive Breakdown */
 const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }: { buckets: { bons: number; alerta: number; alterados: number }; totalMarkers: number; onOpen: (dest: 'exams' | 'tendencias') => void; loaded?: boolean }) => {
   const t = useTheme();
   const isDark = t.palette.mode === 'dark';
   const total = (buckets.bons + buckets.alerta + buckets.alterados) || totalMarkers;
   const bonsPct = total > 0 ? Math.round((buckets.bons / total) * 100) : 0;
   const alertaPct = total > 0 ? Math.round((buckets.alerta / total) * 100) : 0;
-  const alteradosPct = total > 0 ? Math.round((buckets.alterados / total) * 100) : 0;
+  const alteradosPct = total > 0 ? Math.max(0, 100 - bonsPct - alertaPct) : 0;
+
+  // Geometria do Donut Ring SVG (r=34, circunferência ≈ 213.6)
+  const r = 34;
+  const circ = 2 * Math.PI * r;
+  const bonsLen = total > 0 ? (buckets.bons / total) * circ : 0;
+  const alertaLen = total > 0 ? (buckets.alerta / total) * circ : 0;
+  const alteradosLen = total > 0 ? (buckets.alterados / total) * circ : 0;
 
   /** F4 — linha do panorama = atalho (padrão app grande): Normal → exames;
    *  fora-da-faixa → análise (/tendencias). Teclado + hover + hint "ver". */
@@ -929,41 +936,220 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
       onClick={() => onOpen(dest)}
       aria-label={`${label}: ${count} de ${total} (${pct}%) — ver`}
       sx={{
-        display: 'block', width: '100%', textAlign: 'left', p: 0, m: 0, border: 'none',
-        bgcolor: 'transparent', fontFamily: 'inherit', cursor: 'pointer',
-        minHeight: 44,
-        borderRadius: RADIUS.button, px: 0.75, py: 0.5, mx: -0.75,
-        '&:hover': { bgcolor: 'action.hover' },
+        display: 'block', width: '100%', textAlign: 'left', border: '1px solid',
+        borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,61,58,0.07)',
+        bgcolor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(248,250,252,0.8)',
+        fontFamily: 'inherit', cursor: 'pointer',
+        minHeight: 48,
+        borderRadius: '12px', px: 1.5, py: 1, m: 0,
+        transition: 'all .18s ease',
+        '&:hover': {
+          bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(13,148,136,0.04)',
+          borderColor: bar,
+          transform: 'translateY(-1px)',
+        },
         '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
         '&:active': { transform: 'scale(.99)' },
-        ...(last ? {} : { mb: 0.25 }),
+        ...(last ? {} : { mb: 0.75 }),
       }}
     >
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.5 }}>
-        <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.primary' }}>{label} <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>ver →</Box></Typography>
-        <Typography sx={{ fontSize: 12, fontWeight: 800, color }}>{count}/{total} ({pct}%)</Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.6 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: bar, flexShrink: 0, boxShadow: `0 0 0 3px ${bar}22` }} />
+          <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
+            {label}{' '}
+            <Box component="span" sx={{ color: 'text.secondary', fontSize: 11.5, fontWeight: 600, ml: 0.25 }}>
+              ver →
+            </Box>
+          </Typography>
+        </Stack>
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <Typography sx={{ fontSize: 12.5, fontWeight: 800, color, fontVariantNumeric: 'tabular-nums' }}>
+            {count}/{total}
+          </Typography>
+          <Box
+            component="span"
+            sx={{
+              px: 0.8, py: 0.15, borderRadius: '6px', fontSize: 11, fontWeight: 800,
+              bgcolor: `${bar}18`, color, fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {pct}%
+          </Box>
+        </Stack>
       </Stack>
-      <LinearProgress variant="determinate" value={pct} sx={{ height: 6, borderRadius: 3, bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#f1f5f9', '& .MuiLinearProgress-bar': { bgcolor: bar, borderRadius: 3 } }} />
+      <LinearProgress
+        variant="determinate"
+        value={pct}
+        sx={{
+          height: 6,
+          borderRadius: 3,
+          bgcolor: isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0',
+          '& .MuiLinearProgress-bar': { bgcolor: bar, borderRadius: 3 },
+        }}
+      />
     </Box>
   );
 
   return (
     <AppCard sx={{ p: { xs: 2, sm: 2.5 } }}>
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box sx={{ width: 36, height: 36, borderRadius: RADIUS.tile, display: 'grid', placeItems: 'center', bgcolor: 'rgba(13, 148, 136, 0.12)', color: 'primary.dark' }}>
-          <ShowChartIcon sx={{ fontSize: 20 }} />
-        </Box>
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 700, fontSize: 14.5, lineHeight: 1.2 }}>
-            Seus Marcadores
-          </Typography>
-          <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
-            {!loaded ? 'Carregando seus marcadores…' : total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
-          </Typography>
-        </Box>
+      <Stack direction="row" spacing={1.5} alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ minWidth: 0, flex: 1 }}>
+          <Box sx={{ width: 38, height: 38, borderRadius: RADIUS.tile, display: 'grid', placeItems: 'center', bgcolor: 'rgba(13, 148, 136, 0.12)', color: 'primary.dark', flexShrink: 0 }}>
+            <ShowChartIcon sx={{ fontSize: 20 }} />
+          </Box>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography component="h2" sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 15, lineHeight: 1.2 }}>
+              Seus Marcadores
+            </Typography>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>
+              {!loaded ? 'Carregando seus marcadores…' : total > 0 ? `Distribuição de ${total} marcadores analisados` : 'Nenhum exame analisado ainda'}
+            </Typography>
+          </Box>
+        </Stack>
+        {loaded && total > 0 && (
+          <Chip
+            size="small"
+            label={`${total} total`}
+            sx={{
+              height: 22,
+              fontSize: 11,
+              fontWeight: 800,
+              fontVariantNumeric: 'tabular-nums',
+              bgcolor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(13,148,136,0.1)',
+              color: isDark ? '#5eead4' : '#0f766e',
+            }}
+          />
+        )}
       </Stack>
 
-      <Stack spacing={0.75}>
+      {/* GRÁFICO INTELIGENTE ReUI: Donut Ring Multi-Segmento + Barra Empilhada Proporcional */}
+      {loaded && total > 0 && (
+        <Box
+          sx={{
+            mb: 2,
+            p: 1.5,
+            borderRadius: '14px',
+            bgcolor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(15,118,110,0.03)',
+            border: '1px solid',
+            borderColor: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(15,118,110,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+          }}
+        >
+          {/* SVG Donut Chart */}
+          <Box sx={{ position: 'relative', width: 84, height: 84, flexShrink: 0 }}>
+            <Box component="svg" viewBox="0 0 84 84" sx={{ width: 84, height: 84, transform: 'rotate(-90deg)' }}>
+              <circle
+                cx="42"
+                cy="42"
+                r={r}
+                fill="none"
+                stroke={isDark ? 'rgba(255,255,255,0.08)' : '#e2e8f0'}
+                strokeWidth="8.5"
+              />
+              {bonsLen > 0 && (
+                <circle
+                  cx="42"
+                  cy="42"
+                  r={r}
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="8.5"
+                  strokeDasharray={`${bonsLen} ${circ}`}
+                  strokeDashoffset={0}
+                  strokeLinecap="butt"
+                  style={{ transition: 'stroke-dasharray .8s ease' }}
+                />
+              )}
+              {alertaLen > 0 && (
+                <circle
+                  cx="42"
+                  cy="42"
+                  r={r}
+                  fill="none"
+                  stroke="#f59e0b"
+                  strokeWidth="8.5"
+                  strokeDasharray={`${alertaLen} ${circ}`}
+                  strokeDashoffset={-bonsLen}
+                  strokeLinecap="butt"
+                  style={{ transition: 'stroke-dasharray .8s ease' }}
+                />
+              )}
+              {alteradosLen > 0 && (
+                <circle
+                  cx="42"
+                  cy="42"
+                  r={r}
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth="8.5"
+                  strokeDasharray={`${alteradosLen} ${circ}`}
+                  strokeDashoffset={-(bonsLen + alertaLen)}
+                  strokeLinecap="butt"
+                  style={{ transition: 'stroke-dasharray .8s ease' }}
+                />
+              )}
+            </Box>
+            <Box
+              sx={{
+                position: 'absolute',
+                inset: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+              }}
+            >
+              <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 17, lineHeight: 1, color: '#10b981', fontVariantNumeric: 'tabular-nums' }}>
+                {bonsPct}%
+              </Typography>
+              <Typography sx={{ fontSize: 9.5, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.03em', mt: 0.25 }}>
+                na faixa
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Resumo + Barra Proporcional Empilhada */}
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 800, color: 'text.primary', lineHeight: 1.25 }}>
+              {buckets.bons} de {total} normais
+            </Typography>
+            <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 0.25, mb: 1.25, lineHeight: 1.35 }}>
+              {buckets.alterados + buckets.alerta > 0
+                ? `${buckets.alterados + buckets.alerta} fora da referência laboratorial`
+                : 'Todos dentro da faixa ideal'}
+            </Typography>
+
+            {/* Barra multi-segmento estilo ReUI Analytics */}
+            <Box
+              sx={{
+                height: 10,
+                width: '100%',
+                borderRadius: '999px',
+                overflow: 'hidden',
+                display: 'flex',
+                 gap: '2px',
+                bgcolor: isDark ? 'rgba(255,255,255,0.06)' : '#e2e8f0',
+              }}
+            >
+              {buckets.bons > 0 && (
+                <Box sx={{ width: `${Math.max(4, bonsPct)}%`, bgcolor: '#10b981', transition: 'width .6s ease' }} title={`Normal: ${bonsPct}%`} />
+              )}
+              {buckets.alerta > 0 && (
+                <Box sx={{ width: `${Math.max(4, alertaPct)}%`, bgcolor: '#f59e0b', transition: 'width .6s ease' }} title={`Leve: ${alertaPct}%`} />
+              )}
+              {buckets.alterados > 0 && (
+                <Box sx={{ width: `${Math.max(4, alteradosPct)}%`, bgcolor: '#ef4444', transition: 'width .6s ease' }} title={`Requer atenção: ${alteradosPct}%`} />
+              )}
+            </Box>
+          </Box>
+        </Box>
+      )}
+
+      <Stack spacing={0}>
         {loaded ? (
           <>
             {row(SEVERITY.low, buckets.bons, bonsPct, (th: any) => TONE_TEXT.success[th.palette.mode === 'dark' ? 'dark' : 'light'], '#10b981', 'exams')}
@@ -973,7 +1159,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
         ) : [0, 1, 2].map((i) => <Shimmer key={i} h={36} r={8} />)}
       </Stack>
 
-      <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 2, lineHeight: 1.35 }}>
+      <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.75, lineHeight: 1.35 }}>
         <LightbulbIcon component="span" sx={{ fontSize: 13, mr: 0.25, verticalAlign: '-2px' }} /> Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
       </Typography>
     </AppCard>

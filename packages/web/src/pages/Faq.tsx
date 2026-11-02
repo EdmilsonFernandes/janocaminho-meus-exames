@@ -13,6 +13,11 @@ import { DrExame } from '../components/DrExame';
 import { GradientButton } from '../components/GradientButton';
 import { PageContainer } from '../components/layout/PageContainer';
 import { tealText } from '../theme';
+import { Frame, FrameHeader, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { ArrowLeft, Search, HelpCircle, LifeBuoy, Mail } from 'lucide-react';
 
 type FaqCategory = 'comecando' | 'planos' | 'conta' | 'exames' | 'confianca' | 'medico' | 'privacidade';
 
@@ -82,6 +87,7 @@ const FAQ: FaqEntry[] = [
  * "Falar com o suporte" abre o painel de chamados (/suporte), sem sair pra e-mail.
  */
 export const FaqPage = () => {
+  useReuiThemeSync();
   const navigate = useNavigate();
   // Deep-link de busca (?q=): os cards de auto-ajuda do /suporte chegam com a dúvida pronta.
   const [params] = useSearchParams();
@@ -100,78 +106,86 @@ export const FaqPage = () => {
   }, [query, category]);
 
   return (
-    <PageContainer width={720}>
+    <PageContainer width={740}>
       <Title title="Dúvidas frequentes" />
 
-      {/* HERO — mascote + título integrados (antes: logo solto em cima, texto solto embaixo).
-          Aura teal + flutuação sutil = assinatura de marca dos empty states; brilho diagonal
-          discreto dá vida sem distrair. */}
-      <Box sx={{
-        position: 'relative', overflow: 'hidden', mb: 3,
-        borderRadius: '16px', p: { xs: 2.5, md: 3.5 },
-        background: 'linear-gradient(135deg,#20b2aa,#178f89)',
-        color: '#fff',
-        '&::after': {
-          content: '""', position: 'absolute', inset: 0,
-          background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,.14) 50%, transparent 60%)',
-          transform: 'translateX(-120%)', animation: 'faqShine 5.5s ease-in-out infinite',
-        },
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, flexWrap: 'wrap', position: 'relative', zIndex: 1 }}>
-          <Box sx={{
-            width: 84, height: 84, flexShrink: 0, borderRadius: '50%', display: 'grid', placeItems: 'center',
-            background: 'radial-gradient(circle at 50% 42%, rgba(255,255,255,.32), rgba(255,255,255,.08) 72%)',
-            animation: 'faqFloat 3s ease-in-out infinite',
-          }}>
-            <DrExame size={54} sx={{ borderRadius: '50%' }} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 220 }}>
-            <Typography sx={{ fontSize: 12, fontWeight: 700, letterSpacing: '.08em', textTransform: 'uppercase', opacity: 0.9 }}>
-              Central de ajuda
-            </Typography>
-            <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: { xs: 24, md: 28 }, lineHeight: 1.15, mt: 0.25 }}>
-              Perguntas frequentes
-            </Typography>
-            <Typography sx={{ opacity: 0.92, fontSize: 14, mt: 0.5 }}>
-              Exames, IA, planos e privacidade — direto ao ponto. Não achou? O suporte abre um chamado aqui mesmo, no app.
-            </Typography>
-          </Box>
-        </Box>
-      </Box>
+      {/* Barra de retorno clara — permite voltar tanto quando aberto dentro do app quanto via rota pública /faq */}
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => (window.history.length > 1 ? navigate(-1) : navigate('/'))}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-card px-3 py-1.5 text-xs font-bold text-foreground shadow-2xs transition-colors hover:bg-muted cursor-pointer"
+        >
+          <ArrowLeft className="size-3.5" />
+          <span>Voltar</span>
+        </button>
+        <Badge variant="info-light" size="xs">
+          Central de Ajuda · Dr. Exame
+        </Badge>
+      </div>
 
-      {/* BUSCA + CATEGORIAS */}
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Busque sua dúvida… (ex.: créditos, PDF, médico)"
-        inputProps={{ 'aria-label': 'Buscar dúvida no FAQ' }}
-        value={query}
-        onChange={(e) => { setQuery(e.target.value); setExpanded(false); }}
-        sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" />
-            </InputAdornment>
-          ),
-        }}
-      />
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2.5 }}>
-        {CATEGORIES.map(({ id, label }) => (
-          <Chip
-            key={id}
-            label={label}
-            clickable
-            onClick={() => { setCategory(id); setExpanded(false); }}
-            sx={{
-              borderRadius: '999px', fontWeight: 600,
-              ...(id === category
-                ? { background: 'linear-gradient(135deg,#20b2aa,#178f89)', color: '#fff' }
-                : { bgcolor: 'background.default' }),
-            }}
-          />
-        ))}
-      </Box>
+      {/* HERO + BUSCA INTEGRADA (ReUI Frame) */}
+      <Frame variant="default" className="mb-5">
+        <FrameHeader className="flex flex-row items-center justify-between gap-3 flex-wrap pb-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative flex size-12 shrink-0 items-center justify-center rounded-2xl bg-teal-500/10 border border-teal-500/25">
+              <DrExame size={36} sx={{ borderRadius: '50%' }} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="font-heading text-lg sm:text-xl font-extrabold text-foreground">
+                  Perguntas Frequentes
+                </h1>
+                <Badge variant="outline" size="xs">
+                  {FAQ.length} respostas
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Exames, IA, planos, médicos e privacidade — direto ao ponto.
+              </p>
+            </div>
+          </div>
+        </FrameHeader>
+        <FramePanel className="p-4 space-y-3">
+          <div className="relative flex items-center">
+            <Search className="absolute left-3 size-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="search"
+              placeholder="Busque sua dúvida… (ex.: créditos, PDF, médico, LGPD)"
+              aria-label="Buscar dúvida no FAQ"
+              value={query}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                setQuery(e.target.value);
+                setExpanded(false);
+              }}
+              className="w-full rounded-xl border border-border/80 bg-background py-2 pl-9 pr-3 text-xs sm:text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-teal-600 focus:ring-1 focus:ring-teal-600"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {CATEGORIES.map(({ id, label }) => {
+              const active = id === category;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => {
+                    setCategory(id);
+                    setExpanded(false);
+                  }}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    active
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : 'border border-border/70 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </FramePanel>
+      </Frame>
 
       {/* LISTA — entrada em cascata (stagger): a lista "chega" em vez de pipocar. */}
       {filtered.length === 0 ? (
@@ -210,29 +224,32 @@ export const FaqPage = () => {
         ))
       )}
 
-      {/* SUPORTE IN-APP — ação primária única da tela (design system: 1 CTA por tela). */}
-      <Box sx={{
-        mt: 4, p: { xs: 2.5, md: 3 }, textAlign: 'center', position: 'relative', overflow: 'hidden',
-        borderRadius: '16px',
-        background: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.10)' : 'linear-gradient(135deg, rgba(32,178,170,.10), rgba(212,165,116,.08))'),
-        border: '1px solid', borderColor: 'rgba(32,178,170,.30)',
-      }}>
-        <SupportAgentIcon sx={{ fontSize: 34, color: (t) => tealText(t.palette.mode) }} />
-        <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 18, mt: 0.5 }}>Ainda com dúvidas?</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 380, mx: 'auto', mb: 2 }}>
-          Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação. Resposta em até 1 dia útil.
-        </Typography>
-        <GradientButton onClick={() => navigate('/suporte')} endIcon={<ArrowForwardIcon />} sx={{ px: 4 }}>
-          Falar com o suporte
-        </GradientButton>
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-          Prefere e-mail? <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink>
-        </Typography>
-      </Box>
-
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', textAlign: 'center', mt: 2.5 }}>
-        Meus Exames — análise educativa, não substitui avaliação médica.
-      </Typography>
+      {/* SUPORTE IN-APP — ReUI Frame */}
+      <Frame variant="default" className="mt-6">
+        <FramePanel className="p-5 text-center space-y-2.5">
+          <div className="mx-auto flex size-11 items-center justify-center rounded-2xl bg-teal-500/10 text-teal-600">
+            <LifeBuoy className="size-5" />
+          </div>
+          <div className="font-heading text-base font-extrabold text-foreground">
+            Ainda com dúvidas?
+          </div>
+          <p className="text-xs text-muted-foreground max-w-md mx-auto">
+            Abra um chamado direto no app — você acompanha a resposta por aqui e por notificação em até 1 dia útil.
+          </p>
+          <div className="pt-1">
+            <GradientButton onClick={() => navigate('/suporte')} endIcon={<ArrowForwardIcon />} sx={{ px: 4 }}>
+              Falar com o suporte
+            </GradientButton>
+          </div>
+        </FramePanel>
+        <FrameFooter className="px-4 py-2.5 flex items-center justify-between flex-wrap gap-2 text-[11.5px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Mail className="size-3.5 text-teal-600" />
+            Prefere e-mail? <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontWeight: 700 }}>contato@janocaminho.com.br</MuiLink>
+          </span>
+          <span>Dr. Exame — análise educativa</span>
+        </FrameFooter>
+      </Frame>
 
       <style>{`
         @keyframes faqFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}

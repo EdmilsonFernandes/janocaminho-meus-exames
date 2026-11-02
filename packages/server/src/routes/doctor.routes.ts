@@ -26,6 +26,8 @@ import { createId } from '@paralleldrive/cuid2';
 import { REMINDER_RECURRENCES } from '../utils/reminderConstants';
 import { getTeleconsultaConfig } from '../utils/settings';
 import { createPixCharge } from '../payments/pix-provider';
+import { getAsaasPaymentStatus, ASAAS_RECEIVED_STATUSES } from '../payments/asaas-provider';
+import { payerCpfFor, publicNotifyUrl } from '../utils/teleconsultaPix';
 import { encryptPII, decryptPII } from '../utils/crypto';
 import { evaluateMfaOnLogin, verifyChallenge, getStatus as mfaStatus, startSetup as mfaStart, confirmSetup as mfaConfirm, disableMfa as mfaDisable } from '../utils/mfa';
 import { requireAuth, AuthedRequest, requirePhotoToken } from '../middleware/auth';
@@ -175,6 +177,9 @@ const makeRequireDoctor = (allowUnverified: boolean) => async (req: any, res: an
 };
 const requireDoctor = makeRequireDoctor(false);
 const requireDoctorOnboarding = makeRequireDoctor(true);
+// Exportados p/ rotas do médico que vivem noutros arquivos (campaign/feedback.routes):
+// opinião e patrocínio valem p/ médico ainda em verificação (onboarding), bloqueado nunca.
+export { requireDoctor, requireDoctorOnboarding };
 
 // Dr. Exame Pro (premium) — free tier: 5 features premium/mês. Depois: paywall (402).
 const FREE_TIER_LIMIT = 5;
@@ -200,7 +205,7 @@ router.get('/me/plan', requireDoctorOnboarding, async (req: any, res) => {
 });
 
 // Checkout Dr. Exame Pro (R$29,90/mês) — PIX QR inline OU cartão/débito
-router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
+router.post('/subscription/checkout', requireDoctorOnboarding, async (req: any, res) => {
   try {
     const method = String(req.body?.method ?? 'pix').toLowerCase(); // pix | card | debit
     const externalRef = `doctor_sub_${req.doctorId}`;
@@ -209,24 +214,61 @@ router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
 
     if (method === 'pix') {
       const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId } });
+      let docCpf = decryptPII(doc?.cpfEncrypted, doc?.cpfIv) ?? undefined;
+      if (!docCpf && doc?.payoutPixKeyType === 'cpf' && doc?.payoutPixKeyEnc) {
+        docCpf = decryptPII(doc.payoutPixKeyEnc, doc.payoutPixKeyIv) ?? undefined;
+      }
+      if (!docCpf && req.body?.cpf) {
+        const cpfData = encryptedCpfData(String(req.body.cpf));
+        if (!cpfData) {
+          res.status(400).json({ error: 'CPF inválido. Verifique os 11 dígitos.' });
+          return;
+        }
+        await prisma.doctor.update({ where: { id: req.doctorId }, data: cpfData }).catch(() => {});
+        docCpf = String(req.body.cpf).replace(/\D/g, '');
+      }
+      if (!docCpf && doc?.email) {
+        const linkedUser = await prisma.user.findFirst({
+          where: { email: doc.email.toLowerCase() },
+          select: { id: true },
+        });
+        if (linkedUser) docCpf = await payerCpfFor(linkedUser.id);
+      }
+      if (!docCpf && hasAsaas() && !hasOpenPix() && !config.mpAccessToken) {
+        res.status(422).json({
+          code: 'CPF_REQUIRED',
+          error: 'Informe seu CPF para emitir a cobrança PIX.',
+        });
+        return;
+      }
+
       const expires = new Date(Date.now() + 15 * 60 * 1000);
       try {
         const charge = await createPixCharge({
           amountBrlCents: 2990, // R$ 29,90
-          correlationID: externalRef,
+          correlationID: `${externalRef}_${Date.now()}`,
           externalReference: externalRef,
           description: 'Dr. Exame Pro — Mensal',
           payerEmail: doc?.email || 'doctor@janocaminho.com.br',
           payerFirstName: (doc?.name || 'Doutor').split(' ')[0],
+          userId: `doctor_${req.doctorId}`,
           payerName: doc?.name || undefined,
+          payerCpfCnpj: docCpf,
           expiresAt: expires,
+          notificationUrl: publicNotifyUrl(),
         });
+
+        const qrImg = charge.qrBase64
+          ? charge.qrBase64.startsWith('data:')
+            ? charge.qrBase64
+            : `data:image/png;base64,${charge.qrBase64}`
+          : '';
 
         res.json({
           method: 'pix',
           paymentId: charge.id,
           qrCode: charge.qrCode,
-          qrBase64: charge.qrBase64,
+          qrBase64: qrImg,
           expiresAt: charge.expiresAt.toISOString(),
         });
         return;
@@ -258,7 +300,7 @@ router.post('/subscription/checkout', requireDoctor, async (req: any, res) => {
 });
 
 // Status de um pagamento PIX doctor (polling do frontend enquanto mostra o QR)
-router.get('/subscription/payment-status/:id', requireDoctor, async (req: any, res) => {
+router.get('/subscription/payment-status/:id', requireDoctorOnboarding, async (req: any, res) => {
   try {
     const doc = await prisma.doctor.findUnique({
       where: { id: req.doctorId },
@@ -268,6 +310,16 @@ router.get('/subscription/payment-status/:id', requireDoctor, async (req: any, r
     if (isApproved) {
       res.json({ status: 'approved', approved: true });
       return;
+    }
+    // Provider Asaas (paymentId começa com pay_)
+    if (hasAsaas() && String(req.params.id ?? '').startsWith('pay_')) {
+      const st = await getAsaasPaymentStatus(String(req.params.id));
+      if (st && ASAAS_RECEIVED_STATUSES.has(st)) {
+        const expires = new Date(Date.now() + 30 * 86400000);
+        await prisma.doctor.update({ where: { id: req.doctorId }, data: { plan: 'premium', planExpiresAt: expires } });
+        res.json({ status: 'approved', approved: true });
+        return;
+      }
     }
     // Provider OpenPix
     if (hasOpenPix()) {
@@ -881,18 +933,60 @@ router.get('/patients/:patientId/exams/:examId/report-pdf', requireDoctor, async
 });
 
 // ITENS ALTERADOS do paciente (espelha /items/abnormal do paciente) — só se scope 'exams'.
-// Mesma query + mesmo shape que item.routes.ts:283-294, scoping a 1 paciente + examIds.
+// Mesma query + mesmo shape que item.routes.ts:283-294, scoping a 1 paciente + examIds,
+// enriquecido com isCurrent e isNormalizedInNewerExam (para não destacar na Prioridade Clínica
+// marcadores antigos que já normalizaram em exame mais recente, ex.: TSH 12,10 → 2,41).
 router.get('/patients/:patientId/items/abnormal', requireDoctor, async (req: any, res, next) => {
   try {
     const share = await prisma.doctorShare.findFirst({ where: { doctorId: req.doctorId, patientId: req.params.patientId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }] } });
     if (!share?.scopes.includes('exams')) { res.status(403).json({ error: 'Sem permissão.' }); return; }
-    const rows = await prisma.examItem.findMany({
-      where: { isAbnormal: true, exam: { patientId: req.params.patientId, status: 'EXTRACTED', ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) } },
-      orderBy: { exam: { performedAt: 'desc' } },
-      include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
-      take: 300,
+    const examScope = { patientId: req.params.patientId, status: 'EXTRACTED' as const, ...(share.examIds?.length ? { id: { in: share.examIds } } : {}) };
+    const [rows, allItems] = await Promise.all([
+      prisma.examItem.findMany({
+        where: { isAbnormal: true, exam: examScope },
+        orderBy: { exam: { performedAt: 'desc' } },
+        include: { exam: { select: { id: true, title: true, performedAt: true, sourceLab: true, requestingDoctor: true, rawExtraction: true } } },
+        take: 300,
+      }),
+      prisma.examItem.findMany({
+        where: { exam: examScope },
+        orderBy: [{ exam: { performedAt: 'desc' } }, { exam: { createdAt: 'desc' } }],
+        select: { id: true, nameCanonical: true, isAbnormal: true, valueText: true, valueNumeric: true, unit: true, exam: { select: { performedAt: true } } },
+      }),
+    ]);
+    const latestByCanonical = new Map<string, (typeof allItems)[number]>();
+    for (const r of allItems) {
+      const k = (r.nameCanonical || '').toUpperCase().trim();
+      if (k && !latestByCanonical.has(k)) latestByCanonical.set(k, r);
+    }
+    res.json({
+      items: rows.map((i) => {
+        const k = (i.nameCanonical || '').toUpperCase().trim();
+        const latest = k ? latestByCanonical.get(k) : undefined;
+        const isCurrent = latest ? latest.id === i.id : true;
+        const isNormalizedInNewerExam = latest ? !latest.isAbnormal && latest.id !== i.id : false;
+        return {
+          id: i.id,
+          examId: i.exam.id,
+          name: i.name,
+          nameCanonical: i.nameCanonical,
+          valueText: i.valueText,
+          valueNumeric: i.valueNumeric,
+          unit: i.unit,
+          flag: i.flag,
+          refText: i.refText,
+          refLow: i.refLow,
+          refHigh: i.refHigh,
+          examTitle: i.exam.title,
+          performedAt: i.exam.performedAt,
+          requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null,
+          isCurrent,
+          isNormalizedInNewerExam,
+          latestValueText: latest ? `${latest.valueText ?? latest.valueNumeric ?? ''}${latest.unit ? ' ' + latest.unit : ''}`.trim() : null,
+          latestPerformedAt: latest?.exam?.performedAt ?? null,
+        };
+      }),
     });
-    res.json({ items: rows.map((i) => ({ id: i.id, examId: i.exam.id, name: i.name, nameCanonical: i.nameCanonical, valueText: i.valueText, valueNumeric: i.valueNumeric, unit: i.unit, flag: i.flag, refText: i.refText, refLow: i.refLow, refHigh: i.refHigh, examTitle: i.exam.title, performedAt: i.exam.performedAt, requestingDoctor: i.exam.requestingDoctor || (i.exam.rawExtraction as any)?.requestingDoctor || null })) });
   } catch (e) { next(e); }
 });
 

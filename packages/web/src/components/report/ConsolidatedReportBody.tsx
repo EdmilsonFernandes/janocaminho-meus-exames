@@ -11,6 +11,10 @@ import { ReportSectionCard } from './ReportSectionCard';
 import { DestaqueCard } from './DestaqueCard';
 import { MetaCard } from './MetaCard';
 import { RADIUS } from '../../theme';
+import { Frame, FrameHeader, FramePanel } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { FileText, AlertTriangle, ArrowUpRight } from 'lucide-react';
 
 /**
  * Normaliza o campo estruturado em array — a IA às vezes devolve objeto/string único.
@@ -70,7 +74,7 @@ const splitSentences = (raw: string): string[] => {
  *  - `leituraFinal` longo vira bullets; curto mantém-se como prosa com header small-caps;
  *  - disclaimer vira footnote (caption text.secondary), não linha centrada flutuante.
  */
-export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { analysis: any; sourceExams: any[]; onOpenExam?: (id: string) => void }) => {
+export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam, hideDuplicateSummary = false }: { analysis: any; sourceExams: any[]; onOpenExam?: (id: string) => void; hideDuplicateSummary?: boolean }) => {
   const theme = useTheme();
   if (!analysis) return null;
   const s: StructuredSummary | undefined = analysis.structured
@@ -118,14 +122,17 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
   const disclaimer = s.disclaimer || 'Análise educativa gerada por IA a partir dos exames do paciente. A interpretação final deve ser feita por profissional de saúde.';
 
   // leituraFinal: bullets se passa do limite (várias frases); senão prosa.
+  // Evita exibir leituraFinal duplicada quando o resumoGeral no topo do dossiê já trouxe a síntese executiva.
   const leituraRaw = s.leituraFinal ? String(s.leituraFinal).trim() : '';
+  const hasResumoAtTop = hideDuplicateSummary && Boolean(s.resumoGeral && String(s.resumoGeral).trim().length > 40);
+  const showLeituraFinal = Boolean(leituraRaw && !hasResumoAtTop);
   const leituraSentences = leituraRaw ? splitSentences(leituraRaw) : [];
   const leituraAsBullets = leituraRaw.length > 280 && leituraSentences.length > 1;
 
   return (
     <>
-      {/* CAMADA 3 — âncora de frescor: relatório de 2024 não pode parecer leitura de hoje. */}
-      {baseDate && (
+      {/* CAMADA 3 — âncora de frescor (oculta quando já exibida no cabeçalho executivo ReUI) */}
+      {baseDate && !hideDuplicateSummary && (
         <Box sx={{ mb: 1.5, display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
           <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
             📅 Baseado no exame mais recente ({baseDate})
@@ -138,16 +145,32 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         </Box>
       )}
       {sourceExams.length > 0 && (
-        <ReportSectionCard icon={<DescriptionIcon />} title="Exames base do relatório" accent={theme.palette.primary.main} count={sourceExams.length}>
-          <Stack spacing={0.5} useFlexGap>
+        <ReportSectionCard icon={<DescriptionIcon />} title="Exames base do relatório" accent={theme.palette.primary.main} count={sourceExams.length} collapsible defaultExpanded={false}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {sourceExams.map((e: any, i: number) => (
-              <Box key={i} onClick={onOpenExam ? () => onOpenExam(e.id) : undefined} sx={{ cursor: onOpenExam ? 'pointer' : 'default', '&:hover': onOpenExam ? { opacity: 0.8 } : {} }}>
-                <Typography variant="body2" title={e.sourceLab || undefined} sx={{ wordBreak: 'break-word', overflowWrap: 'anywhere', color: onOpenExam ? 'primary.main' : 'text.primary', fontWeight: onOpenExam ? 600 : 400, lineHeight: 1.35 }}>
-                  📄 {e.title}{e.performedAt ? ` — ${fmtDate(e.performedAt)}` : ''}{e.sourceLab ? ` • ${trimLab(e.sourceLab)}` : ''}
-                </Typography>
-              </Box>
+              <div
+                key={i}
+                onClick={onOpenExam ? () => onOpenExam(e.id) : undefined}
+                className={`flex items-center justify-between gap-2.5 rounded-xl border border-border/70 bg-muted/20 px-3 py-2.5 transition-colors ${onOpenExam ? 'cursor-pointer hover:border-primary/40 hover:bg-primary/5' : ''}`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <IconTile size="sm" variant="soft" className="text-teal-600">
+                    <FileText className="size-3.5" />
+                  </IconTile>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-foreground truncate" title={e.title}>
+                      {e.title}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground truncate">
+                      {e.performedAt ? fmtDate(e.performedAt) : 's/d'}
+                      {e.sourceLab ? ` · ${trimLab(e.sourceLab)}` : ''}
+                    </div>
+                  </div>
+                </div>
+                {onOpenExam && <ArrowUpRight className="size-3.5 text-primary shrink-0" />}
+              </div>
             ))}
-          </Stack>
+          </div>
         </ReportSectionCard>
       )}
 
@@ -163,10 +186,19 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         <ReportSectionCard icon={<ReportProblemIcon />} title="Pontos de atenção" accent="#ef4444" count={s.pontosAtencao.length}>
           <Stack spacing={1.25}>
             {s.pontosAtencao.map((p: any, i: number) => (
-              <Box key={i} sx={{ borderRadius: RADIUS.tile, p: 1.5, bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid', borderColor: 'rgba(239,68,68,0.22)' }}>
-                <Typography sx={{ fontWeight: 700, color: 'error.main', wordBreak: 'break-word' }}>{i + 1}. {p.titulo}</Typography>
-                <Typography variant="body2" sx={{ mt: 0.25, wordBreak: 'break-word', color: 'text.primary' }}>{p.detalhe}</Typography>
-              </Box>
+              <div key={i} className="flex items-start gap-3 rounded-xl border border-red-500/25 bg-red-500/[0.05] p-3.5">
+                <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-xs font-extrabold text-red-600 dark:text-red-400">
+                  {i + 1}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-bold text-red-600 dark:text-red-400 break-words">
+                    {p.titulo}
+                  </div>
+                  <div className="mt-0.5 text-xs leading-relaxed text-foreground/90 break-words">
+                    {p.detalhe}
+                  </div>
+                </div>
+              </div>
             ))}
           </Stack>
         </ReportSectionCard>
@@ -220,7 +252,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         </ReportSectionCard>
       )}
 
-      {leituraRaw && (
+      {showLeituraFinal && (
         <Box sx={{ p: 2.5, borderRadius: RADIUS.card, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}>
           <Typography
             variant="overline"
@@ -259,7 +291,7 @@ export const ConsolidatedReportBody = ({ analysis, sourceExams, onOpenExam }: { 
         </Box>
       )}
 
-      {!leituraRaw && (
+      {!showLeituraFinal && !hideDuplicateSummary && (
         /* Sem leituraFinal — disclaimer ainda vira footnote (não centrado). */
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.45 }}>
           {disclaimer}

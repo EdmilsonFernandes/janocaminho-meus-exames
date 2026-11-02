@@ -19,6 +19,7 @@ import { bumpCredits } from '../utils/credits-events';
 import { speakText, stopSpeakText } from '../utils/nativeDoc';
 import { useSelectedPatient } from '../patient-context';
 import { maybeRequestReview } from '../components/ReviewPrompt';
+import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { ShareDialog } from '../components/ShareDialog';
 import { ReportGeneratingCard } from '../components/ReportGeneratingCard';
 import { CreditBadge, CREDIT_COSTS } from '../components/CreditBadge';
@@ -292,14 +293,18 @@ export const ConsolidatedReportPage = () => {
   // WOW do app (relatório completo que o usuário esperou). Review NATIVO 2,5s depois
   // da revelação — nunca na cara do resultado. Mesma API e cooldown de 90d do A1.
   const genWasRef = useRef(false);
+  const feedback = useFeedback();
   useEffect(() => {
     if (generatingSince) { genWasRef.current = true; return; }
     if (genWasRef.current && analysis) {
       genWasRef.current = false;
       const t = setTimeout(() => { void maybeRequestReview(); }, 2500);
-      return () => clearTimeout(t);
+      // OPINIÕES (02/11/26): experiência relevante concluída → convite CONTEXTUAL (cartão no
+      // rodapé, não bloqueia a leitura). O servidor decide se cabe (idade da conta, intervalo…).
+      const t2 = setTimeout(() => feedback.requestInvite('report_generated'), 6000);
+      return () => { clearTimeout(t); clearTimeout(t2); };
     }
-  }, [generatingSince, analysis?.id]);
+  }, [generatingSince, analysis?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [confirmSpend, setConfirmSpend] = useState<{ open: boolean; onYes: () => void }>({ open: false, onYes: () => {} });
   const generate = (force = false) => {

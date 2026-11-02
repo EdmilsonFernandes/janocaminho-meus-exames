@@ -44,6 +44,31 @@ import { notifyInsufficientCredits } from '../utils/credits-events';
 import { Badge as ReuiBadge } from '@/components/reui/badge';
 import { AssistantReplyActions, MessageHeader } from '@/components/reui/message';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
+import { Frame, FrameHeader, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/icon-tile';
+import {
+  Sparkles,
+  AlertTriangle,
+  TrendingUp,
+  GitCompare,
+  BookOpen,
+  Microscope,
+  Target,
+  Stethoscope,
+  HeartPulse,
+  Utensils,
+  CalendarCheck,
+  Syringe,
+  Bell,
+  FileText,
+  ArrowLeft,
+  Plus,
+  History,
+  Trash2,
+  X,
+  ChevronRight,
+  ShieldCheck,
+} from 'lucide-react';
 
 const TEAL = '#178f89';
 
@@ -71,34 +96,44 @@ const TypingDots = () => (
   </Box>
 );
 
-const QUICK_ACTIONS = [
+type QuickCategory = 'visao' | 'entender' | 'consulta' | 'habitos';
+
+const QUICK_CATEGORIES: { key: QuickCategory; label: string }[] = [
+  { key: 'visao', label: 'Visão geral' },
+  { key: 'entender', label: 'Entender laudo' },
+  { key: 'consulta', label: 'Consulta médica' },
+  { key: 'habitos', label: 'Hábitos & Prevenção' },
+];
+
+const QUICK_ACTIONS: {
+  category: QuickCategory;
+  icon: string;
+  LucideIcon: any;
+  colorClass: string;
+  title: string;
+  subtitle: string;
+  prompt: string;
+}[] = [
   // Visão geral
-  { icon: '📊', title: 'Resumo dos meus exames', prompt: 'Faça um resumo geral dos meus exames mais recentes e destaque o que precisa de atenção.' },
-  { icon: '⚠️', title: 'O que está alterado', prompt: 'Liste os valores que estão fora da faixa de referência nos meus exames e explique o que cada um significa.' },
-  { icon: '📈', title: 'Minha evolução', prompt: 'Mostre como meus principais exames evoluíram ao longo do tempo e diga se há tendência de melhora ou piora.' },
-  { icon: '🔄', title: 'Comparar exames', prompt: 'Compare meus dois exames mais recentes do mesmo tipo e destaque o que mudou.' },
+  { category: 'visao', icon: '📊', LucideIcon: FileText, colorClass: 'text-teal-600', title: 'Resumo dos meus exames', subtitle: 'Panorama completo e destaques', prompt: 'Faça um resumo geral dos meus exames mais recentes e destaque o que precisa de atenção.' },
+  { category: 'visao', icon: '⚠️', LucideIcon: AlertTriangle, colorClass: 'text-amber-600', title: 'O que está alterado', subtitle: 'Marcadores fora da referência', prompt: 'Liste os valores que estão fora da faixa de referência nos meus exames e explique o que cada um significa.' },
+  { category: 'visao', icon: '📈', LucideIcon: TrendingUp, colorClass: 'text-emerald-600', title: 'Minha evolução', subtitle: 'Tendências de melhora ou atenção', prompt: 'Mostre como meus principais exames evoluíram ao longo do tempo e diga se há tendência de melhora ou piora.' },
+  { category: 'visao', icon: '🔄', LucideIcon: GitCompare, colorClass: 'text-sky-600', title: 'Comparar exames', subtitle: 'Diferenças entre os 2 últimos', prompt: 'Compare meus dois exames mais recentes do mesmo tipo e destaque o que mudou.' },
   // Entender
-  { icon: '📖', title: 'Explicar termo médico', prompt: 'Quero entender um termo médico do meu exame. Pode explicar de forma simples?' },
-  { icon: '🔬', title: 'O que significa meu resultado', prompt: 'Pegue um dos meus resultados, explique o que ele mede e diga se está dentro do esperado.' },
-  { icon: '🎯', title: 'Minhas metas e referências', prompt: 'Quais são as faixas de referência saudáveis dos meus principais exames e onde estou em relação a elas?' },
-  { icon: '⚠️', title: 'O que merece atenção primeiro', prompt: 'Há algum resultado nos meus exames que precise de atenção médica? Seja honesto: diga o que merece prioridade e o que pode esperar a próxima consulta.' },
-  // Ação
-  { icon: '🩺', title: 'O que perguntar ao médico', prompt: 'Quais perguntas devo levar ao médico na próxima consulta com base nos meus resultados?' },
-  { icon: '💡', title: 'Como melhorar minha saúde', prompt: 'Quais ações práticas (hábitos, exercício, sono) posso tomar para melhorar meus resultados?' },
-  { icon: '🥗', title: 'Alimentação recomendada', prompt: 'Com base nos meus exames, que mudanças na alimentação você recomenda?' },
-  // Acompanhamento
-  { icon: '📅', title: 'Quando repetir os exames', prompt: 'Com base nos meus exames, quais devo repetir e em quanto tempo?' },
-  { icon: '💉', title: 'Vacinas em dia', prompt: 'Verifique meu histórico de vacinas e diga quais estão em atraso ou faltando conforme o calendário.' },
-  { icon: '🗓️', title: 'Lembretes pendentes', prompt: 'Quais lembretes e compromissos de saúde eu tenho pendentes agora?' },
-  // Extras
-  { icon: '🫀', title: 'Meu risco cardíaco', prompt: 'Avalie meu risco cardiovascular (colesterol, pressão, glicemia) com base nos meus exames e diga como reduzir.' },
-  { icon: '🧾', title: 'Resumo para o médico', prompt: 'Monte um resumo curto e organizado dos meus exames para eu levar na consulta médica.' },
-  { icon: '🧠', title: 'Sinais de alerta', prompt: 'Há sinais nos meus exames ligados a cansaço, sono, estresse ou saúde mental que eu devia observar?' },
-  { icon: '🏋️', title: 'Exercício pra mim', prompt: 'Com base no meu perfil e exames, que tipo e quantidade de exercício você recomenda?' },
-  { icon: '🧬', title: 'Exames que faltam', prompt: 'Quais exames de rotina estão faltando no meu histórico conforme minha idade e perfil?' },
-  { icon: '💊', title: 'Vitamina D e nutrientes', prompt: 'Como estão meus níveis de vitamina D, ferro e outros nutrientes? O que ajustar na dieta?' },
-  { icon: '🩻', title: 'Entender meu exame de imagem', prompt: 'Tenho um exame de imagem (ultrassom, raio-x, tomografia). Pode explicar o laudo de forma simples?' },
-  { icon: '🎯', title: 'Minhas metas do ano', prompt: 'Com base nos meus exames, sugira metas de saúde realistas para os próximos meses.' },
+  { category: 'entender', icon: '📖', LucideIcon: BookOpen, colorClass: 'text-teal-600', title: 'Explicar termo médico', subtitle: 'Tradução simples e direta', prompt: 'Quero entender um termo médico do meu exame. Pode explicar de forma simples?' },
+  { category: 'entender', icon: '🔬', LucideIcon: Microscope, colorClass: 'text-purple-600', title: 'O que significa meu resultado', subtitle: 'Função do marcador no corpo', prompt: 'Pegue um dos meus resultados, explique o que ele mede e diga se está dentro do esperado.' },
+  { category: 'entender', icon: '🎯', LucideIcon: Target, colorClass: 'text-emerald-600', title: 'Minhas metas e referências', subtitle: 'Onde estou na faixa ideal', prompt: 'Quais são as faixas de referência saudáveis dos meus principais exames e onde estou em relação a elas?' },
+  { category: 'entender', icon: '⚠️', LucideIcon: AlertTriangle, colorClass: 'text-rose-600', title: 'Prioridade clínica', subtitle: 'O que olhar primeiro sem alarme', prompt: 'Há algum resultado nos meus exames que precise de atenção médica? Seja honesto: diga o que merece prioridade e o que pode esperar a próxima consulta.' },
+  // Consulta médica
+  { category: 'consulta', icon: '🩺', LucideIcon: Stethoscope, colorClass: 'text-teal-600', title: 'Perguntas para o médico', subtitle: 'Roteiro para sua próxima consulta', prompt: 'Quais perguntas devo levar ao médico na próxima consulta com base nos meus resultados?' },
+  { category: 'consulta', icon: '🧾', LucideIcon: FileText, colorClass: 'text-amber-700', title: 'Resumo para o médico', subtitle: 'Briefing estruturado para levar', prompt: 'Monte um resumo curto e organizado dos meus exames para eu levar na consulta médica.' },
+  { category: 'consulta', icon: '📅', LucideIcon: CalendarCheck, colorClass: 'text-sky-600', title: 'Quando repetir os exames', subtitle: 'Sugestão de janela de retorno', prompt: 'Com base nos meus exames, quais devo repetir e em quanto tempo?' },
+  { category: 'consulta', icon: '🫀', LucideIcon: HeartPulse, colorClass: 'text-rose-600', title: 'Meu perfil cardiometabólico', subtitle: 'Colesterol, glicemia e pressão', prompt: 'Avalie meu risco cardiovascular (colesterol, pressão, glicemia) com base nos meus exames e diga como reduzir.' },
+  // Hábitos & Prevenção
+  { category: 'habitos', icon: '💡', LucideIcon: Sparkles, colorClass: 'text-teal-600', title: 'Como melhorar meus índices', subtitle: 'Sono, treino e rotina prática', prompt: 'Quais ações práticas (hábitos, exercício, sono) posso tomar para melhorar meus resultados?' },
+  { category: 'habitos', icon: '🥗', LucideIcon: Utensils, colorClass: 'text-emerald-600', title: 'Alimentação recomendada', subtitle: 'Ajustes nutricionais educativos', prompt: 'Com base nos meus exames, que mudanças na alimentação você recomenda?' },
+  { category: 'habitos', icon: '💉', LucideIcon: Syringe, colorClass: 'text-purple-600', title: 'Vacinas em dia', subtitle: 'Checagem do calendário vacinal', prompt: 'Verifique meu histórico de vacinas e diga quais estão em atraso ou faltando conforme o calendário.' },
+  { category: 'habitos', icon: '🗓️', LucideIcon: Bell, colorClass: 'text-amber-600', title: 'Lembretes pendentes', subtitle: 'Seus próximos compromissos', prompt: 'Quais lembretes e compromissos de saúde eu tenho pendentes agora?' },
 ];
 
 interface Msg {
@@ -415,6 +450,22 @@ export const ChatPage = () => {
     if (pid) saveConvs(pid, next);
     if (curId === id) setCurId(next[0]?.id ?? null);
   };
+  const clearAllConvs = async () => {
+    if (
+      await confirmDialog({
+        title: 'Limpar todo o histórico',
+        message: 'Tem certeza que deseja apagar todas as conversas salvas deste perfil? Esta ação não pode ser desfeita.',
+        confirmLabel: 'Limpar histórico',
+      })
+    ) {
+      setConvs([]);
+      setCurId(null);
+      if (pid) saveConvs(pid, []);
+      setHistOpen(false);
+      notify('Histórico de conversas limpo com sucesso.', { type: 'info' });
+    }
+  };
+  const [starterCat, setStarterCat] = useState<QuickCategory>('visao');
 
   return (
     <Box
@@ -435,99 +486,67 @@ export const ChatPage = () => {
         pb: { xs: 'calc(var(--me-bottom-nav-h, 76px) + 6px)', md: 2 },
       }}
     >
-      {/* HEADER estilo Mercado Pago: voltar · título · nova conversa · histórico */}
-      <Paper
-        elevation={0}
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-          px: 1.5,
-          py: 1,
-          borderRadius: '12px',
-          mb: 1,
-          background: 'linear-gradient(135deg,#20b2aa,#178f89)',
-          color: '#fff',
-        }}
-      >
-        <IconButton
-          onClick={() => navigate('/')}
-          aria-label="Voltar ao início"
-          title="Voltar"
-          sx={{ color: '#fff', p: { xs: 1.25, sm: 1 }, fontSize: 20 }}
-        >
-          ←
-        </IconButton>
-        <DrExame
-          size={36}
-          sx={{
-            borderRadius: '50%',
-            flexShrink: 0,
-            bgcolor: '#fff',
-            p: '3px',
-            boxShadow: '0 0 0 2px rgba(255,255,255,.45)',
-          }}
-        />
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            sx={{
-              fontWeight: 800,
-              lineHeight: 1.1,
-              fontFamily: 'Poppins, sans-serif',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-            }}
+      {/* BARRA EXECUTIVA COPILOT (ReUI Frame) — sem repetir o logo do robô já presente no AppBar e na BottomNav */}
+      <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-border/80 bg-card/90 px-3 py-2 shadow-xs backdrop-blur-md">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            aria-label="Voltar ao início"
+            title="Voltar ao início"
+            className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground transition-colors hover:bg-muted cursor-pointer"
           >
-            Dr. Exame
-            <Box
-              component="span"
-              sx={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                bgcolor: '#4ade80',
-                display: 'inline-block',
-                boxShadow: '0 0 6px #4ade80',
-              }}
-            />
-          </Typography>
-          <Typography sx={{ fontSize: 12, opacity: 0.9 }}>
-            Assistente de saúde com IA{firstName ? ` · ${firstName}` : ''}
-          </Typography>
-        </Box>
-        <IconButton
-          onClick={() => setHistOpen(true)}
-          aria-label={`Histórico de conversas (${convs.length})`}
-          title="Histórico de conversas"
-          sx={{
-            color: '#fff',
-            bgcolor: 'rgba(255,255,255,.15)',
-            p: { xs: 1.25, sm: 1 },
-            '&:hover': { bgcolor: 'rgba(255,255,255,.25)' },
-          }}
-        >
-          <Badge
-            badgeContent={convs.length > 9 ? '9+' : convs.length}
-            color="warning"
-            overlap="circular"
-            invisible={convs.length === 0}
-            sx={{
-              '& .MuiBadge-badge': {
-                fontSize: 12,
-                fontWeight: 700,
-                height: 18,
-                minWidth: 18,
-                top: 3,
-                right: 3,
-                bgcolor: '#dc2626',
-              },
-            }}
+            <ArrowLeft className="size-4" />
+          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="relative flex size-2.5 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex size-2.5 rounded-full bg-emerald-500" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-heading text-xs sm:text-sm font-extrabold text-foreground truncate">
+                  Assistente Clínico IA
+                </span>
+                <ReuiBadge variant="primary-light" size="xs" className="hidden sm:inline-flex">
+                  Copilot
+                </ReuiBadge>
+              </div>
+              <p className="text-[11px] text-muted-foreground truncate">
+                {firstName ? `Contexto ativo: exames de ${firstName}` : 'Contexto ativo: seus exames laboratoriais'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5 shrink-0">
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={startNew}
+              className="inline-flex items-center gap-1 rounded-xl border border-teal-500/30 bg-teal-500/10 px-2.5 py-1.5 text-xs font-bold text-teal-700 dark:text-teal-300 transition-colors hover:bg-teal-500/15 cursor-pointer"
+            >
+              <Plus className="size-3.5" />
+              <span>Nova</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setHistOpen(true)}
+            aria-label={`Histórico de conversas (${convs.length})`}
+            title="Histórico de conversas"
+            className="relative inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background px-2.5 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-muted cursor-pointer"
           >
-            <HistoryIcon sx={{ fontSize: 24 }} />
-          </Badge>
-        </IconButton>
-      </Paper>
+            <History className="size-3.5 text-teal-600 dark:text-teal-400" />
+            <span className="hidden xs:inline">Histórico</span>
+            {convs.length > 0 && (
+              <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 text-[10px] font-extrabold text-white">
+                {convs.length > 9 ? '9+' : convs.length}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* mensagens — role=log/aria-live: leitor de tela anuncia as novas mensagens da IA */}
       <Box
@@ -540,124 +559,94 @@ export const ChatPage = () => {
           flex: 1,
           minHeight: 0,
           overflowY: 'auto',
-          p: 1,
+          p: { xs: 0.5, sm: 1 },
           background: 'transparent',
           borderRadius: '12px',
         }}
       >
         {messages.length === 0 && (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              textAlign: 'center',
-              py: { xs: 2, md: 4 },
-              gap: 1.5,
-            }}
-          >
-            <Box sx={{ position: 'relative', width: 84, height: 84, display: 'grid', placeItems: 'center' }}>
-              <Box
-                sx={{
-                  position: 'absolute',
-                  inset: -14,
-                  borderRadius: '50%',
-                  background:
-                    'radial-gradient(circle, rgba(32,178,170,.30) 0%, rgba(32,178,170,.10) 45%, transparent 72%)',
-                  filter: 'blur(4px)',
-                }}
-              />
-              <DrExame
-                size={64}
-                sx={{
-                  position: 'relative',
-                  borderRadius: '28%',
-                  filter: 'drop-shadow(0 2px 6px rgba(15,61,58,.25))',
-                }}
-              />
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: 2,
-                  right: 0,
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  bgcolor: 'primary.dark',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 2px 6px rgba(0,0,0,.22)',
-                }}
-              >
-                <AutoAwesomeIcon sx={{ fontSize: 13, color: '#fff' }} />
-              </Box>
-            </Box>
-            <Box>
-              <Typography
-                sx={{
-                  fontWeight: 800,
-                  fontSize: { xs: 19, md: 22 },
-                  color: 'text.primary',
-                  fontFamily: 'Poppins, sans-serif',
-                }}
-              >
-                {firstName ? `Como posso te ajudar, ${firstName}?` : 'Como posso te ajudar?'}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                Toque numa sugestão ou escreva sua dúvida sobre seus exames.
-              </Typography>
-            </Box>
-            <Stack spacing={0.75} sx={{ width: '100%', maxWidth: 460, mt: 0.5 }}>
-              {QUICK_ACTIONS.slice(0, 6).map((a) => (
-                <Paper
-                  key={a.title}
-                  elevation={0}
-                  component="button"
-                  type="button"
-                  onClick={() => send(a.prompt)}
-                  sx={{
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.25,
-                    p: 1.25,
-                    px: 1.5,
-                    borderRadius: '12px',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    bgcolor: 'background.paper',
-                    textAlign: 'left',
-                    fontFamily: 'inherit',
-                    fontSize: 'inherit',
-                    color: 'inherit',
-                    width: '100%',
-                    '&:focus-visible': { boxShadow: `0 0 0 3px ${TEAL}55` },
-                    '&:hover': {
-                      bgcolor: 'rgba(32,178,170,.08)',
-                      borderColor: TEAL,
-                      transform: 'translateY(-1px)',
-                    },
-                    transition: 'all .15s',
-                  }}
-                >
-                  <Box sx={{ fontSize: 20 }}>{a.icon}</Box>
-                  <Typography sx={{ flex: 1, fontSize: 14, fontWeight: 600, color: 'text.primary' }}>
-                    {a.title}
-                  </Typography>
-                  <Box component="span" sx={{ color: TEAL, fontWeight: 800, fontSize: 18, lineHeight: 1 }}>
-                    ›
-                  </Box>
-                </Paper>
-              ))}
-            </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>
-              {CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat !== 1 ? 's' : ''} por pergunta · a IA não substitui seu médico
-            </Typography>
-          </Box>
+          <div className="flex flex-col justify-center py-2 sm:py-4 space-y-3">
+            {/* Hero Copilot sem repetir o ícone do robô (usa selo clínico + tipografia fintech/saúde) */}
+            <Frame variant="default">
+              <FramePanel className="p-4 sm:p-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-border/60">
+                  <div className="space-y-1">
+                    <div className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-2.5 py-0.5 text-[11px] font-bold text-teal-700 dark:text-teal-300">
+                      <Sparkles className="size-3" />
+                      <span>Inteligência Clínica Personalizada</span>
+                    </div>
+                    <h1 className="font-heading text-lg sm:text-xl font-extrabold tracking-tight text-foreground">
+                      {firstName ? `O que vamos analisar hoje, ${firstName}?` : 'O que vamos analisar hoje?'}
+                    </h1>
+                    <p className="text-xs text-muted-foreground">
+                      Escolha uma análise guiada abaixo ou digite sua dúvida sobre qualquer marcador, sintoma ou histórico.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Abas de categoria estilo ReUI Bento */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-2 no-scrollbar">
+                  {QUICK_CATEGORIES.map((cat) => {
+                    const active = starterCat === cat.key;
+                    return (
+                      <button
+                        key={cat.key}
+                        type="button"
+                        onClick={() => setStarterCat(cat.key)}
+                        className={`shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                          active
+                            ? 'bg-teal-600 text-white shadow-xs'
+                            : 'border border-border/70 bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Grid Bento 2x2 de prompts clínicos com IconTile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                  {QUICK_ACTIONS.filter((a) => a.category === starterCat).map((a) => {
+                    const IconComp = a.LucideIcon;
+                    return (
+                      <button
+                        key={a.title}
+                        type="button"
+                        onClick={() => send(a.prompt)}
+                        className="group flex items-center gap-3 rounded-xl border border-border/80 bg-background p-3 text-left transition-all hover:border-teal-500/50 hover:bg-teal-500/[0.04] hover:shadow-xs cursor-pointer"
+                      >
+                        <IconTile size="default" variant="soft" className={a.colorClass}>
+                          <IconComp className="size-4" />
+                        </IconTile>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[13.5px] font-bold text-foreground group-hover:text-teal-700 dark:group-hover:text-teal-300 truncate">
+                            {a.title}
+                          </div>
+                          <div className="text-[11.5px] text-muted-foreground truncate">
+                            {a.subtitle}
+                          </div>
+                        </div>
+                        <ChevronRight className="size-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-teal-600 shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </FramePanel>
+              <FrameFooter className="px-4 py-2 flex items-center justify-between flex-wrap gap-2 text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1">
+                  <ShieldCheck className="size-3.5 text-teal-600" />
+                  Respostas baseadas nos seus laudos · Caráter educativo, não substitui consulta médica
+                </span>
+                <span className="font-semibold text-foreground/80">
+                  {CREDIT_COSTS.chat} crédito{CREDIT_COSTS.chat !== 1 ? 's' : ''} / pergunta
+                </span>
+              </FrameFooter>
+            </Frame>
+          </div>
         )}
 
-        <Stack spacing={2}>
+        <Stack spacing={2} sx={{ py: 0.5 }}>
           {messages.map((m, i) => {
             const isUser = m.role === 'user';
             const isLastAssistant = m.role === 'assistant' && i === messages.length - 1 && busy && !m.text;
@@ -673,46 +662,27 @@ export const ChatPage = () => {
                   justifyContent: isUser ? 'flex-end' : 'flex-start',
                 }}
               >
-                {/* Avatar do Dr. Exame + ✨ em CADA resposta da IA */}
-                {!isUser && (
-                  <Box sx={{ position: 'relative', width: 32, height: 32, flexShrink: 0, mt: 0.25 }}>
-                    <DrExame size={32} sx={{ borderRadius: '28%' }} />
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: -3,
-                        right: -3,
-                        width: 14,
-                        height: 14,
-                        borderRadius: '50%',
-                        bgcolor: 'primary.dark',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <AutoAwesomeIcon sx={{ fontSize: 11, color: '#fff' }} />
-                    </Box>
-                  </Box>
-                )}
-
                 <div
                   className={
                     'flex min-w-0 flex-col gap-1 ' +
                     (isUser
-                      ? 'max-w-[86%] items-end sm:max-w-[78%]'
-                      : 'max-w-[88%] items-start sm:max-w-[80%]')
+                      ? 'max-w-[86%] items-end sm:max-w-[76%]'
+                      : 'w-full max-w-[96%] items-start sm:max-w-[88%]')
                   }
                 >
-                  {/* ReUI c-message-3 + c-message-6: Cabeçalho da mensagem com nome e hora */}
                   {!prevSameRole && (
                     <MessageHeader className={isUser ? 'justify-end' : undefined}>
-                      <span className="text-foreground font-semibold">
+                      {!isUser && (
+                        <span className="inline-flex size-5 items-center justify-center rounded-md bg-teal-500/15 text-teal-600 dark:text-teal-400">
+                          <Sparkles className="size-3" />
+                        </span>
+                      )}
+                      <span className="text-foreground font-bold text-xs">
                         {isUser ? 'Você' : 'Dr. Exame IA'}
                       </span>
                       {!isUser && (
                         <ReuiBadge variant="primary-light" size="xs">
-                          Educativo
+                          Análise Educativa
                         </ReuiBadge>
                       )}
                       {m.ts && (
@@ -721,86 +691,129 @@ export const ChatPage = () => {
                             aria-hidden="true"
                             className="bg-muted-foreground/40 size-1 shrink-0 rounded-full"
                           />
-                          <span className="tabular-nums">{fmtTime(m.ts)}</span>
+                          <span className="tabular-nums text-[11px]">{fmtTime(m.ts)}</span>
                         </>
                       )}
                     </MessageHeader>
                   )}
 
-                  <Paper
-                    elevation={0}
-                    sx={{
-                      width: '100%',
-                      px: 1.75,
-                      py: 1.25,
-                      borderRadius: isUser ? '18px 18px 4px 18px' : '18px 18px 18px 4px',
-                      bgcolor: isUser ? TEAL : 'background.paper',
-                      color: isUser ? '#fff' : 'text.primary',
-                      border: isUser ? 'none' : '1px solid',
-                      borderColor: 'divider',
-                      wordBreak: 'break-word',
-                      boxShadow: isUser ? '0 2px 10px rgba(32,178,170,.22)' : '0 1px 4px rgba(0,0,0,.05)',
-                      '& p': { margin: '0.3em 0', fontSize: 15, lineHeight: 1.55 },
-                      '& h3': { fontSize: '0.95rem', fontWeight: 800, margin: '0.6em 0 0.2em', color: TEAL },
-                      '& ul, & ol': { margin: '0.3em 0', paddingLeft: '1.2em' },
-                      '& li': { margin: '0.15em 0' },
-                      '& strong': { fontWeight: 700 },
-                      '& code': {
-                        bgcolor: 'rgba(128,128,128,.15)',
-                        px: 0.4,
-                        borderRadius: 0.5,
-                        fontSize: '0.9em',
-                      },
-                    }}
-                  >
-                    {m.text ? (
-                      m.role === 'assistant' ? (
-                        <ReactMarkdown>{m.text}</ReactMarkdown>
-                      ) : (
-                        <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>
-                      )
-                    ) : isLastAssistant ? (
-                      <TypingDots />
-                    ) : null}
-
-                    {/* FEATURE C — rodapé discreto com as diretrizes citadas */}
-                    {!isUser && !!m.sources?.length && (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: 0.5,
-                          alignItems: 'center',
-                          mt: 1,
-                          pt: 0.75,
-                          borderTop: '1px dashed',
-                          borderColor: 'divider',
-                        }}
-                      >
-                        <Typography
-                          component="span"
-                          sx={{ fontSize: 12, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
+                  {isUser ? (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        px: 2,
+                        py: 1.25,
+                        borderRadius: '18px 18px 4px 18px',
+                        background: 'linear-gradient(135deg, #178f89 0%, #0f766e 100%)',
+                        color: '#fff',
+                        wordBreak: 'break-word',
+                        boxShadow: '0 2px 10px rgba(23,143,137,.20)',
+                        fontSize: 14.5,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <Box sx={{ whiteSpace: 'pre-wrap' }}>{m.text}</Box>
+                    </Paper>
+                  ) : (
+                    <Frame variant="default" className="w-full">
+                      <FramePanel className="p-3.5 sm:p-4">
+                        <Box
+                          sx={{
+                            wordBreak: 'break-word',
+                            color: 'text.primary',
+                            fontSize: 14.5,
+                            lineHeight: 1.65,
+                            '& p': { margin: '0.35em 0', fontSize: 14.5, lineHeight: 1.65 },
+                            '& p:first-of-type': { marginTop: 0 },
+                            '& p:last-of-type': { marginBottom: 0 },
+                            '& h1, & h2, & h3, & h4': {
+                              fontSize: '0.92rem',
+                              fontWeight: 800,
+                              fontFamily: 'Poppins, sans-serif',
+                              margin: '0.75em 0 0.3em',
+                              color: TEAL,
+                              letterSpacing: '-0.01em',
+                            },
+                            '& ul, & ol': {
+                              margin: '0.4em 0',
+                              paddingLeft: '1.25em',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '0.35em',
+                            },
+                            '& li': {
+                              padding: '0.35em 0.6em',
+                              borderRadius: '8px',
+                              bgcolor: (t) =>
+                                t.palette.mode === 'dark'
+                                  ? 'rgba(255,255,255,0.03)'
+                                  : 'rgba(15,118,110,0.035)',
+                              borderLeft: `3px solid ${TEAL}`,
+                              listStyleType: 'none',
+                              marginLeft: '-1.1em',
+                            },
+                            '& strong': {
+                              fontWeight: 800,
+                              color: 'text.primary',
+                            },
+                            '& code': {
+                              bgcolor: 'rgba(32,178,170,.12)',
+                              color: TEAL,
+                              px: 0.6,
+                              py: 0.15,
+                              borderRadius: '6px',
+                              fontSize: '0.88em',
+                              fontWeight: 700,
+                              fontFamily: 'monospace',
+                            },
+                          }}
                         >
-                          📚 Fontes:
-                        </Typography>
-                        <WhatIsThis topic="diretrizes" />
-                        {m.sources.map((s, si) => (
-                          <ReuiBadge key={`${s.label}-${si}`} variant="primary-light" size="sm">
-                            {s.label}
-                          </ReuiBadge>
-                        ))}
-                      </Box>
-                    )}
-                  </Paper>
+                          {m.text ? (
+                            <ReactMarkdown>{m.text}</ReactMarkdown>
+                          ) : isLastAssistant ? (
+                            <TypingDots />
+                          ) : null}
+                        </Box>
 
-                  {/* ReUI c-message-4: Barra de ações da resposta (Copiar, Perguntar ao médico, Avaliar) */}
-                  {!isUser && !!m.text && !isLastAssistant && !isStreamingThis && (
-                    <AssistantReplyActions
-                      content={m.text}
-                      onAskDoctor={(txt) =>
-                        navigate(`/perguntas?ask=${encodeURIComponent(txt.slice(0, 600))}`)
-                      }
-                    />
+                        {!!m.sources?.length && (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              gap: 0.5,
+                              alignItems: 'center',
+                              mt: 1.5,
+                              pt: 1,
+                              borderTop: '1px dashed',
+                              borderColor: 'divider',
+                            }}
+                          >
+                            <Typography
+                              component="span"
+                              sx={{ fontSize: 11.5, fontWeight: 700, color: (t) => tealText(t.palette.mode) }}
+                            >
+                              📚 Diretrizes de referência:
+                            </Typography>
+                            <WhatIsThis topic="diretrizes" />
+                            {m.sources.map((s, si) => (
+                              <ReuiBadge key={`${s.label}-${si}`} variant="primary-light" size="xs">
+                                {s.label}
+                              </ReuiBadge>
+                            ))}
+                          </Box>
+                        )}
+                      </FramePanel>
+                      {!!m.text && !isLastAssistant && !isStreamingThis && (
+                        <FrameFooter className="px-3 py-1.5 flex items-center justify-between flex-wrap gap-2">
+                          <AssistantReplyActions
+                            content={m.text}
+                            onAskDoctor={(txt) =>
+                              navigate(`/perguntas?ask=${encodeURIComponent(txt.slice(0, 600))}`)
+                            }
+                          />
+                        </FrameFooter>
+                      )}
+                    </Frame>
                   )}
                 </div>
               </Box>
@@ -998,86 +1011,130 @@ export const ChatPage = () => {
         </Box>
       </SwipeableDrawer>
 
-      {/* HISTÓRICO — conversas agrupadas por período */}
+      {/* HISTÓRICO — gaveta ReUI com botão Voltar/Fechar claro, Nova conversa e Limpar histórico */}
       <Drawer
         anchor="right"
         open={histOpen}
         onClose={() => setHistOpen(false)}
-        PaperProps={{ sx: { width: { xs: '100%', sm: 370 } } }}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 380 }, display: 'flex', flexDirection: 'column', bgcolor: 'background.default' } }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-            borderBottom: '1px solid',
-            borderBottomColor: 'divider',
-            background: 'linear-gradient(135deg,#20b2aa,#178f89)',
-            color: '#fff',
-          }}
-        >
-          <Typography sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif' }}>🕒 Histórico</Typography>
-          <Button
-            size="small"
-            startIcon={<EditIcon />}
-            onClick={startNew}
-            sx={{
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 700,
-              bgcolor: 'rgba(255,255,255,.15)',
-              borderRadius: '999px',
-              '&:hover': { bgcolor: 'rgba(255,255,255,.25)' },
-            }}
-          >
-            Nova
-          </Button>
-        </Box>
-        <Box sx={{ overflowY: 'auto', flex: 1 }}>
+        <div className="flex items-center justify-between gap-2 border-b border-border/80 bg-card px-4 py-3.5">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <button
+              type="button"
+              onClick={() => setHistOpen(false)}
+              aria-label="Voltar para o chat"
+              title="Voltar para o chat"
+              className="flex size-8 shrink-0 items-center justify-center rounded-xl border border-border/80 bg-background text-foreground transition-colors hover:bg-muted cursor-pointer"
+            >
+              <ArrowLeft className="size-4" />
+            </button>
+            <div className="min-w-0">
+              <div className="font-heading text-sm font-extrabold text-foreground">
+                Histórico de Conversas
+              </div>
+              <div className="text-[11px] text-muted-foreground">
+                {convs.length === 0 ? 'Nenhuma conversa salva' : `${convs.length} ${convs.length === 1 ? 'conversa salva' : 'conversas salvas'}`}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={startNew}
+              className="inline-flex items-center gap-1 rounded-xl bg-teal-600 px-3 py-1.5 text-xs font-bold text-white shadow-xs transition-colors hover:bg-teal-700 cursor-pointer"
+            >
+              <Plus className="size-3.5" />
+              <span>Nova</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setHistOpen(false)}
+              aria-label="Fechar histórico"
+              className="flex size-8 items-center justify-center rounded-xl text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer sm:hidden"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        </div>
+
+        <Box sx={{ overflowY: 'auto', flex: 1, p: 1.5 }}>
           {convs.length === 0 && (
-            <Typography color="text.secondary" sx={{ p: 3, textAlign: 'center' }}>
-              Nenhuma conversa ainda.
-              <br />
-              Comece a conversar com o Dr. Exame! 💬
-            </Typography>
+            <div className="my-6">
+              <Frame variant="ghost">
+                <FramePanel className="p-6 text-center space-y-2">
+                  <div className="mx-auto flex size-10 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600">
+                    <History className="size-5" />
+                  </div>
+                  <div className="font-heading text-sm font-bold text-foreground">
+                    Nenhuma conversa ainda
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Suas análises e dúvidas com o Assistente Clínico ficarão salvas aqui para consulta rápida.
+                  </p>
+                </FramePanel>
+              </Frame>
+            </div>
           )}
           {BUCKETS.map((bk) => {
             const items = convs.filter((c) => bucket(c.updatedAt) === bk);
             if (!items.length) return null;
             return (
-              <Box key={bk}>
+              <Box key={bk} sx={{ mb: 1.5 }}>
                 <Typography
                   sx={{
-                    fontSize: 12,
+                    fontSize: 11,
                     fontWeight: 800,
                     color: 'text.secondary',
                     textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    px: 2,
-                    pt: 1.5,
-                    pb: 0.5,
+                    letterSpacing: '0.06em',
+                    px: 1,
+                    pb: 0.75,
                   }}
                 >
                   {bk}
                 </Typography>
-                {items.map((c) => (
-                  <HistoryRow
-                    key={c.id}
-                    conv={c}
-                    active={c.id === curId}
-                    onOpen={() => {
-                      setCurId(c.id);
-                      setHistOpen(false);
-                    }}
-                    onRename={(t) => renameConv(c.id, t)}
-                    onDelete={() => deleteConv(c.id)}
-                  />
-                ))}
+                <Stack spacing={0.75}>
+                  {items.map((c) => (
+                    <HistoryRow
+                      key={c.id}
+                      conv={c}
+                      active={c.id === curId}
+                      onOpen={() => {
+                        setCurId(c.id);
+                        setHistOpen(false);
+                      }}
+                      onRename={(t) => renameConv(c.id, t)}
+                      onDelete={() => deleteConv(c.id)}
+                    />
+                  ))}
+                </Stack>
               </Box>
             );
           })}
         </Box>
+
+        {convs.length > 0 && (
+          <div className="border-t border-border/80 bg-card p-3 flex items-center justify-between gap-2">
+            <button
+              type="button"
+              onClick={() => setHistOpen(false)}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border/80 bg-background px-3 py-2 text-xs font-bold text-foreground hover:bg-muted cursor-pointer"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>Voltar ao chat</span>
+            </button>
+            <button
+              type="button"
+              onClick={clearAllConvs}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-500/15 cursor-pointer"
+            >
+              <Trash2 className="size-3.5" />
+              <span>Limpar histórico</span>
+            </button>
+          </div>
+        )}
       </Drawer>
     </Box>
   );
@@ -1102,10 +1159,14 @@ const HistoryRow = ({
       selected={active}
       onClick={onOpen}
       sx={{
-        py: 1,
-        px: 2,
-        '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.08)' },
-        '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+        py: 1.1,
+        px: 1.5,
+        borderRadius: '12px',
+        border: '1px solid',
+        borderColor: active ? 'rgba(32,178,170,.45)' : 'divider',
+        bgcolor: active ? 'rgba(32,178,170,.08)' : 'background.paper',
+        '&.Mui-selected': { bgcolor: 'rgba(32,178,170,.10)' },
+        '&.Mui-selected:hover': { bgcolor: 'rgba(32,178,170,.14)' },
       }}
     >
       <ListItemIcon sx={{ minWidth: 34 }}>

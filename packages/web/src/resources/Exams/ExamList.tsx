@@ -504,60 +504,268 @@ const ExamCards = () => {
     const altered = abnByExam[r.id] ?? 0;
     const itemCount: number = r._count?.items ?? 0;
     const Icon = r.kind === 'IMAGING' ? ImageIcon : r.kind === 'LAB_PANEL' ? ScienceIcon : DescriptionOutlinedIcon;
+    const CatIcon = cc.icon;
+    const accentColor = altered > 0 ? '#f59e0b' : r.kind === 'IMAGING' ? '#0284c7' : '#14b8a6';
     return (
       <AppCard key={r.id} kind="interactive" onClick={() => isMd ? setSelected(r.id) : navigate(`/exams/${r.id}/show`)} sx={{
+        position: 'relative',
         overflow: 'hidden',
+        border: '1px solid',
+        borderColor: (t) => isMd && selected === r.id
+          ? '#20b2aa'
+          : altered > 0
+            ? (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.28)' : 'rgba(245,158,11,0.24)')
+            : (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,118,110,0.12)'),
+        background: (t) => t.palette.mode === 'dark'
+          ? 'linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)'
+          : altered > 0
+            ? 'linear-gradient(145deg, #ffffff 0%, rgba(254,243,199,0.22) 100%)'
+            : 'linear-gradient(145deg, #ffffff 0%, rgba(240,253,250,0.45) 100%)',
+        boxShadow: (t) => isMd && selected === r.id
+          ? '0 0 0 2px #20b2aa inset, 0 8px 24px rgba(32,178,170,0.14)'
+          : t.palette.mode === 'dark'
+            ? '0 4px 16px rgba(0,0,0,0.28)'
+            : '0 2px 10px rgba(15,61,58,0.04), 0 1px 2px rgba(15,61,58,0.03)',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          left: 0,
+          top: 0,
+          bottom: 0,
+          width: 4,
+          bgcolor: accentColor,
+        },
         ...(isOld ? { filter: 'grayscale(.85)', opacity: 0.72, transition: `filter ${DUR}ms ease, opacity ${DUR}ms ease` } : {}),
-        ...(isMd && selected === r.id ? { boxShadow: '0 0 0 2px #20b2aa inset' } : {}),
       }}>
-        <CardContent sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, py: 1.75, '&:last-child': { pb: 1.75 } }}>
-          {/* ReUI card-3 (dono 30/10): azulejo de ícone com cor semântica — alterado =
-              âmbar, imagem = céu, normal = teal da marca. Triagem antes de ler. */}
-          <IconTile tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
-            <Icon sx={{ fontSize: 22 }} />
-          </IconTile>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            {/* Título clamp-2 (fim do "…" no meio do nome): quebra natural,
-                reticências só na 2ª linha — hierarquia limpa em qualquer largura. */}
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
-              <Typography title={titleInfo.original || r.title} sx={{ fontWeight: 700, lineHeight: 1.25, display: '-webkit-box', WebkitBoxOrient: 'vertical', WebkitLineClamp: 2, overflow: 'hidden', overflowWrap: 'anywhere' }}><PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText></Typography>
-              <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25 }}><ExplainButton name={r.title} /></Box>
-            </Box>
-            {/* Meta numa linha só: pill de data + laboratório (menos torre de linhas). */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', rowGap: 0.25, mt: 0.5 }}>
-              <DateLabel date={r.performedAt} fallback="s/ data" />
-              {r.sourceLab && <LabBadge raw={r.sourceLab} />}
-            </Box>
-            {!labInfo.text && labInfo.suspicious && <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.25 }}>🏥 Laboratório em revisão</Typography>}
-            {doctorInfo.text && <Typography variant="caption" title={`Dr. ${doctorInfo.original}`} sx={{ display: 'block', color: 'text.secondary', fontWeight: 600, lineHeight: 1.3, mt: 0.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>🩺 Dr. {doctorInfo.text}</Typography>}
-            {/* ReUI card-3 corrigido: faixa de stats dividida (resultados · alterados ·
-                categoria) — colunas auto/1fr (não fixas), categoria com ellipsis real e
-                sem label redundante: nada estoura em 360px nem com nome longo. */}
-            {itemCount > 0 ? (
-              <Box sx={{ mt: 0.75, display: 'grid', gridTemplateColumns: 'auto auto 1fr', alignItems: 'stretch', borderRadius: '10px', border: '1px solid', borderColor: 'divider', bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,118,110,0.035)', overflow: 'hidden' }}>
-                <Box sx={{ px: 1, py: 0.6, textAlign: 'center' }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 14, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>{itemCount}</Typography>
-                  <Typography sx={{ fontSize: 10, color: 'text.secondary', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em' }}>resultado{itemCount === 1 ? '' : 's'}</Typography>
-                </Box>
-                <Box sx={{ px: 1, py: 0.6, textAlign: 'center', borderLeft: '1px solid', borderRight: '1px solid', borderColor: 'divider' }}>
-                  <Typography sx={{ fontWeight: 800, fontSize: 14, lineHeight: 1.2, fontVariantNumeric: 'tabular-nums', color: (t) => altered > 0 ? (t.palette.mode === 'dark' ? '#fdba74' : '#c2410c') : SEM.ok[t.palette.mode] }}>{altered}</Typography>
-                  <Typography sx={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', color: (t) => altered > 0 ? (t.palette.mode === 'dark' ? '#fdba74' : '#c2410c') : 'text.secondary' }}>alterado{altered === 1 ? '' : 's'}</Typography>
-                </Box>
-                <Box sx={{ px: 1, py: 0.6, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: 11.5, lineHeight: 1.3, display: 'block', width: '100%', textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cc.cat}</Typography>
+        <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+          {/* Corpo principal do Card */}
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, pt: 1.75, pb: 1.5, pl: 2.25, pr: 1.5 }}>
+            <IconTile tone={altered > 0 ? 'amber' : r.kind === 'IMAGING' ? 'sky' : 'teal'}>
+              <Icon sx={{ fontSize: 22 }} />
+            </IconTile>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              {/* Título clamp-2 + botão de explicação IA */}
+              <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}>
+                <Typography
+                  title={titleInfo.original || r.title}
+                  sx={{
+                    fontFamily: '"Poppins", sans-serif',
+                    fontWeight: 700,
+                    fontSize: { xs: 14, sm: 15 },
+                    lineHeight: 1.28,
+                    color: 'text.primary',
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    overflow: 'hidden',
+                    overflowWrap: 'anywhere',
+                  }}
+                >
+                  <PrivacyText>{titleInfo.text || 'Exame'}</PrivacyText>
+                </Typography>
+                <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0, mt: -0.25 }}>
+                  <ExplainButton name={r.title} />
                 </Box>
               </Box>
-            ) : (
-              <Typography variant="caption" color="text.secondary">{cc.cat}</Typography>
-            )}
-            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" sx={{ mt: 0.625 }}>
-              {isNew && <Chip size="small" icon={<FiberNewIcon sx={{ fontSize: '14px !important' }} />} label="Novo" sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14), color: (t) => SEM.ok[t.palette.mode], '& .MuiChip-icon': { color: (t: ModeTheme) => `${SEM.ok[t.palette.mode]} !important` } }} />}
-              <Chip size="small" label={statusLabel[r.status] ?? r.status} sx={{ height: 20, fontWeight: 700, bgcolor: (t) => alpha(toneMain(t, sc), 0.12), color: (t) => toneMain(t, sc) }} />
-              {needsReview && <Chip size="small" label={translate('exams.review')} sx={{ bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14), color: (t) => SEM.warn[t.palette.mode], fontWeight: 800, height: 20 }} />}
+
+              {/* Meta: Data + Laboratório + Categoria completa (sem truncar "Hormô...") */}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', rowGap: 0.5, mt: 0.6 }}>
+                <DateLabel date={r.performedAt} fallback="s/ data" />
+                {r.sourceLab && <LabBadge raw={r.sourceLab} />}
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.4,
+                    px: 0.85,
+                    py: 0.15,
+                    borderRadius: '6px',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    bgcolor: `${cc.color}14`,
+                    color: cc.color,
+                    border: `1px solid ${cc.color}28`,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  <CatIcon sx={{ fontSize: 12 }} />
+                  {cc.cat}
+                </Box>
+              </Box>
+
+              {!labInfo.text && labInfo.suspicious && (
+                <Typography variant="caption" sx={{ display: 'block', color: 'warning.main', fontWeight: 700, lineHeight: 1.3, mt: 0.35 }}>
+                  🏥 Laboratório em revisão
+                </Typography>
+              )}
+              {doctorInfo.text && (
+                <Typography
+                  variant="caption"
+                  title={`Dr. ${doctorInfo.original}`}
+                  sx={{
+                    display: 'block',
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    lineHeight: 1.35,
+                    mt: 0.4,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  🩺 Dr. {doctorInfo.text}
+                </Typography>
+              )}
+            </Box>
+
+            <Stack direction="row" alignItems="center" spacing={0.25} sx={{ flexShrink: 0, mt: -0.25 }}>
+              <IconButton
+                size="small"
+                onClick={(e) => del(e, r.id, r.title)}
+                title="Excluir"
+                aria-label={`Excluir exame ${r.title}`}
+                sx={{ p: 1, color: 'text.secondary', '&:hover': { color: 'error.main' } }}
+              >
+                <DeleteOutlineIcon fontSize="small" />
+              </IconButton>
+              <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 20 }} />
             </Stack>
           </Box>
-          <IconButton size="small" onClick={(e) => del(e, r.id, r.title)} title="Excluir" aria-label={`Excluir exame ${r.title}`} sx={{ flexShrink: 0, p: 1.25, mt: -0.25 }}><DeleteOutlineIcon fontSize="small" /></IconButton>
-          <ChevronRightIcon sx={{ color: 'text.disabled', flexShrink: 0, mt: 1 }} />
+
+          {/* Rodapé ReUI Frame Footer: Métricas (Resultados + Alterados) à esquerda e Status à direita */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: 1,
+              px: 2.25,
+              py: 1,
+              borderTop: '1px solid',
+              borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,118,110,0.08)'),
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(15,118,110,0.03)'),
+            }}
+          >
+            {itemCount > 0 ? (
+              <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: '7px',
+                    bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : '#ffffff'),
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    color: 'text.primary',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  <Box component="strong" sx={{ fontWeight: 800 }}>{itemCount}</Box>
+                  <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+                    {itemCount === 1 ? 'resultado' : 'resultados'}
+                  </Box>
+                </Box>
+
+                <Box
+                  component="span"
+                  sx={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: '7px',
+                    bgcolor: (t) =>
+                      altered > 0
+                        ? t.palette.mode === 'dark'
+                          ? 'rgba(245,158,11,0.16)'
+                          : 'rgba(245,158,11,0.12)'
+                        : alpha(SEM.ok[t.palette.mode], 0.12),
+                    border: '1px solid',
+                    borderColor: (t) =>
+                      altered > 0
+                        ? t.palette.mode === 'dark'
+                          ? 'rgba(245,158,11,0.35)'
+                          : 'rgba(245,158,11,0.28)'
+                        : alpha(SEM.ok[t.palette.mode], 0.25),
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    color: (t) =>
+                      altered > 0
+                        ? t.palette.mode === 'dark'
+                          ? '#fcd34d'
+                          : '#b45309'
+                        : SEM.ok[t.palette.mode],
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      bgcolor: 'currentColor',
+                    }}
+                  />
+                  {altered > 0 ? `${altered} ${altered === 1 ? 'alterado' : 'alterados'}` : 'Todos na faixa'}
+                </Box>
+              </Stack>
+            ) : (
+              <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                Documento médico
+              </Typography>
+            )}
+
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center">
+              {isNew && (
+                <Chip
+                  size="small"
+                  icon={<FiberNewIcon sx={{ fontSize: '14px !important' }} />}
+                  label="Novo"
+                  sx={{
+                    height: 20,
+                    fontWeight: 700,
+                    bgcolor: (t) => alpha(SEM.ok[t.palette.mode], 0.14),
+                    color: (t) => SEM.ok[t.palette.mode],
+                    '& .MuiChip-icon': { color: (t: ModeTheme) => `${SEM.ok[t.palette.mode]} !important` },
+                  }}
+                />
+              )}
+              <Chip
+                size="small"
+                label={statusLabel[r.status] ?? r.status}
+                sx={{
+                  height: 20,
+                  fontSize: 11,
+                  fontWeight: 700,
+                  bgcolor: (t) => alpha(toneMain(t, sc), 0.12),
+                  color: (t) => toneMain(t, sc),
+                }}
+              />
+              {needsReview && (
+                <Chip
+                  size="small"
+                  label={translate('exams.review')}
+                  sx={{
+                    bgcolor: (t) => alpha(SEM.warn[t.palette.mode], 0.14),
+                    color: (t) => SEM.warn[t.palette.mode],
+                    fontWeight: 800,
+                    height: 20,
+                    fontSize: 11,
+                  }}
+                />
+              )}
+            </Stack>
+          </Box>
         </CardContent>
         {(r.status === 'EXTRACTING' || r.status === 'UPLOADED') && <LinearProgress sx={{ height: 3 }} />}
         {r.status === 'FAILED' && (

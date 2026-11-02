@@ -145,6 +145,10 @@ import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
+// PATROCINADORES & OPINIÕES (02/11/26): popup de parceiro pós-login (fila de nudges, prio 30)
+// e provider da pesquisa curta (convite contextual + acesso permanente no Perfil).
+import { SponsorPopup } from './components/sponsor/SponsorPopup';
+import { FeedbackProvider } from './components/feedback/FeedbackProvider';
 import { CreditRewardFx } from './components/CreditRewardFx';
 import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
@@ -1100,41 +1104,47 @@ const AppMenu = () => {
       </Box>
     </Box>
 
-    <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth>
-      <DialogTitle sx={{ textAlign: 'center', pb: 0 }}>
+    <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '22px', p: 0.5 } }}>
+      <DialogTitle sx={{ textAlign: 'center', pb: 0.5 }}>
         {/* Mascote com aura pulsante (mesmo efeito do login — presença viva da marca) */}
-        <Box sx={{ mb: 1.5, display: 'flex', justifyContent: 'center' }}>
-          <MascotPulse size={84} ringColor="rgba(32,178,170,.45)">
+        <Box sx={{ mb: 1.25, display: 'flex', justifyContent: 'center' }}>
+          <MascotPulse size={80} ringColor="rgba(32,178,170,.45)">
             <Box sx={{
-              width: 84, height: 84, borderRadius: '50%',
+              width: 80, height: 80, borderRadius: '50%',
               background: 'radial-gradient(circle at 50% 38%, rgba(32,178,170,.22), rgba(32,178,170,.06) 72%)',
               border: '1px solid rgba(32,178,170,.35)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <DrExame size={58} sx={{ borderRadius: '50%' }} />
+              <DrExame size={54} sx={{ borderRadius: '50%' }} />
             </Box>
           </MascotPulse>
         </Box>
-        Meus Exames
+        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>
+          Dr. Exame
+        </Typography>
+        <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700, display: 'block' }}>
+          Versão v{APP_BUILD_INFO.version} · Inteligência Clínica em Saúde
+        </Typography>
       </DialogTitle>
-      <DialogContent sx={{ textAlign: 'center' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: 20, color: (t) => tealText(t.palette.mode), mb: 2 }}>v{APP_BUILD_INFO.version}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>{translate('about.tagline')}</Typography>
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <Chip size="small" label="IA GLM-4.6" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
-          <Chip size="small" label="Scanner ML Kit" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
-          <Chip size="small" label="LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.15)', color: (t) => tealText(t.palette.mode), fontWeight: 700 }} />
+      <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.55 }}>{translate('about.tagline')}</Typography>
+        <Box sx={{ display: 'flex', gap: 0.75, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
+          <Chip size="small" label="✨ IA Clínica" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
+          <Chip size="small" label="📄 Extração Determinística" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
+          <Chip size="small" label="🔒 Conformidade LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
         </Box>
-        <Stack spacing={0.5} sx={{ mb: 1 }}>
-          <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
-          <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 13, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
-        </Stack>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+        <Box sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', mb: 1.5 }}>
+          <Stack spacing={0.5}>
+            <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
+            <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 13, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
+          </Stack>
+        </Box>
+        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block', lineHeight: 1.4 }}>
           {translate('about.disclaimer')}
         </Typography>
       </DialogContent>
       <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: '999px', px: 4, textTransform: 'none', fontWeight: 700, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
+        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: '999px', px: 5, textTransform: 'none', fontWeight: 800, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
       </DialogActions>
     </Dialog>
   </Box>
@@ -1340,6 +1350,7 @@ const AppLayout = (props: any) => {
     {/* FILA DE NUDGES (05/10): serializa modais de cold-load (MOTD/WhatsNew/…) —
         um por vez, prioridade, gap 400ms. Morde só a ORDEM de abrir, não o conteúdo. */}
     <NudgeQueueProvider>
+    <FeedbackProvider mode="patient">
     <DrawerProvider>
       <BiometricGate>
       <ScreenBackdrop />
@@ -1411,10 +1422,12 @@ const AppLayout = (props: any) => {
       <CompleteProfileModal />
       <GoalQuiz />
       <Motd />
+      <SponsorPopup mode="patient" />
       <CreditRewardFx />
       <CelebrateFx />
       </BiometricGate>
     </DrawerProvider>
+    </FeedbackProvider>
     </NudgeQueueProvider>
     </ConfirmDialogProvider>
   );

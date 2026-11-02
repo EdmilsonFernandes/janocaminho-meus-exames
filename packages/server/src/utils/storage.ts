@@ -168,3 +168,21 @@ export async function saveLabLogo(labId: string, buffer: Buffer): Promise<string
   fs.writeFileSync(local, optimized);
   return local;
 }
+
+/** Imagem de PATROCINADOR/CAMPANHA (02/11/26) — mesmo tratamento do logo de laboratório
+ *  (sharp 512², público/immutable). `kind` separa logo do patrocinador e imagem da campanha;
+ *  o sufixo com timestamp busta o cache ao trocar a imagem (a URL antiga era immutable). */
+export async function saveSponsorAsset(kind: 'sponsor-logo' | 'campaign-image', id: string, buffer: Buffer): Promise<string> {
+  const { buffer: optimized } = await optimizeAvatar(buffer);
+  const stamp = Date.now().toString(36);
+  if (useS3()) {
+    const key = `${config.s3Prefix}sponsors/${kind}/${id}-${stamp}.jpg`;
+    await s3().send(new PutObjectCommand({ Bucket: config.s3Bucket, Key: key, Body: optimized, ContentType: 'image/jpeg', CacheControl: 'public, max-age=31536000, immutable' }));
+    presignedPhotoMemo.delete(key);
+    return key;
+  }
+  fs.mkdirSync(path.join(config.photosDir, 'sponsors'), { recursive: true });
+  const local = path.join(config.photosDir, 'sponsors', `${kind}-${id}-${stamp}.jpg`);
+  fs.writeFileSync(local, optimized);
+  return local;
+}

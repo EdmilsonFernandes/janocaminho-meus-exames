@@ -110,6 +110,14 @@ export const DEFAULT_SETTINGS = {
   // KYC do médico (spec verificação §1/§4): prazo do 'legacy' em epoch ms (0 = sem prazo);
   // autoApprove 0 = TODO médico passa pela fila do dono (decisão 28/10/26); 1 = aprova sozinho se tudo verde.
   doctorKyc: { legacyGraceUntilMs: 0, autoApprove: 0 },
+  // PATROCINADORES (02/11/26): kill-switch do popup (enabled 0 = o app nem pergunta),
+  // intervalo GLOBAL entre popups de qualquer campanha ao mesmo usuário (h) e delay de
+  // boot (ms) antes de disputar a vez. Tudo editável no admin sem deploy.
+  sponsorAds: { enabled: 1, globalIntervalHours: 24, bootDelayMs: 3500 },
+  // OPINIÕES (02/11/26): kill-switch do CONVITE contextual (o acesso permanente no Perfil
+  // continua), idade mínima da conta (dias) antes do 1º convite, intervalo entre convites
+  // após dispensa (dias) e máx. de dispensas (depois só pelo acesso permanente).
+  feedback: { enabled: 1, minAccountAgeDays: 2, inviteIntervalDays: 30, maxDismissals: 3 },
 };
 
 export type SettingCategory = keyof typeof DEFAULT_SETTINGS;

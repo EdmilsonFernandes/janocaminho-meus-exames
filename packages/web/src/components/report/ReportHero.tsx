@@ -10,6 +10,8 @@ import { DrExame } from '../DrExame';
 import { AppCard } from '../AppCard';
 import { tealText } from '../../theme';
 import { VoiceSummaryPlayer } from '../VoiceSummaryPlayer';
+import { Frame, FrameHeader, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
 
 const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; accent: string }) => (
   <Box sx={{
@@ -29,51 +31,33 @@ const StatTile = ({ value, label, accent }: { value: ReactNode; label: string; a
 export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare, onPrint, onRegen, sourceExams, baseDate, onOpenExam }: {
   resumo?: string; counts: { itens: number; atencao: number; positivos: number };
   speaking: boolean; loading: boolean; onSpeak: () => void; onShare: () => void; onPrint: () => void; onRegen: () => void;
-  /** Exames que alimentaram a análise — rows compactas clicáveis (o título da página
-   *  já diz "Relatório completo de saúde"; este card não repete outro título). */
   sourceExams?: SourceExam[];
-  /** CAMADA 3 — data do exame MAIS RECENTE (dd/mm/aaaa, do DB): âncora de frescor no
-   *  topo do herói. Relatório de 2024 não pode parecer leitura de hoje. */
   baseDate?: string | null;
   onOpenExam?: (id: string) => void;
 }) => (
-  <Box sx={(t) => ({
-    position: 'relative', overflow: 'hidden', p: { xs: 2, sm: 2.5 }, borderRadius: '16px',
-    background: t.palette.mode === 'dark'
-      ? 'linear-gradient(135deg, rgba(20,35,35,0.9), rgba(15,25,25,0.85))'
-      : 'linear-gradient(135deg, rgba(255,255,255,0.95), rgba(240,250,249,0.85))',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    border: '1px solid', borderColor: alpha(t.palette.primary.main, 0.18),
-    boxShadow: '0 10px 36px rgba(32,178,170,0.08)'
-  })}>
-    <AutoAwesomeIcon sx={{ position: 'absolute', right: -14, bottom: -20, fontSize: 150, color: '#d4a574', opacity: 0.08, pointerEvents: 'none' }} />
-    {/* ReUI Alert/Callout soft (dono 30/10): o aviso educativo vira callout com título
-        em negrito + caption — destaque do disclaimer sem poluir (variante teal suave). */}
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{
-      p: 1.5, borderRadius: '16px',
-      bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(32,178,170,0.10)' : 'rgba(32,178,170,0.07)',
-      border: '1px solid', borderColor: alpha('#20b2aa', 0.22),
-    }}>
-      <Box sx={{ width: 46, height: 46, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(32,178,170,.25), rgba(32,178,170,.05))', border: '1px solid', borderColor: alpha('#20b2aa', 0.25) }}>
-        <DrExame size={36} sx={{ borderRadius: '50%' }} />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography sx={{ fontSize: 14, fontWeight: 800, color: 'text.primary', lineHeight: 1.3 }}>Análise educativa gerada pela IA</Typography>
-        <Typography sx={{ fontSize: 12.5, color: (t) => tealText(t.palette.mode), fontWeight: 600, mt: 0.25 }}>— não substitui consulta médica</Typography>
-      </Box>
-    </Stack>
-
-    {/* CAMADA 3 — âncora de frescor: DE QUAL exame o relatório fala. Pill teal discreto
-        logo abaixo do cabeçalho; sem data conhecida, não renderiza (não inventa). */}
-    {baseDate && (
-      <Box sx={{ mt: 1.25, display: 'flex' }}>
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, px: 1.25, py: 0.5, borderRadius: '999px', bgcolor: alpha('#20b2aa', 0.08), border: '1px solid', borderColor: alpha('#20b2aa', 0.22) }}>
-          <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
-            📅 Baseado no exame de {baseDate}
-          </Typography>
+  <Frame variant="default">
+    <FrameHeader className="flex flex-row items-center justify-between gap-3 flex-wrap pb-2.5">
+      <div className="flex items-center gap-3 min-w-0">
+        <Box sx={{ width: 42, height: 42, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(32,178,170,.25), rgba(32,178,170,.05))', border: '1px solid', borderColor: alpha('#20b2aa', 0.25) }}>
+          <DrExame size={32} sx={{ borderRadius: '50%' }} />
         </Box>
-      </Box>
-    )}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="font-heading text-sm sm:text-base font-extrabold text-foreground">
+              Dossiê Consolidado de Saúde
+            </span>
+            <Badge variant="info-light" size="xs">
+              Dr. Exame IA
+            </Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Análise educativa — não substitui consulta médica
+            {baseDate ? ` · Exame mais recente: ${baseDate}` : ''}
+          </p>
+        </div>
+      </div>
+    </FrameHeader>
+    <FramePanel className="p-4 sm:p-5">
 
     {/* Cápsula de Áudio Premium do Dr. Exame NO TOPO (Executivo e Imediato) */}
     {resumo && (
@@ -220,8 +204,7 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
       </Button>
     </Box>
 
-    {/* Resumo Textual — ReUI Prose (dono 30/10): papel branco + respiro de leitura
-        (line-height 1.7) pro texto clínico denso parar de competir com o fundo tintado. */}
+    {/* Resumo Textual — ReUI Prose */}
     {resumo && (
       <Box sx={{ mt: 2, p: { xs: 2, sm: 2.5 }, borderRadius: '16px', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <Typography sx={{ fontSize: '0.95rem', lineHeight: 1.7, wordBreak: 'break-word', color: 'text.primary', fontWeight: 400 }}>
@@ -229,5 +212,12 @@ export const ReportHero = ({ resumo, counts, speaking, loading, onSpeak, onShare
         </Typography>
       </Box>
     )}
-  </Box>
+    </FramePanel>
+    <FrameFooter className="px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+      <span>Síntese gerada com extração determinística de laudos · Leve à sua próxima consulta</span>
+      {sourceExams && sourceExams.length > 0 && (
+        <span className="font-semibold text-foreground">{sourceExams.length} laudos considerados</span>
+      )}
+    </FrameFooter>
+  </Frame>
 );

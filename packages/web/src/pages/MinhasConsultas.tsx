@@ -20,6 +20,10 @@ import { FalarAgora } from '../components/FalarAgora';
 // §2 (28/10/26): "Minhas consultas" — registro particular do paciente, ao lado das
 // teleconsultas do produto. Prefill vem de Meus médicos / Encontrar especialistas.
 import { MinhasConsultasRegistradas } from '../components/consultas/MinhasConsultasRegistradas';
+import { Badge as ReuiBadge } from '@/components/reui/badge';
+import { Frame, FramePanel } from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/patterns';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 /**
  * Minhas Consultas (rota /consultas, item 3 da bottom nav) — tela dedicada do
@@ -34,6 +38,7 @@ import { MinhasConsultasRegistradas } from '../components/consultas/MinhasConsul
  * createdByDoctorId, doctor{id,name,crm,crmUf,specialty,photoUrl}, consultSummaryApproved.
  */
 export const MinhasConsultasPage = () => {
+  useReuiThemeSync();
   const [pid] = useSelectedPatient();
   const navigate = useNavigate();
   const [items, setItems] = useState<any[]>([]);
@@ -198,22 +203,50 @@ export const MinhasConsultasPage = () => {
       )}
       {tab === 'abertas' && !loading && (
         abertas.length === 0 ? (
-          <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', textAlign: 'center', py: 5 }}>
-            <CardContent>
-              <VideocamRoundedIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Nenhuma consulta aberta</Typography>
-              <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 340, mx: 'auto', fontSize: 13.5 }}>
-                Quando seu médico agendar uma teleconsulta, ela aparece aqui com sala virtual e lembretes.
+          <Frame className="w-full">
+            <FramePanel className="flex flex-col items-center py-7 text-center">
+              <IconTile tone="primary" size="lg" className="mb-3">
+                <VideocamRoundedIcon sx={{ fontSize: 24 }} />
+              </IconTile>
+              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>
+                Nenhuma teleconsulta agendada agora
               </Typography>
-              <Button
-                variant="outlined"
-                onClick={() => { hapticLight(); navigate('/medicos'); }}
-                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, borderColor: '#20b2aa', color: '#0f766e', px: 3 }}
-              >
-                Falar com meu médico
-              </Button>
-            </CardContent>
-          </Card>
+              <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 360, mx: 'auto', fontSize: 13, lineHeight: 1.5 }}>
+                Quando seu médico agendar uma chamada por vídeo, a sala virtual e o lembrete aparecerão aqui automaticamente.
+              </Typography>
+
+              {historico.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => { hapticLight(); setTab('historico'); }}
+                  className="mb-3 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/[0.06] px-3.5 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/12"
+                >
+                  <HistoryRoundedIcon sx={{ fontSize: 16 }} />
+                  <span>
+                    Você tem {historico.length} {historico.length === 1 ? 'consulta concluída' : 'consultas concluídas'} no histórico
+                  </span>
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 14 }} />
+                </button>
+              )}
+
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="center" sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => { hapticLight(); setArea('minhas'); }}
+                  sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, borderColor: 'rgba(32,178,170,0.4)', color: '#0f766e', px: 2.5 }}
+                >
+                  + Anotar na minha agenda
+                </Button>
+                <Button
+                  variant="text"
+                  onClick={() => { hapticLight(); navigate('/encontrar'); }}
+                  sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 700, color: 'text.secondary', px: 2 }}
+                >
+                  Buscar especialistas →
+                </Button>
+              </Stack>
+            </FramePanel>
+          </Frame>
         ) : (
           <Stack spacing={2}>
             {abertas.map((r) => (
@@ -243,15 +276,22 @@ export const MinhasConsultasPage = () => {
       )}
       {tab === 'historico' && !loading && (
         historico.length === 0 ? (
-          <Card variant="outlined" sx={{ borderRadius: '20px', borderStyle: 'dashed', textAlign: 'center', py: 5 }}>
-            <CardContent>
-              <HistoryRoundedIcon sx={{ fontSize: 44, color: 'text.disabled', mb: 1 }} />
-              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Histórico vazio</Typography>
-              <Typography color="text.secondary" sx={{ maxWidth: 340, mx: 'auto', fontSize: 13.5 }}>
-                Consultas concluídas ficam arquivadas aqui, com resumo e documentos quando o médico aprovar.
+          <Frame className="w-full">
+            <FramePanel className="flex flex-col items-center py-7 text-center">
+              <IconTile tone="muted" size="lg" className="mb-3">
+                <HistoryRoundedIcon sx={{ fontSize: 24 }} />
+              </IconTile>
+              <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: '"Poppins",sans-serif' }}>
+                Histórico vazio
               </Typography>
-            </CardContent>
-          </Card>
+              <Typography color="text.secondary" sx={{ maxWidth: 340, mx: 'auto', fontSize: 13 }}>
+                Consultas concluídas ficam arquivadas aqui, com resumo clínico e pedidos de exames aprovados pelo médico.
+              </Typography>
+              <ReuiBadge variant="outline" size="xs" className="mt-3">
+                Prontuário seguro LGPD
+              </ReuiBadge>
+            </FramePanel>
+          </Frame>
         ) : (
           <Stack spacing={1.5}>
             {historico.map((r) => {

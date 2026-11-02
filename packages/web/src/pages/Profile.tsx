@@ -57,6 +57,8 @@ import {
 } from '@/components/reui/frame';
 import { SettingRow } from '@/components/reui/setting-row';
 import { FieldLabelWithHint } from '@/components/reui/field-label';
+import RateReviewOutlinedIcon from '@mui/icons-material/RateReviewOutlined';
+import { useFeedback } from '../components/feedback/FeedbackProvider';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '');
@@ -103,6 +105,7 @@ const AccountLinkRow = ({ icon, title, desc, onClick }: { icon: React.ReactNode;
 
 export const ProfilePage = () => {
   useReuiThemeSync();
+  const feedback = useFeedback(); // OPINIÕES: acesso permanente ("Dar minha opinião")
   const translate = useTranslate();
   const theme = useTheme();
   const [pid] = useSelectedPatient();
@@ -988,6 +991,36 @@ export const ProfilePage = () => {
                     }}
                   >
                     Enviar diagnóstico
+                  </Button>
+                }
+              />
+
+              {/* OPINIÕES (02/11/26): acesso PERMANENTE e discreto à pesquisa curta — o convite
+                  contextual é só um atalho; aqui a pessoa responde quando quiser. */}
+              <SettingRow
+                icon={<RateReviewOutlinedIcon sx={{ fontSize: 20 }} />}
+                iconVariant="elevated"
+                title="Dar minha opinião"
+                badge="1 minuto"
+                badgeVariant="primary-light"
+                description="Conte o que ajudou, o que confundiu e o que faltou. Ajuda a decidir o que melhorar primeiro."
+                stackOnMobile
+                action={
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    data-testid="profile-feedback-button"
+                    onClick={() => feedback.openSurvey('profile')}
+                    startIcon={<RateReviewOutlinedIcon />}
+                    sx={{
+                      borderRadius: '10px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      minHeight: 36,
+                      width: { xs: '100%', sm: 'auto' },
+                    }}
+                  >
+                    Responder
                   </Button>
                 }
               />

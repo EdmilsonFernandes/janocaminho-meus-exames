@@ -40,6 +40,9 @@ import { PageHeader } from '../components/layout/PageHeader';
 import { tealText } from '../theme';
 import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { copyText } from '../utils/copyText';
+import { Frame, FramePanel } from '@/components/reui/frame';
+import { IconTile } from '@/components/reui/patterns';
+import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
 
 const pulse = keyframes`0%,100%{transform:scale(1)}50%{transform:scale(1.12)}`;
 const livePulse = keyframes`0%{transform:scale(0.85);opacity:1}100%{transform:scale(2.2);opacity:0}`;
@@ -147,7 +150,7 @@ export const RemindersPage = () => {
       const counts: Record<string, number> = {};
       list.forEach((x) => { if (x?.status === 'pending' && x.reminderId) counts[x.reminderId] = (counts[x.reminderId] || 0) + 1; });
       setPendingReqs(counts);
-    } catch {}
+    } catch { }
   };
 
   useEffect(() => { load(); loadExamRequests(); }, [pid]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -406,9 +409,9 @@ export const RemindersPage = () => {
   const paySs = String(paySecs % 60).padStart(2, '0');
 
   // 0. G1 (spec §19): HERO de consulta ATIVA/PRÓXIMA — topo da aba, acima de qualquer
-// agrupamento. Médico (foto+nome+CRM), data/hora, situação da consulta E do
-// pagamento, e UMA próxima ação como CTA primário (44px): Pagar consulta →
-// Entrar na consulta (janela abre dueDate−5min, spec §1) → Aguardando liberação.
+  // agrupamento. Médico (foto+nome+CRM), data/hora, situação da consulta E do
+  // pagamento, e UMA próxima ação como CTA primário (44px): Pagar consulta →
+  // Entrar na consulta (janela abre dueDate−5min, spec §1) → Aguardando liberação.
   const renderActiveConsultationHero = (r: any) => {
     const due = new Date(r.dueDate);
     const isTele = r.type === 'teleconsulta' || r.provider === 'livekit' || !!r.linkUrl;
@@ -531,7 +534,7 @@ export const RemindersPage = () => {
       </Card>
     );
   };
-// 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
+  // 1. RENDERIZADOR DE CONSULTA / TELEMEDICINA (Ticket Clínico Oficial Padrão Global)
   const renderConsultationCard = (r: any) => {
     const hasEnded = !!r.endedAt; // F4: encerrada no server → área read-only, nunca "Entrar na consulta"
     const isPast = new Date(r.dueDate) < now || hasEnded;
@@ -556,22 +559,22 @@ export const RemindersPage = () => {
             borderColor: isCalling
               ? '#059669'
               : isLive
-              ? '#0d9488'
-              : isPast
-              ? t.palette.divider
-              : isDark
-              ? 'rgba(13,148,136,0.35)'
-              : 'rgba(13,148,136,0.22)',
+                ? '#0d9488'
+                : isPast
+                  ? t.palette.divider
+                  : isDark
+                    ? 'rgba(13,148,136,0.35)'
+                    : 'rgba(13,148,136,0.22)',
             bgcolor: isCalling
               ? isDark ? 'rgba(5,150,105,0.12)' : 'rgba(236,253,245,0.95)'
               : isLive
-              ? isDark ? 'rgba(13,148,136,0.08)' : 'rgba(240,253,250,0.85)'
-              : isDark ? '#0f172a' : '#ffffff',
+                ? isDark ? 'rgba(13,148,136,0.08)' : 'rgba(240,253,250,0.85)'
+                : isDark ? '#0f172a' : '#ffffff',
             boxShadow: isCalling
               ? '0 8px 28px rgba(5,150,105,0.35)'
               : isLive
-              ? '0 8px 24px rgba(13,148,136,0.2)'
-              : isDark ? '0 4px 18px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.04)',
+                ? '0 8px 24px rgba(13,148,136,0.2)'
+                : isDark ? '0 4px 18px rgba(0,0,0,0.3)' : '0 2px 12px rgba(0,0,0,0.04)',
             transition: 'all .25s ease',
             opacity: isPast && !isCalling ? 0.85 : 1,
             ...(isCalling ? {
@@ -1251,8 +1254,12 @@ export const RemindersPage = () => {
             },
           }}
         >
-          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Medicamentos</Box>
-          <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>Remédios</Box> ({medications.length})
+          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
+            {`Medicamentos (${medications.length})`}
+          </Box>
+          <Box component="span" sx={{ display: { xs: 'inline', sm: 'none' } }}>
+            {`Remédios (${medications.length})`}
+          </Box>
         </Button>
 
         <Button
@@ -1311,12 +1318,12 @@ export const RemindersPage = () => {
       {/* CONTEÚDO DA ABA 1: CONSULTAS & TELEMEDICINA */}
       {currentTab === 'consultas' && (
         <Box>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Box>
-              <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif' }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5} sx={{ mb: 2 }}>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 800, fontSize: 17, fontFamily: 'Poppins, sans-serif', lineHeight: 1.2 }}>
                 Minhas Consultas
               </Typography>
-              <Typography variant="caption" color="text.secondary">
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', lineHeight: 1.35, mt: 0.25 }}>
                 Teleconsultas por vídeo e consultas presenciais registradas
               </Typography>
             </Box>
@@ -1324,15 +1331,17 @@ export const RemindersPage = () => {
               variant="contained"
               size="small"
               onClick={() => { hapticLight(); navigate('/consultas', { state: { tab: 'minhas' } }); }}
-              startIcon={<MedicalServicesIcon />}
+              startIcon={<MedicalServicesIcon sx={{ fontSize: 16 }} />}
               sx={{
-                borderRadius: '999px',
+                borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 800,
                 bgcolor: '#0f766e',
-                px: 2,
-                py: 0.7,
-                boxShadow: '0 4px 12px rgba(15,118,110,0.25)',
+                px: 1.75,
+                py: 0.85,
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                boxShadow: '0 4px 12px rgba(15,118,110,0.22)',
                 '&:hover': { bgcolor: '#115e59' },
               }}
             >
@@ -1406,69 +1415,43 @@ export const RemindersPage = () => {
                   {upcomingConsultations.map((r) => renderConsultationCard(r))}
                 </Stack>
               ) : activeConsultations.length === 0 ? (
-                <Card
-                  variant="outlined"
-                  sx={{
-                    borderRadius: '20px',
-                    mb: 3,
-                    borderStyle: 'dashed',
-                    textAlign: 'center',
-                    py: 4,
-                    px: { xs: 2, sm: 3 },
-                    bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(240,253,250,0.5)',
-                  }}
-                >
-                  <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-                    <Box sx={{ fontSize: 44, mb: 1 }}>📅</Box>
+                <Frame className="mb-6 w-full">
+                  <FramePanel className="flex flex-col items-center py-7 text-center">
+                    <IconTile tone="primary" size="lg" className="mb-3">
+                      <CalendarMonthIcon sx={{ fontSize: 24 }} />
+                    </IconTile>
                     <Typography sx={{ fontWeight: 800, fontSize: 16.5, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
                       Agenda livre nos próximos dias
                     </Typography>
-                    <Typography color="text.secondary" sx={{ mb: 2, maxWidth: 380, mx: 'auto', fontSize: 13.5, lineHeight: 1.5 }}>
+                    <Typography color="text.secondary" sx={{ mb: 2.5, maxWidth: 380, mx: 'auto', fontSize: 13.5, lineHeight: 1.5 }}>
                       Você não possui consultas futuras marcadas. Seus próximos compromissos médicos aparecerão aqui com lembretes automáticos.
                     </Typography>
 
                     {(pastConsultations.length + endedConsultations.length) > 0 && (
-                      <Box
+                      <button
+                        type="button"
                         onClick={() => { hapticLight(); setConsultSubTab('historico'); }}
-                        sx={{
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          py: 0.75,
-                          px: 2,
-                          mb: 2.5,
-                          borderRadius: '999px',
-                          bgcolor: 'rgba(15,118,110,0.08)',
-                          border: '1px solid rgba(15,118,110,0.2)',
-                          cursor: 'pointer',
-                          '&:hover': { bgcolor: 'rgba(15,118,110,0.14)' },
-                        }}
+                        className="mb-3 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/[0.06] px-3.5 py-2 text-xs font-bold text-primary transition-colors hover:bg-primary/12"
                       >
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f766e' }}>
-                          📋 Você possui {pastConsultations.length + endedConsultations.length} {pastConsultations.length + endedConsultations.length === 1 ? 'consulta salva' : 'consultas salvas'} no histórico
-                        </Typography>
-                        <ArrowForwardIcon sx={{ fontSize: 14, color: '#0f766e' }} />
-                      </Box>
+                        <HistoryIcon sx={{ fontSize: 16 }} />
+                        <span>
+                          Você possui {pastConsultations.length + endedConsultations.length}{' '}
+                          {pastConsultations.length + endedConsultations.length === 1 ? 'consulta salva' : 'consultas salvas'} no histórico
+                        </span>
+                        <ArrowForwardIcon sx={{ fontSize: 14 }} />
+                      </button>
                     )}
 
                     <Stack direction="row" spacing={1.25} justifyContent="center" flexWrap="wrap" useFlexGap>
-                      <Button
-                        variant="contained"
-                        onClick={() => { hapticLight(); navigate('/consultas', { state: { tab: 'minhas' } }); }}
-                        startIcon={<MedicalServicesIcon />}
-                        sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, bgcolor: '#0f766e', px: 3, '&:hover': { bgcolor: '#115e59' } }}
-                      >
-                        + Anotar consulta
-                      </Button>
                       <Button
                         variant="outlined"
                         onClick={() => { hapticLight(); navigate('/encontrar'); }}
                         startIcon={<SearchIcon />}
                         sx={{
-                          borderRadius: '999px',
+                          borderRadius: '12px',
                           textTransform: 'none',
                           fontWeight: 800,
-                          borderColor: '#0f766e',
+                          borderColor: 'rgba(15,118,110,0.4)',
                           color: '#0f766e',
                           px: 2.5,
                           '&:hover': { bgcolor: 'rgba(15,118,110,0.06)' },
@@ -1477,8 +1460,8 @@ export const RemindersPage = () => {
                         Buscar especialista
                       </Button>
                     </Stack>
-                  </CardContent>
-                </Card>
+                  </FramePanel>
+                </Frame>
               ) : null}
             </Box>
           )}
@@ -1487,15 +1470,19 @@ export const RemindersPage = () => {
           {consultSubTab === 'historico' && (
             <Box>
               {pastConsultations.length === 0 && endedConsultations.length === 0 ? (
-                <Card variant="outlined" sx={{ borderRadius: '20px', mb: 3, borderStyle: 'dashed', textAlign: 'center', py: 4, px: 2 }}>
-                  <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-                    <Box sx={{ fontSize: 40, mb: 1 }}>📁</Box>
-                    <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5 }}>Histórico vazio</Typography>
-                    <Typography color="text.secondary" sx={{ fontSize: 13.5 }}>
+                <Frame className="mb-6 w-full">
+                  <FramePanel className="flex flex-col items-center py-7 text-center">
+                    <IconTile tone="muted" size="lg" className="mb-3">
+                      <HistoryIcon sx={{ fontSize: 24 }} />
+                    </IconTile>
+                    <Typography sx={{ fontWeight: 800, fontSize: 16, mb: 0.5, fontFamily: 'Poppins, sans-serif' }}>
+                      Histórico vazio
+                    </Typography>
+                    <Typography color="text.secondary" sx={{ fontSize: 13.5, maxWidth: 360 }}>
                       Suas consultas concluídas e atendimentos passados aparecerão aqui organizados com prontuário e pedidos de exame.
                     </Typography>
-                  </CardContent>
-                </Card>
+                  </FramePanel>
+                </Frame>
               ) : (
                 <Stack spacing={2} sx={{ mb: 3 }}>
                   {endedConsultations.length > 0 && (
@@ -1687,179 +1674,179 @@ export const RemindersPage = () => {
 
       {/* FORMULÁRIO DE CADASTRO ADAPTADO — exclusivo para medicamentos e lembretes de exames */}
       {currentTab !== 'consultas' && (
-      <Card
-        sx={{
-          mt: 3,
-          borderRadius: '16px',
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: formOpen ? '#20b2aa' : 'divider',
-          boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.12)' : '0 2px 8px rgba(0,0,0,0.03)',
-        }}
-      >
-        <CardContent>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
-            <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
-              <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#0d9488', flexShrink: 0 }}>
-                <AddAlarmIcon fontSize="small" />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 14.5, sm: 16 }, lineHeight: 1.25 }}>
-                {currentTab === 'medicamentos' ? 'Novo horário de remédio' : 'Novo lembrete de saúde'}
-              </Typography>
-            </Stack>
-            <Button
-              size="small"
-              onClick={() => setFormOpen((o) => !o)}
-              endIcon={<ExpandMoreIcon sx={{ transform: formOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
-              sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap', minWidth: 'fit-content' }}
-            >
-              {formOpen ? 'Fechar' : 'Cadastrar'}
-            </Button>
-          </Stack>
-
-          <Collapse in={formOpen}>
-            <Stack spacing={1.75} sx={{ mt: 2.5 }}>
-              {/* TIPO */}
-              <Box>
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Categoria</Typography>
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                  {TYPES.map((t) => {
-                    const on = rtype === t.v;
-                    return (
-                      <Chip
-                        key={t.v}
-                        component="button"
-                        aria-pressed={on}
-                        icon={t.icon}
-                        label={t.l}
-                        onClick={() => setRtype(t.v)}
-                        sx={{
-                          fontWeight: 800,
-                          height: { xs: 38, sm: 34 },
-                          fontSize: 13,
-                          borderRadius: '10px',
-                          bgcolor: on ? `${t.color}18` : 'transparent',
-                          color: on ? t.color : 'text.secondary',
-                          border: '1.5px solid',
-                          borderColor: on ? t.color : 'divider',
-                          '& .MuiChip-icon': { color: on ? t.color : 'text.disabled' },
-                        }}
-                      />
-                    );
-                  })}
-                </Stack>
-              </Box>
-
-              <TextField
-                label={rtype === 'teleconsulta' || rtype === 'consulta' ? 'Médico ou Motivo da Consulta (ex.: Dr. Roberto Silva - Cardiologia)' : rtype === 'medicamento' ? 'Nome do Remédio e Dose (ex.: Losartana 50mg)' : 'O que lembrar (ex.: Jejum 8h para exame de sangue)'}
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                fullWidth
-              />
-
-              {/* SUGESTÕES RÁPIDAS */}
-              {typeMeta(rtype)?.sug && !title.trim() && (
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                  {typeMeta(rtype)!.sug.map(([s, rec]) => (
-                    <Chip
-                      key={s}
-                      size="small"
-                      variant="outlined"
-                      label={s}
-                      onClick={() => { setTitle(s); if (rec) setRecur(rec); }}
-                      sx={{ height: 28, fontSize: 12, fontWeight: 700, borderRadius: '8px', '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' } }}
-                    />
-                  ))}
-                </Stack>
-              )}
-
-              {/* Data + Hora */}
-              <Stack direction="row" spacing={1.5}>
-                <TextField type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
-                <TextField type="time" label="Hora" value={time} onChange={(e) => setTime(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+        <Card
+          sx={{
+            mt: 3,
+            borderRadius: '16px',
+            overflow: 'hidden',
+            border: '1px solid',
+            borderColor: formOpen ? '#20b2aa' : 'divider',
+            boxShadow: formOpen ? '0 8px 24px rgba(32,178,170,.12)' : '0 2px 8px rgba(0,0,0,0.03)',
+          }}
+        >
+          <CardContent>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={1.5}>
+              <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+                <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'grid', placeItems: 'center', bgcolor: 'rgba(32,178,170,.12)', color: '#0d9488', flexShrink: 0 }}>
+                  <AddAlarmIcon fontSize="small" />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, fontFamily: 'Poppins, sans-serif', fontSize: { xs: 14.5, sm: 16 }, lineHeight: 1.25 }}>
+                  {currentTab === 'medicamentos' ? 'Novo horário de remédio' : 'Novo lembrete de saúde'}
+                </Typography>
               </Stack>
-
-              {/* Link externo se teleconsulta */}
-              {rtype === 'teleconsulta' && (
-                <TextField
-                  label="Link da chamada de vídeo (Meet, Teams, Zoom, WhatsApp…)"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  fullWidth
-                  placeholder="https://meet.google.com/..."
-                  helperText="Opcional se a consulta for pelo LiveKit integrado do app. Se tiver link externo, toque para abrir na hora."
-                />
-              )}
-
-              {/* RECORRÊNCIA */}
-              <Box>
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Repetição</Typography>
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                  {RECUR.map((r) => {
-                    const on = recur === r.v;
-                    return (
-                      <Chip
-                        key={r.l}
-                        component="button"
-                        aria-pressed={on}
-                        label={r.l}
-                        color={on ? 'primary' : 'default'}
-                        variant={on ? 'filled' : 'outlined'}
-                        onClick={() => setRecur(r.v)}
-                        sx={{ fontWeight: 700, height: 32, fontSize: 12.5, borderRadius: '8px' }}
-                      />
-                    );
-                  })}
-                </Stack>
-              </Box>
-
-              {/* ANTECEDÊNCIAS */}
-              <Box>
-                <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Alertas de antecedência</Typography>
-                <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
-                  {OFFSET_PALETTE.map((p) => {
-                    const on = offsets.includes(p.o);
-                    return (
-                      <Chip
-                        key={p.o}
-                        component="button"
-                        aria-pressed={on}
-                        label={p.l}
-                        color={on ? 'primary' : 'default'}
-                        variant={on ? 'filled' : 'outlined'}
-                        onClick={() => toggleOffset(p.o)}
-                        sx={{ fontWeight: 700, height: 32, fontSize: 12.5, borderRadius: '8px' }}
-                      />
-                    );
-                  })}
-                </Stack>
-              </Box>
-
-              {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: '12px' }} onClose={() => setErr(null)}>{err}</Alert>}
-
               <Button
-                variant="contained"
-                onClick={add}
-                disabled={!title.trim() || !date || offsets.length === 0}
-                startIcon={<AddAlarmIcon />}
-                sx={{
-                  alignSelf: 'flex-start',
-                  borderRadius: '999px',
-                  textTransform: 'none',
-                  fontWeight: 800,
-                  px: 3.5,
-                  py: 1,
-                  bgcolor: '#0d9488',
-                  boxShadow: '0 4px 14px rgba(13,148,136,.3)',
-                  '&:hover': { bgcolor: '#0f766e' },
-                }}
+                size="small"
+                onClick={() => setFormOpen((o) => !o)}
+                endIcon={<ExpandMoreIcon sx={{ transform: formOpen ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }} />}
+                sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, flexShrink: 0, whiteSpace: 'nowrap', minWidth: 'fit-content' }}
               >
-                Salvar agendamento
+                {formOpen ? 'Fechar' : 'Cadastrar'}
               </Button>
             </Stack>
-          </Collapse>
-        </CardContent>
-      </Card>
+
+            <Collapse in={formOpen}>
+              <Stack spacing={1.75} sx={{ mt: 2.5 }}>
+                {/* TIPO */}
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Categoria</Typography>
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    {TYPES.map((t) => {
+                      const on = rtype === t.v;
+                      return (
+                        <Chip
+                          key={t.v}
+                          component="button"
+                          aria-pressed={on}
+                          icon={t.icon}
+                          label={t.l}
+                          onClick={() => setRtype(t.v)}
+                          sx={{
+                            fontWeight: 800,
+                            height: { xs: 38, sm: 34 },
+                            fontSize: 13,
+                            borderRadius: '10px',
+                            bgcolor: on ? `${t.color}18` : 'transparent',
+                            color: on ? t.color : 'text.secondary',
+                            border: '1.5px solid',
+                            borderColor: on ? t.color : 'divider',
+                            '& .MuiChip-icon': { color: on ? t.color : 'text.disabled' },
+                          }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+
+                <TextField
+                  label={rtype === 'teleconsulta' || rtype === 'consulta' ? 'Médico ou Motivo da Consulta (ex.: Dr. Roberto Silva - Cardiologia)' : rtype === 'medicamento' ? 'Nome do Remédio e Dose (ex.: Losartana 50mg)' : 'O que lembrar (ex.: Jejum 8h para exame de sangue)'}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  fullWidth
+                />
+
+                {/* SUGESTÕES RÁPIDAS */}
+                {typeMeta(rtype)?.sug && !title.trim() && (
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    {typeMeta(rtype)!.sug.map(([s, rec]) => (
+                      <Chip
+                        key={s}
+                        size="small"
+                        variant="outlined"
+                        label={s}
+                        onClick={() => { setTitle(s); if (rec) setRecur(rec); }}
+                        sx={{ height: 28, fontSize: 12, fontWeight: 700, borderRadius: '8px', '&:hover': { borderColor: '#20b2aa', bgcolor: 'rgba(32,178,170,.05)' } }}
+                      />
+                    ))}
+                  </Stack>
+                )}
+
+                {/* Data + Hora */}
+                <Stack direction="row" spacing={1.5}>
+                  <TextField type="date" label="Data" value={date} onChange={(e) => setDate(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                  <TextField type="time" label="Hora" value={time} onChange={(e) => setTime(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                </Stack>
+
+                {/* Link externo se teleconsulta */}
+                {rtype === 'teleconsulta' && (
+                  <TextField
+                    label="Link da chamada de vídeo (Meet, Teams, Zoom, WhatsApp…)"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    fullWidth
+                    placeholder="https://meet.google.com/..."
+                    helperText="Opcional se a consulta for pelo LiveKit integrado do app. Se tiver link externo, toque para abrir na hora."
+                  />
+                )}
+
+                {/* RECORRÊNCIA */}
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Repetição</Typography>
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    {RECUR.map((r) => {
+                      const on = recur === r.v;
+                      return (
+                        <Chip
+                          key={r.l}
+                          component="button"
+                          aria-pressed={on}
+                          label={r.l}
+                          color={on ? 'primary' : 'default'}
+                          variant={on ? 'filled' : 'outlined'}
+                          onClick={() => setRecur(r.v)}
+                          sx={{ fontWeight: 700, height: 32, fontSize: 12.5, borderRadius: '8px' }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+
+                {/* ANTECEDÊNCIAS */}
+                <Box>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 600, mb: 0.75 }}>Alertas de antecedência</Typography>
+                  <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap">
+                    {OFFSET_PALETTE.map((p) => {
+                      const on = offsets.includes(p.o);
+                      return (
+                        <Chip
+                          key={p.o}
+                          component="button"
+                          aria-pressed={on}
+                          label={p.l}
+                          color={on ? 'primary' : 'default'}
+                          variant={on ? 'filled' : 'outlined'}
+                          onClick={() => toggleOffset(p.o)}
+                          sx={{ fontWeight: 700, height: 32, fontSize: 12.5, borderRadius: '8px' }}
+                        />
+                      );
+                    })}
+                  </Stack>
+                </Box>
+
+                {err && <Alert severity="error" sx={{ py: 0.5, borderRadius: '12px' }} onClose={() => setErr(null)}>{err}</Alert>}
+
+                <Button
+                  variant="contained"
+                  onClick={add}
+                  disabled={!title.trim() || !date || offsets.length === 0}
+                  startIcon={<AddAlarmIcon />}
+                  sx={{
+                    alignSelf: 'flex-start',
+                    borderRadius: '999px',
+                    textTransform: 'none',
+                    fontWeight: 800,
+                    px: 3.5,
+                    py: 1,
+                    bgcolor: '#0d9488',
+                    boxShadow: '0 4px 14px rgba(13,148,136,.3)',
+                    '&:hover': { bgcolor: '#0f766e' },
+                  }}
+                >
+                  Salvar agendamento
+                </Button>
+              </Stack>
+            </Collapse>
+          </CardContent>
+        </Card>
       )}
 
       {/* MODAL DE CONSENTIMENTO TELEMEDICINA ART. 15 */}

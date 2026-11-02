@@ -12,6 +12,10 @@ import { DrExame } from '../DrExame';
 import { RobotAnalysis } from '../RobotAnalysis';
 import { RADIUS } from '../../theme';
 import { speakText, stopSpeakText } from '../../utils/nativeDoc';
+import { Frame, FrameHeader, FramePanel, FrameFooter } from '@/components/reui/frame';
+import { Badge } from '@/components/reui/badge';
+import { IconTile } from '@/components/reui/icon-tile';
+import { FileText, Sparkles, Activity } from 'lucide-react';
 
 /**
  * DoctorConsolidatedReport — relatório consolidado do paciente (viewer médico READ-ONLY).
@@ -140,34 +144,8 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Header + atualizar (só quando há relatório — regenera no framing médico) */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} flexWrap="wrap" useFlexGap>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>Relatório completo</Typography>
-          {createdAt && <Typography variant="caption" color="text.secondary">Atualizado em {createdAt}</Typography>}
-        </Box>
-        {analysis && (
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-            <Button size="small" variant="outlined" color="primary" startIcon={speaking ? <StopIcon /> : <RecordVoiceOverIcon />} onClick={toggleSpeak} disabled={!speakableText}
-              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
-              {speaking ? 'Parar' : 'Ouvir'}
-            </Button>
-            <Button size="small" variant="outlined" color="primary" startIcon={<PrintIcon />} onClick={printBrief}
-              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
-              Salvar PDF
-            </Button>
-            <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
-              sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill }}>
-              {generating ? 'Gerando…' : '↻ Atualizar'}
-            </Button>
-          </Stack>
-        )}
-      </Stack>
-
       {generating ? (
         <Card sx={{ p: { xs: 2.5, md: 4 }, textAlign: 'center', borderRadius: RADIUS.card }}>
-          {/* 29/09: cena Dr. Exame analisando (padrão dos demais fluxos de IA) —
-              substitui o CircularProgress solto; a copy segue como label do robô. */}
           <RobotAnalysis label="Lendo os exames e montando a análise clínica" />
         </Card>
       ) : !analysis ? (
@@ -183,25 +161,84 @@ ${exams ? `<h2>Exames considerados (${sourceExams.length})</h2><ul>${exams}</ul>
         </>
       ) : (
         <>
-          {/* Cabeçalho flat read-only — Dr.Exame + título + caption (SEM gradiente/watermark).
-             Background paper (plano), borderBottom como separador sutil (não compete com o conteúdo). */}
-          <Box sx={{ pb: 1.5, borderBottom: 1, borderColor: 'divider' }}>
-            <Stack direction="row" alignItems="center" spacing={1.5}>
-              <DrExame size={36} sx={{ borderRadius: '50%', flexShrink: 0 }} />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="h6" sx={{ fontWeight: 800 }}>Resumo da análise</Typography>
-                <Typography variant="caption" color="text.secondary">Análise educativa — não substitui consulta médica</Typography>
-              </Box>
-            </Stack>
-            {resumo && <Typography sx={{ mt: 1.5, lineHeight: 1.7, wordBreak: 'break-word' }}>{resumo}</Typography>}
-            {mentalLines.length > 0 && (
-              <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'text.secondary' }}>
-                {mentalLines.join('  ·  ')} — rastreamentos autorreportados (PHQ-9/GAD-7)
-              </Typography>
-            )}
-          </Box>
+          {/* Dossiê Executivo ReUI — unifica Cabeçalho + Ações + Resumo da Análise + PHQ-9/GAD-7 sem repetir datas */}
+          <Frame variant="default">
+            <FrameHeader className="flex flex-row items-center justify-between gap-3 flex-wrap pb-2.5">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <IconTile size="sm" variant="soft" className="text-teal-600">
+                  <Sparkles className="size-4" />
+                </IconTile>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-heading text-[15px] font-extrabold text-foreground">
+                      Dossiê Clínico Consolidado
+                    </span>
+                    <Badge variant="info-light" size="xs">
+                      Dr. Exame IA · Suporte Clínico
+                    </Badge>
+                  </div>
+                  {createdAt && (
+                    <p className="text-[11.5px] text-muted-foreground">
+                      Gerado em {createdAt}
+                      {analysis?.structured?.recency?.baseDate
+                        ? ` · Exame mais recente: ${analysis.structured.recency.baseDate}`
+                        : ''}
+                    </p>
+                  )}
+                </div>
+              </div>
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
+                <Button size="small" variant="outlined" color="primary" startIcon={speaking ? <StopIcon /> : <RecordVoiceOverIcon />} onClick={toggleSpeak} disabled={!speakableText}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill, fontSize: 12 }}>
+                  {speaking ? 'Parar' : 'Ouvir'}
+                </Button>
+                <Button size="small" variant="outlined" color="primary" startIcon={<PrintIcon />} onClick={printBrief}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill, fontSize: 12 }}>
+                  Brief PDF
+                </Button>
+                <Button size="small" variant="outlined" color="primary" startIcon={generating ? <CircularProgress size={14} color="inherit" /> : <RefreshIcon />} onClick={generate} disabled={generating}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: RADIUS.pill, fontSize: 12 }}>
+                  {generating ? 'Gerando…' : '↻ Atualizar'}
+                </Button>
+              </Stack>
+            </FrameHeader>
+            <FramePanel className="p-4 sm:p-5 space-y-3">
+              <div className="flex items-start gap-3">
+                <DrExame size={34} sx={{ borderRadius: '50%', flexShrink: 0, mt: 0.25 }} />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-primary">
+                    Síntese clínica dos exames compartilhados
+                  </div>
+                  {resumo && (
+                    <Typography sx={{ lineHeight: 1.68, fontSize: 14, color: 'text.primary', wordBreak: 'break-word' }}>
+                      {resumo}
+                    </Typography>
+                  )}
+                </div>
+              </div>
+              {mentalLines.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap pt-2 border-t border-border/60">
+                  <Badge variant="outline" size="xs" className="gap-1 font-semibold">
+                    <Activity className="size-3 text-teal-600" />
+                    Rastreamento mental autorreportado
+                  </Badge>
+                  {mentalLines.map((line, idx) => (
+                    <Badge key={idx} variant="info-light" size="xs" className="font-bold">
+                      {line}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </FramePanel>
+            <FrameFooter className="px-4 py-2 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+              <span>Análise educativa estruturada — apoia a revisão clínica e não substitui conduta médica.</span>
+              {sourceExams.length > 0 && (
+                <span className="font-semibold text-foreground">{sourceExams.length} laudos analisados</span>
+              )}
+            </FrameFooter>
+          </Frame>
 
-          <ConsolidatedReportBody analysis={analysis} sourceExams={sourceExams} onOpenExam={onOpenExam} />
+          <ConsolidatedReportBody analysis={analysis} sourceExams={sourceExams} onOpenExam={onOpenExam} hideDuplicateSummary />
         </>
       )}
 

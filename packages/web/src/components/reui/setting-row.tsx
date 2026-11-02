@@ -57,7 +57,7 @@ export function SettingRow({
             : 'items-center justify-between'
         )}
       >
-        <div className="min-w-0 flex-1 space-y-0.5">
+        <div className="min-w-0 flex-1 overflow-hidden space-y-0.5">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-foreground text-sm font-semibold leading-snug">
               {title}
@@ -69,7 +69,7 @@ export function SettingRow({
             )}
           </div>
           {description && (
-            <div className="text-muted-foreground text-xs sm:text-[13px] leading-relaxed">
+            <div className="text-muted-foreground text-xs sm:text-[13px] leading-relaxed break-words">
               {description}
             </div>
           )}

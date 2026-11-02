@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { plural } from '../utils/format';
 import {
   Box,
   Typography,
@@ -14,19 +13,16 @@ import {
   Radio,
   DialogActions,
 } from '@mui/material';
-import { Title, useNotify, useRefresh } from 'react-admin';
+import { Title, useNotify } from 'react-admin';
 import { useNavigate } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
-import UploadIcon from '@mui/icons-material/Upload';
 import FolderZipOutlinedIcon from '@mui/icons-material/FolderZipOutlined';
-import DataObjectIcon from '@mui/icons-material/DataObject';
 import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined';
 import DeleteForeverOutlinedIcon from '@mui/icons-material/DeleteForeverOutlined';
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import ScheduleOutlinedIcon from '@mui/icons-material/ScheduleOutlined';
 import FactCheckOutlinedIcon from '@mui/icons-material/FactCheckOutlined';
-import { API_URL, token, apiHeaders } from '../config';
-import { confirmDialog } from '../components/ConfirmDialog';
+import { API_URL, token } from '../config';
 import { TermsPage } from './Terms';
 import { Badge } from '@/components/reui/badge';
 import {
@@ -49,7 +45,6 @@ export const PrivacyPage = () => {
   useReuiThemeSync();
   const navigate = useNavigate();
   const notify = useNotify();
-  const refresh = useRefresh();
   const [termsOpen, setTermsOpen] = useState(false);
   const [zipLoading, setZipLoading] = useState(false);
   // Motivo da exclusão (18/10): antes a conta sumia sem deixar NADA — nem sinal de que
@@ -57,24 +52,6 @@ export const PrivacyPage = () => {
   // POR QUE as pessoas vão embora ("coloca e exclui" deixa de ser fantasma).
   const [deleteReasonOpen, setDeleteReasonOpen] = useState(false);
   const [deleteReason, setDeleteReason] = useState('nao-era-o-que-esperava');
-
-  const exportData = async () => {
-    const r = await fetch(`${API_URL}/data/export`, {
-      headers: { Authorization: `Bearer ${token()}` },
-    });
-    if (!r.ok) {
-      notify('Falha ao exportar', { type: 'error' });
-      return;
-    }
-    const blob = await r.blob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'meus-exames-backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    notify('Backup exportado!', { type: 'success' });
-  };
 
   // PACOTE COMPLETO (.zip): dados + relatórios legíveis + PDFs originais — portabilidade LGPD.
   const exportAll = async () => {
@@ -99,44 +76,6 @@ export const PrivacyPage = () => {
     } finally {
       setZipLoading(false);
     }
-  };
-
-  const importData = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (
-      !(await confirmDialog({
-        title: 'Importar dados',
-        message: 'Importar cria NOVOS perfis/exames (não sobrescreve os atuais).',
-        confirmLabel: 'Importar',
-        tone: 'primary',
-      }))
-    ) {
-      e.target.value = '';
-      return;
-    }
-    try {
-      const r = await fetch(`${API_URL}/data/import`, {
-        method: 'POST',
-        headers: apiHeaders(true),
-        body: await f.text(),
-      });
-      const d = await r.json();
-      if (r.ok) {
-        notify(
-          `Importado! ${plural(d.counts?.patients || 0, 'perfil', 'perfis')}, ${plural(
-            d.counts?.exams || 0,
-            'exame'
-          )}.`,
-          { type: 'success' }
-        );
-        window.dispatchEvent(new Event('selPatientChanged'));
-        refresh();
-      } else notify(d.error || 'Falha ao importar', { type: 'error' });
-    } catch {
-      notify('Arquivo inválido', { type: 'error' });
-    }
-    e.target.value = '';
   };
 
   const delAccount = () => setDeleteReasonOpen(true);
@@ -191,7 +130,7 @@ export const PrivacyPage = () => {
               </Badge>
             </div>
             <FrameDescription>
-              Exporte seus exames originais, restaure backups ou encerre sua conta a qualquer momento.
+              Exporte todos os seus exames originais em pacote (.zip) ou encerre sua conta a qualquer momento.
             </FrameDescription>
           </FrameHeader>
 
@@ -226,53 +165,7 @@ export const PrivacyPage = () => {
               }
             />
 
-            {/* Linha 2: Exportar / Importar JSON */}
-            <SettingRow
-              icon={<DataObjectIcon sx={{ fontSize: 20 }} />}
-              iconVariant="elevated"
-              title="Backup Estruturado (.json)"
-              badge="Instantâneo"
-              badgeVariant="info-light"
-              description="Exporte apenas os dados estruturados ou importe um arquivo de backup (cria novos perfis sem sobrescrever os atuais)."
-              stackOnMobile
-              action={
-                <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    startIcon={<DownloadIcon />}
-                    onClick={exportData}
-                    sx={{
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      minHeight: 36,
-                      flex: { xs: 1, sm: 'initial' },
-                    }}
-                  >
-                    Exportar (.json)
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    component="label"
-                    startIcon={<UploadIcon />}
-                    sx={{
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      minHeight: 36,
-                      flex: { xs: 1, sm: 'initial' },
-                    }}
-                  >
-                    Importar dados
-                    <input type="file" hidden accept="application/json" onChange={importData} />
-                  </Button>
-                </div>
-              }
-            />
-
-            {/* Linha 3: Termos de Uso */}
+            {/* Linha 2: Termos de Uso */}
             <SettingRow
               icon={<DescriptionOutlinedIcon sx={{ fontSize: 20 }} />}
               iconVariant="elevated"

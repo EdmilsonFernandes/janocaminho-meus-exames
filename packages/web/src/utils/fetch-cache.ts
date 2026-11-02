@@ -19,7 +19,9 @@ const cache = new Map<string, { body: unknown; ts: number }>();
 // cache o "vazio limpo" abaixo (200 + {items:[],…}) seria lido como "sem status" e o portal mostraria o passo
 // "Vamos validar sua identidade" a quem já está em análise (ou um status velho a quem acabou de ser aprovado).
 // Sem cache o fetch lança e a tela mostra "Sem conexão. Tente novamente.".
-const EXCLUDE = /\/api\/(chat|health|build-info|billing|devices\/token|public\/|patients\/.*\/photo|doctor\/photo|doctor\/verification|admin\/doctors\/verification-queue|measurements)/;
+// `campaigns`/`feedback`: elegibilidade de patrocínio e do convite de opinião depende de
+// frequência server-side — cache offline reabriria popup/convite já consumidos.
+const EXCLUDE = /\/api\/(chat|health|build-info|billing|devices\/token|public\/|patients\/.*\/photo|doctor\/photo|doctor\/verification|admin\/doctors\/verification-queue|measurements|campaigns|feedback|doctor\/campaigns|doctor\/feedback)/;
 
 // Carrega cache persistido do localStorage (sobrevive a reload/fechar app).
 try {

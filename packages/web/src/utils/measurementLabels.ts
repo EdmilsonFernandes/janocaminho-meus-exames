@@ -14,6 +14,12 @@ export const MEASUREMENT_TYPES: { v: string; l: string; emoji: string; synced?: 
   { v: 'STEPS', l: 'Passos', emoji: '👟', synced: true },
   { v: 'CALORIES', l: 'Calorias', emoji: '🔥', synced: true },
   { v: 'DISTANCE', l: 'Distância', emoji: '📍', synced: true },
+  { v: 'EXERCISE_MINUTES', l: 'Minutos de exercício', emoji: '🏃', synced: true },
+  { v: 'SLEEP_MINUTES', l: 'Tempo de sono', emoji: '😴', synced: true },
+  { v: 'OXYGEN_SATURATION', l: 'Saturação de O₂', emoji: '🫁', synced: true },
+  { v: 'BODY_TEMPERATURE', l: 'Temperatura corporal', emoji: '🌡️', synced: true },
+  { v: 'RESPIRATORY_RATE', l: 'Frequência respiratória', emoji: '🌬️', synced: true },
+  { v: 'BODY_FAT', l: 'Gordura corporal', emoji: '⚖️', synced: true },
   { v: 'OTHER', l: 'Outra medição', emoji: '📌' },
 ];
 

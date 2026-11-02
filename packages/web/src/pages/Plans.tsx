@@ -169,33 +169,95 @@ export const PlansPage = () => {
 
       {/* SALDO COMPACTO — o saldo virou CIDADÃO da Carteira (/carteira); aqui só uma linha
           de contexto pra decidir a compra (sem duplicar o hero). 04/10: refactor do dono. */}
-      <Stack
-        direction="row" alignItems="center" spacing={1.5}
+      <Box
         onClick={() => navigate('/carteira')}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/carteira'); } }}
         sx={{
-          mb: 2.5, px: 2, py: 1.25, borderRadius: '14px', cursor: 'pointer',
-          border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(95,201,195,.25)' : 'rgba(32,178,170,.3)'}`,
-          bgcolor: 'rgba(32,178,170,.07)',
-          transition: 'background-color .15s ease',
-          '&:hover': { bgcolor: 'rgba(32,178,170,.12)' },
+          mb: 2.5,
+          p: { xs: 1.5, sm: 2 },
+          borderRadius: '16px',
+          cursor: 'pointer',
+          border: (t) => `1px solid ${t.palette.mode === 'dark' ? 'rgba(95,201,195,.25)' : 'rgba(32,178,170,.28)'}`,
+          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(32,178,170,.08)' : 'rgba(32,178,170,.06)'),
+          transition: 'all .18s ease',
+          '&:hover': { bgcolor: 'rgba(32,178,170,.12)', borderColor: '#20b2aa' },
         }}
       >
-        <BoltIcon sx={{ color: '#20b2aa', fontSize: 20 }} />
-        <Typography sx={{ fontWeight: 700, fontSize: 14, fontVariantNumeric: 'tabular-nums' }}>
-          {/* Créditos primeiro, leituras como conversão (auditoria 29/10: "0 leituras · 7💎"
-              com Premium ativo lia como bug — duas moedas sem hierarquia). */}
-          {status?.credits != null ? (() => { const n = Math.floor(status.credits / rd) || 0; return `${status.credits.toLocaleString('pt-BR')} 💎 ≈ ${n} ${n === 1 ? 'leitura' : 'leituras'} de exame`; })() : '—'}
-        </Typography>
-        {status?.active && (
-          <Typography sx={{ fontSize: 12, color: (t) => tealText(t.palette.mode), fontWeight: 700 }}>
-            👑 Premium até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}
-          </Typography>
-        )}
-        <Box sx={{ flexGrow: 1 }} />
-        <Typography sx={{ fontSize: 12.5, fontWeight: 800, color: (t) => tealText(t.palette.mode), whiteSpace: 'nowrap' }}>
-          Ver carteira →
-        </Typography>
-      </Stack>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          spacing={1.25}
+          sx={{ width: '100%' }}
+        >
+          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minWidth: 0, flex: 1 }}>
+            <Box
+              sx={{
+                width: 36,
+                height: 36,
+                borderRadius: '10px',
+                bgcolor: 'rgba(32,178,170,.16)',
+                color: '#178f89',
+                display: 'grid',
+                placeItems: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <BoltIcon sx={{ fontSize: 20 }} />
+            </Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography
+                sx={{
+                  fontWeight: 800,
+                  fontSize: { xs: 13.5, sm: 14.5 },
+                  lineHeight: 1.25,
+                  fontVariantNumeric: 'tabular-nums',
+                  color: 'text.primary',
+                }}
+              >
+                {status?.credits != null
+                  ? (() => {
+                      const n = Math.floor(status.credits / rd) || 0;
+                      return `${status.credits.toLocaleString('pt-BR')} 💎 ≈ ${n.toLocaleString('pt-BR')} ${n === 1 ? 'leitura' : 'leituras'}`;
+                    })()
+                  : '—'}
+              </Typography>
+              {status?.active && (
+                <Typography
+                  sx={{
+                    fontSize: 11.5,
+                    color: (t) => tealText(t.palette.mode),
+                    fontWeight: 700,
+                    mt: 0.25,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  👑 Premium ativo até {status.planExpiresAt ? fmt(status.planExpiresAt) : '—'}
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+
+          <Box
+            sx={{
+              px: 1.25,
+              py: 0.6,
+              borderRadius: '999px',
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.85)'),
+              border: '1px solid rgba(32,178,170,0.28)',
+              fontSize: 12,
+              fontWeight: 800,
+              color: (t) => tealText(t.palette.mode),
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            Carteira →
+          </Box>
+        </Stack>
+      </Box>
 
 
       {isNative ? (

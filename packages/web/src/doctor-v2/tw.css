@@ -19,6 +19,8 @@
 @source "../components/reui";
 @source "../components/blocks";
 @source "../components/doctors";
+@source "../components/feedback";
+@source "../components/sponsor";
 @source "../pages/admin";
 @source "../pages";
 

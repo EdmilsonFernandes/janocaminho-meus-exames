@@ -70,6 +70,21 @@ export const QuestionsPage = () => {
   const [doctorFilter, setDoctorFilter] = useState<string>('');
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [showDateFilter, setShowDateFilter] = useState(false);
+
+  const fmtSpec = (s?: string | null) => {
+    if (!s) return '';
+    const m: Record<string, string> = {
+      Cirurgiao: 'Cirurgião Geral',
+      'Cirurgiao Geral': 'Cirurgião Geral',
+      Clinico: 'Clínico Geral',
+      'Clinico Geral': 'Clínico Geral',
+      Ginecologista: 'Ginecologia e Obstetrícia',
+      Cardiologista: 'Cardiologia',
+      Endocrinologista: 'Endocrinologia',
+    };
+    return m[s.trim()] ?? s;
+  };
 
   // Permite encaminhar dúvida direto do Chat IA (?ask=...)
   useEffect(() => {
@@ -188,49 +203,73 @@ export const QuestionsPage = () => {
         Suas dúvidas enviadas aos médicos e as orientações clínicas recebidas — tudo reunido e organizado.
       </Typography>
 
-      {/* Barra de Filtros e Status */}
+      {/* Barra de Filtros e Status Compacta (ReUI Frame) */}
       {items.length > 0 && (
-        <Stack spacing={1.5} sx={{ mb: 3 }}>
-          <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-            <Chip
-              size="medium"
-              label={`Todas (${items.length})`}
-              color={qFilter === 'all' ? 'primary' : 'default'}
-              variant={qFilter === 'all' ? 'filled' : 'outlined'}
-              onClick={() => setQFilter('all')}
-              sx={{ fontWeight: 700, borderRadius: '999px', px: 0.5 }}
-            />
-            <Chip
-              size="medium"
-              icon={<HourglassEmptyRoundedIcon sx={{ fontSize: 16 }} />}
-              label={`Aguardando (${pendingCount})`}
-              color={qFilter === 'pending' ? 'warning' : 'default'}
-              variant={qFilter === 'pending' ? 'filled' : 'outlined'}
-              onClick={() => setQFilter('pending')}
-              sx={{ fontWeight: 700, borderRadius: '999px', px: 0.5 }}
-            />
-            <Chip
-              size="medium"
-              icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 16 }} />}
-              label={`Respondidas (${answeredCount})`}
-              color={qFilter === 'answered' ? 'success' : 'default'}
-              variant={qFilter === 'answered' ? 'filled' : 'outlined'}
-              onClick={() => setQFilter('answered')}
-              sx={{ fontWeight: 700, borderRadius: '999px', px: 0.5 }}
-            />
-          </Stack>
+        <Frame variant="default" className="mb-5">
+          <FramePanel className="p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <Stack direction="row" spacing={0.75} useFlexGap flexWrap="wrap" alignItems="center">
+                <Chip
+                  size="small"
+                  label={`Todas (${items.length})`}
+                  color={qFilter === 'all' ? 'primary' : 'default'}
+                  variant={qFilter === 'all' ? 'filled' : 'outlined'}
+                  onClick={() => setQFilter('all')}
+                  sx={{ fontWeight: 700, borderRadius: '999px' }}
+                />
+                <Chip
+                  size="small"
+                  icon={<HourglassEmptyRoundedIcon sx={{ fontSize: 15 }} />}
+                  label={`Aguardando (${pendingCount})`}
+                  color={qFilter === 'pending' ? 'warning' : 'default'}
+                  variant={qFilter === 'pending' ? 'filled' : 'outlined'}
+                  onClick={() => setQFilter('pending')}
+                  sx={{ fontWeight: 700, borderRadius: '999px' }}
+                />
+                <Chip
+                  size="small"
+                  icon={<CheckCircleOutlineRoundedIcon sx={{ fontSize: 15 }} />}
+                  label={`Respondidas (${answeredCount})`}
+                  color={qFilter === 'answered' ? 'success' : 'default'}
+                  variant={qFilter === 'answered' ? 'filled' : 'outlined'}
+                  onClick={() => setQFilter('answered')}
+                  sx={{ fontWeight: 700, borderRadius: '999px' }}
+                />
+              </Stack>
 
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap flexWrap="wrap" alignItems={{ xs: 'stretch', sm: 'center' }}>
-            <FormControl size="small" sx={{ minWidth: { xs: 0, sm: 180 }, flex: { sm: 1 } }}>
-              <Select value={doctorFilter} displayEmpty onChange={(e) => setDoctorFilter(String(e.target.value))}>
-                <MenuItem value="">Todos os médicos</MenuItem>
-                {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
-              </Select>
-            </FormControl>
-            <TextField type="date" size="small" label="De" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: { xs: 0, sm: 140 } }} />
-            <TextField type="date" size="small" label="Até" value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ minWidth: { xs: 0, sm: 140 } }} />
-          </Stack>
-        </Stack>
+              <Stack direction="row" spacing={1} alignItems="center">
+                {doctors.length > 1 && (
+                  <FormControl size="small" sx={{ minWidth: 165 }}>
+                    <Select value={doctorFilter} displayEmpty onChange={(e) => setDoctorFilter(String(e.target.value))} sx={{ borderRadius: '10px', fontSize: 13 }}>
+                      <MenuItem value="">Todos os médicos</MenuItem>
+                      {doctors.map((d: any) => <MenuItem key={d?.id} value={d?.id}>{d?.name}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                )}
+                <Button
+                  size="small"
+                  variant={showDateFilter || dateFrom || dateTo ? 'contained' : 'outlined'}
+                  onClick={() => setShowDateFilter((v) => !v)}
+                  sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '999px', fontSize: 12, whiteSpace: 'nowrap' }}
+                >
+                  📅 Período{(dateFrom || dateTo) ? ' • ativo' : ''}
+                </Button>
+              </Stack>
+            </div>
+
+            {(showDateFilter || dateFrom || dateTo) && (
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} useFlexGap alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ pt: 1, borderTop: '1px dashed', borderColor: 'divider' }}>
+                <TextField type="date" size="small" label="De" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                <TextField type="date" size="small" label="Até" value={dateTo} onChange={(e) => setDateTo(e.target.value)} InputLabelProps={{ shrink: true }} sx={{ flex: 1 }} />
+                {(dateFrom || dateTo) && (
+                  <Button size="small" onClick={() => { setDateFrom(''); setDateTo(''); }} sx={{ textTransform: 'none', fontWeight: 700 }}>
+                    Limpar datas
+                  </Button>
+                )}
+              </Stack>
+            )}
+          </FramePanel>
+        </Frame>
       )}
 
       {filtered.length === 0 ? (
@@ -302,7 +341,7 @@ export const QuestionsPage = () => {
                     </Avatar>
                     <Box sx={{ flex: 1, minWidth: 0 }}>
                       <Typography sx={{ fontWeight: 800, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {doc?.name || 'Médico'}{doc?.specialty ? ` · ${doc.specialty}` : ''}
+                        {doc?.name || 'Médico'}{doc?.specialty ? ` · ${fmtSpec(doc.specialty)}` : ''}
                       </Typography>
                       <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
                         <Typography variant="caption" color="text.secondary">

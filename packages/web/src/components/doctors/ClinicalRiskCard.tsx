@@ -61,14 +61,47 @@ export const ClinicalRiskCard = ({
 }: ClinicalRiskCardProps) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
 
-  // Análise clínica computada baseada nos dados reais dos exames do paciente
+  // Filtra apenas biomarcadores ATUAIS (exclui medições antigas que já normalizaram em exame mais recente)
+  const currentAbnormalItems = useMemo(() => {
+    const byKey = new Map<string, any>();
+    for (const it of abnormalItems) {
+      if (it.isCurrent === false || it.isNormalizedInNewerExam) continue;
+      const key = (it.nameCanonical || it.name || '').trim().toLowerCase().replace(/\s*\([^)]*\)\s*$/, '');
+      if (!key) continue;
+      const existing = byKey.get(key);
+      if (!existing) {
+        byKey.set(key, it);
+      } else {
+        const exDate = new Date(existing.examDate || existing.performedAt || existing.createdAt || 0).getTime();
+        const itDate = new Date(it.examDate || it.performedAt || it.createdAt || 0).getTime();
+        if (itDate >= exDate) byKey.set(key, it);
+      }
+    }
+    return Array.from(byKey.values());
+  }, [abnormalItems]);
+
+  // Top 5 destaques atuais ordenados por magnitude do desvio da faixa de referência
+  const topCurrentHighlights = useMemo(() => {
+    const sev = (it: any): number => {
+      const v = Number(it.valueNumeric);
+      const lo = Number(it.refLow), hi = Number(it.refHigh);
+      if (Number.isFinite(v) && Number.isFinite(lo) && Number.isFinite(hi) && hi > lo) {
+        const mid = (lo + hi) / 2, half = (hi - lo) / 2 || 1;
+        return Math.abs(v - mid) / half;
+      }
+      return 0;
+    };
+    return [...currentAbnormalItems].sort((a, b) => sev(b) - sev(a)).slice(0, 5);
+  }, [currentAbnormalItems]);
+
+  // Análise clínica computada baseada nos dados ATUAIS dos exames do paciente
   const riskAnalysis = useMemo(() => {
-    const totalAbnormal = abnormalStats.total || abnormalItems.length;
-    const nImp = abnormalStats.importante || 0;
-    const nMod = abnormalStats.moderada || 0;
-    const nLev = abnormalStats.leve || 0;
+    const totalAbnormal = currentAbnormalItems.length;
+    const nImp = Math.min(abnormalStats.importante || 0, totalAbnormal);
+    const nMod = Math.min(abnormalStats.moderada || 0, Math.max(0, totalAbnormal - nImp));
+    const nLev = Math.max(0, totalAbnormal - nImp - nMod);
 
     // Cálculo ponderado do Score Clínico (0 a 100)
     // - Sem alterações e com exames: score de risco baixo (10-18)
@@ -107,9 +140,9 @@ export const ClinicalRiskCard = ({
       severityBadge = 'Alterações leves';
     }
 
-    // Mapeamento de sistemas orgânicos afetados
+    // Mapeamento de sistemas orgânicos afetados (apenas marcadores atuais)
     const systemsSet = new Set<string>();
-    abnormalItems.forEach((item) => {
+    currentAbnormalItems.forEach((item) => {
       const name = (item.nameCanonical || item.name || '').toUpperCase();
       if (/COLESTEROL|LDL|HDL|TRIGLICER|LIPID|APO/i.test(name)) systemsSet.add('Cardiovascular / Lipídico');
       else if (/GLICOSE|HBA1C|GLICADA|INSULINA|HOMA/i.test(name)) systemsSet.add('Metabólico / Glicêmico');
@@ -191,9 +224,10 @@ export const ClinicalRiskCard = ({
       actionBadge,
       severityBadge,
       systems,
+      totalCurrentAbnormal: totalAbnormal,
       actions: actions.slice(0, 3), // máx 3 para clareza e escaneabilidade sem sobrecarga
     };
-  }, [abnormalItems, abnormalStats, exams, criticalMeds, theme]);
+  }, [currentAbnormalItems, abnormalStats, exams, criticalMeds, theme]);
 
   if (loading) {
     return (
@@ -382,6 +416,50 @@ export const ClinicalRiskCard = ({
         </Stack>
       </Box>
 
+      {/* FAIXA COMPACTA QUANDO RECOLHIDO — mostra os 3 principais marcadores atuais sem empurrar as abas clínicas */}
+      {!expanded && topCurrentHighlights.length > 0 && (
+        <Box
+          onClick={() => setExpanded(true)}
+          sx={{
+            px: 2.5,
+            pb: 1.75,
+            pt: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: 0.75,
+            cursor: 'pointer',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.65, flex: 1, minWidth: 0 }}>
+            <Typography variant="caption" sx={{ fontWeight: 800, color: 'text.secondary', mr: 0.25, fontSize: 11 }}>
+              Atuais fora da faixa ({riskAnalysis.totalCurrentAbnormal}):
+            </Typography>
+            {topCurrentHighlights.slice(0, 3).map((it: any) => {
+              const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
+              const rawUnit = String(it.unit ?? '').trim();
+              const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
+              const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
+              const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
+              return (
+                <Chip
+                  key={it.id || it.name}
+                  size="small"
+                  label={`${it.name}: ${displayVal}`.trim()}
+                  sx={{ height: 22, fontSize: 11.5, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.3) }}
+                />
+              );
+            })}
+            {topCurrentHighlights.length > 3 && (
+              <Typography variant="caption" sx={{ fontWeight: 700, color: (t) => copperText(t.palette.mode), fontSize: 11.5 }}>
+                +{ riskAnalysis.totalCurrentAbnormal - 3 } mais · Ver triagem ↓
+              </Typography>
+            )}
+          </Box>
+        </Box>
+      )}
+
       {/* CONTEÚDO EXPANDÍVEL */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Box sx={{ px: { xs: 2, sm: 2.5 }, pb: 2.5 }}>
@@ -521,10 +599,10 @@ export const ClinicalRiskCard = ({
                     fontSize: 11.5,
                   }}
                 />
-                {abnormalStats.total > 0 && (
+                {riskAnalysis.totalCurrentAbnormal > 0 && (
                   <Chip
                     size="small"
-                    label={`${abnormalStats.total} ${abnormalStats.total === 1 ? 'marcador fora' : 'marcadores fora'}`}
+                    label={`${riskAnalysis.totalCurrentAbnormal} ${riskAnalysis.totalCurrentAbnormal === 1 ? 'marcador atual fora' : 'marcadores atuais fora'}`}
                     sx={{
                       bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
                       color: 'text.secondary',
@@ -631,65 +709,31 @@ export const ClinicalRiskCard = ({
             </Box>
           </Box>
 
-          {/* DESTAQUES DESTE PACIENTE — o que torna o card DELE (feedback 18/10: dois
-              pacientes distintos exibiam conteúdo visualmente igual; nome+valor de cada
-              analito tornam a diferença visível de imediato). Ordenação: desvio em nº de
-              faixas de referência (proxy honesto de magnitude, sem inventar severidade). */}
-          {(() => {
-            const sev = (it: any): number => {
-              const v = Number(it.valueNumeric);
-              const lo = Number(it.refLow), hi = Number(it.refHigh);
-              if (Number.isFinite(v) && Number.isFinite(lo) && Number.isFinite(hi) && hi > lo) {
-                const mid = (lo + hi) / 2, half = (hi - lo) / 2 || 1;
-                return Math.abs(v - mid) / half; // 1.0 = estourou a faixa inteira
-              }
-              return 0;
-            };
-            // Agrupa por biomarcador (normalizado) para manter apenas a medição mais recente de cada um
-            const latestByMarker = new Map<string, any>();
-            for (const it of abnormalItems) {
-              const key = (it.nameCanonical || it.name || '').trim().toLowerCase().replace(/\s*\([^)]*\)\s*$/, '');
-              if (!key) continue;
-              const existing = latestByMarker.get(key);
-              if (!existing) {
-                latestByMarker.set(key, it);
-              } else {
-                const exDate = new Date(existing.examDate || existing.performedAt || existing.createdAt || 0).getTime();
-                const itDate = new Date(it.examDate || it.performedAt || it.createdAt || 0).getTime();
-                if (itDate >= exDate) {
-                  latestByMarker.set(key, it);
-                }
-              }
-            }
-            const uniqueAbnormal = Array.from(latestByMarker.values());
-            const top = uniqueAbnormal.sort((a, b) => sev(b) - sev(a)).slice(0, 5);
-            if (!top.length) return null;
-            return (
-              <Box sx={{ pt: 2 }}>
-                <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary', display: 'block', mb: 1 }}>
-                  Destaques deste paciente
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-                  {top.map((it: any) => {
-                    const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
-                    const rawUnit = String(it.unit ?? '').trim();
-                    // Evita duplicações como "25,70 µUI/mL µUI/mL" ou "1,6845 nmol/L pg/mL"
-                    const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
-                    const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
-                    const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
-                    return (
-                      <Chip
-                        key={it.id || it.name}
-                        size="small"
-                        label={`${it.name}: ${displayVal}`.trim()}
-                        sx={{ fontSize: 12, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.35) }}
-                      />
-                    );
-                  })}
-                </Box>
+          {/* DESTAQUES ATUAIS DESTE PACIENTE — filtra apenas a medição mais recente NÃO normalizada */}
+          {topCurrentHighlights.length > 0 && (
+            <Box sx={{ pt: 2 }}>
+              <Typography variant="caption" sx={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'text.secondary', display: 'block', mb: 1 }}>
+                Destaques atuais deste paciente (último exame de cada marcador)
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                {topCurrentHighlights.map((it: any) => {
+                  const rawVal = String(it.valueText ?? it.valueNumeric ?? '').trim();
+                  const rawUnit = String(it.unit ?? '').trim();
+                  const valHasLetters = /[a-zA-Z%µ]/.test(rawVal);
+                  const valAlreadyHasUnit = !!(rawUnit && rawVal.toLowerCase().includes(rawUnit.toLowerCase()));
+                  const displayVal = (rawUnit && !valHasLetters && !valAlreadyHasUnit) ? `${rawVal} ${rawUnit}` : rawVal;
+                  return (
+                    <Chip
+                      key={it.id || it.name}
+                      size="small"
+                      label={`${it.name}: ${displayVal}`.trim()}
+                      sx={{ fontSize: 12, fontWeight: 700, bgcolor: alpha(theme.palette.warning.main, 0.10), color: 'text.primary', border: '1px solid', borderColor: alpha(theme.palette.warning.main, 0.35) }}
+                    />
+                  );
+                })}
               </Box>
-            );
-          })()}
+            </Box>
+          )}
 
           {/* LISTA DE AÇÕES CLÍNICAS RECOMENDADAS */}
           <Box sx={{ pt: 2 }}>

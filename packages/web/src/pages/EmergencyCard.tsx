@@ -208,9 +208,10 @@ export const EmergencyCardPage = () => {
                   title="Alergias, Condições Crônicas & Cirurgias"
                   badge={patient.clinicalProfile ? 'Preenchido' : 'Importante'}
                   badgeVariant={patient.clinicalProfile ? 'success-light' : 'warning-light'}
+                  stackOnMobile
                   description={
                     patient.clinicalProfile ? (
-                      <span className="font-medium text-foreground">{patient.clinicalProfile}</span>
+                      <span className="block font-medium text-foreground break-words">{patient.clinicalProfile}</span>
                     ) : (
                       'Informe alergias a medicamentos, hipertensão, diabetes, asma ou cirurgias prévias no seu perfil.'
                     )
@@ -221,7 +222,7 @@ export const EmergencyCardPage = () => {
                       variant="outlined"
                       startIcon={<EditOutlinedIcon fontSize="small" />}
                       onClick={() => navigate('/perfil')}
-                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36 }}
+                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                     >
                       {patient.clinicalProfile ? 'Editar' : '+ Adicionar no perfil'}
                     </Button>
@@ -235,11 +236,17 @@ export const EmergencyCardPage = () => {
                   title="Medicações em Uso Contínuo"
                   badge={meds.length > 0 ? `${meds.length} ativo${meds.length > 1 ? 's' : ''}` : 'Sincronizado'}
                   badgeVariant={meds.length > 0 ? 'primary-light' : 'outline'}
+                  stackOnMobile
                   description={
                     meds.length > 0 ? (
                       <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {meds.map((m) => (
-                          <ReuiBadge key={m.id} variant="primary-light" size="sm">
+                          <ReuiBadge
+                            key={m.id}
+                            variant="primary-light"
+                            size="sm"
+                            className="h-auto max-w-full py-1 px-2 text-left leading-snug whitespace-normal break-words"
+                          >
                             {m.name}
                             {m.dosage ? ` · ${m.dosage}` : ''}
                             {m.frequency ? ` (${m.frequency})` : ''}
@@ -255,7 +262,7 @@ export const EmergencyCardPage = () => {
                       size="small"
                       variant="outlined"
                       onClick={() => navigate('/medicamentos')}
-                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36 }}
+                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                     >
                       {meds.length > 0 ? 'Gerenciar' : '+ Adicionar remédios'}
                     </Button>
@@ -269,6 +276,7 @@ export const EmergencyCardPage = () => {
                   title="Telefone / Contato de Emergência"
                   badge={patient.phone ? 'Ativo' : 'Pendente'}
                   badgeVariant={patient.phone ? 'success-light' : 'warning-light'}
+                  stackOnMobile
                   description={
                     patient.phone ? (
                       <span className="font-semibold text-foreground tabular-nums">{patient.phone}</span>
@@ -281,7 +289,7 @@ export const EmergencyCardPage = () => {
                       size="small"
                       variant="outlined"
                       onClick={() => navigate('/perfil')}
-                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36 }}
+                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 36, width: { xs: '100%', sm: 'auto' } }}
                     >
                       {patient.phone ? 'Alterar' : '+ Adicionar telefone'}
                     </Button>
