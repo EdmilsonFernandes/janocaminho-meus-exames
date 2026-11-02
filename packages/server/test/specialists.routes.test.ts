@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { api, authHeader, resetDb, createUser } from './helpers';
 import { prisma } from '../src/prisma';
 import { saveSettings } from '../src/utils/settings';
+import { __resetCityFacetCache } from '../src/routes/specialists.routes';
 
 // §3/§5 "Encontrar especialistas" (28/10/26): busca no DIRETÓRIO PRÓPRIO (zero
 // integração paga). Contratos: médico bloqueado nunca aparece; provenance distingue
@@ -36,7 +37,7 @@ async function mkDoctor(opts: {
 }
 
 describe('specialists: busca no diretório próprio (§3)', () => {
-  beforeEach(async () => { await resetDb(); });
+  beforeEach(async () => { await resetDb(); __resetCityFacetCache(); });
 
   it('filtra por especialidade e cidade; médico bloqueado nunca aparece', async () => {
     const { token } = await createUser({});

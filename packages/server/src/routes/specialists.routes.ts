@@ -31,6 +31,31 @@ const INS_VERIFICATION_LABEL: Record<string, string> = {
  *  textual da V1 (diretório pequeno; coluna normalizada quando escalar). */
 const deaccent = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
+/** FACET DE CIDADES em cache (perf 02/11): a rota puxava ~80k linhas do CNES
+ *  (directoryFacility) + reduce em JS a CADA busca — dado que muda a cada meses.
+ *  Cache module-level TTL 6h: a 1ª request após expiry paga o custo, as demais
+ *  servem da memória. Erro no refresh → mantém o cache velho (degrada sem quebrar). */
+const CITY_FACET_TTL_MS = 6 * 60 * 60 * 1000;
+let cityFacetCache: { at: number; rows: { clinicCity: string | null }[] } | null = null;
+async function getCityFacetRows(selfDeclaredOk: any): Promise<{ clinicCity: string | null }[]> {
+  if (cityFacetCache && Date.now() - cityFacetCache.at < CITY_FACET_TTL_MS) return cityFacetCache.rows;
+  try {
+    const [dirRows, docRows] = await Promise.all([
+      prisma.directoryFacility.findMany({ select: { city: true }, take: 80000 }),
+      prisma.doctor.findMany({ where: { blocked: false, clinicCity: { not: null }, ...selfDeclaredOk }, select: { clinicCity: true } }),
+    ]);
+    const rows = [...dirRows.map((r) => ({ clinicCity: r.city })), ...docRows];
+    cityFacetCache = { at: Date.now(), rows };
+    return rows;
+  } catch {
+    return cityFacetCache?.rows ?? []; // sem cache ainda e DB falhou → facet vazio (lista segue)
+  }
+}
+
+/** Testes: o cache module-level sobrevive entre requests do MESMO processo (vitest
+ *  roda vários cenários com bancos diferentes) — beforeEach zera pra não vazar facet. */
+export const __resetCityFacetCache = (): void => { cityFacetCache = null; };
+
 router.get('/', async (req: AuthedRequest, res, next) => {
   try {
     const q = req.query as Record<string, string | undefined>;
@@ -93,12 +118,9 @@ router.get('/', async (req: AuthedRequest, res, next) => {
       }),
       // Facets de cidade (do diretório inteiro, não do filtro): o usuário vê ONDE tem
       // médico antes de digitar — contra a frustação de buscar cidade sem resultado.
-      // Une CNES (directory) + doctors — só a coluna cidade (barato).
-      prisma.directoryFacility.findMany({ select: { city: true }, take: 80000 })
-        .then(async (dirRows) => {
-          const docRows = await prisma.doctor.findMany({ where: { blocked: false, clinicCity: { not: null }, ...selfDeclaredOk }, select: { clinicCity: true } });
-          return [...dirRows.map((r) => ({ clinicCity: r.city })), ...docRows];
-        }),
+      // Une CNES (directory) + doctors — via CACHE 6h (ver getCityFacetRows: era 80k
+      // rows no Postgres a cada busca, dado que muda a cada meses).
+      getCityFacetRows(selfDeclaredOk),
     ]);
 
     const cities = Object.entries(

@@ -184,6 +184,23 @@ const SwipeableAlert = React.forwardRef<HTMLDivElement, { severity?: SnackbarOpt
       onTouchEnd={onTouchEnd}
       sx={{
         borderRadius: '12px', fontWeight: 600, alignItems: 'center',
+        // Identidade (dono 02/11): o verde-claro padrão do MUI parecia "desligado" e o
+        // toast sumia ATRÁS de painéis com stacking próprio. Agora: superficie escura
+        // premium + acento da severity na borda/ícone — legível nos 2 modos e na marca.
+        bgcolor: 'rgba(15,24,24,.96)',
+        color: '#fff',
+        border: '1px solid',
+        borderColor: (t: any) => ({
+          success: 'rgba(32,178,170,.65)',
+          error: 'rgba(239,68,68,.6)',
+          warning: 'rgba(245,158,11,.6)',
+          info: 'rgba(56,189,248,.6)',
+        } as Record<string, string>)[severity ?? 'info'] ?? t.palette.divider,
+        borderLeftWidth: 4,
+        '& .MuiAlert-icon': {
+          color: ({ success: '#2dd4bf', error: '#f87171', warning: '#fbbf24', info: '#7dd3fc' } as Record<string, string>)[severity ?? 'info'] ?? '#2dd4bf',
+        },
+        '& .MuiAlert-action': { color: 'rgba(255,255,255,.7)', '& svg': { fontSize: 18 } },
         transform: `translateX(${dx}px)`,
         opacity: leaving ? 0 : 1,
         transition: leaving
@@ -252,7 +269,13 @@ export const ConfirmDialogProvider = ({ children }: { children: React.ReactNode 
         onSubmit={(v) => closePrompt(v)}
       />
       <ToastBoundary crashKey={`${snack?.severity ?? ''}|${typeof snack?.message === 'string' ? snack.message : ''}`} onCrash={() => setSnack(null)}>
-        <Snackbar open={!!snack} autoHideDuration={3500} onClose={() => setSnack(null)} anchorOrigin={{ vertical: 'top', horizontal: 'center' }}>
+        <Snackbar
+          open={!!snack}
+          autoHideDuration={3500}
+          onClose={() => setSnack(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          sx={{ zIndex: (t: any) => t.zIndex.tooltip + 1 }} /* acima de AppBar/painéis com stacking próprio (bug "toast atrás do painel") */
+        >
           <SwipeableAlert severity={snack?.severity} message={snack?.message} onClose={() => setSnack(null)} />
         </Snackbar>
       </ToastBoundary>
