@@ -37,7 +37,7 @@ export const LiveTeleconsultaBanner: React.FC = () => {
       : `Dr(a). ${tele.doctorName}`
     : 'Médico responsável';
 
-  const doctorPhoto = tele.item.doctor?.id ? doctorPhotoUrl(tele.item.doctor.id) : null;
+  const doctorPhoto = (tele.item.doctor as any)?.photoUrl || (tele.item.doctor?.id ? doctorPhotoUrl(tele.item.doctor.id) : null);
   const initial = (tele.doctorName || 'M').charAt(0).toUpperCase();
 
   return (

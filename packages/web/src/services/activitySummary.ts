@@ -57,10 +57,10 @@ export const summaryToDays = (s: ActivitySummaryRemote): ActivityDay[] => {
     fn(d);
     byDate.set(date, d);
   };
-  for (const p of s.metrics.STEPS.series30) put(p.date, (d) => { d.steps = p.value; });
-  for (const p of s.metrics.CALORIES.series30) put(p.date, (d) => { d.kcal = p.value; });
-  for (const p of s.metrics.DISTANCE.series30) put(p.date, (d) => { d.km = p.value; });
-  for (const p of s.metrics.HEART_RATE.series30) put(p.date, (d) => { d.hrRest = p.value; d.hrAvg = p.value; });
+  for (const p of s.metrics.STEPS?.series30 ?? []) put(p.date, (d) => { d.steps = p.value; });
+  for (const p of s.metrics.CALORIES?.series30 ?? []) put(p.date, (d) => { d.kcal = p.value; });
+  for (const p of s.metrics.DISTANCE?.series30 ?? []) put(p.date, (d) => { d.km = p.value; });
+  for (const p of s.metrics.HEART_RATE?.series30 ?? []) put(p.date, (d) => { d.hrRest = p.value; d.hrAvg = p.value; });
   for (const p of s.metrics.EXERCISE_MINUTES?.series30 ?? []) put(p.date, (d) => { d.exerciseMin = p.value; });
   for (const p of s.metrics.SLEEP_MINUTES?.series30 ?? []) put(p.date, (d) => { d.sleepMin = p.value; });
   return [...byDate.values()].sort((a, b) => (a.date < b.date ? 1 : -1));

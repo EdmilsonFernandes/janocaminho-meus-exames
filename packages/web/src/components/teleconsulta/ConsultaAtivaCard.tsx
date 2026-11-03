@@ -59,7 +59,7 @@ export const ConsultaAtivaCard = ({
   const isPaid = isEnded || !!r.paidAt || (r.consultPriceCents ?? 0) === 0;
 
   const docId = r.doctor?.id || r.createdByDoctorId || r.doctorId;
-  const docPhoto = safeAvatar(docId ? doctorPhotoUrl(docId) : undefined, r.doctor?.name);
+  const docPhoto = safeAvatar((r.doctor as any)?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined), r.doctor?.name);
   const docName = r.doctor?.name
     ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`)
     : r.title || 'Consulta médica online';

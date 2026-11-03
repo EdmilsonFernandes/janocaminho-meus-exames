@@ -72,9 +72,12 @@ export const TeleconsultaCard: React.FC = () => {
     ? `CRM ${rawCrm}${!crmHasUf && tele.item?.doctor?.crmUf ? `-${tele.item.doctor.crmUf}` : ''}`
     : null;
 
-  // Foto REAL do médico (payload traz doctor.id; fallback = inicial).
+  // Foto REAL do médico — PAYLOAD primeiro (doctor.photoUrl vem no /reminders e não
+  // depende de vínculo/share; a rota autenticada /doctor/photo/:id falha 403 p/ médico
+  // sem share — agendamentos do próprio paciente — e o card caía na inicial; inconsistente
+  // com a Agenda, que usa o payload). Rota vira fallback; sem nada → inicial (safeAvatar).
   const docId = tele.item?.doctor?.id || tele.item?.createdByDoctorId;
-  const docPhoto = safeAvatar(docId ? doctorPhotoUrl(docId) : undefined, doctorDisplayName);
+  const docPhoto = safeAvatar((tele.item?.doctor as any)?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined), doctorDisplayName);
 
   return (
     <AppCard
