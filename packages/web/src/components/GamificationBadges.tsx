@@ -2,6 +2,7 @@ import { Card, CardContent, Typography, Box, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { tealText } from '../theme';
+import { useAnimateInView } from '../hooks/useAnimateInView';
 
 // Preview rápido no Dashboard (streak fica no server — só em /conquistas).
 const PREVIEW = [
@@ -19,9 +20,13 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
   const earned = (p: (typeof PREVIEW)[number]) =>
     p.metric === 'exams' ? examsCount >= p.need : p.metric === 'score' ? (score ?? 0) >= p.need : false;
   const earnedCount = PREVIEW.filter(earned).length;
+  // perf 03/11: pulsos/shimmer infinitos só rodam com o card visível (eram 4 animações
+  // rodando fora da tela no dashboard → quadros perdidos em Android médio).
+  const [animRef, animInView] = useAnimateInView<HTMLDivElement>();
 
   return (
     <Card
+      ref={animRef}
       onClick={() => navigate('/conquistas')}
       sx={{
         borderRadius: '20px', cursor: 'pointer',
@@ -62,6 +67,7 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
                   width: 36, height: 36, borderRadius: '50%',
                   background: 'radial-gradient(circle, rgba(212,165,116,.35), transparent 70%)',
                   animation: 'dxGoldPulse 2s ease-in-out infinite',
+                  animationPlayState: animInView ? 'running' : 'paused', // perf 03/11: só roda visível
                   '@keyframes dxGoldPulse': {
                     '0%, 100%': { opacity: 0.5, transform: 'translate(-50%, -50%) scale(1)' },
                     '50%': { opacity: 1, transform: 'translate(-50%, -50%) scale(1.2)' },
@@ -99,7 +105,9 @@ export const GamificationBadges = ({ examsCount, score }: { examsCount: number; 
           backgroundSize: '200% 100%',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
-          animation: 'dxTextShimmer 4s ease-in-out infinite',
+          // perf 03/11: background-position pinta a cada quadro — 3 passadas e para; pausa fora da tela.
+          animation: 'dxTextShimmer 4s ease-in-out 3',
+          animationPlayState: animInView ? 'running' : 'paused',
           '@keyframes dxTextShimmer': {
             '0%': { backgroundPosition: '0% 0' },
             '100%': { backgroundPosition: '200% 0' },

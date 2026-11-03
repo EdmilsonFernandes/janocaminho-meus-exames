@@ -219,7 +219,7 @@ export const LiveTeleconsultaBanner: React.FC = () => {
             whiteSpace: 'nowrap',
             flexShrink: 0,
             boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-            transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+            transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), color 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
             '&:hover': {
               bgcolor: '#f0fdfa',
               transform: 'scale(1.02)',

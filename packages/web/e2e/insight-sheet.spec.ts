@@ -305,7 +305,14 @@ for (const v of VISUAL) {
     const sheet = await openControlled(page, FIXTURES[v.fixture]);
     await page.evaluate(() => document.fonts.ready);
     await expect(sheet).toHaveScreenshot(`sheet-${v.fixture}-${Math.round(v.scale * 100)}.png`);
-    if (v.viewport) await expect(page).toHaveScreenshot(`viewport-${v.fixture}-${Math.round(v.scale * 100)}.png`, { fullPage: false });
+    // Viewport inteira = posição do overlay/backdrop. O FUNDO (data de hoje, lista de notificações do
+    // banco dev, contadores) muda todo dia → escondido por CSS na captura. `mask` não serve: pinta a
+    // caixa do <main>, que cobre a tela toda e tapava o sheet (que vive num portal fora de main/header).
+    if (v.viewport) {
+      await page.evaluate(() => document.querySelectorAll<HTMLElement>('main, header, .RaLayout-appFrame > *:not(.MuiDrawer-root)').forEach((e) => { if (!e.closest('.MuiDrawer-modal')) e.style.visibility = 'hidden'; }));
+      await expect(page.locator('[data-testid="cross-insight-sheet"]')).toBeVisible();
+      await expect(page).toHaveScreenshot(`viewport-${v.fixture}-${Math.round(v.scale * 100)}.png`, { fullPage: false });
+    }
     await closeSheet(page);
     await context.close();
   });

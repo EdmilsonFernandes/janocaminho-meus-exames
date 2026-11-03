@@ -92,7 +92,7 @@ export const TeleconsultaCard: React.FC = () => {
           ? isDark ? '0 12px 36px rgba(0, 0, 0, 0.5)' : '0 12px 36px rgba(16, 185, 129, 0.12)'
           : isDark ? '0 8px 30px rgba(0, 0, 0, 0.4)' : '0 8px 26px rgba(13, 148, 136, 0.08)',
         borderRadius: '20px',
-        transition: 'all 0.25s ease',
+        transition: 'transform 0.25s ease, opacity 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease',
         '&:hover': {
           borderColor: '#0d9488',
           boxShadow: isDark
@@ -365,7 +365,7 @@ export const TeleconsultaCard: React.FC = () => {
               borderRadius: '12px',
               textTransform: 'none',
               boxShadow: isLive ? '0 4px 16px rgba(16, 185, 129, 0.35)' : '0 4px 14px rgba(13, 148, 136, 0.35)',
-              transition: 'all 0.2s ease',
+              transition: 'transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease',
               '&:hover': {
                 background: isLive ? 'linear-gradient(135deg, #047857 0%, #059669 100%)' : 'linear-gradient(135deg, #0f766e 0%, #047857 100%)',
                 transform: 'translateY(-1px)',

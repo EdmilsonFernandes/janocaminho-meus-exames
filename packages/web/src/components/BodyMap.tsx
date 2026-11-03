@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useAnimateInView } from '../hooks/useAnimateInView';
 import {
   Box,
   Stack,
@@ -323,6 +324,9 @@ export const BodyMap = ({
   const theme = useTheme();
   const navigate = useNavigate();
   const dark = theme.palette.mode === 'dark';
+  // perf 03/11: o feixe de scan e o anel do órgão são infinitos — só rodam com o card visível
+  // (rodavam fora da tela e custavam quadros no Android médio). Hook antes de qualquer return.
+  const [animRef, animInView] = useAnimateInView<HTMLDivElement>();
 
   // Normalização defensiva: sem dados ou formato inesperado não crasha
   const safeList: BodyRegionView[] = useMemo(() => {
@@ -504,6 +508,7 @@ export const BodyMap = ({
   const activeColor = activeRegion ? getLevelColor(activeRegion.level) : '#20b2aa';
 
   return (
+    <Box ref={animRef} className={animInView ? undefined : 'dx-anim-paused'}>
     <AppCard
       sx={{
         p: { xs: 2, sm: 2.5 },
@@ -521,11 +526,13 @@ export const BodyMap = ({
           0% { transform: scale(0.85); opacity: 0.9; }
           75%, 100% { transform: scale(2.0); opacity: 0; }
         }
+        /* perf 03/11: o feixe é uma TRILHA de altura total que desliza por transform
+           (compositor) — animar \`top\` forçava layout a cada quadro. */
         @keyframes bioScanLaser {
-          0% { top: 0%; opacity: 0; }
+          0% { transform: translateY(0); opacity: 0; }
           10% { opacity: 0.85; }
           90% { opacity: 0.85; }
-          100% { top: 98%; opacity: 0; }
+          100% { transform: translateY(calc(100% - 2px)); opacity: 0; }
         }
         @keyframes panelGlowFlash {
           0% { transform: scale(0.995); box-shadow: 0 0 0 3px rgba(95,201,195,0.5); }
@@ -540,6 +547,9 @@ export const BodyMap = ({
         }
         .panel-flash-glow {
           animation: panelGlowFlash 0.5s ease-out;
+        }
+        .dx-anim-paused .organ-ring-ping, .dx-anim-paused .bio-scan-laser-beam {
+          animation-play-state: paused;
         }
         @media (prefers-reduced-motion: reduce) {
           .organ-ring-ping, .bio-scan-laser-beam, .panel-flash-glow {
@@ -815,15 +825,23 @@ export const BodyMap = ({
             <Box
               className="bio-scan-laser-beam"
               sx={{
+                // trilha transparente de altura total; a linha é o ::before (ver keyframes)
                 position: 'absolute',
-                left: 0,
-                right: 0,
-                height: '2px',
-                background:
-                  'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.2) 20%, #ffffff 50%, rgba(95,201,195,0.2) 80%, transparent 100%)',
-                boxShadow: '0 0 12px 2px rgba(95,201,195,0.8)',
+                inset: 0,
                 pointerEvents: 'none',
                 zIndex: 6,
+                willChange: 'transform',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '2px',
+                  background:
+                    'linear-gradient(90deg, transparent 0%, rgba(95,201,195,0.2) 20%, #ffffff 50%, rgba(95,201,195,0.2) 80%, transparent 100%)',
+                  boxShadow: '0 0 12px 2px rgba(95,201,195,0.8)',
+                },
               }}
             />
 
@@ -1775,5 +1793,6 @@ export const BodyMap = ({
         * Os destaques mostram regiões relacionadas aos seus exames laboratoriais e não representam um diagnóstico clínico.
       </Typography>
     </AppCard>
+    </Box>
   );
 };

@@ -460,7 +460,7 @@ export const ActivityView = ({
               fontWeight: 700,
               bgcolor: alpha(theme.palette.primary.main, 0.08),
               color: 'text.secondary',
-              transition: 'all .2s ease',
+              transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
             }}
           >
             <span>Painel</span>
@@ -762,7 +762,7 @@ export const MetricMini = ({ icon, tone, label, labelTitle, value, unit, context
       bgcolor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.12 : 0.05),
       border: '1px solid',
       borderColor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.25 : 0.14),
-      transition: 'all .2s ease',
+      transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
       '&:hover': { bgcolor: (t) => alpha(tone, t.palette.mode === 'dark' ? 0.18 : 0.09) },
     }}
   >

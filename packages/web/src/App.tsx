@@ -2,7 +2,7 @@ import { tealText } from './theme';
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, useStore, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useEffect, useState, useRef, lazy, Suspense } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense, type ComponentType } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -69,10 +69,30 @@ const FlagDashboard = () => {
   } catch { /* localStorage indisponível → dashboard clássico */ }
   return <Dashboard />;
 };
+// lazyPage (perf 03/11): página lazy JÁ embrulhada em Suspense — serve tanto em <Route element>
+// quanto nas props list/show/create do <Resource> (que esperam um componente). O chunk
+// principal tinha 2,8 MB com admin/exames/perfil/etc. estáticos → parse de tudo no boot.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// .preload() baixa E registra o módulo: depois disso a página renderiza DIRETO (sem passar pelo
+// Suspense/skeleton) — React.lazy sozinho suspende 1× mesmo com o chunk já em cache.
+const lazyPage = (loader: () => Promise<{ default: ComponentType<any> }>) => {
+  let Loaded: ComponentType<any> | null = null;
+  let pending: Promise<{ default: ComponentType<any> }> | null = null;
+  const load = () => (pending ??= loader().then((m) => { Loaded = m.default; return m; }));
+  const C = lazy(load);
+  const W = (props: any) => (Loaded ? <Loaded {...props} /> : <Suspense fallback={<PageSkeleton />}><C {...props} /></Suspense>);
+  return Object.assign(W, { preload: () => { void load().catch(() => { pending = null; }); } });
+};
+// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamList } from './resources/Exams/ExamList';
+// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamShow } from './resources/Exams/ExamShow';
+// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamCreate } from './resources/Exams/ExamCreate';
-import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
+const PatientList = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientList })));
+const PatientEdit = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientEdit })));
+const PatientCreate = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientCreate })));
+// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { TrendsPage } from './pages/Trends';
 import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
@@ -99,30 +119,30 @@ const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ defaul
 const EncontrarEspecialistasPage = lazy(() => import('./pages/EncontrarEspecialistas').then(m => ({ default: m.EncontrarEspecialistasPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
-import { MeasurementsPage } from './pages/Measurements';
+const MeasurementsPage = lazyPage(() => import('./pages/Measurements').then(m => ({ default: m.MeasurementsPage })));
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
 const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.SinaisPage })));
 // Teleconsulta LiveKit (F2) — página imersiva (fora do AppLayout, sem bottom-nav).
 const TeleconsultaPage = lazy(() => import('./pages/Teleconsulta').then(m => ({ default: m.TeleconsultaPage })));
-import { VaccinesPage } from './pages/Vaccines';
-import { EmergencyCardPage } from './pages/EmergencyCard';
-import { TimelinePage } from './pages/Timeline';
-import { ExpensesPage } from './pages/Expenses';
-import { EvolutionPage } from './pages/Evolution';
-import { FamilyPage } from './pages/Family';
-import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
-import { ValoresAlteradosPage } from './pages/ValoresAlterados';
-import { ProfilePage } from './pages/Profile';
-import { SecurityPage } from './pages/Security';
-import { PrivacyPage } from './pages/Privacy';
-import { AdminPage } from './pages/admin';
+const VaccinesPage = lazyPage(() => import('./pages/Vaccines').then(m => ({ default: m.VaccinesPage })));
+const EmergencyCardPage = lazyPage(() => import('./pages/EmergencyCard').then(m => ({ default: m.EmergencyCardPage })));
+const TimelinePage = lazyPage(() => import('./pages/Timeline').then(m => ({ default: m.TimelinePage })));
+const ExpensesPage = lazyPage(() => import('./pages/Expenses').then(m => ({ default: m.ExpensesPage })));
+const EvolutionPage = lazyPage(() => import('./pages/Evolution').then(m => ({ default: m.EvolutionPage })));
+const FamilyPage = lazyPage(() => import('./pages/Family').then(m => ({ default: m.FamilyPage })));
+const ConsolidatedReportPage = lazyPage(() => import('./pages/ConsolidatedReport').then(m => ({ default: m.ConsolidatedReportPage })));
+const ValoresAlteradosPage = lazyPage(() => import('./pages/ValoresAlterados').then(m => ({ default: m.ValoresAlteradosPage })));
+const ProfilePage = lazyPage(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
+const SecurityPage = lazyPage(() => import('./pages/Security').then(m => ({ default: m.SecurityPage })));
+const PrivacyPage = lazyPage(() => import('./pages/Privacy').then(m => ({ default: m.PrivacyPage })));
+const AdminPage = lazyPage(() => import('./pages/admin').then(m => ({ default: m.AdminPage })));
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
-import { InviteLandingPage } from './pages/InviteLanding';
-import { DoctorInviteLandingPage } from './pages/DoctorInviteLanding';
-import { TermsPage } from './pages/Terms';
+const InviteLandingPage = lazyPage(() => import('./pages/InviteLanding').then(m => ({ default: m.InviteLandingPage })));
+const DoctorInviteLandingPage = lazyPage(() => import('./pages/DoctorInviteLanding').then(m => ({ default: m.DoctorInviteLandingPage })));
+const TermsPage = lazyPage(() => import('./pages/Terms').then(m => ({ default: m.TermsPage })));
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { BootSplash } from './components/BootSplash';
@@ -153,13 +173,14 @@ import { CreditRewardFx } from './components/CreditRewardFx';
 import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
 import { InsufficientCreditsDialog } from './components/InsufficientCreditsDialog';
+// Notificações fica no bundle principal: hospeda o CrossInsightBottomSheet e escuta 'openCrossInsight' — lazy perdia o evento.
 import { NotificationsPage } from './pages/Notifications';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
-import { MedicosPage } from './pages/Medicos';
-import { SupportPage } from './pages/Support';
-import { ApiPanelPage } from './pages/ApiPanel';
+const MedicosPage = lazyPage(() => import('./pages/Medicos').then(m => ({ default: m.MedicosPage })));
+const SupportPage = lazyPage(() => import('./pages/Support').then(m => ({ default: m.SupportPage })));
+const ApiPanelPage = lazyPage(() => import('./pages/ApiPanel').then(m => ({ default: m.ApiPanelPage })));
 const ApiDocsPage = lazy(() => import('./pages/ApiDocs').then(m => ({ default: m.ApiDocsPage })));
-import { ConquistasPage } from './pages/Conquistas';
+const ConquistasPage = lazyPage(() => import('./pages/Conquistas').then(m => ({ default: m.ConquistasPage })));
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -323,7 +344,9 @@ const glassRim = (dark: boolean) => dark
   ? 'inset 1px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 0 rgba(255,255,255,0.04)'
   : 'inset 1px 1px 0 rgba(255,255,255,0.95), inset -1px -1px 0 rgba(255,255,255,0.55)';
 // WebView sem backdrop-filter (APK antigo)? → fundo quase opaco no lugar do vidro.
-const CAN_BLUR = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' &&
+// perf 03/11: no APK (Android WebView) o blur(26px) do painel era recalculado a cada quadro da
+// animação de abrir/fechar o menu. Lá o painel usa o fundo quase opaco (o fallback que já existia).
+const CAN_BLUR = !Capacitor.isNativePlatform() && typeof CSS !== 'undefined' && typeof CSS.supports === 'function' &&
   (CSS.supports('backdrop-filter', 'blur(1px)') || CSS.supports('-webkit-backdrop-filter', 'blur(1px)'));
 
 // Seção COLAPSÁVEL do menu (acordeão) estilo Consultório Premium (Direção A):
@@ -372,7 +395,7 @@ const MenuSectionAccordion = ({
               ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
               : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.35)';
           },
-          transition: 'all .2s ease',
+          transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
           '&:hover': {
             bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.7)',
             boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
@@ -394,7 +417,7 @@ const MenuSectionAccordion = ({
             boxShadow: open
               ? 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(23,143,137,0.6)'
               : (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
-            transition: 'all .2s ease',
+            transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
             '& svg': { fontSize: 18 },
           }}
         >
@@ -515,7 +538,7 @@ const NavItem = ({
             ? 'inset 1px 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(248,113,113,0.32), 0 14px 26px -16px rgba(0,0,0,0.7)'
             : 'inset 1px 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(217,45,32,0.22), 0 14px 26px -16px rgba(217,45,32,0.5)',
           color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
-          transition: 'all .15s ease',
+          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
           '&:hover': {
             background: (t) => t.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(127,29,29,0.7), rgba(80,20,20,0.6))'
@@ -557,7 +580,7 @@ const NavItem = ({
           pl: 1,
           pr: 1.25,
           minHeight: 48,
-          transition: 'all .15s ease',
+          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
           color: (t) => {
             const d = t.palette.mode === 'dark';
             if (active) return d ? '#8ff0e8' : '#0b5c57';
@@ -581,7 +604,7 @@ const NavItem = ({
       >
         <Box component="span" sx={{
           width: 34, height: 34, mr: 1.5, flexShrink: 0, borderRadius: '11px', display: 'grid', placeItems: 'center',
-          transition: 'all .2s ease',
+          transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
           background: active
             ? 'linear-gradient(135deg, #20b2aa, #178f89)'
             : (t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
@@ -628,7 +651,7 @@ const NavItem = ({
         pr: 1,
         minHeight: 40,
         flex: '0 0 auto',
-        transition: 'all .15s ease, transform .15s ease',
+        transition: 'transform .15s ease, transform .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease, transform .15s ease, background-color .15s ease, transform .15s ease, border-color .15s ease, transform .15s ease, color .15s ease, transform .15s ease',
         color: (t) => {
           const isDark = t.palette.mode === 'dark';
           if (active) return isDark ? '#2dd4bf' : '#0f766e';
@@ -706,7 +729,7 @@ const NavItem = ({
           fontSize: 17,
           flexShrink: 0,
           color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
-          transition: 'all .15s ease',
+          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
           opacity: active ? 0.9 : 0.6,
         }}
       />
@@ -828,7 +851,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                 </Typography>
                 <ChevronRightIcon
                   className="dx-profile-chevron"
-                  sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.4)' : '#94a3b8', flexShrink: 0, transition: 'all .15s ease' }}
+                  sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.4)' : '#94a3b8', flexShrink: 0, transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease' }}
                 />
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
@@ -1074,7 +1097,7 @@ const AppMenu = () => {
                 boxShadow: sel
                   ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
                   : 'none',
-                transition: 'all .15s ease',
+                transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
                 '& svg': { fontSize: 15 },
               }}
             >
@@ -1157,7 +1180,7 @@ const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
 
-  useEffect(() => { closeDrawer(); }, [pathname]);
+  useEffect(() => { if (open) closeDrawer(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     (window as any).__drawerOpen = open;
     const onClose = () => closeDrawer();
