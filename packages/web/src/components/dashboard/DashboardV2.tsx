@@ -479,6 +479,71 @@ export const MentalCard = ({ mental, mentalOffline, introDismissed, onDismissInt
   );
 };
 
+/** ANÉIS DE META (lote ReUI 04/11): três GoalRings SVG com dado real do dashboard.
+ *  O anel é leitura de bem-estar — nunca diagnostico: PHQ-9 vira "% de bem-estar"
+ *  (100 − score/27), coerente com "quanto menor, melhor" da tela de saúde mental. */
+const GoalRingsCard = ({ phq9, lastExamAt, markerCount, altered, onMental, onUpload }: {
+  phq9: number | null; lastExamAt: string | null; markerCount: number; altered: number;
+  onMental: () => void; onUpload: () => void;
+}) => {
+  const rings: { pct: number | null; tone: string; label: string; value: string; on?: () => void }[] = [];
+  // 1) Bem-estar (PHQ-9 invertido; null = nunca mediceu → convite)
+  rings.push(phq9 == null
+    ? { pct: null, tone: '#94a3b8', label: 'Bem-estar', value: 'meça em 2 min', on: onMental }
+    : { pct: Math.max(0, Math.min(100, Math.round((1 - phq9 / 27) * 100))), tone: '#20b2aa', label: 'Bem-estar', value: `PHQ-9 ${phq9}/27`, on: onMental });
+  // 2) Exames em dia (janela 180d — o mesmo critério de "stale" do hero)
+  const days = lastExamAt ? Math.floor((Date.now() - new Date(lastExamAt).getTime()) / 86400000) : null;
+  rings.push(days == null
+    ? { pct: null, tone: '#94a3b8', label: 'Exames em dia', value: 'envie o 1º', on: onUpload }
+    : { pct: Math.max(0, Math.min(100, Math.round((1 - days / 180) * 100))), tone: days > 150 ? '#d97706' : '#20b2aa', label: 'Exames em dia', value: days === 0 ? 'hoje' : `há ${days} dia${days === 1 ? '' : 's'}` });
+  // 3) Marcadores estáveis (total − alterados; sem marcadores → convite)
+  rings.push(markerCount > 0
+    ? { pct: Math.max(0, Math.round(((markerCount - altered) / markerCount) * 100)), tone: '#20b2aa', label: 'Estáveis', value: `${markerCount - altered}/${markerCount}` }
+    : { pct: null, tone: '#94a3b8', label: 'Estáveis', value: 'sem exames', on: onUpload });
+
+  return (
+    <AppCard sx={{ p: { xs: 2, sm: 2.5 } }}>
+      <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 800, fontSize: 15, mb: 1.5 }}>Suas metas</Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-around', gap: 1, flexWrap: 'wrap' }}>
+        {rings.map((r) => {
+          const size = 86; const rr = (size - 12) / 2; const c = 2 * Math.PI * rr;
+          const filled = (r.pct ?? 0) / 100;
+          return (
+            <Box
+              key={r.label}
+              component={r.on ? 'button' : 'div'}
+              onClick={r.on ?? undefined}
+              sx={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.75,
+                border: 'none', background: 'transparent', p: 0, cursor: r.on ? 'pointer' : 'default', font: 'inherit',
+              }}
+            >
+              <Box sx={{ position: 'relative', width: size, height: size }}>
+                <svg width={size} height={size} className="-rotate-90" aria-hidden="true" style={{ transform: 'rotate(-90deg)' }}>
+                  <circle cx={size / 2} cy={size / 2} r={rr} fill="none" strokeWidth="8" stroke="rgba(148,163,184,.22)" />
+                  {r.pct != null && (
+                    <circle cx={size / 2} cy={size / 2} r={rr} fill="none" strokeWidth="8" stroke={r.tone} strokeLinecap="round"
+                      strokeDasharray={`${(c * filled).toFixed(1)} ${c.toFixed(1)}`} />
+                  )}
+                </svg>
+                <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center' }}>
+                  <Typography sx={{ fontWeight: 800, fontSize: 18, fontVariantNumeric: 'tabular-nums' }}>
+                    {r.pct == null ? '—' : `${r.pct}%`}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography sx={{ fontSize: 12, fontWeight: 800 }}>{r.label}</Typography>
+                <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{r.value}</Typography>
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+    </AppCard>
+  );
+};
+
 /** HERO — score ring com gradiente cônico animado, countup, mesh gradient bg. */
 /** Circunferência do ring do hero (r=42) — o arco do score é fração dela via dashoffset. */
 const RING_CIRC = 2 * Math.PI * 42;
@@ -1538,6 +1603,20 @@ const DashboardV2Inner = () => {
                 <DashboardErrorBoundary>
                   <PendenciasCard />
                 </DashboardErrorBoundary>
+              )}
+
+              {/* ANÉIS DE META (lote ReUI 04/11 — chart-8 da maquete, dado REAL): bem-estar
+                  (PHQ-9 invertido), exames em dia (janela 180d) e marcadores estáveis.
+                  Anel vazio NÃO finge dado: sem medição, vira convite com traço cinza. */}
+              {!d.loaded && !demo ? <SkeletonCard variant="list" /> : (
+                <GoalRingsCard
+                  phq9={(d as { mental?: { phq9?: { total?: number } | null } }).mental?.phq9?.total ?? null}
+                  lastExamAt={demo ? new Date().toISOString() : d.lastExam}
+                  markerCount={demo ? 32 : d.markerCount}
+                  altered={demo ? 3 : d.importante + d.moderada}
+                  onMental={go('/saude-mental')}
+                  onUpload={go('/exams/create')}
+                />
               )}
 
               {/* O QUE MUDOU — card único com 2 abas (Exames | Hábitos). Antes eram dois
