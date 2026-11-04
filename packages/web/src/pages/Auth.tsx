@@ -1,6 +1,18 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLogin, useNotify, useTranslate } from 'react-admin';
+
+/** Pós-login inteligente (05/11 — consulta Dr. Enrico): quem chega NUMA ROTA de
+ *  mão dada (ex.: link de teleconsulta no iPhone do médico), loga e VOLTA pra ela.
+ *  A rota de origem grava 'postLoginGo' ANTES de redirecionar pro login (ex.: 401
+ *  da teleconsulta). Helper consome e limpa — nunca vaza pra outra sessão. */
+export const postLoginGo = (): string | null => {
+  try {
+    const go = sessionStorage.getItem('postLoginGo');
+    if (go) sessionStorage.removeItem('postLoginGo');
+    return go;
+  } catch { return null; }
+};
 import { GoogleLogin } from '@react-oauth/google';
 import { Box, Typography, Button, Link, CircularProgress, Stack, TextField, InputAdornment, IconButton, Checkbox, FormControlLabel, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { keyframes } from '@mui/material/styles';
@@ -226,12 +238,19 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
         if (d.mfaRequired) { setMfaChallenge({ token: d.challengeToken, account: d.account, verifyUrl: `${API_URL}/doctor/mfa/verify`, isDoctor: true }); return; }
         localStorage.setItem('doctorToken', d.token);
         localStorage.setItem('doctorPhotoToken', d.token); // token ESTÁVEL p/ cache de fotos (não rotaciona c/ a sessão)
-        navigate('/doctor');
+        // Veio de um link (ex.: teleconsulta)? Volta PRA ELE, não pro portal.
+        navigate(postLoginGo() ?? '/doctor');
       } catch (err: any) { setErrs({ pwd: err.message }); }
       finally { setLoading(false); }
       return;
     }
-    try { await login({ username: email.trim(), password: pwd, inviteToken: invite || undefined }); }
+    try {
+      await login({ username: email.trim(), password: pwd, inviteToken: invite || undefined });
+      // RA redireciona pro '/' — se havia destino salvo (teleconsulta etc.), volta
+      // pra ELE por último (rAF vence a navegação padrão do react-admin).
+      const go = postLoginGo();
+      if (go) requestAnimationFrame(() => navigate(go, { replace: true }));
+    }
     catch (e: any) {
       if (e?.mfaRequired) { setMfaChallenge({ token: e.challengeToken, account: e.account, verifyUrl: `${API_URL}/auth/mfa/verify`, isDoctor: false }); return; }
       // Conta não verificada → redireciona pra tela de ativação por e-mail
@@ -311,7 +330,7 @@ export const LoginPage = ({ fixedRole }: { fixedRole?: 'paciente' | 'medico' }) 
           if (d.user) localStorage.setItem('user', JSON.stringify(d.user));
           if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
           window.dispatchEvent(new Event('selPatientChanged'));
-          navigate('/', { replace: true });
+          navigate(postLoginGo() ?? '/', { replace: true });
         }
       }
       else { notify(d.error || translate('auth.google_fail'), { type: 'error' }); }
@@ -549,7 +568,7 @@ export const RegisterPage = () => {
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta criada! Bem-vindo! 🎉', { type: 'success' });
-      navigate('/', { replace: true });
+      navigate(postLoginGo() ?? '/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };
@@ -569,7 +588,7 @@ export const RegisterPage = () => {
       if (d.patientId) { localStorage.setItem('patientId', d.patientId); localStorage.setItem('selPatientId', d.patientId); }
       localStorage.setItem('user', JSON.stringify(d.user));
       notify('Conta ativada! Bem-vindo! 🎉', { type: 'success' });
-      navigate('/', { replace: true });
+      navigate(postLoginGo() ?? '/', { replace: true });
     } catch (err: any) { notify(err.message, { type: 'error' }); }
     finally { setLoading(false); }
   };

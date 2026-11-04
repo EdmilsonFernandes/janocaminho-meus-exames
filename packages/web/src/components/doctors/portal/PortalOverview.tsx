@@ -314,30 +314,42 @@ export const PortalOverview = ({
                 }}
               />
             </Stack>
-            <Typography sx={{ color: 'text.secondary', fontSize: 14, fontWeight: 500, lineHeight: 1.4 }}>
-              {alerts.length > 0 ? (
-                <>
-                  <Box component="span" sx={{ fontWeight: 700, color: 'error.main' }}>
-                    {alerts.length} {alerts.length === 1 ? 'paciente com valores alterados' : 'pacientes com valores alterados'}
-                  </Box>
-                  {' precisando de atenção'}
-                  {openQP.length ? (
-                    <>
-                      {' · '}
-                      <Box component="span" sx={{ fontWeight: 700, color: 'warning.main' }}>
-                        {openQP.length} {openQP.length === 1 ? 'dúvida pendente' : 'dúvidas pendentes'}
-                      </Box>
-                    </>
-                  ) : ''}
-                </>
-              ) : openQP.length > 0 ? (
-                <Box component="span" sx={{ fontWeight: 700, color: 'warning.main' }}>
-                  {openQP.length} {openQP.length === 1 ? 'pergunta aguardando resposta' : 'perguntas aguardando resposta'}
-                </Box>
-              ) : (
-                'Tudo em ordem — nenhum alerta crítico no momento ✅'
+            {/* Fix 04/11 (dono: "label jogado quebra linha e perde o contexto"): o resumo
+                era TEXTO CORRIDO com spans bold — no mobile quebrava no meio da frase.
+                Agora cada métrica é uma PILL autocontida (padrão Badge ReUI): quebra
+                ENTRE pills, nunca dentro. Ícone + número + frase curta completa. */}
+            <Stack direction="row" useFlexGap flexWrap="wrap" spacing={0.75} sx={{ mt: 0.5 }}>
+              {alerts.length > 0 && (
+                <Stack
+                  direction="row" alignItems="center" spacing={0.5}
+                  sx={{ px: 1, py: 0.4, borderRadius: '999px', whiteSpace: 'nowrap', bgcolor: 'rgba(239,68,68,.10)', border: '1px solid rgba(239,68,68,.25)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(239,68,68,.16)' } }}
+                  onClick={() => { onSetPatAlertOnly(true); onSetView('patients'); }}
+                >
+                  <WarningAmberIcon sx={{ fontSize: 13, color: 'error.main' }} />
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'error.main' }}>
+                    {alerts.length === 1 ? '1 paciente em atenção' : `${alerts.length} pacientes em atenção`}
+                  </Typography>
+                </Stack>
               )}
-            </Typography>
+              {openQP.length > 0 && (
+                <Stack
+                  direction="row" alignItems="center" spacing={0.5}
+                  sx={{ px: 1, py: 0.4, borderRadius: '999px', whiteSpace: 'nowrap', bgcolor: 'rgba(245,158,11,.10)', border: '1px solid rgba(245,158,11,.25)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(245,158,11,.16)' } }}
+                  onClick={() => { onSetView('questions'); onLoadAllQ(); }}
+                >
+                  <QuestionAnswerIcon sx={{ fontSize: 13, color: 'warning.main' }} />
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'warning.main' }}>
+                    {openQP.length === 1 ? '1 dúvida pendente' : `${openQP.length} dúvidas pendentes`}
+                  </Typography>
+                </Stack>
+              )}
+              {alerts.length === 0 && openQP.length === 0 && (
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ px: 1, py: 0.4, borderRadius: '999px', whiteSpace: 'nowrap', bgcolor: 'rgba(16,185,129,.10)', border: '1px solid rgba(16,185,129,.25)' }}>
+                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#10b981' }} />
+                  <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'success.main' }}>Tudo em ordem ✅</Typography>
+                </Stack>
+              )}
+            </Stack>
           </Box>
 
           <Box sx={{ alignSelf: { xs: 'flex-start', sm: 'center' } }}>

@@ -1385,7 +1385,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       const res = await fetch(`${API_URL}/teleconsulta/${reminderId}/join`, { headers: { Authorization: `Bearer ${authToken()}` } });
       if (res.status === 401) {
         // agent2: sessão expirou — manda pro login em vez de toast genérico + loop no pré-join.
+        // Pós-login (05/11, Dr. Enrico via link no iPhone): salva a CONSULTA como destino
+        // — quem loga VOLTA pra ela (helper postLoginGo do Auth).
         setBanner(null);
+        try { sessionStorage.setItem('postLoginGo', `#/teleconsulta/${reminderId}`); } catch { /* noop */ }
         window.location.hash = role === 'doctor' ? '#/entrar/medico' : '#/entrar';
         return;
       }
@@ -1606,7 +1609,17 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               if (found) {
                 fetched = { id: found.id, patientId: found.patientId, title: found.title, dueDate: found.dueDate, consentAt: found.consentAt, recordConsentAt: found.recordConsentAt, provider: found.provider, linkUrl: found.linkUrl, doctor: found.doctor, endedAt: found.endedAt };
               }
-            } else if (res.status === 401) { setPhase('error'); return; }
+            } else if (res.status === 401) {
+              // 05/11 (link do médico no iPhone): sem sessão nenhuma → provavelmente é o
+              // MÉDICO abrindo o link direto. Manda pro login CERTO e VOLTA pra cá após
+              // logar (postLoginGo). Quem já tinha paciente salvo mas token expirou →
+              // login de paciente (mesma volta).
+              setBanner(null);
+              try { sessionStorage.setItem('postLoginGo', `#/teleconsulta/${reminderId}`); } catch { /* noop */ }
+              const hasPatientCtx = !!(localStorage.getItem('patientId') || localStorage.getItem('selPatientId'));
+              window.location.hash = hasPatientCtx ? '#/entrar' : '#/entrar/medico';
+              return;
+            }
           } catch { /* offline */ }
         }
         if (cancelled) return;
