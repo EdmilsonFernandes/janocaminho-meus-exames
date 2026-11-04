@@ -116,7 +116,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                 aria-label={`${d.getDate()} — ${items.length ? `${items.length} consulta(s)` : 'sem consultas'}`}
                 onClick={() => setSelDay(d)}
                 sx={{
-                  position: 'relative', minHeight: { xs: 52, sm: 62 }, p: 0.5, pt: 0.75,
+                  position: 'relative', minHeight: { xs: 58, sm: 68 }, p: 0.5, pt: 0.75,
                   display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.5,
                   borderRadius: '12px', cursor: 'pointer', fontFamily: 'inherit',
                   border: '1px solid',
@@ -132,16 +132,18 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                   {d.getDate()}
                 </Typography>
                 {items.length > 0 && (
-                  <Stack direction="row" spacing={-0.6} alignItems="center">
+                  <Stack direction="row" spacing={-0.9} alignItems="center">
                     {items.slice(0, 2).map((r, j) => (
                       <Avatar
                         key={j}
                         src={r.photo}
                         alt={r.name}
                         sx={{
-                          width: 20, height: 20, fontSize: 9.5, fontWeight: 800,
+                          // Fix 05/11 (dono: "foto minúscula, impossível ver"): 20px
+                          // virava bolinha ilegível — 26/30px identifica o paciente.
+                          width: { xs: 26, sm: 30 }, height: { xs: 26, sm: 30 }, fontSize: { xs: 11, sm: 12 }, fontWeight: 800,
                           bgcolor: 'rgba(15,118,110,0.18)', color: '#178f89',
-                          border: '1.5px solid', borderColor: 'background.paper',
+                          border: '2px solid', borderColor: 'background.paper',
                           ...(r.done ? { filter: 'grayscale(1)', opacity: 0.55 } : {}),
                         }}
                       >
@@ -149,7 +151,7 @@ export const TeleAgendaCalendar = ({ consultas, patients, onEnterTele, onOpenPos
                       </Avatar>
                     ))}
                     {items.length > 2 && (
-                      <Box component="span" sx={{ ml: 1, fontSize: 9.5, fontWeight: 800, color: 'text.secondary' }}>+{items.length - 2}</Box>
+                      <Box component="span" sx={{ ml: 1.25, fontSize: 10.5, fontWeight: 800, color: 'text.secondary' }}>+{items.length - 2}</Box>
                     )}
                   </Stack>
                 )}

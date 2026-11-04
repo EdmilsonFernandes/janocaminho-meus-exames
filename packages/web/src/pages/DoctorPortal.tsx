@@ -643,6 +643,26 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
     return c;
   }, [abnormalItems]);
 
+  /** PRIORIDADE CLÍNICA = SÓ O ÚLTIMO EXAME (dono 05/11: "todos mostram e assusta o
+   *  médico"): alterados históricos inflavam o card de risco com o passado. Aqui ficam
+   *  apenas os itens do exame MAIS RECENTE — a régua de "preciso agir agora". A aba
+   *  Alterados continua mostrando o histórico completo. */
+  const itemExamTime = (it: any) => new Date(it.examDate || it.performedAt || it.createdAt || 0).getTime();
+  const latestAbnormalItems = useMemo(() => {
+    if (abnormalItems.length <= 1) return abnormalItems;
+    const latest = Math.max(...abnormalItems.map(itemExamTime));
+    return abnormalItems.filter((it) => itemExamTime(it) === latest);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, [abnormalItems]);
+  const latestAbnormalStats = useMemo(() => {
+    const c = { total: 0, importante: 0, moderada: 0, leve: 0 };
+    for (const it of latestAbnormalItems) {
+      if (refScaleSuspect(it)) continue;
+      c[priorityOf(it)]++; c.total++;
+    }
+    return c;
+  }, [latestAbnormalItems]);
+
   // --- Anotações ---
   const addNote = async () => {
     const content = newNote.trim();
@@ -2031,8 +2051,8 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
             {/* AVALIAÇÃO DE RISCO CLÍNICO — Estratificação imediata para o médico */}
             <ClinicalRiskCard
               patient={selected}
-              abnormalItems={abnormalItems}
-              abnormalStats={abnormalStats}
+              abnormalItems={latestAbnormalItems}
+              abnormalStats={latestAbnormalStats}
               exams={exams}
               medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
               criticalMeds={medsInfo?.critical?.length ?? 0}
