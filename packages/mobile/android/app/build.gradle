@@ -8,8 +8,8 @@ android {
         applicationId "com.janocaminho.drexame"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 565
-        versionName "2.7.315"
+        versionCode 566
+        versionName "2.7.316"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -85,4 +85,39 @@ try {
         throw new GradleException("google-services.json AUSENTE — AAB de release nasceria sem Firebase (crash 'FirebaseApp is not initialized' no push). Copie o arquivo do clone principal ou build na árvore principal. (incidente AAB 559, 31/10)")
     }
     logger.warn("google-services.json not found — BUILD DEBUG sem push (release é bloqueado).")
+}
+
+// ── GATE ANTI-ÁRVORE-SUJA (incidente AAB 563, 04/11/26) ──────────────────────────
+// O AAB empacota a WORKING TREE (não o git): o 563 saiu com WIP não-commitado pela
+// metade (scroll lock do bottom sheet em construção) e o Google reprovou por
+// "congela / rolagem não funciona". Regra: release SÓ de árvore limpa de código.
+// Bypass explícito p/ testes: ./gradlew bundleRelease -PAAB_ALLOW_DIRTY=1
+tasks.register('gateCleanTree') {
+    doLast {
+        def repo = new File(rootDir, '../../..').getCanonicalFile()
+        def proc = ["git", "status", "--porcelain", "--",
+                    "packages/web/src", "packages/server/src", "packages/shared/src",
+                    "packages/web/package.json", "packages/server/package.json",
+                    "packages/shared/package.json", "packages/mobile/android/app/src"].execute(null, repo)
+        def dirty = proc.text.readLines().findAll { it.trim() }
+        if (dirty && !project.hasProperty('AAB_ALLOW_DIRTY')) {
+            println "╔══════════════════════════════════════════════════════════════════╗"
+            println "║  AAB COM ÁRVORE SUJA — RELEASE BLOQUEADO (incidente 563)          ║"
+            println "╚══════════════════════════════════════════════════════════════════╝"
+            dirty.each { println "  • ${it}" }
+            println "Commit/push (ou stash) o código acima antes de gerar release."
+            println "Bypass consciente p/ teste: -PAAB_ALLOW_DIRTY=1"
+            throw new GradleException("Árvore com código não-commitado — release bloqueado (gate 563).")
+        }
+        if (dirty) {
+            println "[gate563] AVISO: seguindo com árvore suja (bypass) — ${dirty.size()} caminho(s):"
+            dirty.each { println "  • ${it}" }
+        } else {
+            println "[gate563] árvore limpa ✓"
+        }
+    }
+}
+// Só RELEASE (debug/APK de teste segue livre — é o fluxo normal com WIP)
+tasks.matching { it.name in ['bundleRelease', 'assembleRelease'] }.configureEach {
+    dependsOn 'gateCleanTree'
 }
