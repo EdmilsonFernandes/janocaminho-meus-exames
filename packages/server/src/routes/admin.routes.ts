@@ -2590,4 +2590,67 @@ router.patch('/coupons/:id', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// CONSUMO DE IA (lote ReUI 04/11): agregação do AiUsageLog na janela (default 30d) —
+// o painel do IaTab ganha dado VIVO. Shape = o que o front JÁ consumia (analysesCount,
+// totalCost, totalLogs, totalTokens, avgLatency, byModel, recent) + as agregações novas
+// (features com custo/tokens/latência/taxa de erro, topUsers por custo) — base do alerta
+// pré-429 (pool de chaves) e do custo real por recurso.
+router.get('/ai-usage', async (req, res, next) => {
+  try {
+    const days = Math.min(365, Math.max(1, Number(req.query?.days) || 30));
+    const since = new Date(Date.now() - days * 86400_000);
+    const [byFeature, topUsers, totals, byModel, analysesCount, recent, errorCount] = await Promise.all([
+      prisma.aiUsageLog.groupBy({
+        by: ['feature'],
+        where: { createdAt: { gte: since } },
+        _count: { _all: true },
+        _sum: { promptTokens: true, completionTokens: true, costBrl: true },
+        _avg: { latencyMs: true },
+      }),
+      prisma.aiUsageLog.groupBy({
+        by: ['userId'],
+        where: { createdAt: { gte: since } },
+        _sum: { costBrl: true },
+        _count: { _all: true },
+        orderBy: { _sum: { costBrl: 'desc' } },
+        take: 5,
+      }),
+      prisma.aiUsageLog.aggregate({
+        where: { createdAt: { gte: since } },
+        _count: { _all: true },
+        _sum: { costBrl: true, promptTokens: true, completionTokens: true },
+        _avg: { latencyMs: true },
+      }),
+      prisma.aiUsageLog.groupBy({ by: ['model'], where: { createdAt: { gte: since } }, _count: true }),
+      prisma.aiAnalysis.count({ where: { createdAt: { gte: since } } }),
+      prisma.aiAnalysis.findMany({ orderBy: { createdAt: 'desc' }, take: 5, select: { id: true, type: true, modelUsed: true, createdAt: true, exam: { select: { title: true } } } }),
+      prisma.aiUsageLog.count({ where: { createdAt: { gte: since }, success: false } }),
+    ]);
+    const totalCalls = totals._count._all ?? 0;
+    const features = byFeature.map((f) => ({
+      feature: f.feature,
+      calls: f._count._all ?? 0,
+      promptTokens: f._sum.promptTokens ?? 0,
+      completionTokens: f._sum.completionTokens ?? 0,
+      costBrl: Number((f._sum.costBrl ?? 0).toFixed(4)),
+      avgLatencyMs: Math.round(f._avg.latencyMs ?? 0),
+    }));
+    res.json({
+      days,
+      // — shape que o IaTab já renderiza —
+      analysesCount,
+      totalCost: Number((totals._sum.costBrl ?? 0).toFixed(4)),
+      totalLogs: totalCalls,
+      totalTokens: Number((totals._sum.promptTokens ?? 0) + (totals._sum.completionTokens ?? 0)),
+      avgLatency: Math.round(totals._avg.latencyMs ?? 0),
+      byModel: byModel.sort((a, b) => Number(b._count) - Number(a._count)).slice(0, 6).map((m) => ({ modelUsed: m.model, _count: m._count })),
+      recent,
+      // — agregações novas (painel consumo/alerta 429) —
+      totals: { calls: totalCalls, costBrl: Number((totals._sum.costBrl ?? 0).toFixed(4)), errorRate: totalCalls ? Number(((errorCount / totalCalls) * 100).toFixed(1)) : 0 },
+      features,
+      topUsers: topUsers.map((u) => ({ userId: u.userId, calls: u._count._all ?? 0, costBrl: Number((u._sum.costBrl ?? 0).toFixed(4)) })),
+    });
+  } catch (e) { next(e); }
+});
+
 export default router;

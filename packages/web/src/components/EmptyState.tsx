@@ -7,7 +7,7 @@ import { tealText } from '../theme';
  *  ícone específico (default = mascote, nunca mais "emoji solto" = identidade consistente).
  *  `bonus` (nº de créditos) mostra um chip "ganhe X ao enviar o 1º exame" — só pra quem ainda
  *  não recebeu o bônus (passar undefined esconde). */
-export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus, variant = 'plain' }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void; bonus?: number; variant?: 'plain' | 'card' }) => (
+export const EmptyState = ({ emoji, title, desc, cta, onCta, cta2, onCta2, bonus, variant = 'plain' }: { emoji?: string; title: string; desc?: string; cta?: string; onCta?: () => void; cta2?: string; onCta2?: () => void; bonus?: number; variant?: 'plain' | 'card' }) => (
   <Box sx={{
     textAlign: 'center', py: { xs: 5, md: 7 }, px: 3,
     // ReUI Empty (dono 30/10): variante 'card' = contêiner tracejado arredondado — o
@@ -38,8 +38,15 @@ export const EmptyState = ({ emoji, title, desc, cta, onCta, bonus, variant = 'p
         <Typography sx={{ fontWeight: 700, color: (t) => tealText(t.palette.mode), fontSize: 14 }}>Ganhe <Box component="span" sx={{ fontWeight: 800 }}>{bonus} créditos</Box> ao enviar seu 1º exame</Typography>
       </Box>
     )}
-    {cta && onCta && (
-      <Button variant="contained" onClick={onCta} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>{cta}</Button>
-    )}
+    {(cta && onCta) || (cta2 && onCta2) ? (
+      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'center', gap: 1.5 }}>
+        {cta && onCta && (
+          <Button variant="contained" onClick={onCta} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 800, px: 3, minHeight: 44, background: 'linear-gradient(180deg,#20b2aa,#178f89)', '&:hover': { background: 'linear-gradient(180deg,#178f89,#178f89)' } }}>{cta}</Button>
+        )}
+        {cta2 && onCta2 && (
+          <Button variant="outlined" onClick={onCta2} sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 3, minHeight: 44, borderWidth: 1.5, borderColor: 'rgba(32,178,170,.55)', color: (t) => tealText(t.palette.mode), '&:hover': { borderWidth: 1.5, borderColor: 'rgba(32,178,170,.85)', bgcolor: 'rgba(32,178,170,.08)' } }}>{cta2}</Button>
+        )}
+      </Box>
+    ) : null}
   </Box>
 );

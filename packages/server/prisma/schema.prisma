@@ -955,6 +955,11 @@ releaseEligibleAt  DateTime?  // paidAt + releaseDelayDays (da snapshot) — lib
 //    Cache de leitura do evento ledger refund_<id> — a fonte é o ledger (§18.3);
 //    null = ainda não estornado. Idempotência do job de estorno por esta coluna.
 refundedAt         DateTime?  // estorno confirmado no provedor — consulta devolvida ao paciente
+  // ── Lote ReUI (04/11/26): assinatura desenhada do consentimento (Art.15). O rating
+  //    pós-consulta JÁ existe (POST /teleconsulta/:id/feedback, 1-5 + nota, upsert por
+  //    ator) — aqui só entra o PNG da assinatura (data/consents, FORA do banco, mesmo
+  //    princípio dos PDFs). consentAt continua sendo o aceite textual.
+  consentSignaturePath String? // caminho do PNG de assinatura (data/consents/<id>.png)
   createdAt DateTime @default(now())
   consultSummary ConsultSummary?
 

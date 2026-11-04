@@ -486,7 +486,7 @@ const ExamCards = () => {
       ? <EmptyState variant="card" emoji="🔍" title={translate('exams.empty_search_title')} desc={translate('exams.empty_search_desc')} />
       : failed.length > 0 || rejected.length > 0
         ? <EmptyState variant="card" title="Nenhum exame pronto ainda" desc="Os envios desta página precisam de atenção — re-extrai ou confere acima. Envie um novo documento quando quiser." />
-        : <EmptyState variant="card" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} bonus={firstBonus ?? undefined} />
+        : <EmptyState variant="card" title={translate('exams.empty_title')} desc={translate('exams.empty_desc')} cta={translate('exams.send')} onCta={() => navigate('/exams/create')} cta2="Ver com dados de exemplo" onCta2={() => navigate('/?demo=1')} bonus={firstBonus ?? undefined} />
   );
 
   const renderCard = (r: any) => {

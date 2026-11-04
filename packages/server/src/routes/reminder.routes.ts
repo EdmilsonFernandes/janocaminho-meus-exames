@@ -3,6 +3,7 @@ import { prisma } from '../prisma';
 import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { parseListParams, setListHeaders } from '../utils/list';
 import { REMINDER_TYPES, REMINDER_RECURRENCES } from '../utils/reminderConstants';
+import { saveConsentSignature, readConsentSignature } from '../utils/consentSignature';
 
 /** Antecedências (minutos antes do dueDate) escolhidas pelo usuário ao criar — estilo Agenda do Google. */
 const DEFAULT_OFFSETS = [1440, 300, 0]; // 1 dia · 5h · na hora
@@ -157,16 +158,36 @@ router.put('/:id', async (req: AuthedRequest, res, next) => {
 // registra o aceite livre/esclarecido; o carimbo habilita o botão "Entrar na consulta".
 // Idempotente: re-aceitar só refresca o carimbo (sem duplicar histórico — a data mais
 // nova é a que vale; o primeiro aceite fica preservado se já existir).
+// Lote ReUI (04/11/26): `signature` OPCIONAL (dataURL PNG ≤ 300KB, canvas do app) — a
+// assinatura desenhada anexa o ATO ao consentimento; arquivo em data/uploads/consents,
+// FORA do banco (mesmo princípio dos PDFs). Sem assinatura = fluxo textual de sempre.
 router.put('/:id/consent', async (req: AuthedRequest, res, next) => {
   try {
     const existing = await prisma.reminder.findUnique({ where: { id: String(req.params.id) } });
     if (!existing || existing.ownerId !== req.userId) { res.status(404).json({ error: 'Lembrete não encontrado' }); return; }
     if (existing.type !== 'teleconsulta') { res.status(400).json({ error: 'Consentimento vale apenas para teleconsulta.' }); return; }
-    const r = await prisma.reminder.update({
-      where: { id: existing.id },
-      data: { consentAt: existing.consentAt ?? new Date() },
-    });
-    res.json({ id: r.id, consentAt: r.consentAt });
+    const data: { consentAt: Date; consentSignaturePath?: string } = { consentAt: existing.consentAt ?? new Date() };
+    const sig = typeof req.body?.signature === 'string' ? req.body.signature : '';
+    const m = /^data:image\/png;base64,([A-Za-z0-9+/=]+)$/.exec(sig);
+    if (sig && !m) { res.status(400).json({ error: 'Assinatura inválida (PNG esperado).' }); return; }
+    if (m) {
+      const buf = Buffer.from(m[1], 'base64');
+      if (buf.length === 0 || buf.length > 300 * 1024) { res.status(400).json({ error: 'Assinatura inválida (tamanho).' }); return; }
+      data.consentSignaturePath = saveConsentSignature(existing.id, buf);
+    }
+    const r = await prisma.reminder.update({ where: { id: existing.id }, data });
+    res.json({ id: r.id, consentAt: r.consentAt, signed: !!r.consentSignaturePath });
+  } catch (e) { next(e); }
+});
+
+// PNG da assinatura do consentimento (owner) — exibido na tela da consulta e no PDF futuro.
+router.get('/:id/consent-signature', async (req: AuthedRequest, res, next) => {
+  try {
+    const existing = await prisma.reminder.findUnique({ where: { id: String(req.params.id) }, select: { ownerId: true, consentSignaturePath: true } });
+    if (!existing || existing.ownerId !== req.userId || !existing.consentSignaturePath) { res.status(404).json({ error: 'Assinatura não encontrada' }); return; }
+    const buf = readConsentSignature(existing.consentSignaturePath);
+    if (!buf) { res.status(404).json({ error: 'Assinatura não encontrada' }); return; }
+    res.type('image/png').send(buf);
   } catch (e) { next(e); }
 });
 

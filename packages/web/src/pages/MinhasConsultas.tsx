@@ -21,6 +21,7 @@ import { FalarAgora } from '../components/FalarAgora';
 // teleconsultas do produto. Prefill vem de Meus médicos / Encontrar especialistas.
 import { MinhasConsultasRegistradas } from '../components/consultas/MinhasConsultasRegistradas';
 import { Badge as ReuiBadge } from '@/components/reui/badge';
+import { Rating } from '@/components/reui/rating';
 import { Frame, FramePanel } from '@/components/reui/frame';
 import { IconTile } from '@/components/reui/patterns';
 import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
@@ -37,6 +38,50 @@ import { useReuiThemeSync } from '@/components/reui/use-reui-theme';
  * linkUrl, consentAt, done, endedAt, consultPriceCents, paidAt,
  * createdByDoctorId, doctor{id,name,crm,crmUf,specialty,photoUrl}, consultSummaryApproved.
  */
+/** Avaliação pós-consulta em estrelas (lote ReUI 04/11). Isolada: estado próprio, não
+ *  interfere no clique do card (stopPropagation). Grava no endpoint de feedback EXISTENTE
+ *  (POST /teleconsulta/:id/feedback {rating 1-5} — upsert por ator no audit); depois do
+ *  envio congela em "obrigado" (re-avaliar fica na tela da consulta, como hoje). */
+const ConsultRating = ({ reminderId }: { reminderId: string }) => {
+  const [stars, setStars] = useState(0);
+  const [sent, setSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  if (sent) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, pt: 1.25, mt: 1.25, borderTop: '1px dashed', borderColor: 'divider' }}>
+        <Rating rating={stars} size="sm" />
+        <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>Obrigado pela avaliação 💚</Typography>
+      </Box>
+    );
+  }
+  return (
+    <Box
+      onClick={(e) => e.stopPropagation()}
+      sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap', pt: 1.25, mt: 1.25, borderTop: '1px dashed', borderColor: 'divider' }}
+    >
+      <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary' }}>Como foi o atendimento?</Typography>
+      <Rating
+        rating={stars}
+        editable={!busy}
+        onRatingChange={(v) => {
+          if (busy) return;
+          setStars(v);
+          setBusy(true);
+          fetch(`${API_URL}/teleconsulta/${reminderId}/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token()}` },
+            body: JSON.stringify({ rating: v }),
+          })
+            .then((r) => { if (r.ok) setSent(true); })
+            .catch(() => { /* offline: mantém as estrelas visíveis, sem travar */ })
+            .finally(() => setBusy(false));
+        }}
+        size="sm"
+      />
+    </Box>
+  );
+};
+
 export const MinhasConsultasPage = () => {
   useReuiThemeSync();
   const [pid] = useSelectedPatient();
@@ -461,6 +506,47 @@ export const MinhasConsultasPage = () => {
                       </Button>
                     </Stack>
                   </Stack>
+
+                  {/* STATUS DA CONSULTA em etapas (lote ReUI — receipt-2): agendada →
+                      confirmada(paga/aceita) → realizada → laudo. Derivado dos campos
+                      REAIS do card; a etapa "atual" pulsa sutilmente. */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', mt: 1.25, pt: 1.25, borderTop: '1px dashed', borderColor: 'divider' }}>
+                    {(() => {
+                      const steps = [
+                        { l: 'Agendada', done: true },
+                        { l: 'Confirmada', done: Boolean(r.paidAt || r.consultPriceCents == null) },
+                        { l: 'Realizada', done: true, current: true },
+                        { l: 'Laudo', done: Boolean(r.consultSummaryApproved) },
+                      ];
+                      return steps.map((s, i) => (
+                        <Box key={s.l} sx={{ flex: i < steps.length - 1 ? 1 : '0 0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', minWidth: 54, px: 0.25 }}>
+                          {i < steps.length - 1 && (
+                            <Box aria-hidden sx={{
+                              position: 'absolute', top: '10px', left: 'calc(50% + 13px)', width: 'calc(100% - 26px)',
+                              height: '2px', borderRadius: 1,
+                              bgcolor: s.done ? 'rgba(13,148,136,.45)' : 'divider',
+                            }} />
+                          )}
+                          <Box sx={{
+                            width: 22, height: 22, borderRadius: '50%', display: 'grid', placeItems: 'center',
+                            bgcolor: s.done ? 'rgba(13,148,136,.14)' : 'transparent',
+                            border: '1.5px solid',
+                            borderColor: s.done ? '#0d9488' : 'divider',
+                            color: '#0d9488',
+                            animation: s.current ? 'consultPulse 2s ease-in-out infinite' : 'none',
+                            '@keyframes consultPulse': { '0%,100%': { boxShadow: '0 0 0 0 rgba(13,148,136,.30)' }, '50%': { boxShadow: '0 0 0 5px rgba(13,148,136,0)' } },
+                            fontSize: 11, fontWeight: 800, zIndex: 1,
+                          }}>{s.done ? <CheckCircleRoundedIcon sx={{ fontSize: 13 }} /> : i + 1}</Box>
+                          <Typography sx={{ fontSize: 10, fontWeight: 700, color: s.done ? 'text.primary' : 'text.disabled', textAlign: 'center', mt: 0.5 }}>{s.l}</Typography>
+                        </Box>
+                      ));
+                    })()}
+                  </Box>
+
+                  {/* AVALIAÇÃO PÓS-CONSULTA (lote ReUI 04/11 — rating da maquete, agora
+                      gravando de verdade): estrelas 1-5 no card do histórico → POST
+                      /teleconsulta/:id/feedback (endpoint existente, upsert por ator). */}
+                  <ConsultRating reminderId={r.id} />
                 </Card>
               );
             })}

@@ -82,6 +82,7 @@ import { openTelemedicinaRoom } from '../utils/telemedicina';
 import { hapticError, hapticLight, hapticSuccess } from '../utils/haptic';
 import { tealText } from '../theme';
 import { CONSENT_TEXT } from '../constants/consent';
+import { ConsentSignaturePad } from '../components/ConsentSignaturePad';
 // F3 — componentes compartilhados da área de teleconsulta (fe2): 1 padrão só p/
 // médico e paciente. Contratos: docs/research/2026-10-20-f3-arquitetura.md §3.
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
@@ -448,6 +449,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
 
   // ── F3 (paciente): gravação (consent) + pedidos do médico + área pós-consulta ──
   const [recordAudio, setRecordAudio] = useState(false); // checkbox §1 — default OFF (opt-in honesto)
+  // Lote ReUI 04/11: assinatura desenhada do consent Art.15 (opcional — dataURL PNG
+  // do canvas; null = aceite textual puro, fluxo de sempre). Vai no PUT do consent.
+  const [consentSignature, setConsentSignature] = useState<string | null>(null);
   const [installDismissed, setInstallDismissed] = useState(false); // banner Play Store (web Android) — dispensável
   const [briefOpen, setBriefOpen] = useState(false); // brief clínico (médico, in-call)
   // Esc fecha o brief; foco entra no sheet e Tab fica preso nele (critic #5 —
@@ -1466,9 +1470,14 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     setJoinLoading(true);
     try {
       let next: Summary | null = sum ? { ...sum } : sum;
-      // Art.15 (CFM 2.314/22) — só se ainda não consenter.
+      // Art.15 (CFM 2.314/22) — só se ainda não consenter. Assinatura OPCIONAL no body
+      // (lote ReUI 04/11): o server valida dataURL PNG ≤300KB e grava fora do banco.
       if (role === 'patient' && sum && !sum.consentAt) {
-        const res = await fetch(`${API_URL}/reminders/${reminderId}/consent`, { method: 'PUT', headers: { Authorization: `Bearer ${token()}` } });
+        const res = await fetch(`${API_URL}/reminders/${reminderId}/consent`, {
+          method: 'PUT',
+          headers: { Authorization: `Bearer ${token()}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(consentSignature ? { signature: consentSignature } : {}),
+        });
         if (!res.ok) throw new Error('consent');
         hapticSuccess();
         next = { ...sum, consentAt: new Date().toISOString() };
@@ -4543,6 +4552,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           {/* Consentimento (Art. 15 / CFM 2.314/22) — mesmo texto do dialog do Reminders */}
           {showConsent && (
             <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.65, mt: 1.5 }}>{CONSENT_TEXT}</Typography>
+          )}
+          {showConsent && role === 'patient' && !summary?.consentAt && (
+            <ConsentSignaturePad onChange={setConsentSignature} />
           )}
           {role === 'patient' && summary?.consentAt && (
             <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>✓ Telemedicina autorizada</Typography>

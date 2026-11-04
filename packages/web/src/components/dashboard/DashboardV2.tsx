@@ -1187,7 +1187,14 @@ const DashboardV2Inner = () => {
   // MODO EXEMPLO: swap 1:1 do payload (ver demoData.ts). NÃO persiste — dado fictício
   // de saúde jamais "vira seu"; sair/recarregar volta pro app real. O hook real continua
   // rodando (hooks incondicionais) e o firstName continua o DO USUÁRIO (saudação real).
-  const [demo, setDemo] = useState(false);
+  // Deep-link `/?demo=1` (empty state "Ver com dados de exemplo"): HashRouter guarda a
+  // query DENTRO do hash — parse do hash no MOUNT apenas (mudança de rota não re-seta).
+  const [demo, setDemo] = useState(() => {
+    try {
+      const q = window.location.hash.split('?')[1] ?? '';
+      return new URLSearchParams(q).get('demo') === '1';
+    } catch { return false; }
+  });
   const [demoAsk, setDemoAsk] = useState(false);
   // 28/09: tile Risco do coração abre os FATORES (dialog) em vez de navegar pra Tendências.
   const [cardioOpen, setCardioOpen] = useState(false);

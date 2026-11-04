@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Box, Typography, Button, Card, CardContent, Skeleton, Chip, Fade, alpha,
+  Box, Typography, Button, Card, CardContent, Skeleton, Chip, Fade, alpha, LinearProgress,
 } from '@mui/material';
 import BoltIcon from '@mui/icons-material/Bolt';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
@@ -63,6 +63,55 @@ const relDate = (iso: string): string => {
   if (days === 1) return 'ontem';
   if (days < 7) return `${days} dias atrás`;
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+};
+
+/** USO DO MÊS (lote ReUI 04/11 — padrão chart-25/pricing-2 da maquete, agora com dado
+ *  vivo): quanto você já gastou de créditos em cada recurso de IA no mês corrente,
+ *  direto do ledger (GET /billing/usage). Isolado do resto da tela (fetch próprio) —
+ *  sem dado (conta nova), o card não aparece (nada de barra vazia fingindo informação). */
+interface UsageItem { kind: string; label: string; spent: number; uses: number }
+
+const MonthlyUsageCard = () => {
+  const [items, setItems] = useState<UsageItem[] | null>(null);
+  useEffect(() => {
+    fetch(`${API_URL}/billing/usage`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (Array.isArray(d?.items) && d.items.length > 0) setItems(d.items); })
+      .catch(() => { /* offline: simplesmente não mostra */ });
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
+  if (!items) return null;
+  const max = Math.max(...items.map((i) => i.spent), 1);
+  const total = items.reduce((s, i) => s + i.spent, 0);
+  const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+  return (
+    <Card elevation={0} sx={{ mb: 2, borderRadius: '16px', border: (t) => `1px solid ${alpha(t.palette.divider, 0.6)}` }}>
+      <CardContent sx={{ p: 2.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1, mb: 1.5 }}>
+          <Typography sx={{ fontFamily: '"Poppins",sans-serif', fontWeight: 700, fontSize: 15 }}>
+            Uso deste mês
+          </Typography>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            {MONTHS[new Date().getMonth()]} · {total} créditos de IA
+          </Typography>
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+          {items.map((i) => (
+            <Box key={i.kind}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, mb: 0.5 }}>
+                <Typography sx={{ fontSize: 12.5, fontWeight: 700 }}>{i.label}</Typography>
+                <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>
+                  {i.spent} · {i.uses} {i.uses === 1 ? 'uso' : 'usos'}
+                </Typography>
+              </Box>
+              <LinearProgress variant="determinate" value={(i.spent / max) * 100}
+                sx={{ height: 6, borderRadius: 99, bgcolor: 'rgba(148,163,184,.18)', '& .MuiLinearProgress-bar': { background: 'linear-gradient(90deg,#20b2aa,#178f89)' } }} />
+            </Box>
+          ))}
+        </Box>
+      </CardContent>
+    </Card>
+  );
 };
 
 export const WalletPage = () => {
@@ -171,6 +220,8 @@ export const WalletPage = () => {
             </Box>
           </CardContent>
         </Card>
+
+        <MonthlyUsageCard />
 
         {/* STATS FILTRÁVEIS — clicar filtra o extrato (gain/spend/all). minmax(0,1fr):
             número grande não infla a track (armadilha clássica de grid no mobile). */}

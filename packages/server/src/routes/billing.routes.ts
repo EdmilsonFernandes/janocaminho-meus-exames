@@ -109,6 +109,35 @@ router.get('/status', requireAuth, async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// USO DO MÊS (lote ReUI 04/11): agregação do LEDGER existente — quanto o usuário já
+// gastou de créditos em cada recurso de IA no mês corrente. Sem schema novo: é o
+// CreditTransaction (kinds de IA, delta<0) agrupado. O front compõe a barra "usado/cota"
+// (cotas vêm do AppSetting grants/creditCosts — nada hardcode aqui).
+router.get('/usage', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const LABELS: Record<string, string> = {
+      ai_chat: 'Chat com a IA',
+      ai_summary: 'Relatório inteligente',
+      ai_consolidated: 'Consolidado p/ médico',
+    };
+    const groups = await prisma.creditTransaction.groupBy({
+      by: ['kind'],
+      where: { userId: req.userId!, delta: { lt: 0 }, kind: { in: Object.keys(LABELS) }, createdAt: { gte: monthStart } },
+      _sum: { delta: true },
+      _count: { _all: true },
+    });
+    const items = groups.map((g) => ({
+      kind: g.kind,
+      label: LABELS[g.kind] ?? g.kind,
+      spent: Math.abs(Number(g._sum.delta ?? 0)),
+      uses: g._count._all ?? 0,
+    }));
+    res.json({ month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`, items });
+  } catch (e) { next(e); }
+});
+
 // TRIAL PREMIUM DE RESGATE (auditoria 18/10 — ponte "esgotou → pagou"): quem já usou IA
 // 3+ vezes e bateu no 402 ganha 7 dias de Premium + créditos de cortesia, UMA vez na
 // vida, sem cartão. É o momento de máxima intenção (não no cadastro) — criar o hábito do
