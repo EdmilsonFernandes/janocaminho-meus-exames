@@ -728,6 +728,19 @@ export const PortalOverview = ({
                                 }}
                               />
                             )}
+                            {/* Fix 05/11 (dono: "pacientes sem label"): no filtro "Todos",
+                                quem não tem NENHUMA pendência aparecia como card solto —
+                                agora diz o que é ("paciente em dia"), nunca fica mudo. */}
+                            {!p.tele && !p.hasAlert && !p.hasQuestions && !p.isStale && (
+                              <Chip
+                                size="small"
+                                label="👤 Paciente em dia"
+                                sx={{
+                                  height: 24, fontSize: 11.5, fontWeight: 600,
+                                  bgcolor: 'rgba(16,185,129,.08)', color: 'success.main', borderRadius: '8px',
+                                }}
+                              />
+                            )}
                           </Stack>
 
                         </Box>

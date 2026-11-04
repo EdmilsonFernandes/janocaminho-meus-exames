@@ -57,7 +57,7 @@ import PaymentsIcon from '@mui/icons-material/Payments';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import { Room, RoomEvent, Track, isBrowserSupported, ConnectionQuality, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
-import { API_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
+import { API_URL, APP_WEB_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { Capacitor } from '@capacitor/core';
 import { DrExame } from '../components/DrExame';
 
@@ -2214,7 +2214,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const presenceMeta = PRESENCE_META[peerPresence];
   // §19 G3: link do paciente p/ compartilhar (portal tem o WhatsApp copy; aqui o
   // médico em sala de espera manda direto — link da consulta ou rota do app).
-  const consultShareUrl = summary?.linkUrl || `${window.location.origin}${window.location.pathname}#/teleconsulta/${reminderId}`;
+  // Fix 05/11 (dono compartilhou "https://localhost/#/teleconsulta/..." no WhatsApp):
+  // window.location.origin NO APK/WebView = https://localhost → link morto. URL pública
+  // do app (drexame.janocaminho.com.br) SEMPRE — mesmo padrão de Reminders/PortalTele.
+  const consultShareUrl = summary?.linkUrl || `${APP_WEB_URL}/#/teleconsulta/${reminderId}`;
   const shareConsult = async () => {
     hapticLight();
     const text = 'Sua consulta por vídeo do Dr. Exame está neste link — toque para entrar:';
@@ -2294,7 +2297,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             || summary?.patientId;
           return pId ? photoUrlFor(String(pId)) : undefined;
         })()
-      : (summary?.doctor?.id && summary.doctor.photoUrl ? doctorPhotoUrl(summary.doctor.id) : undefined);
+      // Fix 05/11: PAYLOAD primeiro (photoUrl vem no /summary; a rota doctorPhotoUrl é
+      // fallback — o inverso nunca renderizava a foto do médico pro paciente).
+      : ((summary?.doctor as any)?.photoUrl || (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined));
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
