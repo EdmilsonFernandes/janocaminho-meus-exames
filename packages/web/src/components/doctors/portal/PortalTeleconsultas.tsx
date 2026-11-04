@@ -753,7 +753,7 @@ export const PortalTeleconsultas = ({
                 <AppCard key={tc.id} sx={{ p: 1.75, borderRadius: '16px', border: '1px solid', borderColor: 'divider' }}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems={{ xs: 'flex-start', sm: 'center' }} justifyContent="space-between">
                     <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
-                      <Avatar src={pPhoto} sx={{ width: 38, height: 38, fontSize: 14, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: '#178f89', flexShrink: 0 }}>
+                      <Avatar src={pPhoto} sx={{ width: 48, height: 48, fontSize: 17, fontWeight: 800, bgcolor: 'rgba(15,118,110,0.10)', color: '#178f89', flexShrink: 0 }}>
                         {pName.charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ minWidth: 0 }}>

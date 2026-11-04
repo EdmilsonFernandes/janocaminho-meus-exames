@@ -74,7 +74,7 @@ describe('shouldSendStartingReminder — decisão pura (janela, estado, imediato
 describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
   beforeEach(async () => {
     await resetDb();
-    await loadSettings(); // repõe defaults (resetDb truncou app_settings → entryWindowMin=5)
+    await loadSettings(); // repõe defaults (resetDb truncou app_settings → entryWindowMin=3 desde 04/11)
     vi.mocked(sendEmail).mockClear();
   });
 
@@ -92,9 +92,9 @@ describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
     return { user, patient, doctorEmail: docRow?.email, reminderId: r.id };
   }
 
-  it('faltando 6min NÃO manda; faltando 4min manda pros DOIS (paciente + médico)', async () => {
-    const early = await seed(6);
-    const inWindow = await seed(4);
+  it('faltando 4min NÃO manda; faltando 2min manda pros DOIS (paciente + médico)', async () => {
+    const early = await seed(4);
+    const inWindow = await seed(2);
     await sendDueReminders(Date.now());
 
     const mails = startingMails();
@@ -109,8 +109,8 @@ describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
     expect(htmls).toContain('Acessar teleconsulta');
   });
 
-  it('dedup: 2ª passada NÃO repete — markers 100005/200005 persistem no sentOffsets', async () => {
-    const s = await seed(4);
+  it('dedup: 2ª passada NÃO repete — markers 100003/200003 persistem no sentOffsets', async () => {
+    const s = await seed(2);
     await sendDueReminders(Date.now());
     expect(startingMails().length).toBe(2);
 
@@ -119,25 +119,25 @@ describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
 
     const row = await prisma.reminder.findUnique({ where: { id: s.reminderId }, select: { sentOffsets: true } });
     expect(row!.sentOffsets).toEqual(expect.arrayContaining([
-      startingEmailMark(5, 'patient'), // 100005
-      startingEmailMark(5, 'doctor'),  // 200005
+      startingEmailMark(3, 'patient'), // 100003 (default 3min desde 04/11)
+      startingEmailMark(3, 'doctor'),  // 200003
     ]));
   });
 
   it('encerrada (endedAt, ainda done=false) NÃO manda — revalidação dentro do pass', async () => {
-    await seed(4, { endedAt: new Date() });
+    await seed(2, { endedAt: new Date() });
     await sendDueReminders(Date.now());
     expect(startingMails().length).toBe(0);
   });
 
   it('concluída (done=true) fica fora do findMany → NÃO manda', async () => {
-    await seed(4, { done: true, endedAt: new Date() });
+    await seed(2, { done: true, endedAt: new Date() });
     await sendDueReminders(Date.now());
     expect(startingMails().length).toBe(0);
   });
 
   it('falha no envio pro PACIENTE não bloqueia o MÉDICO (try/catch por destinatário)', async () => {
-    const s = await seed(4);
+    const s = await seed(2);
     // Falha ALVO: só o envio ao PACIENTE rejeita. (O register do médico dispara
     // e-mails próprios assincronamente — rejeição "once" por ORDEM seria corrida;
     // e mock.results não distingue promise rejeitada de resolvida.)
@@ -161,8 +161,8 @@ describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
   });
 
   it('pagamento pendente (priceCents>0 sem paidAt) avisa SEM prometer sala; paga não avisa', async () => {
-    const unpaid = await seed(4, { consultPriceCents: 15000 });
-    const paid = await seed(4, { consultPriceCents: 15000, paidAt: new Date() });
+    const unpaid = await seed(2, { consultPriceCents: 15000 });
+    const paid = await seed(2, { consultPriceCents: 15000, paidAt: new Date() });
     await sendDueReminders(Date.now());
 
     const patientMailOf = (s: { user: { email: string } }) => startingMails().find((c) => c[0].to === s.user.email)![0].html;
@@ -172,7 +172,7 @@ describe('sendDueReminders — e-mail §13 (paciente + médico)', () => {
   });
 
   it('sem médico (createdByDoctorId null) → só o PACIENTE é avisado, sem crash', async () => {
-    const s = await seed(4, { withDoctor: false });
+    const s = await seed(2, { withDoctor: false });
     await sendDueReminders(Date.now());
     const mails = startingMails();
     expect(mails.length).toBe(1);

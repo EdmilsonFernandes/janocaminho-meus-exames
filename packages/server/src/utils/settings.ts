@@ -106,7 +106,10 @@ export const DEFAULT_SETTINGS = {
   // FILA IMEDIATA (27/10/26, spec fila-imediata §1/§3): queuePatientTimeoutMin = espera máx
   // do paciente na fila (min) antes de expirar; queueOfferTtlSec = deadline de aceite da
   // offer pelo médico (s) — attempts≥3 em offers perdidas = expired 'no_accept'.
-  teleconsulta: { entryWindowMin: 5, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000, queuePatientTimeoutMin: 10, queueOfferTtlSec: 45 },
+  // entryWindowMin 5→3 (dono 04/11/26): entrada liberada só 3 min antes do horário.
+  // ATENÇÃO: é AppSetting — se a linha 'teleconsulta' existir no DB (admin editou),
+  // ela SOBRESCREVE este default; conferir/atualizar no banco de produção.
+  teleconsulta: { entryWindowMin: 3, minJointSeconds: 300, payoutAuto: 0, slotMin: 30, noShowToleranceMin: 10, priceMinCents: 2000, queuePatientTimeoutMin: 10, queueOfferTtlSec: 45 },
   // KYC do médico (spec verificação §1/§4): prazo do 'legacy' em epoch ms (0 = sem prazo);
   // autoApprove 0 = TODO médico passa pela fila do dono (decisão 28/10/26); 1 = aprova sozinho se tudo verde.
   doctorKyc: { legacyGraceUntilMs: 0, autoApprove: 0 },

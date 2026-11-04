@@ -14,7 +14,7 @@ import { buildJoinToken } from '../src/utils/livekit';
 import { api, createUser, createDoctor, resetDb, authHeader } from './helpers';
 
 const H2 = (t: string) => ({ Authorization: `Bearer ${t}` });
-const IN_WINDOW = () => new Date(Date.now() + 2 * 60_000).toISOString(); // +2min: dentro da janela (entryWindowMin=5)
+const IN_WINDOW = () => new Date(Date.now() + 2 * 60_000).toISOString(); // +2min: dentro da janela (entryWindowMin=3 desde 04/11)
 let seedSeq = 0;
 
 /** Fluxo REAL do DoctorPortal: médico + share + POST /doctor/patients/:id/teleconsulta

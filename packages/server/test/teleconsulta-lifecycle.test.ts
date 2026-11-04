@@ -17,7 +17,7 @@ import { api, createUser, createDoctor, resetDb, authHeader } from './helpers';
 vi.mocked(hasLiveKitConfig).mockReturnValue(true);
 
 /** Reminder type=teleconsulta ABERTA (endedAt=null). dueDate default = VENCIDA:
- *  lifecycle 24/10 libera o /join a partir de dueDate − 5min (TOO_EARLY antes). */
+ *  lifecycle 24/10 libera o /join a partir de dueDate − 3min (TOO_EARLY antes; dono 04/11). */
 async function createTeleconsultaReminder(ownerId: string, patientId: string, opts: {
   consentAt?: Date | null;
   provider?: string | null;

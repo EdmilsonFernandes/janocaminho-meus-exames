@@ -250,9 +250,9 @@ export const TeleScheduleDialog = ({
                   onChange={(e) => onPatientChange?.(e.target.value)}
                 >
                   {patientOptions.map((p) => (
-                    <MenuItem key={p.id} value={p.id} sx={{ minHeight: 48 }}>
+                    <MenuItem key={p.id} value={p.id} sx={{ minHeight: 56 }}>
                       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ minWidth: 0 }}>
-                        <Avatar src={p.photo} alt="" sx={{ width: 28, height: 28, fontSize: 12, fontWeight: 800, bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}>
+                        <Avatar src={p.photo} alt="" sx={{ width: 40, height: 40, fontSize: 15, fontWeight: 800, bgcolor: copperWash, color: (t) => copperText(t.palette.mode) }}>
                           {p.name.charAt(0).toUpperCase()}
                         </Avatar>
                         <Typography noWrap sx={{ fontSize: 14, fontWeight: 600 }}>{p.name}</Typography>

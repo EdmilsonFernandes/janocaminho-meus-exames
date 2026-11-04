@@ -146,6 +146,40 @@ interface RemoteView {
 }
 
 const initials = (name?: string) => (name || '?').replace(/^Dr[aº.]?\s*/i, '').trim().charAt(0).toUpperCase() || '?';
+
+/** Avatar de identidade dos participantes (dono 04/11: "foto minúscula, parece ícone
+ *  oculto"). Porta o padrão ReUI icon-tile 'frame' (container duplo + ring elevado)
+ *  pra MUI: foto real quando existe; sem foto = iniciais em GRADIENTE da marca —
+ *  identidade protagonista nos dois casos, nunca um ícone apagado.
+ *  ring: cor semântica de presença (verde = na sala · cobre = aguardando). */
+const IDENTITY_GRADIENT = 'linear-gradient(135deg, #20b2aa 0%, #0f766e 100%)';
+const IdentityAvatar = ({
+  src, name, size = 64, ring = 'rgba(32,178,170,.45)', glow = 'rgba(32,178,170,.28)', square = false,
+}: { src?: string; name?: string; size?: number; ring?: string; glow?: string; square?: boolean }) => (
+  <Box
+    sx={{
+      position: 'relative', width: size, height: size, flexShrink: 0,
+      borderRadius: square ? '38%' : '50%', p: Math.max(2, Math.round(size * 0.055)),
+      background: `linear-gradient(135deg, ${ring}, rgba(212,165,116,.75))`,
+      boxShadow: `0 6px 22px ${glow}`,
+    }}
+  >
+    <Avatar
+      src={src}
+      alt={name || ''}
+      sx={{
+        width: '100%', height: '100%',
+        fontSize: Math.round(size * 0.36), fontWeight: 800, fontFamily: '"Poppins",sans-serif',
+        color: '#fff', background: IDENTITY_GRADIENT,
+        borderRadius: square ? '30%' : '50%',
+        '& .MuiAvatar-img': { objectFit: 'cover' },
+      }}
+    >
+      {initials(name)}
+    </Avatar>
+  </Box>
+);
+
 const clockFmt = (sec: number) => {
   const s = Math.max(0, Math.floor(sec));
   const h = Math.floor(s / 3600);
@@ -2133,7 +2167,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const elapsedSec = startedAt && phase === 'incall' ? Math.round((Date.now() - startedAt) / 1000) : 0;
   void nowTick; // re-render do cronômetro
 
-  const pipSize = { w: 96, h: 128 };
+  // Dono 04/11: PiP "um pouco pequeno" (96×128 = 25% da tela) → herói visível:
+  // ~34% da largura no celular, painel generoso no desktop.
+  const pipSize = { w: isDesktopViewport ? 176 : 132, h: isDesktopViewport ? 232 : 176 };
   const pipPosStyle: any = pipDrag
     ? { left: pipDrag.x, top: pipDrag.y, right: 'auto', bottom: 'auto' }
     : {
@@ -2182,7 +2218,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             || summary?.patientId;
           return pId ? photoUrlFor(String(pId)) : undefined;
         })()
-      : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined);
+      : (summary?.doctor?.id && summary.doctor.photoUrl ? doctorPhotoUrl(summary.doctor.id) : undefined);
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
@@ -2194,14 +2230,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           /* O outro SAIU (Teams-style: você fica, mas sabe que ele foi) */
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
-              <Avatar
-                src={otherPhoto}
-                sx={{
-                width: 84, height: 84, fontSize: 30, fontWeight: 800,
-                bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)',
-              }}>
-                {initials(remoteLeft)}
-              </Avatar>
+              <IdentityAvatar src={otherPhoto} name={remoteLeft} size={96} ring="rgba(245,158,11,.55)" glow="rgba(245,158,11,.22)" />
               <Box>
                 <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18 }}>
                   {remoteLeft} saiu da chamada
@@ -2221,12 +2250,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
              (reenviar convite via push / encerrar). Sala segue aberta se esperar. */
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: 3 }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 360 }}>
-              <Avatar
-                src={otherPhoto}
-                sx={{ width: 84, height: 84, fontSize: 30, fontWeight: 800, bgcolor: 'rgba(245,158,11,.12)', color: '#d97706', border: '3px solid rgba(245,158,11,.35)' }}
-              >
-                {initials(summary?.patient?.name || (location.state as any)?.patientName)}
-              </Avatar>
+              <IdentityAvatar src={otherPhoto} name={summary?.patient?.name || (location.state as any)?.patientName} size={96} ring="rgba(245,158,11,.55)" glow="rgba(245,158,11,.22)" />
               <Box>
                 <Typography sx={{ color: 'rgba(255,255,255,.95)', fontWeight: 800, fontSize: 18 }}>
                   Paciente ainda não chegou
@@ -2261,7 +2285,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           <Box sx={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', p: { xs: 2, sm: 3 } }}>
             <Stack alignItems="center" spacing={2.5} sx={{ textAlign: 'center', maxWidth: 420, width: '100%', zIndex: 2 }}>
               {/* Avatar com Ondas Sonar Concéntricas */}
-              <Box sx={{ position: 'relative', width: 120, height: 120, display: 'grid', placeItems: 'center' }}>
+              <Box sx={{ position: 'relative', width: 148, height: 148, display: 'grid', placeItems: 'center' }}>
                 {/* 3 Ondas Sonar */}
                 <Box
                   sx={{
@@ -2295,30 +2319,30 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   }}
                 />
 
-                <Avatar
-                  src={otherPhoto}
+                {/* Identidade do outro participante em destaque (dono 04/11): foto REAL
+                    quando existe, iniciais em gradiente da marca quando não — nunca
+                    ícone apagado. Ring de presença + pulso suave. */}
+                <Box
                   sx={{
-                    width: 96,
-                    height: 96,
-                    fontSize: 34,
-                    fontWeight: 800,
-                    bgcolor: 'rgba(32,178,170,.18)',
-                    color: '#5fc9c3',
-                    border: '3px solid rgba(32,178,170,.6)',
-                    boxShadow: '0 0 36px rgba(32,178,170,0.45)',
-                    position: 'relative',
-                    zIndex: 2,
+                    position: 'relative', zIndex: 2,
                     animation: 'dxCallPulse 2.4s ease-in-out infinite',
                     '@keyframes dxCallPulse': {
                       '0%,100%': { transform: 'scale(1)' },
                       '50%': { transform: 'scale(1.04)' },
                     },
+                    '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
                   }}
                 >
-                  {initials(role === 'doctor'
-                    ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name)
-                    : (doctor?.name || main?.name))}
-                </Avatar>
+                  <IdentityAvatar
+                    src={otherPhoto}
+                    name={role === 'doctor'
+                      ? (summary?.patient?.name || (location.state as any)?.patientName || (location.state as any)?.patient?.fullName || main?.name)
+                      : (doctor?.name || main?.name)}
+                    size={148}
+                    ring={peerPresence === 'present' ? 'rgba(16,185,129,.75)' : 'rgba(32,178,170,.65)'}
+                    glow="rgba(32,178,170,.4)"
+                  />
+                </Box>
               </Box>
 
               <Box sx={{ width: '100%' }}>
@@ -2520,24 +2544,9 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
         >
           <Stack direction="row" alignItems="center" spacing={1}>
             <DrExame size={26} />
-            {role === 'doctor' && (
-              <Avatar
-                src={otherPhoto}
-                sx={{
-                  width: 32,
-                  height: 32,
-                  fontSize: 12,
-                  fontWeight: 800,
-                  bgcolor: 'rgba(32,178,170,.2)',
-                  color: '#5fc9c3',
-                  border: '1.5px solid rgba(32,178,170,.4)',
-                  borderRadius: '10px',
-                  flexShrink: 0,
-                }}
-              >
-                {initials(otherName)}
-              </Avatar>
-            )}
+            {/* Identidade do outro participante no header — OS DOIS papéis (dono 04/11:
+                paciente também merece ver de quem é a chamada, não só o médico). */}
+            <IdentityAvatar src={otherPhoto} name={otherName} size={36} square glow="rgba(32,178,170,.18)" />
             <Box sx={{ flex: 1, minWidth: 0 }}>
               <Typography noWrap sx={{ color: '#fff', fontSize: 13, fontWeight: 700, lineHeight: 1.2 }}>{headerName}</Typography>
               {headerCrm && <Typography noWrap sx={{ color: 'rgba(255,255,255,.55)', fontSize: 12 }}>{headerCrm}</Typography>}
@@ -4043,17 +4052,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               '@media (prefers-reduced-motion: reduce)': { animation: 'none', opacity: 0.2 },
             }} />
           ))}
-          <Avatar
-            src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined}
-            sx={{
-              width: 120, height: 120, fontSize: 42, fontWeight: 800,
-              bgcolor: 'rgba(32,178,170,.15)', color: '#5fc9c3',
-              border: '4px solid rgba(32,178,170,.4)',
-              boxShadow: '0 0 48px rgba(32,178,170,.3)',
-            }}
-          >
-            {docName.charAt(0).toUpperCase()}
-          </Avatar>
+          <IdentityAvatar
+            src={summary?.doctor?.id && summary.doctor.photoUrl ? doctorPhotoUrl(summary.doctor.id) : undefined}
+            name={docName}
+            size={132}
+            ring="rgba(32,178,170,.7)"
+            glow="rgba(32,178,170,.35)"
+          />
         </Box>
         <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 22, fontFamily: '"Poppins",sans-serif', mb: 0.5 }}>
           {docName}
@@ -4231,20 +4236,15 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   bgcolor: (t) => (t.palette.mode === 'dark' ? '#141d1d' : '#f0fdfa'),
                 }}
               >
-                <Avatar
-                  src={role === 'doctor' ? doctorPhotoUrl(summary?.doctor?.id || '') : photoUrlFor(summary?.patient?.id || '')}
-                  sx={{
-                    width: 70,
-                    height: 70,
-                    fontSize: 26,
-                    fontWeight: 800,
-                    bgcolor: 'rgba(32,178,170,.18)',
-                    color: '#0d9488',
-                    border: '2px dashed rgba(32,178,170,.45)',
-                  }}
-                >
-                  {initials(role === 'doctor' ? doctor?.name : (summary?.patient?.name || statePatientName))}
-                </Avatar>
+                {/* Sem câmera: identidade de QUEM VOU ENCONTRAR em destaque (não um
+                    ícone apagado). Payload-first: só monta URL quando existe foto. */}
+                <IdentityAvatar
+                  src={role === 'doctor'
+                    ? (summary?.patient?.id && (summary.patient.photoUrl || (location.state as any)?.patient?.photoUrl) ? photoUrlFor(summary.patient.id) : undefined)
+                    : (summary?.doctor?.id && summary.doctor.photoUrl ? doctorPhotoUrl(summary.doctor.id) : undefined)}
+                  name={role === 'doctor' ? (summary?.patient?.name || statePatientName) : doctor?.name}
+                  size={84}
+                />
                 <Typography sx={{ fontSize: 12, fontWeight: 700, color: 'text.secondary' }}>
                   {camOn ? 'Iniciando câmera…' : 'Câmera desativada'}
                 </Typography>
@@ -4410,21 +4410,13 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
               {role === 'patient' ? (
                 <>
                   <Box sx={{ position: 'relative', flexShrink: 0 }}>
-                    <Avatar
-                      src={summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined}
-                      sx={{
-                        width: 46,
-                        height: 46,
-                        fontSize: 16,
-                        fontWeight: 800,
-                        bgcolor: 'rgba(32,178,170,.18)',
-                        color: (t) => tealText(t.palette.mode),
-                        border: '2px solid',
-                        borderColor: summary?.doctorInRoom ? '#10b981' : 'rgba(32,178,170,.4)',
-                      }}
-                    >
-                      {initials(doctor?.name)}
-                    </Avatar>
+                    <IdentityAvatar
+                      src={summary?.doctor?.id && summary.doctor.photoUrl ? doctorPhotoUrl(summary.doctor.id) : undefined}
+                      name={doctor?.name}
+                      size={72}
+                      ring={summary?.doctorInRoom ? 'rgba(16,185,129,.8)' : 'rgba(32,178,170,.5)'}
+                      glow={summary?.doctorInRoom ? 'rgba(16,185,129,.3)' : 'rgba(32,178,170,.22)'}
+                    />
                     {/* Indicador pulsante em tempo real */}
                     <Box
                       sx={{
@@ -4447,11 +4439,11 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                   </Box>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Stack direction="row" alignItems="center" spacing={0.75} flexWrap="wrap">
-                      <Typography noWrap sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary' }}>
+                      <Typography noWrap sx={{ fontSize: 15.5, fontWeight: 800, fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.01em', color: 'text.primary' }}>
                         {doctor?.name || 'Médico(a)'}
                       </Typography>
                       {doctor?.specialty && (
-                        <Typography sx={{ fontSize: 11.5, color: 'text.secondary', fontWeight: 600 }}>
+                        <Typography sx={{ fontSize: 12.5, color: 'text.secondary', fontWeight: 600 }}>
                           · {doctor.specialty}
                         </Typography>
                       )}

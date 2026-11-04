@@ -4,7 +4,7 @@
 // (completed exige paciente + jointMs ≥ minJointSeconds), presença conjunta com LEAVE,
 // auto-end com outcome, listas coerentes (teleStatus+endedAt no payload).
 // utils/livekit MOCKADO (join nunca sai da rede). Relógio: controlado via dueDate
-// futura/passada + config default (entryWindowMin=5, minJointSeconds=300).
+// futura/passada + config default (entryWindowMin=3 desde 04/11, minJointSeconds=300).
 import { describe, it, expect, beforeEach, afterAll, vi } from 'vitest';
 
 vi.mock('../src/utils/livekit', () => ({
@@ -106,17 +106,17 @@ describe('GET /join — janela de entrada (dueDate − entryWindowMin)', () => {
     const res = await api().get(`/api/teleconsulta/${r.id}/join`).set(authHeader(token));
     expect(res.status).toBe(403);
     expect(res.body.code).toBe('TOO_EARLY');
-    expect(res.body.opensAt).toBe(new Date(due.getTime() - 5 * 60_000).toISOString());
+    expect(res.body.opensAt).toBe(new Date(due.getTime() - 3 * 60_000).toISOString());
     expect(buildJoinToken).not.toHaveBeenCalled();
   });
 
-  it('na janela (dueDate +6min ainda fora; +4min dentro) e vencida (aberta)', async () => {
+  it('na janela (dueDate +4min ainda fora; +2min dentro) e vencida (aberta)', async () => {
     const { user, patient, token } = await createUser();
-    // fora: falta 6min (> janela de 5min) → bloqueado (relógio server, margem segura)
-    const edge = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() + 6 * 60_000) });
+    // fora: falta 4min (> janela de 3min, dono 04/11) → bloqueado (relógio server, margem segura)
+    const edge = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() + 4 * 60_000) });
     expect((await api().get(`/api/teleconsulta/${edge.id}/join`).set(authHeader(token))).status).toBe(403);
-    // dentro da janela: falta 4min → liberado
-    const inside = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() + 4 * 60_000) });
+    // dentro da janela: falta 2min → liberado
+    const inside = await createTele(user.id, patient.id, { dueDate: new Date(Date.now() + 2 * 60_000) });
     expect((await api().get(`/api/teleconsulta/${inside.id}/join`).set(authHeader(token))).status).toBe(200);
     // vencida: janela passou há tempo → segue liberada (sem upper-bound)
     const past = await createTele(user.id, patient.id, {});
