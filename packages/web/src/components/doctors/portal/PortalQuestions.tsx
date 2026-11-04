@@ -396,24 +396,27 @@ export const PortalQuestions = ({
           </Tooltip>
         </FrameHeader>
 
-        {/* KPI Rail interativo */}
-        <FramePanel className="grid grid-cols-1 divide-y divide-border p-0 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {/* KPI Rail interativo — fix 05/11 (dono: "números um embaixo do outro, temos
+            que ganhar espaço no mobile"): SEMPRE 3 colunas (era 1 coluna até 640px).
+            No aparelho: número grande + label curta empilhados no MESMO card vertical
+            compacto — 3 toques-alvo lado a lado em vez de 3 blocos rolando. */}
+        <FramePanel className="grid grid-cols-3 divide-x divide-border p-0">
           <button
             type="button"
             onClick={() => setTabFilter('pending')}
-            className={`flex items-center gap-3 p-4 text-left transition cursor-pointer ${
+            className={`flex flex-col items-center justify-center gap-1 p-2.5 text-center transition cursor-pointer sm:flex-row sm:gap-3 sm:p-4 sm:text-left ${
               tabFilter === 'pending' ? 'bg-amber-500/10' : 'hover:bg-muted/40'
             }`}
           >
-            <IconTile tone="warning" size="md">
-              <ScheduleOutlinedIcon sx={{ fontSize: 18 }} />
+            <IconTile tone="warning" size="sm">
+              <ScheduleOutlinedIcon sx={{ fontSize: 16 }} />
             </IconTile>
             <div>
-              <div className="font-heading text-xl font-extrabold text-foreground tabular-nums">
+              <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {openQ.length}
               </div>
-              <div className="text-xs font-semibold text-muted-foreground">
-                Aguardando sua resposta
+              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+                Aguardando
               </div>
             </div>
           </button>
@@ -421,21 +424,21 @@ export const PortalQuestions = ({
           <button
             type="button"
             onClick={() => setTabFilter('answered')}
-            className={`flex items-center gap-3 p-4 text-left transition cursor-pointer ${
+            className={`flex flex-col items-center justify-center gap-1 p-2.5 text-center transition cursor-pointer sm:flex-row sm:gap-3 sm:p-4 sm:text-left ${
               tabFilter === 'answered'
                 ? 'bg-emerald-500/10'
                 : 'hover:bg-muted/40'
             }`}
           >
-            <IconTile tone="success" size="md">
-              <CheckCircleOutlinedIcon sx={{ fontSize: 18 }} />
+            <IconTile tone="success" size="sm">
+              <CheckCircleOutlinedIcon sx={{ fontSize: 16 }} />
             </IconTile>
             <div>
-              <div className="font-heading text-xl font-extrabold text-foreground tabular-nums">
+              <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {answeredQ.length}
               </div>
-              <div className="text-xs font-semibold text-muted-foreground">
-                Respondidas e concluídas
+              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+                Respondidas
               </div>
             </div>
           </button>
@@ -443,19 +446,19 @@ export const PortalQuestions = ({
           <button
             type="button"
             onClick={() => setTabFilter('all')}
-            className={`flex items-center gap-3 p-4 text-left transition cursor-pointer ${
+            className={`flex flex-col items-center justify-center gap-1 p-2.5 text-center transition cursor-pointer sm:flex-row sm:gap-3 sm:p-4 sm:text-left ${
               tabFilter === 'all' ? 'bg-primary/10' : 'hover:bg-muted/40'
             }`}
           >
-            <IconTile tone="primary" size="md">
-              <MessageQuestionIcon size={18} />
+            <IconTile tone="primary" size="sm">
+              <MessageQuestionIcon size={16} />
             </IconTile>
             <div>
-              <div className="font-heading text-xl font-extrabold text-foreground tabular-nums">
+              <div className="font-heading text-xl font-extrabold leading-none text-foreground tabular-nums">
                 {allQ.length}
               </div>
-              <div className="text-xs font-semibold text-muted-foreground">
-                Total de dúvidas
+              <div className="mt-0.5 text-[11px] font-semibold leading-tight text-muted-foreground sm:text-xs">
+                Todas
               </div>
             </div>
           </button>
