@@ -1,5 +1,30 @@
 // Teleconsulta in-app (LiveKit) — F2, 19/10/26. Spec: docs/design/2026-10-19-livekit-fase2-ux.md
 // Rota imersiva /teleconsulta/:id (fora do AppLayout — sem bottom-nav/menu).
+// CAPÍTULOS CID-10 (classificação OMS, domínio público) — navegação em cascata do
+// diagnóstico: 3 toques (capítulo → categoria → código) sem digitar nada.
+const CID_CHAPTERS: { letter: string; label: string }[] = [
+  { letter: 'A', label: 'Infecciosas e parasitárias' },
+  { letter: 'C', label: 'Neoplasias (tumores)' },
+  { letter: 'D', label: 'Sangue e imunidade' },
+  { letter: 'E', label: 'Endócrinas e metabólicas' },
+  { letter: 'F', label: 'Transtornos mentais' },
+  { letter: 'G', label: 'Sistema nervoso' },
+  { letter: 'H', label: 'Olho e ouvido' },
+  { letter: 'I', label: 'Circulatório (coração)' },
+  { letter: 'J', label: 'Respiratório' },
+  { letter: 'K', label: 'Digestivo' },
+  { letter: 'L', label: 'Pele' },
+  { letter: 'M', label: 'Osteomuscular' },
+  { letter: 'N', label: 'Geniturinário' },
+  { letter: 'O', label: 'Gravidez e parto' },
+  { letter: 'P', label: 'Perinatais (recém-nascido)' },
+  { letter: 'Q', label: 'Malformações' },
+  { letter: 'R', label: 'Sintomas e sinais' },
+  { letter: 'S', label: 'Lesões e envenenamentos' },
+  { letter: 'V', label: 'Causas externas' },
+  { letter: 'Z', label: 'Fatores de saúde' },
+];
+
 // Fases: loading → prejoin → connecting → incall → ended · fallback (501/navegador) · error.
 // Degradação da casa: join 501/não suportado → tela fallback com "Abrir no Meet" (linkUrl).
 // Regras de ouro: TODOS os hooks antes de qualquer early-return (React #310); nunca
@@ -414,6 +439,35 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
     }, 350);
     return () => clearTimeout(t);
   }, [cidQuery, cidSel, role]);
+
+  // ── CID-10 CASCATA (lote ReUI 04/11 — padrão cascader da maquete): navegação por
+  // CAPÍTULO → CATEGORIA → CÓDIGO em 3 toques, sem digitar, no MESMO endpoint DATASUS
+  // do autocomplete (busca por letra/prefixo). Capítulos = classificação OMS (22,
+  // domínio público). Quem prefere digitar segue no campo — os dois convivem.
+  const [cidNav, setCidNav] = useState<{ chapter?: { letter: string; label: string }; cats?: string[]; cat?: string } | null>(null);
+  const [cidNavBusy, setCidNavBusy] = useState(false);
+  const cidSearch = async (q: string): Promise<{ c: string; d: string }[]> => {
+    try {
+      const r = await fetch(`${API_URL}/doctor/cid10?q=${encodeURIComponent(q)}`, { headers: { Authorization: `Bearer ${authToken()}` } });
+      const d = await r.json().catch(() => ({}));
+      return Array.isArray(d?.items) ? d.items : [];
+    } catch { return []; }
+  };
+  const pickChapter = async (ch: { letter: string; label: string }) => {
+    setCidNavBusy(true);
+    const items = await cidSearch(ch.letter);
+    // Categorias = primeiros 3 chars do código (ex.: E11 de E11.9), dedup preservando ordem.
+    const cats = [...new Set(items.map((i) => i.c.slice(0, 3)))].slice(0, 24);
+    setCidNav({ chapter: ch, cats });
+    setCidNavBusy(false);
+  };
+  const pickCategory = async (cat: string) => {
+    setCidNavBusy(true);
+    const items = await cidSearch(cat);
+    setCidNav((cur) => ({ ...cur, cat, codes: items.slice(0, 30) }) as { chapter?: { letter: string; label: string }; cats?: string[]; cat?: string; codes?: { c: string; d: string }[] });
+    setCidNavBusy(false);
+  };
+  const cidChapterOf = (cat: string): string => `${cat[0]}00–${cat[0]}99`;
   // ── §14.1 Resumo pós-consulta (médico): gerar/editar/aprovar o rascunho da IA.
   // Erro de geração NUNCA bloqueia a nota manual (QuickNote segue independente).
   const [csBusy, setCsBusy] = useState<string | null>(null); // 'generate' | 'save' | 'approve'
@@ -3828,6 +3882,62 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
                             </Box>
                           ))}
                         </Paper>
+                      )}
+                      {/* CASCATA CID-10 (ReUI): "ou toque no capítulo" — 3 toques sem digitar. */}
+                      {!cidSel && (
+                        <Box>
+                          {!cidNav ? (
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.75 }}>
+                              <Typography component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', alignSelf: 'center', mr: 0.5 }}>ou toque no capítulo:</Typography>
+                              {CID_CHAPTERS.map((ch) => (
+                                <Box
+                                  key={ch.letter} component="button" type="button" title={ch.label}
+                                  onClick={() => void pickChapter(ch)}
+                                  sx={{ minWidth: 34, minHeight: 30, px: 0.75, borderRadius: '9px', border: '1px solid', borderColor: 'divider', bgcolor: 'transparent', cursor: 'pointer', fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode), '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: 'rgba(32,178,170,.4)' } }}
+                                >
+                                  {ch.letter}
+                                </Box>
+                              ))}
+                            </Box>
+                          ) : (
+                            <Paper elevation={2} sx={{ mt: 0.75, p: 1.25, borderRadius: '12px', border: '1px solid', borderColor: 'divider' }}>
+                              <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
+                                <Typography sx={{ fontSize: 12, fontWeight: 800, color: (t) => tealText(t.palette.mode) }}>
+                                  {cidNav.chapter?.letter} · {cidNav.chapter?.label}
+                                </Typography>
+                                {cidNav.cat && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>› {cidNav.cat}</Typography>}
+                                <Box sx={{ flex: 1 }} />
+                                <Button size="small" sx={{ minWidth: 0, fontSize: 11, textTransform: 'none', color: 'text.secondary', p: 0 }} onClick={() => setCidNav(null)}>fechar</Button>
+                              </Stack>
+                              {cidNavBusy ? (
+                                <Typography sx={{ fontSize: 12, color: 'text.secondary', py: 1 }}>buscando…</Typography>
+                              ) : !cidNav.cat ? (
+                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                  {(cidNav.cats ?? []).map((cat) => (
+                                    <Box key={cat} component="button" type="button" onClick={() => void pickCategory(cat)}
+                                      sx={{ minHeight: 32, px: 1.25, borderRadius: '9px', border: '1px solid', borderColor: 'divider', bgcolor: 'transparent', cursor: 'pointer', fontSize: 12.5, fontWeight: 800, fontVariantNumeric: 'tabular-nums', '&:hover': { bgcolor: 'rgba(32,178,170,.08)', borderColor: 'rgba(32,178,170,.4)' } }}
+                                    >
+                                      {cat} ({cidChapterOf(cat)})
+                                    </Box>
+                                  ))}
+                                  {(cidNav.cats ?? []).length === 0 && <Typography sx={{ fontSize: 12, color: 'text.secondary' }}>Sem códigos para este capítulo na base.</Typography>}
+                                </Box>
+                              ) : (
+                                <Box sx={{ maxHeight: 220, overflowY: 'auto' }}>
+                                  {(cidNav.codes ?? []).map((o) => (
+                                    <Box key={o.c} component="button" type="button"
+                                      onClick={() => { setCidSel({ code: o.c, desc: o.d }); setCidQuery(''); setCidResults([]); setCidNav(null); setCidDirty(true); hapticLight(); }}
+                                      sx={{ display: 'block', width: '100%', textAlign: 'left', minHeight: 44, px: 1, py: 0.75, bgcolor: 'transparent', border: 0, borderBottom: '1px solid', borderColor: 'divider', cursor: 'pointer', '&:last-child': { borderBottom: 0 }, '&:hover': { bgcolor: 'rgba(32,178,170,.07)' } }}
+                                    >
+                                      <Box component="span" sx={{ fontWeight: 800, fontSize: 13, color: (t) => tealText(t.palette.mode), mr: 1 }}>{o.c}</Box>
+                                      <Box component="span" sx={{ fontSize: 12.5 }}>{o.d}</Box>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              )}
+                            </Paper>
+                          )}
+                        </Box>
                       )}
                     </>
                   )}

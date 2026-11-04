@@ -1020,7 +1020,10 @@ const AppMenu = () => {
       <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
 
       <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
-      <NavItem to="/showcase-reui" primaryText="Maquete ReUI × Dr. Exame" icon={<AutoAwesomeIcon />} tile badge="novo" />
+      {/* Maquete ReUI: DEV-ONLY — só ADMIN vê o item (avaliação do dono); em prod
+          NÃO aparece pra usuários (dado fictício, sem valor clínico). A rota continua
+          acessível por URL direta p/ testes, mas sem link no menu público. */}
+      {isAdmin && <NavItem to="/showcase-reui" primaryText="Maquete ReUI × Dr. Exame" icon={<AutoAwesomeIcon />} tile badge="dev" />}
       <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
         <ListItemIcon sx={{
           minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
