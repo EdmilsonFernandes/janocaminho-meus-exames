@@ -650,7 +650,7 @@ export const PortalOverview = ({
                                   <Chip
                                     size="small"
                                     icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                                    label={`🔴 Consulta agora · ${timeStr}`}
+                                    label={`🔴 Agora · ${timeStr}`}
                                     sx={{
                                       height: 24, fontSize: 11.5, fontWeight: 800, maxWidth: '100%',
                                       bgcolor: 'rgba(239,68,68,0.12)', color: '#dc2626',
@@ -666,7 +666,7 @@ export const PortalOverview = ({
                                   <Chip
                                     size="small"
                                     icon={<VideocamIcon sx={{ fontSize: 13 }} />}
-                                    label={p.tele.consentAt ? `Consulta hoje ${timeStr}` : `Consulta hoje ${timeStr} · aguarda aceite`}
+                                    label={p.tele.consentAt ? `Hoje ${timeStr}` : `Hoje ${timeStr} · aceite pendente`}
                                     sx={{
                                       height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
                                       bgcolor: p.tele.consentAt ? 'rgba(15,118,110,0.08)' : 'rgba(245,158,11,0.08)',
@@ -696,7 +696,7 @@ export const PortalOverview = ({
                               <Chip
                                 size="small"
                                 icon={<WarningAmberIcon sx={{ fontSize: 13 }} />}
-                                label={`Exames alterados${alertSuffix}`}
+                                label={`Alterados${alertSuffix}`}
                                 sx={{
                                   height: 24, fontSize: 11.5, fontWeight: 700, maxWidth: '100%',
                                   bgcolor: isCritical ? 'rgba(239,68,68,0.08)' : 'rgba(245,158,11,0.08)',
