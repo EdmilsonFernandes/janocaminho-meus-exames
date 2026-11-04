@@ -47,7 +47,11 @@ const fmtNum = (n: number | null | undefined) => n == null ? '—' : String(Numb
 const fmtRef = (n: number | null | undefined) => n == null ? '—' : n.toLocaleString('pt-BR', { maximumFractionDigits: 2 });
 const fmt2 = (d?: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d');
 
-export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.ReactNode; goal?: TrendsGoalBand | null }) => {
+/** Marcos de tratamento sobre a curva (lote ReUI — chart-6): "início de remédio" no
+ *  dia em que a medicação começou. A promessa "vi o efeito do tratamento" vira visível. */
+export interface TrendMarker { date: string; label: string }
+
+export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: React.ReactNode; goal?: TrendsGoalBand | null; markers?: TrendMarker[] }) => {
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
@@ -360,6 +364,33 @@ export const TrendsChart = ({ ts, action, goal }: { ts: TS; action?: React.React
           )}
         </LineChart>
       </ResponsiveContainer>
+
+      {/* MARCOS DE TRATAMENTO (lote ReUI — chart-6): trilha de chips com o início de
+          cada medicação dentro da janela da série. O eixo X é categórico (nomes de
+          data) — linha vertical quebraria a curva (null entre pontos), então os
+          marcos vivem ABAIXO do gráfico: "vi quando o tratamento começou". */}
+      {(markers ?? []).length > 0 && (
+        <Box sx={{ mt: 1.25, display: 'flex', flexWrap: 'wrap', gap: 0.75, alignItems: 'center' }}>
+          <Typography component="span" sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary' }}>
+            Tratamento no período:
+          </Typography>
+          {(markers ?? []).map((m, i) => (
+            <Box key={`${m.date}-${i}`} sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.35, borderRadius: '999px',
+              bgcolor: alpha('#d4a574', 0.10), border: '1px solid', borderColor: alpha('#d4a574', 0.45),
+              whiteSpace: 'nowrap',
+            }}>
+              <Box component="span" sx={{ color: '#d4a574', fontWeight: 800, fontSize: 11 }}>◆</Box>
+              <Typography component="span" sx={{ fontSize: 11.5, fontWeight: 700, color: isDark ? '#e0bc97' : '#8a6240' }}>
+                {m.label}
+              </Typography>
+              <Typography component="span" sx={{ fontSize: 10.5, color: 'text.secondary', fontWeight: 600 }}>
+                {new Date(m.date).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace('.', '')}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
 
       {/* Previsão de sair da faixa (linear) — informativo, médico valida. */}
       {predict && predict.dir !== 'stable' && predict.months && (

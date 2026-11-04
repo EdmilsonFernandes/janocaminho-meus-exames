@@ -10,7 +10,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Flag } from '../components/Flag';
 import { displayStatus } from '../utils/examStatus';
 import { ExplainButton } from '../components/ExplainItem';
-import { TrendsChart } from '../components/TrendsChart';
+import { TrendsChart, type TrendMarker } from '../components/TrendsChart';
 import { UnitLabel } from '../components/UnitLabel';
 import { PremiumGate } from '../components/PremiumGate';
 import { useClinicalGoals } from '../hooks/useClinicalGoals';
@@ -53,6 +53,24 @@ export const TrendsPage = () => {
     fetch(`${API_URL}/items/timeseries?${q}`, { headers: { Authorization: `Bearer ${token()}` } })
       .then((r) => r.json()).then((d) => setTs(d)).finally(() => setLoading(false));
   }, [sel, pid]);
+
+  // MARCOS DE TRATAMENTO (lote ReUI — chart-6): medicações ATIVAS com data de início
+  // viram chips "◆ remédio — mês" sob a curva (a promessa "vi o efeito do tratamento").
+  // Best-effort: sem endpoint/sem dados → nada renderiza (gráfico fica como sempre).
+  const [markers, setMarkers] = useState<TrendMarker[]>([]);
+  useEffect(() => {
+    setMarkers([]);
+    fetch(`${API_URL}/medications${pid ? `?patientId=${pid}` : ''}`, { headers: { Authorization: `Bearer ${token()}` } })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const list = Array.isArray(d) ? d : Array.isArray(d?.items) ? d.items : [];
+        setMarkers(list
+          .filter((m: any) => m?.active !== false && m?.startedAt)
+          .slice(0, 6)
+          .map((m: any) => ({ date: m.startedAt, label: String(m.name ?? m.medication ?? 'Medicação').slice(0, 28) })));
+      })
+      .catch(() => setMarkers([]));
+  }, [pid]);
 
   const data = (ts?.points ?? []).map((p) => ({
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : 's/d',
@@ -255,7 +273,7 @@ export const TrendsPage = () => {
 
       {/* GRÁFICO + DETALHES — primitiva compartilhada (dedup paciente↔médico). */}
       {!loading && ts && ts.points.length > 0 && (
-        <TrendsChart ts={ts} goal={goalFor(clinicalGoals, ts.nameCanonical, pid)} />
+        <TrendsChart ts={ts} goal={goalFor(clinicalGoals, ts.nameCanonical, pid)} markers={markers} />
       )}
       {!loading && ts && ts.points.length === 0 && sel && (
         <Card sx={{ borderRadius: '20px', textAlign: 'center', py: 4 }}>
