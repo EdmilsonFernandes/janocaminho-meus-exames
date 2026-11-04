@@ -2,7 +2,7 @@ import { tealText } from './theme';
 import { Admin, Resource, CustomRoutes, Layout, AppBar, TitlePortal, AppBarProps, useLogout, useLocale, useSetLocale, useRefresh, useNotify, useTranslate, useSidebarState, useStore, LoadingIndicator } from 'react-admin';
 import { ConfirmDialogProvider } from './components/ConfirmDialog';
 import { Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { useEffect, useState, useRef, lazy, Suspense, type ComponentType } from 'react';
+import { useEffect, useState, useRef, lazy, Suspense } from 'react';
 import { Capacitor } from '@capacitor/core';
 import { Box, Typography, IconButton, Button, useMediaQuery, useTheme, MenuItem, Divider, ListItemIcon, ListItemText, Collapse, ListItemButton, Dialog, DialogTitle, DialogContent, DialogActions, Chip, Drawer, Avatar, Stack, Link as MuiLink } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -69,30 +69,10 @@ const FlagDashboard = () => {
   } catch { /* localStorage indisponível → dashboard clássico */ }
   return <Dashboard />;
 };
-// lazyPage (perf 03/11): página lazy JÁ embrulhada em Suspense — serve tanto em <Route element>
-// quanto nas props list/show/create do <Resource> (que esperam um componente). O chunk
-// principal tinha 2,8 MB com admin/exames/perfil/etc. estáticos → parse de tudo no boot.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// .preload() baixa E registra o módulo: depois disso a página renderiza DIRETO (sem passar pelo
-// Suspense/skeleton) — React.lazy sozinho suspende 1× mesmo com o chunk já em cache.
-const lazyPage = (loader: () => Promise<{ default: ComponentType<any> }>) => {
-  let Loaded: ComponentType<any> | null = null;
-  let pending: Promise<{ default: ComponentType<any> }> | null = null;
-  const load = () => (pending ??= loader().then((m) => { Loaded = m.default; return m; }));
-  const C = lazy(load);
-  const W = (props: any) => (Loaded ? <Loaded {...props} /> : <Suspense fallback={<PageSkeleton />}><C {...props} /></Suspense>);
-  return Object.assign(W, { preload: () => { void load().catch(() => { pending = null; }); } });
-};
-// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamList } from './resources/Exams/ExamList';
-// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamShow } from './resources/Exams/ExamShow';
-// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
 import { ExamCreate } from './resources/Exams/ExamCreate';
-const PatientList = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientList })));
-const PatientEdit = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientEdit })));
-const PatientCreate = lazyPage(() => import('./resources/Patients/Patients').then(m => ({ default: m.PatientCreate })));
-// abas primárias ficam no bundle principal (perf 03/11: lazy deixou Exames/Tendências ~20–50% mais lentas no 1º toque)
+import { PatientList, PatientEdit, PatientCreate } from './resources/Patients/Patients';
 import { TrendsPage } from './pages/Trends';
 import { hapticLight, hapticNav } from './utils/haptic';
 // Code splitting — páginas pesadas carregam sob demanda (bundle inicial menor)
@@ -118,31 +98,34 @@ const QuestionsPage = lazy(() => import('./pages/Questions').then(m => ({ defaul
 // Encontrar especialistas (§3, 28/10/26): busca no diretório próprio (zero integração paga).
 const EncontrarEspecialistasPage = lazy(() => import('./pages/EncontrarEspecialistas').then(m => ({ default: m.EncontrarEspecialistasPage })));
 const FaqPage = lazy(() => import('./pages/Faq').then(m => ({ default: m.FaqPage })));
+// Showcase ReUI × Dr. Exame (04/11): maquete interativa dos padrões ReUI portados a MUI.
+// Rota pública (noLayout) + item de menu — dados 100% fictícios, sem API.
+const ShowcaseReuiPage = lazy(() => import('./pages/ShowcaseReui').then(m => ({ default: m.ShowcaseReuiPage })));
 const HowWeValidatePage = lazy(() => import('./pages/HowWeValidate').then(m => ({ default: m.HowWeValidatePage })));
-const MeasurementsPage = lazyPage(() => import('./pages/Measurements').then(m => ({ default: m.MeasurementsPage })));
+import { MeasurementsPage } from './pages/Measurements';
 const MedicationsPage = lazy(() => import('./pages/Medications').then(m => ({ default: m.MedicationsPage })));
 const MeasurementHistoryPage = lazy(() => import('./pages/MeasurementHistory').then(m => ({ default: m.MeasurementHistoryPage })));
 const SaudeMentalPage = lazy(() => import('./pages/SaudeMental').then(m => ({ default: m.SaudeMentalPage })));
 const SinaisPage = lazy(() => import('./pages/Sinais').then(m => ({ default: m.SinaisPage })));
 // Teleconsulta LiveKit (F2) — página imersiva (fora do AppLayout, sem bottom-nav).
 const TeleconsultaPage = lazy(() => import('./pages/Teleconsulta').then(m => ({ default: m.TeleconsultaPage })));
-const VaccinesPage = lazyPage(() => import('./pages/Vaccines').then(m => ({ default: m.VaccinesPage })));
-const EmergencyCardPage = lazyPage(() => import('./pages/EmergencyCard').then(m => ({ default: m.EmergencyCardPage })));
-const TimelinePage = lazyPage(() => import('./pages/Timeline').then(m => ({ default: m.TimelinePage })));
-const ExpensesPage = lazyPage(() => import('./pages/Expenses').then(m => ({ default: m.ExpensesPage })));
-const EvolutionPage = lazyPage(() => import('./pages/Evolution').then(m => ({ default: m.EvolutionPage })));
-const FamilyPage = lazyPage(() => import('./pages/Family').then(m => ({ default: m.FamilyPage })));
-const ConsolidatedReportPage = lazyPage(() => import('./pages/ConsolidatedReport').then(m => ({ default: m.ConsolidatedReportPage })));
-const ValoresAlteradosPage = lazyPage(() => import('./pages/ValoresAlterados').then(m => ({ default: m.ValoresAlteradosPage })));
-const ProfilePage = lazyPage(() => import('./pages/Profile').then(m => ({ default: m.ProfilePage })));
-const SecurityPage = lazyPage(() => import('./pages/Security').then(m => ({ default: m.SecurityPage })));
-const PrivacyPage = lazyPage(() => import('./pages/Privacy').then(m => ({ default: m.PrivacyPage })));
-const AdminPage = lazyPage(() => import('./pages/admin').then(m => ({ default: m.AdminPage })));
+import { VaccinesPage } from './pages/Vaccines';
+import { EmergencyCardPage } from './pages/EmergencyCard';
+import { TimelinePage } from './pages/Timeline';
+import { ExpensesPage } from './pages/Expenses';
+import { EvolutionPage } from './pages/Evolution';
+import { FamilyPage } from './pages/Family';
+import { ConsolidatedReportPage } from './pages/ConsolidatedReport';
+import { ValoresAlteradosPage } from './pages/ValoresAlterados';
+import { ProfilePage } from './pages/Profile';
+import { SecurityPage } from './pages/Security';
+import { PrivacyPage } from './pages/Privacy';
+import { AdminPage } from './pages/admin';
 import { NotFoundPage } from './pages/NotFound';
 import { LoginPage, RegisterPage, ResetPage } from './pages/Auth';
-const InviteLandingPage = lazyPage(() => import('./pages/InviteLanding').then(m => ({ default: m.InviteLandingPage })));
-const DoctorInviteLandingPage = lazyPage(() => import('./pages/DoctorInviteLanding').then(m => ({ default: m.DoctorInviteLandingPage })));
-const TermsPage = lazyPage(() => import('./pages/Terms').then(m => ({ default: m.TermsPage })));
+import { InviteLandingPage } from './pages/InviteLanding';
+import { DoctorInviteLandingPage } from './pages/DoctorInviteLanding';
+import { TermsPage } from './pages/Terms';
 import { PatientSwitcher } from './components/PatientSwitcher';
 import { CreditsChip } from './components/CreditsChip';
 import { BootSplash } from './components/BootSplash';
@@ -165,22 +148,17 @@ import { PageSkeleton } from './components/PageSkeleton';
 import { CompleteProfileModal } from './components/CompleteProfileModal';
 import { GoalQuiz } from './components/GoalQuiz';
 import { Motd } from './components/Motd';
-// PATROCINADORES & OPINIÕES (02/11/26): popup de parceiro pós-login (fila de nudges, prio 30)
-// e provider da pesquisa curta (convite contextual + acesso permanente no Perfil).
-import { SponsorPopup } from './components/sponsor/SponsorPopup';
-import { FeedbackProvider } from './components/feedback/FeedbackProvider';
 import { CreditRewardFx } from './components/CreditRewardFx';
 import { CelebrateFx } from './components/CelebrateFx';
 import { useCredits } from './hooks/useCredits';
 import { InsufficientCreditsDialog } from './components/InsufficientCreditsDialog';
-// Notificações fica no bundle principal: hospeda o CrossInsightBottomSheet e escuta 'openCrossInsight' — lazy perdia o evento.
 import { NotificationsPage } from './pages/Notifications';
 import TravelExploreRoundedIcon from '@mui/icons-material/TravelExploreRounded';
-const MedicosPage = lazyPage(() => import('./pages/Medicos').then(m => ({ default: m.MedicosPage })));
-const SupportPage = lazyPage(() => import('./pages/Support').then(m => ({ default: m.SupportPage })));
-const ApiPanelPage = lazyPage(() => import('./pages/ApiPanel').then(m => ({ default: m.ApiPanelPage })));
+import { MedicosPage } from './pages/Medicos';
+import { SupportPage } from './pages/Support';
+import { ApiPanelPage } from './pages/ApiPanel';
 const ApiDocsPage = lazy(() => import('./pages/ApiDocs').then(m => ({ default: m.ApiDocsPage })));
-const ConquistasPage = lazyPage(() => import('./pages/Conquistas').then(m => ({ default: m.ConquistasPage })));
+import { ConquistasPage } from './pages/Conquistas';
 import { initPush } from './push';
 import { syncCreditCosts } from './components/CreditBadge';
 
@@ -205,7 +183,7 @@ const CustomAppBar = (props: AppBarProps) => {
         const u = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
         const parsed = u ? JSON.parse(u) : null;
         setPatientName(parsed?.name || parsed?.fullName || 'Paciente');
-      } catch {}
+      } catch { }
     };
     update();
     window.addEventListener('storage', update);
@@ -344,9 +322,7 @@ const glassRim = (dark: boolean) => dark
   ? 'inset 1px 1px 0 rgba(255,255,255,0.12), inset -1px -1px 0 rgba(255,255,255,0.04)'
   : 'inset 1px 1px 0 rgba(255,255,255,0.95), inset -1px -1px 0 rgba(255,255,255,0.55)';
 // WebView sem backdrop-filter (APK antigo)? → fundo quase opaco no lugar do vidro.
-// perf 03/11: no APK (Android WebView) o blur(26px) do painel era recalculado a cada quadro da
-// animação de abrir/fechar o menu. Lá o painel usa o fundo quase opaco (o fallback que já existia).
-const CAN_BLUR = !Capacitor.isNativePlatform() && typeof CSS !== 'undefined' && typeof CSS.supports === 'function' &&
+const CAN_BLUR = typeof CSS !== 'undefined' && typeof CSS.supports === 'function' &&
   (CSS.supports('backdrop-filter', 'blur(1px)') || CSS.supports('-webkit-backdrop-filter', 'blur(1px)'));
 
 // Seção COLAPSÁVEL do menu (acordeão) estilo Consultório Premium (Direção A):
@@ -395,7 +371,7 @@ const MenuSectionAccordion = ({
               ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
               : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.35)';
           },
-          transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
+          transition: 'all .2s ease',
           '&:hover': {
             bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(255, 255, 255, 0.7)',
             boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
@@ -417,7 +393,7 @@ const MenuSectionAccordion = ({
             boxShadow: open
               ? 'inset 1px 1px 0 rgba(255,255,255,0.35), 0 8px 16px -6px rgba(23,143,137,0.6)'
               : (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
-            transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
+            transition: 'all .2s ease',
             '& svg': { fontSize: 18 },
           }}
         >
@@ -538,7 +514,7 @@ const NavItem = ({
             ? 'inset 1px 1px 0 rgba(255,255,255,0.10), inset 0 0 0 1px rgba(248,113,113,0.32), 0 14px 26px -16px rgba(0,0,0,0.7)'
             : 'inset 1px 1px 0 rgba(255,255,255,0.9), inset 0 0 0 1px rgba(217,45,32,0.22), 0 14px 26px -16px rgba(217,45,32,0.5)',
           color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
-          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
+          transition: 'all .15s ease',
           '&:hover': {
             background: (t) => t.palette.mode === 'dark'
               ? 'linear-gradient(135deg, rgba(127,29,29,0.7), rgba(80,20,20,0.6))'
@@ -580,7 +556,7 @@ const NavItem = ({
           pl: 1,
           pr: 1.25,
           minHeight: 48,
-          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
+          transition: 'all .15s ease',
           color: (t) => {
             const d = t.palette.mode === 'dark';
             if (active) return d ? '#8ff0e8' : '#0b5c57';
@@ -588,23 +564,23 @@ const NavItem = ({
           },
           ...(active
             ? {
-                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08) !important' : 'rgba(255,255,255,0.94) !important',
-                boxShadow: (t) => t.palette.mode === 'dark'
-                  ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
-                  : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.45)',
-              }
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08) !important' : 'rgba(255,255,255,0.94) !important',
+              boxShadow: (t) => t.palette.mode === 'dark'
+                ? 'inset 1px 1px 0 rgba(255,255,255,0.14), 0 10px 22px -12px rgba(0,0,0,0.6)'
+                : 'inset 0 0 0 1px rgba(32,178,170,0.25), inset 1px 1px 0 #fff, 0 10px 22px -12px rgba(15,90,86,0.45)',
+            }
             : {
-                bgcolor: 'transparent',
-                '&:hover': {
-                  bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.7)',
-                  boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
-                },
-              }),
+              bgcolor: 'transparent',
+              '&:hover': {
+                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.7)',
+                boxShadow: (t) => glassRim(t.palette.mode === 'dark'),
+              },
+            }),
         }}
       >
         <Box component="span" sx={{
           width: 34, height: 34, mr: 1.5, flexShrink: 0, borderRadius: '11px', display: 'grid', placeItems: 'center',
-          transition: 'transform .2s ease, opacity .2s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease, color .2s ease',
+          transition: 'all .2s ease',
           background: active
             ? 'linear-gradient(135deg, #20b2aa, #178f89)'
             : (t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
@@ -651,7 +627,7 @@ const NavItem = ({
         pr: 1,
         minHeight: 40,
         flex: '0 0 auto',
-        transition: 'transform .15s ease, transform .15s ease, opacity .15s ease, transform .15s ease, box-shadow .15s ease, transform .15s ease, background-color .15s ease, transform .15s ease, border-color .15s ease, transform .15s ease, color .15s ease, transform .15s ease',
+        transition: 'all .15s ease, transform .15s ease',
         color: (t) => {
           const isDark = t.palette.mode === 'dark';
           if (active) return isDark ? '#2dd4bf' : '#0f766e';
@@ -660,17 +636,17 @@ const NavItem = ({
         borderLeft: active ? '3.5px solid #0d9488' : '3.5px solid transparent',
         ...(active
           ? {
-              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(13, 148, 136, 0.16) !important' : 'rgba(13, 148, 136, 0.08) !important',
-              boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(13,148,136,0.06)',
-            }
+            bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(13, 148, 136, 0.16) !important' : 'rgba(13, 148, 136, 0.08) !important',
+            boxShadow: (t) => t.palette.mode === 'dark' ? '0 4px 14px rgba(0,0,0,0.25)' : '0 2px 8px rgba(13,148,136,0.06)',
+          }
           : {
-              bgcolor: 'transparent',
-              '&:hover': {
-                bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(13, 148, 136, 0.05)',
-                color: (t) => t.palette.mode === 'dark' ? '#ffffff' : '#0f766e',
-                transform: 'translateX(3px)',
-              },
-            }),
+            bgcolor: 'transparent',
+            '&:hover': {
+              bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.06)' : 'rgba(13, 148, 136, 0.05)',
+              color: (t) => t.palette.mode === 'dark' ? '#ffffff' : '#0f766e',
+              transform: 'translateX(3px)',
+            },
+          }),
       }}
     >
       <ListItemIcon
@@ -729,7 +705,7 @@ const NavItem = ({
           fontSize: 17,
           flexShrink: 0,
           color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.3)' : '#94a3b8',
-          transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
+          transition: 'all .15s ease',
           opacity: active ? 0.9 : 0.6,
         }}
       />
@@ -851,7 +827,7 @@ const UserProfileCard = ({ onClose }: { onClose?: () => void }) => {
                 </Typography>
                 <ChevronRightIcon
                   className="dx-profile-chevron"
-                  sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.4)' : '#94a3b8', flexShrink: 0, transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease' }}
+                  sx={{ fontSize: 18, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.4)' : '#94a3b8', flexShrink: 0, transition: 'all .15s ease' }}
                 />
               </Stack>
               <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
@@ -929,248 +905,249 @@ const AppMenu = () => {
   const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
 
   return (
-  <Box
-    component="nav"
-    sx={{
-      py: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      minHeight: '100%',
-      width: '100%',
-      minWidth: 0,
-      maxWidth: '100%',
-      containerType: 'inline-size',
-      overflowX: 'hidden',
-      overflowY: 'auto',
-      maxHeight: '100dvh',
-      color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
-      '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' },
-    }}
-  >
-    {isDesktop && (
-      <Box sx={{ px: 2, pt: 1.25, pb: 1, display: 'flex', alignItems: 'center', gap: 1.25 }}>
-        <Box sx={{
-          width: 36, height: 36, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
-          background: 'linear-gradient(135deg,#20b2aa 0%,#0d9488 100%)',
-          boxShadow: '0 4px 14px rgba(32,178,170,.25), inset 0 1px 0 rgba(255,255,255,.3)', overflow: 'hidden'
-        }}>
-          <DrExame size={26} sx={{ borderRadius: '22%' }} />
+    <Box
+      component="nav"
+      sx={{
+        py: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100%',
+        width: '100%',
+        minWidth: 0,
+        maxWidth: '100%',
+        containerType: 'inline-size',
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        maxHeight: '100dvh',
+        color: (t) => t.palette.mode === 'dark' ? '#f1f5f9' : '#0f172a',
+        '& .MuiListItemButton-root, & .MuiMenuItem-root': { flex: '0 0 auto' },
+      }}
+    >
+      {isDesktop && (
+        <Box sx={{ px: 2, pt: 1.25, pb: 1, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+          <Box sx={{
+            width: 36, height: 36, borderRadius: '10px', flexShrink: 0, display: 'grid', placeItems: 'center',
+            background: 'linear-gradient(135deg,#20b2aa 0%,#0d9488 100%)',
+            boxShadow: '0 4px 14px rgba(32,178,170,.25), inset 0 1px 0 rgba(255,255,255,.3)', overflow: 'hidden'
+          }}>
+            <DrExame size={26} sx={{ borderRadius: '22%' }} />
+          </Box>
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.02em', color: (t) => t.palette.mode === 'dark' ? '#fff' : '#0f172a', lineHeight: 1.1 }}>
+              Dr. Exame
+            </Typography>
+            <Typography sx={{ fontSize: 11, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.6)' : '#64748b', fontWeight: 500, mt: 0.2 }}>
+              Saúde Inteligente
+            </Typography>
+          </Box>
         </Box>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography sx={{ fontWeight: 800, fontFamily: '"Poppins", sans-serif', fontSize: 16, letterSpacing: '-0.02em', color: (t) => t.palette.mode === 'dark' ? '#fff' : '#0f172a', lineHeight: 1.1 }}>
+      )}
+
+      {isDesktop && <UserProfileCard />}
+      {isDesktop && <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2, mb: 1 }} />}
+
+      {/* Início fora dos acordeões: acesso direto */}
+      <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} tile />
+
+      {/* Grupo 1: Meus Exames */}
+      <MenuSectionAccordion
+        title={translate('menu.section.exams', { _: 'Meus exames' })}
+        icon={<FactCheckOutlinedIcon />}
+        routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}
+      >
+        <NavItem to="/exams" primaryText={translate('menu.exams', { _: 'Todos os exames' })} icon={<FactCheckOutlinedIcon />} />
+        <NavItem to="/alterados" primaryText={translate('menu.alterados', { _: 'Valores alterados' })} icon={<WarningAmberOutlinedIcon />} highlight />
+        <NavItem to="/evolucao" primaryText={translate('menu.evolution', { _: 'Evolução' })} icon={<InsightsOutlinedIcon />} />
+        <NavItem to="/tendencias" primaryText={translate('menu.trends', { _: 'Tendências' })} icon={<QueryStatsOutlinedIcon />} />
+        <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline', { _: 'Linha do tempo' })} icon={<HistoryOutlinedIcon />} />
+        <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Relatório completo' })} icon={<SummarizeOutlinedIcon />} />
+      </MenuSectionAccordion>
+
+      {/* Grupo 2: Consultas & Médicos (Teleconsulta integrada!) */}
+      <MenuSectionAccordion
+        title="Consultas e médicos"
+        icon={<MedicalServicesOutlinedIcon />}
+        routes={['/consultas', '/lembretes', '/medicos', '/encontrar', '/perguntas']}
+        badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? '1' : undefined}
+      >
+        <NavItem
+          to="/consultas"
+          primaryText="Minhas consultas"
+          icon={<EventAvailableOutlinedIcon />}
+          highlight={tele.isToday || tele.isLive}
+          badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : undefined}
+        />
+        <NavItem to="/medicos" primaryText={translate('menu.doctors', { _: 'Meus médicos' })} icon={<MedicalServicesOutlinedIcon />} />
+        <NavItem to="/encontrar" primaryText={translate('menu.find_specialists', { _: 'Encontrar especialistas' })} icon={<TravelExploreRoundedIcon />} />
+        <NavItem to="/perguntas" primaryText={translate('menu.questions', { _: 'Perguntas para o médico' })} icon={<QuestionAnswerOutlinedIcon />} />
+      </MenuSectionAccordion>
+
+      {/* Grupo 3: Rotina de Saúde */}
+      <MenuSectionAccordion
+        title="Rotina de saúde"
+        icon={<MonitorHeartOutlinedIcon />}
+        routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
+      >
+        <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
+        <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
+        <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
+        <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
+        <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
+        <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
+        <NavItem to="/conquistas" primaryText={translate('menu.achievements', { _: 'Conquistas' })} icon={<EmojiEventsOutlinedIcon />} />
+        <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<EmergencyOutlinedIcon />} badge="SOS" />
+      </MenuSectionAccordion>
+
+      {/* Grupo 4: Família e Dependentes */}
+      <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} tile />
+
+      {/* Grupo 5: Conta & Configurações */}
+      <MenuSectionAccordion
+        title="Conta e planos"
+        icon={<ManageAccountsOutlinedIcon />}
+        routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}
+      >
+        <NavItem to="/perfil" primaryText={translate('menu.profile', { _: 'Meu perfil' })} icon={<AccountCircleOutlinedIcon />} />
+        <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira & créditos' })} icon={<BoltOutlinedIcon />} highlight />
+        <NavItem to="/indique" primaryText={translate('menu.invite', { _: 'Indique e ganhe 🎁' })} icon={<CardGiftcardOutlinedIcon />} highlight />
+        <NavItem to="/seguranca" primaryText={translate('menu.security_pwd', { _: 'Segurança e senha' })} icon={<LockOutlinedIcon />} />
+        <NavItem to="/privacidade" primaryText={translate('menu.privacy', { _: 'Privacidade (LGPD)' })} icon={<HealthAndSafetyOutlinedIcon />} />
+        <NavItem to="/planos" primaryText={translate('menu.plans', { _: 'Planos' })} icon={<WorkspacePremiumOutlinedIcon />} />
+        {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} />}
+      </MenuSectionAccordion>
+
+      {/* Divisor suave */}
+      <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
+
+      <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
+      <NavItem to="/showcase-reui" primaryText="Maquete ReUI × Dr. Exame" icon={<AutoAwesomeIcon />} tile badge="novo" />
+      <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
+        <ListItemIcon sx={{
+          minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
+          color: (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
+          boxShadow: (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
+        }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
+        <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{translate('menu.about')}</ListItemText>
+      </MenuItem>
+      <MenuItem onClick={() => logout('/entrar')} sx={{
+        m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
+        transition: 'background-color .15s ease',
+        '&:hover': { bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#912018', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
+        '@keyframes dxShake': {
+          '0%, 100%': { transform: 'rotate(0)' },
+          '25%': { transform: 'rotate(-8deg)' },
+          '75%': { transform: 'rotate(8deg)' },
+        },
+      }}>
+        <ListItemIcon sx={{
+          minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(248,113,113,0.14)' : 'rgba(217,45,32,0.10)',
+          color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
+          boxShadow: (t) => `inset 0 0 0 1px rgba(217,45,32,${t.palette.mode === 'dark' ? 0.26 : 0.16})`,
+        }}><LogoutIcon fontSize="small" /></ListItemIcon>
+        <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
+      </MenuItem>
+
+      {/* Aparência (mock A): expõe no menu o MESMO toggle de tema do AppBar (useStore 'theme'). */}
+      <Box sx={{ mx: 2, mt: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Aparência</Typography>
+        <Box role="group" aria-label="Aparência" sx={{ display: 'flex', p: '3px', borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,90,86,0.07)' }}>
+          {(['light', 'dark'] as const).map((m) => {
+            const sel = themeMode === m;
+            const MIcon = m === 'light' ? LightModeOutlinedIcon : DarkModeOutlinedIcon;
+            return (
+              <Box
+                key={m}
+                component="button"
+                type="button"
+                aria-pressed={sel}
+                onClick={() => setThemeMode(m)}
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: 0.6, height: 34, px: 1.5,
+                  border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
+                  fontSize: 12.5, fontWeight: sel ? 700 : 500,
+                  bgcolor: sel ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
+                  color: sel
+                    ? ((t: any) => t.palette.mode === 'dark' ? '#ffffff' : '#0b5c57')
+                    : ((t: any) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.65)' : '#556b6b'),
+                  boxShadow: sel
+                    ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
+                    : 'none',
+                  transition: 'all .15s ease',
+                  '& svg': { fontSize: 15 },
+                }}
+              >
+                <MIcon />
+                {m === 'light' ? 'Claro' : 'Escuro'}
+              </Box>
+            );
+          })}
+        </Box>
+      </Box>
+
+      <Box sx={{ px: 2, pt: 1.5, pb: { xs: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))', sm: 2 }, textAlign: 'center' }}>
+        <Box sx={{
+          display: 'inline-flex', alignItems: 'center', gap: 0.75,
+          px: 1.5, py: 0.6, borderRadius: 99,
+          bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+          border: '1px solid',
+          borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
+        }}>
+          <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#0d9488', boxShadow: '0 0 8px rgba(13,148,136,0.6)' }} />
+          <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary', letterSpacing: '0.01em' }}>
+            Dr. Exame · Saúde
+          </Typography>
+          <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700, color: 'text.secondary' }}>
+            v{APP_BUILD_INFO.version}
+          </Typography>
+        </Box>
+      </Box>
+
+      <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '22px', p: 0.5 } }}>
+        <DialogTitle sx={{ textAlign: 'center', pb: 0.5 }}>
+          {/* Mascote com aura pulsante (mesmo efeito do login — presença viva da marca) */}
+          <Box sx={{ mb: 1.25, display: 'flex', justifyContent: 'center' }}>
+            <MascotPulse size={80} ringColor="rgba(32,178,170,.45)">
+              <Box sx={{
+                width: 80, height: 80, borderRadius: '50%',
+                background: 'radial-gradient(circle at 50% 38%, rgba(32,178,170,.22), rgba(32,178,170,.06) 72%)',
+                border: '1px solid rgba(32,178,170,.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <DrExame size={54} sx={{ borderRadius: '50%' }} />
+              </Box>
+            </MascotPulse>
+          </Box>
+          <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>
             Dr. Exame
           </Typography>
-          <Typography sx={{ fontSize: 11, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.6)' : '#64748b', fontWeight: 500, mt: 0.2 }}>
-            Saúde Inteligente
+          <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700, display: 'block' }}>
+            Versão v{APP_BUILD_INFO.version} · Inteligência Clínica em Saúde
           </Typography>
-        </Box>
-      </Box>
-    )}
-
-    {isDesktop && <UserProfileCard />}
-    {isDesktop && <Divider sx={{ borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)', mx: 2, mb: 1 }} />}
-
-    {/* Início fora dos acordeões: acesso direto */}
-    <NavItem to="/" primaryText={translate('menu.home', { _: 'Início' })} icon={<HomeOutlinedIcon />} tile />
-
-    {/* Grupo 1: Meus Exames */}
-    <MenuSectionAccordion
-      title={translate('menu.section.exams', { _: 'Meus exames' })}
-      icon={<FactCheckOutlinedIcon />}
-      routes={['/exams', '/alterados', '/evolucao', '/tendencias', '/linha-do-tempo', '/relatorio']}
-    >
-      <NavItem to="/exams" primaryText={translate('menu.exams', { _: 'Todos os exames' })} icon={<FactCheckOutlinedIcon />} />
-      <NavItem to="/alterados" primaryText={translate('menu.alterados', { _: 'Valores alterados' })} icon={<WarningAmberOutlinedIcon />} highlight />
-      <NavItem to="/evolucao" primaryText={translate('menu.evolution', { _: 'Evolução' })} icon={<InsightsOutlinedIcon />} />
-      <NavItem to="/tendencias" primaryText={translate('menu.trends', { _: 'Tendências' })} icon={<QueryStatsOutlinedIcon />} />
-      <NavItem to="/linha-do-tempo" primaryText={translate('menu.timeline', { _: 'Linha do tempo' })} icon={<HistoryOutlinedIcon />} />
-      <NavItem to="/relatorio" primaryText={translate('menu.report', { _: 'Relatório completo' })} icon={<SummarizeOutlinedIcon />} />
-    </MenuSectionAccordion>
-
-    {/* Grupo 2: Consultas & Médicos (Teleconsulta integrada!) */}
-    <MenuSectionAccordion
-      title="Consultas e médicos"
-      icon={<MedicalServicesOutlinedIcon />}
-      routes={['/consultas', '/lembretes', '/medicos', '/encontrar', '/perguntas']}
-      badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : tele.item ? '1' : undefined}
-    >
-      <NavItem
-        to="/consultas"
-        primaryText="Minhas consultas"
-        icon={<EventAvailableOutlinedIcon />}
-        highlight={tele.isToday || tele.isLive}
-        badge={tele.isLive ? 'ao vivo' : tele.isToday ? 'hoje' : undefined}
-      />
-      <NavItem to="/medicos" primaryText={translate('menu.doctors', { _: 'Meus médicos' })} icon={<MedicalServicesOutlinedIcon />} />
-      <NavItem to="/encontrar" primaryText={translate('menu.find_specialists', { _: 'Encontrar especialistas' })} icon={<TravelExploreRoundedIcon />} />
-      <NavItem to="/perguntas" primaryText={translate('menu.questions', { _: 'Perguntas para o médico' })} icon={<QuestionAnswerOutlinedIcon />} />
-    </MenuSectionAccordion>
-
-    {/* Grupo 3: Rotina de Saúde */}
-    <MenuSectionAccordion
-      title="Rotina de saúde"
-      icon={<MonitorHeartOutlinedIcon />}
-      routes={['/medicamentos', '/sinais', '/medicoes', '/saude-mental', '/vacinas', '/despesas', '/conquistas', '/emergencia']}
-    >
-      <NavItem to="/medicamentos" primaryText="Medicamentos e receitas" icon={<MedicationOutlinedIcon />} highlight />
-      <NavItem to="/sinais" primaryText="Sinais Vitais" icon={<MonitorHeartOutlinedIcon />} />
-      <NavItem to="/medicoes" primaryText={translate('menu.measurements', { _: 'Medições corporais' })} icon={<MonitorHeartOutlinedIcon />} />
-      <NavItem to="/saude-mental" primaryText="Saúde Mental & Humor" icon={<PsychologyOutlinedIcon />} />
-      <NavItem to="/vacinas" primaryText={translate('menu.vaccines', { _: 'Vacinas' })} icon={<VaccinesOutlinedIcon />} />
-      <NavItem to="/despesas" primaryText={translate('menu.expenses', { _: 'Despesas médicas' })} icon={<AccountBalanceWalletOutlinedIcon />} />
-      <NavItem to="/conquistas" primaryText={translate('menu.achievements', { _: 'Conquistas' })} icon={<EmojiEventsOutlinedIcon />} />
-      <NavItem to="/emergencia" primaryText="Cartão de emergência" icon={<EmergencyOutlinedIcon />} badge="SOS" />
-    </MenuSectionAccordion>
-
-    {/* Grupo 4: Família e Dependentes */}
-    <NavItem to="/familia" primaryText="Família e dependentes" icon={<Diversity3OutlinedIcon />} tile />
-
-    {/* Grupo 5: Conta & Configurações */}
-    <MenuSectionAccordion
-      title="Conta e planos"
-      icon={<ManageAccountsOutlinedIcon />}
-      routes={['/perfil', '/carteira', '/indique', '/seguranca', '/privacidade', '/planos', '/admin']}
-    >
-      <NavItem to="/perfil" primaryText={translate('menu.profile', { _: 'Meu perfil' })} icon={<AccountCircleOutlinedIcon />} />
-      <NavItem to="/carteira" primaryText={translate('menu.wallet', { _: 'Carteira & créditos' })} icon={<BoltOutlinedIcon />} highlight />
-      <NavItem to="/indique" primaryText={translate('menu.invite', { _: 'Indique e ganhe 🎁' })} icon={<CardGiftcardOutlinedIcon />} highlight />
-      <NavItem to="/seguranca" primaryText={translate('menu.security_pwd', { _: 'Segurança e senha' })} icon={<LockOutlinedIcon />} />
-      <NavItem to="/privacidade" primaryText={translate('menu.privacy', { _: 'Privacidade (LGPD)' })} icon={<HealthAndSafetyOutlinedIcon />} />
-      <NavItem to="/planos" primaryText={translate('menu.plans', { _: 'Planos' })} icon={<WorkspacePremiumOutlinedIcon />} />
-      {isAdmin && <NavItem to="/admin" primaryText={translate('menu.admin', { _: 'Painel Admin' })} icon={<AdminPanelSettingsOutlinedIcon />} />}
-    </MenuSectionAccordion>
-
-    {/* Divisor suave */}
-    <Box sx={{ mx: 2, my: 1, height: '1px', background: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(0,0,0,.06)' }} />
-
-    <NavItem to="/faq" primaryText={translate('menu.faq', { _: 'Dúvidas frequentes' })} icon={<HelpOutlineOutlinedIcon />} tile />
-    <MenuItem onClick={() => setAboutOpen(true)} sx={{ m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.9)' : '#1f2d2d', '&:hover': { bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.7)', boxShadow: (t) => glassRim(t.palette.mode === 'dark') } }}>
-      <ListItemIcon sx={{
-        minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
-        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.72)',
-        color: (t) => t.palette.mode === 'dark' ? '#7fe0d9' : '#0e6f69',
-        boxShadow: (t) => `inset 0 0 0 1px rgba(32,178,170,${t.palette.mode === 'dark' ? 0.3 : 0.22})`,
-      }}><InfoOutlinedIcon fontSize="small" /></ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 500 }}>{translate('menu.about')}</ListItemText>
-    </MenuItem>
-    <MenuItem onClick={() => logout('/entrar')} sx={{
-      m: '3px 8px', borderRadius: '16px', py: 0.6, minHeight: 48, color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
-      transition: 'background-color .15s ease',
-      '&:hover': { bgcolor: 'rgba(239,68,68,.10)', color: (t) => t.palette.mode === 'dark' ? '#fecaca' : '#912018', '& .MuiListItemIcon-root svg': { animation: 'dxShake .4s ease' } },
-      '@keyframes dxShake': {
-        '0%, 100%': { transform: 'rotate(0)' },
-        '25%': { transform: 'rotate(-8deg)' },
-        '75%': { transform: 'rotate(8deg)' },
-      },
-    }}>
-      <ListItemIcon sx={{
-        minWidth: 0, mr: 1.5, width: 34, height: 34, borderRadius: '11px', display: 'grid', placeItems: 'center',
-        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(248,113,113,0.14)' : 'rgba(217,45,32,0.10)',
-        color: (t) => t.palette.mode === 'dark' ? '#ffb4ab' : '#b42318',
-        boxShadow: (t) => `inset 0 0 0 1px rgba(217,45,32,${t.palette.mode === 'dark' ? 0.26 : 0.16})`,
-      }}><LogoutIcon fontSize="small" /></ListItemIcon>
-      <ListItemText primaryTypographyProps={{ fontSize: 14, fontWeight: 600 }}>{translate('menu.logout')}</ListItemText>
-    </MenuItem>
-
-    {/* Aparência (mock A): expõe no menu o MESMO toggle de tema do AppBar (useStore 'theme'). */}
-    <Box sx={{ mx: 2, mt: 0.75, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-      <Typography sx={{ fontSize: 12, fontWeight: 600, color: 'text.secondary' }}>Aparência</Typography>
-      <Box role="group" aria-label="Aparência" sx={{ display: 'flex', p: '3px', borderRadius: 99, bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,90,86,0.07)' }}>
-        {(['light', 'dark'] as const).map((m) => {
-          const sel = themeMode === m;
-          const MIcon = m === 'light' ? LightModeOutlinedIcon : DarkModeOutlinedIcon;
-          return (
-            <Box
-              key={m}
-              component="button"
-              type="button"
-              aria-pressed={sel}
-              onClick={() => setThemeMode(m)}
-              sx={{
-                display: 'flex', alignItems: 'center', gap: 0.6, height: 34, px: 1.5,
-                border: 0, borderRadius: 99, cursor: 'pointer', fontFamily: 'inherit',
-                fontSize: 12.5, fontWeight: sel ? 700 : 500,
-                bgcolor: sel ? ((t: any) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.12)' : '#ffffff') : 'transparent',
-                color: sel
-                  ? ((t: any) => t.palette.mode === 'dark' ? '#ffffff' : '#0b5c57')
-                  : ((t: any) => t.palette.mode === 'dark' ? 'rgba(241,245,249,0.65)' : '#556b6b'),
-                boxShadow: sel
-                  ? ((t: any) => t.palette.mode === 'dark' ? 'inset 1px 1px 0 rgba(255,255,255,0.14)' : '0 1px 2px rgba(0,0,0,0.12), inset 1px 1px 0 #fff')
-                  : 'none',
-                transition: 'transform .15s ease, opacity .15s ease, box-shadow .15s ease, background-color .15s ease, border-color .15s ease, color .15s ease',
-                '& svg': { fontSize: 15 },
-              }}
-            >
-              <MIcon />
-              {m === 'light' ? 'Claro' : 'Escuro'}
-            </Box>
-          );
-        })}
-      </Box>
+        </DialogTitle>
+        <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.55 }}>{translate('about.tagline')}</Typography>
+          <Box sx={{ display: 'flex', gap: 0.75, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
+            <Chip size="small" label="✨ IA Clínica" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
+            <Chip size="small" label="📄 Extração Determinística" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
+            <Chip size="small" label="🔒 Conformidade LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
+          </Box>
+          <Box sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', mb: 1.5 }}>
+            <Stack spacing={0.5}>
+              <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
+              <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 13, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
+            </Stack>
+          </Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block', lineHeight: 1.4 }}>
+            {translate('about.disclaimer')}
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
+          <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: '999px', px: 5, textTransform: 'none', fontWeight: 800, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
-
-    <Box sx={{ px: 2, pt: 1.5, pb: { xs: 'calc(1.5rem + env(safe-area-inset-bottom, 16px))', sm: 2 }, textAlign: 'center' }}>
-      <Box sx={{
-        display: 'inline-flex', alignItems: 'center', gap: 0.75,
-        px: 1.5, py: 0.6, borderRadius: 99,
-        bgcolor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
-        border: '1px solid',
-        borderColor: (t) => t.palette.mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)',
-      }}>
-        <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#0d9488', boxShadow: '0 0 8px rgba(13,148,136,0.6)' }} />
-        <Typography variant="caption" sx={{ fontSize: 11.5, fontWeight: 700, color: 'text.primary', letterSpacing: '0.01em' }}>
-          Dr. Exame · Saúde
-        </Typography>
-        <Typography variant="caption" sx={{ fontSize: 10.5, fontWeight: 700, color: 'text.secondary' }}>
-          v{APP_BUILD_INFO.version}
-        </Typography>
-      </Box>
-    </Box>
-
-    <Dialog open={aboutOpen} onClose={() => setAboutOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '22px', p: 0.5 } }}>
-      <DialogTitle sx={{ textAlign: 'center', pb: 0.5 }}>
-        {/* Mascote com aura pulsante (mesmo efeito do login — presença viva da marca) */}
-        <Box sx={{ mb: 1.25, display: 'flex', justifyContent: 'center' }}>
-          <MascotPulse size={80} ringColor="rgba(32,178,170,.45)">
-            <Box sx={{
-              width: 80, height: 80, borderRadius: '50%',
-              background: 'radial-gradient(circle at 50% 38%, rgba(32,178,170,.22), rgba(32,178,170,.06) 72%)',
-              border: '1px solid rgba(32,178,170,.35)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <DrExame size={54} sx={{ borderRadius: '50%' }} />
-            </Box>
-          </MascotPulse>
-        </Box>
-        <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: 20 }}>
-          Dr. Exame
-        </Typography>
-        <Typography variant="caption" sx={{ color: (t) => tealText(t.palette.mode), fontWeight: 700, display: 'block' }}>
-          Versão v{APP_BUILD_INFO.version} · Inteligência Clínica em Saúde
-        </Typography>
-      </DialogTitle>
-      <DialogContent sx={{ textAlign: 'center', pt: 1 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2, lineHeight: 1.55 }}>{translate('about.tagline')}</Typography>
-        <Box sx={{ display: 'flex', gap: 0.75, justifyContent: 'center', flexWrap: 'wrap', mb: 2 }}>
-          <Chip size="small" label="✨ IA Clínica" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
-          <Chip size="small" label="📄 Extração Determinística" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
-          <Chip size="small" label="🔒 Conformidade LGPD" sx={{ bgcolor: 'rgba(32,178,170,0.12)', color: (t) => tealText(t.palette.mode), fontWeight: 700, borderRadius: '8px' }} />
-        </Box>
-        <Box sx={{ p: 1.5, borderRadius: '14px', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider', mb: 1.5 }}>
-          <Stack spacing={0.5}>
-            <MuiLink href="mailto:contato@janocaminho.com.br" sx={{ fontSize: 13, fontWeight: 700 }}>📧 contato@janocaminho.com.br</MuiLink>
-            <MuiLink href="https://drexame.janocaminho.com.br" target="_blank" rel="noopener noreferrer" sx={{ fontSize: 13, fontWeight: 700 }}>🌐 drexame.janocaminho.com.br</MuiLink>
-          </Stack>
-        </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block', lineHeight: 1.4 }}>
-          {translate('about.disclaimer')}
-        </Typography>
-      </DialogContent>
-      <DialogActions sx={{ justifyContent: 'center', pb: 2 }}>
-        <Button onClick={() => setAboutOpen(false)} variant="contained" sx={{ borderRadius: '999px', px: 5, textTransform: 'none', fontWeight: 800, bgcolor: '#178f89' }}>{translate('ra.action.close')}</Button>
-      </DialogActions>
-    </Dialog>
-  </Box>
   );
 };
 
@@ -1180,7 +1157,7 @@ const AppDrawer = () => {
   const { open, closeDrawer } = useAppDrawer();
   const { pathname } = useLocation();
 
-  useEffect(() => { if (open) closeDrawer(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { closeDrawer(); }, [pathname]);
   useEffect(() => {
     (window as any).__drawerOpen = open;
     const onClose = () => closeDrawer();
@@ -1238,7 +1215,7 @@ const LangToggle = () => {
   const setLocale = useSetLocale();
   return (
     <Button size="small" color="inherit"
-      onClick={() => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch {} }}
+      onClick={() => { const l = locale === 'pt' ? 'en' : 'pt'; setLocale(l); try { localStorage.setItem('lang', l); } catch { } }}
       sx={{ minWidth: 0, px: 1, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(0,0,0,.06)', '&:hover': { bgcolor: 'rgba(0,0,0,.12)' } }}
       title="Trocar idioma">
       🌐 {locale === 'pt' ? 'EN' : 'PT'}
@@ -1370,88 +1347,85 @@ const AppLayout = (props: any) => {
   if (!token()) return <Navigate to="/entrar" replace />;
   return (
     <ConfirmDialogProvider>
-    {/* FILA DE NUDGES (05/10): serializa modais de cold-load (MOTD/WhatsNew/…) —
+      {/* FILA DE NUDGES (05/10): serializa modais de cold-load (MOTD/WhatsNew/…) —
         um por vez, prioridade, gap 400ms. Morde só a ORDEM de abrir, não o conteúdo. */}
-    <NudgeQueueProvider>
-    <FeedbackProvider mode="patient">
-    <DrawerProvider>
-      <BiometricGate>
-      <ScreenBackdrop />
-      {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
-      <Layout {...props} menu={AppMenu} appBar={CustomAppBar} error={AppCrashPage}
-        sx={{
-          // Esconde o ☰ nativo do react-admin (menuButton). Mobile usa o AppDrawer (☰ do CustomAppBar);
-          // Desktop NÃO tem toggle — a Sidebar fica sempre aberta (useSidebarState força). Antes o ☰ no desktop
-          // colapsava a Sidebar p/ um rail estreito e o AppMenu (c/ texto) era "esmagado" mostrando parte dos itens.
-          '& .RaAppBar-menuButton': { display: 'none' },
-          // TRAVA o frame na largura do viewport no mobile. O react-admin põe min-width:fit-content no
-          // .layout (pensando na sidebar de desktop) — no mobile isso deixa o frame inflar além do
-          // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
-          // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
-          // bg TRANSPARENTE no root/appFrame: deixa o ScreenBackdrop (wallpaper glass) aparecer —
-          // o bg chapado do RA cobria o gradiente inteiro.
-          '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw', backgroundColor: 'transparent' },
-          // SHELL CENTRADO em telas largas (premium): app inteiro (topo+menu+content) num bloco de
-          // até 1728px centrado → gutters simétricos nas BORDAS (intencional, estilo Linear/GitHub),
-          // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
-          // (≥1920) centraliza c/ margens premium. Mobile (xs) continua 100% (intocado).
-          // APPFRAME preenche (width 100%!) no desktop — antes era flex-item c/ mx:auto → shrink-to-fit ao conteúdo
-          // (dashboard largo=1115, listas estreitas=648 → "página encolhe ao clicar"). Agora preenche até o cap 1728
-          // e centraliza além. !important bate o maxWidth:100% que o react-admin põe no appFrame.
-          // bg transparente: deixa o ScreenBackdrop (wallpaper glass) aparecer por trás do shell.
-          '& .RaLayout-appFrame': { backgroundColor: 'transparent', width: { sm: '100% !important' }, maxWidth: { xs: '100%', sm: '1728px !important' }, mx: { sm: 'auto' } },
-          // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
-          // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
-          '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
-          // SIDEBAR DESKTOP: in-flow + width 280px + fundo premium Dr. Exame
-          '& .RaSidebar-root': { width: { sm: '280px !important' }, minWidth: { sm: '280px !important' }, flexShrink: 0 },
-          '& .RaSidebar-fixed, & .RaSidebar-paper, & .RaSidebar-root .MuiPaper-root': {
-            position: { sm: 'static !important' },
-            width: { sm: '280px !important' },
-            minWidth: { sm: '280px !important' },
-            maxWidth: { sm: '280px !important' },
-            height: { sm: 'auto !important' },
-            minHeight: { sm: '100dvh' },
-            background: (t: any) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%) !important' : '#ffffff !important',
-            color: (t: any) => (t.palette.mode === 'dark' ? '#f1f5f9 !important' : '#0f172a !important'),
-            borderRight: (t: any) => t.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08) !important' : '1px solid rgba(0,0,0,0.06) !important',
-            boxShadow: (t: any) => t.palette.mode === 'dark' ? '4px 0 24px rgba(0,0,0,0.25)' : '4px 0 24px rgba(0,0,0,0.03)',
-          },
-          '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
-          // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
-          // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
-          // do .RaLayout-content CLIPA o canto direito (🗑 e › somem). Vale p/ TODA lista RA (exames,
-          // dependentes…). Mesmo remédio do frame acima: min-width:0 libera p/ encolher.
-          '& .RaList-main, & .RaList-main > .MuiPaper-root': { minWidth: 0, maxWidth: '100%' },
-          // Espaço embaixo pra NÃO cobrir conteúdo com o menu rodapé (mobile). Usa a altura REAL medida do
-          // MobileBottomNav (var publicada por ResizeObserver) — nunca px fixo (o robô elevado deixou o nav
-          // maior que o chute antigo de 72px e cortava o rodapé de TODA tela, inclusive admin). +14px respiro.
-          '& .RaLayout-content, & main': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px' } },
-          '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
-        }} />
-      {/* Notificação "relatório pronto" (sobrevive a trocar de tela durante a geração). */}
-      <ReportReadyToast />
-      {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
-      <AppDrawer />
-      {/* FloatingChat REMOVIDO (pedido do dono): o robô flutuante ocupava tela em
+      <NudgeQueueProvider>
+        <DrawerProvider>
+          <BiometricGate>
+            <ScreenBackdrop />
+            {/* gap reduzido + espaço pra não cobrir conteúdo com o menu rodapé (mobile) */}
+            <Layout {...props} menu={AppMenu} appBar={CustomAppBar} error={AppCrashPage}
+              sx={{
+                // Esconde o ☰ nativo do react-admin (menuButton). Mobile usa o AppDrawer (☰ do CustomAppBar);
+                // Desktop NÃO tem toggle — a Sidebar fica sempre aberta (useSidebarState força). Antes o ☰ no desktop
+                // colapsava a Sidebar p/ um rail estreito e o AppMenu (c/ texto) era "esmagado" mostrando parte dos itens.
+                '& .RaAppBar-menuButton': { display: 'none' },
+                // TRAVA o frame na largura do viewport no mobile. O react-admin põe min-width:fit-content no
+                // .layout (pensando na sidebar de desktop) — no mobile isso deixa o frame inflar além do
+                // viewport (ex.: admin com 5 Tabs de 90px = 450px + AppBar) e CLIPA a direita (overflow hidden
+                // corta em vez de caber). min-width:0 mata o fit-content no mobile; sm+ mantém p/ desktop.
+                // bg TRANSPARENTE no root/appFrame: deixa o ScreenBackdrop (wallpaper glass) aparecer —
+                // o bg chapado do RA cobria o gradiente inteiro.
+                '&': { minWidth: { xs: '0 !important', sm: 'fit-content' }, maxWidth: '100vw', backgroundColor: 'transparent' },
+                // SHELL CENTRADO em telas largas (premium): app inteiro (topo+menu+content) num bloco de
+                // até 1728px centrado → gutters simétricos nas BORDAS (intencional, estilo Linear/GitHub),
+                // NÃO espaço morto entre menu e dashboard. Em laptop (≤1728) preenche tudo; em ultrawide
+                // (≥1920) centraliza c/ margens premium. Mobile (xs) continua 100% (intocado).
+                // APPFRAME preenche (width 100%!) no desktop — antes era flex-item c/ mx:auto → shrink-to-fit ao conteúdo
+                // (dashboard largo=1115, listas estreitas=648 → "página encolhe ao clicar"). Agora preenche até o cap 1728
+                // e centraliza além. !important bate o maxWidth:100% que o react-admin põe no appFrame.
+                // bg transparente: deixa o ScreenBackdrop (wallpaper glass) aparecer por trás do shell.
+                '& .RaLayout-appFrame': { backgroundColor: 'transparent', width: { sm: '100% !important' }, maxWidth: { xs: '100%', sm: '1728px !important' }, mx: { sm: 'auto' } },
+                // Menu lateral: constraine o conteúdo ao sidebar (min-width:0 + clip) — sem isto o grid
+                // de atalhos (e itens largos) escapa da largura do sidebar e transborda sobre a página.
+                '& .RaLayout-menu': { minWidth: 0, maxWidth: '100%', overflowX: 'hidden' },
+                // SIDEBAR DESKTOP: in-flow + width 280px + fundo premium Dr. Exame
+                '& .RaSidebar-root': { width: { sm: '280px !important' }, minWidth: { sm: '280px !important' }, flexShrink: 0 },
+                '& .RaSidebar-fixed, & .RaSidebar-paper, & .RaSidebar-root .MuiPaper-root': {
+                  position: { sm: 'static !important' },
+                  width: { sm: '280px !important' },
+                  minWidth: { sm: '280px !important' },
+                  maxWidth: { sm: '280px !important' },
+                  height: { sm: 'auto !important' },
+                  minHeight: { sm: '100dvh' },
+                  background: (t: any) => t.palette.mode === 'dark' ? 'linear-gradient(180deg, #0b1120 0%, #0f172a 100%) !important' : '#ffffff !important',
+                  color: (t: any) => (t.palette.mode === 'dark' ? '#f1f5f9 !important' : '#0f172a !important'),
+                  borderRight: (t: any) => t.palette.mode === 'dark' ? '1px solid rgba(255,255,255,0.08) !important' : '1px solid rgba(0,0,0,0.06) !important',
+                  boxShadow: (t: any) => t.palette.mode === 'dark' ? '4px 0 24px rgba(0,0,0,0.25)' : '4px 0 24px rgba(0,0,0,0.03)',
+                },
+                '& .RaLayout-appFrame, & .RaLayout-contentWithSidebar': { minWidth: 0, maxWidth: '100%' },
+                // CONTEÚDO do <List> (.RaList-main) TAMBÉM é flex-item com min-width:auto → sem min-width:0,
+                // o card de exame infla além do viewport (medido: 627px numa tela de 360px) e o overflow-hidden
+                // do .RaLayout-content CLIPA o canto direito (🗑 e › somem). Vale p/ TODA lista RA (exames,
+                // dependentes…). Mesmo remédio do frame acima: min-width:0 libera p/ encolher.
+                '& .RaList-main, & .RaList-main > .MuiPaper-root': { minWidth: 0, maxWidth: '100%' },
+                // Espaço embaixo pra NÃO cobrir conteúdo com o menu rodapé (mobile). Usa a altura REAL medida do
+                // MobileBottomNav (var publicada por ResizeObserver) — nunca px fixo (o robô elevado deixou o nav
+                // maior que o chute antigo de 72px e cortava o rodapé de TODA tela, inclusive admin). +14px respiro.
+                '& .RaLayout-content, & main': { padding: { xs: '2px 0 calc(var(--me-bottom-nav-h, 76px) + 14px)', sm: '6px 0 28px' } },
+                '& .RaList-toolbar, [class*="List-toolbar"]': { minHeight: '40px !important', paddingBottom: '4px !important' },
+              }} />
+            {/* Notificação "relatório pronto" (sobrevive a trocar de tela durante a geração). */}
+            <ReportReadyToast />
+            {/* Menu lateral UNIFICADO (mobile) — ☰ e "Mais" abem o mesmo drawer */}
+            <AppDrawer />
+            {/* FloatingChat REMOVIDO (pedido do dono): o robô flutuante ocupava tela em
           todas as páginas — o acesso à IA já existe no rodapé (Dr. Exame) e no menu. */}
-      <ExamCreateFab />
-      <OfflineBanner />
-      <PullToRefresh />
-      <MobileBottomNav />
-      <NotificationPopup />
-      <Onboarding />
-      <WhatsNew />
-      <CompleteProfileModal />
-      <GoalQuiz />
-      <Motd />
-      <SponsorPopup mode="patient" />
-      <CreditRewardFx />
-      <CelebrateFx />
-      </BiometricGate>
-    </DrawerProvider>
-    </FeedbackProvider>
-    </NudgeQueueProvider>
+            <ExamCreateFab />
+            <OfflineBanner />
+            <PullToRefresh />
+            <MobileBottomNav />
+            <NotificationPopup />
+            <Onboarding />
+            <WhatsNew />
+            <CompleteProfileModal />
+            <GoalQuiz />
+            <Motd />
+            <CreditRewardFx />
+            <CelebrateFx />
+          </BiometricGate>
+        </DrawerProvider>
+      </NudgeQueueProvider>
     </ConfirmDialogProvider>
   );
 };
@@ -1574,13 +1548,19 @@ export const App = () => {
         .then(async (r) => {
           if (r && r.ok) return r.json();
           // 401 = token expirado/inválido → limpa sessão stale (não limpa em 5xx: pode ser blip do server)
-          if (r && r.status === 401) { try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch {} }
+          if (r && r.status === 401) { try { localStorage.removeItem('token'); localStorage.removeItem('user'); } catch { } }
           return null;
         })
-        .then((d) => { if (!cancelled && d?.user) { localStorage.setItem('user', JSON.stringify(d.user)); if (d.token) { try { localStorage.setItem('token', d.token); } catch {} } if (d.patientId) { localStorage.setItem('patientId', d.patientId); // selPatientId só se FALTAR (comentário prometia "popular se faltar"): sobrescrever sempre
+        .then((d) => {
+          if (!cancelled && d?.user) {
+            localStorage.setItem('user', JSON.stringify(d.user)); if (d.token) { try { localStorage.setItem('token', d.token); } catch { } } if (d.patientId) {
+              localStorage.setItem('patientId', d.patientId); // selPatientId só se FALTAR (comentário prometia "popular se faltar"): sobrescrever sempre
               // no boot jogava o usuário de volta no TITULAR — modo cuidador (dependente selecionado) se perdia a cada reabertura.
-              if (!localStorage.getItem('selPatientId')) { localStorage.setItem('selPatientId', d.patientId); window.dispatchEvent(new Event('selPatientChanged')); } } } })
-        .catch(() => {});
+              if (!localStorage.getItem('selPatientId')) { localStorage.setItem('selPatientId', d.patientId); window.dispatchEvent(new Event('selPatientChanged')); }
+            }
+          }
+        })
+        .catch(() => { });
     }
     // Botão/gesto de voltar do Android (Capacitor) — volta no histórico IN-APP ou engole o back na raiz (NUNCA sai do app).
     let remove: (() => void) | undefined;
@@ -1619,107 +1599,108 @@ export const App = () => {
   }, []);
   if (forceUpdate) return <ForceUpdate latest={forceUpdate} />;
   return (
-  <>
-  {!booted && <BootSplash isExiting={bootExiting} messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />}
-  <Admin
-    dataProvider={dataProvider}
-    authProvider={authProvider}
-    theme={textLarge ? lightThemeLarge : lightTheme}
-    darkTheme={textLarge ? darkThemeLarge : darkTheme}
-    defaultTheme="light"
-    i18nProvider={i18nProvider}
-    layout={AppLayout}
-    dashboard={FlagDashboard}
-    loginPage={isNativeApp ? LoginPage : LandingPage}
-    title="Meus Exames"
-    loading={() => <BootSplash />}
-    // Crash de tela: página amigável pt-BR no lugar do "Something went wrong / A client error
-    // occurred…" do RA. Cobre também rotas noLayout (/admin, /doctor, /teleconsulta).
-    error={AppCrashPage}
-    disableTelemetry
-  >
-    <CustomRoutes noLayout>
-      <Route path="/entrar" element={<LoginPage key="paciente" />} />
-      <Route path="/entrar/medico" element={<LoginPage key="medico" fixedRole="medico" />} />
-      <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
-      {/* Rotas Públicas de SEO e Aquisição (Saúde Esportiva, Atletas, Como Funciona) */}
-      <Route path="/saude-esportiva" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
-      <Route path="/features" element={<Suspense fallback={<PageSkeleton />}><FeaturesPage /></Suspense>} />
-      <Route path="/exames-para-atletas" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
-      <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
-      <Route path="/entender-exames-de-sangue" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
-      <Route path="/convite/:token" element={<InviteLandingPage />} />
-      <Route path="/dr/vinculo" element={<DoctorInviteLandingPage />} />
-      <Route path="/doctor/vincular" element={<DoctorInviteLandingPage />} />
-      <Route path="/termos" element={<TermsPage />} />
-      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
-      <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
-      {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
-      <Route path="/api-docs" element={<Suspense fallback={<PageSkeleton />}><ApiDocsPage /></Suspense>} />
-      <Route path="/registrar" element={<RegisterPage />} />
-      <Route path="/recuperar-senha" element={<ResetPage />} />
-      <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
-      {/* Ilha doctor-v2 (spike): ReUI/Tailwind scoped em src/doctor-v2 — sem preflight, sem tocar MUI. Flag: localStorage dx.doctorV2=1 */}
-      <Route path="/doctor-v2" element={<Suspense fallback={<PageSkeleton />}><DoctorV2Spike /></Suspense>} />
-      {/* Ilha dashboard-v2 (protótipo A/B paciente): stats-1 + série real, dados do /dashboard-summary. Flag: localStorage dx.dashV2=1 */}
-      <Route path="/dashboard-v2" element={<Suspense fallback={<PageSkeleton />}><DashboardV2Island /></Suspense>} />
-      <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><ParaMedicosPage /></Suspense>} />
-      {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
-      <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />
-      {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
-      <Route path="/admin" element={<AdminPage />} />
-    </CustomRoutes>
+    <>
+      {!booted && <BootSplash isExiting={bootExiting} messages={['Iniciando o Dr. Exame…', 'Carregando seus exames…', 'Preparando seu painel…', 'Quase lá…']} />}
+      <Admin
+        dataProvider={dataProvider}
+        authProvider={authProvider}
+        theme={textLarge ? lightThemeLarge : lightTheme}
+        darkTheme={textLarge ? darkThemeLarge : darkTheme}
+        defaultTheme="light"
+        i18nProvider={i18nProvider}
+        layout={AppLayout}
+        dashboard={FlagDashboard}
+        loginPage={isNativeApp ? LoginPage : LandingPage}
+        title="Meus Exames"
+        loading={() => <BootSplash />}
+        // Crash de tela: página amigável pt-BR no lugar do "Something went wrong / A client error
+        // occurred…" do RA. Cobre também rotas noLayout (/admin, /doctor, /teleconsulta).
+        error={AppCrashPage}
+        disableTelemetry
+      >
+        <CustomRoutes noLayout>
+          <Route path="/entrar" element={<LoginPage key="paciente" />} />
+          <Route path="/entrar/medico" element={<LoginPage key="medico" fixedRole="medico" />} />
+          <Route path="/landing" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+          {/* Rotas Públicas de SEO e Aquisição (Saúde Esportiva, Atletas, Como Funciona) */}
+          <Route path="/saude-esportiva" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+          <Route path="/features" element={<Suspense fallback={<PageSkeleton />}><FeaturesPage /></Suspense>} />
+          <Route path="/exames-para-atletas" element={<Suspense fallback={<PageSkeleton />}><SportsLandingPage /></Suspense>} />
+          <Route path="/como-funciona" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+          <Route path="/entender-exames-de-sangue" element={<Suspense fallback={<PageSkeleton />}><LandingPage /></Suspense>} />
+          <Route path="/convite/:token" element={<InviteLandingPage />} />
+          <Route path="/dr/vinculo" element={<DoctorInviteLandingPage />} />
+          <Route path="/doctor/vincular" element={<DoctorInviteLandingPage />} />
+          <Route path="/termos" element={<TermsPage />} />
+          <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
+          <Route path="/showcase-reui" element={<Suspense fallback={<PageSkeleton />}><ShowcaseReuiPage /></Suspense>} />
+          <Route path="/como-validamos" element={<Suspense fallback={<PageSkeleton />}><HowWeValidatePage /></Suspense>} />
+          {/* Portal de documentação da API: PÚBLICO (prospects leem antes de solicitar) — fora do shell autenticado. */}
+          <Route path="/api-docs" element={<Suspense fallback={<PageSkeleton />}><ApiDocsPage /></Suspense>} />
+          <Route path="/registrar" element={<RegisterPage />} />
+          <Route path="/recuperar-senha" element={<ResetPage />} />
+          <Route path="/doctor" element={<Suspense fallback={<PageSkeleton />}><DoctorPortalPage /></Suspense>} />
+          {/* Ilha doctor-v2 (spike): ReUI/Tailwind scoped em src/doctor-v2 — sem preflight, sem tocar MUI. Flag: localStorage dx.doctorV2=1 */}
+          <Route path="/doctor-v2" element={<Suspense fallback={<PageSkeleton />}><DoctorV2Spike /></Suspense>} />
+          {/* Ilha dashboard-v2 (protótipo A/B paciente): stats-1 + série real, dados do /dashboard-summary. Flag: localStorage dx.dashV2=1 */}
+          <Route path="/dashboard-v2" element={<Suspense fallback={<PageSkeleton />}><DashboardV2Island /></Suspense>} />
+          <Route path="/para-medicos" element={<Suspense fallback={<PageSkeleton />}><ParaMedicosPage /></Suspense>} />
+          {/* Teleconsulta in-app (LiveKit): imersiva, SEM layout/menu/bottom-nav. Paciente e médico. */}
+          <Route path="/teleconsulta/:id" element={<Suspense fallback={<PageSkeleton />}><TeleconsultaPage /></Suspense>} />
+          {/* Backoffice ISOLADO do app do paciente: shell próprio (sem AppLayout/BottomNav/FloatingChat/menu de saúde). */}
+          <Route path="/admin" element={<AdminPage />} />
+        </CustomRoutes>
 
-    <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={FactCheckOutlinedIcon} />
-    {/* create é OBRIGATÓRIO: sem ele /patients/create caía na rota de EDIT com id="create" →
+        <Resource name="exams" list={ExamList} show={ExamShow} create={ExamCreate} options={{ label: 'Exames' }} icon={FactCheckOutlinedIcon} />
+        {/* create é OBRIGATÓRIO: sem ele /patients/create caía na rota de EDIT com id="create" →
         403 da guarda de PII → checkError derrubava a sessão (bug do dono 28/09: biometria + expulso). */}
-    <Resource name="patients" list={PatientList} edit={PatientEdit} create={PatientCreate} options={{ label: 'Dependentes' }} icon={Diversity3OutlinedIcon} />
-    <Resource name="items" options={{ label: 'Itens' }} />
-    <Resource name="analyses" options={{ label: 'Análises' }} />
+        <Resource name="patients" list={PatientList} edit={PatientEdit} create={PatientCreate} options={{ label: 'Dependentes' }} icon={Diversity3OutlinedIcon} />
+        <Resource name="items" options={{ label: 'Itens' }} />
+        <Resource name="analyses" options={{ label: 'Análises' }} />
 
-    <CustomRoutes>
-      <Route path="/perfil" element={<ProfilePage />} />
-      <Route path="/carteira" element={<Suspense fallback={<PageSkeleton />}><WalletPage /></Suspense>} />
-      <Route path="/indique" element={<Suspense fallback={<PageSkeleton />}><InvitePage /></Suspense>} />
-      <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
-      <Route path="/seguranca" element={<SecurityPage />} />
-      <Route path="/privacidade" element={<PrivacyPage />} />
-      {/* FAQ dentro do layout (era noLayout = "tela solta": sem voltar/menu/rodapé, e o link
+        <CustomRoutes>
+          <Route path="/perfil" element={<ProfilePage />} />
+          <Route path="/carteira" element={<Suspense fallback={<PageSkeleton />}><WalletPage /></Suspense>} />
+          <Route path="/indique" element={<Suspense fallback={<PageSkeleton />}><InvitePage /></Suspense>} />
+          <Route path="/perguntas" element={<Suspense fallback={<PageSkeleton />}><QuestionsPage /></Suspense>} />
+          <Route path="/seguranca" element={<SecurityPage />} />
+          <Route path="/privacidade" element={<PrivacyPage />} />
+          {/* FAQ dentro do layout (era noLayout = "tela solta": sem voltar/menu/rodapé, e o link
           "voltar" jogava pra /landing). Agora é tela do app, com CTA de suporte in-app. */}
-      <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
-      <Route path="*" element={<NotFoundPage />} />
-      <Route path="/evolucao" element={<EvolutionPage />} />
-      <Route path="/familia" element={<FamilyPage />} />
-      <Route path="/tendencias" element={<TrendsPage />} />
-      <Route path="/linha-do-tempo" element={<TimelinePage />} />
-      <Route path="/relatorio" element={<ConsolidatedReportPage />} />
-      <Route path="/alterados" element={<ValoresAlteradosPage />} />
-      <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
-      <Route path="/consultas" element={<Suspense fallback={<PageSkeleton />}><MinhasConsultasPage /></Suspense>} />
-      <Route path="/medicoes" element={<MeasurementsPage />} />
-      {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
+          <Route path="/faq" element={<Suspense fallback={<PageSkeleton />}><FaqPage /></Suspense>} />
+          <Route path="*" element={<NotFoundPage />} />
+          <Route path="/evolucao" element={<EvolutionPage />} />
+          <Route path="/familia" element={<FamilyPage />} />
+          <Route path="/tendencias" element={<TrendsPage />} />
+          <Route path="/linha-do-tempo" element={<TimelinePage />} />
+          <Route path="/relatorio" element={<ConsolidatedReportPage />} />
+          <Route path="/alterados" element={<ValoresAlteradosPage />} />
+          <Route path="/lembretes" element={<Suspense fallback={<PageSkeleton />}><RemindersPage /></Suspense>} />
+          <Route path="/consultas" element={<Suspense fallback={<PageSkeleton />}><MinhasConsultasPage /></Suspense>} />
+          <Route path="/medicoes" element={<MeasurementsPage />} />
+          {/* Histórico por métrica — detalhe da central de sinais (sub-rota: back-gesture
           Android funciona nativo; gráfico+períodos+tabela não cabem em dialog 360px). */}
-      <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
-      {/* Saúde mental (PHQ-9/GAD-7) — entra pelo card da página Medições (sem item de menu). */}
-      <Route path="/saude-mental" element={<Suspense fallback={<PageSkeleton />}><SaudeMentalPage /></Suspense>} />
-      {/* Sinais Vitais (hub Health Connect) — PORTA pelo ActivityCard conectado: sem item
+          <Route path="/medicoes/historico/:type" element={<Suspense fallback={<PageSkeleton />}><MeasurementHistoryPage /></Suspense>} />
+          {/* Saúde mental (PHQ-9/GAD-7) — entra pelo card da página Medições (sem item de menu). */}
+          <Route path="/saude-mental" element={<Suspense fallback={<PageSkeleton />}><SaudeMentalPage /></Suspense>} />
+          {/* Sinais Vitais (hub Health Connect) — PORTA pelo ActivityCard conectado: sem item
           de menu de propósito (exclusiva de quem conecta o celular; sem dado → convite). */}
-      <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
-      <Route path="/medicamentos" element={<MedicationsPage />} />
-      <Route path="/vacinas" element={<VaccinesPage />} />
-      <Route path="/despesas" element={<ExpensesPage />} />
-      <Route path="/emergencia" element={<EmergencyCardPage />} />
-      <Route path="/chat" element={<Suspense fallback={<PageSkeleton />}><ChatPage /></Suspense>} />
-      <Route path="/notificacoes" element={<NotificationsPage />} />
-      <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
-      <Route path="/medicos" element={<MedicosPage />} />
-      <Route path="/encontrar" element={<Suspense fallback={<PageSkeleton />}><EncontrarEspecialistasPage /></Suspense>} />
-      <Route path="/conquistas" element={<ConquistasPage />} />
-      <Route path="/suporte" element={<SupportPage />} />
-      <Route path="/suporte/:id" element={<SupportPage />} />
-      <Route path="/api" element={<ApiPanelPage />} />
-    </CustomRoutes>
-  </Admin>
-  </>
+          <Route path="/sinais" element={<Suspense fallback={<PageSkeleton />}><SinaisPage /></Suspense>} />
+          <Route path="/medicamentos" element={<MedicationsPage />} />
+          <Route path="/vacinas" element={<VaccinesPage />} />
+          <Route path="/despesas" element={<ExpensesPage />} />
+          <Route path="/emergencia" element={<EmergencyCardPage />} />
+          <Route path="/chat" element={<Suspense fallback={<PageSkeleton />}><ChatPage /></Suspense>} />
+          <Route path="/notificacoes" element={<NotificationsPage />} />
+          <Route path="/planos" element={<Suspense fallback={<PageSkeleton />}><PlansPage /></Suspense>} />
+          <Route path="/medicos" element={<MedicosPage />} />
+          <Route path="/encontrar" element={<Suspense fallback={<PageSkeleton />}><EncontrarEspecialistasPage /></Suspense>} />
+          <Route path="/conquistas" element={<ConquistasPage />} />
+          <Route path="/suporte" element={<SupportPage />} />
+          <Route path="/suporte/:id" element={<SupportPage />} />
+          <Route path="/api" element={<ApiPanelPage />} />
+        </CustomRoutes>
+      </Admin>
+    </>
   );
 };
