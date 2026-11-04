@@ -631,7 +631,6 @@ const HeroHealthCard = ({ loaded, score, exams, importante, moderada, lastExam, 
             <IconButton
               onClick={toggleAudio}
               aria-label={audioPlaying ? 'Pausar resumo em áudio do Dr. Exame' : 'Ouvir resumo em áudio do Dr. Exame'}
-              title={audioPlaying ? 'Pausar resumo em áudio' : 'Ouvir resumo em áudio'}
               sx={{
                 width: { xs: 34, sm: 38 },
                 height: { xs: 34, sm: 38 },
@@ -1225,7 +1224,7 @@ const MarkerDistributionCard = ({ buckets, totalMarkers, onOpen, loaded = true }
       </Stack>
 
       <Typography sx={{ fontSize: 11.5, color: 'text.secondary', mt: 1.75, lineHeight: 1.35 }}>
-        <LightbulbIcon component="span" sx={{ fontSize: 13, mr: 0.25, verticalAlign: '-2px' }} /> Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
+        <LightbulbIcon sx={{ fontSize: 13, mr: 0.25, verticalAlign: '-2px' }} /> Comparações baseadas nas diretrizes oficiais dos laboratórios credenciados.
       </Typography>
     </AppCard>
   );
