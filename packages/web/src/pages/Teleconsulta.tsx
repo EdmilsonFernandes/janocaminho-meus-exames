@@ -444,7 +444,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   // CAPÍTULO → CATEGORIA → CÓDIGO em 3 toques, sem digitar, no MESMO endpoint DATASUS
   // do autocomplete (busca por letra/prefixo). Capítulos = classificação OMS (22,
   // domínio público). Quem prefere digitar segue no campo — os dois convivem.
-  const [cidNav, setCidNav] = useState<{ chapter?: { letter: string; label: string }; cats?: string[]; cat?: string } | null>(null);
+  const [cidNav, setCidNav] = useState<{ chapter?: { letter: string; label: string }; cats?: string[]; cat?: string; codes?: { c: string; d: string }[] } | null>(null);
   const [cidNavBusy, setCidNavBusy] = useState(false);
   const cidSearch = async (q: string): Promise<{ c: string; d: string }[]> => {
     try {
@@ -464,7 +464,7 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const pickCategory = async (cat: string) => {
     setCidNavBusy(true);
     const items = await cidSearch(cat);
-    setCidNav((cur) => ({ ...cur, cat, codes: items.slice(0, 30) }) as { chapter?: { letter: string; label: string }; cats?: string[]; cat?: string; codes?: { c: string; d: string }[] });
+    setCidNav((cur) => ({ ...cur, cat, codes: items.slice(0, 30) }));
     setCidNavBusy(false);
   };
   const cidChapterOf = (cat: string): string => `${cat[0]}00–${cat[0]}99`;

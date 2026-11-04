@@ -903,6 +903,18 @@ const AppMenu = () => {
   const userStr = typeof localStorage !== 'undefined' ? localStorage.getItem('user') : null;
   const isAdmin = (() => { try { return userStr ? (JSON.parse(userStr)?.role === 'ADMIN') : false; } catch { return false; } })();
   const isDesktop = useMediaQuery((t: any) => t.breakpoints.up('sm'));
+  const [sidebarOpen] = useSidebarState();
+  // Fix 04/11 (dono: "menu abre com a opção no MEIO da tela — confuso"): o scroll
+  // interno do drawer PRESERVAVA a posição da última visita; agora toda ABERTURA
+  // recomeça do TOPO (mobile). rAF: espera o drawer montar/abrir antes de scrollar.
+  useEffect(() => {
+    if (isDesktop || !sidebarOpen) return;
+    const raf = requestAnimationFrame(() => {
+      const paper = document.querySelector('.MuiDrawer-paper');
+      if (paper) paper.scrollTop = 0;
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [sidebarOpen, isDesktop]);
 
   return (
     <Box

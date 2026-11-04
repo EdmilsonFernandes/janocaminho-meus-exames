@@ -5,7 +5,6 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { Collapse } from '@mui/material';
 import { confirmDialog } from '../components/ConfirmDialog';
 import { API_URL, token } from '../config';
 import { useSelectedPatient } from '../patient-context';
@@ -219,7 +218,11 @@ export const VaccinesPage = () => {
             </button>
           </FrameHeader>
 
-          <Collapse in={formOpen}>
+          {/* Fix 04/11 (dono: "abrir quebrado no app"): MUI Collapse mede a altura do
+              conteúdo — com FramePanel/grid interno a medição zera e o form "abre" com
+              altura 0 (invisível) no WebView. Render condicional direto: sem transição,
+              mas SEMPRE visível. Se quiser animação depois: motion com altura auto. */}
+          {formOpen && (
             <FramePanel className="space-y-3.5">
               {/* Sugestões rápidas de imunizantes */}
               <div>
@@ -291,6 +294,7 @@ export const VaccinesPage = () => {
                 </div>
               </div>
             </FramePanel>
+          )}
 
             <FrameFooter className="flex justify-end">
               <button
@@ -303,7 +307,6 @@ export const VaccinesPage = () => {
                 Adicionar à carteira
               </button>
             </FrameFooter>
-          </Collapse>
         </Frame>
 
         {/* CARTEIRA DE VACINAS */}

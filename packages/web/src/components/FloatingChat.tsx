@@ -69,20 +69,24 @@ export const FloatingChat = () => {
           '&:active': { transform: 'scale(.94)' },
         }}
       >
-        {/* AURA teal pulsante (glow borrado — substitui o círculo/borda sólidos) */}
+        {/* AURA teal pulsante — fix 04/11 (dono: "meio borrado, sem perfeição"): blur
+            menor e opacidade mais baixa = halo NÍTIDO em vez de mancha; o robô é a
+            estrela, a aura só sugere profundidade. */}
         <Box sx={{
-          position: 'absolute', inset: -10, borderRadius: '50%', pointerEvents: 'none',
-          background: 'radial-gradient(circle, rgba(32,178,170,.26) 0%, rgba(32,178,170,.10) 45%, transparent 72%)',
-          filter: 'blur(6px)', animation: 'drAura 2.6s ease-in-out infinite',
+          position: 'absolute', inset: -8, borderRadius: '50%', pointerEvents: 'none',
+          background: 'radial-gradient(circle, rgba(32,178,170,.20) 0%, rgba(32,178,170,.07) 42%, transparent 68%)',
+          filter: 'blur(4px)', animation: 'drAura 2.6s ease-in-out infinite',
         }} />
-        {/* Robô + badge ✨ (seguem o cursor no desktop) */}
+        {/* Robô + badge ✨ (seguem o cursor no desktop) — fix 04/11 ("espremido"):
+            size 30 num botão de 46 dá respiro de 8px/aresta; SEM borderRadius artificial
+            (o clip achata o mascote) — a forma do ícone já vem certa. */}
         <Box ref={innerRef} sx={{
           position: 'relative', width: '100%', height: '100%',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           transition: 'transform .25s ease-out', willChange: 'transform',
         }}>
           <Box sx={{ animation: 'drBob 3.4s ease-in-out infinite' }}>
-            <DrExame size={34} sx={{ borderRadius: '26%', filter: 'drop-shadow(0 1px 2px rgba(15,61,58,.20))' }} />
+            <DrExame size={30} sx={{ filter: 'drop-shadow(0 1px 2px rgba(15,61,58,.18))' }} />
           </Box>
           {/* Badge ✨ IA — símbolo universal de inteligência artificial */}
           <Box sx={{

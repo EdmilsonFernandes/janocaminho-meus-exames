@@ -2037,9 +2037,21 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
               medsCount={medsInfo ? medsInfo.medications.filter((m: any) => m.active).length : 0}
               criticalMeds={medsInfo?.critical?.length ?? 0}
               onNavigateToAlterados={(targetTab) => {
+                // Fix 04/11 (dono: "Ver dados não faz nada"): o clique trocava a tab
+                // mas (a) quando o paciente NÃO tem a aba alvo, morria em silêncio;
+                // (b) quando tinha, a troca acontecia FORA da vista (tabs sticky acima).
+                // Agora: troca + scroll suave até as tabs; sem destino → alerta claro.
                 const target = targetTab || 'alterados';
-                if (supportedTabs.includes(target)) { setTab(target); setSelExam(null); }
-                else if (supportedTabs.includes('alterados')) { setTab('alterados'); setSelExam(null); }
+                const dest = supportedTabs.includes(target) ? target : supportedTabs.includes('alterados') ? 'alterados' : null;
+                if (dest) {
+                  setTab(dest);
+                  setSelExam(null);
+                  requestAnimationFrame(() => {
+                    document.getElementById('patient-tabs-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  });
+                } else {
+                  window.alert('Este paciente ainda não compartilhou exames com você — a aba "Alterados" aparece após o compartilhamento.');
+                }
               }}
               onRefreshAnalysis={refreshPatientDetail}
               refreshing={detailLoading}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { plural } from '../../utils/format';
 import {
-  Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Dialog, DialogActions,
+  Autocomplete, Avatar, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Dialog, DialogActions,
   DialogContent, FormControlLabel, IconButton, MenuItem, Stack, Switch, TextField, Typography,
 } from '@mui/material';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
@@ -10,7 +10,7 @@ import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import { useNotify } from 'react-admin';
-import { API_URL, token } from '../../config';
+import { API_URL, token, doctorPhotoUrl } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { hapticLight } from '../../utils/haptic';
 import { INSURANCE_OPERATOR_NAMES, SPECIALTIES } from '../../utils/medicalData';
@@ -328,8 +328,18 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
                 getOptionLabel={(o) => o.doctor.name}
                 renderOption={(props, o) => {
                   const { key, ...rest } = props as any;
+                  // Fix 04/11 (dono: "dropdown sem foto — 3 médicos TÊM foto"): mesmo
+                  // pattern da lista de consultas (photoUrl do vínculo → URL por id).
+                  const photo = (o.doctor as any).photoUrl || (o.doctor.id ? doctorPhotoUrl(o.doctor.id) : undefined);
                   return (
                     <Box component="li" key={key} {...rest}>
+                      <Avatar
+                        src={photo}
+                        alt={o.doctor.name}
+                        sx={{ width: 36, height: 36, mr: 1.25, borderRadius: '50%', fontSize: 14, fontWeight: 800, bgcolor: 'rgba(13,148,136,.12)', color: '#0f766e' }}
+                      >
+                        {o.doctor.name?.charAt(0)?.toUpperCase()}
+                      </Avatar>
                       <Box sx={{ flex: 1 }}>
                         <Typography sx={{ fontWeight: 700, fontSize: 14 }}>{o.doctor.name}</Typography>
                         <Typography variant="caption" color="text.secondary">
