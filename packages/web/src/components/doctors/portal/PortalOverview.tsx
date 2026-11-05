@@ -437,9 +437,14 @@ export const PortalOverview = ({
       </Box>
 
       {/* LAYOUT ASSIMÉTRICO EM 2 COLUNAS (DESKTOP) */}
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1fr 340px' }, gap: 2.5, alignItems: 'flex-start' }}>
-        {/* COLUNA PRINCIPAL (65%) — FILA CLÍNICA */}
-        <Stack spacing={2.5}>
+      {/* Fix 05/11 (dono: "dashboard do médico corta pra direita no celular"): grid
+          track '1fr' tem mínimo AUTOMÁTICO = min-content da coluna — chips nowrap dos
+          filtros empurravam a trilha p/ 478px (104px fora da tela) e o flexWrap dos
+          chips nunca agia. minWidth: 0 nas trilhas força o track ao viewport e o wrap
+          passa a funcionar (QA: 39 elementos right=494 → 0). */}
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'minmax(0, 1fr)', lg: 'minmax(0, 1fr) 340px' }, gap: 2.5, alignItems: 'flex-start' }}>
+        {/* COLUNA PRINCIPAL (65%) — FILA CLÍNICA (minWidth 0: herda o fix do grid) */}
+        <Stack spacing={2.5} sx={{ minWidth: 0 }}>
           {/* PRECISA DE ATENÇÃO — 1 card por paciente com qualquer pendência (zero repetição) */}
           {(patients.length > 0 || unifiedList.length > 0) && (
             <Box>
@@ -841,7 +846,7 @@ export const PortalOverview = ({
         </Stack>
 
         {/* COLUNA LATERAL (35%) — GESTÃO DO CONSULTÓRIO (ReUI Frame Unificado e Enxuto) */}
-        <Stack spacing={2}>
+        <Stack spacing={2} sx={{ minWidth: 0 }}>
           <Frame>
             <FrameHeader className="flex flex-row items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 min-w-0">
