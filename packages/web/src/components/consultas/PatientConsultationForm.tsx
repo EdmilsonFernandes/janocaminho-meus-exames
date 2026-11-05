@@ -13,6 +13,7 @@ import { useNotify } from 'react-admin';
 import { API_URL, token, doctorPhotoUrl } from '../../config';
 import { useSelectedPatient } from '../../patient-context';
 import { hapticLight } from '../../utils/haptic';
+import { SlotPicker } from './SlotPicker';
 import { INSURANCE_OPERATOR_NAMES, SPECIALTIES } from '../../utils/medicalData';
 import type { MyDoctorItem, PatientConsultationItem } from '../../types/consultations';
 
@@ -366,6 +367,17 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
           {/* Quando (ReUI schedule-10: atalhos + calendário + horários) */}
           <Box>
             {sectionLabel('QUANDO')}
+            {/* MOTOR DE SLOTS (item 7, peça 4/4 — lado paciente): grade do médico
+                para o dia selecionado. Médico sem grade → não renderiza (fluxo
+                manual preservado). Toque num livre → preenche a data/hora. */}
+            {fromList && doctor && mode === 'teleconsulta' && (
+              <SlotPicker
+                doctorId={doctor.doctor.id}
+                date={scheduledAt ? new Date(scheduledAt).toISOString().slice(0, 10) : null}
+                selectedIso={scheduledAt || null}
+                onSelect={(iso) => setScheduledAt(iso)}
+              />
+            )}
             <Stack direction="row" spacing={0.75} sx={{ mb: 1.25 }}>
               {([['Hoje', 0], ['Amanhã', 1], ['Próx. semana', 7]] as const).map(([l, days]) => (
                 <Button key={l} size="small" onClick={() => shortcut(days)} sx={{
