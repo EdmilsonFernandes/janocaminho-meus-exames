@@ -124,6 +124,14 @@ router.get('/:id/join', requireJoinIdentity, async (req: JoinRequest, res, next)
         select: { id: true },
       });
       if (!share) { res.status(403).json({ error: 'Sem permissão.' }); return; }
+      // SEGURANÇA (dono 05/11: médico logado no Enrico abriu link da consulta do
+      // Shirane): share autoriza ver DADOS do paciente (portal/summary), mas a SALA é
+      // um ato do médico que agendou — outro médico com share NÃO entra. Legado sem
+      // createdByDoctorId (consulta manual) segue acessível com share.
+      if (reminder.createdByDoctorId && reminder.createdByDoctorId !== req.doctorId) {
+        res.status(403).json({ error: 'Esta consulta pertence a outro médico.' });
+        return;
+      }
     } else {
       const ids = await userPatientIds(req.userId!);
       if (!ids.includes(reminder.patientId)) { res.status(403).json({ error: 'Sem permissão.' }); return; }
