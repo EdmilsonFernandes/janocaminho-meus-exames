@@ -129,8 +129,9 @@ router.post('/', async (req: AuthedRequest, res, next) => {
         const weekday = dayStart.getDay();
 
         const conflict = await prisma.$transaction(async (tx) => {
-          // Row-lock do médico: serializa books do mesmo médico.
-          await tx.$executeRawUnsafe(`UPDATE doctors SET "updatedAt" = now() WHERE id = $1`, doctorId);
+          // Row-lock do médico: serializa books do mesmo médico (Doctor não tem
+          // updatedAt — self-assignment no name trava a linha sem mudar nada).
+          await tx.$executeRawUnsafe(`UPDATE doctors SET name = name WHERE id = $1`, doctorId);
           const windows = await tx.doctorAvailability.findMany({ where: { doctorId, active: true, weekday } });
           const inWindow = windows.some((w) => minutes >= w.startMinutes && minutes + w.slotMinutes <= w.endMinutes && (minutes - w.startMinutes) % w.slotMinutes === 0);
           if (!inWindow) return { code: 'OUT_OF_WINDOW' as const };
@@ -195,7 +196,10 @@ router.post('/', async (req: AuthedRequest, res, next) => {
             title: `Consulta — ${doctorName}`,
             dueDate: scheduledAt,
             note: [item.reason, item.placeName, item.linkUrl].filter(Boolean).join(' · ').slice(0, 500) || null,
-            type: 'consulta',
+            type: mode === 'teleconsulta' ? 'teleconsulta' : 'consulta',
+            // MOTOR DE SLOTS: o conflito busca por createdByDoctorId — sem isto,
+            // o mesmo slot podia ser reservado 2x por pacientes diferentes.
+            ...(mode === 'teleconsulta' && doctorId ? { createdByDoctorId: doctorId } : {}),
           },
         });
         await prisma.patientConsultation.update({ where: { id: item.id }, data: { reminderId: reminder.id } });

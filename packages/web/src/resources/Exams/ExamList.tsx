@@ -49,6 +49,7 @@ import { ExamShow } from './ExamShow';
 import { cleanExtractedLabel } from '../../utils/examDisplay';
 import { openExamFile } from '../../utils/examFile';
 import { RADIUS, SEM, tealText } from '../../theme';
+import { Timeline, TimelineItem, TimelineSeparator, TimelineIndicator, TimelineHeader, TimelineTitle, TimelineDate, TimelineContent } from '@/components/reui/timeline';
 
 // Status de PROCESSAMENTO (não clínico) → chave de paleta (token, sem hex literal).
 const statusColor: Record<string, 'success' | 'error' | 'warning' | 'info' | 'default'> = { EXTRACTED: 'success', FAILED: 'error', UPLOADED: 'warning', EXTRACTING: 'info', REJECTED: 'default' };
@@ -870,6 +871,31 @@ const ExamCards = () => {
           {view === 'category' && lockedCount > 0 && lockCard('cat-lock', `${plural(lockedCount, 'exame')} de anos anteriores fazem parte do histórico Premium.`, lockedCount)}
           {view === 'date' && (
             <>
+              {/* CONTRATO item 5 (decisão dono 05/11): timeline narrativa quando o
+                  usuário tem POUCOS exames (≤6) — a "história de saúde" dele em
+                  vez de cards soltos. Acima dos cards, some sozinha quando cresce. */}
+              {visible.length > 0 && visible.length <= 6 && (
+                <Timeline defaultValue={visible.length}>
+                  {[...visible]
+                    .sort((a: any, b: any) => new Date(b.performedAt ?? b.createdAt).getTime() - new Date(a.performedAt ?? a.createdAt).getTime())
+                    .slice(0, 6)
+                    .map((r: any, i: number) => (
+                      <TimelineItem key={r.id} step={i + 1}>
+                        <TimelineSeparator />
+                        <TimelineIndicator />
+                        <TimelineHeader>
+                          <TimelineTitle>{i === 0 ? 'Mais recente' : `${r.title ?? 'Exame'}`}</TimelineTitle>
+                          <TimelineDate>
+                            {new Date(r.performedAt ?? r.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '')}
+                          </TimelineDate>
+                        </TimelineHeader>
+                        <TimelineContent>
+                          {r.title ?? 'Exame'} {r.itemCount != null && `· ${r.itemCount} valores`}
+                        </TimelineContent>
+                      </TimelineItem>
+                    ))}
+                </Timeline>
+              )}
               {dateGroups.length === 0 && processing.length === 0 && emptyBlock}
               {dateGroups.map((g) => {
                 const locked = !premium && g.year !== latestYear && g.year != null;
