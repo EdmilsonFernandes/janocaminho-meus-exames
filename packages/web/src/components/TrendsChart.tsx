@@ -103,11 +103,34 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
   // o eixo vira numérico (timestamp) e a distância horizontal é proporcional ao tempo real entre
   // coletas — anos "vazios" aparecem como vazio. Algum ponto sem data → cai no eixo antigo.
   const allDated = (ts.points ?? []).length >= 2 && (ts.points ?? []).every((p) => !!p.performedAt);
+  // CONTRATO item 4 (ghost line — maquete chart-6/52): série do ANO ANTERIOR
+  // alinhada por mês civil, plotada em cinza tracejado. Só quando há dados de
+  // ambos os anos (nunca linha fantasma sem dado real).
+  const prevYearData = (ts.points ?? []).filter((p) => {
+    if (!p.performedAt) return false;
+    const t = new Date(p.performedAt).getTime();
+    return t >= winStart - winMs && t < winStart; // janela anterior
+  });
+  const hasGhost = prevYearData.length >= 2 && win !== 'all';
+
   const data = (ts.points ?? []).filter(inWin).map((p, i) => ({
     t: p.performedAt ? new Date(p.performedAt).getTime() : i,
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
     valor: breaks[i] ? null : p.valueNumeric,
     valorDot: p.valueNumeric, flag: p.flag, title: p.title,
+    // ghost: valor do mesmo mês civil no período anterior (null se não há)
+    ghost: hasGhost ? (() => {
+      if (!p.performedAt) return null;
+      const cur = new Date(p.performedAt);
+      const targetMonth = cur.getMonth();
+      const targetYear = cur.getFullYear() - 1;
+      const match = prevYearData.find((pp) => {
+        if (!pp.performedAt) return false;
+        const pd = new Date(pp.performedAt);
+        return pd.getMonth() === targetMonth && pd.getFullYear() === targetYear;
+      });
+      return match ? match.valueNumeric : null;
+    })() : null,
   }));
   const fmtTick = (t: number) => new Date(t).toLocaleDateString('pt-BR', { month: 'short', year: '2-digit' }).replace(' de ', '/').replace('.', '');
 
@@ -378,6 +401,15 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
               E2.5: com métodos mistos, a linha principal fica SEM dots (só o traço, com gaps
               onde o método muda); os dots (TODOS os pontos, isolados incluídos) vêm da série
               "valorDot" — sem linha conectando ensaios diferentes. */}
+          {/* GHOST LINE (contrato item 4 — chart-6/52): ano anterior em cinza
+              tracejado, mesmo mês civil. Só quando há dados de ambos os anos. */}
+          {hasGhost && (
+            <Line
+              type="monotone" dataKey="ghost" stroke="#94a3b8" strokeWidth={1.5}
+              strokeDasharray="6 4" dot={{ r: 2.5, fill: '#94a3b8', strokeWidth: 0 }}
+              connectNulls isAnimationActive={false} legendType="none"
+            />
+          )}
           <Line
             type="monotone" dataKey="valor" stroke={tealMain} strokeWidth={3}
             dot={mixedMethods ? false : renderFlagDot}
