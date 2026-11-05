@@ -175,6 +175,28 @@ router.get('/:id/health-summary', async (req: AuthedRequest, res, next) => {
   } catch (e) { next(e); }
 });
 
+// EXAM-HISTOGRAM (contrato ReUI item 3 — "cards com gráficos internos reais"):
+// contagem de exames EXTRACTED por mês civil na janela (default 12). Alimenta a
+// sparkline do KPI "Exames" do dashboard — número E gráfico, nunca decorativo.
+router.get('/:id/exam-histogram', async (req: AuthedRequest, res, next) => {
+  try {
+    const pids = await userPatientIds(req.userId!);
+    const id = String(req.params.id);
+    if (!pids.includes(id)) { res.status(403).json({ error: 'Paciente não pertence ao usuário' }); return; }
+    const months = Math.min(24, Math.max(3, Number((req.query as any)?.months) || 12));
+    const since = new Date();
+    since.setMonth(since.getMonth() - (months - 1));
+    since.setDate(1); since.setHours(0, 0, 0, 0);
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT date_trunc('month', "performedAt") AS m, COUNT(*)::int AS c
+         FROM exams WHERE "patientId" = $1 AND "performedAt" >= $2 AND status = 'EXTRACTED'
+        GROUP BY 1 ORDER BY 1`,
+      id, since,
+    ) as { m: Date; c: number }[];
+    res.json({ months, items: rows.map((r) => ({ month: new Date(r.m).toISOString().slice(0, 7), count: r.c })) });
+  } catch (e) { next(e); }
+});
+
 // DASHBOARD-SUMMARY (1 round-trip) — consolida os 8 GETs que o Dashboard V2 fazia no load
 // (exams×2, failed, rejected, flag-summary, health-summary, patients, billing). Em 3G o
 // first paint do APK pagava 8 RTTs; agora paga 1. Mesma semântica de cada fonte (drift-zero

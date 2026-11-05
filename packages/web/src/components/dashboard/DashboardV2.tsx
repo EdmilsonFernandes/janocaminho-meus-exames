@@ -155,6 +155,9 @@ function useDashboardData(pid: string | null) {
   // dashboard-summary nem bloqueia `loaded` — o card tem gate de render próprio).
   const [mental, setMental] = useState<MentalLatest | null>(null);
   const [mentalOffline, setMentalOffline] = useState(false);
+  // CONTRATO item 3: histograma de exames/mês (sparkline do KPI "Exames") — dado
+  // real do server; sem dado (conta nova) a sparkline simplesmente não desenha.
+  const [examHistogram, setExamHistogram] = useState<number[]>([]);
 
   useEffect(() => {
     if (!pid) {
@@ -189,6 +192,15 @@ function useDashboardData(pid: string | null) {
           const dm = await r.json();
           setMental({ phq9: dm.phq9 ?? null, gad7: dm.gad7 ?? null, phq9Previous: dm.phq9Previous ?? null, gad7Previous: dm.gad7Previous ?? null });
         } catch { /* silencioso — card mental não é crítico */ }
+      })();
+      // CONTRATO item 3: histograma (sparkline do KPI Exames) — fire-and-forget.
+      (async () => {
+        try {
+          const r = await fetch(`${API_URL}/patients/${pid}/exam-histogram?months=12`, { headers: h });
+          if (!r.ok) return;
+          const d = await r.json();
+          if (Array.isArray(d?.items) && d.items.length >= 2) setExamHistogram(d.items.map((i: any) => Number(i.count) || 0));
+        } catch { /* silencioso — sparkline não é crítica */ }
       })();
       // 1 ROUND-TRIP (antes: 8 GETs paralelos — exams×2, failed, rejected, flag-summary,
       // health-summary, patients, billing). /dashboard-summary consolida tudo no server com
@@ -248,7 +260,7 @@ function useDashboardData(pid: string | null) {
     })();
   }, [pid]);
 
-  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, actions, bodyRegions };
+  return { stats, failed, lastExam, buckets, score, prevScore, importante, moderada, cardioRisk, markerCount, credits, me, loaded, worsened, improved, staleWarning, availability, rejected, bio, bioKdm, bioAvail, hsLoaded, processing, mental, mentalOffline, indices, actions, bodyRegions, examHistogram };
 }
 
 const statusFromScore = (s: number | null): { label: string; tone: 'primary' | 'success' | 'warning' | 'error' } => {
@@ -918,12 +930,15 @@ const MiniArc = ({ percent, color, size = 32 }: { percent: number; color: string
 };
 
 /** Tile de indicador — SOFT BADGE MODERNO (SaaS / Hospital management). */
-const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeBg, badgeColor, arcPercent, arcColor }: {
+const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeBg, badgeColor, arcPercent, arcColor, spark }: {
   icon: ReactNode; label: string; value: string; sub?: string;
   tone: 'error' | 'primary' | 'secondary' | 'success' | 'warning' | 'info' | 'premium';
   onClick: () => void; idx?: number;
   badgeBg?: string; badgeColor?: string;
   arcPercent?: number; arcColor?: string;
+  /** CONTRATO item 3: mini-linha SVG com dado REAL (ex.: exames/mês) — undefined
+   *  significa "sem série" e o tile fica exatamente como era (nada decorativo). */
+  spark?: number[];
 }) => {
   const theme = useTheme();
   const reduced = usePrefersReducedMotion();
@@ -963,6 +978,20 @@ const IndicatorTile = ({ icon, label, value, sub, tone, onClick, idx = 0, badgeB
           <Typography noWrap sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 600, mt: 0.25, overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {sub}
           </Typography>
+        )}
+        {/* CONTRATO item 3: sparkline com série REAL (exames/mês). height fixa 22px,
+            width 100% — o path escala pelos valores; aria-hidden (o número já diz). */}
+        {spark && spark.length >= 2 && (
+          <Box component="svg" viewBox={`0 0 ${Math.max(spark.length - 1, 2)} 10`} preserveAspectRatio="none"
+            aria-hidden="true" sx={{ display: 'block', width: '100%', height: 22, mt: 0.75, opacity: 0.9 }}>
+            <Box component="polyline"
+              fill="none" stroke="#20b2aa" strokeWidth="0.6" strokeLinecap="round" strokeLinejoin="round"
+              points={(() => {
+                const min = Math.min(...spark); const max = Math.max(...spark); const span = max - min || 1;
+                return spark.map((v, i) => `${i},${(9 - ((v - min) / span) * 8).toFixed(2)}`).join(' ');
+              })()}
+            />
+          </Box>
         )}
       </Box>
       <Box className="dx-tile-icon" sx={{
@@ -1542,6 +1571,7 @@ const DashboardV2Inner = () => {
             sub={d.stats.exams === 0 && d.loaded ? 'envie o primeiro'
               : d.stats.abnormal === 0 ? 'todos normais'
               : `${d.stats.abnormal} ${d.stats.abnormal === 1 ? 'alterado' : 'alterados'}`}
+            spark={demo ? [1, 1, 2, 2, 1, 3, 2, 4, 3, 3, 2, 4] : (d as { examHistogram?: number[] }).examHistogram}
             onClick={go('/exams')}
           />
           <BiologicalAgeCard idx={2} bio={d.bio} bioKdm={d.bioKdm} bioAvail={d.bioAvail} bioLoaded={d.hsLoaded} chronoAge={demo ? DEMO_CHRONO_AGE : undefined} />
