@@ -1117,6 +1117,9 @@ model Doctor {
   consultations Consultation[]
   clinicalGoalsSet ClinicalGoal[]
   examRequests ExamRequest[]
+  // MOTOR DE SLOTS (item 7): janelas semanais de atendimento (a grade do paciente
+  // deriva daqui − teleconsultas marcadas).
+  availability DoctorAvailability[]
   // §14.1: resumos pós-consulta que este médico aprovou (ConsultSummary.approvedByDoctorId)
   approvedConsultSummaries ConsultSummary[] @relation("ConsultSummaryApprover")
   // MFA (TOTP 2FA) — mesmo esquema do User
@@ -1932,4 +1935,27 @@ model FeedbackPromptState {
 
   @@unique([subjectType, subjectId, surveyKey])
   @@map("feedback_prompt_states")
+}
+
+// ── MOTOR DE SLOTS (contrato item 7, 05/11): disponibilidade do médico ────────────
+// O médico cadastra JANELAS SEMANAIS recorrentes (ex.: ter/qui 14h–18h, slot 30min).
+// O paciente vê a grade de horários LIVRES (janela − teleconsultas já marcadas) e
+// escolhe; a confirmação revalida transacionalmente (nunca 2 pacientes no mesmo slot).
+// startMinutes/endMinutes: minutos desde 00:00 no fuso do médico (Brasil: offset
+// registrado pra exibição correta; regra de negócio em UTC-3 fixo por ora — o
+// produto é 100% BR). Deleta disponibilidade NÃO cancela agendamentos existentes.
+model DoctorAvailability {
+  id           String   @id @default(cuid())
+  doctorId     String
+  doctor       Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  weekday      Int      // 0=dom … 6=sáb (getDay() local)
+  startMinutes Int      // ex.: 840 = 14:00
+  endMinutes   Int      // ex.: 1080 = 18:00 (exclusivo)
+  slotMinutes  Int      @default(30) // duração de cada horário
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([doctorId, active])
+  @@map("doctor_availability")
 }
