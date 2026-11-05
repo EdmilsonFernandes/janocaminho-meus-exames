@@ -56,6 +56,7 @@ import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import PaymentsIcon from '@mui/icons-material/Payments';
 import ShareIcon from '@mui/icons-material/Share';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
 import { Room, RoomEvent, Track, isBrowserSupported, ConnectionQuality, type LocalVideoTrack, type Participant, type RemoteParticipant, type RemoteTrack, type RemoteTrackPublication, type TrackPublication } from 'livekit-client';
 import { API_URL, APP_WEB_URL, token, photoUrlFor, doctorPhotoUrl } from '../config';
 import { Capacitor } from '@capacitor/core';
@@ -1040,6 +1041,8 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [micDeviceId, setMicDeviceId] = useState('');
   const [micLevel, setMicLevel] = useState(0);
   const [micSilentHint, setMicSilentHint] = useState(false);
+  // ECO HINT (dono 05/11): one-time banner quando mic detecta nível + outro está falando
+  const [audioHintShown, setAudioHintShown] = useState(false);
   const micMeterLowRef = useRef(0);
   useEffect(() => {
     const track = previewStream.current?.getAudioTracks()[0];
@@ -2303,6 +2306,29 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined);
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
+        {/* ECO HINT (dono 05/11): banner one-time no APK — se ambos os microfones
+            estão ativos, o WebView sem fones realimenta (chiado). Some em 6s. */}
+        {Capacitor.isNativePlatform() && micLevel > 0.15 && !audioHintShown && (() => {
+          void setAudioHintShown(true);
+          setTimeout(() => {
+            const el = document.getElementById('dx-eco-hint');
+            if (el) el.style.opacity = '0';
+          }, 6000);
+          return (
+            <Box id="dx-eco-hint" sx={{
+              position: 'absolute', top: 'env(safe-area-inset-top, 12px)', left: '50%', transform: 'translateX(-50%)',
+              display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 0.75,
+              borderRadius: '999px', bgcolor: 'rgba(212,165,116,.15)', border: '1px solid rgba(212,165,116,.3)',
+              backdropFilter: 'blur(8px)', zIndex: 10, maxWidth: '92%',
+              transition: 'opacity .5s ease', pointerEvents: 'none',
+            }}>
+              <HeadphonesIcon sx={{ fontSize: 16, color: '#d4a574', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: '#e0bc97' }}>
+                Dica: use fones ou mute o microfone pra evitar chiado
+              </Typography>
+            </Box>
+          );
+        })()}
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
         {mainHasVideo ? (
           <Box sx={{ position: 'absolute', inset: 0 }}>
@@ -4726,6 +4752,23 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
           )}
           {role === 'doctor' && summary && !summary.consentAt && (
             <Chip size="small" label="Paciente ainda não autorizou" sx={{ mt: 1.5, height: 24, fontSize: 12, fontWeight: 700, bgcolor: 'rgba(217,119,6,.14)', color: '#b45309', borderRadius: '8px' }} />
+          )}
+
+          {/* ECO/ÁUDIO (dono 05/11, pós-consulta real): no APK, o cancelador de eco
+              do WebView é fraco — sem fones, o alto-falante realimenta o microfone
+              e cria chiado. Dica de fones ANTES de entrar (APK apenas; desktop
+              tem AEC por hardware que funciona). */}
+          {Capacitor.isNativePlatform() && (
+            <Box sx={{
+              mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, px: 1.75, py: 1,
+              borderRadius: '12px', bgcolor: 'rgba(212,165,116,.08)', border: '1px solid rgba(212,165,116,.25)',
+            }}>
+              <HeadphonesIcon sx={{ fontSize: 18, color: '#d4a574', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: 'text.secondary', lineHeight: 1.4 }}>
+                <strong style={{ color: 'text.primary' }}>Use fones de ouvido</strong> — no celular sem fones,
+                o som do alto-falante pode realimentar o microfone e causar chiado.
+              </Typography>
+            </Box>
           )}
 
           <Button variant="contained" fullWidth disabled={phase === 'loading' || joinLoading || (camState === 'denied' && micDenied)} onClick={() => void consentAndJoin()} startIcon={joinLoading ? <CircularProgress size={18} sx={{ color: 'rgba(255,255,255,.8)' }} /> : <VideocamIcon />}
