@@ -2774,6 +2774,112 @@ router.put('/finance/payout-details', requireDoctor, async (req: any, res, next)
   } catch (e) { next(e); }
 });
 
+// ── MÉDICO ONLINE (dono 05/11): heartbeat + notificação ─────────────────────────
+// POST /api/doctor/presence — atualiza lastOnlineAt. Na TRANSIÇÃO offline→online
+// (era >5min desde o último heartbeat), notifica pacientes com share ativo:
+// Android = push (FCM), web/iOS = e-mail. Cooldown de 8h por médico→paciente.
+// Só em horário comercial (8h–20h BRT). Médico pode desativar (opt-out).
+router.post('/presence', requireDoctor, async (req: any, res, next) => {
+  try {
+    const now = new Date();
+    const doc = await prisma.doctor.findUnique({ where: { id: req.doctorId }, select: { lastOnlineAt: true, name: true, notifyOnline: true } });
+    if (!doc) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
+
+    const wasOffline = !doc.lastOnlineAt || (now.getTime() - doc.lastOnlineAt.getTime()) > 5 * 60_000;
+    await prisma.doctor.update({ where: { id: req.doctorId }, data: { lastOnlineAt: now } });
+
+    // TRANSIÇÃO: acabou de ficar online → notifica (se opt-in e horário comercial)
+    if (wasOffline && doc.notifyOnline !== false) {
+      const hourBRT = Number(now.toISOString().slice(11, 13)) - 3; // UTC-3
+      if (hourBRT >= 8 && hourBRT < 20) {
+        // Pacientes com share ativo (máx 20 por vez — não spamma carteira gigante)
+        const shares = await prisma.doctorShare.findMany({
+          where: { doctorId: req.doctorId, active: true, OR: [{ expiresAt: null }, { expiresAt: { gt: now } }] },
+          select: { patient: { select: { id: true, fullName: true, owner: { select: { id: true } } } } },
+          take: 20,
+        });
+
+        const firstName = doc.name.replace(/^Dr[aº.]*\s+/i, '').split(' ')[0] || doc.name;
+
+        for (const s of shares) {
+          if (!s.patient?.owner?.id) continue;
+          try {
+            // Cooldown: auditLog com action='DOCTOR_ONLINE_NOTIFIED' nas últimas 8h
+            const recent = await prisma.auditLog.findFirst({
+              where: {
+                action: 'DOCTOR_ONLINE_NOTIFIED',
+                actorType: 'USER', actorId: s.patient.owner.id,
+                targetId: req.doctorId,
+                createdAt: { gte: new Date(now.getTime() - 8 * 3600_000) },
+              },
+              select: { id: true },
+            });
+            if (recent) continue; // já notificado nas últimas 8h
+
+            // Push (FCM) — se o paciente tem device tokens
+            const tokens = await prisma.deviceToken.findMany({
+              where: { userId: s.patient.owner.id },
+              select: { token: true },
+              take: 2,
+            });
+            if (tokens.length > 0) {
+              // push fica num try separado — falha de push não derruba o heartbeat
+              void (async () => {
+                try {
+                  const { getMessaging } = await import('firebase-admin/messaging');
+                  await getMessaging().sendEachForMulticast({
+                    tokens: tokens.map((t) => t.token),
+                    notification: {
+                      title: `🩺 Dr(a). ${firstName} está online`,
+                      body: 'Aquele exame que você queria conversar pode ser discutido agora — que tal marcar?',
+                    },
+                    android: { priority: 'high' },
+                  });
+                } catch { /* push best-effort */ }
+              })();
+            } else {
+              // E-mail (web/iOS sem push)
+              void (async () => {
+                try {
+                  const { sendEmail } = await import('../utils/mailer');
+                  const owner = await prisma.user.findUnique({ where: { id: s.patient.owner.id }, select: { email: true } });
+                  if (owner?.email) {
+                    await sendEmail({
+                      to: owner.email,
+                      subject: `Sua médica está com a agenda aberta — agora`,
+                      html: `<p>Olá, ${s.patient.fullName?.split(' ')[0] || ''}.</p><p>O(a) Dr(a). ${doc.name} acabou de entrar no portal. Se aquela dúvida ainda tá aí, este é um bom momento.</p>`,
+                    });
+                  }
+                } catch { /* email best-effort */ }
+              })();
+            }
+
+            // Registra cooldown
+            await prisma.auditLog.create({
+              data: {
+                action: 'DOCTOR_ONLINE_NOTIFIED',
+                actorType: 'USER', actorId: s.patient.owner.id,
+                targetId: req.doctorId,
+                after: { notifiedAt: now.toISOString() },
+              },
+            }).catch(() => {}); // best-effort
+          } catch { /* notificação individual nunca derruba o heartbeat */ }
+        }
+      }
+    }
+
+    res.json({ online: true, notified: wasOffline });
+  } catch (e) { next(e); }
+});
+
+// Opt-out de notificação "estou online"
+router.put('/presence/opt', requireDoctor, async (req: any, res, next) => {
+  try {
+    await prisma.doctor.update({ where: { id: req.doctorId }, data: { notifyOnline: req.body?.notify === true } });
+    res.json({ notifyOnline: req.body?.notify === true });
+  } catch (e) { next(e); }
+});
+
 // ── MOTOR DE SLOTS (item 7, peça 3/4): GRADE do paciente ────────────────────────
 // GET /api/doctor/availability/:doctorId/slots?date=YYYY-MM-DD — horários do dia:
 // janelas semanais ativas − teleconsultas já marcadas. requireAuth de USUÁRIO

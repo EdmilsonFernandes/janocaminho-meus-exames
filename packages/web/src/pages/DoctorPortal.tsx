@@ -389,6 +389,19 @@ const inlineStat = { display: 'inline-flex', alignItems: 'center', gap: 0.4, ver
 
 const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => void }) => {
   const navigate = useNavigate(); // teleconsulta in-app (P0-reviewer): navega p/ /teleconsulta/:id
+  // MÉDICO ONLINE (dono 05/11): heartbeat a cada 30s enquanto o portal está aberto.
+  // Na transição offline→online, o server notifica pacientes com share ativo
+  // (push Android / e-mail web+iOS). Cooldown 8h, horário comercial, opt-out.
+  useEffect(() => {
+    const beat = () => {
+      if (document.visibilityState === 'visible') {
+        fetch(`${API_URL}/doctor/presence`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+      }
+    };
+    beat(); // imediato no load
+    const iv = setInterval(beat, 30_000);
+    return () => clearInterval(iv);
+  }, [token]);
   const [patients, setPatients] = useState<any[]>([]);
   const [selected, setSelected] = useState<any | null>(null);
   const [tab, setTab] = useState('exams');

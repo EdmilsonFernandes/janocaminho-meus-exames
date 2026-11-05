@@ -1131,6 +1131,10 @@ model Doctor {
   // Dr. Exame Pro (premium) — paywall: pré-consulta, SOAP, export.
   plan              String   @default("free") // free | premium
   planExpiresAt     DateTime?
+  // MÉDICO ONLINE (dono 05/11): heartbeat do portal atualiza; >5min = offline.
+  // Transição offline→online dispara push/email pro paciente com share ativo.
+  lastOnlineAt      DateTime?
+  notifyOnline      Boolean  @default(true) // opt-out: médico desliga "avise meus pacientes"
   freeUsageMonth    String?  // "2026-07" — mês corrente do contador free
   freeUsageCount    Int      @default(0)      // usos de features premium no mês (free tier: 5)
   defaultQuestionLimit Int   @default(5)      // limite padrão de perguntas em aberto pra novos shares (Pro)
