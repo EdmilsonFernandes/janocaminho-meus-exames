@@ -74,6 +74,7 @@ import { DoctorTrends } from '../components/doctors/DoctorTrends';
 import { SportsPanel } from '../components/doctors/portal/SportsPanel';
 import { PatientSummary } from '../components/doctors/PatientSummary';
 import { ClinicalRiskCard } from '../components/doctors/ClinicalRiskCard';
+import { ProntuarioTab } from '../components/doctors/portal/ProntuarioTab';
 // F3 (20/10) — área pós-consulta + pedidos de exame (doc 2026-10-20-f3-ux.md).
 import { TranscriptView } from '../components/teleconsulta/TranscriptView';
 import { ExamRequestCard } from '../components/teleconsulta/ExamRequestCard';
@@ -166,6 +167,7 @@ import { Receipt, Flag, ChartLineUp, FileText, ChatCircle, NotePencil, Stethosco
 import { tealText } from '../theme';
 
 const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
+  prontuario: { label: 'Prontuário', icon: <Stethoscope size={22} weight="duotone" /> },
   exams: { label: 'Exames', icon: <Receipt size={22} weight="duotone" /> },
   alterados: { label: 'Alterados', icon: <Flag size={22} weight="duotone" /> },
   tendencias: { label: 'Tendências', icon: <ChartLineUp size={22} weight="duotone" /> },
@@ -183,7 +185,8 @@ const SCOPE_META: Record<string, { label: string; icon: ReactElement }> = {
  *  aparece no portal (gate único aqui). */
 const computeTabs = (scopes: string[]): string[] => {
   const t: string[] = [];
-  if (scopes.includes('exams')) t.push('exams', 'alterados', 'tendencias');
+  // PRONTUÁRIO (dono 05/11): sempre primeiro — é o documento clínico consolidado
+  if (scopes.includes('exams')) t.push('prontuario', 'exams', 'alterados', 'tendencias');
   if (scopes.includes('summary')) t.push('relatorio');
   if (scopes.includes('sports')) t.push('sports');
   return t;
@@ -2143,6 +2146,20 @@ const DoctorDashboard = ({ token, onLogout }: { token: string; onLogout: () => v
 
             {/* NOVOS BODIES (espelham o app do paciente) — Exames / Alterados / Relatório via
                 componentes dedicados em components/doctors. Perguntas e Anotações seguem inline. */}
+            {/* PRONTUÁRIO (dono 05/11): documento clínico consolidado — primeiro tab */}
+            {tab === 'prontuario' && !selExam && (
+              <ProntuarioTab
+                patient={selected}
+                abnormalItems={abnormalItems}
+                abnormalStats={abnormalStats}
+                exams={exams}
+                medsInfo={medsInfo}
+                notes={notes}
+                teleconsultas={patientTele}
+                questions={questions}
+                loading={detailLoading}
+              />
+            )}
             {tab === 'exams' && !selExam && (
               <DoctorExamList patientId={selected.patient.id} token={token} onOpen={(id) => setSelExam(id)} />
             )}
