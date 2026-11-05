@@ -2774,4 +2774,55 @@ router.put('/finance/payout-details', requireDoctor, async (req: any, res, next)
   } catch (e) { next(e); }
 });
 
+// ── MOTOR DE SLOTS (item 7, peça 2/4): disponibilidade semanal do médico ─────────
+// GET: janelas ativas do médico logado. PUT: substituição ATÔMICA do conjunto
+// (transação delete+create) — o médico edita a semana inteira num save, como a
+// maquete (não há edição linha-a-linha: a grade é derivada, não editada).
+// Validação server-side: weekday 0-6, 0 ≤ start < end ≤ 1440, slot 5-120min,
+// end-start ≥ slot (cabe pelo menos 1 horário), máx. 21 janelas (3/dia).
+router.get('/availability', requireDoctor, async (req: any, res, next) => {
+  try {
+    const items = await prisma.doctorAvailability.findMany({
+      where: { doctorId: req.doctorId, active: true },
+      orderBy: [{ weekday: 'asc' }, { startMinutes: 'asc' }],
+      select: { id: true, weekday: true, startMinutes: true, endMinutes: true, slotMinutes: true },
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
+router.put('/availability', requireDoctor, async (req: any, res, next) => {
+  try {
+    const raw = Array.isArray(req.body?.items) ? req.body.items : null;
+    if (!raw) { res.status(400).json({ error: 'Corpo inválido: { items: [...] }' }); return; }
+    if (raw.length > 21) { res.status(400).json({ error: 'Máximo de 21 janelas por semana.' }); return; }
+    for (const w of raw) {
+      const wd = Number(w?.weekday), s = Number(w?.startMinutes), e = Number(w?.endMinutes), sm = Number(w?.slotMinutes ?? 30);
+      if (!Number.isInteger(wd) || wd < 0 || wd > 6) { res.status(400).json({ error: 'Dia da semana inválido (0-6).' }); return; }
+      if (!Number.isInteger(s) || !Number.isInteger(e) || s < 0 || e > 1440 || s >= e) { res.status(400).json({ error: 'Janela inválida (minutos 00:00–24:00, início < fim).' }); return; }
+      if (!Number.isInteger(sm) || sm < 5 || sm > 120) { res.status(400).json({ error: 'Duração do horário deve ser 5–120 minutos.' }); return; }
+      if (e - s < sm) { res.status(400).json({ error: 'Janela menor que a duração de um horário.' }); return; }
+    }
+    const items = await prisma.$transaction(async (tx) => {
+      await tx.doctorAvailability.deleteMany({ where: { doctorId: req.doctorId } });
+      if (raw.length === 0) return [];
+      return tx.doctorAvailability.createMany({
+        data: raw.map((w: any) => ({
+          doctorId: req.doctorId,
+          weekday: Number(w.weekday),
+          startMinutes: Number(w.startMinutes),
+          endMinutes: Number(w.endMinutes),
+          slotMinutes: Number(w.slotMinutes ?? 30),
+          active: true,
+        })),
+      }).then(() => tx.doctorAvailability.findMany({
+        where: { doctorId: req.doctorId, active: true },
+        orderBy: [{ weekday: 'asc' }, { startMinutes: 'asc' }],
+        select: { id: true, weekday: true, startMinutes: true, endMinutes: true, slotMinutes: true },
+      }));
+    });
+    res.json({ items });
+  } catch (e) { next(e); }
+});
+
 export default router;
