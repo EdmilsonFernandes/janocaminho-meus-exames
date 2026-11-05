@@ -420,7 +420,16 @@ export const MedicosPage = () => {
     .filter((it) => (!pid || it.patientId === pid) && it.share)
     .map((it) => ({ ...it.share, active: it.share.state === 'active', doctor: it.doctor, patientId: it.patientId, createdAt: it.createdAt, __item: it })), [myItems, pid]);
   // Salvos SEM compartilhamento (§1: estar na lista NÃO dá acesso a exames).
-  const semAcesso = useMemo(() => myItems.filter((it) => (!pid || it.patientId === pid) && !it.share), [myItems, pid]);
+  // Fix 05/11 (dono: "Enrico não aparece pra compartilhar" — limpeza de share jogou o
+  // médico p/ cá e a seção era invisível na prática): a BUSCA também acha quem está
+  // sem acesso (antes só filtrava myShares — médico "sumia" ao pesquisar o nome).
+  const semAcessoAll = useMemo(() => myItems.filter((it) => (!pid || it.patientId === pid) && !it.share), [myItems, pid]);
+  const semAcesso = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return semAcessoAll;
+    return semAcessoAll.filter((it) =>
+      (it.doctor?.name || '').toLowerCase().includes(q) || (it.doctor?.crm || '').toLowerCase().includes(q));
+  }, [semAcessoAll, search]);
   const specialties = useMemo(() => [...new Set(myShares.map((s) => s.doctor?.specialty).filter(Boolean))].sort(), [myShares]);
   const filtered = useMemo(() => myShares.filter((s) => {
     const q = search.trim().toLowerCase();
@@ -765,8 +774,10 @@ export const MedicosPage = () => {
       {/* Salvos SEM acesso a exames (§1: "adicionar não concede acesso") */}
       {!loading && semAcesso.length > 0 && (
         <Box sx={{ mb: 3 }}>
-          <Typography sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, fontFamily: 'Poppins, sans-serif' }}>
+          <Typography sx={{ fontWeight: 900, fontSize: 14, color: 'text.primary', mb: 0.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', fontFamily: 'Poppins, sans-serif' }}>
             <span>🔖 Salvos sem acesso ({semAcesso.length})</span>
+            {/* Fix 05/11: era uma seção "morta" no fim da tela — agora grita a ação. */}
+            <Chip size="small" label="toque em Compartilhar para liberar" sx={{ height: 22, fontSize: 11, fontWeight: 800, bgcolor: 'rgba(245,158,11,.14)', color: '#b45309', border: '1px solid rgba(245,158,11,.35)' }} />
           </Typography>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
             Estão na sua lista, mas <strong>não veem seus exames</strong> — compartilhe só quando quiser.
