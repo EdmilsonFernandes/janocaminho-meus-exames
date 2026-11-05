@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { DoctorAvailabilityPanel } from './DoctorAvailabilityPanel';
 import {
   Box,
   CardContent,
@@ -171,6 +172,10 @@ export const PortalTeleconsultas = ({
 
   return (
     <Box sx={{ maxWidth: 1040, mx: 'auto', width: '100%', pb: 4 }}>
+      {/* MOTOR DE SLOTS (item 7, peça 4/4): grade de horários que o médico atende.
+          Antes dos filtros/agenda — é a configuração que habilita o picker do paciente. */}
+      <DoctorAvailabilityPanel />
+
       {/* HEADER DA SEÇÃO */}
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
