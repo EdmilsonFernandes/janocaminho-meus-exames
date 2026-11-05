@@ -328,9 +328,9 @@ export const PatientConsultationForm = ({ open, onClose, onSaved, initial, prefi
                 getOptionLabel={(o) => o.doctor.name}
                 renderOption={(props, o) => {
                   const { key, ...rest } = props as any;
-                  // Fix 04/11 (dono: "dropdown sem foto — 3 médicos TÊM foto"): mesmo
-                  // pattern da lista de consultas (photoUrl do vínculo → URL por id).
-                  const photo = (o.doctor as any).photoUrl || (o.doctor.id ? doctorPhotoUrl(o.doctor.id) : undefined);
+                  // Fix 05/11: photoUrl do payload é REF DE STORAGE (S3 key), não URL —
+                  // src sempre pela rota /doctor/photo/:id (serve/redirect S3, paciente ok).
+                  const photo = o.doctor.id ? doctorPhotoUrl(o.doctor.id) : undefined;
                   return (
                     <Box component="li" key={key} {...rest}>
                       <Avatar

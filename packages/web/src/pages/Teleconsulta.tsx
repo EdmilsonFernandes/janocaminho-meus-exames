@@ -2297,9 +2297,10 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
             || summary?.patientId;
           return pId ? photoUrlFor(String(pId)) : undefined;
         })()
-      // Fix 05/11: PAYLOAD primeiro (photoUrl vem no /summary; a rota doctorPhotoUrl é
-      // fallback — o inverso nunca renderizava a foto do médico pro paciente).
-      : ((summary?.doctor as any)?.photoUrl || (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined));
+      // Fix 05/11 (revisto): photoUrl do payload é REF DE STORAGE (S3 key em prod) —
+      // NÃO serve como src de <img>. Sempre pela rota /doctor/photo/:id (arquivo local
+      // ou redirect S3 presigned; token de paciente aceito — provado no QA local).
+      : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined);
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
         {/* Tile principal: o outro participante (médico, p/ paciente) */}

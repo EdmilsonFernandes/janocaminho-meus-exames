@@ -76,8 +76,12 @@ export const TeleconsultaCard: React.FC = () => {
   // depende de vínculo/share; a rota autenticada /doctor/photo/:id falha 403 p/ médico
   // sem share — agendamentos do próprio paciente — e o card caía na inicial; inconsistente
   // com a Agenda, que usa o payload). Rota vira fallback; sem nada → inicial (safeAvatar).
+  // Fix 05/11 (foto do médico nunca aparecia pro paciente): photoUrl do payload é
+  // REF DE STORAGE (key S3 em prod "/fotos-doctor/..." ou path absoluto) — NÃO é URL
+  // de <img>. src SEMPRE pela rota /doctor/photo/:id (serve arquivo local OU redirect
+  // pro S3 presigned; aceita token de paciente — provado no QA local).
   const docId = tele.item?.doctor?.id || tele.item?.createdByDoctorId;
-  const docPhoto = safeAvatar((tele.item?.doctor as any)?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined), doctorDisplayName);
+  const docPhoto = safeAvatar(docId ? doctorPhotoUrl(String(docId)) : undefined, doctorDisplayName);
 
   return (
     <AppCard

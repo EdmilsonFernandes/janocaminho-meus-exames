@@ -490,7 +490,9 @@ const GoalRingsCard = ({ phq9, lastExamAt, markerCount, altered, onMental, onUpl
   // 1) Bem-estar (PHQ-9 invertido; null = nunca mediceu → convite)
   rings.push(phq9 == null
     ? { pct: null, tone: '#94a3b8', label: 'Bem-estar', value: 'meça em 2 min', on: onMental }
-    : { pct: Math.max(0, Math.min(100, Math.round((1 - phq9 / 27) * 100))), tone: '#20b2aa', label: 'Bem-estar', value: `PHQ-9 ${phq9}/27`, on: onMental });
+    // Spec 05/11: cores DISTINTAS por anel (maquete: bem-estar=índigo, exames=teal,
+    // estáveis=cobre) — um tom só escondia qual meta é qual.
+    : { pct: Math.max(0, Math.min(100, Math.round((1 - phq9 / 27) * 100))), tone: '#6366f1', label: 'Bem-estar', value: `PHQ-9 ${phq9}/27`, on: onMental });
   // 2) Exames em dia (janela 180d — o mesmo critério de "stale" do hero)
   const days = lastExamAt ? Math.floor((Date.now() - new Date(lastExamAt).getTime()) / 86400000) : null;
   rings.push(days == null
@@ -498,7 +500,7 @@ const GoalRingsCard = ({ phq9, lastExamAt, markerCount, altered, onMental, onUpl
     : { pct: Math.max(0, Math.min(100, Math.round((1 - days / 180) * 100))), tone: days > 150 ? '#d97706' : '#20b2aa', label: 'Exames em dia', value: days === 0 ? 'hoje' : `há ${days} dia${days === 1 ? '' : 's'}` });
   // 3) Marcadores estáveis (total − alterados; sem marcadores → convite)
   rings.push(markerCount > 0
-    ? { pct: Math.max(0, Math.round(((markerCount - altered) / markerCount) * 100)), tone: '#20b2aa', label: 'Estáveis', value: `${markerCount - altered}/${markerCount}` }
+    ? { pct: Math.max(0, Math.round(((markerCount - altered) / markerCount) * 100)), tone: '#d4a574', label: 'Estáveis', value: `${markerCount - altered}/${markerCount}` }
     : { pct: null, tone: '#94a3b8', label: 'Estáveis', value: 'sem exames', on: onUpload });
 
   return (

@@ -345,7 +345,9 @@ export const MinhasConsultasPage = () => {
                 ? (r.doctor.name.toLowerCase().startsWith('dr') ? r.doctor.name : `Dr(a). ${r.doctor.name}`)
                 : r.title || 'Consulta médica';
               const ended = r.endedAt ? new Date(r.endedAt) : new Date(r.dueDate);
-              const photo = r.doctor?.photoUrl || (docId ? doctorPhotoUrl(docId) : undefined);
+              // Fix 05/11: photoUrl do payload é ref de STORAGE (S3 key em prod), não
+              // URL de <img> — src sempre pela rota /doctor/photo/:id (paciente pode).
+              const photo = docId ? doctorPhotoUrl(docId) : undefined;
               const crmDisplay = r.doctor?.crm ? `CRM ${r.doctor.crm}${r.doctor?.crmUf ? `-${r.doctor.crmUf}` : ''}` : null;
 
               // Identificação clara do Paciente atendido (Titular vs Dependente).
