@@ -123,10 +123,13 @@ router.post('/', async (req: AuthedRequest, res, next) => {
       });
       if (hasGrade) {
         const slotIso = scheduledAt;
-        const dayStart = new Date(slotIso); dayStart.setHours(0, 0, 0, 0);
-        const dayEnd = new Date(dayStart.getTime() + 86400_000);
-        const minutes = Math.round((slotIso.getTime() - dayStart.getTime()) / 60000);
-        const weekday = dayStart.getDay();
+        // Fix CI (timezone): setHours(0,0,0,0) usa o fuso do SERVIDOR — em UTC os
+        // minutos ficam errados vs BRT. Derivamos sempre em UTC-3 (produto 100% BR):
+        const brtMs = slotIso.getTime() - 3 * 3600_000;
+        const brtDay = new Date(brtMs);
+        const dayStart = new Date(Date.UTC(brtDay.getUTCFullYear(), brtDay.getUTCMonth(), brtDay.getUTCDate()));
+        const minutes = Math.round((brtMs - dayStart.getTime()) / 60000);
+        const weekday = dayStart.getUTCDay();
 
         const conflict = await prisma.$transaction(async (tx) => {
           // Row-lock do médico: serializa books do mesmo médico (Doctor não tem
