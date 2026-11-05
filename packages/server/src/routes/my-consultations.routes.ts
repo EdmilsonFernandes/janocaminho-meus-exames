@@ -111,6 +111,48 @@ router.post('/', async (req: AuthedRequest, res, next) => {
     }
     if (!doctorName) { res.status(400).json({ error: 'Informe o médico da consulta.' }); return; }
 
+    // ── MOTOR DE SLOTS (item 7, peça 3/4): booking com REVALIDAÇÃO ──────────────
+    // Quando o médico TEM grade de disponibilidade e a consulta é TELECONSULTA com
+    // ele, o horário precisa: (1) cair numa janela ativa do médico; (2) estar LIVRE
+    // (nenhuma teleconsulta do médico no mesmo horário). ROW-LOCK do médico serializa
+    // books concorrentes (2 pacientes clicando o mesmo slot: um passa, o outro 409).
+    if (doctorId && mode === 'teleconsulta') {
+      const hasGrade = await prisma.doctorAvailability.findFirst({
+        where: { doctorId, active: true },
+        select: { id: true },
+      });
+      if (hasGrade) {
+        const slotIso = scheduledAt;
+        const dayStart = new Date(slotIso); dayStart.setHours(0, 0, 0, 0);
+        const dayEnd = new Date(dayStart.getTime() + 86400_000);
+        const minutes = Math.round((slotIso.getTime() - dayStart.getTime()) / 60000);
+        const weekday = dayStart.getDay();
+
+        const conflict = await prisma.$transaction(async (tx) => {
+          // Row-lock do médico: serializa books do mesmo médico.
+          await tx.$executeRawUnsafe(`UPDATE doctors SET "updatedAt" = now() WHERE id = $1`, doctorId);
+          const windows = await tx.doctorAvailability.findMany({ where: { doctorId, active: true, weekday } });
+          const inWindow = windows.some((w) => minutes >= w.startMinutes && minutes + w.slotMinutes <= w.endMinutes && (minutes - w.startMinutes) % w.slotMinutes === 0);
+          if (!inWindow) return { code: 'OUT_OF_WINDOW' as const };
+          const clash = await tx.reminder.findFirst({
+            where: { type: 'teleconsulta', createdByDoctorId: doctorId, dueDate: slotIso },
+            select: { id: true },
+          });
+          if (clash) return { code: 'SLOT_TAKEN' as const };
+          return null;
+        });
+
+        if (conflict?.code === 'OUT_OF_WINDOW') {
+          res.status(409).json({ error: 'Este horário está fora da agenda do médico. Escolha um horário disponível.', code: 'SLOT_OUT_OF_WINDOW' });
+          return;
+        }
+        if (conflict?.code === 'SLOT_TAKEN') {
+          res.status(409).json({ error: 'Este horário acabou de ser ocupado. Escolha outro.', code: 'SLOT_TAKEN' });
+          return;
+        }
+      }
+    }
+
     // Exames selecionados: posse validada (nunca aceitar id de outro paciente).
     const examIds = parseExamIds(b.examIds);
     if (examIds.length) {

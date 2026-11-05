@@ -2774,6 +2774,58 @@ router.put('/finance/payout-details', requireDoctor, async (req: any, res, next)
   } catch (e) { next(e); }
 });
 
+// ── MOTOR DE SLOTS (item 7, peça 3/4): GRADE do paciente ────────────────────────
+// GET /api/doctor/availability/:doctorId/slots?date=YYYY-MM-DD — horários do dia:
+// janelas semanais ativas − teleconsultas já marcadas. requireAuth de USUÁRIO
+// (paciente consulta a grade; não exige login de médico). Hoje: corta passado+30min.
+// Timezone: Brasil (UTC-3) — o produto é 100% BR; weekday via meio-dia (à prova de DST).
+router.get('/availability/:doctorId/slots', requireAuth, async (req: AuthedRequest, res, next) => {
+  try {
+    const dateStr = String(req.query?.date ?? '');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) { res.status(400).json({ error: 'date=YYYY-MM-DD obrigatório.' }); return; }
+    const doctorId = String(req.params.doctorId);
+    const doc = await prisma.doctor.findUnique({ where: { id: doctorId }, select: { id: true } });
+    if (!doc) { res.status(404).json({ error: 'Médico não encontrado.' }); return; }
+
+    // Weekday local à prova de DST (meio-dia); janela do dia em UTC-3 fixo.
+    const weekday = new Date(`${dateStr}T12:00:00-03:00`).getUTCDay();
+    const windows = await prisma.doctorAvailability.findMany({
+      where: { doctorId, active: true, weekday },
+      orderBy: { startMinutes: 'asc' },
+    });
+    if (windows.length === 0) { res.json({ date: dateStr, hasAvailability: false, slots: [] }); return; }
+
+    // Dia em minutos UTC-3 (para comparar com now): hoje corta slots já passados +30min.
+    const dayStartUtc = Date.parse(`${dateStr}T00:00:00-03:00`);
+    const nowMs = Date.now();
+
+    // Ocupados: teleconsultas do médico nesse dia (dueDate no intervalo do dia).
+    const busy = await prisma.reminder.findMany({
+      where: {
+        type: 'teleconsulta',
+        createdByDoctorId: doctorId,
+        dueDate: { gte: new Date(dayStartUtc), lt: new Date(dayStartUtc + 86400_000) },
+      },
+      select: { dueDate: true },
+    });
+    const busyMinutes = new Set(busy.map((r) => Math.round((r.dueDate.getTime() - dayStartUtc) / 60000)));
+
+    const slots: { time: string; minutes: number; available: boolean }[] = [];
+    for (const w of windows) {
+      for (let m = w.startMinutes; m + w.slotMinutes <= w.endMinutes; m += w.slotMinutes) {
+        const isToday = nowMs >= dayStartUtc && nowMs < dayStartUtc + 86400_000;
+        const passed = isToday && (dayStartUtc + m * 60000) < nowMs + 30 * 60000;
+        slots.push({
+          time: `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`,
+          minutes: m,
+          available: !passed && !busyMinutes.has(m),
+        });
+      }
+    }
+    res.json({ date: dateStr, hasAvailability: true, slots });
+  } catch (e) { next(e); }
+});
+
 // ── MOTOR DE SLOTS (item 7, peça 2/4): disponibilidade semanal do médico ─────────
 // GET: janelas ativas do médico logado. PUT: substituição ATÔMICA do conjunto
 // (transação delete+create) — o médico edita a semana inteira num save, como a
