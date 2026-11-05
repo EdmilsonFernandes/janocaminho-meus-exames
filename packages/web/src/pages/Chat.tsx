@@ -210,7 +210,11 @@ export const ChatPage = () => {
   }, []);
 
   useEffect(() => {
-    if (kbInset > 0 && scrollRef.current)
+    // CONTRATO item 6 (dono: "ao ler mensagens antigas a tela volta sozinha pro meio"):
+    // este efeito rodava INCONDICIONAL quando o teclado abria — jogava pro fim mesmo
+    // com o usuário lendo o histórico. Agora: só reposiciona quando o usuário já
+    // está perto do fim (nearBottomRef é mantido pelo onScroll do container).
+    if (kbInset > 0 && scrollRef.current && nearBottomRef.current)
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [kbInset]);
 

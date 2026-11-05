@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, Box, Stack, Typography, Tooltip as MuiTooltip, useMediaQuery, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ReferenceLine } from 'recharts';
@@ -55,6 +56,12 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
   const theme = useTheme<Theme>();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const tealMain = theme.palette.primary.main;
+  // CONTRATO item 4 (maquete chart-6): janela da série — 6M/12M/Tudo. Padrão 12M
+  // (foco no que importa); "Tudo" devolve o comportamento antigo (série completa).
+  const [win, setWin] = useState<'6m' | '12m' | 'all'>('12m');
+  const winMs = win === '6m' ? 183 * 86400e3 : win === '12m' ? 365 * 86400e3 : Infinity;
+  const winStart = Date.now() - winMs;
+  const inWin = (p: any) => win === 'all' || !p.performedAt || new Date(p.performedAt).getTime() >= winStart;
   // 28/09 bug bash (dark): shades `.dark` de palette CUSTOM (BRAND) não flipam no dark do
   // MUI — error.dark/info.dark/success.dark = darken(main,30%) nos DOIS modos → ~2:1 sobre
   // paper escuro (valor grande, tendência e "estável" ficavam invisíveis no dark).
@@ -96,7 +103,7 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
   // o eixo vira numérico (timestamp) e a distância horizontal é proporcional ao tempo real entre
   // coletas — anos "vazios" aparecem como vazio. Algum ponto sem data → cai no eixo antigo.
   const allDated = (ts.points ?? []).length >= 2 && (ts.points ?? []).every((p) => !!p.performedAt);
-  const data = (ts.points ?? []).map((p, i) => ({
+  const data = (ts.points ?? []).filter(inWin).map((p, i) => ({
     t: p.performedAt ? new Date(p.performedAt).getTime() : i,
     name: p.performedAt ? new Date(p.performedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: isMobile ? '2-digit' : 'numeric' }) : 's/d',
     valor: breaks[i] ? null : p.valueNumeric,
@@ -286,6 +293,26 @@ export const TrendsChart = ({ ts, action, goal, markers }: { ts: TS; action?: Re
           </Typography>
         )}
       </Box>
+
+      {/* CONTRATO item 4: janela da série (maquete chart-6) — o foco muda sem perder
+          o histórico ("Tudo" devolve a série completa). */}
+      <Stack direction="row" spacing={0.5} sx={{ mb: 0.75 }}>
+        {([['6m', '6M'], ['12m', '12M'], ['all', 'Tudo']] as const).map(([k, l]) => (
+          <Box
+            key={k} component="button" type="button" onClick={() => setWin(k)}
+            sx={{
+              px: 1.5, minHeight: 28, borderRadius: '999px', cursor: 'pointer', font: 'inherit',
+              fontSize: 12, fontWeight: 800, border: '1px solid',
+              borderColor: win === k ? 'transparent' : 'divider',
+              bgcolor: win === k ? 'primary.main' : 'transparent',
+              color: win === k ? '#fff' : 'text.secondary',
+              transition: 'all .15s ease',
+            }}
+          >
+            {l}
+          </Box>
+        ))}
+      </Stack>
 
       {/* Gráfico — linha teal + área verde (faixa de referência). Sem margin negativa (não sangra). */}
       <ResponsiveContainer width="100%" height={isMobile ? 240 : 340}>
