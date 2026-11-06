@@ -1042,7 +1042,19 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
   const [micLevel, setMicLevel] = useState(0);
   const [micSilentHint, setMicSilentHint] = useState(false);
   // ECO HINT (dono 05/11): one-time banner quando mic detecta nível + outro está falando
+  // Fix Sentry (06/11, "Maximum update depth exceeded"): setState DURANTE render
+  // (IIFE no JSX) criava loop com micLevel atualizando → agora em useEffect.
   const [audioHintShown, setAudioHintShown] = useState(false);
+  useEffect(() => {
+    if (Capacitor.isNativePlatform() && micLevel > 0.15 && !audioHintShown) {
+      setAudioHintShown(true);
+      const t = window.setTimeout(() => {
+        const el = document.getElementById('dx-eco-hint');
+        if (el) el.style.opacity = '0';
+      }, 6000);
+      return () => window.clearTimeout(t);
+    }
+  }, [micLevel, audioHintShown]);
   const micMeterLowRef = useRef(0);
   useEffect(() => {
     const track = previewStream.current?.getAudioTracks()[0];
@@ -2306,29 +2318,22 @@ export const TeleconsultaCall = ({ reminderId, onExited }: { reminderId: string;
       : (summary?.doctor?.id ? doctorPhotoUrl(summary.doctor.id) : undefined);
     return (
       <Box sx={{ position: 'fixed', inset: 0, ...CALL_BG_STYLE, zIndex: 1300, overflow: 'hidden', userSelect: 'none' }}>
-        {/* ECO HINT (dono 05/11): banner one-time no APK — se ambos os microfones
-            estão ativos, o WebView sem fones realimenta (chiado). Some em 6s. */}
-        {Capacitor.isNativePlatform() && micLevel > 0.15 && !audioHintShown && (() => {
-          void setAudioHintShown(true);
-          setTimeout(() => {
-            const el = document.getElementById('dx-eco-hint');
-            if (el) el.style.opacity = '0';
-          }, 6000);
-          return (
-            <Box id="dx-eco-hint" sx={{
-              position: 'absolute', top: 'env(safe-area-inset-top, 12px)', left: '50%', transform: 'translateX(-50%)',
-              display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 0.75,
-              borderRadius: '999px', bgcolor: 'rgba(212,165,116,.15)', border: '1px solid rgba(212,165,116,.3)',
-              backdropFilter: 'blur(8px)', zIndex: 10, maxWidth: '92%',
-              transition: 'opacity .5s ease', pointerEvents: 'none',
-            }}>
-              <HeadphonesIcon sx={{ fontSize: 16, color: '#d4a574', flexShrink: 0 }} />
-              <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: '#e0bc97' }}>
-                Dica: use fones ou mute o microfone pra evitar chiado
-              </Typography>
-            </Box>
-          );
-        })()}
+        {/* ECO HINT (dono 05/11): banner one-time no APK — some em 6s. Estado
+            controlado por useEffect (nunca setState no render — Sentry P0). */}
+        {Capacitor.isNativePlatform() && audioHintShown && (
+          <Box id="dx-eco-hint" sx={{
+            position: 'absolute', top: 'env(safe-area-inset-top, 12px)', left: '50%', transform: 'translateX(-50%)',
+            display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 0.75,
+            borderRadius: '999px', bgcolor: 'rgba(212,165,116,.15)', border: '1px solid rgba(212,165,116,.3)',
+            backdropFilter: 'blur(8px)', zIndex: 10, maxWidth: '92%',
+            transition: 'opacity .5s ease', pointerEvents: 'none',
+          }}>
+            <HeadphonesIcon sx={{ fontSize: 16, color: '#d4a574', flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 11.5, fontWeight: 700, color: '#e0bc97' }}>
+              Dica: use fones ou mute o microfone pra evitar chiado
+            </Typography>
+          </Box>
+        )}
         {/* Tile principal: o outro participante (médico, p/ paciente) */}
         {mainHasVideo ? (
           <Box sx={{ position: 'absolute', inset: 0 }}>
