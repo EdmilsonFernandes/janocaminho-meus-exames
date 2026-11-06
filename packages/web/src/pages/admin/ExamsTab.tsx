@@ -28,6 +28,7 @@ import {
 import SearchIcon from '@mui/icons-material/Search';
 import PersonIcon from '@mui/icons-material/Person';
 import BugReportIcon from '@mui/icons-material/BugReport';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -317,22 +318,34 @@ export const ExamsTab = () => {
           severity="warning"
           icon={<WarningAmberIcon />}
           action={
-            <Button
-              color="inherit"
-              size="small"
-              onClick={() => setStatusFilter(statusFilter === 'FAILED' ? 'ALL' : 'FAILED')}
-              sx={{
-                fontWeight: 800,
-                textTransform: 'none',
-                whiteSpace: 'nowrap',
-                bgcolor: 'rgba(245,158,11,0.15)',
-                px: 1.5,
-                borderRadius: '8px',
-                '&:hover': { bgcolor: 'rgba(245,158,11,0.25)' },
-              }}
-            >
-              {statusFilter === 'FAILED' ? 'Ver Todos' : 'Ver com Falha'}
-            </Button>
+            <Stack direction="row" spacing={1}>
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() => setStatusFilter(statusFilter === 'FAILED' ? 'ALL' : 'FAILED')}
+                sx={{
+                  fontWeight: 800,
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  bgcolor: 'rgba(245,158,11,0.15)',
+                  px: 1.5,
+                  borderRadius: '8px',
+                  '&:hover': { bgcolor: 'rgba(245,158,11,0.25)' },
+                }}
+              >
+                {statusFilter === 'FAILED' ? 'Ver Todos' : 'Ver com Falha'}
+              </Button>
+              {/* Dono 06/11: "ao invés de dar F5" — atualiza a lista sem recarregar */}
+              <Button
+                color="primary"
+                size="small"
+                startIcon={<RefreshIcon sx={{ fontSize: 16 }} />}
+                onClick={() => { setErr(false); load(); }}
+                sx={{ fontWeight: 800, textTransform: 'none', borderRadius: '8px', px: 1.5 }}
+              >
+                Atualizar
+              </Button>
+            </Stack>
           }
           sx={{
             mb: 2.5,

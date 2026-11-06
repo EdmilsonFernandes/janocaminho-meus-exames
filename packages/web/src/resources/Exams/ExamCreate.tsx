@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { plural } from '../../utils/format';
 import { Box, Card, CardContent, Button, TextField, Typography, Alert, Chip, Stack, LinearProgress, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Link as MuiLink, IconButton } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 import DocumentScannerIcon from '@mui/icons-material/DocumentScanner';
@@ -737,6 +738,13 @@ export const ExamCreate = () => {
                     <Chip size="small" label="JPG / PNG" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 12 }} />
                     <Chip size="small" label="Até 32 MB" sx={{ bgcolor: 'action.hover', color: 'text.secondary', fontWeight: 600, fontSize: 12 }} />
                   </Stack>
+                  {/* Dono 06/11 (pós-4 novos usuários com pedidos ≠ resultados): aviso
+                      CLARO antes do upload — reduz falha de extração e frustração. */}
+                  <Alert severity="info" icon={<InfoOutlinedIcon sx={{ fontSize: 18 }} />}
+                    sx={{ mt: 1.5, borderRadius: '12px', py: 0.75, '& .MuiAlert-message': { fontSize: 12.5 } }}>
+                    <strong>Envie o RESULTADO do exame</strong> (com valores e faixas), não o pedido
+                    do médico. PDF do laboratório = leitura perfeita.
+                  </Alert>
                 </Box>
               )}
 

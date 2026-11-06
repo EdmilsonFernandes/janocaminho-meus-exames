@@ -1,5 +1,6 @@
 import { prisma } from '../prisma';
 import { config } from '../config';
+import { NotificationService } from '../services/notification';
 import { ExamKind, type ItemFlag } from '@prisma/client';
 import { readPdf, classifyKind, looksLikeMedical } from './pdfutil';
 import { classifyDoc } from './docPatterns';
@@ -121,6 +122,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
       await prisma.exam.update({ where: { id: examId }, data: { status: 'FAILED', failureKind: 'not_a_document', extractionError: cls.reason } });
       await refundUploadOnFailure(examId);
       console.log(`[extraction] ${examId} rejeitado (padrão): ${cls.reason}`);
+      // NOTIFICAÇÃO (dono 06/11): fire-and-forget, nunca bloqueia
+      void NotificationService.examFailed({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName ?? undefined, examTitle: exam.title ?? '—', reason: cls.reason ?? '—' });
       return;
     }
 
@@ -279,6 +282,8 @@ async function runExtractionOnce(examId: string): Promise<void> {
       },
     });
     console.log(`[extraction] exame ${examId} extraído: ${items.length} itens (kind=${kind}, review=${reviewRequired})`);
+    // NOTIFICAÇÃO (dono 06/11): sucesso também informa
+    void NotificationService.examExtracted({ userId: patient?.ownerId ?? undefined, patientName: patient?.fullName, examTitle: title, itemCount: items.length });
     // Extração mudou os dados do paciente → invalida o cache do health-summary na hora
     // (antes: até 5min de score/"o que mudou" defasados após subir exame novo).
     invalidateHealthSummary(exam.patientId);

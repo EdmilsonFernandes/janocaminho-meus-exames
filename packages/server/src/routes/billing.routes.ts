@@ -6,6 +6,7 @@ import { requireAuth, AuthedRequest, userPatientIds } from '../middleware/auth';
 import { CREDIT_COSTS, UPLOAD_RULES } from '../utils/credits';
 import { getSettings, getMonthlyPlan, getEffectivePlanPrice, getCreditPacks, getPremiumPerks } from '../utils/settings';
 import { createSubscriptionCompat, getSubscriptionColumnSupport, updateSubscriptionCompat } from '../utils/subscriptionCompat';
+import { NotificationService } from '../services/notification';
 import { createPixCharge, activePixProvider, pixProviderReady, type PixChargeResult } from '../payments/pix-provider';
 import { cancelStalePendingPixes } from '../jobs/pix-expiry';
 import { approvePendingSubscription, type ApprovalKind } from '../utils/billingApproval';
@@ -374,6 +375,8 @@ router.post('/buy-credits', requireAuth, async (req: AuthedRequest, res, next) =
       const sub = await createSubscriptionCompat({ userId: user.id, amount: pay.price, periodDays: monthlyPlan.periodDays, status: 'PENDING', ...(pay.couponCode ? { couponCode: pay.couponCode, couponDiscountCents: pay.discountCents } : {}) });
       const expires = new Date(Date.now() + 10 * 60 * 1000);
       let charge;
+      // NOTIFICAÇÃO (dono 06/11): PIX gerado — monitorar intenção de pagamento
+      void NotificationService.paymentAttempted({ userId: user.id, amountBrl: pay.price, method: 'PIX', status: 'pending' });
       try {
         charge = await createPixCharge({
           amountBrlCents: Math.round(pay.price * 100),
@@ -771,10 +774,12 @@ router.post('/pay-card', requireAuth, async (req: AuthedRequest, res, next) => {
       // Plano aprova como PLANO (webhook parity); pack como créditos.
       await approvePendingSubscription(sub.id, isPlan ? { type: 'plan' } : { type: 'credits', credits: creditsAmount }, charge.paymentId);
       console.log(`[pay-card] aprovado — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}) ${isPlan ? 'PLANO 30d' : `+${creditsAmount} créditos`}`);
+      void NotificationService.paymentAttempted({ userId: req.userId!, amountBrl: pay.price, method: `cartão ${billingType}`, status: 'approved' });
       res.json({ paymentId: charge.paymentId, status: 'CONFIRMED', approved: true, credits: creditsAmount, plan: isPlan || undefined, discountCents: pay.discountCents || undefined });
       return;
     }
     console.log(`[pay-card] pendente — ${charge.paymentId} (****${cardLast4(card.number)}, ${billingType}, 3DS: ${charge.threeDSUrl ? 'sim' : 'não'})`);
+    void NotificationService.paymentAttempted({ userId: req.userId!, amountBrl: pay.price, method: `cartão ${billingType}`, status: 'pending' });
     res.json({ paymentId: charge.paymentId, status: 'PENDING', approved: false, credits: creditsAmount, plan: isPlan || undefined, threeDSUrl: charge.threeDSUrl });
   } catch (e) { next(e); }
 });
