@@ -66,10 +66,33 @@ export const FAQ_ITEMS = [
   },
 ];
 
+// FAQ médico (dual-funnel — padrão faq-1 da ReUI adaptado): objeções de quem ATENDE.
+// Não entra no JSON-LD da home (o schema continua só com as perguntas de paciente).
+export const FAQ_MEDICO_ITEMS = [
+  {
+    q: 'Sou médico. Como começo?',
+    a: 'Crie a conta com seu CRM: a área fica pronta em minutos e validamos o registro antes de liberar o atendimento — só médico real atende. Configure agenda e PIX, convide seus pacientes por link e os exames já chegam organizados no seu painel.',
+  },
+  {
+    q: 'Como recebo pelas consultas?',
+    a: 'Você define o valor e o paciente paga por PIX no card da consulta — R$ 120 vira R$ 96 no seu PIX, com repasse automático via Asaas (instituição de pagamento regulada pelo Banco Central). No plano Grátis a taxa é de 20%, só quando você recebe; o Pro (R$ 29,90/mês) soma prontuário, SOAP e export em PDF.',
+  },
+  {
+    q: 'A IA escreve o prontuário no meu lugar?',
+    a: 'Não. A transcrição vira um rascunho de SOAP que você revisa e aprova — nada sai sem o seu ok. O uso de IA como apoio fica registrado no documento (Res. CFM 2.454/2026), então o prontuário já nasce regularizado.',
+  },
+  {
+    q: 'Meus pacientes me encontram por aqui?',
+    a: 'Primeiro, os seus: você envia um convite por link e o paciente entra já compartilhando os exames. Além disso, médicos com portal ativo aparecem na busca Encontrar especialistas do app — descoberta, não marketplace: ninguém compra posição.',
+  },
+];
+
 export const FaqSection = () => {
   const navigate = useNavigate();
   const [credits, setCredits] = useState(60);
   const [openIndex, setOpenIndex] = useState<number | false>(0);
+  const [tab, setTab] = useState<'paciente' | 'medico'>('paciente');
+  const items = tab === 'paciente' ? FAQ_ITEMS : FAQ_MEDICO_ITEMS;
   useEffect(() => { fetchPublicConfig().then((c) => setCredits(c.freeSignup)); }, []);
   return (
     <Box sx={{ bgcolor: 'background.paper', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 8, md: 11 } }}>
@@ -89,9 +112,30 @@ export const FaqSection = () => {
           </Box>
         </Reveal>
 
+        {/* Tabs dual-funnel (faq-1): a objeção certa pro público certo */}
+        <Reveal delay={40}>
+          <div className="mb-6 flex justify-center gap-2">
+            {([['paciente', 'Sou paciente'], ['medico', 'Sou médico']] as const).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => { setTab(id); setOpenIndex(0); }}
+                aria-pressed={tab === id}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition-colors cursor-pointer ${
+                  tab === id
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </Reveal>
+
         <Reveal delay={80}>
           <div className="space-y-2.5">
-            {FAQ_ITEMS.map((item, i) => {
+            {items.map((item, i) => {
               const isOpen = openIndex === i;
               return (
                 <div
@@ -134,16 +178,27 @@ export const FaqSection = () => {
         <Reveal delay={120}>
           <Box sx={{ textAlign: 'center', mt: 4.5 }}>
             <Typography sx={{ color: 'text.secondary', fontSize: 15, mb: 1.5 }}>
-              Ainda com dúvidas? Teste sem compromisso na prática.
+              {tab === 'paciente' ? 'Ainda com dúvidas? Teste sem compromisso na prática.' : 'Quer ver o portal funcionando antes de criar conta?'}
             </Typography>
-            <button
-              type="button"
-              onClick={() => navigate('/registrar')}
-              className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
-            >
-              <span>Começar grátis</span>
-              <ArrowRight className="size-4" />
-            </button>
+            {tab === 'paciente' ? (
+              <button
+                type="button"
+                onClick={() => navigate('/registrar')}
+                className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
+              >
+                <span>Começar grátis</span>
+                <ArrowRight className="size-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => navigate('/para-medicos')}
+                className="inline-flex items-center gap-2 rounded-full bg-teal-600 px-6 py-2.5 text-sm font-extrabold text-white shadow-xs transition-all hover:bg-teal-700 hover:shadow-sm cursor-pointer"
+              >
+                <span>Como funciona para médicos</span>
+                <ArrowRight className="size-4" />
+              </button>
+            )}
           </Box>
         </Reveal>
       </Container>

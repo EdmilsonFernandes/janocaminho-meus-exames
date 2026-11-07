@@ -569,10 +569,17 @@ export const ParaMedicosPage: React.FC = () => {
         borderBottom: '1px solid', borderColor: 'divider',
       }}>
         <Container maxWidth="lg" sx={{ px: '0 !important', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <DrExame size={isMobile ? 30 : 34} />
-          <Typography sx={{ fontFamily: (th: Theme) => th.typography.h6.fontFamily, fontWeight: 800, fontSize: { xs: 16, sm: 17 } }}>
-            Dr. Exame
-          </Typography>
+          <Stack
+            direction="row" spacing={1.25} alignItems="center" component="button"
+            onClick={() => navigate('/landing')}
+            aria-label="Voltar para a página inicial do Dr. Exame"
+            sx={{ background: 'none', border: 0, p: 0, cursor: 'pointer', '&:focus-visible': { outline: '2px solid', outlineColor: TEAL, borderRadius: '10px' } }}
+          >
+            <DrExame size={isMobile ? 30 : 34} />
+            <Typography sx={{ fontFamily: (th: Theme) => th.typography.h6.fontFamily, fontWeight: 800, fontSize: { xs: 16, sm: 17 } }}>
+              Dr. Exame
+            </Typography>
+          </Stack>
           <Chip
             size="small"
             sx={{ borderRadius: '10px', fontWeight: 700, color: tealText(t.palette.mode), bgcolor: alpha(TEAL, dark ? 0.14 : 0.1), '& .MuiChip-label': { px: 1.25 } }}
@@ -934,6 +941,12 @@ export const ParaMedicosPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>© 2026 Dr. Exame · sua ferramenta clínica, não seu concorrente</Typography>
           </Stack>
           <Stack direction="row" spacing={2.5}>
+            <Typography
+              component="a" variant="caption" color="text.secondary" href="#/landing"
+              sx={{ fontWeight: 600, textDecoration: 'none', '&:hover': { color: tealText(t.palette.mode) } }}
+            >
+              Área do paciente
+            </Typography>
             <Typography
               component="a" variant="caption" color="text.secondary" href="#/termos"
               sx={{ fontWeight: 600, textDecoration: 'none', '&:hover': { color: tealText(t.palette.mode) } }}

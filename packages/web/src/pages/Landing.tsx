@@ -925,26 +925,36 @@ export const LandingPage = () => {
         </Container>
       </Box>
 
-      {/* MÉDICO — strip compacta (o mega de 4 tabs virou isto: a jornada é do
-          paciente; o portal médico existe e tem link, sem ocupar 170 linhas). */}
-      <Box sx={{ bgcolor: 'background.default', borderTop: '1px solid', borderBottom: '1px solid', borderColor: 'divider', py: { xs: 4, md: 5 } }}>
-        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
-          <Typography sx={{ fontSize: { xs: 17, md: 19 }, fontWeight: 800, color: 'text.primary', fontFamily: '"Poppins",sans-serif' }}>
-            É médico? Veja o <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>brief de cada paciente</Box>, atenda por vídeo e <Box component="span" sx={{ ...SERIF_I, color: '#b88a54' }}>receba no PIX</Box> — sem sair do Dr. Exame.
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: 'text.secondary', mt: 0.75, mb: 0.5, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
-            Valores alterados em destaque, sinais vitais do smartwatch, risco com tendência, rascunho SOAP e as perguntas que o paciente fez no app — gerados por IA, revisados por você. Na teleconsulta, o QuickNote vai direto pro prontuário, você define o valor e o paciente paga por PIX no card da consulta.
-          </Typography>
-          <Typography sx={{ fontSize: 14, color: 'text.secondary', mb: 0.75, maxWidth: 560, mx: 'auto', lineHeight: 1.55 }}>
-            E tem mais: <Box component="b" sx={{ color: '#b88a54' }}>pesquisas clínicas recrutando no Brasil</Box> direto no brief de cada paciente.
-          </Typography>
-          <Typography variant="caption" sx={{ display: 'block', mb: 1.75, color: 'text.secondary', fontWeight: 600 }}>
-            Grátis pra começar · Dr. Exame Pro por R$ 29,90/mês
-          </Typography>
-          <Button variant="outlined" onClick={() => navigate('/para-medicos')} sx={{ borderRadius: '999px', px: 3, textTransform: 'none', fontWeight: 700, borderColor: 'rgba(212,165,116,.5)', color: '#b88a54', '&:hover': { borderColor: '#b88a54', bgcolor: 'rgba(212,165,116,.08)' } }}>
+      {/* MÉDICO — banda premium spotlit (mesma linguagem visual do /para-medicos):
+          prova + CTA no meio da jornada do paciente, sem roubar o eixo de conversão. */}
+      <Box sx={{
+        mx: { xs: 2, sm: 3 }, my: { xs: 5, md: 7 }, borderRadius: { xs: '20px', md: '26px' }, overflow: 'hidden',
+        background: 'radial-gradient(ellipse 90% 70% at 50% -15%, rgba(32,178,170,0.30), transparent 62%), linear-gradient(180deg, #0c1d1c 0%, #0f1818 100%)',
+        border: '1px solid rgba(32,178,170,0.25)',
+        px: { xs: 2.5, sm: 6 }, py: { xs: 5, md: 7 }, textAlign: 'center',
+      }}>
+        <Chip size="small" label="Para médicos" sx={{ mb: 2.5, borderRadius: '10px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 11.5, color: '#d4a574', bgcolor: 'rgba(212,165,116,0.16)', border: '1px solid rgba(212,165,116,0.35)', '& .MuiChip-label': { px: 1.5 } }} />
+        <Typography sx={{ fontSize: { xs: '1.55rem', md: '2.1rem' }, fontWeight: 800, fontFamily: '"Poppins",sans-serif', letterSpacing: '-0.02em', lineHeight: 1.15, color: '#fff', mb: 1.5 }}>
+          É médico? A consulta termina, <Box component="span" sx={{ color: '#5fc9c3' }}>o PIX já chegou.</Box>{' '}
+          <Box component="span" sx={{ ...SERIF_I, color: '#d4a574', fontSize: '1.05em' }}>E o prontuário se escreveu.</Box>
+        </Typography>
+        <Typography sx={{ fontSize: 15, color: 'rgba(232,238,240,0.78)', maxWidth: 640, mx: 'auto', lineHeight: 1.65, mb: 1 }}>
+          Brief de cada paciente antes de entrar — valores alterados, sinais vitais do smartwatch e as perguntas que ele fez no app. Na consulta, o QuickNote vai direto pro prontuário e o paciente paga por <b style={{ color: '#fff' }}>PIX no card da consulta</b>, com repasse automático.
+        </Typography>
+        <Typography sx={{ fontSize: 14, color: 'rgba(232,238,240,0.66)', mb: 2.5 }}>
+          E tem mais: <Box component="b" sx={{ color: '#d4a574' }}>pesquisas clínicas recrutando no Brasil</Box> direto no brief de cada paciente.
+        </Typography>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} justifyContent="center" sx={{ mb: 2 }}>
+          <Button variant="contained" onClick={() => navigate('/para-medicos')} sx={{ borderRadius: '14px', minHeight: 48, px: 3, textTransform: 'none', fontWeight: 800, fontSize: 15, background: 'linear-gradient(135deg,#20b2aa,#178f89)', boxShadow: '0 10px 28px rgba(32,178,170,0.35)' }}>
             Como funciona para médicos →
           </Button>
-        </Container>
+          <Button variant="outlined" onClick={() => navigate('/entrar/medico')} sx={{ borderRadius: '14px', minHeight: 48, px: 3, textTransform: 'none', fontWeight: 700, fontSize: 15, borderColor: 'rgba(255,255,255,0.28)', color: '#fff', '&:hover': { borderColor: '#5fc9c3', bgcolor: 'rgba(32,178,170,0.10)' } }}>
+            Já tenho conta
+          </Button>
+        </Stack>
+        <Typography variant="caption" sx={{ color: 'rgba(232,238,240,0.55)', fontWeight: 600 }}>
+          Grátis pra começar · Pro R$ 29,90/mês · taxa de 20% só quando você recebe
+        </Typography>
       </Box>
 
       {/* SEGURANÇA & LGPD — dado de saúde pede confiança ANTES do preço */}
